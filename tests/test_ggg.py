@@ -18,7 +18,7 @@ import os
 import coord
 import time
 
-from test_helper import do_pickle, assert_raises, timer
+from test_helper import do_pickle, assert_raises, timer, is_ccw, is_ccw_3d
 
 @timer
 def test_direct():
@@ -73,7 +73,7 @@ def test_direct():
 
                 u = d3/d2
                 v = (d1-d2)/d3
-                if (x[jj]-x[ii])*(y[kk]-y[ii]) < (x[kk]-x[ii])*(y[jj]-y[ii]):
+                if not is_ccw(x[ii],y[ii],x[jj],y[jj],x[kk],y[kk]):
                     v = -v
 
                 uindex = np.floor(u / bin_size).astype(int)
@@ -424,9 +424,7 @@ def test_direct_spherical():
 
                 u = d3/d2
                 v = (d1-d2)/d3
-                if ( ((x[jj]-x[ii])*(y[kk]-y[ii]) - (x[kk]-x[ii])*(y[jj]-y[ii])) * z[ii] +
-                     ((y[jj]-y[ii])*(z[kk]-z[ii]) - (y[kk]-y[ii])*(z[jj]-z[ii])) * x[ii] +
-                     ((z[jj]-z[ii])*(x[kk]-x[ii]) - (z[kk]-z[ii])*(x[jj]-x[ii])) * y[ii] ) > 0:
+                if not is_ccw_3d(x[ii],y[ii],z[ii],x[jj],y[jj],z[jj],x[kk],y[kk],z[kk]):
                     v = -v
 
                 uindex = np.floor(u / bin_size).astype(int)
@@ -521,6 +519,355 @@ def test_direct_spherical():
     np.testing.assert_allclose(ggg.gam2i, true_gam2.imag, rtol=1.e-3, atol=1.e-4)
     np.testing.assert_allclose(ggg.gam3r, true_gam3.real, rtol=1.e-3, atol=1.e-4)
     np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-3, atol=1.e-4)
+
+@timer
+def test_direct_cross():
+    # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
+    # This should exactly match the treecorr result if brute=True.
+
+    ngal = 50
+    s = 10.
+    sig_gam = 0.2
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) )
+    w1 = rng.random_sample(ngal)
+    g1_1 = rng.normal(0,sig_gam, (ngal,) )
+    g2_1 = rng.normal(0,sig_gam, (ngal,) )
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1)
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) )
+    w2 = rng.random_sample(ngal)
+    g1_2 = rng.normal(0,sig_gam, (ngal,) )
+    g2_2 = rng.normal(0,sig_gam, (ngal,) )
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2)
+    x3 = rng.normal(0,s, (ngal,) )
+    y3 = rng.normal(0,s, (ngal,) )
+    w3 = rng.random_sample(ngal)
+    g1_3 = rng.normal(0,sig_gam, (ngal,) )
+    g2_3 = rng.normal(0,sig_gam, (ngal,) )
+    cat3 = treecorr.Catalog(x=x3, y=y3, w=w3, g1=g1_3, g2=g2_3)
+
+    min_sep = 1.
+    bin_size = 0.2
+    nrbins = 10
+    min_u = 0.13
+    max_u = 0.89
+    nubins = 5
+    min_v = 0.13
+    max_v = 0.59
+    nvbins = 5
+
+    ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  brute=True)
+    ggg.process(cat1, cat2, cat3, num_threads=2)
+
+    # Figure out the correct answer for each permutation
+    # (We'll need them separately below when we use GGGCrossCorrelation.)
+    true_ntri_123 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_ntri_132 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_ntri_213 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_ntri_231 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_ntri_312 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_ntri_321 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_gam0_123 = np.zeros( (nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam0_132 = np.zeros( (nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam0_213 = np.zeros( (nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam0_231 = np.zeros( (nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam0_312 = np.zeros( (nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam0_321 = np.zeros( (nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam1_123 = np.zeros( (nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam1_132 = np.zeros( (nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam1_213 = np.zeros( (nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam1_231 = np.zeros( (nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam1_312 = np.zeros( (nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam1_321 = np.zeros( (nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam2_123 = np.zeros( (nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam2_132 = np.zeros( (nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam2_213 = np.zeros( (nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam2_231 = np.zeros( (nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam2_312 = np.zeros( (nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam2_321 = np.zeros( (nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam3_123 = np.zeros( (nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam3_132 = np.zeros( (nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam3_213 = np.zeros( (nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam3_231 = np.zeros( (nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam3_312 = np.zeros( (nrbins, nubins, 2*nvbins), dtype=complex)
+    true_gam3_321 = np.zeros( (nrbins, nubins, 2*nvbins), dtype=complex)
+    true_weight_123 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_weight_132 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_weight_213 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_weight_231 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_weight_312 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_weight_321 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    ubin_size = (max_u-min_u) / nubins
+    vbin_size = (max_v-min_v) / nvbins
+    max_sep = min_sep * np.exp(nrbins*bin_size)
+    log_min_sep = np.log(min_sep)
+    for i in range(ngal):
+        for j in range(ngal):
+            for k in range(ngal):
+                dij = np.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2)
+                dik = np.sqrt((x1[i]-x3[k])**2 + (y1[i]-y3[k])**2)
+                djk = np.sqrt((x2[j]-x3[k])**2 + (y2[j]-y3[k])**2)
+                if dij == 0.: continue
+                if dik == 0.: continue
+                if djk == 0.: continue
+                ccw = is_ccw(x1[i],y1[i],x2[j],y2[j],x3[k],y3[k])
+
+                # Rotate shears to coordinates where line connecting to center is horizontal.
+                cenx = (x1[i] + x2[j] + x3[k])/3.
+                ceny = (y1[i] + y2[j] + y3[k])/3.
+
+                expmialpha1 = (x1[i]-cenx) - 1j*(y1[i]-ceny)
+                expmialpha1 /= abs(expmialpha1)
+                expmialpha2 = (x2[j]-cenx) - 1j*(y2[j]-ceny)
+                expmialpha2 /= abs(expmialpha2)
+                expmialpha3 = (x3[k]-cenx) - 1j*(y3[k]-ceny)
+                expmialpha3 /= abs(expmialpha3)
+
+                g1p = (g1_1[i] + 1j*g2_1[i]) * expmialpha1**2
+                g2p = (g1_2[j] + 1j*g2_2[j]) * expmialpha2**2
+                g3p = (g1_3[k] + 1j*g2_3[k]) * expmialpha3**2
+
+                if dij < dik:
+                    if dik < djk:
+                        d3 = dij; d2 = dik; d1 = djk
+                        ii,jj,kk = i,j,k
+                        true_ntri = true_ntri_123
+                        true_gam0 = true_gam0_123
+                        true_gam1 = true_gam1_123
+                        true_gam2 = true_gam2_123
+                        true_gam3 = true_gam3_123
+                        true_weight = true_weight_123
+                    elif dij < djk:
+                        d3 = dij; d2 = djk; d1 = dik
+                        g1p, g2p, g3p = g2p, g1p, g3p
+                        true_ntri = true_ntri_213
+                        true_gam0 = true_gam0_213
+                        true_gam1 = true_gam1_213
+                        true_gam2 = true_gam2_213
+                        true_gam3 = true_gam3_213
+                        true_weight = true_weight_213
+                        ccw = not ccw
+                    else:
+                        d3 = djk; d2 = dij; d1 = dik
+                        g1p, g2p, g3p = g2p, g3p, g1p
+                        true_ntri = true_ntri_231
+                        true_gam0 = true_gam0_231
+                        true_gam1 = true_gam1_231
+                        true_gam2 = true_gam2_231
+                        true_gam3 = true_gam3_231
+                        true_weight = true_weight_231
+                else:
+                    if dij < djk:
+                        d3 = dik; d2 = dij; d1 = djk
+                        g1p, g2p, g3p = g1p, g3p, g2p
+                        true_ntri = true_ntri_132
+                        true_gam0 = true_gam0_132
+                        true_gam1 = true_gam1_132
+                        true_gam2 = true_gam2_132
+                        true_gam3 = true_gam3_132
+                        true_weight = true_weight_132
+                        ccw = not ccw
+                    elif dik < djk:
+                        d3 = dik; d2 = djk; d1 = dij
+                        g1p, g2p, g3p = g3p, g1p, g2p
+                        true_ntri = true_ntri_312
+                        true_gam0 = true_gam0_312
+                        true_gam1 = true_gam1_312
+                        true_gam2 = true_gam2_312
+                        true_gam3 = true_gam3_312
+                        true_weight = true_weight_312
+                    else:
+                        d3 = djk; d2 = dik; d1 = dij
+                        g1p, g2p, g3p = g3p, g2p, g1p
+                        true_ntri = true_ntri_321
+                        true_gam0 = true_gam0_321
+                        true_gam1 = true_gam1_321
+                        true_gam2 = true_gam2_321
+                        true_gam3 = true_gam3_321
+                        true_weight = true_weight_321
+                        ccw = not ccw
+
+                r = d2
+                u = d3/d2
+                v = (d1-d2)/d3
+                if r < min_sep or r >= max_sep: continue
+                if u < min_u or u >= max_u: continue
+                if v < min_v or v >= max_v: continue
+                if not ccw:
+                    v = -v
+                kr = int(np.floor( (np.log(r)-log_min_sep) / bin_size ))
+                ku = int(np.floor( (u-min_u) / ubin_size ))
+                if v > 0:
+                    kv = int(np.floor( (v-min_v) / vbin_size )) + nvbins
+                else:
+                    kv = int(np.floor( (v-(-max_v)) / vbin_size ))
+                assert 0 <= kr < nrbins
+                assert 0 <= ku < nubins
+                assert 0 <= kv < 2*nvbins
+
+                www = w1[i] * w2[j] * w3[k]
+                gam0 = www * g1p * g2p * g3p
+                gam1 = www * np.conjugate(g1p) * g2p * g3p
+                gam2 = www * g1p * np.conjugate(g2p) * g3p
+                gam3 = www * g1p * g2p * np.conjugate(g3p)
+
+                true_ntri[kr,ku,kv] += 1
+                true_weight[kr,ku,kv] += www
+                true_gam0[kr,ku,kv] += gam0
+                true_gam1[kr,ku,kv] += gam1
+                true_gam2[kr,ku,kv] += gam2
+                true_gam3[kr,ku,kv] += gam3
+
+    n_list = [true_ntri_123, true_ntri_132, true_ntri_213, true_ntri_231,
+              true_ntri_312, true_ntri_321]
+    w_list = [true_weight_123, true_weight_132, true_weight_213, true_weight_231,
+              true_weight_312, true_weight_321]
+    g0_list = [true_gam0_123, true_gam0_132, true_gam0_213, true_gam0_231,
+               true_gam0_312, true_gam0_321]
+    g1_list = [true_gam1_123, true_gam1_132, true_gam1_213, true_gam1_231,
+               true_gam1_312, true_gam1_321]
+    g2_list = [true_gam2_123, true_gam2_132, true_gam2_213, true_gam2_231,
+               true_gam2_312, true_gam2_321]
+    g3_list = [true_gam3_123, true_gam3_132, true_gam3_213, true_gam3_231,
+               true_gam3_312, true_gam3_321]
+
+    # With the regular GGGCorrelation class, we end up with the sum of all permutations.
+    true_ntri_sum = sum(n_list)
+    true_weight_sum = sum(w_list)
+    true_gam0_sum = sum(g0_list)
+    true_gam1_sum = sum(g1_list)
+    true_gam2_sum = sum(g2_list)
+    true_gam3_sum = sum(g3_list)
+    pos = true_weight_sum > 0
+    true_gam0_sum[pos] /= true_weight_sum[pos]
+    true_gam1_sum[pos] /= true_weight_sum[pos]
+    true_gam2_sum[pos] /= true_weight_sum[pos]
+    true_gam3_sum[pos] /= true_weight_sum[pos]
+    #print('true_ntri = ',true_ntri_sum)
+    #print('diff = ',ggg.ntri - true_ntri_sum)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
+    np.testing.assert_allclose(ggg.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_sum, rtol=1.e-5)
+
+    # Now normalize each one individually.
+    for w,g0,g1,g2,g3 in zip(w_list, g0_list, g1_list, g2_list, g3_list):
+        pos = w > 0
+        g0[pos] /= w[pos]
+        g1[pos] /= w[pos]
+        g2[pos] /= w[pos]
+        g3[pos] /= w[pos]
+
+    # Repeat with the full CrossCorrelation class, which distinguishes the permutations.
+    gggc = treecorr.GGGCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
+                                        min_u=min_u, max_u=max_u, nubins=nubins,
+                                        min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                        brute=True, verbose=1)
+    gggc.process(cat1, cat2, cat3)
+
+    #print('true_ntri_123 = ',true_ntri_123)
+    #print('diff = ',gggc.g1g2g3.ntri - true_ntri_123)
+    np.testing.assert_array_equal(gggc.g1g2g3.ntri, true_ntri_123)
+    np.testing.assert_array_equal(gggc.g1g3g2.ntri, true_ntri_132)
+    np.testing.assert_array_equal(gggc.g2g1g3.ntri, true_ntri_213)
+    np.testing.assert_array_equal(gggc.g2g3g1.ntri, true_ntri_231)
+    np.testing.assert_array_equal(gggc.g3g1g2.ntri, true_ntri_312)
+    np.testing.assert_array_equal(gggc.g3g2g1.ntri, true_ntri_321)
+    np.testing.assert_allclose(gggc.g1g2g3.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g1g3g2.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g2g1g3.weight, true_weight_213, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g2g3g1.weight, true_weight_231, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g3g1g2.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g3g2g1.weight, true_weight_321, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g1g2g3.gam0, true_gam0_123, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g1g3g2.gam0, true_gam0_132, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g2g1g3.gam0, true_gam0_213, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g2g3g1.gam0, true_gam0_231, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g3g1g2.gam0, true_gam0_312, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g3g2g1.gam0, true_gam0_321, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g1g2g3.gam1, true_gam1_123, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g1g3g2.gam1, true_gam1_132, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g2g1g3.gam1, true_gam1_213, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g2g3g1.gam1, true_gam1_231, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g3g1g2.gam1, true_gam1_312, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g3g2g1.gam1, true_gam1_321, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g1g2g3.gam2, true_gam2_123, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g1g3g2.gam2, true_gam2_132, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g2g1g3.gam2, true_gam2_213, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g2g3g1.gam2, true_gam2_231, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g3g1g2.gam2, true_gam2_312, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g3g2g1.gam2, true_gam2_321, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g1g2g3.gam3, true_gam3_123, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g1g3g2.gam3, true_gam3_132, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g2g1g3.gam3, true_gam3_213, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g2g3g1.gam3, true_gam3_231, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g3g1g2.gam3, true_gam3_312, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g3g2g1.gam3, true_gam3_321, rtol=1.e-5)
+
+    # Repeat with binslop = 0
+    ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=0, verbose=1)
+    ggg.process(cat1, cat2, cat3)
+    #print('binslop > 0: ggg.ntri = ',ggg.ntri)
+    #print('diff = ',ggg.ntri - true_ntri_sum)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
+
+    # And again with no top-level recursion
+    ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=0, verbose=1, max_top=0)
+    ggg.process(cat1, cat2, cat3)
+    #print('max_top = 0: ggg.ntri = ',ggg.ntri)
+    #print('true_ntri = ',true_ntri_sum)
+    #print('diff = ',ggg.ntri - true_ntri_sum)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
+
+    # Check that running via the corr3 script works correctly.
+    config = treecorr.config.read_config('configs/ggg_direct_cross.yaml')
+    cat1.write(config['file_name'])
+    cat2.write(config['file_name2'])
+    cat3.write(config['file_name3'])
+
+    config = treecorr.config.read_config('configs/ggg_direct_cross.yaml')
+    config['verbose'] = 0
+    treecorr.corr3(config)
+    corr3_output = np.genfromtxt(os.path.join('output','ggg_direct_cross.out'), names=True,
+                                    skip_header=1)
+    #print('corr3_output = ',corr3_output)
+    #print('corr3_output.dtype = ',corr3_output.dtype)
+    #print('rnom = ',ggg.rnom.flatten())
+    #print('       ',corr3_output['r_nom'])
+    np.testing.assert_allclose(corr3_output['r_nom'], ggg.rnom.flatten(), rtol=1.e-3)
+    #print('unom = ',ggg.u.flatten())
+    #print('       ',corr3_output['u_nom'])
+    np.testing.assert_allclose(corr3_output['u_nom'], ggg.u.flatten(), rtol=1.e-3)
+    #print('vnom = ',ggg.v.flatten())
+    #print('       ',corr3_output['v_nom'])
+    np.testing.assert_allclose(corr3_output['v_nom'], ggg.v.flatten(), rtol=1.e-3)
+    #print('gam0 = ',ggg.gam0.flatten())
+    #print('      ',corr3_output['gam0'])
+    np.testing.assert_allclose(corr3_output['gam0r'], ggg.gam0r.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['gam1r'], ggg.gam1r.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['gam2r'], ggg.gam2r.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['gam3r'], ggg.gam3r.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['ntri'], ggg.ntri.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['weight'], ggg.weight.flatten(), rtol=1.e-3)
+
+    # Currently not implemented to only have cat2 or cat3
+    with assert_raises(NotImplementedError):
+        ggg.process(cat1, cat2=cat2)
+    with assert_raises(NotImplementedError):
+        ggg.process(cat1, cat3=cat3)
 
 
 @timer

@@ -18,6 +18,7 @@ import os
 import coord
 
 from test_helper import get_script_name, do_pickle, assert_raises, CaptureLog, timer
+from test_helper import is_ccw, is_ccw_3d
 
 @timer
 def test_log_binning():
@@ -514,16 +515,6 @@ def test_log_binning():
     np.testing.assert_almost_equal(nnn.bu, 0.1)
     np.testing.assert_almost_equal(nnn.bv, 0.1)
     np.testing.assert_almost_equal(nnn.bin_slop, 1.0) # The stored bin_slop is just for lnr
-
-
-def is_ccw(x1,y1, x2,y2, x3,y3):
-    # Calculate the cross product of 1->2 with 1->3
-    x2 -= x1
-    x3 -= x1
-    y2 -= y1
-    y3 -= y1
-    return x2*y3-x3*y2 > 0.
-
 
 @timer
 def test_direct_count_auto():
@@ -1481,27 +1472,9 @@ def test_direct_partial():
     np.testing.assert_array_equal(dddb.n3n1n2.ntri, true_ntri_312)
     np.testing.assert_array_equal(dddb.n3n2n1.ntri, true_ntri_321)
 
-
-def is_ccw_3d(x1,y1,z1, x2,y2,z2, x3,y3,z3):
-    # Calculate the cross product of 1->2 with 1->3
-    x2 -= x1
-    x3 -= x1
-    y2 -= y1
-    y3 -= y1
-    z2 -= z1
-    z3 -= z1
-
-    # The cross product:
-    x = y2*z3-y3*z2
-    y = z2*x3-z3*x2
-    z = x2*y3-x3*y2
-
-    # ccw if the cross product is in the opposite direction of (x1,y1,z1) from (0,0,0)
-    return x*x1 + y*y1 + z*z1 < 0.
-
 @timer
 def test_direct_3d_auto():
-    # This is the same as the above test, but using the 3d correlations
+    # This is the same as test_direct_count_auto, but using the 3d correlations
 
     ngal = 50
     s = 10.
@@ -1642,7 +1615,7 @@ def test_direct_3d_auto():
 
 @timer
 def test_direct_3d_cross():
-    # This is the same as the above test, but using the 3d correlations
+    # This is the same as test_direct_count_cross, but using the 3d correlations
 
     ngal = 50
     s = 10.

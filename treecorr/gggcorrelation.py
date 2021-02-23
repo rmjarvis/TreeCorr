@@ -355,7 +355,6 @@ class GGGCorrelation(treecorr.BinnedCorr3):
                                      f1.data, f2.data, self.output_dots,
                                      f1._d, f2._d, self._coords,
                                      self._bintype, self._metric)
-        self.tot += cat1.sumw * cat2.sumw**2 / 2.
 
     def process_cross(self, cat1, cat2, cat3, metric=None, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.

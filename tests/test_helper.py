@@ -251,3 +251,28 @@ def do_pickle(obj1, func=lambda x : x):
     assert obj4 is not obj1
     f4 = func(obj4)
     assert f4 == f1
+
+def is_ccw(x1,y1, x2,y2, x3,y3):
+    # Calculate the cross product of 1->2 with 1->3
+    x2 -= x1
+    x3 -= x1
+    y2 -= y1
+    y3 -= y1
+    return x2*y3-x3*y2 > 0.
+
+def is_ccw_3d(x1,y1,z1, x2,y2,z2, x3,y3,z3):
+    # Calculate the cross product of 1->2 with 1->3
+    x2 -= x1
+    x3 -= x1
+    y2 -= y1
+    y3 -= y1
+    z2 -= z1
+    z3 -= z1
+
+    # The cross product:
+    x = y2*z3-y3*z2
+    y = z2*x3-z3*x2
+    z = x2*y3-x3*y2
+
+    # ccw if the cross product is in the opposite direction of (x1,y1,z1) from (0,0,0)
+    return x*x1 + y*y1 + z*z1 < 0.

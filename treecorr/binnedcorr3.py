@@ -490,14 +490,12 @@ class BinnedCorr3(object):
                     # One point in each of c1, c2, c3
                     self.process_cross(c1,c2,c3, metric, num_threads)
 
-    def _process_all_cross21(self, cat1, cat2, metric, num_threads): # pragma: no cover
+    def _process_all_cross12(self, cat1, cat2, metric, num_threads):
         for c1 in cat1:
-            for c2 in cat2:
-                self.process_cross(c1,c1,c2, metric, num_threads)
-            for c3 in cat1:
-                if c3 is not c1:
-                    self.process_cross(c1,c3,c2, metric, num_threads)
-                    self.process_cross(c3,c1,c2, metric, num_threads)
+            for j,c2 in enumerate(cat2):
+                self.process_cross12(c1,c2, metric, num_threads)
+                for c3 in cat2[j+1:]:
+                    self.process_cross(c1,c2,c3, metric, num_threads)
 
     def _process_all_cross(self, cat1, cat2, cat3, metric, num_threads):
         for c1 in cat1:

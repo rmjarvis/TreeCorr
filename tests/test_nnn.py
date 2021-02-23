@@ -723,6 +723,15 @@ def test_direct_count_auto():
         #print('diff = ',ddd.ntri - true_ntri)
         np.testing.assert_array_equal(d.ntri, true_ntri)
 
+    # Or with 2 argument version, finds each triangle 3 times.
+    ddd.process(cat,cat, num_threads=2)
+    np.testing.assert_array_equal(ddd.ntri, 3*true_ntri)
+
+    # Again, NNNCrossCorrelation gets it right in each permutation.
+    dddc.process(cat,cat, num_threads=2)
+    for d in [dddc.n1n2n3, dddc.n1n3n2, dddc.n2n1n3, dddc.n2n3n1, dddc.n3n1n2, dddc.n3n2n1]:
+        np.testing.assert_array_equal(d.ntri, true_ntri)
+
     # Invalid to omit file_name
     config['verbose'] = 0
     del config['file_name']
@@ -740,6 +749,19 @@ def test_direct_count_auto():
     data = np.genfromtxt(config['nnn_file_name'], names=True, skip_header=1)
     np.testing.assert_array_equal(data['ntri'], true_ntri.flatten())
     assert 'zeta' not in data.dtype.names
+
+    # Do cross with config
+    config['file_name2'] = config['file_name']
+    config['file_name3'] = config['file_name']
+    treecorr.corr3(config)
+    data = np.genfromtxt(os.path.join('output','nnn_direct.out'), names=True, skip_header=1)
+    np.testing.assert_allclose(data['ntri'], 6*true_ntri.flatten())
+
+    # And 1-2 cross
+    del config['file_name3']
+    treecorr.corr3(config)
+    data = np.genfromtxt(os.path.join('output','nnn_direct.out'), names=True, skip_header=1)
+    np.testing.assert_allclose(data['ntri'], 3*true_ntri.flatten())
 
     # Check a few basic operations with a GGCorrelation object.
     do_pickle(ddd)
@@ -1085,25 +1107,14 @@ def test_direct_count_cross():
         treecorr.corr3(config)
     config['rand_file_name3'] = 'data/nnn_direct_cross_rand3.dat'
 
-    # Currently not implemented to only have cat2 or cat3
-    with assert_raises(NotImplementedError):
-        ddd.process(cat1, cat2=cat2)
-    with assert_raises(NotImplementedError):
+    # Error to have cat3, but not cat2
+    with assert_raises(ValueError):
         ddd.process(cat1, cat3=cat3)
-    del config['rand_file_name3']
-    del config['file_name3']
-    print('config = ',config)
-    with assert_raises(NotImplementedError):
-        treecorr.corr3(config)
-    config['file_name3'] = 'data/nnn_direct_cross_data3.dat'
-    config['rand_file_name3'] = 'data/nnn_direct_cross_rand3.dat'
     del config['rand_file_name2']
     del config['file_name2']
     print('config = ',config)
-    with assert_raises(NotImplementedError):
+    with assert_raises(ValueError):
         treecorr.corr3(config)
-    config['file_name2'] = 'data/nnn_direct_cross_data2.dat'
-    config['rand_file_name2'] = 'data/nnn_direct_cross_rand2.dat'
 
 @timer
 def test_direct_spherical():

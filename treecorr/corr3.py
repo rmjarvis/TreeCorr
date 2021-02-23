@@ -134,10 +134,8 @@ def corr3(config, logger=None):
         raise TypeError("rand_file_name2 is invalid without file_name2")
     if cat3 is None and rand3 is not None:
         raise TypeError("rand_file_name3 is invalid without file_name3")
-    if (cat2 is None) != (cat3 is None):
-        raise NotImplementedError(
-            "Cannot yet handle 3-point corrleations with only two catalogs. "+
-            "Need both cat2 and cat3.")
+    if cat2 is None and cat3 is not None:
+        raise ValueError("Cannot provide cat3, but not cat2.")
     logger.info("Done reading input catalogs")
 
     # Do GGG correlation function if necessary

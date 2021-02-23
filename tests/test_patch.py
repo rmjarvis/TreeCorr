@@ -16,6 +16,7 @@ import numpy as np
 import os
 import coord
 import time
+import fitsio
 import treecorr
 
 from test_helper import assert_raises, do_pickle, timer, get_from_wiki
@@ -141,63 +142,58 @@ def test_cat_patches():
         assert cat == cat5b_patches[i]
 
     # 6. Read patch from a column in FITS file
-    try:
-        import fitsio  # noqa: F401
-    except ImportError:
-        print('Skip fitsio tests of patch_col')
-    else:
-        file_name6 = os.path.join('output','test_cat_patches.fits')
-        cat4.write(file_name6)
-        cat6 = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
-                                ra_units='rad', dec_units='rad', patch_col='patch')
-        np.testing.assert_array_equal(cat6.patch, p2)
-        cat6b = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
-                                 ra_units='rad', dec_units='rad', patch_col='patch', patch_ext=1)
-        np.testing.assert_array_equal(cat6b.patch, p2)
-        assert len(cat6.patches) == npatch
-        assert len(cat6b.patches) == npatch
+    file_name6 = os.path.join('output','test_cat_patches.fits')
+    cat4.write(file_name6)
+    cat6 = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
+                            ra_units='rad', dec_units='rad', patch_col='patch')
+    np.testing.assert_array_equal(cat6.patch, p2)
+    cat6b = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
+                             ra_units='rad', dec_units='rad', patch_col='patch', patch_ext=1)
+    np.testing.assert_array_equal(cat6b.patch, p2)
+    assert len(cat6.patches) == npatch
+    assert len(cat6b.patches) == npatch
 
-        # Calling get_patches will not force loading of the file.
-        cat6c = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
-                                 ra_units='rad', dec_units='rad', patch_col='patch')
-        assert not cat6c.loaded
-        cat6c_patches = cat6c.get_patches(low_mem=True)
-        assert cat6c.loaded
-        cat6c._patches = None
-        cat6c_patches2 = cat6c.get_patches(low_mem=True)
-        cat6c._patches = None
-        cat6c_patches3 = cat6c.get_patches(low_mem=False)
-        cat6c._patches = None
-        cat6c_patches4 = cat6c.get_patches()
-        for i in range(4):
-            assert not cat6c_patches[i].loaded
-            assert not cat6c_patches2[i].loaded
-            assert cat6c_patches3[i].loaded
-            assert cat6c_patches4[i].loaded
-            assert np.all(cat6c_patches[i].patch == i)  # Triggers load of patch.
-            np.testing.assert_array_equal(cat6c_patches[i].x, cat6.x[cat6.patch == i])
+    # Calling get_patches will not force loading of the file.
+    cat6c = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
+                             ra_units='rad', dec_units='rad', patch_col='patch')
+    assert not cat6c.loaded
+    cat6c_patches = cat6c.get_patches(low_mem=True)
+    assert cat6c.loaded
+    cat6c._patches = None
+    cat6c_patches2 = cat6c.get_patches(low_mem=True)
+    cat6c._patches = None
+    cat6c_patches3 = cat6c.get_patches(low_mem=False)
+    cat6c._patches = None
+    cat6c_patches4 = cat6c.get_patches()
+    for i in range(4):
+        assert not cat6c_patches[i].loaded
+        assert not cat6c_patches2[i].loaded
+        assert cat6c_patches3[i].loaded
+        assert cat6c_patches4[i].loaded
+        assert np.all(cat6c_patches[i].patch == i)  # Triggers load of patch.
+        np.testing.assert_array_equal(cat6c_patches[i].x, cat6.x[cat6.patch == i])
 
-            cat = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
-                                   ra_units='rad', dec_units='rad', patch_col='patch', patch=i)
-            assert cat.patch == cat6.patches[i].patch
-            np.testing.assert_array_equal(cat.x,cat6.patches[i].x)
-            np.testing.assert_array_equal(cat.y,cat6.patches[i].y)
-            assert cat == cat6.patches[i]
-            assert cat == cat6c_patches[i]
+        cat = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
+                               ra_units='rad', dec_units='rad', patch_col='patch', patch=i)
+        assert cat.patch == cat6.patches[i].patch
+        np.testing.assert_array_equal(cat.x,cat6.patches[i].x)
+        np.testing.assert_array_equal(cat.y,cat6.patches[i].y)
+        assert cat == cat6.patches[i]
+        assert cat == cat6c_patches[i]
 
-            cata = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec', last_row=ngal//2,
-                                    ra_units='rad', dec_units='rad', patch_col='patch', patch=i)
-            catb = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec', first_row=ngal//2+1,
-                                    ra_units='rad', dec_units='rad', patch_col='patch', patch=i)
-            assert cata.patch == i
-            np.testing.assert_array_equal(cata.x,cat6.patches[i].x[:cata.nobj])
-            np.testing.assert_array_equal(cata.y,cat6.patches[i].y[:cata.nobj])
-            np.testing.assert_array_equal(catb.x,cat6.patches[i].x[cata.nobj:])
-            np.testing.assert_array_equal(catb.y,cat6.patches[i].y[cata.nobj:])
+        cata = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec', last_row=ngal//2,
+                                ra_units='rad', dec_units='rad', patch_col='patch', patch=i)
+        catb = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec', first_row=ngal//2+1,
+                                ra_units='rad', dec_units='rad', patch_col='patch', patch=i)
+        assert cata.patch == i
+        np.testing.assert_array_equal(cata.x,cat6.patches[i].x[:cata.nobj])
+        np.testing.assert_array_equal(cata.y,cat6.patches[i].y[:cata.nobj])
+        np.testing.assert_array_equal(catb.x,cat6.patches[i].x[cata.nobj:])
+        np.testing.assert_array_equal(catb.y,cat6.patches[i].y[cata.nobj:])
 
-            # get_patches from a single patch will return a list with just itself.
-            assert cata.get_patches(False) == [cata]
-            assert catb.get_patches(True) == [catb]
+        # get_patches from a single patch will return a list with just itself.
+        assert cata.get_patches(False) == [cata]
+        assert catb.get_patches(True) == [catb]
 
     # 7. Set a single patch number
     cat7 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', patch=3)
@@ -251,18 +247,14 @@ def test_cat_patches():
     with assert_raises(TypeError):
         treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
                          patch=p2)
-    try:
-        # bad patch ext
-        with assert_raises(IOError):
-            treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
-                             ra_units='rad', dec_units='rad', patch_col='patch', patch_ext=2)
-        # bad patch col name for fits
-        with assert_raises(ValueError):
-            treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
-                             ra_units='rad', dec_units='rad', patch_col='patches')
-    except NameError:
-        # file_name6 might not exist if skipped above because of fitsio missing.
-        pass
+    # bad patch ext
+    with assert_raises(IOError):
+        treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
+                         ra_units='rad', dec_units='rad', patch_col='patch', patch_ext=2)
+    # bad patch col name for fits
+    with assert_raises(ValueError):
+        treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
+                         ra_units='rad', dec_units='rad', patch_col='patches')
 
 @timer
 def test_cat_centers():
@@ -412,32 +404,27 @@ def test_cat_centers():
         assert cat == cat15.patches[i]
 
     # Check fits
-    try:
-        import fitsio  # noqa: F401
-    except ImportError:
-        pass
-    else:
-        file_name17 = os.path.join('output','test_cat_centers.fits')
-        cat8.write(file_name17)
-        cat17 = treecorr.Catalog(file_name17, ra_col='ra', dec_col='dec', w_col='w',
-                                 ra_units='rad', dec_units='rad',
-                                 patch_centers=cat8.patch_centers)
-        assert not cat17.loaded
-        cat17_patches = cat17.get_patches(low_mem=True)
-        assert not cat17.loaded  # Unlike above (in test_cat_patches) it's still unloaded.
-        for i in range(4):  # Don't bother with all the patches.  4 suffices to check this.
-            assert not cat17_patches[i].loaded
-            assert np.all(cat17_patches[i].patch == i)  # Triggers load of patch.
-            np.testing.assert_array_equal(cat17_patches[i].ra, cat17.ra[cat17.patch == i])
+    file_name17 = os.path.join('output','test_cat_centers.fits')
+    cat8.write(file_name17)
+    cat17 = treecorr.Catalog(file_name17, ra_col='ra', dec_col='dec', w_col='w',
+                             ra_units='rad', dec_units='rad',
+                             patch_centers=cat8.patch_centers)
+    assert not cat17.loaded
+    cat17_patches = cat17.get_patches(low_mem=True)
+    assert not cat17.loaded  # Unlike above (in test_cat_patches) it's still unloaded.
+    for i in range(4):  # Don't bother with all the patches.  4 suffices to check this.
+        assert not cat17_patches[i].loaded
+        assert np.all(cat17_patches[i].patch == i)  # Triggers load of patch.
+        np.testing.assert_array_equal(cat17_patches[i].ra, cat17.ra[cat17.patch == i])
 
-            cat = treecorr.Catalog(file_name17, ra_col='ra', dec_col='dec', w_col='w',
-                                   ra_units='rad', dec_units='rad',
-                                   patch_centers=cat8.patch_centers, patch=i)
-            assert cat.patch == cat17.patches[i].patch
-            np.testing.assert_array_equal(cat.ra,cat17_patches[i].ra)
-            np.testing.assert_array_equal(cat.dec,cat17_patches[i].dec)
-            assert cat == cat17_patches[i]
-            assert cat == cat17.patches[i]
+        cat = treecorr.Catalog(file_name17, ra_col='ra', dec_col='dec', w_col='w',
+                               ra_units='rad', dec_units='rad',
+                               patch_centers=cat8.patch_centers, patch=i)
+        assert cat.patch == cat17.patches[i].patch
+        np.testing.assert_array_equal(cat.ra,cat17_patches[i].ra)
+        np.testing.assert_array_equal(cat.dec,cat17_patches[i].dec)
+        assert cat == cat17_patches[i]
+        assert cat == cat17.patches[i]
 
     # Check for some invalid values
     # Can't have both patch_centers and another patch specification
@@ -1578,12 +1565,6 @@ def test_kappa_jk():
 def test_save_patches():
     # Test the option to write the patches to disk
 
-    try:
-        import fitsio  # noqa: F401
-    except ImportError:
-        print('Save_patches feature requires fitsio')
-        return
-
     if __name__ == '__main__':
         ngal = 10000
         npatch = 128
@@ -2168,12 +2149,6 @@ def test_brute_jk():
 def test_lowmem():
     # Test using patches to keep the memory usage lower.
 
-    try:
-        import fitsio  # noqa: F401
-    except ImportError:
-        print('test_lowmem requires fitsio and (preferably) guppy')
-        return
-
     if __name__ == '__main__':
         ngal = 2000000
         npatch = 64
@@ -2412,13 +2387,6 @@ def test_lowmem():
 def test_config():
     """Test using npatch and var_method in config file
     """
-    try:
-        import fitsio  # noqa: F401
-    except ImportError:
-        print('Skipping patch config test, since fitsio is not installed')
-        return
-
-
     get_from_wiki('Aardvark.fit')
     file_name = os.path.join('data','Aardvark.fit')
     config = treecorr.read_config('Aardvark.yaml')

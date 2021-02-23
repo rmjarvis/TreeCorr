@@ -17,6 +17,8 @@ import treecorr
 import os
 import sys
 import coord
+import time
+import fitsio
 
 from test_helper import do_pickle, CaptureLog
 from test_helper import assert_raises, timer, assert_warns
@@ -83,12 +85,6 @@ def test_direct():
     print('ng.xi_im = ',ng.xi_im)
     np.testing.assert_allclose(ng.xi, true_xi.real, rtol=1.e-4, atol=1.e-8)
     np.testing.assert_allclose(ng.xi_im, true_xi.imag, rtol=1.e-4, atol=1.e-8)
-
-    try:
-        import fitsio
-    except ImportError:
-        print('Skipping FITS tests, since fitsio is not installed')
-        return
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/ng_direct.yaml')
@@ -265,12 +261,6 @@ def test_direct_spherical():
     print('ng.xi_im = ',ng.xi_im)
     np.testing.assert_allclose(ng.xi, true_xi.real, rtol=1.e-4, atol=1.e-8)
     np.testing.assert_allclose(ng.xi_im, true_xi.imag, rtol=1.e-4, atol=1.e-8)
-
-    try:
-        import fitsio
-    except ImportError:
-        print('Skipping FITS tests, since fitsio is not installed')
-        return
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/ng_direct_spherical.yaml')
@@ -700,12 +690,6 @@ def test_ng():
     np.testing.assert_allclose(xi, true_gt, rtol=0.1)
     np.testing.assert_allclose(xi_im, 0, atol=5.e-3)
 
-    try:
-        import fitsio
-    except ImportError:
-        print('Skipping FITS tests, since fitsio is not installed')
-        return
-
     # Check that we get the same result using the corr2 function:
     lens_cat.write(os.path.join('data','ng_lens.fits'))
     source_cat.write(os.path.join('data','ng_source.fits'))
@@ -893,12 +877,6 @@ def test_nmap():
     np.testing.assert_allclose(corr2_output['NMap_norm'], nmap_norm, rtol=1.e-3)
     np.testing.assert_allclose(corr2_output['Nsq_Mapsq'], napsq_mapsq, rtol=1.e-3)
 
-    try:
-        import fitsio
-    except ImportError:
-        print('Skipping FITS tests, since fitsio is not installed')
-        return
-
     # Also check writing to fits file.
     # For grins, also check the explicit file_type option (which is rarely necessary)
     fits_name = os.path.join('output', 'ng_nmap.zzz')
@@ -1001,13 +979,6 @@ def test_nmap():
 @timer
 def test_pieces():
     # Test that we can do the calculation in pieces and recombine the results
-    try:
-        import fitsio
-    except ImportError:
-        print('Skipping pieces test, since fitsio is not installed')
-        return
-
-    import time
 
     ncats = 3
     nlens = 1000

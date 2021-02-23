@@ -16,6 +16,7 @@ import numpy as np
 import os
 import time
 import coord
+import fitsio
 import treecorr
 
 from test_helper import get_from_wiki, assert_raises, timer
@@ -23,11 +24,6 @@ from test_helper import get_from_wiki, assert_raises, timer
 
 @timer
 def test_dessv():
-    try:
-        import fitsio  # noqa: F401
-    except ImportError:
-        print('Skipping dessv test, since fitsio is not installed')
-        return
 
     #treecorr.set_omp_threads(1);
     get_from_wiki('des_sv.fits')

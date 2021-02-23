@@ -16,6 +16,7 @@ import numpy as np
 import treecorr
 import os
 import coord
+import fitsio
 
 from test_helper import do_pickle, CaptureLog
 from test_helper import assert_raises, timer, assert_warns
@@ -79,12 +80,6 @@ def test_direct():
     print('true_xi = ',true_xi)
     print('kk.xi = ',kk.xi)
     np.testing.assert_allclose(kk.xi, true_xi, rtol=1.e-4, atol=1.e-8)
-
-    try:
-        import fitsio
-    except ImportError:
-        print('Skipping FITS tests, since fitsio is not installed')
-        return
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/kk_direct.yaml')
@@ -230,12 +225,6 @@ def test_direct_spherical():
     print('true_xi = ',true_xi)
     print('kk.xi = ',kk.xi)
     np.testing.assert_allclose(kk.xi, true_xi, rtol=1.e-4, atol=1.e-8)
-
-    try:
-        import fitsio
-    except ImportError:
-        print('Skipping FITS tests, since fitsio is not installed')
-        return
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/kk_direct_spherical.yaml')
@@ -415,12 +404,6 @@ def test_kk():
     print('ratio = ',corr2_output['xi']/kk.xi)
     print('diff = ',corr2_output['xi']-kk.xi)
     np.testing.assert_allclose(corr2_output['xi'], kk.xi, rtol=1.e-3)
-
-    try:
-        import fitsio
-    except ImportError:
-        print('Skipping FITS tests, since fitsio is not installed')
-        return
 
     # Check the fits write option
     out_file_name = os.path.join('output','kk_out.fits')

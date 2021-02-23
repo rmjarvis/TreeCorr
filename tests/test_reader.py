@@ -14,17 +14,13 @@
 import os
 import sys
 import numpy as np
+import fitsio
 
 from treecorr.reader import FitsReader, HdfReader, PandasReader, AsciiReader
 from test_helper import get_from_wiki, assert_raises, timer
 
 @timer
 def test_fits_reader():
-    try:
-        import fitsio  # noqa: F401
-    except ImportError:
-        print('Skipping FitsReader tests, since fitsio not installed.')
-        return
 
     get_from_wiki('Aardvark.fit')
     r = FitsReader(os.path.join('data','Aardvark.fit'))

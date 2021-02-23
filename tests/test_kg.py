@@ -16,6 +16,7 @@ import numpy as np
 import treecorr
 import os
 import coord
+import fitsio
 
 from test_helper import do_pickle, CaptureLog
 from test_helper import assert_raises, timer, assert_warns
@@ -83,12 +84,6 @@ def test_direct():
     print('kg.xi_im = ',kg.xi_im)
     np.testing.assert_allclose(kg.xi, true_xi.real, rtol=1.e-4, atol=1.e-8)
     np.testing.assert_allclose(kg.xi_im, true_xi.imag, rtol=1.e-4, atol=1.e-8)
-
-    try:
-        import fitsio
-    except ImportError:
-        print('Skipping FITS tests, since fitsio is not installed')
-        return
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/kg_direct.yaml')
@@ -258,12 +253,6 @@ def test_direct_spherical():
     print('kg.xi = ',kg.xi)
     np.testing.assert_allclose(kg.xi, true_xi.real, rtol=1.e-4, atol=1.e-8)
     np.testing.assert_allclose(kg.xi_im, true_xi.imag, rtol=1.e-4, atol=1.e-8)
-
-    try:
-        import fitsio
-    except ImportError:
-        print('Skipping FITS tests, since fitsio is not installed')
-        return
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/kg_direct_spherical.yaml')
@@ -535,12 +524,6 @@ def test_kg():
 
     print('xi_im from corr2 output = ',corr2_output['kgamX'])
     np.testing.assert_allclose(corr2_output['kgamX'], 0., atol=1.e-2)
-
-    try:
-        import fitsio
-    except ImportError:
-        print('Skipping FITS tests, since fitsio is not installed')
-        return
 
     # Check the fits write option
     out_file_name1 = os.path.join('output','kg_out1.fits')

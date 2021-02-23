@@ -18,6 +18,7 @@ import os
 import coord
 import time
 import shutil
+import fitsio
 
 from test_helper import get_script_name, do_pickle, CaptureLog
 from test_helper import assert_raises, timer, assert_warns
@@ -619,12 +620,6 @@ def test_direct_count():
     with assert_raises(ValueError):
         dd7.process(cat1, cat2, metric='Rlens')
 
-    try:
-        import fitsio  # noqa: F401
-    except ImportError:
-        print('Skipping FITS tests, since fitsio is not installed')
-        return
-
     # For this one, also check that it automatically makes the directory if necessary.
     shutil.rmtree('output/tmp', ignore_errors=True)
     fits_name = 'output/tmp/dd_fits.fits'
@@ -701,12 +696,6 @@ def test_direct_spherical():
     print('true_weight = ',true_weight)
     print('diff = ',dd.weight - true_weight)
     np.testing.assert_allclose(dd.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-
-    try:
-        import fitsio
-    except ImportError:
-        print('Skipping FITS tests, since fitsio is not installed')
-        return
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/nn_direct_spherical.yaml')
@@ -1319,12 +1308,6 @@ def test_nn():
     assert dd2.sep_units == dd.sep_units
     assert dd2.bin_type == dd.bin_type
 
-    try:
-        import fitsio
-    except ImportError:
-        print('Skipping FITS tests, since fitsio is not installed')
-        return
-
     # Check the fits write option
     out_file_name1 = os.path.join('output','nn_out1.fits')
     dd.write(out_file_name1)
@@ -1522,12 +1505,6 @@ def test_3d():
     np.testing.assert_allclose(xi, true_xi, rtol=0.1*tol_factor)
     np.testing.assert_allclose(np.log(np.abs(xi)), np.log(np.abs(true_xi)),
                                rtol=0.1*tol_factor)
-
-    try:
-        import fitsio
-    except ImportError:
-        print('Skipping FITS tests, since fitsio is not installed')
-        return
 
     # Check that we get the same result using the corr2 function:
     cat.write(os.path.join('data','nn_3d_data.dat'))

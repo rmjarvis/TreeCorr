@@ -21,7 +21,9 @@ import gc
 import copy
 import pickle
 from numpy import pi
+import fitsio
 import treecorr
+import h5py
 
 from test_helper import get_from_wiki, CaptureLog, assert_raises, do_pickle, timer, assert_warns
 
@@ -467,20 +469,10 @@ def test_ascii():
 
 @timer
 def test_fits():
-    try:
-        import fitsio  # noqa: F401
-    except ImportError:
-        print('Skipping FITS tests, since fitsio is not installed')
-        return
     _test_fits_hdf('Aardvark.fit')
 
 @timer
 def test_hdf5():
-    try:
-        import h5py  # noqa: F401
-    except ImportError:
-        print("Skipping HDF5 tests, since h5py is not installed")
-        return
     _test_fits_hdf('Aardvark.hdf5')
 
 
@@ -695,11 +687,6 @@ def _test_fits_hdf(filename):
 
 @timer
 def test_ext():
-    try:
-        import fitsio
-    except ImportError:
-        print('Skipping FITS tests, since fitsio is not installed')
-        return
 
     ngal = 200
     s = 10.
@@ -959,11 +946,6 @@ def test_ext():
 @timer
 def test_hdu():
     # Repeat test_ext, but with deprecated hdu names.
-    try:
-        import fitsio
-    except ImportError:
-        print('Skipping FITS tests, since fitsio is not installed')
-        return
 
     ngal = 200
     s = 10.
@@ -1635,12 +1617,6 @@ def test_write():
     assert cat2r_asc.g1 is None
     assert cat2r_asc.g2 is None
     assert cat2r_asc.k is None
-
-    try:
-        import fitsio  # noqa: F401
-    except ImportError:
-        print('Skipping FITS tests, since fitsio is not installed')
-        return
 
     # Test FITS output
     cat1.write(os.path.join('output','cat1.fits'), file_type='FITS')

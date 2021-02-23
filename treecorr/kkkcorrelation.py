@@ -229,9 +229,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
             self.logger.info('Starting process KKK auto-correlations for cat %s.', cat.name)
 
         self._set_metric(metric, cat.coords)
-
         self._set_num_threads(num_threads)
-
         min_size, max_size = self._get_minmax_size()
 
         field = cat.getKField(min_size, max_size, self.split_method,
@@ -269,9 +267,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
                              cat1.name, cat2.name)
 
         self._set_metric(metric, cat1.coords, cat2.coords)
-
         self._set_num_threads(num_threads)
-
         min_size, max_size = self._get_minmax_size()
 
         f1 = cat1.getKField(min_size, max_size, self.split_method,
@@ -286,7 +282,6 @@ class KKKCorrelation(treecorr.BinnedCorr3):
                                      f1.data, f2.data, self.output_dots,
                                      f1._d, f2._d, self._coords,
                                      self._bintype, self._metric)
-        self.tot += cat1.sumw * cat2.sumw**2 / 2.
 
     def process_cross(self, cat1, cat2, cat3, metric=None, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
@@ -314,9 +309,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
                              cat1.name, cat2.name, cat3.name)
 
         self._set_metric(metric, cat1.coords, cat2.coords, cat3.coords)
-
         self._set_num_threads(num_threads)
-
         min_size, max_size = self._get_minmax_size()
 
         f1 = cat1.getKField(min_size, max_size, self.split_method,
@@ -434,8 +427,8 @@ class KKKCorrelation(treecorr.BinnedCorr3):
 
         - If only 1 argument is given, then compute an auto-correlation function.
         - If 2 arguments are given, then compute a cross-correlation function with the
-          first catalog taking two corners of the triangles. (Not implemented yet.)
-        - If 3 arguments are given, then compute a cross-correlation function.
+          first catalog taking one corner of the triangles, and the second taking two corners.
+        - If 3 arguments are given, then compute a three-way cross-correlation function.
 
         All arguments may be lists, in which case all items in the list are used
         for that element of the correlation.
@@ -467,16 +460,22 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         if cat2 is not None and not isinstance(cat2,list): cat2 = cat2.get_patches()
         if cat3 is not None and not isinstance(cat3,list): cat3 = cat3.get_patches()
 
-        if cat2 is None and cat3 is None:
+        if cat2 is None:
+            if cat3 is not None:
+                raise ValueError("For two catalog case, use cat1,cat2, not cat1,cat3")
             vark1 = treecorr.calculateVarK(cat1)
             vark2 = vark1
             vark3 = vark1
             self.logger.info("vark = %f: sig_k = %f",vark1,math.sqrt(vark1))
             self._process_all_auto(cat1, metric, num_threads)
-        elif (cat2 is None) != (cat3 is None):
-            raise NotImplementedError("No partial cross GGG yet.")
+        elif cat3 is None:
+            vark1 = treecorr.calculateVarK(cat1)
+            vark2 = treecorr.calculateVarK(cat2)
+            vark3 = vark2
+            self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
+            self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
+            self._process_all_cross12(cat1, cat2, metric, num_threads)
         else:
-            assert cat2 is not None and cat3 is not None
             vark1 = treecorr.calculateVarK(cat1)
             vark2 = treecorr.calculateVarK(cat2)
             vark3 = treecorr.calculateVarK(cat3)
@@ -673,7 +672,7 @@ class KKKCrossCorrelation(treecorr.BinnedCorr3):
                         arguments, which may be passed either directly or in the config dict.
     """
     def __init__(self, config=None, logger=None, **kwargs):
-        """Initialize `KKKCorrelation`.  See class doc for details.
+        """Initialize `KKKCrossCorrelation`.  See class doc for details.
         """
         treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
 
@@ -729,6 +728,59 @@ class KKKCrossCorrelation(treecorr.BinnedCorr3):
     def __repr__(self):
         return 'KKKCrossCorrelation(config=%r)'%self.config
 
+    def process_cross12(self, cat1, cat2, metric=None, num_threads=None):
+        """Process two catalogs, accumulating the 3pt cross-correlation, where one of the
+        points in each triangle come from the first catalog, and two come from the second.
+
+        This accumulates the cross-correlation for the given catalogs.  After
+        calling this function as often as desired, the `finalize` command will
+        finish the calculation of meand1, meanlogd1, etc.
+
+        .. note::
+
+            This only adds to the attributes k1k2k3, k2k1k3, k2k3k1, not the ones where
+            3 comes before 2.  When running this via the regular `process` method, it will
+            combine them at the end to make sure k1k2k3 == k1k3k2, etc. for a complete
+            calculation of the 1-2 cross-correlation.
+
+        Parameters:
+            cat1 (Catalog):     The first catalog to process. (1 point in each triangle will come
+                                from this catalog.)
+            cat2 (Catalog):     The second catalog to process. (2 points in each triangle will come
+                                from this catalog.)
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
+        """
+        if cat1.name == '' and cat2.name == '':
+            self.logger.info('Starting process KKK (1-2) cross-correlations')
+        else:
+            self.logger.info('Starting process KKK (1-2) cross-correlations for cats %s, %s.',
+                             cat1.name, cat2.name)
+
+        self._set_metric(metric, cat1.coords, cat2.coords)
+        self.k1k2k3._set_metric(self.metric, self.coords)
+        self.k2k1k3._set_metric(self.metric, self.coords)
+        self.k2k3k1._set_metric(self.metric, self.coords)
+        self._set_num_threads(num_threads)
+        min_size, max_size = self._get_minmax_size()
+
+        f1 = cat1.getKField(min_size, max_size, self.split_method,
+                            bool(self.brute), self.min_top, self.max_top, self.coords)
+        f2 = cat2.getKField(min_size, max_size, self.split_method,
+                            bool(self.brute), self.min_top, self.max_top, self.coords)
+
+        self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
+        # Note: all 3 correlation objects are the same.  Thus, all triangles will be placed
+        # into self.corr, whichever way the three catalogs are permuted for each triangle.
+        treecorr._lib.ProcessCross12(self.k1k2k3.corr, self.k2k1k3.corr, self.k2k3k1.corr,
+                                     f1.data, f2.data, self.output_dots,
+                                     f1._d, f2._d, self._coords,
+                                     self._bintype, self._metric)
+
     def process_cross(self, cat1, cat2, cat3, metric=None, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
 
@@ -754,9 +806,13 @@ class KKKCrossCorrelation(treecorr.BinnedCorr3):
                              cat1.name, cat2.name, cat3.name)
 
         self._set_metric(metric, cat1.coords, cat2.coords, cat3.coords)
-
+        self.k1k2k3._set_metric(self.metric, self.coords)
+        self.k1k3k2._set_metric(self.metric, self.coords)
+        self.k2k1k3._set_metric(self.metric, self.coords)
+        self.k2k3k1._set_metric(self.metric, self.coords)
+        self.k3k1k2._set_metric(self.metric, self.coords)
+        self.k3k2k1._set_metric(self.metric, self.coords)
         self._set_num_threads(num_threads)
-
         min_size, max_size = self._get_minmax_size()
 
         f1 = cat1.getKField(min_size, max_size, self.split_method,
@@ -821,8 +877,12 @@ class KKKCrossCorrelation(treecorr.BinnedCorr3):
         self.k3k2k1 += other.k3k2k1
         return self
 
-    def process(self, cat1, cat2, cat3, metric=None, num_threads=None):
+    def process(self, cat1, cat2, cat3=None, metric=None, num_threads=None):
         """Accumulate the cross-correlation of the points in the given Catalogs: cat1, cat2, cat3.
+
+        - If 2 arguments are given, then compute a cross-correlation function with the
+          first catalog taking one corner of the triangles, and the second taking two corners.
+        - If 3 arguments are given, then compute a three-way cross-correlation function.
 
         All arguments may be lists, in which case all items in the list are used
         for that element of the correlation.
@@ -831,6 +891,7 @@ class KKKCrossCorrelation(treecorr.BinnedCorr3):
             cat1 (Catalog):     A catalog or list of catalogs for the first K field.
             cat2 (Catalog):     A catalog or list of catalogs for the second K field.
             cat3 (Catalog):     A catalog or list of catalogs for the third K field.
+                                (default: None)
             metric (str):       Which metric to use.  See `Metrics` for details.
                                 (default: 'Euclidean'; this value can also be given in the
                                 constructor in the config dict.)
@@ -842,15 +903,38 @@ class KKKCrossCorrelation(treecorr.BinnedCorr3):
         self.clear()
         if not isinstance(cat1,list): cat1 = cat1.get_patches()
         if not isinstance(cat2,list): cat2 = cat2.get_patches()
-        if not isinstance(cat3,list): cat3 = cat3.get_patches()
+        if cat3 is not None and not isinstance(cat3,list): cat3 = cat3.get_patches()
 
         vark1 = treecorr.calculateVarK(cat1)
         vark2 = treecorr.calculateVarK(cat2)
-        vark3 = treecorr.calculateVarK(cat3)
         self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
         self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
-        self.logger.info("vark3 = %f: sig_k = %f",vark3,math.sqrt(vark3))
-        self._process_all_cross(cat1, cat2, cat3, metric, num_threads)
+
+        if cat3 is None:
+            vark3 = vark2
+            self._process_all_cross12(cat1, cat2, metric, num_threads)
+            # The k1k2k3 and k1k3k2 are equivalent, but process_all_cross12 only added things to
+            # one or the other of these (only k1k2k3 if no lists are involved).  So add them
+            # together and copy, so they are equal.
+            # Likewise the other pairs that are symmetric between 2,3.
+            if np.any(self.k1k3k2.ntri != 0):
+                self.k1k2k3 += self.k1k3k2
+            if np.any(self.k3k1k2.ntri != 0):
+                self.k2k1k3 += self.k3k1k2
+            if np.any(self.k3k2k1.ntri != 0):
+                self.k2k3k1 += self.k3k2k1
+            # Copy back by doign clear and +=.
+            # This makes sure the coords and metric are set properly.
+            self.k1k3k2.clear()
+            self.k3k1k2.clear()
+            self.k3k2k1.clear()
+            self.k1k3k2 += self.k1k2k3
+            self.k3k1k2 += self.k2k1k3
+            self.k3k2k1 += self.k2k3k1
+        else:
+            vark3 = treecorr.calculateVarK(cat3)
+            self.logger.info("vark3 = %f: sig_k = %f",vark3,math.sqrt(vark3))
+            self._process_all_cross(cat1, cat2, cat3, metric, num_threads)
         self.finalize(vark1,vark2,vark3)
 
     def write(self, file_name, file_type=None, precision=None):

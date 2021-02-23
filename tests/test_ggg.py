@@ -193,6 +193,41 @@ def test_direct():
         np.testing.assert_allclose(g.gam3r, true_gam3.real, rtol=1.e-5, atol=1.e-8)
         np.testing.assert_allclose(g.gam3i, true_gam3.imag, rtol=1.e-5, atol=1.e-8)
 
+    # Or with 2 argument version, finds each triangle 3 times.
+    ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, brute=True)
+    t1 = time.time()
+    ggg.process(cat, cat, num_threads=2)
+    t2 = time.time()
+    print('Time for 1-2 cross correlation = ',t2-t1)
+    np.testing.assert_array_equal(ggg.ntri, 3*true_ntri)
+    np.testing.assert_allclose(ggg.weight, 3*true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam0r, true_gam0.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam0i, true_gam0.imag, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam1r, true_gam1.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam1i, true_gam1.imag, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam2r, true_gam2.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam2i, true_gam2.imag, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam3r, true_gam3.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-5, atol=1.e-8)
+
+    # Again, GGGCrossCorrelation gets it right in each permutation.
+    t1 = time.time()
+    gggc.process(cat, cat, num_threads=2)
+    t2 = time.time()
+    print('Time for 1-2 cross correlation = ',t2-t1)
+    for g in [gggc.g1g2g3, gggc.g1g3g2, gggc.g2g1g3, gggc.g2g3g1, gggc.g3g1g2, gggc.g3g2g1]:
+        np.testing.assert_array_equal(g.ntri, true_ntri)
+        np.testing.assert_allclose(g.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+        np.testing.assert_allclose(g.gam0r, true_gam0.real, rtol=1.e-5, atol=1.e-8)
+        np.testing.assert_allclose(g.gam0i, true_gam0.imag, rtol=1.e-5, atol=1.e-8)
+        np.testing.assert_allclose(g.gam1r, true_gam1.real, rtol=1.e-5, atol=1.e-8)
+        np.testing.assert_allclose(g.gam1i, true_gam1.imag, rtol=1.e-5, atol=1.e-8)
+        np.testing.assert_allclose(g.gam2r, true_gam2.real, rtol=1.e-5, atol=1.e-8)
+        np.testing.assert_allclose(g.gam2i, true_gam2.imag, rtol=1.e-5, atol=1.e-8)
+        np.testing.assert_allclose(g.gam3r, true_gam3.real, rtol=1.e-5, atol=1.e-8)
+        np.testing.assert_allclose(g.gam3i, true_gam3.imag, rtol=1.e-5, atol=1.e-8)
+
+    # Do cross with config:
     config['file_name2'] = config['file_name']
     config['file_name3'] = config['file_name']
     treecorr.corr3(config)
@@ -200,8 +235,27 @@ def test_direct():
     np.testing.assert_allclose(data['r_nom'], ggg.rnom.flatten())
     np.testing.assert_allclose(data['u_nom'], ggg.u.flatten())
     np.testing.assert_allclose(data['v_nom'], ggg.v.flatten())
-    np.testing.assert_allclose(data['ntri'], ggg.ntri.flatten())
-    np.testing.assert_allclose(data['weight'], ggg.weight.flatten())
+    np.testing.assert_allclose(data['ntri'], 6*true_ntri.flatten())
+    np.testing.assert_allclose(data['weight'], 6*true_weight.flatten(), rtol=1.e-5)
+    np.testing.assert_allclose(data['gam0r'], ggg.gam0r.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(data['gam0i'], ggg.gam0i.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(data['gam1r'], ggg.gam1r.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(data['gam1i'], ggg.gam1i.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(data['gam2r'], ggg.gam2r.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(data['gam2i'], ggg.gam2i.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(data['gam3r'], ggg.gam3r.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(data['gam3i'], ggg.gam3i.flatten(), rtol=1.e-3)
+
+    # And 1-2 cross
+    config['file_name2'] = config['file_name']
+    del config['file_name3']
+    treecorr.corr3(config)
+    data = fitsio.read(config['ggg_file_name'])
+    np.testing.assert_allclose(data['r_nom'], ggg.rnom.flatten())
+    np.testing.assert_allclose(data['u_nom'], ggg.u.flatten())
+    np.testing.assert_allclose(data['v_nom'], ggg.v.flatten())
+    np.testing.assert_allclose(data['ntri'], 3*true_ntri.flatten())
+    np.testing.assert_allclose(data['weight'], 3*true_weight.flatten(), rtol=1.e-5)
     np.testing.assert_allclose(data['gam0r'], ggg.gam0r.flatten(), rtol=1.e-3)
     np.testing.assert_allclose(data['gam0i'], ggg.gam0i.flatten(), rtol=1.e-3)
     np.testing.assert_allclose(data['gam1r'], ggg.gam1r.flatten(), rtol=1.e-3)
@@ -354,10 +408,8 @@ def test_direct():
     with assert_raises(ValueError):
         ggg2 += ggg13
 
-    # Currently not implemented to only have cat2 or cat3
-    with assert_raises(NotImplementedError):
-        ggg.process(cat, cat2=cat)
-    with assert_raises(NotImplementedError):
+    # Error to have cat3, but not cat2
+    with assert_raises(ValueError):
         ggg.process(cat, cat3=cat)
 
 @timer
@@ -863,10 +915,8 @@ def test_direct_cross():
     np.testing.assert_allclose(corr3_output['ntri'], ggg.ntri.flatten(), rtol=1.e-3)
     np.testing.assert_allclose(corr3_output['weight'], ggg.weight.flatten(), rtol=1.e-3)
 
-    # Currently not implemented to only have cat2 or cat3
-    with assert_raises(NotImplementedError):
-        ggg.process(cat1, cat2=cat2)
-    with assert_raises(NotImplementedError):
+    # Error to have cat3, but not cat2
+    with assert_raises(ValueError):
         ggg.process(cat1, cat3=cat3)
 
 

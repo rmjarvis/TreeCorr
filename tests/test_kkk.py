@@ -128,6 +128,20 @@ def test_direct():
         np.testing.assert_allclose(k.weight, true_weight, rtol=1.e-5, atol=1.e-8)
         np.testing.assert_allclose(k.zeta, true_zeta.real, rtol=1.e-5, atol=1.e-8)
 
+    # Or with 2 argument version, finds each triangle 3 times.
+    kkk.process(cat, cat, num_threads=2)
+    np.testing.assert_array_equal(kkk.ntri, 3*true_ntri)
+    np.testing.assert_allclose(kkk.weight, 3*true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
+
+    # Again, KKKCrossCorrelation gets it right in each permutation.
+    kkkc.process(cat, cat, num_threads=2)
+    for k in [kkkc.k1k2k3, kkkc.k1k3k2, kkkc.k2k1k3, kkkc.k2k3k1, kkkc.k3k1k2, kkkc.k3k2k1]:
+        np.testing.assert_array_equal(k.ntri, true_ntri)
+        np.testing.assert_allclose(k.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+        np.testing.assert_allclose(k.zeta, true_zeta.real, rtol=1.e-5, atol=1.e-8)
+
+    # Do cross with config
     config['file_name2'] = config['file_name']
     config['file_name3'] = config['file_name']
     treecorr.corr3(config)
@@ -135,8 +149,19 @@ def test_direct():
     np.testing.assert_allclose(data['r_nom'], kkk.rnom.flatten())
     np.testing.assert_allclose(data['u_nom'], kkk.u.flatten())
     np.testing.assert_allclose(data['v_nom'], kkk.v.flatten())
-    np.testing.assert_allclose(data['ntri'], kkk.ntri.flatten())
-    np.testing.assert_allclose(data['weight'], kkk.weight.flatten())
+    np.testing.assert_allclose(data['ntri'], 6*true_ntri.flatten())
+    np.testing.assert_allclose(data['weight'], 6*true_weight.flatten(), rtol=1.e-5)
+    np.testing.assert_allclose(data['zeta'], kkk.zeta.flatten(), rtol=1.e-3)
+
+    # And 1-2 cross
+    del config['file_name3']
+    treecorr.corr3(config)
+    data = fitsio.read(config['kkk_file_name'])
+    np.testing.assert_allclose(data['r_nom'], kkk.rnom.flatten())
+    np.testing.assert_allclose(data['u_nom'], kkk.u.flatten())
+    np.testing.assert_allclose(data['v_nom'], kkk.v.flatten())
+    np.testing.assert_allclose(data['ntri'], 3*true_ntri.flatten())
+    np.testing.assert_allclose(data['weight'], 3*true_weight.flatten(), rtol=1.e-5)
     np.testing.assert_allclose(data['zeta'], kkk.zeta.flatten(), rtol=1.e-3)
 
     # Repeat with binslop = 0
@@ -247,10 +272,8 @@ def test_direct():
     with assert_raises(ValueError):
         kkk2 += kkk13
 
-    # Currently not implemented to only have cat2 or cat3
-    with assert_raises(NotImplementedError):
-        kkk.process(cat, cat2=cat)
-    with assert_raises(NotImplementedError):
+    # Error to have cat3, but not cat2
+    with assert_raises(ValueError):
         kkk.process(cat, cat3=cat)
 
 
@@ -598,10 +621,8 @@ def test_direct_cross():
     np.testing.assert_allclose(corr3_output['ntri'], kkk.ntri.flatten(), rtol=1.e-3)
     np.testing.assert_allclose(corr3_output['weight'], kkk.weight.flatten(), rtol=1.e-3)
 
-    # Currently not implemented to only have cat2 or cat3
-    with assert_raises(NotImplementedError):
-        kkk.process(cat1, cat2=cat2)
-    with assert_raises(NotImplementedError):
+    # Error to have cat3, but not cat2
+    with assert_raises(ValueError):
         kkk.process(cat1, cat3=cat3)
 
 @timer
@@ -844,10 +865,8 @@ def test_direct_cross_3d():
     np.testing.assert_allclose(corr3_output['ntri'], kkk.ntri.flatten(), rtol=1.e-3)
     np.testing.assert_allclose(corr3_output['weight'], kkk.weight.flatten(), rtol=1.e-3)
 
-    # Currently not implemented to only have cat2 or cat3
-    with assert_raises(NotImplementedError):
-        kkk.process(cat1, cat2=cat2)
-    with assert_raises(NotImplementedError):
+    # Error to have cat3, but not cat2
+    with assert_raises(ValueError):
         kkk.process(cat1, cat3=cat3)
 
 

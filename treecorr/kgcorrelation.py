@@ -204,9 +204,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
                              cat1.name, cat2.name)
 
         self._set_metric(metric, cat1.coords, cat2.coords)
-
         self._set_num_threads(num_threads)
-
         min_size, max_size = self._get_minmax_size()
 
         f1 = cat1.getKField(min_size, max_size, self.split_method,
@@ -258,7 +256,6 @@ class KGCorrelation(treecorr.BinnedCorr2):
                              cat1.name, cat2.name)
 
         self._set_metric(metric, cat1.coords, cat2.coords)
-
         self._set_num_threads(num_threads)
 
         f1 = cat1.getKSimpleField()

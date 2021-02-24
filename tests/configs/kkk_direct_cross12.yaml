@@ -1,0 +1,24 @@
+
+file_name: data/kkk_direct_cross12_data1.dat
+file_name2: data/kkk_direct_cross12_data2.dat
+
+x_col: 1
+y_col: 2
+w_col: 3
+k_col: 4
+
+verbose: 0
+
+min_sep: 1.
+bin_size: 0.2
+nbins: 10
+min_u: 0.13
+max_u: 0.89
+nubins: 5
+min_v: 0.13
+max_v: 0.59
+nvbins: 5
+
+bin_slop: 0
+
+kkk_file_name: output/kkk_direct_cross12.fits

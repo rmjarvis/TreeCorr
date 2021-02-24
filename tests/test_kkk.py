@@ -789,6 +789,35 @@ def test_direct_cross12():
     np.testing.assert_allclose(data['ntri'], kkk.ntri.flatten())
     np.testing.assert_allclose(data['weight'], kkk.weight.flatten())
 
+    # Split into patches to test the list-based version of the code.
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=4)
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2, npatch=4)
+
+    kkk.process(cat1, cat2, num_threads=2)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-5)
+
+    kkkc.process(cat1, cat2)
+    np.testing.assert_array_equal(kkkc.k1k2k3.ntri, true_ntri_122)
+    np.testing.assert_array_equal(kkkc.k1k3k2.ntri, true_ntri_122)
+    np.testing.assert_array_equal(kkkc.k2k1k3.ntri, true_ntri_212)
+    np.testing.assert_array_equal(kkkc.k2k3k1.ntri, true_ntri_221)
+    np.testing.assert_array_equal(kkkc.k3k1k2.ntri, true_ntri_212)
+    np.testing.assert_array_equal(kkkc.k3k2k1.ntri, true_ntri_221)
+    np.testing.assert_allclose(kkkc.k1k2k3.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k1k3k2.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k2k1k3.weight, true_weight_212, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k2k3k1.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k3k1k2.weight, true_weight_212, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k3k2k1.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k1k2k3.zeta, true_zeta_122, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k1k3k2.zeta, true_zeta_122, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k2k1k3.zeta, true_zeta_212, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k2k3k1.zeta, true_zeta_221, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k3k1k2.zeta, true_zeta_212, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k3k2k1.zeta, true_zeta_221, rtol=1.e-5)
+
 
 @timer
 def test_direct_cross_3d():
@@ -1224,5 +1253,8 @@ def test_kkk():
 if __name__ == '__main__':
     test_direct()
     test_direct_spherical()
+    test_direct_cross()
+    test_direct_cross12()
+    test_direct_cross_3d()
     test_constant()
     test_kkk()

@@ -1256,6 +1256,22 @@ def test_direct_count_cross12():
     np.testing.assert_allclose(data['DDD'], ddd.ntri.flatten())
     np.testing.assert_allclose(data['ntri'], ddd.ntri.flatten())
 
+    # Split into patches to test the list-based version of the code.
+    cat1 = treecorr.Catalog(x=x1, y=y1, npatch=10)
+    cat2 = treecorr.Catalog(x=x2, y=y2, npatch=10)
+
+    ddd.process(cat1, cat2)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
+
+    dddc.process(cat1, cat2)
+    np.testing.assert_array_equal(dddc.n1n2n3.ntri, true_ntri_122)
+    np.testing.assert_array_equal(dddc.n1n3n2.ntri, true_ntri_122)
+    np.testing.assert_array_equal(dddc.n2n1n3.ntri, true_ntri_212)
+    np.testing.assert_array_equal(dddc.n2n3n1.ntri, true_ntri_221)
+    np.testing.assert_array_equal(dddc.n3n1n2.ntri, true_ntri_212)
+    np.testing.assert_array_equal(dddc.n3n2n1.ntri, true_ntri_221)
+
+
 @timer
 def test_direct_spherical():
     # Repeat in spherical coords
@@ -2593,6 +2609,7 @@ if __name__ == '__main__':
     test_log_binning()
     test_direct_count_auto()
     test_direct_count_cross()
+    test_direct_count_cross12()
     test_direct_spherical()
     test_direct_arc()
     test_direct_partial()

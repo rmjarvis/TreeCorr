@@ -16,6 +16,7 @@ import treecorr
 import os
 import sys
 import logging
+import fitsio
 import numpy as np
 
 from test_helper import CaptureLog, assert_raises, timer, assert_warns
@@ -531,11 +532,21 @@ def test_omp():
 def test_util():
     # Test some error handling in utility functions that shouldn't be possible to get to
     # in normal running, so we need to call things explicitly to get the coverage.
+    with assert_raises(ValueError):
+        treecorr.util.parse_metric('Euclidean', 'invalid')
+    with assert_raises(ValueError):
+        treecorr.util.parse_metric('Invalid', 'flat')
+    with assert_raises(ValueError):
+        treecorr.util.coord_enum('invalid')
+    with assert_raises(ValueError):
+        treecorr.util.metric_enum('Invalid')
 
+@timer
+def test_gen_read_write():
     # First some I/O sanity checks
     a = np.array([1,2,3])
     b = np.array([4,5,6])
-    file_name = 'junk.out'
+    file_name = 'invalid.out'
     with assert_raises(ValueError):
         treecorr.util.gen_write(file_name, ['a', 'b'], [a])
     with assert_raises(ValueError):
@@ -551,18 +562,80 @@ def test_util():
 
     with assert_raises(ValueError):
         treecorr.util.gen_read(file_name, file_type='Invalid')
+    with assert_raises(OSError):
+        treecorr.util.gen_read(file_name, file_type='ASCII')
+    with assert_raises(OSError):
+        treecorr.util.gen_read(file_name, file_type='FITS')
 
-    # Now some places that do sanity checks for invalid coords or metrics which would already
-    # be checked in normal operation.
-    with assert_raises(ValueError):
-        treecorr.util.parse_metric('Euclidean', 'invalid')
-    with assert_raises(ValueError):
-        treecorr.util.parse_metric('Invalid', 'flat')
-    with assert_raises(ValueError):
-        treecorr.util.coord_enum('invalid')
-    with assert_raises(ValueError):
-        treecorr.util.metric_enum('Invalid')
+    # Now some working I/O
+    file_name1 = 'output/valid1.out'
+    treecorr.util.gen_write(file_name1, ['a', 'b'], [a,b])
+    data, par = treecorr.util.gen_read(file_name1)
+    print('data = ',data)
+    np.testing.assert_array_equal(data['a'], a)
+    np.testing.assert_array_equal(data['b'], b)
+    print('par = ',par)
+    assert par == dict()
 
+    file_name2 = 'output/valid1.fits'
+    treecorr.util.gen_write(file_name2, ['a', 'b'], [a,b])
+    data, par = treecorr.util.gen_read(file_name2)
+    np.testing.assert_array_equal(data['a'], a)
+    np.testing.assert_array_equal(data['b'], b)
+    # From FITS, it's not a dict (nor empty), but it works like a dict.
+    assert isinstance(par, fitsio.FITSHDR)
+    assert 'p1' not in par
+    par['p1'] = 7
+    assert par['p1'] == 7
+
+    # Repeat with params
+    file_name3 = 'output/valid2.out'
+    params = {'p1' : 7, 'p2' : 'hello'}
+    treecorr.util.gen_write(file_name3, ['a', 'b'], [a,b], params=params)
+    data, par = treecorr.util.gen_read(file_name3)
+    np.testing.assert_array_equal(data['a'], a)
+    np.testing.assert_array_equal(data['b'], b)
+    assert par['p1'] == 7
+    assert par['p2'] == 'hello'
+
+    file_name4 = 'output/valid2.fits'
+    treecorr.util.gen_write(file_name4, ['a', 'b'], [a,b], params=params)
+    data, par = treecorr.util.gen_read(file_name4)
+    np.testing.assert_array_equal(data['a'], a)
+    np.testing.assert_array_equal(data['b'], b)
+    assert par['p1'] == 7
+    assert par['p2'] == 'hello'
+
+    # Check with logger
+    with CaptureLog() as cl:
+        treecorr.util.gen_write(file_name3, ['a', 'b'], [a,b], params=params, logger=cl.logger)
+    assert 'assumed to be ASCII' in cl.output
+    with CaptureLog() as cl:
+        treecorr.util.gen_write(file_name4, ['a', 'b'], [a,b], params=params, logger=cl.logger)
+    assert 'assumed to be FITS' in cl.output
+    with CaptureLog() as cl:
+        data, par = treecorr.util.gen_read(file_name3, logger=cl.logger)
+    assert 'assumed to be ASCII' in cl.output
+    with CaptureLog() as cl:
+        data, par = treecorr.util.gen_read(file_name4, logger=cl.logger)
+    assert 'assumed to be FITS' in cl.output
+
+    # Check that errors are reasonable if fitsio not installed.
+    if sys.version_info < (3,): return  # mock only available on python 3
+    from unittest import mock
+    with mock.patch.dict(sys.modules, {'fitsio':None}):
+        with assert_raises(ImportError):
+            treecorr.util.gen_write(file_name2, ['a', 'b'], [a,b])
+        with assert_raises(ImportError):
+            treecorr.util.gen_read(file_name2)
+        with CaptureLog() as cl:
+            with assert_raises(ImportError):
+                treecorr.util.gen_write(file_name2, ['a', 'b'], [a,b], logger=cl.logger)
+        assert "Unable to import fitsio" in cl.output
+        with CaptureLog() as cl:
+            with assert_raises(ImportError):
+                data, par = treecorr.util.gen_read(file_name2, logger=cl.logger)
+        assert "Unable to import fitsio" in cl.output
 
 if __name__ == '__main__':
     test_parse_variables()
@@ -576,3 +649,4 @@ if __name__ == '__main__':
     test_merge()
     test_omp()
     test_util()
+    test_gen_read_write()

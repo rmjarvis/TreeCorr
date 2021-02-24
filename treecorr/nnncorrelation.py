@@ -999,8 +999,8 @@ class NNNCrossCorrelation(treecorr.BinnedCorr3):
             `process_auto`, and they should not have had `finalize` called yet.  Then, after
             adding them together, you should call `finalize` on the sum.
         """
-        if not isinstance(other, NNNCorrelation):
-            raise TypeError("Can only add another NNNCorrelation object")
+        if not isinstance(other, NNNCrossCorrelation):
+            raise TypeError("Can only add another NNNCrossCorrelation object")
         self.n1n2n3 += other.n1n2n3
         self.n1n3n2 += other.n1n3n2
         self.n2n1n3 += other.n2n1n3

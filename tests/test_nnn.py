@@ -752,6 +752,7 @@ def test_direct_count_auto():
     assert 'zeta' not in data.dtype.names
 
     # Do cross with config
+    config['verbose'] = 0
     config['file_name2'] = config['file_name']
     config['file_name3'] = config['file_name']
     treecorr.corr3(config)
@@ -1057,23 +1058,12 @@ def test_direct_count_cross():
     config = treecorr.config.read_config('configs/nnn_direct_cross.yaml')
     config['verbose'] = 0
     treecorr.corr3(config)
-    corr3_output = np.genfromtxt(os.path.join('output','nnn_direct_cross.out'), names=True,
-                                    skip_header=1)
-    print('corr3_output = ',corr3_output)
-    print('corr3_output.dtype = ',corr3_output.dtype)
-    print('rnom = ',ddd.rnom.flatten())
-    print('       ',corr3_output['r_nom'])
-    np.testing.assert_allclose(corr3_output['r_nom'], ddd.rnom.flatten(), rtol=1.e-3)
-    print('unom = ',ddd.u.flatten())
-    print('       ',corr3_output['u_nom'])
-    np.testing.assert_allclose(corr3_output['u_nom'], ddd.u.flatten(), rtol=1.e-3)
-    print('vnom = ',ddd.v.flatten())
-    print('       ',corr3_output['v_nom'])
-    np.testing.assert_allclose(corr3_output['v_nom'], ddd.v.flatten(), rtol=1.e-3)
-    print('DDD = ',ddd.ntri.flatten())
-    print('      ',corr3_output['DDD'])
-    np.testing.assert_allclose(corr3_output['DDD'], ddd.ntri.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(corr3_output['ntri'], ddd.ntri.flatten(), rtol=1.e-3)
+    data = fitsio.read(config['nnn_file_name'])
+    np.testing.assert_allclose(data['r_nom'], ddd.rnom.flatten())
+    np.testing.assert_allclose(data['u_nom'], ddd.u.flatten())
+    np.testing.assert_allclose(data['v_nom'], ddd.v.flatten())
+    np.testing.assert_allclose(data['DDD'], ddd.ntri.flatten())
+    np.testing.assert_allclose(data['ntri'], ddd.ntri.flatten())
 
     # Invalid to have rand_file_name2 but not file_name2
     del config['file_name2']

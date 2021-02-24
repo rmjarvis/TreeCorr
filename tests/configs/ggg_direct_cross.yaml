@@ -23,4 +23,4 @@ nvbins: 5
 
 bin_slop: 0
 
-ggg_file_name: output/ggg_direct_cross.out
+ggg_file_name: output/ggg_direct_cross.fits

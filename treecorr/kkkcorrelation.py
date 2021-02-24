@@ -867,8 +867,8 @@ class KKKCrossCorrelation(treecorr.BinnedCorr3):
             `process_auto`, and they should not have had `finalize` called yet.  Then, after
             adding them together, you should call `finalize` on the sum.
         """
-        if not isinstance(other, KKKCorrelation):
-            raise TypeError("Can only add another KKKCorrelation object")
+        if not isinstance(other, KKKCrossCorrelation):
+            raise TypeError("Can only add another KKKCrossCorrelation object")
         self.k1k2k3 += other.k1k2k3
         self.k1k3k2 += other.k1k3k2
         self.k2k1k3 += other.k2k1k3

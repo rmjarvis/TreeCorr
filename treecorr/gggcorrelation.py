@@ -1339,8 +1339,8 @@ class GGGCrossCorrelation(treecorr.BinnedCorr3):
             `process_auto`, and they should not have had `finalize` called yet.  Then, after
             adding them together, you should call `finalize` on the sum.
         """
-        if not isinstance(other, GGGCorrelation):
-            raise TypeError("Can only add another GGGCorrelation object")
+        if not isinstance(other, GGGCrossCorrelation):
+            raise TypeError("Can only add another GGGCrossCorrelation object")
         self.g1g2g3 += other.g1g2g3
         self.g1g3g2 += other.g1g3g2
         self.g2g1g3 += other.g2g1g3

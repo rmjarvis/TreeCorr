@@ -765,7 +765,7 @@ def test_direct_count_auto():
     data = np.genfromtxt(os.path.join('output','nnn_direct.out'), names=True, skip_header=1)
     np.testing.assert_allclose(data['ntri'], 3*true_ntri.flatten())
 
-    # Check a few basic operations with a GGCorrelation object.
+    # Check a few basic operations with a NNNCorrelation object.
     do_pickle(ddd)
 
     ddd2 = ddd.copy()
@@ -1098,6 +1098,59 @@ def test_direct_count_cross():
     print('config = ',config)
     with assert_raises(ValueError):
         treecorr.corr3(config)
+
+    # Check a few basic operations with a NNCrossCorrelation object.
+    do_pickle(dddc)
+
+    dddc2 = dddc.copy()
+    dddc2 += dddc
+    for perm in ['n1n2n3', 'n1n3n2', 'n2n1n3', 'n2n3n1', 'n3n1n2', 'n3n2n1']:
+        d2 = getattr(dddc2, perm)
+        d1 = getattr(dddc, perm)
+        np.testing.assert_allclose(d2.ntri, 2*d1.ntri)
+        np.testing.assert_allclose(d2.ntri, 2*d1.ntri)
+        np.testing.assert_allclose(d2.ntri, 2*d1.ntri)
+        np.testing.assert_allclose(d2.ntri, 2*d1.ntri)
+        np.testing.assert_allclose(d2.ntri, 2*d1.ntri)
+        np.testing.assert_allclose(d2.ntri, 2*d1.ntri)
+        np.testing.assert_allclose(d2.meand1, 2*d1.meand1)
+        np.testing.assert_allclose(d2.meand2, 2*d1.meand2)
+        np.testing.assert_allclose(d2.meand3, 2*d1.meand3)
+        np.testing.assert_allclose(d2.meanlogd1, 2*d1.meanlogd1)
+        np.testing.assert_allclose(d2.meanlogd2, 2*d1.meanlogd2)
+        np.testing.assert_allclose(d2.meanlogd3, 2*d1.meanlogd3)
+        np.testing.assert_allclose(d2.meanu, 2*d1.meanu)
+        np.testing.assert_allclose(d2.meanv, 2*d1.meanv)
+
+    dddc2.clear()
+    dddc2 += dddc
+    for perm in ['n1n2n3', 'n1n3n2', 'n2n1n3', 'n2n3n1', 'n3n1n2', 'n3n2n1']:
+        d2 = getattr(dddc2, perm)
+        d1 = getattr(dddc, perm)
+        np.testing.assert_allclose(d2.ntri, d1.ntri)
+        np.testing.assert_allclose(d2.ntri, d1.ntri)
+        np.testing.assert_allclose(d2.ntri, d1.ntri)
+        np.testing.assert_allclose(d2.ntri, d1.ntri)
+        np.testing.assert_allclose(d2.ntri, d1.ntri)
+        np.testing.assert_allclose(d2.ntri, d1.ntri)
+        np.testing.assert_allclose(d2.meand1, d1.meand1)
+        np.testing.assert_allclose(d2.meand2, d1.meand2)
+        np.testing.assert_allclose(d2.meand3, d1.meand3)
+        np.testing.assert_allclose(d2.meanlogd1, d1.meanlogd1)
+        np.testing.assert_allclose(d2.meanlogd2, d1.meanlogd2)
+        np.testing.assert_allclose(d2.meanlogd3, d1.meanlogd3)
+        np.testing.assert_allclose(d2.meanu, d1.meanu)
+        np.testing.assert_allclose(d2.meanv, d1.meanv)
+
+    with assert_raises(TypeError):
+        dddc2 += config  # not an NNNCrossCorrelation
+    with assert_raises(TypeError):
+        dddc2 += ddd     # not an NNNCrossCorrelation
+    dddc4 = treecorr.NNNCrossCorrelation(min_sep=min_sep/2, max_sep=max_sep, nbins=nbins,
+                                         min_u=min_u, max_u=max_u, nubins=nubins,
+                                         min_v=min_v, max_v=max_v, nvbins=nvbins)
+    with assert_raises(ValueError):
+        dddc2 += dddc4  # binning doesn't match
 
 @timer
 def test_direct_count_cross12():

@@ -168,7 +168,7 @@ def test_direct():
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
 
-    # Check a few basic operations with a GGCorrelation object.
+    # Check a few basic operations with a KKKCorrelation object.
     do_pickle(kkk)
 
     kkk2 = kkk.copy()
@@ -266,10 +266,6 @@ def test_direct():
                                    nvbins=nrbins*2)
     with assert_raises(ValueError):
         kkk2 += kkk13
-
-    # Error to have cat3, but not cat2
-    with assert_raises(ValueError):
-        kkk.process(cat, cat3=cat)
 
 
 @timer
@@ -602,6 +598,51 @@ def test_direct_cross():
     # Error to have cat3, but not cat2
     with assert_raises(ValueError):
         kkk.process(cat1, cat3=cat3)
+
+    # Check a few basic operations with a KKKCrossCorrelation object.
+    do_pickle(kkkc)
+
+    kkkc2 = kkkc.copy()
+    kkkc2 += kkkc
+    for perm in ['k1k2k3', 'k1k3k2', 'k2k1k3', 'k2k3k1', 'k3k1k2', 'k3k2k1']:
+        k2 = getattr(kkkc2, perm)
+        k1 = getattr(kkkc, perm)
+        np.testing.assert_allclose(k2.ntri, 2*k1.ntri)
+        np.testing.assert_allclose(k2.weight, 2*k1.weight)
+        np.testing.assert_allclose(k2.meand1, 2*k1.meand1)
+        np.testing.assert_allclose(k2.meand2, 2*k1.meand2)
+        np.testing.assert_allclose(k2.meand3, 2*k1.meand3)
+        np.testing.assert_allclose(k2.meanlogd1, 2*k1.meanlogd1)
+        np.testing.assert_allclose(k2.meanlogd2, 2*k1.meanlogd2)
+        np.testing.assert_allclose(k2.meanlogd3, 2*k1.meanlogd3)
+        np.testing.assert_allclose(k2.meanu, 2*k1.meanu)
+        np.testing.assert_allclose(k2.meanv, 2*k1.meanv)
+        np.testing.assert_allclose(k2.zeta, 2*k1.zeta)
+
+    kkkc2.clear()
+    kkkc2 += kkkc
+    for perm in ['k1k2k3', 'k1k3k2', 'k2k1k3', 'k2k3k1', 'k3k1k2', 'k3k2k1']:
+        k2 = getattr(kkkc2, perm)
+        k1 = getattr(kkkc, perm)
+        np.testing.assert_allclose(k2.ntri, k1.ntri)
+        np.testing.assert_allclose(k2.weight, k1.weight)
+        np.testing.assert_allclose(k2.meand1, k1.meand1)
+        np.testing.assert_allclose(k2.meand2, k1.meand2)
+        np.testing.assert_allclose(k2.meand3, k1.meand3)
+        np.testing.assert_allclose(k2.meanlogd1, k1.meanlogd1)
+        np.testing.assert_allclose(k2.meanlogd2, k1.meanlogd2)
+        np.testing.assert_allclose(k2.meanlogd3, k1.meanlogd3)
+        np.testing.assert_allclose(k2.meanu, k1.meanu)
+        np.testing.assert_allclose(k2.meanv, k1.meanv)
+        np.testing.assert_allclose(k2.zeta, k1.zeta)
+
+    with assert_raises(TypeError):
+        kkkc2 += config
+    with assert_raises(TypeError):
+        kkkc2 += kkk
+    kkkc3 = treecorr.KKKCrossCorrelation(min_sep=min_sep/2, bin_size=bin_size, nbins=nrbins)
+    with assert_raises(ValueError):
+        kkkc2 += kkkc3
 
 @timer
 def test_direct_cross12():
@@ -1047,10 +1088,6 @@ def test_direct_cross_3d():
     np.testing.assert_allclose(data['zeta'], kkk.zeta.flatten())
     np.testing.assert_allclose(data['ntri'], kkk.ntri.flatten())
     np.testing.assert_allclose(data['weight'], kkk.weight.flatten())
-
-    # Error to have cat3, but not cat2
-    with assert_raises(ValueError):
-        kkk.process(cat1, cat3=cat3)
 
 
 @timer

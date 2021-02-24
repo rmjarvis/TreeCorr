@@ -276,7 +276,7 @@ def test_direct():
     np.testing.assert_allclose(ggg.gam3r, true_gam3.real, rtol=1.e-3, atol=1.e-4)
     np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-3, atol=1.e-4)
 
-    # Check a few basic operations with a GGCorrelation object.
+    # Check a few basic operations with a GGGCorrelation object.
     do_pickle(ggg)
 
     ggg2 = ggg.copy()
@@ -402,10 +402,6 @@ def test_direct():
                                    nvbins=nrbins*2)
     with assert_raises(ValueError):
         ggg2 += ggg13
-
-    # Error to have cat3, but not cat2
-    with assert_raises(ValueError):
-        ggg.process(cat, cat3=cat)
 
 @timer
 def test_direct_spherical():
@@ -895,6 +891,57 @@ def test_direct_cross():
     with assert_raises(ValueError):
         ggg.process(cat1, cat3=cat3)
 
+    # Check a few basic operations with a GGGCrossCorrelation object.
+    do_pickle(gggc)
+
+    gggc2 = gggc.copy()
+    gggc2 += gggc
+    for perm in ['g1g2g3', 'g1g3g2', 'g2g1g3', 'g2g3g1', 'g3g1g2', 'g3g2g1']:
+        g2 = getattr(gggc2, perm)
+        g1 = getattr(gggc, perm)
+        np.testing.assert_allclose(g2.ntri, 2*g1.ntri)
+        np.testing.assert_allclose(g2.weight, 2*g1.weight)
+        np.testing.assert_allclose(g2.meand1, 2*g1.meand1)
+        np.testing.assert_allclose(g2.meand2, 2*g1.meand2)
+        np.testing.assert_allclose(g2.meand3, 2*g1.meand3)
+        np.testing.assert_allclose(g2.meanlogd1, 2*g1.meanlogd1)
+        np.testing.assert_allclose(g2.meanlogd2, 2*g1.meanlogd2)
+        np.testing.assert_allclose(g2.meanlogd3, 2*g1.meanlogd3)
+        np.testing.assert_allclose(g2.meanu, 2*g1.meanu)
+        np.testing.assert_allclose(g2.meanv, 2*g1.meanv)
+        np.testing.assert_allclose(g2.gam0, 2*g1.gam0)
+        np.testing.assert_allclose(g2.gam1, 2*g1.gam1)
+        np.testing.assert_allclose(g2.gam2, 2*g1.gam2)
+        np.testing.assert_allclose(g2.gam3, 2*g1.gam3)
+
+    gggc2.clear()
+    gggc2 += gggc
+    for perm in ['g1g2g3', 'g1g3g2', 'g2g1g3', 'g2g3g1', 'g3g1g2', 'g3g2g1']:
+        g2 = getattr(gggc2, perm)
+        g1 = getattr(gggc, perm)
+        np.testing.assert_allclose(g2.ntri, g1.ntri)
+        np.testing.assert_allclose(g2.weight, g1.weight)
+        np.testing.assert_allclose(g2.meand1, g1.meand1)
+        np.testing.assert_allclose(g2.meand2, g1.meand2)
+        np.testing.assert_allclose(g2.meand3, g1.meand3)
+        np.testing.assert_allclose(g2.meanlogd1, g1.meanlogd1)
+        np.testing.assert_allclose(g2.meanlogd2, g1.meanlogd2)
+        np.testing.assert_allclose(g2.meanlogd3, g1.meanlogd3)
+        np.testing.assert_allclose(g2.meanu, g1.meanu)
+        np.testing.assert_allclose(g2.meanv, g1.meanv)
+        np.testing.assert_allclose(g2.gam0, g1.gam0)
+        np.testing.assert_allclose(g2.gam1, g1.gam1)
+        np.testing.assert_allclose(g2.gam2, g1.gam2)
+        np.testing.assert_allclose(g2.gam3, g1.gam3)
+
+    with assert_raises(TypeError):
+        gggc2 += config
+    with assert_raises(TypeError):
+        gggc2 += ggg
+    gggc3 = treecorr.GGGCrossCorrelation(min_sep=min_sep/2, bin_size=bin_size, nbins=nrbins)
+    with assert_raises(ValueError):
+        gggc2 += gggc3
+
 @timer
 def test_direct_cross12():
     # Check the 1-2 cross correlation
@@ -1375,7 +1422,7 @@ def test_ggg():
     #print('q2 = ',q2)
     #print('q3 = ',q3)
 
-    # The L^2 term in the denominator of true_zeta is the area over which the integral is done.
+    # The L^2 term in the denominator of true_gam* is the area over which the integral is done.
     # Since the centers of the triangles don't go to the edge of the box, we approximate the
     # correct area by subtracting off 2*mean(qi) from L, which should give a slightly better
     # estimate of the correct area to use here.  (We used 2d2 for the kkk calculation, but this

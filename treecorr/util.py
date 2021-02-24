@@ -102,26 +102,28 @@ def gen_write(file_name, col_names, columns, params=None, precision=4, file_type
             file_type = 'FITS'
         else:
             file_type = 'ASCII'
-        if logger:  # pragma: no branch  (We always provide a logger.)
+        if logger:
             logger.info("file_type assumed to be %s from the file name.",file_type)
 
     if file_type.upper() == 'FITS':
         try:
             import fitsio  # noqa: F401
         except ImportError:
-            logger.error("Unable to import fitsio.  Cannot write to %s"%file_name)
+            if logger:
+                logger.error("Unable to import fitsio.  Cannot write to %s"%file_name)
             raise
-        gen_write_fits(file_name, col_names, columns, params)
+        with fitsio.FITS(file_name, 'rw', clobber=True) as fits:
+            gen_write_fits(fits, col_names, columns, params)
     elif file_type.upper() == 'ASCII':
-        gen_write_ascii(file_name, col_names, columns, params, precision=precision)
+        with open(file_name, 'wb') as fid:
+            gen_write_ascii(fid, col_names, columns, params, precision=precision)
     else:
         raise ValueError("Invalid file_type %s"%file_type)
 
-
-def gen_write_ascii(file_name, col_names, columns, params, precision=4):
+def gen_write_ascii(fid, col_names, columns, params, precision=4):
     """Write some columns to an output ASCII file with the given column names.
 
-    :param file_name:   The name of the file to write to.
+    :param fid:         An open file handler in binary mode. E.g. fid = open(file_name, 'wb')
     :param col_names:   A list of columns names for the given columns.  These will be written
                         in a header comment line at the top of the output file.
     :param columns:     A list of numpy arrays with the data to write.
@@ -134,38 +136,29 @@ def gen_write_ascii(file_name, col_names, columns, params, precision=4):
         data[:,i] = col
 
     width = precision+8
-    # Note: python 2.6 needs the numbers, so can't just do "{:^%d}"*ncol
-    # Also, I have the first one be 1 shorter to allow space for the initial #.
-    header_form = "{0:^%d}"%(width-1)
-    for i in range(1,ncol):
-        header_form += " {%d:^%d}"%(i,width)
-    header = header_form.format(*col_names)
+    # Note: The first one is 1 shorter to allow space for the initial #.
+    header = ("#" + "{:^%d}"%(width-1) + "{:^%d}"%(width) * (ncol-1) + "\n").format(*col_names)
     fmt = '%%%d.%de'%(width,precision)
-    ensure_dir(file_name)
-    with open(file_name, 'wb') as fid:
-        if params is not None:
-            s = '## %r\n'%(params)
-            fid.write(s.encode())
-        h = '#' + header + '\n'
-        fid.write(h.encode())
-        np.savetxt(fid, data, fmt=fmt)
 
+    if params is not None:
+        s = '## %r\n'%(params)
+        fid.write(s.encode())
+    fid.write(header.encode())
+    np.savetxt(fid, data, fmt=fmt)
 
-def gen_write_fits(file_name, col_names, columns, params):
-    """Write some columns to an output FITS file with the given column names.
+def gen_write_fits(fits, col_names, columns, params, extname=None):
+    """Write some columns to a new FITS extension with the given column names.
 
-    :param file_name:   The name of the file to write to.
+    :param fits:        An open fitsio.FITS handler. E.g. fits = fitsio.FITS(file_name, 'rw')
     :param col_names:   A list of columns names for the given columns.
     :param columns:     A list of numpy arrays with the data to write.
     :param params:      A dict of extra parameters to write in the FITS header.
+    :param extname:     An optional name for the extension to write. (default: None)
     """
-    import fitsio
-    ensure_dir(file_name)
     data = np.empty(len(columns[0]), dtype=[ (name,'f8') for name in col_names ])
     for (name, col) in zip(col_names, columns):
         data[name] = col
-    fitsio.write(file_name, data, header=params, clobber=True)
-
+    fits.write(data, header=params, extname=extname)
 
 def gen_read(file_name, file_type=None, logger=None):
     """Read some columns from an input file.
@@ -192,33 +185,54 @@ def gen_read(file_name, file_type=None, logger=None):
             file_type = 'FITS'
         else:
             file_type = 'ASCII'
-        if logger:  # pragma: no branch  (We always provide a logger.)
+        if logger:
             logger.info("file_type assumed to be %s from the file name.",file_type)
 
     if file_type.upper() == 'FITS':
         try:
             import fitsio
         except ImportError:
-            logger.error("Unable to import fitsio.  Cannot read %s"%file_name)
+            if logger:
+                logger.error("Unable to import fitsio.  Cannot read %s"%file_name)
             raise
-        data = fitsio.read(file_name)
-        params = fitsio.read_header(file_name, 1)
+        with fitsio.FITS(file_name) as fits:
+            data, params = gen_read_fits(fits, ext=1)
     elif file_type.upper() == 'ASCII':
         with open(file_name) as fid:
-            header = fid.readline()
-            params = {}
-            skip = 0
-            if header[1] == '#':  # pragma: no branch  (All our files have this.)
-                assert header[0] == '#'
-                params = eval(header[2:].strip())
-                header = fid.readline()
-                skip = 1
-        data = np.genfromtxt(file_name, names=True, skip_header=skip)
+            data, params = gen_read_ascii(fid)
     else:
         raise ValueError("Invalid file_type %s"%file_type)
 
     return data, params
 
+def gen_read_ascii(fid):
+    """Read some columns from an input ASCII file.
+
+    :param fid:         An open file handler in binary mode. E.g. fid = open(file_name, 'rb')
+
+    :returns: (data, params), a numpy ndarray with named columns, and a dict of extra parameters.
+    """
+    header = fid.readline()
+    params = {}
+    if header[1] == '#':
+        assert header[0] == '#'
+        params = eval(header[2:].strip())
+        header = fid.readline()
+    names = header[1:].split()
+    data = np.genfromtxt(fid, names=names)
+    return data, params
+
+def gen_read_fits(fits, ext=1):
+    """Read some columns from an input FITS file.
+
+    :param fits:        An open fitsio.FITS handler. E.g. fits = fitsio.FITS(file_name)
+    :param ext:         An optional name or number for the extension to read. (default: 1)
+
+    :returns: (data, params), a numpy ndarray with named columns, and a dict of extra parameters.
+    """
+    data = fits[ext].read()
+    params = fits[ext].read_header()
+    return data, params
 
 class LRU_Cache(object):
     """ Simplified Least Recently Used Cache.
@@ -341,7 +355,6 @@ class LRU_Cache(object):
     @property
     def size(self):
         return len(self.cache)
-
 
 def double_ptr(x):
     """

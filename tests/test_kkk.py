@@ -591,24 +591,13 @@ def test_direct_cross():
     config = treecorr.config.read_config('configs/kkk_direct_cross.yaml')
     config['verbose'] = 0
     treecorr.corr3(config)
-    corr3_output = np.genfromtxt(os.path.join('output','kkk_direct_cross.out'), names=True,
-                                    skip_header=1)
-    #print('corr3_output = ',corr3_output)
-    #print('corr3_output.dtype = ',corr3_output.dtype)
-    #print('rnom = ',kkk.rnom.flatten())
-    #print('       ',corr3_output['r_nom'])
-    np.testing.assert_allclose(corr3_output['r_nom'], kkk.rnom.flatten(), rtol=1.e-3)
-    #print('unom = ',kkk.u.flatten())
-    #print('       ',corr3_output['u_nom'])
-    np.testing.assert_allclose(corr3_output['u_nom'], kkk.u.flatten(), rtol=1.e-3)
-    #print('vnom = ',kkk.v.flatten())
-    #print('       ',corr3_output['v_nom'])
-    np.testing.assert_allclose(corr3_output['v_nom'], kkk.v.flatten(), rtol=1.e-3)
-    #print('zeta = ',kkk.zeta.flatten())
-    #print('      ',corr3_output['zeta'])
-    np.testing.assert_allclose(corr3_output['zeta'], kkk.zeta.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(corr3_output['ntri'], kkk.ntri.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(corr3_output['weight'], kkk.weight.flatten(), rtol=1.e-3)
+    data = fitsio.read(config['kkk_file_name'])
+    np.testing.assert_allclose(data['r_nom'], kkk.rnom.flatten())
+    np.testing.assert_allclose(data['u_nom'], kkk.u.flatten())
+    np.testing.assert_allclose(data['v_nom'], kkk.v.flatten())
+    np.testing.assert_allclose(data['zeta'], kkk.zeta.flatten())
+    np.testing.assert_allclose(data['ntri'], kkk.ntri.flatten())
+    np.testing.assert_allclose(data['weight'], kkk.weight.flatten())
 
     # Error to have cat3, but not cat2
     with assert_raises(ValueError):
@@ -835,24 +824,13 @@ def test_direct_cross_3d():
     config = treecorr.config.read_config('configs/kkk_direct_cross_3d.yaml')
     config['verbose'] = 0
     treecorr.corr3(config)
-    corr3_output = np.genfromtxt(os.path.join('output','kkk_direct_cross_3d.out'), names=True,
-                                    skip_header=1)
-    #print('corr3_output = ',corr3_output)
-    #print('corr3_output.dtype = ',corr3_output.dtype)
-    #print('rnom = ',kkk.rnom.flatten())
-    #print('       ',corr3_output['r_nom'])
-    np.testing.assert_allclose(corr3_output['r_nom'], kkk.rnom.flatten(), rtol=1.e-3)
-    #print('unom = ',kkk.u.flatten())
-    #print('       ',corr3_output['u_nom'])
-    np.testing.assert_allclose(corr3_output['u_nom'], kkk.u.flatten(), rtol=1.e-3)
-    #print('vnom = ',kkk.v.flatten())
-    #print('       ',corr3_output['v_nom'])
-    np.testing.assert_allclose(corr3_output['v_nom'], kkk.v.flatten(), rtol=1.e-3)
-    #print('zeta = ',kkk.zeta.flatten())
-    #print('      ',corr3_output['zeta'])
-    np.testing.assert_allclose(corr3_output['zeta'], kkk.zeta.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(corr3_output['ntri'], kkk.ntri.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(corr3_output['weight'], kkk.weight.flatten(), rtol=1.e-3)
+    data = fitsio.read(config['kkk_file_name'])
+    np.testing.assert_allclose(data['r_nom'], kkk.rnom.flatten())
+    np.testing.assert_allclose(data['u_nom'], kkk.u.flatten())
+    np.testing.assert_allclose(data['v_nom'], kkk.v.flatten())
+    np.testing.assert_allclose(data['zeta'], kkk.zeta.flatten())
+    np.testing.assert_allclose(data['ntri'], kkk.ntri.flatten())
+    np.testing.assert_allclose(data['weight'], kkk.weight.flatten())
 
     # Error to have cat3, but not cat2
     with assert_raises(ValueError):

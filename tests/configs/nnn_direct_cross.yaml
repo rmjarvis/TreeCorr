@@ -23,4 +23,4 @@ nvbins: 10
 
 bin_slop: 0
 
-nnn_file_name: output/nnn_direct_cross.out
+nnn_file_name: output/nnn_direct_cross.fits

@@ -22,4 +22,4 @@ nvbins: 5
 
 bin_slop: 0
 
-kkk_file_name: output/kkk_direct_cross.out
+kkk_file_name: output/kkk_direct_cross.fits

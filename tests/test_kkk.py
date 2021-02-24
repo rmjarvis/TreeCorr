@@ -604,6 +604,193 @@ def test_direct_cross():
         kkk.process(cat1, cat3=cat3)
 
 @timer
+def test_direct_cross12():
+    # Check the 1-2 cross correlation
+
+    ngal = 50
+    s = 10.
+    sig_kap = 3
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) )
+    w1 = rng.random_sample(ngal)
+    k1 = rng.normal(0,sig_kap, (ngal,) )
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1)
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) )
+    w2 = rng.random_sample(ngal)
+    k2 = rng.normal(0,sig_kap, (ngal,) )
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2)
+
+    min_sep = 1.
+    bin_size = 0.2
+    nrbins = 10
+    min_u = 0.13
+    max_u = 0.89
+    nubins = 5
+    min_v = 0.13
+    max_v = 0.59
+    nvbins = 5
+
+    kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  brute=True)
+    kkk.process(cat1, cat2, num_threads=2)
+
+    # Figure out the correct answer for each permutation
+    # (We'll need them separately below when we use KKKCrossCorrelation.)
+    true_ntri_122 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_ntri_212 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_ntri_221 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_zeta_122 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_zeta_212 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_zeta_221 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_weight_122 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_weight_212 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    true_weight_221 = np.zeros( (nrbins, nubins, 2*nvbins) )
+    ubin_size = (max_u-min_u) / nubins
+    vbin_size = (max_v-min_v) / nvbins
+    max_sep = min_sep * np.exp(nrbins*bin_size)
+    log_min_sep = np.log(min_sep)
+    for i in range(ngal):
+        for j in range(ngal):
+            for k in range(j+1,ngal):
+                dij = np.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2)
+                dik = np.sqrt((x1[i]-x2[k])**2 + (y1[i]-y2[k])**2)
+                djk = np.sqrt((x2[j]-x2[k])**2 + (y2[j]-y2[k])**2)
+                if dij == 0.: continue
+                if dik == 0.: continue
+                if djk == 0.: continue
+                if dij < dik:
+                    if dik < djk:
+                        d3 = dij; d2 = dik; d1 = djk
+                        ccw = is_ccw(x1[i],y1[i],x2[j],y2[j],x2[k],y2[k])
+                        true_ntri = true_ntri_122
+                        true_zeta = true_zeta_122
+                        true_weight = true_weight_122
+                    elif dij < djk:
+                        d3 = dij; d2 = djk; d1 = dik
+                        ccw = is_ccw(x2[j],y2[j],x1[i],y1[i],x2[k],y2[k])
+                        true_ntri = true_ntri_212
+                        true_zeta = true_zeta_212
+                        true_weight = true_weight_212
+                    else:
+                        d3 = djk; d2 = dij; d1 = dik
+                        ccw = is_ccw(x2[j],y2[j],x2[k],y2[k],x1[i],y1[i])
+                        true_ntri = true_ntri_221
+                        true_zeta = true_zeta_221
+                        true_weight = true_weight_221
+                else:
+                    if dij < djk:
+                        d3 = dik; d2 = dij; d1 = djk
+                        ccw = is_ccw(x1[i],y1[i],x2[k],y2[k],x2[j],y2[j])
+                        true_ntri = true_ntri_122
+                        true_zeta = true_zeta_122
+                        true_weight = true_weight_122
+                    elif dik < djk:
+                        d3 = dik; d2 = djk; d1 = dij
+                        ccw = is_ccw(x2[k],y2[k],x1[i],y1[i],x2[j],y2[j])
+                        true_ntri = true_ntri_212
+                        true_zeta = true_zeta_212
+                        true_weight = true_weight_212
+                    else:
+                        d3 = djk; d2 = dik; d1 = dij
+                        ccw = is_ccw(x2[k],y2[k],x2[j],y2[j],x1[i],y1[i])
+                        true_ntri = true_ntri_221
+                        true_zeta = true_zeta_221
+                        true_weight = true_weight_221
+
+                r = d2
+                u = d3/d2
+                v = (d1-d2)/d3
+                if r < min_sep or r >= max_sep: continue
+                if u < min_u or u >= max_u: continue
+                if v < min_v or v >= max_v: continue
+                if not ccw:
+                    v = -v
+                kr = int(np.floor( (np.log(r)-log_min_sep) / bin_size ))
+                ku = int(np.floor( (u-min_u) / ubin_size ))
+                if v > 0:
+                    kv = int(np.floor( (v-min_v) / vbin_size )) + nvbins
+                else:
+                    kv = int(np.floor( (v-(-max_v)) / vbin_size ))
+                assert 0 <= kr < nrbins
+                assert 0 <= ku < nubins
+                assert 0 <= kv < 2*nvbins
+                www = w1[i] * w2[j] * w2[k]
+                zeta = www * k1[i] * k2[j] * k2[k]
+                true_ntri[kr,ku,kv] += 1
+                true_weight[kr,ku,kv] += www
+                true_zeta[kr,ku,kv] += zeta
+
+    n_list = [true_ntri_122, true_ntri_212, true_ntri_221]
+    w_list = [true_weight_122, true_weight_212, true_weight_221]
+    z_list = [true_zeta_122, true_zeta_212, true_zeta_221]
+
+    # With the regular KKKCorrelation class, we end up with the sum of all permutations.
+    true_ntri_sum = sum(n_list)
+    true_weight_sum = sum(w_list)
+    true_zeta_sum = sum(z_list)
+    pos = true_weight_sum > 0
+    true_zeta_sum[pos] /= true_weight_sum[pos]
+    #print('true_ntri = ',true_ntri_sum)
+    #print('diff = ',kkk.ntri - true_ntri_sum)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-5)
+
+    # Now normalize each one individually.
+    for w,z in zip(w_list, z_list):
+        pos = w > 0
+        z[pos] /= w[pos]
+
+    # Repeat with the full CrossCorrelation class, which distinguishes the permutations.
+    kkkc = treecorr.KKKCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
+                                        min_u=min_u, max_u=max_u, nubins=nubins,
+                                        min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                        brute=True, verbose=1)
+    kkkc.process(cat1, cat2)
+
+    #print('true_ntri_122 = ',true_ntri_122)
+    #print('diff = ',kkkc.k1k2k3.ntri - true_ntri_122)
+    np.testing.assert_array_equal(kkkc.k1k2k3.ntri, true_ntri_122)
+    np.testing.assert_array_equal(kkkc.k1k3k2.ntri, true_ntri_122)
+    np.testing.assert_array_equal(kkkc.k2k1k3.ntri, true_ntri_212)
+    np.testing.assert_array_equal(kkkc.k2k3k1.ntri, true_ntri_221)
+    np.testing.assert_array_equal(kkkc.k3k1k2.ntri, true_ntri_212)
+    np.testing.assert_array_equal(kkkc.k3k2k1.ntri, true_ntri_221)
+    np.testing.assert_allclose(kkkc.k1k2k3.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k1k3k2.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k2k1k3.weight, true_weight_212, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k2k3k1.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k3k1k2.weight, true_weight_212, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k3k2k1.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k1k2k3.zeta, true_zeta_122, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k1k3k2.zeta, true_zeta_122, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k2k1k3.zeta, true_zeta_212, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k2k3k1.zeta, true_zeta_221, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k3k1k2.zeta, true_zeta_212, rtol=1.e-5)
+    np.testing.assert_allclose(kkkc.k3k2k1.zeta, true_zeta_221, rtol=1.e-5)
+
+    # Check that running via the corr3 script works correctly.
+    config = treecorr.config.read_config('configs/kkk_direct_cross12.yaml')
+    cat1.write(config['file_name'])
+    cat2.write(config['file_name2'])
+
+    config = treecorr.config.read_config('configs/kkk_direct_cross12.yaml')
+    config['verbose'] = 0
+    treecorr.corr3(config)
+    data = fitsio.read(config['kkk_file_name'])
+    np.testing.assert_allclose(data['r_nom'], kkk.rnom.flatten())
+    np.testing.assert_allclose(data['u_nom'], kkk.u.flatten())
+    np.testing.assert_allclose(data['v_nom'], kkk.v.flatten())
+    np.testing.assert_allclose(data['zeta'], kkk.zeta.flatten())
+    np.testing.assert_allclose(data['ntri'], kkk.ntri.flatten())
+    np.testing.assert_allclose(data['weight'], kkk.weight.flatten())
+
+
+@timer
 def test_direct_cross_3d():
     # Now in 3d
 

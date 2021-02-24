@@ -1193,6 +1193,63 @@ def test_direct_cross12():
     np.testing.assert_allclose(data['ntri'], ggg.ntri.flatten())
     np.testing.assert_allclose(data['weight'], ggg.weight.flatten())
 
+    # Split into patches to test the list-based version of the code.
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=3)
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2, npatch=3)
+
+    ggg.process(cat1, cat2, num_threads=2)
+
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
+    np.testing.assert_allclose(ggg.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_sum, rtol=1.e-5)
+
+    gggc = treecorr.GGGCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
+                                        min_u=min_u, max_u=max_u, nubins=nubins,
+                                        min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                        bin_slop=0, verbose=1)
+    gggc.process(cat1, cat2)
+
+    np.testing.assert_array_equal(gggc.g1g2g3.ntri, true_ntri_122)
+    np.testing.assert_array_equal(gggc.g1g3g2.ntri, true_ntri_122)
+    np.testing.assert_array_equal(gggc.g2g1g3.ntri, true_ntri_212)
+    np.testing.assert_array_equal(gggc.g2g3g1.ntri, true_ntri_221)
+    np.testing.assert_array_equal(gggc.g3g1g2.ntri, true_ntri_212)
+    np.testing.assert_array_equal(gggc.g3g2g1.ntri, true_ntri_221)
+    np.testing.assert_allclose(gggc.g1g2g3.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g1g3g2.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g2g1g3.weight, true_weight_212, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g2g3g1.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g3g1g2.weight, true_weight_212, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g3g2g1.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g1g2g3.gam0, true_gam0_122, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g1g3g2.gam0, true_gam0_122, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g2g1g3.gam0, true_gam0_212, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g2g3g1.gam0, true_gam0_221, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g3g1g2.gam0, true_gam0_212, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g3g2g1.gam0, true_gam0_221, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g1g2g3.gam1, true_gam1_122, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g1g3g2.gam1, true_gam1_122, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g2g1g3.gam1, true_gam1_212, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g2g3g1.gam1, true_gam1_221, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g3g1g2.gam1, true_gam1_212, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g3g2g1.gam1, true_gam1_221, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g1g2g3.gam2, true_gam2_122, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g1g3g2.gam2, true_gam2_122, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g2g1g3.gam2, true_gam2_212, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g2g3g1.gam2, true_gam2_221, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g3g1g2.gam2, true_gam2_212, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g3g2g1.gam2, true_gam2_221, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g1g2g3.gam3, true_gam3_122, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g1g3g2.gam3, true_gam3_122, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g2g1g3.gam3, true_gam3_212, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g2g3g1.gam3, true_gam3_221, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g3g1g2.gam3, true_gam3_212, rtol=1.e-5)
+    np.testing.assert_allclose(gggc.g3g2g1.gam3, true_gam3_221, rtol=1.e-5)
+
+
 @timer
 def test_ggg():
     # Use gamma_t(r) = gamma0 r^2/r0^2 exp(-r^2/2r0^2)
@@ -1706,5 +1763,7 @@ def test_map3():
 if __name__ == '__main__':
     test_direct()
     test_direct_spherical()
+    test_direct_cross()
+    test_direct_cross12()
     test_ggg()
     test_map3()

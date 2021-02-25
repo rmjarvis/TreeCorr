@@ -86,7 +86,12 @@ jobs:
                 pip install -U -r requirements.txt
 
                 # Extra packages needed for testing
-                pip install -U nose codecov fitsio mpi4py coverage h5py
+                pip install -U nose codecov fitsio mpi4py coverage
+
+                # Using -U for h5py has problems on pypy.  Hopefully this won't need to
+                # be updated too often.
+                pip install h5py
+
 
             - name: Install py2.7 dependencies
               if: matrix.py == 2.7

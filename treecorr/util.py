@@ -68,6 +68,29 @@ def get_omp_threads():
     """
     return treecorr._lib.GetOMPThreads()
 
+def parse_file_type(file_type, file_name, hdf=False, logger=None):
+    """Parse the file_type from the file_name if necessary
+
+    :param file_type:   The input file_type.  If None, then parse from file_name's extension.
+    :param file_name:   The filename to use for parsing if necessary.
+    :param hdf:         Include HDF as a possible file_type? (default: False)
+    :param logger:      A logger if desired. (default: None)
+
+    :returns: The parsed file_type.
+    """
+    if file_type is None:
+        import os
+        name, ext = os.path.splitext(file_name)
+        if ext.lower().startswith('.fit'):
+            file_type = 'FITS'
+        elif hdf and ext.lower().startswith('.hdf'):
+            file_type = 'HDF'
+        else:
+            file_type = 'ASCII'
+        if logger:
+            logger.info("   file_type assumed to be %s from the file name.",file_type)
+    return file_type.upper()
+
 def gen_write(file_name, col_names, columns, params=None, precision=4, file_type=None, logger=None):
     """Write some columns to an output file with the given column names.
 
@@ -94,18 +117,10 @@ def gen_write(file_name, col_names, columns, params=None, precision=4, file_type
 
     ensure_dir(file_name)
 
-    # Figure out which file type the catalog is
-    if file_type is None:
-        import os
-        name, ext = os.path.splitext(file_name)
-        if ext.lower().startswith('.fit'):
-            file_type = 'FITS'
-        else:
-            file_type = 'ASCII'
-        if logger:
-            logger.info("file_type assumed to be %s from the file name.",file_type)
+    # Figure out which file type to use.
+    file_type = parse_file_type(file_type, file_name, logger=logger)
 
-    if file_type.upper() == 'FITS':
+    if file_type == 'FITS':
         try:
             import fitsio  # noqa: F401
         except ImportError:
@@ -114,7 +129,7 @@ def gen_write(file_name, col_names, columns, params=None, precision=4, file_type
             raise
         with fitsio.FITS(file_name, 'rw', clobber=True) as fits:
             gen_write_fits(fits, col_names, columns, params)
-    elif file_type.upper() == 'ASCII':
+    elif file_type == 'ASCII':
         with open(file_name, 'wb') as fid:
             gen_write_ascii(fid, col_names, columns, params, precision=precision)
     else:
@@ -177,18 +192,10 @@ def gen_read(file_name, file_type=None, logger=None):
 
     :returns: (data, params), a numpy ndarray with named columns, and a dict of extra parameters.
     """
-    # Figure out which file type the catalog is
-    if file_type is None:
-        import os
-        name, ext = os.path.splitext(file_name)
-        if ext.lower().startswith('.fit'):
-            file_type = 'FITS'
-        else:
-            file_type = 'ASCII'
-        if logger:
-            logger.info("file_type assumed to be %s from the file name.",file_type)
+    # Figure out which file type to use.
+    file_type = parse_file_type(file_type, file_name, logger=logger)
 
-    if file_type.upper() == 'FITS':
+    if file_type == 'FITS':
         try:
             import fitsio
         except ImportError:

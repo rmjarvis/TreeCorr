@@ -277,12 +277,12 @@ def gen_read_ascii(fid, max_rows=None):
 
     :returns: (data, params), a numpy ndarray with named columns, and a dict of extra parameters.
     """
-    header = fid.readline()
+    header = next(fid)
     params = {}
     if header[1] == '#':
         assert header[0] == '#'
         params = eval(header[2:].strip())
-        header = fid.readline()
+        header = next(fid)
     names = header[1:].split()
     data = np.genfromtxt(fid, names=names, max_rows=max_rows)
     return data, params
@@ -338,7 +338,7 @@ def gen_multi_read(file_name, group_names, file_type=None, logger=None):
         out = []
         with open(file_name) as fid:
             for name in group_names:
-                group_line = fid.readline()
+                group_line = next(fid)
                 name1, max_rows = group_line[2:].split()
                 name1 = name1[:-1]  # strip off final :
                 if name1 != name:

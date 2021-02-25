@@ -475,6 +475,18 @@ class BinnedCorr3(object):
         self.var_method = treecorr.config.get(self.config,'var_method',str,'shot')
         self.results = {}  # for jackknife, etc. store the results of each pair of patches.
 
+    def __getstate__(self):
+        d = self.__dict__.copy()
+        d.pop('_corr',None)
+        d.pop('logger',None)  # Oh well.  This is just lost in the copy.  Can't be pickled.
+        return d
+
+    def __setstate__(self, d):
+        self.__dict__ = d
+        self.logger = treecorr.config.setup_logger(
+                treecorr.config.get(self.config,'verbose',int,1),
+                self.config.get('log_file',None))
+
     def _process_all_auto(self, cats, metric, num_threads):
         for i, c1 in enumerate(cats):
             # All three points in c1

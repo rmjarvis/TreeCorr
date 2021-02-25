@@ -175,6 +175,65 @@ def gen_write_fits(fits, col_names, columns, params, extname=None):
         data[name] = col
     fits.write(data, header=params, extname=extname)
 
+def gen_multi_write(file_name, col_names, group_names, columns,
+                    params=None, precision=4, file_type=None, logger=None):
+    """Write multiple groups of columns to an output file with the given column names.
+
+    We do this basic functionality a lot, so put the code to do it in one place.
+
+    :param file_name:   The name of the file to write to.
+    :param col_names:   A list of columns names for the given columns (same for each group).
+    :param group_names: A list of group names.  These become the hdu names in FITS format or
+                        names for blocks of rows in ASCII format.
+    :param columns:     A list of groups, each of which is a list of numpy arrays with the data to
+                        write.
+    :param params:      A dict of extra parameters to write at the top of the output file (for
+                        ASCII output) or in the header (for FITS output).  (default: None)
+    :param precision:   Output precision for ASCII. (default: 4)
+    :param file_type:   Which kind of file to write to. (default: determine from the file_name
+                        extension)
+    :param logger:      If desired, a logger object for logging. (default: None)
+    """
+    if len(group_names) != len(columns):
+        raise ValueError("group_names and columns are not the same length.")
+    for i, col_group in enumerate(columns):
+        if len(col_names) != len(col_group):
+            raise ValueError("col_names and columns[%d] are not the same length."%i)
+    if len(group_names) == 0:
+        raise ValueError("len(group_names) == 0")
+    if len(col_names) == 0:
+        raise ValueError("len(col_names) == 0")
+    for group in columns:
+        for col in group:
+            if col.shape != columns[0][0].shape:
+                raise ValueError("columns are not all the same shape")
+
+    columns = [ [ col.flatten() for col in group ] for group in columns ]
+
+    ensure_dir(file_name)
+
+    # Figure out which file type to use.
+    file_type = parse_file_type(file_type, file_name, logger=logger)
+
+    if file_type == 'FITS':
+        try:
+            import fitsio  # noqa: F401
+        except ImportError:
+            if logger:
+                logger.error("Unable to import fitsio.  Cannot write to %s"%file_name)
+            raise
+        with fitsio.FITS(file_name, 'rw', clobber=True) as fits:
+            for name, cols in zip(group_names, columns):
+                gen_write_fits(fits, col_names, cols, params, extname=name)
+    elif file_type == 'ASCII':
+        with open(file_name, 'wb') as fid:
+            for name, cols in zip(group_names, columns):
+                s = '## %s: %d\n'%(name, len(cols[0]))
+                fid.write(s.encode())
+                gen_write_ascii(fid, col_names, cols, params, precision=precision)
+    else:
+        raise ValueError("Invalid file_type %s"%file_type)
+
 def gen_read(file_name, file_type=None, logger=None):
     """Read some columns from an input file.
 
@@ -203,19 +262,18 @@ def gen_read(file_name, file_type=None, logger=None):
                 logger.error("Unable to import fitsio.  Cannot read %s"%file_name)
             raise
         with fitsio.FITS(file_name) as fits:
-            data, params = gen_read_fits(fits, ext=1)
-    elif file_type.upper() == 'ASCII':
+            return gen_read_fits(fits, ext=1)
+    elif file_type == 'ASCII':
         with open(file_name) as fid:
-            data, params = gen_read_ascii(fid)
+            return gen_read_ascii(fid)
     else:
         raise ValueError("Invalid file_type %s"%file_type)
 
-    return data, params
-
-def gen_read_ascii(fid):
+def gen_read_ascii(fid, max_rows=None):
     """Read some columns from an input ASCII file.
 
     :param fid:         An open file handler in binary mode. E.g. fid = open(file_name, 'rb')
+    :param max_rows:    How many rows to read. (default: None, which means go to the end)
 
     :returns: (data, params), a numpy ndarray with named columns, and a dict of extra parameters.
     """
@@ -226,7 +284,7 @@ def gen_read_ascii(fid):
         params = eval(header[2:].strip())
         header = fid.readline()
     names = header[1:].split()
-    data = np.genfromtxt(fid, names=names)
+    data = np.genfromtxt(fid, names=names, max_rows=max_rows)
     return data, params
 
 def gen_read_fits(fits, ext=1):
@@ -240,6 +298,57 @@ def gen_read_fits(fits, ext=1):
     data = fits[ext].read()
     params = fits[ext].read_header()
     return data, params
+
+def gen_multi_read(file_name, group_names, file_type=None, logger=None):
+    """Read some columns from an input file.
+
+    We do this basic functionality a lot, so put the code to do it in one place.
+
+    .. note::
+
+        The input file is expected to have been written by TreeCorr using the
+        `gen_write` function, so we don't have a lot of flexibility in the input structure.
+
+    :param file_name:   The name of the file to read.
+    :param group_names: A list of group names.  These are the hdu names in FITS format or
+                        names for blocks of rows in ASCII format.
+    :param file_type:   Which kind of file to read. (default: determine from the file_name
+                        extension)
+    :param logger:      If desired, a logger object for logging. (default: None)
+
+    :returns: list of (data, params) pairs, one for each group
+    """
+    # Figure out which file type to use.
+    file_type = parse_file_type(file_type, file_name, logger=logger)
+
+    if file_type == 'FITS':
+        try:
+            import fitsio
+        except ImportError:
+            if logger:
+                logger.error("Unable to import fitsio.  Cannot read %s"%file_name)
+            raise
+        out = []
+        with fitsio.FITS(file_name) as fits:
+            for name in group_names:
+                data, params = gen_read_fits(fits, ext=name)
+                out.append( (data,params) )
+        return out
+    elif file_type == 'ASCII':
+        out = []
+        with open(file_name) as fid:
+            for name in group_names:
+                group_line = fid.readline()
+                name1, max_rows = group_line[2:].split()
+                name1 = name1[:-1]  # strip off final :
+                if name1 != name:
+                    raise OSError("Mismatch in group names. Expected %s, found %s"%(name,name1))
+                max_rows = int(max_rows)
+                data, params = gen_read_ascii(fid, max_rows=max_rows)
+                out.append( (data,params) )
+        return out
+    else:
+        raise ValueError("Invalid file_type %s"%file_type)
 
 class LRU_Cache(object):
     """ Simplified Least Recently Used Cache.

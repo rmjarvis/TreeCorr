@@ -554,6 +554,8 @@ def test_gen_read_write():
     with assert_raises(ValueError):
         treecorr.util.gen_write(file_name, ['a'], [a, b])
     with assert_raises(ValueError):
+        treecorr.util.gen_write(file_name, ['a', 'b', 'c'], [a, b])
+    with assert_raises(ValueError):
         treecorr.util.gen_write(file_name, [], [])
     with assert_raises(ValueError):
         treecorr.util.gen_write(file_name, ['a', 'b'], [a, b[:1]])
@@ -614,10 +616,10 @@ def test_gen_read_write():
         treecorr.util.gen_write(file_name4, ['a', 'b'], [a,b], params=params, logger=cl.logger)
     assert 'assumed to be FITS' in cl.output
     with CaptureLog() as cl:
-        data, par = treecorr.util.gen_read(file_name3, logger=cl.logger)
+        treecorr.util.gen_read(file_name3, logger=cl.logger)
     assert 'assumed to be ASCII' in cl.output
     with CaptureLog() as cl:
-        data, par = treecorr.util.gen_read(file_name4, logger=cl.logger)
+        treecorr.util.gen_read(file_name4, logger=cl.logger)
     assert 'assumed to be FITS' in cl.output
 
     # Check that errors are reasonable if fitsio not installed.
@@ -634,7 +636,138 @@ def test_gen_read_write():
         assert "Unable to import fitsio" in cl.output
         with CaptureLog() as cl:
             with assert_raises(ImportError):
-                data, par = treecorr.util.gen_read(file_name2, logger=cl.logger)
+                treecorr.util.gen_read(file_name2, logger=cl.logger)
+        assert "Unable to import fitsio" in cl.output
+
+@timer
+def test_gen_multi_read_write():
+    # This is nearly identical to the above test_gen_read_write, but for the multi versions.
+
+    a1 = np.array([11,12,13,14])
+    b1 = np.array([14,15,16,17])
+    a2 = np.array([21,22,23,24])
+    b2 = np.array([24,25,26,27])
+    a3 = np.array([31,32,33,34])
+    b3 = np.array([34,35,36,37])
+    col_names = ['a', 'b']
+    names = ['n1','n2','n3']
+    data = [ [a1,b1], [a2,b2], [a3,b3] ]
+
+    file_name = 'invalid.out'
+    with assert_raises(ValueError):
+        treecorr.util.gen_multi_write(file_name, col_names, names, [[a1], [a2], [a3]])
+    with assert_raises(ValueError):
+        treecorr.util.gen_multi_write(file_name, col_names, names,
+                                      [[a1,b1,a1], [a2,b2,a2], [a3,b3,a3]])
+    with assert_raises(ValueError):
+        treecorr.util.gen_multi_write(file_name, ['a'], names, data)
+    with assert_raises(ValueError):
+        treecorr.util.gen_multi_write(file_name, ['a', 'b', 'c'], names, data)
+    with assert_raises(ValueError):
+        treecorr.util.gen_multi_write(file_name, [], names, [[], [], []])
+    with assert_raises(ValueError):
+        treecorr.util.gen_multi_write(file_name, col_names, ['n1', 'n2'], data)
+    with assert_raises(ValueError):
+        treecorr.util.gen_multi_write(file_name, col_names, ['n1', 'n2', 'n3', 'n4'], data)
+    with assert_raises(ValueError):
+        treecorr.util.gen_multi_write(file_name, col_names, [], [])
+    with assert_raises(ValueError):
+        treecorr.util.gen_multi_write(file_name, col_names, names,
+                                      [[a1, b1[:1]], [a2, b2[:1]], [a3, b3[:1]]])
+    with assert_raises(ValueError):
+        treecorr.util.gen_multi_write(file_name, col_names, names, data, file_type='Invalid')
+
+    with assert_raises(ValueError):
+        treecorr.util.gen_multi_read(file_name, names, file_type='Invalid')
+    with assert_raises(OSError):
+        treecorr.util.gen_multi_read(file_name, names, file_type='ASCII')
+    with assert_raises(OSError):
+        treecorr.util.gen_multi_read(file_name, names, file_type='FITS')
+
+    # Now some working I/O
+    file_name1 = 'output/valid1.out'
+    treecorr.util.gen_multi_write(file_name1, col_names, names, data)
+    groups = treecorr.util.gen_multi_read(file_name1, names)
+    print('groups = ',groups)
+    assert len(groups) == len(names)
+    for (d, par), (a,b) in zip(groups, data):
+        np.testing.assert_array_equal(d['a'], a)
+        np.testing.assert_array_equal(d['b'], b)
+        assert par == dict()
+
+    file_name2 = 'output/valid1.fits'
+    treecorr.util.gen_multi_write(file_name2, col_names, names, data)
+    groups = treecorr.util.gen_multi_read(file_name2, names)
+    assert len(groups) == len(names)
+    for (d, par), (a,b) in zip(groups, data):
+        np.testing.assert_array_equal(d['a'], a)
+        np.testing.assert_array_equal(d['b'], b)
+        assert isinstance(par, fitsio.FITSHDR)
+        assert 'p1' not in par
+        par['p1'] = 7
+        assert par['p1'] == 7
+
+    # Repeat with params
+    file_name3 = 'output/valid2.out'
+    params = {'p1' : 7, 'p2' : 'hello'}
+    treecorr.util.gen_multi_write(file_name3, col_names, names, data, params=params)
+    groups = treecorr.util.gen_multi_read(file_name3, names)
+    assert len(groups) == len(names)
+    for (d, par), (a,b) in zip(groups, data):
+        np.testing.assert_array_equal(d['a'], a)
+        np.testing.assert_array_equal(d['b'], b)
+        assert par['p1'] == 7
+        assert par['p2'] == 'hello'
+
+    file_name4 = 'output/valid2.fits'
+    treecorr.util.gen_multi_write(file_name4, col_names, names, data, params=params)
+    groups = treecorr.util.gen_multi_read(file_name4, names)
+    assert len(groups) == len(names)
+    for (d, par), (a,b) in zip(groups, data):
+        np.testing.assert_array_equal(d['a'], a)
+        np.testing.assert_array_equal(d['b'], b)
+        assert par['p1'] == 7
+        assert par['p2'] == 'hello'
+
+    # Check with logger
+    with CaptureLog() as cl:
+        treecorr.util.gen_multi_write(file_name3, col_names, names, data, params=params,
+                                      logger=cl.logger)
+    assert 'assumed to be ASCII' in cl.output
+    with CaptureLog() as cl:
+        treecorr.util.gen_multi_write(file_name4, col_names, names, data, params=params,
+                                      logger=cl.logger)
+    assert 'assumed to be FITS' in cl.output
+    with CaptureLog() as cl:
+        treecorr.util.gen_multi_read(file_name3, names, logger=cl.logger)
+    assert 'assumed to be ASCII' in cl.output
+    with CaptureLog() as cl:
+        treecorr.util.gen_multi_read(file_name4, names, logger=cl.logger)
+    assert 'assumed to be FITS' in cl.output
+
+    # Check with wrong group names
+    alt_names = ['k1','k2','k3']
+    with assert_raises(OSError):
+        treecorr.util.gen_multi_read(file_name3, alt_names, logger=cl.logger)
+    with assert_raises(OSError):
+        treecorr.util.gen_multi_read(file_name4, alt_names, logger=cl.logger)
+
+    # Check that errors are reasonable if fitsio not installed.
+    if sys.version_info < (3,): return  # mock only available on python 3
+    from unittest import mock
+    with mock.patch.dict(sys.modules, {'fitsio':None}):
+        with assert_raises(ImportError):
+            treecorr.util.gen_multi_write(file_name2, col_names, names, data)
+        with assert_raises(ImportError):
+            treecorr.util.gen_multi_read(file_name2, names)
+        with CaptureLog() as cl:
+            with assert_raises(ImportError):
+                treecorr.util.gen_multi_write(file_name2, col_names, names, data,
+                                              logger=cl.logger)
+        assert "Unable to import fitsio" in cl.output
+        with CaptureLog() as cl:
+            with assert_raises(ImportError):
+                treecorr.util.gen_multi_read(file_name2, names, logger=cl.logger)
         assert "Unable to import fitsio" in cl.output
 
 if __name__ == '__main__':
@@ -650,3 +783,4 @@ if __name__ == '__main__':
     test_omp()
     test_util()
     test_gen_read_write()
+    test_gen_multi_read_write()

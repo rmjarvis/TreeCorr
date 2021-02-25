@@ -22,7 +22,7 @@ import copy
 import os
 import treecorr
 from .reader import FitsReader, HdfReader, AsciiReader, PandasReader
-
+from .util import parse_file_type
 
 class Catalog(object):
     """A set of input data (positions and other quantities) to be correlated.
@@ -605,16 +605,7 @@ class Catalog(object):
 
             # Figure out which file type the catalog is
             file_type = treecorr.config.get_from_list(self.config,'file_type',num)
-            if file_type is None:
-                import os
-                name, ext = os.path.splitext(file_name)
-                if ext.lower().startswith('.fit'):
-                    file_type = 'FITS'
-                elif ext.lower().startswith('.hdf'):
-                    file_type = 'HDF'
-                else:
-                    file_type = 'ASCII'
-                self.logger.info("   file_type assumed to be %s from the file name.",file_type)
+            file_type = parse_file_type(file_type, file_name, hdf=True, logger=self.logger)
             if file_type == 'FITS':
                 self.reader = FitsReader(file_name)
                 self._check_file(file_name, self.reader, num, is_rand)

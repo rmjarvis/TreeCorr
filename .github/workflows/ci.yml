@@ -86,14 +86,14 @@ jobs:
                 pip install -U -r requirements.txt
 
                 # Extra packages needed for testing
-                pip install -U nose codecov fitsio mpi4py coverage
+                pip install -U nose codecov fitsio mpi4py coverage h5py
 
             - name: Install py2.7 dependencies
               if: matrix.py == 2.7
               run: |
-                # halotools doesn't work anymore in 3.x (because of astropy change), so do this in
-                # 2.7.And also test h5py here.
-                pip install -U h5py halotools
+                # halotools doesn't work anymore in 3.x (because of astropy change),
+                # so do this in 2.7.
+                pip install -U halotools
 
             - name: Install py3.x, pypy dependencies
               if: matrix.py > 3.0 || matrix.py == 'pypy3'
@@ -104,7 +104,7 @@ jobs:
               # They are slow to install on pypy, where some are installed from scratch.
               if: matrix.py > 3.0
               run: |
-                pip install -U matplotlib nbval ipykernel scipy pandas guppy3 h5py
+                pip install -U matplotlib nbval ipykernel scipy pandas guppy3
 
             - name: List all installed packages for reference
               run: pip list

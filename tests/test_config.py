@@ -605,6 +605,7 @@ def test_gen_read_write():
     data, par = treecorr.util.gen_read(file_name4)
     np.testing.assert_array_equal(data['a'], a)
     np.testing.assert_array_equal(data['b'], b)
+    print('par = ',par)
     assert par['p1'] == 7
     assert par['p2'] == 'hello'
 

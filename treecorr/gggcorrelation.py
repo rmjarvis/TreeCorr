@@ -1425,13 +1425,18 @@ class GGGCrossCorrelation(treecorr.BinnedCorr3):
                       'meand3', 'meanlogd3', 'meanu', 'meanv',
                       'gam0r', 'gam0i', 'gam1r', 'gam1i', 'gam2r', 'gam2i', 'gam3r', 'gam3i',
                       'sigma_gam0', 'sigma_gam1', 'sigma_gam2', 'sigma_gam3', 'weight', 'ntri' ]
-        columns = [ self.rnom, self.u, self.v,
-                    self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
-                    self.meand3, self.meanlogd3, self.meanu, self.meanv,
-                    self.gam0r, self.gam0i, self.gam1r, self.gam1i,
-                    self.gam2r, self.gam2i, self.gam3r, self.gam3i,
-                    np.sqrt(self.vargam0), np.sqrt(self.vargam1), np.sqrt(self.vargam2),
-                    np.sqrt(self.vargam3), self.weight, self.ntri ]
+        group_names = [ 'g1g2g3', 'g1g3g2', 'g2g1g3', 'g2g3g1', 'g3g1g2', 'g3g2g1' ]
+        columns = [
+                    [ ggg.rnom, ggg.u, ggg.v,
+                      ggg.meand1, ggg.meanlogd1, ggg.meand2, ggg.meanlogd2,
+                      ggg.meand3, ggg.meanlogd3, ggg.meanu, ggg.meanv,
+                      ggg.gam0r, ggg.gam0i, ggg.gam1r, ggg.gam1i,
+                      ggg.gam2r, ggg.gam2i, ggg.gam3r, ggg.gam3i,
+                      np.sqrt(ggg.vargam0), np.sqrt(ggg.vargam1), np.sqrt(ggg.vargam2),
+                      np.sqrt(ggg.vargam3), ggg.weight, ggg.ntri ]
+                    for ggg in [ self.g1g2g3, self.g1g3g2, self.g2g1g3,
+                                 self.g2g3g1, self.g3g1g2, self.g3g2g1 ]
+                  ]
 
         params = { 'coords' : self.coords, 'metric' : self.metric,
                    'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
@@ -1439,8 +1444,8 @@ class GGGCrossCorrelation(treecorr.BinnedCorr3):
         if precision is None:
             precision = self.config.get('precision', 4)
 
-        treecorr.util.gen_write(
-            file_name, col_names, columns,
+        treecorr.util.gen_multi_write(
+            file_name, col_names, group_names, columns,
             params=params, precision=precision, file_type=file_type, logger=self.logger)
 
     def read(self, file_name, file_type=None):
@@ -1451,7 +1456,7 @@ class GGGCrossCorrelation(treecorr.BinnedCorr3):
 
         .. warning::
 
-            The `GGGCorrelation` object should be constructed with the same configuration
+            The `GGGCrossCorrelation` object should be constructed with the same configuration
             parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
             checked by the read function.
 
@@ -1462,46 +1467,41 @@ class GGGCrossCorrelation(treecorr.BinnedCorr3):
         """
         self.logger.info('Reading GGG cross-correlations from %s',file_name)
 
-        # TODO
-        data, params = treecorr.util.gen_read(file_name, file_type=file_type, logger=self.logger)
+        group_names = [ 'g1g2g3', 'g1g3g2', 'g2g1g3', 'g2g3g1', 'g3g1g2', 'g3g2g1' ]
+
+        groups = treecorr.util.gen_multi_read(
+                file_name, group_names, file_type=file_type, logger=self.logger)
         s = self.logr.shape
-        if 'R_nom' in data.dtype.names:  # pragma: no cover
-            self.rnom = data['R_nom'].reshape(s)
-        else:
-            self.rnom = data['r_nom'].reshape(s)
-        self.logr = np.log(self.rnom)
-        self.u = data['u_nom'].reshape(s)
-        self.v = data['v_nom'].reshape(s)
-        self.meand1 = data['meand1'].reshape(s)
-        self.meanlogd1 = data['meanlogd1'].reshape(s)
-        self.meand2 = data['meand2'].reshape(s)
-        self.meanlogd2 = data['meanlogd2'].reshape(s)
-        self.meand3 = data['meand3'].reshape(s)
-        self.meanlogd3 = data['meanlogd3'].reshape(s)
-        self.meanu = data['meanu'].reshape(s)
-        self.meanv = data['meanv'].reshape(s)
-        self.gam0r = data['gam0r'].reshape(s)
-        self.gam0i = data['gam0i'].reshape(s)
-        self.gam1r = data['gam1r'].reshape(s)
-        self.gam1i = data['gam1i'].reshape(s)
-        self.gam2r = data['gam2r'].reshape(s)
-        self.gam2i = data['gam2i'].reshape(s)
-        self.gam3r = data['gam3r'].reshape(s)
-        self.gam3i = data['gam3i'].reshape(s)
-        # Read old output files without error.
-        if 'sigma_gam' in data.dtype.names:  # pragma: no cover
-            self.vargam0 = data['sigma_gam'].reshape(s)**2
-            self.vargam1 = data['sigma_gam'].reshape(s)**2
-            self.vargam2 = data['sigma_gam'].reshape(s)**2
-            self.vargam3 = data['sigma_gam'].reshape(s)**2
-        else:
-            self.vargam0 = data['sigma_gam0'].reshape(s)**2
-            self.vargam1 = data['sigma_gam1'].reshape(s)**2
-            self.vargam2 = data['sigma_gam2'].reshape(s)**2
-            self.vargam3 = data['sigma_gam3'].reshape(s)**2
-        self.weight = data['weight'].reshape(s)
-        self.ntri = data['ntri'].reshape(s)
-        self.coords = params['coords'].strip()
-        self.metric = params['metric'].strip()
-        self.sep_units = params['sep_units'].strip()
-        self.bin_type = params['bin_type'].strip()
+        for (data, params), name in zip(groups, group_names):
+            ggg = getattr(self, name)
+            ggg.rnom = data['r_nom'].reshape(s)
+            ggg.logr = np.log(ggg.rnom)
+            ggg.u = data['u_nom'].reshape(s)
+            ggg.v = data['v_nom'].reshape(s)
+            ggg.meand1 = data['meand1'].reshape(s)
+            ggg.meanlogd1 = data['meanlogd1'].reshape(s)
+            ggg.meand2 = data['meand2'].reshape(s)
+            ggg.meanlogd2 = data['meanlogd2'].reshape(s)
+            ggg.meand3 = data['meand3'].reshape(s)
+            ggg.meanlogd3 = data['meanlogd3'].reshape(s)
+            ggg.meanu = data['meanu'].reshape(s)
+            ggg.meanv = data['meanv'].reshape(s)
+            ggg.gam0r = data['gam0r'].reshape(s)
+            ggg.gam0i = data['gam0i'].reshape(s)
+            ggg.gam1r = data['gam1r'].reshape(s)
+            ggg.gam1i = data['gam1i'].reshape(s)
+            ggg.gam2r = data['gam2r'].reshape(s)
+            ggg.gam2i = data['gam2i'].reshape(s)
+            ggg.gam3r = data['gam3r'].reshape(s)
+            ggg.gam3i = data['gam3i'].reshape(s)
+            # Read old output files without error.
+            ggg.vargam0 = data['sigma_gam0'].reshape(s)**2
+            ggg.vargam1 = data['sigma_gam1'].reshape(s)**2
+            ggg.vargam2 = data['sigma_gam2'].reshape(s)**2
+            ggg.vargam3 = data['sigma_gam3'].reshape(s)**2
+            ggg.weight = data['weight'].reshape(s)
+            ggg.ntri = data['ntri'].reshape(s)
+            ggg.coords = params['coords'].strip()
+            ggg.metric = params['metric'].strip()
+            ggg.sep_units = params['sep_units'].strip()
+            ggg.bin_type = params['bin_type'].strip()

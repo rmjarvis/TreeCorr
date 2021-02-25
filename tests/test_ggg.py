@@ -942,6 +942,51 @@ def test_direct_cross():
     with assert_raises(ValueError):
         gggc2 += gggc3
 
+    # Test I/O
+    ascii_name = 'output/gggc_ascii.txt'
+    gggc.write(ascii_name, precision=16)
+    gggc3 = treecorr.GGGCrossCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins)
+    gggc3.read(ascii_name)
+    for perm in ['g1g2g3', 'g1g3g2', 'g2g1g3', 'g2g3g1', 'g3g1g2', 'g3g2g1']:
+        g2 = getattr(gggc3, perm)
+        g1 = getattr(gggc, perm)
+        np.testing.assert_allclose(g2.ntri, g1.ntri)
+        np.testing.assert_allclose(g2.weight, g1.weight)
+        np.testing.assert_allclose(g2.meand1, g1.meand1)
+        np.testing.assert_allclose(g2.meand2, g1.meand2)
+        np.testing.assert_allclose(g2.meand3, g1.meand3)
+        np.testing.assert_allclose(g2.meanlogd1, g1.meanlogd1)
+        np.testing.assert_allclose(g2.meanlogd2, g1.meanlogd2)
+        np.testing.assert_allclose(g2.meanlogd3, g1.meanlogd3)
+        np.testing.assert_allclose(g2.meanu, g1.meanu)
+        np.testing.assert_allclose(g2.meanv, g1.meanv)
+        np.testing.assert_allclose(g2.gam0, g1.gam0)
+        np.testing.assert_allclose(g2.gam1, g1.gam1)
+        np.testing.assert_allclose(g2.gam2, g1.gam2)
+        np.testing.assert_allclose(g2.gam3, g1.gam3)
+
+    fits_name = 'output/gggc_fits.fits'
+    gggc.write(fits_name)
+    gggc4 = treecorr.GGGCrossCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins)
+    gggc4.read(fits_name)
+    for perm in ['g1g2g3', 'g1g3g2', 'g2g1g3', 'g2g3g1', 'g3g1g2', 'g3g2g1']:
+        g2 = getattr(gggc4, perm)
+        g1 = getattr(gggc, perm)
+        np.testing.assert_allclose(g2.ntri, g1.ntri)
+        np.testing.assert_allclose(g2.weight, g1.weight)
+        np.testing.assert_allclose(g2.meand1, g1.meand1)
+        np.testing.assert_allclose(g2.meand2, g1.meand2)
+        np.testing.assert_allclose(g2.meand3, g1.meand3)
+        np.testing.assert_allclose(g2.meanlogd1, g1.meanlogd1)
+        np.testing.assert_allclose(g2.meanlogd2, g1.meanlogd2)
+        np.testing.assert_allclose(g2.meanlogd3, g1.meanlogd3)
+        np.testing.assert_allclose(g2.meanu, g1.meanu)
+        np.testing.assert_allclose(g2.meanv, g1.meanv)
+        np.testing.assert_allclose(g2.gam0, g1.gam0)
+        np.testing.assert_allclose(g2.gam1, g1.gam1)
+        np.testing.assert_allclose(g2.gam2, g1.gam2)
+        np.testing.assert_allclose(g2.gam3, g1.gam3)
+
 @timer
 def test_direct_cross12():
     # Check the 1-2 cross correlation

@@ -482,9 +482,8 @@ class GGGCorrelation(treecorr.BinnedCorr3):
 
         .. note::
 
-            For this to make sense, both `GGGCorrelation` objects should have been using
-            `process_auto` and/or `process_cross`, and they should not have had `finalize` called
-            yet.  Then, after adding them together, you should call `finalize` on the sum.
+            For this to make sense, both `GGGCorrelation` objects should not have had `finalize`
+            called yet.  Then, after adding them together, you should call `finalize` on the sum.
         """
         if not isinstance(other, GGGCorrelation):
             raise TypeError("Can only add another GGGCorrelation object")
@@ -1335,9 +1334,9 @@ class GGGCrossCorrelation(treecorr.BinnedCorr3):
 
         .. note::
 
-            For this to make sense, both `GGGCorrelation` objects should have been using
-            `process_auto`, and they should not have had `finalize` called yet.  Then, after
-            adding them together, you should call `finalize` on the sum.
+            For this to make sense, both `GGGCrossCorrelation` objects should not have had
+            `finalize` called yet.  Then, after adding them together, you should call `finalize`
+            on the sum.
         """
         if not isinstance(other, GGGCrossCorrelation):
             raise TypeError("Can only add another GGGCrossCorrelation object")

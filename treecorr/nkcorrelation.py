@@ -318,9 +318,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         .. note::
 
-            For this to make sense, both `NKCorrelation` objects should have been using
-            `process_cross`, and they should not have had `finalize` called yet.
-            Then, after adding them together, you should call `finalize` on the sum.
+            For this to make sense, both `NKCorrelation` objects should not have had `finalize`
+            called yet.  Then, after adding them together, you should call `finalize` on the sum.
         """
         if not isinstance(other, NKCorrelation):
             raise TypeError("Can only add another NKCorrelation object")

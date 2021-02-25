@@ -152,7 +152,7 @@ def gen_write_ascii(fid, col_names, columns, params, precision=4):
 
     width = precision+8
     # Note: The first one is 1 shorter to allow space for the initial #.
-    header = ("#" + "{:^%d}"%(width-1) + "{:^%d}"%(width) * (ncol-1) + "\n").format(*col_names)
+    header = ("#" + "{:^%d}"%(width-1) + " {:^%d}"%(width) * (ncol-1) + "\n").format(*col_names)
     fmt = '%%%d.%de'%(width,precision)
 
     if params is not None:

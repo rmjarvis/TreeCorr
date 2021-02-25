@@ -261,18 +261,6 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         import copy
         return copy.deepcopy(self)
 
-    def __getstate__(self):
-        d = self.__dict__.copy()
-        d.pop('_corr',None)
-        d.pop('logger',None)  # Oh well.  This is just lost in the copy.  Can't be pickled.
-        return d
-
-    def __setstate__(self, d):
-        self.__dict__ = d
-        self.logger = treecorr.config.setup_logger(
-                treecorr.config.get(self.config,'verbose',int,1),
-                self.config.get('log_file',None))
-
     def __repr__(self):
         return 'GGGCorrelation(config=%r)'%self.config
 

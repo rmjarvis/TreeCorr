@@ -564,9 +564,9 @@ def test_gen_read_write():
 
     with assert_raises(ValueError):
         treecorr.util.gen_read(file_name, file_type='Invalid')
-    with assert_raises(OSError):
+    with assert_raises((OSError, IOError)):  # IOError on py2.7
         treecorr.util.gen_read(file_name, file_type='ASCII')
-    with assert_raises(OSError):
+    with assert_raises((OSError, IOError)):
         treecorr.util.gen_read(file_name, file_type='FITS')
 
     # Now some working I/O
@@ -679,9 +679,9 @@ def test_gen_multi_read_write():
 
     with assert_raises(ValueError):
         treecorr.util.gen_multi_read(file_name, names, file_type='Invalid')
-    with assert_raises(OSError):
+    with assert_raises((OSError, IOError)):
         treecorr.util.gen_multi_read(file_name, names, file_type='ASCII')
-    with assert_raises(OSError):
+    with assert_raises((OSError, IOError)):
         treecorr.util.gen_multi_read(file_name, names, file_type='FITS')
 
     # Now some working I/O
@@ -749,7 +749,7 @@ def test_gen_multi_read_write():
     alt_names = ['k1','k2','k3']
     with assert_raises(OSError):
         treecorr.util.gen_multi_read(file_name3, alt_names, logger=cl.logger)
-    with assert_raises(OSError):
+    with assert_raises((OSError, IOError)):
         treecorr.util.gen_multi_read(file_name4, alt_names, logger=cl.logger)
 
     # Check that errors are reasonable if fitsio not installed.

@@ -644,6 +644,45 @@ def test_direct_cross():
     with assert_raises(ValueError):
         kkkc2 += kkkc3
 
+    # Test I/O
+    ascii_name = 'output/kkkc_ascii.txt'
+    kkkc.write(ascii_name, precision=16)
+    kkkc3 = treecorr.KKKCrossCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins)
+    kkkc3.read(ascii_name)
+    for perm in ['k1k2k3', 'k1k3k2', 'k2k1k3', 'k2k3k1', 'k3k1k2', 'k3k2k1']:
+        k2 = getattr(kkkc3, perm)
+        k1 = getattr(kkkc, perm)
+        np.testing.assert_allclose(k2.ntri, k1.ntri)
+        np.testing.assert_allclose(k2.weight, k1.weight)
+        np.testing.assert_allclose(k2.meand1, k1.meand1)
+        np.testing.assert_allclose(k2.meand2, k1.meand2)
+        np.testing.assert_allclose(k2.meand3, k1.meand3)
+        np.testing.assert_allclose(k2.meanlogd1, k1.meanlogd1)
+        np.testing.assert_allclose(k2.meanlogd2, k1.meanlogd2)
+        np.testing.assert_allclose(k2.meanlogd3, k1.meanlogd3)
+        np.testing.assert_allclose(k2.meanu, k1.meanu)
+        np.testing.assert_allclose(k2.meanv, k1.meanv)
+        np.testing.assert_allclose(k2.zeta, k1.zeta)
+
+    fits_name = 'output/kkkc_fits.fits'
+    kkkc.write(fits_name)
+    kkkc4 = treecorr.KKKCrossCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins)
+    kkkc4.read(fits_name)
+    for perm in ['k1k2k3', 'k1k3k2', 'k2k1k3', 'k2k3k1', 'k3k1k2', 'k3k2k1']:
+        k2 = getattr(kkkc4, perm)
+        k1 = getattr(kkkc, perm)
+        np.testing.assert_allclose(k2.ntri, k1.ntri)
+        np.testing.assert_allclose(k2.weight, k1.weight)
+        np.testing.assert_allclose(k2.meand1, k1.meand1)
+        np.testing.assert_allclose(k2.meand2, k1.meand2)
+        np.testing.assert_allclose(k2.meand3, k1.meand3)
+        np.testing.assert_allclose(k2.meanlogd1, k1.meanlogd1)
+        np.testing.assert_allclose(k2.meanlogd2, k1.meanlogd2)
+        np.testing.assert_allclose(k2.meanlogd3, k1.meanlogd3)
+        np.testing.assert_allclose(k2.meanu, k1.meanu)
+        np.testing.assert_allclose(k2.meanv, k1.meanv)
+        np.testing.assert_allclose(k2.zeta, k1.zeta)
+
 @timer
 def test_direct_cross12():
     # Check the 1-2 cross correlation

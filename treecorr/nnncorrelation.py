@@ -813,6 +813,7 @@ class NNNCrossCorrelation(treecorr.BinnedCorr3):
         self.n3n1n2 = NNNCorrelation(config, logger, **kwargs)
         self.n3n2n1 = NNNCorrelation(config, logger, **kwargs)
 
+        self.tot = 0.
         self.logger.debug('Finished building NNNCrossCorr')
 
     def __eq__(self, other):
@@ -910,6 +911,7 @@ class NNNCrossCorrelation(treecorr.BinnedCorr3):
         self.n1n2n3.tot += tot
         self.n2n1n3.tot += tot
         self.n2n3n1.tot += tot
+        self.tot += tot
 
     def process_cross(self, cat1, cat2, cat3, metric=None, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
@@ -965,6 +967,7 @@ class NNNCrossCorrelation(treecorr.BinnedCorr3):
         self.n2n3n1.tot += tot
         self.n3n1n2.tot += tot
         self.n3n2n1.tot += tot
+        self.tot += tot
 
     def finalize(self):
         """Finalize the calculation of the correlation function.
@@ -989,6 +992,7 @@ class NNNCrossCorrelation(treecorr.BinnedCorr3):
         self.n2n3n1.clear()
         self.n3n1n2.clear()
         self.n3n2n1.clear()
+        self.tot = 0
 
     def __iadd__(self, other):
         """Add a second `NNNCrossCorrelation`'s data to this one.
@@ -1007,6 +1011,7 @@ class NNNCrossCorrelation(treecorr.BinnedCorr3):
         self.n2n3n1 += other.n2n3n1
         self.n3n1n2 += other.n3n1n2
         self.n3n2n1 += other.n3n2n1
+        self.tot += other.tot
         return self
 
     def process(self, cat1, cat2, cat3=None, metric=None, num_threads=None):
@@ -1073,23 +1078,26 @@ class NNNCrossCorrelation(treecorr.BinnedCorr3):
         """
         self.logger.info('Writing NNN cross-correlations to %s',file_name)
 
-        # TODO  Probably each one in a separate hdu?  What to do for ASCII?
         col_names = [ 'r_nom', 'u_nom', 'v_nom', 'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
-                      'meand3', 'meanlogd3', 'meanu', 'meanv',
-                      'zeta', 'sigma_zeta', 'weight', 'ntri' ]
-        columns = [ self.rnom, self.u, self.v,
-                    self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
-                    self.meand3, self.meanlogd3, self.meanu, self.meanv,
-                    self.zeta, np.sqrt(self.varzeta), self.weight, self.ntri ]
+                      'meand3', 'meanlogd3', 'meanu', 'meanv', 'weight', 'ntri' ]
+        group_names = [ 'n1n2n3', 'n1n3n2', 'n2n1n3', 'n2n3n1', 'n3n1n2', 'n3n2n1' ]
+        columns = [
+                    [ nnn.rnom, nnn.u, nnn.v,
+                      nnn.meand1, nnn.meanlogd1, nnn.meand2, nnn.meanlogd2,
+                      nnn.meand3, nnn.meanlogd3, nnn.meanu, nnn.meanv,
+                      nnn.weight, nnn.ntri ]
+                    for nnn in [ self.n1n2n3, self.n1n3n2, self.n2n1n3,
+                                 self.n2n3n1, self.n3n1n2, self.n3n2n1 ]
+                  ]
 
-        params = { 'coords' : self.coords, 'metric' : self.metric,
+        params = { 'tot' : self.tot, 'coords' : self.coords, 'metric' : self.metric,
                    'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
 
         if precision is None:
             precision = self.config.get('precision', 4)
 
-        treecorr.util.gen_write(
-            file_name, col_names, columns,
+        treecorr.util.gen_multi_write(
+            file_name, col_names, group_names, columns,
             params=params, precision=precision, file_type=file_type, logger=self.logger)
 
     def read(self, file_name, file_type=None):
@@ -1100,7 +1108,7 @@ class NNNCrossCorrelation(treecorr.BinnedCorr3):
 
         .. warning::
 
-            The `NNNCorrelation` object should be constructed with the same configuration
+            The `NNNCrossCorrelation` object should be constructed with the same configuration
             parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
             checked by the read function.
 
@@ -1111,29 +1119,29 @@ class NNNCrossCorrelation(treecorr.BinnedCorr3):
         """
         self.logger.info('Reading NNN cross-correlations from %s',file_name)
 
-        # TODO
-        data, params = treecorr.util.gen_read(file_name, file_type=file_type, logger=self.logger)
+        group_names = [ 'n1n2n3', 'n1n3n2', 'n2n1n3', 'n2n3n1', 'n3n1n2', 'n3n2n1' ]
+
+        groups = treecorr.util.gen_multi_read(
+                file_name, group_names, file_type=file_type, logger=self.logger)
         s = self.logr.shape
-        if 'R_nom' in data.dtype.names:  # pragma: no cover
-            self.rnom = data['R_nom'].reshape(s)
-        else:
-            self.rnom = data['r_nom'].reshape(s)
-        self.logr = np.log(self.rnom)
-        self.u = data['u_nom'].reshape(s)
-        self.v = data['v_nom'].reshape(s)
-        self.meand1 = data['meand1'].reshape(s)
-        self.meanlogd1 = data['meanlogd1'].reshape(s)
-        self.meand2 = data['meand2'].reshape(s)
-        self.meanlogd2 = data['meanlogd2'].reshape(s)
-        self.meand3 = data['meand3'].reshape(s)
-        self.meanlogd3 = data['meanlogd3'].reshape(s)
-        self.meanu = data['meanu'].reshape(s)
-        self.meanv = data['meanv'].reshape(s)
-        self.zeta = data['zeta'].reshape(s)
-        self.varzeta = data['sigma_zeta'].reshape(s)**2
-        self.weight = data['weight'].reshape(s)
-        self.ntri = data['ntri'].reshape(s)
-        self.coords = params['coords'].strip()
-        self.metric = params['metric'].strip()
-        self.sep_units = params['sep_units'].strip()
-        self.bin_type = params['bin_type'].strip()
+        for (data, params), name in zip(groups, group_names):
+            nnn = getattr(self, name)
+            nnn.rnom = data['r_nom'].reshape(s)
+            nnn.logr = np.log(nnn.rnom)
+            nnn.u = data['u_nom'].reshape(s)
+            nnn.v = data['v_nom'].reshape(s)
+            nnn.meand1 = data['meand1'].reshape(s)
+            nnn.meanlogd1 = data['meanlogd1'].reshape(s)
+            nnn.meand2 = data['meand2'].reshape(s)
+            nnn.meanlogd2 = data['meanlogd2'].reshape(s)
+            nnn.meand3 = data['meand3'].reshape(s)
+            nnn.meanlogd3 = data['meanlogd3'].reshape(s)
+            nnn.meanu = data['meanu'].reshape(s)
+            nnn.meanv = data['meanv'].reshape(s)
+            nnn.weight = data['weight'].reshape(s)
+            nnn.ntri = data['ntri'].reshape(s)
+            nnn.coords = params['coords'].strip()
+            nnn.metric = params['metric'].strip()
+            nnn.sep_units = params['sep_units'].strip()
+            nnn.bin_type = params['bin_type'].strip()
+            nnn.tot = params['tot']

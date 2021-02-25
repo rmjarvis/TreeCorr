@@ -949,14 +949,18 @@ class KKKCrossCorrelation(treecorr.BinnedCorr3):
         """
         self.logger.info('Writing KKK cross-correlations to %s',file_name)
 
-        # TODO  Probably each one in a separate hdu?  What to do for ASCII?
         col_names = [ 'r_nom', 'u_nom', 'v_nom', 'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
                       'meand3', 'meanlogd3', 'meanu', 'meanv',
                       'zeta', 'sigma_zeta', 'weight', 'ntri' ]
-        columns = [ self.rnom, self.u, self.v,
-                    self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
-                    self.meand3, self.meanlogd3, self.meanu, self.meanv,
-                    self.zeta, np.sqrt(self.varzeta), self.weight, self.ntri ]
+        group_names = [ 'k1k2k3', 'k1k3k2', 'k2k1k3', 'k2k3k1', 'k3k1k2', 'k3k2k1' ]
+        columns = [
+                    [ kkk.rnom, kkk.u, kkk.v,
+                      kkk.meand1, kkk.meanlogd1, kkk.meand2, kkk.meanlogd2,
+                      kkk.meand3, kkk.meanlogd3, kkk.meanu, kkk.meanv,
+                      kkk.zeta, np.sqrt(kkk.varzeta), kkk.weight, kkk.ntri ]
+                    for kkk in [ self.k1k2k3, self.k1k3k2, self.k2k1k3,
+                                 self.k2k3k1, self.k3k1k2, self.k3k2k1 ]
+                  ]
 
         params = { 'coords' : self.coords, 'metric' : self.metric,
                    'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
@@ -964,8 +968,8 @@ class KKKCrossCorrelation(treecorr.BinnedCorr3):
         if precision is None:
             precision = self.config.get('precision', 4)
 
-        treecorr.util.gen_write(
-            file_name, col_names, columns,
+        treecorr.util.gen_multi_write(
+            file_name, col_names, group_names, columns,
             params=params, precision=precision, file_type=file_type, logger=self.logger)
 
     def read(self, file_name, file_type=None):
@@ -976,7 +980,7 @@ class KKKCrossCorrelation(treecorr.BinnedCorr3):
 
         .. warning::
 
-            The `KKKCorrelation` object should be constructed with the same configuration
+            The `KKKCrossCorrelation` object should be constructed with the same configuration
             parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
             checked by the read function.
 
@@ -987,29 +991,30 @@ class KKKCrossCorrelation(treecorr.BinnedCorr3):
         """
         self.logger.info('Reading KKK cross-correlations from %s',file_name)
 
-        # TODO
-        data, params = treecorr.util.gen_read(file_name, file_type=file_type, logger=self.logger)
+        group_names = [ 'k1k2k3', 'k1k3k2', 'k2k1k3', 'k2k3k1', 'k3k1k2', 'k3k2k1' ]
+
+        groups = treecorr.util.gen_multi_read(
+                file_name, group_names, file_type=file_type, logger=self.logger)
         s = self.logr.shape
-        if 'R_nom' in data.dtype.names:  # pragma: no cover
-            self.rnom = data['R_nom'].reshape(s)
-        else:
-            self.rnom = data['r_nom'].reshape(s)
-        self.logr = np.log(self.rnom)
-        self.u = data['u_nom'].reshape(s)
-        self.v = data['v_nom'].reshape(s)
-        self.meand1 = data['meand1'].reshape(s)
-        self.meanlogd1 = data['meanlogd1'].reshape(s)
-        self.meand2 = data['meand2'].reshape(s)
-        self.meanlogd2 = data['meanlogd2'].reshape(s)
-        self.meand3 = data['meand3'].reshape(s)
-        self.meanlogd3 = data['meanlogd3'].reshape(s)
-        self.meanu = data['meanu'].reshape(s)
-        self.meanv = data['meanv'].reshape(s)
-        self.zeta = data['zeta'].reshape(s)
-        self.varzeta = data['sigma_zeta'].reshape(s)**2
-        self.weight = data['weight'].reshape(s)
-        self.ntri = data['ntri'].reshape(s)
-        self.coords = params['coords'].strip()
-        self.metric = params['metric'].strip()
-        self.sep_units = params['sep_units'].strip()
-        self.bin_type = params['bin_type'].strip()
+        for (data, params), name in zip(groups, group_names):
+            kkk = getattr(self, name)
+            kkk.rnom = data['r_nom'].reshape(s)
+            kkk.logr = np.log(kkk.rnom)
+            kkk.u = data['u_nom'].reshape(s)
+            kkk.v = data['v_nom'].reshape(s)
+            kkk.meand1 = data['meand1'].reshape(s)
+            kkk.meanlogd1 = data['meanlogd1'].reshape(s)
+            kkk.meand2 = data['meand2'].reshape(s)
+            kkk.meanlogd2 = data['meanlogd2'].reshape(s)
+            kkk.meand3 = data['meand3'].reshape(s)
+            kkk.meanlogd3 = data['meanlogd3'].reshape(s)
+            kkk.meanu = data['meanu'].reshape(s)
+            kkk.meanv = data['meanv'].reshape(s)
+            kkk.zeta = data['zeta'].reshape(s)
+            kkk.varzeta = data['sigma_zeta'].reshape(s)**2
+            kkk.weight = data['weight'].reshape(s)
+            kkk.ntri = data['ntri'].reshape(s)
+            kkk.coords = params['coords'].strip()
+            kkk.metric = params['metric'].strip()
+            kkk.sep_units = params['sep_units'].strip()
+            kkk.bin_type = params['bin_type'].strip()

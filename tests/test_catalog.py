@@ -23,7 +23,6 @@ import pickle
 from numpy import pi
 import fitsio
 import treecorr
-import h5py
 
 from test_helper import get_from_wiki, CaptureLog, assert_raises, do_pickle, timer, assert_warns
 
@@ -473,6 +472,11 @@ def test_fits():
 
 @timer
 def test_hdf5():
+    try:
+        import h5py  # noqa: F401
+    except ImportError:
+        print('Skipping HdfReader tests, since h5py not installed.')
+        return
     _test_fits_hdf('Aardvark.hdf5')
 
 

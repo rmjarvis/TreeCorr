@@ -15,7 +15,6 @@ import os
 import sys
 import numpy as np
 import fitsio
-import h5py
 
 from treecorr.reader import FitsReader, HdfReader, PandasReader, AsciiReader
 from test_helper import get_from_wiki, assert_raises, timer
@@ -108,8 +107,14 @@ def test_fits_reader():
         with FitsReader(os.path.join('data','Aardvark.fit')) as r:
             assert r.can_slice
 
+
 @timer
 def test_hdf_reader():
+    try:
+        import h5py  # noqa: F401
+    except ImportError:
+        print('Skipping HdfReader tests, since h5py not installed.')
+        return
 
     get_from_wiki('Aardvark.hdf5')
     r = HdfReader(os.path.join('data','Aardvark.hdf5'))

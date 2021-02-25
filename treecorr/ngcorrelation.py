@@ -323,9 +323,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
 
         .. note::
 
-            For this to make sense, both `NGCorrelation` objects should have been using
-            `process_cross`, and they should not have had `finalize` called yet.
-            Then, after adding them together, you should call `finalize` on the sum.
+            For this to make sense, both `NGCorrelation` objects should not have had `finalize`
+            called yet.  Then, after adding them together, you should call `finalize` on the sum.
         """
         if not isinstance(other, NGCorrelation):
             raise TypeError("Can only add another NGCorrelation object")
@@ -723,7 +722,6 @@ class NGCorrelation(treecorr.BinnedCorr2):
         sig_mapsq       The sqrt of the variance estimate of :math:`\langle M_{ap}^2 \rangle`
         NMap_norm       The ratio :math:`\langle N_{ap} M_{ap} \rangle^2 /`
                         :math:`\langle N_{ap}^2 \rangle \langle M_{ap}^2 \rangle`
-        ==========      =====================================================================
         sig_norm        The sqrt of the variance estimate of this ratio
         Nsq_Mapsq       The ratio :math:`\langle N_{ap}^2 \rangle / \langle M_{ap}^2 \rangle`
         sig_nn_mm       The sqrt of the variance estimate of this ratio

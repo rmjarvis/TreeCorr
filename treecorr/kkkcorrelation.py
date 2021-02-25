@@ -390,9 +390,8 @@ class KKKCorrelation(treecorr.BinnedCorr3):
 
         .. note::
 
-            For this to make sense, both `KKKCorrelation` objects should have been using
-            `process_auto` and/or `process_cross`, and they should not have had `finalize` called
-            yet.  Then, after adding them together, you should call `finalize` on the sum.
+            For this to make sense, both `KKKCorrelation` objects should not have had `finalize`
+            called yet.  Then, after adding them together, you should call `finalize` on the sum.
         """
         if not isinstance(other, KKKCorrelation):
             raise TypeError("Can only add another KKKCorrelation object")
@@ -863,9 +862,9 @@ class KKKCrossCorrelation(treecorr.BinnedCorr3):
 
         .. note::
 
-            For this to make sense, both `KKKCorrelation` objects should have been using
-            `process_auto`, and they should not have had `finalize` called yet.  Then, after
-            adding them together, you should call `finalize` on the sum.
+            For this to make sense, both `KKKCrossCorrelation` objects should not have had
+            `finalize` called yet.  Then, after adding them together, you should call `finalize`
+            on the sum.
         """
         if not isinstance(other, KKKCrossCorrelation):
             raise TypeError("Can only add another KKKCrossCorrelation object")

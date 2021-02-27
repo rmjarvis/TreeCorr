@@ -910,7 +910,7 @@ class KKKCrossCorrelation(treecorr.BinnedCorr3):
                 self.k2k1k3 += self.k3k1k2
             if np.any(self.k3k2k1.ntri != 0):
                 self.k2k3k1 += self.k3k2k1
-            # Copy back by doign clear and +=.
+            # Copy back by doing clear and +=.
             # This makes sure the coords and metric are set properly.
             self.k1k3k2.clear()
             self.k3k1k2.clear()

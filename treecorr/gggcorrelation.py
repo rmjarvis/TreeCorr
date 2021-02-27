@@ -1381,7 +1381,7 @@ class GGGCrossCorrelation(treecorr.BinnedCorr3):
                 self.g2g1g3 += self.g3g1g2
             if np.any(self.g3g2g1.ntri != 0):
                 self.g2g3g1 += self.g3g2g1
-            # Copy back by doign clear and +=.
+            # Copy back by doing clear and +=.
             # This makes sure the coords and metric are set properly.
             self.g1g3g2.clear()
             self.g3g1g2.clear()
@@ -1407,7 +1407,6 @@ class GGGCrossCorrelation(treecorr.BinnedCorr3):
         """
         self.logger.info('Writing GGG cross-correlations to %s',file_name)
 
-        # TODO  Probably each one in a separate hdu?  What to do for ASCII?
         col_names = [ 'r_nom', 'u_nom', 'v_nom', 'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
                       'meand3', 'meanlogd3', 'meanu', 'meanv',
                       'gam0r', 'gam0i', 'gam1r', 'gam1i', 'gam2r', 'gam2i', 'gam3r', 'gam3i',

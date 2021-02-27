@@ -1053,7 +1053,7 @@ class NNNCrossCorrelation(treecorr.BinnedCorr3):
                 self.n2n1n3 += self.n3n1n2
             if self.n3n2n1.tot != 0:
                 self.n2n3n1 += self.n3n2n1
-            # Copy back by doign clear and +=.
+            # Copy back by doing clear and +=.
             # This makes sure the coords and metric are set properly.
             self.n1n3n2.clear()
             self.n3n1n2.clear()

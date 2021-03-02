@@ -16,7 +16,7 @@ import sys
 import numpy as np
 import fitsio
 
-from treecorr.reader import FitsReader, HdfReader, PandasReader, AsciiReader
+from treecorr.reader import FitsReader, HdfReader, PandasReader, AsciiReader, ParquetReader
 from test_helper import get_from_wiki, assert_raises, timer
 
 @timer
@@ -107,7 +107,6 @@ def test_fits_reader():
         with FitsReader(os.path.join('data','Aardvark.fit')) as r:
             assert r.can_slice
 
-
 @timer
 def test_hdf_reader():
     try:
@@ -180,6 +179,76 @@ def test_hdf_reader():
         r.names()
     with assert_raises(RuntimeError):
         '/' in r
+
+@timer
+def test_parquet_reader():
+    try:
+        import pandas  # noqa: F401
+    except ImportError:
+        print('Skipping PandasReader tests, since pandas not installed.')
+        return
+
+    get_from_wiki('Aardvark.parquet')
+    r = ParquetReader(os.path.join('data','Aardvark.parquet'))
+
+    # Check things not allowed if not in context
+    with assert_raises(RuntimeError):
+        r.read(['RA'], slice(0,10,2), None)
+    with assert_raises(RuntimeError):
+        r.read('RA')
+    with assert_raises(RuntimeError):
+        r.row_count('DEC', None)
+    with assert_raises(RuntimeError):
+        r.row_count('DEC')
+    with assert_raises(RuntimeError):
+        r.names(None)
+    with assert_raises(RuntimeError):
+        r.names()
+
+    with r:
+
+        # None is the only extension in this file.
+        assert_raises(ValueError, r.check_valid_ext, 'invalid')
+        r.check_valid_ext(None)
+
+        # Default ext is None
+        assert r.default_ext == None
+
+        # Default ext is "in" reader
+        assert None in r
+
+        # Can always slice
+        assert r.can_slice
+
+        s = slice(0, 10, 2)
+        data = r.read(['RA'], s)
+        dec = r.read('DEC', s)
+        assert data['RA'].size == 5
+        assert dec.size == 5
+
+        assert r.row_count('RA') == 390935
+        assert r.row_count('RA',None) == 390935
+        assert r.row_count('GAMMA1') == 390935
+        # Unlike the other readers, this needs a column name.
+        assert_raises(TypeError, r.row_count)
+        print('names = ',set(r.names()))
+        print('names = ',set("INDEX RA DEC Z GAMMA1 GAMMA2 KAPPA MU".split()))
+        assert set(r.names()) == set("INDEX RA DEC Z GAMMA1 GAMMA2 KAPPA MU".split())
+        assert set(r.names(None)) == set(r.names())
+
+    # Again check things not allowed if not in context
+    with assert_raises(RuntimeError):
+        r.read(['RA'], slice(0,10,2), None)
+    with assert_raises(RuntimeError):
+        r.read('RA')
+    with assert_raises(RuntimeError):
+        r.row_count('DEC', None)
+    with assert_raises(RuntimeError):
+        r.row_count('DEC')
+    with assert_raises(RuntimeError):
+        r.names(None)
+    with assert_raises(RuntimeError):
+        r.names()
 
 def _test_ascii_reader(r, has_names=True):
     # Same tests for AsciiReader and PandasReader
@@ -331,5 +400,6 @@ def test_pandas_reader():
 if __name__ == '__main__':
     test_fits_reader()
     test_hdf_reader()
+    test_parquet_reader()
     test_ascii_reader()
     test_pandas_reader()

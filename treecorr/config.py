@@ -211,6 +211,8 @@ def parse(value, value_type, name):
     try:
         if value_type is bool:
             return parse_bool(value)
+        elif value is None:
+            return None
         else:
             return value_type(value)
     except ValueError:
@@ -342,6 +344,8 @@ def convert(value, value_type, key):
         return parse_unit(value)
     elif value_type == bool:
         return parse_bool(value)
+    elif value is None:
+        return None
     else:
         return value_type(value)
 

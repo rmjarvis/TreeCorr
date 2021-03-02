@@ -468,7 +468,7 @@ def test_ascii():
 
 @timer
 def test_fits():
-    _test_fits_hdf('Aardvark.fit')
+    _test_aardvark('Aardvark.fit', 'FITS', 'AARDWOLF')
 
 @timer
 def test_hdf5():
@@ -477,23 +477,26 @@ def test_hdf5():
     except ImportError:
         print('Skipping HdfReader tests, since h5py not installed.')
         return
-    _test_fits_hdf('Aardvark.hdf5')
+    _test_aardvark('Aardvark.hdf5', 'HDF', '/')
 
+@timer
+def test_parquet():
+    try:
+        import pandas  # noqa: F401
+    except ImportError:
+        print('Skipping ParquetReader tests, since pandas not installed.')
+        return
+    _test_aardvark('Aardvark.parquet', 'Parquet', None)
 
-def _test_fits_hdf(filename):
+def _test_aardvark(filename, file_type, ext):
     get_from_wiki(filename)
     file_name = os.path.join('data',filename)
     config = treecorr.read_config('Aardvark.yaml')
     config['verbose'] = 1
     config['kk_file_name'] = 'kk.out'
     config['gg_file_name'] = 'gg.out'
-
-    if filename.endswith('hdf5'):
-        config['file_name'] = file_name
-        file_type = 'HDF'
-    else:
-        config['ext'] = 'AARDWOLF'
-        file_type = 'FITS'
+    config['file_name'] = file_name
+    config['ext'] = ext
 
     # Just test a few random particular values
     cat1 = treecorr.Catalog(file_name, config)
@@ -1990,9 +1993,10 @@ def test_lru():
 
 
 if __name__ == '__main__':
-    test_hdf5()
     test_ascii()
     test_fits()
+    test_hdf5()
+    test_parquet()
     test_ext()
     test_hdu()
     test_direct()

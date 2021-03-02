@@ -83,7 +83,7 @@ class AsciiReader(object):
             ext (str):          The extension (ignored)
 
         Returns:
-            The data as a dict
+            The data as a dict or single numpy array as appropriate
         """
         if self.ncols is None:
             raise RuntimeError('Illegal operation when not in a "with" context')
@@ -240,7 +240,7 @@ class PandasReader(AsciiReader):
             ext (str):          The extension (ignored)
 
         Returns:
-            The data as a dict
+            The data as a dict or single numpy array as appropriate
         """
         import pandas
         if self.ncols is None:
@@ -292,6 +292,110 @@ class PandasReader(AsciiReader):
         else:
             return {col : df.loc[:,icols[i]].to_numpy() for i,col in enumerate(cols)}
 
+class ParquetReader():
+    """Reader interface for Parquet files using pandas.
+    """
+    can_slice = True
+    default_ext = None
+
+    def __init__(self, file_name, delimiter=None, comment_marker='#'):
+        """
+        Parameters:
+            file_name (str):        The file name
+            delimiter (str):        What delimiter to use between values.  (default: None,
+                                    which means any whitespace)
+            comment_marker (str):   What token indicates a comment line. (default: '#')
+        """
+        # Do this immediately, so we get an ImportError if it isn't available.
+        import pandas  # noqa: F401
+
+        self.file_name = file_name
+        self._df = None
+
+    @property
+    def df(self):
+        if self._df is None:
+            raise RuntimeError('Illegal operation when not in a "with" context')
+        return self._df
+
+    def __contains__(self, ext):
+        """Check if ext is None.
+
+        Parquet files don't have extensions, so the only ext allowed is None.
+
+        Parameters:
+            ext (str):      The extension to check
+
+        Returns:
+            Whether ext is None
+        """
+        # None is the only valid "extension" for Parquet files
+        return ext is None
+
+    def check_valid_ext(self, ext):
+        """Check if an extension is valid for reading, and raise ValueError if not.
+
+        None is the only valid extension for ASCII files.
+
+        Parameters:
+            ext (str):  The extension to check
+        """
+        if ext is not None:
+            raise ValueError("Invalid ext={} for file {}".format(ext,self.file_name))
+
+    def read(self, cols, s=slice(None), ext=None):
+        """Read a slice of a column or list of columns from a specified extension.
+
+        Slices should always be used when reading HDF files - using a sequence of
+        integers is painfully slow.
+
+        Parameters:
+            cols (str/list):    The name(s) of column(s) to read
+            s (slice/array):    A slice object or selection of integers to read (default: all)
+            ext (str):          The HDF (sub-)group to use (default: '/')
+
+        Returns:
+            The data as a recarray or simple numpy array as appropriate
+        """
+        if np.isscalar(cols):
+            return self.df[cols][s].to_numpy()
+        else:
+            return self.df[cols][s].to_records()
+
+    def row_count(self, col, ext=None):
+        """Count the number of rows in the named extension and column
+
+        Unlike in FitsReader, col is required.
+
+        Parameters:
+            col (str):  The column to use (ignored)
+            ext (str):  The extension (ignored)
+
+        Returns:
+            The number of rows
+        """
+        return len(self.df)
+
+    def names(self, ext=None):
+        """Return a list of the names of all the columns in an extension
+
+        Parameters:
+            ext (str):  The extension to search for columns (ignored)
+
+        Returns:
+            A list of string column names
+        """
+        return self.df.columns
+
+    def __enter__(self):
+        import pandas
+        self._df = pandas.read_parquet(self.file_name)
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        # free the memory in the dataframe at end of "with" statement
+        self._df = None
+
 
 class FitsReader(object):
     """Reader interface for FITS files.
@@ -306,13 +410,19 @@ class FitsReader(object):
         """
         import fitsio
 
-        self.file = None  # Only works inside a with block.
+        self._file = None  # Only works inside a with block.
 
         # record file name to know what to open when entering
         self.file_name = file_name
 
         # There is a bug in earlier fitsio versions that prevents slicing
         self.can_slice = fitsio.__version__ > '1.0.6'
+
+    @property
+    def file(self):
+        if self._file is None:
+            raise RuntimeError('Illegal operation when not in a "with" context')
+        return self._file
 
     def __contains__(self, ext):
         """Check if there is an extension with the given name or index in the file.
@@ -351,8 +461,6 @@ class FitsReader(object):
         # FITS extensions can be indexed by number or
         # string.  Try converting to an integer if the current
         # value is not found.  If not let the error be caught later.
-        if self.file is None:
-            raise RuntimeError('Illegal operation when not in a "with" context')
         if ext not in self.file:
             try:
                 ext = int(ext)
@@ -369,7 +477,7 @@ class FitsReader(object):
             ext (str/int)):     The FITS extension to use (default: 1)
 
         Returns:
-            The data as a recarray
+            The data as a recarray or simple numpy array as appropriate
         """
         ext = self._update_ext(ext)
         return self.file[ext][cols][s]
@@ -405,14 +513,14 @@ class FitsReader(object):
 
     def __enter__(self):
         import fitsio
-        self.file = fitsio.FITS(self.file_name, 'r')
+        self._file = fitsio.FITS(self.file_name, 'r')
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         # Context manager closer - we just close the file at the end,
         # regardless of the error
         self.file.close()
-        self.file = None
+        self._file = None
 
 
 class HdfReader(object):
@@ -430,8 +538,14 @@ class HdfReader(object):
         """
         import h5py  # noqa: F401  Just to check right away that it will work.
 
-        self.file = None  # Only works inside a with block.
+        self._file = None  # Only works inside a with block.
         self.file_name = file_name
+
+    @property
+    def file(self):
+        if self._file is None:
+            raise RuntimeError('Illegal operation when not in a "with" context')
+        return self._file
 
     def __contains__(self, ext):
         """Check if there is an extension with the given name in the file.
@@ -442,15 +556,11 @@ class HdfReader(object):
         Returns:
             Whether the extension exists
         """
-        if self.file is None:
-            raise RuntimeError('Illegal operation when not in a "with" context')
         return ext in self.file
 
     def _group(self, ext):
         # get a group from a name, using
         # the root if the group is empty
-        if self.file is None:
-            raise RuntimeError('Illegal operation when not in a "with" context')
         return self.file[ext]
 
     def check_valid_ext(self, ext):
@@ -477,7 +587,7 @@ class HdfReader(object):
             ext (str):          The HDF (sub-)group to use (default: '/')
 
         Returns:
-            The data as a dict
+            The data as a dict or single numpy array as appropriate
         """
         g = self._group(ext)
         if np.isscalar(cols):
@@ -512,10 +622,10 @@ class HdfReader(object):
 
     def __enter__(self):
         import h5py
-        self.file = h5py.File(self.file_name, 'r')
+        self._file = h5py.File(self.file_name, 'r')
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         # closes file at end of "with" statement
-        self.file.close()
-        self.file = None
+        self._file.close()
+        self._file = None

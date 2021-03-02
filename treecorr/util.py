@@ -68,12 +68,12 @@ def get_omp_threads():
     """
     return treecorr._lib.GetOMPThreads()
 
-def parse_file_type(file_type, file_name, hdf=False, logger=None):
+def parse_file_type(file_type, file_name, output=False, logger=None):
     """Parse the file_type from the file_name if necessary
 
     :param file_type:   The input file_type.  If None, then parse from file_name's extension.
     :param file_name:   The filename to use for parsing if necessary.
-    :param hdf:         Include HDF as a possible file_type? (default: False)
+    :param output:      Limit to output file types (FITS/ASCII)? (default: False)
     :param logger:      A logger if desired. (default: None)
 
     :returns: The parsed file_type.
@@ -83,8 +83,10 @@ def parse_file_type(file_type, file_name, hdf=False, logger=None):
         name, ext = os.path.splitext(file_name)
         if ext.lower().startswith('.fit'):
             file_type = 'FITS'
-        elif hdf and ext.lower().startswith('.hdf'):
+        elif not output and ext.lower().startswith('.hdf'):
             file_type = 'HDF'
+        elif not output and ext.lower().startswith('.par'):
+            file_type = 'Parquet'
         else:
             file_type = 'ASCII'
         if logger:
@@ -118,7 +120,7 @@ def gen_write(file_name, col_names, columns, params=None, precision=4, file_type
     ensure_dir(file_name)
 
     # Figure out which file type to use.
-    file_type = parse_file_type(file_type, file_name, logger=logger)
+    file_type = parse_file_type(file_type, file_name, output=True, logger=logger)
 
     if file_type == 'FITS':
         try:
@@ -213,7 +215,7 @@ def gen_multi_write(file_name, col_names, group_names, columns,
     ensure_dir(file_name)
 
     # Figure out which file type to use.
-    file_type = parse_file_type(file_type, file_name, logger=logger)
+    file_type = parse_file_type(file_type, file_name, output=True, logger=logger)
 
     if file_type == 'FITS':
         try:
@@ -252,7 +254,7 @@ def gen_read(file_name, file_type=None, logger=None):
     :returns: (data, params), a numpy ndarray with named columns, and a dict of extra parameters.
     """
     # Figure out which file type to use.
-    file_type = parse_file_type(file_type, file_name, logger=logger)
+    file_type = parse_file_type(file_type, file_name, output=True, logger=logger)
 
     if file_type == 'FITS':
         try:
@@ -319,7 +321,7 @@ def gen_multi_read(file_name, group_names, file_type=None, logger=None):
     :returns: list of (data, params) pairs, one for each group
     """
     # Figure out which file type to use.
-    file_type = parse_file_type(file_type, file_name, logger=logger)
+    file_type = parse_file_type(file_type, file_name, output=True, logger=logger)
 
     if file_type == 'FITS':
         try:

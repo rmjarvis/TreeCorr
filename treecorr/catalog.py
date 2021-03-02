@@ -21,7 +21,7 @@ import weakref
 import copy
 import os
 import treecorr
-from .reader import FitsReader, HdfReader, AsciiReader, PandasReader
+from .reader import FitsReader, HdfReader, AsciiReader, PandasReader, ParquetReader
 from .util import parse_file_type
 
 class Catalog(object):
@@ -55,10 +55,11 @@ class Catalog(object):
         ...                        g1_col='E1', g2_col='E2', ra_units='deg', dec_units='deg')
 
     This reads the given columns from the input file.  The input file may be a FITS file,
-    an HDF5 file or an ASCII file.  Normally the file type is determined according to the
-    file's extension (e.g. '.fits' here), but it can also be set explicitly with ``file_type``.
+    an HDF5 file, a Parquet file, or an ASCII file.  Normally the file type is determined
+    according to the file's extension (e.g. '.fits' here), but it can also be set explicitly
+    with ``file_type``.
 
-    For FITS and HDF5 files, the column names should be strings as shown above.
+    For FITS, HDF5, and Parquet files, the column names should be strings as shown above.
     For ASCII files, they may be strings if the input file has column names.  But you may
     also use integer values giving the index of which column to use.  We use a 1-based convention
     for these, so x_col=1 would mean to use the first column as the x value. (0 means don't
@@ -211,8 +212,9 @@ class Catalog(object):
     Keyword Arguments:
 
         file_type (str):    What kind of file is the input file. Valid options are 'ASCII', 'FITS'
-                            or 'HDF' (default: if the file_name extension starts with .fit, then
-                            use 'FITS', or with .hdf, then use 'HDF', else 'ASCII')
+                            'HDF', or 'Parquet' (default: if the file_name extension starts with
+                            .fit, then use 'FITS', or with .hdf, then use 'HDF', or with '.par',
+                            then use 'Parquet', else 'ASCII')
         delimiter (str):    For ASCII files, what delimiter to use between values. (default: None,
                             which means any whitespace)
         comment_marker (str): For ASCII files, what token indicates a comment line. (default: '#')
@@ -369,7 +371,7 @@ class Catalog(object):
     #    list of valid values
     #    description
     _valid_params = {
-        'file_type' : (str, True, None, ['ASCII', 'FITS', 'HDF'],
+        'file_type' : (str, True, None, ['ASCII', 'FITS', 'HDF', 'Parquet'],
                 'The file type of the input files. The default is to use the file name extension.'),
         'delimiter' : (str, True, None, None,
                 'The delimiter between values in an ASCII catalog. The default is any whitespace.'),
@@ -605,12 +607,15 @@ class Catalog(object):
 
             # Figure out which file type the catalog is
             file_type = treecorr.config.get_from_list(self.config,'file_type',num)
-            file_type = parse_file_type(file_type, file_name, hdf=True, logger=self.logger)
+            file_type = parse_file_type(file_type, file_name, output=False, logger=self.logger)
             if file_type == 'FITS':
                 self.reader = FitsReader(file_name)
                 self._check_file(file_name, self.reader, num, is_rand)
             elif file_type == 'HDF':
                 self.reader = HdfReader(file_name)
+                self._check_file(file_name, self.reader, num, is_rand)
+            elif file_type == 'PARQUET':
+                self.reader = ParquetReader(file_name)
                 self._check_file(file_name, self.reader, num, is_rand)
             else:
                 delimiter = self.config.get('delimiter',None)

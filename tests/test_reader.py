@@ -184,8 +184,9 @@ def test_hdf_reader():
 def test_parquet_reader():
     try:
         import pandas  # noqa: F401
+        import pyarrow # noqa: F401
     except ImportError:
-        print('Skipping PandasReader tests, since pandas not installed.')
+        print('Skipping PandasReader tests, since pandas or pyarrow not installed.')
         return
 
     get_from_wiki('Aardvark.parquet')

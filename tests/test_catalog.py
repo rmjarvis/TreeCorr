@@ -483,8 +483,9 @@ def test_hdf5():
 def test_parquet():
     try:
         import pandas  # noqa: F401
+        import pyarrow # noqa: F401
     except ImportError:
-        print('Skipping ParquetReader tests, since pandas not installed.')
+        print('Skipping ParquetReader tests, since pandas or pyarrow not installed.')
         return
     _test_aardvark('Aardvark.parquet', 'Parquet', None)
 

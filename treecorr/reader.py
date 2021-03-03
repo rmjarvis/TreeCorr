@@ -346,13 +346,10 @@ class ParquetReader():
     def read(self, cols, s=slice(None), ext=None):
         """Read a slice of a column or list of columns from a specified extension.
 
-        Slices should always be used when reading HDF files - using a sequence of
-        integers is painfully slow.
-
         Parameters:
             cols (str/list):    The name(s) of column(s) to read
             s (slice/array):    A slice object or selection of integers to read (default: all)
-            ext (str):          The HDF (sub-)group to use (default: '/')
+            ext (str):          The extension (ignored)
 
         Returns:
             The data as a recarray or simple numpy array as appropriate
@@ -362,7 +359,7 @@ class ParquetReader():
         else:
             return self.df[cols][s].to_records()
 
-    def row_count(self, col, ext=None):
+    def row_count(self, col=None, ext=None):
         """Count the number of rows in the named extension and column
 
         Unlike in FitsReader, col is required.

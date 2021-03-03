@@ -160,7 +160,8 @@ def test_hdf_reader():
         assert r.row_count('RA','/') == 390935
         assert r.row_count('GAMMA1') == 390935
         # Unlike the other readers, this needs a column name.
-        assert_raises(TypeError, r.row_count)
+        with assert_raises(TypeError):
+            r.row_count()
         assert set(r.names()) == set("INDEX RA DEC Z EPSILON GAMMA1 GAMMA2 KAPPA MU".split())
         assert set(r.names('/')) == set(r.names())
 
@@ -186,7 +187,7 @@ def test_parquet_reader():
         import pandas  # noqa: F401
         import pyarrow # noqa: F401
     except ImportError:
-        print('Skipping PandasReader tests, since pandas or pyarrow not installed.')
+        print('Skipping ParquetReader tests, since pandas or pyarrow not installed.')
         return
 
     get_from_wiki('Aardvark.parquet')
@@ -201,6 +202,8 @@ def test_parquet_reader():
         r.row_count('DEC', None)
     with assert_raises(RuntimeError):
         r.row_count('DEC')
+    with assert_raises(RuntimeError):
+        r.row_count()
     with assert_raises(RuntimeError):
         r.names(None)
     with assert_raises(RuntimeError):
@@ -230,8 +233,7 @@ def test_parquet_reader():
         assert r.row_count('RA') == 390935
         assert r.row_count('RA',None) == 390935
         assert r.row_count('GAMMA1') == 390935
-        # Unlike the other readers, this needs a column name.
-        assert_raises(TypeError, r.row_count)
+        assert r.row_count() == 390935
         print('names = ',set(r.names()))
         print('names = ',set("INDEX RA DEC Z GAMMA1 GAMMA2 KAPPA MU".split()))
         assert set(r.names()) == set("INDEX RA DEC Z GAMMA1 GAMMA2 KAPPA MU".split())
@@ -246,6 +248,8 @@ def test_parquet_reader():
         r.row_count('DEC', None)
     with assert_raises(RuntimeError):
         r.row_count('DEC')
+    with assert_raises(RuntimeError):
+        r.row_count()
     with assert_raises(RuntimeError):
         r.names(None)
     with assert_raises(RuntimeError):

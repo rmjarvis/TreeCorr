@@ -135,3 +135,10 @@ Changes from version 4.1.5 to 4.1.6
 
 - Fixed a bug in `GGGCorrelation.calculateMap3`, which could sometimes take
   the sqrt of negative numbers, resulting in nans.
+
+Changes from version 4.1.6 to 4.1.7
+-----------------------------------
+
+- Fixed a bug that could result in nans in GGG calculations if any triangles
+  are actually three equidistant, collinear points, which can happen if the
+  input data is on a grid or at least has highly quantized positions.

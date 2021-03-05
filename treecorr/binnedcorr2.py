@@ -680,20 +680,28 @@ class BinnedCorr2(object):
                         self += temp
                         self.results.update(temp.results)
 
-    def _getStatLen(self):
-        # The length of the array that will be returned by _getStat.
+    def getStatLen(self):
+        """The length of the array that will be returned by getStat.
+
+        Usually the is self.nbins, but there are expections described in `getStat`.
+        """
         return self._nbins
 
-    def _getStat(self):
-        # The unnormalized statistic.
-        # Usually, this is just the xi attribute.
-        # Override in classes that need something different.
-        # Note: this should only ever be called on things that haven't been finalized, but
-        #       this fact is not checked anywhere.
+    def getStat(self):
+        """The standard statistic for the current correlation object as a 1-d array.
+
+        Usually, this is just self.xi.  But if the metric is TwoD, this becomes self.xi.ravel().
+        And for GGCorrelation, it is the concatenation of self.xip and self.xim.
+        """
         return self.xi.ravel()
 
-    def _getWeight(self):
-        # Again, override when this is not the right thing.
+    def getWeight(self):
+        """The weight array for the current correlation object as a 1-d array.
+
+        This is the weight array corresponding to `getStat`. Usually just self.weight, but
+        raveled for TwoD and duplicated for GGCorrelation to match what `getStat` does in
+        those cases.
+        """
         return self.weight.ravel()
 
     def estimate_cov(self, method):
@@ -922,36 +930,40 @@ class BinnedCorr2(object):
         # This is the normal calculation.  It needs to be overridden when there are randoms.
         # Here, we separately compute the numerator and the denominator.
         # n = the sum of the raw (unnormalized) xi stats.
-        # We use the _getStat method, since GG needs to concatenate (xip,xim), but usually this
+        # We use the getStat method, since GG needs to concatenate (xip,xim), but usually this
         # is just xi.
         # Similarly, getWeight is usually weight, but GG needs to double it up.
 
-        n = np.sum([self.results[ij]._getStat() for ij in pairs], axis=0)
-        d = np.sum([self.results[ij]._getWeight() for ij in pairs], axis=0)
+        n = np.sum([self.results[ij].getStat() for ij in pairs], axis=0)
+        d = np.sum([self.results[ij].getWeight() for ij in pairs], axis=0)
         d[d == 0] = 1  # Guard against division by zero.
         xi = n/d
         w = np.sum(d)
         return xi,w
 
-    def _make_cov_design_matrix(self, vpairs):
-        # vpairs is a list of pairs to use for each row of the design matrix.
-        # Each row of vpairs is a list of (i,j) indices to use in that row.
-        # We then compute the resulting data vector based on those pairs and save it as v[row]
-        # We also make a parallel matrix of the weights in case the calling routing needs it.
-        # So far, only sample uses the returned w, but it's very little overhead to compute it,
-        # since _calculate_xi_from_pairs needs to calculate w anyway, so it's only a small
-        # memory overhead to keep those around and return them.
+def _make_cov_design_matrix(corrs, plist):
+    # vpairs is a list of pairs to use for each row of the design matrix.
+    # Each row of vpairs is a list of (i,j) indices to use in that row.
+    # We then compute the resulting data vector based on those pairs and save it as v[row]
+    # We also make a parallel matrix of the weights in case the calling routing needs it.
+    # So far, only sample uses the returned w, but it's very little overhead to compute it,
+    # since _calculate_xi_from_pairs needs to calculate w anyway, so it's only a small
+    # memory overhead to keep those around and return them.
 
-        vsize = self._getStatLen()
+    vlist = []
+    wlist = []
+    for c, vpairs in zip(corrs, plist):
+        vsize = c.getStatLen()
         nrows = len(vpairs)
         v = np.zeros((nrows,vsize), dtype=float)
         w = np.zeros(nrows, dtype=float)
         for row, pairs in enumerate(vpairs):
-            vrow, wrow = self._calculate_xi_from_pairs(pairs)
+            vrow, wrow = c._calculate_xi_from_pairs(pairs)
             v[row] = vrow
             w[row] = wrow
-        return v, w
-
+        vlist.append(v)
+        wlist.append(w)
+    return np.hstack(vlist), np.sum(wlist, axis=0)
 
 def estimate_multi_cov(corrs, method):
     """Estimate the covariance matrix of multiple statistics.
@@ -1021,8 +1033,8 @@ def _cov_shot(corrs):
     # but the off diagonal terms are all zero.
     vlist = []
     for c in corrs:
-        v = np.zeros(c._getStatLen())
-        w = c._getWeight()
+        v = np.zeros(c.getStatLen())
+        w = c.getWeight()
         mask1 = w != 0
         v[mask1] = c._var_num / w[mask1]
         vlist.append(v)
@@ -1057,7 +1069,7 @@ def _cov_jackknife(corrs):
 
     npatch, all_pairs = _get_patch_nums(corrs, 'jackknife')
 
-    vlist = []
+    plist = []
     for c, pairs in zip(corrs, all_pairs):
         if c.npatch2 == 1:
             vpairs = [ [(j,0) for j in range(c.npatch1) if j!=i] for i in range(c.npatch1) ]
@@ -1068,10 +1080,9 @@ def _cov_jackknife(corrs):
             # For each i:
             #    Select all pairs where neither is i.
             vpairs = [ [(j,k) for j,k in pairs if j!=i and k!=i] for i in range(c.npatch1) ]
-        v, w = c._make_cov_design_matrix(vpairs)
-        vlist.append(v)
+        plist.append(vpairs)
 
-    v = np.hstack(vlist)
+    v,w = _make_cov_design_matrix(corrs, plist)
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = (1.-1./npatch) * v.T.dot(v)
@@ -1090,8 +1101,7 @@ def _cov_sample(corrs):
 
     npatch, all_pairs = _get_patch_nums(corrs, 'sample')
 
-    vlist = []
-    wlist = []
+    plist = []
     for c, pairs in zip(corrs, all_pairs):
         if c.npatch2 == 1:
             vpairs = [ [(i,0)] for i in range(c.npatch1) ]
@@ -1111,12 +1121,9 @@ def _cov_sample(corrs):
             vpairs = [ [(j,k) for j,k in pairs if j==i] for i in range(c.npatch1) ]
         if any([len(v) == 0 for v in vpairs]):
             raise RuntimeError("Cannot compute sample variance when some patches have no data.")
-        v, w = c._make_cov_design_matrix(vpairs)
-        vlist.append(v)
-        wlist.append(w)
+        plist.append(vpairs)
 
-    v = np.hstack(vlist)
-    w = np.sum(wlist,axis=0)
+    v,w = _make_cov_design_matrix(corrs, plist)
     w /= np.sum(w)  # Now w is the fractional weight for each patch
 
     vmean = np.mean(v, axis=0)
@@ -1144,7 +1151,7 @@ def _cov_marked(corrs):
     npatch, all_pairs = _get_patch_nums(corrs, 'marked_bootstrap')
 
     nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
-    vlist = []
+    plist = []
     for c, pairs in zip(corrs, all_pairs):
         vpairs = []
         if c.npatch1 != 1 and c.npatch2 != 1:
@@ -1164,10 +1171,9 @@ def _cov_marked(corrs):
                 # Select all pairs where first point is in indx (repeating i as appropriate)
                 vpairs1 = [ (i,j) for i in indx for j in range(c.npatch2) if ok[i,j] ]
             vpairs.append(vpairs1)
-        v, w = c._make_cov_design_matrix(vpairs)
-        vlist.append(v)
+        plist.append(vpairs)
 
-    v = np.hstack(vlist)
+    v,w = _make_cov_design_matrix(corrs, plist)
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = 1./(nboot-1) * v.T.dot(v)
@@ -1185,7 +1191,7 @@ def _cov_bootstrap(corrs):
     npatch, all_pairs = _get_patch_nums(corrs, 'bootstrap')
 
     nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
-    vlist = []
+    plist = []
     for c, pairs in zip(corrs, all_pairs):
         vpairs = []
         if c.npatch1 != 1 and c.npatch2 != 1:
@@ -1211,10 +1217,9 @@ def _cov_bootstrap(corrs):
                 temp = [ (i,j) for i in indx for j in indx if ok[i,j] ]
                 vpairs1.extend(temp)
             vpairs.append(vpairs1)
-        v, w = c._make_cov_design_matrix(vpairs)
-        vlist.append(v)
+        plist.append(vpairs)
 
-    v = np.hstack(vlist)
+    v,w = _make_cov_design_matrix(corrs, plist)
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = 1./(nboot-1) * v.T.dot(v)

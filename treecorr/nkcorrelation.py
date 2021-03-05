@@ -419,8 +419,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
     def _calculate_xi_from_pairs(self, pairs):
         okij = set(self.results.keys())
-        n = np.sum([self.results[ij]._getStat() for ij in pairs if ij in okij], axis=0)
-        d = np.sum([self.results[ij]._getWeight() for ij in pairs if ij in okij], axis=0)
+        n = np.sum([self.results[ij].getStat() for ij in pairs if ij in okij], axis=0)
+        d = np.sum([self.results[ij].getWeight() for ij in pairs if ij in okij], axis=0)
         d[d == 0] = 1  # Guard against division by zero.
         xi = n/d
         w = np.sum(d)

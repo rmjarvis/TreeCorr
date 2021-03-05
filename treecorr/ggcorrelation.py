@@ -293,13 +293,26 @@ class GGCorrelation(treecorr.BinnedCorr2):
         treecorr._lib.ProcessPair(self.corr, f1.data, f2.data, self.output_dots,
                                   f1._d, f2._d, self._coords, self._bintype, self._metric)
 
-    def _getStatLen(self):
+    def getStatLen(self):
+        """The length of the array that will be returned by getStat.
+
+        In this case, this is 2*self.nbins.
+        """
         return 2*self._nbins
 
-    def _getStat(self):
+    def getStat(self):
+        """The standard statistic for the current correlation object as a 1-d array.
+
+        In this case, this is the concatenation of self.xip and self.xim (raveled if necessary).
+        """
         return np.concatenate([self.xip.ravel(), self.xim.ravel()])
 
-    def _getWeight(self):
+    def getWeight(self):
+        """The weight array for the current correlation object as a 1-d array.
+
+        This is the weight array corresponding to `getStat`. In this case, the weight is
+        duplicated to account for both xip and xim returned as part of getStat().
+        """
         return np.concatenate([self.weight.ravel(), self.weight.ravel()])
 
     def finalize(self, varg1, varg2):

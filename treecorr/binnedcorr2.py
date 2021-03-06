@@ -933,16 +933,9 @@ class BinnedCorr2(object):
         # pairs is input as a list of (i,j) values.
 
         # This is the normal calculation.  It needs to be overridden when there are randoms.
-        # Here, we separately compute the numerator and the denominator.
-        # n = the sum of the raw (unnormalized) xi stats.
-        # We use the getStat method, since GG needs to concatenate (xip,xim), but usually this
-        # is just xi.
-        # Similarly, getWeight is usually weight, but GG needs to double it up.
-
-        w = np.sum([self.results[ij].weight for ij in pairs], axis=0)
-        w[w == 0] = 1  # Guard against division by zero.
-        self.xi = np.sum([self.results[ij].xi for ij in pairs], axis=0) / w
-        self.weight = w
+        self.clear()
+        self._sum([self.results[ij] for ij in pairs])
+        self._finalize()
 
 def _make_cov_design_matrix(corrs, plist):
     # vpairs is a list of pairs to use for each row of the design matrix.

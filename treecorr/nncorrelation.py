@@ -287,14 +287,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
                                   f1._d, f2._d, self._coords, self._bintype, self._metric)
         self.tot += (cat1.sumw+cat2.sumw)/2.
 
-
-    def finalize(self):
-        """Finalize the calculation of the correlation function.
-
-        The `process_auto` and `process_cross` commands accumulate values in each bin,
-        so they can be called multiple times if appropriate.  Afterwards, this command
-        finishes the calculation of meanr, meanlogr by dividing by the total weight.
-        """
+    def _finalize(self):
         mask1 = self.weight != 0
         mask2 = self.weight == 0
 
@@ -308,6 +301,15 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.meanr[mask2] = self.rnom[mask2]
         self.meanlogr[mask2] = self.logr[mask2]
 
+    def finalize(self):
+        """Finalize the calculation of the correlation function.
+
+        The `process_auto` and `process_cross` commands accumulate values in each bin,
+        so they can be called multiple times if appropriate.  Afterwards, this command
+        finishes the calculation of meanr, meanlogr by dividing by the total weight.
+        """
+        self._finalize()
+
     def clear(self):
         """Clear the data vectors
         """
@@ -315,7 +317,6 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.meanlogr.ravel()[:] = 0.
         self.weight.ravel()[:] = 0.
         self.npairs.ravel()[:] = 0.
-        self.results.clear()
         self.tot = 0.
 
     def __iadd__(self, other):
@@ -340,6 +341,18 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.npairs.ravel()[:] += other.npairs.ravel()[:]
         self.tot += other.tot
         return self
+
+    def _sum(self, others):
+        # Equivalent to the operation of:
+        #     self.clear()
+        #     for other in others:
+        #         self += other
+        # but no sanity checks and use numpy.sum for faster calculation.
+        np.sum([c.meanr for c in others], axis=0, out=self.meanr)
+        np.sum([c.meanlogr for c in others], axis=0, out=self.meanlogr)
+        np.sum([c.weight for c in others], axis=0, out=self.weight)
+        np.sum([c.npairs for c in others], axis=0, out=self.npairs)
+        self.tot = np.sum([c.tot for c in others])
 
     def _add_tot(self, i, j, c1, c2):
         # When storing results from a patch-based run, tot needs to be accumulated even if
@@ -381,6 +394,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
                                 This only works if using patches. (default: False)
         """
         self.clear()
+        self.results.clear()
 
         if not isinstance(cat1,list):
             self.npatch1 = cat1._npatch
@@ -578,43 +592,46 @@ class NNCorrelation(treecorr.BinnedCorr2):
         return self.xi, self.varxi
 
     def _calculate_xi_from_pairs(self, pairs):
-        okij = set(self.results.keys())
-        dd = np.sum([self.results[ij].weight for ij in pairs if ij in okij], axis=0)
+        self.clear()
+        self._sum([self.results[ij] for ij in pairs])
+        self._finalize()
+        dd = self.weight
         if len(self._rr.results) > 0:
-            dd_tot = np.sum([self.results[ij].tot for ij in pairs if ij in okij])
-            okij = set(self._rr.results.keys())
-            rr = np.sum([self._rr.results[ij].weight for ij in pairs if ij in okij], axis=0)
-            rr_tot = np.sum([self._rr.results[ij].tot for ij in pairs if ij in okij])
-            rrf = dd_tot / rr_tot
+            # This is the usual case.  R has patches just like D.
+            # Calculate rr and rrf in teh normal way based on the same pairs as used for DD.
+            pairs1 = [ij for ij in pairs if ij in set(self._rr.results.keys())]
+            self._rr._sum([self._rr.results[ij] for ij in pairs1])
+            rr = self._rr.weight
+            rr_tot = self._rr.tot
+            rrf = self.tot / rr_tot
         else:
-            diag_tot = np.sum([cij.tot**0.5 for ij,cij in self.results.items()
-                               if ij[0] == ij[1]])
-            rr_frac = np.sum([self.results[ij].tot**0.5 for ij in pairs if ij[0] == ij[1]])
-            rr_frac = rr_frac / diag_tot
-            rr = self._rr.weight * rr_frac
-            rrf = self.tot / self._rr.tot
+            # In this case, R was not run with patches.
+            # This is not necessarily much worse in practice it turns out.
+            # We just need to scale RR down by the relative area.
+            # The approximation we'll use is that tot in the auto-correlations is
+            # proportional to area**2.
+            # So the sum of tot**0.5 when i==j gives an estimate of the fraction of the total area.
+            area_frac = np.sum([self.results[ij].tot**0.5 for ij in pairs if ij[0] == ij[1]])
+            area_frac /= np.sum([cij.tot**0.5 for ij,cij in self.results.items() if ij[0] == ij[1]])
+            rr = self._rr.weight
+            full_dd_tot = np.sum([self.results[ij].tot for ij in self.results])
+            rrf = area_frac * full_dd_tot / self._rr.tot
         if self._dr is not None:
-            okij = set(self._dr.results.keys())
-            if self._dr.npatch2 > 1:
-                dr = np.sum([self._dr.results[ij].weight for ij in pairs if ij in okij], axis=0)
-                dr_tot = np.sum([self._dr.results[ij].tot for ij in pairs if ij in okij])
-                drf = dd_tot / dr_tot
+            if self._dr.npatch2 == 1:
+                pairs2 = [(ij[0],0) for ij in pairs if ij[0] == ij[1]]
             else:
-                xpairs = [(ij[0],0) for ij in pairs if ij[0] == ij[1]]
-                dr = np.sum([self._dr.results[ij].weight for ij in xpairs if ij in okij], axis=0)
-                dr_tot = np.sum([self._dr.results[ij].tot for ij in xpairs if ij in okij])
-                drf = self.tot / self._dr.tot
+                pairs2 = [ij for ij in pairs if ij in set(self._dr.results.keys())]
+            self._dr._sum([self._dr.results[ij] for ij in pairs2])
+            dr = self._dr.weight
+            drf = self.tot / self._dr.tot
         if self._rd is not None:
-            okij = set(self._rd.results.keys())
-            if self._rd.npatch1 > 1:
-                rd = np.sum([self._rd.results[ij].weight for ij in pairs if ij in okij], axis=0)
-                rd_tot = np.sum([self._rd.results[ij].tot for ij in pairs if ij in okij])
-                rdf = dd_tot / rd_tot
+            if self._rd.npatch1 == 1:
+                pairs3 = [(0,ij[1]) for ij in pairs if ij[0] == ij[1]]
             else:
-                xpairs = [(0,ij[0]) for ij in pairs if ij[0] == ij[1]]
-                rd = np.sum([self._rd.results[ij].weight for ij in xpairs if ij in okij], axis=0)
-                rd_tot = np.sum([self._rd.results[ij].tot for ij in xpairs if ij in okij])
-                rdf = self.tot / self._rd.tot
+                pairs3 = [ij for ij in pairs if ij in set(self._rd.results.keys())]
+            self._rd._sum([self._rd.results[ij] for ij in pairs3])
+            rd = self._rd.weight
+            rdf = self.tot / self._rd.tot
         denom = rr * rrf
         if self._dr is None and self._rd is None:
             xi = dd - denom

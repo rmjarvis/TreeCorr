@@ -315,6 +315,13 @@ class GGCorrelation(treecorr.BinnedCorr2):
         """
         return np.concatenate([self.weight.ravel(), self.weight.ravel()])
 
+    def _calculate_xi_from_pairs(self, pairs):
+        w = np.sum([self.results[ij].weight for ij in pairs], axis=0)
+        w[w == 0] = 1  # Guard against division by zero.
+        self.xip = np.sum([self.results[ij].xip for ij in pairs], axis=0) / w
+        self.xim = np.sum([self.results[ij].xim for ij in pairs], axis=0) / w
+        self.weight = w
+
     def finalize(self, varg1, varg2):
         """Finalize the calculation of the correlation function.
 

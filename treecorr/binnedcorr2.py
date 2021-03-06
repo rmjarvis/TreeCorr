@@ -736,7 +736,8 @@ class BinnedCorr2(object):
             For most classes, there is only a single statistic, so this calculates a covariance
             matrix for that vector.  `GGCorrelation` has two: ``xip`` and ``xim``, so in this
             case the full data vector is ``xip`` followed by ``xim``, and this calculates the
-            covariance matrix for that full vector including both statistics.
+            covariance matrix for that full vector including both statistics.  The helper
+            function `getStat` returns the relevant statistic in all cases.
 
         In all cases, the relevant processing needs to already have been completed and finalized.
         And for all methods other than 'shot', the processing should have involved an appropriate
@@ -934,12 +935,10 @@ class BinnedCorr2(object):
         # is just xi.
         # Similarly, getWeight is usually weight, but GG needs to double it up.
 
-        n = np.sum([self.results[ij].getStat() for ij in pairs], axis=0)
-        d = np.sum([self.results[ij].getWeight() for ij in pairs], axis=0)
-        d[d == 0] = 1  # Guard against division by zero.
-        xi = n/d
-        w = np.sum(d)
-        return xi,w
+        w = np.sum([self.results[ij].weight for ij in pairs], axis=0)
+        w[w == 0] = 1  # Guard against division by zero.
+        self.xi = np.sum([self.results[ij].xi for ij in pairs], axis=0) / w
+        self.weight = w
 
 def _make_cov_design_matrix(corrs, plist):
     # vpairs is a list of pairs to use for each row of the design matrix.
@@ -950,22 +949,30 @@ def _make_cov_design_matrix(corrs, plist):
     # since _calculate_xi_from_pairs needs to calculate w anyway, so it's only a small
     # memory overhead to keep those around and return them.
 
-    vlist = []
-    wlist = []
-    for c, vpairs in zip(corrs, plist):
-        vsize = c.getStatLen()
-        nrows = len(vpairs)
-        v = np.zeros((nrows,vsize), dtype=float)
-        w = np.zeros(nrows, dtype=float)
-        for row, pairs in enumerate(vpairs):
-            vrow, wrow = c._calculate_xi_from_pairs(pairs)
-            v[row] = vrow
-            w[row] = wrow
-        vlist.append(v)
-        wlist.append(w)
-    return np.hstack(vlist), np.sum(wlist, axis=0)
+    # Make a copy of the correlation objects, so we can overwrite things without breaking
+    # the original.
+    corrs = [c.copy() for c in corrs]
 
-def estimate_multi_cov(corrs, method):
+    # Figure out the full length of the data vector.
+    vsize = np.sum([c.getStatLen() for c in corrs])
+
+    # Swap order of plist.  Right now it's a list for each corr of a list for each row.
+    # We want a list by row with a list for each corr.
+    plist = list(zip(*plist))
+    nrows = len(plist)
+
+    # Make the empty return arrays.
+    v = np.empty((nrows,vsize), dtype=float)
+    w = np.zeros(nrows, dtype=float)
+
+    for row, pairs in enumerate(plist):
+        for c, cpairs in zip(corrs, pairs):
+            c._calculate_xi_from_pairs(cpairs)
+        v[row] = np.concatenate([c.getStat() for c in corrs])
+        w[row] = np.sum([np.sum(c.getWeight()) for c in corrs])
+    return v,w
+
+def estimate_multi_cov(corrs, method, func=None):
     """Estimate the covariance matrix of multiple statistics.
 
     This is like the method `BinnedCorr2.estimate_cov`, except that it will acoommodate

@@ -617,9 +617,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
         else:
             xi = dd - rd * rdf - dr * drf + denom
         denom[denom == 0] = 1  # Guard against division by zero.
-        xi /= denom
-        w = np.sum(denom)
-        return xi,w
+        self.xi = xi / denom
+        self.weight = denom
 
     def write(self, file_name, rr=None, dr=None, rd=None, file_type=None, precision=None):
         r"""Write the correlation function to the file, file_name.

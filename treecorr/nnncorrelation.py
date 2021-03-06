@@ -126,7 +126,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
     @property
     def corr(self):
-        if not hasattr(self, '_corr'):
+        if self._corr is None:
             from treecorr.util import double_ptr as dp
             self._corr = treecorr._lib.BuildCorr3(
                     self._d1, self._d2, self._d3, self._bintype,
@@ -144,7 +144,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
-        if hasattr(self, '_corr'):
+        if self._corr is not None:
             if not treecorr._ffi._lock.locked(): # pragma: no branch
                 treecorr._lib.DestroyCorr3(self.corr, self._d1, self._d2, self._d3, self._bintype)
 
@@ -186,20 +186,16 @@ class NNNCorrelation(treecorr.BinnedCorr3):
 
     def copy(self):
         """Make a copy"""
-        import copy
-        return copy.deepcopy(self)
-
-    def __getstate__(self):
-        d = self.__dict__.copy()
-        d.pop('_corr',None)
-        d.pop('logger',None)  # Oh well.  This is just lost in the copy.  Can't be pickled.
-        return d
-
-    def __setstate__(self, d):
-        self.__dict__ = d
-        self.logger = treecorr.config.setup_logger(
-                treecorr.config.get(self.config,'verbose',int,1),
-                self.config.get('log_file',None))
+        ret = NNNCorrelation.__new__(NNNCorrelation)
+        for key, item in self.__dict__.items():
+            if isinstance(item, np.ndarray):
+                ret.__dict__[key] = item.copy()
+            else:
+                # In particular don't deep copy config or logger
+                # Most of the rest are scalars, which copy fine this way.
+                ret.__dict__[key] = item
+        ret._corr = None # We'll want to make a new one of these if we need it.
+        return ret
 
     def __repr__(self):
         return 'NNNCorrelation(config=%r)'%self.config
@@ -848,8 +844,13 @@ class NNNCrossCorrelation(treecorr.BinnedCorr3):
 
     def copy(self):
         """Make a copy"""
-        import copy
-        return copy.deepcopy(self)
+        ret = NNNCrossCorrelation.__new__(NNNCrossCorrelation)
+        for key, item in self.__dict__.items():
+            if isinstance(item, NNNCorrelation):
+                ret.__dict__[key] = item.copy()
+            else:
+                ret.__dict__[key] = item
+        return ret
 
     def __repr__(self):
         return 'NNNCrossCorrelation(config=%r)'%self.config

@@ -187,7 +187,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
 
     @property
     def corr(self):
-        if not hasattr(self, '_corr'):
+        if self._corr is None:
             from treecorr.util import double_ptr as dp
             self._corr = treecorr._lib.BuildCorr3(
                     self._d1, self._d2, self._d3, self._bintype,
@@ -205,7 +205,7 @@ class GGGCorrelation(treecorr.BinnedCorr3):
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
-        if hasattr(self, '_corr'):
+        if self._corr is not None:
             if not treecorr._ffi._lock.locked(): # pragma: no branch
                 treecorr._lib.DestroyCorr3(self.corr, self._d1, self._d2, self._d3, self._bintype)
 
@@ -258,8 +258,16 @@ class GGGCorrelation(treecorr.BinnedCorr3):
 
     def copy(self):
         """Make a copy"""
-        import copy
-        return copy.deepcopy(self)
+        ret = GGGCorrelation.__new__(GGGCorrelation)
+        for key, item in self.__dict__.items():
+            if isinstance(item, np.ndarray):
+                ret.__dict__[key] = item.copy()
+            else:
+                # In particular don't deep copy config or logger
+                # Most of the rest are scalars, which copy fine this way.
+                ret.__dict__[key] = item
+        ret._corr = None # We'll want to make a new one of these if we need it.
+        return ret
 
     def __repr__(self):
         return 'GGGCorrelation(config=%r)'%self.config
@@ -1181,8 +1189,13 @@ class GGGCrossCorrelation(treecorr.BinnedCorr3):
 
     def copy(self):
         """Make a copy"""
-        import copy
-        return copy.deepcopy(self)
+        ret = GGGCrossCorrelation.__new__(GGGCrossCorrelation)
+        for key, item in self.__dict__.items():
+            if isinstance(item, GGGCorrelation):
+                ret.__dict__[key] = item.copy()
+            else:
+                ret.__dict__[key] = item
+        return ret
 
     def __repr__(self):
         return 'GGGCrossCorrelation(config=%r)'%self.config

@@ -128,7 +128,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
 
     @property
     def corr(self):
-        if not hasattr(self, '_corr'):
+        if self._corr is None:
             from treecorr.util import double_ptr as dp
             self._corr = treecorr._lib.BuildCorr3(
                     self._d1, self._d2, self._d3, self._bintype,
@@ -146,7 +146,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
-        if hasattr(self, '_corr'):
+        if self._corr is not None:
             if not treecorr._ffi._lock.locked(): # pragma: no branch
                 treecorr._lib.DestroyCorr3(self.corr, self._d1, self._d2, self._d3, self._bintype)
 
@@ -189,8 +189,16 @@ class KKKCorrelation(treecorr.BinnedCorr3):
 
     def copy(self):
         """Make a copy"""
-        import copy
-        return copy.deepcopy(self)
+        ret = KKKCorrelation.__new__(KKKCorrelation)
+        for key, item in self.__dict__.items():
+            if isinstance(item, np.ndarray):
+                ret.__dict__[key] = item.copy()
+            else:
+                # In particular don't deep copy config or logger
+                # Most of the rest are scalars, which copy fine this way.
+                ret.__dict__[key] = item
+        ret._corr = None # We'll want to make a new one of these if we need it.
+        return ret
 
     def __repr__(self):
         return 'KKKCorrelation(config=%r)'%self.config
@@ -709,8 +717,13 @@ class KKKCrossCorrelation(treecorr.BinnedCorr3):
 
     def copy(self):
         """Make a copy"""
-        import copy
-        return copy.deepcopy(self)
+        ret = KKKCrossCorrelation.__new__(KKKCrossCorrelation)
+        for key, item in self.__dict__.items():
+            if isinstance(item, KKKCorrelation):
+                ret.__dict__[key] = item.copy()
+            else:
+                ret.__dict__[key] = item
+        return ret
 
     def __repr__(self):
         return 'KKKCrossCorrelation(config=%r)'%self.config

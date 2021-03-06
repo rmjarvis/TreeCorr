@@ -98,11 +98,14 @@ class NNCorrelation(treecorr.BinnedCorr2):
         self.npairs = np.zeros_like(self.rnom, dtype=float)
         self.tot = 0.
         self._rr_weight = None  # Marker that calculateXi hasn't been called yet.
+        self._rr = None
+        self._dr = None
+        self._rd = None
         self.logger.debug('Finished building NNCorr')
 
     @property
     def corr(self):
-        if not hasattr(self, '_corr'):
+        if self._corr is None:
             from treecorr.util import double_ptr as dp
             self._corr = treecorr._lib.BuildCorr2(
                     self._d1, self._d2, self._bintype,
@@ -115,7 +118,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
-        if hasattr(self, '_corr'):
+        if self._corr is not None:
             if not treecorr._ffi._lock.locked(): # pragma: no branch
                 treecorr._lib.DestroyCorr2(self.corr, self._d1, self._d2, self._bintype)
 
@@ -143,16 +146,23 @@ class NNCorrelation(treecorr.BinnedCorr2):
 
     def copy(self):
         """Make a copy"""
-        import copy
-        return copy.deepcopy(self)
-
-    def _copy_for_results(self):
-        # Make a copy of just the things we need to keep in results.
         ret = NNCorrelation.__new__(NNCorrelation)
-        ret._nbins = self._nbins
-        ret.weight = self.weight.copy()
-        ret.tot = self.tot
-        ret.config = self.config  # not deep copy, so cheap, but makes repr work
+        for key, item in self.__dict__.items():
+            if isinstance(item, np.ndarray):
+                ret.__dict__[key] = item.copy()
+            else:
+                # In particular don't deep copy config or logger
+                # Most of the rest are scalars, which copy fine this way.
+                # The results dict is trickier.  We rely on it being copied in places, but we're
+                # not going to add more to it after the copy, so shallow copy is fine.
+                ret.__dict__[key] = item
+        ret._corr = None # We'll want to make a new one of these if we need it.
+        if self._rd is not None:
+            ret._rd = self._rd.copy()
+        if self._dr is not None:
+            ret._dr = self._dr.copy()
+        if self._rr is not None:
+            ret._rr = self._rr.copy()
         return ret
 
     def __repr__(self):
@@ -340,11 +350,9 @@ class NNCorrelation(treecorr.BinnedCorr2):
         # We also have to keep all pairs in the results dict, otherwise the tot calculation
         # gets messed up.  We need to accumulate the tot value of all pairs, even if
         # the resulting weight is zero.
-        res = NNCorrelation.__new__(NNCorrelation)
-        res._nbins = self._nbins
+        res = self.copy()
         res.weight = np.zeros_like(self.weight)
         res.tot = tot
-        res.config = self.config  # not deep copy, so cheap, but makes repr work
         self.results[(i,j)] = res
 
     def process(self, cat1, cat2=None, metric=None, num_threads=None, comm=None, low_mem=False):

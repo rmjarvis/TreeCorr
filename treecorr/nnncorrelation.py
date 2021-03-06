@@ -323,13 +323,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
                                     f1._d, f2._d, f3._d, self._coords, self._bintype, self._metric)
         self.tot += cat1.sumw * cat2.sumw * cat3.sumw
 
-    def finalize(self):
-        """Finalize the calculation of meand1, meanlogd1, etc.
-
-        The `process_auto` and `process_cross` commands accumulate values in each bin,
-        so they can be called multiple times if appropriate.  Afterwards, this command
-        finishes the calculation of meanlogr, meanu, meanv by dividing by the total weight.
-        """
+    def _finalize(self):
         mask1 = self.weight != 0
         mask2 = self.weight == 0
 
@@ -355,6 +349,15 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.meand1[mask2] = self.v[mask2] * self.meand3[mask2] + self.meand2[mask2]
         self.meanlogd1[mask2] = np.log(self.meand1[mask2])
 
+    def finalize(self):
+        """Finalize the calculation of meand1, meanlogd1, etc.
+
+        The `process_auto` and `process_cross` commands accumulate values in each bin,
+        so they can be called multiple times if appropriate.  Afterwards, this command
+        finishes the calculation of meanlogr, meanu, meanv by dividing by the total weight.
+        """
+        self._finalize()
+
     def clear(self):
         """Clear the data vectors
         """
@@ -368,7 +371,6 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.meanv[:,:,:] = 0.
         self.weight[:,:,:] = 0.
         self.ntri[:,:,:] = 0.
-        self.results.clear()
         self.tot = 0.
 
     def __iadd__(self, other):
@@ -439,6 +441,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
                                 in the constructor in the config dict.)
         """
         self.clear()
+        self.results.clear()
         if not isinstance(cat1,list): cat1 = cat1.get_patches()
         if cat2 is not None and not isinstance(cat2,list): cat2 = cat2.get_patches()
         if cat3 is not None and not isinstance(cat3,list): cat3 = cat3.get_patches()

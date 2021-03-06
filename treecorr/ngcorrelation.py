@@ -265,16 +265,7 @@ class NGCorrelation(treecorr.BinnedCorr2):
         treecorr._lib.ProcessPair(self.corr, f1.data, f2.data, self.output_dots,
                                   f1._d, f2._d, self._coords, self._bintype, self._metric)
 
-    def finalize(self, varg):
-        """Finalize the calculation of the correlation function.
-
-        The `process_cross` command accumulates values in each bin, so it can be called
-        multiple times if appropriate.  Afterwards, this command finishes the calculation
-        by dividing each column by the total weight.
-
-        Parameters:
-            varg (float):   The shear variance per component for the second field.
-        """
+    def _finalize(self):
         mask1 = self.weight != 0
         mask2 = self.weight == 0
 
@@ -290,6 +281,17 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.meanr[mask2] = self.rnom[mask2]
         self.meanlogr[mask2] = self.logr[mask2]
 
+    def finalize(self, varg):
+        """Finalize the calculation of the correlation function.
+
+        The `process_cross` command accumulates values in each bin, so it can be called
+        multiple times if appropriate.  Afterwards, this command finishes the calculation
+        by dividing each column by the total weight.
+
+        Parameters:
+            varg (float):   The shear variance per component for the second field.
+        """
+        self._finalize()
         self._var_num = varg
         self.cov = self.estimate_cov(self.var_method)
         self.raw_varxi.ravel()[:] = self.cov.diagonal()
@@ -310,8 +312,6 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.npairs.ravel()[:] = 0
         if hasattr(self,'cov'):
             self.cov.ravel()[:] = 0
-        self.results.clear()
-        self._rg = None
         self.xi = self.raw_xi
         self.xi_im = self.raw_xi_im
         self.varxi = self.raw_varxi
@@ -334,12 +334,24 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self._set_metric(other.metric, other.coords)
         self.raw_xi.ravel()[:] += other.raw_xi.ravel()[:]
         self.raw_xi_im.ravel()[:] += other.raw_xi_im.ravel()[:]
-        self.raw_varxi.ravel()[:] += other.raw_varxi.ravel()[:]
         self.meanr.ravel()[:] += other.meanr.ravel()[:]
         self.meanlogr.ravel()[:] += other.meanlogr.ravel()[:]
         self.weight.ravel()[:] += other.weight.ravel()[:]
         self.npairs.ravel()[:] += other.npairs.ravel()[:]
         return self
+
+    def _sum(self, others):
+        # Equivalent to the operation of:
+        #     self.clear()
+        #     for other in others:
+        #         self += other
+        # but no sanity checks and use numpy.sum for faster calculation.
+        np.sum([c.raw_xi for c in others], axis=0, out=self.raw_xi)
+        np.sum([c.raw_xi_im for c in others], axis=0, out=self.raw_xi_im)
+        np.sum([c.meanr for c in others], axis=0, out=self.meanr)
+        np.sum([c.meanlogr for c in others], axis=0, out=self.meanlogr)
+        np.sum([c.weight for c in others], axis=0, out=self.weight)
+        np.sum([c.npairs for c in others], axis=0, out=self.npairs)
 
     def process(self, cat1, cat2, metric=None, num_threads=None, comm=None, low_mem=False):
         """Compute the correlation function.
@@ -364,6 +376,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
         """
         import math
         self.clear()
+        self.results.clear()
+        self._rg = None
 
         if not isinstance(cat1,list):
             self.npatch1 = cat1._npatch
@@ -376,7 +390,6 @@ class NGCorrelation(treecorr.BinnedCorr2):
         self.logger.info("varg = %f: sig_sn (per component) = %f",varg,math.sqrt(varg))
         self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem)
         self.finalize(varg)
-
 
     def calculateXi(self, rg=None):
         r"""Calculate the correlation function possibly given another correlation function
@@ -436,15 +449,15 @@ class NGCorrelation(treecorr.BinnedCorr2):
         return self.xi, self.xi_im, self.varxi
 
     def _calculate_xi_from_pairs(self, pairs):
-        okij = set(self.results.keys())
-        n = np.sum([self.results[ij].getStat() for ij in pairs if ij in okij], axis=0)
-        d = np.sum([self.results[ij].getWeight() for ij in pairs if ij in okij], axis=0)
-        d[d == 0] = 1  # Guard against division by zero.
-        self.xi = n/d
-        self.weight = np.sum(d)
+        self.clear()
+        self._sum([self.results[ij] for ij in pairs])
+        self._finalize()
         if self._rg is not None:
+            # If rg has npatch1 = 1, adjust pairs appropriately
             if self._rg.npatch1 == 1:
                 pairs = [(0,ij[1]) for ij in pairs if ij[0] == ij[1]]
+            # Make sure all ij are in the rg results (some might be missing, which is ok)
+            pairs = [ij for ij in pairs if ij in set(self._rg.results.keys())]
             self._rg._calculate_xi_from_pairs(pairs)
             self.xi -= self._rg.xi
 

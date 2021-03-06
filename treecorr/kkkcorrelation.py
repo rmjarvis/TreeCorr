@@ -323,18 +323,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
                                     f1.data, f2.data, f3.data, self.output_dots,
                                     f1._d, f2._d, f3._d, self._coords, self._bintype, self._metric)
 
-    def finalize(self, vark1, vark2, vark3):
-        """Finalize the calculation of the correlation function.
-
-        The `process_auto` and `process_cross` commands accumulate values in each bin,
-        so they can be called multiple times if appropriate.  Afterwards, this command
-        finishes the calculation by dividing by the total weight.
-
-        Parameters:
-            vark1 (float):  The kappa variance for the first field.
-            vark2 (float):  The kappa variance for the second field.
-            vark3 (float):  The kappa variance for the third field.
-        """
+    def _finalize(self):
         mask1 = self.weight != 0
         mask2 = self.weight == 0
 
@@ -361,6 +350,21 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         self.meand1[mask2] = self.v[mask2] * self.meand3[mask2] + self.meand2[mask2]
         self.meanlogd1[mask2] = np.log(self.meand1[mask2])
 
+    def finalize(self, vark1, vark2, vark3):
+        """Finalize the calculation of the correlation function.
+
+        The `process_auto` and `process_cross` commands accumulate values in each bin,
+        so they can be called multiple times if appropriate.  Afterwards, this command
+        finishes the calculation by dividing by the total weight.
+
+        Parameters:
+            vark1 (float):  The kappa variance for the first field.
+            vark2 (float):  The kappa variance for the second field.
+            vark3 (float):  The kappa variance for the third field.
+        """
+        self._finalize()
+        mask1 = self.weight != 0
+        mask2 = self.weight == 0
         self.varzeta[mask1] = vark1 * vark2 * vark3 / self.weight[mask1]
         self.varzeta[mask2] = 0.
 
@@ -379,7 +383,6 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         self.meanv[:,:,:] = 0.
         self.weight[:,:,:] = 0.
         self.ntri[:,:,:] = 0.
-        self.results.clear()
 
     def __iadd__(self, other):
         """Add a second `KKKCorrelation`'s data to this one.
@@ -451,6 +454,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         """
         import math
         self.clear()
+        self.results.clear()
         if not isinstance(cat1,list): cat1 = cat1.get_patches()
         if cat2 is not None and not isinstance(cat2,list): cat2 = cat2.get_patches()
         if cat3 is not None and not isinstance(cat3,list): cat3 = cat3.get_patches()

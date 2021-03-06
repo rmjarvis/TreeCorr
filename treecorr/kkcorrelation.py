@@ -285,18 +285,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
         treecorr._lib.ProcessPair(self.corr, f1.data, f2.data, self.output_dots,
                                   f1._d, f2._d, self._coords, self._bintype, self._metric)
 
-
-    def finalize(self, vark1, vark2):
-        """Finalize the calculation of the correlation function.
-
-        The `process_auto` and `process_cross` commands accumulate values in each bin,
-        so they can be called multiple times if appropriate.  Afterwards, this command
-        finishes the calculation by dividing each column by the total weight.
-
-        Parameters:
-            vark1 (float):  The kappa variance for the first field.
-            vark2 (float):  The kappa variance for the second field.
-        """
+    def _finalize(self):
         mask1 = self.weight != 0
         mask2 = self.weight == 0
 
@@ -311,10 +300,21 @@ class KKCorrelation(treecorr.BinnedCorr2):
         self.meanr[mask2] = self.rnom[mask2]
         self.meanlogr[mask2] = self.logr[mask2]
 
+    def finalize(self, vark1, vark2):
+        """Finalize the calculation of the correlation function.
+
+        The `process_auto` and `process_cross` commands accumulate values in each bin,
+        so they can be called multiple times if appropriate.  Afterwards, this command
+        finishes the calculation by dividing each column by the total weight.
+
+        Parameters:
+            vark1 (float):  The kappa variance for the first field.
+            vark2 (float):  The kappa variance for the second field.
+        """
+        self._finalize()
         self._var_num = vark1 * vark2
         self.cov = self.estimate_cov(self.var_method)
         self.varxi.ravel()[:] = self.cov.diagonal()
-
 
     def clear(self):
         """Clear the data vectors
@@ -324,7 +324,6 @@ class KKCorrelation(treecorr.BinnedCorr2):
         self.meanlogr.ravel()[:] = 0
         self.weight.ravel()[:] = 0
         self.npairs.ravel()[:] = 0
-        self.results.clear()
 
     def __iadd__(self, other):
         """Add a second `KKCorrelation`'s data to this one.
@@ -349,6 +348,17 @@ class KKCorrelation(treecorr.BinnedCorr2):
         self.npairs.ravel()[:] += other.npairs.ravel()[:]
         return self
 
+    def _sum(self, others):
+        # Equivalent to the operation of:
+        #     self.clear()
+        #     for other in others:
+        #         self += other
+        # but no sanity checks and use numpy.sum for faster calculation.
+        np.sum([c.xi for c in others], axis=0, out=self.xi)
+        np.sum([c.meanr for c in others], axis=0, out=self.meanr)
+        np.sum([c.meanlogr for c in others], axis=0, out=self.meanlogr)
+        np.sum([c.weight for c in others], axis=0, out=self.weight)
+        np.sum([c.npairs for c in others], axis=0, out=self.npairs)
 
     def process(self, cat1, cat2=None, metric=None, num_threads=None, comm=None, low_mem=False):
         """Compute the correlation function.
@@ -377,6 +387,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
         """
         import math
         self.clear()
+        self.results.clear()
 
         if not isinstance(cat1,list):
             self.npatch1 = cat1._npatch

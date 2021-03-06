@@ -266,6 +266,7 @@ class BinnedCorr2(object):
     }
 
     def __init__(self, config=None, logger=None, **kwargs):
+        self._corr = None  # Do this first to make sure we always have it for __del__
         self.config = treecorr.config.merge_config(config,kwargs,BinnedCorr2._valid_params)
         if logger is None:
             self.logger = treecorr.config.setup_logger(
@@ -469,6 +470,7 @@ class BinnedCorr2(object):
 
     def __setstate__(self, d):
         self.__dict__ = d
+        self._corr = None
         self.logger = treecorr.config.setup_logger(
                 treecorr.config.get(self.config,'verbose',int,1),
                 self.config.get('log_file',None))
@@ -544,13 +546,14 @@ class BinnedCorr2(object):
                 my_indices = None
 
             temp = self.copy()
+            temp.results = {}  # Don't mess up the original results
             for ii,c1 in enumerate(cat1):
                 i = c1.patch if c1.patch is not None else ii
                 if is_my_job(my_indices, i, i, n):
                     temp.clear()
                     self.logger.info('Process patch %d auto',i)
                     temp.process_auto(c1,metric,num_threads)
-                    self.results[(i,i)] = temp._copy_for_results()
+                    self.results[(i,i)] = temp.copy()
                     self += temp
                 for jj,c2 in list(enumerate(cat1))[::-1]:
                     j = c2.patch if c2.patch is not None else jj
@@ -563,7 +566,7 @@ class BinnedCorr2(object):
                             self.logger.info('Skipping %d,%d pair, which are too far apart ' +
                                              'for this set of separations',i,j)
                         if np.sum(temp.npairs) > 0:
-                            self.results[(i,j)] = temp._copy_for_results()
+                            self.results[(i,j)] = temp.copy()
                             self += temp
                         else:
                             # NNCorrelation needs to add the tot value
@@ -645,6 +648,7 @@ class BinnedCorr2(object):
                 my_indices = None
 
             temp = self.copy()
+            temp.results = {}  # Don't mess up the original results
             for ii,c1 in enumerate(cat1):
                 i = c1.patch if c1.patch is not None else ii
                 for jj,c2 in enumerate(cat2):
@@ -658,7 +662,7 @@ class BinnedCorr2(object):
                             self.logger.info('Skipping %d,%d pair, which are too far apart ' +
                                              'for this set of separations',i,j)
                         if np.sum(temp.npairs) > 0:
-                            self.results[(i,j)] = temp._copy_for_results()
+                            self.results[(i,j)] = temp.copy()
                             self += temp
                         else:
                             # NNCorrelation needs to add the tot value

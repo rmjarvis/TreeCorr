@@ -276,6 +276,7 @@ class BinnedCorr3(object):
     }
 
     def __init__(self, config=None, logger=None, **kwargs):
+        self._corr = None  # Do this first to make sure we always have it for __del__
         self.config = treecorr.config.merge_config(config,kwargs,BinnedCorr3._valid_params)
         if logger is None:
             self.logger = treecorr.config.setup_logger(
@@ -483,6 +484,7 @@ class BinnedCorr3(object):
 
     def __setstate__(self, d):
         self.__dict__ = d
+        self._corr = None
         self.logger = treecorr.config.setup_logger(
                 treecorr.config.get(self.config,'verbose',int,1),
                 self.config.get('log_file',None))

@@ -109,7 +109,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
 
     @property
     def corr(self):
-        if not hasattr(self, '_corr'):
+        if self._corr is None:
             from treecorr.util import double_ptr as dp
             self._corr = treecorr._lib.BuildCorr2(
                     self._d1, self._d2, self._bintype,
@@ -122,7 +122,7 @@ class KGCorrelation(treecorr.BinnedCorr2):
     def __del__(self):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
-        if hasattr(self, '_corr'):
+        if self._corr is not None:
             if not treecorr._ffi._lock.locked(): # pragma: no branch
                 treecorr._lib.DestroyCorr2(self.corr, self._d1, self._d2, self._bintype)
 
@@ -152,16 +152,17 @@ class KGCorrelation(treecorr.BinnedCorr2):
 
     def copy(self):
         """Make a copy"""
-        import copy
-        return copy.deepcopy(self)
-
-    def _copy_for_results(self):
-        # Make a copy of just the things we need to keep in results.
         ret = KGCorrelation.__new__(KGCorrelation)
-        ret._nbins = self._nbins
-        ret.xi = self.xi.copy()
-        ret.weight = self.weight.copy()
-        ret.config = self.config  # not deep copy, so cheap, but makes repr work
+        for key, item in self.__dict__.items():
+            if isinstance(item, np.ndarray):
+                ret.__dict__[key] = item.copy()
+            else:
+                # In particular don't deep copy config or logger
+                # Most of the rest are scalars, which copy fine this way.
+                # The results dict is trickier.  We rely on it being copied in places, but we're
+                # not going to add more to it after the copy, so shallow copy is fine.
+                ret.__dict__[key] = item
+        ret._corr = None # We'll want to make a new one of these if we need it.
         return ret
 
     def __repr__(self):

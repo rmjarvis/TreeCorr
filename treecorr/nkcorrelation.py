@@ -99,8 +99,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
         """
         treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
 
-        self._d1 = 1  # NData
-        self._d2 = 2  # KData
+        self._ro._d1 = 1  # NData
+        self._ro._d2 = 2  # KData
         self.xi = np.zeros_like(self.rnom, dtype=float)
         self.varxi = np.zeros_like(self.rnom, dtype=float)
         self.meanr = np.zeros_like(self.rnom, dtype=float)
@@ -158,13 +158,16 @@ class NKCorrelation(treecorr.BinnedCorr2):
         """Make a copy"""
         ret = NKCorrelation.__new__(NKCorrelation)
         for key, item in self.__dict__.items():
-            if isinstance(item, np.ndarray) and key[:3] != 'raw':
+            if isinstance(item, np.ndarray):
+                # Only items that might change need to by deep copied.
                 ret.__dict__[key] = item.copy()
             else:
+                # For everything else, shallow copy is fine.
                 # In particular don't deep copy config or logger
                 # Most of the rest are scalars, which copy fine this way.
-                # The results dict is trickier.  We rely on it being copied in places, but we're
-                # not going to add more to it after the copy, so shallow copy is fine.
+                # And the read-only things are all in _ro.
+                # The results dict is trickier.  We rely on it being copied in places, but we
+                # never add more to it after the copy, so shallow copy is fine.
                 ret.__dict__[key] = item
         ret._corr = None # We'll want to make a new one of these if we need it.
         if self.xi is self.raw_xi:
@@ -304,8 +307,6 @@ class NKCorrelation(treecorr.BinnedCorr2):
         self.meanlogr.ravel()[:] = 0
         self.weight.ravel()[:] = 0
         self.npairs.ravel()[:] = 0
-        if hasattr(self,'cov'):
-            self.cov.ravel()[:] = 0
         self.xi = self.raw_xi
         self.varxi = self.raw_varxi
 
@@ -526,21 +527,21 @@ class NKCorrelation(treecorr.BinnedCorr2):
 
         data, params = treecorr.util.gen_read(file_name, file_type=file_type, logger=self.logger)
         if 'R_nom' in data.dtype.names:  # pragma: no cover
-            self.rnom = data['R_nom']
+            self._ro.rnom = data['R_nom']
             self.meanr = data['meanR']
             self.meanlogr = data['meanlogR']
         else:
-            self.rnom = data['r_nom']
+            self._ro.rnom = data['r_nom']
             self.meanr = data['meanr']
             self.meanlogr = data['meanlogr']
-        self.logr = np.log(self.rnom)
+        self._ro.logr = np.log(self.rnom)
         self.xi = data['kappa']
         self.varxi = data['sigma']**2
         self.weight = data['weight']
         self.npairs = data['npairs']
         self.coords = params['coords'].strip()
         self.metric = params['metric'].strip()
-        self.sep_units = params['sep_units'].strip()
-        self.bin_type = params['bin_type'].strip()
+        self._ro.sep_units = params['sep_units'].strip()
+        self._ro.bin_type = params['bin_type'].strip()
         self.raw_xi = self.xi
         self.raw_varxi = self.varxi

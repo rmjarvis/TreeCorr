@@ -189,8 +189,10 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         ret = NNNCorrelation.__new__(NNNCorrelation)
         for key, item in self.__dict__.items():
             if isinstance(item, np.ndarray):
+                # Only items that might change need to by deep copied.
                 ret.__dict__[key] = item.copy()
             else:
+                # For everything else, shallow copy is fine.
                 # In particular don't deep copy config or logger
                 # Most of the rest are scalars, which copy fine this way.
                 ret.__dict__[key] = item

@@ -684,13 +684,6 @@ class BinnedCorr2(object):
                         self += temp
                         self.results.update(temp.results)
 
-    def getStatLen(self):
-        """The length of the array that will be returned by getStat.
-
-        Usually the is self.nbins, but there are expections described in `getStat`.
-        """
-        return self._nbins
-
     def getStat(self):
         """The standard statistic for the current correlation object as a 1-d array.
 
@@ -937,7 +930,7 @@ class BinnedCorr2(object):
         self._sum([self.results[ij] for ij in pairs])
         self._finalize()
 
-def _make_cov_design_matrix(corrs, plist):
+def _make_cov_design_matrix(corrs, plist, func):
     # vpairs is a list of pairs to use for each row of the design matrix.
     # Each row of vpairs is a list of (i,j) indices to use in that row.
     # We then compute the resulting data vector based on those pairs and save it as v[row]
@@ -951,7 +944,7 @@ def _make_cov_design_matrix(corrs, plist):
     corrs = [c.copy() for c in corrs]
 
     # Figure out the full length of the data vector.
-    vsize = np.sum([c.getStatLen() for c in corrs])
+    vsize = len(func(corrs))
 
     # Swap order of plist.  Right now it's a list for each corr of a list for each row.
     # We want a list by row with a list for each corr.
@@ -965,7 +958,7 @@ def _make_cov_design_matrix(corrs, plist):
     for row, pairs in enumerate(plist):
         for c, cpairs in zip(corrs, pairs):
             c._calculate_xi_from_pairs(cpairs)
-        v[row] = np.concatenate([c.getStat() for c in corrs])
+        v[row] = func(corrs)
         w[row] = np.sum([np.sum(c.getWeight()) for c in corrs])
     return v,w
 
@@ -1007,23 +1000,50 @@ def estimate_multi_cov(corrs, method, func=None):
     number of patches -- preferably more patches than the length of the vector for your
     statistic, although this is not checked.
 
+    The default order of the covariance matrix is to simply concatenate the data vectors
+    for each corr in the list ``corrs``.  However, if you want to so something more complicated,
+    you may provide an arbitrary function, ``func``, which should act on the list of correlations.
+    For instance, if you have several `GGCorrelation` objects and would like to order the
+    covariance such that all xi+ results come first, and then all xi- results, you could do
+
+        >>> func = lambda corrs: np.concatenate([c.xip for c in corrs] + [c.xim for c in corrs])
+
+    Or if you want to compute the covariance matrix of some derived quantity like the ratio
+    of two correlations, you could
+
+        >>> func = lambda corrs: corrs[0].xi / corrs[1].xi
+
+    The result of this func should be a single numpy array.
+
+    .. note::
+
+        The optional ``func`` parameter is not valid in conjunction with ``method='shot'``.
+        It only works for the methods that are based on patch combinations.
+
     Parameters:
-        corrs (list):   A list of `BinnedCorr2` instances.
-        method (str):   Which method to use to estimate the covariance matrix.
+        corrs (list):       A list of `BinnedCorr2` instances.
+        method (str):       Which method to use to estimate the covariance matrix.
+        func (function):    A unary function that takes the list ``corrs`` and returns the
+                            desired full data vector. [default: None, which is equivalent to
+                            ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``]
 
     Returns:
         A numpy array with the estimated covariance matrix.
     """
     if method == 'shot':
+        if func is not None:
+            raise ValueError("func is invalid with method='shot'")
         return _cov_shot(corrs)
-    elif method == 'jackknife':
-        return _cov_jackknife(corrs)
+    if func is None:
+        func = lambda corrs: np.concatenate([c.getStat() for c in corrs])
+    if method == 'jackknife':
+        return _cov_jackknife(corrs, func)
     elif method == 'bootstrap':
-        return _cov_bootstrap(corrs)
+        return _cov_bootstrap(corrs, func)
     elif method == 'marked_bootstrap':
-        return _cov_marked(corrs)
+        return _cov_marked(corrs, func)
     elif method == 'sample':
-        return _cov_sample(corrs)
+        return _cov_sample(corrs, func)
     else:
         raise ValueError("Invalid method: %s"%method)
 
@@ -1037,10 +1057,10 @@ def _cov_shot(corrs):
     # but the off diagonal terms are all zero.
     vlist = []
     for c in corrs:
-        v = np.zeros(c.getStatLen())
-        w = c.getWeight()
-        mask1 = w != 0
-        v[mask1] = c._var_num / w[mask1]
+        v = c.getWeight().copy()
+        mask1 = v != 0
+        # Note: if w=0 anywhere, leave v=0 there, rather than divide by zero.
+        v[mask1] = c._var_num / v[mask1]
         vlist.append(v)
     return np.diag(np.concatenate(vlist))  # Return as a covariance matrix
 
@@ -1063,7 +1083,7 @@ def _get_patch_nums(corrs, name):
         all_pairs.append(pairs)
     return npatch, all_pairs
 
-def _cov_jackknife(corrs):
+def _cov_jackknife(corrs, func):
     # Calculate the jackknife covariance for the given statistics
 
     # The basic jackknife formula is:
@@ -1086,13 +1106,13 @@ def _cov_jackknife(corrs):
             vpairs = [ [(j,k) for j,k in pairs if j!=i and k!=i] for i in range(c.npatch1) ]
         plist.append(vpairs)
 
-    v,w = _make_cov_design_matrix(corrs, plist)
+    v,w = _make_cov_design_matrix(corrs, plist, func)
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = (1.-1./npatch) * v.T.dot(v)
     return C
 
-def _cov_sample(corrs):
+def _cov_sample(corrs, func):
     # Calculate the sample covariance.
 
     # This is kind of the converse of the jackknife.  We take each patch and use any
@@ -1127,7 +1147,7 @@ def _cov_sample(corrs):
             raise RuntimeError("Cannot compute sample variance when some patches have no data.")
         plist.append(vpairs)
 
-    v,w = _make_cov_design_matrix(corrs, plist)
+    v,w = _make_cov_design_matrix(corrs, plist, func)
     w /= np.sum(w)  # Now w is the fractional weight for each patch
 
     vmean = np.mean(v, axis=0)
@@ -1135,7 +1155,7 @@ def _cov_sample(corrs):
     C = 1./(npatch-1) * (w * v.T).dot(v)
     return C
 
-def _cov_marked(corrs):
+def _cov_marked(corrs, func):
     # Calculate the marked-point bootstrap covariance
 
     # This is based on the article A Valid and Fast Spatial Bootstrap for Correlation Functions
@@ -1177,13 +1197,13 @@ def _cov_marked(corrs):
             vpairs.append(vpairs1)
         plist.append(vpairs)
 
-    v,w = _make_cov_design_matrix(corrs, plist)
+    v,w = _make_cov_design_matrix(corrs, plist, func)
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = 1./(nboot-1) * v.T.dot(v)
     return C
 
-def _cov_bootstrap(corrs):
+def _cov_bootstrap(corrs, func):
     # Calculate the 2-patch bootstrap covariance estimate.
 
     # This is a different version of the bootstrap idea.  It selects patches at random with
@@ -1223,7 +1243,7 @@ def _cov_bootstrap(corrs):
             vpairs.append(vpairs1)
         plist.append(vpairs)
 
-    v,w = _make_cov_design_matrix(corrs, plist)
+    v,w = _make_cov_design_matrix(corrs, plist, func)
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = 1./(nboot-1) * v.T.dot(v)

@@ -473,7 +473,7 @@ class BinnedCorr2(object):
         self.results = {}  # for jackknife, etc. store the results of each pair of patches.
         self.npatch1 = self.npatch2 = 1
 
-    # Properties for all the read-only attributes
+    # Properties for all the read-only attributes ("ro" stands for "read-only")
     @property
     def output_dots(self): return self._ro.output_dots
     @property

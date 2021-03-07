@@ -21,6 +21,9 @@ import sys
 import coord
 import treecorr
 
+class Namespace(object):
+    pass
+
 class BinnedCorr3(object):
     """This class stores the results of a 3-point correlation calculation, along with some
     ancillary data.
@@ -285,17 +288,25 @@ class BinnedCorr3(object):
         else:
             self.logger = logger
 
+        # We'll make a bunch of attributes here, which we put into a namespace called _ro.
+        # These are the core attributes that won't ever be changed after construction.
+        # This is an efficiency optimization (both memory and flops), since it will allow
+        # copy() to just copy a pointer to the _ro namespace without having to copy each
+        # individual attribute separately.
+        # The access of these attributes are all via read-only properties.
+        self._ro = Namespace()
+
         if 'output_dots' in self.config:
-            self.output_dots = treecorr.config.get(self.config,'output_dots',bool)
+            self._ro.output_dots = treecorr.config.get(self.config,'output_dots',bool)
         else:
-            self.output_dots = treecorr.config.get(self.config,'verbose',int,1) >= 2
+            self._ro.output_dots = treecorr.config.get(self.config,'verbose',int,1) >= 2
 
-        self.bin_type = self.config.get('bin_type', None)
-        self._bintype = treecorr._lib.Log
+        self._ro.bin_type = self.config.get('bin_type', None)
+        self._ro._bintype = treecorr._lib.Log
 
-        self.sep_units = self.config.get('sep_units','')
-        self._sep_units = treecorr.config.get(self.config,'sep_units',str,'radians')
-        self._log_sep_units = math.log(self._sep_units)
+        self._ro.sep_units = self.config.get('sep_units','')
+        self._ro._sep_units = treecorr.config.get(self.config,'sep_units',str,'radians')
+        self._ro._log_sep_units = math.log(self._sep_units)
         if 'nbins' not in self.config:
             if 'max_sep' not in self.config:
                 raise TypeError("Missing required parameter max_sep")
@@ -303,14 +314,14 @@ class BinnedCorr3(object):
                 raise TypeError("Missing required parameter min_sep")
             if 'bin_size' not in self.config:
                 raise TypeError("Missing required parameter bin_size")
-            self.min_sep = float(self.config['min_sep'])
-            self.max_sep = float(self.config['max_sep'])
+            self._ro.min_sep = float(self.config['min_sep'])
+            self._ro.max_sep = float(self.config['max_sep'])
             if self.min_sep >= self.max_sep:
                 raise ValueError("max_sep must be larger than min_sep")
             bin_size = float(self.config['bin_size'])
-            self.nbins = int(math.ceil(math.log(self.max_sep/self.min_sep)/bin_size))
+            self._ro.nbins = int(math.ceil(math.log(self.max_sep/self.min_sep)/bin_size))
             # Update self.bin_size given this value of nbins
-            self.bin_size = math.log(self.max_sep/self.min_sep)/self.nbins
+            self._ro.bin_size = math.log(self.max_sep/self.min_sep)/self.nbins
             # Note in this case, bin_size is saved as the nominal bin_size from the config
             # file, and self.bin_size is the one for the radial bins.  We'll use the nominal
             # bin_size as the default bin_size for u and v below.
@@ -319,26 +330,26 @@ class BinnedCorr3(object):
                 raise TypeError("Missing required parameter max_sep")
             if 'min_sep' not in self.config:
                 raise TypeError("Missing required parameter min_sep")
-            self.min_sep = float(self.config['min_sep'])
-            self.max_sep = float(self.config['max_sep'])
+            self._ro.min_sep = float(self.config['min_sep'])
+            self._ro.max_sep = float(self.config['max_sep'])
             if self.min_sep >= self.max_sep:
                 raise ValueError("max_sep must be larger than min_sep")
-            self.nbins = int(self.config['nbins'])
-            bin_size = self.bin_size = math.log(self.max_sep/self.min_sep)/self.nbins
+            self._ro.nbins = int(self.config['nbins'])
+            bin_size = self._ro.bin_size = math.log(self.max_sep/self.min_sep)/self.nbins
         elif 'max_sep' not in self.config:
             if 'min_sep' not in self.config:
                 raise TypeError("Missing required parameter min_sep")
-            self.min_sep = float(self.config['min_sep'])
-            self.nbins = int(self.config['nbins'])
-            bin_size = self.bin_size = float(self.config['bin_size'])
-            self.max_sep = math.exp(self.nbins*bin_size)*self.min_sep
+            self._ro.min_sep = float(self.config['min_sep'])
+            self._ro.nbins = int(self.config['nbins'])
+            bin_size = self._ro.bin_size = float(self.config['bin_size'])
+            self._ro.max_sep = math.exp(self.nbins*bin_size)*self.min_sep
         else:
             if 'min_sep' in self.config:
                 raise TypeError("Only 3 of min_sep, max_sep, bin_size, nbins are allowed.")
-            self.max_sep = float(self.config['max_sep'])
-            self.nbins = int(self.config['nbins'])
-            bin_size = self.bin_size = float(self.config['bin_size'])
-            self.min_sep = self.max_sep*math.exp(-self.nbins*bin_size)
+            self._ro.max_sep = float(self.config['max_sep'])
+            self._ro.nbins = int(self.config['nbins'])
+            bin_size = self._ro.bin_size = float(self.config['bin_size'])
+            self._ro.min_sep = self.max_sep*math.exp(-self.nbins*bin_size)
         if self.sep_units == '':
             self.logger.info("r: nbins = %d, min,max sep = %g..%g, bin_size = %g",
                              self.nbins, self.min_sep, self.max_sep, self.bin_size)
@@ -347,85 +358,85 @@ class BinnedCorr3(object):
                              self.nbins, self.min_sep, self.max_sep, self.sep_units,
                              self.bin_size)
         # The underscore-prefixed names are in natural units (radians for angles)
-        self._min_sep = self.min_sep * self._sep_units
-        self._max_sep = self.max_sep * self._sep_units
-        self._bin_size = self.bin_size  # There is not Linear, but if I add it, need to apply
-                                        # units to _bin_size in that case as well.
+        self._ro._min_sep = self.min_sep * self._sep_units
+        self._ro._max_sep = self.max_sep * self._sep_units
+        self._ro._bin_size = self.bin_size  # There is not Linear, but if I add it, need to apply
+                                            # units to _bin_size in that case as well.
 
-        self.min_u = float(self.config.get('min_u', 0.))
-        self.max_u = float(self.config.get('max_u', 1.))
+        self._ro.min_u = float(self.config.get('min_u', 0.))
+        self._ro.max_u = float(self.config.get('max_u', 1.))
         if self.min_u >= self.max_u:
             raise ValueError("max_u must be larger than min_u")
         if self.min_u < 0. or self.max_u > 1.:
             raise ValueError("Invalid range for u: %f - %f"%(self.min_u, self.max_u))
-        self.ubin_size = float(self.config.get('ubin_size', bin_size))
+        self._ro.ubin_size = float(self.config.get('ubin_size', bin_size))
         if 'nubins' not in self.config:
-            self.nubins = int(math.ceil((self.max_u-self.min_u-1.e-10)/self.ubin_size))
+            self._ro.nubins = int(math.ceil((self.max_u-self.min_u-1.e-10)/self.ubin_size))
         elif 'max_u' in self.config and 'min_u' in self.config and 'ubin_size' in self.config:
             raise TypeError("Only 3 of min_u, max_u, ubin_size, nubins are allowed.")
         else:
-            self.nubins = self.config['nubins']
+            self._ro.nubins = self.config['nubins']
             # Allow min or max u to be implicit from nubins and ubin_size
             if 'ubin_size' in self.config:
                 if 'min_u' not in self.config:
-                    self.min_u = max(self.max_u - self.nubins * self.ubin_size, 0.)
+                    self._ro.min_u = max(self.max_u - self.nubins * self.ubin_size, 0.)
                 if 'max_u' not in self.config:
-                    self.max_u = min(self.min_u + self.nubins * self.ubin_size, 1.)
+                    self._ro.max_u = min(self.min_u + self.nubins * self.ubin_size, 1.)
         # Adjust ubin_size given the other values
-        self.ubin_size = (self.max_u-self.min_u)/self.nubins
+        self._ro.ubin_size = (self.max_u-self.min_u)/self.nubins
         self.logger.info("u: nbins = %d, min,max = %g..%g, bin_size = %g",
                          self.nubins,self.min_u,self.max_u,self.ubin_size)
 
-        self.min_v = float(self.config.get('min_v', 0.))
-        self.max_v = float(self.config.get('max_v', 1.))
+        self._ro.min_v = float(self.config.get('min_v', 0.))
+        self._ro.max_v = float(self.config.get('max_v', 1.))
         if self.min_v >= self.max_v:
             raise ValueError("max_v must be larger than min_v")
         if self.min_v < 0 or self.max_v > 1.:
             raise ValueError("Invalid range for |v|: %f - %f"%(self.min_v, self.max_v))
-        self.vbin_size = float(self.config.get('vbin_size', bin_size))
+        self._ro.vbin_size = float(self.config.get('vbin_size', bin_size))
         if 'nvbins' not in self.config:
-            self.nvbins = int(math.ceil((self.max_v-self.min_v-1.e-10)/self.vbin_size))
+            self._ro.nvbins = int(math.ceil((self.max_v-self.min_v-1.e-10)/self.vbin_size))
         elif 'max_v' in self.config and 'min_v' in self.config and 'vbin_size' in self.config:
             raise TypeError("Only 3 of min_v, max_v, vbin_size, nvbins are allowed.")
         else:
-            self.nvbins = self.config['nvbins']
+            self._ro.nvbins = self.config['nvbins']
             # Allow min or max v to be implicit from nvbins and vbin_size
             if 'vbin_size' in self.config:
                 if 'max_v' not in self.config:
-                    self.max_v = min(self.min_v + self.nvbins * self.vbin_size, 1.)
+                    self._ro.max_v = min(self.min_v + self.nvbins * self.vbin_size, 1.)
                 else:  # min_v not in config
-                    self.min_v = max(self.max_v - self.nvbins * self.vbin_size, -1.)
+                    self._ro.min_v = max(self.max_v - self.nvbins * self.vbin_size, -1.)
         # Adjust vbin_size given the other values
-        self.vbin_size = (self.max_v-self.min_v)/self.nvbins
+        self._ro.vbin_size = (self.max_v-self.min_v)/self.nvbins
         self.logger.info("v: nbins = %d, min,max = %g..%g, bin_size = %g",
                          self.nvbins,self.min_v,self.max_v,self.vbin_size)
 
-        self.split_method = self.config.get('split_method','mean')
+        self._ro.split_method = self.config.get('split_method','mean')
         self.logger.debug("Using split_method = %s",self.split_method)
 
-        self.min_top = treecorr.config.get(self.config,'min_top',int,None)
-        self.max_top = treecorr.config.get(self.config,'max_top',int,10)
+        self._ro.min_top = treecorr.config.get(self.config,'min_top',int,None)
+        self._ro.max_top = treecorr.config.get(self.config,'max_top',int,10)
 
-        self.bin_slop = treecorr.config.get(self.config,'bin_slop',float,-1.0)
+        self._ro.bin_slop = treecorr.config.get(self.config,'bin_slop',float,-1.0)
         if self.bin_slop < 0.0:
             if self.bin_size <= 0.1:
-                self.bin_slop = 1.0
-                self.b = self.bin_size
+                self._ro.bin_slop = 1.0
+                self._ro.b = self.bin_size
             else:
-                self.bin_slop = 0.1/self.bin_size  # The stored bin_slop corresponds to lnr bins.
-                self.b = 0.1
+                self._ro.bin_slop = 0.1/self.bin_size  # The stored bin_slop corresponds to lnr bins.
+                self._ro.b = 0.1
             if self.ubin_size <= 0.1:
-                self.bu = self.ubin_size
+                self._ro.bu = self.ubin_size
             else:
-                self.bu = 0.1
+                self._ro.bu = 0.1
             if self.vbin_size <= 0.1:
-                self.bv = self.vbin_size
+                self._ro.bv = self.vbin_size
             else:
-                self.bv = 0.1
+                self._ro.bv = 0.1
         else:
-            self.b = self.bin_size * self.bin_slop
-            self.bu = self.ubin_size * self.bin_slop
-            self.bv = self.vbin_size * self.bin_slop
+            self._ro.b = self.bin_size * self.bin_slop
+            self._ro.bu = self.ubin_size * self.bin_slop
+            self._ro.bv = self.vbin_size * self.bin_slop
 
         if self.b > 0.100001:  # Add some numerical slop
             self.logger.warning(
@@ -439,42 +450,138 @@ class BinnedCorr3(object):
                               self.bin_slop,self.b,self.bu,self.bv)
 
         # This makes nbins evenly spaced entries in log(r) starting with 0 with step bin_size
-        self.logr1d = np.linspace(start=0, stop=self.nbins*self.bin_size,
-                                  num=self.nbins, endpoint=False)
+        self._ro.logr1d = np.linspace(start=0, stop=self.nbins*self.bin_size,
+                                      num=self.nbins, endpoint=False)
         # Offset by the position of the center of the first bin.
-        self.logr1d += math.log(self.min_sep) + 0.5*self.bin_size
+        self._ro.logr1d += math.log(self.min_sep) + 0.5*self.bin_size
 
-        self.u1d = np.linspace(start=0, stop=self.nubins*self.ubin_size,
-                               num=self.nubins, endpoint=False)
-        self.u1d += self.min_u + 0.5*self.ubin_size
+        self._ro.u1d = np.linspace(start=0, stop=self.nubins*self.ubin_size,
+                                   num=self.nubins, endpoint=False)
+        self._ro.u1d += self.min_u + 0.5*self.ubin_size
 
-        self.v1d = np.linspace(start=0, stop=self.nvbins*self.vbin_size,
-                               num=self.nvbins, endpoint=False)
-        self.v1d += self.min_v + 0.5*self.vbin_size
-        self.v1d = np.concatenate([-self.v1d[::-1],self.v1d])
+        self._ro.v1d = np.linspace(start=0, stop=self.nvbins*self.vbin_size,
+                                   num=self.nvbins, endpoint=False)
+        self._ro.v1d += self.min_v + 0.5*self.vbin_size
+        self._ro.v1d = np.concatenate([-self.v1d[::-1],self.v1d])
 
-        self.logr = np.tile(self.logr1d[:, np.newaxis, np.newaxis],
-                            (1, self.nubins, 2*self.nvbins))
-        self.u = np.tile(self.u1d[np.newaxis, :, np.newaxis],
-                         (self.nbins, 1, 2*self.nvbins))
-        self.v = np.tile(self.v1d[np.newaxis, np.newaxis, :],
-                         (self.nbins, self.nubins, 1))
-        self.rnom = np.exp(self.logr)
-        self.rnom1d = np.exp(self.logr1d)
-        self.brute = treecorr.config.get(self.config,'brute',bool,False)
+        self._ro.logr = np.tile(self.logr1d[:, np.newaxis, np.newaxis],
+                                (1, self.nubins, 2*self.nvbins))
+        self._ro.u = np.tile(self.u1d[np.newaxis, :, np.newaxis],
+                             (self.nbins, 1, 2*self.nvbins))
+        self._ro.v = np.tile(self.v1d[np.newaxis, np.newaxis, :],
+                             (self.nbins, self.nubins, 1))
+        self._ro.rnom = np.exp(self.logr)
+        self._ro.rnom1d = np.exp(self.logr1d)
+        self._ro.brute = treecorr.config.get(self.config,'brute',bool,False)
         if self.brute:
             self.logger.info("Doing brute force calculation.",)
         self.coords = None
         self.metric = None
-        self.min_rpar = treecorr.config.get(self.config,'min_rpar',float,-sys.float_info.max)
-        self.max_rpar = treecorr.config.get(self.config,'max_rpar',float,sys.float_info.max)
+        self._ro.min_rpar = treecorr.config.get(self.config,'min_rpar',float,-sys.float_info.max)
+        self._ro.max_rpar = treecorr.config.get(self.config,'max_rpar',float,sys.float_info.max)
         period = treecorr.config.get(self.config,'period',float,0)
-        self.xperiod = treecorr.config.get(self.config,'xperiod',float,period)
-        self.yperiod = treecorr.config.get(self.config,'yperiod',float,period)
-        self.zperiod = treecorr.config.get(self.config,'zperiod',float,period)
+        self._ro.xperiod = treecorr.config.get(self.config,'xperiod',float,period)
+        self._ro.yperiod = treecorr.config.get(self.config,'yperiod',float,period)
+        self._ro.zperiod = treecorr.config.get(self.config,'zperiod',float,period)
 
-        self.var_method = treecorr.config.get(self.config,'var_method',str,'shot')
+        self._ro.var_method = treecorr.config.get(self.config,'var_method',str,'shot')
         self.results = {}  # for jackknife, etc. store the results of each pair of patches.
+
+    # Properties for all the read-only attributes ("ro" stands for "read-only")
+    @property
+    def output_dots(self): return self._ro.output_dots
+    @property
+    def bin_type(self): return self._ro.bin_type
+    @property
+    def sep_units(self): return self._ro.sep_units
+    @property
+    def _sep_units(self): return self._ro._sep_units
+    @property
+    def _log_sep_units(self): return self._ro._log_sep_units
+    @property
+    def min_sep(self): return self._ro.min_sep
+    @property
+    def max_sep(self): return self._ro.max_sep
+    @property
+    def min_u(self): return self._ro.min_u
+    @property
+    def max_u(self): return self._ro.max_u
+    @property
+    def min_v(self): return self._ro.min_v
+    @property
+    def max_v(self): return self._ro.max_v
+    @property
+    def bin_size(self): return self._ro.bin_size
+    @property
+    def ubin_size(self): return self._ro.ubin_size
+    @property
+    def vbin_size(self): return self._ro.vbin_size
+    @property
+    def nbins(self): return self._ro.nbins
+    @property
+    def nubins(self): return self._ro.nubins
+    @property
+    def nvbins(self): return self._ro.nvbins
+    @property
+    def logr1d(self): return self._ro.logr1d
+    @property
+    def u1d(self): return self._ro.u1d
+    @property
+    def v1d(self): return self._ro.v1d
+    @property
+    def logr(self): return self._ro.logr
+    @property
+    def u(self): return self._ro.u
+    @property
+    def v(self): return self._ro.v
+    @property
+    def rnom(self): return self._ro.rnom
+    @property
+    def rnom1d(self): return self._ro.rnom1d
+    @property
+    def _bintype(self): return self._ro._bintype
+    @property
+    def _nbins(self): return self._ro._nbins
+    @property
+    def _min_sep(self): return self._ro._min_sep
+    @property
+    def _max_sep(self): return self._ro._max_sep
+    @property
+    def _bin_size(self): return self._ro._bin_size
+    @property
+    def split_method(self): return self._ro.split_method
+    @property
+    def min_top(self): return self._ro.min_top
+    @property
+    def max_top(self): return self._ro.max_top
+    @property
+    def bin_slop(self): return self._ro.bin_slop
+    @property
+    def b(self): return self._ro.b
+    @property
+    def bu(self): return self._ro.bu
+    @property
+    def bv(self): return self._ro.bv
+    @property
+    def brute(self): return self._ro.brute
+    @property
+    def min_rpar(self): return self._ro.min_rpar
+    @property
+    def max_rpar(self): return self._ro.max_rpar
+    @property
+    def xperiod(self): return self._ro.xperiod
+    @property
+    def yperiod(self): return self._ro.yperiod
+    @property
+    def zperiod(self): return self._ro.zperiod
+    @property
+    def var_method(self): return self._ro.var_method
+    @property
+    def _d1(self): return self._ro._d1
+    @property
+    def _d2(self): return self._ro._d2
+    @property
+    def _d3(self): return self._ro._d3
 
     def __getstate__(self):
         d = self.__dict__.copy()

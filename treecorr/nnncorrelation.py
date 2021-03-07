@@ -107,9 +107,9 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         """
         treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
 
-        self._d1 = 1  # NData
-        self._d2 = 1  # NData
-        self._d3 = 1  # NData
+        self._ro._d1 = 1  # NData
+        self._ro._d2 = 1  # NData
+        self._ro._d3 = 1  # NData
         shape = self.logr.shape
         self.meand1 = np.zeros(shape, dtype=float)
         self.meanlogd1 = np.zeros(shape, dtype=float)
@@ -699,12 +699,12 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         data, params = treecorr.util.gen_read(file_name, file_type=file_type, logger=self.logger)
         s = self.logr.shape
         if 'R_nom' in data.dtype.names:  # pragma: no cover
-            self.rnom = data['R_nom'].reshape(s)
+            self._ro.rnom = data['R_nom'].reshape(s)
         else:
-            self.rnom = data['r_nom'].reshape(s)
-        self.logr = np.log(self.rnom)
-        self.u = data['u_nom'].reshape(s)
-        self.v = data['v_nom'].reshape(s)
+            self._ro.rnom = data['r_nom'].reshape(s)
+        self._ro.logr = np.log(self.rnom)
+        self._ro.u = data['u_nom'].reshape(s)
+        self._ro.v = data['v_nom'].reshape(s)
         self.meand1 = data['meand1'].reshape(s)
         self.meanlogd1 = data['meanlogd1'].reshape(s)
         self.meand2 = data['meand2'].reshape(s)
@@ -718,8 +718,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.tot = params['tot']
         self.coords = params['coords'].strip()
         self.metric = params['metric'].strip()
-        self.sep_units = params['sep_units'].strip()
-        self.bin_type = params['bin_type'].strip()
+        self._ro.sep_units = params['sep_units'].strip()
+        self._ro.bin_type = params['bin_type'].strip()
 
 
 class NNNCrossCorrelation(treecorr.BinnedCorr3):
@@ -802,9 +802,9 @@ class NNNCrossCorrelation(treecorr.BinnedCorr3):
         """
         treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
 
-        self._d1 = 1  # NData
-        self._d2 = 1  # NData
-        self._d3 = 1  # NData
+        self._ro._d1 = 1  # NData
+        self._ro._d2 = 1  # NData
+        self._ro._d3 = 1  # NData
 
         self.n1n2n3 = NNNCorrelation(config, logger, **kwargs)
         self.n1n3n2 = NNNCorrelation(config, logger, **kwargs)
@@ -1131,10 +1131,10 @@ class NNNCrossCorrelation(treecorr.BinnedCorr3):
         s = self.logr.shape
         for (data, params), name in zip(groups, group_names):
             nnn = getattr(self, name)
-            nnn.rnom = data['r_nom'].reshape(s)
-            nnn.logr = np.log(nnn.rnom)
-            nnn.u = data['u_nom'].reshape(s)
-            nnn.v = data['v_nom'].reshape(s)
+            nnn._ro.rnom = data['r_nom'].reshape(s)
+            nnn._ro.logr = np.log(nnn.rnom)
+            nnn._ro.u = data['u_nom'].reshape(s)
+            nnn._ro.v = data['v_nom'].reshape(s)
             nnn.meand1 = data['meand1'].reshape(s)
             nnn.meanlogd1 = data['meanlogd1'].reshape(s)
             nnn.meand2 = data['meand2'].reshape(s)
@@ -1147,6 +1147,6 @@ class NNNCrossCorrelation(treecorr.BinnedCorr3):
             nnn.ntri = data['ntri'].reshape(s)
             nnn.coords = params['coords'].strip()
             nnn.metric = params['metric'].strip()
-            nnn.sep_units = params['sep_units'].strip()
-            nnn.bin_type = params['bin_type'].strip()
+            nnn._ro.sep_units = params['sep_units'].strip()
+            nnn._ro.bin_type = params['bin_type'].strip()
             nnn.tot = params['tot']

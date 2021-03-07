@@ -141,9 +141,9 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         """
         treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
 
-        self._d1 = 3  # GData
-        self._d2 = 3  # GData
-        self._d3 = 3  # GData
+        self._ro._d1 = 3  # GData
+        self._ro._d2 = 3  # GData
+        self._ro._d3 = 3  # GData
         shape = self.logr.shape
         self.gam0r = np.zeros(shape, dtype=float)
         self.gam1r = np.zeros(shape, dtype=float)
@@ -693,12 +693,12 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         data, params = treecorr.util.gen_read(file_name, file_type=file_type, logger=self.logger)
         s = self.logr.shape
         if 'R_nom' in data.dtype.names:  # pragma: no cover
-            self.rnom = data['R_nom'].reshape(s)
+            self._ro.rnom = data['R_nom'].reshape(s)
         else:
-            self.rnom = data['r_nom'].reshape(s)
-        self.logr = np.log(self.rnom)
-        self.u = data['u_nom'].reshape(s)
-        self.v = data['v_nom'].reshape(s)
+            self._ro.rnom = data['r_nom'].reshape(s)
+        self._ro.logr = np.log(self.rnom)
+        self._ro.u = data['u_nom'].reshape(s)
+        self._ro.v = data['v_nom'].reshape(s)
         self.meand1 = data['meand1'].reshape(s)
         self.meanlogd1 = data['meanlogd1'].reshape(s)
         self.meand2 = data['meand2'].reshape(s)
@@ -730,8 +730,8 @@ class GGGCorrelation(treecorr.BinnedCorr3):
         self.ntri = data['ntri'].reshape(s)
         self.coords = params['coords'].strip()
         self.metric = params['metric'].strip()
-        self.sep_units = params['sep_units'].strip()
-        self.bin_type = params['bin_type'].strip()
+        self._ro.sep_units = params['sep_units'].strip()
+        self._ro.bin_type = params['bin_type'].strip()
 
     @classmethod
     def _calculateT(cls, s, t, k1, k2, k3):
@@ -1149,9 +1149,9 @@ class GGGCrossCorrelation(treecorr.BinnedCorr3):
         """
         treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
 
-        self._d1 = 3  # GData
-        self._d2 = 3  # GData
-        self._d3 = 3  # GData
+        self._ro._d1 = 3  # GData
+        self._ro._d2 = 3  # GData
+        self._ro._d3 = 3  # GData
 
         self.g1g2g3 = GGGCorrelation(config, logger, **kwargs)
         self.g1g3g2 = GGGCorrelation(config, logger, **kwargs)
@@ -1479,10 +1479,10 @@ class GGGCrossCorrelation(treecorr.BinnedCorr3):
         s = self.logr.shape
         for (data, params), name in zip(groups, group_names):
             ggg = getattr(self, name)
-            ggg.rnom = data['r_nom'].reshape(s)
-            ggg.logr = np.log(ggg.rnom)
-            ggg.u = data['u_nom'].reshape(s)
-            ggg.v = data['v_nom'].reshape(s)
+            ggg._ro.rnom = data['r_nom'].reshape(s)
+            ggg._ro.logr = np.log(ggg.rnom)
+            ggg._ro.u = data['u_nom'].reshape(s)
+            ggg._ro.v = data['v_nom'].reshape(s)
             ggg.meand1 = data['meand1'].reshape(s)
             ggg.meanlogd1 = data['meanlogd1'].reshape(s)
             ggg.meand2 = data['meand2'].reshape(s)
@@ -1508,5 +1508,5 @@ class GGGCrossCorrelation(treecorr.BinnedCorr3):
             ggg.ntri = data['ntri'].reshape(s)
             ggg.coords = params['coords'].strip()
             ggg.metric = params['metric'].strip()
-            ggg.sep_units = params['sep_units'].strip()
-            ggg.bin_type = params['bin_type'].strip()
+            ggg._ro.sep_units = params['sep_units'].strip()
+            ggg._ro.bin_type = params['bin_type'].strip()

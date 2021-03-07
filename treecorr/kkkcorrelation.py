@@ -108,9 +108,9 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         """
         treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
 
-        self._d1 = 2  # KData
-        self._d2 = 2  # KData
-        self._d3 = 2  # KData
+        self._ro._d1 = 2  # KData
+        self._ro._d2 = 2  # KData
+        self._ro._d3 = 2  # KData
         shape = self.logr.shape
         self.zeta = np.zeros(shape, dtype=float)
         self.varzeta = np.zeros(shape, dtype=float)
@@ -573,12 +573,12 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         data, params = treecorr.util.gen_read(file_name, file_type=file_type, logger=self.logger)
         s = self.logr.shape
         if 'R_nom' in data.dtype.names:  # pragma: no cover
-            self.rnom = data['R_nom'].reshape(s)
+            self._ro.rnom = data['R_nom'].reshape(s)
         else:
-            self.rnom = data['r_nom'].reshape(s)
-        self.logr = np.log(self.rnom)
-        self.u = data['u_nom'].reshape(s)
-        self.v = data['v_nom'].reshape(s)
+            self._ro.rnom = data['r_nom'].reshape(s)
+        self._ro.logr = np.log(self.rnom)
+        self._ro.u = data['u_nom'].reshape(s)
+        self._ro.v = data['v_nom'].reshape(s)
         self.meand1 = data['meand1'].reshape(s)
         self.meanlogd1 = data['meanlogd1'].reshape(s)
         self.meand2 = data['meand2'].reshape(s)
@@ -593,8 +593,8 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         self.ntri = data['ntri'].reshape(s)
         self.coords = params['coords'].strip()
         self.metric = params['metric'].strip()
-        self.sep_units = params['sep_units'].strip()
-        self.bin_type = params['bin_type'].strip()
+        self._ro.sep_units = params['sep_units'].strip()
+        self._ro.bin_type = params['bin_type'].strip()
 
 
 class KKKCrossCorrelation(treecorr.BinnedCorr3):
@@ -677,9 +677,9 @@ class KKKCrossCorrelation(treecorr.BinnedCorr3):
         """
         treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
 
-        self._d1 = 2  # KData
-        self._d2 = 2  # KData
-        self._d3 = 2  # KData
+        self._ro._d1 = 2  # KData
+        self._ro._d2 = 2  # KData
+        self._ro._d3 = 2  # KData
 
         self.k1k2k3 = KKKCorrelation(config, logger, **kwargs)
         self.k1k3k2 = KKKCorrelation(config, logger, **kwargs)
@@ -1004,10 +1004,10 @@ class KKKCrossCorrelation(treecorr.BinnedCorr3):
         s = self.logr.shape
         for (data, params), name in zip(groups, group_names):
             kkk = getattr(self, name)
-            kkk.rnom = data['r_nom'].reshape(s)
-            kkk.logr = np.log(kkk.rnom)
-            kkk.u = data['u_nom'].reshape(s)
-            kkk.v = data['v_nom'].reshape(s)
+            kkk._ro.rnom = data['r_nom'].reshape(s)
+            kkk._ro.logr = np.log(kkk.rnom)
+            kkk._ro.u = data['u_nom'].reshape(s)
+            kkk._ro.v = data['v_nom'].reshape(s)
             kkk.meand1 = data['meand1'].reshape(s)
             kkk.meanlogd1 = data['meanlogd1'].reshape(s)
             kkk.meand2 = data['meand2'].reshape(s)
@@ -1022,5 +1022,5 @@ class KKKCrossCorrelation(treecorr.BinnedCorr3):
             kkk.ntri = data['ntri'].reshape(s)
             kkk.coords = params['coords'].strip()
             kkk.metric = params['metric'].strip()
-            kkk.sep_units = params['sep_units'].strip()
-            kkk.bin_type = params['bin_type'].strip()
+            kkk._ro.sep_units = params['sep_units'].strip()
+            kkk._ro.bin_type = params['bin_type'].strip()

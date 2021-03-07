@@ -293,13 +293,6 @@ class GGCorrelation(treecorr.BinnedCorr2):
         treecorr._lib.ProcessPair(self.corr, f1.data, f2.data, self.output_dots,
                                   f1._d, f2._d, self._coords, self._bintype, self._metric)
 
-    def getStatLen(self):
-        """The length of the array that will be returned by getStat.
-
-        In this case, this is 2*self.nbins.
-        """
-        return 2*self._nbins
-
     def getStat(self):
         """The standard statistic for the current correlation object as a 1-d array.
 

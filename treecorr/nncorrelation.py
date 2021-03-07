@@ -414,17 +414,14 @@ class NNCorrelation(treecorr.BinnedCorr2):
         mean_np = np.mean(self.npairs)
         return 1 if mean_np == 0 else np.mean(self.weight)/mean_np
 
-    def getStatLen(self):
-        """The length of the array that will be returned by getStat.
+    def getStat(self):
+        """The standard statistic for the current correlation object as a 1-d array.
 
-        In this case, it is self.nbins, as usual, but this version also checks to ensure that
-        calculateXi() has been run, which is required for the covariance calculation to work
-        correctly.  If not, a RuntimeError will be raised.
+        This raises a RuntimeError if calculateXi has not been run yet.
         """
         if self._rr_weight is None:
             raise RuntimeError("You need to call calculateXi before calling estimate_cov.")
-        else:
-            return self._nbins
+        return self.xi.ravel()
 
     def getWeight(self):
         """The weight array for the current correlation object as a 1-d array.

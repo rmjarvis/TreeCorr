@@ -509,7 +509,6 @@ def generate_shear_field(nside):
 
     return x, y, np.real(gamma), np.imag(gamma), kappa
 
-
 @timer
 def test_gg_jk():
     # Test the variance estimate for GG correlation with jackknife (and other) error estimate.
@@ -677,6 +676,19 @@ def test_gg_jk():
     np.testing.assert_allclose(cov23[:2*n,2*n:], gg3.cov)
     np.testing.assert_allclose(cov23[2*n:,:2*n], gg3.cov)
 
+    # Check advertised example to reorder the data vectors with func argument
+    func = lambda corrs: np.concatenate([c.xip for c in corrs] + [c.xim for c in corrs])
+    cov23_alt = treecorr.estimate_multi_cov([gg2,gg3], 'jackknife', func=func)
+    np.testing.assert_allclose(cov23_alt[:n,:n], gg3.cov[:n,:n])
+    np.testing.assert_allclose(cov23_alt[n:2*n,n:2*n], gg3.cov[:n,:n])
+    np.testing.assert_allclose(cov23_alt[2*n:3*n,2*n:3*n], gg3.cov[n:,n:])
+    np.testing.assert_allclose(cov23_alt[3*n:4*n,3*n:4*n], gg3.cov[n:,n:])
+
+    # Check a func that changes the stat length
+    func = lambda corrs: corrs[0].xip + corrs[1].xip
+    cov23_alt = treecorr.estimate_multi_cov([gg2,gg3], 'jackknife', func=func)
+    np.testing.assert_allclose(cov23_alt, 4*gg3.cov[:n,:n])
+
     # Check sample covariance estimate
     treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='sample')
     t0 = time.time()
@@ -770,7 +782,6 @@ def test_gg_jk():
         treecorr.estimate_multi_cov([gg3, gg2],'bootstrap')
     with assert_raises(RuntimeError):
         treecorr.estimate_multi_cov([gg2, gg3],'bootstrap')
-
 
 @timer
 def test_ng_jk():
@@ -1355,7 +1366,6 @@ def test_nn_jk():
     with assert_raises(RuntimeError):
         nn6.calculateXi(rr4, dr=nr6, rd=rn6)
 
-
 @timer
 def test_kappa_jk():
     # Test NK, KK, and KG with jackknife.
@@ -1556,10 +1566,19 @@ def test_kappa_jk():
     assert np.sum(np.abs(cor[:n1,n2:])) > 1
     assert np.sum(np.abs(cor[n1:n2,n2:])) > 1
 
+    # Reorder the data vector
+    func = lambda corrs: np.concatenate([corrs[2].xi[:4], corrs[0].xi, corrs[1].xi[2:]])
+    cov_alt = treecorr.estimate_multi_cov([nk,kk,kg], 'jackknife', func=func)
+    np.testing.assert_allclose(cov_alt[:4,:4], cov[n2:n2+4,n2:n2+4])
+    np.testing.assert_allclose(cov_alt[4:4+n1,4:4+n1], cov[:n1,:n1])
+    np.testing.assert_allclose(cov_alt[4+n1:,4+n1:], cov[n1+2:n2,n1+2:n2])
+
     rk2 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
     rk2.process(cat2, cat2)
     with assert_raises(RuntimeError):
         nk2.calculateXi(rk=rk2)
+    with assert_raises(ValueError):
+        treecorr.estimate_multi_cov([nk,kk,kg], 'shot', func=func)
 
 @timer
 def test_save_patches():
@@ -1857,7 +1876,6 @@ def test_clusters():
     np.testing.assert_allclose(ng3b.weight, ng3.weight, rtol=0.02*tol_factor)
     np.testing.assert_allclose(ng3b.xi, ng3.xi, rtol=0.02*tol_factor)
     np.testing.assert_allclose(ng3b.varxi, var_xi, rtol=0.3*tol_factor)
-
 
 @timer
 def test_brute_jk():

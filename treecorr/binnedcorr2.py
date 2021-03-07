@@ -1026,12 +1026,8 @@ def _make_cov_design_matrix(corrs, plist, func):
     # the original.
     corrs = [c.copy() for c in corrs]
 
-    # Figure out the full length of the data vector.
+    # Figure out the shape of the design matrix.
     vsize = len(func(corrs))
-
-    # Swap order of plist.  Right now it's a list for each corr of a list for each row.
-    # We want a list by row with a list for each corr.
-    plist = list(zip(*plist))
     nrows = len(plist)
 
     # Make the empty return arrays.
@@ -1188,6 +1184,9 @@ def _cov_jackknife(corrs, func):
             #    Select all pairs where neither is i.
             vpairs = [ [(j,k) for j,k in pairs if j!=i and k!=i] for i in range(c.npatch1) ]
         plist.append(vpairs)
+    # Swap order of plist.  Right now it's a list for each corr of a list for each row.
+    # We want a list by row with a list for each corr.
+    plist = list(zip(*plist))
 
     v,w = _make_cov_design_matrix(corrs, plist, func)
     vmean = np.mean(v, axis=0)
@@ -1229,6 +1228,9 @@ def _cov_sample(corrs, func):
         if any([len(v) == 0 for v in vpairs]):
             raise RuntimeError("Cannot compute sample variance when some patches have no data.")
         plist.append(vpairs)
+    # Swap order of plist.  Right now it's a list for each corr of a list for each row.
+    # We want a list by row with a list for each corr.
+    plist = list(zip(*plist))
 
     v,w = _make_cov_design_matrix(corrs, plist, func)
     w /= np.sum(w)  # Now w is the fractional weight for each patch
@@ -1257,18 +1259,23 @@ def _cov_marked(corrs, func):
 
     npatch, all_pairs = _get_patch_nums(corrs, 'marked_bootstrap')
 
-    nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
-    plist = []
-    for c, pairs in zip(corrs, all_pairs):
-        vpairs = []
-        if c.npatch1 != 1 and c.npatch2 != 1:
-            # Precompute this for use below.  (Makes the list comprehension much faster.)
-            ok = np.zeros((c.npatch1, c.npatch1), dtype=bool)
+    # Precompute an ok array to make the list comprehension much faster.
+    all_ok = [np.zeros((c.npatch1, c.npatch1), dtype=bool)
+              if c.npatch1 != 1 and c.npatch2 != 1 else None
+              for c in corrs]
+    for c,ok,pairs in zip(corrs, all_ok, all_pairs):
+        if ok is not None:
             for (i,j) in pairs:
                 ok[i,j] = True
-        for k in range(nboot):
-            # Select a random set of indices to use.  (Will have repeats.)
-            indx = np.random.randint(npatch, size=npatch)
+
+    nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
+
+    plist = []
+    for k in range(nboot):
+        # Select a random set of indices to use.  (Will have repeats.)
+        indx = np.random.randint(npatch, size=npatch)
+        vpairs = []
+        for c, ok, pairs in zip(corrs, all_ok, all_pairs):
             if c.npatch2 == 1:
                 vpairs1 = [ (i,0) for i in indx ]
             elif c.npatch1 == 1:
@@ -1297,18 +1304,23 @@ def _cov_bootstrap(corrs, func):
 
     npatch, all_pairs = _get_patch_nums(corrs, 'bootstrap')
 
-    nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
-    plist = []
-    for c, pairs in zip(corrs, all_pairs):
-        vpairs = []
-        if c.npatch1 != 1 and c.npatch2 != 1:
-            # Precompute this for use below.  (Makes the list comprehension much faster.)
-            ok = np.zeros((c.npatch1, c.npatch1), dtype=bool)
+    # Precompute an ok array to make the list comprehension much faster.
+    all_ok = [np.zeros((c.npatch1, c.npatch1), dtype=bool)
+              if c.npatch1 != 1 and c.npatch2 != 1 else None
+              for c in corrs]
+    for c,ok,pairs in zip(corrs, all_ok, all_pairs):
+        if ok is not None:
             for (i,j) in pairs:
                 if i != j:
                     ok[i,j] = True
-        for k in range(nboot):
-            indx = np.random.randint(npatch, size=npatch)
+
+    nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
+
+    plist = []
+    for k in range(nboot):
+        indx = np.random.randint(npatch, size=npatch)
+        vpairs = []
+        for c, ok, pairs in zip(corrs, all_ok, all_pairs):
             if c.npatch2 == 1:
                 vpairs1 = [ (i,0) for i in indx ]
             elif c.npatch1 == 1:

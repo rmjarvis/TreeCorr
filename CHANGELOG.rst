@@ -15,6 +15,7 @@ New features
   correct version that had been implemented.  Not all combinations are implemented.
   So far just GGG, KKK, and NNN. (#115)
 - Added ability to read from parquet catalogs.  (#117)
+- Added optional func parameter to estimate_multi_cov. (#118)
 
 Bug fixes
 ---------

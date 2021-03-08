@@ -367,6 +367,8 @@ def test_direct():
     np.testing.assert_allclose(ggg4.gam3r, ggg.gam3r)
     np.testing.assert_allclose(ggg4.gam3i, ggg.gam3i)
 
+    assert ggg.var_method == 'shot'  # Only option currently.
+
     with assert_raises(TypeError):
         ggg2 += config
     ggg5 = treecorr.GGGCorrelation(min_sep=min_sep/2, bin_size=bin_size, nbins=nrbins)

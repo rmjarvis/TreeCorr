@@ -1014,13 +1014,15 @@ class BinnedCorr2(object):
         self._finalize()
 
 def _make_cov_design_matrix(corrs, plist, func):
-    # vpairs is a list of pairs to use for each row of the design matrix.
-    # Each row of vpairs is a list of (i,j) indices to use in that row.
-    # We then compute the resulting data vector based on those pairs and save it as v[row]
-    # We also make a parallel matrix of the weights in case the calling routing needs it.
-    # So far, only sample uses the returned w, but it's very little overhead to compute it,
-    # since _calculate_xi_from_pairs needs to calculate w anyway, so it's only a small
-    # memory overhead to keep those around and return them.
+    # plist has the pairs to use for each row in the design matrix for each correlation fn.
+    # It is a list by row, each element is a list by corr fn of tuples (i,j), being the indices
+    # to use from the results dict.
+    # We aggregate and finalize each correlation function based on those pairs, and then call
+    # the function func on that list of correlation objects.  This is the data vector for
+    # each row in the design matrix.
+    # We also make a parallel array of the total weight in each row in case the calling routing
+    # needs it. So far, only sample uses the returned w, but it's very little overhead to compute
+    # it, and only a small memory overhead to build that array and return it.
 
     # Make a copy of the correlation objects, so we can overwrite things without breaking
     # the original.
@@ -1083,16 +1085,17 @@ def estimate_multi_cov(corrs, method, func=None):
     for each corr in the list ``corrs``.  However, if you want to so something more complicated,
     you may provide an arbitrary function, ``func``, which should act on the list of correlations.
     For instance, if you have several `GGCorrelation` objects and would like to order the
-    covariance such that all xi+ results come first, and then all xi- results, you could do
+    covariance such that all xi+ results come first, and then all xi- results, you could use
 
         >>> func = lambda corrs: np.concatenate([c.xip for c in corrs] + [c.xim for c in corrs])
 
     Or if you want to compute the covariance matrix of some derived quantity like the ratio
-    of two correlations, you could
+    of two correlations, you could use
 
         >>> func = lambda corrs: corrs[0].xi / corrs[1].xi
 
-    The result of this func should be a single numpy array.
+    The return value from this func should be a single numpy array. (This is not directly
+    checked, but you'll probably get some kind of exception if it doesn't behave as expected.)
 
     .. note::
 

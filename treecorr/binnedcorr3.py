@@ -541,8 +541,6 @@ class BinnedCorr3(object):
     @property
     def _bintype(self): return self._ro._bintype
     @property
-    def _nbins(self): return self._ro._nbins
-    @property
     def _min_sep(self): return self._ro._min_sep
     @property
     def _max_sep(self): return self._ro._max_sep

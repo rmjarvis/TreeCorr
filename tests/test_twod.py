@@ -247,6 +247,19 @@ def test_twod_singlebin():
     t1 = time.time()
     print('t for bs=0 = ',t1-t0)
 
+    # Check top/bottom edges
+    print('left = ',gg0.left_edges)
+    print('right = ',gg0.right_edges)
+    print('bottom = ',gg0.bottom_edges)
+    print('top = ',gg0.top_edges)
+    print('left = ',gg0.left_edges)
+    np.testing.assert_allclose(gg0.left_edges[:,0], -max_sep)
+    np.testing.assert_allclose(gg0.right_edges[:,4], max_sep)
+    np.testing.assert_allclose(gg0.bottom_edges[0,:], -max_sep)
+    np.testing.assert_allclose(gg0.top_edges[4,:], max_sep)
+    np.testing.assert_allclose(gg0.left_edges[:,1:], gg0.right_edges[:,:-1])
+    np.testing.assert_allclose(gg0.bottom_edges[1:,:], gg0.top_edges[:-1,:])
+
     # Now do bin_slop = 0
     gg1 = treecorr.GGCorrelation(max_sep=max_sep, nbins=nbins, bin_type='TwoD', bin_slop=0)
     t0 = time.time()

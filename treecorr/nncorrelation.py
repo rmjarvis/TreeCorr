@@ -597,7 +597,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         dd = self.weight
         if len(self._rr.results) > 0:
             # This is the usual case.  R has patches just like D.
-            # Calculate rr and rrf in teh normal way based on the same pairs as used for DD.
+            # Calculate rr and rrf in the normal way based on the same pairs as used for DD.
             pairs1 = [ij for ij in pairs if ij in set(self._rr.results.keys())]
             self._rr._sum([self._rr.results[ij] for ij in pairs1])
             rr = self._rr.weight

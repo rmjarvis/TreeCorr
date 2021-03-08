@@ -676,6 +676,17 @@ def test_gg_jk():
     np.testing.assert_allclose(cov23[:2*n,2*n:], gg3.cov)
     np.testing.assert_allclose(cov23[2*n:,:2*n], gg3.cov)
 
+    # Repeat with bootstraps, who used to have a bug related to this
+    for method in ['sample', 'marked_bootstrap', 'bootstrap']:
+        t0 = time.time()
+        cov23 = treecorr.estimate_multi_cov([gg2,gg3], method)
+        t1 = time.time()
+        print('Time for %s cross-covariance = '%method,t1-t0)
+        np.testing.assert_allclose(cov23[:2*n,:2*n], gg3.cov, rtol=1.e-2, atol=1.e-5)
+        np.testing.assert_allclose(cov23[2*n:,2*n:], gg3.cov, rtol=1.e-2, atol=1.e-5)
+        np.testing.assert_allclose(cov23[:2*n,2*n:], gg3.cov, rtol=1.e-2, atol=1.e-5)
+        np.testing.assert_allclose(cov23[2*n:,:2*n], gg3.cov, rtol=1.e-2, atol=1.e-5)
+
     # Check advertised example to reorder the data vectors with func argument
     func = lambda corrs: np.concatenate([c.xip for c in corrs] + [c.xim for c in corrs])
     cov23_alt = treecorr.estimate_multi_cov([gg2,gg3], 'jackknife', func=func)

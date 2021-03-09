@@ -1925,6 +1925,93 @@ class Catalog(object):
                     p.unload()
         self.clear_cache()
 
+    def get_patch_file_names(self, save_patch_dir):
+        """Get the names of the files to use for reading/writing patches in save_patch_dir
+        """
+        if self.file_name is not None:
+            base = os.path.splitext(os.path.basename(self.file_name))[0]
+            names = [base + '_%03d.fits'%i for i in range(self.npatch)]
+        else:
+            names = ['patch%03d.fits'%i for i in range(self.npatch)]
+        return [os.path.join(save_patch_dir, n) for n in names]
+
+    def write_patches(self, save_patch_dir=None):
+        """Write the patches to disk as separate files.
+
+        This can be used in conjunction with ``low_mem=True`` option of `get_patches` (and
+        implicitly by the various `process <GGCorrelation.process>` methods) to only keep
+        at most two patches in memory at a time.
+
+        Parameters:
+            save_patch_dir (str):   The directory to write the patches to. [default: None, in which
+                                    case self.save_patch_dir will be used.  If that is None, a
+                                    ValueError will be raised.]
+        """
+        if save_patch_dir is None:
+            save_patch_dir = self.save_patch_dir
+        if save_patch_dir is None:
+            raise ValueError("save_patch_dir is required here, since not given in constructor.")
+
+        file_names = self.get_patch_file_names(save_patch_dir)
+        for i, p, file_name in zip(range(self.npatch), self.patches, file_names):
+            self.logger.info('Writing patch %d to %s',i,file_name)
+            cols = p.write(file_name)
+
+    def read_patches(self, save_patch_dir=None):
+        """Read the patches from files on disk.
+
+        This function assumes that the patches were written using `write_patches`.
+        In particular, the file names are not arbitrary, but must match what TreeCorr uses
+        in that method.
+
+        Parameters:
+            save_patch_dir (str):   The directory to read from. [default: None, in which
+                                    case self.save_patch_dir will be used.  If that is None, a
+                                    ValueError will be raised.]
+        """
+        if save_patch_dir is None:
+            save_patch_dir = self.save_patch_dir
+        if save_patch_dir is None:
+            raise ValueError("save_patch_dir is required here, since not given in constructor.")
+
+        # Need to be careful here to not trigger a load by accident.
+        # This would be easier if we just checked e.g. if self.ra is not None, etc.
+        # But that would trigger an unnecessary load if we aren't loaded yet.
+        # So do all this with the underscore attributes.
+        kwargs = {}
+        if self._ra is not None or self.config.get('ra_col','0') != '0':
+            kwargs['ra_col'] = 'ra'
+            kwargs['dec_col'] = 'dec'
+            kwargs['ra_units'] = 'rad'
+            kwargs['dec_units'] = 'rad'
+            if self._r is not None or self.config.get('r_col','0') != '0':
+                kwargs['r_col'] = 'r'
+        else:
+            kwargs['x_col'] = 'x'
+            kwargs['y_col'] = 'y'
+            if self._z is not None or self.config.get('z_col','0') != '0':
+                kwargs['z_col'] = 'z'
+        if (self._w is not None and self._nontrivial_w)  or self.config.get('w_col','0') != '0':
+            kwargs['w_col'] = 'w'
+        if self._wpos is not None or self.config.get('wpos_col','0') != '0':
+            kwargs['wpos_col'] = 'wpos'
+        if self._g1 is not None or self.config.get('g1_col','0') != '0':
+            kwargs['g1_col'] = 'g1'
+        if self._g2 is not None or self.config.get('g2_col','0') != '0':
+            kwargs['g2_col'] = 'g2'
+        if self._k is not None or self.config.get('k_col','0') != '0':
+            kwargs['k_col'] = 'k'
+
+        file_names = self.get_patch_file_names(save_patch_dir)
+        self._patches = []
+        # Check that the files exist, although we won't actually load them yet.
+        for i, file_name in zip(range(self.npatch), file_names):
+            if not os.path.isfile(file_name):
+                raise OSError("Patch file %s not found"%file_name)
+        self._patches = [Catalog(file_name=name, patch=i, **kwargs)
+                         for i, name in enumerate(file_names)]
+        self.logger.info('Patches created from files %s .. %s',file_names[0],file_names[-1])
+
     def get_patches(self, low_mem=False):
         """Return a list of Catalog instances each representing a single patch from this Catalog
 
@@ -1943,25 +2030,32 @@ class Catalog(object):
         # Early exit
         if self._patches is not None:
             return self._patches
+        if self.npatch == 1 or self._single_patch is not None:
+            self._patches = [self]
+            return self._patches
+
+        # See if we have patches already written to disk.  If so, use them.
+        if self.save_patch_dir is not None:
+            try:
+                self.read_patches()
+            except OSError:
+                # No problem.  We'll make them and write them out below.
+                pass
+            else:
+                return self._patches
 
         if low_mem and self.file_name is not None:
             # This is a litle tricky, since we don't want to trigger a load if the catalog
             # isn't loaded yet.  So try to get the patches from centers or single_patch first.
             if self._centers is not None:
                 patch_set = range(len(self._centers))
-            elif self._single_patch is not None:
-                patch_set = [self._single_patch]
-            elif self._single_patch is not None or self.patch is None:
-                # This triggers a load of the current catalog, but no choice here.
-                patch_set = [None]
             else:
+                # This triggers a load of the current catalog, but no choice here.
                 patch_set = sorted(set(self.patch))
             centers = self._centers if self._patch is None else None
             self._patches = [Catalog(config=self.config, file_name=self.file_name,
                                      patch=i, npatch=self.npatch, patch_centers=centers)
                              for i in patch_set]
-        elif self._single_patch is not None or self.npatch == 1 or self.patch is None:
-            self._patches = [self]
         else:
             patch_set = sorted(set(self.patch))
             if len(patch_set) != self.npatch:
@@ -1995,28 +2089,11 @@ class Catalog(object):
 
         # Write the patches to files if requested.
         if self.save_patch_dir is not None:
-            file_names = []
-            for i, p in enumerate(self._patches):
-                if self.file_name is not None:
-                    file_name = os.path.splitext(os.path.basename(self.file_name))[0]
-                    file_name += '_%00d.fits'%i
-                else:
-                    file_name = 'patch%00d.fits'%i
-                file_name = os.path.join(self.save_patch_dir, file_name)
-                self.logger.info('Writing patch %d to %s',i,file_name)
-                col_names = p.write(file_name)
-                file_names.append(file_name)
-                if low_mem:
-                    p.unload()
+            self.write_patches()
             if low_mem:
                 # If low_mem, replace _patches with a version the reads from these files.
                 # This will typically be a lot faster for when the load does happen.
-                kwargs = {c + '_col' : c for c in col_names if c != 'patch'}
-                if 'ra' in col_names:
-                    kwargs['ra_units'] = 'rad'
-                    kwargs['dec_units'] = 'rad'
-                self._patches = [Catalog(file_name=file_names[i], patch=i, **kwargs)
-                                 for i in range(len(file_names))]
+                self.read_patches()
 
         return self._patches
 

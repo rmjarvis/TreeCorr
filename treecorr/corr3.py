@@ -136,7 +136,7 @@ def corr3(config, logger=None):
         raise TypeError("rand_file_name3 is invalid without file_name3")
     if cat2 is None and cat3 is not None:
         raise ValueError("Cannot provide cat3, but not cat2.")
-    logger.info("Done reading input catalogs")
+    logger.info("Done creating input catalogs")
 
     # Do GGG correlation function if necessary
     if 'ggg_file_name' in config or 'm3_file_name' in config:

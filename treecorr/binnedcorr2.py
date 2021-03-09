@@ -710,9 +710,9 @@ class BinnedCorr2(object):
         else:
             # When patch processing, keep track of the pair-wise results.
             if self.npatch1 == 1:
-                self.npatch1 = len(cat1)
+                self.npatch1 = cat1[0].npatch if cat1[0].npatch != 1 else len(cat1)
             if self.npatch2 == 1:
-                self.npatch2 = len(cat2)
+                self.npatch2 = cat2[0].npatch if cat2[0].npatch != 1 else len(cat2)
             if self.npatch1 != self.npatch2 and self.npatch1 != 1 and self.npatch2 != 1:
                 raise RuntimeError("Cross correlation requires both catalogs use the same patches.")
 

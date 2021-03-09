@@ -19,7 +19,14 @@ import time
 import fitsio
 import treecorr
 
-from test_helper import assert_raises, do_pickle, timer, get_from_wiki
+from test_helper import assert_raises, do_pickle, timer, get_from_wiki, CaptureLog
+
+def clear_save(template, npatch):
+    # Make sure patch files in save_patch_dir ('output') are not on disk yet.
+    for i in range(npatch):
+        patch_file_name = os.path.join('output',template%i)
+        if os.path.isfile(patch_file_name):
+            os.remove(patch_file_name)
 
 @timer
 def test_cat_patches():
@@ -1636,11 +1643,12 @@ def test_save_patches():
     cat0.write(file_name)
 
     # When catalog has explicit ra, dec, etc., then file names are patch000.fits, ...
+    clear_save('patch%03d.fits', npatch)
     cat1 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch,
                             save_patch_dir='output')
     assert len(cat1.patches) == npatch
     for i in range(npatch):
-        patch_file_name = os.path.join('output','patch%00d.fits'%i)
+        patch_file_name = os.path.join('output','patch%03d.fits'%i)
         assert os.path.exists(patch_file_name)
         cat_i = treecorr.Catalog(patch_file_name, ra_col='ra', dec_col='dec',
                                  ra_units='rad', dec_units='rad', patch=i)
@@ -1650,6 +1658,7 @@ def test_save_patches():
         assert cat_i.loaded
 
     # When catalog is a file, then base name off of given file_name.
+    clear_save('test_save_patches_%03d.fits', npatch)
     cat2 = treecorr.Catalog(file_name, ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
                             npatch=npatch, save_patch_dir='output')
     assert not cat2.loaded
@@ -1657,7 +1666,7 @@ def test_save_patches():
     assert len(cat2.patches) == npatch
     assert cat2.loaded  # Making patches triggers load.  Also when write happens.
     for i in range(npatch):
-        patch_file_name = os.path.join('output','test_save_patches_%00d.fits'%i)
+        patch_file_name = os.path.join('output','test_save_patches_%03d.fits'%i)
         assert os.path.exists(patch_file_name)
         cat_i = treecorr.Catalog(patch_file_name, ra_col='ra', dec_col='dec',
                                  ra_units='rad', dec_units='rad', patch=i)
@@ -1676,6 +1685,7 @@ def test_save_patches():
     file_name2 = os.path.join('output','test_save_patches2.dat')
     cat3.write(file_name2)
 
+    clear_save('test_save_patches2_%03d.fits', npatch)
     cat4 = treecorr.Catalog(file_name2,
                             x_col=1, y_col=2, z_col=3, w_col=4,
                             g1_col=5, g2_col=6, k_col=7, patch_col=8,
@@ -1685,7 +1695,7 @@ def test_save_patches():
     assert len(cat4.patches) == npatch
     assert cat4.loaded  # Making patches triggers load.
     for i in range(npatch):
-        patch_file_name = os.path.join('output','test_save_patches2_%00d.fits'%i)
+        patch_file_name = os.path.join('output','test_save_patches2_%03d.fits'%i)
         assert os.path.exists(patch_file_name)
         cat_i = treecorr.Catalog(patch_file_name, patch=i,
                                  x_col='x', y_col='y', z_col='z', w_col='w',
@@ -1704,9 +1714,11 @@ def test_save_patches():
     assert cat4.get_patches(low_mem=False) == p4
 
     # If patches are made with patch_centers, then making patches doesn't trigger full load.
+    # Note: for coverage reasons, only do x,y this time, and use wpos.
+    clear_save('test_save_patches2_%03d.fits', npatch)
     cat5 = treecorr.Catalog(file_name2,
-                            x_col=1, y_col=2, z_col=3, w_col=4,
-                            g1_col=5, g2_col=6, k_col=7, patch_centers=cat4.patch_centers,
+                            x_col=1, y_col=2, wpos_col=4, k_col=7,
+                            patch_centers=cat4.patch_centers[:,:2],
                             save_patch_dir='output')
     assert not cat5.loaded
     cat5.get_patches(low_mem=True)
@@ -1714,17 +1726,38 @@ def test_save_patches():
     assert not cat5.loaded
     for i in range(npatch):
         patch_file_name = cat5.patches[i].file_name
-        assert patch_file_name == os.path.join('output','test_save_patches2_%00d.fits'%i)
+        assert patch_file_name == os.path.join('output','test_save_patches2_%03d.fits'%i)
         assert os.path.exists(patch_file_name)
         cat_i = treecorr.Catalog(patch_file_name, patch=i,
-                                 x_col='x', y_col='y', z_col='z', w_col='w',
-                                 g1_col='g1', g2_col='g2', k_col='k')
+                                 x_col='x', y_col='y', wpos_col='wpos', k_col='k')
         assert not cat_i.loaded
         assert not cat5.patches[i].loaded
         assert cat_i == cat5.patches[i]
         assert cat_i.loaded
         assert cat5.patches[i].loaded
     assert not cat5.loaded
+
+    # Finally, test read/write commands explicitly.
+    with CaptureLog() as cl:
+        cat5.logger = cl.logger
+        cat5.write_patches('output')
+    print(cl.output)
+    assert "Writing patch 3 to output/test_save_patches2_003.fits" in cl.output
+    cat6 = treecorr.Catalog(file_name2,
+                            x_col=1, y_col=2, wpos_col=4, k_col=7,
+                            patch_centers=cat4.patch_centers[:,:2])
+    with CaptureLog() as cl:
+        cat6.logger = cl.logger
+        cat6.read_patches('output')
+    print(cl.output)
+    assert "Patches created from files output/test_save_patches2_000.fits .. " in cl.output
+    assert cat5.patches == cat6.patches
+
+    # cat6 doesn't have save_patches set, so argument here is required.
+    with assert_raises(ValueError):
+        cat6.write_patches()
+    with assert_raises(ValueError):
+        cat6.read_patches()
 
 @timer
 def test_clusters():
@@ -2256,6 +2289,7 @@ def test_lowmem():
     dd.clear()
 
     # Remake with save_patch_dir.
+    clear_save('test_lowmem_%03d.fits', npatch)
     save_cat = treecorr.Catalog(file_name,
                                 ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
                                 patch_centers=patch_centers, save_patch_dir='output')
@@ -2299,6 +2333,7 @@ def test_lowmem():
     if hp: hp.setrelheap()
 
     # First GG with normal ra,dec from a file
+    clear_save('test_lowmem_gk_%03d.fits', npatch)
     gk_cat1 = treecorr.Catalog(file_name,
                                ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
                                g1_col='g1', g2_col='g2', k_col='k',
@@ -2349,6 +2384,7 @@ def test_lowmem():
     np.testing.assert_allclose(ng1.weight, ng2.weight)
 
     # KK with r_col now to test that that works properly.
+    clear_save('test_lowmem_gk_%03d.fits', npatch)
     gk_cat1 = treecorr.Catalog(file_name,
                                ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
                                r_col='r', g1_col='g1', g2_col='g2', k_col='k',
@@ -2378,6 +2414,7 @@ def test_lowmem():
     np.testing.assert_allclose(kk1.weight, kk2.weight)
 
     # NK with r_col still, but not from a file.
+    clear_save('patch%03d.fits', npatch)
     gk_cat1 = treecorr.Catalog(ra=ra[:ngal//100], dec=dec[:ngal//100], r=r[:ngal//100],
                                g1=g1[:ngal//100], g2=g2[:ngal//100], k=k[:ngal//100],
                                ra_units='rad', dec_units='rad',
@@ -2407,6 +2444,7 @@ def test_lowmem():
     np.testing.assert_allclose(nk1.weight, nk2.weight)
 
     # KG without r_col, and not from a file.
+    clear_save('patch%03d.fits', npatch)
     gk_cat1 = treecorr.Catalog(ra=ra[:ngal//100], dec=dec[:ngal//100],
                                g1=g1[:ngal//100], g2=g2[:ngal//100], k=k[:ngal//100],
                                ra_units='rad', dec_units='rad',

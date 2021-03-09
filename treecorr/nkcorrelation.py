@@ -372,10 +372,8 @@ class NKCorrelation(treecorr.BinnedCorr2):
         self._rk = None
 
         if not isinstance(cat1,list):
-            self.npatch1 = cat1.npatch
             cat1 = cat1.get_patches(low_mem=low_mem)
         if not isinstance(cat2,list):
-            self.npatch2 = cat2.npatch
             cat2 = cat2.get_patches(low_mem=low_mem)
 
         vark = treecorr.calculateVarK(cat2)

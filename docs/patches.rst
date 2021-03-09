@@ -312,6 +312,23 @@ compared to your CPUs, and how many cores you are using.)
     directory, then it will write these data to disk, which will make subsequent
     reads of that patch much faster.
 
+.. warning::
+
+    One caveat with respect to the ``save_patch_dir`` parameter is that if there
+    are already files present in the directory with the right names, then it
+    will go ahead and use them, rather than make new patch files.  This is usually
+    an efficiency gain, since repeated runs with the same data will already have
+    the right patch files present.  However, if you use the same file name and
+    save directory for a different data set, or if you make new patches for the
+    same input file, then TreeCorr won't notice.
+
+    To get TreeCorr to make new patch files, you can either manually delete
+    everything in the save directory before starting, or (easier) call::
+
+        >>> cat.write_patch_files()
+
+    which will overwrite any existing files that may be there with the same names.
+
 Using MPI
 ---------
 

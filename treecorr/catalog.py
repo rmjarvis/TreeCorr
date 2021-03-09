@@ -223,9 +223,9 @@ class Catalog(object):
                             the last row in the file)
         every_nth (int):    Only use every nth row of the input catalog. (default: 1)
 
-        npatch (int):       How many patches to split the catalog into (using kmeans) for the
-                            purpose of jackknife variance or other options that involve running via
-                            patches. (default: 1)
+        npatch (int):       How many patches to split the catalog into (using kmeans if no other
+                            patch information is provided) for the purpose of jackknife variance
+                            or other options that involve running via patches. (default: 1)
 
                             .. note::
 
@@ -540,7 +540,6 @@ class Catalog(object):
         self._sumw = None
         self._varg = None
         self._vark = None
-        self._npatch = 1
         self._patches = None
         self._centers = None
 
@@ -563,13 +562,13 @@ class Catalog(object):
             raise ValueError("every_nth should be >= 1")
 
         if 'npatch' in self.config and self.config['npatch'] != 1:
-            self.npatch = treecorr.config.get(self.config,'npatch',int)
-            if patch is not None or self.config.get('patch_col',0) not in (0,'0'):
-                raise ValueError("Cannot provide both patch and npatch")
-            if self.npatch < 1:
+            self._npatch = treecorr.config.get(self.config,'npatch',int)
+            if self._npatch < 1:
                 raise ValueError("npatch must be >= 1")
+        elif self.config.get('patch_col',0) not in (0,'0'):
+            self._npatch = None  # Mark that we need to finish loading to figure out npatch.
         else:
-            self.npatch = 1
+            self._npatch = 1  # We might yet change this, but it will be correct at end of init.
 
         try:
             self._single_patch = int(patch)
@@ -577,7 +576,6 @@ class Catalog(object):
             pass
         else:
             patch = None
-            self._npatch = 1
 
         if patch_centers is None and 'patch_centers' in self.config:
             # file name version may be in a config dict, rather than kwarg.
@@ -586,12 +584,13 @@ class Catalog(object):
         if patch_centers is not None:
             if patch is not None or self.config.get('patch_col',0) not in (0,'0'):
                 raise ValueError("Cannot provide both patch and patch_centers")
-            if 'npatch' in self.config and self.config['npatch'] != 1:
-                raise ValueError("Cannot provide both npatch and patch_centers")
             if isinstance(patch_centers, np.ndarray):
                 self._centers = patch_centers
             else:
                 self._centers = self.read_patch_centers(patch_centers)
+            if self._npatch not in [None, 1, self._centers.shape[0]]:
+                raise ValueError("npatch is incompatible with provided centers")
+            self._npatch = self._centers.shape[0]
 
         self.save_patch_dir = self.config.get('save_patch_dir',None)
         allow_xyz = self.config.get('allow_xyz', False)
@@ -785,6 +784,12 @@ class Catalog(object):
         return self._k
 
     @property
+    def npatch(self):
+        if self._npatch is None:
+            self.load()
+        return self._npatch
+
+    @property
     def patch(self):
         if self._single_patch is not None:
             return self._single_patch
@@ -963,21 +968,23 @@ class Catalog(object):
             if np.any(wpos == 0):
                 self.select(np.where(wpos != 0)[0])
 
-        if self.npatch != 1:
-            init = treecorr.config.get(self.config,'kmeans_init',str,'tree')
-            alt = treecorr.config.get(self.config,'kmeans_alt',bool,False)
-            max_top = int.bit_length(self.npatch)-1
-            c = 'spherical' if self._ra is not None else self.coords
-            field = self.getNField(max_top=max_top, coords=c)
-            self.logger.info("Finding %d patches using kmeans.",self.npatch)
-            self._patch, self._centers = field.run_kmeans(self.npatch, init=init, alt=alt)
-            self._npatch = self.npatch
-        elif self._centers is not None and self._patch is None and self._single_patch is None:
+        if self._single_patch is not None or self._patch is not None:
+            # Easier to get these options out of the way first.
+            pass
+        elif self._centers is not None:
             if ((self.coords == 'flat' and self._centers.shape[1] != 2) or
                 (self.coords != 'flat' and self._centers.shape[1] != 3)):
                 raise ValueError("Centers array has wrong shape.")
             self._assign_patches()
             self.logger.info("Assigned patch numbers according %d centers",self._npatch)
+        elif self._npatch is not None and self._npatch != 1:
+            init = treecorr.config.get(self.config,'kmeans_init',str,'tree')
+            alt = treecorr.config.get(self.config,'kmeans_alt',bool,False)
+            max_top = int.bit_length(self._npatch)-1
+            c = 'spherical' if self._ra is not None else self.coords
+            field = self.getNField(max_top=max_top, coords=c)
+            self.logger.info("Finding %d patches using kmeans.",self._npatch)
+            self._patch, self._centers = field.run_kmeans(self._npatch, init=init, alt=alt)
 
         self.logger.info("   nobj = %d",self.nobj)
 
@@ -990,14 +997,17 @@ class Catalog(object):
         from treecorr.util import double_ptr as dp
         from treecorr.util import long_ptr as lp
         self._patch = np.empty(self.ntot, dtype=int)
-        self._npatch = self._centers.shape[0]
         centers = np.ascontiguousarray(self._centers)
         treecorr.set_omp_threads(self.config.get('num_threads',None))
         treecorr._lib.QuickAssign(dp(centers), self._npatch,
                                   dp(self.x), dp(self.y), dp(self.z), lp(self._patch), self.ntot)
 
     def _set_npatch(self):
-        self._npatch = max(self._patch) + 1
+        npatch = max(self._patch) + 1
+        if self._npatch not in [None, 1] and npatch > self._npatch:
+            # Note: it's permissible for self._npatch to be larger, but not smaller.
+            raise ValueError("npatch is incompatible with provided patch numbers")
+        self._npatch = npatch
         self.logger.info("Assigned patch numbers 0..%d",self._npatch-1)
 
     def _get_patch_index(self, single_patch):
@@ -1063,7 +1073,6 @@ class Catalog(object):
         indx = self._get_patch_index(single_patch)
         self._patch = None
         self.select(indx)
-        self._npatch = 1
 
     def select(self, indx):
         """Trim the catalog to only include those objects with the give indices.
@@ -1293,7 +1302,6 @@ class Catalog(object):
                 self._patch = data[patch_col].astype(int)
                 self.logger.debug('read patch')
                 self._set_npatch()
-
 
         # Get the column names
         x_col = treecorr.config.get_from_list(self.config,'x_col',num,str,'0')
@@ -1801,9 +1809,8 @@ class Catalog(object):
                                            self._weighted_mean(self.y),
                                            self._weighted_mean(self.z)]])
         else:
-            npatch = self._npatch
-            self._centers = np.empty((npatch,2 if self.z is None else 3))
-            for p in range(npatch):
+            self._centers = np.empty((self.npatch,2 if self.z is None else 3))
+            for p in range(self.npatch):
                 indx = np.where(self.patch == p)[0]
                 if len(indx) == 0:
                     raise RuntimeError("Cannot find center for patch %s."%p +
@@ -1951,15 +1958,15 @@ class Catalog(object):
                 patch_set = sorted(set(self.patch))
             centers = self._centers if self._patch is None else None
             self._patches = [Catalog(config=self.config, file_name=self.file_name,
-                                     patch=i, npatch=1, patch_centers=centers)
+                                     patch=i, npatch=self.npatch, patch_centers=centers)
                              for i in patch_set]
-        elif self._single_patch is not None or self.patch is None:
+        elif self._single_patch is not None or self.npatch == 1 or self.patch is None:
             self._patches = [self]
         else:
             patch_set = sorted(set(self.patch))
-            if len(patch_set) != self._npatch:
+            if len(patch_set) != self.npatch:
                 self.logger.error("WARNING: Some patch numbers do not contain any objects!")
-                missing = set(range(self._npatch)) - set(patch_set)
+                missing = set(range(self.npatch)) - set(patch_set)
                 self.logger.warning("The following patch numbers have no objects: %s",missing)
                 self.logger.warning("This may be a problem depending on your use case.")
             self._patches = []
@@ -1983,7 +1990,7 @@ class Catalog(object):
                     kwargs['dec_units'] = 'rad'
                     kwargs['allow_xyz'] = True
                 p = Catalog(x=x, y=y, z=z, ra=ra, dec=dec, r=r, w=w, wpos=wpos,
-                            g1=g1, g2=g2, k=k, patch=i, **kwargs)
+                            g1=g1, g2=g2, k=k, patch=i, npatch=self.npatch, **kwargs)
                 self._patches.append(p)
 
         # Write the patches to files if requested.

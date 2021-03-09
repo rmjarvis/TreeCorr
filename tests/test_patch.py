@@ -43,8 +43,10 @@ def test_cat_patches():
 
     # cat0 is the base catalog without patches
     cat0 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad')
+    assert cat0.npatch == 1
     assert len(cat0.patches) == 1
     assert cat0.patches[0].ntot == ngal
+    assert cat0.patches[0].npatch == 1
 
     # 1. Make the patches automatically using kmeans
     #    Note: If npatch is a power of two, then the patch determination is completely
@@ -52,15 +54,19 @@ def test_cat_patches():
     cat1 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch)
     p2, cen = cat0.getNField(max_top=max_top).run_kmeans(npatch)
     np.testing.assert_array_equal(cat1.patch, p2)
+    assert cat1.npatch == npatch
     assert len(cat1.patches) == npatch
     assert np.sum([p.ntot for p in cat1.patches]) == ngal
+    assert all([c.npatch == npatch for c in cat1.patches])
 
     # 2. Optionally can use alt algorithm
     cat2 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch,
                             kmeans_alt=True)
     p3, cen = cat0.getNField(max_top=max_top).run_kmeans(npatch, alt=True)
     np.testing.assert_array_equal(cat2.patch, p3)
+    assert cat2.npatch == npatch
     assert len(cat2.patches) == npatch
+    assert all([c.npatch == npatch for c in cat2.patches])
 
     # 3. Optionally can set different init method
     cat3 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch,
@@ -69,6 +75,8 @@ def test_cat_patches():
     # But at least check that it isn't equal to the other two versions.
     assert not np.array_equal(cat3.patch, p2)
     assert not np.array_equal(cat3.patch, p3)
+    assert cat3.npatch == npatch
+    assert all([c.npatch == npatch for c in cat3.patches])
     cat3b = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch,
                              kmeans_init='random')
     assert not np.array_equal(cat3b.patch, p2)
@@ -78,6 +86,8 @@ def test_cat_patches():
     # 4. Pass in patch array explicitly
     cat4 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', patch=p2)
     np.testing.assert_array_equal(cat4.patch, p2)
+    assert cat4.npatch == npatch
+    assert all([c.npatch == npatch for c in cat4.patches])
 
     # 5. Read patch from a column in ASCII file
     file_name5 = os.path.join('output','test_cat_patches.dat')
@@ -87,6 +97,8 @@ def test_cat_patches():
     assert not cat5.loaded
     np.testing.assert_array_equal(cat5.patch, p2)
     assert cat5.loaded   # Now it's loaded, since we accessed cat5.patch.
+    assert cat5.npatch == npatch
+    assert all([c.npatch == npatch for c in cat5.patches])
 
     # Just load a single patch from an ASCII file with many patches.
     for i in range(npatch):
@@ -219,9 +231,12 @@ def test_cat_patches():
     do_pickle(cat7)
 
     # Check some invalid parameters
-    # Can't have both npatch and patch
+    # npatch if given must be compatible with patch
     with assert_raises(ValueError):
-        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch, patch=p2)
+        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=3, patch=p2)
+    # Note: npatch larger than what is in patch is ok.
+    #       It indicates that this is part of a larger group with more patches.
+    treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=300, patch=p2)
     # patch has to have same number of entries
     with assert_raises(ValueError):
         treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', patch=p2[:17])
@@ -427,10 +442,14 @@ def test_cat_centers():
         assert cat == cat17.patches[i]
 
     # Check for some invalid values
-    # Can't have both patch_centers and another patch specification
+    # npatch if given must be compatible with patch_centers
     with assert_raises(ValueError):
         treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad',
                          patch_centers=cen_file, npatch=3)
+    with assert_raises(ValueError):
+        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad',
+                         patch_centers=cen_file, npatch=13)
+    # Can't have both patch_centers and another patch specification
     with assert_raises(ValueError):
         treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad',
                          patch_centers=cen_file, patch=np.ones_like(ra))

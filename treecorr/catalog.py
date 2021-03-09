@@ -1964,6 +1964,12 @@ class Catalog(object):
         In particular, the file names are not arbitrary, but must match what TreeCorr uses
         in that method.
 
+        .. note::
+
+            The patches that are read in will be in an "unloaded" state.  They will load
+            as needed when some functionality requires it.  So this is compatible with using
+            the ``low_mem`` option in various places.
+
         Parameters:
             save_patch_dir (str):   The directory to read from. [default: None, in which
                                     case self.save_patch_dir will be used.  If that is None, a

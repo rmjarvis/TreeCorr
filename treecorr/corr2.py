@@ -135,7 +135,7 @@ def corr2(config, logger=None):
     if len(rand2) == 0: rand2 = None
     if cat2 is None and rand2 is not None:
         raise TypeError("rand_file_name2 is invalid without file_name2")
-    logger.info("Done reading input catalogs")
+    logger.info("Done creating input catalogs")
 
     # Do GG correlation function if necessary
     if 'gg_file_name' in config or 'm2_file_name' in config:

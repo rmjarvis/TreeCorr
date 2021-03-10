@@ -2330,7 +2330,13 @@ def test_lowmem():
     file_name = os.path.join('output','test_lowmem_gk.fits')
     gk_cat0.write(file_name)
     del gk_cat0
-    if hp: hp.setrelheap()
+    if hp:
+        if __name__ == "__main__":
+            hp.setrelheap()
+        else:
+            # For nosetests, turn off the rest of the guppy stuff, since they are slow,
+            # and we don't actually bother doing any asserts with them aftet here.
+            hp = None
 
     # First GG with normal ra,dec from a file
     clear_save('test_lowmem_gk_%03d.fits', npatch)
@@ -2517,7 +2523,6 @@ def test_config():
     print('gg2.varxim = ',gg2.varxim)
     np.testing.assert_allclose(varxi_jk, np.concatenate([gg2.varxip, gg2.varxim]), rtol=1.e-10)
 
-
 if __name__ == '__main__':
     test_cat_patches()
     test_cat_centers()
@@ -2529,3 +2534,4 @@ if __name__ == '__main__':
     test_clusters()
     test_brute_jk()
     test_lowmem()
+    test_config()

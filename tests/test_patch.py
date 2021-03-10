@@ -767,7 +767,7 @@ def test_gg_jk():
     print('varxim = ',cov_boot.diagonal()[n:])
     print('ratio = ',cov_boot.diagonal()[n:] / var_xim)
     np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.3*tol_factor)
-    np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.4*tol_factor)
+    np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
 
     # Check some invalid actions
     # Bad var_method

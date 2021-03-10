@@ -597,9 +597,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
             # Calculate rr and rrf in the normal way based on the same pairs as used for DD.
             pairs1 = [ij for ij in pairs if ij in set(self._rr.results.keys())]
             self._rr._sum([self._rr.results[ij] for ij in pairs1])
-            rr = self._rr.weight
-            rr_tot = self._rr.tot
-            rrf = self.tot / rr_tot
+            dd_tot = self.tot
         else:
             # In this case, R was not run with patches.
             # This is not necessarily much worse in practice it turns out.
@@ -609,25 +607,34 @@ class NNCorrelation(treecorr.BinnedCorr2):
             # So the sum of tot**0.5 when i==j gives an estimate of the fraction of the total area.
             area_frac = np.sum([self.results[ij].tot**0.5 for ij in pairs if ij[0] == ij[1]])
             area_frac /= np.sum([cij.tot**0.5 for ij,cij in self.results.items() if ij[0] == ij[1]])
-            rr = self._rr.weight
-            full_dd_tot = np.sum([self.results[ij].tot for ij in self.results])
-            rrf = area_frac * full_dd_tot / self._rr.tot
+            # First figure out the original total for all DD that had the same footprint as RR.
+            dd_tot = np.sum([self.results[ij].tot for ij in self.results])
+            # The rrf we want will be a factor of area_frac smaller than the original
+            # dd_tot/rr_tot.  We can effect this by multiplying the full dd_tot by area_frac
+            # and use that value normally below.  (Also for drf and rdf.)
+            dd_tot *= area_frac
+
+        rr = self._rr.weight
+        rrf = dd_tot / self._rr.tot
+
         if self._dr is not None:
             if self._dr.npatch2 == 1:
+                # If r doesn't have patches, then convert all (i,i) pairs to (i,0).
                 pairs2 = [(ij[0],0) for ij in pairs if ij[0] == ij[1]]
             else:
                 pairs2 = [ij for ij in pairs if ij in set(self._dr.results.keys())]
             self._dr._sum([self._dr.results[ij] for ij in pairs2])
             dr = self._dr.weight
-            drf = self.tot / self._dr.tot
+            drf = dd_tot / self._dr.tot
         if self._rd is not None:
             if self._rd.npatch1 == 1:
+                # If r doesn't have patches, then convert all (i,i) pairs to (0,i).
                 pairs3 = [(0,ij[1]) for ij in pairs if ij[0] == ij[1]]
             else:
                 pairs3 = [ij for ij in pairs if ij in set(self._rd.results.keys())]
             self._rd._sum([self._rd.results[ij] for ij in pairs3])
             rd = self._rd.weight
-            rdf = self.tot / self._rd.tot
+            rdf = dd_tot / self._rd.tot
         denom = rr * rrf
         if self._dr is None and self._rd is None:
             xi = dd - denom

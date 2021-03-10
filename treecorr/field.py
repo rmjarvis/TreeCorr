@@ -557,7 +557,7 @@ class NField(Field):
 
         # In case __init__ failed to get that far
         if hasattr(self,'data'):  # pragma: no branch
-            # I don't get this, but sometimes it gets here when the fft.lock is already locked.
+            # I don't get this, but sometimes it gets here when the ffi.lock is already locked.
             # When that happens, this will freeze in a `with ffi._lock` line in the ffi api.py.
             # So, don't do that, and just accept the memory leak instead.
             if not treecorr._ffi._lock.locked(): # pragma: no branch

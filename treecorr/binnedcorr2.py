@@ -172,12 +172,10 @@ class BinnedCorr2(object):
                             above.  (default: 'Euclidean')
         bin_type (str):     What type of binning should be used.  Options are listed above.
                             (default: 'Log')
-        min_rpar (float):   For any metric that supports it, the minimum difference in Rparallel
-                            to allow for pairs being included in the correlation function.
-                            (default: None)
-        max_rpar (float):   For any metric that supports it,, the maximum difference in Rparallel
-                            to allow for pairs being included in the correlation function.
-                            (default: None)
+        min_rpar (float):   The minimum difference in Rparallel to allow for pairs being included
+                            in the correlation function.  (default: None)
+        max_rpar (float):   The maximum difference in Rparallel to allow for pairs being included
+                            in the correlation function.  (default: None)
         period (float):     For the 'Periodic' metric, the period to use in all directions.
                             (default: None)
         xperiod (float):    For the 'Periodic' metric, the period to use in the x direction.

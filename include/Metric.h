@@ -21,8 +21,85 @@
 #include <cmath>
 
 
-template <int M>
+template <int M, int P>
 struct MetricHelper;
+
+// First a quick helper function for doing some of the RPar calculations.
+// The goal here is for the functions to become trivial when P=0,
+// so that (typical) case can be completely optimized away.
+template <int P>  // P = 0 means minrpar and maxrpar are not given.
+struct ParHelper
+{
+    static bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                                   const double minrpar, const double maxrpar,
+                                   double s1ps2, double& rpar)
+    { return false; }
+
+    static bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                                  const double minrpar, const double maxrpar,
+                                  double s1ps2, double rpar)
+    { return true; }
+};
+
+template <>
+struct ParHelper<1> // P = 1 for most Metrics (all except OldRPerp)
+{
+    static double calculateRPar(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
+    {
+        Position<ThreeD> r = p2-p1;
+        Position<ThreeD> L = (p1+p2)*0.5;
+        return r.dot(L) / L.norm();
+    }
+
+    static bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                                   const double minrpar, const double maxrpar,
+                                   double s1ps2, double& rpar)
+    {
+        rpar = calculateRPar(p1,p2);
+        if (rpar + s1ps2 < minrpar) return true;
+        else if (rpar - s1ps2 > maxrpar) return true;
+        else return false;
+    }
+
+    static bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                                  const double minrpar, const double maxrpar,
+                                  double s1ps2, double rpar)
+    {
+        if (rpar - s1ps2 < minrpar) return false;
+        else if (rpar + s1ps2 > maxrpar) return false;
+        else return true;
+    }
+};
+
+template <>
+struct ParHelper<2> // P = 1 for OldRPerp
+{
+    static double calculateRPar(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
+    {
+        double r1 = p1.norm();
+        double r2 = p2.norm();
+        return r2-r1;  // Positive if p2 is in background of p1.
+    }
+
+    static bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                                   const double minrpar, const double maxrpar,
+                                   double s1ps2, double& rpar)
+    {
+        rpar = calculateRPar(p1,p2);
+        if (rpar + s1ps2 < minrpar) return true;
+        else if (rpar - s1ps2 > maxrpar) return true;
+        else return false;
+    }
+
+    static bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                                  const double minrpar, const double maxrpar,
+                                  double s1ps2, double rpar)
+    {
+        if (rpar - s1ps2 < minrpar) return false;
+        else if (rpar + s1ps2 > maxrpar) return false;
+        else return true;
+    }
+};
 
 
 //
@@ -31,8 +108,9 @@ struct MetricHelper;
 //
 //
 
-template <>
-struct MetricHelper<Euclidean>
+// Here P is just 0 or 1, basically a boolean whether to do min/maxrpar.
+template <int P>
+struct MetricHelper<Euclidean, P>
 {
     // For each metric, we have enum values with allowed coordinate systems mapped to
     // the normal enum value for that system, but disallowed coordinates mapped to one
@@ -42,9 +120,12 @@ struct MetricHelper<Euclidean>
     // For Euclidean, all coordinate systems are allowed.
     enum { _Flat=Flat, _ThreeD=ThreeD, _Sphere=Sphere };
 
+    const double minrpar, maxrpar;
+
     // We always have the constructor take all arguments that someone might need.  But
     // we only save them as values in the struct if this metric will actually need them.
-    MetricHelper(double minrpar=0, double maxrpar=0, double xp=0, double yp=0, double zp=0) {}
+    MetricHelper(double _minrpar=0, double _maxrpar=0, double xp=0, double yp=0, double zp=0) :
+        minrpar(_minrpar), maxrpar(_maxrpar) {}
 
     ///
     //
@@ -132,11 +213,11 @@ struct MetricHelper<Euclidean>
 
     bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                             double s1ps2, double& rpar) const
-    { return false; }
+    { return ParHelper<P>::isRParOutsideRange(p1,p2,minrpar,maxrpar,s1ps2,rpar); }
 
     bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                            double s1ps2, double rpar) const
-    { return true; }
+    { return ParHelper<P>::isRParInsideRange(p1,p2,minrpar,maxrpar,s1ps2,rpar); }
 
     bool tooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                       double rsq, double rpar, double s1ps2, double minsep, double minsepsq) const
@@ -145,7 +226,6 @@ struct MetricHelper<Euclidean>
     bool tooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                       double rsq, double rpar, double s1ps2, double maxsep, double maxsepsq) const
     { return true; }
-
 };
 
 //
@@ -156,12 +236,12 @@ struct MetricHelper<Euclidean>
 
 // For now, this is still Rperp in the python layer, and the next one is FisherRperp.
 // At version 4, Rperp will become an alias for FisherRperp, and this will be OldRperp.
-template <>
-struct MetricHelper<OldRperp>
+template <int P>
+struct MetricHelper<OldRperp, P>
 {
     enum { _Flat=ThreeD, _ThreeD=ThreeD, _Sphere=ThreeD };
 
-    double minrpar, maxrpar;
+    const double minrpar, maxrpar;
 
     MetricHelper(double _minrpar, double _maxrpar, double xp=0, double yp=0, double zp=0) :
         minrpar(_minrpar), maxrpar(_maxrpar) {}
@@ -227,36 +307,13 @@ struct MetricHelper<OldRperp>
         return r21.cross(r31).dot(p1) < 0.;
     }
 
-    double calculateRPar(const Position<ThreeD>& p1, const Position<ThreeD>& p2) const
-    {
-        double r1 = p1.norm();
-        double r2 = p2.norm();
-        return r2-r1;  // Positive if p2 is in background of p1.
-    }
-
     bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                             double s1ps2, double& rpar) const
-    {
-        // Quick return if no min/max rpar
-        if (minrpar == -std::numeric_limits<double>::max() &&
-            maxrpar == std::numeric_limits<double>::max()) return false;
-
-        rpar = calculateRPar(p1,p2);
-        if (rpar + s1ps2 < minrpar) return true;
-        else if (rpar - s1ps2 > maxrpar) return true;
-        else return false;
-    }
+    { return ParHelper<2*P>::isRParOutsideRange(p1,p2,minrpar,maxrpar,s1ps2,rpar); }
 
     bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                            double s1ps2, double rpar) const
-    {
-        // Quick return if no min/max rpar
-        if (minrpar == -std::numeric_limits<double>::max() &&
-            maxrpar == std::numeric_limits<double>::max()) return true;
-        if (rpar - s1ps2 < minrpar) return false;
-        else if (rpar + s1ps2 > maxrpar) return false;
-        else return true;
-    }
+    { return ParHelper<2*P>::isRParInsideRange(p1,p2,minrpar,maxrpar,s1ps2,rpar); }
 
     // This one is a bit subtle.  The maximum possible rp can be larger than just (rp + s1ps2).
     // The most extreme case is if the two cells are in nearly opposite directions from Earth.
@@ -271,7 +328,10 @@ struct MetricHelper<OldRperp>
     bool tooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                       double rsq, double& rpar, double s1ps2, double minsep, double minsepsq) const
     {
-        if (rpar == 0.) rpar = calculateRPar(p1,p2); // This might not have been calculated.
+        if (rpar == 0.) {
+            // This might not have been calculated yet.
+            rpar = ParHelper<2>::calculateRPar(p1,p2);
+        }
         double d3 = sqrt(SQR(rpar) + rsq);  // The 3d distance.  Remember rsq is really rp^2.
         return rsq + 2.*(d3 + std::abs(rpar)) * s1ps2 < minsepsq;
     }
@@ -285,19 +345,22 @@ struct MetricHelper<OldRperp>
     bool tooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                       double rsq, double rpar, double s1ps2, double maxsep, double maxsepsq) const
     {
-        if (rpar == 0.) rpar = calculateRPar(p1,p2); // This might not have been calculated.
+        if (rpar == 0.) {
+            // This might not have been calculated yet.
+            rpar = ParHelper<2>::calculateRPar(p1,p2);
+        }
         double d3 = sqrt(SQR(rpar) + rsq);  // The 3d distance.  Remember rsq is really rp^2.
         return rsq - 2.*(d3 + std::abs(rpar)) * s1ps2 > maxsepsq;
     }
 
 };
 
-template <>
-struct MetricHelper<Rperp>
+template <int P>
+struct MetricHelper<Rperp, P>
 {
     enum { _Flat=ThreeD, _ThreeD=ThreeD, _Sphere=ThreeD };
 
-    double minrpar, maxrpar;
+    const double minrpar, maxrpar;
     mutable double _normLsq;  // Variable that can be saved and used across multiple functions.
 
     MetricHelper(double _minrpar, double _maxrpar, double xp=0, double yp=0, double zp=0) :
@@ -367,36 +430,13 @@ struct MetricHelper<Rperp>
         return r21.cross(r31).dot(p1) < 0.;
     }
 
-    double calculateRPar(const Position<ThreeD>& p1, const Position<ThreeD>& p2) const
-    {
-        Position<ThreeD> r = p2-p1;
-        Position<ThreeD> L = (p1+p2)*0.5;
-        return r.dot(L) / L.norm();
-    }
-
     bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                             double s1ps2, double& rpar) const
-    {
-        // Quick return if no min/max rpar
-        if (minrpar == -std::numeric_limits<double>::max() &&
-            maxrpar == std::numeric_limits<double>::max()) return false;
-
-        rpar = calculateRPar(p1,p2);
-        if (rpar + s1ps2 < minrpar) return true;
-        else if (rpar - s1ps2 > maxrpar) return true;
-        else return false;
-    }
+    { return ParHelper<P>::isRParOutsideRange(p1,p2,minrpar,maxrpar,s1ps2,rpar); }
 
     bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                            double s1ps2, double rpar) const
-    {
-        // Quick return if no min/max rpar
-        if (minrpar == -std::numeric_limits<double>::max() &&
-            maxrpar == std::numeric_limits<double>::max()) return true;
-        if (rpar - s1ps2 < minrpar) return false;
-        else if (rpar + s1ps2 > maxrpar) return false;
-        else return true;
-    }
+    { return ParHelper<P>::isRParInsideRange(p1,p2,minrpar,maxrpar,s1ps2,rpar); }
 
     // This one is a bit subtle.  The maximum possible rp can be larger than just (rp + s1ps2).
     // The most extreme case is if the two cells are in nearly opposite directions from Earth.
@@ -444,12 +484,12 @@ struct MetricHelper<Rperp>
 //
 //
 
-template <>
-struct MetricHelper<Rlens>
+template <int P>
+struct MetricHelper<Rlens, P>
 {
     enum { _Flat=ThreeD, _ThreeD=ThreeD, _Sphere=ThreeD };
 
-    double minrpar, maxrpar;
+    const double minrpar, maxrpar;
 
     MetricHelper(double _minrpar, double _maxrpar, double xp=0, double yp=0, double zp=0) :
         minrpar(_minrpar), maxrpar(_maxrpar) {}
@@ -484,36 +524,13 @@ struct MetricHelper<Rlens>
         return r21.cross(r31).dot(p1) < 0.;
     }
 
-    double calculateRPar(const Position<ThreeD>& p1, const Position<ThreeD>& p2) const
-    {
-        Position<ThreeD> r = p2-p1;
-        Position<ThreeD> L = (p1+p2)*0.5;
-        return r.dot(L) / L.norm();
-    }
-
     bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                             double s1ps2, double& rpar) const
-    {
-        // Quick return if no min/max rpar
-        if (minrpar == -std::numeric_limits<double>::max() &&
-            maxrpar == std::numeric_limits<double>::max()) return false;
-
-        rpar = calculateRPar(p1,p2);
-        if (rpar + s1ps2 < minrpar) return true;
-        else if (rpar - s1ps2 > maxrpar) return true;
-        else return false;
-    }
+    { return ParHelper<P>::isRParOutsideRange(p1,p2,minrpar,maxrpar,s1ps2,rpar); }
 
     bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                            double s1ps2, double rpar) const
-    {
-        // Quick return if no min/max rpar
-        if (minrpar == -std::numeric_limits<double>::max() &&
-            maxrpar == std::numeric_limits<double>::max()) return true;
-        if (rpar - s1ps2 < minrpar) return false;
-        else if (rpar + s1ps2 > maxrpar) return false;
-        else return true;
-    }
+    { return ParHelper<P>::isRParInsideRange(p1,p2,minrpar,maxrpar,s1ps2,rpar); }
 
     // We've already accounted for the way that the raw s1+s2 may not be sufficient in DistSq
     // where we update s2 according to the relative distances.  So there is nothing further to
@@ -534,12 +551,12 @@ struct MetricHelper<Rlens>
 //
 //
 
-template <>
-struct MetricHelper<Arc>
+template <int P>
+struct MetricHelper<Arc, P>
 {
     enum { _Flat=ThreeD, _ThreeD=ThreeD, _Sphere=Sphere };
 
-    double minrpar, maxrpar;
+    const double minrpar, maxrpar;
 
     MetricHelper(double _minrpar, double _maxrpar, double xp=0, double yp=0, double zp=0) :
         minrpar(_minrpar), maxrpar(_maxrpar) {}
@@ -605,39 +622,23 @@ struct MetricHelper<Arc>
         return r21.cross(r31).dot(p1) < 0.;
     }
 
-    double calculateRPar(const Position<ThreeD>& p1, const Position<ThreeD>& p2) const
-    {
-        Position<ThreeD> r = p2-p1;
-        Position<ThreeD> L = (p1+p2)*0.5;
-        return r.dot(L) / L.norm();
-    }
-
     bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                             double s1ps2, double& rpar) const
     {
-        // Quick return if no min/max rpar
-        if (minrpar == -std::numeric_limits<double>::max() &&
-            maxrpar == std::numeric_limits<double>::max()) return false;
-
         // Remember that s1ps2 has been scaled to be the values on the unit circle.
-        // So scale them back up here.
-        s1ps2 *= std::max(p1.norm(), p2.norm());
-        rpar = calculateRPar(p1,p2);
-        if (rpar + s1ps2 < minrpar) return true;
-        else if (rpar - s1ps2 > maxrpar) return true;
-        else return false;
+        // So scale them back up here.  (Use the farther distance to be conservative.)
+        return ParHelper<P>::isRParOutsideRange(p1,p2,minrpar,maxrpar,
+                                                s1ps2 * std::max(p1.norm(), p2.norm()),
+                                                rpar);
     }
 
     bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                            double s1ps2, double rpar) const
     {
-        // Quick return if no min/max rpar
-        if (minrpar == -std::numeric_limits<double>::max() &&
-            maxrpar == std::numeric_limits<double>::max()) return true;
-        s1ps2 *= std::max(p1.norm(), p2.norm());
-        if (rpar - s1ps2 < minrpar) return false;
-        else if (rpar + s1ps2 > maxrpar) return false;
-        else return true;
+        // Again scale s1ps2 back up to real 3d position.
+        return ParHelper<P>::isRParInsideRange(p1,p2,minrpar,maxrpar,
+                                               s1ps2 * std::max(p1.norm(), p2.norm()),
+                                               rpar);
     }
 
     bool tooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
@@ -654,13 +655,13 @@ struct MetricHelper<Arc>
 // distance is the smaller of (x2-x1) % xperiod and (x1-x2) % xperiod.
 //
 
-template <>
-struct MetricHelper<Periodic>
+template <int P>
+struct MetricHelper<Periodic, P>
 {
     enum { _Flat=Flat, _ThreeD=ThreeD, _Sphere=ThreeD };
 
     // The period in each direction.
-    double xp, yp, zp;
+    const double xp, yp, zp;
 
     MetricHelper(double minrpar, double maxrpar, double _xp, double _yp, double _zp) :
         xp(_xp), yp(_yp), zp(_zp) {}

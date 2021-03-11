@@ -47,12 +47,12 @@ public:
 
     void clear();  // Set all data to 0.
 
-    template <int C, int M>
+    template <int C, int M, int P>
     void process(const Field<DC1, C>& field, bool dots);
-    template <int C, int M>
+    template <int C, int M, int P>
     void process(BinnedCorr3<DC2,DC1,DC2,B>* corr212, BinnedCorr3<DC2,DC2,DC1,B>* corr221,
                  const Field<DC1, C>& field1, const Field<DC2, C>& field2, bool dots);
-    template <int C, int M>
+    template <int C, int M, int P>
     void process(BinnedCorr3<DC1,DC3,DC2,B>* corr132,
                  BinnedCorr3<DC2,DC1,DC3,B>* corr213, BinnedCorr3<DC2,DC3,DC1,B>* corr231,
                  BinnedCorr3<DC3,DC1,DC2,B>* corr312, BinnedCorr3<DC3,DC2,DC1,B>* corr321,
@@ -60,30 +60,30 @@ public:
                  const Field<DC3, C>& field3, bool dots);
 
     // Main worker functions for calculating the result
-    template <int C, int M>
-    void process3(const Cell<DC1,C>* c1, const MetricHelper<M>& metric);
+    template <int C, int M, int P>
+    void process3(const Cell<DC1,C>* c1, const MetricHelper<M,P>& metric);
 
-    template <int C, int M>
+    template <int C, int M, int P>
     void process12(BinnedCorr3<DC2,DC1,DC2,B>& bc212, BinnedCorr3<DC2,DC2,DC1,B>& bc221,
-                   const Cell<DC1,C>* c1, const Cell<DC2,C>* c2, const MetricHelper<M>& metric);
+                   const Cell<DC1,C>* c1, const Cell<DC2,C>* c2, const MetricHelper<M,P>& metric);
 
-    template <int C, int M>
+    template <int C, int M, int P>
     void process111(BinnedCorr3<DC1,DC3,DC2,B>& bc132,
                     BinnedCorr3<DC2,DC1,DC3,B>& bc213, BinnedCorr3<DC2,DC3,DC1,B>& bc231,
                     BinnedCorr3<DC3,DC1,DC2,B>& bc312, BinnedCorr3<DC3,DC2,DC1,B>& bc321,
                     const Cell<DC1,C>* c1, const Cell<DC2,C>* c2, const Cell<DC3,C>* c3,
-                    const MetricHelper<M>& metric,
+                    const MetricHelper<M,P>& metric,
                     double d1sq=0., double d2sq=0., double d3sq=0.);
 
-    template <int C, int M>
+    template <int C, int M, int P>
     void process111Sorted(BinnedCorr3<DC1,DC3,DC2,B>& bc132,
                           BinnedCorr3<DC2,DC1,DC3,B>& bc213, BinnedCorr3<DC2,DC3,DC1,B>& bc231,
                           BinnedCorr3<DC3,DC1,DC2,B>& bc312, BinnedCorr3<DC3,DC2,DC1,B>& bc321,
                           const Cell<DC1,C>* c1, const Cell<DC2,C>* c2, const Cell<DC3,C>* c3,
-                          const MetricHelper<M>& metric,
+                          const MetricHelper<M,P>& metric,
                           double d1sq=0., double d2sq=0., double d3sq=0.);
 
-    template <int C, int M>
+    template <int C>
     void directProcess111(const Cell<DC1,C>& c1, const Cell<DC2,C>& c2, const Cell<DC3,C>& c3,
                           const double d1, const double d2, const double d3,
                           const double logr, const double u, const double v, const int index);

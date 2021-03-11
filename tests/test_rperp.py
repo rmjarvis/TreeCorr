@@ -1477,17 +1477,72 @@ def test_gg_rperp_local():
     np.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
     np.testing.assert_allclose(corr2_output['xip_im'], gg.xip_im, rtol=1.e-3)
 
+    # Finally, with a local measurement, Rperp isn't too different from Arc using the
+    # mean distance to normalize the angles.
+    d = np.mean(rl)
+    gg2 = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep/d, max_sep=max_sep/d, verbose=1,
+                                 metric='Arc', bin_slop=0.1, min_rpar=-50, max_rpar=50)
+    gg2.process(lens_cat, source_cat)
+    Rperp = gg2.meanr * d
+    theory_gQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
+
+    print('Results with bin_slop = 0.1, metric=Arc')
+    print('gg2.npairs = ',gg2.npairs)
+    print('gg2.xim = ',gg2.xim)
+    print('theory_gammat = ',theory_gQ)
+    print('ratio = ',gg2.xim / theory_gQ)
+    print('diff = ',gg2.xim - theory_gQ)
+    print('max diff = ',max(abs(gg2.xim - theory_gQ)))
+    assert max(abs(gg2.xim - theory_gQ)) < 1.e-4
+    print('gg2.xim_im = ',gg2.xim_im)
+    assert max(abs(gg2.xim_im)) < 1.e-4
+
+    # Euclidean is pretty different, but this is mostly a sanity check that it does something
+    # reasonable and doesn't die.
+    gg3 = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
+                                 metric='Euclidean', bin_slop=0.1, min_rpar=-50, max_rpar=50)
+    gg3.process(lens_cat, source_cat)
+    Rperp = gg3.meanr
+    theory_gQ = gamma0 * np.exp(-0.5*Rperp**2/R1**2)
+
+    print('Results with bin_slop = 0.1, metric=Arc')
+    print('gg3.npairs = ',gg3.npairs)
+    print('gg3.xim = ',gg3.xim)
+    print('theory_gammat = ',theory_gQ)
+    print('ratio = ',gg3.xim / theory_gQ)
+    print('diff = ',gg3.xim - theory_gQ)
+    print('max diff = ',max(abs(gg3.xim - theory_gQ)))
+    assert max(abs(gg3.xim - theory_gQ)) < 0.1  # Not a good match.  As expected.
+    print('gg3.xim_im = ',gg3.xim_im)
+    assert max(abs(gg3.xim_im)) < 1.e-4
+
+    # Invalid to have min > max
     with assert_raises(ValueError):
         treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
                                metric='FisherRperp', bin_slop=0.1, min_rpar=50, max_rpar=-50)
-    gg2 = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                 metric='Euclidean', bin_slop=0.1, min_rpar=-50)
+
+    # Invalid to use min/max rpar for flat or spherical coords
+    lens_cat_flat = treecorr.Catalog(x=xl, y=yl, g1=gl.real, g2=gl.imag)
+    source_cat_flat = treecorr.Catalog(x=xs, y=ys, g1=g1, g2=g2)
+    ral, decl = coord.CelestialCoord.xyz_to_radec(xl,yl,zl)
+    ras, decs = coord.CelestialCoord.xyz_to_radec(xs,ys,zs)
+    lens_cat_spher = treecorr.Catalog(ra=ral, dec=decl, g1=gl.real, g2=gl.imag,
+                                      ra_units='rad', dec_units='rad')
+    source_cat_spher = treecorr.Catalog(ra=ras, dec=decs, g1=g1, g2=g2,
+                                        ra_units='rad', dec_units='rad')
+    gg4 = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
+                                 bin_slop=0.1, min_rpar=-50)
     with assert_raises(ValueError):
-        gg2.process(lens_cat, source_cat)
-    gg3 = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
-                                 metric='Euclidean', bin_slop=0.1, max_rpar=50)
+        gg4.process(lens_cat_flat, source_cat_flat)
     with assert_raises(ValueError):
-        gg3.process(lens_cat, source_cat)
+        gg4.process(lens_cat_spher, source_cat_spher)
+
+    gg5 = treecorr.GGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep, verbose=1,
+                                 bin_slop=0.1, max_rpar=50)
+    with assert_raises(ValueError):
+        gg5.process(lens_cat_flat, source_cat_flat)
+    with assert_raises(ValueError):
+        gg5.process(lens_cat_spher, source_cat_spher)
 
 @timer
 def test_gg_oldrperp():

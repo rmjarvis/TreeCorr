@@ -854,12 +854,12 @@ class BinnedCorr2(object):
     def _set_metric(self, metric, coords1, coords2=None):
         if metric is None:
             metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        if metric not in ['Rperp', 'OldRperp', 'FisherRperp', 'Rlens', 'Arc']:
-            if self.min_rpar != -sys.float_info.max:
-                raise ValueError("min_rpar is not valid for %s metric."%metric)
-            if self.max_rpar != sys.float_info.max:
-                raise ValueError("max_rpar is not valid for %s metric."%metric)
         coords, metric = treecorr.util.parse_metric(metric, coords1, coords2)
+        if coords != '3d':
+            if self.min_rpar != -sys.float_info.max:
+                raise ValueError("min_rpar is only valid for 3d coordinates")
+            if self.max_rpar != sys.float_info.max:
+                raise ValueError("max_rpar is only valid for 3d coordinates")
         if self.sep_units != '' and coords == '3d' and metric != 'Arc':
             raise ValueError("sep_units is invalid with 3d coordinates. "
                              "min_sep and max_sep should be in the same units as r (or x,y,z).")

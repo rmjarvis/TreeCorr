@@ -181,8 +181,6 @@ class BinnedCorr3(object):
                             above.  (default: 'Euclidean')
         bin_type (str):     What type of binning should be used.  Only one option currently.
                             (default: 'LogRUV')
-        min_rpar (float):   Not currently supported for 3 point correlation. (default: None)
-        max_rpar (float):   Not currently supported for 3 point correlation. (default: None)
         period (float):     For the 'Periodic' metric, the period to use in all directions.
                             (default: None)
         xperiod (float):    For the 'Periodic' metric, the period to use in the x direction.
@@ -261,10 +259,6 @@ class BinnedCorr3(object):
                 'Which metric to use for the distance measurements'),
         'bin_type': (str, False, 'LogRUV', ['LogRUV'],
                 'Which type of binning should be used'),
-        'min_rpar': (float, False, None, None,
-                'The minimum difference in Rparallel for pairs to include'),
-        'max_rpar': (float, False, None, None,
-                'The maximum difference in Rparallel for pairs to include'),
         'period': (float, False, None, None,
                 'The period to use for all directions for the Periodic metric'),
         'xperiod': (float, False, None, None,
@@ -477,8 +471,6 @@ class BinnedCorr3(object):
             self.logger.info("Doing brute force calculation.",)
         self.coords = None
         self.metric = None
-        self._ro.min_rpar = treecorr.config.get(self.config,'min_rpar',float,-sys.float_info.max)
-        self._ro.max_rpar = treecorr.config.get(self.config,'max_rpar',float,sys.float_info.max)
         period = treecorr.config.get(self.config,'period',float,0)
         self._ro.xperiod = treecorr.config.get(self.config,'xperiod',float,period)
         self._ro.yperiod = treecorr.config.get(self.config,'yperiod',float,period)
@@ -562,10 +554,6 @@ class BinnedCorr3(object):
     def bv(self): return self._ro.bv
     @property
     def brute(self): return self._ro.brute
-    @property
-    def min_rpar(self): return self._ro.min_rpar
-    @property
-    def max_rpar(self): return self._ro.max_rpar
     @property
     def xperiod(self): return self._ro.xperiod
     @property

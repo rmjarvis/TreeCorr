@@ -42,7 +42,7 @@ jobs:
                       CXX: clang++
 
         steps:
-            - uses: actions/checkout@v
+            - uses: actions/checkout@v2
               with:
                 # Helpful for a reliable codecov upload.
                 fetch-depth: 0

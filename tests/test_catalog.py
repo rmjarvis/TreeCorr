@@ -1145,6 +1145,9 @@ def test_direct():
     assert_raises(TypeError, treecorr.Catalog, dec=dec, dec_units='degrees')
     assert_raises(TypeError, treecorr.Catalog, x=x, y=y, g1=g1)
     assert_raises(TypeError, treecorr.Catalog, x=x, y=y, g2=g2)
+    assert_raises(TypeError, treecorr.Catalog, ra=ra, dec=dec)
+    assert_raises(TypeError, treecorr.Catalog, ra=ra, dec=dec, ra_unit='deg')
+    assert_raises(TypeError, treecorr.Catalog, ra=ra, dec=dec, dec_unit='deg')
     assert_raises(TypeError, treecorr.Catalog, ra=ra, dec=dec,
                   ra_units='hours', dec_units='degrees', x_units='arcmin')
     assert_raises(TypeError, treecorr.Catalog, ra=ra, dec=dec,

@@ -664,9 +664,6 @@ class Catalog(object):
             if self._patch is not None:
                 self._set_npatch()
 
-            # Apply units as appropriate
-            self._apply_units()
-
             # Check that all columns have the same length.  (This is impossible in file input)
             if self._x is not None:
                 ntot = len(self._x)
@@ -930,6 +927,9 @@ class Catalog(object):
         self.checkForNaN(self._k,'k')
         self.checkForNaN(self._w,'w')
         self.checkForNaN(self._wpos,'wpos')
+
+        # Apply units as appropriate
+        self._apply_units()
 
         # If using ra/dec, generate x,y,z
         # Note: This also makes self.ntot work properly.
@@ -1295,7 +1295,6 @@ class Catalog(object):
                 if r_col != '0':
                     self._r = data[r_col].astype(float)
                     self.logger.debug('read r')
-            self._apply_units()
 
         def set_patch(data, patch_col):
             if patch_col != '0' and patch_col in data:

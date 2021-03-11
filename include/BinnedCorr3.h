@@ -36,7 +36,7 @@ public:
     BinnedCorr3(double minsep, double maxsep, int nbins, double binsize, double b,
                 double minu, double maxu, int nubins, double ubinsize, double bu,
                 double minv, double maxv, int nvbins, double vbinsize, double bv,
-                double minrpar, double maxrpar, double xp, double yp, double zp,
+                double xp, double yp, double zp,
                 double* zeta0, double* zeta1, double* zeta2, double* zeta3,
                 double* zeta4, double* zeta5, double* zeta6, double* zeta7,
                 double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
@@ -47,12 +47,12 @@ public:
 
     void clear();  // Set all data to 0.
 
-    template <int C, int M, int P>
+    template <int C, int M>
     void process(const Field<DC1, C>& field, bool dots);
-    template <int C, int M, int P>
+    template <int C, int M>
     void process(BinnedCorr3<DC2,DC1,DC2,B>* corr212, BinnedCorr3<DC2,DC2,DC1,B>* corr221,
                  const Field<DC1, C>& field1, const Field<DC2, C>& field2, bool dots);
-    template <int C, int M, int P>
+    template <int C, int M>
     void process(BinnedCorr3<DC1,DC3,DC2,B>* corr132,
                  BinnedCorr3<DC2,DC1,DC3,B>* corr213, BinnedCorr3<DC2,DC3,DC1,B>* corr231,
                  BinnedCorr3<DC3,DC1,DC2,B>* corr312, BinnedCorr3<DC3,DC2,DC1,B>* corr321,
@@ -60,27 +60,27 @@ public:
                  const Field<DC3, C>& field3, bool dots);
 
     // Main worker functions for calculating the result
-    template <int C, int M, int P>
-    void process3(const Cell<DC1,C>* c1, const MetricHelper<M,P>& metric);
+    template <int C, int M>
+    void process3(const Cell<DC1,C>* c1, const MetricHelper<M,0>& metric);
 
-    template <int C, int M, int P>
+    template <int C, int M>
     void process12(BinnedCorr3<DC2,DC1,DC2,B>& bc212, BinnedCorr3<DC2,DC2,DC1,B>& bc221,
-                   const Cell<DC1,C>* c1, const Cell<DC2,C>* c2, const MetricHelper<M,P>& metric);
+                   const Cell<DC1,C>* c1, const Cell<DC2,C>* c2, const MetricHelper<M,0>& metric);
 
-    template <int C, int M, int P>
+    template <int C, int M>
     void process111(BinnedCorr3<DC1,DC3,DC2,B>& bc132,
                     BinnedCorr3<DC2,DC1,DC3,B>& bc213, BinnedCorr3<DC2,DC3,DC1,B>& bc231,
                     BinnedCorr3<DC3,DC1,DC2,B>& bc312, BinnedCorr3<DC3,DC2,DC1,B>& bc321,
                     const Cell<DC1,C>* c1, const Cell<DC2,C>* c2, const Cell<DC3,C>* c3,
-                    const MetricHelper<M,P>& metric,
+                    const MetricHelper<M,0>& metric,
                     double d1sq=0., double d2sq=0., double d3sq=0.);
 
-    template <int C, int M, int P>
+    template <int C, int M>
     void process111Sorted(BinnedCorr3<DC1,DC3,DC2,B>& bc132,
                           BinnedCorr3<DC2,DC1,DC3,B>& bc213, BinnedCorr3<DC2,DC3,DC1,B>& bc231,
                           BinnedCorr3<DC3,DC1,DC2,B>& bc312, BinnedCorr3<DC3,DC2,DC1,B>& bc321,
                           const Cell<DC1,C>* c1, const Cell<DC2,C>* c2, const Cell<DC3,C>* c3,
-                          const MetricHelper<M,P>& metric,
+                          const MetricHelper<M,0>& metric,
                           double d1sq=0., double d2sq=0., double d3sq=0.);
 
     template <int C>
@@ -109,7 +109,6 @@ protected:
     int _nvbins;
     double _vbinsize;
     double _bv;
-    double _minrpar, _maxrpar;
     double _xp, _yp, _zp;
     double _logminsep;
     double _halfminsep;

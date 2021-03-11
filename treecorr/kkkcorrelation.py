@@ -135,7 +135,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
                     self._min_sep,self._max_sep,self.nbins,self._bin_size,self.b,
                     self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
                     self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
-                    self.min_rpar, self.max_rpar, self.xperiod, self.yperiod, self.zperiod,
+                    self.xperiod, self.yperiod, self.zperiod,
                     dp(self.zeta), dp(None), dp(None), dp(None),
                     dp(None), dp(None), dp(None), dp(None),
                     dp(self.meand1), dp(self.meanlogd1), dp(self.meand2), dp(self.meanlogd2),
@@ -169,8 +169,6 @@ class KKKCorrelation(treecorr.BinnedCorr3):
                 self.coords == other.coords and
                 self.bin_type == other.bin_type and
                 self.bin_slop == other.bin_slop and
-                self.min_rpar == other.min_rpar and
-                self.max_rpar == other.max_rpar and
                 self.xperiod == other.xperiod and
                 self.yperiod == other.yperiod and
                 self.zperiod == other.zperiod and
@@ -709,8 +707,6 @@ class KKKCrossCorrelation(treecorr.BinnedCorr3):
                 self.coords == other.coords and
                 self.bin_type == other.bin_type and
                 self.bin_slop == other.bin_slop and
-                self.min_rpar == other.min_rpar and
-                self.max_rpar == other.max_rpar and
                 self.xperiod == other.xperiod and
                 self.yperiod == other.yperiod and
                 self.zperiod == other.zperiod and

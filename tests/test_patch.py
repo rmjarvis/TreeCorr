@@ -2523,6 +2523,171 @@ def test_config():
     print('gg2.varxim = ',gg2.varxim)
     np.testing.assert_allclose(varxi_jk, np.concatenate([gg2.varxip, gg2.varxim]), rtol=1.e-10)
 
+@timer
+def test_finalize_false():
+    # Test the finalize=false option to do a full calculation in stages.
+
+    nside = 50
+    nlens = 2000
+    npatch = 16
+    ngal = nside**2
+
+    np.random.seed(1234)
+    # Make three independent data sets
+    x_1, y_1, g1_1, g2_1, k_1 = generate_shear_field(nside)
+    x_2, y_2, g1_2, g2_2, k_2 = generate_shear_field(nside)
+    x_3, y_3, g1_3, g2_3, k_3 = generate_shear_field(nside)
+
+    # Make a single catalog with all three together
+    cat = treecorr.Catalog(x=np.concatenate([x_1, x_2, x_3]),
+                           y=np.concatenate([y_1, y_2, y_3]),
+                           g1=np.concatenate([g1_1, g1_2, g1_3]),
+                           g2=np.concatenate([g2_1, g2_2, g2_3]),
+                           k=np.concatenate([k_1, k_2, k_3]),
+                           npatch=npatch)
+
+    # Now the three separately, using the same patch centers
+    cat1 = treecorr.Catalog(x=x_1, y=y_1, g1=g1_1, g2=g2_1, k=k_1, patch_centers=cat.patch_centers)
+    cat2 = treecorr.Catalog(x=x_2, y=y_2, g1=g1_2, g2=g2_2, k=k_2, patch_centers=cat.patch_centers)
+    cat3 = treecorr.Catalog(x=x_3, y=y_3, g1=g1_3, g2=g2_3, k=k_3, patch_centers=cat.patch_centers)
+
+    np.testing.assert_array_equal(cat1.patch, cat.patch[0:ngal])
+    np.testing.assert_array_equal(cat2.patch, cat.patch[ngal:2*ngal])
+    np.testing.assert_array_equal(cat3.patch, cat.patch[2*ngal:3*ngal])
+
+    # NK
+    nk1 = treecorr.NKCorrelation(bin_size=0.3, min_sep=20, max_sep=100., var_method='jackknife')
+    nk1.process(cat, cat)
+
+    nk2 = treecorr.NKCorrelation(bin_size=0.3, min_sep=20, max_sep=100., var_method='jackknife')
+    nk2.process(cat1, cat1, initialize=True, finalize=False)
+    nk2.process(cat1, cat2, initialize=False, finalize=False)
+    nk2.process(cat1, cat3, initialize=False, finalize=False)
+    nk2.process(cat2, cat1, initialize=False, finalize=False)
+    nk2.process(cat2, cat2, initialize=False, finalize=False)
+    nk2.process(cat2, cat3, initialize=False, finalize=False)
+    nk2.process(cat3, cat1, initialize=False, finalize=False)
+    nk2.process(cat3, cat2, initialize=False, finalize=False)
+    nk2.process(cat3, cat3, initialize=False, finalize=True)
+
+    np.testing.assert_allclose(nk1.npairs, nk2.npairs)
+    np.testing.assert_allclose(nk1.weight, nk2.weight)
+    np.testing.assert_allclose(nk1.meanr, nk2.meanr)
+    np.testing.assert_allclose(nk1.meanlogr, nk2.meanlogr)
+    np.testing.assert_allclose(nk1.xi, nk2.xi)
+    np.testing.assert_allclose(nk1.varxi, nk2.varxi)
+    np.testing.assert_allclose(nk1.cov, nk2.cov)
+
+    # KK
+    kk1 = treecorr.KKCorrelation(bin_size=0.3, min_sep=20, max_sep=100., var_method='jackknife')
+    kk1.process(cat)
+
+    kk2 = treecorr.KKCorrelation(bin_size=0.3, min_sep=20, max_sep=100., var_method='jackknife')
+    kk2.process(cat1, initialize=True, finalize=False)
+    kk2.process(cat2, initialize=False, finalize=False)
+    kk2.process(cat3, initialize=False, finalize=False)
+    kk2.process(cat1, cat2, initialize=False, finalize=False)
+    kk2.process(cat1, cat3, initialize=False, finalize=False)
+    kk2.process(cat2, cat3, initialize=False, finalize=True)
+
+    np.testing.assert_allclose(kk1.npairs, kk2.npairs)
+    np.testing.assert_allclose(kk1.weight, kk2.weight)
+    np.testing.assert_allclose(kk1.meanr, kk2.meanr)
+    np.testing.assert_allclose(kk1.meanlogr, kk2.meanlogr)
+    np.testing.assert_allclose(kk1.xi, kk2.xi)
+    np.testing.assert_allclose(kk1.varxi, kk2.varxi)
+    np.testing.assert_allclose(kk1.cov, kk2.cov)
+
+    # NG
+    ng1 = treecorr.NGCorrelation(bin_size=0.3, min_sep=20, max_sep=100., var_method='jackknife')
+    ng1.process(cat, cat)
+
+    ng2 = treecorr.NGCorrelation(bin_size=0.3, min_sep=20, max_sep=100., var_method='jackknife')
+    ng2.process(cat1, cat1, initialize=True, finalize=False)
+    ng2.process(cat1, cat2, initialize=False, finalize=False)
+    ng2.process(cat1, cat3, initialize=False, finalize=False)
+    ng2.process(cat2, cat1, initialize=False, finalize=False)
+    ng2.process(cat2, cat2, initialize=False, finalize=False)
+    ng2.process(cat2, cat3, initialize=False, finalize=False)
+    ng2.process(cat3, cat1, initialize=False, finalize=False)
+    ng2.process(cat3, cat2, initialize=False, finalize=False)
+    ng2.process(cat3, cat3, initialize=False, finalize=True)
+
+    np.testing.assert_allclose(ng1.npairs, ng2.npairs)
+    np.testing.assert_allclose(ng1.weight, ng2.weight)
+    np.testing.assert_allclose(ng1.meanr, ng2.meanr)
+    np.testing.assert_allclose(ng1.meanlogr, ng2.meanlogr)
+    np.testing.assert_allclose(ng1.xi, ng2.xi, atol=1.e-10)
+    np.testing.assert_allclose(ng1.varxi, ng2.varxi)
+    np.testing.assert_allclose(ng1.cov, ng2.cov, atol=1.e-12)
+
+    # GG
+    gg1 = treecorr.GGCorrelation(bin_size=0.3, min_sep=20, max_sep=100., var_method='jackknife',
+                                 bin_slop=0)
+    gg1.process(cat)
+
+    gg2 = treecorr.GGCorrelation(bin_size=0.3, min_sep=20, max_sep=100., var_method='jackknife',
+                                 bin_slop=0)
+    gg2.process(cat1, initialize=True, finalize=False)
+    gg2.process(cat2, initialize=False, finalize=False)
+    gg2.process(cat3, initialize=False, finalize=False)
+    gg2.process(cat1, cat2, initialize=False, finalize=False)
+    gg2.process(cat1, cat3, initialize=False, finalize=False)
+    gg2.process(cat2, cat3, initialize=False, finalize=True)
+
+    np.testing.assert_allclose(gg1.npairs, gg2.npairs)
+    np.testing.assert_allclose(gg1.weight, gg2.weight)
+    np.testing.assert_allclose(gg1.meanr, gg2.meanr)
+    np.testing.assert_allclose(gg1.meanlogr, gg2.meanlogr)
+    np.testing.assert_allclose(gg1.xip, gg2.xip)
+    np.testing.assert_allclose(gg1.xim, gg2.xim)
+    np.testing.assert_allclose(gg1.varxip, gg2.varxip)
+    np.testing.assert_allclose(gg1.varxim, gg2.varxim)
+    np.testing.assert_allclose(gg1.cov, gg2.cov)
+
+    # KG
+    kg1 = treecorr.KGCorrelation(bin_size=0.1, min_sep=20, max_sep=100., var_method='sample',
+                                 bin_slop=0)
+    kg1.process(cat, cat)
+
+    kg2 = treecorr.KGCorrelation(bin_size=0.1, min_sep=20, max_sep=100., var_method='sample',
+                                 bin_slop=0)
+    kg2.process(cat1, cat1, initialize=True, finalize=False)
+    kg2.process(cat1, cat2, initialize=False, finalize=False)
+    kg2.process(cat1, cat3, initialize=False, finalize=False)
+    kg2.process(cat2, cat1, initialize=False, finalize=False)
+    kg2.process(cat2, cat2, initialize=False, finalize=False)
+    kg2.process(cat2, cat3, initialize=False, finalize=False)
+    kg2.process(cat3, cat1, initialize=False, finalize=False)
+    kg2.process(cat3, cat2, initialize=False, finalize=False)
+    kg2.process(cat3, cat3, initialize=False, finalize=True)
+
+    np.testing.assert_allclose(kg1.npairs, kg2.npairs)
+    np.testing.assert_allclose(kg1.weight, kg2.weight)
+    np.testing.assert_allclose(kg1.meanr, kg2.meanr)
+    np.testing.assert_allclose(kg1.meanlogr, kg2.meanlogr)
+    np.testing.assert_allclose(kg1.xi, kg2.xi)
+    np.testing.assert_allclose(kg1.varxi, kg2.varxi)
+    np.testing.assert_allclose(kg1.cov, kg2.cov)
+
+    # NN
+    nn1 = treecorr.NNCorrelation(bin_size=0.3, min_sep=20, max_sep=100.)
+    nn1.process(cat)
+
+    nn2 = treecorr.NNCorrelation(bin_size=0.3, min_sep=20, max_sep=100.)
+    nn2.process(cat1, initialize=True, finalize=False)
+    nn2.process(cat2, initialize=False, finalize=False)
+    nn2.process(cat3, initialize=False, finalize=False)
+    nn2.process(cat1, cat2, initialize=False, finalize=False)
+    nn2.process(cat1, cat3, initialize=False, finalize=False)
+    nn2.process(cat2, cat3, initialize=False, finalize=True)
+
+    np.testing.assert_allclose(nn1.npairs, nn2.npairs)
+    np.testing.assert_allclose(nn1.weight, nn2.weight)
+    np.testing.assert_allclose(nn1.meanr, nn2.meanr)
+    np.testing.assert_allclose(nn1.meanlogr, nn2.meanlogr)
+
+
 if __name__ == '__main__':
     test_cat_patches()
     test_cat_centers()
@@ -2535,3 +2700,4 @@ if __name__ == '__main__':
     test_brute_jk()
     test_lowmem()
     test_config()
+    test_finalize_false()

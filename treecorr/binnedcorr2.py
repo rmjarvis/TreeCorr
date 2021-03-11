@@ -636,7 +636,10 @@ class BinnedCorr2(object):
                     temp.clear()
                     self.logger.info('Process patch %d auto',i)
                     temp.process_auto(c1,metric,num_threads)
-                    self.results[(i,i)] = temp.copy()
+                    if (i,i) not in self.results:
+                        self.results[(i,i)] = temp.copy()
+                    else:
+                        self.results[(i,i)] += temp
                     self += temp
                 for jj,c2 in list(enumerate(cat1))[::-1]:
                     j = c2.patch if c2.patch is not None else jj
@@ -649,7 +652,10 @@ class BinnedCorr2(object):
                             self.logger.info('Skipping %d,%d pair, which are too far apart ' +
                                              'for this set of separations',i,j)
                         if np.sum(temp.npairs) > 0:
-                            self.results[(i,j)] = temp.copy()
+                            if (i,j) not in self.results:
+                                self.results[(i,j)] = temp.copy()
+                            else:
+                                self.results[(i,j)] += temp
                             self += temp
                         else:
                             # NNCorrelation needs to add the tot value
@@ -745,7 +751,10 @@ class BinnedCorr2(object):
                             self.logger.info('Skipping %d,%d pair, which are too far apart ' +
                                              'for this set of separations',i,j)
                         if np.sum(temp.npairs) > 0:
-                            self.results[(i,j)] = temp.copy()
+                            if (i,j) not in self.results:
+                                self.results[(i,j)] = temp.copy()
+                            else:
+                                self.results[(i,j)] += temp
                             self += temp
                         else:
                             # NNCorrelation needs to add the tot value

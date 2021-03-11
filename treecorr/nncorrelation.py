@@ -370,7 +370,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
         res.tot = tot
         self.results[(i,j)] = res
 
-    def process(self, cat1, cat2=None, metric=None, num_threads=None, comm=None, low_mem=False):
+    def process(self, cat1, cat2=None, metric=None, num_threads=None, comm=None, low_mem=False,
+                initialize=True, finalize=True):
         """Compute the correlation function.
 
         If only 1 argument is given, then compute an auto-correlation function.
@@ -394,9 +395,14 @@ class NNCorrelation(treecorr.BinnedCorr2):
                                 computation. This only works if using patches. (default: None)
             low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
                                 This only works if using patches. (default: False)
+            initialize (bool):  Wether to begin the calculation with a call to `clear`.
+                                (default: True)
+            finalize (bool):    Wether to complete the calculation with a call to `finalize`.
+                                (default: True)
         """
-        self.clear()
-        self.results.clear()
+        if initialize:
+            self.clear()
+            self.results.clear()
 
         if not isinstance(cat1,list):
             cat1 = cat1.get_patches(low_mem=low_mem)
@@ -407,7 +413,9 @@ class NNCorrelation(treecorr.BinnedCorr2):
             self._process_all_auto(cat1, metric, num_threads, comm, low_mem)
         else:
             self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem)
-        self.finalize()
+
+        if finalize:
+            self.finalize()
 
     def _mean_weight(self):
         mean_np = np.mean(self.npairs)

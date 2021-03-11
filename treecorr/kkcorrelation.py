@@ -363,7 +363,8 @@ class KKCorrelation(treecorr.BinnedCorr2):
         np.sum([c.weight for c in others], axis=0, out=self.weight)
         np.sum([c.npairs for c in others], axis=0, out=self.npairs)
 
-    def process(self, cat1, cat2=None, metric=None, num_threads=None, comm=None, low_mem=False):
+    def process(self, cat1, cat2=None, metric=None, num_threads=None, comm=None, low_mem=False,
+                initialize=True, finalize=True):
         """Compute the correlation function.
 
         If only 1 argument is given, then compute an auto-correlation function.
@@ -387,10 +388,15 @@ class KKCorrelation(treecorr.BinnedCorr2):
                                 computation. This only works if using patches. (default: None)
             low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
                                 This only works if using patches. (default: False)
+            initialize (bool):  Wether to begin the calculation with a call to `clear`.
+                                (default: True)
+            finalize (bool):    Wether to complete the calculation with a call to `finalize`.
+                                (default: True)
         """
         import math
-        self.clear()
-        self.results.clear()
+        if initialize:
+            self.clear()
+            self.results.clear()
 
         if not isinstance(cat1,list):
             cat1 = cat1.get_patches(low_mem=low_mem)
@@ -398,18 +404,21 @@ class KKCorrelation(treecorr.BinnedCorr2):
             cat2 = cat2.get_patches(low_mem=low_mem)
 
         if cat2 is None:
-            vark1 = treecorr.calculateVarK(cat1)
-            vark2 = vark1
-            self.logger.info("vark = %f: sig_k = %f",vark1,math.sqrt(vark1))
             self._process_all_auto(cat1, metric, num_threads, comm, low_mem)
         else:
-            vark1 = treecorr.calculateVarK(cat1)
-            vark2 = treecorr.calculateVarK(cat2)
-            self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
-            self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
             self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem)
-        self.finalize(vark1,vark2)
 
+        if finalize:
+            if cat2 is None:
+                vark1 = treecorr.calculateVarK(cat1)
+                vark2 = vark1
+                self.logger.info("vark = %f: sig_k = %f",vark1,math.sqrt(vark1))
+            else:
+                vark1 = treecorr.calculateVarK(cat1)
+                vark2 = treecorr.calculateVarK(cat2)
+                self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
+                self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
+            self.finalize(vark1,vark2)
 
     def write(self, file_name, file_type=None, precision=None):
         r"""Write the correlation function to the file, file_name.

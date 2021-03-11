@@ -354,7 +354,8 @@ class NGCorrelation(treecorr.BinnedCorr2):
         np.sum([c.weight for c in others], axis=0, out=self.weight)
         np.sum([c.npairs for c in others], axis=0, out=self.npairs)
 
-    def process(self, cat1, cat2, metric=None, num_threads=None, comm=None, low_mem=False):
+    def process(self, cat1, cat2, metric=None, num_threads=None, comm=None, low_mem=False,
+                initialize=True, finalize=True):
         """Compute the correlation function.
 
         Both arguments may be lists, in which case all items in the list are used
@@ -374,21 +375,28 @@ class NGCorrelation(treecorr.BinnedCorr2):
                                 computation. This only works if using patches. (default: None)
             low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
                                 This only works if using patches. (default: False)
+            initialize (bool):  Wether to begin the calculation with a call to `clear`.
+                                (default: True)
+            finalize (bool):    Wether to complete the calculation with a call to `finalize`.
+                                (default: True)
         """
         import math
-        self.clear()
-        self.results.clear()
-        self._rg = None
+        if initialize:
+            self.clear()
+            self.results.clear()
+            self._rg = None
 
         if not isinstance(cat1,list):
             cat1 = cat1.get_patches(low_mem=low_mem)
         if not isinstance(cat2,list):
             cat2 = cat2.get_patches(low_mem=low_mem)
 
-        varg = treecorr.calculateVarG(cat2)
-        self.logger.info("varg = %f: sig_sn (per component) = %f",varg,math.sqrt(varg))
         self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem)
-        self.finalize(varg)
+
+        if finalize:
+            varg = treecorr.calculateVarG(cat2)
+            self.logger.info("varg = %f: sig_sn (per component) = %f",varg,math.sqrt(varg))
+            self.finalize(varg)
 
     def calculateXi(self, rg=None):
         r"""Calculate the correlation function possibly given another correlation function

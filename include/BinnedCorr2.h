@@ -42,20 +42,20 @@ public:
 
     void clear();  // Set all data to 0.
 
-    template <int C, int M>
+    template <int C, int M, int P>
     void process(const Field<D1, C>& field, bool dots);
-    template <int C, int M>
+    template <int C, int M, int P>
     void process(const Field<D1, C>& field1, const Field<D2, C>& field2, bool dots);
-    template <int C, int M>
+    template <int C, int M, int P>
     void processPairwise(const SimpleField<D1, C>& field, const SimpleField<D2, C>& field2,
                          bool dots);
 
     // Main worker functions for calculating the result
-    template <int C, int M>
-    void process2(const Cell<D1,C>& c12, const MetricHelper<M>& m);
+    template <int C, int M, int P>
+    void process2(const Cell<D1,C>& c12, const MetricHelper<M,P>& m);
 
-    template <int C, int M>
-    void process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2, const MetricHelper<M>& m,
+    template <int C, int M, int P>
+    void process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2, const MetricHelper<M,P>& m,
                    bool do_reverse);
 
     template <int C>
@@ -67,16 +67,22 @@ public:
     void operator+=(const BinnedCorr2<D1,D2,B>& rhs);
 
     // Sample a random subset of pairs in a given range
-    template <int C, int M>
+    template <int C, int M, int P>
     long samplePairs(const Field<D1, C>& field1, const Field<D2, C>& field2,
                      double min_sep, double max_sep, long* i1, long* i2, double* sep, int n);
-    template <int C, int M>
-    void samplePairs(const Cell<D1, C>& c1, const Cell<D2, C>& c2, const MetricHelper<M>& m,
+    template <int C, int M, int P>
+    void samplePairs(const Cell<D1, C>& c1, const Cell<D2, C>& c2, const MetricHelper<M,P>& m,
                      double min_sep, double min_sepsq, double max_sep, double max_sepsq,
                      long* i1, long* i2, double* sep, int n, long& k);
     template <int C>
     void sampleFrom(const Cell<D1, C>& c1, const Cell<D2, C>& c2, double rsq, double r,
                     long* i1, long* i2, double* sep, int n, long& k);
+
+    bool nontrivialRPar() const
+    {
+        return (_minrpar != -std::numeric_limits<double>::max() ||
+                _maxrpar != std::numeric_limits<double>::max());
+    }
 
 
 protected:

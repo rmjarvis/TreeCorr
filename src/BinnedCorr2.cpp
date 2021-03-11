@@ -100,17 +100,17 @@ BinnedCorr2<D1,D2,B>::~BinnedCorr2()
 
 // BinnedCorr2::process2 is invalid if D1 != D2, so this helper struct lets us only call
 // process2 when D1 == D2.
-template <int D1, int D2, int B, int C, int M>
+template <int D1, int D2, int B, int C, int M, int P>
 struct ProcessHelper
 {
-    static void process2(BinnedCorr2<D1,D2,B>& , const Cell<D1,C>&, const MetricHelper<M>& ) {}
+    static void process2(BinnedCorr2<D1,D2,B>& , const Cell<D1,C>&, const MetricHelper<M,P>& ) {}
 };
 
-template <int D, int B, int C, int M>
-struct ProcessHelper<D,D,B,C,M>
+template <int D, int B, int C, int M, int P>
+struct ProcessHelper<D,D,B,C,M,P>
 {
-    static void process2(BinnedCorr2<D,D,B>& b, const Cell<D,C>& c12, const MetricHelper<M>& m)
-    { b.template process2<C,M>(c12, m); }
+    static void process2(BinnedCorr2<D,D,B>& b, const Cell<D,C>& c12, const MetricHelper<M,P>& m)
+    { b.template process2<C,M,P>(c12, m); }
 };
 
 template <int D1, int D2, int B>
@@ -124,10 +124,10 @@ void BinnedCorr2<D1,D2,B>::clear()
     _coords = -1;
 }
 
-template <int D1, int D2, int B> template <int C, int M>
+template <int D1, int D2, int B> template <int C, int M, int P>
 void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field, bool dots)
 {
-    xdbg<<"Start process (auto): M,C = "<<M<<"  "<<C<<std::endl;
+    xdbg<<"Start process (auto): M,P,C = "<<M<<"  "<<P<<"  "<<C<<std::endl;
     Assert(D1 == D2);
     Assert(_coords == -1 || _coords == C);
     _coords = C;
@@ -145,7 +145,7 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field, bool dots)
 #endif
 
         // Inside the omp parallel, so each thread has its own MetricHelper.
-        MetricHelper<M> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
+        MetricHelper<M,P> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
 
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
@@ -161,10 +161,10 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field, bool dots)
                 if (dots) std::cout<<'.'<<std::flush;
             }
             const Cell<D1,C>& c1 = *field.getCells()[i];
-            ProcessHelper<D1,D2,B,C,M>::process2(bc2, c1, metric);
+            ProcessHelper<D1,D2,B,C,M,P>::process2(bc2, c1, metric);
             for (long j=i+1;j<n1;++j) {
                 const Cell<D1,C>& c2 = *field.getCells()[j];
-                bc2.process11<C,M>(c1, c2, metric, BinTypeHelper<B>::doReverse());
+                bc2.process11<C,M,P>(c1, c2, metric, BinTypeHelper<B>::doReverse());
             }
         }
 #ifdef _OPENMP
@@ -178,16 +178,16 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field, bool dots)
     if (dots) std::cout<<std::endl;
 }
 
-template <int D1, int D2, int B> template <int C, int M>
+template <int D1, int D2, int B> template <int C, int M, int P>
 void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field1, const Field<D2,C>& field2,
                                    bool dots)
 {
-    xdbg<<"Start process (cross): M,C = "<<M<<"  "<<C<<std::endl;
+    xdbg<<"Start process (cross): M,P,C = "<<M<<"  "<<P<<"  "<<C<<std::endl;
     Assert(_coords == -1 || _coords == C);
     _coords = C;
 
     // Before possibly triggering a call to BuildCells, check if we can early exit.
-    MetricHelper<M> metric1(_minrpar, _maxrpar, _xp, _yp, _zp);
+    MetricHelper<M,P> metric1(_minrpar, _maxrpar, _xp, _yp, _zp);
     const Position<C>& p1 = field1.getCenter();
     const Position<C>& p2 = field2.getCenter();
     double s1 = field1.getSize();
@@ -220,7 +220,7 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field1, const Field<D2,C>&
         BinnedCorr2<D1,D2,B>& bc2 = *this;
 #endif
 
-        MetricHelper<M> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
+        MetricHelper<M,P> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
 
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
@@ -238,7 +238,7 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field1, const Field<D2,C>&
             const Cell<D1,C>& c1 = *field1.getCells()[i];
             for (long j=0;j<n2;++j) {
                 const Cell<D2,C>& c2 = *field2.getCells()[j];
-                bc2.process11<C,M>(c1, c2, metric, false);
+                bc2.process11<C,M,P>(c1, c2, metric, false);
             }
         }
 #ifdef _OPENMP
@@ -252,7 +252,7 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field1, const Field<D2,C>&
     if (dots) std::cout<<std::endl;
 }
 
-template <int D1, int D2, int B> template <int C, int M>
+template <int D1, int D2, int B> template <int C, int M, int P>
 void BinnedCorr2<D1,D2,B>::processPairwise(
     const SimpleField<D1,C>& field1, const SimpleField<D2,C>& field2, bool dots)
 {
@@ -276,7 +276,7 @@ void BinnedCorr2<D1,D2,B>::processPairwise(
         BinnedCorr2<D1,D2,B>& bc2 = *this;
 #endif
 
-        MetricHelper<M> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
+        MetricHelper<M,P> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
 
 #ifdef _OPENMP
 #pragma omp for schedule(static)
@@ -316,22 +316,22 @@ void BinnedCorr2<D1,D2,B>::processPairwise(
     if (dots) std::cout<<std::endl;
 }
 
-template <int D1, int D2, int B> template <int C, int M>
-void BinnedCorr2<D1,D2,B>::process2(const Cell<D1,C>& c12, const MetricHelper<M>& metric)
+template <int D1, int D2, int B> template <int C, int M, int P>
+void BinnedCorr2<D1,D2,B>::process2(const Cell<D1,C>& c12, const MetricHelper<M,P>& metric)
 {
     if (c12.getW() == 0.) return;
     if (c12.getSize() <= _halfminsep) return;
 
     Assert(c12.getLeft());
     Assert(c12.getRight());
-    process2<C,M>(*c12.getLeft(), metric);
-    process2<C,M>(*c12.getRight(), metric);
-    process11<C,M>(*c12.getLeft(), *c12.getRight(), metric, BinTypeHelper<B>::doReverse());
+    process2<C,M,P>(*c12.getLeft(), metric);
+    process2<C,M,P>(*c12.getRight(), metric);
+    process11<C,M,P>(*c12.getLeft(), *c12.getRight(), metric, BinTypeHelper<B>::doReverse());
 }
 
-template <int D1, int D2, int B> template <int C, int M>
+template <int D1, int D2, int B> template <int C, int M, int P>
 void BinnedCorr2<D1,D2,B>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2,
-                                     const MetricHelper<M>& metric, bool do_reverse)
+                                     const MetricHelper<M,P>& metric, bool do_reverse)
 {
     //set_verbose(2);
     xdbg<<"Start process11 for "<<c1.getPos()<<",  "<<c2.getPos()<<"   ";
@@ -393,21 +393,21 @@ void BinnedCorr2<D1,D2,B>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2,
             Assert(c1.getRight());
             Assert(c2.getLeft());
             Assert(c2.getRight());
-            process11<C,M>(*c1.getLeft(),*c2.getLeft(),metric,do_reverse);
-            process11<C,M>(*c1.getLeft(),*c2.getRight(),metric,do_reverse);
-            process11<C,M>(*c1.getRight(),*c2.getLeft(),metric,do_reverse);
-            process11<C,M>(*c1.getRight(),*c2.getRight(),metric,do_reverse);
+            process11<C,M,P>(*c1.getLeft(),*c2.getLeft(),metric,do_reverse);
+            process11<C,M,P>(*c1.getLeft(),*c2.getRight(),metric,do_reverse);
+            process11<C,M,P>(*c1.getRight(),*c2.getLeft(),metric,do_reverse);
+            process11<C,M,P>(*c1.getRight(),*c2.getRight(),metric,do_reverse);
         } else if (split1) {
             Assert(c1.getLeft());
             Assert(c1.getRight());
-            process11<C,M>(*c1.getLeft(),c2,metric,do_reverse);
-            process11<C,M>(*c1.getRight(),c2,metric,do_reverse);
+            process11<C,M,P>(*c1.getLeft(),c2,metric,do_reverse);
+            process11<C,M,P>(*c1.getRight(),c2,metric,do_reverse);
         } else {
             Assert(split2);
             Assert(c2.getLeft());
             Assert(c2.getRight());
-            process11<C,M>(c1,*c2.getLeft(),metric,do_reverse);
-            process11<C,M>(c1,*c2.getRight(),metric,do_reverse);
+            process11<C,M,P>(c1,*c2.getLeft(),metric,do_reverse);
+            process11<C,M,P>(c1,*c2.getRight(),metric,do_reverse);
         }
     }
 }
@@ -606,7 +606,7 @@ void BinnedCorr2<D1,D2,B>::operator+=(const BinnedCorr2<D1,D2,B>& rhs)
     for (int i=0; i<_nbins; ++i) _npairs[i] += rhs._npairs[i];
 }
 
-template <int D1, int D2, int B> template <int C, int M>
+template <int D1, int D2, int B> template <int C, int M, int P>
 long BinnedCorr2<D1,D2,B>::samplePairs(
     const Field<D1, C>& field1, const Field<D2, C>& field2,
     double minsep, double maxsep, long* i1, long* i2, double* sep, int n)
@@ -620,7 +620,7 @@ long BinnedCorr2<D1,D2,B>::samplePairs(
     Assert(n1 > 0);
     Assert(n2 > 0);
 
-    MetricHelper<M> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
+    MetricHelper<M,P> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
 
     double minsepsq = minsep*minsep;
     double maxsepsq = maxsep*maxsep;
@@ -636,9 +636,9 @@ long BinnedCorr2<D1,D2,B>::samplePairs(
     return k;
 }
 
-template <int D1, int D2, int B> template <int C, int M>
+template <int D1, int D2, int B> template <int C, int M, int P>
 void BinnedCorr2<D1,D2,B>::samplePairs(
-    const Cell<D1, C>& c1, const Cell<D2, C>& c2, const MetricHelper<M>& metric,
+    const Cell<D1, C>& c1, const Cell<D2, C>& c2, const MetricHelper<M,P>& metric,
     double minsep, double minsepsq, double maxsep, double maxsepsq,
     long* i1, long* i2, double* sep, int n, long& k)
 {
@@ -704,29 +704,29 @@ void BinnedCorr2<D1,D2,B>::samplePairs(
             Assert(c1.getRight());
             Assert(c2.getLeft());
             Assert(c2.getRight());
-            samplePairs<C,M>(*c1.getLeft(), *c2.getLeft(), metric,
-                             minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
-            samplePairs<C,M>(*c1.getLeft(), *c2.getRight(), metric,
-                             minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
-            samplePairs<C,M>(*c1.getRight(), *c2.getLeft(), metric,
-                             minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
-            samplePairs<C,M>(*c1.getRight(), *c2.getRight(), metric,
-                             minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs<C,M,P>(*c1.getLeft(), *c2.getLeft(), metric,
+                               minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs<C,M,P>(*c1.getLeft(), *c2.getRight(), metric,
+                               minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs<C,M,P>(*c1.getRight(), *c2.getLeft(), metric,
+                               minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs<C,M,P>(*c1.getRight(), *c2.getRight(), metric,
+                               minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
         } else if (split1) {
             Assert(c1.getLeft());
             Assert(c1.getRight());
-            samplePairs<C,M>(*c1.getLeft(), c2, metric,
-                             minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
-            samplePairs<C,M>(*c1.getRight(), c2, metric,
-                             minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs<C,M,P>(*c1.getLeft(), c2, metric,
+                               minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs<C,M,P>(*c1.getRight(), c2, metric,
+                               minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
         } else {
             Assert(split2);
             Assert(c2.getLeft());
             Assert(c2.getRight());
-            samplePairs<C,M>(c1, *c2.getLeft(), metric,
-                             minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
-            samplePairs<C,M>(c1, *c2.getRight(), metric,
-                             minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs<C,M,P>(c1, *c2.getLeft(), metric,
+                               minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs<C,M,P>(c1, *c2.getRight(), metric,
+                               minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
         }
     }
 }
@@ -1116,21 +1116,30 @@ void DestroyCorr2(void* corr, int d1, int d2, int bin_type)
 template <int M, int D, int B>
 void ProcessAuto2d(BinnedCorr2<D,D,B>* corr, void* field, int dots, int coords)
 {
+    const bool P = corr->nontrivialRPar();
+    dbg<<"ProcessAuto: coords = "<<coords<<", metric = "<<M<<", P = "<<P<<std::endl;
+
     switch(coords) {
       case Flat:
-           Assert(MetricHelper<M>::_Flat == int(Flat));
-           corr->template process<MetricHelper<M>::_Flat, M>(
-               *static_cast<Field<D,MetricHelper<M>::_Flat>*>(field), dots);
+           Assert((MetricHelper<M,0>::_Flat == int(Flat)));
+           Assert(!P);
+           corr->template process<MetricHelper<M,0>::_Flat, M, false>(
+               *static_cast<Field<D,MetricHelper<M,0>::_Flat>*>(field), dots);
            break;
       case Sphere:
-           Assert(MetricHelper<M>::_Sphere == int(Sphere));
-           corr->template process<MetricHelper<M>::_Sphere, M>(
-               *static_cast<Field<D,MetricHelper<M>::_Sphere>*>(field), dots);
+           Assert((MetricHelper<M,0>::_Sphere == int(Sphere)));
+           Assert(!P);
+           corr->template process<MetricHelper<M,0>::_Sphere, M, false>(
+               *static_cast<Field<D,MetricHelper<M,0>::_Sphere>*>(field), dots);
            break;
       case ThreeD:
-           Assert(MetricHelper<M>::_ThreeD == int(ThreeD));
-           corr->template process<MetricHelper<M>::_ThreeD, M>(
-               *static_cast<Field<D,MetricHelper<M>::_ThreeD>*>(field), dots);
+           Assert((MetricHelper<M,0>::_ThreeD == int(ThreeD)));
+           if (P)
+               corr->template process<MetricHelper<M,1>::_ThreeD, M, true>(
+                   *static_cast<Field<D,MetricHelper<M,1>::_ThreeD>*>(field), dots);
+           else
+               corr->template process<MetricHelper<M,0>::_ThreeD, M, false>(
+                   *static_cast<Field<D,MetricHelper<M,0>::_ThreeD>*>(field), dots);
            break;
       default:
            Assert(false);
@@ -1206,24 +1215,34 @@ void ProcessAuto2(void* corr, void* field, int dots,
 template <int M, int D1, int D2, int B>
 void ProcessCross2d(BinnedCorr2<D1,D2,B>* corr, void* field1, void* field2, int dots, int coords)
 {
+    const bool P = corr->nontrivialRPar();
+    dbg<<"ProcessCross: coords = "<<coords<<", metric = "<<M<<", P = "<<P<<std::endl;
+
     switch(coords) {
       case Flat:
-           Assert(MetricHelper<M>::_Flat == int(Flat));
-           corr->template process<MetricHelper<M>::_Flat, M>(
-               *static_cast<Field<D1,MetricHelper<M>::_Flat>*>(field1),
-               *static_cast<Field<D2,MetricHelper<M>::_Flat>*>(field2), dots);
+           Assert((MetricHelper<M,0>::_Flat == int(Flat)));
+           Assert(!P);
+           corr->template process<MetricHelper<M,0>::_Flat, M, false>(
+               *static_cast<Field<D1,MetricHelper<M,0>::_Flat>*>(field1),
+               *static_cast<Field<D2,MetricHelper<M,0>::_Flat>*>(field2), dots);
            break;
       case Sphere:
-           Assert(MetricHelper<M>::_Sphere == int(Sphere));
-           corr->template process<MetricHelper<M>::_Sphere, M>(
-               *static_cast<Field<D1,MetricHelper<M>::_Sphere>*>(field1),
-               *static_cast<Field<D2,MetricHelper<M>::_Sphere>*>(field2), dots);
+           Assert((MetricHelper<M,0>::_Sphere == int(Sphere)));
+           Assert(!P);
+           corr->template process<MetricHelper<M,0>::_Sphere, M, false>(
+               *static_cast<Field<D1,MetricHelper<M,0>::_Sphere>*>(field1),
+               *static_cast<Field<D2,MetricHelper<M,0>::_Sphere>*>(field2), dots);
            break;
       case ThreeD:
-           Assert(MetricHelper<M>::_ThreeD == int(ThreeD));
-           corr->template process<MetricHelper<M>::_ThreeD, M>(
-               *static_cast<Field<D1,MetricHelper<M>::_ThreeD>*>(field1),
-               *static_cast<Field<D2,MetricHelper<M>::_ThreeD>*>(field2), dots);
+           Assert((MetricHelper<M,0>::_ThreeD == int(ThreeD)));
+           if (P)
+               corr->template process<MetricHelper<M,1>::_ThreeD, M, true>(
+                   *static_cast<Field<D1,MetricHelper<M,1>::_ThreeD>*>(field1),
+                   *static_cast<Field<D2,MetricHelper<M,1>::_ThreeD>*>(field2), dots);
+           else
+               corr->template process<MetricHelper<M,0>::_ThreeD, M, false>(
+                   *static_cast<Field<D1,MetricHelper<M,0>::_ThreeD>*>(field1),
+                   *static_cast<Field<D2,MetricHelper<M,0>::_ThreeD>*>(field2), dots);
            break;
       default:
            Assert(false);
@@ -1333,32 +1352,43 @@ void ProcessCross2(void* corr, void* field1, void* field2, int dots,
 template <int M, int D1, int D2, int B>
 void ProcessPair2d(BinnedCorr2<D1,D2,B>* corr, void* field1, void* field2, int dots, int coords)
 {
+    const bool P = corr->nontrivialRPar();
+    dbg<<"ProcessPair: coords = "<<coords<<", metric = "<<M<<", P = "<<P<<std::endl;
+
     switch(coords) {
       case Flat:
-           Assert(MetricHelper<M>::_Flat == int(Flat));
-           corr->template processPairwise<MetricHelper<M>::_Flat, M>(
-               *static_cast<SimpleField<D1,MetricHelper<M>::_Flat>*>(field1),
-               *static_cast<SimpleField<D2,MetricHelper<M>::_Flat>*>(field2), dots);
+           Assert((MetricHelper<M,0>::_Flat == int(Flat)));
+           Assert(!P);
+           corr->template processPairwise<MetricHelper<M,0>::_Flat, M, false>(
+               *static_cast<SimpleField<D1,MetricHelper<M,0>::_Flat>*>(field1),
+               *static_cast<SimpleField<D2,MetricHelper<M,0>::_Flat>*>(field2), dots);
            break;
       case Sphere:
-           Assert(MetricHelper<M>::_Sphere == int(Sphere));
-           corr->template processPairwise<MetricHelper<M>::_Sphere, M>(
-               *static_cast<SimpleField<D1,MetricHelper<M>::_Sphere>*>(field1),
-               *static_cast<SimpleField<D2,MetricHelper<M>::_Sphere>*>(field2), dots);
+           Assert((MetricHelper<M,0>::_Sphere == int(Sphere)));
+           Assert(!P);
+           corr->template processPairwise<MetricHelper<M,0>::_Sphere, M, false>(
+               *static_cast<SimpleField<D1,MetricHelper<M,0>::_Sphere>*>(field1),
+               *static_cast<SimpleField<D2,MetricHelper<M,0>::_Sphere>*>(field2), dots);
            break;
       case ThreeD:
-           Assert(MetricHelper<M>::_ThreeD == int(ThreeD));
-           corr->template processPairwise<MetricHelper<M>::_ThreeD, M>(
-               *static_cast<SimpleField<D1,MetricHelper<M>::_ThreeD>*>(field1),
-               *static_cast<SimpleField<D2,MetricHelper<M>::_ThreeD>*>(field2), dots);
+           Assert((MetricHelper<M,0>::_ThreeD == int(ThreeD)));
+           if (P)
+               corr->template processPairwise<MetricHelper<M,1>::_ThreeD, M, true>(
+                   *static_cast<SimpleField<D1,MetricHelper<M,1>::_ThreeD>*>(field1),
+                   *static_cast<SimpleField<D2,MetricHelper<M,1>::_ThreeD>*>(field2), dots);
+           else
+               corr->template processPairwise<MetricHelper<M,0>::_ThreeD, M, false>(
+                   *static_cast<SimpleField<D1,MetricHelper<M,0>::_ThreeD>*>(field1),
+                   *static_cast<SimpleField<D2,MetricHelper<M,0>::_ThreeD>*>(field2), dots);
            break;
       default:
            Assert(false);
     }
 }
-    template <int D1, int D2, int B>
-    void ProcessPair2c(BinnedCorr2<D1,D2,B>* corr, void* field1, void* field2, int dots,
-                       int coords, int metric)
+
+template <int D1, int D2, int B>
+void ProcessPair2c(BinnedCorr2<D1,D2,B>* corr, void* field1, void* field2, int dots,
+                   int coords, int metric)
 {
     switch(metric) {
       case Euclidean:
@@ -1477,37 +1507,49 @@ long SamplePairs2d(BinnedCorr2<D1,D2,B>* corr, void* field1, void* field2,
                    double minsep, double maxsep,
                    int coords, long* i1, long* i2, double* sep, int n)
 {
+    const bool P = corr->nontrivialRPar();
+    dbg<<"SamplePairs: coords = "<<coords<<", metric = "<<M<<", P = "<<P<<std::endl;
+
     switch(coords) {
       case Flat:
-           Assert(MetricHelper<M>::_Flat == int(Flat));
-           return corr->template samplePairs<MetricHelper<M>::_Flat, M>(
-               *static_cast<Field<D1,MetricHelper<M>::_Flat>*>(field1),
-               *static_cast<Field<D2,MetricHelper<M>::_Flat>*>(field2),
+           Assert((MetricHelper<M,0>::_Flat == int(Flat)));
+           Assert(!P);
+           return corr->template samplePairs<MetricHelper<M,0>::_Flat, M, false>(
+               *static_cast<Field<D1,MetricHelper<M,0>::_Flat>*>(field1),
+               *static_cast<Field<D2,MetricHelper<M,0>::_Flat>*>(field2),
                minsep, maxsep, i1, i2, sep, n);
            break;
       case Sphere:
-           Assert(MetricHelper<M>::_Sphere == int(Sphere));
-           return corr->template samplePairs<MetricHelper<M>::_Sphere, M>(
-               *static_cast<Field<D1,MetricHelper<M>::_Sphere>*>(field1),
-               *static_cast<Field<D2,MetricHelper<M>::_Sphere>*>(field2),
+           Assert((MetricHelper<M,0>::_Sphere == int(Sphere)));
+           Assert(!P);
+           return corr->template samplePairs<MetricHelper<M,0>::_Sphere, M, false>(
+               *static_cast<Field<D1,MetricHelper<M,0>::_Sphere>*>(field1),
+               *static_cast<Field<D2,MetricHelper<M,0>::_Sphere>*>(field2),
                minsep, maxsep, i1, i2, sep, n);
            break;
       case ThreeD:
-           Assert(MetricHelper<M>::_ThreeD == int(ThreeD));
-           return corr->template samplePairs<MetricHelper<M>::_ThreeD, M>(
-               *static_cast<Field<D1,MetricHelper<M>::_ThreeD>*>(field1),
-               *static_cast<Field<D2,MetricHelper<M>::_ThreeD>*>(field2),
-               minsep, maxsep, i1, i2, sep, n);
+           Assert((MetricHelper<M,0>::_ThreeD == int(ThreeD)));
+           if (P)
+               return corr->template samplePairs<MetricHelper<M,1>::_ThreeD, M, true>(
+                   *static_cast<Field<D1,MetricHelper<M,1>::_ThreeD>*>(field1),
+                   *static_cast<Field<D2,MetricHelper<M,1>::_ThreeD>*>(field2),
+                   minsep, maxsep, i1, i2, sep, n);
+           else
+               return corr->template samplePairs<MetricHelper<M,0>::_ThreeD, M, false>(
+                   *static_cast<Field<D1,MetricHelper<M,0>::_ThreeD>*>(field1),
+                   *static_cast<Field<D2,MetricHelper<M,0>::_ThreeD>*>(field2),
+                   minsep, maxsep, i1, i2, sep, n);
            break;
       default:
            Assert(false);
     }
     return 0;
 }
-    template <int D1, int D2, int B>
-    long SamplePairs2c(BinnedCorr2<D1,D2,B>* corr, void* field1, void* field2,
-                       double minsep, double maxsep,
-                       int coords, int metric, long* i1, long* i2, double* sep, int n)
+
+template <int D1, int D2, int B>
+long SamplePairs2c(BinnedCorr2<D1,D2,B>* corr, void* field1, void* field2,
+                   double minsep, double maxsep,
+                   int coords, int metric, long* i1, long* i2, double* sep, int n)
 {
     switch(metric) {
       case Euclidean:

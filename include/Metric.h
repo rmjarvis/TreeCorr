@@ -662,9 +662,11 @@ struct MetricHelper<Periodic, P>
 
     // The period in each direction.
     const double xp, yp, zp;
+    // We technically allow this, but seems a bit weird...
+    const double minrpar, maxrpar;
 
-    MetricHelper(double minrpar, double maxrpar, double _xp, double _yp, double _zp) :
-        xp(_xp), yp(_yp), zp(_zp) {}
+    MetricHelper(double _minrpar, double _maxrpar, double _xp, double _yp, double _zp) :
+        minrpar(_minrpar), maxrpar(_maxrpar), xp(_xp), yp(_yp), zp(_zp) {}
 
     ///
     //
@@ -759,11 +761,11 @@ struct MetricHelper<Periodic, P>
 
     bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                             double s1ps2, double& rpar) const
-    { return false; }
+    { return ParHelper<P>::isRParOutsideRange(p1,p2,minrpar,maxrpar,s1ps2,rpar); }
 
     bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                            double s1ps2, double rpar) const
-    { return true; }
+    { return ParHelper<P>::isRParInsideRange(p1,p2,minrpar,maxrpar,s1ps2,rpar); }
 
     bool tooSmallDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                       double rsq, double rpar, double s1ps2, double minsep, double minsepsq) const

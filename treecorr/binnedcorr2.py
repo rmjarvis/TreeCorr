@@ -615,7 +615,7 @@ class BinnedCorr2(object):
         else:
             # When patch processing, keep track of the pair-wise results.
             if self.npatch1 == 1:
-                self.npatch1 = self.npatch2 = len(cat1)
+                self.npatch1 = self.npatch2 = cat1[0].npatch if cat1[0].npatch != 1 else len(cat1)
             n = self.npatch1
 
             # Setup for deciding when this is my job.
@@ -1012,6 +1012,13 @@ class BinnedCorr2(object):
 
         return i1, i2, sep
 
+    # Some helper functions that are relevant for doing the covariance stuff below.
+    # Note: the word "pairs" in many of these is appropriate for 2pt, but in the 3pt case
+    # (cf. binnedcorr3.py), these actually refer to triples (i,j,k).
+
+    def _get_npatch(self):
+        return max(self.npatch1, self.npatch2)
+
     def _calculate_xi_from_pairs(self, pairs):
         # Compute the xi data vector for the given list of pairs.
         # pairs is input as a list of (i,j) values.
@@ -1021,35 +1028,75 @@ class BinnedCorr2(object):
         self._sum([self.results[ij] for ij in pairs])
         self._finalize()
 
-def _make_cov_design_matrix(corrs, plist, func):
-    # plist has the pairs to use for each row in the design matrix for each correlation fn.
-    # It is a list by row, each element is a list by corr fn of tuples (i,j), being the indices
-    # to use from the results dict.
-    # We aggregate and finalize each correlation function based on those pairs, and then call
-    # the function func on that list of correlation objects.  This is the data vector for
-    # each row in the design matrix.
-    # We also make a parallel array of the total weight in each row in case the calling routing
-    # needs it. So far, only sample uses the returned w, but it's very little overhead to compute
-    # it, and only a small memory overhead to build that array and return it.
+    def _jackknife_pairs(self):
+        if self.npatch2 == 1:
+            return [ [(j,0) for j in range(self.npatch1) if j!=i] for i in range(self.npatch1) ]
+        elif self.npatch1 == 1:
+            return [ [(0,j) for j in range(self.npatch2) if j!=i] for i in range(self.npatch2) ]
+        else:
+            assert self.npatch1 == self.npatch2
+            # For each i:
+            #    Select all pairs where neither is i.
+            return [ [(j,k) for j,k in self.results.keys() if j!=i and k!=i]
+                     for i in range(self.npatch1) ]
 
-    # Make a copy of the correlation objects, so we can overwrite things without breaking
-    # the original.
-    corrs = [c.copy() for c in corrs]
+    def _sample_pairs(self):
+        if self.npatch2 == 1:
+            return [ [(i,0)] for i in range(self.npatch1) ]
+        elif self.npatch1 == 1:
+            return [ [(0,i)] for i in range(self.npatch2) ]
+        else:
+            assert self.npatch1 == self.npatch2
+            # Note: It's not obvious to me a priori which of these should be the right choice.
+            #       Empirically, they both underestimate the variance, but the second one
+            #       does so less on the tests I have in test_patch.py.  So that's the one I'm
+            #       using.
+            # For each i:
+            #    Select all pairs where either is i.
+            #vpairs = [ [(j,k) for j,k in self.results.keys() if j==i or k==i]
+            #           for i in range(self.npatch1) ]
+            # For each i:
+            #    Select all pairs where first is i.
+            return [ [(j,k) for j,k in self.results.keys() if j==i] for i in range(self.npatch1) ]
 
-    # Figure out the shape of the design matrix.
-    vsize = len(func(corrs))
-    nrows = len(plist)
+    def _build_ok_matrix(self):
+        # Precompute an ok array to make the list comprehension in bootstrap_pars much faster.
+        if self.npatch1 != 1 and self.npatch2 != 1:
+            self._ok = np.zeros((self.npatch1, self.npatch2), dtype=bool)
+            for (i,j) in self.results:
+                self._ok[i,j] = True
 
-    # Make the empty return arrays.
-    v = np.empty((nrows,vsize), dtype=float)
-    w = np.zeros(nrows, dtype=float)
+    def _marked_pairs(self, indx):
+        if self.npatch2 == 1:
+            return [ (i,0) for i in indx ]
+        elif self.npatch1 == 1:
+            return [ (0,i) for i in indx ]
+        else:
+            assert self.npatch1 == self.npatch2
+            # Select all pairs where first point is in indx (repeating i as appropriate)
+            return [ (i,j) for i in indx for j in range(self.npatch2) if self._ok[i,j] ]
 
-    for row, pairs in enumerate(plist):
-        for c, cpairs in zip(corrs, pairs):
-            c._calculate_xi_from_pairs(cpairs)
-        v[row] = func(corrs)
-        w[row] = np.sum([np.sum(c.getWeight()) for c in corrs])
-    return v,w
+    def _bootstrap_pairs(self, indx):
+        if self.npatch2 == 1:
+            return [ (i,0) for i in indx ]
+        elif self.npatch1 == 1:
+            return [ (0,i) for i in indx ]
+        else:
+            assert self.npatch1 == self.npatch2
+            # Include all represented auto-correlations once, repeating as appropriate.
+            # This needs to be done separately from the below step to avoid extra pairs (i,i)
+            # that you would get by looping i in indx and j in indx for cases where i=j at
+            # different places in the indx list.  E.g. if i=3 shows up 3 times in indx, then
+            # the naive way would get 9 instance of (3,3), whereas we only want 3 instances.
+            ret = [ (i,i) for i in indx if self._ok[i,i] ]
+
+            # And all other pairs that aren't really auto-correlations.
+            # These can happen at their natural multiplicity from i and j loops.
+            # Note: This is way faster with the precomputed ok matrix.
+            # Like 0.005 seconds per call rather than 1.2 seconds for 128 patches!
+            ret.extend([ (i,j) for i in indx for j in indx if self._ok[i,j] and i!=j ])
+            return ret
+
 
 def estimate_multi_cov(corrs, method, func=None):
     """Estimate the covariance matrix of multiple statistics.
@@ -1137,6 +1184,36 @@ def estimate_multi_cov(corrs, method, func=None):
     else:
         raise ValueError("Invalid method: %s"%method)
 
+def _make_cov_design_matrix(corrs, plist, func):
+    # plist has the pairs to use for each row in the design matrix for each correlation fn.
+    # It is a list by row, each element is a list by corr fn of tuples (i,j), being the indices
+    # to use from the results dict.
+    # We aggregate and finalize each correlation function based on those pairs, and then call
+    # the function func on that list of correlation objects.  This is the data vector for
+    # each row in the design matrix.
+    # We also make a parallel array of the total weight in each row in case the calling routing
+    # needs it. So far, only sample uses the returned w, but it's very little overhead to compute
+    # it, and only a small memory overhead to build that array and return it.
+
+    # Make a copy of the correlation objects, so we can overwrite things without breaking
+    # the original.
+    corrs = [c.copy() for c in corrs]
+
+    # Figure out the shape of the design matrix.
+    vsize = len(func(corrs))
+    nrows = len(plist)
+
+    # Make the empty return arrays.
+    v = np.empty((nrows,vsize), dtype=float)
+    w = np.zeros(nrows, dtype=float)
+
+    for row, pairs in enumerate(plist):
+        for c, cpairs in zip(corrs, pairs):
+            c._calculate_xi_from_pairs(cpairs)
+        v[row] = func(corrs)
+        w[row] = np.sum([np.sum(c.getWeight()) for c in corrs])
+    return v,w
+
 def _cov_shot(corrs):
     # Shot noise "covariance" is just 1/RR or var(g)/weight or var(k)/weight, etc.
     # Except for NN, the denominator is always corr.weight.
@@ -1154,24 +1231,19 @@ def _cov_shot(corrs):
         vlist.append(v)
     return np.diag(np.concatenate(vlist))  # Return as a covariance matrix
 
-def _get_patch_nums(corrs, name):
+def _check_patch_nums(corrs, name):
     # Figure out what pairs (i,j) are possible for these correlation functions.
-    # Returns npatch, all_pairs
-    # all_pairs is a list of (i,j) values that any of the correlations have computed.
+    # Check that the patches used are compatible, and return the npatch to use.
 
-    pairs = list(corrs[0].results.keys())
-    if len(pairs) == 0:
-        raise ValueError("Using %s covariance requires using patches."%name)
-    npatch = max(corrs[0].npatch1, corrs[0].npatch2)
-    all_pairs = [pairs]  # Start these as lists for each corr instance.
-    for c in corrs[1:]:
-        pairs = list(c.results.keys())
-        if len(pairs) == 0:
+    for c in corrs:
+        if len(c.results) == 0:
             raise ValueError("Using %s covariance requires using patches."%name)
-        if (c.npatch1 != 1 and c.npatch1 != npatch) or (c.npatch2 != 1 and c.npatch2 != npatch):
+    npatch = corrs[0]._get_npatch()
+    for c in corrs[1:]:
+        if c._get_npatch() != npatch:
             raise RuntimeError("All correlations must use the same number of patches")
-        all_pairs.append(pairs)
-    return npatch, all_pairs
+    return npatch
+
 
 def _cov_jackknife(corrs, func):
     # Calculate the jackknife covariance for the given statistics
@@ -1181,20 +1253,9 @@ def _cov_jackknife(corrs, func):
     # where v_i is the vector when excluding patch i, and v_mean is the mean of all {v_i}.
     #   v_i = Sum_jk!=i num_jk / Sum_jk!=i denom_jk
 
-    npatch, all_pairs = _get_patch_nums(corrs, 'jackknife')
+    npatch = _check_patch_nums(corrs, 'jackknife')
 
-    plist = []
-    for c, pairs in zip(corrs, all_pairs):
-        if c.npatch2 == 1:
-            vpairs = [ [(j,0) for j in range(c.npatch1) if j!=i] for i in range(c.npatch1) ]
-        elif c.npatch1 == 1:
-            vpairs = [ [(0,j) for j in range(c.npatch2) if j!=i] for i in range(c.npatch2) ]
-        else:
-            assert c.npatch1 == c.npatch2
-            # For each i:
-            #    Select all pairs where neither is i.
-            vpairs = [ [(j,k) for j,k in pairs if j!=i and k!=i] for i in range(c.npatch1) ]
-        plist.append(vpairs)
+    plist = [c._jackknife_pairs() for c in corrs]
     # Swap order of plist.  Right now it's a list for each corr of a list for each row.
     # We want a list by row with a list for each corr.
     plist = list(zip(*plist))
@@ -1216,29 +1277,12 @@ def _cov_sample(corrs, func):
     # where v_i = Sum_j num_ij / Sum_j denom_ij
     # and w_i is the fraction of the total weight in each patch
 
-    npatch, all_pairs = _get_patch_nums(corrs, 'sample')
+    npatch = _check_patch_nums(corrs, 'sample')
 
-    plist = []
-    for c, pairs in zip(corrs, all_pairs):
-        if c.npatch2 == 1:
-            vpairs = [ [(i,0)] for i in range(c.npatch1) ]
-        elif c.npatch1 == 1:
-            vpairs = [ [(0,i)] for i in range(c.npatch2) ]
-        else:
-            assert c.npatch1 == c.npatch2
-            # Note: It's not obvious to me a priori which of these should be the right choice.
-            #       Empirically, they both underestimate the variance, but the second one
-            #       does so less on the tests I have in test_patch.py.  So that's the one I'm
-            #       using.
-            # For each i:
-            #    Select all pairs where either is i.
-            #vpairs = [ [(j,k) for j,k in pairs if j==i or k==i] for i in range(c.npatch1) ]
-            # For each i:
-            #    Select all pairs where first is i.
-            vpairs = [ [(j,k) for j,k in pairs if j==i] for i in range(c.npatch1) ]
+    plist = [c._sample_pairs() for c in corrs]
+    for vpairs in plist:
         if any([len(v) == 0 for v in vpairs]):
             raise RuntimeError("Cannot compute sample variance when some patches have no data.")
-        plist.append(vpairs)
     # Swap order of plist.  Right now it's a list for each corr of a list for each row.
     # We want a list by row with a list for each corr.
     plist = list(zip(*plist))
@@ -1268,34 +1312,20 @@ def _cov_marked(corrs, func):
 
     # C = 1/(nboot) Sum_i (v_i - v_mean) (v_i - v_mean)^T
 
-    npatch, all_pairs = _get_patch_nums(corrs, 'marked_bootstrap')
-
-    # Precompute an ok array to make the list comprehension much faster.
-    all_ok = [np.zeros((c.npatch1, c.npatch1), dtype=bool)
-              if c.npatch1 != 1 and c.npatch2 != 1 else None
-              for c in corrs]
-    for c,ok,pairs in zip(corrs, all_ok, all_pairs):
-        if ok is not None:
-            for (i,j) in pairs:
-                ok[i,j] = True
+    npatch = _check_patch_nums(corrs, 'marked_bootstrap')
 
     nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
+
+    # Precompute an ok matrix to help speed up list comprehension in the _marked_pairs
+    # function.
+    for c in corrs:
+        c._build_ok_matrix()
 
     plist = []
     for k in range(nboot):
         # Select a random set of indices to use.  (Will have repeats.)
         indx = np.random.randint(npatch, size=npatch)
-        vpairs = []
-        for c, ok, pairs in zip(corrs, all_ok, all_pairs):
-            if c.npatch2 == 1:
-                vpairs1 = [ (i,0) for i in indx ]
-            elif c.npatch1 == 1:
-                vpairs1 = [ (0,i) for i in indx ]
-            else:
-                assert c.npatch1 == c.npatch2
-                # Select all pairs where first point is in indx (repeating i as appropriate)
-                vpairs1 = [ (i,j) for i in indx for j in range(c.npatch2) if ok[i,j] ]
-            vpairs.append(vpairs1)
+        vpairs = [c._marked_pairs(indx) for c in corrs]
         plist.append(vpairs)
 
     v,w = _make_cov_design_matrix(corrs, plist, func)
@@ -1313,40 +1343,18 @@ def _cov_bootstrap(corrs, func):
     # It seems to do a slightly better job than the marked-point bootstrap above from the
     # tests done in the test suite.  But the difference is generally pretty small.
 
-    npatch, all_pairs = _get_patch_nums(corrs, 'bootstrap')
-
-    # Precompute an ok array to make the list comprehension much faster.
-    all_ok = [np.zeros((c.npatch1, c.npatch1), dtype=bool)
-              if c.npatch1 != 1 and c.npatch2 != 1 else None
-              for c in corrs]
-    for c,ok,pairs in zip(corrs, all_ok, all_pairs):
-        if ok is not None:
-            for (i,j) in pairs:
-                if i != j:
-                    ok[i,j] = True
+    npatch = _check_patch_nums(corrs, 'bootstrap')
 
     nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
+
+    # Precompute an ok matrix to help speed up list comprehension in the _bootstrap_pairs function
+    for c in corrs:
+        c._build_ok_matrix()
 
     plist = []
     for k in range(nboot):
         indx = np.random.randint(npatch, size=npatch)
-        vpairs = []
-        for c, ok, pairs in zip(corrs, all_ok, all_pairs):
-            if c.npatch2 == 1:
-                vpairs1 = [ (i,0) for i in indx ]
-            elif c.npatch1 == 1:
-                vpairs1 = [ (0,i) for i in indx ]
-            else:
-                assert c.npatch1 == c.npatch2
-                # Include all represented auto-correlations once, repeating as appropriate
-                vpairs1 = [ (i,i) for i in indx if (i,i) in pairs ]
-
-                # And all other pairs that aren't really auto-correlations
-                # This is way faster with the precomputed ok matrix.
-                # Like 0.005 seconds per call rather than 1.2 seconds for 128 patches!
-                temp = [ (i,j) for i in indx for j in indx if ok[i,j] ]
-                vpairs1.extend(temp)
-            vpairs.append(vpairs1)
+        vpairs = [c._bootstrap_pairs(indx) for c in corrs]
         plist.append(vpairs)
 
     v,w = _make_cov_design_matrix(corrs, plist, func)

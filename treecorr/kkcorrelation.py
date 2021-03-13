@@ -15,11 +15,16 @@
 .. module:: kkcorrelation
 """
 
-import treecorr
 import numpy as np
 
+from . import _lib, _ffi
+from .catalog import calculateVarK
+from .binnedcorr2 import BinnedCorr2
+from .util import double_ptr as dp
+from .util import gen_read, gen_write
 
-class KKCorrelation(treecorr.BinnedCorr2):
+
+class KKCorrelation(BinnedCorr2):
     r"""This class handles the calculation and storage of a 2-point kappa-kappa correlation
     function.
 
@@ -94,7 +99,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
     def __init__(self, config=None, logger=None, **kwargs):
         """Initialize `KKCorrelation`.  See class doc for details.
         """
-        treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
+        BinnedCorr2.__init__(self, config, logger, **kwargs)
 
         self._ro._d1 = 2  # KData
         self._ro._d2 = 2  # KData
@@ -109,8 +114,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
     @property
     def corr(self):
         if self._corr is None:
-            from treecorr.util import double_ptr as dp
-            self._corr = treecorr._lib.BuildCorr2(
+            self._corr = _lib.BuildCorr2(
                     self._d1, self._d2, self._bintype,
                     self._min_sep,self._max_sep,self._nbins,self._bin_size,self.b,
                     self.min_rpar, self.max_rpar, self.xperiod, self.yperiod, self.zperiod,
@@ -122,8 +126,8 @@ class KKCorrelation(treecorr.BinnedCorr2):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if self._corr is not None:
-            if not treecorr._ffi._lock.locked(): # pragma: no branch
-                treecorr._lib.DestroyCorr2(self.corr, self._d1, self._d2, self._bintype)
+            if not _ffi._lock.locked(): # pragma: no branch
+                _lib.DestroyCorr2(self.corr, self._d1, self._d2, self._bintype)
 
     def __eq__(self, other):
         """Return whether two `KKCorrelation` instances are equal"""
@@ -199,8 +203,8 @@ class KKCorrelation(treecorr.BinnedCorr2):
                               bool(self.brute), self.min_top, self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        treecorr._lib.ProcessAuto2(self.corr, field.data, self.output_dots,
-                                   field._d, self._coords, self._bintype, self._metric)
+        _lib.ProcessAuto2(self.corr, field.data, self.output_dots,
+                          field._d, self._coords, self._bintype, self._metric)
 
 
     def process_cross(self, cat1, cat2, metric=None, num_threads=None):
@@ -239,8 +243,8 @@ class KKCorrelation(treecorr.BinnedCorr2):
                             self.min_top, self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        treecorr._lib.ProcessCross2(self.corr, f1.data, f2.data, self.output_dots,
-                                    f1._d, f2._d, self._coords, self._bintype, self._metric)
+        _lib.ProcessCross2(self.corr, f1.data, f2.data, self.output_dots,
+                           f1._d, f2._d, self._coords, self._bintype, self._metric)
 
 
     def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
@@ -285,8 +289,8 @@ class KKCorrelation(treecorr.BinnedCorr2):
         f1 = cat1.getKSimpleField()
         f2 = cat2.getKSimpleField()
 
-        treecorr._lib.ProcessPair(self.corr, f1.data, f2.data, self.output_dots,
-                                  f1._d, f2._d, self._coords, self._bintype, self._metric)
+        _lib.ProcessPair(self.corr, f1.data, f2.data, self.output_dots,
+                         f1._d, f2._d, self._coords, self._bintype, self._metric)
 
     def _finalize(self):
         mask1 = self.weight != 0
@@ -410,12 +414,12 @@ class KKCorrelation(treecorr.BinnedCorr2):
 
         if finalize:
             if cat2 is None:
-                vark1 = treecorr.calculateVarK(cat1)
+                vark1 = calculateVarK(cat1)
                 vark2 = vark1
                 self.logger.info("vark = %f: sig_k = %f",vark1,math.sqrt(vark1))
             else:
-                vark1 = treecorr.calculateVarK(cat1)
-                vark2 = treecorr.calculateVarK(cat2)
+                vark1 = calculateVarK(cat1)
+                vark2 = calculateVarK(cat2)
                 self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
                 self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
             self.finalize(vark1,vark2)
@@ -457,7 +461,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
         params = { 'coords' : self.coords, 'metric' : self.metric,
                    'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
 
-        treecorr.util.gen_write(
+        gen_write(
             file_name,
             ['r_nom','meanr','meanlogr','xi','sigma_xi','weight','npairs'],
             [ self.rnom, self.meanr, self.meanlogr,
@@ -484,7 +488,7 @@ class KKCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Reading KK correlations from %s',file_name)
 
-        data, params = treecorr.util.gen_read(file_name, file_type=file_type, logger=self.logger)
+        data, params = gen_read(file_name, file_type=file_type, logger=self.logger)
         if 'R_nom' in data.dtype.names:  # pragma: no cover
             self._ro.rnom = data['R_nom']
             self.meanr = data['meanR']

@@ -15,10 +15,15 @@
 .. module:: nncorrelation
 """
 
-import treecorr
 import numpy as np
 
-class NNCorrelation(treecorr.BinnedCorr2):
+from . import _lib, _ffi
+from .catalog import calculateVarK
+from .binnedcorr2 import BinnedCorr2
+from .util import double_ptr as dp
+from .util import gen_read, gen_write
+
+class NNCorrelation(BinnedCorr2):
     r"""This class handles the calculation and storage of a 2-point count-count correlation
     function.  i.e. the regular density correlation function.
 
@@ -87,7 +92,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
     def __init__(self, config=None, logger=None, **kwargs):
         """Initialize `NNCorrelation`.  See class doc for details.
         """
-        treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
+        BinnedCorr2.__init__(self, config, logger, **kwargs)
 
         self._ro._d1 = 1  # NData
         self._ro._d2 = 1  # NData
@@ -105,8 +110,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
     @property
     def corr(self):
         if self._corr is None:
-            from treecorr.util import double_ptr as dp
-            self._corr = treecorr._lib.BuildCorr2(
+            self._corr = _lib.BuildCorr2(
                     self._d1, self._d2, self._bintype,
                     self._min_sep,self._max_sep,self._nbins,self._bin_size,self.b,
                     self.min_rpar, self.max_rpar, self.xperiod, self.yperiod, self.zperiod,
@@ -118,8 +122,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if self._corr is not None:
-            if not treecorr._ffi._lock.locked(): # pragma: no branch
-                treecorr._lib.DestroyCorr2(self.corr, self._d1, self._d2, self._bintype)
+            if not _ffi._lock.locked(): # pragma: no branch
+                _lib.DestroyCorr2(self.corr, self._d1, self._d2, self._bintype)
 
     def __eq__(self, other):
         """Return whether two `NNCorrelation` instances are equal"""
@@ -199,8 +203,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
                               bool(self.brute), self.min_top, self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        treecorr._lib.ProcessAuto2(self.corr, field.data, self.output_dots,
-                                   field._d, self._coords, self._bintype, self._metric)
+        _lib.ProcessAuto2(self.corr, field.data, self.output_dots,
+                          field._d, self._coords, self._bintype, self._metric)
         self.tot += 0.5 * cat.sumw**2
 
 
@@ -239,8 +243,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
                             self.min_top, self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        treecorr._lib.ProcessCross2(self.corr, f1.data, f2.data, self.output_dots,
-                                    f1._d, f2._d, self._coords, self._bintype, self._metric)
+        _lib.ProcessCross2(self.corr, f1.data, f2.data, self.output_dots,
+                           f1._d, f2._d, self._coords, self._bintype, self._metric)
         self.tot += cat1.sumw*cat2.sumw
 
 
@@ -285,8 +289,8 @@ class NNCorrelation(treecorr.BinnedCorr2):
         f1 = cat1.getNSimpleField()
         f2 = cat2.getNSimpleField()
 
-        treecorr._lib.ProcessPair(self.corr, f1.data, f2.data, self.output_dots,
-                                  f1._d, f2._d, self._coords, self._bintype, self._metric)
+        _lib.ProcessPair(self.corr, f1.data, f2.data, self.output_dots,
+                         f1._d, f2._d, self._coords, self._bintype, self._metric)
         self.tot += (cat1.sumw+cat2.sumw)/2.
 
     def _finalize(self):
@@ -743,7 +747,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         params = { 'tot' : self.tot, 'coords' : self.coords, 'metric' : self.metric,
                    'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
 
-        treecorr.util.gen_write(
+        gen_write(
             file_name, col_names, columns, params=params,
             precision=precision, file_type=file_type, logger=self.logger)
 
@@ -767,7 +771,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Reading NN correlations from %s',file_name)
 
-        data, params = treecorr.util.gen_read(file_name, file_type=file_type, logger=self.logger)
+        data, params = gen_read(file_name, file_type=file_type, logger=self.logger)
         if 'R_nom' in data.dtype.names:  # pragma: no cover
             self._ro.rnom = data['R_nom']
             self.meanr = data['meanR']
@@ -841,7 +845,7 @@ class NNCorrelation(treecorr.BinnedCorr2):
                 - varnsq = array of variance estimates of this value
         """
         if m2_uform is None:
-            m2_uform = treecorr.config.get(self.config,'m2_uform',str,'Crittenden')
+            m2_uform = self.config.get('m2_uform', 'Crittenden')
         if m2_uform not in ['Crittenden', 'Schneider']:
             raise ValueError("Invalid m2_uform")
         if R is None:

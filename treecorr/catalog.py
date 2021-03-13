@@ -20,9 +20,14 @@ import coord
 import weakref
 import copy
 import os
-import treecorr
+
+from . import _lib
 from .reader import FitsReader, HdfReader, AsciiReader, PandasReader, ParquetReader
-from .util import parse_file_type
+from .config import merge_config, setup_logger, get, get_from_list
+from .util import parse_file_type, LRU_Cache, gen_write, gen_read, set_omp_threads
+from .util import double_ptr as dp
+from .util import long_ptr as lp
+from .field import NField, KField, GField, NSimpleField, KSimpleField, GSimpleField
 
 class Catalog(object):
     """A set of input data (positions and other quantities) to be correlated.
@@ -503,8 +508,7 @@ class Catalog(object):
                  x=None, y=None, z=None, ra=None, dec=None, r=None, w=None, wpos=None, flag=None,
                  g1=None, g2=None, k=None, patch=None, patch_centers=None, **kwargs):
 
-        self.config = treecorr.config.merge_config(config, kwargs, Catalog._valid_params,
-                                                   Catalog._aliases)
+        self.config = merge_config(config, kwargs, Catalog._valid_params, Catalog._aliases)
         self.orig_config = config.copy() if config is not None else {}
         if config and kwargs:
             self.orig_config.update(kwargs)
@@ -514,9 +518,8 @@ class Catalog(object):
         if logger is not None:
             self.logger = logger
         else:
-            self.logger = treecorr.config.setup_logger(
-                    treecorr.config.get(self.config,'verbose',int,1),
-                    self.config.get('log_file',None))
+            self.logger = setup_logger(get(self.config,'verbose',int,1),
+                                       self.config.get('log_file',None))
 
         # Start with everything set to None.  Overwrite as appropriate.
         self._x = None
@@ -543,10 +546,10 @@ class Catalog(object):
         self._patches = None
         self._centers = None
 
-        first_row = treecorr.config.get_from_list(self.config,'first_row',num,int,1)
+        first_row = get_from_list(self.config,'first_row',num,int,1)
         if first_row < 1:
             raise ValueError("first_row should be >= 1")
-        last_row = treecorr.config.get_from_list(self.config,'last_row',num,int,-1)
+        last_row = get_from_list(self.config,'last_row',num,int,-1)
         if last_row > 0 and last_row < first_row:
             raise ValueError("last_row should be >= first_row")
         if last_row > 0:
@@ -557,12 +560,12 @@ class Catalog(object):
             self.start = first_row-1
         else:
             self.start = 0
-        self.every_nth = treecorr.config.get_from_list(self.config,'every_nth',num,int,1)
+        self.every_nth = get_from_list(self.config,'every_nth',num,int,1)
         if self.every_nth < 1:
             raise ValueError("every_nth should be >= 1")
 
         if 'npatch' in self.config and self.config['npatch'] != 1:
-            self._npatch = treecorr.config.get(self.config,'npatch',int)
+            self._npatch = get(self.config,'npatch',int)
             if self._npatch < 1:
                 raise ValueError("npatch must be >= 1")
         elif self.config.get('patch_col',0) not in (0,'0'):
@@ -579,7 +582,7 @@ class Catalog(object):
 
         if patch_centers is None and 'patch_centers' in self.config:
             # file name version may be in a config dict, rather than kwarg.
-            patch_centers = treecorr.config.get(self.config,'patch_centers',str)
+            patch_centers = get(self.config,'patch_centers',str)
 
         if patch_centers is not None:
             if patch is not None or self.config.get('patch_col',0) not in (0,'0'):
@@ -605,7 +608,7 @@ class Catalog(object):
                 self.name += " patch " + str(self._single_patch)
 
             # Figure out which file type the catalog is
-            file_type = treecorr.config.get_from_list(self.config,'file_type',num)
+            file_type = get_from_list(self.config,'file_type',num)
             file_type = parse_file_type(file_type, file_name, output=False, logger=self.logger)
             if file_type == 'FITS':
                 self.reader = FitsReader(file_name)
@@ -891,8 +894,8 @@ class Catalog(object):
         # Finish processing the data based on given inputs.
 
         # Apply flips if requested
-        flip_g1 = treecorr.config.get_from_list(self.config,'flip_g1',self._num,bool,False)
-        flip_g2 = treecorr.config.get_from_list(self.config,'flip_g2',self._num,bool,False)
+        flip_g1 = get_from_list(self.config,'flip_g1',self._num,bool,False)
+        flip_g2 = get_from_list(self.config,'flip_g2',self._num,bool,False)
         if flip_g1:
             self.logger.info("   Flipping sign of g1.")
             self._g1 = -self._g1
@@ -903,9 +906,9 @@ class Catalog(object):
         # Convert the flag to a weight
         if self._flag is not None:
             if 'ignore_flag' in self.config:
-                ignore_flag = treecorr.config.get_from_list(self.config,'ignore_flag',self._num,int)
+                ignore_flag = get_from_list(self.config,'ignore_flag',self._num,int)
             else:
-                ok_flag = treecorr.config.get_from_list(self.config,'ok_flag',self._num,int,0)
+                ok_flag = get_from_list(self.config,'ok_flag',self._num,int,0)
                 ignore_flag = ~ok_flag
             # If we don't already have a weight column, make one with all values = 1.
             if self._w is None:
@@ -962,7 +965,7 @@ class Catalog(object):
             # Make w all 1s to simplify the use of w later in code.
             self._w = np.ones((self.ntot), dtype=float)
 
-        keep_zero_weight = treecorr.config.get(self.config,'keep_zero_weight',bool,False)
+        keep_zero_weight = get(self.config,'keep_zero_weight',bool,False)
         if self._nontrivial_w and not keep_zero_weight:
             wpos = self._wpos if self._wpos is not None else self._w
             if np.any(wpos == 0):
@@ -978,8 +981,8 @@ class Catalog(object):
             self._assign_patches()
             self.logger.info("Assigned patch numbers according %d centers",self._npatch)
         elif self._npatch is not None and self._npatch != 1:
-            init = treecorr.config.get(self.config,'kmeans_init',str,'tree')
-            alt = treecorr.config.get(self.config,'kmeans_alt',bool,False)
+            init = get(self.config,'kmeans_init',str,'tree')
+            alt = get(self.config,'kmeans_alt',bool,False)
             max_top = int.bit_length(self._npatch)-1
             c = 'spherical' if self._ra is not None else self.coords
             field = self.getNField(max_top=max_top, coords=c)
@@ -994,13 +997,11 @@ class Catalog(object):
         #   self._patch = field.kmeans_assign_patches(self._centers)
         # However, when the field is not already created, it's faster to just run through
         # all the points directly and assign which one is closest.
-        from treecorr.util import double_ptr as dp
-        from treecorr.util import long_ptr as lp
         self._patch = np.empty(self.ntot, dtype=int)
         centers = np.ascontiguousarray(self._centers)
-        treecorr.set_omp_threads(self.config.get('num_threads',None))
-        treecorr._lib.QuickAssign(dp(centers), self._npatch,
-                                  dp(self.x), dp(self.y), dp(self.z), lp(self._patch), self.ntot)
+        set_omp_threads(self.config.get('num_threads',None))
+        _lib.QuickAssign(dp(centers), self._npatch,
+                         dp(self.x), dp(self.y), dp(self.z), lp(self._patch), self.ntot)
 
     def _set_npatch(self):
         npatch = max(self._patch) + 1
@@ -1025,10 +1026,10 @@ class Catalog(object):
                 assert centers.shape[1] == 2
             else:
                 assert centers.shape[1] == 3
-            treecorr.set_omp_threads(self.config.get('num_threads',None))
-            treecorr._lib.SelectPatch(single_patch, dp(centers), npatch,
-                                      dp(self._x), dp(self._y), dp(self._z),
-                                      lp(use), self.ntot)
+            set_omp_threads(self.config.get('num_threads',None))
+            _lib.SelectPatch(single_patch, dp(centers), npatch,
+                             dp(self._x), dp(self._y), dp(self._z),
+                             lp(use), self.ntot)
             use = np.where(use)[0]
         else:
             use = slice(None)  # Which ironically means use all. :)
@@ -1037,15 +1038,13 @@ class Catalog(object):
     def _apply_units(self):
         # Apply units to x,y,ra,dec
         if self._ra is not None:
-            self.ra_units = treecorr.config.get_from_list(self.config,'ra_units',self._num)
-            self.dec_units = treecorr.config.get_from_list(self.config,'dec_units',self._num)
+            self.ra_units = get_from_list(self.config,'ra_units',self._num)
+            self.dec_units = get_from_list(self.config,'dec_units',self._num)
             self._ra *= self.ra_units
             self._dec *= self.dec_units
         else:
-            self.x_units = treecorr.config.get_from_list(self.config,'x_units',self._num,str,
-                                                         'radians')
-            self.y_units = treecorr.config.get_from_list(self.config,'y_units',self._num,str,
-                                                         'radians')
+            self.x_units = get_from_list(self.config,'x_units',self._num,str, 'radians')
+            self.y_units = get_from_list(self.config,'y_units',self._num,str, 'radians')
             self._x *= self.x_units
             self._y *= self.y_units
 
@@ -1060,9 +1059,9 @@ class Catalog(object):
             self._y = np.empty(ntot, dtype=float)
             self._z = np.empty(ntot, dtype=float)
             from .util import double_ptr as dp
-            treecorr.set_omp_threads(self.config.get('num_threads',None))
-            treecorr._lib.GenerateXYZ(dp(self._x), dp(self._y), dp(self._z),
-                                      dp(self._ra), dp(self._dec), dp(self._r), ntot)
+            set_omp_threads(self.config.get('num_threads',None))
+            _lib.GenerateXYZ(dp(self._x), dp(self._y), dp(self._z),
+                             dp(self._ra), dp(self._dec), dp(self._r), ntot)
             self.x_units = self.y_units = 1.
 
     def _select_patch(self, single_patch):
@@ -1142,19 +1141,19 @@ class Catalog(object):
         # Just check the consistency of the various column numbers so we can fail fast.
 
         # Get the column names
-        x_col = treecorr.config.get_from_list(self.config,'x_col',num,str,'0')
-        y_col = treecorr.config.get_from_list(self.config,'y_col',num,str,'0')
-        z_col = treecorr.config.get_from_list(self.config,'z_col',num,str,'0')
-        ra_col = treecorr.config.get_from_list(self.config,'ra_col',num,str,'0')
-        dec_col = treecorr.config.get_from_list(self.config,'dec_col',num,str,'0')
-        r_col = treecorr.config.get_from_list(self.config,'r_col',num,str,'0')
-        w_col = treecorr.config.get_from_list(self.config,'w_col',num,str,'0')
-        wpos_col = treecorr.config.get_from_list(self.config,'wpos_col',num,str,'0')
-        flag_col = treecorr.config.get_from_list(self.config,'flag_col',num,str,'0')
-        g1_col = treecorr.config.get_from_list(self.config,'g1_col',num,str,'0')
-        g2_col = treecorr.config.get_from_list(self.config,'g2_col',num,str,'0')
-        k_col = treecorr.config.get_from_list(self.config,'k_col',num,str,'0')
-        patch_col = treecorr.config.get_from_list(self.config,'patch_col',num,str,'0')
+        x_col = get_from_list(self.config,'x_col',num,str,'0')
+        y_col = get_from_list(self.config,'y_col',num,str,'0')
+        z_col = get_from_list(self.config,'z_col',num,str,'0')
+        ra_col = get_from_list(self.config,'ra_col',num,str,'0')
+        dec_col = get_from_list(self.config,'dec_col',num,str,'0')
+        r_col = get_from_list(self.config,'r_col',num,str,'0')
+        w_col = get_from_list(self.config,'w_col',num,str,'0')
+        wpos_col = get_from_list(self.config,'wpos_col',num,str,'0')
+        flag_col = get_from_list(self.config,'flag_col',num,str,'0')
+        g1_col = get_from_list(self.config,'g1_col',num,str,'0')
+        g2_col = get_from_list(self.config,'g2_col',num,str,'0')
+        k_col = get_from_list(self.config,'k_col',num,str,'0')
+        patch_col = get_from_list(self.config,'patch_col',num,str,'0')
         allow_xyz = self.config.get('allow_xyz', False)
 
         if x_col != '0' or y_col != '0':
@@ -1193,7 +1192,7 @@ class Catalog(object):
         with reader:
 
             # get the vanilla "ext" parameter
-            ext = treecorr.config.get_from_list(self.config, 'ext', num, str, reader.default_ext)
+            ext = get_from_list(self.config, 'ext', num, str, reader.default_ext)
 
             # Technically, this doesn't catch all possible errors.  If someone specifies
             # an invalid flag_ext or something, then they'll get the fitsio error message.
@@ -1201,53 +1200,53 @@ class Catalog(object):
             reader.check_valid_ext(ext)
 
             if x_col != '0':
-                x_ext = treecorr.config.get_from_list(self.config, 'x_ext', num, str, ext)
-                y_ext = treecorr.config.get_from_list(self.config, 'y_ext', num, str, ext)
+                x_ext = get_from_list(self.config, 'x_ext', num, str, ext)
+                y_ext = get_from_list(self.config, 'y_ext', num, str, ext)
                 if x_col not in reader.names(x_ext):
                     raise ValueError("x_col is invalid for file %s"%file_name)
                 if y_col not in reader.names(y_ext):
                     raise ValueError("y_col is invalid for file %s"%file_name)
                 if z_col != '0':
-                    z_ext = treecorr.config.get_from_list(self.config, 'z_ext', num, str, ext)
+                    z_ext = get_from_list(self.config, 'z_ext', num, str, ext)
                     if z_col not in reader.names(z_ext):
                         raise ValueError("z_col is invalid for file %s"%file_name)
             else:
-                ra_ext = treecorr.config.get_from_list(self.config, 'ra_ext', num, str, ext)
-                dec_ext = treecorr.config.get_from_list(self.config, 'dec_ext', num, str, ext)
+                ra_ext = get_from_list(self.config, 'ra_ext', num, str, ext)
+                dec_ext = get_from_list(self.config, 'dec_ext', num, str, ext)
                 if ra_col not in reader.names(ra_ext):
                     raise ValueError("ra_col is invalid for file %s"%file_name)
                 if dec_col not in reader.names(dec_ext):
                     raise ValueError("dec_col is invalid for file %s"%file_name)
                 if r_col != '0':
-                    r_ext = treecorr.config.get_from_list(self.config, 'r_ext', num, str, ext)
+                    r_ext = get_from_list(self.config, 'r_ext', num, str, ext)
                     if r_col not in reader.names(r_ext):
                         raise ValueError("r_col is invalid for file %s"%file_name)
 
             if w_col != '0':
-                w_ext = treecorr.config.get_from_list(self.config, 'w_ext', num, str, ext)
+                w_ext = get_from_list(self.config, 'w_ext', num, str, ext)
                 if w_col not in reader.names(w_ext):
                     raise ValueError("w_col is invalid for file %s"%file_name)
 
             if wpos_col != '0':
-                wpos_ext = treecorr.config.get_from_list(self.config, 'wpos_ext', num, str, ext)
+                wpos_ext = get_from_list(self.config, 'wpos_ext', num, str, ext)
                 if wpos_col not in reader.names(wpos_ext):
                     raise ValueError("wpos_col is invalid for file %s"%file_name)
 
             if flag_col != '0':
-                flag_ext = treecorr.config.get_from_list(self.config, 'flag_ext', num, str, ext)
+                flag_ext = get_from_list(self.config, 'flag_ext', num, str, ext)
                 if flag_col not in reader.names(flag_ext):
                     raise ValueError("flag_col is invalid for file %s"%file_name)
 
             if patch_col != '0':
-                patch_ext = treecorr.config.get_from_list(self.config, 'patch_ext', num, str, ext)
+                patch_ext = get_from_list(self.config, 'patch_ext', num, str, ext)
                 if patch_col not in reader.names(patch_ext):
                     raise ValueError("patch_col is invalid for file %s"%file_name)
 
             if is_rand: return
 
             if g1_col != '0':
-                g1_ext = treecorr.config.get_from_list(self.config, 'g1_ext', num, str, ext)
-                g2_ext = treecorr.config.get_from_list(self.config, 'g2_ext', num, str, ext)
+                g1_ext = get_from_list(self.config, 'g1_ext', num, str, ext)
+                g2_ext = get_from_list(self.config, 'g2_ext', num, str, ext)
                 if (g1_col not in reader.names(g1_ext) or
                     g2_col not in reader.names(g2_ext)):
                     if isGColRequired(self.orig_config,num):
@@ -1258,7 +1257,7 @@ class Catalog(object):
                                             "because they are invalid, but unneeded.")
 
             if k_col != '0':
-                k_ext = treecorr.config.get_from_list(self.config, 'k_ext', num, str, ext)
+                k_ext = get_from_list(self.config, 'k_ext', num, str, ext)
                 if k_col not in reader.names(k_ext):
                     if isKColRequired(self.orig_config,num):
                         raise ValueError("k_col is invalid for file %s"%file_name)
@@ -1303,23 +1302,23 @@ class Catalog(object):
                 self._set_npatch()
 
         # Get the column names
-        x_col = treecorr.config.get_from_list(self.config,'x_col',num,str,'0')
-        y_col = treecorr.config.get_from_list(self.config,'y_col',num,str,'0')
-        z_col = treecorr.config.get_from_list(self.config,'z_col',num,str,'0')
-        ra_col = treecorr.config.get_from_list(self.config,'ra_col',num,str,'0')
-        dec_col = treecorr.config.get_from_list(self.config,'dec_col',num,str,'0')
-        r_col = treecorr.config.get_from_list(self.config,'r_col',num,str,'0')
-        w_col = treecorr.config.get_from_list(self.config,'w_col',num,str,'0')
-        wpos_col = treecorr.config.get_from_list(self.config,'wpos_col',num,str,'0')
-        flag_col = treecorr.config.get_from_list(self.config,'flag_col',num,str,'0')
-        g1_col = treecorr.config.get_from_list(self.config,'g1_col',num,str,'0')
-        g2_col = treecorr.config.get_from_list(self.config,'g2_col',num,str,'0')
-        k_col = treecorr.config.get_from_list(self.config,'k_col',num,str,'0')
-        patch_col = treecorr.config.get_from_list(self.config,'patch_col',num,str,'0')
+        x_col = get_from_list(self.config,'x_col',num,str,'0')
+        y_col = get_from_list(self.config,'y_col',num,str,'0')
+        z_col = get_from_list(self.config,'z_col',num,str,'0')
+        ra_col = get_from_list(self.config,'ra_col',num,str,'0')
+        dec_col = get_from_list(self.config,'dec_col',num,str,'0')
+        r_col = get_from_list(self.config,'r_col',num,str,'0')
+        w_col = get_from_list(self.config,'w_col',num,str,'0')
+        wpos_col = get_from_list(self.config,'wpos_col',num,str,'0')
+        flag_col = get_from_list(self.config,'flag_col',num,str,'0')
+        g1_col = get_from_list(self.config,'g1_col',num,str,'0')
+        g2_col = get_from_list(self.config,'g2_col',num,str,'0')
+        k_col = get_from_list(self.config,'k_col',num,str,'0')
+        patch_col = get_from_list(self.config,'patch_col',num,str,'0')
 
         with reader:
 
-            ext = treecorr.config.get_from_list(self.config, 'ext', num, str, reader.default_ext)
+            ext = get_from_list(self.config, 'ext', num, str, reader.default_ext)
 
             # Figure out what slice to use.  If all rows, then None is faster,
             # otherwise give the range explicitly.
@@ -1335,10 +1334,10 @@ class Catalog(object):
                 # cf. https://github.com/esheldon/fitsio/pull/286
                 # We should be able to always use s = slice(self.start, self.end, self.every_nth)
                 if x_col != '0':
-                    x_ext = treecorr.config.get_from_list(self.config, 'x_ext', num, str, ext)
+                    x_ext = get_from_list(self.config, 'x_ext', num, str, ext)
                     col = x_col
                 else:
-                    x_ext = treecorr.config.get_from_list(self.config, 'ra_ext', num, str, ext)
+                    x_ext = get_from_list(self.config, 'ra_ext', num, str, ext)
                     col = ra_col
                 end = self.end if self.end is not None else reader.row_count(col, x_ext)
                 s = np.arange(self.start, end, self.every_nth)
@@ -1356,19 +1355,19 @@ class Catalog(object):
             #     data = fits[ext][use_cols][:]
             # However, we allow the option to have different columns read from different extensions.
             # So this is slightly more complicated.
-            x_ext = treecorr.config.get_from_list(self.config, 'x_ext', num, str, ext)
-            y_ext = treecorr.config.get_from_list(self.config, 'y_ext', num, str, ext)
-            z_ext = treecorr.config.get_from_list(self.config, 'z_ext', num, str, ext)
-            ra_ext = treecorr.config.get_from_list(self.config, 'ra_ext', num, str, ext)
-            dec_ext = treecorr.config.get_from_list(self.config, 'dec_ext', num, str, ext)
-            r_ext = treecorr.config.get_from_list(self.config, 'r_ext', num, str, ext)
-            patch_ext = treecorr.config.get_from_list(self.config, 'patch_ext', num, str, ext)
-            w_ext = treecorr.config.get_from_list(self.config, 'w_ext', num, str, ext)
-            wpos_ext = treecorr.config.get_from_list(self.config, 'wpos_ext', num, str, ext)
-            flag_ext = treecorr.config.get_from_list(self.config, 'flag_ext', num, str, ext)
-            g1_ext = treecorr.config.get_from_list(self.config, 'g1_ext', num, str, ext)
-            g2_ext = treecorr.config.get_from_list(self.config, 'g2_ext', num, str, ext)
-            k_ext = treecorr.config.get_from_list(self.config, 'k_ext', num, str, ext)
+            x_ext = get_from_list(self.config, 'x_ext', num, str, ext)
+            y_ext = get_from_list(self.config, 'y_ext', num, str, ext)
+            z_ext = get_from_list(self.config, 'z_ext', num, str, ext)
+            ra_ext = get_from_list(self.config, 'ra_ext', num, str, ext)
+            dec_ext = get_from_list(self.config, 'dec_ext', num, str, ext)
+            r_ext = get_from_list(self.config, 'r_ext', num, str, ext)
+            patch_ext = get_from_list(self.config, 'patch_ext', num, str, ext)
+            w_ext = get_from_list(self.config, 'w_ext', num, str, ext)
+            wpos_ext = get_from_list(self.config, 'wpos_ext', num, str, ext)
+            flag_ext = get_from_list(self.config, 'flag_ext', num, str, ext)
+            g1_ext = get_from_list(self.config, 'g1_ext', num, str, ext)
+            g2_ext = get_from_list(self.config, 'g2_ext', num, str, ext)
+            k_ext = get_from_list(self.config, 'k_ext', num, str, ext)
             all_exts = [x_ext, y_ext, z_ext,
                         ra_ext, dec_ext, r_ext,
                         patch_ext,
@@ -1463,49 +1462,49 @@ class Catalog(object):
         if not hasattr(self, '_nfields'):
             # Make simple functions that call NField, etc. with self as the first argument.
             def get_nfield(*args, **kwargs):
-                return treecorr.NField(self, *args, **kwargs)
+                return NField(self, *args, **kwargs)
             # Now wrap these in LRU_Caches with (initially) just 1 element being cached.
-            self._nfields = treecorr.util.LRU_Cache(get_nfield, 1)
+            self._nfields = LRU_Cache(get_nfield, 1)
         return self._nfields
 
     @property
     def kfields(self):
         if not hasattr(self, '_kfields'):
             def get_kfield(*args, **kwargs):
-                return treecorr.KField(self, *args, **kwargs)
-            self._kfields = treecorr.util.LRU_Cache(get_kfield, 1)
+                return KField(self, *args, **kwargs)
+            self._kfields = LRU_Cache(get_kfield, 1)
         return self._kfields
 
     @property
     def gfields(self):
         if not hasattr(self, '_gfields'):
             def get_gfield(*args, **kwargs):
-                return treecorr.GField(self, *args, **kwargs)
-            self._gfields = treecorr.util.LRU_Cache(get_gfield, 1)
+                return GField(self, *args, **kwargs)
+            self._gfields = LRU_Cache(get_gfield, 1)
         return self._gfields
 
     @property
     def nsimplefields(self):
         if not hasattr(self, '_nsimplefields'):
             def get_nsimplefield(*args,**kwargs):
-                return treecorr.NSimpleField(self,*args,**kwargs)
-            self._nsimplefields = treecorr.util.LRU_Cache(get_nsimplefield, 1)
+                return NSimpleField(self,*args,**kwargs)
+            self._nsimplefields = LRU_Cache(get_nsimplefield, 1)
         return self._nsimplefields
 
     @property
     def ksimplefields(self):
         if not hasattr(self, '_ksimplefields'):
             def get_ksimplefield(*args,**kwargs):
-                return treecorr.KSimpleField(self,*args,**kwargs)
-            self._ksimplefields = treecorr.util.LRU_Cache(get_ksimplefield, 1)
+                return KSimpleField(self,*args,**kwargs)
+            self._ksimplefields = LRU_Cache(get_ksimplefield, 1)
         return self._ksimplefields
 
     @property
     def gsimplefields(self):
         if not hasattr(self, '_gsimplefields'):
             def get_gsimplefield(*args,**kwargs):
-                return treecorr.GSimpleField(self,*args,**kwargs)
-            self._gsimplefields = treecorr.util.LRU_Cache(get_gsimplefield, 1)
+                return GSimpleField(self,*args,**kwargs)
+            self._gsimplefields = LRU_Cache(get_gsimplefield, 1)
         return self._gsimplefields
 
     def resize_cache(self, maxsize):
@@ -1631,7 +1630,7 @@ class Catalog(object):
             An `NField` object
         """
         if split_method is None:
-            split_method = treecorr.config.get(self.config,'split_method',str,'mean')
+            split_method = get(self.config,'split_method',str,'mean')
         if logger is None:
             logger = self.logger
         field = self.nfields(min_size, max_size, split_method, brute, min_top, max_top, coords,
@@ -1665,7 +1664,7 @@ class Catalog(object):
             A `KField` object
         """
         if split_method is None:
-            split_method = treecorr.config.get(self.config,'split_method',str,'mean')
+            split_method = get(self.config,'split_method',str,'mean')
         if self.k is None:
             raise TypeError("k is not defined.")
         if logger is None:
@@ -1701,7 +1700,7 @@ class Catalog(object):
             A `GField` object
         """
         if split_method is None:
-            split_method = treecorr.config.get(self.config,'split_method',str,'mean')
+            split_method = get(self.config,'split_method',str,'mean')
         if self.g1 is None or self.g2 is None:
             raise TypeError("g1,g2 are not defined.")
         if logger is None:
@@ -1854,7 +1853,7 @@ class Catalog(object):
         for i in range(centers.shape[1]):
             columns.append(centers[:,i])
 
-        treecorr.util.gen_write(file_name, col_names, columns, precision=16, logger=self.logger)
+        gen_write(file_name, col_names, columns, precision=16, logger=self.logger)
 
     def read_patch_centers(self, file_name):
         """Read patch centers from a file.
@@ -1870,7 +1869,7 @@ class Catalog(object):
         """
         self.logger.info('Reading centers from %s',file_name)
 
-        data, params = treecorr.util.gen_read(file_name, logger=self.logger)
+        data, params = gen_read(file_name, logger=self.logger)
         if 'z' in data.dtype.names:
             return np.column_stack((data['x'],data['y'],data['z']))
         else:
@@ -2186,10 +2185,10 @@ class Catalog(object):
             columns.append(self.patch)
 
         if cat_precision is None:
-            cat_precision = treecorr.config.get(self.config,'cat_precision',int,16)
+            cat_precision = get(self.config,'cat_precision',int,16)
 
-        treecorr.util.gen_write(file_name, col_names, columns, precision=cat_precision,
-                                file_type=file_type, logger=self.logger)
+        gen_write(file_name, col_names, columns, precision=cat_precision,
+                  file_type=file_type, logger=self.logger)
         return col_names
 
     def copy(self):
@@ -2210,9 +2209,8 @@ class Catalog(object):
 
     def __setstate__(self, d):
         self.__dict__ = d
-        self.logger = treecorr.config.setup_logger(
-                treecorr.config.get(self.config,'verbose',int,1),
-                self.config.get('log_file',None))
+        self.logger = setup_logger(get(self.config,'verbose',int,1),
+                                   self.config.get('log_file',None))
         self._field = lambda : None
 
     def __repr__(self):
@@ -2288,8 +2286,7 @@ def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=N
         A list of Catalogs or None if no catalogs are specified.
     """
     if logger is None:
-        logger = treecorr.config.setup_logger(
-                treecorr.config.get(config,'verbose',int,1), config.get('log_file',None))
+        logger = setup_logger(get(config,'verbose',int,1), config.get('log_file',None))
 
     if key is None and list_key is None:
         raise TypeError("Must provide either key or list_key")

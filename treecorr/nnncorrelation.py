@@ -15,11 +15,14 @@
 .. module:: nnncorrelation
 """
 
-import treecorr
 import numpy as np
 
+from . import _lib, _ffi
+from .binnedcorr3 import BinnedCorr3
+from .util import double_ptr as dp
+from .util import gen_read, gen_write, gen_multi_read, gen_multi_write
 
-class NNNCorrelation(treecorr.BinnedCorr3):
+class NNNCorrelation(BinnedCorr3):
     """This class handles the calculation and storage of a 2-point count-count correlation
     function.  i.e. the regular density correlation function.
 
@@ -105,7 +108,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
     def __init__(self, config=None, logger=None, **kwargs):
         """Initialize `NNNCorrelation`.  See class doc for details.
         """
-        treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
+        BinnedCorr3.__init__(self, config, logger, **kwargs)
 
         self._ro._d1 = 1  # NData
         self._ro._d2 = 1  # NData
@@ -127,8 +130,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
     @property
     def corr(self):
         if self._corr is None:
-            from treecorr.util import double_ptr as dp
-            self._corr = treecorr._lib.BuildCorr3(
+            self._corr = _lib.BuildCorr3(
                     self._d1, self._d2, self._d3, self._bintype,
                     self._min_sep,self._max_sep,self.nbins,self._bin_size,self.b,
                     self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
@@ -145,8 +147,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if self._corr is not None:
-            if not treecorr._ffi._lock.locked(): # pragma: no branch
-                treecorr._lib.DestroyCorr3(self.corr, self._d1, self._d2, self._d3, self._bintype)
+            if not _ffi._lock.locked(): # pragma: no branch
+                _lib.DestroyCorr3(self.corr, self._d1, self._d2, self._d3, self._bintype)
 
     def __eq__(self, other):
         """Return whether two `NNNCorrelation` instances are equal"""
@@ -229,8 +231,8 @@ class NNNCorrelation(treecorr.BinnedCorr3):
                               bool(self.brute), self.min_top, self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        treecorr._lib.ProcessAuto3(self.corr, field.data, self.output_dots,
-                                   field._d, self._coords, self._bintype, self._metric)
+        _lib.ProcessAuto3(self.corr, field.data, self.output_dots,
+                          field._d, self._coords, self._bintype, self._metric)
         self.tot += (1./6.) * cat.sumw**3
 
     def process_cross12(self, cat1, cat2, metric=None, num_threads=None):
@@ -272,10 +274,10 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         # Note: all 3 correlation objects are the same.  Thus, all triangles will be placed
         # into self.corr, whichever way the three catalogs are permuted for each triangle.
-        treecorr._lib.ProcessCross12(self.corr, self.corr, self.corr,
-                                     f1.data, f2.data, self.output_dots,
-                                     f1._d, f2._d, self._coords,
-                                     self._bintype, self._metric)
+        _lib.ProcessCross12(self.corr, self.corr, self.corr,
+                            f1.data, f2.data, self.output_dots,
+                            f1._d, f2._d, self._coords,
+                            self._bintype, self._metric)
         self.tot += cat1.sumw * cat2.sumw**2 / 2.
 
     def process_cross(self, cat1, cat2, cat3, metric=None, num_threads=None):
@@ -317,10 +319,10 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         # Note: all 6 correlation objects are the same.  Thus, all triangles will be placed
         # into self.corr, whichever way the three catalogs are permuted for each triangle.
-        treecorr._lib.ProcessCross3(self.corr, self.corr, self.corr,
-                                    self.corr, self.corr, self.corr,
-                                    f1.data, f2.data, f3.data, self.output_dots,
-                                    f1._d, f2._d, f3._d, self._coords, self._bintype, self._metric)
+        _lib.ProcessCross3(self.corr, self.corr, self.corr,
+                           self.corr, self.corr, self.corr,
+                           f1.data, f2.data, f3.data, self.output_dots,
+                           f1._d, f2._d, f3._d, self._coords, self._bintype, self._metric)
         self.tot += cat1.sumw * cat2.sumw * cat3.sumw
 
     def _finalize(self):
@@ -671,7 +673,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         params = { 'tot' : self.tot, 'coords' : self.coords, 'metric' : self.metric,
                    'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
 
-        treecorr.util.gen_write(
+        gen_write(
             file_name, col_names, columns,
             params=params, precision=precision, file_type=file_type, logger=self.logger)
 
@@ -694,7 +696,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         """
         self.logger.info('Reading NNN correlations from %s',file_name)
 
-        data, params = treecorr.util.gen_read(file_name, file_type=file_type, logger=self.logger)
+        data, params = gen_read(file_name, file_type=file_type, logger=self.logger)
         s = self.logr.shape
         if 'R_nom' in data.dtype.names:  # pragma: no cover
             self._ro.rnom = data['R_nom'].reshape(s)
@@ -720,7 +722,7 @@ class NNNCorrelation(treecorr.BinnedCorr3):
         self._ro.bin_type = params['bin_type'].strip()
 
 
-class NNNCrossCorrelation(treecorr.BinnedCorr3):
+class NNNCrossCorrelation(BinnedCorr3):
     r"""This class handles the calculation a 3-point count-count-count cross-correlation
     function.
 
@@ -798,7 +800,7 @@ class NNNCrossCorrelation(treecorr.BinnedCorr3):
     def __init__(self, config=None, logger=None, **kwargs):
         """Initialize `NNNCrossCorrelation`.  See class doc for details.
         """
-        treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
+        BinnedCorr3.__init__(self, config, logger, **kwargs)
 
         self._ro._d1 = 1  # NData
         self._ro._d2 = 1  # NData
@@ -904,10 +906,10 @@ class NNNCrossCorrelation(treecorr.BinnedCorr3):
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         # Note: all 3 correlation objects are the same.  Thus, all triangles will be placed
         # into self.corr, whichever way the three catalogs are permuted for each triangle.
-        treecorr._lib.ProcessCross12(self.n1n2n3.corr, self.n2n1n3.corr, self.n2n3n1.corr,
-                                     f1.data, f2.data, self.output_dots,
-                                     f1._d, f2._d, self._coords,
-                                     self._bintype, self._metric)
+        _lib.ProcessCross12(self.n1n2n3.corr, self.n2n1n3.corr, self.n2n3n1.corr,
+                            f1.data, f2.data, self.output_dots,
+                            f1._d, f2._d, self._coords,
+                            self._bintype, self._metric)
         tot = cat1.sumw * cat2.sumw**2 / 2.
         self.n1n2n3.tot += tot
         self.n2n1n3.tot += tot
@@ -956,11 +958,11 @@ class NNNCrossCorrelation(treecorr.BinnedCorr3):
                             bool(self.brute), self.min_top, self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        treecorr._lib.ProcessCross3(self.n1n2n3.corr, self.n1n3n2.corr,
-                                    self.n2n1n3.corr, self.n2n3n1.corr,
-                                    self.n3n1n2.corr, self.n3n2n1.corr,
-                                    f1.data, f2.data, f3.data, self.output_dots,
-                                    f1._d, f2._d, f3._d, self._coords, self._bintype, self._metric)
+        _lib.ProcessCross3(self.n1n2n3.corr, self.n1n3n2.corr,
+                           self.n2n1n3.corr, self.n2n3n1.corr,
+                           self.n3n1n2.corr, self.n3n2n1.corr,
+                           f1.data, f2.data, f3.data, self.output_dots,
+                           f1._d, f2._d, f3._d, self._coords, self._bintype, self._metric)
         tot = cat1.sumw * cat2.sumw * cat3.sumw
         self.n1n2n3.tot += tot
         self.n1n3n2.tot += tot
@@ -1097,7 +1099,7 @@ class NNNCrossCorrelation(treecorr.BinnedCorr3):
         if precision is None:
             precision = self.config.get('precision', 4)
 
-        treecorr.util.gen_multi_write(
+        gen_multi_write(
             file_name, col_names, group_names, columns,
             params=params, precision=precision, file_type=file_type, logger=self.logger)
 
@@ -1122,7 +1124,7 @@ class NNNCrossCorrelation(treecorr.BinnedCorr3):
 
         group_names = [ 'n1n2n3', 'n1n3n2', 'n2n1n3', 'n2n3n1', 'n3n1n2', 'n3n2n1' ]
 
-        groups = treecorr.util.gen_multi_read(
+        groups = gen_multi_read(
                 file_name, group_names, file_type=file_type, logger=self.logger)
         s = self.logr.shape
         for (data, params), name in zip(groups, group_names):

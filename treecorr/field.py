@@ -17,7 +17,11 @@
 
 import numpy as np
 import weakref
-import treecorr
+
+from . import _lib, _ffi
+from .util import get_omp_threads, parse_xyzsep, coord_enum
+from .util import long_ptr as lp
+from .util import double_ptr as dp
 
 def _parse_split_method(split_method):
     if split_method == 'middle': return 0
@@ -83,7 +87,7 @@ class Field(object):
 
     def _determine_top(self, min_top, max_top):
         if min_top is None:
-            n_cpu = treecorr.get_omp_threads()
+            n_cpu = get_omp_threads()
             # int.bit_length is a trick to avoid going through float.
             # bit_length(n-1) == ceil(log2(n)), which is what we want.
             min_top = max(3, int.bit_length(n_cpu-1))
@@ -97,7 +101,7 @@ class Field(object):
     def nTopLevelNodes(self):
         """The number of top-level nodes.
         """
-        return treecorr._lib.FieldGetNTopLevel(self.data, self._d, self._coords)
+        return _lib.FieldGetNTopLevel(self.data, self._d, self._coords)
 
     @property
     def cat(self):
@@ -164,7 +168,7 @@ class Field(object):
         """
         if self.min_size == 0:
             # If min_size = 0, then regular method is already exact.
-            x,y,z,sep = treecorr.util.parse_xyzsep(args, kwargs, self._coords)
+            x,y,z,sep = parse_xyzsep(args, kwargs, self._coords)
             return self._count_near(x, y, z, sep)
         else:
             # Otherwise, we need to expand the radius a bit and then check the actual radii
@@ -175,7 +179,7 @@ class Field(object):
     def _count_near(self, x, y, z, sep):
         # If self.min_size > 0, these results may be approximate, since the tree will have
         # grouped points within this separation together.
-        return treecorr._lib.FieldCountNear(self.data, x, y, z, sep, self._d, self._coords)
+        return _lib.FieldCountNear(self.data, x, y, z, sep, self._d, self._coords)
 
     def get_near(self, *args, **kwargs):
         """Get the indices of points near a given coordinate.
@@ -230,7 +234,7 @@ class Field(object):
         Finally, in cases where ra, dec are allowed, you may instead provide a
         ``coord.CelestialCoord`` instance as the first argument to specify both RA and Dec.
         """
-        x,y,z,sep = treecorr.util.parse_xyzsep(args, kwargs, self._coords)
+        x,y,z,sep = parse_xyzsep(args, kwargs, self._coords)
         if self.min_size == 0:
             # If min_size == 0, then regular method is already exact.
             ind = self._get_near(x, y, z, sep)
@@ -241,7 +245,7 @@ class Field(object):
             ind = self._get_near(x, y, z, sep1)
             # Now check the actual radii of these points using the catalog x,y,z values.
             rsq = (self.cat.x[ind]-x)**2 + (self.cat.y[ind]-y)**2
-            if self._coords != treecorr._lib.Flat:
+            if self._coords != _lib.Flat:
                 rsq += (self.cat.z[ind]-z)**2
             # Select the ones with r < sep
             near = rsq < sep**2
@@ -252,12 +256,11 @@ class Field(object):
     def _get_near(self, x, y, z, sep):
         # If self.min_size > 0, these results may be approximate, since the tree will have
         # grouped points within this separation together.
-        from treecorr.util import long_ptr as lp
         # First count how many there are, so we can allocate the array for the indices.
         n = self._count_near(x, y, z, sep)
         ind = np.empty(n, dtype=int)
         # Now fill the array with the indices of the nearby points.
-        treecorr._lib.FieldGetNear(self.data, x, y, z, sep, self._d, self._coords, lp(ind), n)
+        _lib.FieldGetNear(self.data, x, y, z, sep, self._d, self._coords, lp(ind), n)
         return ind
 
     def run_kmeans(self, npatch, max_iter=200, tol=1.e-5, init='tree', alt=False):
@@ -406,21 +409,20 @@ class Field(object):
             spherical geometries.  In the latter case, the centers represent
             (x,y,z) coordinates on the unit sphere.
         """
-        from treecorr.util import double_ptr as dp
         if npatch > self.ntot:
             raise ValueError("Invalid npatch.  Cannot be greater than self.ntot.")
         if npatch < 1:
             raise ValueError("Invalid npatch.  Cannot be less than 1.")
-        if self._coords == treecorr._lib.Flat:
+        if self._coords == _lib.Flat:
             centers = np.empty((npatch, 2))
         else:
             centers = np.empty((npatch, 3))
         if init == 'tree':
-            treecorr._lib.KMeansInitTree(self.data, dp(centers), int(npatch), self._d, self._coords)
+            _lib.KMeansInitTree(self.data, dp(centers), int(npatch), self._d, self._coords)
         elif init == 'random':
-            treecorr._lib.KMeansInitRand(self.data, dp(centers), int(npatch), self._d, self._coords)
+            _lib.KMeansInitRand(self.data, dp(centers), int(npatch), self._d, self._coords)
         elif init == 'kmeans++':
-            treecorr._lib.KMeansInitKMPP(self.data, dp(centers), int(npatch), self._d, self._coords)
+            _lib.KMeansInitKMPP(self.data, dp(centers), int(npatch), self._d, self._coords)
         else:
             raise ValueError("Invalid init: %s. "%init +
                              "Must be one of 'tree', 'random', or 'kmeans++.'")
@@ -470,10 +472,9 @@ class Field(object):
                                 deviation of the inertia rather than the total inertia (aka WCSS).
                                 (default: False)
         """
-        from treecorr.util import double_ptr as dp
         npatch = centers.shape[0]
-        treecorr._lib.KMeansRun(self.data, dp(centers), npatch, int(max_iter), float(tol),
-                                bool(alt), self._d, self._coords)
+        _lib.KMeansRun(self.data, dp(centers), npatch, int(max_iter), float(tol),
+                       bool(alt), self._d, self._coords)
 
     def kmeans_assign_patches(self, centers):
         """Assign patch numbers to each point according to the given centers.
@@ -490,13 +491,11 @@ class Field(object):
         Returns:
             An array of patch labels, all integers from 0..npatch-1.  Size is self.ntot.
         """
-        from treecorr.util import double_ptr as dp
-        from treecorr.util import long_ptr as lp
         patches = np.empty(self.ntot, dtype=int)
         npatch = centers.shape[0]
         centers = np.ascontiguousarray(centers)
-        treecorr._lib.KMeansAssign(self.data, dp(centers), npatch,
-                                   lp(patches), self.ntot, self._d, self._coords)
+        _lib.KMeansAssign(self.data, dp(centers), npatch,
+                          lp(patches), self.ntot, self._d, self._coords)
         return patches
 
 
@@ -525,7 +524,6 @@ class NField(Field):
     """
     def __init__(self, cat, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, logger=None):
-        from treecorr.util import double_ptr as dp
         if logger:
             if cat.name != '':
                 logger.info('Building NField from cat %s',cat.name)
@@ -542,12 +540,12 @@ class NField(Field):
         self.brute = bool(brute)
         self.min_top, self.max_top = self._determine_top(min_top, max_top)
         self.coords = coords if coords is not None else cat.coords
-        self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
+        self._coords = coord_enum(self.coords)  # These are the C++-layer enums
 
-        self.data = treecorr._lib.BuildNField(dp(cat.x), dp(cat.y), dp(cat.z),
-                                              dp(cat.w), dp(cat.wpos), cat.ntot,
-                                              self.min_size, self.max_size, self._sm,
-                                              self.brute, self.min_top, self.max_top, self._coords)
+        self.data = _lib.BuildNField(dp(cat.x), dp(cat.y), dp(cat.z),
+                                     dp(cat.w), dp(cat.wpos), cat.ntot,
+                                     self.min_size, self.max_size, self._sm,
+                                     self.brute, self.min_top, self.max_top, self._coords)
         if logger:
             logger.debug('Finished building NField (%s)',self.coords)
 
@@ -560,8 +558,8 @@ class NField(Field):
             # I don't get this, but sometimes it gets here when the ffi.lock is already locked.
             # When that happens, this will freeze in a `with ffi._lock` line in the ffi api.py.
             # So, don't do that, and just accept the memory leak instead.
-            if not treecorr._ffi._lock.locked(): # pragma: no branch
-                treecorr._lib.DestroyNField(self.data, self._coords)
+            if not _ffi._lock.locked(): # pragma: no branch
+                _lib.DestroyNField(self.data, self._coords)
 
 
 class KField(Field):
@@ -589,7 +587,6 @@ class KField(Field):
     """
     def __init__(self, cat, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, logger=None):
-        from treecorr.util import double_ptr as dp
         if logger:
             if cat.name != '':
                 logger.info('Building KField from cat %s',cat.name)
@@ -606,13 +603,13 @@ class KField(Field):
         self.brute = bool(brute)
         self.min_top, self.max_top = self._determine_top(min_top, max_top)
         self.coords = coords if coords is not None else cat.coords
-        self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
+        self._coords = coord_enum(self.coords)  # These are the C++-layer enums
 
-        self.data = treecorr._lib.BuildKField(dp(cat.x), dp(cat.y), dp(cat.z),
-                                              dp(cat.k),
-                                              dp(cat.w), dp(cat.wpos), cat.ntot,
-                                              self.min_size, self.max_size, self._sm,
-                                              self.brute, self.min_top, self.max_top, self._coords)
+        self.data = _lib.BuildKField(dp(cat.x), dp(cat.y), dp(cat.z),
+                                     dp(cat.k),
+                                     dp(cat.w), dp(cat.wpos), cat.ntot,
+                                     self.min_size, self.max_size, self._sm,
+                                     self.brute, self.min_top, self.max_top, self._coords)
         if logger:
             logger.debug('Finished building KField (%s)',self.coords)
 
@@ -622,8 +619,8 @@ class KField(Field):
 
         # In case __init__ failed to get that far
         if hasattr(self,'data'):  # pragma: no branch
-            if not treecorr._ffi._lock.locked(): # pragma: no branch
-                treecorr._lib.DestroyKField(self.data, self._coords)
+            if not _ffi._lock.locked(): # pragma: no branch
+                _lib.DestroyKField(self.data, self._coords)
 
 
 class GField(Field):
@@ -651,7 +648,6 @@ class GField(Field):
     """
     def __init__(self, cat, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, logger=None):
-        from treecorr.util import double_ptr as dp
         if logger:
             if cat.name != '':
                 logger.info('Building GField from cat %s',cat.name)
@@ -668,13 +664,13 @@ class GField(Field):
         self.brute = bool(brute)
         self.min_top, self.max_top = self._determine_top(min_top, max_top)
         self.coords = coords if coords is not None else cat.coords
-        self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
+        self._coords = coord_enum(self.coords)  # These are the C++-layer enums
 
-        self.data = treecorr._lib.BuildGField(dp(cat.x), dp(cat.y), dp(cat.z),
-                                              dp(cat.g1), dp(cat.g2),
-                                              dp(cat.w), dp(cat.wpos), cat.ntot,
-                                              self.min_size, self.max_size, self._sm,
-                                              self.brute, self.min_top, self.max_top, self._coords)
+        self.data = _lib.BuildGField(dp(cat.x), dp(cat.y), dp(cat.z),
+                                     dp(cat.g1), dp(cat.g2),
+                                     dp(cat.w), dp(cat.wpos), cat.ntot,
+                                     self.min_size, self.max_size, self._sm,
+                                     self.brute, self.min_top, self.max_top, self._coords)
         if logger:
             logger.debug('Finished building GField (%s)',self.coords)
 
@@ -684,8 +680,8 @@ class GField(Field):
 
         # In case __init__ failed to get that far
         if hasattr(self,'data'):  # pragma: no branch
-            if not treecorr._ffi._lock.locked(): # pragma: no branch
-                treecorr._lib.DestroyGField(self.data, self._coords)
+            if not _ffi._lock.locked(): # pragma: no branch
+                _lib.DestroyGField(self.data, self._coords)
 
 
 class SimpleField(object):
@@ -730,7 +726,6 @@ class NSimpleField(SimpleField):
         logger (Logger):    A logger file if desired. (default: None)
     """
     def __init__(self, cat, logger=None):
-        from treecorr.util import double_ptr as dp
         if logger:
             if cat.name != '':
                 logger.info('Building NSimpleField from cat %s',cat.name)
@@ -738,11 +733,11 @@ class NSimpleField(SimpleField):
                 logger.info('Building NSimpleField')
         self._d = 1  # NData
         self.coords = cat.coords
-        self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
+        self._coords = coord_enum(self.coords)  # These are the C++-layer enums
 
-        self.data = treecorr._lib.BuildNSimpleField(dp(cat.x), dp(cat.y), dp(cat.z),
-                                                    dp(cat.w), dp(cat.wpos), cat.ntot,
-                                                    self._coords)
+        self.data = _lib.BuildNSimpleField(dp(cat.x), dp(cat.y), dp(cat.z),
+                                           dp(cat.w), dp(cat.wpos), cat.ntot,
+                                           self._coords)
         if logger:
             logger.debug('Finished building NSimpleField (%s)',self.coords)
 
@@ -752,8 +747,8 @@ class NSimpleField(SimpleField):
 
         # In case __init__ failed to get that far
         if hasattr(self,'data'):  # pragma: no branch
-            if not treecorr._ffi._lock.locked(): # pragma: no branch
-                treecorr._lib.DestroyNSimpleField(self.data, self._coords)
+            if not _ffi._lock.locked(): # pragma: no branch
+                _lib.DestroyNSimpleField(self.data, self._coords)
 
 
 class KSimpleField(SimpleField):
@@ -775,7 +770,6 @@ class KSimpleField(SimpleField):
         logger (Logger):    A logger file if desired. (default: None)
     """
     def __init__(self, cat, logger=None):
-        from treecorr.util import double_ptr as dp
         if logger:
             if cat.name != '':
                 logger.info('Building KSimpleField from cat %s',cat.name)
@@ -783,12 +777,12 @@ class KSimpleField(SimpleField):
                 logger.info('Building KSimpleField')
         self._d = 2  # KData
         self.coords = cat.coords
-        self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
+        self._coords = coord_enum(self.coords)  # These are the C++-layer enums
 
-        self.data = treecorr._lib.BuildKSimpleField(dp(cat.x), dp(cat.y), dp(cat.z),
-                                                    dp(cat.k),
-                                                    dp(cat.w), dp(cat.wpos), cat.ntot,
-                                                    self._coords)
+        self.data = _lib.BuildKSimpleField(dp(cat.x), dp(cat.y), dp(cat.z),
+                                           dp(cat.k),
+                                           dp(cat.w), dp(cat.wpos), cat.ntot,
+                                           self._coords)
         if logger:
             logger.debug('Finished building KSimpleField (%s)',self.coords)
 
@@ -798,8 +792,8 @@ class KSimpleField(SimpleField):
 
         # In case __init__ failed to get that far
         if hasattr(self,'data'):  # pragma: no branch
-            if not treecorr._ffi._lock.locked(): # pragma: no branch
-                treecorr._lib.DestroyKSimpleField(self.data, self._coords)
+            if not _ffi._lock.locked(): # pragma: no branch
+                _lib.DestroyKSimpleField(self.data, self._coords)
 
 
 class GSimpleField(SimpleField):
@@ -821,7 +815,6 @@ class GSimpleField(SimpleField):
         logger (Logger):    A logger file if desired. (default: None)
     """
     def __init__(self, cat, logger=None):
-        from treecorr.util import double_ptr as dp
         if logger:
             if cat.name != '':
                 logger.info('Building GSimpleField from cat %s',cat.name)
@@ -829,12 +822,12 @@ class GSimpleField(SimpleField):
                 logger.info('Building GSimpleField')
         self._d = 3  # GData
         self.coords = cat.coords
-        self._coords = treecorr.util.coord_enum(self.coords)  # These are the C++-layer enums
+        self._coords = coord_enum(self.coords)  # These are the C++-layer enums
 
-        self.data = treecorr._lib.BuildGSimpleField(dp(cat.x), dp(cat.y), dp(cat.z),
-                                                    dp(cat.g1), dp(cat.g2),
-                                                    dp(cat.w), dp(cat.wpos), cat.ntot,
-                                                    self._coords)
+        self.data = _lib.BuildGSimpleField(dp(cat.x), dp(cat.y), dp(cat.z),
+                                           dp(cat.g1), dp(cat.g2),
+                                           dp(cat.w), dp(cat.wpos), cat.ntot,
+                                           self._coords)
         if logger:
             logger.debug('Finished building KSimpleField (%s)',self.coords)
 
@@ -844,5 +837,5 @@ class GSimpleField(SimpleField):
 
         # In case __init__ failed to get that far
         if hasattr(self,'data'):  # pragma: no branch
-            if not treecorr._ffi._lock.locked(): # pragma: no branch
-                treecorr._lib.DestroyGSimpleField(self.data, self._coords)
+            if not _ffi._lock.locked(): # pragma: no branch
+                _lib.DestroyGSimpleField(self.data, self._coords)

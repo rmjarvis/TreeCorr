@@ -172,7 +172,7 @@ def setup_logger(verbose, log_file=None):
                        1: logging.WARNING,
                        2: logging.INFO,
                        3: logging.DEBUG }
-    logging_level = logging_levels[verbose]
+    logging_level = logging_levels[int(verbose)]
 
     # Setup logging to go to sys.stdout or (if requested) to an output file
     logger = logging.getLogger('treecorr')

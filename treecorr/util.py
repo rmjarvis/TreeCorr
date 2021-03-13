@@ -15,10 +15,11 @@
 .. module:: util
 """
 
-import treecorr
 import numpy as np
 import os
 import coord
+
+from . import _lib, _ffi, Rperp_alias
 
 def ensure_dir(target):
     d = os.path.dirname(target)
@@ -48,7 +49,7 @@ def set_omp_threads(num_threads, logger=None):
     # Tell OpenMP to use this many threads
     if logger:
         logger.debug('Telling OpenMP to use %d threads',num_threads)
-    num_threads = treecorr._lib.SetOMPThreads(num_threads)
+    num_threads = _lib.SetOMPThreads(num_threads)
 
     # Report back appropriately.
     if logger:
@@ -66,7 +67,7 @@ def get_omp_threads():
 
     :returns:           The  number of threads OpenMP reports that it will use.
     """
-    return treecorr._lib.GetOMPThreads()
+    return _lib.GetOMPThreads()
 
 def parse_file_type(file_type, file_name, output=False, logger=None):
     """Parse the file_type from the file_name if necessary
@@ -483,12 +484,12 @@ def double_ptr(x):
     :returns:   A version of the array that can be passed to cffi C functions.
     """
     if x is None:
-        return treecorr._ffi.cast('double*', 0)
+        return _ffi.cast('double*', 0)
     else:
         # This fails if x is read_only
-        #return treecorr._ffi.cast('double*', treecorr._ffi.from_buffer(x))
+        #return _ffi.cast('double*', _ffi.from_buffer(x))
         # This works, presumably by ignoring the numpy read_only flag.  Although, I think it's ok.
-        return treecorr._ffi.cast('double*', x.ctypes.data)
+        return _ffi.cast('double*', x.ctypes.data)
 
 def long_ptr(x):
     """
@@ -499,9 +500,9 @@ def long_ptr(x):
     :returns:   A version of the array that can be passed to cffi C functions.
     """
     if x is None:  # pragma: no cover   (I don't ever have x=None for this one.)
-        return treecorr._ffi.cast('long*', 0)
+        return _ffi.cast('long*', 0)
     else:
-        return treecorr._ffi.cast('long*', x.ctypes.data)
+        return _ffi.cast('long*', x.ctypes.data)
 
 def parse_metric(metric, coords, coords2=None, coords3=None):
     """
@@ -556,11 +557,11 @@ def coord_enum(coords):
     """Return the C++-layer enum for the given string value of coords.
     """
     if coords == 'flat':
-        return treecorr._lib.Flat
+        return _lib.Flat
     elif coords == 'spherical':
-        return treecorr._lib.Sphere
+        return _lib.Sphere
     elif coords == '3d':
-        return treecorr._lib.ThreeD
+        return _lib.ThreeD
     else:
         raise ValueError("Invalid coords %s"%coords)
 
@@ -568,19 +569,19 @@ def metric_enum(metric):
     """Return the C++-layer enum for the given string value of metric.
     """
     if metric == 'Euclidean':
-        return treecorr._lib.Euclidean
+        return _lib.Euclidean
     elif metric == 'Rperp':
-        return metric_enum(treecorr.Rperp_alias)
+        return metric_enum(Rperp_alias)
     elif metric == 'FisherRperp':
-        return treecorr._lib.Rperp
+        return _lib.Rperp
     elif metric in ['OldRperp']:
-        return treecorr._lib.OldRperp
+        return _lib.OldRperp
     elif metric == 'Rlens':
-        return treecorr._lib.Rlens
+        return _lib.Rlens
     elif metric == 'Arc':
-        return treecorr._lib.Arc
+        return _lib.Arc
     elif metric == 'Periodic':
-        return treecorr._lib.Periodic
+        return _lib.Periodic
     else:
         raise ValueError("Invalid metric %s"%metric)
 
@@ -624,7 +625,7 @@ def parse_xyzsep(args, kwargs, _coords):
     :returns: The effective (x, y, z, sep) as a tuple.
     """
     radec = False
-    if _coords == treecorr._lib.Flat:
+    if _coords == _lib.Flat:
         if len(args) == 0:
             if 'x' not in kwargs:
                 raise TypeError("Missing required argument x")
@@ -648,7 +649,7 @@ def parse_xyzsep(args, kwargs, _coords):
             raise TypeError("Too many positional args")
         z = 0
 
-    elif _coords == treecorr._lib.ThreeD:
+    elif _coords == _lib.ThreeD:
         if len(args) == 0:
             if 'x' in kwargs:
                 if 'y' not in kwargs:
@@ -790,7 +791,7 @@ def parse_xyzsep(args, kwargs, _coords):
                 raise TypeError("Missing required argument dec_units")
             dec = dec * coord.AngleUnit.from_name(kwargs.pop('dec_units'))
         x,y,z = coord.CelestialCoord(ra, dec).get_xyz()
-        if _coords == treecorr._lib.ThreeD:
+        if _coords == _lib.ThreeD:
             x *= r
             y *= r
             z *= r

@@ -15,7 +15,14 @@
 .. module:: corr3
 """
 
-import treecorr
+from .catalog import Catalog, read_catalogs
+from .binnedcorr3 import BinnedCorr3
+from .config import setup_logger, check_config, print_params
+from .util import set_omp_threads
+from .nnncorrelation import NNNCorrelation
+from .kkkcorrelation import KKKCorrelation
+from .gggcorrelation import GGGCorrelation
+
 
 # Dict describing the valid parameters, what types they are, and a description:
 # Each value is a tuple with the following elements:
@@ -71,7 +78,7 @@ corr3_valid_params = {
 }
 
 # Add in the valid parameters for the relevant classes
-for c in [ treecorr.Catalog, treecorr.BinnedCorr3 ]:
+for c in [ Catalog, BinnedCorr3 ]:
     corr3_valid_params.update(c._valid_params)
 
 
@@ -94,14 +101,12 @@ def corr3(config, logger=None):
     """
     # Setup logger based on config verbose value
     if logger is None:
-        logger = treecorr.config.setup_logger(
-                treecorr.config.get(config,'verbose',int,1),
-                config.get('log_file',None))
+        logger = setup_logger(config.get('verbose',1), config.get('log_file',None))
 
     # Check that config doesn't have any extra parameters.
     # (Such values are probably typos.)
     # Also convert the given parameters to the correct type, etc.
-    config = treecorr.config.check_config(config, corr3_valid_params, corr3_aliases, logger)
+    config = check_config(config, corr3_valid_params, corr3_aliases, logger)
 
     import pprint
     logger.debug('Using configuration dict:\n%s',pprint.pformat(config))
@@ -114,15 +119,15 @@ def corr3(config, logger=None):
     # Set the number of threads
     num_threads = config.get('num_threads',None)
     logger.debug('From config dict, num_threads = %s',num_threads)
-    treecorr.set_omp_threads(num_threads, logger)
+    set_omp_threads(num_threads, logger)
 
     # Read in the input files.  Each of these is a list.
-    cat1 = treecorr.read_catalogs(config, 'file_name', 'file_list', 0, logger)
-    cat2 = treecorr.read_catalogs(config, 'file_name2', 'rand_file_list2', 1, logger)
-    cat3 = treecorr.read_catalogs(config, 'file_name3', 'rand_file_list3', 1, logger)
-    rand1 = treecorr.read_catalogs(config, 'rand_file_name', 'rand_file_list', 0, logger)
-    rand2 = treecorr.read_catalogs(config, 'rand_file_name2', 'rand_file_list2', 1, logger)
-    rand3 = treecorr.read_catalogs(config, 'rand_file_name3', 'rand_file_list3', 1, logger)
+    cat1 = read_catalogs(config, 'file_name', 'file_list', 0, logger)
+    cat2 = read_catalogs(config, 'file_name2', 'rand_file_list2', 1, logger)
+    cat3 = read_catalogs(config, 'file_name3', 'rand_file_list3', 1, logger)
+    rand1 = read_catalogs(config, 'rand_file_name', 'rand_file_list', 0, logger)
+    rand2 = read_catalogs(config, 'rand_file_name2', 'rand_file_list2', 1, logger)
+    rand3 = read_catalogs(config, 'rand_file_name3', 'rand_file_list3', 1, logger)
     if len(cat1) == 0:
         raise TypeError("Either file_name or file_list is required")
     if len(cat2) == 0: cat2 = None
@@ -141,7 +146,7 @@ def corr3(config, logger=None):
     # Do GGG correlation function if necessary
     if 'ggg_file_name' in config or 'm3_file_name' in config:
         logger.warning("Performing GGG calculations...")
-        ggg = treecorr.GGGCorrelation(config,logger)
+        ggg = GGGCorrelation(config,logger)
         ggg.process(cat1,cat2,cat3)
         logger.info("Done GGG calculations.")
         if 'ggg_file_name' in config:
@@ -154,7 +159,7 @@ def corr3(config, logger=None):
     # Do NNN correlation function if necessary
     if 'nnn_file_name' in config:
         logger.warning("Performing DDD calculations...")
-        ddd = treecorr.NNNCorrelation(config,logger)
+        ddd = NNNCorrelation(config,logger)
         ddd.process(cat1,cat2,cat3)
         logger.info("Done DDD calculations.")
 
@@ -171,7 +176,7 @@ def corr3(config, logger=None):
             rrr = None
         elif cat2 is None:
             logger.warning("Performing RRR calculations...")
-            rrr = treecorr.NNNCorrelation(config,logger)
+            rrr = NNNCorrelation(config,logger)
             rrr.process(rand1)
             logger.info("Done RRR calculations.")
 
@@ -184,33 +189,33 @@ def corr3(config, logger=None):
             if cat3 is not None and rand3 is None:
                 raise TypeError("rand_file_name3 is required when file_name3 is given")
             logger.warning("Performing RRR calculations...")
-            rrr = treecorr.NNNCorrelation(config,logger)
+            rrr = NNNCorrelation(config,logger)
             rrr.process(rand1,rand2,rand3)
             logger.info("Done RRR calculations.")
 
         if rrr is not None and config['nnn_statistic'] == 'compensated':
             logger.warning("Performing DRR calculations...")
-            drr = treecorr.NNNCorrelation(config,logger)
+            drr = NNNCorrelation(config,logger)
             drr.process(cat1,rand2,rand3)
             logger.info("Done DRR calculations.")
             logger.warning("Performing DDR calculations...")
-            ddr = treecorr.NNNCorrelation(config,logger)
+            ddr = NNNCorrelation(config,logger)
             ddr.process(cat1,cat2,rand3)
             logger.info("Done DDR calculations.")
             logger.warning("Performing RDR calculations...")
-            rdr = treecorr.NNNCorrelation(config,logger)
+            rdr = NNNCorrelation(config,logger)
             rdr.process(rand1,cat2,rand3)
             logger.info("Done RDR calculations.")
             logger.warning("Performing RRD calculations...")
-            rrd = treecorr.NNNCorrelation(config,logger)
+            rrd = NNNCorrelation(config,logger)
             rrd.process(rand1,rand2,cat3)
             logger.info("Done RRD calculations.")
             logger.warning("Performing DRD calculations...")
-            drd = treecorr.NNNCorrelation(config,logger)
+            drd = NNNCorrelation(config,logger)
             drd.process(cat1,rand2,cat3)
             logger.info("Done DRD calculations.")
             logger.warning("Performing RDD calculations...")
-            rdd = treecorr.NNNCorrelation(config,logger)
+            rdd = NNNCorrelation(config,logger)
             rdd.process(rand1,cat2,cat3)
             logger.info("Done RDD calculations.")
         ddd.write(config['nnn_file_name'],rrr,drr,rdr,rrd,ddr,drd,rdd)
@@ -219,7 +224,7 @@ def corr3(config, logger=None):
     # Do KKK correlation function if necessary
     if 'kkk_file_name' in config:
         logger.warning("Performing KKK calculations...")
-        kkk = treecorr.KKKCorrelation(config,logger)
+        kkk = KKKCorrelation(config,logger)
         kkk.process(cat1,cat2,cat3)
         logger.info("Done KKK calculations.")
         kkk.write(config['kkk_file_name'])
@@ -229,4 +234,4 @@ def corr3(config, logger=None):
 def print_corr3_params():
     """Print information about the valid parameters that may be given to the `corr3` function.
     """
-    treecorr.config.print_params(corr3_valid_params)
+    print_params(corr3_valid_params)

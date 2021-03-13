@@ -15,11 +15,15 @@
 .. module:: ggcorrelation
 """
 
-import treecorr
 import numpy as np
 
+from . import _lib, _ffi
+from .catalog import calculateVarG
+from .binnedcorr2 import BinnedCorr2
+from .util import double_ptr as dp
+from .util import gen_read, gen_write
 
-class GGCorrelation(treecorr.BinnedCorr2):
+class GGCorrelation(BinnedCorr2):
     r"""This class handles the calculation and storage of a 2-point shear-shear correlation
     function.
 
@@ -94,7 +98,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
     def __init__(self, config=None, logger=None, **kwargs):
         """Initialize `GGCorrelation`.  See class doc for details.
         """
-        treecorr.BinnedCorr2.__init__(self, config, logger, **kwargs)
+        BinnedCorr2.__init__(self, config, logger, **kwargs)
 
         self._ro._d1 = 3  # GData
         self._ro._d2 = 3  # GData
@@ -113,8 +117,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
     @property
     def corr(self):
         if self._corr is None:
-            from treecorr.util import double_ptr as dp
-            self._corr = treecorr._lib.BuildCorr2(
+            self._corr = _lib.BuildCorr2(
                     self._d1, self._d2, self._bintype,
                     self._min_sep,self._max_sep,self._nbins,self._bin_size,self.b,
                     self.min_rpar, self.max_rpar, self.xperiod, self.yperiod, self.zperiod,
@@ -126,8 +129,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if self._corr is not None:
-            if not treecorr._ffi._lock.locked(): # pragma: no branch
-                treecorr._lib.DestroyCorr2(self.corr, self._d1, self._d2, self._bintype)
+            if not _ffi._lock.locked(): # pragma: no branch
+                _lib.DestroyCorr2(self.corr, self._d1, self._d2, self._bintype)
 
     def __eq__(self, other):
         """Return whether two `GGCorrelation` instances are equal"""
@@ -207,8 +210,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
                               bool(self.brute), self.min_top, self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        treecorr._lib.ProcessAuto2(self.corr, field.data, self.output_dots,
-                                   field._d, self._coords, self._bintype, self._metric)
+        _lib.ProcessAuto2(self.corr, field.data, self.output_dots,
+                          field._d, self._coords, self._bintype, self._metric)
 
 
     def process_cross(self, cat1, cat2, metric=None, num_threads=None):
@@ -247,8 +250,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
                             self.min_top, self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        treecorr._lib.ProcessCross2(self.corr, f1.data, f2.data, self.output_dots,
-                                    f1._d, f2._d, self._coords, self._bintype, self._metric)
+        _lib.ProcessCross2(self.corr, f1.data, f2.data, self.output_dots,
+                           f1._d, f2._d, self._coords, self._bintype, self._metric)
 
 
     def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
@@ -293,8 +296,8 @@ class GGCorrelation(treecorr.BinnedCorr2):
         f1 = cat1.getGSimpleField()
         f2 = cat2.getGSimpleField()
 
-        treecorr._lib.ProcessPair(self.corr, f1.data, f2.data, self.output_dots,
-                                  f1._d, f2._d, self._coords, self._bintype, self._metric)
+        _lib.ProcessPair(self.corr, f1.data, f2.data, self.output_dots,
+                         f1._d, f2._d, self._coords, self._bintype, self._metric)
 
     def getStat(self):
         """The standard statistic for the current correlation object as a 1-d array.
@@ -446,12 +449,12 @@ class GGCorrelation(treecorr.BinnedCorr2):
 
         if finalize:
             if cat2 is None:
-                varg1 = treecorr.calculateVarG(cat1)
+                varg1 = calculateVarG(cat1)
                 varg2 = varg1
                 self.logger.info("varg = %f: sig_sn (per component) = %f",varg1,math.sqrt(varg1))
             else:
-                varg1 = treecorr.calculateVarG(cat1)
-                varg2 = treecorr.calculateVarG(cat2)
+                varg1 = calculateVarG(cat1)
+                varg2 = calculateVarG(cat2)
                 self.logger.info("varg1 = %f: sig_sn (per component) = %f",varg1,math.sqrt(varg1))
                 self.logger.info("varg2 = %f: sig_sn (per component) = %f",varg2,math.sqrt(varg2))
             self.finalize(varg1,varg2)
@@ -494,12 +497,12 @@ class GGCorrelation(treecorr.BinnedCorr2):
         self.logger.info('Writing GG correlations to %s',file_name)
 
         if precision is None:
-            precision = treecorr.config.get(self.config,'precision',int,4)
+            precision = self.config.get('precision', 4)
 
         params = { 'coords' : self.coords, 'metric' : self.metric,
                    'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
 
-        treecorr.util.gen_write(
+        gen_write(
             file_name,
             ['r_nom','meanr','meanlogr','xip','xim','xip_im','xim_im','sigma_xip','sigma_xim',
              'weight','npairs'],
@@ -529,7 +532,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
         """
         self.logger.info('Reading GG correlations from %s',file_name)
 
-        data, params = treecorr.util.gen_read(file_name, file_type=file_type, logger=self.logger)
+        data, params = gen_read(file_name, file_type=file_type, logger=self.logger)
         if 'R_nom' in data.dtype.names:  # pragma: no cover
             self._ro.rnom = data['R_nom']
             self.meanr = data['meanR']
@@ -622,7 +625,7 @@ class GGCorrelation(treecorr.BinnedCorr2):
                 - varmapsq = array of the variance estimate of either mapsq or mxsq
         """
         if m2_uform is None:
-            m2_uform = treecorr.config.get(self.config,'m2_uform',str,'Crittenden')
+            m2_uform = self.config.get('m2_uform', 'Crittenden')
         if m2_uform not in ['Crittenden', 'Schneider']:
             raise ValueError("Invalid m2_uform")
         if self.bin_type != 'Log':
@@ -794,9 +797,9 @@ class GGCorrelation(treecorr.BinnedCorr2):
         mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = self.calculateMapSq(R, m2_uform=m2_uform)
         gamsq, vargamsq = self.calculateGamSq(R)
         if precision is None:
-            precision = treecorr.config.get(self.config,'precision',int,4)
+            precision = self.config.get('precision', 4)
 
-        treecorr.util.gen_write(
+        gen_write(
             file_name,
             ['R','Mapsq','Mxsq','MMxa','MMxb','sig_map','Gamsq','sig_gam'],
             [ R,

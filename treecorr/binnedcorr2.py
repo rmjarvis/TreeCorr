@@ -19,7 +19,10 @@ import math
 import numpy as np
 import sys
 import coord
-import treecorr
+
+from . import _lib
+from .config import merge_config, setup_logger, get
+from .util import parse_metric, metric_enum, coord_enum, set_omp_threads
 
 class Namespace(object):
     pass
@@ -268,11 +271,10 @@ class BinnedCorr2(object):
 
     def __init__(self, config=None, logger=None, **kwargs):
         self._corr = None  # Do this first to make sure we always have it for __del__
-        self.config = treecorr.config.merge_config(config,kwargs,BinnedCorr2._valid_params)
+        self.config = merge_config(config,kwargs,BinnedCorr2._valid_params)
         if logger is None:
-            self.logger = treecorr.config.setup_logger(
-                    treecorr.config.get(self.config,'verbose',int,1),
-                    self.config.get('log_file',None))
+            self.logger = setup_logger(get(self.config,'verbose',int,1),
+                                       self.config.get('log_file',None))
         else:
             self.logger = logger
 
@@ -285,14 +287,14 @@ class BinnedCorr2(object):
         self._ro = Namespace()
 
         if 'output_dots' in self.config:
-            self._ro.output_dots = treecorr.config.get(self.config,'output_dots',bool)
+            self._ro.output_dots = get(self.config,'output_dots',bool)
         else:
-            self._ro.output_dots = treecorr.config.get(self.config,'verbose',int,1) >= 2
+            self._ro.output_dots = get(self.config,'verbose',int,1) >= 2
 
         self._ro.bin_type = self.config.get('bin_type', None)
 
         self._ro.sep_units = self.config.get('sep_units','')
-        self._ro._sep_units = treecorr.config.get(self.config,'sep_units',str,'radians')
+        self._ro._sep_units = get(self.config,'sep_units',str,'radians')
         self._ro._log_sep_units = math.log(self._sep_units)
         if 'nbins' not in self.config:
             if 'max_sep' not in self.config:
@@ -358,7 +360,7 @@ class BinnedCorr2(object):
             self._ro.left_edges = self.rnom / half_bin
             self._ro.right_edges = self.rnom * half_bin
             self._ro._nbins = self.nbins
-            self._ro._bintype = treecorr._lib.Log
+            self._ro._bintype = _lib.Log
             min_log_bin_size = self.bin_size
             max_log_bin_size = self.bin_size
             max_good_slop = 0.1 / self.bin_size
@@ -382,7 +384,7 @@ class BinnedCorr2(object):
             self._ro.right_edges = self.rnom + 0.5*self.bin_size
             self._ro.logr = np.log(self.rnom)
             self._ro._nbins = self.nbins
-            self._ro._bintype = treecorr._lib.Linear
+            self._ro._bintype = _lib.Linear
             min_log_bin_size = self.bin_size / self.max_sep
             max_log_bin_size = self.bin_size / (self.min_sep + self.bin_size/2)
             max_good_slop = 0.1 / max_log_bin_size
@@ -408,7 +410,7 @@ class BinnedCorr2(object):
             np.log(self.rnom, out=self._ro.logr, where=self.rnom > 0)
             self._ro.logr[self.rnom==0.] = -np.inf
             self._ro._nbins = self.nbins**2
-            self._ro._bintype = treecorr._lib.TwoD
+            self._ro._bintype = _lib.TwoD
             min_log_bin_size = self.bin_size / self.max_sep
             max_log_bin_size = self.bin_size / (self.min_sep + self.bin_size/2)
             max_good_slop = 0.1 / max_log_bin_size
@@ -434,10 +436,10 @@ class BinnedCorr2(object):
         self._ro.split_method = self.config.get('split_method','mean')
         self.logger.debug("Using split_method = %s",self.split_method)
 
-        self._ro.min_top = treecorr.config.get(self.config,'min_top',int,None)
-        self._ro.max_top = treecorr.config.get(self.config,'max_top',int,10)
+        self._ro.min_top = get(self.config,'min_top',int,None)
+        self._ro.max_top = get(self.config,'max_top',int,10)
 
-        self._ro.bin_slop = treecorr.config.get(self.config,'bin_slop',float,-1.0)
+        self._ro.bin_slop = get(self.config,'bin_slop',float,-1.0)
         if self.bin_slop < 0.0:
             self._ro.bin_slop = min(max_good_slop, 1.0)
         self._ro.b = min_log_bin_size * self.bin_slop
@@ -449,7 +451,7 @@ class BinnedCorr2(object):
         else:
             self.logger.debug("Using bin_slop = %g, b = %g",self.bin_slop,self.b)
 
-        self._ro.brute = treecorr.config.get(self.config,'brute',bool,False)
+        self._ro.brute = get(self.config,'brute',bool,False)
         if self.brute:
             self.logger.info("Doing brute force calculation%s.",
                              self.brute is True and "" or
@@ -457,17 +459,17 @@ class BinnedCorr2(object):
                              " for second field")
         self.coords = None
         self.metric = None
-        self._ro.min_rpar = treecorr.config.get(self.config,'min_rpar',float,-sys.float_info.max)
-        self._ro.max_rpar = treecorr.config.get(self.config,'max_rpar',float,sys.float_info.max)
+        self._ro.min_rpar = get(self.config,'min_rpar',float,-sys.float_info.max)
+        self._ro.max_rpar = get(self.config,'max_rpar',float,sys.float_info.max)
         if self.min_rpar > self.max_rpar:
             raise ValueError("min_rpar must be <= max_rpar")
-        period = treecorr.config.get(self.config,'period',float,0)
-        self._ro.xperiod = treecorr.config.get(self.config,'xperiod',float,period)
-        self._ro.yperiod = treecorr.config.get(self.config,'yperiod',float,period)
-        self._ro.zperiod = treecorr.config.get(self.config,'zperiod',float,period)
+        period = get(self.config,'period',float,0)
+        self._ro.xperiod = get(self.config,'xperiod',float,period)
+        self._ro.yperiod = get(self.config,'yperiod',float,period)
+        self._ro.zperiod = get(self.config,'zperiod',float,period)
 
-        self._ro.var_method = treecorr.config.get(self.config,'var_method',str,'shot')
-        self._ro.num_bootstrap = treecorr.config.get(self.config,'num_bootstrap',int,500)
+        self._ro.var_method = get(self.config,'var_method',str,'shot')
+        self._ro.num_bootstrap = get(self.config,'num_bootstrap',int,500)
         self.results = {}  # for jackknife, etc. store the results of each pair of patches.
         self.npatch1 = self.npatch2 = 1
 
@@ -552,9 +554,8 @@ class BinnedCorr2(object):
     def __setstate__(self, d):
         self.__dict__ = d
         self._corr = None
-        self.logger = treecorr.config.setup_logger(
-                treecorr.config.get(self.config,'verbose',int,1),
-                self.config.get('log_file',None))
+        self.logger = setup_logger(get(self.config,'verbose',int,1),
+                                   self.config.get('log_file',None))
 
     def _add_tot(self, i, j, c1, c2):
         # No op for all but NNCorrelation, which needs to add the tot value
@@ -698,7 +699,7 @@ class BinnedCorr2(object):
             else:
                 return False
 
-        if treecorr.config.get(self.config,'pairwise',bool,False):
+        if get(self.config,'pairwise',bool,False):
             import warnings
             warnings.warn("The pairwise option is slated to be removed in a future version. "+
                           "If you are actually using this parameter usefully, please "+
@@ -847,12 +848,12 @@ class BinnedCorr2(object):
             self.logger.debug('Set num_threads automatically')
         else:
             self.logger.debug('Set num_threads = %d',num_threads)
-        treecorr.set_omp_threads(num_threads, self.logger)
+        set_omp_threads(num_threads, self.logger)
 
     def _set_metric(self, metric, coords1, coords2=None):
         if metric is None:
-            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        coords, metric = treecorr.util.parse_metric(metric, coords1, coords2)
+            metric = get(self.config,'metric',str,'Euclidean')
+        coords, metric = parse_metric(metric, coords1, coords2)
         if coords != '3d':
             if self.min_rpar != -sys.float_info.max:
                 raise ValueError("min_rpar is only valid for 3d coordinates")
@@ -876,8 +877,8 @@ class BinnedCorr2(object):
                 raise ValueError("period options are not valid for %s metric."%metric)
         self.coords = coords  # These are the regular string values
         self.metric = metric
-        self._coords = treecorr.util.coord_enum(coords)  # These are the C++-layer enums
-        self._metric = treecorr.util.metric_enum(metric)
+        self._coords = coord_enum(coords)  # These are the C++-layer enums
+        self._metric = metric_enum(metric)
 
     def _apply_units(self, mask):
         if self.coords == 'spherical' and self.metric == 'Euclidean':
@@ -996,9 +997,9 @@ class BinnedCorr2(object):
         i1 = np.zeros(n, dtype=int)
         i2 = np.zeros(n, dtype=int)
         sep = np.zeros(n, dtype=float)
-        ntot = treecorr._lib.SamplePairs(self.corr, f1.data, f2.data, min_sep, max_sep,
-                                         f1._d, f2._d, self._coords, self._bintype, self._metric,
-                                         lp(i1), lp(i2), dp(sep), n)
+        ntot = _lib.SamplePairs(self.corr, f1.data, f2.data, min_sep, max_sep,
+                                f1._d, f2._d, self._coords, self._bintype, self._metric,
+                                lp(i1), lp(i2), dp(sep), n)
 
         if ntot < n:
             n = ntot

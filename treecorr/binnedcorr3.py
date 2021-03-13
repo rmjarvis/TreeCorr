@@ -19,7 +19,10 @@ import math
 import numpy as np
 import sys
 import coord
-import treecorr
+
+from . import _lib
+from .config import merge_config, setup_logger, get
+from .util import parse_metric, metric_enum, coord_enum, set_omp_threads
 
 class Namespace(object):
     pass
@@ -274,11 +277,10 @@ class BinnedCorr3(object):
 
     def __init__(self, config=None, logger=None, **kwargs):
         self._corr = None  # Do this first to make sure we always have it for __del__
-        self.config = treecorr.config.merge_config(config,kwargs,BinnedCorr3._valid_params)
+        self.config = merge_config(config,kwargs,BinnedCorr3._valid_params)
         if logger is None:
-            self.logger = treecorr.config.setup_logger(
-                    treecorr.config.get(self.config,'verbose',int,1),
-                    self.config.get('log_file',None))
+            self.logger = setup_logger(get(self.config,'verbose',int,1),
+                                       self.config.get('log_file',None))
         else:
             self.logger = logger
 
@@ -291,15 +293,15 @@ class BinnedCorr3(object):
         self._ro = Namespace()
 
         if 'output_dots' in self.config:
-            self._ro.output_dots = treecorr.config.get(self.config,'output_dots',bool)
+            self._ro.output_dots = get(self.config,'output_dots',bool)
         else:
-            self._ro.output_dots = treecorr.config.get(self.config,'verbose',int,1) >= 2
+            self._ro.output_dots = get(self.config,'verbose',int,1) >= 2
 
         self._ro.bin_type = self.config.get('bin_type', None)
-        self._ro._bintype = treecorr._lib.Log
+        self._ro._bintype = _lib.Log
 
         self._ro.sep_units = self.config.get('sep_units','')
-        self._ro._sep_units = treecorr.config.get(self.config,'sep_units',str,'radians')
+        self._ro._sep_units = get(self.config,'sep_units',str,'radians')
         self._ro._log_sep_units = math.log(self._sep_units)
         if 'nbins' not in self.config:
             if 'max_sep' not in self.config:
@@ -408,10 +410,10 @@ class BinnedCorr3(object):
         self._ro.split_method = self.config.get('split_method','mean')
         self.logger.debug("Using split_method = %s",self.split_method)
 
-        self._ro.min_top = treecorr.config.get(self.config,'min_top',int,None)
-        self._ro.max_top = treecorr.config.get(self.config,'max_top',int,10)
+        self._ro.min_top = get(self.config,'min_top',int,None)
+        self._ro.max_top = get(self.config,'max_top',int,10)
 
-        self._ro.bin_slop = treecorr.config.get(self.config,'bin_slop',float,-1.0)
+        self._ro.bin_slop = get(self.config,'bin_slop',float,-1.0)
         if self.bin_slop < 0.0:
             if self.bin_size <= 0.1:
                 self._ro.bin_slop = 1.0
@@ -466,17 +468,17 @@ class BinnedCorr3(object):
                              (self.nbins, self.nubins, 1))
         self._ro.rnom = np.exp(self.logr)
         self._ro.rnom1d = np.exp(self.logr1d)
-        self._ro.brute = treecorr.config.get(self.config,'brute',bool,False)
+        self._ro.brute = get(self.config,'brute',bool,False)
         if self.brute:
             self.logger.info("Doing brute force calculation.",)
         self.coords = None
         self.metric = None
-        period = treecorr.config.get(self.config,'period',float,0)
-        self._ro.xperiod = treecorr.config.get(self.config,'xperiod',float,period)
-        self._ro.yperiod = treecorr.config.get(self.config,'yperiod',float,period)
-        self._ro.zperiod = treecorr.config.get(self.config,'zperiod',float,period)
+        period = get(self.config,'period',float,0)
+        self._ro.xperiod = get(self.config,'xperiod',float,period)
+        self._ro.yperiod = get(self.config,'yperiod',float,period)
+        self._ro.zperiod = get(self.config,'zperiod',float,period)
 
-        self._ro.var_method = treecorr.config.get(self.config,'var_method',str,'shot')
+        self._ro.var_method = get(self.config,'var_method',str,'shot')
         self.results = {}  # for jackknife, etc. store the results of each pair of patches.
 
     # Properties for all the read-only attributes ("ro" stands for "read-only")
@@ -578,9 +580,8 @@ class BinnedCorr3(object):
     def __setstate__(self, d):
         self.__dict__ = d
         self._corr = None
-        self.logger = treecorr.config.setup_logger(
-                treecorr.config.get(self.config,'verbose',int,1),
-                self.config.get('log_file',None))
+        self.logger = setup_logger(get(self.config,'verbose',int,1),
+                                   self.config.get('log_file',None))
 
     def _process_all_auto(self, cats, metric, num_threads):
         for i, c1 in enumerate(cats):
@@ -617,12 +618,12 @@ class BinnedCorr3(object):
             self.logger.debug('Set num_threads automatically from ncpu')
         else:
             self.logger.debug('Set num_threads = %d',num_threads)
-        treecorr.set_omp_threads(num_threads, self.logger)
+        set_omp_threads(num_threads, self.logger)
 
     def _set_metric(self, metric, coords1, coords2=None, coords3=None):
         if metric is None:
-            metric = treecorr.config.get(self.config,'metric',str,'Euclidean')
-        coords, metric = treecorr.util.parse_metric(metric, coords1, coords2, coords3)
+            metric = get(self.config,'metric',str,'Euclidean')
+        coords, metric = parse_metric(metric, coords1, coords2, coords3)
         if self.coords is not None or self.metric is not None:
             if coords != self.coords:
                 self.logger.warning("Detected a change in catalog coordinate systems. "+
@@ -638,8 +639,8 @@ class BinnedCorr3(object):
                 raise ValueError("period options are not valid for %s metric."%metric)
         self.coords = coords
         self.metric = metric
-        self._coords = treecorr.util.coord_enum(coords)
-        self._metric = treecorr.util.metric_enum(metric)
+        self._coords = coord_enum(coords)
+        self._metric = metric_enum(metric)
 
     def _apply_units(self, mask):
         if self.coords == 'spherical' and self.metric == 'Euclidean':

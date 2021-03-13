@@ -15,11 +15,16 @@
 .. module:: nnncorrelation
 """
 
-import treecorr
 import numpy as np
 
+from . import _lib, _ffi
+from .catalog import calculateVarK
+from .binnedcorr3 import BinnedCorr3
+from .util import double_ptr as dp
+from .util import gen_read, gen_write, gen_multi_read, gen_multi_write
 
-class KKKCorrelation(treecorr.BinnedCorr3):
+
+class KKKCorrelation(BinnedCorr3):
     r"""This class handles the calculation and storage of a 3-point kappa-kappa-kappa correlation
     function.
 
@@ -106,7 +111,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
     def __init__(self, config=None, logger=None, **kwargs):
         """Initialize `KKKCorrelation`.  See class doc for details.
         """
-        treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
+        BinnedCorr3.__init__(self, config, logger, **kwargs)
 
         self._ro._d1 = 2  # KData
         self._ro._d2 = 2  # KData
@@ -129,8 +134,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
     @property
     def corr(self):
         if self._corr is None:
-            from treecorr.util import double_ptr as dp
-            self._corr = treecorr._lib.BuildCorr3(
+            self._corr = _lib.BuildCorr3(
                     self._d1, self._d2, self._d3, self._bintype,
                     self._min_sep,self._max_sep,self.nbins,self._bin_size,self.b,
                     self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
@@ -147,8 +151,8 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if self._corr is not None:
-            if not treecorr._ffi._lock.locked(): # pragma: no branch
-                treecorr._lib.DestroyCorr3(self.corr, self._d1, self._d2, self._d3, self._bintype)
+            if not _ffi._lock.locked(): # pragma: no branch
+                _lib.DestroyCorr3(self.corr, self._d1, self._d2, self._d3, self._bintype)
 
     def __eq__(self, other):
         """Return whether two `KKKCorrelation` instances are equal"""
@@ -232,8 +236,8 @@ class KKKCorrelation(treecorr.BinnedCorr3):
                               bool(self.brute), self.min_top, self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        treecorr._lib.ProcessAuto3(self.corr, field.data, self.output_dots,
-                                   field._d, self._coords, self._bintype, self._metric)
+        _lib.ProcessAuto3(self.corr, field.data, self.output_dots,
+                          field._d, self._coords, self._bintype, self._metric)
 
     def process_cross12(self, cat1, cat2, metric=None, num_threads=None):
         """Process two catalogs, accumulating the 3pt cross-correlation, where one of the
@@ -274,10 +278,10 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         # Note: all 3 correlation objects are the same.  Thus, all triangles will be placed
         # into self.corr, whichever way the three catalogs are permuted for each triangle.
-        treecorr._lib.ProcessCross12(self.corr, self.corr, self.corr,
-                                     f1.data, f2.data, self.output_dots,
-                                     f1._d, f2._d, self._coords,
-                                     self._bintype, self._metric)
+        _lib.ProcessCross12(self.corr, self.corr, self.corr,
+                            f1.data, f2.data, self.output_dots,
+                            f1._d, f2._d, self._coords,
+                            self._bintype, self._metric)
 
     def process_cross(self, cat1, cat2, cat3, metric=None, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
@@ -318,10 +322,10 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         # Note: all 6 correlation objects are the same.  Thus, all triangles will be placed
         # into self.corr, whichever way the three catalogs are permuted for each triangle.
-        treecorr._lib.ProcessCross3(self.corr, self.corr, self.corr,
-                                    self.corr, self.corr, self.corr,
-                                    f1.data, f2.data, f3.data, self.output_dots,
-                                    f1._d, f2._d, f3._d, self._coords, self._bintype, self._metric)
+        _lib.ProcessCross3(self.corr, self.corr, self.corr,
+                           self.corr, self.corr, self.corr,
+                           f1.data, f2.data, f3.data, self.output_dots,
+                           f1._d, f2._d, f3._d, self._coords, self._bintype, self._metric)
 
     def _finalize(self):
         mask1 = self.weight != 0
@@ -462,22 +466,22 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         if cat2 is None:
             if cat3 is not None:
                 raise ValueError("For two catalog case, use cat1,cat2, not cat1,cat3")
-            vark1 = treecorr.calculateVarK(cat1)
+            vark1 = calculateVarK(cat1)
             vark2 = vark1
             vark3 = vark1
             self.logger.info("vark = %f: sig_k = %f",vark1,math.sqrt(vark1))
             self._process_all_auto(cat1, metric, num_threads)
         elif cat3 is None:
-            vark1 = treecorr.calculateVarK(cat1)
-            vark2 = treecorr.calculateVarK(cat2)
+            vark1 = calculateVarK(cat1)
+            vark2 = calculateVarK(cat2)
             vark3 = vark2
             self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
             self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
             self._process_all_cross12(cat1, cat2, metric, num_threads)
         else:
-            vark1 = treecorr.calculateVarK(cat1)
-            vark2 = treecorr.calculateVarK(cat2)
-            vark3 = treecorr.calculateVarK(cat3)
+            vark1 = calculateVarK(cat1)
+            vark2 = calculateVarK(cat2)
+            vark3 = calculateVarK(cat3)
             self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
             self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
             self.logger.info("vark3 = %f: sig_k = %f",vark3,math.sqrt(vark3))
@@ -545,7 +549,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         if precision is None:
             precision = self.config.get('precision', 4)
 
-        treecorr.util.gen_write(
+        gen_write(
             file_name, col_names, columns,
             params=params, precision=precision, file_type=file_type, logger=self.logger)
 
@@ -568,7 +572,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         """
         self.logger.info('Reading KKK correlations from %s',file_name)
 
-        data, params = treecorr.util.gen_read(file_name, file_type=file_type, logger=self.logger)
+        data, params = gen_read(file_name, file_type=file_type, logger=self.logger)
         s = self.logr.shape
         if 'R_nom' in data.dtype.names:  # pragma: no cover
             self._ro.rnom = data['R_nom'].reshape(s)
@@ -595,7 +599,7 @@ class KKKCorrelation(treecorr.BinnedCorr3):
         self._ro.bin_type = params['bin_type'].strip()
 
 
-class KKKCrossCorrelation(treecorr.BinnedCorr3):
+class KKKCrossCorrelation(BinnedCorr3):
     r"""This class handles the calculation a 3-point kappa-kappa-kappa cross-correlation
     function.
 
@@ -673,7 +677,7 @@ class KKKCrossCorrelation(treecorr.BinnedCorr3):
     def __init__(self, config=None, logger=None, **kwargs):
         """Initialize `KKKCrossCorrelation`.  See class doc for details.
         """
-        treecorr.BinnedCorr3.__init__(self, config, logger, **kwargs)
+        BinnedCorr3.__init__(self, config, logger, **kwargs)
 
         self._ro._d1 = 2  # KData
         self._ro._d2 = 2  # KData
@@ -778,10 +782,10 @@ class KKKCrossCorrelation(treecorr.BinnedCorr3):
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         # Note: all 3 correlation objects are the same.  Thus, all triangles will be placed
         # into self.corr, whichever way the three catalogs are permuted for each triangle.
-        treecorr._lib.ProcessCross12(self.k1k2k3.corr, self.k2k1k3.corr, self.k2k3k1.corr,
-                                     f1.data, f2.data, self.output_dots,
-                                     f1._d, f2._d, self._coords,
-                                     self._bintype, self._metric)
+        _lib.ProcessCross12(self.k1k2k3.corr, self.k2k1k3.corr, self.k2k3k1.corr,
+                            f1.data, f2.data, self.output_dots,
+                            f1._d, f2._d, self._coords,
+                            self._bintype, self._metric)
 
     def process_cross(self, cat1, cat2, cat3, metric=None, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
@@ -825,11 +829,11 @@ class KKKCrossCorrelation(treecorr.BinnedCorr3):
                             bool(self.brute), self.min_top, self.max_top, self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        treecorr._lib.ProcessCross3(self.k1k2k3.corr, self.k1k3k2.corr,
-                                    self.k2k1k3.corr, self.k2k3k1.corr,
-                                    self.k3k1k2.corr, self.k3k2k1.corr,
-                                    f1.data, f2.data, f3.data, self.output_dots,
-                                    f1._d, f2._d, f3._d, self._coords, self._bintype, self._metric)
+        _lib.ProcessCross3(self.k1k2k3.corr, self.k1k3k2.corr,
+                           self.k2k1k3.corr, self.k2k3k1.corr,
+                           self.k3k1k2.corr, self.k3k2k1.corr,
+                           f1.data, f2.data, f3.data, self.output_dots,
+                           f1._d, f2._d, f3._d, self._coords, self._bintype, self._metric)
 
     def finalize(self, vark1, vark2, vark3):
         """Finalize the calculation of the correlation function.
@@ -907,8 +911,8 @@ class KKKCrossCorrelation(treecorr.BinnedCorr3):
         if not isinstance(cat2,list): cat2 = cat2.get_patches()
         if cat3 is not None and not isinstance(cat3,list): cat3 = cat3.get_patches()
 
-        vark1 = treecorr.calculateVarK(cat1)
-        vark2 = treecorr.calculateVarK(cat2)
+        vark1 = calculateVarK(cat1)
+        vark2 = calculateVarK(cat2)
         self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
         self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
 
@@ -934,7 +938,7 @@ class KKKCrossCorrelation(treecorr.BinnedCorr3):
             self.k3k1k2 += self.k2k1k3
             self.k3k2k1 += self.k2k3k1
         else:
-            vark3 = treecorr.calculateVarK(cat3)
+            vark3 = calculateVarK(cat3)
             self.logger.info("vark3 = %f: sig_k = %f",vark3,math.sqrt(vark3))
             self._process_all_cross(cat1, cat2, cat3, metric, num_threads)
         self.finalize(vark1,vark2,vark3)
@@ -970,7 +974,7 @@ class KKKCrossCorrelation(treecorr.BinnedCorr3):
         if precision is None:
             precision = self.config.get('precision', 4)
 
-        treecorr.util.gen_multi_write(
+        gen_multi_write(
             file_name, col_names, group_names, columns,
             params=params, precision=precision, file_type=file_type, logger=self.logger)
 
@@ -995,7 +999,7 @@ class KKKCrossCorrelation(treecorr.BinnedCorr3):
 
         group_names = [ 'k1k2k3', 'k1k3k2', 'k2k1k3', 'k2k3k1', 'k3k1k2', 'k3k2k1' ]
 
-        groups = treecorr.util.gen_multi_read(
+        groups = gen_multi_read(
                 file_name, group_names, file_type=file_type, logger=self.logger)
         s = self.logr.shape
         for (data, params), name in zip(groups, group_names):

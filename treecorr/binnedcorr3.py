@@ -23,6 +23,7 @@ import coord
 from . import _lib
 from .config import merge_config, setup_logger, get
 from .util import parse_metric, metric_enum, coord_enum, set_omp_threads
+from .binnedcorr2 import estimate_multi_cov
 
 class Namespace(object):
     pass
@@ -193,8 +194,9 @@ class BinnedCorr3(object):
         zperiod (float):    For the 'Periodic' metric, the period to use in the z direction.
                             (default: period)
 
-        var_method (str):   Which method to use for estimating the variance.  So far, only 'shot'
-                            is implemented. (default: 'shot')
+        var_method (str):   Which method to use for estimating the variance. Options are:
+                            'shot', 'jackknife', 'sample', 'bootstrap', 'marked_bootstrap'.
+                            (default: 'shot')
 
         num_threads (int):  How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
@@ -271,7 +273,8 @@ class BinnedCorr3(object):
         'zperiod': (float, False, None, None,
                 'The period to use for the z direction for the Periodic metric'),
 
-        'var_method': (str, False, 'shot', ['shot'],
+        'var_method': (str, False, 'shot',
+                ['shot', 'jackknife', 'sample', 'bootstrap', 'marked_bootstrap'],
                 'The method to use for estimating the variance'),
     }
 
@@ -477,9 +480,11 @@ class BinnedCorr3(object):
         self._ro.xperiod = get(self.config,'xperiod',float,period)
         self._ro.yperiod = get(self.config,'yperiod',float,period)
         self._ro.zperiod = get(self.config,'zperiod',float,period)
+        self._ro._nbins = len(self._ro.logr.ravel())
 
         self._ro.var_method = get(self.config,'var_method',str,'shot')
         self.results = {}  # for jackknife, etc. store the results of each pair of patches.
+        self.npatch1 = self.npatch2 = self.npatch3 = 1
 
     # Properties for all the read-only attributes ("ro" stands for "read-only")
     @property
@@ -535,6 +540,8 @@ class BinnedCorr3(object):
     @property
     def _bintype(self): return self._ro._bintype
     @property
+    def _nbins(self): return self._ro._nbins
+    @property
     def _min_sep(self): return self._ro._min_sep
     @property
     def _max_sep(self): return self._ro._max_sep
@@ -583,20 +590,165 @@ class BinnedCorr3(object):
         self.logger = setup_logger(get(self.config,'verbose',int,1),
                                    self.config.get('log_file',None))
 
-    def _process_all_auto(self, cats, metric, num_threads):
-        for i, c1 in enumerate(cats):
-            # All three points in c1
-            self.process_auto(c1, metric, num_threads)
-            for jj, c2 in enumerate(cats[i+1:]):
-                j = jj + i+1
-                # One point in c1, 2 in c2
-                self.process_cross12(c1,c2, metric, num_threads)
-                # One point in c2, 2 in c1
-                self.process_cross12(c2,c1, metric, num_threads)
-                for kk,c3 in enumerate(cats[j+1:]):
-                    k = kk + j+1
-                    # One point in each of c1, c2, c3
-                    self.process_cross(c1,c2,c3, metric, num_threads)
+    def _add_tot(self, i, j, k, c1, c2, c3):
+        # No op for all but NNCorrelation, which needs to add the tot value
+        pass
+
+    def _trivially_zero(self, c1, c2, c3, metric):
+        # For now, ignore the metric.  Just be conservative about how much space we need.
+        x1,y1,z1,s1 = c1._get_center_size()
+        x2,y2,z2,s2 = c2._get_center_size()
+        x3,y3,z3,s3 = c3._get_center_size()
+        d3 = ((x1-x2)**2 + (y1-y2)**2 + (z1-z2)**2)**0.5
+        d1 = ((x2-x3)**2 + (y2-y3)**2 + (z2-z3)**2)**0.5
+        d2 = ((x3-x1)**2 + (y3-y1)**2 + (z3-z1)**2)**0.5
+        d3, d2, d1 = sorted([d1,d2,d3])
+        return (d2 > s1 + s2 + s3 + 2*self._max_sep)  # The 2* is where we are being conservative.
+
+    def _process_all_auto(self, cat1, metric, num_threads, comm=None, low_mem=False):
+
+        def is_my_job(my_indices, i, j, k, n):
+            # Helper function to figure out if a given (i,j,k) job should be done on the
+            # current process.
+
+            # Always my job if not using MPI.
+            if my_indices is None:
+                return True
+
+            # Now the tricky part.  If using MPI, we need to divide up the jobs smartly.
+            # The first point is to divvy up the auto jobs evenly.  This is where most of the
+            # work is done, so we want those to be spreads as evenly as possibly across procs.
+            # Therefore, if all indices are mine, then do the job.
+            # This reduces the number of catalogs this machine needs to load up.
+            n1 = np.sum([i in my_indices, j in my_indices, k in my_indices])
+            if n1 == 3:
+                self.logger.info("Rank %d: Job (%d,%d,%d) is mine.",rank,i,j,k)
+                return True
+
+            # If none of the indices are mine, then it's not my job.
+            if n1 == 0:
+                return False
+
+            # When only one or two of the indices are mine, then we follow the same kind of
+            # procedure as we did in 2pt.  There, we decided based on the parity of i.
+            # Here that turns into i mod 3.
+            if ( (i % 3 == 0 and i in my_indices) or
+                 (i % 3 == 1 and j in my_indices) or
+                 (i % 3 == 2 and k in my_indices) ):
+                self.logger.info("Rank %d: Job (%d,%d,%d) is mine.",rank,i,j,k)
+                return True
+            else:
+                return False
+
+        if len(cat1) == 1:
+            self.process_auto(cat1[0], metric, num_threads)
+        else:
+            # When patch processing, keep track of the pair-wise results.
+            if self.npatch1 == 1:
+                self.npatch1 = self.npatch2 = self.npatch3 = len(cat1)
+            n = self.npatch1
+
+            # Setup for deciding when this is my job.
+            if comm:
+                size = comm.Get_size()
+                rank = comm.Get_rank()
+                my_indices = np.arange(n * rank // size, n * (rank+1) // size)
+                self.logger.info("Rank %d: My indices are %s",rank,my_indices)
+            else:
+                my_indices = None
+
+            temp = self.copy()
+            temp.results = {}  # Don't mess up the original results
+            for ii,c1 in enumerate(cat1):
+                i = c1.patch if c1.patch is not None else ii
+                if is_my_job(my_indices, i, i, i, n):
+                    temp.clear()
+                    self.logger.info('Process patch %d auto',i)
+                    temp.process_auto(c1,metric,num_threads)
+                    if (i,i,i) not in self.results:
+                        self.results[(i,i,i)] = temp.copy()
+                    else:
+                        self.results[(i,i,i)] += temp
+                    self += temp
+
+                for jj,c2 in list(enumerate(cat1))[::-1]:
+                    j = c2.patch if c2.patch is not None else jj
+                    if i < j and is_my_job(my_indices, i, i, j, n):
+                        temp.clear()
+                        # One point in c1, 2 in c2.
+                        if not self._trivially_zero(c1,c2,c2,metric):
+                            self.logger.info('Process patches %d,%d cross12',i,j)
+                            temp.process_cross12(c1,c2, metric, num_threads)
+                        else:
+                            self.logger.info('Skipping %d,%d pair, which are too far apart ' +
+                                             'for this set of separations',i,j)
+                        if np.sum(temp.ntri) > 0:
+                            if (i,j,j) not in self.results:
+                                self.results[(i,j,j)] = temp.copy()
+                            else:
+                                self.results[(i,j,j)] += temp
+                            self += temp
+                            temp.clear()
+                        else:
+                            # NNNCorrelation needs to add the tot value
+                            self._add_tot(i, j, j, c1, c2, c2)
+
+                        # One point in c2, 2 in c1.
+                        if not self._trivially_zero(c1,c1,c2,metric):
+                            self.logger.info('Process patches %d,%d cross12',j,i)
+                            temp.process_cross12(c2,c1, metric, num_threads)
+                        if np.sum(temp.ntri) > 0:
+                            if (i,i,j) not in self.results:
+                                self.results[(i,i,j)] = temp.copy()
+                            else:
+                                self.results[(i,i,j)] += temp
+                            self += temp
+                        else:
+                            # NNNCorrelation needs to add the tot value
+                            self._add_tot(i, i, j, c1, c1, c2)
+
+                        # One point in each of c1, c2, c3
+                        for kk,c3 in enumerate(cat1):
+                            k = c3.patch if c3.patch is not None else kk
+                            if j < k and is_my_job(my_indices, i, j, k, n):
+                                temp.clear()
+
+                                if not self._trivially_zero(c1,c2,c3,metric):
+                                    self.logger.info('Process patches %d,%d,%d cross',i,j,k)
+                                    temp.process_cross(c1,c2,c3, metric, num_threads)
+                                else:
+                                    self.logger.info('Skipping %d,%d,%d, which are too far apart ' +
+                                                     'for this set of separations',i,j,k)
+                                if np.sum(temp.ntri) > 0:
+                                    if (i,j,k) not in self.results:
+                                        self.results[(i,j,k)] = temp.copy()
+                                    else:
+                                        self.results[(i,j,k)] += temp
+                                    self += temp
+                                else:
+                                    # NNNCorrelation needs to add the tot value
+                                    self._add_tot(i, j, k, c1, c2, c3)
+                                if low_mem:
+                                    c3.unload()
+
+                        if low_mem and jj != ii+1:
+                            # Don't unload i+1, since that's the next one we'll need.
+                            c2.unload()
+                if low_mem:
+                    c1.unload()
+            if comm is not None:
+                rank = comm.Get_rank()
+                size = comm.Get_size()
+                self.logger.info("Rank %d: Completed jobs %s",rank,list(self.results.keys()))
+                # Send all the results back to rank 0 process.
+                if rank > 0:
+                    comm.send(self, dest=0)
+                else:
+                    for p in range(1,size):
+                        temp = comm.recv(source=p)
+                        self += temp
+                        self.results.update(temp.results)
+
 
     def _process_all_cross12(self, cat1, cat2, metric, num_threads):
         for c1 in cat1:
@@ -610,6 +762,55 @@ class BinnedCorr3(object):
             for c2 in cat2:
                 for c3 in cat3:
                     self.process_cross(c1,c2,c3, metric, num_threads)
+
+    def estimate_cov(self, method):
+        """Estimate the covariance matrix based on the data
+
+        This function will calculate an estimate of the covariance matrix according to the
+        given method.
+
+        Options for ``method`` include:
+
+            - 'shot' = The variance based on "shot noise" only.  This includes the Poisson
+              counts of points for N statistics, shape noise for G statistics, and the observed
+              scatter in the values for K statistics.  In this case, the returned covariance
+              matrix will be diagonal, since there is no way to estimate the off-diagonal terms.
+            - 'jackknife' = A jackknife estimate of the covariance matrix based on the scatter
+              in the measurement when excluding one patch at a time.
+            - 'sample' = An estimate based on the sample covariance of a set of samples,
+              taken as the patches of the input catalog.
+            - 'bootstrap' = A bootstrap covariance estimate. It selects patches at random with
+              replacement and then generates the statistic using all the auto-correlations at
+              their selected repetition plus all the cross terms that aren't actually auto terms.
+            - 'marked_bootstrap' = An estimate based on a marked-point bootstrap resampling of the
+              patches.  Similar to bootstrap, but only samples the patches of the first catalog and
+              uses all patches from the second catalog that correspond to each patch selection of
+              the first catalog.  cf. https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/
+
+        Both 'bootstrap' and 'marked_bootstrap' use the num_bootstrap parameter, which can be set on
+        construction.
+
+        .. note::
+
+            For most classes, there is only a single statistic, so this calculates a covariance
+            matrix for that vector.  `GGGCorrelation` has four: ``gam0``, ``gam1``, ``gam2``,
+            and ``gam3``, so in this case the full data vector is ``gam0`` followed by ``gam1``,
+            then ``gam2``, then ``gam3``, and this calculates the covariance matrix for that full
+            vector including both statistics.  The helper function `getStat` returns the relevant
+            statistic in all cases.
+
+        In all cases, the relevant processing needs to already have been completed and finalized.
+        And for all methods other than 'shot', the processing should have involved an appropriate
+        number of patches -- preferably more patches than the length of the vector for your
+        statistic, although this is not checked.
+
+        Parameters:
+            method (str):   Which method to use to estimate the covariance matrix.
+
+        Returns:
+            A numpy array with the estimated covariance matrix.
+        """
+        return estimate_multi_cov([self], method)
 
     def _set_num_threads(self, num_threads):
         if num_threads is None:
@@ -673,3 +874,136 @@ class BinnedCorr3(object):
             return min_size, max_size
         else:
             return 0., 0.
+
+    # The three-point versions of the covariance helpers.
+    # Note: the word "pairs" in many of these was appropriate for 2pt, but in the 3pt case
+    # these actually refer to triples (i,j,k).
+
+    def _get_npatch(self):
+        return max(self.npatch1, self.npatch2, self.npatch3)
+
+    def _calculate_xi_from_pairs(self, pairs):
+        # Compute the xi data vector for the given list of pairs.
+        # pairs is input as a list of (i,j) values.
+
+        # This is the normal calculation.  It needs to be overridden when there are randoms.
+        self.clear()
+        self._sum([self.results[ij] for ij in pairs])
+        self._finalize()
+
+    def _jackknife_pairs(self):
+        if self.npatch3 == 1:
+            if self.npatch2 == 1:
+                return [ [(j,0,0) for j in range(self.npatch1) if j!=i]
+                         for i in range(self.npatch1) ]
+            elif self.npatch1 == 1:
+                return [ [(0,j,0) for j in range(self.npatch2) if j!=i]
+                         for i in range(self.npatch2) ]
+            else:
+                assert self.npatch1 == self.npatch2
+                return [ [(j,k,0) for j,k,_ in self.results.keys() if j!=i and k!=i]
+                            for i in range(self.npatch1) ]
+        elif self.npatch2 == 1:
+            if self.npatch1 == 1:
+                return [ [(0,0,j) for j in range(self.npatch3) if j!=i]
+                         for i in range(self.npatch3) ]
+            else:
+                assert self.npatch1 == self.npatch3
+                return [ [(j,0,k) for j,_,k in self.results.keys() if j!=i and k!=i]
+                            for i in range(self.npatch1) ]
+        elif self.npatch1 == 1:
+            assert self.npatch2 == self.npatch3
+            return [ [(0,j,k) for _,j,k in self.results.keys() if j!=i and k!=i]
+                     for i in range(self.npatch2) ]
+        else:
+            assert self.npatch1 == self.npatch2 == self.npatch3
+            return [ [(j,k,m) for j,k,m in self.results.keys() if j!=i and k!=i and m!=i]
+                     for i in range(self.npatch1) ]
+
+    def _sample_pairs(self):
+        if self.npatch3 == 1:
+            if self.npatch2 == 1:
+                return [ [(i,0,0)] for i in range(self.npatch1) ]
+            elif self.npatch1 == 1:
+                return [ [(0,i,0)] for i in range(self.npatch2) ]
+            else:
+                assert self.npatch1 == self.npatch2
+                return [ [(j,k,0) for j,k,_ in self.results.keys() if j==i]
+                         for i in range(self.npatch1) ]
+        elif self.npatch2 == 1:
+            if self.npatch1 == 1:
+                return [ [(0,0,i)] for i in range(self.npatch3) ]
+            else:
+                assert self.npatch1 == self.npatch2
+                return [ [(j,0,k) for j,_,k in self.results.keys() if j==i]
+                         for i in range(self.npatch1) ]
+        elif self.npatch1 == 1:
+            assert self.npatch2 == self.npatch3
+            return [ [(0,j,k) for _,j,k in self.results.keys() if j==i]
+                     for i in range(self.npatch2) ]
+        else:
+            assert self.npatch1 == self.npatch2 == self.npatch3
+            return [ [(j,k,m) for j,k,m in self.results.keys() if j==i]
+                     for i in range(self.npatch2) ]
+
+    def _build_ok_matrix(self):
+        # Precompute an ok array to make the list comprehension in bootstrap_pars much faster.
+        n1 = np.sum([self.npatch1 != 1, self.npatch2 != 1, self.npatch3 != 1])
+        if n1 > 1:
+            self._ok = np.zeros((self.npatch1, self.npatch2, self.npatch3), dtype=bool)
+            for (i,j,k) in self.results:
+                self._ok[i,j,k] = True
+
+    def _marked_pairs(self, indx):
+        if self.npatch3 == 1:
+            if self.npatch2 == 1:
+                return [ (i,0,0) for i in indx ]
+            elif self.npatch1 == 1:
+                return [ (0,i,0) for i in indx ]
+            else:
+                assert self.npatch1 == self.npatch2
+                # Select all pairs where first point is in indx (repeating i as appropriate)
+                return [ (i,j,0) for i in indx for j in range(self.npatch2) if self._ok[i,j,0] ]
+        elif self.npatch2 == 1:
+            if self.npatch1 == 1:
+                return [ (0,0,i) for i in indx ]
+            else:
+                assert self.npatch1 == self.npatch3
+                # Select all pairs where first point is in indx (repeating i as appropriate)
+                return [ (i,0,j) for i in indx for j in range(self.npatch2) if self._ok[i,0,j] ]
+        elif self.npatch1 == 1:
+            assert self.npatch2 == self.npatch3
+            # Select all pairs where first point is in indx (repeating i as appropriate)
+            return [ (0,i,j) for i in indx for j in range(self.npatch2) if self._ok[0,i,j] ]
+        else:
+            assert self.npatch1 == self.npatch2 == self.npatch3
+            # Select all pairs where first point is in indx (repeating i as appropriate)
+            return [ (i,j,k) for i in indx for j in range(self.npatch2)
+                                           for k in range(self.npatch3) if self._ok[i,j,k] ]
+
+    def _bootstrap_pairs(self, indx):
+        if self.npatch3 == 1:
+            if self.npatch2 == 1:
+                return [ (i,0,0) for i in indx ]
+            elif self.npatch1 == 1:
+                return [ (0,i,0) for i in indx ]
+            else:
+                assert self.npatch1 == self.npatch2
+                return ([ (i,i,0) for i in indx if self._ok[i,i,0] ] +
+                        [ (i,j,0) for i in indx for j in indx if self._ok[i,j,0] and i!=j ])
+        elif self.npatch2 == 1:
+            if self.npatch1 == 1:
+                return [ (0,0,i) for i in indx ]
+            else:
+                assert self.npatch1 == self.npatch3
+                return ([ (i,0,i) for i in indx if self._ok[i,0,i] ] +
+                        [ (i,0,j) for i in indx for j in indx if self._ok[i,0,j] and i!=j ])
+        elif self.npatch1 == 1:
+            assert self.npatch2 == self.npatch3
+            return ([ (0,i,i) for i in indx if self._ok[0,i,i] ] +
+                    [ (0,i,j) for i in indx for j in indx if self._ok[0,i,j] and i!=j ])
+        else:
+            assert self.npatch1 == self.npatch2 == self.npatch3
+            return ([ (i,i,i) for i in indx if self._ok[i,i,i] ] +
+                    [ (i,j,k) for i in indx for j in indx for k in indx
+                              if self._ok[i,j,k] and (i!=j or i!=k) ])

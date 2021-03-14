@@ -206,7 +206,6 @@ class KKCorrelation(BinnedCorr2):
         _lib.ProcessAuto2(self.corr, field.data, self.output_dots,
                           field._d, self._coords, self._bintype, self._metric)
 
-
     def process_cross(self, cat1, cat2, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation.
 
@@ -245,7 +244,6 @@ class KKCorrelation(BinnedCorr2):
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         _lib.ProcessCross2(self.corr, f1.data, f2.data, self.output_dots,
                            f1._d, f2._d, self._coords, self._bintype, self._metric)
-
 
     def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation, only using
@@ -326,7 +324,7 @@ class KKCorrelation(BinnedCorr2):
     def clear(self):
         """Clear the data vectors
         """
-        self.xi.ravel().ravel()[:] = 0
+        self.xi.ravel()[:] = 0
         self.meanr.ravel()[:] = 0
         self.meanlogr.ravel()[:] = 0
         self.weight.ravel()[:] = 0
@@ -371,8 +369,8 @@ class KKCorrelation(BinnedCorr2):
                 initialize=True, finalize=True):
         """Compute the correlation function.
 
-        If only 1 argument is given, then compute an auto-correlation function.
-        If 2 arguments are given, then compute a cross-correlation function.
+        - If only 1 argument is given, then compute an auto-correlation function.
+        - If 2 arguments are given, then compute a cross-correlation function.
 
         Both arguments may be lists, in which case all items in the list are used
         for that element of the correlation.

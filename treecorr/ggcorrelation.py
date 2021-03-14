@@ -406,8 +406,8 @@ class GGCorrelation(BinnedCorr2):
                 initialize=True, finalize=True):
         """Compute the correlation function.
 
-        If only 1 argument is given, then compute an auto-correlation function.
-        If 2 arguments are given, then compute a cross-correlation function.
+        - If only 1 argument is given, then compute an auto-correlation function.
+        - If 2 arguments are given, then compute a cross-correlation function.
 
         Both arguments may be lists, in which case all items in the list are used
         for that element of the correlation.

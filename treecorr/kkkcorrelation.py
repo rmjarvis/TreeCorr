@@ -367,10 +367,9 @@ class KKKCorrelation(BinnedCorr3):
             vark3 (float):  The kappa variance for the third field.
         """
         self._finalize()
-        mask1 = self.weight != 0
-        mask2 = self.weight == 0
-        self.varzeta[mask1] = vark1 * vark2 * vark3 / self.weight[mask1]
-        self.varzeta[mask2] = 0.
+        self._var_num = vark1 * vark2 * vark3
+        self.cov = self.estimate_cov(self.var_method)
+        self.varzeta.ravel()[:] = self.cov.diagonal()
 
     def clear(self):
         """Clear the data vectors
@@ -411,7 +410,6 @@ class KKKCorrelation(BinnedCorr3):
 
         self._set_metric(other.metric, other.coords)
         self.zeta[:] += other.zeta[:]
-        self.varzeta[:] += other.varzeta[:]
         self.meand1[:] += other.meand1[:]
         self.meanlogd1[:] += other.meanlogd1[:]
         self.meand2[:] += other.meand2[:]
@@ -424,8 +422,27 @@ class KKKCorrelation(BinnedCorr3):
         self.ntri[:] += other.ntri[:]
         return self
 
-    def process(self, cat1, cat2=None, cat3=None, metric=None, num_threads=None):
-        """Accumulate the 3pt correlation of the points in the given Catalog(s).
+    def _sum(self, others):
+        # Equivalent to the operation of:
+        #     self.clear()
+        #     for other in others:
+        #         self += other
+        # but no sanity checks and use numpy.sum for faster calculation.
+        np.sum([c.zeta for c in others], axis=0, out=self.zeta)
+        np.sum([c.meand1 for c in others], axis=0, out=self.meand1)
+        np.sum([c.meanlogd1 for c in others], axis=0, out=self.meanlogd1)
+        np.sum([c.meand2 for c in others], axis=0, out=self.meand2)
+        np.sum([c.meanlogd2 for c in others], axis=0, out=self.meanlogd2)
+        np.sum([c.meand3 for c in others], axis=0, out=self.meand3)
+        np.sum([c.meanlogd3 for c in others], axis=0, out=self.meanlogd3)
+        np.sum([c.meanu for c in others], axis=0, out=self.meanu)
+        np.sum([c.meanv for c in others], axis=0, out=self.meanv)
+        np.sum([c.weight for c in others], axis=0, out=self.weight)
+        np.sum([c.ntri for c in others], axis=0, out=self.ntri)
+
+    def process(self, cat1, cat2=None, cat3=None, metric=None, num_threads=None,
+                comm=None, low_mem=False, initialize=True, finalize=True):
+        """Compute the 3pt correlation function.
 
         - If only 1 argument is given, then compute an auto-correlation function.
         - If 2 arguments are given, then compute a cross-correlation function with the
@@ -455,38 +472,71 @@ class KKKCorrelation(BinnedCorr3):
             num_threads (int):  How many OpenMP threads to use during the calculation.
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
+            comm (mpi4py.Comm): If running MPI, an mpi4py Comm object to communicate between
+                                processes.  If used, the rank=0 process will have the final
+                                computation. This only works if using patches. (default: None)
+            low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
+                                This only works if using patches. (default: False)
+            initialize (bool):  Wether to begin the calculation with a call to `clear`.
+                                (default: True)
+            finalize (bool):    Wether to complete the calculation with a call to `finalize`.
+                                (default: True)
         """
         import math
-        self.clear()
-        self.results.clear()
-        if not isinstance(cat1,list): cat1 = cat1.get_patches()
-        if cat2 is not None and not isinstance(cat2,list): cat2 = cat2.get_patches()
-        if cat3 is not None and not isinstance(cat3,list): cat3 = cat3.get_patches()
+        if initialize:
+            self.clear()
+            self.results.clear()
+
+        if not isinstance(cat1,list):
+            cat1 = cat1.get_patches(low_mem=low_mem)
+        if cat2 is not None and not isinstance(cat2,list):
+            cat2 = cat2.get_patches(low_mem=low_mem)
+        if cat3 is not None and not isinstance(cat3,list):
+            cat3 = cat3.get_patches(low_mem=low_mem)
 
         if cat2 is None:
             if cat3 is not None:
                 raise ValueError("For two catalog case, use cat1,cat2, not cat1,cat3")
-            vark1 = calculateVarK(cat1)
-            vark2 = vark1
-            vark3 = vark1
-            self.logger.info("vark = %f: sig_k = %f",vark1,math.sqrt(vark1))
-            self._process_all_auto(cat1, metric, num_threads)
+            self._process_all_auto(cat1, metric, num_threads, comm, low_mem)
         elif cat3 is None:
-            vark1 = calculateVarK(cat1)
-            vark2 = calculateVarK(cat2)
-            vark3 = vark2
-            self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
-            self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
             self._process_all_cross12(cat1, cat2, metric, num_threads)
         else:
-            vark1 = calculateVarK(cat1)
-            vark2 = calculateVarK(cat2)
-            vark3 = calculateVarK(cat3)
-            self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
-            self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
-            self.logger.info("vark3 = %f: sig_k = %f",vark3,math.sqrt(vark3))
             self._process_all_cross(cat1, cat2, cat3, metric, num_threads)
-        self.finalize(vark1,vark2,vark3)
+
+        if finalize:
+            if cat2 is None:
+                vark1 = calculateVarK(cat1)
+                vark2 = vark1
+                vark3 = vark1
+                self.logger.info("vark = %f: sig_k = %f",vark1,math.sqrt(vark1))
+            elif cat3 is None:
+                vark1 = calculateVarK(cat1)
+                vark2 = calculateVarK(cat2)
+                vark3 = vark2
+                self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
+                self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
+            else:
+                vark1 = calculateVarK(cat1)
+                vark2 = calculateVarK(cat2)
+                vark3 = calculateVarK(cat3)
+                self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
+                self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
+                self.logger.info("vark3 = %f: sig_k = %f",vark3,math.sqrt(vark3))
+            self.finalize(vark1,vark2,vark3)
+
+    def getStat(self):
+        """The standard statistic for the current correlation object as a 1-d array.
+
+        In this case, self.zeta.ravel().
+        """
+        return self.zeta.ravel()
+
+    def getWeight(self):
+        """The weight array for the current correlation object as a 1-d array.
+
+        In this case, 4 copies of self.weight.ravel().
+        """
+        return self.weight.ravel()
 
     def write(self, file_name, file_type=None, precision=None):
         r"""Write the correlation function to the file, file_name.
@@ -943,8 +993,28 @@ class KKKCrossCorrelation(BinnedCorr3):
             self._process_all_cross(cat1, cat2, cat3, metric, num_threads)
         self.finalize(vark1,vark2,vark3)
 
+    def getStat(self):
+        """The standard statistic for the current correlation object as a 1-d array.
+
+        In this case, the concatenation of zeta.ravel() for each combination in the following
+        order: k1k2k3, k1k3k2, k2k1k3, k2k3k1, k3k1k2, k3k2k1.
+        """
+        return np.concatenate([kkk.zeta.ravel()
+                               for kkk in [self.k1k2k3, self.k1k3k2, self.k2k1k3, self.k2k3k1,
+                                           self.k3k1k2, self.k3k2k1]])
+
+    def getWeight(self):
+        """The weight array for the current correlation object as a 1-d array.
+
+        In this case, the concatenation of getWeight() for each combination in the following
+        order: k1k2k3, k1k3k2, k2k1k3, k2k3k1, k3k1k2, k3k2k1.
+        """
+        return np.concatenate([kkk.getWeight()
+                               for kkk in [self.k1k2k3, self.k1k3k2, self.k2k1k3, self.k2k3k1,
+                                           self.k3k1k2, self.k3k2k1]])
+
     def write(self, file_name, file_type=None, precision=None):
-        r"""Write the correlation function to the file, file_name.
+        r"""Write the cross-correlation functions to the file, file_name.
 
         Parameters:
             file_name (str):    The name of the file to write to.

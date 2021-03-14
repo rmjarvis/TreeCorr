@@ -1200,11 +1200,13 @@ def _make_cov_design_matrix(corrs, plist, func):
     corrs = [c.copy() for c in corrs]
 
     # Figure out the shape of the design matrix.
-    vsize = len(func(corrs))
+    v1 = func(corrs)
+    dt = v1.dtype
+    vsize = len(v1)
     nrows = len(plist)
 
     # Make the empty return arrays.
-    v = np.empty((nrows,vsize), dtype=float)
+    v = np.empty((nrows,vsize), dtype=dt)
     w = np.zeros(nrows, dtype=float)
 
     for row, pairs in enumerate(plist):
@@ -1263,7 +1265,7 @@ def _cov_jackknife(corrs, func):
     v,w = _make_cov_design_matrix(corrs, plist, func)
     vmean = np.mean(v, axis=0)
     v -= vmean
-    C = (1.-1./npatch) * v.T.dot(v)
+    C = (1.-1./npatch) * v.conj().T.dot(v)
     return C
 
 def _cov_sample(corrs, func):
@@ -1292,7 +1294,7 @@ def _cov_sample(corrs, func):
 
     vmean = np.mean(v, axis=0)
     v -= vmean
-    C = 1./(npatch-1) * (w * v.T).dot(v)
+    C = 1./(npatch-1) * (w * v.conj().T).dot(v)
     return C
 
 def _cov_marked(corrs, func):
@@ -1331,7 +1333,7 @@ def _cov_marked(corrs, func):
     v,w = _make_cov_design_matrix(corrs, plist, func)
     vmean = np.mean(v, axis=0)
     v -= vmean
-    C = 1./(nboot-1) * v.T.dot(v)
+    C = 1./(nboot-1) * v.conj().T.dot(v)
     return C
 
 def _cov_bootstrap(corrs, func):
@@ -1360,5 +1362,5 @@ def _cov_bootstrap(corrs, func):
     v,w = _make_cov_design_matrix(corrs, plist, func)
     vmean = np.mean(v, axis=0)
     v -= vmean
-    C = 1./(nboot-1) * v.T.dot(v)
+    C = 1./(nboot-1) * v.conj().T.dot(v)
     return C

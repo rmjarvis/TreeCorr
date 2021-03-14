@@ -375,6 +375,24 @@ class NNNCorrelation(BinnedCorr3):
         self.ntri[:,:,:] = 0.
         self.tot = 0.
 
+    def _sum(self, others):
+        # Equivalent to the operation of:
+        #     self.clear()
+        #     for other in others:
+        #         self += other
+        # but no sanity checks and use numpy.sum for faster calculation.
+        np.sum([c.meand1 for c in others], axis=0, out=self.meand1)
+        np.sum([c.meanlogd1 for c in others], axis=0, out=self.meanlogd1)
+        np.sum([c.meand2 for c in others], axis=0, out=self.meand2)
+        np.sum([c.meanlogd2 for c in others], axis=0, out=self.meanlogd2)
+        np.sum([c.meand3 for c in others], axis=0, out=self.meand3)
+        np.sum([c.meanlogd3 for c in others], axis=0, out=self.meanlogd3)
+        np.sum([c.meanu for c in others], axis=0, out=self.meanu)
+        np.sum([c.meanv for c in others], axis=0, out=self.meanv)
+        np.sum([c.weight for c in others], axis=0, out=self.weight)
+        np.sum([c.ntri for c in others], axis=0, out=self.ntri)
+        self.tot = np.sum([c.tot for c in others])
+
     def __iadd__(self, other):
         """Add a second `NNNCorrelation`'s data to this one.
 

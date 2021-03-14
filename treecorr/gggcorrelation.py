@@ -445,14 +445,17 @@ class GGGCorrelation(BinnedCorr3):
         self._finalize()
         mask1 = self.weight != 0
         mask2 = self.weight == 0
-        self.vargam0[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
-        self.vargam1[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
-        self.vargam2[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
-        self.vargam3[mask1] = varg1 * varg2 * varg3 / self.weight[mask1]
-        self.vargam0[mask2] = 0.
-        self.vargam1[mask2] = 0.
-        self.vargam2[mask2] = 0.
-        self.vargam3[mask2] = 0.
+        self._var_num = varg1 * varg2 * varg3
+        self.cov = self.estimate_cov(self.var_method)
+        # Note: diagonal should be very close to pure real.  So ok to just copy real part.
+        diag = self.cov.diagonal()
+        # This should never trigger.  If you find this assert to fail, please post an
+        # issue about it describing your use case that caused it to fail.
+        assert np.sum(diag.imag**2) <= 1.e-8 * np.sum(diag.real**2)
+        self.vargam0.ravel()[:] = self.cov.diagonal()[0:self._nbins].real
+        self.vargam1.ravel()[:] = self.cov.diagonal()[self._nbins:2*self._nbins].real
+        self.vargam2.ravel()[:] = self.cov.diagonal()[2*self._nbins:3*self._nbins].real
+        self.vargam3.ravel()[:] = self.cov.diagonal()[3*self._nbins:4*self._nbins].real
 
     def clear(self):
         """Clear the data vectors
@@ -510,10 +513,6 @@ class GGGCorrelation(BinnedCorr3):
         self.gam2i[:] += other.gam2i[:]
         self.gam3r[:] += other.gam3r[:]
         self.gam3i[:] += other.gam3i[:]
-        self.vargam0[:] += other.vargam0[:]
-        self.vargam1[:] += other.vargam1[:]
-        self.vargam2[:] += other.vargam2[:]
-        self.vargam3[:] += other.vargam3[:]
         self.meand1[:] += other.meand1[:]
         self.meanlogd1[:] += other.meanlogd1[:]
         self.meand2[:] += other.meand2[:]
@@ -526,8 +525,34 @@ class GGGCorrelation(BinnedCorr3):
         self.ntri[:] += other.ntri[:]
         return self
 
-    def process(self, cat1, cat2=None, cat3=None, metric=None, num_threads=None):
-        """Accumulate the 3pt correlation of the points in the given Catalog(s).
+    def _sum(self, others):
+        # Equivalent to the operation of:
+        #     self.clear()
+        #     for other in others:
+        #         self += other
+        # but no sanity checks and use numpy.sum for faster calculation.
+        np.sum([c.gam0r for c in others], axis=0, out=self.gam0r)
+        np.sum([c.gam0i for c in others], axis=0, out=self.gam0i)
+        np.sum([c.gam1r for c in others], axis=0, out=self.gam1r)
+        np.sum([c.gam1i for c in others], axis=0, out=self.gam1i)
+        np.sum([c.gam2r for c in others], axis=0, out=self.gam2r)
+        np.sum([c.gam2i for c in others], axis=0, out=self.gam2i)
+        np.sum([c.gam3r for c in others], axis=0, out=self.gam3r)
+        np.sum([c.gam3i for c in others], axis=0, out=self.gam3i)
+        np.sum([c.meand1 for c in others], axis=0, out=self.meand1)
+        np.sum([c.meanlogd1 for c in others], axis=0, out=self.meanlogd1)
+        np.sum([c.meand2 for c in others], axis=0, out=self.meand2)
+        np.sum([c.meanlogd2 for c in others], axis=0, out=self.meanlogd2)
+        np.sum([c.meand3 for c in others], axis=0, out=self.meand3)
+        np.sum([c.meanlogd3 for c in others], axis=0, out=self.meanlogd3)
+        np.sum([c.meanu for c in others], axis=0, out=self.meanu)
+        np.sum([c.meanv for c in others], axis=0, out=self.meanv)
+        np.sum([c.weight for c in others], axis=0, out=self.weight)
+        np.sum([c.ntri for c in others], axis=0, out=self.ntri)
+
+    def process(self, cat1, cat2=None, cat3=None, metric=None, num_threads=None,
+                comm=None, low_mem=False, initialize=True, finalize=True):
+        """Compute the 3pt correlation function.
 
         - If only 1 argument is given, then compute an auto-correlation function.
         - If 2 arguments are given, then compute a cross-correlation function with the
@@ -557,38 +582,78 @@ class GGGCorrelation(BinnedCorr3):
             num_threads (int):  How many OpenMP threads to use during the calculation.
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
+            comm (mpi4py.Comm): If running MPI, an mpi4py Comm object to communicate between
+                                processes.  If used, the rank=0 process will have the final
+                                computation. This only works if using patches. (default: None)
+            low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
+                                This only works if using patches. (default: False)
+            initialize (bool):  Wether to begin the calculation with a call to `clear`.
+                                (default: True)
+            finalize (bool):    Wether to complete the calculation with a call to `finalize`.
+                                (default: True)
         """
         import math
-        self.clear()
-        self.results.clear()
-        if not isinstance(cat1,list): cat1 = cat1.get_patches()
-        if cat2 is not None and not isinstance(cat2,list): cat2 = cat2.get_patches()
-        if cat3 is not None and not isinstance(cat3,list): cat3 = cat3.get_patches()
+        if initialize:
+            self.clear()
+            self.results.clear()
+
+        if not isinstance(cat1,list):
+            cat1 = cat1.get_patches(low_mem=low_mem)
+        if cat2 is not None and not isinstance(cat2,list):
+            cat2 = cat2.get_patches(low_mem=low_mem)
+        if cat3 is not None and not isinstance(cat3,list):
+            cat3 = cat3.get_patches(low_mem=low_mem)
 
         if cat2 is None:
             if cat3 is not None:
                 raise ValueError("For two catalog case, use cat1,cat2, not cat1,cat3")
-            varg1 = calculateVarG(cat1)
-            varg2 = varg1
-            varg3 = varg1
-            self.logger.info("varg = %f: sig_g = %f",varg1,math.sqrt(varg1))
-            self._process_all_auto(cat1, metric, num_threads)
+            self._process_all_auto(cat1, metric, num_threads, comm, low_mem)
         elif cat3 is None:
-            varg1 = calculateVarG(cat1)
-            varg2 = calculateVarG(cat2)
-            varg3 = varg2
-            self.logger.info("varg1 = %f: sig_g = %f",varg1,math.sqrt(varg1))
-            self.logger.info("varg2 = %f: sig_g = %f",varg2,math.sqrt(varg2))
             self._process_all_cross12(cat1, cat2, metric, num_threads)
         else:
-            varg1 = calculateVarG(cat1)
-            varg2 = calculateVarG(cat2)
-            varg3 = calculateVarG(cat3)
-            self.logger.info("varg1 = %f: sig_g = %f",varg1,math.sqrt(varg1))
-            self.logger.info("varg2 = %f: sig_g = %f",varg2,math.sqrt(varg2))
-            self.logger.info("varg3 = %f: sig_g = %f",varg3,math.sqrt(varg3))
             self._process_all_cross(cat1, cat2, cat3, metric, num_threads)
-        self.finalize(varg1,varg2,varg3)
+
+        if finalize:
+            if cat2 is None:
+                varg1 = calculateVarG(cat1)
+                varg2 = varg1
+                varg3 = varg1
+                self.logger.info("varg = %f: sig_g = %f",varg1,math.sqrt(varg1))
+            elif cat3 is None:
+                varg1 = calculateVarG(cat1)
+                varg2 = calculateVarG(cat2)
+                varg3 = varg2
+                self.logger.info("varg1 = %f: sig_g = %f",varg1,math.sqrt(varg1))
+                self.logger.info("varg2 = %f: sig_g = %f",varg2,math.sqrt(varg2))
+            else:
+                varg1 = calculateVarG(cat1)
+                varg2 = calculateVarG(cat2)
+                varg3 = calculateVarG(cat3)
+                self.logger.info("varg1 = %f: sig_g = %f",varg1,math.sqrt(varg1))
+                self.logger.info("varg2 = %f: sig_g = %f",varg2,math.sqrt(varg2))
+                self.logger.info("varg3 = %f: sig_g = %f",varg3,math.sqrt(varg3))
+            self.finalize(varg1,varg2,varg3)
+
+    def getStat(self):
+        """The standard statistic for the current correlation object as a 1-d array.
+
+        In this case, the concatenation of gam0.ravel(), gam1.ravel(), gam2.ravel(), gam3.ravel().
+
+        .. note::
+
+            This is a complex array, unlike most other statistics.
+            The computed covariance matrix will be complex, although since it is Hermitian the
+            diagonal is real, so the resulting vargam0, etc. will all be real arrays.
+        """
+        return np.concatenate([self.gam0.ravel(), self.gam1.ravel(),
+                               self.gam2.ravel(), self.gam3.ravel()])
+
+    def getWeight(self):
+        """The weight array for the current correlation object as a 1-d array.
+
+        In this case, 4 copies of self.weight.ravel().
+        """
+        return np.concatenate([self.weight.ravel()] * 4)
 
     def write(self, file_name, file_type=None, precision=None):
         r"""Write the correlation function to the file, file_name.
@@ -1414,8 +1479,29 @@ class GGGCrossCorrelation(BinnedCorr3):
             self._process_all_cross(cat1, cat2, cat3, metric, num_threads)
         self.finalize(varg1,varg2,varg3)
 
+    def getStat(self):
+        """The standard statistic for the current correlation object as a 1-d array.
+
+        In this case, the concatenation of zeta.ravel() for each combination in the following
+        order: g1g2g3, g1g3g2, g2g1g3, g2g3g1, g3g1g2, g3g2g1.
+        """
+        return np.concatenate([ggg.getStat()
+                               for ggg in [self.g1g2g3, self.g1g3g2, self.g2g1g3, self.g2g3g1,
+                                           self.g3g1g2, self.g3g2g1]])
+
+    def getWeight(self):
+        """The weight array for the current correlation object as a 1-d array.
+
+        In this case, the concatenation of getWeight() for each combination in the following
+        order: g1g2g3, g1g3g2, g2g1g3, g2g3g1, g3g1g2, g3g2g1.
+        """
+        return np.concatenate([ggg.getWeight()
+                               for ggg in [self.g1g2g3, self.g1g3g2, self.g2g1g3, self.g2g3g1,
+                                           self.g3g1g2, self.g3g2g1]])
+
+
     def write(self, file_name, file_type=None, precision=None):
-        r"""Write the correlation function to the file, file_name.
+        r"""Write the cross-correlation functions to the file, file_name.
 
         Parameters:
             file_name (str):    The name of the file to write to.

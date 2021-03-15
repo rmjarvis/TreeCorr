@@ -110,6 +110,7 @@ def test_brute_jk():
     ggg_gam1_list = []
     ggg_gam2_list = []
     ggg_gam3_list = []
+    ggg_map3_list = []
     for i in range(npatch):
         source_cat1 = treecorr.Catalog(x=source_cat.x[source_cat.patch != i],
                                        y=source_cat.y[source_cat.patch != i],
@@ -124,6 +125,7 @@ def test_brute_jk():
         ggg_gam1_list.append(ggg1.gam1.ravel())
         ggg_gam2_list.append(ggg1.gam2.ravel())
         ggg_gam3_list.append(ggg1.gam3.ravel())
+        ggg_map3_list.append(ggg1.calculateMap3()[0])
 
     ggg_gam0_list = np.array(ggg_gam0_list)
     vargam0 = np.diagonal(np.cov(ggg_gam0_list.T, bias=True)) * (len(ggg_gam0_list)-1)
@@ -145,6 +147,14 @@ def test_brute_jk():
     print('GG: treecorr jackknife vargam3 = ',ggg.vargam3.ravel())
     print('GG: direct jackknife vargam3 = ',vargam3)
     np.testing.assert_allclose(ggg.vargam3.ravel(), vargam3)
+
+    ggg_map3_list = np.array(ggg_map3_list)
+    varmap3 = np.diagonal(np.cov(ggg_map3_list.T, bias=True)) * (len(ggg_map3_list)-1)
+    covmap3 = treecorr.estimate_multi_cov([ggg], 'jackknife',
+                                          lambda corrs: corrs[0].calculateMap3()[0])
+    print('GG: treecorr jackknife varmap3 = ',np.diagonal(covmap3))
+    print('GG: direct jackknife varmap3 = ',varmap3)
+    np.testing.assert_allclose(np.diagonal(covmap3), varmap3)
 
     return
     # Finally, test NN, which is complicated, since several different combinations of randoms.

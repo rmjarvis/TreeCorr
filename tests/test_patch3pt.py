@@ -38,14 +38,13 @@ def test_brute_jk():
         npatch = 8
         rand_factor = 5
 
-    np.random.seed(1234)
+    rng = np.random.RandomState(8675309)
     x, y, g1, g2, k = generate_shear_field(nside)
     # randomize positions slightly, since with grid, can get v=0 exactly, which is ambiguous
     # as to +- sign for v.  So complicates verification of equal results.
-    x += np.random.normal(0,0.01,len(x))
-    y += np.random.normal(0,0.01,len(y))
+    x += rng.normal(0,0.01,len(x))
+    y += rng.normal(0,0.01,len(y))
 
-    rng = np.random.RandomState(8675309)
     indx = rng.choice(range(len(x)),nsource,replace=False)
     source_cat_nopatch = treecorr.Catalog(x=x[indx], y=y[indx],
                                           g1=g1[indx], g2=g2[indx], k=k[indx])
@@ -241,6 +240,88 @@ def test_brute_jk():
     print('direct jackknife varxi = ',varxi)
     np.testing.assert_allclose(dd.varxi, varxi)
 
+@timer
+def test_finalize_false():
+
+    nside = 100
+    nsource = 100
+    npatch = 8
+
+    # Make three independent data sets
+    rng = np.random.RandomState(8675309)
+    x_1, y_1, g1_1, g2_1, k_1 = generate_shear_field(nside)
+    indx = rng.choice(range(len(x_1)),nsource,replace=False)
+    x_1 = x_1[indx]
+    y_1 = y_1[indx]
+    g1_1 = g1_1[indx]
+    g2_1 = g2_1[indx]
+    k_1 = k_1[indx]
+    x_1 += rng.normal(0,0.01,nsource)
+    y_1 += rng.normal(0,0.01,nsource)
+    x_2, y_2, g1_2, g2_2, k_2 = generate_shear_field(nside)
+    indx = rng.choice(range(len(x_2)),nsource,replace=False)
+    x_2 = x_2[indx]
+    y_2 = y_2[indx]
+    g1_2 = g1_2[indx]
+    g2_2 = g2_2[indx]
+    k_2 = k_2[indx]
+    x_2 += rng.normal(0,0.01,nsource)
+    y_2 += rng.normal(0,0.01,nsource)
+    x_3, y_3, g1_3, g2_3, k_3 = generate_shear_field(nside)
+    indx = rng.choice(range(len(x_3)),nsource,replace=False)
+    x_3 = x_3[indx]
+    y_3 = y_3[indx]
+    g1_3 = g1_3[indx]
+    g2_3 = g2_3[indx]
+    k_3 = k_3[indx]
+    x_3 += rng.normal(0,0.01,nsource)
+    y_3 += rng.normal(0,0.01,nsource)
+
+    # Make a single catalog with all three together
+    cat = treecorr.Catalog(x=np.concatenate([x_1, x_2, x_3]),
+                           y=np.concatenate([y_1, y_2, y_3]),
+                           g1=np.concatenate([g1_1, g1_2, g1_3]),
+                           g2=np.concatenate([g2_1, g2_2, g2_3]),
+                           k=np.concatenate([k_1, k_2, k_3]),
+                           npatch=npatch)
+
+    # Now the three separately, using the same patch centers
+    cat1 = treecorr.Catalog(x=x_1, y=y_1, g1=g1_1, g2=g2_1, k=k_1, patch_centers=cat.patch_centers)
+    cat2 = treecorr.Catalog(x=x_2, y=y_2, g1=g1_2, g2=g2_2, k=k_2, patch_centers=cat.patch_centers)
+    cat3 = treecorr.Catalog(x=x_3, y=y_3, g1=g1_3, g2=g2_3, k=k_3, patch_centers=cat.patch_centers)
+
+    np.testing.assert_array_equal(cat1.patch, cat.patch[0:nsource])
+    np.testing.assert_array_equal(cat2.patch, cat.patch[nsource:2*nsource])
+    np.testing.assert_array_equal(cat3.patch, cat.patch[2*nsource:3*nsource])
+
+    # KKK
+    kkk1 = treecorr.KKKCorrelation(nbins=3, min_sep=30., max_sep=100., brute=True,
+                                   min_u=0.8, max_u=1.0, nubins=1,
+                                   min_v=0., max_v=0.2, nvbins=1)
+    kkk1.process(cat)
+
+    kkk2 = treecorr.KKKCorrelation(nbins=3, min_sep=30., max_sep=100., brute=True,
+                                   min_u=0.8, max_u=1.0, nubins=1,
+                                   min_v=0., max_v=0.2, nvbins=1)
+    kkk2.process(cat1, initialize=True, finalize=False)
+    kkk2.process(cat2, initialize=False, finalize=False)
+    kkk2.process(cat3, initialize=False, finalize=False)
+    kkk2.process(cat1, cat2, initialize=False, finalize=False)
+    kkk2.process(cat1, cat3, initialize=False, finalize=False)
+    kkk2.process(cat2, cat1, initialize=False, finalize=False)
+    kkk2.process(cat2, cat3, initialize=False, finalize=False)
+    kkk2.process(cat3, cat1, initialize=False, finalize=False)
+    kkk2.process(cat3, cat2, initialize=False, finalize=False)
+    kkk2.process(cat1, cat2, cat3, initialize=False, finalize=True)
+
+    np.testing.assert_allclose(kkk1.ntri, kkk2.ntri)
+    np.testing.assert_allclose(kkk1.weight, kkk2.weight)
+    np.testing.assert_allclose(kkk1.meand1, kkk2.meand1)
+    np.testing.assert_allclose(kkk1.meand2, kkk2.meand2)
+    np.testing.assert_allclose(kkk1.meand3, kkk2.meand3)
+    np.testing.assert_allclose(kkk1.zeta, kkk2.zeta)
+
 
 if __name__ == '__main__':
     test_brute_jk()
+    test_finalize_false()

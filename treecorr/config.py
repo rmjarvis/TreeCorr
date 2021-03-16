@@ -175,7 +175,11 @@ def setup_logger(verbose, log_file=None):
     logging_level = logging_levels[int(verbose)]
 
     # Setup logging to go to sys.stdout or (if requested) to an output file
-    logger = logging.getLogger('treecorr')
+    if log_file is None:
+        name = 'treecorr'
+    else:
+        name = 'treecorr_' + log_file
+    logger = logging.getLogger(name)
     # Should only be one handler.  If it is the wrong type, then clear it.
     if len(logger.handlers) >= 1:
         if log_file is None:

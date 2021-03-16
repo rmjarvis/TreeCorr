@@ -239,21 +239,21 @@ def test_logger():
 
     logger3 = treecorr.config.setup_logger(verbose=2, log_file='output/test_logger.out')
     assert logger3.level == logging.INFO
-    assert logger3.name == 'treecorr'
+    assert logger3.name == 'treecorr_output/test_logger.out'
     assert len(logger3.handlers) == 1
     assert isinstance(logger3.handlers[0], logging.FileHandler)
     assert logger3.handlers[0].baseFilename == os.path.abspath('output/test_logger.out')
 
     logger4 = treecorr.config.setup_logger(verbose=1, log_file='output/test_logger.out')
     assert logger4.level == logging.WARNING
-    assert logger4.name == 'treecorr'
+    assert logger4.name == 'treecorr_output/test_logger.out'
     assert len(logger4.handlers) == 1
     assert isinstance(logger4.handlers[0], logging.FileHandler)
     assert logger4.handlers[0].baseFilename == os.path.abspath('output/test_logger.out')
 
     logger5 = treecorr.config.setup_logger(verbose=1, log_file='output/test_logger2.out')
     assert logger5.level == logging.WARNING
-    assert logger5.name == 'treecorr'
+    assert logger5.name == 'treecorr_output/test_logger2.out'
     assert len(logger5.handlers) == 1
     assert isinstance(logger5.handlers[0], logging.FileHandler)
     assert logger5.handlers[0].baseFilename == os.path.abspath('output/test_logger2.out')

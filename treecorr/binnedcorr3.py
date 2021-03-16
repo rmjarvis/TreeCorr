@@ -675,39 +675,40 @@ class BinnedCorr3(object):
 
                 for jj,c2 in list(enumerate(cat1))[::-1]:
                     j = c2.patch if c2.patch is not None else jj
-                    if i < j and is_my_job(my_indices, i, i, j, n):
-                        temp.clear()
-                        # One point in c1, 2 in c2.
-                        if not self._trivially_zero(c1,c2,c2,metric):
-                            self.logger.info('Process patches %d,%d cross12',i,j)
-                            temp.process_cross12(c1,c2, metric, num_threads)
-                        else:
-                            self.logger.info('Skipping %d,%d pair, which are too far apart ' +
-                                             'for this set of separations',i,j)
-                        if temp.nonempty():
-                            if (i,j,j) not in self.results:
-                                self.results[(i,j,j)] = temp.copy()
-                            else:
-                                self.results[(i,j,j)] += temp
-                            self += temp
+                    if i < j:
+                        if is_my_job(my_indices, i, j, j, n):
                             temp.clear()
-                        else:
-                            # NNNCorrelation needs to add the tot value
-                            self._add_tot(i, j, j, c1, c2, c2)
-
-                        # One point in c2, 2 in c1.
-                        if not self._trivially_zero(c1,c1,c2,metric):
-                            self.logger.info('Process patches %d,%d cross12',j,i)
-                            temp.process_cross12(c2,c1, metric, num_threads)
-                        if temp.nonempty():
-                            if (i,i,j) not in self.results:
-                                self.results[(i,i,j)] = temp.copy()
+                            # One point in c1, 2 in c2.
+                            if not self._trivially_zero(c1,c2,c2,metric):
+                                self.logger.info('Process patches %d,%d cross12',i,j)
+                                temp.process_cross12(c1,c2, metric, num_threads)
                             else:
-                                self.results[(i,i,j)] += temp
-                            self += temp
-                        else:
-                            # NNNCorrelation needs to add the tot value
-                            self._add_tot(i, i, j, c1, c1, c2)
+                                self.logger.info('Skipping %d,%d pair, which are too far apart ' +
+                                                'for this set of separations',i,j)
+                            if temp.nonempty():
+                                if (i,j,j) not in self.results:
+                                    self.results[(i,j,j)] = temp.copy()
+                                else:
+                                    self.results[(i,j,j)] += temp
+                                self += temp
+                                temp.clear()
+                            else:
+                                # NNNCorrelation needs to add the tot value
+                                self._add_tot(i, j, j, c1, c2, c2)
+
+                            # One point in c2, 2 in c1.
+                            if not self._trivially_zero(c1,c1,c2,metric):
+                                self.logger.info('Process patches %d,%d cross12',j,i)
+                                temp.process_cross12(c2,c1, metric, num_threads)
+                            if temp.nonempty():
+                                if (i,i,j) not in self.results:
+                                    self.results[(i,i,j)] = temp.copy()
+                                else:
+                                    self.results[(i,i,j)] += temp
+                                self += temp
+                            else:
+                                # NNNCorrelation needs to add the tot value
+                                self._add_tot(i, i, j, c1, c1, c2)
 
                         # One point in each of c1, c2, c3
                         for kk,c3 in enumerate(cat1):

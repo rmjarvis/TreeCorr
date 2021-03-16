@@ -419,6 +419,7 @@ class NNNCorrelation(BinnedCorr3):
                 self.max_v == other.max_v):
             raise ValueError("NNNCorrelation to be added is not compatible with this one.")
 
+        if not other.nonempty(): return self
         self._set_metric(other.metric, other.coords)
         self.meand1[:] += other.meand1[:]
         self.meanlogd1[:] += other.meanlogd1[:]
@@ -433,7 +434,8 @@ class NNNCorrelation(BinnedCorr3):
         self.tot += other.tot
         return self
 
-    def process(self, cat1, cat2=None, cat3=None, metric=None, num_threads=None):
+    def process(self, cat1, cat2=None, cat3=None, metric=None, num_threads=None,
+                comm=None, low_mem=False, initialize=True, finalize=True):
         """Accumulate the 3pt correlation of the points in the given Catalog(s).
 
         - If only 1 argument is given, then compute an auto-correlation function.
@@ -464,6 +466,15 @@ class NNNCorrelation(BinnedCorr3):
             num_threads (int):  How many OpenMP threads to use during the calculation.
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
+            comm (mpi4py.Comm): If running MPI, an mpi4py Comm object to communicate between
+                                processes.  If used, the rank=0 process will have the final
+                                computation. This only works if using patches. (default: None)
+            low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
+                                This only works if using patches. (default: False)
+            initialize (bool):  Wether to begin the calculation with a call to `clear`.
+                                (default: True)
+            finalize (bool):    Wether to complete the calculation with a call to `finalize`.
+                                (default: True)
         """
         self.clear()
         self.results.clear()
@@ -476,9 +487,9 @@ class NNNCorrelation(BinnedCorr3):
                 raise ValueError("For two catalog case, use cat1,cat2, not cat1,cat3")
             self._process_all_auto(cat1, metric, num_threads)
         elif cat3 is None:
-            self._process_all_cross12(cat1, cat2, metric, num_threads)
+            self._process_all_cross12(cat1, cat2, metric, num_threads, comm, low_mem)
         else:
-            self._process_all_cross(cat1, cat2, cat3, metric, num_threads)
+            self._process_all_cross(cat1, cat2, cat3, metric, num_threads, comm, low_mem)
         self.finalize()
 
     def calculateZeta(self, rrr, drr=None, rdr=None, rrd=None,
@@ -1074,21 +1085,18 @@ class NNNCrossCorrelation(BinnedCorr3):
 
         if cat3 is None:
             self._process12 = True
-            self._process_all_cross12(cat1, cat2, metric, num_threads)
+            self._process_all_cross12(cat1, cat2, metric, num_threads, comm, low_mem)
         else:
-            self._process_all_cross(cat1, cat2, cat3, metric, num_threads)
+            self._process_all_cross(cat1, cat2, cat3, metric, num_threads, comm, low_mem)
 
         if finalize:
             if self._process12:
                 # Then some of the processing involved a cross12 calculation.
                 # This means that spots 2 and 3 should not be distinguished.
                 # Combine the relevant arrays.
-                if self.n1n3n2.nonempty():
-                    self.n1n2n3 += self.n1n3n2
-                if self.n3n1n2.nonempty():
-                    self.n2n1n3 += self.n3n1n2
-                if self.n3n2n1.nonempty():
-                    self.n2n3n1 += self.n3n2n1
+                self.n1n2n3 += self.n1n3n2
+                self.n2n1n3 += self.n3n1n2
+                self.n2n3n1 += self.n3n2n1
                 # Copy back by doing clear and +=.
                 # This makes sure the coords and metric are set properly.
                 self.n1n3n2.clear()

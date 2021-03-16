@@ -640,6 +640,8 @@ def test_direct_cross():
         kkkc2 += config
     with assert_raises(TypeError):
         kkkc2 += kkk
+
+    # Can't add with different config specs
     kkkc3 = treecorr.KKKCrossCorrelation(min_sep=min_sep/2, bin_size=bin_size, nbins=nrbins)
     with assert_raises(ValueError):
         kkkc2 += kkkc3

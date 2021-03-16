@@ -413,6 +413,7 @@ class KKKCorrelation(BinnedCorr3):
                 self.max_v == other.max_v):
             raise ValueError("KKKCorrelation to be added is not compatible with this one.")
 
+        if not other.nonempty(): return self
         self._set_metric(other.metric, other.coords)
         self.zeta[:] += other.zeta[:]
         self.meand1[:] += other.meand1[:]
@@ -504,9 +505,9 @@ class KKKCorrelation(BinnedCorr3):
                 raise ValueError("For two catalog case, use cat1,cat2, not cat1,cat3")
             self._process_all_auto(cat1, metric, num_threads, comm, low_mem)
         elif cat3 is None:
-            self._process_all_cross12(cat1, cat2, metric, num_threads)
+            self._process_all_cross12(cat1, cat2, metric, num_threads, comm, low_mem)
         else:
-            self._process_all_cross(cat1, cat2, cat3, metric, num_threads)
+            self._process_all_cross(cat1, cat2, cat3, metric, num_threads, comm, low_mem)
 
         if finalize:
             if cat2 is None:
@@ -980,21 +981,18 @@ class KKKCrossCorrelation(BinnedCorr3):
 
         if cat3 is None:
             self._process12 = True
-            self._process_all_cross12(cat1, cat2, metric, num_threads)
+            self._process_all_cross12(cat1, cat2, metric, num_threads, comm, low_mem)
         else:
-            self._process_all_cross(cat1, cat2, cat3, metric, num_threads)
+            self._process_all_cross(cat1, cat2, cat3, metric, num_threads, comm, low_mem)
 
         if finalize:
             if self._process12:
                 # Then some of the processing involved a cross12 calculation.
                 # This means that spots 2 and 3 should not be distinguished.
                 # Combine the relevant arrays.
-                if self.k1k3k2.nonempty():
-                    self.k1k2k3 += self.k1k3k2
-                if self.k3k1k2.nonempty():
-                    self.k2k1k3 += self.k3k1k2
-                if self.k3k2k1.nonempty():
-                    self.k2k3k1 += self.k3k2k1
+                self.k1k2k3 += self.k1k3k2
+                self.k2k1k3 += self.k3k1k2
+                self.k2k3k1 += self.k3k2k1
                 # Copy back by doing clear and +=.
                 # This makes sure the coords and metric are set properly.
                 self.k1k3k2.clear()

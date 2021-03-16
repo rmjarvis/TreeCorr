@@ -940,6 +940,8 @@ def test_direct_cross():
         gggc2 += config
     with assert_raises(TypeError):
         gggc2 += ggg
+
+    # Can't add with different config specs
     gggc3 = treecorr.GGGCrossCorrelation(min_sep=min_sep/2, bin_size=bin_size, nbins=nrbins)
     with assert_raises(ValueError):
         gggc2 += gggc3

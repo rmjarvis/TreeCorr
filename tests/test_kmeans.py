@@ -314,7 +314,7 @@ def test_3d():
     print('mean inertia = ',np.mean(inertia))
     print('rms inertia = ',np.std(inertia))
     assert np.sum(inertia) < 33000.
-    assert np.std(inertia) < 0.1 * np.mean(inertia)  # rms should be even smaller here.
+    assert np.std(inertia) < 0.15 * np.mean(inertia)  # rms should be even smaller here.
     print('mean counts = ',np.mean(counts))
     print('min counts = ',np.min(counts))
     print('max counts = ',np.max(counts))

@@ -640,12 +640,14 @@ class BinnedCorr3(object):
             else:
                 return False
 
-        if len(cat1) == 1:
+        if len(cat1) == 1 and cat1[0].npatch == 1:
             self.process_auto(cat1[0], metric, num_threads)
+
         else:
             # When patch processing, keep track of the pair-wise results.
             if self.npatch1 == 1:
-                self.npatch1 = self.npatch2 = self.npatch3 = len(cat1)
+                self.npatch1 = cat1[0].npatch if cat1[0].npatch != 1 else len(cat1)
+                self.npatch2 = self.npatch3 = self.npatch1
             n = self.npatch1
 
             # Setup for deciding when this is my job.
@@ -682,7 +684,7 @@ class BinnedCorr3(object):
                         else:
                             self.logger.info('Skipping %d,%d pair, which are too far apart ' +
                                              'for this set of separations',i,j)
-                        if np.sum(temp.ntri) > 0:
+                        if temp.nonempty():
                             if (i,j,j) not in self.results:
                                 self.results[(i,j,j)] = temp.copy()
                             else:
@@ -697,7 +699,7 @@ class BinnedCorr3(object):
                         if not self._trivially_zero(c1,c1,c2,metric):
                             self.logger.info('Process patches %d,%d cross12',j,i)
                             temp.process_cross12(c2,c1, metric, num_threads)
-                        if np.sum(temp.ntri) > 0:
+                        if temp.nonempty():
                             if (i,i,j) not in self.results:
                                 self.results[(i,i,j)] = temp.copy()
                             else:
@@ -719,7 +721,7 @@ class BinnedCorr3(object):
                                 else:
                                     self.logger.info('Skipping %d,%d,%d, which are too far apart ' +
                                                      'for this set of separations',i,j,k)
-                                if np.sum(temp.ntri) > 0:
+                                if temp.nonempty():
                                     if (i,j,k) not in self.results:
                                         self.results[(i,j,k)] = temp.copy()
                                     else:
@@ -749,19 +751,232 @@ class BinnedCorr3(object):
                         self += temp
                         self.results.update(temp.results)
 
+    def _process_all_cross12(self, cat1, cat2, metric, num_threads, comm=None, low_mem=False):
 
-    def _process_all_cross12(self, cat1, cat2, metric, num_threads):
-        for c1 in cat1:
-            for j,c2 in enumerate(cat2):
-                self.process_cross12(c1,c2, metric, num_threads)
-                for c3 in cat2[j+1:]:
-                    self.process_cross(c1,c2,c3, metric, num_threads)
+        def is_my_job(my_indices, i, j, k, n1, n2):
+            # Helper function to figure out if a given (i,j,k) job should be done on the
+            # current process.
 
-    def _process_all_cross(self, cat1, cat2, cat3, metric, num_threads):
-        for c1 in cat1:
-            for c2 in cat2:
-                for c3 in cat3:
-                    self.process_cross(c1,c2,c3, metric, num_threads)
+            # Always my job if not using MPI.
+            if my_indices is None:
+                return True
+
+            # If n1 is n, then this can be simple.  Just split according to i.
+            n = max(n1,n2)
+            if n1 == n:
+                if i in my_indices:
+                    self.logger.info("Rank %d: Job (%d,%d,%d) is mine.",rank,i,j,k)
+                    return True
+                else:
+                    return False
+
+            # If not, then this looks like the decision for 2pt auto using j,k.
+            if j in my_indices and k in my_indices:
+                self.logger.info("Rank %d: Job (%d,%d,%d) is mine.",rank,i,j,k)
+                return True
+
+            if j not in my_indices and k not in my_indices:
+                return False
+
+            if k-j < n//2:
+                ret = j % 2 == (0 if j in my_indices else 1)
+            else:
+                ret = k % 2 == (0 if k in my_indices else 1)
+            if ret:
+                self.logger.info("Rank %d: Job (%d,%d,%d) is mine.",rank,i,j,k)
+            return ret
+
+        if len(cat1) == 1 and len(cat2) == 1 and cat1[0].npatch == 1 and cat2[0].npatch == 1:
+            self.process_cross12(cat1[0], cat2[0], metric, num_threads)
+        else:
+            # When patch processing, keep track of the pair-wise results.
+            if self.npatch1 == 1:
+                self.npatch1 = cat1[0].npatch if cat1[0].npatch != 1 else len(cat1)
+            if self.npatch2 == 1:
+                self.npatch2 = cat2[0].npatch if cat2[0].npatch != 1 else len(cat2)
+                self.npatch3 = self.npatch2
+            if self.npatch1 != self.npatch2 and self.npatch1 != 1 and self.npatch2 != 1:
+                raise RuntimeError("Cross correlation requires both catalogs use the same patches.")
+
+            # Setup for deciding when this is my job.
+            n1 = self.npatch1
+            n2 = self.npatch2
+            if comm:
+                size = comm.Get_size()
+                rank = comm.Get_rank()
+                n = max(n1,n2)
+                my_indices = np.arange(n * rank // size, n * (rank+1) // size)
+                self.logger.info("Rank %d: My indices are %s",rank,my_indices)
+            else:
+                my_indices = None
+
+            temp = self.copy()
+            temp.results = {}  # Don't mess up the original results
+            for ii,c1 in enumerate(cat1):
+                i = c1.patch if c1.patch is not None else ii
+                for jj,c2 in enumerate(cat2):
+                    j = c2.patch if c2.patch is not None else jj
+                    if is_my_job(my_indices, i, i, j, n1, n2):
+                        temp.clear()
+                        # One point in c1, 2 in c2.
+                        if not self._trivially_zero(c1,c2,c2,metric):
+                            self.logger.info('Process patches %d,%d cross12',i,j)
+                            temp.process_cross12(c1,c2, metric, num_threads)
+                        else:
+                            self.logger.info('Skipping %d,%d pair, which are too far apart ' +
+                                             'for this set of separations',i,j)
+                        if temp.nonempty():
+                            if (i,j,j) not in self.results:
+                                self.results[(i,j,j)] = temp.copy()
+                            else:
+                                self.results[(i,j,j)] += temp
+                            self += temp
+                            temp.clear()
+                        else:
+                            # NNNCorrelation needs to add the tot value
+                            self._add_tot(i, j, j, c1, c2, c2)
+
+                        # One point in each of c1, c2, c3
+                        for kk,c3 in list(enumerate(cat2))[::-1]:
+                            k = c3.patch if c3.patch is not None else kk
+                            if j < k and is_my_job(my_indices, i, j, k, n1, n2):
+                                temp.clear()
+
+                                if not self._trivially_zero(c1,c2,c3,metric):
+                                    self.logger.info('Process patches %d,%d,%d cross',i,j,k)
+                                    temp.process_cross(c1,c2,c3, metric, num_threads)
+                                else:
+                                    self.logger.info('Skipping %d,%d,%d, which are too far apart ' +
+                                                     'for this set of separations',i,j,k)
+                                if temp.nonempty():
+                                    if (i,j,k) not in self.results:
+                                        self.results[(i,j,k)] = temp.copy()
+                                    else:
+                                        self.results[(i,j,k)] += temp
+                                    self += temp
+                                else:
+                                    # NNNCorrelation needs to add the tot value
+                                    self._add_tot(i, j, k, c1, c2, c3)
+                                if low_mem:
+                                    c3.unload()
+
+                        if low_mem and jj != ii+1:
+                            # Don't unload i+1, since that's the next one we'll need.
+                            c2.unload()
+                if low_mem:
+                    c1.unload()
+            if comm is not None:
+                rank = comm.Get_rank()
+                size = comm.Get_size()
+                self.logger.info("Rank %d: Completed jobs %s",rank,list(self.results.keys()))
+                # Send all the results back to rank 0 process.
+                if rank > 0:
+                    comm.send(self, dest=0)
+                else:
+                    for p in range(1,size):
+                        temp = comm.recv(source=p)
+                        self += temp
+                        self.results.update(temp.results)
+
+    def _process_all_cross(self, cat1, cat2, cat3, metric, num_threads, comm=None, low_mem=False):
+
+        def is_my_job(my_indices, i, j, k, n1, n2, n3):
+            # Helper function to figure out if a given (i,j,k) job should be done on the
+            # current process.
+
+            # Always my job if not using MPI.
+            if my_indices is None:
+                return True
+
+            # Just split up according to one of the catalogs.
+            n = max(n1,n2,n3)
+            if n1 == n:
+                m = i
+            elif n2 == n:
+                m = j
+            else:
+                m = k
+            if m in my_indices:
+                self.logger.info("Rank %d: Job (%d,%d,%d) is mine.",rank,i,j,k)
+                return True
+            else:
+                return False
+
+        if (len(cat1) == 1 and len(cat2) == 1 and len(cat3) == 1 and
+                cat1[0].npatch == 1 and cat2[0].npatch == 1 and cat3[0].npatch == 1):
+            self.process_cross(cat1[0],cat2[0],cat3[0], metric, num_threads)
+        else:
+            # When patch processing, keep track of the pair-wise results.
+            if self.npatch1 == 1:
+                self.npatch1 = cat1[0].npatch if cat1[0].npatch != 1 else len(cat1)
+            if self.npatch2 == 1:
+                self.npatch2 = cat2[0].npatch if cat2[0].npatch != 1 else len(cat2)
+            if self.npatch3 == 1:
+                self.npatch3 = cat3[0].npatch if cat3[0].npatch != 1 else len(cat3)
+            if self.npatch1 != self.npatch2 and self.npatch1 != 1 and self.npatch2 != 1:
+                raise RuntimeError("Cross correlation requires all catalogs use the same patches.")
+            if self.npatch1 != self.npatch3 and self.npatch1 != 1 and self.npatch3 != 1:
+                raise RuntimeError("Cross correlation requires all catalogs use the same patches.")
+            if self.npatch2 != self.npatch3 and self.npatch2 != 1 and self.npatch3 != 1:
+                raise RuntimeError("Cross correlation requires all catalogs use the same patches.")
+
+            # Setup for deciding when this is my job.
+            n1 = self.npatch1
+            n2 = self.npatch2
+            n3 = self.npatch3
+            if comm:
+                size = comm.Get_size()
+                rank = comm.Get_rank()
+                n = max(n1,n2,n3)
+                my_indices = np.arange(n * rank // size, n * (rank+1) // size)
+                self.logger.info("Rank %d: My indices are %s",rank,my_indices)
+            else:
+                my_indices = None
+
+            temp = self.copy()
+            temp.results = {}  # Don't mess up the original results
+            for ii,c1 in enumerate(cat1):
+                i = c1.patch if c1.patch is not None else ii
+                for jj,c2 in enumerate(cat2):
+                    j = c2.patch if c2.patch is not None else jj
+                    for kk,c3 in enumerate(cat3):
+                        k = c3.patch if c3.patch is not None else kk
+                        if is_my_job(my_indices, i, j, k, n1, n2, n3):
+                            temp.clear()
+                            if not self._trivially_zero(c1,c2,c3,metric):
+                                self.logger.info('Process patches %d,%d,%d cross',i,j,k)
+                                temp.process_cross(c1,c2,c3, metric, num_threads)
+                            else:
+                                self.logger.info('Skipping %d,%d,%d, which are too far apart ' +
+                                                 'for this set of separations',i,j,k)
+                            if temp.nonempty():
+                                if (i,j,k) not in self.results:
+                                    self.results[(i,j,k)] = temp.copy()
+                                else:
+                                    self.results[(i,j,k)] += temp
+                                self += temp
+                            else:
+                                # NNNCorrelation needs to add the tot value
+                                self._add_tot(i, j, k, c1, c2, c3)
+                            if low_mem:
+                                c3.unload()
+                    if low_mem and jj != ii+1:
+                        # Don't unload i+1, since that's the next one we'll need.
+                        c2.unload()
+                if low_mem:
+                    c1.unload()
+            if comm is not None:
+                rank = comm.Get_rank()
+                size = comm.Get_size()
+                self.logger.info("Rank %d: Completed jobs %s",rank,list(self.results.keys()))
+                # Send all the results back to rank 0 process.
+                if rank > 0:
+                    comm.send(self, dest=0)
+                else:
+                    for p in range(1,size):
+                        temp = comm.recv(source=p)
+                        self += temp
+                        self.results.update(temp.results)
 
     def estimate_cov(self, method):
         """Estimate the covariance matrix based on the data

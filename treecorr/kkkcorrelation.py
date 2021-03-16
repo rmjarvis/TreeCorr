@@ -371,6 +371,11 @@ class KKKCorrelation(BinnedCorr3):
         self.cov = self.estimate_cov(self.var_method)
         self.varzeta.ravel()[:] = self.cov.diagonal()
 
+    def nonempty(self):
+        """Return if there are any values accumulated yet.  (i.e. ntri > 0)
+        """
+        return np.sum(self.ntri) > 0
+
     def clear(self):
         """Clear the data vectors
         """
@@ -739,6 +744,7 @@ class KKKCrossCorrelation(BinnedCorr3):
         self.k2k3k1 = KKKCorrelation(config, logger, **kwargs)
         self.k3k1k2 = KKKCorrelation(config, logger, **kwargs)
         self.k3k2k1 = KKKCorrelation(config, logger, **kwargs)
+        self._all = [self.k1k2k3, self.k1k3k2, self.k2k1k3, self.k2k3k1, self.k3k1k2, self.k3k2k1]
 
         self.logger.debug('Finished building KKKCrossCorr')
 
@@ -779,6 +785,8 @@ class KKKCrossCorrelation(BinnedCorr3):
                 ret.__dict__[key] = item.copy()
             else:
                 ret.__dict__[key] = item
+        # This needs to be the new list:
+        ret._all = [ret.k1k2k3, ret.k1k3k2, ret.k2k1k3, ret.k2k3k1, ret.k3k1k2, ret.k3k2k1]
         return ret
 
     def __repr__(self):
@@ -818,9 +826,8 @@ class KKKCrossCorrelation(BinnedCorr3):
                              cat1.name, cat2.name)
 
         self._set_metric(metric, cat1.coords, cat2.coords)
-        self.k1k2k3._set_metric(self.metric, self.coords)
-        self.k2k1k3._set_metric(self.metric, self.coords)
-        self.k2k3k1._set_metric(self.metric, self.coords)
+        for kkk in self._all:
+            kkk._set_metric(self.metric, self.coords)
         self._set_num_threads(num_threads)
         min_size, max_size = self._get_minmax_size()
 
@@ -862,12 +869,8 @@ class KKKCrossCorrelation(BinnedCorr3):
                              cat1.name, cat2.name, cat3.name)
 
         self._set_metric(metric, cat1.coords, cat2.coords, cat3.coords)
-        self.k1k2k3._set_metric(self.metric, self.coords)
-        self.k1k3k2._set_metric(self.metric, self.coords)
-        self.k2k1k3._set_metric(self.metric, self.coords)
-        self.k2k3k1._set_metric(self.metric, self.coords)
-        self.k3k1k2._set_metric(self.metric, self.coords)
-        self.k3k2k1._set_metric(self.metric, self.coords)
+        for kkk in self._all:
+            kkk._set_metric(self.metric, self.coords)
         self._set_num_threads(num_threads)
         min_size, max_size = self._get_minmax_size()
 
@@ -904,15 +907,16 @@ class KKKCrossCorrelation(BinnedCorr3):
         self.k3k1k2.finalize(vark3,vark1,vark2)
         self.k3k2k1.finalize(vark3,vark2,vark1)
 
+    def nonempty(self):
+        """Return if there are any values accumulated yet.  (i.e. ntri > 0)
+        """
+        return any([kkk.nonempty() for kkk in self._all])
+
     def clear(self):
         """Clear the data vectors
         """
-        self.k1k2k3.clear()
-        self.k1k3k2.clear()
-        self.k2k1k3.clear()
-        self.k2k3k1.clear()
-        self.k3k1k2.clear()
-        self.k3k2k1.clear()
+        for kkk in self._all:
+            kkk.clear()
 
     def __iadd__(self, other):
         """Add a second `KKKCrossCorrelation`'s data to this one.
@@ -933,7 +937,8 @@ class KKKCrossCorrelation(BinnedCorr3):
         self.k3k2k1 += other.k3k2k1
         return self
 
-    def process(self, cat1, cat2, cat3=None, metric=None, num_threads=None):
+    def process(self, cat1, cat2, cat3=None, metric=None, num_threads=None,
+                comm=None, low_mem=False, initialize=True, finalize=True):
         """Accumulate the cross-correlation of the points in the given Catalogs: cat1, cat2, cat3.
 
         - If 2 arguments are given, then compute a cross-correlation function with the
@@ -954,44 +959,61 @@ class KKKCrossCorrelation(BinnedCorr3):
             num_threads (int):  How many OpenMP threads to use during the calculation.
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
+            comm (mpi4py.Comm): If running MPI, an mpi4py Comm object to communicate between
+                                processes.  If used, the rank=0 process will have the final
+                                computation. This only works if using patches. (default: None)
+            low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
+                                This only works if using patches. (default: False)
+            initialize (bool):  Wether to begin the calculation with a call to `clear`.
+                                (default: True)
+            finalize (bool):    Wether to complete the calculation with a call to `finalize`.
+                                (default: True)
         """
         import math
-        self.clear()
+        if initialize:
+            self.clear()
+            self._process12 = False
+
         if not isinstance(cat1,list): cat1 = cat1.get_patches()
         if not isinstance(cat2,list): cat2 = cat2.get_patches()
         if cat3 is not None and not isinstance(cat3,list): cat3 = cat3.get_patches()
 
-        vark1 = calculateVarK(cat1)
-        vark2 = calculateVarK(cat2)
-        self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
-        self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
-
         if cat3 is None:
-            vark3 = vark2
+            self._process12 = True
             self._process_all_cross12(cat1, cat2, metric, num_threads)
-            # The k1k2k3 and k1k3k2 are equivalent, but process_all_cross12 only added things to
-            # one or the other of these (only k1k2k3 if no lists are involved).  So add them
-            # together and copy, so they are equal.
-            # Likewise the other pairs that are symmetric between 2,3.
-            if np.any(self.k1k3k2.ntri != 0):
-                self.k1k2k3 += self.k1k3k2
-            if np.any(self.k3k1k2.ntri != 0):
-                self.k2k1k3 += self.k3k1k2
-            if np.any(self.k3k2k1.ntri != 0):
-                self.k2k3k1 += self.k3k2k1
-            # Copy back by doing clear and +=.
-            # This makes sure the coords and metric are set properly.
-            self.k1k3k2.clear()
-            self.k3k1k2.clear()
-            self.k3k2k1.clear()
-            self.k1k3k2 += self.k1k2k3
-            self.k3k1k2 += self.k2k1k3
-            self.k3k2k1 += self.k2k3k1
         else:
-            vark3 = calculateVarK(cat3)
-            self.logger.info("vark3 = %f: sig_k = %f",vark3,math.sqrt(vark3))
             self._process_all_cross(cat1, cat2, cat3, metric, num_threads)
-        self.finalize(vark1,vark2,vark3)
+
+        if finalize:
+            if self._process12:
+                # Then some of the processing involved a cross12 calculation.
+                # This means that spots 2 and 3 should not be distinguished.
+                # Combine the relevant arrays.
+                if self.k1k3k2.nonempty():
+                    self.k1k2k3 += self.k1k3k2
+                if self.k3k1k2.nonempty():
+                    self.k2k1k3 += self.k3k1k2
+                if self.k3k2k1.nonempty():
+                    self.k2k3k1 += self.k3k2k1
+                # Copy back by doing clear and +=.
+                # This makes sure the coords and metric are set properly.
+                self.k1k3k2.clear()
+                self.k3k1k2.clear()
+                self.k3k2k1.clear()
+                self.k1k3k2 += self.k1k2k3
+                self.k3k1k2 += self.k2k1k3
+                self.k3k2k1 += self.k2k3k1
+
+            vark1 = calculateVarK(cat1)
+            vark2 = calculateVarK(cat2)
+            self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
+            self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
+            if cat3 is None:
+                vark3 = vark2
+            else:
+                vark3 = calculateVarK(cat3)
+                self.logger.info("vark3 = %f: sig_k = %f",vark3,math.sqrt(vark3))
+            self.finalize(vark1,vark2,vark3)
 
     def getStat(self):
         """The standard statistic for the current correlation object as a 1-d array.
@@ -999,9 +1021,7 @@ class KKKCrossCorrelation(BinnedCorr3):
         In this case, the concatenation of zeta.ravel() for each combination in the following
         order: k1k2k3, k1k3k2, k2k1k3, k2k3k1, k3k1k2, k3k2k1.
         """
-        return np.concatenate([kkk.zeta.ravel()
-                               for kkk in [self.k1k2k3, self.k1k3k2, self.k2k1k3, self.k2k3k1,
-                                           self.k3k1k2, self.k3k2k1]])
+        return np.concatenate([kkk.zeta.ravel() for kkk in self._all])
 
     def getWeight(self):
         """The weight array for the current correlation object as a 1-d array.
@@ -1009,9 +1029,7 @@ class KKKCrossCorrelation(BinnedCorr3):
         In this case, the concatenation of getWeight() for each combination in the following
         order: k1k2k3, k1k3k2, k2k1k3, k2k3k1, k3k1k2, k3k2k1.
         """
-        return np.concatenate([kkk.getWeight()
-                               for kkk in [self.k1k2k3, self.k1k3k2, self.k2k1k3, self.k2k3k1,
-                                           self.k3k1k2, self.k3k2k1]])
+        return np.concatenate([kkk.getWeight() for kkk in self._all])
 
     def write(self, file_name, file_type=None, precision=None):
         r"""Write the cross-correlation functions to the file, file_name.
@@ -1029,14 +1047,11 @@ class KKKCrossCorrelation(BinnedCorr3):
                       'meand3', 'meanlogd3', 'meanu', 'meanv',
                       'zeta', 'sigma_zeta', 'weight', 'ntri' ]
         group_names = [ 'k1k2k3', 'k1k3k2', 'k2k1k3', 'k2k3k1', 'k3k1k2', 'k3k2k1' ]
-        columns = [
-                    [ kkk.rnom, kkk.u, kkk.v,
+        columns = [ [ kkk.rnom, kkk.u, kkk.v,
                       kkk.meand1, kkk.meanlogd1, kkk.meand2, kkk.meanlogd2,
                       kkk.meand3, kkk.meanlogd3, kkk.meanu, kkk.meanv,
                       kkk.zeta, np.sqrt(kkk.varzeta), kkk.weight, kkk.ntri ]
-                    for kkk in [ self.k1k2k3, self.k1k3k2, self.k2k1k3,
-                                 self.k2k3k1, self.k3k1k2, self.k3k2k1 ]
-                  ]
+                    for kkk in self._all ]
 
         params = { 'coords' : self.coords, 'metric' : self.metric,
                    'sep_units' : self.sep_units, 'bin_type' : self.bin_type }

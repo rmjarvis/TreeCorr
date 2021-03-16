@@ -610,7 +610,7 @@ class BinnedCorr2(object):
                 self.logger.info("Rank %d: Job (%d,%d) is mine.",rank,i,j)
             return ret
 
-        if len(cat1) == 1:
+        if len(cat1) == 1 and cat1[0].npatch == 1:
             self.process_auto(cat1[0],metric,num_threads)
         else:
             # When patch processing, keep track of the pair-wise results.
@@ -710,7 +710,7 @@ class BinnedCorr2(object):
                 if c1.ntot != c2.ntot:
                     raise ValueError("Number of objects must be equal for pairwise.")
                 self.process_pairwise(c1,c2,metric,num_threads)
-        elif len(cat1) == 1 and len(cat2) == 1:
+        elif len(cat1) == 1 and len(cat2) == 1 and cat1[0].npatch == 1 and cat2[0].npatch == 1:
             self.process_cross(cat1[0],cat2[0],metric,num_threads)
         else:
             # When patch processing, keep track of the pair-wise results.
@@ -727,10 +727,8 @@ class BinnedCorr2(object):
             if comm:
                 size = comm.Get_size()
                 rank = comm.Get_rank()
-                if n1 > n2:
-                    my_indices = np.arange(n1 * rank // size, n1 * (rank+1) // size)
-                else:
-                    my_indices = np.arange(n2 * rank // size, n2 * (rank+1) // size)
+                n = max(n1,n2)
+                my_indices = np.arange(n * rank // size, n * (rank+1) // size)
                 self.logger.info("Rank %d: My indices are %s",rank,my_indices)
             else:
                 my_indices = None

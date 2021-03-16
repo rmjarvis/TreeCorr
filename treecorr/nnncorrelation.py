@@ -360,6 +360,11 @@ class NNNCorrelation(BinnedCorr3):
         """
         self._finalize()
 
+    def nonempty(self):
+        """Return if there are any values accumulated yet.  (i.e. ntri > 0)
+        """
+        return np.sum(self.ntri) > 0
+
     def clear(self):
         """Clear the data vectors
         """
@@ -830,6 +835,7 @@ class NNNCrossCorrelation(BinnedCorr3):
         self.n2n3n1 = NNNCorrelation(config, logger, **kwargs)
         self.n3n1n2 = NNNCorrelation(config, logger, **kwargs)
         self.n3n2n1 = NNNCorrelation(config, logger, **kwargs)
+        self._all = [self.n1n2n3, self.n1n3n2, self.n2n1n3, self.n2n3n1, self.n3n1n2, self.n3n2n1]
 
         self.tot = 0.
         self.logger.debug('Finished building NNNCrossCorr')
@@ -871,6 +877,8 @@ class NNNCrossCorrelation(BinnedCorr3):
                 ret.__dict__[key] = item.copy()
             else:
                 ret.__dict__[key] = item
+        # This needs to be the new list:
+        ret._all = [ret.n1n2n3, ret.n1n3n2, ret.n2n1n3, ret.n2n3n1, ret.n3n1n2, ret.n3n2n1]
         return ret
 
     def __repr__(self):
@@ -910,9 +918,8 @@ class NNNCrossCorrelation(BinnedCorr3):
                              cat1.name, cat2.name)
 
         self._set_metric(metric, cat1.coords, cat2.coords)
-        self.n1n2n3._set_metric(self.metric, self.coords)
-        self.n2n1n3._set_metric(self.metric, self.coords)
-        self.n2n3n1._set_metric(self.metric, self.coords)
+        for nnn in self._all:
+            nnn._set_metric(self.metric, self.coords)
         self._set_num_threads(num_threads)
         min_size, max_size = self._get_minmax_size()
 
@@ -959,12 +966,8 @@ class NNNCrossCorrelation(BinnedCorr3):
                              cat1.name, cat2.name, cat3.name)
 
         self._set_metric(metric, cat1.coords, cat2.coords, cat3.coords)
-        self.n1n2n3._set_metric(self.metric, self.coords)
-        self.n1n3n2._set_metric(self.metric, self.coords)
-        self.n2n1n3._set_metric(self.metric, self.coords)
-        self.n2n3n1._set_metric(self.metric, self.coords)
-        self.n3n1n2._set_metric(self.metric, self.coords)
-        self.n3n2n1._set_metric(self.metric, self.coords)
+        for nnn in self._all:
+            nnn._set_metric(self.metric, self.coords)
         self._set_num_threads(num_threads)
         min_size, max_size = self._get_minmax_size()
 
@@ -982,12 +985,8 @@ class NNNCrossCorrelation(BinnedCorr3):
                            f1.data, f2.data, f3.data, self.output_dots,
                            f1._d, f2._d, f3._d, self._coords, self._bintype, self._metric)
         tot = cat1.sumw * cat2.sumw * cat3.sumw
-        self.n1n2n3.tot += tot
-        self.n1n3n2.tot += tot
-        self.n2n1n3.tot += tot
-        self.n2n3n1.tot += tot
-        self.n3n1n2.tot += tot
-        self.n3n2n1.tot += tot
+        for nnn in self._all:
+            nnn.tot += tot
         self.tot += tot
 
     def finalize(self):
@@ -997,22 +996,19 @@ class NNNCrossCorrelation(BinnedCorr3):
         multiple times if appropriate.  Afterwards, this command finishes the calculation
         by dividing by the total weight.
         """
-        self.n1n2n3.finalize()
-        self.n1n3n2.finalize()
-        self.n2n1n3.finalize()
-        self.n2n3n1.finalize()
-        self.n3n1n2.finalize()
-        self.n3n2n1.finalize()
+        for nnn in self._all:
+            nnn.finalize()
+
+    def nonempty(self):
+        """Return if there are any values accumulated yet.  (i.e. ntri > 0)
+        """
+        return any(nnn.nonempty() for nnn in self._all)
 
     def clear(self):
         """Clear the data vectors
         """
-        self.n1n2n3.clear()
-        self.n1n3n2.clear()
-        self.n2n1n3.clear()
-        self.n2n3n1.clear()
-        self.n3n1n2.clear()
-        self.n3n2n1.clear()
+        for nnn in self._all:
+            nnn.clear()
         self.tot = 0
 
     def __iadd__(self, other):
@@ -1035,7 +1031,8 @@ class NNNCrossCorrelation(BinnedCorr3):
         self.tot += other.tot
         return self
 
-    def process(self, cat1, cat2, cat3=None, metric=None, num_threads=None):
+    def process(self, cat1, cat2, cat3=None, metric=None, num_threads=None,
+                comm=None, low_mem=False, initialize=True, finalize=True):
         """Accumulate the cross-correlation of the points in the given Catalogs: cat1, cat2, cat3.
 
         - If 2 arguments are given, then compute a cross-correlation function with the
@@ -1056,36 +1053,52 @@ class NNNCrossCorrelation(BinnedCorr3):
             num_threads (int):  How many OpenMP threads to use during the calculation.
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
+            comm (mpi4py.Comm): If running MPI, an mpi4py Comm object to communicate between
+                                processes.  If used, the rank=0 process will have the final
+                                computation. This only works if using patches. (default: None)
+            low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
+                                This only works if using patches. (default: False)
+            initialize (bool):  Wether to begin the calculation with a call to `clear`.
+                                (default: True)
+            finalize (bool):    Wether to complete the calculation with a call to `finalize`.
+                                (default: True)
         """
         import math
-        self.clear()
+        if initialize:
+            self.clear()
+            self._process12 = False
+
         if not isinstance(cat1,list): cat1 = cat1.get_patches()
         if not isinstance(cat2,list): cat2 = cat2.get_patches()
         if cat3 is not None and not isinstance(cat3,list): cat3 = cat3.get_patches()
 
         if cat3 is None:
+            self._process12 = True
             self._process_all_cross12(cat1, cat2, metric, num_threads)
-            # The n1n2n3 and n1n3n2 are equivalent, but process_all_cross12 only added things to
-            # one or the other of these (only n1n2n3 if no lists are involved).  So add them
-            # together and copy, so they are equal.
-            # Likewise the other pairs that are symmetric between 2,3.
-            if self.n1n3n2.tot != 0:
-                self.n1n2n3 += self.n1n3n2
-            if self.n3n1n2.tot != 0:
-                self.n2n1n3 += self.n3n1n2
-            if self.n3n2n1.tot != 0:
-                self.n2n3n1 += self.n3n2n1
-            # Copy back by doing clear and +=.
-            # This makes sure the coords and metric are set properly.
-            self.n1n3n2.clear()
-            self.n3n1n2.clear()
-            self.n3n2n1.clear()
-            self.n1n3n2 += self.n1n2n3
-            self.n3n1n2 += self.n2n1n3
-            self.n3n2n1 += self.n2n3n1
         else:
             self._process_all_cross(cat1, cat2, cat3, metric, num_threads)
-        self.finalize()
+
+        if finalize:
+            if self._process12:
+                # Then some of the processing involved a cross12 calculation.
+                # This means that spots 2 and 3 should not be distinguished.
+                # Combine the relevant arrays.
+                if self.n1n3n2.nonempty():
+                    self.n1n2n3 += self.n1n3n2
+                if self.n3n1n2.nonempty():
+                    self.n2n1n3 += self.n3n1n2
+                if self.n3n2n1.nonempty():
+                    self.n2n3n1 += self.n3n2n1
+                # Copy back by doing clear and +=.
+                # This makes sure the coords and metric are set properly.
+                self.n1n3n2.clear()
+                self.n3n1n2.clear()
+                self.n3n2n1.clear()
+                self.n1n3n2 += self.n1n2n3
+                self.n3n1n2 += self.n2n1n3
+                self.n3n2n1 += self.n2n3n1
+
+            self.finalize()
 
     def write(self, file_name, file_type=None, precision=None):
         r"""Write the correlation function to the file, file_name.
@@ -1102,14 +1115,11 @@ class NNNCrossCorrelation(BinnedCorr3):
         col_names = [ 'r_nom', 'u_nom', 'v_nom', 'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
                       'meand3', 'meanlogd3', 'meanu', 'meanv', 'weight', 'ntri' ]
         group_names = [ 'n1n2n3', 'n1n3n2', 'n2n1n3', 'n2n3n1', 'n3n1n2', 'n3n2n1' ]
-        columns = [
-                    [ nnn.rnom, nnn.u, nnn.v,
+        columns = [ [ nnn.rnom, nnn.u, nnn.v,
                       nnn.meand1, nnn.meanlogd1, nnn.meand2, nnn.meanlogd2,
                       nnn.meand3, nnn.meanlogd3, nnn.meanu, nnn.meanv,
                       nnn.weight, nnn.ntri ]
-                    for nnn in [ self.n1n2n3, self.n1n3n2, self.n2n1n3,
-                                 self.n2n3n1, self.n3n1n2, self.n3n2n1 ]
-                  ]
+                    for nnn in self._all ]
 
         params = { 'tot' : self.tot, 'coords' : self.coords, 'metric' : self.metric,
                    'sep_units' : self.sep_units, 'bin_type' : self.bin_type }

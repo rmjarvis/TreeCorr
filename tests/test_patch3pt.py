@@ -244,8 +244,8 @@ def test_brute_jk():
 def test_finalize_false():
 
     nside = 100
-    nsource = 100
-    npatch = 20
+    nsource = 80
+    npatch = 16
 
     # Make three independent data sets
     rng = np.random.RandomState(8675309)
@@ -330,14 +330,7 @@ def test_finalize_false():
                              patch_centers=cat.patch_centers)
     np.testing.assert_array_equal(cat23.patch, cat.patch[nsource:3*nsource])
 
-    kkk1 = treecorr.KKKCorrelation(nbins=3, min_sep=30., max_sep=100., brute=True,
-                                   min_u=0.8, max_u=1.0, nubins=1,
-                                   min_v=0., max_v=0.2, nvbins=1)
     kkk1.process(cat1, cat23)
-
-    kkk2 = treecorr.KKKCorrelation(nbins=3, min_sep=30., max_sep=100., brute=True,
-                                   min_u=0.8, max_u=1.0, nubins=1,
-                                   min_v=0., max_v=0.2, nvbins=1)
     kkk2.process(cat1, cat2, initialize=True, finalize=False)
     kkk2.process(cat1, cat3, initialize=False, finalize=False)
     kkk2.process(cat1, cat2, cat3, initialize=False, finalize=True)
@@ -371,6 +364,150 @@ def test_finalize_false():
         np.testing.assert_allclose(kkk1.meand2, kkk2.meand2)
         np.testing.assert_allclose(kkk1.meand3, kkk2.meand3)
         np.testing.assert_allclose(kkk1.zeta, kkk2.zeta)
+
+    # KKK cross
+    kkk1.process(cat, cat2, cat3)
+    kkk2.process(cat1, cat2, cat3, initialize=True, finalize=False)
+    kkk2.process(cat2, cat2, cat3, initialize=False, finalize=False)
+    kkk2.process(cat3, cat2, cat3, initialize=False, finalize=True)
+
+    np.testing.assert_allclose(kkk1.ntri, kkk2.ntri)
+    np.testing.assert_allclose(kkk1.weight, kkk2.weight)
+    np.testing.assert_allclose(kkk1.meand1, kkk2.meand1)
+    np.testing.assert_allclose(kkk1.meand2, kkk2.meand2)
+    np.testing.assert_allclose(kkk1.meand3, kkk2.meand3)
+    np.testing.assert_allclose(kkk1.zeta, kkk2.zeta)
+
+    # KKKCross cross
+    kkkc1.process(cat, cat2, cat3)
+    kkkc2.process(cat1, cat2, cat3, initialize=True, finalize=False)
+    kkkc2.process(cat2, cat2, cat3, initialize=False, finalize=False)
+    kkkc2.process(cat3, cat2, cat3, initialize=False, finalize=True)
+
+    for perm in ['k1k2k3', 'k1k3k2', 'k2k1k3', 'k2k3k1', 'k3k1k2', 'k3k2k1']:
+        kkk1 = getattr(kkkc1, perm)
+        kkk2 = getattr(kkkc2, perm)
+        np.testing.assert_allclose(kkk1.ntri, kkk2.ntri)
+        np.testing.assert_allclose(kkk1.weight, kkk2.weight)
+        np.testing.assert_allclose(kkk1.meand1, kkk2.meand1)
+        np.testing.assert_allclose(kkk1.meand2, kkk2.meand2)
+        np.testing.assert_allclose(kkk1.meand3, kkk2.meand3)
+        np.testing.assert_allclose(kkk1.zeta, kkk2.zeta)
+
+    # GGG auto
+    ggg1 = treecorr.GGGCorrelation(nbins=3, min_sep=30., max_sep=100., brute=True,
+                                   min_u=0.8, max_u=1.0, nubins=1,
+                                   min_v=0., max_v=0.2, nvbins=1)
+    ggg1.process(cat)
+
+    ggg2 = treecorr.GGGCorrelation(nbins=3, min_sep=30., max_sep=100., brute=True,
+                                   min_u=0.8, max_u=1.0, nubins=1,
+                                   min_v=0., max_v=0.2, nvbins=1)
+    ggg2.process(cat1, initialize=True, finalize=False)
+    ggg2.process(cat2, initialize=False, finalize=False)
+    ggg2.process(cat3, initialize=False, finalize=False)
+    ggg2.process(cat1, cat2, initialize=False, finalize=False)
+    ggg2.process(cat1, cat3, initialize=False, finalize=False)
+    ggg2.process(cat2, cat1, initialize=False, finalize=False)
+    ggg2.process(cat2, cat3, initialize=False, finalize=False)
+    ggg2.process(cat3, cat1, initialize=False, finalize=False)
+    ggg2.process(cat3, cat2, initialize=False, finalize=False)
+    ggg2.process(cat1, cat2, cat3, initialize=False, finalize=True)
+
+    np.testing.assert_allclose(ggg1.ntri, ggg2.ntri)
+    np.testing.assert_allclose(ggg1.weight, ggg2.weight)
+    np.testing.assert_allclose(ggg1.meand1, ggg2.meand1)
+    np.testing.assert_allclose(ggg1.meand2, ggg2.meand2)
+    np.testing.assert_allclose(ggg1.meand3, ggg2.meand3)
+    np.testing.assert_allclose(ggg1.gam0, ggg2.gam0)
+    np.testing.assert_allclose(ggg1.gam1, ggg2.gam1)
+    np.testing.assert_allclose(ggg1.gam2, ggg2.gam2)
+    np.testing.assert_allclose(ggg1.gam3, ggg2.gam3)
+
+    # GGG cross12
+    cat23 = treecorr.Catalog(x=np.concatenate([x_2, x_3]),
+                             y=np.concatenate([y_2, y_3]),
+                             g1=np.concatenate([g1_2, g1_3]),
+                             g2=np.concatenate([g2_2, g2_3]),
+                             k=np.concatenate([k_2, k_3]),
+                             patch_centers=cat.patch_centers)
+    np.testing.assert_array_equal(cat23.patch, cat.patch[nsource:3*nsource])
+
+    ggg1.process(cat1, cat23)
+    ggg2.process(cat1, cat2, initialize=True, finalize=False)
+    ggg2.process(cat1, cat3, initialize=False, finalize=False)
+    ggg2.process(cat1, cat2, cat3, initialize=False, finalize=True)
+
+    np.testing.assert_allclose(ggg1.ntri, ggg2.ntri)
+    np.testing.assert_allclose(ggg1.weight, ggg2.weight)
+    np.testing.assert_allclose(ggg1.meand1, ggg2.meand1)
+    np.testing.assert_allclose(ggg1.meand2, ggg2.meand2)
+    np.testing.assert_allclose(ggg1.meand3, ggg2.meand3)
+    np.testing.assert_allclose(ggg1.gam0, ggg2.gam0)
+    np.testing.assert_allclose(ggg1.gam1, ggg2.gam1)
+    np.testing.assert_allclose(ggg1.gam2, ggg2.gam2)
+    np.testing.assert_allclose(ggg1.gam3, ggg2.gam3)
+
+    # GGGCross cross12
+    gggc1 = treecorr.GGGCrossCorrelation(nbins=3, min_sep=30., max_sep=100., brute=True,
+                                         min_u=0.8, max_u=1.0, nubins=1,
+                                         min_v=0., max_v=0.2, nvbins=1)
+    gggc1.process(cat1, cat23)
+
+    gggc2 = treecorr.GGGCrossCorrelation(nbins=3, min_sep=30., max_sep=100., brute=True,
+                                         min_u=0.8, max_u=1.0, nubins=1,
+                                         min_v=0., max_v=0.2, nvbins=1)
+    gggc2.process(cat1, cat2, initialize=True, finalize=False)
+    gggc2.process(cat1, cat3, initialize=False, finalize=False)
+    gggc2.process(cat1, cat2, cat3, initialize=False, finalize=True)
+
+    for perm in ['g1g2g3', 'g1g3g2', 'g2g1g3', 'g2g3g1', 'g3g1g2', 'g3g2g1']:
+        ggg1 = getattr(gggc1, perm)
+        ggg2 = getattr(gggc2, perm)
+        np.testing.assert_allclose(ggg1.ntri, ggg2.ntri)
+        np.testing.assert_allclose(ggg1.weight, ggg2.weight)
+        np.testing.assert_allclose(ggg1.meand1, ggg2.meand1)
+        np.testing.assert_allclose(ggg1.meand2, ggg2.meand2)
+        np.testing.assert_allclose(ggg1.meand3, ggg2.meand3)
+        np.testing.assert_allclose(ggg1.gam0, ggg2.gam0)
+        np.testing.assert_allclose(ggg1.gam1, ggg2.gam1)
+        np.testing.assert_allclose(ggg1.gam2, ggg2.gam2)
+        np.testing.assert_allclose(ggg1.gam3, ggg2.gam3)
+
+    # GGG cross
+    ggg1.process(cat, cat2, cat3)
+    ggg2.process(cat1, cat2, cat3, initialize=True, finalize=False)
+    ggg2.process(cat2, cat2, cat3, initialize=False, finalize=False)
+    ggg2.process(cat3, cat2, cat3, initialize=False, finalize=True)
+
+    np.testing.assert_allclose(ggg1.ntri, ggg2.ntri)
+    np.testing.assert_allclose(ggg1.weight, ggg2.weight)
+    np.testing.assert_allclose(ggg1.meand1, ggg2.meand1)
+    np.testing.assert_allclose(ggg1.meand2, ggg2.meand2)
+    np.testing.assert_allclose(ggg1.meand3, ggg2.meand3)
+    np.testing.assert_allclose(ggg1.gam0, ggg2.gam0)
+    np.testing.assert_allclose(ggg1.gam1, ggg2.gam1)
+    np.testing.assert_allclose(ggg1.gam2, ggg2.gam2)
+    np.testing.assert_allclose(ggg1.gam3, ggg2.gam3)
+
+    # GGGCross cross
+    gggc1.process(cat, cat2, cat3)
+    gggc2.process(cat1, cat2, cat3, initialize=True, finalize=False)
+    gggc2.process(cat2, cat2, cat3, initialize=False, finalize=False)
+    gggc2.process(cat3, cat2, cat3, initialize=False, finalize=True)
+
+    for perm in ['g1g2g3', 'g1g3g2', 'g2g1g3', 'g2g3g1', 'g3g1g2', 'g3g2g1']:
+        ggg1 = getattr(gggc1, perm)
+        ggg2 = getattr(gggc2, perm)
+        np.testing.assert_allclose(ggg1.ntri, ggg2.ntri)
+        np.testing.assert_allclose(ggg1.weight, ggg2.weight)
+        np.testing.assert_allclose(ggg1.meand1, ggg2.meand1)
+        np.testing.assert_allclose(ggg1.meand2, ggg2.meand2)
+        np.testing.assert_allclose(ggg1.meand3, ggg2.meand3)
+        np.testing.assert_allclose(ggg1.gam0, ggg2.gam0)
+        np.testing.assert_allclose(ggg1.gam1, ggg2.gam1)
+        np.testing.assert_allclose(ggg1.gam2, ggg2.gam2)
+        np.testing.assert_allclose(ggg1.gam3, ggg2.gam3)
 
 
 if __name__ == '__main__':

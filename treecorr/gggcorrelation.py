@@ -509,6 +509,7 @@ class GGGCorrelation(BinnedCorr3):
                 self.max_v == other.max_v):
             raise ValueError("GGGCorrelation to be added is not compatible with this one.")
 
+        if not other.nonempty(): return self
         self._set_metric(other.metric, other.coords)
         self.gam0r[:] += other.gam0r[:]
         self.gam0i[:] += other.gam0i[:]
@@ -614,9 +615,9 @@ class GGGCorrelation(BinnedCorr3):
                 raise ValueError("For two catalog case, use cat1,cat2, not cat1,cat3")
             self._process_all_auto(cat1, metric, num_threads, comm, low_mem)
         elif cat3 is None:
-            self._process_all_cross12(cat1, cat2, metric, num_threads)
+            self._process_all_cross12(cat1, cat2, metric, num_threads, comm, low_mem)
         else:
-            self._process_all_cross(cat1, cat2, cat3, metric, num_threads)
+            self._process_all_cross(cat1, cat2, cat3, metric, num_threads, comm, low_mem)
 
         if finalize:
             if cat2 is None:
@@ -1467,21 +1468,18 @@ class GGGCrossCorrelation(BinnedCorr3):
 
         if cat3 is None:
             self._process12 = True
-            self._process_all_cross12(cat1, cat2, metric, num_threads)
+            self._process_all_cross12(cat1, cat2, metric, num_threads, comm, low_mem)
         else:
-            self._process_all_cross(cat1, cat2, cat3, metric, num_threads)
+            self._process_all_cross(cat1, cat2, cat3, metric, num_threads, comm, low_mem)
 
         if finalize:
             if self._process12:
                 # Then some of the processing involved a cross12 calculation.
                 # This means that spots 2 and 3 should not be distinguished.
                 # Combine the relevant arrays.
-                if self.g1g3g2.nonempty():
-                    self.g1g2g3 += self.g1g3g2
-                if self.g3g1g2.nonempty():
-                    self.g2g1g3 += self.g3g1g2
-                if self.g3g2g1.nonempty():
-                    self.g2g3g1 += self.g3g2g1
+                self.g1g2g3 += self.g1g3g2
+                self.g2g1g3 += self.g3g1g2
+                self.g2g3g1 += self.g3g2g1
                 # Copy back by doing clear and +=.
                 # This makes sure the coords and metric are set properly.
                 self.g1g3g2.clear()

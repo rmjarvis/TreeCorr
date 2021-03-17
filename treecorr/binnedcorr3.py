@@ -837,33 +837,33 @@ class BinnedCorr3(object):
                             # NNNCorrelation needs to add the tot value
                             self._add_tot(i, j, j, c1, c2, c2)
 
-                        # One point in each of c1, c2, c3
-                        for kk,c3 in list(enumerate(cat2))[::-1]:
-                            k = c3.patch if c3.patch is not None else kk
-                            if j < k and is_my_job(my_indices, i, j, k, n1, n2):
-                                temp.clear()
+                    # One point in each of c1, c2, c3
+                    for kk,c3 in list(enumerate(cat2))[::-1]:
+                        k = c3.patch if c3.patch is not None else kk
+                        if j < k and is_my_job(my_indices, i, j, k, n1, n2):
+                            temp.clear()
 
-                                if not self._trivially_zero(c1,c2,c3,metric):
-                                    self.logger.info('Process patches %d,%d,%d cross',i,j,k)
-                                    temp.process_cross(c1,c2,c3, metric, num_threads)
+                            if not self._trivially_zero(c1,c2,c3,metric):
+                                self.logger.info('Process patches %d,%d,%d cross',i,j,k)
+                                temp.process_cross(c1,c2,c3, metric, num_threads)
+                            else:
+                                self.logger.info('Skipping %d,%d,%d, which are too far apart ' +
+                                                    'for this set of separations',i,j,k)
+                            if temp.nonempty():
+                                if (i,j,k) not in self.results:
+                                    self.results[(i,j,k)] = temp.copy()
                                 else:
-                                    self.logger.info('Skipping %d,%d,%d, which are too far apart ' +
-                                                     'for this set of separations',i,j,k)
-                                if temp.nonempty():
-                                    if (i,j,k) not in self.results:
-                                        self.results[(i,j,k)] = temp.copy()
-                                    else:
-                                        self.results[(i,j,k)] += temp
-                                    self += temp
-                                else:
-                                    # NNNCorrelation needs to add the tot value
-                                    self._add_tot(i, j, k, c1, c2, c3)
-                                if low_mem:
-                                    c3.unload()
+                                    self.results[(i,j,k)] += temp
+                                self += temp
+                            else:
+                                # NNNCorrelation needs to add the tot value
+                                self._add_tot(i, j, k, c1, c2, c3)
+                            if low_mem:
+                                c3.unload()
 
-                        if low_mem and jj != ii+1:
-                            # Don't unload i+1, since that's the next one we'll need.
-                            c2.unload()
+                    if low_mem and jj != ii+1:
+                        # Don't unload i+1, since that's the next one we'll need.
+                        c2.unload()
                 if low_mem:
                     c1.unload()
             if comm is not None:

@@ -511,20 +511,20 @@ class KKKCorrelation(BinnedCorr3):
 
         if finalize:
             if cat2 is None:
-                vark1 = calculateVarK(cat1)
+                vark1 = calculateVarK(cat1, low_mem=low_mem)
                 vark2 = vark1
                 vark3 = vark1
                 self.logger.info("vark = %f: sig_k = %f",vark1,math.sqrt(vark1))
             elif cat3 is None:
-                vark1 = calculateVarK(cat1)
-                vark2 = calculateVarK(cat2)
+                vark1 = calculateVarK(cat1, low_mem=low_mem)
+                vark2 = calculateVarK(cat2, low_mem=low_mem)
                 vark3 = vark2
                 self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
                 self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
             else:
-                vark1 = calculateVarK(cat1)
-                vark2 = calculateVarK(cat2)
-                vark3 = calculateVarK(cat3)
+                vark1 = calculateVarK(cat1, low_mem=low_mem)
+                vark2 = calculateVarK(cat2, low_mem=low_mem)
+                vark3 = calculateVarK(cat3, low_mem=low_mem)
                 self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
                 self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
                 self.logger.info("vark3 = %f: sig_k = %f",vark3,math.sqrt(vark3))
@@ -1002,14 +1002,14 @@ class KKKCrossCorrelation(BinnedCorr3):
                 self.k3k1k2 += self.k2k1k3
                 self.k3k2k1 += self.k2k3k1
 
-            vark1 = calculateVarK(cat1)
-            vark2 = calculateVarK(cat2)
+            vark1 = calculateVarK(cat1, low_mem=low_mem)
+            vark2 = calculateVarK(cat2, low_mem=low_mem)
             self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
             self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
             if cat3 is None:
                 vark3 = vark2
             else:
-                vark3 = calculateVarK(cat3)
+                vark3 = calculateVarK(cat3, low_mem=low_mem)
                 self.logger.info("vark3 = %f: sig_k = %f",vark3,math.sqrt(vark3))
             self.finalize(vark1,vark2,vark3)
 

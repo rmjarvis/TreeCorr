@@ -412,12 +412,12 @@ class KKCorrelation(BinnedCorr2):
 
         if finalize:
             if cat2 is None:
-                vark1 = calculateVarK(cat1)
+                vark1 = calculateVarK(cat1, low_mem=low_mem)
                 vark2 = vark1
                 self.logger.info("vark = %f: sig_k = %f",vark1,math.sqrt(vark1))
             else:
-                vark1 = calculateVarK(cat1)
-                vark2 = calculateVarK(cat2)
+                vark1 = calculateVarK(cat1, low_mem=low_mem)
+                vark2 = calculateVarK(cat2, low_mem=low_mem)
                 self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
                 self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
             self.finalize(vark1,vark2)

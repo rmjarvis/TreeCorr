@@ -509,7 +509,118 @@ def test_finalize_false():
         np.testing.assert_allclose(ggg1.gam2, ggg2.gam2)
         np.testing.assert_allclose(ggg1.gam3, ggg2.gam3)
 
+@timer
+def test_lowmem():
+    # Test using patches to keep the memory usage lower.
+
+    nside = 100
+    if __name__ == '__main__':
+        nsource = 10000
+        npatch = 4
+        himem = 7.e5
+        lomem = 7.e4
+    else:
+        nsource = 1000
+        npatch = 4
+        himem = 1.e5
+        lomem = 6.e4
+
+    rng = np.random.RandomState(8675309)
+    rng = np.random.RandomState(8675309)
+    x, y, g1, g2, k = generate_shear_field(nside)
+    indx = rng.choice(range(len(x)),nsource,replace=False)
+    x = x[indx]
+    y = y[indx]
+    g1 = g1[indx]
+    g2 = g2[indx]
+    k = k[indx]
+    x += rng.normal(0,0.01,nsource)
+    y += rng.normal(0,0.01,nsource)
+
+    file_name = os.path.join('output','test_lowmem_3pt.fits')
+    orig_cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=k, npatch=npatch)
+    patch_centers = orig_cat.patch_centers
+    orig_cat.write(file_name)
+    del orig_cat
+
+    try:
+        import guppy
+        hp = guppy.hpy()
+        hp.setrelheap()
+    except Exception:
+        hp = None
+
+    full_cat = treecorr.Catalog(file_name,
+                                x_col='x', y_col='y', g1_col='g1', g2_col='g2', k_col='k',
+                                patch_centers=patch_centers)
+
+    kkk = treecorr.KKKCorrelation(nbins=1, min_sep=280., max_sep=300.,
+                                  min_u=0.95, max_u=1.0, nubins=1,
+                                  min_v=0., max_v=0.05, nvbins=1)
+
+    t0 = time.time()
+    s0 = hp.heap().size if hp else 0
+    kkk.process(full_cat)
+    t1 = time.time()
+    s1 = hp.heap().size if hp else 2*himem
+    print('regular: ',s1, t1-t0, s1-s0)
+    assert s1-s0 > himem  # This version uses a lot of memory.
+
+    ntri1 = kkk.ntri
+    zeta1 = kkk.zeta
+    full_cat.unload()
+    kkk.clear()
+
+    # Remake with save_patch_dir.
+    clear_save('test_lowmem_3pt_%03d.fits', npatch)
+    save_cat = treecorr.Catalog(file_name,
+                                x_col='x', y_col='y', g1_col='g1', g2_col='g2', k_col='k',
+                                patch_centers=patch_centers, save_patch_dir='output')
+
+    t0 = time.time()
+    s0 = hp.heap().size if hp else 0
+    kkk.process(save_cat, low_mem=True, finalize=False)
+    t1 = time.time()
+    s1 = hp.heap().size if hp else 0
+    print('lomem 1: ',s1, t1-t0, s1-s0)
+    assert s1-s0 < lomem  # This version uses a lot less memory
+    ntri2 = kkk.ntri
+    zeta2 = kkk.zeta
+    print('ntri1 = ',ntri1)
+    print('zeta1 = ',zeta1)
+    np.testing.assert_array_equal(ntri2, ntri1)
+    np.testing.assert_array_equal(zeta2, zeta1)
+
+    # Check running as a cross-correlation
+    save_cat.unload()
+    t0 = time.time()
+    s0 = hp.heap().size if hp else 0
+    kkk.process(save_cat, save_cat, low_mem=True)
+    t1 = time.time()
+    s1 = hp.heap().size if hp else 0
+    print('lomem 2: ',s1, t1-t0, s1-s0)
+    assert s1-s0 < lomem
+    ntri3 = kkk.ntri
+    zeta3 = kkk.zeta
+    np.testing.assert_array_equal(ntri3, ntri1)
+    np.testing.assert_array_equal(zeta3, zeta1)
+
+    # Check running as a cross-correlation
+    save_cat.unload()
+    t0 = time.time()
+    s0 = hp.heap().size if hp else 0
+    kkk.process(save_cat, save_cat, save_cat, low_mem=True)
+    t1 = time.time()
+    s1 = hp.heap().size if hp else 0
+    print('lomem 3: ',s1, t1-t0, s1-s0)
+    assert s1-s0 < lomem
+    ntri4 = kkk.ntri
+    zeta4 = kkk.zeta
+    np.testing.assert_array_equal(ntri4, ntri1)
+    np.testing.assert_array_equal(zeta4, zeta1)
+
 
 if __name__ == '__main__':
     test_brute_jk()
     test_finalize_false()
+    test_lowmem

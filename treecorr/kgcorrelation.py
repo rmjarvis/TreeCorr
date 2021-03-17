@@ -378,8 +378,8 @@ class KGCorrelation(BinnedCorr2):
         self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem)
 
         if finalize:
-            vark = calculateVarK(cat1)
-            varg = calculateVarG(cat2)
+            vark = calculateVarK(cat1, low_mem=low_mem)
+            varg = calculateVarG(cat2, low_mem=low_mem)
             self.logger.info("vark = %f: sig_k = %f",vark,math.sqrt(vark))
             self.logger.info("varg = %f: sig_sn (per component) = %f",varg,math.sqrt(varg))
             self.finalize(vark,varg)

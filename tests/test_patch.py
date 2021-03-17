@@ -2269,13 +2269,13 @@ def test_lowmem():
     if __name__ == '__main__':
         ngal = 2000000
         npatch = 64
-        himem = 8.e7   # These are empirical of course.  The point is himem >> lomem.
+        himem = 1.e8   # These are empirical of course.  The point is himem >> lomem.
         lomem = 3.e6
     else:
         ngal = 100000
         npatch = 16
         himem = 5.e6
-        lomem = 5.e5
+        lomem = 2.e5
     rng = np.random.RandomState(8675309)
     x = rng.uniform(-20,20, (ngal,) )
     y = rng.uniform(80,120, (ngal,) )  # Put everything at large y, so smallish angle on sky

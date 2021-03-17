@@ -449,12 +449,12 @@ class GGCorrelation(BinnedCorr2):
 
         if finalize:
             if cat2 is None:
-                varg1 = calculateVarG(cat1)
+                varg1 = calculateVarG(cat1, low_mem=low_mem)
                 varg2 = varg1
                 self.logger.info("varg = %f: sig_sn (per component) = %f",varg1,math.sqrt(varg1))
             else:
-                varg1 = calculateVarG(cat1)
-                varg2 = calculateVarG(cat2)
+                varg1 = calculateVarG(cat1, low_mem=low_mem)
+                varg2 = calculateVarG(cat2, low_mem=low_mem)
                 self.logger.info("varg1 = %f: sig_sn (per component) = %f",varg1,math.sqrt(varg1))
                 self.logger.info("varg2 = %f: sig_sn (per component) = %f",varg2,math.sqrt(varg2))
             self.finalize(varg1,varg2)

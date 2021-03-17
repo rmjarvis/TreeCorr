@@ -2319,19 +2319,21 @@ def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=N
     return ret
 
 
-def calculateVarG(cat_list):
+def calculateVarG(cat_list, low_mem=False):
     """Calculate the overall shear variance from a list of catalogs.
 
     The catalogs are assumed to be equivalent, so this is just the average shear
     variance (per component) weighted by the number of objects in each catalog.
 
     Parameters:
-        cat_list:    A Catalog or a list of Catalogs for which to calculate the shear variance.
+        cat_list:   A Catalog or a list of Catalogs for which to calculate the shear variance.
+        low_mem:    Whether to try to conserve memory when cat is a list by unloading each
+                    catalog after getting its individual varg. [default: False]
 
     Returns:
         The shear variance per component, aka shape noise.
     """
-    if isinstance(cat_list,Catalog):
+    if isinstance(cat_list, Catalog):
         return cat_list.varg
     elif len(cat_list) == 1:
         return cat_list[0].varg
@@ -2341,22 +2343,25 @@ def calculateVarG(cat_list):
         for cat in cat_list:
             varg += cat.varg * cat.sumw
             sumw += cat.sumw
+            if low_mem:
+                cat.unload()
         return varg / sumw
 
-
-def calculateVarK(cat_list):
+def calculateVarK(cat_list, low_mem=False):
     """Calculate the overall kappa variance from a list of catalogs.
 
     The catalogs are assumed to be equivalent, so this is just the average kappa
     variance weighted by the number of objects in each catalog.
 
     Parameters:
-        cat_list:    A Catalog or a list of Catalogs for which to calculate the kappa variance.
+        cat_list:   A Catalog or a list of Catalogs for which to calculate the kappa variance.
+        low_mem:    Whether to try to conserve memory when cat is a list by unloading each
+                    catalog after getting its individual vark. [default: False]
 
     Returns:
         The kappa variance
     """
-    if isinstance(cat_list,Catalog):
+    if isinstance(cat_list, Catalog):
         return cat_list.vark
     elif len(cat_list) == 1:
         return cat_list[0].vark
@@ -2366,8 +2371,9 @@ def calculateVarK(cat_list):
         for cat in cat_list:
             vark += cat.vark * cat.sumw
             sumw += cat.sumw
+            if low_mem:
+                cat.unload()
         return vark / sumw
-
 
 def isGColRequired(config, num):
     """A quick helper function that checks whether we need to bother reading the g1,g2 columns.

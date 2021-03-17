@@ -18,7 +18,6 @@
 import numpy as np
 
 from . import _lib, _ffi
-from .catalog import calculateVarK
 from .binnedcorr2 import BinnedCorr2
 from .util import double_ptr as dp
 from .util import gen_read, gen_write

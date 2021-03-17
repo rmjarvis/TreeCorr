@@ -398,7 +398,7 @@ class NGCorrelation(BinnedCorr2):
         self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem)
 
         if finalize:
-            varg = calculateVarG(cat2)
+            varg = calculateVarG(cat2, low_mem=low_mem)
             self.logger.info("varg = %f: sig_sn (per component) = %f",varg,math.sqrt(varg))
             self.finalize(varg)
 

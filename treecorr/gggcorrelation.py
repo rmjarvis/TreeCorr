@@ -621,20 +621,20 @@ class GGGCorrelation(BinnedCorr3):
 
         if finalize:
             if cat2 is None:
-                varg1 = calculateVarG(cat1)
+                varg1 = calculateVarG(cat1, low_mem=low_mem)
                 varg2 = varg1
                 varg3 = varg1
                 self.logger.info("varg = %f: sig_g = %f",varg1,math.sqrt(varg1))
             elif cat3 is None:
-                varg1 = calculateVarG(cat1)
-                varg2 = calculateVarG(cat2)
+                varg1 = calculateVarG(cat1, low_mem=low_mem)
+                varg2 = calculateVarG(cat2, low_mem=low_mem)
                 varg3 = varg2
                 self.logger.info("varg1 = %f: sig_g = %f",varg1,math.sqrt(varg1))
                 self.logger.info("varg2 = %f: sig_g = %f",varg2,math.sqrt(varg2))
             else:
-                varg1 = calculateVarG(cat1)
-                varg2 = calculateVarG(cat2)
-                varg3 = calculateVarG(cat3)
+                varg1 = calculateVarG(cat1, low_mem=low_mem)
+                varg2 = calculateVarG(cat2, low_mem=low_mem)
+                varg3 = calculateVarG(cat3, low_mem=low_mem)
                 self.logger.info("varg1 = %f: sig_g = %f",varg1,math.sqrt(varg1))
                 self.logger.info("varg2 = %f: sig_g = %f",varg2,math.sqrt(varg2))
                 self.logger.info("varg3 = %f: sig_g = %f",varg3,math.sqrt(varg3))
@@ -1489,14 +1489,14 @@ class GGGCrossCorrelation(BinnedCorr3):
                 self.g3g1g2 += self.g2g1g3
                 self.g3g2g1 += self.g2g3g1
 
-            varg1 = calculateVarG(cat1)
-            varg2 = calculateVarG(cat2)
+            varg1 = calculateVarG(cat1, low_mem=low_mem)
+            varg2 = calculateVarG(cat2, low_mem=low_mem)
             self.logger.info("varg1 = %f: sig_g = %f",varg1,math.sqrt(varg1))
             self.logger.info("varg2 = %f: sig_g = %f",varg2,math.sqrt(varg2))
             if cat3 is None:
                 varg3 = varg2
             else:
-                varg3 = calculateVarG(cat3)
+                varg3 = calculateVarG(cat3, low_mem=low_mem)
                 self.logger.info("varg3 = %f: sig_g = %f",varg3,math.sqrt(varg3))
             self.finalize(varg1,varg2,varg3)
 

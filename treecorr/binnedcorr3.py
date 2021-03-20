@@ -197,6 +197,8 @@ class BinnedCorr3(object):
         var_method (str):   Which method to use for estimating the variance. Options are:
                             'shot', 'jackknife', 'sample', 'bootstrap', 'marked_bootstrap'.
                             (default: 'shot')
+        num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
+                            'marked_bootstrap' var_methods.  (default: 500)
 
         num_threads (int):  How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
@@ -258,8 +260,6 @@ class BinnedCorr3(object):
                 'The maximum number of top layers to use when setting up the field.'),
         'precision' : (int, False, 4, None,
                 'The number of digits after the decimal in the output.'),
-        'num_threads' : (int, False, None, None,
-                'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
         'metric': (str, False, 'Euclidean', ['Euclidean', 'Arc', 'Periodic'],
                 'Which metric to use for the distance measurements'),
         'bin_type': (str, False, 'LogRUV', ['LogRUV'],
@@ -276,6 +276,11 @@ class BinnedCorr3(object):
         'var_method': (str, False, 'shot',
                 ['shot', 'jackknife', 'sample', 'bootstrap', 'marked_bootstrap'],
                 'The method to use for estimating the variance'),
+        'num_bootstrap': (int, False, 500, None,
+                'How many bootstrap samples to use for the var_method=bootstrap and '
+                'marked_bootstrap'),
+        'num_threads' : (int, False, None, None,
+                'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
     }
 
     def __init__(self, config=None, logger=None, **kwargs):
@@ -483,6 +488,7 @@ class BinnedCorr3(object):
         self._ro._nbins = len(self._ro.logr.ravel())
 
         self._ro.var_method = get(self.config,'var_method',str,'shot')
+        self._ro.num_bootstrap = get(self.config,'num_bootstrap',int,500)
         self.results = {}  # for jackknife, etc. store the results of each pair of patches.
         self.npatch1 = self.npatch2 = self.npatch3 = 1
 
@@ -571,6 +577,8 @@ class BinnedCorr3(object):
     def zperiod(self): return self._ro.zperiod
     @property
     def var_method(self): return self._ro.var_method
+    @property
+    def num_bootstrap(self): return self._ro.num_bootstrap
     @property
     def _d1(self): return self._ro._d1
     @property
@@ -1157,7 +1165,7 @@ class BinnedCorr3(object):
             if self.npatch1 == 1:
                 return [ [(0,0,i)] for i in range(self.npatch3) ]
             else:
-                assert self.npatch1 == self.npatch2
+                assert self.npatch1 == self.npatch3
                 return [ [(j,0,k) for j,_,k in self.results.keys() if j==i]
                          for i in range(self.npatch1) ]
         elif self.npatch1 == 1:
@@ -1167,7 +1175,7 @@ class BinnedCorr3(object):
         else:
             assert self.npatch1 == self.npatch2 == self.npatch3
             return [ [(j,k,m) for j,k,m in self.results.keys() if j==i]
-                     for i in range(self.npatch2) ]
+                     for i in range(self.npatch1) ]
 
     def _build_ok_matrix(self):
         # Precompute an ok array to make the list comprehension in bootstrap_pars much faster.
@@ -1193,11 +1201,11 @@ class BinnedCorr3(object):
             else:
                 assert self.npatch1 == self.npatch3
                 # Select all pairs where first point is in indx (repeating i as appropriate)
-                return [ (i,0,j) for i in indx for j in range(self.npatch2) if self._ok[i,0,j] ]
+                return [ (i,0,j) for i in indx for j in range(self.npatch3) if self._ok[i,0,j] ]
         elif self.npatch1 == 1:
             assert self.npatch2 == self.npatch3
             # Select all pairs where first point is in indx (repeating i as appropriate)
-            return [ (0,i,j) for i in indx for j in range(self.npatch2) if self._ok[0,i,j] ]
+            return [ (0,i,j) for i in indx for j in range(self.npatch3) if self._ok[0,i,j] ]
         else:
             assert self.npatch1 == self.npatch2 == self.npatch3
             # Select all pairs where first point is in indx (repeating i as appropriate)
@@ -1228,5 +1236,8 @@ class BinnedCorr3(object):
         else:
             assert self.npatch1 == self.npatch2 == self.npatch3
             return ([ (i,i,i) for i in indx if self._ok[i,i,i] ] +
-                    [ (i,j,k) for i in indx for j in indx for k in indx
-                              if self._ok[i,j,k] and (i!=j or i!=k) ])
+                    [ (i,i,j) for i in indx for j in indx if self._ok[i,i,j] and i!=j ] +
+                    [ (i,j,i) for i in indx for j in indx if self._ok[i,j,i] and i!=j ] +
+                    [ (j,i,i) for i in indx for j in indx if self._ok[j,i,i] and i!=j ] +
+                    [ (i,j,k) for i in indx for j in indx if i!=j
+                              for k in indx if self._ok[i,j,k] and (i!=k and j!=k) ])

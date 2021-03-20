@@ -1191,7 +1191,7 @@ def test_var():
         k = rng.random_sample(nobj) - 0.5
         cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=k)
         varg = (np.sum(g1**2) + np.sum(g2**2)) / (2.*len(g1))
-        vark = np.sum(k**2) / len(k)
+        vark = np.var(k, ddof=0)
         assert np.isclose(cat.vark, vark)
         assert np.isclose(cat.varg, varg)
         assert np.isclose(treecorr.calculateVarK(cat), vark)
@@ -1207,7 +1207,7 @@ def test_var():
     allg2 = np.array(allg2)
     allk = np.array(allk)
     varg = (np.sum(allg1**2) + np.sum(allg2**2)) / (2. * len(allg1))
-    vark = np.sum(allk**2) / len(allk)
+    vark = np.sum((allk-np.mean(allk))**2) / len(allk)
     assert np.isclose(treecorr.calculateVarG(cats), varg)
     assert np.isclose(treecorr.calculateVarK(cats), vark)
 
@@ -1226,7 +1226,8 @@ def test_var():
         k = rng.random_sample(nobj)
         cat = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, k=k)
         varg = np.sum(w**2 * (g1**2 + g2**2)) / np.sum(w) / 2.
-        vark = np.sum(w**2 * k**2) / np.sum(w)
+        meank = np.sum(w*k)/np.sum(w)
+        vark = np.sum(w**2 * (k-meank)**2) / np.sum(w)
         assert np.isclose(cat.varg, varg)
         assert np.isclose(cat.vark, vark)
         assert np.isclose(treecorr.calculateVarG(cat), varg)
@@ -1244,7 +1245,8 @@ def test_var():
     allk = np.array(allk)
     allw = np.array(allw)
     varg = np.sum(allw**2 * (allg1**2 + allg2**2)) / np.sum(allw) / 2.
-    vark = np.sum(allw**2 * allk**2) / np.sum(allw)
+    meank = np.sum(allw*allk)/np.sum(allw)
+    vark = np.sum(allw**2 * (allk-meank)**2) / np.sum(allw)
     assert np.isclose(treecorr.calculateVarG(cats), varg)
     assert np.isclose(treecorr.calculateVarK(cats), vark)
 

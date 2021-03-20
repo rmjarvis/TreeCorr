@@ -462,7 +462,7 @@ class GGGCorrelation(BinnedCorr3):
         """
         return np.sum(self.ntri) > 0
 
-    def clear(self):
+    def _clear(self):
         """Clear the data vectors
         """
         self.gam0r[:,:,:] = 0.
@@ -533,7 +533,7 @@ class GGGCorrelation(BinnedCorr3):
 
     def _sum(self, others):
         # Equivalent to the operation of:
-        #     self.clear()
+        #     self._clear()
         #     for other in others:
         #         self += other
         # but no sanity checks and use numpy.sum for faster calculation.
@@ -601,7 +601,6 @@ class GGGCorrelation(BinnedCorr3):
         import math
         if initialize:
             self.clear()
-            self.results.clear()
 
         if not isinstance(cat1,list):
             cat1 = cat1.get_patches(low_mem=low_mem)
@@ -1400,11 +1399,11 @@ class GGGCrossCorrelation(BinnedCorr3):
         """
         return any([ggg.nonempty() for ggg in self._all])
 
-    def clear(self):
+    def _clear(self):
         """Clear the data vectors
         """
         for ggg in self._all:
-            ggg.clear()
+            ggg._clear()
 
     def __iadd__(self, other):
         """Add a second `GGGCrossCorrelation`'s data to this one.

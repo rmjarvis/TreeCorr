@@ -376,7 +376,7 @@ class KKKCorrelation(BinnedCorr3):
         """
         return np.sum(self.ntri) > 0
 
-    def clear(self):
+    def _clear(self):
         """Clear the data vectors
         """
         self.zeta[:,:,:] = 0.
@@ -430,7 +430,7 @@ class KKKCorrelation(BinnedCorr3):
 
     def _sum(self, others):
         # Equivalent to the operation of:
-        #     self.clear()
+        #     self._clear()
         #     for other in others:
         #         self += other
         # but no sanity checks and use numpy.sum for faster calculation.
@@ -491,7 +491,6 @@ class KKKCorrelation(BinnedCorr3):
         import math
         if initialize:
             self.clear()
-            self.results.clear()
 
         if not isinstance(cat1,list):
             cat1 = cat1.get_patches(low_mem=low_mem)
@@ -913,11 +912,11 @@ class KKKCrossCorrelation(BinnedCorr3):
         """
         return any([kkk.nonempty() for kkk in self._all])
 
-    def clear(self):
+    def _clear(self):
         """Clear the data vectors
         """
         for kkk in self._all:
-            kkk.clear()
+            kkk._clear()
 
     def __iadd__(self, other):
         """Add a second `KKKCrossCorrelation`'s data to this one.

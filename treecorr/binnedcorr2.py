@@ -557,6 +557,13 @@ class BinnedCorr2(object):
         self.logger = setup_logger(get(self.config,'verbose',int,1),
                                    self.config.get('log_file',None))
 
+    def clear(self):
+        """Clear all data vectors, the results dict, and any related values.
+        """
+        self._clear()
+        self.results.clear()
+        self.npatch1 = self.npatch2 = 1
+
     def _add_tot(self, i, j, c1, c2):
         # No op for all but NNCorrelation, which needs to add the tot value
         pass
@@ -632,7 +639,7 @@ class BinnedCorr2(object):
             for ii,c1 in enumerate(cat1):
                 i = c1.patch if c1.patch is not None else ii
                 if is_my_job(my_indices, i, i, n):
-                    temp.clear()
+                    temp._clear()
                     self.logger.info('Process patch %d auto',i)
                     temp.process_auto(c1,metric,num_threads)
                     if (i,i) not in self.results:
@@ -643,7 +650,7 @@ class BinnedCorr2(object):
                 for jj,c2 in list(enumerate(cat1))[::-1]:
                     j = c2.patch if c2.patch is not None else jj
                     if i < j and is_my_job(my_indices, i, j, n):
-                        temp.clear()
+                        temp._clear()
                         if not self._trivially_zero(c1,c2,metric):
                             self.logger.info('Process patches %d,%d cross',i,j)
                             temp.process_cross(c1,c2,metric,num_threads)
@@ -740,7 +747,7 @@ class BinnedCorr2(object):
                 for jj,c2 in enumerate(cat2):
                     j = c2.patch if c2.patch is not None else jj
                     if is_my_job(my_indices, i, j, n1, n2):
-                        temp.clear()
+                        temp._clear()
                         if not self._trivially_zero(c1,c2,metric):
                             self.logger.info('Process patches %d,%d cross',i,j)
                             temp.process_cross(c1,c2,metric,num_threads)
@@ -1022,7 +1029,7 @@ class BinnedCorr2(object):
         # pairs is input as a list of (i,j) values.
 
         # This is the normal calculation.  It needs to be overridden when there are randoms.
-        self.clear()
+        self._clear()
         self._sum([self.results[ij] for ij in pairs])
         self._finalize()
 
@@ -1243,7 +1250,6 @@ def _check_patch_nums(corrs, name):
         if c._get_npatch() != npatch:
             raise RuntimeError("All correlations must use the same number of patches")
     return npatch
-
 
 def _cov_jackknife(corrs, func):
     # Calculate the jackknife covariance for the given statistics

@@ -349,7 +349,7 @@ class GGCorrelation(BinnedCorr2):
         self.varxip.ravel()[:] = self.cov.diagonal()[:self._nbins]
         self.varxim.ravel()[:] = self.cov.diagonal()[self._nbins:]
 
-    def clear(self):
+    def _clear(self):
         """Clear the data vectors
         """
         self.xip.ravel()[:] = 0
@@ -389,7 +389,7 @@ class GGCorrelation(BinnedCorr2):
 
     def _sum(self, others):
         # Equivalent to the operation of:
-        #     self.clear()
+        #     self._clear()
         #     for other in others:
         #         self += other
         # but no sanity checks and use numpy.sum for faster calculation.
@@ -435,7 +435,6 @@ class GGCorrelation(BinnedCorr2):
         import math
         if initialize:
             self.clear()
-            self.results.clear()
 
         if not isinstance(cat1,list):
             cat1 = cat1.get_patches(low_mem=low_mem)

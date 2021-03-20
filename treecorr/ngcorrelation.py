@@ -307,7 +307,7 @@ class NGCorrelation(BinnedCorr2):
         self.xi_im = self.raw_xi_im
         self.varxi = self.raw_varxi
 
-    def clear(self):
+    def _clear(self):
         """Clear the data vectors
         """
         self.raw_xi.ravel()[:] = 0
@@ -347,7 +347,7 @@ class NGCorrelation(BinnedCorr2):
 
     def _sum(self, others):
         # Equivalent to the operation of:
-        #     self.clear()
+        #     self._clear()
         #     for other in others:
         #         self += other
         # but no sanity checks and use numpy.sum for faster calculation.
@@ -387,7 +387,6 @@ class NGCorrelation(BinnedCorr2):
         import math
         if initialize:
             self.clear()
-            self.results.clear()
             self._rg = None
 
         if not isinstance(cat1,list):
@@ -460,7 +459,7 @@ class NGCorrelation(BinnedCorr2):
         return self.xi, self.xi_im, self.varxi
 
     def _calculate_xi_from_pairs(self, pairs):
-        self.clear()
+        self._clear()
         self._sum([self.results[ij] for ij in pairs])
         self._finalize()
         if self._rg is not None:

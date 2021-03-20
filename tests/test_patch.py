@@ -19,14 +19,7 @@ import time
 import fitsio
 import treecorr
 
-from test_helper import assert_raises, do_pickle, timer, get_from_wiki, CaptureLog
-
-def clear_save(template, npatch):
-    # Make sure patch files in save_patch_dir ('output') are not on disk yet.
-    for i in range(npatch):
-        patch_file_name = os.path.join('output',template%i)
-        if os.path.isfile(patch_file_name):
-            os.remove(patch_file_name)
+from test_helper import assert_raises, do_pickle, timer, get_from_wiki, CaptureLog, clear_save
 
 @timer
 def test_cat_patches():

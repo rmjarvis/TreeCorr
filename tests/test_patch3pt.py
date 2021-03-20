@@ -20,7 +20,503 @@ import fitsio
 import treecorr
 
 from test_helper import assert_raises, do_pickle, timer, get_from_wiki, CaptureLog, clear_save
-from test_patch import generate_shear_field
+
+def generate_shear_field(nside, rng=None):
+    # For these, we don't want a Gaussian power spectrum, since there won't be any
+    # significant 3pt power.  Take the nominal power spectrum squared to give it significant
+    # non-Gaussianity.
+    # Otherwise, this is basically the same as the version in test_patch.py.
+
+    if rng is None:
+        rng = np.random.RandomState()
+
+    kvals = np.fft.fftfreq(nside) * 2*np.pi
+    kx,ky = np.meshgrid(kvals,kvals)
+    k = kx + 1j*ky
+    ksq = kx**2 + ky**2
+
+    # For 3pt, we don't put as much power at large scales, since we aren't actually going
+    # to measure large triangles anyway.  This puts most of the power where we actually
+    # measure the correlations.
+    Pk = 1.e4 * ksq**3 / (1. + 300.*ksq)**2
+
+    # Make complex gaussian field in k-space.
+    f1 = rng.normal(size=Pk.shape)
+    f2 = rng.normal(size=Pk.shape)
+    f = (f1 + 1j*f2) * np.sqrt(0.5)
+
+    # Make f Hermitian, to correspond to E-mode-only field.
+    # Hermitian means f(-k) = conj(f(k)).
+    # Note: this is approximate.  It doesn't get all the k=0 and k=nside/2 correct.
+    # But this is good enough for xi- to be not close to zero.
+    ikxp = slice(1,(nside+1)//2)   # kx > 0
+    ikxn = slice(-1,nside//2,-1)   # kx < 0
+    ikyp = slice(1,(nside+1)//2)   # ky > 0
+    ikyn = slice(-1,nside//2,-1)   # ky < 0
+    f[ikyp,ikxn] = np.conj(f[ikyn,ikxp])
+    f[ikyn,ikxn] = np.conj(f[ikyp,ikxp])
+
+    # Multiply by the power spectrum to get a realization of a field with this P(k)
+    f *= Pk
+
+    # Inverse fft gives the real-space field.
+    kappa = nside * np.fft.ifft2(f)
+
+    # Take exp(kappa) to make it non-Gaussian
+    #kappa = np.exp(kappa)
+    kappa *= kappa
+
+    # Get the corresponding f for gamma.
+    f = np.fft.fft2(kappa)
+
+    # Multiply by exp(2iphi) to get gamma field, rather than kappa.
+    ksq[0,0] = 1.  # Avoid division by zero
+    exp2iphi = k**2 / ksq
+    f *= exp2iphi
+    gamma = nside * np.fft.ifft2(f)
+
+    # Generate x,y values for the real-space field
+    x,y = np.meshgrid(np.linspace(0.,1000.,nside), np.linspace(0.,1000.,nside))
+
+    x = x.ravel()
+    y = y.ravel()
+    gamma = gamma.ravel()
+    kappa = np.real(kappa.ravel())
+
+    return x, y, np.real(gamma), np.imag(gamma), kappa
+
+
+@timer
+def test_kkk_jk():
+    # Test jackknife and other covariance estimates for kkk correlations.
+    # Note: This test takes a while!
+    # The main version I think is a pretty decent test of the code correctness.
+    # It shows that bootstrap in particular easily gets to within 50% of the right variance.
+    # Sometimes within 20%, but because of the randomness there, it varies a bit.
+    # Jackknife isn't much worse.  Just a little below 50%.  But still pretty good.
+    # Sample and Marked are not great for this test.  I think they will work ok when the
+    # triangles of interest are mostly within single patches, but that's not the case we
+    # have here, and it would take a lot more points to get to that regime.  So the
+    # accuracy tests for those two are pretty loose.
+
+    if __name__ == '__main__':
+        # This setup takes about 700 sec to run.
+        nside = 100
+        nsource = 10000
+        npatch = 64
+        tol_factor = 1
+    elif False:
+        # This setup takes about 130 sec to run.
+        nside = 100
+        nsource = 2000
+        npatch = 16
+        tol_factor = 3
+    elif False:
+        # This setup takes about 55 sec to run.
+        nside = 100
+        nsource = 1000
+        npatch = 16
+        tol_factor = 20
+    else:
+        # This setup takes about 13 sec to run.
+        # So we use this one for regular unit test runs.
+        # It's pretty terrible in terms of testing the accuracy, but it works for code coverage.
+        # But whenever actually working on this part of the code, definitely need to switch
+        # to one of the above setups.  Preferably run the name==main version to get a good
+        # test of the code correctness.
+        nside = 100
+        nsource = 500
+        npatch = 8
+        tol_factor = 30
+
+    file_name = 'data/test_kkk_jk_{}.npz'.format(nsource)
+    print(file_name)
+    if not os.path.isfile(file_name):
+        nruns = 1000
+        all_kkks = []
+        for run in range(nruns):
+            x, y, _, _, k = generate_shear_field(nside)
+            print(run,': ',np.mean(k),np.std(k))
+            indx = np.random.choice(range(len(x)),nsource,replace=False)
+            cat = treecorr.Catalog(x=x[indx], y=y[indx], k=k[indx])
+            kkk = treecorr.KKKCorrelation(nbins=3, min_sep=30., max_sep=100.,
+                                           min_u=0.9, max_u=1.0, nubins=1,
+                                           min_v=0.0, max_v=0.1, nvbins=1)
+            kkk.process(cat)
+            print(kkk.ntri.ravel().tolist())
+            print(kkk.zeta.ravel().tolist())
+            all_kkks.append(kkk)
+        mean_kkk = np.mean([kkk.zeta.ravel() for kkk in all_kkks], axis=0)
+        var_kkk = np.var([kkk.zeta.ravel() for kkk in all_kkks], axis=0)
+
+        np.savez(file_name, all_kkk=np.array([kkk.zeta.ravel() for kkk in all_kkks]),
+                 mean_kkk=mean_kkk, var_kkk=var_kkk)
+
+    data = np.load(file_name)
+    mean_kkk = data['mean_kkk']
+    var_kkk = data['var_kkk']
+    print('mean = ',mean_kkk)
+    print('var = ',var_kkk)
+
+    rng = np.random.RandomState(12345)
+    x, y, _, _, k = generate_shear_field(nside, rng)
+    indx = rng.choice(range(len(x)),nsource,replace=False)
+    cat = treecorr.Catalog(x=x[indx], y=y[indx], k=k[indx])
+    kkk = treecorr.KKKCorrelation(nbins=3, min_sep=30., max_sep=100.,
+                                  min_u=0.9, max_u=1.0, nubins=1,
+                                  min_v=0.0, max_v=0.1, nvbins=1)
+    kkk.process(cat)
+    print(kkk.ntri.ravel())
+    print(kkk.zeta.ravel())
+    print(kkk.varzeta.ravel())
+
+    kkkp = kkk.copy()
+    catp = treecorr.Catalog(x=x[indx], y=y[indx], k=k[indx], npatch=npatch)
+
+    # Do the same thing with patches.
+    kkkp.process(catp)
+    print('with patches:')
+    print(kkkp.ntri.ravel())
+    print(kkkp.zeta.ravel())
+    print(kkkp.varzeta.ravel())
+
+    np.testing.assert_allclose(kkkp.ntri, kkk.ntri, rtol=0.05 * tol_factor)
+    np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
+    np.testing.assert_allclose(kkkp.varzeta, kkk.varzeta, rtol=0.05 * tol_factor)
+
+    print('jackknife:')
+    cov = kkkp.estimate_cov('jackknife')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.5 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.6*tol_factor)
+
+    # Both sample and marked are pretty bad for this case.  I think because we have
+    # a lot of triangles that cross regions, and these methods don't handle that as well
+    # as jackknife or bootstrap.  But it's possible there is a better version of the triple
+    # selection that would work better, and I just haven't found it.
+    # (I tried a few other plausible choices, but they were even worse.)
+    print('sample:')
+    cov = kkkp.estimate_cov('sample')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.8 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=1.5*tol_factor)
+
+    print('marked:')
+    cov = kkkp.estimate_cov('marked_bootstrap')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.8 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=1.5*tol_factor)
+
+    # As for 2pt, bootstrap seems to be pretty reliably the best estimator out of these.
+    # However, because it's random, it can occasionally come out even slightly worse than jackknife.
+    # So the test tolerance is the same as jackknife, even though the typical performance is
+    # quite a bit better usually.
+    print('bootstrap:')
+    cov = kkkp.estimate_cov('bootstrap')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.5 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.6*tol_factor)
+
+    # Now as a cross correlation with all 3 using the same patch catalog.
+    print('with 3 patched catalogs:')
+    kkkp.process(catp, catp, catp)
+    print(kkkp.zeta.ravel())
+    np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
+
+    print('jackknife:')
+    cov = kkkp.estimate_cov('jackknife')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.5 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.6*tol_factor)
+
+    # Note: sample works worse here because of the asymmetry it has between the "first" catalog
+    # and the others.
+    print('sample:')
+    cov = kkkp.estimate_cov('sample')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.9 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=1.9*tol_factor)
+
+    print('marked:')
+    cov = kkkp.estimate_cov('marked_bootstrap')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.9 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=1.9*tol_factor)
+
+    print('bootstrap:')
+    cov = kkkp.estimate_cov('bootstrap')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.5 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.6*tol_factor)
+
+    # Repeat this test with different combinations of patch with non-patch catalogs:
+    # All the methods work best when the patches are used for all 3 catalogs.  But there
+    # are probably cases where this kind of cross correlation with only some catalogs having
+    # patches could be desired.  So this mostly just checks that the code runs properly.
+
+    # Patch on 1 only:
+    print('with patches on 1 only:')
+    kkkp.process(catp, cat)
+    print(kkkp.zeta.ravel())
+    np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
+
+    print('jackknife:')
+    cov = kkkp.estimate_cov('jackknife')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.9 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=2.0*tol_factor)
+
+    print('sample:')
+    cov = kkkp.estimate_cov('sample')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.9 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=2.0*tol_factor)
+
+    print('marked:')
+    cov = kkkp.estimate_cov('marked_bootstrap')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=1.0 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=2.1*tol_factor)
+
+    print('bootstrap:')
+    cov = kkkp.estimate_cov('bootstrap')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.9 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=2.1*tol_factor)
+
+    # Patch on 2 only:
+    print('with patches on 2 only:')
+    kkkp.process(cat, catp, cat)
+    print(kkkp.zeta.ravel())
+    np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
+
+    print('jackknife:')
+    cov = kkkp.estimate_cov('jackknife')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.9 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=2.0*tol_factor)
+
+    print('sample:')
+    cov = kkkp.estimate_cov('sample')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.9 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=2.0*tol_factor)
+
+    print('marked:')
+    cov = kkkp.estimate_cov('marked_bootstrap')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=1.0 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=2.1*tol_factor)
+
+    print('bootstrap:')
+    cov = kkkp.estimate_cov('bootstrap')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.9 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=2.1*tol_factor)
+
+    # Patch on 3 only:
+    print('with patches on 3 only:')
+    kkkp.process(cat, cat, catp)
+    print(kkkp.zeta.ravel())
+    np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
+
+    print('jackknife:')
+    cov = kkkp.estimate_cov('jackknife')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.9 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=2.0*tol_factor)
+
+    print('sample:')
+    cov = kkkp.estimate_cov('sample')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.9 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=2.0*tol_factor)
+
+    print('marked:')
+    cov = kkkp.estimate_cov('marked_bootstrap')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=1.0 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=2.1*tol_factor)
+
+    print('bootstrap:')
+    cov = kkkp.estimate_cov('bootstrap')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.9 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=2.1*tol_factor)
+
+    # Patch on 1,2
+    print('with patches on 1,2:')
+    kkkp.process(catp, catp, cat)
+    print(kkkp.zeta.ravel())
+    np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
+
+    print('jackknife:')
+    cov = kkkp.estimate_cov('jackknife')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.6 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.9*tol_factor)
+
+    print('sample:')
+    cov = kkkp.estimate_cov('sample')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.9 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=2.0*tol_factor)
+
+    print('marked:')
+    cov = kkkp.estimate_cov('marked_bootstrap')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.9 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=2.0*tol_factor)
+
+    print('bootstrap:')
+    cov = kkkp.estimate_cov('bootstrap')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.6 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.9*tol_factor)
+
+    # Patch on 2,3
+    print('with patches on 2,3:')
+    kkkp.process(cat, catp)
+    print(kkkp.zeta.ravel())
+    np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
+
+    print('jackknife:')
+    cov = kkkp.estimate_cov('jackknife')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.6 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.9*tol_factor)
+
+    print('sample:')
+    cov = kkkp.estimate_cov('sample')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.9 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=2.0*tol_factor)
+
+    print('marked:')
+    cov = kkkp.estimate_cov('marked_bootstrap')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.9 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=2.0*tol_factor)
+
+    print('bootstrap:')
+    cov = kkkp.estimate_cov('bootstrap')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.6 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.9*tol_factor)
+
+    # Patch on 1,3
+    print('with patches on 1,3:')
+    kkkp.process(catp, cat, catp)
+    print(kkkp.zeta.ravel())
+    np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
+
+    print('jackknife:')
+    cov = kkkp.estimate_cov('jackknife')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.6 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.9*tol_factor)
+
+    print('sample:')
+    cov = kkkp.estimate_cov('sample')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.9 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=2.0*tol_factor)
+
+    print('marked:')
+    cov = kkkp.estimate_cov('marked_bootstrap')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.9 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=2.0*tol_factor)
+
+    print('bootstrap:')
+    cov = kkkp.estimate_cov('bootstrap')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.6 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.9*tol_factor)
+
+    # Finally a set (with all patches) using the KKKCrossCorrelation class.
+    kkkc = treecorr.KKKCrossCorrelation(nbins=3, min_sep=30., max_sep=100.,
+                                        min_u=0.9, max_u=1.0, nubins=1,
+                                        min_v=0.0, max_v=0.1, nvbins=1)
+    print('CrossCorrelation:')
+    kkkc.process(catp, catp, catp)
+    for k in kkkc._all:
+        print(k.ntri.ravel())
+        print(k.zeta.ravel())
+        print(k.varzeta.ravel())
+
+        np.testing.assert_allclose(k.ntri, kkk.ntri, rtol=0.05 * tol_factor)
+        np.testing.assert_allclose(k.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
+        np.testing.assert_allclose(k.varzeta, kkk.varzeta, rtol=0.05 * tol_factor)
+
+    print('jackknife:')
+    cov = kkkc.estimate_cov('jackknife')
+    print(np.diagonal(cov))
+    for i in range(6):
+        v = np.diagonal(cov)[i*6:(i+1)*6]
+        print('max log(ratio) = ',np.max(np.abs(np.log(v)-np.log(var_kkk))))
+        np.testing.assert_allclose(v, var_kkk, rtol=0.5 * tol_factor)
+        np.testing.assert_allclose(np.log(v), np.log(var_kkk), atol=0.6*tol_factor)
+
+    print('sample:')
+    cov = kkkc.estimate_cov('sample')
+    print(np.diagonal(cov))
+    for i in range(6):
+        v = np.diagonal(cov)[i*6:(i+1)*6]
+        print('max log(ratio) = ',np.max(np.abs(np.log(v)-np.log(var_kkk))))
+        np.testing.assert_allclose(v, var_kkk, rtol=0.9 * tol_factor)
+        np.testing.assert_allclose(np.log(v), np.log(var_kkk), atol=2.0*tol_factor)
+
+    print('marked:')
+    cov = kkkc.estimate_cov('marked_bootstrap')
+    print(np.diagonal(cov))
+    for i in range(6):
+        v = np.diagonal(cov)[i*6:(i+1)*6]
+        print('max log(ratio) = ',np.max(np.abs(np.log(v)-np.log(var_kkk))))
+        np.testing.assert_allclose(v, var_kkk, rtol=0.9 * tol_factor)
+        np.testing.assert_allclose(np.log(v), np.log(var_kkk), atol=2.0*tol_factor)
+
+    print('bootstrap:')
+    cov = kkkc.estimate_cov('bootstrap')
+    print(np.diagonal(cov))
+    for i in range(6):
+        v = np.diagonal(cov)[i*6:(i+1)*6]
+        print('max log(ratio) = ',np.max(np.abs(np.log(v)-np.log(var_kkk))))
+        np.testing.assert_allclose(v, var_kkk, rtol=0.5 * tol_factor)
+        np.testing.assert_allclose(np.log(v), np.log(var_kkk), atol=0.6*tol_factor)
+
 
 @timer
 def test_brute_jk():

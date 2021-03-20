@@ -888,6 +888,10 @@ class KKKCrossCorrelation(BinnedCorr3):
                            f1.data, f2.data, f3.data, self.output_dots,
                            f1._d, f2._d, f3._d, self._coords, self._bintype, self._metric)
 
+    def _finalize(self):
+        for kkk in self._all:
+            kkk._finalize()
+
     def finalize(self, vark1, vark2, vark3):
         """Finalize the calculation of the correlation function.
 
@@ -936,6 +940,15 @@ class KKKCrossCorrelation(BinnedCorr3):
         self.k3k1k2 += other.k3k1k2
         self.k3k2k1 += other.k3k2k1
         return self
+
+    def _sum(self, others):
+        # Equivalent to the operation of:
+        #     self._clear()
+        #     for other in others:
+        #         self += other
+        # but no sanity checks and use numpy.sum for faster calculation.
+        for i, kkk in enumerate(self._all):
+            kkk._sum([c._all[i] for c in others])
 
     def process(self, cat1, cat2, cat3=None, metric=None, num_threads=None,
                 comm=None, low_mem=False, initialize=True, finalize=True):

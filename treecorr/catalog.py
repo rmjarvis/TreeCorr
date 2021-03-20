@@ -541,6 +541,7 @@ class Catalog(object):
         self._single_patch = None
         self._nobj = None
         self._sumw = None
+        self._sumw2 = None
         self._varg = None
         self._vark = None
         self._patches = None
@@ -829,14 +830,18 @@ class Catalog(object):
             if self.nontrivial_w:
                 if self.k is not None:
                     use = self.w != 0
-                    self._vark = np.sum(self.w[use]**2 * self.k[use]**2)
-                    self._vark /= self.sumw
+                    self._meank = np.sum(self.w[use] * self.k[use]) / self.sumw
+                    self._meank2 = np.sum(self.w[use]**2 * self.k[use]) / self.sumw2
+                    self._vark = np.sum(self.w[use]**2 * (self.k[use]-self._meank)**2) / self.sumw
                 else:
+                    self._meank = self._meank2 = 0.
                     self._vark = 0.
             else:
                 if self.k is not None:
-                    self._vark = np.sum(self.k**2) / self.nobj
+                    self._meank = self._meank2 = np.mean(self.k)
+                    self._vark = np.sum((self.k-self._meank)**2) / self.nobj
                 else:
+                    self._meank = self._meank2 = 0.
                     self._vark = 0.
         return self._vark
 
@@ -863,6 +868,15 @@ class Catalog(object):
     def sumw(self):
         if self._sumw is None: self.load()
         return self._sumw
+
+    @property
+    def sumw2(self):
+        if self._sumw2 is None:
+            if self.nontrivial_w:
+                self._sumw2 = np.sum(self.w**2)
+            else:
+                self._sumw2 = self.ntot
+        return self._sumw2
 
     @property
     def coords(self):
@@ -2366,14 +2380,28 @@ def calculateVarK(cat_list, low_mem=False):
     elif len(cat_list) == 1:
         return cat_list[0].vark
     else:
+        # Unlike for g, we allow k to have a non-zero mean around which we take the
+        # variance.  When building up from multiple catalogs, we need to calculate the
+        # overall mean and get the variance around that.  So this is a little more complicated.
+        # In practice, it probably doesn't matter at all for real data sets, but some of the
+        # unit tests have small enough N that this matters.
         vark = 0
+        meank = 0
+        meank2 = 0
         sumw = 0
+        sumw2 = 0
         for cat in cat_list:
-            vark += cat.vark * cat.sumw
+            vark += cat.vark * cat.sumw + cat._meank * cat.sumw2 * (2*cat._meank2 - cat._meank)
+            meank += cat._meank * cat.sumw
+            meank2 += cat._meank2 * cat.sumw2
             sumw += cat.sumw
+            sumw2 += cat.sumw2
             if low_mem:
                 cat.unload()
-        return vark / sumw
+        meank /= sumw
+        meank2 /= sumw2
+        vark = (vark - meank * sumw2 * (2*meank2 - meank)) / sumw
+        return vark
 
 def isGColRequired(config, num):
     """A quick helper function that checks whether we need to bother reading the g1,g2 columns.

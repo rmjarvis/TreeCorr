@@ -19,8 +19,8 @@ import time
 import fitsio
 import treecorr
 
-from test_helper import assert_raises, do_pickle, timer, get_from_wiki, CaptureLog
-from test_patch import clear_save, generate_shear_field
+from test_helper import assert_raises, do_pickle, timer, get_from_wiki, CaptureLog, clear_save
+from test_patch import generate_shear_field
 
 @timer
 def test_brute_jk():

@@ -276,3 +276,10 @@ def is_ccw_3d(x1,y1,z1, x2,y2,z2, x3,y3,z3):
 
     # ccw if the cross product is in the opposite direction of (x1,y1,z1) from (0,0,0)
     return x*x1 + y*y1 + z*z1 < 0.
+
+def clear_save(template, npatch):
+    # Make sure patch files in save_patch_dir ('output') are not on disk yet.
+    for i in range(npatch):
+        patch_file_name = os.path.join('output',template%i)
+        if os.path.isfile(patch_file_name):
+            os.remove(patch_file_name)

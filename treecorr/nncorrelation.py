@@ -315,7 +315,7 @@ class NNCorrelation(BinnedCorr2):
         """
         self._finalize()
 
-    def clear(self):
+    def _clear(self):
         """Clear the data vectors
         """
         self.meanr.ravel()[:] = 0.
@@ -349,7 +349,7 @@ class NNCorrelation(BinnedCorr2):
 
     def _sum(self, others):
         # Equivalent to the operation of:
-        #     self.clear()
+        #     self._clear()
         #     for other in others:
         #         self += other
         # but no sanity checks and use numpy.sum for faster calculation.
@@ -405,7 +405,6 @@ class NNCorrelation(BinnedCorr2):
         """
         if initialize:
             self.clear()
-            self.results.clear()
 
         if not isinstance(cat1,list):
             cat1 = cat1.get_patches(low_mem=low_mem)
@@ -599,7 +598,7 @@ class NNCorrelation(BinnedCorr2):
         return self.xi, self.varxi
 
     def _calculate_xi_from_pairs(self, pairs):
-        self.clear()
+        self._clear()
         self._sum([self.results[ij] for ij in pairs])
         self._finalize()
         dd = self.weight

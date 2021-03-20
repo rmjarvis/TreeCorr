@@ -590,6 +590,13 @@ class BinnedCorr3(object):
         self.logger = setup_logger(get(self.config,'verbose',int,1),
                                    self.config.get('log_file',None))
 
+    def clear(self):
+        """Clear all data vectors, the results dict, and any related values.
+        """
+        self._clear()
+        self.results.clear()
+        self.npatch1 = self.npatch2 = self.npatch3 = 1
+
     def _add_tot(self, i, j, k, c1, c2, c3):
         # No op for all but NNCorrelation, which needs to add the tot value
         pass
@@ -1103,7 +1110,7 @@ class BinnedCorr3(object):
         # pairs is input as a list of (i,j) values.
 
         # This is the normal calculation.  It needs to be overridden when there are randoms.
-        self.clear()
+        self._clear()
         self._sum([self.results[ij] for ij in pairs])
         self._finalize()
 

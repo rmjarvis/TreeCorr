@@ -365,7 +365,7 @@ class NNNCorrelation(BinnedCorr3):
         """
         return np.sum(self.ntri) > 0
 
-    def clear(self):
+    def _clear(self):
         """Clear the data vectors
         """
         self.meand1[:,:,:] = 0.
@@ -382,7 +382,7 @@ class NNNCorrelation(BinnedCorr3):
 
     def _sum(self, others):
         # Equivalent to the operation of:
-        #     self.clear()
+        #     self._clear()
         #     for other in others:
         #         self += other
         # but no sanity checks and use numpy.sum for faster calculation.
@@ -477,7 +477,7 @@ class NNNCorrelation(BinnedCorr3):
                                 (default: True)
         """
         self.clear()
-        self.results.clear()
+
         if not isinstance(cat1,list): cat1 = cat1.get_patches()
         if cat2 is not None and not isinstance(cat2,list): cat2 = cat2.get_patches()
         if cat3 is not None and not isinstance(cat3,list): cat3 = cat3.get_patches()
@@ -1015,11 +1015,11 @@ class NNNCrossCorrelation(BinnedCorr3):
         """
         return any(nnn.nonempty() for nnn in self._all)
 
-    def clear(self):
+    def _clear(self):
         """Clear the data vectors
         """
         for nnn in self._all:
-            nnn.clear()
+            nnn._clear()
         self.tot = 0
 
     def __iadd__(self, other):

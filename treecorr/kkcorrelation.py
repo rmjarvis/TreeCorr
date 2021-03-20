@@ -321,7 +321,7 @@ class KKCorrelation(BinnedCorr2):
         self.cov = self.estimate_cov(self.var_method)
         self.varxi.ravel()[:] = self.cov.diagonal()
 
-    def clear(self):
+    def _clear(self):
         """Clear the data vectors
         """
         self.xi.ravel()[:] = 0
@@ -355,7 +355,7 @@ class KKCorrelation(BinnedCorr2):
 
     def _sum(self, others):
         # Equivalent to the operation of:
-        #     self.clear()
+        #     self._clear()
         #     for other in others:
         #         self += other
         # but no sanity checks and use numpy.sum for faster calculation.
@@ -398,7 +398,6 @@ class KKCorrelation(BinnedCorr2):
         import math
         if initialize:
             self.clear()
-            self.results.clear()
 
         if not isinstance(cat1,list):
             cat1 = cat1.get_patches(low_mem=low_mem)

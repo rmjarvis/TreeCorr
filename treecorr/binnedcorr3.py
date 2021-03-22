@@ -994,7 +994,7 @@ class BinnedCorr3(object):
                         self += temp
                         self.results.update(temp.results)
 
-    def estimate_cov(self, method):
+    def estimate_cov(self, method, func=None):
         """Estimate the covariance matrix based on the data
 
         This function will calculate an estimate of the covariance matrix according to the
@@ -1023,25 +1023,51 @@ class BinnedCorr3(object):
 
         .. note::
 
-            For most classes, there is only a single statistic, so this calculates a covariance
-            matrix for that vector.  `GGGCorrelation` has four: ``gam0``, ``gam1``, ``gam2``,
-            and ``gam3``, so in this case the full data vector is ``gam0`` followed by ``gam1``,
-            then ``gam2``, then ``gam3``, and this calculates the covariance matrix for that full
-            vector including both statistics.  The helper function `getStat` returns the relevant
-            statistic in all cases.
+            For most classes, there is only a single statistic, ``zeta``, so this calculates a
+            covariance matrix for that vector.  `GGGCorrelation` has four: ``gam0``, ``gam1``,
+            ``gam2``, and ``gam3``, so in this case the full data vector is ``gam0`` followed by
+            ``gam1``, then ``gam2``, then ``gam3``, and this calculates the covariance matrix for
+            that full vector including both statistics.  The helper function `getStat` returns the
+            relevant statistic in all cases.
 
         In all cases, the relevant processing needs to already have been completed and finalized.
         And for all methods other than 'shot', the processing should have involved an appropriate
         number of patches -- preferably more patches than the length of the vector for your
         statistic, although this is not checked.
 
+        The default data vector to use for the covariance matrix is given by the method
+        `getStat`.  As noted above, this is usually just `self.zeta`.  However, there is an option
+        to compute the covariance of some other function of the correlation object by providing
+        an arbitrary function, ``func``, which should act on the current correlation object
+        and return the data vector of interest.
+
+        For instance, for an `GGGCorrelation`, you might want to compute the covariance of just
+        gam0 and ignore the others.  In this case you could use
+
+            >>> func = lambda ggg: ggg.gam0
+
+        The return value from this func should be a single numpy array. (This is not directly
+        checked, but you'll probably get some kind of exception if it doesn't behave as expected.)
+
+        .. note::
+
+            The optional ``func`` parameter is not valid in conjunction with ``method='shot'``.
+            It only works for the methods that are based on patch combinations.
+
         Parameters:
-            method (str):   Which method to use to estimate the covariance matrix.
+            method (str):       Which method to use to estimate the covariance matrix.
+            func (function):    A unary function that acts on the current correlation object and
+                                returns the desired data vector. [default: None, which is
 
         Returns:
             A numpy array with the estimated covariance matrix.
         """
-        return estimate_multi_cov([self], method)
+        if func is not None:
+            # Need to convert it to a function of the first item in the list.
+            all_func = lambda corrs: func(corrs[0])
+        else:
+            all_func = None
+        return estimate_multi_cov([self], method, all_func)
 
     def _set_num_threads(self, num_threads):
         if num_threads is None:

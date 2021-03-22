@@ -797,7 +797,7 @@ class BinnedCorr2(object):
         """
         return self.weight.ravel()
 
-    def estimate_cov(self, method):
+    def estimate_cov(self, method, func=None):
         """Estimate the covariance matrix based on the data
 
         This function will calculate an estimate of the covariance matrix according to the
@@ -837,13 +837,40 @@ class BinnedCorr2(object):
         number of patches -- preferably more patches than the length of the vector for your
         statistic, although this is not checked.
 
+        The default data vector to use for the covariance matrix is given by the method
+        `getStat`.  As noted above, this is usually just `self.xi`.  However, there is an option
+        to compute the covariance of some other function of the correlation object by providing
+        an arbitrary function, ``func``, which should act on the current correlation object
+        and return the data vector of interest.
+
+        For instance, for an `NGCorrelation`, you might want to compute the covariance of the
+        imaginary part, ``ng.xi_im``, rather than the real part.  In this case you could use
+
+            >>> func = lambda ng: ng.xi_im
+
+        The return value from this func should be a single numpy array. (This is not directly
+        checked, but you'll probably get some kind of exception if it doesn't behave as expected.)
+
+        .. note::
+
+            The optional ``func`` parameter is not valid in conjunction with ``method='shot'``.
+            It only works for the methods that are based on patch combinations.
+
         Parameters:
-            method (str):   Which method to use to estimate the covariance matrix.
+            method (str):       Which method to use to estimate the covariance matrix.
+            func (function):    A unary function that acts on the current correlation object and
+                                returns the desired data vector. [default: None, which is
+                                equivalent to ``lambda corr: corr.getStat()``.
 
         Returns:
             A numpy array with the estimated covariance matrix.
         """
-        return estimate_multi_cov([self], method)
+        if func is not None:
+            # Need to convert it to a function of the first item in the list.
+            all_func = lambda corrs: func(corrs[0])
+        else:
+            all_func = None
+        return estimate_multi_cov([self], method, all_func)
 
     def _set_num_threads(self, num_threads):
         if num_threads is None:
@@ -1142,7 +1169,7 @@ def estimate_multi_cov(corrs, method, func=None):
     statistic, although this is not checked.
 
     The default order of the covariance matrix is to simply concatenate the data vectors
-    for each corr in the list ``corrs``.  However, if you want to so something more complicated,
+    for each corr in the list ``corrs``.  However, if you want to do something more complicated,
     you may provide an arbitrary function, ``func``, which should act on the list of correlations.
     For instance, if you have several `GGCorrelation` objects and would like to order the
     covariance such that all xi+ results come first, and then all xi- results, you could use

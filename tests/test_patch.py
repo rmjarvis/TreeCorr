@@ -719,6 +719,10 @@ def test_gg_jk():
     cov23_alt = treecorr.estimate_multi_cov([gg2,gg3], 'jackknife', func=func)
     np.testing.assert_allclose(cov23_alt, 4*gg3.cov[:n,:n])
 
+    # Check func with estimate_cov
+    covxip = gg3.estimate_cov('jackknife', func=lambda gg: gg.xip)
+    np.testing.assert_allclose(covxip, gg3.cov[:n,:n])
+
     # Check sample covariance estimate
     treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='sample')
     t0 = time.time()

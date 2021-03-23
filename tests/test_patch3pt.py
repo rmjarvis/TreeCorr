@@ -21,7 +21,7 @@ import treecorr
 
 from test_helper import assert_raises, do_pickle, timer, get_from_wiki, CaptureLog, clear_save
 
-def generate_shear_field(nside, rng=None):
+def generate_shear_field(nside, rng=None, sqr=False):
     # For these, we don't want a Gaussian power spectrum, since there won't be any
     # significant 3pt power.  Take the nominal power spectrum squared to give it significant
     # non-Gaussianity.
@@ -62,12 +62,12 @@ def generate_shear_field(nside, rng=None):
     # Inverse fft gives the real-space field.
     kappa = nside * np.fft.ifft2(f)
 
-    # Take exp(kappa) to make it non-Gaussian
-    #kappa = np.exp(kappa)
-    kappa *= kappa
+    if sqr:
+        # Square to make it non-Gaussian and have a non-zero mean.
+        kappa *= kappa
 
-    # Get the corresponding f for gamma.
-    f = np.fft.fft2(kappa)
+        # Get the corresponding f for gamma.
+        f = np.fft.fft2(kappa)
 
     # Multiply by exp(2iphi) to get gamma field, rather than kappa.
     ksq[0,0] = 1.  # Avoid division by zero
@@ -135,7 +135,7 @@ def test_kkk_jk():
         nruns = 1000
         all_kkks = []
         for run in range(nruns):
-            x, y, _, _, k = generate_shear_field(nside)
+            x, y, _, _, k = generate_shear_field(nside, sqr=True)
             print(run,': ',np.mean(k),np.std(k))
             indx = np.random.choice(range(len(x)),nsource,replace=False)
             cat = treecorr.Catalog(x=x[indx], y=y[indx], k=k[indx])
@@ -159,7 +159,7 @@ def test_kkk_jk():
     print('var = ',var_kkk)
 
     rng = np.random.RandomState(12345)
-    x, y, _, _, k = generate_shear_field(nside, rng)
+    x, y, _, _, k = generate_shear_field(nside, rng, sqr=True)
     indx = rng.choice(range(len(x)),nsource,replace=False)
     cat = treecorr.Catalog(x=x[indx], y=y[indx], k=k[indx])
     kkk = treecorr.KKKCorrelation(nbins=3, min_sep=30., max_sep=100.,
@@ -472,14 +472,14 @@ def test_kkk_jk():
                                         min_v=0.0, max_v=0.1, nvbins=1)
     print('CrossCorrelation:')
     kkkc.process(catp, catp, catp)
-    for k in kkkc._all:
-        print(k.ntri.ravel())
-        print(k.zeta.ravel())
-        print(k.varzeta.ravel())
+    for k1 in kkkc._all:
+        print(k1.ntri.ravel())
+        print(k1.zeta.ravel())
+        print(k1.varzeta.ravel())
 
-        np.testing.assert_allclose(k.ntri, kkk.ntri, rtol=0.05 * tol_factor)
-        np.testing.assert_allclose(k.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
-        np.testing.assert_allclose(k.varzeta, kkk.varzeta, rtol=0.05 * tol_factor)
+        np.testing.assert_allclose(k1.ntri, kkk.ntri, rtol=0.05 * tol_factor)
+        np.testing.assert_allclose(k1.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
+        np.testing.assert_allclose(k1.varzeta, kkk.varzeta, rtol=0.05 * tol_factor)
 
     print('jackknife:')
     cov = kkkc.estimate_cov('jackknife')
@@ -517,6 +517,16 @@ def test_kkk_jk():
         np.testing.assert_allclose(v, var_kkk, rtol=0.5 * tol_factor)
         np.testing.assert_allclose(np.log(v), np.log(var_kkk), atol=0.6*tol_factor)
 
+    # All catalogs need to have the same number of patches
+    catq = treecorr.Catalog(x=x[indx], y=y[indx], k=k[indx], npatch=2*npatch)
+    with assert_raises(RuntimeError):
+        kkkp.process(catp, catq)
+    with assert_raises(RuntimeError):
+        kkkp.process(catp, catq, catq)
+    with assert_raises(RuntimeError):
+        kkkp.process(catq, catp, catq)
+    with assert_raises(RuntimeError):
+        kkkp.process(catq, catq, catp)
 
 @timer
 def test_brute_jk():

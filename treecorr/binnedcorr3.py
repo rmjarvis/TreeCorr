@@ -933,8 +933,6 @@ class BinnedCorr3(object):
                 raise RuntimeError("Cross correlation requires all catalogs use the same patches.")
             if self.npatch1 != self.npatch3 and self.npatch1 != 1 and self.npatch3 != 1:
                 raise RuntimeError("Cross correlation requires all catalogs use the same patches.")
-            if self.npatch2 != self.npatch3 and self.npatch2 != 1 and self.npatch3 != 1:
-                raise RuntimeError("Cross correlation requires all catalogs use the same patches.")
 
             # Setup for deciding when this is my job.
             n1 = self.npatch1

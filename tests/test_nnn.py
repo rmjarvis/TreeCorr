@@ -751,20 +751,6 @@ def test_direct_count_auto():
     np.testing.assert_array_equal(data['ntri'], true_ntri.flatten())
     assert 'zeta' not in data.dtype.names
 
-    # Do cross with config
-    config['verbose'] = 0
-    config['file_name2'] = config['file_name']
-    config['file_name3'] = config['file_name']
-    treecorr.corr3(config)
-    data = np.genfromtxt(os.path.join('output','nnn_direct.out'), names=True, skip_header=1)
-    np.testing.assert_allclose(data['ntri'], 6*true_ntri.flatten())
-
-    # And 1-2 cross
-    del config['file_name3']
-    treecorr.corr3(config)
-    data = np.genfromtxt(os.path.join('output','nnn_direct.out'), names=True, skip_header=1)
-    np.testing.assert_allclose(data['ntri'], 3*true_ntri.flatten())
-
     # Check a few basic operations with a NNNCorrelation object.
     do_pickle(ddd)
 
@@ -1042,62 +1028,9 @@ def test_direct_count_cross():
     #print('diff = ',ddd.ntri - true_ntri_sum)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
-    # Check that running via the corr3 script works correctly.
-    config = treecorr.config.read_config('configs/nnn_direct_cross.yaml')
-    cat1.write(config['file_name'])
-    cat2.write(config['file_name2'])
-    cat3.write(config['file_name3'])
-    L = 10*s
-    nrand = ngal
-    for rname in ['rand_file_name', 'rand_file_name2', 'rand_file_name3']:
-        rx = (rng.random_sample(nrand)-0.5) * L
-        ry = (rng.random_sample(nrand)-0.5) * L
-        rcat = treecorr.Catalog(x=rx, y=ry)
-        rcat.write(config[rname])
-
-    config = treecorr.config.read_config('configs/nnn_direct_cross.yaml')
-    config['verbose'] = 0
-    treecorr.corr3(config)
-    data = fitsio.read(config['nnn_file_name'])
-    np.testing.assert_allclose(data['r_nom'], ddd.rnom.flatten())
-    np.testing.assert_allclose(data['u_nom'], ddd.u.flatten())
-    np.testing.assert_allclose(data['v_nom'], ddd.v.flatten())
-    np.testing.assert_allclose(data['DDD'], ddd.ntri.flatten())
-    np.testing.assert_allclose(data['ntri'], ddd.ntri.flatten())
-
-    # Invalid to have rand_file_name2 but not file_name2
-    del config['file_name2']
-    with assert_raises(TypeError):
-        treecorr.corr3(config)
-    config['file_name2'] = 'data/nnn_direct_cross_data2.dat'
-    # Invalid to have rand_file_name3 but not file_name3
-    del config['file_name3']
-    with assert_raises(TypeError):
-        treecorr.corr3(config)
-    config['file_name3'] = 'data/nnn_direct_cross_data3.dat'
-
-    # Invalid when doing rands, to be missing one rand_file_name2
-    del config['rand_file_name']
-    with assert_raises(TypeError):
-        treecorr.corr3(config)
-    config['rand_file_name'] = 'data/nnn_direct_cross_rand1.dat'
-    del config['rand_file_name2']
-    with assert_raises(TypeError):
-        treecorr.corr3(config)
-    config['rand_file_name2'] = 'data/nnn_direct_cross_rand2.dat'
-    del config['rand_file_name3']
-    with assert_raises(TypeError):
-        treecorr.corr3(config)
-    config['rand_file_name3'] = 'data/nnn_direct_cross_rand3.dat'
-
     # Error to have cat3, but not cat2
     with assert_raises(ValueError):
         ddd.process(cat1, cat3=cat3)
-    del config['rand_file_name2']
-    del config['file_name2']
-    print('config = ',config)
-    with assert_raises(ValueError):
-        treecorr.corr3(config)
 
     # Check a few basic operations with a NNCrossCorrelation object.
     do_pickle(dddc)
@@ -1143,7 +1076,7 @@ def test_direct_count_cross():
         np.testing.assert_allclose(d2.meanv, d1.meanv)
 
     with assert_raises(TypeError):
-        dddc2 += config  # not an NNNCrossCorrelation
+        dddc2 += {}      # not an NNNCrossCorrelation
     with assert_raises(TypeError):
         dddc2 += ddd     # not an NNNCrossCorrelation
     dddc4 = treecorr.NNNCrossCorrelation(min_sep=min_sep/2, max_sep=max_sep, nbins=nbins,
@@ -1367,26 +1300,6 @@ def test_direct_count_cross12():
     #print('true_ntri = ',true_ntri_sum)
     #print('diff = ',ddd.ntri - true_ntri_sum)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
-
-    # Check that running via the corr3 script works correctly.
-    config = treecorr.config.read_config('configs/nnn_direct_cross12.yaml')
-    cat1.write(config['file_name'])
-    cat2.write(config['file_name2'])
-    L = 10*s
-    nrand = ngal
-    for rname in ['rand_file_name', 'rand_file_name2']:
-        rx = (rng.random_sample(nrand)-0.5) * L
-        ry = (rng.random_sample(nrand)-0.5) * L
-        rcat = treecorr.Catalog(x=rx, y=ry)
-        rcat.write(config[rname])
-
-    treecorr.corr3(config)
-    data = fitsio.read(config['nnn_file_name'])
-    np.testing.assert_allclose(data['r_nom'], ddd.rnom.flatten())
-    np.testing.assert_allclose(data['u_nom'], ddd.u.flatten())
-    np.testing.assert_allclose(data['v_nom'], ddd.v.flatten())
-    np.testing.assert_allclose(data['DDD'], ddd.ntri.flatten())
-    np.testing.assert_allclose(data['ntri'], ddd.ntri.flatten())
 
     # Split into patches to test the list-based version of the code.
     cat1 = treecorr.Catalog(x=x1, y=y1, npatch=10)

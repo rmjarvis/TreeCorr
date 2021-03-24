@@ -529,6 +529,416 @@ def test_kkk_jk():
         kkkp.process(catq, catq, catp)
 
 @timer
+def test_ggg_jk():
+    # Test jackknife and other covariance estimates for ggg correlations.
+
+    if __name__ == '__main__':
+        # This setup takes about 860 sec to run.
+        nside = 100
+        nsource = 10000
+        npatch = 64
+        tol_factor = 1
+    elif False:
+        # This setup takes about 136 sec to run.
+        nside = 100
+        nsource = 2000
+        npatch = 16
+        tol_factor = 2
+    elif False:
+        # This setup takes about 39 sec to run.
+        nside = 100
+        nsource = 1000
+        npatch = 16
+        tol_factor = 2
+    else:
+        # This setup takes about 9 sec to run.
+        # It also doesn't require much looser tolerance than the longest one.
+        # Partly this is due to that already not being a very tight test, but for whatever
+        # reason, this test doesn't seem to get much worse for the noisier data vectors.
+        nside = 100
+        nsource = 500
+        npatch = 8
+        tol_factor = 2
+
+    # For these tests, I set up the binning to just accumulate all roughly equilateral triangles
+    # in a small separation range.  The binning always uses two bins for each to get + and - v
+    # bins.  So this function averages these two values to produce 1 value for each gamma.
+    f = lambda g: np.array([np.mean(g.gam0), np.mean(g.gam1), np.mean(g.gam2), np.mean(g.gam3)])
+
+    file_name = 'data/test_ggg_jk_{}.npz'.format(nsource)
+    print(file_name)
+    if not os.path.isfile(file_name):
+        nruns = 1000
+        all_gggs = []
+        for run in range(nruns):
+            x, y, g1, g2, _ = generate_shear_field(nside, sqr=False)
+            # For some reason std(g2) is coming out about 1.5x larger than std(g1).
+            # Probably a sign of some error in the generate function, but I don't see it.
+            # For this purpose I think it doesn't really matter, but it's a bit odd. ¯\_(ツ)_/¯
+            print(run,': ',np.mean(g1),np.std(g1),np.mean(g2),np.std(g2))
+            indx = np.random.choice(range(len(x)),nsource,replace=False)
+            cat = treecorr.Catalog(x=x[indx], y=y[indx], g1=g1[indx], g2=g2[indx])
+            ggg = treecorr.GGGCorrelation(nbins=1, min_sep=20., max_sep=40.,
+                                           min_u=0.6, max_u=1.0, nubins=1,
+                                           min_v=0.0, max_v=0.6, nvbins=1)
+            ggg.process(cat)
+            print(ggg.ntri.ravel())
+            print(f(ggg))
+            all_gggs.append(ggg)
+        all_ggg = np.array([f(ggg) for ggg in all_gggs])
+        mean_ggg = np.mean(all_ggg, axis=0)
+        var_ggg = np.var(all_ggg, axis=0)
+        np.savez(file_name, mean_ggg=mean_ggg, var_ggg=var_ggg)
+
+    data = np.load(file_name)
+    mean_ggg = data['mean_ggg']
+    var_ggg = data['var_ggg']
+    print('mean = ',mean_ggg)
+    print('var = ',var_ggg)
+
+    rng = np.random.RandomState(12345)
+    x, y, g1, g2, _ = generate_shear_field(nside, rng, sqr=False)
+    indx = rng.choice(range(len(x)),nsource,replace=False)
+    cat = treecorr.Catalog(x=x[indx], y=y[indx], g1=g1[indx], g2=g2[indx])
+    ggg = treecorr.GGGCorrelation(nbins=1, min_sep=20., max_sep=40.,
+                                  min_u=0.6, max_u=1.0, nubins=1,
+                                  min_v=0.0, max_v=0.6, nvbins=1)
+    ggg.process(cat)
+    print(ggg.ntri.ravel())
+    print(ggg.vargam0.ravel())
+    print(ggg.vargam1.ravel())
+    print(ggg.vargam2.ravel())
+    print(ggg.vargam3.ravel())
+    print(ggg.gam0.ravel())
+    print(ggg.gam1.ravel())
+    print(ggg.gam2.ravel())
+    print(ggg.gam3.ravel())
+
+    gggp = ggg.copy()
+    catp = treecorr.Catalog(x=x[indx], y=y[indx], g1=g1[indx], g2=g2[indx], npatch=npatch)
+
+    # Do the same thing with patches.
+    gggp.process(catp)
+    print('with patches:')
+    print(gggp.ntri.ravel())
+    print(gggp.vargam0.ravel())
+    print(gggp.vargam1.ravel())
+    print(gggp.vargam2.ravel())
+    print(gggp.vargam3.ravel())
+    print(gggp.gam0.ravel())
+    print(gggp.gam1.ravel())
+    print(gggp.gam2.ravel())
+    print(gggp.gam3.ravel())
+
+    np.testing.assert_allclose(gggp.ntri, ggg.ntri, rtol=0.05 * tol_factor)
+    np.testing.assert_allclose(gggp.gam0, ggg.gam0, rtol=0.1 * tol_factor, atol=1e-2 * tol_factor)
+    np.testing.assert_allclose(gggp.gam1, ggg.gam1, rtol=0.1 * tol_factor, atol=1e-2 * tol_factor)
+    np.testing.assert_allclose(gggp.gam2, ggg.gam2, rtol=0.1 * tol_factor, atol=1e-2 * tol_factor)
+    np.testing.assert_allclose(gggp.gam3, ggg.gam3, rtol=0.1 * tol_factor, atol=1e-2 * tol_factor)
+    np.testing.assert_allclose(gggp.vargam0, ggg.vargam0, rtol=0.05 * tol_factor)
+    np.testing.assert_allclose(gggp.vargam1, ggg.vargam1, rtol=0.05 * tol_factor)
+    np.testing.assert_allclose(gggp.vargam2, ggg.vargam2, rtol=0.05 * tol_factor)
+    np.testing.assert_allclose(gggp.vargam3, ggg.vargam3, rtol=0.05 * tol_factor)
+
+    # Unlike KKK, sample and marked actually work pretty well here.  And bootstrap is the
+    # worst one.  I don't really understand this.  It's the same backend code, so I don't really
+    # get why bootstrap works poorly now.  I think for some reason, all of these are getting
+    # extra noise in the estimate, so they are all higher.  This makes sample and marked closer
+    # to right, since for KKK they were too low.  But it makes jackknife and bootstrap too high.
+    # Since bootstrap used to be closest to right, it is now still the highest, but that's now
+    # the worst accuracy.
+    # My hypothesis is that this is related to the fact that my shear field doesn't have a lot
+    # of 3pt GGG signal.  The S/N of this measurement is <<1.  So maybe in that regime, all these
+    # methods pick up extra numerical noise.  If this is right, then bootstrap is probably still
+    # the best estimator for cases with reasonable S/N.  But that would require way more points
+    # than I want to do for a unit test.
+    print('jackknife:')
+    cov = gggp.estimate_cov('jackknife', func=f)
+    print(np.diagonal(cov).real)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.7*tol_factor)
+
+    print('sample:')
+    cov = gggp.estimate_cov('sample', func=f)
+    print(np.diagonal(cov).real)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.7*tol_factor)
+
+    print('marked:')
+    cov = gggp.estimate_cov('marked_bootstrap', func=f)
+    print(np.diagonal(cov).real)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.7*tol_factor)
+
+    print('bootstrap:')
+    cov = gggp.estimate_cov('bootstrap', func=f)
+    print(np.diagonal(cov).real)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+    # Now as a cross correlation with all 3 using the same patch catalog.
+    print('with 3 patched catalogs:')
+    gggp.process(catp, catp, catp)
+    print(gggp.gam0.ravel())
+    np.testing.assert_allclose(gggp.gam0, ggg.gam0, rtol=0.1 * tol_factor, atol=1e-2 * tol_factor)
+    np.testing.assert_allclose(gggp.gam1, ggg.gam1, rtol=0.1 * tol_factor, atol=1e-2 * tol_factor)
+    np.testing.assert_allclose(gggp.gam2, ggg.gam2, rtol=0.1 * tol_factor, atol=1e-2 * tol_factor)
+    np.testing.assert_allclose(gggp.gam3, ggg.gam3, rtol=0.1 * tol_factor, atol=1e-2 * tol_factor)
+
+    print('jackknife:')
+    cov = gggp.estimate_cov('jackknife', func=f)
+    print(np.diagonal(cov).real)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.7*tol_factor)
+
+    print('sample:')
+    cov = gggp.estimate_cov('sample', func=f)
+    print(np.diagonal(cov).real)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.7*tol_factor)
+
+    print('marked:')
+    cov = gggp.estimate_cov('marked_bootstrap', func=f)
+    print(np.diagonal(cov).real)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.7*tol_factor)
+
+    print('bootstrap:')
+    cov = gggp.estimate_cov('bootstrap', func=f)
+    print(np.diagonal(cov).real)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+    # The separate patch/non-patch combinations aren't that interesting, so skip them
+    # for GGG unless running from main.
+    if __name__ == '__main__':
+        # Patch on 1 only:
+        print('with patches on 1 only:')
+        gggp.process(catp, cat)
+
+        print('jackknife:')
+        cov = gggp.estimate_cov('jackknife', func=f)
+        print(np.diagonal(cov).real)
+        print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+        print('sample:')
+        cov = gggp.estimate_cov('sample', func=f)
+        print(np.diagonal(cov).real)
+        print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+        print('marked:')
+        cov = gggp.estimate_cov('marked_bootstrap', func=f)
+        print(np.diagonal(cov).real)
+        print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+        print('bootstrap:')
+        cov = gggp.estimate_cov('bootstrap', func=f)
+        print(np.diagonal(cov).real)
+        print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+        # Patch on 2 only:
+        print('with patches on 2 only:')
+        gggp.process(cat, catp, cat)
+
+        print('jackknife:')
+        cov = gggp.estimate_cov('jackknife', func=f)
+        print(np.diagonal(cov).real)
+        print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+        print('sample:')
+        cov = gggp.estimate_cov('sample', func=f)
+        print(np.diagonal(cov).real)
+        print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+        print('marked:')
+        cov = gggp.estimate_cov('marked_bootstrap', func=f)
+        print(np.diagonal(cov).real)
+        print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+        print('bootstrap:')
+        cov = gggp.estimate_cov('bootstrap', func=f)
+        print(np.diagonal(cov).real)
+        print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+        # Patch on 3 only:
+        print('with patches on 3 only:')
+        gggp.process(cat, cat, catp)
+
+        print('jackknife:')
+        cov = gggp.estimate_cov('jackknife', func=f)
+        print(np.diagonal(cov).real)
+        print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+        print('sample:')
+        cov = gggp.estimate_cov('sample', func=f)
+        print(np.diagonal(cov).real)
+        print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+        print('marked:')
+        cov = gggp.estimate_cov('marked_bootstrap', func=f)
+        print(np.diagonal(cov).real)
+        print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+        print('bootstrap:')
+        cov = gggp.estimate_cov('bootstrap', func=f)
+        print(np.diagonal(cov).real)
+        print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+        # Patch on 1,2
+        print('with patches on 1,2:')
+        gggp.process(catp, catp, cat)
+
+        print('jackknife:')
+        cov = gggp.estimate_cov('jackknife', func=f)
+        print(np.diagonal(cov).real)
+        print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+        print('sample:')
+        cov = gggp.estimate_cov('sample', func=f)
+        print(np.diagonal(cov).real)
+        print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+        print('marked:')
+        cov = gggp.estimate_cov('marked_bootstrap', func=f)
+        print(np.diagonal(cov).real)
+        print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+        print('bootstrap:')
+        cov = gggp.estimate_cov('bootstrap', func=f)
+        print(np.diagonal(cov).real)
+        print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+        # Patch on 2,3
+        print('with patches on 2,3:')
+        gggp.process(cat, catp)
+
+        print('jackknife:')
+        cov = gggp.estimate_cov('jackknife', func=f)
+        print(np.diagonal(cov).real)
+        print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+        print('sample:')
+        cov = gggp.estimate_cov('sample', func=f)
+        print(np.diagonal(cov).real)
+        print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+        print('marked:')
+        cov = gggp.estimate_cov('marked_bootstrap', func=f)
+        print(np.diagonal(cov).real)
+        print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+        print('bootstrap:')
+        cov = gggp.estimate_cov('bootstrap', func=f)
+        print(np.diagonal(cov).real)
+        print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+        # Patch on 1,3
+        print('with patches on 1,3:')
+        gggp.process(catp, cat, catp)
+
+        print('jackknife:')
+        cov = gggp.estimate_cov('jackknife', func=f)
+        print(np.diagonal(cov).real)
+        print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+        print('sample:')
+        cov = gggp.estimate_cov('sample', func=f)
+        print(np.diagonal(cov).real)
+        print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+        print('marked:')
+        cov = gggp.estimate_cov('marked_bootstrap', func=f)
+        print(np.diagonal(cov).real)
+        print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+        print('bootstrap:')
+        cov = gggp.estimate_cov('bootstrap', func=f)
+        print(np.diagonal(cov).real)
+        print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+    # Finally a set (with all patches) using the GGGCrossCorrelation class.
+    gggc = treecorr.GGGCrossCorrelation(nbins=1, min_sep=20., max_sep=40.,
+                                        min_u=0.6, max_u=1.0, nubins=1,
+                                        min_v=0.0, max_v=0.6, nvbins=1)
+    print('CrossCorrelation:')
+    gggc.process(catp, catp, catp)
+    for g in gggc._all:
+        print(g.ntri.ravel())
+        print(g.gam0.ravel())
+        print(g.vargam0.ravel())
+
+        np.testing.assert_allclose(g.ntri, ggg.ntri, rtol=0.05 * tol_factor)
+        np.testing.assert_allclose(g.gam0, ggg.gam0, rtol=0.1 * tol_factor, atol=1e-2 * tol_factor)
+        np.testing.assert_allclose(g.vargam0, ggg.vargam0, rtol=0.05 * tol_factor)
+        np.testing.assert_allclose(g.gam1, ggg.gam1, rtol=0.1 * tol_factor, atol=1e-2 * tol_factor)
+        np.testing.assert_allclose(g.vargam1, ggg.vargam1, rtol=0.05 * tol_factor)
+        np.testing.assert_allclose(g.gam2, ggg.gam2, rtol=0.1 * tol_factor, atol=1e-2 * tol_factor)
+        np.testing.assert_allclose(g.vargam2, ggg.vargam2, rtol=0.05 * tol_factor)
+        np.testing.assert_allclose(g.gam3, ggg.gam3, rtol=0.1 * tol_factor, atol=1e-2 * tol_factor)
+        np.testing.assert_allclose(g.vargam3, ggg.vargam3, rtol=0.05 * tol_factor)
+
+    fc = lambda gggc: np.concatenate([
+            [np.mean(g.gam0), np.mean(g.gam1), np.mean(g.gam2), np.mean(g.gam3)]
+            for g in gggc._all])
+
+    print('jackknife:')
+    cov = gggc.estimate_cov('jackknife', func=fc)
+    print(np.diagonal(cov).real)
+    for i in range(6):
+        v = np.diagonal(cov)[i*4:(i+1)*4]
+        print('max log(ratio) = ',np.max(np.abs(np.log(v)-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(v), np.log(var_ggg), atol=0.7*tol_factor)
+
+    print('sample:')
+    cov = gggc.estimate_cov('sample', func=fc)
+    print(np.diagonal(cov).real)
+    for i in range(6):
+        v = np.diagonal(cov)[i*4:(i+1)*4]
+        print('max log(ratio) = ',np.max(np.abs(np.log(v)-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(v), np.log(var_ggg), atol=0.7*tol_factor)
+
+    print('marked:')
+    cov = gggc.estimate_cov('marked_bootstrap', func=fc)
+    print(np.diagonal(cov).real)
+    for i in range(6):
+        v = np.diagonal(cov)[i*4:(i+1)*4]
+        print('max log(ratio) = ',np.max(np.abs(np.log(v)-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(v), np.log(var_ggg), atol=0.7*tol_factor)
+
+    print('bootstrap:')
+    cov = gggc.estimate_cov('bootstrap', func=fc)
+    print(np.diagonal(cov).real)
+    for i in range(6):
+        v = np.diagonal(cov)[i*4:(i+1)*4]
+        print('max log(ratio) = ',np.max(np.abs(np.log(v)-np.log(var_ggg))))
+        np.testing.assert_allclose(np.log(v), np.log(var_ggg), atol=1.0*tol_factor)
+
+
+@timer
 def test_brute_jk():
     # With bin_slop = 0, the jackknife calculation from patches should match a
     # brute force calcaulation where we literally remove one patch at a time to make

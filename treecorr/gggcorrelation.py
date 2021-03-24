@@ -1375,6 +1375,10 @@ class GGGCrossCorrelation(BinnedCorr3):
                            f1.data, f2.data, f3.data, self.output_dots,
                            f1._d, f2._d, f3._d, self._coords, self._bintype, self._metric)
 
+    def _finalize(self):
+        for ggg in self._all:
+            ggg._finalize()
+
     def finalize(self, varg1, varg2, varg3):
         """Finalize the calculation of the correlation function.
 
@@ -1423,6 +1427,15 @@ class GGGCrossCorrelation(BinnedCorr3):
         self.g3g1g2 += other.g3g1g2
         self.g3g2g1 += other.g3g2g1
         return self
+
+    def _sum(self, others):
+        # Equivalent to the operation of:
+        #     self._clear()
+        #     for other in others:
+        #         self += other
+        # but no sanity checks and use numpy.sum for faster calculation.
+        for i, ggg in enumerate(self._all):
+            ggg._sum([c._all[i] for c in others])
 
     def process(self, cat1, cat2, cat3=None, metric=None, num_threads=None,
                 comm=None, low_mem=False, initialize=True, finalize=True):
@@ -1514,7 +1527,6 @@ class GGGCrossCorrelation(BinnedCorr3):
         order: g1g2g3, g1g3g2, g2g1g3, g2g3g1, g3g1g2, g3g2g1.
         """
         return np.concatenate([ggg.getWeight() for ggg in self._all])
-
 
     def write(self, file_name, file_type=None, precision=None):
         r"""Write the cross-correlation functions to the file, file_name.

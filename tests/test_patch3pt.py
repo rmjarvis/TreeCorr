@@ -1439,9 +1439,8 @@ def test_lowmem():
         nsource = 1000
         npatch = 4
         himem = 1.e5
-        lomem = 6.e4
+        lomem = 7.e4
 
-    rng = np.random.RandomState(8675309)
     rng = np.random.RandomState(8675309)
     x, y, g1, g2, k = generate_shear_field(nside)
     indx = rng.choice(range(len(x)),nsource,replace=False)

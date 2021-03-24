@@ -568,7 +568,7 @@ def test_varxi():
     print('ratio = ',var_xi / mean_varxi)
     print('max relerr for xi = ',np.max(np.abs((var_xi - mean_varxi)/var_xi)))
     print('diff = ',var_xi - mean_varxi)
-    np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.02 * tol_factor)
+    np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.03 * tol_factor)
 
     print('Compensated:')
 
@@ -585,7 +585,7 @@ def test_varxi():
     print('ratio = ',var_xi / mean_varxi)
     print('max relerr for xi = ',np.max(np.abs((var_xi - mean_varxi)/var_xi)))
     print('diff = ',var_xi - mean_varxi)
-    # Unlike for NG, the agreement is slightly worse for the compensated case.
+    # Unlike for NG, the agreement is typically slightly worse for the compensated case.
     # Not sure if this is telling me something important, or just the way it turned out.
     np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.03 * tol_factor)
 

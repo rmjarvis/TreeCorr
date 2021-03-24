@@ -37,28 +37,12 @@ corr3_valid_params = {
 
     'file_name' : (str, True, None, None,
             'The file(s) with the galaxy data.'),
-    'file_name2' : (str, True, None, None,
-            'The file(s) to use for the second field for a cross-correlation.'),
-    'file_name3' : (str, True, None, None,
-            'The file(s) to use for the third field for a cross-correlation.'),
     'rand_file_name' : (str, True, None, None,
             'For NNN correlations, a list of random files.'),
-    'rand_file_name2' : (str, True, None, None,
-            'The randoms for the second field for a cross-correlation.'),
-    'rand_file_name3' : (str, True, None, None,
-            'The randoms for the third field for a cross-correlation.'),
     'file_list' : (str, False, None, None,
             'A text file with file names in lieu of file_name.'),
-    'file_list2' : (str, False, None, None,
-            'A text file with file names in lieu of file_name2.'),
-    'file_list3' : (str, False, None, None,
-            'A text file with file names in lieu of file_name3.'),
     'rand_file_list' : (str, False, None, None,
             'A text file with file names in lieu of rand_file_name.'),
-    'rand_file_list2' : (str, False, None, None,
-            'A text file with file names in lieu of rand_file_name2.'),
-    'rand_file_list3' : (str, False, None, None,
-            'A text file with file names in lieu of rand_file_name3.'),
 
     # Parameters about the output file(s)
 
@@ -123,31 +107,18 @@ def corr3(config, logger=None):
 
     # Read in the input files.  Each of these is a list.
     cat1 = read_catalogs(config, 'file_name', 'file_list', 0, logger)
-    cat2 = read_catalogs(config, 'file_name2', 'rand_file_list2', 1, logger)
-    cat3 = read_catalogs(config, 'file_name3', 'rand_file_list3', 1, logger)
+    # TODO: when giving file_name2, file_name3, should now do the real CrossCorrelation process.
     rand1 = read_catalogs(config, 'rand_file_name', 'rand_file_list', 0, logger)
-    rand2 = read_catalogs(config, 'rand_file_name2', 'rand_file_list2', 1, logger)
-    rand3 = read_catalogs(config, 'rand_file_name3', 'rand_file_list3', 1, logger)
     if len(cat1) == 0:
         raise TypeError("Either file_name or file_list is required")
-    if len(cat2) == 0: cat2 = None
-    if len(cat3) == 0: cat3 = None
     if len(rand1) == 0: rand1 = None
-    if len(rand2) == 0: rand2 = None
-    if len(rand3) == 0: rand3 = None
-    if cat2 is None and rand2 is not None:
-        raise TypeError("rand_file_name2 is invalid without file_name2")
-    if cat3 is None and rand3 is not None:
-        raise TypeError("rand_file_name3 is invalid without file_name3")
-    if cat2 is None and cat3 is not None:
-        raise ValueError("Cannot provide cat3, but not cat2.")
     logger.info("Done creating input catalogs")
 
     # Do GGG correlation function if necessary
     if 'ggg_file_name' in config or 'm3_file_name' in config:
         logger.warning("Performing GGG calculations...")
         ggg = GGGCorrelation(config,logger)
-        ggg.process(cat1,cat2,cat3)
+        ggg.process(cat1)
         logger.info("Done GGG calculations.")
         if 'ggg_file_name' in config:
             ggg.write(config['ggg_file_name'])
@@ -160,72 +131,37 @@ def corr3(config, logger=None):
     if 'nnn_file_name' in config:
         logger.warning("Performing DDD calculations...")
         ddd = NNNCorrelation(config,logger)
-        ddd.process(cat1,cat2,cat3)
+        ddd.process(cat1)
         logger.info("Done DDD calculations.")
 
         drr = None
-        rdr = None
-        rrd = None
         ddr = None
-        drd = None
-        rdd = None
         if rand1 is None:
-            if rand2 is not None or rand3 is not None:
-                raise TypeError("rand_file_name is required if rand2 or rand3 is given")
             logger.warning("No random catalogs given.  Only doing ntri calculation.")
             rrr = None
-        elif cat2 is None:
+        else:
             logger.warning("Performing RRR calculations...")
             rrr = NNNCorrelation(config,logger)
             rrr.process(rand1)
             logger.info("Done RRR calculations.")
 
-            # For the next step, just make cat2 = cat3 = cat1 and rand2 = rand3 = rand1.
-            cat2 = cat3 = cat1
-            rand2 = rand3 = rand1
-        else:
-            if rand2 is None:
-                raise TypeError("rand_file_name2 is required when file_name2 is given")
-            if cat3 is not None and rand3 is None:
-                raise TypeError("rand_file_name3 is required when file_name3 is given")
-            logger.warning("Performing RRR calculations...")
-            rrr = NNNCorrelation(config,logger)
-            rrr.process(rand1,rand2,rand3)
-            logger.info("Done RRR calculations.")
-
         if rrr is not None and config['nnn_statistic'] == 'compensated':
             logger.warning("Performing DRR calculations...")
             drr = NNNCorrelation(config,logger)
-            drr.process(cat1,rand2,rand3)
+            drr.process(cat1,rand1)
             logger.info("Done DRR calculations.")
             logger.warning("Performing DDR calculations...")
             ddr = NNNCorrelation(config,logger)
-            ddr.process(cat1,cat2,rand3)
+            ddr.process(rand1,cat1)
             logger.info("Done DDR calculations.")
-            logger.warning("Performing RDR calculations...")
-            rdr = NNNCorrelation(config,logger)
-            rdr.process(rand1,cat2,rand3)
-            logger.info("Done RDR calculations.")
-            logger.warning("Performing RRD calculations...")
-            rrd = NNNCorrelation(config,logger)
-            rrd.process(rand1,rand2,cat3)
-            logger.info("Done RRD calculations.")
-            logger.warning("Performing DRD calculations...")
-            drd = NNNCorrelation(config,logger)
-            drd.process(cat1,rand2,cat3)
-            logger.info("Done DRD calculations.")
-            logger.warning("Performing RDD calculations...")
-            rdd = NNNCorrelation(config,logger)
-            rdd.process(rand1,cat2,cat3)
-            logger.info("Done RDD calculations.")
-        ddd.write(config['nnn_file_name'],rrr,drr,rdr,rrd,ddr,drd,rdd)
+        ddd.write(config['nnn_file_name'],rrr,drr,drr,drr,ddr,ddr,ddr)
         logger.warning("Wrote NNN correlation to %s",config['nnn_file_name'])
 
     # Do KKK correlation function if necessary
     if 'kkk_file_name' in config:
         logger.warning("Performing KKK calculations...")
         kkk = KKKCorrelation(config,logger)
-        kkk.process(cat1,cat2,cat3)
+        kkk.process(cat1)
         logger.info("Done KKK calculations.")
         kkk.write(config['kkk_file_name'])
         logger.warning("Wrote KKK correlation to %s",config['kkk_file_name'])

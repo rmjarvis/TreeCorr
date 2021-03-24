@@ -222,44 +222,6 @@ def test_direct():
         np.testing.assert_allclose(g.gam3r, true_gam3.real, rtol=1.e-5, atol=1.e-8)
         np.testing.assert_allclose(g.gam3i, true_gam3.imag, rtol=1.e-5, atol=1.e-8)
 
-    # Do cross with config:
-    config['file_name2'] = config['file_name']
-    config['file_name3'] = config['file_name']
-    treecorr.corr3(config)
-    data = fitsio.read(config['ggg_file_name'])
-    np.testing.assert_allclose(data['r_nom'], ggg.rnom.flatten())
-    np.testing.assert_allclose(data['u_nom'], ggg.u.flatten())
-    np.testing.assert_allclose(data['v_nom'], ggg.v.flatten())
-    np.testing.assert_allclose(data['ntri'], 6*true_ntri.flatten())
-    np.testing.assert_allclose(data['weight'], 6*true_weight.flatten(), rtol=1.e-5)
-    np.testing.assert_allclose(data['gam0r'], ggg.gam0r.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam0i'], ggg.gam0i.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam1r'], ggg.gam1r.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam1i'], ggg.gam1i.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam2r'], ggg.gam2r.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam2i'], ggg.gam2i.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam3r'], ggg.gam3r.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam3i'], ggg.gam3i.flatten(), rtol=1.e-3)
-
-    # And 1-2 cross
-    config['file_name2'] = config['file_name']
-    del config['file_name3']
-    treecorr.corr3(config)
-    data = fitsio.read(config['ggg_file_name'])
-    np.testing.assert_allclose(data['r_nom'], ggg.rnom.flatten())
-    np.testing.assert_allclose(data['u_nom'], ggg.u.flatten())
-    np.testing.assert_allclose(data['v_nom'], ggg.v.flatten())
-    np.testing.assert_allclose(data['ntri'], 3*true_ntri.flatten())
-    np.testing.assert_allclose(data['weight'], 3*true_weight.flatten(), rtol=1.e-5)
-    np.testing.assert_allclose(data['gam0r'], ggg.gam0r.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam0i'], ggg.gam0i.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam1r'], ggg.gam1r.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam1i'], ggg.gam1i.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam2r'], ggg.gam2r.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam2i'], ggg.gam2i.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam3r'], ggg.gam3r.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam3i'], ggg.gam3i.flatten(), rtol=1.e-3)
-
     # Repeat with binslop = 0, since the code flow is different from brute=True.
     # And don't do any top-level recursion so we actually test not going to the leaves.
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
@@ -871,24 +833,6 @@ def test_direct_cross():
     #print('diff = ',ggg.ntri - true_ntri_sum)
     np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
 
-    # Check that running via the corr3 script works correctly.
-    config = treecorr.config.read_config('configs/ggg_direct_cross.yaml')
-    cat1.write(config['file_name'])
-    cat2.write(config['file_name2'])
-    cat3.write(config['file_name3'])
-    config['verbose'] = 0
-    treecorr.corr3(config)
-    data = fitsio.read(config['ggg_file_name'])
-    np.testing.assert_allclose(data['r_nom'], ggg.rnom.flatten())
-    np.testing.assert_allclose(data['u_nom'], ggg.u.flatten())
-    np.testing.assert_allclose(data['v_nom'], ggg.v.flatten())
-    np.testing.assert_allclose(data['gam0r'], ggg.gam0r.flatten())
-    np.testing.assert_allclose(data['gam1r'], ggg.gam1r.flatten())
-    np.testing.assert_allclose(data['gam2r'], ggg.gam2r.flatten())
-    np.testing.assert_allclose(data['gam3r'], ggg.gam3r.flatten())
-    np.testing.assert_allclose(data['ntri'], ggg.ntri.flatten())
-    np.testing.assert_allclose(data['weight'], ggg.weight.flatten())
-
     # Error to have cat3, but not cat2
     with assert_raises(ValueError):
         ggg.process(cat1, cat3=cat3)
@@ -937,7 +881,7 @@ def test_direct_cross():
         np.testing.assert_allclose(g2.gam3, g1.gam3)
 
     with assert_raises(TypeError):
-        gggc2 += config
+        gggc2 += {}
     with assert_raises(TypeError):
         gggc2 += ggg
 
@@ -1271,23 +1215,6 @@ def test_direct_cross12():
     #print('true_ntri = ',true_ntri_sum)
     #print('diff = ',ggg.ntri - true_ntri_sum)
     np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
-
-    # Check that running via the corr3 script works correctly.
-    config = treecorr.config.read_config('configs/ggg_direct_cross12.yaml')
-    cat1.write(config['file_name'])
-    cat2.write(config['file_name2'])
-    config['verbose'] = 0
-    treecorr.corr3(config)
-    data = fitsio.read(config['ggg_file_name'])
-    np.testing.assert_allclose(data['r_nom'], ggg.rnom.flatten())
-    np.testing.assert_allclose(data['u_nom'], ggg.u.flatten())
-    np.testing.assert_allclose(data['v_nom'], ggg.v.flatten())
-    np.testing.assert_allclose(data['gam0r'], ggg.gam0r.flatten())
-    np.testing.assert_allclose(data['gam1r'], ggg.gam1r.flatten())
-    np.testing.assert_allclose(data['gam2r'], ggg.gam2r.flatten())
-    np.testing.assert_allclose(data['gam3r'], ggg.gam3r.flatten())
-    np.testing.assert_allclose(data['ntri'], ggg.ntri.flatten())
-    np.testing.assert_allclose(data['weight'], ggg.weight.flatten())
 
     # Split into patches to test the list-based version of the code.
     cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=3)

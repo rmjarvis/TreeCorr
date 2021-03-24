@@ -154,7 +154,7 @@ def corr3(config, logger=None):
             ddr = NNNCorrelation(config,logger)
             ddr.process(rand1,cat1)
             logger.info("Done DDR calculations.")
-        ddd.write(config['nnn_file_name'],rrr,drr,drr,drr,ddr,ddr,ddr)
+        ddd.write(config['nnn_file_name'],rrr,drr,ddr)
         logger.warning("Wrote NNN correlation to %s",config['nnn_file_name'])
 
     # Do KKK correlation function if necessary

@@ -2257,58 +2257,36 @@ def test_nnn():
     # Test compensated zeta
     # First just check the mechanics.
     # If we don't actually do all the cross terms, then compensated is the same as simple.
-    zeta2, varzeta2 = ddd.calculateZeta(rrr,drr=rrr,rdr=rrr,rrd=rrr,ddr=rrr,drd=rrr,rdd=rrr)
+    zeta2, varzeta2 = ddd.calculateZeta(rrr,drr=rrr,ddr=rrr)
     print('fake compensated zeta = ',zeta2)
     np.testing.assert_allclose(zeta2, zeta)
     np.testing.assert_allclose(varzeta2, varzeta)
 
+    # Error to not have one of rrr, drr, ddr.
     with assert_raises(TypeError):
-        ddd.calculateZeta(drr=rrr,rdr=rrr,rrd=rrr,ddr=rrr,drd=rrr,rdd=rrr)
+        ddd.calculateZeta(drr=rrr,ddr=rrr)
     with assert_raises(TypeError):
-        ddd.calculateZeta(rrr,rdr=rrr,rrd=rrr,ddr=rrr,drd=rrr,rdd=rrr)
+        ddd.calculateZeta(rrr,ddr=rrr)
     with assert_raises(TypeError):
-        ddd.calculateZeta(rrr,drr=rrr,rrd=rrr,ddr=rrr,drd=rrr,rdd=rrr)
-    with assert_raises(TypeError):
-        ddd.calculateZeta(rrr,drr=rrr,rdr=rrr,ddr=rrr,drd=rrr,rdd=rrr)
-    with assert_raises(TypeError):
-        ddd.calculateZeta(rrr,drr=rrr,rdr=rrr,rrd=rrr,drd=rrr,rdd=rrr)
-    with assert_raises(TypeError):
-        ddd.calculateZeta(rrr,drr=rrr,rdr=rrr,rrd=rrr,ddr=rrr,rdd=rrr)
-    with assert_raises(TypeError):
-        ddd.calculateZeta(rrr,drr=rrr,rdr=rrr,rrd=rrr,ddr=rrr,drd=rrr)
+        ddd.calculateZeta(rrr,drr=rrr)
     rrr2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                    nubins=nubins, nvbins=nvbins, sep_units='arcmin')
+    # Error if any of them haven't been run yet.
     with assert_raises(ValueError):
-        ddd.calculateZeta(rrr2,drr=rrr,rdr=rrr,rrd=rrr,ddr=rrr,drd=rrr,rdd=rrr)
+        ddd.calculateZeta(rrr2,drr=rrr,ddr=rrr)
     with assert_raises(ValueError):
-        ddd.calculateZeta(rrr,drr=rrr2,rdr=rrr,rrd=rrr,ddr=rrr,drd=rrr,rdd=rrr)
+        ddd.calculateZeta(rrr,drr=rrr2,ddr=rrr)
     with assert_raises(ValueError):
-        ddd.calculateZeta(rrr,drr=rrr,rdr=rrr2,rrd=rrr,ddr=rrr,drd=rrr,rdd=rrr)
-    with assert_raises(ValueError):
-        ddd.calculateZeta(rrr,drr=rrr,rdr=rrr,rrd=rrr2,ddr=rrr,drd=rrr,rdd=rrr)
-    with assert_raises(ValueError):
-        ddd.calculateZeta(rrr,drr=rrr,rdr=rrr,rrd=rrr,ddr=rrr2,drd=rrr,rdd=rrr)
-    with assert_raises(ValueError):
-        ddd.calculateZeta(rrr,drr=rrr,rdr=rrr,rrd=rrr,ddr=rrr,drd=rrr2,rdd=rrr)
-    with assert_raises(ValueError):
-        ddd.calculateZeta(rrr,drr=rrr,rdr=rrr,rrd=rrr,ddr=rrr,drd=rrr,rdd=rrr2)
+        ddd.calculateZeta(rrr,drr=rrr,ddr=rrr2)
 
     out_file_name3 = os.path.join('output','nnn_out3.fits')
     with assert_raises(TypeError):
-        ddd.write(out_file_name3,drr=rrr,rdr=rrr,rrd=rrr,ddr=rrr,drd=rrr,rdd=rrr)
+        ddd.write(out_file_name3,drr=rrr,ddr=rrr)
     with assert_raises(TypeError):
-        ddd.write(out_file_name3,rrr=rrr,rdr=rrr,rrd=rrr,ddr=rrr,drd=rrr,rdd=rrr)
+        ddd.write(out_file_name3,rrr=rrr,ddr=rrr)
     with assert_raises(TypeError):
-        ddd.write(out_file_name3,rrr=rrr,drr=rrr,rrd=rrr,ddr=rrr,drd=rrr,rdd=rrr)
-    with assert_raises(TypeError):
-        ddd.write(out_file_name3,rrr=rrr,drr=rrr,rdr=rrr,ddr=rrr,drd=rrr,rdd=rrr)
-    with assert_raises(TypeError):
-        ddd.write(out_file_name3,rrr=rrr,drr=rrr,rdr=rrr,rrd=rrr,drd=rrr,rdd=rrr)
-    with assert_raises(TypeError):
-        ddd.write(out_file_name3,rrr=rrr,drr=rrr,rdr=rrr,rrd=rrr,ddr=rrr,rdd=rrr)
-    with assert_raises(TypeError):
-        ddd.write(out_file_name3,rrr=rrr,drr=rrr,rdr=rrr,rrd=rrr,ddr=rrr,drd=rrr)
+        ddd.write(out_file_name3,rrr=rrr,drr=rrr)
 
     # It's too slow to test the real calculation in nosetests runs, so we stop here if not main.
     if __name__ != '__main__':
@@ -2317,21 +2295,13 @@ def test_nnn():
     # This version computes the three-point function after subtracting off the appropriate
     # two-point functions xi(d1) + xi(d2) + xi(d3), where [cf. test_nn() in test_nn.py]
     # xi(r) = 1/4pi (L/s)^2 exp(-r^2/4s^2) - 1
-    ddr = ddd.copy()
-    drd = ddd.copy()
-    rdd = ddd.copy()
     drr = ddd.copy()
-    rdr = ddd.copy()
-    rrd = ddd.copy()
+    ddr = ddd.copy()
 
-    ddr.process(cat,cat,rand)
-    drd.process(cat,rand,cat)
-    rdd.process(rand,cat,cat)
-    drr.process(cat,rand,rand)
-    rdr.process(rand,cat,rand)
-    rrd.process(rand,rand,cat)
+    drr.process(cat,rand)
+    ddr.process(rand,cat)
 
-    zeta, varzeta = ddd.calculateZeta(rrr,drr,rdr,rrd,ddr,drd,rdd)
+    zeta, varzeta = ddd.calculateZeta(rrr,drr,ddr)
     print('compensated zeta = ',zeta)
 
     xi1 = (1./(4.*np.pi)) * (L/s)**2 * np.exp(-d1**2/(4.*s**2)) - 1.
@@ -2350,7 +2320,7 @@ def test_nnn():
     np.testing.assert_allclose(np.log(np.abs(zeta)), np.log(np.abs(true_zeta)), atol=0.1*tol_factor)
 
     out_file_name3 = os.path.join('output','nnn_out3.fits')
-    ddd.write(out_file_name3, rrr,drr,rdr,rrd,ddr,drd,rdd)
+    ddd.write(out_file_name3, rrr,drr,ddr)
     data = fitsio.read(out_file_name3)
     np.testing.assert_almost_equal(data['r_nom'], np.exp(ddd.logr).flatten())
     np.testing.assert_almost_equal(data['u_nom'], ddd.u.flatten())
@@ -2368,11 +2338,7 @@ def test_nnn():
     np.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
     np.testing.assert_almost_equal(data['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
     np.testing.assert_almost_equal(data['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
-    np.testing.assert_almost_equal(data['RDR'], rdr.ntri.flatten() * (ddd.tot / rdr.tot))
-    np.testing.assert_almost_equal(data['RRD'], rrd.ntri.flatten() * (ddd.tot / rrd.tot))
     np.testing.assert_almost_equal(data['DDR'], ddr.ntri.flatten() * (ddd.tot / ddr.tot))
-    np.testing.assert_almost_equal(data['DRD'], drd.ntri.flatten() * (ddd.tot / drd.tot))
-    np.testing.assert_almost_equal(data['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
     header = fitsio.read_header(out_file_name3, 1)
     np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
 
@@ -2421,11 +2387,7 @@ def test_nnn():
     np.testing.assert_almost_equal(corr3_output['DDD'], ddd.ntri.flatten())
     np.testing.assert_almost_equal(corr3_output['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
     np.testing.assert_almost_equal(corr3_output['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
-    np.testing.assert_almost_equal(corr3_output['RDR'], rdr.ntri.flatten() * (ddd.tot / rdr.tot))
-    np.testing.assert_almost_equal(corr3_output['RRD'], rrd.ntri.flatten() * (ddd.tot / rrd.tot))
     np.testing.assert_almost_equal(corr3_output['DDR'], ddr.ntri.flatten() * (ddd.tot / ddr.tot))
-    np.testing.assert_almost_equal(corr3_output['DRD'], drd.ntri.flatten() * (ddd.tot / drd.tot))
-    np.testing.assert_almost_equal(corr3_output['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
     header = fitsio.read_header(corr3_outfile, 1)
     np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
 

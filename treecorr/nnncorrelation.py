@@ -83,16 +83,11 @@ class NNNCorrelation(BinnedCorr3):
 
         >>> nnn = treecorr.NNNCorrelation(config)
         >>> nnn.process(cat)         # For auto-correlation.
-        >>> nnn.process(cat1,cat2,cat3)   # For cross-correlation.
-        >>> rrr.process...           # Likewise for random-random correlations
-        >>> drr.process...           # If desired, also do data-random correlations
-        >>> rdr.process...           # ... in all three
-        >>> rrd.process...           # ... permutations
-        >>> rdd.process...           # Also with two data and one random
-        >>> drd.process...           # ... in all three
-        >>> ddr.process...           # ... permutations
+        >>> rrr.process(rand)        # Likewise for random-random correlations
+        >>> drr.process(cat,rand)    # If desired, also do data-random correlations
+        >>> ddr.process(rand,cat)    # Also with two data and one random
         >>> nnn.write(file_name,rrr,drr,...)  # Write out to a file.
-        >>> zeta,varzeta = nnn.calculateZeta(rrr,drr,...)  # Or get the 3pt function directly.
+        >>> zeta,varzeta = nnn.calculateZeta(rrr,drr,ddr)  # Or get the 3pt function directly.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
@@ -492,8 +487,7 @@ class NNNCorrelation(BinnedCorr3):
             self._process_all_cross(cat1, cat2, cat3, metric, num_threads, comm, low_mem)
         self.finalize()
 
-    def calculateZeta(self, rrr, drr=None, rdr=None, rrd=None,
-                      ddr=None, drd=None, rdd=None):
+    def calculateZeta(self, rrr, drr=None, ddr=None):
         r"""Calculate the 3pt function given another 3pt function of random
         points using the same mask, and possibly cross correlations of the data and random.
 
@@ -505,30 +499,28 @@ class NNNCorrelation(BinnedCorr3):
            Rather, this is an estimator of
 
            .. math::
+
                \zeta^\prime(d_1,d_2,d_3) = \zeta(d_1,d_2,d_3) + \xi(d_1) + \xi(d_2) + \xi(d_3)
 
            where :math:`\xi` is the two-point correlation function for each leg of the triangle.
            You would typically want to calculate that separately and subtract off the
            two-point contributions.
 
-        2. For auto-correlations, a better formula is
-           :math:`\zeta = (DDD-DDR-DRD-RDD+DRR+RDR+RRD-RRR)/RRR`.
-           In this case, DDR, etc. calculate the triangles where two points come from either
-           the data or the randoms.  In the case of DDR for instance, points x1 and x2 on the
-           triangle have data and x3 uses randoms, where points x1, x2, x3 are opposite sides
-           d1, d2, d3 with d1 > d2 > d3 as usual; RDR has randoms at 1,3 and data at 2, etc.
+        2. For auto-correlations, a better formula is :math:`\zeta = (DDD-3DDR+3DRR-RRR)/RRR`.
+           In this case, DDR is the number of triangles where 2 points are from the data and
+           1 point is from the random.  Similarly, DRR has 1 point from the data and 2 from the
+           randoms.  These are what are calculated from calling::
+
+                >>> drr.process(data_cat, rand_cat)
+                >>> ddr.process(rand_cat, data_cat)
 
         - If only rrr is provided, the first formula will be used.
-        - If all of rrr, drr, rdr, rrd, ddr, drd, rdd are provided then the second will be used.
+        - If all of rrr, drr, ddr are provided then the second will be used.
 
         Parameters:
             rrr (NNNCorrelation):   The auto-correlation of the random field (RRR)
             drr (NNNCorrelation):   DRR if desired. (default: None)
-            rdr (NNNCorrelation):   RDR if desired. (default: None)
-            rrd (NNNCorrelation):   RRD if desired. (default: None)
             ddr (NNNCorrelation):   DDR if desired. (default: None)
-            drd (NNNCorrelation):   DRD if desired. (default: None)
-            rdd (NNNCorrelation):   RDD if desired. (default: None)
 
         Returns:
             Tuple containing
@@ -540,36 +532,20 @@ class NNNCorrelation(BinnedCorr3):
         if rrr.tot == 0:
             raise ValueError("rrr has tot=0.")
 
-        if (drr is not None or rdr is not None or rrd is not None or
-            ddr is not None or drd is not None or rdd is not None):
-            if (drr is None or rdr is None or rrd is None or
-                ddr is None or drd is None or rdd is None):
-                raise TypeError("Must provide all 6 combinations rdr, drr, etc.")
+        if (ddr is not None) != (drr is not None):
+            raise TypeError("Must provide both ddr and drr (or neither).")
 
         rrrw = self.tot / rrr.tot
-        if drr is None:
+        if ddr is None:
             zeta = (self.weight - rrr.weight * rrrw)
         else:
-            if rrd.tot == 0:
-                raise ValueError("rrd has tot=0.")
             if ddr.tot == 0:
                 raise ValueError("ddr has tot=0.")
-            if rdr.tot == 0:
-                raise ValueError("rdr has tot=0.")
             if drr.tot == 0:
                 raise ValueError("drr has tot=0.")
-            if drd.tot == 0:
-                raise ValueError("drd has tot=0.")
-            if rdd.tot == 0:
-                raise ValueError("rdd has tot=0.")
-            rrdw = self.tot / rrd.tot
             ddrw = self.tot / ddr.tot
-            rdrw = self.tot / rdr.tot
             drrw = self.tot / drr.tot
-            drdw = self.tot / drd.tot
-            rddw = self.tot / rdd.tot
-            zeta = (self.weight + rrd.weight * rrdw + rdr.weight * rdrw + drr.weight * drrw
-                    - ddr.weight * ddrw - drd.weight * drdw - rdd.weight * rddw - rrr.weight * rrrw)
+            zeta = self.weight - 3*ddr.weight * ddrw + 3*drr.weight * drrw - rrr.weight * rrrw
         if np.any(rrr.weight == 0):
             self.logger.warning("Warning: Some bins for the randoms had no triangles.")
         mask1 = rrr.weight != 0
@@ -582,8 +558,7 @@ class NNNCorrelation(BinnedCorr3):
 
         return zeta, varzeta
 
-    def write(self, file_name, rrr=None, drr=None, rdr=None, rrd=None,
-              ddr=None, drd=None, rdd=None, file_type=None, precision=None):
+    def write(self, file_name, rrr=None, drr=None, ddr=None, file_type=None, precision=None):
         r"""Write the correlation function to the file, file_name.
 
         Normally, at least rrr should be provided, but if this is None, then only the
@@ -605,14 +580,11 @@ class NNNCorrelation(BinnedCorr3):
            You would typically want to calculate that separately and subtract off the
            two-point contributions.
 
-        2. For auto-correlations, a better formula is
-           :math:`\zeta = (DDD-DDR-DRD-RDD+DRR+RDR+RRD-RRR)/RRR`.
-           In this case, DDR, etc. calculate the triangles where two points come from either
-           the data or the randoms.  In the case of DDR for instance, points x1 and x2 on the
-           triangle have data and x3 uses randoms, where points x1, x2, x3 are opposite sides
-           d1, d2, d3 with d1 > d2 > d3 as usual; RDR has randoms at 1,3 and data at 2, etc.
-           For this case, all the combinations rrr, drr, rdr, rrd, ddr, drd, rdd must be
-           provided.
+        2. For auto-correlations, a better formula is :math:`\zeta = (DDD-3DDR+3DRR-RRR)/RRR`.
+           In this case, DDR is the number of triangles where 2 points are from the data and
+           1 point is from the random.  Similarly, DRR has 1 point from the data and 2 from the
+           randoms.
+           For this case, all combinations rrr, drr, and ddr must be provided.
 
         The output file will include the following columns:
 
@@ -644,11 +616,7 @@ class NNNCorrelation(BinnedCorr3):
         DDD             The total weight of DDD triangles in each bin
         RRR             The total weight of RRR triangles in each bin (if rrr is given)
         DRR             The total weight of DRR triangles in each bin (if drr is given)
-        RDR             The total weight of RDR triangles in each bin (if rdr is given)
-        RRD             The total weight of RRD triangles in each bin (if rrd is given)
         DDR             The total weight of DDR triangles in each bin (if ddr is given)
-        DRD             The total weight of DRD triangles in each bin (if drd is given)
-        RDD             The total weight of RDD triangles in each bin (if rdd is given)
         ntri            The number of triangles contributing to each bin
         ==========      ================================================================
 
@@ -660,11 +628,7 @@ class NNNCorrelation(BinnedCorr3):
             file_name (str):        The name of the file to write to.
             rrr (NNNCorrelation):   The auto-correlation of the random field (RRR)
             drr (NNNCorrelation):   DRR if desired. (default: None)
-            rdr (NNNCorrelation):   RDR if desired. (default: None)
-            rrd (NNNCorrelation):   RRD if desired. (default: None)
             ddr (NNNCorrelation):   DDR if desired. (default: None)
-            drd (NNNCorrelation):   DRD if desired. (default: None)
-            rdd (NNNCorrelation):   RDD if desired. (default: None)
             file_type (str):        The type of file to write ('ASCII' or 'FITS').
                                     (default: determine the type automatically from the extension
                                     of file_name.)
@@ -680,24 +644,21 @@ class NNNCorrelation(BinnedCorr3):
                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
                     self.meand3, self.meanlogd3, self.meanu, self.meanv ]
         if rrr is None:
-            if (drr is not None or rdr is not None or rrd is not None or
-                ddr is not None or drd is not None or rdd is not None):
+            if drr is not None or ddr is not None:
                 raise TypeError("rrr must be provided if other combinations are not None")
             col_names += [ 'DDD', 'ntri' ]
             columns += [ self.weight, self.ntri ]
         else:
             # This will check for other invalid combinations of rrr, drr, etc.
-            zeta, varzeta = self.calculateZeta(rrr,drr,rdr,rrd,ddr,drd,rdd)
+            zeta, varzeta = self.calculateZeta(rrr,drr,ddr)
 
             col_names += [ 'zeta','sigma_zeta','DDD','RRR' ]
             columns += [ zeta, np.sqrt(varzeta),
                          self.weight, rrr.weight * (self.tot/rrr.tot) ]
 
             if drr is not None:
-                col_names += ['DRR','RDR','RRD','DDR','DRD','RDD']
-                columns += [ drr.weight * (self.tot/drr.tot), rdr.weight * (self.tot/rdr.tot),
-                             rrd.weight * (self.tot/rrd.tot), ddr.weight * (self.tot/ddr.tot),
-                             drd.weight * (self.tot/drd.tot), rdd.weight * (self.tot/rdd.tot) ]
+                col_names += ['DRR','DDR']
+                columns += [ drr.weight * (self.tot/drr.tot), ddr.weight * (self.tot/ddr.tot) ]
             col_names += [ 'ntri' ]
             columns += [ self.ntri ]
 

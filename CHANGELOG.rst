@@ -2,6 +2,22 @@ Changes from version 4.1 to 4.2
 ===============================
 
 
+API Changes
+-----------
+
+- Changed the 3pt process function, when given 3 arguments, to accumulate all
+  triangles where points from the three input catalogs can fall into any
+  of the three triangle corners.  If you need the old behavior of keeping
+  track of which catalog goes into which triangle corner, the new
+  ???CrossCorrelation classes do so both more efficiently and more
+  accurately than the previous code. (#115)
+- Changed the `NNNCorrelation.calculateZeta` function to only take
+  DDR and DRR parameters for the cross terms (if desired) rather than all
+  six (DDR, DRD, RDD, DRR, RDR, RRD).  The new cross-correlation behavior of
+  the `NNNCorelation.process` function now efficiently calculates in DDR what
+  used to be calculated in three calls for DDR, DRD, and RDD.  Likewise the
+  new DRR calculates what used to require DRR, RDR, and RRD. (#122)
+
 Performance improvements
 ------------------------
 
@@ -10,6 +26,9 @@ Performance improvements
 - No longer remakes patches and writes them to disk if they are already present
   on disk.  If you want to force a rewrite for any reason, you can explicitly
   call `Catalog.write_patches`. (#119)
+- Computing the data/random cross correlations for 3pt are now much faster,
+  since you only need one call for DDR and one for DRR, not all the 6 different
+  permuations. (Specifically, DRD, RDD, RDR, RRD are no longer needed.) (#122)
 
 New features
 ------------

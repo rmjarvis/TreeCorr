@@ -199,6 +199,8 @@ class BinnedCorr3(object):
                             (default: 'shot')
         num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
                             'marked_bootstrap' var_methods.  (default: 500)
+        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for bootstrap
+                            random number generation. (default: None)
 
         num_threads (int):  How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
@@ -283,7 +285,7 @@ class BinnedCorr3(object):
                 'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
     }
 
-    def __init__(self, config=None, logger=None, **kwargs):
+    def __init__(self, config=None, logger=None, rng=None, **kwargs):
         self._corr = None  # Do this first to make sure we always have it for __del__
         self.config = merge_config(config,kwargs,BinnedCorr3._valid_params)
         if logger is None:
@@ -491,6 +493,7 @@ class BinnedCorr3(object):
         self._ro.num_bootstrap = get(self.config,'num_bootstrap',int,500)
         self.results = {}  # for jackknife, etc. store the results of each pair of patches.
         self.npatch1 = self.npatch2 = self.npatch3 = 1
+        self.rng = np.random.RandomState() if rng is None else rng
 
     # Properties for all the read-only attributes ("ro" stands for "read-only")
     @property

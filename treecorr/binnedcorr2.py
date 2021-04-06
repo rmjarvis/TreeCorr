@@ -564,7 +564,7 @@ class BinnedCorr2(object):
         """Clear all data vectors, the results dict, and any related values.
         """
         self._clear()
-        self.results.clear()
+        self.results = {}
         self.npatch1 = self.npatch2 = 1
 
     def _add_tot(self, i, j, c1, c2):

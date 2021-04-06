@@ -506,13 +506,24 @@ class NNNCorrelation(BinnedCorr3):
            You would typically want to calculate that separately and subtract off the
            two-point contributions.
 
-        2. For auto-correlations, a better formula is :math:`\zeta = (DDD-3DDR+3DRR-RRR)/RRR`.
+        2. For auto-correlations, a better formula is :math:`\zeta = (DDD-DDR+DRR-RRR)/RRR`.
            In this case, DDR is the number of triangles where 2 points are from the data and
            1 point is from the random.  Similarly, DRR has 1 point from the data and 2 from the
            randoms.  These are what are calculated from calling::
 
                 >>> drr.process(data_cat, rand_cat)
                 >>> ddr.process(rand_cat, data_cat)
+
+           .. note::
+
+                One might thing the formula should be :math:`\zeta = (DDD-3DDR+3DRR-RRR)/RRR`
+                by analogy with the 2pt Landy-Szalay formula. However, the way these are
+                calculated, the object we are calling DDR already includes triangles where R
+                is in each of the 3 locations.  So it is really more like DDR + DRD + RDD.
+                These are not computed separately.  Rather the single computation of ``ddr``
+                described above accumulates all three permutations together.  So that one
+                object includes everything for the second term.  Likewise ``drr`` has all the
+                permutations that are relevant for the third term.
 
         - If only rrr is provided, the first formula will be used.
         - If all of rrr, drr, ddr are provided then the second will be used.
@@ -545,7 +556,7 @@ class NNNCorrelation(BinnedCorr3):
                 raise ValueError("drr has tot=0.")
             ddrw = self.tot / ddr.tot
             drrw = self.tot / drr.tot
-            zeta = self.weight - 3*ddr.weight * ddrw + 3*drr.weight * drrw - rrr.weight * rrrw
+            zeta = self.weight - ddr.weight * ddrw + drr.weight * drrw - rrr.weight * rrrw
         if np.any(rrr.weight == 0):
             self.logger.warning("Warning: Some bins for the randoms had no triangles.")
         mask1 = rrr.weight != 0
@@ -580,7 +591,7 @@ class NNNCorrelation(BinnedCorr3):
            You would typically want to calculate that separately and subtract off the
            two-point contributions.
 
-        2. For auto-correlations, a better formula is :math:`\zeta = (DDD-3DDR+3DRR-RRR)/RRR`.
+        2. For auto-correlations, a better formula is :math:`\zeta = (DDD-DDR+DRR-RRR)/RRR`.
            In this case, DDR is the number of triangles where 2 points are from the data and
            1 point is from the random.  Similarly, DRR has 1 point from the data and 2 from the
            randoms.

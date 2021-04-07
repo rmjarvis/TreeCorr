@@ -609,23 +609,42 @@ def test_gen_read_write():
     assert par['p1'] == 7
     assert par['p2'] == 'hello'
 
-    file_name5 = 'output/valid3.hdf'
-    treecorr.util.gen_write(file_name5, ['a', 'b'], [a,b], params=params)
-    data, par = treecorr.util.gen_read(file_name5)
-    np.testing.assert_array_equal(data['a'], a)
-    np.testing.assert_array_equal(data['b'], b)
-    print('par = ',par)
-    assert par['p1'] == 7
-    assert par['p2'] == 'hello'
+    try:
+        import h5py
+    except ImportError:
+        print('Skipping saving HDF catalogs, since h5py not installed.')
+        h5py = None
 
-    file_name6 = 'output/valid3.hdf5'
-    treecorr.util.gen_write(file_name6, ['a', 'b'], [a,b], params=params)
-    data, par = treecorr.util.gen_read(file_name6)
-    np.testing.assert_array_equal(data['a'], a)
-    np.testing.assert_array_equal(data['b'], b)
-    print('par = ',par)
-    assert par['p1'] == 7
-    assert par['p2'] == 'hello'
+    if h5py is not None:
+        file_name5 = 'output/valid3.hdf'
+        treecorr.util.gen_write(file_name5, ['a', 'b'], [a,b], params=params)
+        data, par = treecorr.util.gen_read(file_name5)
+        np.testing.assert_array_equal(data['a'], a)
+        np.testing.assert_array_equal(data['b'], b)
+        print('par = ',par)
+        assert par['p1'] == 7
+        assert par['p2'] == 'hello'
+
+        file_name6 = 'output/valid3.hdf5'
+        treecorr.util.gen_write(file_name6, ['a', 'b'], [a,b], params=params)
+        data, par = treecorr.util.gen_read(file_name6)
+        np.testing.assert_array_equal(data['a'], a)
+        np.testing.assert_array_equal(data['b'], b)
+        print('par = ',par)
+        assert par['p1'] == 7
+        assert par['p2'] == 'hello'
+
+        file_name7 = 'output/valid4.hdf5'
+        with h5py.File(file_name7, "w") as hdf:
+            treecorr.util.gen_write_hdf(hdf, ['a', 'b'], [a,b], params=params, groupname="my_group")
+        with h5py.File(file_name7, "r") as hdf:
+            data, par = treecorr.util.gen_read_hdf(hdf, groupname="my_group")
+        np.testing.assert_array_equal(data['a'], a)
+        np.testing.assert_array_equal(data['b'], b)
+        print('par = ',par)
+        assert par['p1'] == 7
+        assert par['p2'] == 'hello'
+
 
     # Check with logger
     with CaptureLog() as cl:
@@ -640,6 +659,12 @@ def test_gen_read_write():
     with CaptureLog() as cl:
         treecorr.util.gen_read(file_name4, logger=cl.logger)
     assert 'assumed to be FITS' in cl.output
+
+    if h5py is not None:
+        with CaptureLog() as cl:
+            treecorr.util.gen_write(file_name7, ['a', 'b'], [a,b], params=params, logger=cl.logger)
+        assert 'assumed to be HDF' in cl.output
+
 
     # Check that errors are reasonable if fitsio not installed.
     if sys.version_info < (3,): return  # mock only available on python 3

@@ -1927,8 +1927,13 @@ class Catalog(object):
         """Get the names of the files to use for reading/writing patches in save_patch_dir
         """
         if self.file_name is not None:
-            base = os.path.splitext(os.path.basename(self.file_name))[0]
-            names = [base + '_%03d.fits'%i for i in range(self.npatch)]
+            base, ext = os.path.splitext(os.path.basename(self.file_name))
+            # Default to FITS file if we do not otherwise recognize the file type.
+            # It's not critical to match this, just a convenience for if the user
+            # wants to pre-create their own patch files.
+            if ext.lower() not in [".fits", ".fit", ".hdf5", ".hdf"]:
+                ext = ".fits"
+            names = [base + '_%03d%s'%(i, ext) for i in range(self.npatch)]
         else:
             names = ['patch%03d.fits'%i for i in range(self.npatch)]
         return [os.path.join(save_patch_dir, n) for n in names]

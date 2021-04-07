@@ -1642,6 +1642,9 @@ def test_save_patches():
     cat0 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad')
     cat0.write(file_name)
 
+    hdf_file_name = os.path.join('output','test_save_patches.hdf5')
+    cat0.write(hdf_file_name)
+
     # When catalog has explicit ra, dec, etc., then file names are patch000.fits, ...
     clear_save('patch%03d.fits', npatch)
     cat1 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch,
@@ -1658,23 +1661,27 @@ def test_save_patches():
         assert cat_i.loaded
 
     # When catalog is a file, then base name off of given file_name.
-    clear_save('test_save_patches_%03d.fits', npatch)
-    cat2 = treecorr.Catalog(file_name, ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
-                            npatch=npatch, save_patch_dir='output')
-    assert not cat2.loaded
-    cat2.get_patches(low_mem=True)
-    assert len(cat2.patches) == npatch
-    assert cat2.loaded  # Making patches triggers load.  Also when write happens.
-    for i in range(npatch):
-        patch_file_name = os.path.join('output','test_save_patches_%03d.fits'%i)
-        assert os.path.exists(patch_file_name)
-        cat_i = treecorr.Catalog(patch_file_name, ra_col='ra', dec_col='dec',
-                                 ra_units='rad', dec_units='rad', patch=i)
-        assert not cat_i.loaded
-        assert not cat2.patches[i].loaded
-        assert cat_i == cat2.patches[i]
-        assert cat_i.loaded
-        assert cat2.patches[i].loaded
+    # And also try to match the type if HDF
+    for name, ext in zip([file_name, hdf_file_name], ["fits", "hdf5"]):
+        clear_save('test_save_patches_%%03d.%s'%ext, npatch)
+        cat2 = treecorr.Catalog(name, ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
+                                npatch=npatch, save_patch_dir='output')
+        assert not cat2.loaded
+        cat2.get_patches(low_mem=True)
+        assert len(cat2.patches) == npatch
+        assert cat2.loaded  # Making patches triggers load.  Also when write happens.
+        for i in range(npatch):
+            patch_file_name = os.path.join('output','test_save_patches_%03d.%s'%(i, ext))
+            assert os.path.exists(patch_file_name)
+            cat_i = treecorr.Catalog(patch_file_name, ra_col='ra', dec_col='dec',
+                                     ra_units='rad', dec_units='rad', patch=i)
+            assert not cat_i.loaded
+            assert not cat2.patches[i].loaded
+            assert cat_i == cat2.patches[i]
+            assert cat_i.loaded
+            assert cat2.patches[i].loaded
+
+
 
     # Check x,y,z, as well as other possible columns
     w = rng.uniform(1,2, (ngal,) )

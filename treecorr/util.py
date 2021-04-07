@@ -84,7 +84,7 @@ def parse_file_type(file_type, file_name, output=False, logger=None):
         name, ext = os.path.splitext(file_name)
         if ext.lower().startswith('.fit'):
             file_type = 'FITS'
-        elif not output and ext.lower().startswith('.hdf'):
+        elif ext.lower().startswith('.hdf'):
             file_type = 'HDF'
         elif not output and ext.lower().startswith('.par'):
             file_type = 'Parquet'
@@ -135,6 +135,16 @@ def gen_write(file_name, col_names, columns, params=None, precision=4, file_type
     elif file_type == 'ASCII':
         with open(file_name, 'wb') as fid:
             gen_write_ascii(fid, col_names, columns, params, precision=precision)
+    elif file_type == 'HDF':
+        try:
+            import h5py  # noqa: F401
+        except ImportError:
+            if logger:
+                logger.error("Unable to import h5py.  Cannot write to %s"%file_name)
+            raise
+        with h5py.File(file_name, 'w') as hdf:
+            gen_write_hdf(hdf, col_names, columns, params)
+
     else:
         raise ValueError("Invalid file_type %s"%file_type)
 
@@ -177,6 +187,22 @@ def gen_write_fits(fits, col_names, columns, params, extname=None):
     for (name, col) in zip(col_names, columns):
         data[name] = col
     fits.write(data, header=params, extname=extname)
+
+def gen_write_hdf(hdf, col_names, columns, params, hduname=None):
+    """Write some columns to a new FITS extension with the given column names.
+
+    :param hdf:        An open h5py.File handle. E.g. hdf = h5py.File(file_name, 'w')
+    :param col_names:   A list of columns names for the given columns.
+    :param columns:     A list of numpy arrays with the data to write.
+    :param params:      A dict of extra parameters to write in the HDF attributes.
+    :param extname:     An optional name for the extension to write. (default: None)
+    """
+    if hduname is not None:
+        hdf = hdf.create_group(hduname)
+    if params is not None:
+        hdf.attrs.update(params)
+    for (name, col) in zip(col_names, columns):
+        hdf.create_dataset(name, data=col)
 
 def gen_multi_write(file_name, col_names, group_names, columns,
                     params=None, precision=4, file_type=None, logger=None):
@@ -234,6 +260,8 @@ def gen_multi_write(file_name, col_names, group_names, columns,
                 s = '## %s: %d\n'%(name, len(cols[0]))
                 fid.write(s.encode())
                 gen_write_ascii(fid, col_names, cols, params, precision=precision)
+    elif file_type == "HDF":
+        raise NotImplementedError("Cannot currently write 3-point correlations to HDF files")
     else:
         raise ValueError("Invalid file_type %s"%file_type)
 
@@ -301,6 +329,34 @@ def gen_read_fits(fits, ext=1):
     data = fits[ext].read()
     params = fits[ext].read_header()
     return data, params
+
+def get_read_hdf(hdf, groupname=None):
+    """Read the columns from an input HDF5 file.
+
+    :param hdf:         An open h5py.File handler. E.g. hdf = h5py.File(file_name, "r")
+    :param groupname:   An optional name group to read. (default: None, meaning the file root)
+
+    :returns: (data, params), a numpy ndarray with named columns, and a dict of extra parameters.
+    """
+    if hduname is not None:
+        hdf = hdf[hduname]
+    params = dict(hdf.attrs)
+
+    # This does not actually load the column
+    col_vals =  list(hdf.values())
+    col_names = list(hdf.keys())
+
+    ncol = len(col_names)
+    sz = col_vals[0].size
+    dtype=[(name, col.dtype) for (name, col) in zip(col_names, col_vals)]
+    data = np.empty(sz, dtype=dtype)
+
+    # Now we actually read everything
+    for (name, col) in zip(col_names, col_vals):
+        data[name] = col[:]
+
+    return data, params
+
 
 def gen_multi_read(file_name, group_names, file_type=None, logger=None):
     """Read some columns from an input file.

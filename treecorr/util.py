@@ -294,6 +294,16 @@ def gen_read(file_name, file_type=None, logger=None):
             raise
         with fitsio.FITS(file_name) as fits:
             return gen_read_fits(fits, ext=1)
+    elif file_type == 'HDF':
+        try:
+            import h5py
+        except ImportError:
+            if logger:
+                logger.error("Unable to import fitsio.  Cannot read %s"%file_name)
+            raise
+        with h5py.File(file_name, 'r') as hdf:
+            return gen_read_hdf(hdf)
+
     elif file_type == 'ASCII':
         with open(file_name) as fid:
             return gen_read_ascii(fid)
@@ -330,21 +340,20 @@ def gen_read_fits(fits, ext=1):
     params = fits[ext].read_header()
     return data, params
 
-def get_read_hdf(hdf, groupname=None):
+def gen_read_hdf(hdf, groupname="/"):
     """Read the columns from an input HDF5 file.
 
     :param hdf:         An open h5py.File handler. E.g. hdf = h5py.File(file_name, "r")
-    :param groupname:   An optional name group to read. (default: None, meaning the file root)
+    :param groupname:   An optional name group to read. (default: "/", meaning the file root)
 
     :returns: (data, params), a numpy ndarray with named columns, and a dict of extra parameters.
     """
-    if hduname is not None:
-        hdf = hdf[hduname]
-    params = dict(hdf.attrs)
+    group = hdf[groupname]
+    params = dict(group.attrs)
 
     # This does not actually load the column
-    col_vals =  list(hdf.values())
-    col_names = list(hdf.keys())
+    col_vals =  list(group.values())
+    col_names = list(group.keys())
 
     ncol = len(col_names)
     sz = col_vals[0].size

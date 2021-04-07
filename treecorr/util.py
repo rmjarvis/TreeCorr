@@ -188,7 +188,7 @@ def gen_write_fits(fits, col_names, columns, params, extname=None):
         data[name] = col
     fits.write(data, header=params, extname=extname)
 
-def gen_write_hdf(hdf, col_names, columns, params, hduname=None):
+def gen_write_hdf(hdf, col_names, columns, params, groupname=None):
     """Write some columns to a new FITS extension with the given column names.
 
     :param hdf:        An open h5py.File handle. E.g. hdf = h5py.File(file_name, 'w')
@@ -197,8 +197,8 @@ def gen_write_hdf(hdf, col_names, columns, params, hduname=None):
     :param params:      A dict of extra parameters to write in the HDF attributes.
     :param extname:     An optional name for the extension to write. (default: None)
     """
-    if hduname is not None:
-        hdf = hdf.create_group(hduname)
+    if groupname is not None:
+        hdf = hdf.create_group(groupname)
     if params is not None:
         hdf.attrs.update(params)
     for (name, col) in zip(col_names, columns):

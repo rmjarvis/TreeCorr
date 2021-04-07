@@ -416,6 +416,9 @@ def gen_multi_read(file_name, group_names, file_type=None, logger=None):
                 data, params = gen_read_ascii(fid, max_rows=max_rows)
                 out.append( (data,params) )
         return out
+    elif file_type == "HDF":
+        raise NotImplementedError("Cannot currently read 3-point correlations or "
+                                  "other multi-part data to HDF files")
     else:
         raise ValueError("Invalid file_type %s"%file_type)
 

@@ -728,6 +728,17 @@ def test_gen_multi_read_write():
     with assert_raises((OSError, IOError)):
         treecorr.util.gen_multi_read(file_name, names, file_type='FITS')
 
+    file_name = 'invalid.hdf5'
+    with assert_raises(NotImplementedError):
+        treecorr.util.gen_multi_write(file_name, col_names, names, data)
+    with assert_raises(NotImplementedError):
+        treecorr.util.gen_multi_read(file_name, names)
+    with assert_raises(NotImplementedError):
+        treecorr.util.gen_multi_write(file_name, col_names, names, data, file_type='HDF')
+    with assert_raises(NotImplementedError):
+        treecorr.util.gen_multi_read(file_name, names, file_type='HDF')
+
+
     # Now some working I/O
     file_name1 = 'output/valid1.out'
     treecorr.util.gen_multi_write(file_name1, col_names, names, data)

@@ -1659,8 +1659,6 @@ def test_save_patches():
         assert cat_i.loaded
 
     # When catalog is a file, then base name off of given file_name.
-    # And also try to match the type if HDF
-    file_name = os.path.join('output','test_save_patches.fits')
     clear_save('test_save_patches_%03d.fits', npatch)
     cat2 = treecorr.Catalog(file_name, ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
                             npatch=npatch, save_patch_dir='output')
@@ -1679,6 +1677,7 @@ def test_save_patches():
         assert cat_i.loaded
         assert cat2.patches[i].loaded
 
+    # And also try to match the type if HDF
     try:
         import h5py  # noqa: F401
     except ImportError:

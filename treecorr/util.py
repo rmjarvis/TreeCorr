@@ -261,7 +261,8 @@ def gen_multi_write(file_name, col_names, group_names, columns,
                 fid.write(s.encode())
                 gen_write_ascii(fid, col_names, cols, params, precision=precision)
     elif file_type == "HDF":
-        raise NotImplementedError("Cannot currently write 3-point correlations to HDF files")
+        raise NotImplementedError("Cannot currently write 3-point correlations or "
+                                  "other multi-part data to HDF files")
     else:
         raise ValueError("Invalid file_type %s"%file_type)
 
@@ -299,7 +300,7 @@ def gen_read(file_name, file_type=None, logger=None):
             import h5py
         except ImportError:
             if logger:
-                logger.error("Unable to import fitsio.  Cannot read %s"%file_name)
+                logger.error("Unable to import h5py.  Cannot read %s"%file_name)
             raise
         with h5py.File(file_name, 'r') as hdf:
             return gen_read_hdf(hdf)

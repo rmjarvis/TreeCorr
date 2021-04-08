@@ -195,7 +195,8 @@ def gen_write_hdf(hdf, col_names, columns, params, groupname=None):
     :param col_names:   A list of columns names for the given columns.
     :param columns:     A list of numpy arrays with the data to write.
     :param params:      A dict of extra parameters to write in the HDF attributes.
-    :param extname:     An optional name for the extension to write. (default: None)
+    :param groupname:   An optional name for the group to write in. (default: None,
+                        and the data is written to the root group).
     """
     if groupname is not None:
         hdf = hdf.create_group(groupname)
@@ -212,8 +213,8 @@ def gen_multi_write(file_name, col_names, group_names, columns,
 
     :param file_name:   The name of the file to write to.
     :param col_names:   A list of columns names for the given columns (same for each group).
-    :param group_names: A list of group names.  These become the hdu names in FITS format or
-                        names for blocks of rows in ASCII format.
+    :param group_names: A list of group names.  These become the hdu names in FITS format,
+                        names for blocks of rows in ASCII format, and group names in HDF.
     :param columns:     A list of groups, each of which is a list of numpy arrays with the data to
                         write.
     :param params:      A dict of extra parameters to write at the top of the output file (for
@@ -261,8 +262,15 @@ def gen_multi_write(file_name, col_names, group_names, columns,
                 fid.write(s.encode())
                 gen_write_ascii(fid, col_names, cols, params, precision=precision)
     elif file_type == "HDF":
-        raise NotImplementedError("Cannot currently write 3-point correlations or "
-                                  "other multi-part data to HDF files")
+        try:
+            import h5py
+        except ImportError:
+            if logger:
+                logger.error("Unable to import h5py.  Cannot write to %s"%file_name)
+            raise
+        with h5py.File(file_name, 'w') as hdf:
+            for name, cols in zip(group_names, columns):
+                gen_write_hdf(hdf, col_names, cols, params, groupname=name)
     else:
         raise ValueError("Invalid file_type %s"%file_type)
 

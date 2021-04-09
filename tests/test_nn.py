@@ -1425,6 +1425,43 @@ def test_nn():
     assert dd4.sep_units == dd.sep_units
     assert dd4.bin_type == dd.bin_type
 
+    # Check the hdf5 write option
+    try:
+        import h5py  # noqa: F401
+    except ImportError:
+        print('Skipping hdf5 output file, since h5py not installed.')
+        return
+
+    out_file_name6 = os.path.join('output','nn_out5.hdf5')
+    dd.write(out_file_name6)
+    with h5py.File(out_file_name6, 'r') as hdf:
+        data = hdf['/']
+        np.testing.assert_almost_equal(data['r_nom'], np.exp(dd.logr))
+        np.testing.assert_almost_equal(data['meanr'], dd.meanr)
+        np.testing.assert_almost_equal(data['meanlogr'], dd.meanlogr)
+        np.testing.assert_almost_equal(data['npairs'], dd.npairs)
+        np.testing.assert_almost_equal(data['xi'], xi)
+        np.testing.assert_almost_equal(data['sigma_xi'], np.sqrt(varxi))
+        np.testing.assert_almost_equal(data['DD'], dd.npairs)
+        attrs = data.attrs
+        np.testing.assert_almost_equal(attrs['tot'], dd.tot)
+        assert 'RR' not in data
+        assert 'DR' not in data
+
+    dd6 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
+    dd6.read(out_file_name6)
+    np.testing.assert_almost_equal(dd6.logr, dd.logr)
+    np.testing.assert_almost_equal(dd6.meanr, dd.meanr)
+    np.testing.assert_almost_equal(dd6.meanlogr, dd.meanlogr)
+    np.testing.assert_almost_equal(dd6.npairs, dd.npairs)
+    np.testing.assert_almost_equal(dd6.tot, dd.tot)
+    np.testing.assert_almost_equal(dd6.xi, dd.xi)
+    np.testing.assert_almost_equal(dd6.varxi, dd.varxi)
+    assert dd6.coords == dd.coords
+    assert dd6.metric == dd.metric
+    assert dd6.sep_units == dd.sep_units
+    assert dd6.bin_type == dd.bin_type
+
 
 @timer
 def test_3d():

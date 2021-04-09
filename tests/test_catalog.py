@@ -1660,6 +1660,43 @@ def test_write():
     assert cat2r_fits.g2 is None
     assert cat2r_fits.k is None
 
+    # Test HDF5 output
+    try:
+        import h5py  # noqa: F401
+    except ImportError:
+        print('Skipping hdf5 write tests, since h5py not installed.')
+        return
+
+    cat1.write(os.path.join('output','cat1.hdf5'), file_type='HDF')
+    cat1_hdf5 = treecorr.Catalog(os.path.join('output','cat1.hdf5'),
+                                 x_col='x', y_col='y', z_col='z')
+    np.testing.assert_almost_equal(cat1_hdf5.x, x)
+    np.testing.assert_almost_equal(cat1_hdf5.y, y)
+    np.testing.assert_almost_equal(cat1_hdf5.z, z)
+
+    cat2.write(os.path.join('output','cat2.hdf'))
+    cat2_hdf5 = treecorr.Catalog(os.path.join('output','cat2.hdf'), ra_col='ra', dec_col='dec',
+                                 r_col='r', w_col='w', g1_col='g1', g2_col='g2', k_col='k',
+                                 ra_units='rad', dec_units='rad', file_type='HDF5')
+    np.testing.assert_almost_equal(cat2_hdf5.ra, ra)
+    np.testing.assert_almost_equal(cat2_hdf5.dec, dec)
+    np.testing.assert_almost_equal(cat2_hdf5.r, r)
+    np.testing.assert_almost_equal(cat2_hdf5.w, w)
+    np.testing.assert_almost_equal(cat2_hdf5.g1, g1)
+    np.testing.assert_almost_equal(cat2_hdf5.g2, g2)
+    np.testing.assert_almost_equal(cat2_hdf5.k, k)
+
+    cat2r_hdf5 = treecorr.Catalog(os.path.join('output','cat2.hdf'), ra_col='ra', dec_col='dec',
+                                  r_col='r', w_col='w', g1_col='g1', g2_col='g2', k_col='k',
+                                  ra_units='rad', dec_units='rad', file_type='HDF5', is_rand=True)
+    np.testing.assert_almost_equal(cat2r_hdf5.ra, ra)
+    np.testing.assert_almost_equal(cat2r_hdf5.dec, dec)
+    np.testing.assert_almost_equal(cat2r_hdf5.r, r)
+    np.testing.assert_almost_equal(cat2r_hdf5.w, w)
+    assert cat2r_hdf5.g1 is None
+    assert cat2r_hdf5.g2 is None
+    assert cat2r_hdf5.k is None
+
 @timer
 def test_field():
     # Test making various kinds of fields

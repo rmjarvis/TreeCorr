@@ -2260,6 +2260,58 @@ def test_nnn():
     assert ddd2.sep_units == ddd.sep_units
     assert ddd2.bin_type == ddd.bin_type
 
+    # Check the hdf5 write option
+    try:
+        import h5py  # noqa: F401
+    except ImportError:
+        print('Skipping hdf5 output file, since h5py not installed.')
+    else:
+        out_file_name3 = os.path.join('output','nnn_out3.hdf5')
+        ddd.write(out_file_name3, rrr)
+        with h5py.File(out_file_name3, 'r') as hdf:
+            data = hdf['/']
+            np.testing.assert_almost_equal(data['r_nom'], np.exp(ddd.logr).flatten())
+            np.testing.assert_almost_equal(data['u_nom'], ddd.u.flatten())
+            np.testing.assert_almost_equal(data['v_nom'], ddd.v.flatten())
+            np.testing.assert_almost_equal(data['meand1'], ddd.meand1.flatten())
+            np.testing.assert_almost_equal(data['meanlogd1'], ddd.meanlogd1.flatten())
+            np.testing.assert_almost_equal(data['meand2'], ddd.meand2.flatten())
+            np.testing.assert_almost_equal(data['meanlogd2'], ddd.meanlogd2.flatten())
+            np.testing.assert_almost_equal(data['meand3'], ddd.meand3.flatten())
+            np.testing.assert_almost_equal(data['meanlogd3'], ddd.meanlogd3.flatten())
+            np.testing.assert_almost_equal(data['meanu'], ddd.meanu.flatten())
+            np.testing.assert_almost_equal(data['meanv'], ddd.meanv.flatten())
+            np.testing.assert_almost_equal(data['ntri'], ddd.ntri.flatten())
+            np.testing.assert_almost_equal(data['zeta'], zeta.flatten())
+            np.testing.assert_almost_equal(data['sigma_zeta'], np.sqrt(varzeta).flatten())
+            np.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
+            np.testing.assert_almost_equal(data['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
+            attrs = data.attrs
+            np.testing.assert_almost_equal(attrs['tot']/ddd.tot, 1.)
+
+        ddd3 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                       min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
+                                       nubins=nubins, nvbins=nvbins,
+                                       sep_units='arcmin', verbose=1)
+        ddd3.read(out_file_name3)
+        np.testing.assert_almost_equal(ddd3.logr, ddd.logr)
+        np.testing.assert_almost_equal(ddd3.u, ddd.u)
+        np.testing.assert_almost_equal(ddd3.v, ddd.v)
+        np.testing.assert_almost_equal(ddd3.meand1, ddd.meand1)
+        np.testing.assert_almost_equal(ddd3.meanlogd1, ddd.meanlogd1)
+        np.testing.assert_almost_equal(ddd3.meand2, ddd.meand2)
+        np.testing.assert_almost_equal(ddd3.meanlogd2, ddd.meanlogd2)
+        np.testing.assert_almost_equal(ddd3.meand3, ddd.meand3)
+        np.testing.assert_almost_equal(ddd3.meanlogd3, ddd.meanlogd3)
+        np.testing.assert_almost_equal(ddd3.meanu, ddd.meanu)
+        np.testing.assert_almost_equal(ddd3.meanv, ddd.meanv)
+        np.testing.assert_almost_equal(ddd3.ntri, ddd.ntri)
+        np.testing.assert_almost_equal(ddd3.tot/ddd.tot, 1.)
+        assert ddd3.coords == ddd.coords
+        assert ddd3.metric == ddd.metric
+        assert ddd3.sep_units == ddd.sep_units
+        assert ddd3.bin_type == ddd.bin_type
+
     # Test compensated zeta
     # First just check the mechanics.
     # If we don't actually do all the cross terms, then compensated is the same as simple.

@@ -174,32 +174,32 @@ def gen_write_ascii(fid, col_names, columns, params, precision=4):
     fid.write(header.encode())
     np.savetxt(fid, data, fmt=fmt)
 
-def gen_write_fits(fits, col_names, columns, params, extname=None):
+def gen_write_fits(fits, col_names, columns, params, ext=None):
     """Write some columns to a new FITS extension with the given column names.
 
     :param fits:        An open fitsio.FITS handler. E.g. fits = fitsio.FITS(file_name, 'rw')
     :param col_names:   A list of columns names for the given columns.
     :param columns:     A list of numpy arrays with the data to write.
     :param params:      A dict of extra parameters to write in the FITS header.
-    :param extname:     An optional name for the extension to write. (default: None)
+    :param ext:         An optional name for the extension to write. (default: None)
     """
     data = np.empty(len(columns[0]), dtype=[ (name,'f8') for name in col_names ])
     for (name, col) in zip(col_names, columns):
         data[name] = col
-    fits.write(data, header=params, extname=extname)
+    fits.write(data, header=params, extname=ext)
 
-def gen_write_hdf(hdf, col_names, columns, params, groupname=None):
+def gen_write_hdf(hdf, col_names, columns, params, group=None):
     """Write some columns to a new FITS extension with the given column names.
 
-    :param hdf:        An open h5py.File handle. E.g. hdf = h5py.File(file_name, 'w')
+    :param hdf:         An open h5py.File handle. E.g. hdf = h5py.File(file_name, 'w')
     :param col_names:   A list of columns names for the given columns.
     :param columns:     A list of numpy arrays with the data to write.
     :param params:      A dict of extra parameters to write in the HDF attributes.
-    :param groupname:   An optional name for the group to write in. (default: None,
+    :param group:       An optional name for the group to write in. (default: None,
                         and the data is written to the root group).
     """
-    if groupname is not None:
-        hdf = hdf.create_group(groupname)
+    if group is not None:
+        hdf = hdf.create_group(group)
     if params is not None:
         hdf.attrs.update(params)
     for (name, col) in zip(col_names, columns):
@@ -254,7 +254,7 @@ def gen_multi_write(file_name, col_names, group_names, columns,
             raise
         with fitsio.FITS(file_name, 'rw', clobber=True) as fits:
             for name, cols in zip(group_names, columns):
-                gen_write_fits(fits, col_names, cols, params, extname=name)
+                gen_write_fits(fits, col_names, cols, params, ext=name)
     elif file_type == 'ASCII':
         with open(file_name, 'wb') as fid:
             for name, cols in zip(group_names, columns):
@@ -270,7 +270,7 @@ def gen_multi_write(file_name, col_names, group_names, columns,
             raise
         with h5py.File(file_name, 'w') as hdf:
             for name, cols in zip(group_names, columns):
-                gen_write_hdf(hdf, col_names, cols, params, groupname=name)
+                gen_write_hdf(hdf, col_names, cols, params, group=name)
     else:
         raise ValueError("Invalid file_type %s"%file_type)
 
@@ -349,20 +349,20 @@ def gen_read_fits(fits, ext=1):
     params = fits[ext].read_header()
     return data, params
 
-def gen_read_hdf(hdf, groupname="/"):
+def gen_read_hdf(hdf, group="/"):
     """Read the columns from an input HDF5 file.
 
     :param hdf:         An open h5py.File handler. E.g. hdf = h5py.File(file_name, "r")
-    :param groupname:   An optional name group to read. (default: "/", meaning the file root)
+    :param group:       An optional name group to read. (default: "/", meaning the file root)
 
     :returns: (data, params), a numpy ndarray with named columns, and a dict of extra parameters.
     """
-    group = hdf[groupname]
-    params = dict(group.attrs)
+    hdf = hdf[group]
+    params = dict(hdf.attrs)
 
     # This does not actually load the column
-    col_vals =  list(group.values())
-    col_names = list(group.keys())
+    col_vals =  list(hdf.values())
+    col_names = list(hdf.keys())
 
     ncol = len(col_names)
     sz = col_vals[0].size

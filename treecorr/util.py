@@ -357,7 +357,10 @@ def gen_read_hdf(hdf, group="/"):
 
     :returns: (data, params), a numpy ndarray with named columns, and a dict of extra parameters.
     """
-    hdf = hdf[group]
+    try:
+        hdf = hdf[group]
+    except KeyError:
+        raise OSError("Group name %s not found in HDF5 file."%(group))
     params = dict(hdf.attrs)
 
     # This does not actually load the column
@@ -425,8 +428,18 @@ def gen_multi_read(file_name, group_names, file_type=None, logger=None):
                 out.append( (data,params) )
         return out
     elif file_type == "HDF":
-        raise NotImplementedError("Cannot currently read 3-point correlations or "
-                                  "other multi-part data to HDF files")
+        try:
+            import h5py
+        except ImportError:
+            if logger:
+                logger.error("Unable to import h5py.  Cannot read %s"%file_name)
+            raise
+        out = []
+        with h5py.File(file_name, 'r') as hdf:
+            for name in group_names:
+                data, params = gen_read_hdf(hdf, group=name)
+                out.append( (data,params) )
+        return out
     else:
         raise ValueError("Invalid file_type %s"%file_type)
 

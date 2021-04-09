@@ -615,8 +615,8 @@ def test_gen_read_write():
         print('Skipping saving HDF catalogs, since h5py not installed.')
         h5py = None
 
+    file_name5 = 'output/valid3.hdf'
     if h5py is not None:
-        file_name5 = 'output/valid3.hdf'
         treecorr.util.gen_write(file_name5, ['a', 'b'], [a,b], params=params)
         data, par = treecorr.util.gen_read(file_name5)
         np.testing.assert_array_equal(data['a'], a)
@@ -680,6 +680,20 @@ def test_gen_read_write():
             with assert_raises(ImportError):
                 treecorr.util.gen_read(file_name2, logger=cl.logger)
         assert "Unable to import fitsio" in cl.output
+
+    with mock.patch.dict(sys.modules, {'h5py':None}):
+        with assert_raises(ImportError):
+            treecorr.util.gen_write(file_name5, ['a', 'b'], [a,b])
+        with assert_raises(ImportError):
+            treecorr.util.gen_read(file_name5)
+        with CaptureLog() as cl:
+            with assert_raises(ImportError):
+                treecorr.util.gen_write(file_name5, ['a', 'b'], [a,b], logger=cl.logger)
+        assert "Unable to import h5py" in cl.output
+        with CaptureLog() as cl:
+            with assert_raises(ImportError):
+                treecorr.util.gen_read(file_name5, logger=cl.logger)
+        assert "Unable to import h5py" in cl.output
 
 @timer
 def test_gen_multi_read_write():
@@ -772,6 +786,24 @@ def test_gen_multi_read_write():
         assert par['p1'] == 7
         assert par['p2'] == 'hello'
 
+    # Check hdf5 output files
+    try:
+        import h5py
+    except ImportError:
+        print('Skipping saving HDF catalogs, since h5py not installed.')
+        h5py = None
+
+    file_name5 = 'output/valid3.hdf'
+    if h5py is not None:
+        treecorr.util.gen_multi_write(file_name5, col_names, names, data, params=params)
+        groups = treecorr.util.gen_multi_read(file_name5, names)
+        assert len(groups) == len(names)
+        for (d, par), (a,b) in zip(groups, data):
+            np.testing.assert_array_equal(d['a'], a)
+            np.testing.assert_array_equal(d['b'], b)
+            assert par['p1'] == 7
+            assert par['p2'] == 'hello'
+
     # Check with logger
     with CaptureLog() as cl:
         treecorr.util.gen_multi_write(file_name3, col_names, names, data, params=params,
@@ -788,12 +820,24 @@ def test_gen_multi_read_write():
         treecorr.util.gen_multi_read(file_name4, names, logger=cl.logger)
     assert 'assumed to be FITS' in cl.output
 
+    if h5py:
+        with CaptureLog() as cl:
+            treecorr.util.gen_multi_write(file_name5, col_names, names, data, params=params,
+                                          logger=cl.logger)
+        assert 'assumed to be HDF' in cl.output
+        with CaptureLog() as cl:
+            treecorr.util.gen_multi_read(file_name5, names, logger=cl.logger)
+        assert 'assumed to be HDF' in cl.output
+
     # Check with wrong group names
     alt_names = ['k1','k2','k3']
     with assert_raises(OSError):
         treecorr.util.gen_multi_read(file_name3, alt_names, logger=cl.logger)
     with assert_raises((OSError, IOError)):
         treecorr.util.gen_multi_read(file_name4, alt_names, logger=cl.logger)
+    if h5py:
+        with assert_raises(OSError):
+            treecorr.util.gen_multi_read(file_name5, alt_names, logger=cl.logger)
 
     # Check that errors are reasonable if fitsio not installed.
     if sys.version_info < (3,): return  # mock only available on python 3
@@ -812,6 +856,21 @@ def test_gen_multi_read_write():
             with assert_raises(ImportError):
                 treecorr.util.gen_multi_read(file_name2, names, logger=cl.logger)
         assert "Unable to import fitsio" in cl.output
+
+    with mock.patch.dict(sys.modules, {'h5py':None}):
+        with assert_raises(ImportError):
+            treecorr.util.gen_multi_write(file_name5, col_names, names, data)
+        with assert_raises(ImportError):
+            treecorr.util.gen_multi_read(file_name5, names)
+        with CaptureLog() as cl:
+            with assert_raises(ImportError):
+                treecorr.util.gen_multi_write(file_name5, col_names, names, data,
+                                              logger=cl.logger)
+        assert "Unable to import h5py" in cl.output
+        with CaptureLog() as cl:
+            with assert_raises(ImportError):
+                treecorr.util.gen_multi_read(file_name5, names, logger=cl.logger)
+        assert "Unable to import h5py" in cl.output
 
 if __name__ == '__main__':
     test_parse_variables()

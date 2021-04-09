@@ -26,6 +26,7 @@ New features
   implemented.  So far just GGG, KKK, and NNN. (#115)
 - Added ability to read from parquet catalogs.  (#117)
 - Added optional func parameter to estimate_multi_cov. (#118)
+- Added ability to write output files as hdf5.  (#122)
 
 Bug fixes
 ---------

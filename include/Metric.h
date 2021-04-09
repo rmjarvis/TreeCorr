@@ -660,10 +660,10 @@ struct MetricHelper<Periodic, P>
 {
     enum { _Flat=Flat, _ThreeD=ThreeD, _Sphere=ThreeD };
 
-    // The period in each direction.
-    const double xp, yp, zp;
     // We technically allow this, but seems a bit weird...
     const double minrpar, maxrpar;
+    // The period in each direction.
+    const double xp, yp, zp;
 
     MetricHelper(double _minrpar, double _maxrpar, double _xp, double _yp, double _zp) :
         minrpar(_minrpar), maxrpar(_maxrpar), xp(_xp), yp(_yp), zp(_zp) {}

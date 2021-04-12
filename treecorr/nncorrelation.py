@@ -438,7 +438,7 @@ class NNCorrelation(BinnedCorr2):
         This is the weight array corresponding to `getStat`.  In this case, it is the denominator
         RR from the calculation done by calculateXi().
         """
-        return self._rr_weight
+        return self._rr_weight.ravel()
 
     def calculateXi(self, rr, dr=None, rd=None):
         r"""Calculate the correlation function given another correlation function of random
@@ -486,6 +486,7 @@ class NNCorrelation(BinnedCorr2):
 
         # rrf is the factor to scale rr weights to get something commensurate to the dd density.
         rrf = self.tot / rr.tot
+
         # Likewise for the other two potential randoms:
         if dr is not None:
             if dr.tot == 0:
@@ -656,7 +657,7 @@ class NNCorrelation(BinnedCorr2):
             xi = dd - rd * rdf - dr * drf + denom
         denom[denom == 0] = 1  # Guard against division by zero.
         self.xi = xi / denom
-        self.weight = denom
+        self.weight = self._rr_weight = denom
 
     def write(self, file_name, rr=None, dr=None, rd=None, file_type=None, precision=None):
         r"""Write the correlation function to the file, file_name.

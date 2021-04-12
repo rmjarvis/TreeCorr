@@ -476,7 +476,10 @@ def test_cat_centers():
         c.get_patch_centers()
 
 
-def generate_shear_field(nside):
+def generate_shear_field(nside, rng=None):
+    if rng is None:
+        rng = np.random.RandomState()
+
     # Generate a random shear field with a well-defined power spectrum.
     # It generates shears on a grid nside x nside, and returns, x, y, g1, g2
     kvals = np.fft.fftfreq(nside) * 2*np.pi
@@ -491,8 +494,8 @@ def generate_shear_field(nside):
     Pk = 1.e4 * ksq / (1. + 300.*ksq)**2
 
     # Make complex gaussian field in k-space.
-    f1 = np.random.normal(size=Pk.shape)
-    f2 = np.random.normal(size=Pk.shape)
+    f1 = rng.normal(size=Pk.shape)
+    f2 = rng.normal(size=Pk.shape)
     f = (f1 + 1j*f2) * np.sqrt(0.5)
 
     # Make f Hermitian, to correspond to E-mode-only field.
@@ -588,9 +591,9 @@ def test_gg_jk():
     print('var_xim = ',var_xim)
     print('ratio = ',var_xim / mean_varxim)
 
-    np.random.seed(1234)
+    rng = np.random.RandomState(1234)
     # First run with the normal variance estimate, which is too small.
-    x, y, g1, g2, _ = generate_shear_field(nside)
+    x, y, g1, g2, _ = generate_shear_field(nside, rng)
 
     cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
     gg1 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
@@ -622,7 +625,8 @@ def test_gg_jk():
 
     # Now run with patches, but still with shot variance.  Should be basically the same answer.
     cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, npatch=npatch)
-    gg2 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='shot')
+    gg2 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='shot',
+                                 rng=rng)
     t0 = time.time()
     gg2.process(cat)
     t1 = time.time()
@@ -643,7 +647,8 @@ def test_gg_jk():
                                np.diag(np.concatenate([gg2.varxip, gg2.varxim])))
 
     # Now run with jackknife variance estimate.  Should be much better.
-    gg3 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife')
+    gg3 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife',
+                                 rng=rng)
     t0 = time.time()
     gg3.process(cat)
     t1 = time.time()
@@ -750,7 +755,7 @@ def test_gg_jk():
     print('varxim = ',cov_boot.diagonal()[n:])
     print('ratio = ',cov_boot.diagonal()[n:] / var_xim)
     # Not really much better than sample.
-    np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.6*tol_factor)
+    np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.5*tol_factor)
     np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
 
     # Check bootstrap covariance estimate.
@@ -869,9 +874,9 @@ def test_ng_jk():
     print('var_xi = ',var_xi)
     print('ratio = ',var_xi / mean_varxi)
 
-    np.random.seed(1234)
+    rng = np.random.RandomState(1234)
     # First run with the normal variance estimate, which is too small.
-    x, y, g1, g2, k = generate_shear_field(nside)
+    x, y, g1, g2, k = generate_shear_field(nside, rng)
     thresh = np.partition(k.flatten(), -nlens)[-nlens]
     w = np.zeros_like(k)
     w[k>=thresh] = 1.
@@ -923,7 +928,8 @@ def test_ng_jk():
     np.testing.assert_allclose(ng1.estimate_cov('shot'), np.diag(ng1.varxi))
 
     # Now run with jackknife variance estimate.  Should be much better.
-    ng3 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife')
+    ng3 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife',
+                                 rng=rng)
     t0 = time.time()
     ng3.process(cat1p, cat2p)
     t1 = time.time()
@@ -937,13 +943,14 @@ def test_ng_jk():
 
     # Check using estimate_cov
     t0 = time.time()
-    np.testing.assert_allclose(ng3.estimate_cov('jackknife'), ng3.cov)
+    np.testing.assert_allclose(ng2.estimate_cov('jackknife'), ng3.cov)
     t1 = time.time()
     print('Time to calculate jackknife covariance = ',t1-t0)
 
     # Check only using patches for one of the two catalogs.
     # Not as good as using patches for both, but not much worse.
-    ng4 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife')
+    ng4 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife',
+                                 rng=rng)
     t0 = time.time()
     ng4.process(cat1p, cat2)
     t1 = time.time()
@@ -955,7 +962,8 @@ def test_ng_jk():
     np.testing.assert_allclose(ng4.xi, ng1.xi, rtol=3.e-2*tol_factor)
     np.testing.assert_allclose(ng4.varxi, var_xi, rtol=0.5*tol_factor)
 
-    ng5 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife')
+    ng5 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife',
+                                 rng=rng)
     t0 = time.time()
     ng5.process(cat1, cat2p)
     t1 = time.time()
@@ -1119,9 +1127,9 @@ def test_nn_jk():
         tol_factor = 4
 
     # Make random catalog with 10x number of sources, randomly distributed.
-    np.random.seed(1234)
-    rx = np.random.uniform(0,1000, rand_factor*nlens)
-    ry = np.random.uniform(0,1000, rand_factor*nlens)
+    rng = np.random.RandomState(1234)
+    rx = rng.uniform(0,1000, rand_factor*nlens)
+    ry = rng.uniform(0,1000, rand_factor*nlens)
     rand_cat = treecorr.Catalog(x=rx, y=ry)
     rr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
     t0 = time.time()
@@ -1136,10 +1144,11 @@ def test_nn_jk():
         nruns = 1000
         all_xia = []
         all_xib = []
+        rng1 = np.random.RandomState()
         for run in range(nruns):
-            x, y, _, _, k = generate_shear_field(nside)
-            x += np.random.uniform(-dx/2,dx/2,len(x))
-            y += np.random.uniform(-dx/2,dx/2,len(x))
+            x, y, _, _, k = generate_shear_field(nside, rng1)
+            x += rng1.uniform(-dx/2,dx/2,len(x))
+            y += rng1.uniform(-dx/2,dx/2,len(x))
             thresh = np.partition(k.flatten(), -nlens)[-nlens]
             w = np.zeros_like(k)
             w[k>=thresh] = 1.
@@ -1175,9 +1184,9 @@ def test_nn_jk():
     print('var_xib = ',var_xib)
 
     # First run with the normal variance estimate, which is too small.
-    x, y, _, _, k = generate_shear_field(nside)
-    x += np.random.uniform(-dx/2,dx/2,len(x))
-    y += np.random.uniform(-dx/2,dx/2,len(x))
+    x, y, _, _, k = generate_shear_field(nside, rng)
+    x += rng.uniform(-dx/2,dx/2,len(x))
+    y += rng.uniform(-dx/2,dx/2,len(x))
     thresh = np.partition(k.flatten(), -nlens)[-nlens]
     w = np.zeros_like(k)
     w[k>=thresh] = 1.
@@ -1279,10 +1288,11 @@ def test_nn_jk():
 
     # Check using estimate_cov
     t0 = time.time()
-    cov3 = nn3.estimate_cov('jackknife')
+    cov3 = nn2.estimate_cov('jackknife')
     t1 = time.time()
     print('Time to calculate jackknife covariance = ',t1-t0)
     print('varxi = ',cov3.diagonal())
+    np.testing.assert_allclose(cov3, nn3.cov)
 
     # Check sample covariance estimate
     t0 = time.time()
@@ -1291,7 +1301,7 @@ def test_nn_jk():
     print('Time to calculate sample covariance = ',t1-t0)
     print('varxi = ',cov3b.diagonal())
     print('ratio = ',cov3b.diagonal() / var_xib)
-    np.testing.assert_allclose(cov3b.diagonal(), var_xib, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(cov3b.diagonal(), var_xib, rtol=0.4*tol_factor)
 
     # Check NN cross-correlation and other combinations of dr, rd.
     rn3 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
@@ -1472,8 +1482,8 @@ def test_kappa_jk():
     print('mean_kg_xi = ',mean_kg_xi)
     print('var_kg_xi = ',var_kg_xi)
 
-    np.random.seed(1234)
-    x, y, g1, g2, k = generate_shear_field(nside)
+    rng = np.random.RandomState(1234)
+    x, y, g1, g2, k = generate_shear_field(nside, rng)
     thresh = np.partition(k.flatten(), -nlens)[-nlens]
     w = np.zeros_like(k)
     w[k>=thresh] = 1.
@@ -1808,7 +1818,6 @@ def test_clusters():
         nsource = 1000
         size = 200
         tol_factor = 3
-    np.random.seed(1234)
     rng = np.random.RandomState(1234)
 
     def make_gals():
@@ -1918,7 +1927,8 @@ def test_clusters():
     np.testing.assert_allclose(ng2.varxi, ng1.varxi, rtol=3.e-2*tol_factor)
 
     # Now run with jackknife variance estimate.  Should be much better.
-    ng3 = treecorr.NGCorrelation(bin_size=0.4, min_sep=1., max_sep=20., var_method='jackknife')
+    ng3 = treecorr.NGCorrelation(bin_size=0.4, min_sep=1., max_sep=20., var_method='jackknife',
+                                 rng=rng)
     t0 = time.time()
     ng3.process(cat1p, cat2p)
     t1 = time.time()
@@ -1993,10 +2003,8 @@ def test_brute_jk():
         rand_factor = 5
         tol_factor = 3
 
-    np.random.seed(1234)
-    x, y, g1, g2, k = generate_shear_field(nside)
-
     rng = np.random.RandomState(8675309)
+    x, y, g1, g2, k = generate_shear_field(nside, rng)
     indx = rng.choice(range(len(x)),nsource,replace=False)
     source_cat = treecorr.Catalog(x=x[indx], y=y[indx],
                                   g1=g1[indx], g2=g2[indx], k=k[indx],
@@ -2267,7 +2275,7 @@ def test_lowmem():
         ngal = 2000000
         npatch = 64
         himem = 1.e8   # These are empirical of course.  The point is himem >> lomem.
-        lomem = 3.e6
+        lomem = 4.e6
     else:
         ngal = 100000
         npatch = 16
@@ -2561,11 +2569,11 @@ def test_finalize_false():
     npatch = 16
     ngal = nside**2
 
-    np.random.seed(1234)
+    rng = np.random.RandomState(1234)
     # Make three independent data sets
-    x_1, y_1, g1_1, g2_1, k_1 = generate_shear_field(nside)
-    x_2, y_2, g1_2, g2_2, k_2 = generate_shear_field(nside)
-    x_3, y_3, g1_3, g2_3, k_3 = generate_shear_field(nside)
+    x_1, y_1, g1_1, g2_1, k_1 = generate_shear_field(nside, rng)
+    x_2, y_2, g1_2, g2_2, k_2 = generate_shear_field(nside, rng)
+    x_3, y_3, g1_3, g2_3, k_3 = generate_shear_field(nside, rng)
 
     # Make a single catalog with all three together
     cat = treecorr.Catalog(x=np.concatenate([x_1, x_2, x_3]),

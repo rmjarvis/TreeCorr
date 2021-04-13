@@ -120,6 +120,10 @@ class NNNCorrelation(BinnedCorr3):
         self.weight = np.zeros(shape, dtype=float)
         self.ntri = np.zeros(shape, dtype=float)
         self.tot = 0.
+        self._rrr_weight = None
+        self._rrr = None
+        self._drr = None
+        self._ddr = None
         self.logger.debug('Finished building NNNCorr')
 
     @property
@@ -190,8 +194,17 @@ class NNNCorrelation(BinnedCorr3):
                 # For everything else, shallow copy is fine.
                 # In particular don't deep copy config or logger
                 # Most of the rest are scalars, which copy fine this way.
+                # And the read-only things are all in _ro.
+                # The results dict is trickier.  We rely on it being copied in places, but we
+                # never add more to it after the copy, so shallow copy is fine.
                 ret.__dict__[key] = item
         ret._corr = None # We'll want to make a new one of these if we need it.
+        if self._drr is not None:
+            ret._drr = self._drr.copy()
+        if self._ddr is not None:
+            ret._ddr = self._ddr.copy()
+        if self._rrr is not None:
+            ret._rrr = self._rrr.copy()
         return ret
 
     def __repr__(self):
@@ -381,6 +394,9 @@ class NNNCorrelation(BinnedCorr3):
         #     for other in others:
         #         self += other
         # but no sanity checks and use numpy.sum for faster calculation.
+        self.tot = np.sum([c.tot for c in others])
+        # Empty ones were only needed for tot.  Remove them now.
+        others = [c for c in others if c.nonempty()]
         np.sum([c.meand1 for c in others], axis=0, out=self.meand1)
         np.sum([c.meanlogd1 for c in others], axis=0, out=self.meanlogd1)
         np.sum([c.meand2 for c in others], axis=0, out=self.meand2)
@@ -391,7 +407,23 @@ class NNNCorrelation(BinnedCorr3):
         np.sum([c.meanv for c in others], axis=0, out=self.meanv)
         np.sum([c.weight for c in others], axis=0, out=self.weight)
         np.sum([c.ntri for c in others], axis=0, out=self.ntri)
-        self.tot = np.sum([c.tot for c in others])
+
+    def _add_tot(self, i, j, k, c1, c2, c3):
+        # When storing results from a patch-based run, tot needs to be accumulated even if
+        # the total weight being accumulated comes out to be zero.
+        # This only applies to NNNCorrelation.  For the other ones, this is a no op.
+        tot = c1.sumw * c2.sumw * c3.sumw
+        if c2 is c3:
+            # Account for 1/2 factor in cross12 cases.
+            tot /= 2
+        self.tot += tot
+        # We also have to keep all pairs in the results dict, otherwise the tot calculation
+        # gets messed up.  We need to accumulate the tot value of all pairs, even if
+        # the resulting weight is zero.
+        res = self.copy()
+        res.weight = np.zeros_like(self.weight)
+        res.tot = tot
+        self.results[(i,j,k)] = res
 
     def __iadd__(self, other):
         """Add a second `NNNCorrelation`'s data to this one.
@@ -414,8 +446,13 @@ class NNNCorrelation(BinnedCorr3):
                 self.max_v == other.max_v):
             raise ValueError("NNNCorrelation to be added is not compatible with this one.")
 
-        if not other.nonempty(): return self
         self._set_metric(other.metric, other.coords)
+        self.tot += other.tot
+
+        # If other is empty, then we're done now.
+        if not other.nonempty():
+            return self
+
         self.meand1[:] += other.meand1[:]
         self.meanlogd1[:] += other.meanlogd1[:]
         self.meand2[:] += other.meand2[:]
@@ -426,7 +463,6 @@ class NNNCorrelation(BinnedCorr3):
         self.meanv[:] += other.meanv[:]
         self.weight[:] += other.weight[:]
         self.ntri[:] += other.ntri[:]
-        self.tot += other.tot
         return self
 
     def process(self, cat1, cat2=None, cat3=None, metric=None, num_threads=None,
@@ -487,6 +523,27 @@ class NNNCorrelation(BinnedCorr3):
             self._process_all_cross(cat1, cat2, cat3, metric, num_threads, comm, low_mem)
         self.finalize()
 
+    def _mean_weight(self):
+        mean_np = np.mean(self.ntri)
+        return 1 if mean_np == 0 else np.mean(self.weight)/mean_np
+
+    def getStat(self):
+        """The standard statistic for the current correlation object as a 1-d array.
+
+        This raises a RuntimeError if calculateZeta has not been run yet.
+        """
+        if self._rrr_weight is None:
+            raise RuntimeError("You need to call calculateXi before calling estimate_cov.")
+        return self.zeta.ravel()
+
+    def getWeight(self):
+        """The weight array for the current correlation object as a 1-d array.
+
+        This is the weight array corresponding to `getStat`.  In this case, it is the denominator
+        RRR from the calculation done by calculateZeta().
+        """
+        return self._rrr_weight.ravel()
+
     def calculateZeta(self, rrr, drr=None, ddr=None):
         r"""Calculate the 3pt function given another 3pt function of random
         points using the same mask, and possibly cross correlations of the data and random.
@@ -546,28 +603,162 @@ class NNNCorrelation(BinnedCorr3):
         if (ddr is not None) != (drr is not None):
             raise TypeError("Must provide both ddr and drr (or neither).")
 
-        rrrw = self.tot / rrr.tot
-        if ddr is None:
-            zeta = (self.weight - rrr.weight * rrrw)
-        else:
-            if ddr.tot == 0:
-                raise ValueError("ddr has tot=0.")
+        # rrrf is the factor to scale rrr weights to get something commensurate to the ddd density.
+        rrrf = self.tot / rrr.tot
+
+        # Likewise for the other two potential randoms:
+        if drr is not None:
             if drr.tot == 0:
                 raise ValueError("drr has tot=0.")
-            ddrw = self.tot / ddr.tot
-            drrw = self.tot / drr.tot
-            zeta = self.weight - ddr.weight * ddrw + drr.weight * drrw - rrr.weight * rrrw
+            drrf = self.tot / drr.tot
+        if ddr is not None:
+            if ddr.tot == 0:
+                raise ValueError("ddr has tot=0.")
+            ddrf = self.tot / ddr.tot
+
+        # Calculate zeta based on which randoms are provided.
+        denom = rrr.weight * rrrf
+        if ddr is None:
+            self.zeta = self.weight - denom
+        else:
+            self.zeta = self.weight - ddr.weight * ddrf + drr.weight * drrf - denom
+
+        # Divide by DRR in all cases.
         if np.any(rrr.weight == 0):
             self.logger.warning("Warning: Some bins for the randoms had no triangles.")
-        mask1 = rrr.weight != 0
-        mask2 = rrr.weight == 0
-        zeta[mask1] /= (rrr.weight[mask1] * rrrw)
-        zeta[mask2] = 0
+            denom[rrr.weight==0] = 1.  # guard against division by 0.
+        self.zeta /= denom
 
-        varzeta = np.zeros_like(rrr.weight)
-        varzeta[mask1] = 1./ (rrr.weight[mask1] * rrrw)
+        # Set up necessary info for estimate_cov
 
-        return zeta, varzeta
+        # First the bits needed for shot noise covariance:
+        dddw = self._mean_weight()
+        rrrw = rrr._mean_weight()
+        if drr is not None:
+            drrw = drr._mean_weight()
+        if ddr is not None:
+            ddrw = ddr._mean_weight()
+
+        # Note: The use of varzeta_factor for the shot noise varzeta is even less justified
+        #       than in the NN varxi case.  This is merely motivated by analogy with the
+        #       2pt version.
+        if ddr is None:
+            varzeta_factor = 1 + rrrf*rrrw/dddw
+        else:
+            varzeta_factor = 1 + drrf*drrw/dddw + ddrf*ddrw/dddw + rrrf*rrrw/dddw
+        self._var_num = dddw * varzeta_factor**2  # Should this be **3? Hmm...
+        self._rrr_weight = rrr.weight * rrrf
+
+        # Now set up the bits needed for patch-based covariance
+        self._rrr = rrr
+        self._drr = drr
+        self._ddr = ddr
+
+        if len(self.results) > 0:
+            # Check that all use the same patches as ddd
+            if rrr.npatch1 != 1:
+                if rrr.npatch1 != self.npatch1:
+                    raise RuntimeError("If using patches, RRR must be run with the same patches "
+                                       "as DDD")
+            if drr is not None and (len(drr.results) == 0 or drr.npatch1 != self.npatch1
+                                    or drr.npatch2 not in (self.npatch2, 1)):
+                raise RuntimeError("DRR must be run with the same patches as DDD")
+            if ddr is not None and (len(ddr.results) == 0 or ddr.npatch2 != self.npatch2
+                                    or ddr.npatch1 not in (self.npatch1, 1)):
+                raise RuntimeError("DDR must be run with the same patches as DDD")
+
+            # If there are any rrr,drr,ddr patch sets that aren't in results, then we need to add
+            # some dummy results to make sure all the right ijk "pair"s are computed when we make
+            # the vectors for the covariance matrix.
+            add_ijk = set()
+            if rrr.npatch1 != 1:
+                for ijk in rrr.results:
+                    if ijk not in self.results:
+                        add_ijk.add(ijk)
+
+            if drr is not None and drr.npatch2 != 1:
+                for ijk in drr.results:
+                    if ijk not in self.results:
+                        add_ijk.add(ijk)
+
+            if ddr is not None and ddr.npatch1 != 1:
+                for ijk in ddr.results:
+                    if ijk not in self.results:
+                        add_ijk.add(ijk)
+
+            if len(add_ijk) > 0:
+                template = next(iter(self.results.values()))  # Just need something to copy.
+                for ijk in add_ijk:
+                    new_cijk = template.copy()
+                    new_cijk.weight.ravel()[:] = 0
+                    new_cijk.tot = 0
+                    self.results[ijk] = new_cijk
+
+        # Now that it's all set up, calculate the covariance and set varzeta to the diagonal.
+        self.cov = self.estimate_cov(self.var_method)
+        self.varzeta = self.cov.diagonal().reshape(self.zeta.shape)
+        return self.zeta, self.varzeta
+
+    def _calculate_xi_from_pairs(self, pairs):
+        # Note: we keep the notation ij and pairs here, even though they are really ijk and
+        # triples.
+        self._clear()
+        self._sum([self.results[ij] for ij in pairs])
+        self._finalize()
+        ddd = self.weight
+        if len(self._rrr.results) > 0:
+            # This is the usual case.  R has patches just like D.
+            # Calculate rrr and rrrf in the normal way based on the same pairs as used for DDD.
+            pairs1 = [ij for ij in pairs if ij in set(self._rrr.results.keys())]
+            self._rrr._sum([self._rrr.results[ij] for ij in pairs1])
+            ddd_tot = self.tot
+        else:
+            # In this case, R was not run with patches.
+            # We need to scale RRR down by the relative area.
+            # The approximation we'll use is that tot in the auto-correlations is
+            # proportional to area**3.
+            # The sum of tot**(1/3) when i=j=k gives an estimate of the fraction of the total area.
+            area_frac = np.sum([self.results[ij].tot**(1./3.) for ij in pairs
+                                if ij[0] == ij[1] == ij[2]])
+            area_frac /= np.sum([cij.tot**(1./3.) for ij,cij in self.results.items()
+                                 if ij[0] == ij[1] == ij[2]])
+            # First figure out the original total for all DDD that had the same footprint as RRR.
+            ddd_tot = np.sum([self.results[ij].tot for ij in self.results])
+            # The rrrf we want will be a factor of area_frac smaller than the original
+            # ddd_tot/rrr_tot.  We can effect this by multiplying the full ddd_tot by area_frac
+            # and use that value normally below.  (Also for drrf and ddrf.)
+            ddd_tot *= area_frac
+
+        rrr = self._rrr.weight
+        rrrf = ddd_tot / self._rrr.tot
+
+        if self._drr is not None:
+            if self._drr.npatch2 == 1:
+                # If r doesn't have patches, then convert all (i,i,i) pairs to (i,0,0).
+                pairs2 = [(ij[0],0,0) for ij in pairs if ij[0] == ij[1] == ij[2]]
+            else:
+                pairs2 = [ij for ij in pairs if ij in set(self._drr.results.keys())]
+            self._drr._sum([self._drr.results[ij] for ij in pairs2])
+            drr = self._drr.weight
+            drrf = ddd_tot / self._drr.tot
+        if self._ddr is not None:
+            if self._ddr.npatch1 == 1:
+                # If r doesn't have patches, then convert all (i,i,j) pairs to (0,i,j)
+                # and all (i,j,i to (0,j,i).
+                pairs3 = [(0,ij[1],ij[2]) for ij in pairs if ij[0] == ij[1] or ij[0] == ij[2]]
+            else:
+                pairs3 = [ij for ij in pairs if ij in set(self._ddr.results.keys())]
+            self._ddr._sum([self._ddr.results[ij] for ij in pairs3])
+            ddr = self._ddr.weight
+            ddrf = ddd_tot / self._ddr.tot
+        denom = rrr * rrrf
+        if self._drr is None:
+            zeta = ddd - denom
+        else:
+            zeta = ddd - ddr * ddrf + drr * drrf - denom
+        denom[denom == 0] = 1  # Guard against division by zero.
+        self.zeta = zeta / denom
+        self.weight = self._rrr_weight = denom
 
     def write(self, file_name, rrr=None, drr=None, ddr=None, file_type=None, precision=None):
         r"""Write the correlation function to the file, file_name.

@@ -2260,7 +2260,6 @@ def test_nnn():
     zeta2, varzeta2 = ddd.calculateZeta(rrr,drr=rrr,ddr=rrr)
     print('fake compensated zeta = ',zeta2)
     np.testing.assert_allclose(zeta2, zeta)
-    np.testing.assert_allclose(varzeta2, varzeta)
 
     # Error to not have one of rrr, drr, ddr.
     with assert_raises(TypeError):

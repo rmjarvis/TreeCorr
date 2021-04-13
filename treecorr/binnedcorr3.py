@@ -493,7 +493,13 @@ class BinnedCorr3(object):
         self._ro.num_bootstrap = get(self.config,'num_bootstrap',int,500)
         self.results = {}  # for jackknife, etc. store the results of each pair of patches.
         self.npatch1 = self.npatch2 = self.npatch3 = 1
-        self.rng = np.random.RandomState() if rng is None else rng
+        self._rng = rng
+
+    @property
+    def rng(self):
+        if self._rng is None:
+            self._rng = np.random.RandomState()
+        return self._rng
 
     # Properties for all the read-only attributes ("ro" stands for "read-only")
     @property

@@ -360,6 +360,9 @@ class Catalog(object):
                             should be an integer, which specifies how many digits to write.
                             (default: 16)
 
+        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for any random
+                            number generation (e.g. kmeans patches). (default: None)
+
         num_threads (int):  How many OpenMP threads to use during the catalog load steps.
                             (default: use the number of cpu cores)
 
@@ -506,7 +509,7 @@ class Catalog(object):
 
     def __init__(self, file_name=None, config=None, num=0, logger=None, is_rand=False,
                  x=None, y=None, z=None, ra=None, dec=None, r=None, w=None, wpos=None, flag=None,
-                 g1=None, g2=None, k=None, patch=None, patch_centers=None, **kwargs):
+                 g1=None, g2=None, k=None, patch=None, patch_centers=None, rng=None, **kwargs):
 
         self.config = merge_config(config, kwargs, Catalog._valid_params, Catalog._aliases)
         self.orig_config = config.copy() if config is not None else {}
@@ -546,6 +549,7 @@ class Catalog(object):
         self._vark = None
         self._patches = None
         self._centers = None
+        self._rng = rng
 
         first_row = get_from_list(self.config,'first_row',num,int,1)
         if first_row < 1:
@@ -1648,7 +1652,7 @@ class Catalog(object):
         if logger is None:
             logger = self.logger
         field = self.nfields(min_size, max_size, split_method, brute, min_top, max_top, coords,
-                             logger=logger)
+                             rng=self._rng, logger=logger)
         self._field = weakref.ref(field)
         return field
 
@@ -1684,7 +1688,7 @@ class Catalog(object):
         if logger is None:
             logger = self.logger
         field = self.kfields(min_size, max_size, split_method, brute, min_top, max_top, coords,
-                             logger=logger)
+                             rng=self._rng, logger=logger)
         self._field = weakref.ref(field)
         return field
 
@@ -1720,7 +1724,7 @@ class Catalog(object):
         if logger is None:
             logger = self.logger
         field = self.gfields(min_size, max_size, split_method, brute, min_top, max_top, coords,
-                             logger=logger)
+                             rng=self._rng, logger=logger)
         self._field = weakref.ref(field)
         return field
 

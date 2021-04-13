@@ -29,7 +29,7 @@ inline void seed_urandom()
     // This implementation shamelessly taken from:
     // http://stackoverflow.com/questions/2572366/how-to-use-dev-random-or-urandom-in-c
     std::ifstream rand("/dev/urandom");
-    int myRandomInteger;
+    long myRandomInteger;
     rand.read((char*)&myRandomInteger, sizeof myRandomInteger);
     rand.close();
     srand(myRandomInteger);
@@ -43,13 +43,16 @@ inline void seed_time()
 }
 
 // Return a random number between 0 and 1.
-double urand()
+double urand(long seed)
 {
     static bool first = true;
 
-    if (first) {
-        // This is a copy of the way GalSim seeds its random number generator using urandom first,
-        // and then if that fails, using the time.
+    if (seed != 0) {
+        srand(seed);
+        first = false;
+    } else if (first) {
+        // This is a copy of the way GalSim seeds its random number generator using urandom
+        // first, and then if that fails, using the time.
         // Except we just use this to seed the std rand function, not a boost rng.
         // Should be fine for this purpose.
         try {

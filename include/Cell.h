@@ -37,7 +37,7 @@ const double IOTA = 1.e-10;
 enum DataType { NData=1 , KData=2 , GData=3 };
 
 // Return a random number between 0 and 1.
-double urand();
+double urand(long seed=0);
 
 // This is usually what we store in the leaf cells. It has size 4, which is always <= the
 // size of a pointer on modern machines, so it never adds any space to the memory needed.

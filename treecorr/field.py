@@ -263,7 +263,7 @@ class Field(object):
         _lib.FieldGetNear(self.data, x, y, z, sep, self._d, self._coords, lp(ind), n)
         return ind
 
-    def run_kmeans(self, npatch, max_iter=200, tol=1.e-5, init='tree', alt=False):
+    def run_kmeans(self, npatch, max_iter=200, tol=1.e-5, init='tree', alt=False, rng=None):
         r"""Use k-means algorithm to set patch labels for a field.
 
         The k-means algorithm (cf. https://en.wikipedia.org/wiki/K-means_clustering) identifies
@@ -361,6 +361,8 @@ class Field(object):
             alt (bool):         Use the alternate assignment algorithm to minimize the standard
                                 deviation of the inertia rather than the total inertia (aka WCSS).
                                 (default: False)
+            rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random
+                                number generation. (default: None)
 
         Returns:
             Tuple containing
@@ -372,12 +374,12 @@ class Field(object):
                   spherical geometries.  In the latter case, the centers represent
                   (x,y,z) coordinates on the unit sphere.
         """
-        centers = self.kmeans_initialize_centers(npatch, init)
+        centers = self.kmeans_initialize_centers(npatch, init, rng)
         self.kmeans_refine_centers(centers, max_iter, tol, alt)
         patches = self.kmeans_assign_patches(centers)
         return patches, centers
 
-    def kmeans_initialize_centers(self, npatch, init='tree'):
+    def kmeans_initialize_centers(self, npatch, init='tree', rng=None):
         """Use the field's tree structure to assign good initial centers for a K-Means run.
 
         The classic K-Means algorithm involves starting with random points as the initial
@@ -403,6 +405,9 @@ class Field(object):
                                     - 'kmeans++' =  Use the k-means++ algorithm.
                                       cf. https://en.wikipedia.org/wiki/K-means%2B%2B
 
+            rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random
+                                number generation. (default: None)
+
         Returns:
             An array of center coordinates.
             Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
@@ -417,12 +422,13 @@ class Field(object):
             centers = np.empty((npatch, 2))
         else:
             centers = np.empty((npatch, 3))
+        seed = 0 if rng is None else int(rng.random() * 2**63)
         if init == 'tree':
-            _lib.KMeansInitTree(self.data, dp(centers), int(npatch), self._d, self._coords)
+            _lib.KMeansInitTree(self.data, dp(centers), int(npatch), self._d, self._coords, seed)
         elif init == 'random':
-            _lib.KMeansInitRand(self.data, dp(centers), int(npatch), self._d, self._coords)
+            _lib.KMeansInitRand(self.data, dp(centers), int(npatch), self._d, self._coords, seed)
         elif init == 'kmeans++':
-            _lib.KMeansInitKMPP(self.data, dp(centers), int(npatch), self._d, self._coords)
+            _lib.KMeansInitKMPP(self.data, dp(centers), int(npatch), self._d, self._coords, seed)
         else:
             raise ValueError("Invalid init: %s. "%init +
                              "Must be one of 'tree', 'random', or 'kmeans++.'")
@@ -520,10 +526,12 @@ class NField(Field):
         max_top (int):      The maximum number of top layers to use when setting up the field.
                             (default: 10)
         coords (str):       The kind of coordinate system to use. (default: cat.coords)
+        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random
+                            number generation. (default: None)
         logger (Logger):    A logger file if desired. (default: None)
     """
     def __init__(self, cat, min_size=0, max_size=None, split_method='mean', brute=False,
-                 min_top=None, max_top=10, coords=None, logger=None):
+                 min_top=None, max_top=10, coords=None, rng=None, logger=None):
         if logger:
             if cat.name != '':
                 logger.info('Building NField from cat %s',cat.name)
@@ -541,10 +549,11 @@ class NField(Field):
         self.min_top, self.max_top = self._determine_top(min_top, max_top)
         self.coords = coords if coords is not None else cat.coords
         self._coords = coord_enum(self.coords)  # These are the C++-layer enums
+        seed = 0 if rng is None else int(rng.random() * 2**63)
 
         self.data = _lib.BuildNField(dp(cat.x), dp(cat.y), dp(cat.z),
                                      dp(cat.w), dp(cat.wpos), cat.ntot,
-                                     self.min_size, self.max_size, self._sm,
+                                     self.min_size, self.max_size, self._sm, seed,
                                      self.brute, self.min_top, self.max_top, self._coords)
         if logger:
             logger.debug('Finished building NField (%s)',self.coords)
@@ -583,10 +592,12 @@ class KField(Field):
         max_top (int):      The maximum number of top layers to use when setting up the field.
                             (default: 10)
         coords (str):       The kind of coordinate system to use. (default: cat.coords)
+        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random
+                            number generation. (default: None)
         logger (Logger):    A logger file if desired. (default: None)
     """
     def __init__(self, cat, min_size=0, max_size=None, split_method='mean', brute=False,
-                 min_top=None, max_top=10, coords=None, logger=None):
+                 min_top=None, max_top=10, coords=None, rng=None, logger=None):
         if logger:
             if cat.name != '':
                 logger.info('Building KField from cat %s',cat.name)
@@ -604,11 +615,12 @@ class KField(Field):
         self.min_top, self.max_top = self._determine_top(min_top, max_top)
         self.coords = coords if coords is not None else cat.coords
         self._coords = coord_enum(self.coords)  # These are the C++-layer enums
+        seed = 0 if rng is None else int(rng.random() * 2**63)
 
         self.data = _lib.BuildKField(dp(cat.x), dp(cat.y), dp(cat.z),
                                      dp(cat.k),
                                      dp(cat.w), dp(cat.wpos), cat.ntot,
-                                     self.min_size, self.max_size, self._sm,
+                                     self.min_size, self.max_size, self._sm, seed,
                                      self.brute, self.min_top, self.max_top, self._coords)
         if logger:
             logger.debug('Finished building KField (%s)',self.coords)
@@ -644,10 +656,12 @@ class GField(Field):
         max_top (int):      The maximum number of top layers to use when setting up the field.
                             (default: 10)
         coords (str):       The kind of coordinate system to use. (default: cat.coords)
+        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random
+                            number generation. (default: None)
         logger (Logger):    A logger file if desired. (default: None)
     """
     def __init__(self, cat, min_size=0, max_size=None, split_method='mean', brute=False,
-                 min_top=None, max_top=10, coords=None, logger=None):
+                 min_top=None, max_top=10, coords=None, rng=None, logger=None):
         if logger:
             if cat.name != '':
                 logger.info('Building GField from cat %s',cat.name)
@@ -665,11 +679,12 @@ class GField(Field):
         self.min_top, self.max_top = self._determine_top(min_top, max_top)
         self.coords = coords if coords is not None else cat.coords
         self._coords = coord_enum(self.coords)  # These are the C++-layer enums
+        seed = 0 if rng is None else int(rng.random() * 2**63)
 
         self.data = _lib.BuildGField(dp(cat.x), dp(cat.y), dp(cat.z),
                                      dp(cat.g1), dp(cat.g2),
                                      dp(cat.w), dp(cat.wpos), cat.ntot,
-                                     self.min_size, self.max_size, self._sm,
+                                     self.min_size, self.max_size, self._sm, seed,
                                      self.brute, self.min_top, self.max_top, self._coords)
         if logger:
             logger.debug('Finished building GField (%s)',self.coords)

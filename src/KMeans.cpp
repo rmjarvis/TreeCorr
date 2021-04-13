@@ -31,12 +31,12 @@ template <int D, int C>
 void InitializeCentersTree(std::vector<Position<C> >& centers, const Cell<D,C>* cell,
                            long first, int ncenters)
 {
-    dbg<<"Recursive InitializeCentersTree: "<<first<<"  "<<ncenters<<std::endl;
+    xdbg<<"Recursive InitializeCentersTree: "<<first<<"  "<<ncenters<<std::endl;
     xdbg<<"pos = "<<cell->getPos()<<std::endl;
     if (ncenters == 1) {
         xdbg<<"Only 1 center.  Use this cell.\n";
         Assert(first < long(centers.size()));
-        dbg<<"initial center["<<first<<"] = "<<cell->getPos()<<std::endl;
+        xdbg<<"initial center["<<first<<"] = "<<cell->getPos()<<std::endl;
         centers[first] = cell->getPos();
     } else if (cell->getLeft()) {
         int m1 = ncenters / 2;
@@ -61,11 +61,13 @@ void InitializeCentersTree(std::vector<Position<C> >& centers, const Cell<D,C>* 
 }
 
 template <int D, int C>
-void InitializeCentersTree(std::vector<Position<C> >& centers, const std::vector<Cell<D,C>*>& cells)
+void InitializeCentersTree(std::vector<Position<C> >& centers, const std::vector<Cell<D,C>*>& cells,
+                           long seed)
 {
     dbg<<"Initialize centers: "<<centers.size()<<"  "<<cells.size()<<std::endl;
     long ncenters = centers.size();
     long ncells = cells.size();
+    urand(seed);  // Make sure rand is seeded properly.
     if (ncells > ncenters) {
         dbg<<"More cells than centers.  Pick from them randomly.\n";
         std::vector<long> selection(ncenters);
@@ -90,8 +92,11 @@ void InitializeCentersTree(std::vector<Position<C> >& centers, const std::vector
         for (long k=0; k<k1; ++k) nvalues[k] = n1;
         for (long k=k1; k<ncells; ++k) nvalues[k] = n2;
         // Shuffle the locations of n1, n2
-        urand();  // Make sure rand is seeded properly.
-        std::random_shuffle(nvalues.begin(), nvalues.end());
+        // (Fisher-Yates algorithm)
+        for (long k=ncells; k>1; --k) {
+            long j = int(urand() * k);
+            if (j != k-1) std::swap(nvalues[j], nvalues[k-1]);
+        }
 
         // Do the recursive initialization for each value of n1 in the list.
         long first=0;
@@ -106,7 +111,8 @@ void InitializeCentersTree(std::vector<Position<C> >& centers, const std::vector
 }
 
 template <int D, int C>
-void InitializeCentersRand(std::vector<Position<C> >& centers, const std::vector<Cell<D,C>*>& cells)
+void InitializeCentersRand(std::vector<Position<C> >& centers, const std::vector<Cell<D,C>*>& cells,
+                           long seed)
 {
     dbg<<"Initialize centers (random): "<<centers.size()<<"  "<<cells.size()<<std::endl;
     // Pick npatch random numbers from the total number of objecst.
@@ -115,6 +121,7 @@ void InitializeCentersRand(std::vector<Position<C> >& centers, const std::vector
     long ntot = 0;
     for (long k=0; k<ncells; ++k) ntot += cells[k]->getN();
     xdbg<<"ntot = "<<ntot<<std::endl;
+    urand(seed);  // Make sure rand is seeded properly.
 
     // Find ncenters different indices from 0..ntot-1.
     std::vector<long> index(ncenters);
@@ -213,7 +220,8 @@ Position<C> InitializeCentersKMPP(const Cell<D,C>* cell,
 }
 
 template <int D, int C>
-void InitializeCentersKMPP(std::vector<Position<C> >& centers, const std::vector<Cell<D,C>*>& cells)
+void InitializeCentersKMPP(std::vector<Position<C> >& centers, const std::vector<Cell<D,C>*>& cells,
+                           long seed)
 {
     // cf. https://en.wikipedia.org/wiki/K-means%2B%2B
     // The basic KMeans++ algorithm is as follows:
@@ -231,6 +239,7 @@ void InitializeCentersKMPP(std::vector<Position<C> >& centers, const std::vector
     dbg<<"Initialize centers (kmeans++): "<<centers.size()<<"  "<<cells.size()<<std::endl;
     long ncenters = centers.size();
     long ncells = cells.size();
+    urand(seed);  // Make sure rand is seeded properly.
 
     long ntot = 0;
     for (long k=0; k<ncells; ++k) ntot += cells[k]->getN();
@@ -365,7 +374,7 @@ struct UpdateCenters
                 new_centers[i] /= w[i];
                 new_centers[i].normalize();
             }
-            dbg<<"New center = "<<new_centers[i]<<std::endl;
+            xdbg<<"New center = "<<new_centers[i]<<std::endl;
         }
     }
 
@@ -432,7 +441,7 @@ struct CalculateInertia
 
         for (int i=0; i<npatch; ++i) {
 #ifdef DEBUGLOGGING
-            dbg<<"Inertia["<<i<<"] = "<<inertia[i]<<std::endl;
+            xdbg<<"Inertia["<<i<<"] = "<<inertia[i]<<std::endl;
             mean += inertia[i];
             rms += SQR(inertia[i]);
 #endif
@@ -442,8 +451,8 @@ struct CalculateInertia
         mean /= npatch;
         rms -= npatch * SQR(mean);
         rms = sqrt(rms / npatch);
-        dbg<<"mean inertia = "<<mean<<std::endl;
-        dbg<<"rms inertia = "<<rms<<std::endl;
+        xdbg<<"mean inertia = "<<mean<<std::endl;
+        xdbg<<"rms inertia = "<<rms<<std::endl;
 #endif
     }
 
@@ -518,7 +527,7 @@ struct AssignPatches
         int npatch = centers.size();
         dbg<<"Finalize AssignPatches\n";
         for (int i=0; i<npatch; ++i) {
-            dbg<<"Inertia["<<i<<"] = "<<inertia[i]<<std::endl;
+            xdbg<<"Inertia["<<i<<"] = "<<inertia[i]<<std::endl;
             mean += inertia[i];
             rms += SQR(inertia[i]);
         }
@@ -682,14 +691,14 @@ template <int C>
 double CalculateShiftSq(const std::vector<Position<C> >& centers,
                         const std::vector<Position<C> >& new_centers)
 {
-    dbg<<"Start CalculateShiftSq\n";
+    xdbg<<"Start CalculateShiftSq\n";
     double shiftsq=0.;
     for (size_t i=0; i<centers.size(); ++i) {
         double shiftsq_i = (centers[i] - new_centers[i]).normSq();
-        dbg<<"Shift for "<<i<<" = "<<centers[i]<<" -> "<<new_centers[i]<<"  d = "<<sqrt(shiftsq_i)<<std::endl;
+        xdbg<<"Shift for "<<i<<" = "<<centers[i]<<" -> "<<new_centers[i]<<"  d = "<<sqrt(shiftsq_i)<<std::endl;
         shiftsq += shiftsq_i;
     }
-    dbg<<"Total shiftsq = "<<shiftsq<<std::endl;
+    xdbg<<"Total shiftsq = "<<shiftsq<<std::endl;
     return shiftsq;
 }
 
@@ -732,32 +741,32 @@ void ReadCenters(std::vector<Position<Flat> >& centers, const double* pycenters,
 }
 
 template <int D, int C>
-void KMeansInitTree2(Field<D,C>*field, double* pycenters, int npatch)
+void KMeansInitTree2(Field<D,C>*field, double* pycenters, int npatch, long seed)
 {
     dbg<<"Start KMeansInitTree for "<<npatch<<" patches\n";
     const std::vector<Cell<D,C>*> cells = field->getCells();
     std::vector<Position<C> > centers(npatch);
-    InitializeCentersTree(centers, cells);
+    InitializeCentersTree(centers, cells, seed);
     WriteCenters(centers, pycenters, npatch);
 }
 
 template <int D, int C>
-void KMeansInitRand2(Field<D,C>*field, double* pycenters, int npatch)
+void KMeansInitRand2(Field<D,C>*field, double* pycenters, int npatch, long seed)
 {
     dbg<<"Start KMeansInitRand for "<<npatch<<" patches\n";
     const std::vector<Cell<D,C>*> cells = field->getCells();
     std::vector<Position<C> > centers(npatch);
-    InitializeCentersRand(centers, cells);
+    InitializeCentersRand(centers, cells, seed);
     WriteCenters(centers, pycenters, npatch);
 }
 
 template <int D, int C>
-void KMeansInitKMPP2(Field<D,C>*field, double* pycenters, int npatch)
+void KMeansInitKMPP2(Field<D,C>*field, double* pycenters, int npatch, long seed)
 {
     dbg<<"Start KMeansInitKMPP for "<<npatch<<" patches\n";
     const std::vector<Cell<D,C>*> cells = field->getCells();
     std::vector<Position<C> > centers(npatch);
-    InitializeCentersKMPP(centers, cells);
+    InitializeCentersKMPP(centers, cells, seed);
     WriteCenters(centers, pycenters, npatch);
 }
 
@@ -777,19 +786,19 @@ void KMeansRun2(Field<D,C>*field, double* pycenters, int npatch, int max_iter, d
     // So sqrt(total_shift^2 / npatch) / field.size < tol
     // total_shift^2 < tol^2 * size^2 * npatch
     double tolsq = tol*tol * field->getSizeSq() * npatch;
-    dbg<<"tolsq = "<<tolsq<<std::endl;
+    xdbg<<"tolsq = "<<tolsq<<std::endl;
 
     // The alt version needs to keep track of the inertia of each patch.
     CalculateInertia<D,C> calculate_inertia(alt ? npatch : 0, centers);
     std::vector<double>* pinertia = 0;
-    dbg<<"Made calculate_inertia\n";
+    xdbg<<"Made calculate_inertia\n";
 
     // Keep track of which cells belong to which patch.
     UpdateCenters<D,C> update_centers(npatch);
-    dbg<<"Made update_centers\n";
+    xdbg<<"Made update_centers\n";
 
     for(int iter=0; iter<max_iter; ++iter) {
-        dbg<<"Start iter "<<iter<<std::endl;
+        xdbg<<"Start iter "<<iter<<std::endl;
         // Update the inertia if we are doing the alternate version
         if (alt) {
             calculate_inertia.reset();
@@ -804,12 +813,12 @@ void KMeansRun2(Field<D,C>*field, double* pycenters, int npatch, int max_iter, d
         update_centers.reset();
         FindCellsInPatches(centers, cells, update_centers, pinertia);
         update_centers.finalize();
-        dbg<<"After UpdateCenters\n";
+        xdbg<<"After UpdateCenters\n";
 
         // Check for convergence
         double shiftsq = CalculateShiftSq(centers, update_centers.new_centers);
         centers = update_centers.new_centers;
-        dbg<<"Iter "<<iter<<": shiftsq = "<<shiftsq<<"  tolsq = "<<tolsq<<std::endl;
+        xdbg<<"Iter "<<iter<<": shiftsq = "<<shiftsq<<"  tolsq = "<<tolsq<<std::endl;
         // Stop if (rms shift / size) < tol
         if (shiftsq < tolsq) {
             dbg<<"Stopping RunKMeans because rms shift = "<<sqrt(shiftsq/npatch)<<std::endl;
@@ -832,102 +841,102 @@ void KMeansAssign2(Field<D,C>*field, double* pycenters, int npatch, long* patche
     std::vector<Position<C> > centers(npatch);
     ReadCenters(centers, pycenters, npatch);
 
-    dbg<<"Start AssignPatches\n";
+    xdbg<<"Start AssignPatches\n";
     AssignPatches<D,C> assign_patches(patches, n, centers);
     FindCellsInPatches(centers, cells, assign_patches);
     assign_patches.finalize();
-    dbg<<"After AssignPatches\n";
+    xdbg<<"After AssignPatches\n";
 }
 
 template <int D>
-void KMeansInitTree1(void* field, double* centers, int npatch, int coords)
+void KMeansInitTree1(void* field, double* centers, int npatch, int coords, long seed)
 {
     switch(coords) {
       case Flat:
-           KMeansInitTree2(static_cast<Field<D,Flat>*>(field), centers, npatch);
+           KMeansInitTree2(static_cast<Field<D,Flat>*>(field), centers, npatch, seed);
            break;
       case Sphere:
-           KMeansInitTree2(static_cast<Field<D,Sphere>*>(field), centers, npatch);
+           KMeansInitTree2(static_cast<Field<D,Sphere>*>(field), centers, npatch, seed);
            break;
       case ThreeD:
-           KMeansInitTree2(static_cast<Field<D,ThreeD>*>(field), centers, npatch);
+           KMeansInitTree2(static_cast<Field<D,ThreeD>*>(field), centers, npatch, seed);
            break;
     }
 }
 
-void KMeansInitTree(void* field, double* centers, int npatch, int d, int coords)
+void KMeansInitTree(void* field, double* centers, int npatch, int d, int coords, long seed)
 {
     switch(d) {
       case NData:
-           KMeansInitTree1<NData>(field, centers, npatch, coords);
+           KMeansInitTree1<NData>(field, centers, npatch, coords, seed);
            break;
       case KData:
-           KMeansInitTree1<KData>(field, centers, npatch, coords);
+           KMeansInitTree1<KData>(field, centers, npatch, coords, seed);
            break;
       case GData:
-           KMeansInitTree1<GData>(field, centers, npatch, coords);
-           break;
-    }
-}
-
-template <int D>
-void KMeansInitRand1(void* field, double* centers, int npatch, int coords)
-{
-    switch(coords) {
-      case Flat:
-           KMeansInitRand2(static_cast<Field<D,Flat>*>(field), centers, npatch);
-           break;
-      case Sphere:
-           KMeansInitRand2(static_cast<Field<D,Sphere>*>(field), centers, npatch);
-           break;
-      case ThreeD:
-           KMeansInitRand2(static_cast<Field<D,ThreeD>*>(field), centers, npatch);
-           break;
-    }
-}
-
-void KMeansInitRand(void* field, double* centers, int npatch, int d, int coords)
-{
-    switch(d) {
-      case NData:
-           KMeansInitRand1<NData>(field, centers, npatch, coords);
-           break;
-      case KData:
-           KMeansInitRand1<KData>(field, centers, npatch, coords);
-           break;
-      case GData:
-           KMeansInitRand1<GData>(field, centers, npatch, coords);
+           KMeansInitTree1<GData>(field, centers, npatch, coords, seed);
            break;
     }
 }
 
 template <int D>
-void KMeansInitKMPP1(void* field, double* centers, int npatch, int coords)
+void KMeansInitRand1(void* field, double* centers, int npatch, int coords, long seed)
 {
     switch(coords) {
       case Flat:
-           KMeansInitKMPP2(static_cast<Field<D,Flat>*>(field), centers, npatch);
+           KMeansInitRand2(static_cast<Field<D,Flat>*>(field), centers, npatch, seed);
            break;
       case Sphere:
-           KMeansInitKMPP2(static_cast<Field<D,Sphere>*>(field), centers, npatch);
+           KMeansInitRand2(static_cast<Field<D,Sphere>*>(field), centers, npatch, seed);
            break;
       case ThreeD:
-           KMeansInitKMPP2(static_cast<Field<D,ThreeD>*>(field), centers, npatch);
+           KMeansInitRand2(static_cast<Field<D,ThreeD>*>(field), centers, npatch, seed);
            break;
     }
 }
 
-void KMeansInitKMPP(void* field, double* centers, int npatch, int d, int coords)
+void KMeansInitRand(void* field, double* centers, int npatch, int d, int coords, long seed)
 {
     switch(d) {
       case NData:
-           KMeansInitKMPP1<NData>(field, centers, npatch, coords);
+           KMeansInitRand1<NData>(field, centers, npatch, coords, seed);
            break;
       case KData:
-           KMeansInitKMPP1<KData>(field, centers, npatch, coords);
+           KMeansInitRand1<KData>(field, centers, npatch, coords, seed);
            break;
       case GData:
-           KMeansInitKMPP1<GData>(field, centers, npatch, coords);
+           KMeansInitRand1<GData>(field, centers, npatch, coords, seed);
+           break;
+    }
+}
+
+template <int D>
+void KMeansInitKMPP1(void* field, double* centers, int npatch, int coords, long seed)
+{
+    switch(coords) {
+      case Flat:
+           KMeansInitKMPP2(static_cast<Field<D,Flat>*>(field), centers, npatch, seed);
+           break;
+      case Sphere:
+           KMeansInitKMPP2(static_cast<Field<D,Sphere>*>(field), centers, npatch, seed);
+           break;
+      case ThreeD:
+           KMeansInitKMPP2(static_cast<Field<D,ThreeD>*>(field), centers, npatch, seed);
+           break;
+    }
+}
+
+void KMeansInitKMPP(void* field, double* centers, int npatch, int d, int coords, long seed)
+{
+    switch(d) {
+      case NData:
+           KMeansInitKMPP1<NData>(field, centers, npatch, coords, seed);
+           break;
+      case KData:
+           KMeansInitKMPP1<KData>(field, centers, npatch, coords, seed);
+           break;
+      case GData:
+           KMeansInitKMPP1<GData>(field, centers, npatch, coords, seed);
            break;
     }
 }

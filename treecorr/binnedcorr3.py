@@ -708,7 +708,7 @@ class BinnedCorr3(object):
                                 temp.process_cross12(c1,c2, metric, num_threads)
                             else:
                                 self.logger.info('Skipping %d,%d pair, which are too far apart ' +
-                                                'for this set of separations',i,j)
+                                                 'for this set of separations',i,j)
                             if temp.nonempty():
                                 if (i,j,j) not in self.results:
                                     self.results[(i,j,j)] = temp.copy()
@@ -732,7 +732,7 @@ class BinnedCorr3(object):
                                 self += temp
                             else:
                                 # NNNCorrelation needs to add the tot value
-                                self._add_tot(i, i, j, c1, c1, c2)
+                                self._add_tot(i, i, j, c2, c1, c1)
 
                         # One point in each of c1, c2, c3
                         for kk,c3 in enumerate(cat1):
@@ -872,7 +872,7 @@ class BinnedCorr3(object):
                                 temp.process_cross(c1,c2,c3, metric, num_threads)
                             else:
                                 self.logger.info('Skipping %d,%d,%d, which are too far apart ' +
-                                                    'for this set of separations',i,j,k)
+                                                 'for this set of separations',i,j,k)
                             if temp.nonempty():
                                 if (i,j,k) not in self.results:
                                     self.results[(i,j,k)] = temp.copy()
@@ -1181,6 +1181,7 @@ class BinnedCorr3(object):
                      for i in range(self.npatch2) ]
         else:
             assert self.npatch1 == self.npatch2 == self.npatch3
+            #return [ [(j,k,m) for j,k,m in self.results.keys() if sum([j!=i,k!=i,m!=i])>=2]
             return [ [(j,k,m) for j,k,m in self.results.keys() if j!=i and k!=i and m!=i]
                      for i in range(self.npatch1) ]
 
@@ -1267,6 +1268,13 @@ class BinnedCorr3(object):
             return ([ (0,i,i) for i in indx if self._ok[0,i,i] ] +
                     [ (0,i,j) for i in indx for j in indx if self._ok[0,i,j] and i!=j ])
         else:
+            # Like for 2pt we want to avoid getting extra copies of what are actually
+            # auto-correlations coming from two indices equalling each other in (i,j,k).
+            # This time, get each (i,i,i) once.
+            # Then get (i,i,j), (i,j,i), and (j,i,i) once per each (i,j) pair with i!=j
+            # repeated as often as they show up in the double for loop.
+            # Finally get all triples (i,j,k) where they are all different repeated as often
+            # as they show up in the triple for loop.
             assert self.npatch1 == self.npatch2 == self.npatch3
             return ([ (i,i,i) for i in indx if self._ok[i,i,i] ] +
                     [ (i,i,j) for i in indx for j in indx if self._ok[i,i,j] and i!=j ] +

@@ -1389,13 +1389,13 @@ def test_lowmem():
         nhalo = 100
         npatch = 4
         himem = 7.e5
-        lomem = 7.e4
+        lomem = 8.e4
     else:
         nsource = 1000
         nhalo = 100
         npatch = 4
-        himem = 1.e5
-        lomem = 7.e4
+        himem = 1.3e5
+        lomem = 8.e4
 
     rng = np.random.RandomState(8675309)
     x, y, g1, g2, k = generate_shear_field(nside, nhalo)

@@ -25,6 +25,8 @@ from test_helper import get_from_wiki, assert_raises, timer
 @timer
 def test_dessv():
 
+    rng = np.random.RandomState(1234)
+
     #treecorr.set_omp_threads(1);
     get_from_wiki('des_sv.fits')
     file_name = os.path.join('data','des_sv.fits')
@@ -35,7 +37,7 @@ def test_dessv():
     npatch = 43
     field = cat.getNField(max_top=5)
     t0 = time.time()
-    patches, cen = field.run_kmeans(npatch)
+    patches, cen = field.run_kmeans(npatch, rng=rng)
     t1 = time.time()
     print('patches = ',np.unique(patches))
     assert len(patches) == cat.ntot
@@ -63,8 +65,10 @@ def test_dessv():
     print('mean size = ',np.mean(sizes))
     print('rms size = ',np.std(sizes))
     assert np.sum(inertia) < 200.  # This is specific to this particular field and npatch.
-    assert np.std(inertia) < 0.3 * np.mean(inertia)  # rms is usually < 0.2 * mean
-    assert np.std(sizes) < 0.1 * np.mean(sizes)  # sizes have even less spread usually.
+    #print(np.std(inertia)/np.mean(inertia))
+    assert np.std(inertia) < 0.12 * np.mean(inertia)  # rms is usually < 0.2 * mean
+    #print(np.std(sizes)/np.mean(sizes))
+    assert np.std(sizes) < 0.06 * np.mean(sizes)  # sizes have even less spread usually.
 
     # Should all have similar number of points.  Nothing is required here though.
     print('mean counts = ',np.mean(counts))
@@ -73,7 +77,7 @@ def test_dessv():
 
     # Check the alternate algorithm.  rms inertia should be lower.
     t0 = time.time()
-    patches, cen = field.run_kmeans(npatch, alt=True)
+    patches, cen = field.run_kmeans(npatch, alt=True, rng=rng)
     t1 = time.time()
     assert len(patches) == cat.ntot
     assert min(patches) == 0
@@ -92,8 +96,10 @@ def test_dessv():
     print('mean size = ',np.mean(sizes))
     print('rms size = ',np.std(sizes))
     assert np.sum(inertia) < 200.  # Total shouldn't increase much. (And often decreases.)
-    assert np.std(inertia) < 0.15 * np.mean(inertia)  # rms should be even smaller here.
-    assert np.std(sizes) < 0.1 * np.mean(sizes)  # This is only a little bit smaller.
+    #print(np.std(inertia)/np.mean(inertia))
+    assert np.std(inertia) < 0.07 * np.mean(inertia)  # rms should be even smaller here.
+    #print(np.std(sizes)/np.mean(sizes))
+    assert np.std(sizes) < 0.05 * np.mean(sizes)  # This isn't usually much smaller.
 
     # This doesn't keep the counts as equal as the standard algorithm.
     print('mean counts = ',np.mean(counts))
@@ -104,7 +110,7 @@ def test_dessv():
     # InitializeCenters.
     field = cat.getNField(min_top=10)
     t0 = time.time()
-    patches, cen = field.run_kmeans(npatch)
+    patches, cen = field.run_kmeans(npatch, rng=rng)
     t1 = time.time()
     assert len(patches) == cat.ntot
     assert min(patches) == 0
@@ -124,8 +130,10 @@ def test_dessv():
     print('mean size = ',np.mean(sizes))
     print('rms size = ',np.std(sizes))
     assert np.sum(inertia) < 210.
-    assert np.std(inertia) < 0.4 * np.mean(inertia)  # I've seen over 0.3 x mean here.
-    assert np.std(sizes) < 0.15 * np.mean(sizes)
+    #print(np.std(inertia)/np.mean(inertia))
+    assert np.std(inertia) < 0.21 * np.mean(inertia)
+    #print(np.std(sizes)/np.mean(sizes))
+    assert np.std(sizes) < 0.07 * np.mean(sizes)
     print('mean counts = ',np.mean(counts))
     print('min counts = ',np.min(counts))
     print('max counts = ',np.max(counts))
@@ -155,7 +163,7 @@ def test_radec():
     npatch = 111
     field = cat.getNField()
     t0 = time.time()
-    p, cen = field.run_kmeans(npatch)
+    p, cen = field.run_kmeans(npatch, rng=rng)
     t1 = time.time()
     print('patches = ',np.unique(p))
     assert len(p) == cat.ntot
@@ -179,7 +187,8 @@ def test_radec():
     print('mean inertia = ',np.mean(inertia))
     print('rms inertia = ',np.std(inertia))
     assert np.sum(inertia) < 200.  # This is specific to this particular field and npatch.
-    assert np.std(inertia) < 0.3 * np.mean(inertia)  # rms is usually small  mean
+    #print(np.std(inertia)/np.mean(inertia))
+    assert np.std(inertia) < 0.16 * np.mean(inertia)
 
     # With weights, these aren't actually all that similar.  The range is more than a
     # factor of 10.  I think because it varies whether high weight points happen to be near the
@@ -191,7 +200,7 @@ def test_radec():
 
     # Check the alternate algorithm.  rms inertia should be lower.
     t0 = time.time()
-    p, cen = field.run_kmeans(npatch, alt=True)
+    p, cen = field.run_kmeans(npatch, alt=True, rng=rng)
     t1 = time.time()
     assert len(p) == cat.ntot
     assert min(p) == 0
@@ -206,7 +215,8 @@ def test_radec():
     print('mean inertia = ',np.mean(inertia))
     print('rms inertia = ',np.std(inertia))
     assert np.sum(inertia) < 200.  # Total shouldn't increase much. (And often decreases.)
-    assert np.std(inertia) < 0.15 * np.mean(inertia)  # rms should be even smaller here.
+    #print(np.std(inertia)/np.mean(inertia))
+    assert np.std(inertia) < 0.07 * np.mean(inertia)  # rms should be even smaller here.
     print('mean counts = ',np.mean(counts))
     print('min counts = ',np.min(counts))
     print('max counts = ',np.max(counts))
@@ -215,7 +225,7 @@ def test_radec():
     # InitializeCenters.
     field = cat.getNField(min_top=10)
     t0 = time.time()
-    p, cen = field.run_kmeans(npatch)
+    p, cen = field.run_kmeans(npatch, rng=rng)
     t1 = time.time()
     assert len(p) == cat.ntot
     assert min(p) == 0
@@ -231,7 +241,8 @@ def test_radec():
     print('mean inertia = ',np.mean(inertia))
     print('rms inertia = ',np.std(inertia))
     assert np.sum(inertia) < 210.
-    assert np.std(inertia) < 0.4 * np.mean(inertia)  # I've seen over 0.3 x mean here.
+    #print(np.std(inertia)/np.mean(inertia))
+    assert np.std(inertia) < 0.22 * np.mean(inertia)
     print('mean counts = ',np.mean(counts))
     print('min counts = ',np.min(counts))
     print('max counts = ',np.max(counts))
@@ -253,7 +264,7 @@ def test_3d():
     npatch = 111
     field = cat.getNField()
     t0 = time.time()
-    p, cen = field.run_kmeans(npatch)
+    p, cen = field.run_kmeans(npatch, rng=rng)
     t1 = time.time()
     print('patches = ',np.unique(p))
     assert len(p) == cat.ntot
@@ -272,7 +283,8 @@ def test_3d():
     print('mean inertia = ',np.mean(inertia))
     print('rms inertia = ',np.std(inertia))
     assert np.sum(inertia) < 33000.
-    assert np.std(inertia) < 0.3 * np.mean(inertia)  # rms is usually small  mean
+    #print(np.std(inertia)/np.mean(inertia))
+    assert np.std(inertia) < 0.12 * np.mean(inertia)
     print('mean counts = ',np.mean(counts))
     print('min counts = ',np.min(counts))
     print('max counts = ',np.max(counts))
@@ -283,7 +295,7 @@ def test_3d():
     cat2 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', r=r, w=w)
     field = cat2.getNField()
     t0 = time.time()
-    p2, cen = field.run_kmeans(npatch)
+    p2, cen = field.run_kmeans(npatch, rng=rng)
     t1 = time.time()
     inertia = np.array([np.sum(w[p2==i][:,None] * (xyz[p2==i] - cen[i])**2) for i in range(npatch)])
     counts = np.array([np.sum(w[p2==i]) for i in range(npatch)])
@@ -292,14 +304,15 @@ def test_3d():
     print('mean inertia = ',np.mean(inertia))
     print('rms inertia = ',np.std(inertia))
     assert np.sum(inertia) < 33000.
-    assert np.std(inertia) < 0.3 * np.mean(inertia)  # rms is usually small  mean
+    #print(np.std(inertia)/np.mean(inertia))
+    assert np.std(inertia) < 0.12 * np.mean(inertia)
     print('mean counts = ',np.mean(counts))
     print('min counts = ',np.min(counts))
     print('max counts = ',np.max(counts))
 
     # Check the alternate algorithm.  rms inertia should be lower.
     t0 = time.time()
-    p, cen = field.run_kmeans(npatch, alt=True)
+    p, cen = field.run_kmeans(npatch, alt=True, rng=rng)
     t1 = time.time()
     assert len(p) == cat.ntot
     assert min(p) == 0
@@ -314,7 +327,8 @@ def test_3d():
     print('mean inertia = ',np.mean(inertia))
     print('rms inertia = ',np.std(inertia))
     assert np.sum(inertia) < 33000.
-    assert np.std(inertia) < 0.15 * np.mean(inertia)  # rms should be even smaller here.
+    #print(np.std(inertia)/np.mean(inertia))
+    assert np.std(inertia) < 0.04 * np.mean(inertia)  # rms should be even smaller here.
     print('mean counts = ',np.mean(counts))
     print('min counts = ',np.min(counts))
     print('max counts = ',np.max(counts))
@@ -323,7 +337,7 @@ def test_3d():
     # InitializeCenters.
     field = cat.getNField(min_top=10)
     t0 = time.time()
-    p, cen = field.run_kmeans(npatch)
+    p, cen = field.run_kmeans(npatch, rng=rng)
     t1 = time.time()
     assert len(p) == cat.ntot
     assert min(p) == 0
@@ -339,7 +353,8 @@ def test_3d():
     print('mean inertia = ',np.mean(inertia))
     print('rms inertia = ',np.std(inertia))
     assert np.sum(inertia) < 33000.
-    assert np.std(inertia) < 0.4 * np.mean(inertia)  # I've seen over 0.3 x mean here.
+    #print(np.std(inertia)/np.mean(inertia))
+    assert np.std(inertia) < 0.12 * np.mean(inertia)
     print('mean counts = ',np.mean(counts))
     print('min counts = ',np.min(counts))
     print('max counts = ',np.max(counts))
@@ -365,7 +380,7 @@ def test_2d():
     npatch = 111
     field = cat.getGField()
     t0 = time.time()
-    p, cen = field.run_kmeans(npatch)
+    p, cen = field.run_kmeans(npatch, rng=rng)
     t1 = time.time()
     print('patches = ',np.unique(p))
     assert len(p) == cat.ntot
@@ -384,14 +399,15 @@ def test_2d():
     print('mean inertia = ',np.mean(inertia))
     print('rms inertia = ',np.std(inertia))
     assert np.sum(inertia) < 5300.
-    assert np.std(inertia) < 0.3 * np.mean(inertia)  # rms is usually small  mean
+    #print(np.std(inertia)/np.mean(inertia))
+    assert np.std(inertia) < 0.17 * np.mean(inertia)
     print('mean counts = ',np.mean(counts))
     print('min counts = ',np.min(counts))
     print('max counts = ',np.max(counts))
 
     # Check the alternate algorithm.  rms inertia should be lower.
     t0 = time.time()
-    p, cen = field.run_kmeans(npatch, alt=True)
+    p, cen = field.run_kmeans(npatch, alt=True, rng=rng)
     t1 = time.time()
     assert len(p) == cat.ntot
     assert min(p) == 0
@@ -406,7 +422,8 @@ def test_2d():
     print('mean inertia = ',np.mean(inertia))
     print('rms inertia = ',np.std(inertia))
     assert np.sum(inertia) < 5300.
-    assert np.std(inertia) < 0.15 * np.mean(inertia)  # rms should be even smaller here.
+    #print(np.std(inertia)/np.mean(inertia))
+    assert np.std(inertia) < 0.08 * np.mean(inertia)
     print('mean counts = ',np.mean(counts))
     print('min counts = ',np.min(counts))
     print('max counts = ',np.max(counts))
@@ -415,7 +432,7 @@ def test_2d():
     # InitializeCenters.
     field = cat.getKField(min_top=10)
     t0 = time.time()
-    p, cen = field.run_kmeans(npatch)
+    p, cen = field.run_kmeans(npatch, rng=rng)
     t1 = time.time()
     assert len(p) == cat.ntot
     assert min(p) == 0
@@ -431,7 +448,8 @@ def test_2d():
     print('mean inertia = ',np.mean(inertia))
     print('rms inertia = ',np.std(inertia))
     assert np.sum(inertia) < 5300.
-    assert np.std(inertia) < 0.4 * np.mean(inertia)  # I've seen over 0.3 x mean here.
+    #print(np.std(inertia)/np.mean(inertia))
+    assert np.std(inertia) < 0.17 * np.mean(inertia)
     print('mean counts = ',np.mean(counts))
     print('min counts = ',np.min(counts))
     print('max counts = ',np.max(counts))
@@ -470,7 +488,7 @@ def test_init_random():
 
     # Now run the normal way
     # Use higher max_iter, since random isn't a great initialization.
-    p2, cen2 = field.run_kmeans(npatch, init='random', max_iter=1000)
+    p2, cen2 = field.run_kmeans(npatch, init='random', max_iter=1000, rng=rng)
     inertia2 = np.array([np.sum((xyz[p2==i] - cen2[i])**2) for i in range(npatch)])
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
     print('rms counts => ',np.std(counts2))
@@ -495,7 +513,7 @@ def test_init_random():
     print('total inertia = ',np.sum(inertia1))
 
     # Now run the normal way
-    p2, cen2 = field.run_kmeans(npatch, init='random', max_iter=1000)
+    p2, cen2 = field.run_kmeans(npatch, init='random', max_iter=1000, rng=rng)
     inertia2 = np.array([np.sum((xyz[p2==i] - cen2[i])**2) for i in range(npatch)])
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
     print('rms counts => ',np.std(counts2))
@@ -522,7 +540,7 @@ def test_init_random():
     print('total inertia = ',np.sum(inertia1))
 
     # Now run the normal way
-    p2, cen2 = field.run_kmeans(npatch, init='random', max_iter=1000)
+    p2, cen2 = field.run_kmeans(npatch, init='random', max_iter=1000, rng=rng)
     inertia2 = np.array([np.sum((xy[p2==i] - cen2[i])**2) for i in range(npatch)])
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
     print('rms counts => ',np.std(counts2))
@@ -550,7 +568,7 @@ def test_init_random():
     print('total inertia = ',np.sum(inertia1))
 
     # Now run the normal way
-    p2, cen2 = field.run_kmeans(npatch, init='random', max_iter=1000)
+    p2, cen2 = field.run_kmeans(npatch, init='random', max_iter=1000, rng=rng)
     inertia2 = np.array([np.sum((xyz[p2==i] - cen2[i])**2) for i in range(npatch)])
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
     print('rms counts => ',np.std(counts2))
@@ -619,7 +637,7 @@ def test_init_kmpp():
 
     # Now run the normal way
     # Use higher max_iter, since random isn't a great initialization.
-    p2, cen2 = field.run_kmeans(npatch, init='kmeans++', max_iter=1000)
+    p2, cen2 = field.run_kmeans(npatch, init='kmeans++', max_iter=1000, rng=rng)
     inertia2 = np.array([np.sum((xyz[p2==i] - cen2[i])**2) for i in range(npatch)])
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
     print('rms counts => ',np.std(counts2))
@@ -644,7 +662,7 @@ def test_init_kmpp():
     print('total inertia = ',np.sum(inertia1))
 
     # Now run the normal way
-    p2, cen2 = field.run_kmeans(npatch, init='kmeans++', max_iter=1000)
+    p2, cen2 = field.run_kmeans(npatch, init='kmeans++', max_iter=1000, rng=rng)
     inertia2 = np.array([np.sum((xyz[p2==i] - cen2[i])**2) for i in range(npatch)])
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
     print('rms counts => ',np.std(counts2))
@@ -671,7 +689,7 @@ def test_init_kmpp():
     print('total inertia = ',np.sum(inertia1))
 
     # Now run the normal way
-    p2, cen2 = field.run_kmeans(npatch, init='kmeans++', max_iter=1000)
+    p2, cen2 = field.run_kmeans(npatch, init='kmeans++', max_iter=1000, rng=rng)
     inertia2 = np.array([np.sum((xy[p2==i] - cen2[i])**2) for i in range(npatch)])
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
     print('rms counts => ',np.std(counts2))
@@ -699,7 +717,7 @@ def test_init_kmpp():
     print('total inertia = ',np.sum(inertia1))
 
     # Now run the normal way
-    p2, cen2 = field.run_kmeans(npatch, init='kmeans++', max_iter=1000)
+    p2, cen2 = field.run_kmeans(npatch, init='kmeans++', max_iter=1000, rng=rng)
     inertia2 = np.array([np.sum((xyz[p2==i] - cen2[i])**2) for i in range(npatch)])
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
     print('rms counts => ',np.std(counts2))
@@ -783,7 +801,8 @@ def test_catalog_sphere():
     print('mindec = ',np.min(dec) * coord.radians / coord.degrees)
     print('maxdec = ',np.max(dec) * coord.radians / coord.degrees)
     npatch = 111
-    cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w, npatch=npatch)
+    cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w, npatch=npatch,
+                           rng=rng)
 
     t0 = time.time()
     p = cat.patch
@@ -811,7 +830,8 @@ def test_catalog_sphere():
     print('mean inertia = ',np.mean(inertia))
     print('rms inertia = ',np.std(inertia))
     assert np.sum(inertia) < 200.  # This is specific to this particular field and npatch.
-    assert np.std(inertia) < 0.3 * np.mean(inertia)  # rms is usually small  mean
+    #print(np.std(inertia)/np.mean(inertia))
+    assert np.std(inertia) < 0.18 * np.mean(inertia)  # rms is usually small  mean
 
     # With weights, these aren't actually all that similar.  The range is more than a
     # factor of 10.  I think because it varies whether high weight points happen to be near the
@@ -823,7 +843,7 @@ def test_catalog_sphere():
 
     # Check the alternate algorithm.  rms inertia should be lower.
     cat2 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w,
-                            npatch=npatch, kmeans_alt=True)
+                            npatch=npatch, kmeans_alt=True, rng=rng)
     t0 = time.time()
     p = cat2.patch
     cen = cat2.patch_centers
@@ -841,7 +861,8 @@ def test_catalog_sphere():
     print('mean inertia = ',np.mean(inertia))
     print('rms inertia = ',np.std(inertia))
     assert np.sum(inertia) < 200.  # Total shouldn't increase much. (And often decreases.)
-    assert np.std(inertia) < 0.15 * np.mean(inertia)  # rms should be even smaller here.
+    #print(np.std(inertia)/np.mean(inertia))
+    assert np.std(inertia) < 0.07 * np.mean(inertia)  # rms should be even smaller here.
     print('mean counts = ',np.mean(counts))
     print('min counts = ',np.min(counts))
     print('max counts = ',np.max(counts))
@@ -871,7 +892,7 @@ def test_catalog_3d():
     print('maxdec = ',np.max(dec) * coord.radians / coord.degrees)
     npatch = 111
     cat = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='rad', dec_units='rad', w=w,
-                           npatch=npatch)
+                           npatch=npatch, rng=rng)
 
     t0 = time.time()
     p = cat.patch
@@ -901,7 +922,8 @@ def test_catalog_3d():
     print('mean inertia = ',np.mean(inertia))
     print('rms inertia = ',np.std(inertia))
     assert np.sum(inertia) < 200.  # This is specific to this particular field and npatch.
-    assert np.std(inertia) < 0.3 * np.mean(inertia)  # rms is usually small  mean
+    #print(np.std(inertia)/np.mean(inertia))
+    assert np.std(inertia) < 0.18 * np.mean(inertia)  # rms is usually small  mean
 
     # With weights, these aren't actually all that similar.  The range is more than a
     # factor of 10.  I think because it varies whether high weight points happen to be near the
@@ -913,7 +935,7 @@ def test_catalog_3d():
 
     # Check the alternate algorithm.  rms inertia should be lower.
     cat2 = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='rad', dec_units='rad', w=w,
-                            npatch=npatch, kmeans_alt=True)
+                            npatch=npatch, kmeans_alt=True, rng=rng)
     t0 = time.time()
     p = cat2.patch
     cen = cat2.patch_centers
@@ -931,7 +953,8 @@ def test_catalog_3d():
     print('mean inertia = ',np.mean(inertia))
     print('rms inertia = ',np.std(inertia))
     assert np.sum(inertia) < 200.  # Total shouldn't increase much. (And often decreases.)
-    assert np.std(inertia) < 0.15 * np.mean(inertia)  # rms should be even smaller here.
+    #print(np.std(inertia)/np.mean(inertia))
+    assert np.std(inertia) < 0.07 * np.mean(inertia)  # rms should be even smaller here.
     print('mean counts = ',np.mean(counts))
     print('min counts = ',np.min(counts))
     print('max counts = ',np.max(counts))

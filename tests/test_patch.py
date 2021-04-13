@@ -2280,7 +2280,7 @@ def test_lowmem():
         ngal = 100000
         npatch = 16
         himem = 5.e6
-        lomem = 3.e5
+        lomem = 4.e5
     rng = np.random.RandomState(8675309)
     x = rng.uniform(-20,20, (ngal,) )
     y = rng.uniform(80,120, (ngal,) )  # Put everything at large y, so smallish angle on sky

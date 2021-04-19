@@ -1226,7 +1226,7 @@ def estimate_multi_cov(corrs, method, func=None):
     else:
         raise ValueError("Invalid method: %s"%method)
 
-def _make_cov_design_matrix(corrs, plist, func):
+def _make_cov_design_matrix(corrs, plist, func, name):
     # plist has the pairs to use for each row in the design matrix for each correlation fn.
     # It is a list by row, each element is a list by corr fn of tuples (i,j), being the indices
     # to use from the results dict.
@@ -1253,7 +1253,16 @@ def _make_cov_design_matrix(corrs, plist, func):
 
     for row, pairs in enumerate(plist):
         for c, cpairs in zip(corrs, pairs):
-            c._calculate_xi_from_pairs(cpairs)
+            if len(cpairs) == 0:
+                # This will cause problems downstream if we let it go.
+                # It probably indicates user error, using an inappropriate covariance estimator.
+                # So warn about it, and then do something not too crazy.
+                c.logger.error("WARNING: A xi for calculating the %s covariance has no "%name +
+                               "patch pairs.  This probably means these patch specifications "
+                               "are inappropriate for these data.")
+                c._clear()
+            else:
+                c._calculate_xi_from_pairs(cpairs)
         v[row] = func(corrs)
         w[row] = np.sum([np.sum(c.getWeight()) for c in corrs])
     return v,w
@@ -1303,7 +1312,7 @@ def _cov_jackknife(corrs, func):
     # We want a list by row with a list for each corr.
     plist = list(zip(*plist))
 
-    v,w = _make_cov_design_matrix(corrs, plist, func)
+    v,w = _make_cov_design_matrix(corrs, plist, func, 'jackknife')
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = (1.-1./npatch) * v.conj().T.dot(v)
@@ -1330,7 +1339,7 @@ def _cov_sample(corrs, func):
     # We want a list by row with a list for each corr.
     plist = list(zip(*plist))
 
-    v,w = _make_cov_design_matrix(corrs, plist, func)
+    v,w = _make_cov_design_matrix(corrs, plist, func, 'sample')
     w /= np.sum(w)  # Now w is the fractional weight for each patch
 
     vmean = np.mean(v, axis=0)
@@ -1366,7 +1375,7 @@ def _cov_marked(corrs, func):
         vpairs = [c._marked_pairs(indx) for c in corrs]
         plist.append(vpairs)
 
-    v,w = _make_cov_design_matrix(corrs, plist, func)
+    v,w = _make_cov_design_matrix(corrs, plist, func, 'marked_bootstrap')
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = 1./(nboot-1) * v.conj().T.dot(v)
@@ -1391,7 +1400,7 @@ def _cov_bootstrap(corrs, func):
         vpairs = [c._bootstrap_pairs(indx) for c in corrs]
         plist.append(vpairs)
 
-    v,w = _make_cov_design_matrix(corrs, plist, func)
+    v,w = _make_cov_design_matrix(corrs, plist, func, 'bootstrap')
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = 1./(nboot-1) * v.conj().T.dot(v)

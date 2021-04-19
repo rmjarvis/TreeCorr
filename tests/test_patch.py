@@ -1813,7 +1813,7 @@ def test_clusters():
     # original implementation.)
 
     if __name__ == '__main__':
-        npatch = 128  # Only deterministic if power of 2
+        npatch = 128
         nlens = 400   # Average of 3.13 clusters per patch.  So ~4% should have zero clusters.
         nsource = 50000
         size = 1000
@@ -2730,6 +2730,94 @@ def test_finalize_false():
     np.testing.assert_allclose(nn1.meanr, nn2.meanr)
     np.testing.assert_allclose(nn1.meanlogr, nn2.meanlogr)
 
+@timer
+def test_empty_patches():
+    # This is an even more extreme test than the test_clusters test.
+    # In that test about 4% of the patches had no objects.
+    # In this test, most of the patches have no objects.
+    # This used to cause a run-time error when np.sum ended up with empty arrays,
+    # which it didn't like and raises an exception.
+    # Probbly most of the time, this will be user error that the patches aren't set up properly,
+    # but it is at least conceivable that you might want to do something real that would cause
+    # this, so this test makes sure it works correctly.
+
+    # Thanks to Joe Zuntz for pointing out this bug in issue #123.
+
+    npatch = 25
+    nlens = 10
+    nsource = 5000
+    rng = np.random.RandomState(1234)
+
+    # Put all the lenses in a tight patch, but the sources in a much larger patch.
+    # This seems like the least implausible scenario where this could happen.
+    lens_x = rng.uniform(-5,5,nlens)
+    lens_y = rng.uniform(-5,5,nlens)
+    source_x = rng.uniform(-100,100,nsource)
+    source_y = rng.uniform(-100,100,nsource)
+
+    # I don't actually care about the signal here being realistic, but might as well...
+    # SIS model: g = g0/r
+    lens_mass = rng.uniform(0.05,0.2,nlens)
+    lens_e1 = rng.uniform(-0.1,0.1,nlens)
+    lens_e2 = rng.uniform(-0.1,0.1,nlens)
+
+    dx = source_x - lens_x[:,np.newaxis]
+    dy = source_y - lens_y[:,np.newaxis]
+    rsq = dx**2 + dy**2
+    r = np.sqrt(rsq)
+    g = -(dx + 1j * dy)**2 / r**3
+    g *= lens_mass[:,np.newaxis]
+    g = np.sum(g,axis=0)
+    source_g1 = g.real
+    source_g2 = g.imag
+    source_g1 += rng.normal(0,3.e-3)
+    source_g2 += rng.normal(0,3.e-3)
+    k = lens_mass[:,np.newaxis] / r
+    source_k = np.sum(k,axis=0)
+
+    cat1 = treecorr.Catalog(x=lens_x, y=lens_y, g1=lens_e1, g2=lens_e2, k=lens_mass)
+    cat2 = treecorr.Catalog(x=source_x, y=source_y, g1=source_g1, g2=source_g2, k=source_k)
+    # Note: use cat2 to make the patches, since that's the one with a larger area.
+    cat2p = treecorr.Catalog(x=source_x, y=source_y, g1=source_g1, g2=source_g2, k=source_k,
+                             npatch=npatch, rng=rng)
+    cat1p = treecorr.Catalog(x=lens_x, y=lens_y, g1=lens_e1, g2=lens_e2, k=lens_mass,
+                             patch_centers=cat2p.patch_centers)
+    nwith0 = 0
+    for i in range(npatch):
+        n1 = np.sum(cat1p.w[cat1p.patch==i])
+        n2 = np.sum(cat2p.w[cat2p.patch==i])
+        print('%d\t%d\t%d\t%s'%(i,n1,n2,cat2p.patch_centers[i]))
+        if n1 == 0: nwith0 += 1
+    print('Found %s patches with no lenses'%nwith0)
+
+    ng1 = treecorr.NGCorrelation(bin_size=0.1, bin_slop=0.1, min_sep=10., max_sep=100.)
+    ng2 = treecorr.NGCorrelation(bin_size=0.1, bin_slop=0.1, min_sep=10., max_sep=100.)
+    ng3 = treecorr.NGCorrelation(bin_size=0.1, bin_slop=0.1, min_sep=10., max_sep=100.)
+    ng1.process(cat1, cat2)
+    ng2.process(cat1, cat2p)
+    ng3.process(cat1p, cat2p)
+    np.testing.assert_allclose(ng2.weight, ng1.weight, rtol=0.05)
+    np.testing.assert_allclose(ng3.weight, ng1.weight, rtol=0.05)
+    np.testing.assert_allclose(ng2.xi, ng1.xi, rtol=0.05, atol=1.e-3)
+    np.testing.assert_allclose(ng3.xi, ng1.xi, rtol=0.05, atol=1.e-3)
+
+    # No asserts here, but make sure covariance estimate doesn't crash.
+    cov2j = ng2.estimate_cov('jackknife')
+    cov3j = ng3.estimate_cov('jackknife')
+
+    # Check warning emitted.
+    with CaptureLog() as cl:
+        ng3l = treecorr.NGCorrelation(bin_size=0.1, bin_slop=0.1, min_sep=10., max_sep=100.,
+                                      logger=cl.logger)
+        ng3l.process(cat1p, cat2p)
+        ng3l.estimate_cov('jackknife')
+    #print(cl.output)
+    assert 'WARNING: A xi for calculating the jackknife covariance has no patch pairs.' in cl.output
+
+    # Sample is even worse, and there is no way to compute the covariance.
+    cov2s = ng2.estimate_cov('sample')
+    with assert_raises(RuntimeError):
+        cov3 = ng3.estimate_cov('sample')
 
 if __name__ == '__main__':
     test_cat_patches()
@@ -2744,3 +2832,4 @@ if __name__ == '__main__':
     test_lowmem()
     test_config()
     test_finalize_false()
+    test_empty_patches()

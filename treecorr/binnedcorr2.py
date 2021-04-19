@@ -1072,9 +1072,13 @@ class BinnedCorr2(object):
 
     def _jackknife_pairs(self):
         if self.npatch2 == 1:
-            return [ [(j,0) for j in range(self.npatch1) if j!=i] for i in range(self.npatch1) ]
+            # k=0 here.
+            return [ [(j,k) for j,k in self.results.keys() if j!=i]
+                     for i in range(self.npatch1) ]
         elif self.npatch1 == 1:
-            return [ [(0,j) for j in range(self.npatch2) if j!=i] for i in range(self.npatch2) ]
+            # j=0 here.
+            return [ [(j,k) for j,k in self.results.keys() if k!=i]
+                     for i in range(self.npatch1) ]
         else:
             assert self.npatch1 == self.npatch2
             # For each i:
@@ -1084,9 +1088,11 @@ class BinnedCorr2(object):
 
     def _sample_pairs(self):
         if self.npatch2 == 1:
-            return [ [(i,0)] for i in range(self.npatch1) ]
+            # k=0 here.
+            return [ [(j,k) for j,k in self.results.keys() if j==i] for i in range(self.npatch1) ]
         elif self.npatch1 == 1:
-            return [ [(0,i)] for i in range(self.npatch2) ]
+            # j=0 here.
+            return [ [(j,k) for j,k in self.results.keys() if k==i] for i in range(self.npatch1) ]
         else:
             assert self.npatch1 == self.npatch2
             # Note: It's not obvious to me a priori which of these should be the right choice.
@@ -1110,9 +1116,9 @@ class BinnedCorr2(object):
 
     def _marked_pairs(self, indx):
         if self.npatch2 == 1:
-            return [ (i,0) for i in indx ]
+            return [ (i,0) for i in indx if self._ok[i,0] ]
         elif self.npatch1 == 1:
-            return [ (0,i) for i in indx ]
+            return [ (0,i) for i in indx if self._ok[0,i] ]
         else:
             assert self.npatch1 == self.npatch2
             # Select all pairs where first point is in indx (repeating i as appropriate)
@@ -1120,9 +1126,9 @@ class BinnedCorr2(object):
 
     def _bootstrap_pairs(self, indx):
         if self.npatch2 == 1:
-            return [ (i,0) for i in indx ]
+            return [ (i,0) for i in indx if self._ok[i,0] ]
         elif self.npatch1 == 1:
-            return [ (0,i) for i in indx ]
+            return [ (0,i) for i in indx if self._ok[0,i] ]
         else:
             assert self.npatch1 == self.npatch2
             # Include all represented auto-correlations once, repeating as appropriate.

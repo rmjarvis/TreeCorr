@@ -2819,6 +2819,24 @@ def test_empty_patches():
     with assert_raises(RuntimeError):
         cov3 = ng3.estimate_cov('sample')
 
+    # With even more patches, there was also a different problem with the 1-2p correlation,
+    # because some (0,k) pairs don't have any data, so don't end up in results dict.
+    npatch = 100
+    cat2p = treecorr.Catalog(x=source_x, y=source_y, g1=source_g1, g2=source_g2, k=source_k,
+                             npatch=npatch, rng=rng)
+    ng2.process(cat1, cat2p)
+    np.testing.assert_allclose(ng2.weight, ng1.weight, rtol=0.05)
+    np.testing.assert_allclose(ng2.xi, ng1.xi, rtol=0.05, atol=1.e-3)
+    # The test here is really that the following all compute something.
+    # They used to all fail with an error about some (0,k) pair not being in results dict.
+    cov2j = ng2.estimate_cov('jackknife')
+    with assert_raises(RuntimeError):
+        # This one still gives a runtime error, but not the KeyError it used to raise.
+        cov2s = ng2.estimate_cov('sample')
+    cov2m = ng2.estimate_cov('marked_bootstrap')
+    cov2b = ng2.estimate_cov('bootstrap')
+
+
 if __name__ == '__main__':
     test_cat_patches()
     test_cat_centers()

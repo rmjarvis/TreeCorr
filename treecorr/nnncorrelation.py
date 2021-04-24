@@ -693,6 +693,7 @@ class NNNCorrelation(BinnedCorr3):
                     new_cijk.weight.ravel()[:] = 0
                     new_cijk.tot = 0
                     self.results[ijk] = new_cijk
+                self.__dict__.pop('_ok')  # If it was already made, it will need to be redone.
 
         # Now that it's all set up, calculate the covariance and set varzeta to the diagonal.
         self.cov = self.estimate_cov(self.var_method)
@@ -709,7 +710,7 @@ class NNNCorrelation(BinnedCorr3):
         if len(self._rrr.results) > 0:
             # This is the usual case.  R has patches just like D.
             # Calculate rrr and rrrf in the normal way based on the same pairs as used for DDD.
-            pairs1 = [ij for ij in pairs if ij in set(self._rrr.results.keys())]
+            pairs1 = [ij for ij in pairs if self._rrr._ok[ij[0],ij[1],ij[2]]]
             self._rrr._sum([self._rrr.results[ij] for ij in pairs1])
             ddd_tot = self.tot
         else:
@@ -737,7 +738,7 @@ class NNNCorrelation(BinnedCorr3):
                 # If r doesn't have patches, then convert all (i,i,i) pairs to (i,0,0).
                 pairs2 = [(ij[0],0,0) for ij in pairs if ij[0] == ij[1] == ij[2]]
             else:
-                pairs2 = [ij for ij in pairs if ij in set(self._drr.results.keys())]
+                pairs2 = [ij for ij in pairs if self._drr._ok[ij[0],ij[1],ij[2]]]
             self._drr._sum([self._drr.results[ij] for ij in pairs2])
             drr = self._drr.weight
             drrf = ddd_tot / self._drr.tot
@@ -747,7 +748,7 @@ class NNNCorrelation(BinnedCorr3):
                 # and all (i,j,i to (0,j,i).
                 pairs3 = [(0,ij[1],ij[2]) for ij in pairs if ij[0] == ij[1] or ij[0] == ij[2]]
             else:
-                pairs3 = [ij for ij in pairs if ij in set(self._rdd.results.keys())]
+                pairs3 = [ij for ij in pairs if self._rdd._ok[ij[0],ij[1],ij[2]]]
             self._rdd._sum([self._rdd.results[ij] for ij in pairs3])
             rdd = self._rdd.weight
             rddf = ddd_tot / self._rdd.tot

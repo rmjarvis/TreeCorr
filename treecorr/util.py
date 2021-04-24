@@ -889,3 +889,32 @@ def parse_xyzsep(args, kwargs, _coords):
         raise TypeError("Invalid kwargs: %s"%(kwargs))
 
     return float(x), float(y), float(z), float(sep)
+
+class lazy_property(object):
+    """
+    This decorator will act similarly to @property, but will be efficient for multiple access
+    to values that require some significant calculation.
+
+    It works by replacing the attribute with the computed value, so after the first access,
+    the property (an attribute of the class) is superseded by the new attribute of the instance.
+
+    Usage::
+
+        @lazy_property
+        def slow_function_to_be_used_as_a_property(self):
+            x =  ...  # Some slow calculation.
+            return x
+
+    Base on an answer from http://stackoverflow.com/a/6849299
+    This implementation taken from GalSim utilities.py
+    """
+    def __init__(self, fget):
+        self.fget = fget
+        self.func_name = fget.__name__
+
+    def __get__(self, obj, cls):
+        if obj is None:
+            return self
+        value = self.fget(obj)
+        setattr(obj, self.func_name, value)
+        return value

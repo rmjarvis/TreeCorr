@@ -606,7 +606,7 @@ class NNCorrelation(BinnedCorr2):
         if len(self._rr.results) > 0:
             # This is the usual case.  R has patches just like D.
             # Calculate rr and rrf in the normal way based on the same pairs as used for DD.
-            pairs1 = [ij for ij in pairs if ij in set(self._rr.results.keys())]
+            pairs1 = [ij for ij in pairs if self._rr._ok[ij[0],ij[1]]]
             self._rr._sum([self._rr.results[ij] for ij in pairs1])
             dd_tot = self.tot
         else:
@@ -633,7 +633,7 @@ class NNCorrelation(BinnedCorr2):
                 # If r doesn't have patches, then convert all (i,i) pairs to (i,0).
                 pairs2 = [(ij[0],0) for ij in pairs if ij[0] == ij[1]]
             else:
-                pairs2 = [ij for ij in pairs if ij in set(self._dr.results.keys())]
+                pairs2 = [ij for ij in pairs if self._dr._ok[ij[0],ij[1]]]
             self._dr._sum([self._dr.results[ij] for ij in pairs2])
             dr = self._dr.weight
             drf = dd_tot / self._dr.tot
@@ -642,7 +642,7 @@ class NNCorrelation(BinnedCorr2):
                 # If r doesn't have patches, then convert all (i,i) pairs to (0,i).
                 pairs3 = [(0,ij[1]) for ij in pairs if ij[0] == ij[1]]
             else:
-                pairs3 = [ij for ij in pairs if ij in set(self._rd.results.keys())]
+                pairs3 = [ij for ij in pairs if self._rd._ok[ij[0],ij[1]]]
             self._rd._sum([self._rd.results[ij] for ij in pairs3])
             rd = self._rd.weight
             rdf = dd_tot / self._rd.tot

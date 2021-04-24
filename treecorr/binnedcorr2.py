@@ -22,7 +22,7 @@ import coord
 
 from . import _lib
 from .config import merge_config, setup_logger, get
-from .util import parse_metric, metric_enum, coord_enum, set_omp_threads
+from .util import parse_metric, metric_enum, coord_enum, set_omp_threads, lazy_property
 
 class Namespace(object):
     pass
@@ -557,6 +557,7 @@ class BinnedCorr2(object):
     def __getstate__(self):
         d = self.__dict__.copy()
         d.pop('_corr',None)
+        d.pop('_ok',None)     # Remake this as needed.
         d.pop('logger',None)  # Oh well.  This is just lost in the copy.  Can't be pickled.
         return d
 
@@ -572,6 +573,7 @@ class BinnedCorr2(object):
         self._clear()
         self.results = {}
         self.npatch1 = self.npatch2 = 1
+        self.__dict__.pop('_ok',None)
 
     def _add_tot(self, i, j, c1, c2):
         # No op for all but NNCorrelation, which needs to add the tot value
@@ -1100,12 +1102,12 @@ class BinnedCorr2(object):
             #    Select all pairs where first is i.
             return [ [(j,k) for j,k in self.results.keys() if j==i] for i in range(self.npatch1) ]
 
-    def _build_ok_matrix(self):
-        # Precompute an ok array to make the list comprehension in bootstrap_pars much faster.
-        if self.npatch1 != 1 and self.npatch2 != 1:
-            self._ok = np.zeros((self.npatch1, self.npatch2), dtype=bool)
-            for (i,j) in self.results:
-                self._ok[i,j] = True
+    @lazy_property
+    def _ok(self):
+        ok = np.zeros((self.npatch1, self.npatch2), dtype=bool)
+        for (i,j) in self.results:
+            ok[i,j] = True
+        return ok
 
     def _marked_pairs(self, indx):
         if self.npatch2 == 1:
@@ -1358,11 +1360,6 @@ def _cov_marked(corrs, func):
 
     nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
 
-    # Precompute an ok matrix to help speed up list comprehension in the _marked_pairs
-    # function.
-    for c in corrs:
-        c._build_ok_matrix()
-
     plist = []
     for k in range(nboot):
         # Select a random set of indices to use.  (Will have repeats.)
@@ -1388,10 +1385,6 @@ def _cov_bootstrap(corrs, func):
     npatch = _check_patch_nums(corrs, 'bootstrap')
 
     nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
-
-    # Precompute an ok matrix to help speed up list comprehension in the _bootstrap_pairs function
-    for c in corrs:
-        c._build_ok_matrix()
 
     plist = []
     for k in range(nboot):

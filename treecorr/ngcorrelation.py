@@ -467,7 +467,7 @@ class NGCorrelation(BinnedCorr2):
             if self._rg.npatch1 == 1:
                 pairs = [(0,ij[1]) for ij in pairs if ij[0] == ij[1]]
             # Make sure all ij are in the rg results (some might be missing, which is ok)
-            pairs = [ij for ij in pairs if ij in set(self._rg.results.keys())]
+            pairs = [ij for ij in pairs if self._rg._ok[ij[0],ij[1]]]
             self._rg._calculate_xi_from_pairs(pairs)
             self.xi -= self._rg.xi
 

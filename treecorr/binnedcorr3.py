@@ -22,7 +22,7 @@ import coord
 
 from . import _lib
 from .config import merge_config, setup_logger, get
-from .util import parse_metric, metric_enum, coord_enum, set_omp_threads
+from .util import parse_metric, metric_enum, coord_enum, set_omp_threads, lazy_property
 from .binnedcorr2 import estimate_multi_cov
 
 class Namespace(object):
@@ -598,6 +598,7 @@ class BinnedCorr3(object):
     def __getstate__(self):
         d = self.__dict__.copy()
         d.pop('_corr',None)
+        d.pop('_ok',None)     # Remake this as needed.
         d.pop('logger',None)  # Oh well.  This is just lost in the copy.  Can't be pickled.
         return d
 
@@ -613,6 +614,7 @@ class BinnedCorr3(object):
         self._clear()
         self.results = {}
         self.npatch1 = self.npatch2 = self.npatch3 = 1
+        self.__dict__.pop('_ok',None)
 
     def _add_tot(self, i, j, k, c1, c2, c3):
         # No op for all but NNCorrelation, which needs to add the tot value
@@ -684,7 +686,6 @@ class BinnedCorr3(object):
                 my_indices = None
 
             temp = self.copy()
-            temp.results = {}  # Don't mess up the original results
             for ii,c1 in enumerate(cat1):
                 i = c1.patch if c1.patch is not None else ii
                 if is_my_job(my_indices, i, i, i, n):
@@ -836,7 +837,6 @@ class BinnedCorr3(object):
                 my_indices = None
 
             temp = self.copy()
-            temp.results = {}  # Don't mess up the original results
             for ii,c1 in enumerate(cat1):
                 i = c1.patch if c1.patch is not None else ii
                 for jj,c2 in enumerate(cat2):
@@ -957,7 +957,6 @@ class BinnedCorr3(object):
                 my_indices = None
 
             temp = self.copy()
-            temp.results = {}  # Don't mess up the original results
             for ii,c1 in enumerate(cat1):
                 i = c1.patch if c1.patch is not None else ii
                 for jj,c2 in enumerate(cat2):
@@ -1211,13 +1210,12 @@ class BinnedCorr3(object):
             return [ [(j,k,m) for j,k,m in self.results.keys() if j==i]
                      for i in range(self.npatch1) ]
 
-    def _build_ok_matrix(self):
-        # Precompute an ok array to make the list comprehension in bootstrap_pars much faster.
-        n1 = np.sum([self.npatch1 != 1, self.npatch2 != 1, self.npatch3 != 1])
-        if n1 > 1:
-            self._ok = np.zeros((self.npatch1, self.npatch2, self.npatch3), dtype=bool)
-            for (i,j,k) in self.results:
-                self._ok[i,j,k] = True
+    @lazy_property
+    def _ok(self):
+        ok = np.zeros((self.npatch1, self.npatch2, self.npatch3), dtype=bool)
+        for (i,j,k) in self.results:
+            ok[i,j,k] = True
+        return ok
 
     def _marked_pairs(self, indx):
         if self.npatch3 == 1:

@@ -454,7 +454,7 @@ class NKCorrelation(BinnedCorr2):
             if self._rk.npatch1 == 1:
                 pairs = [(0,ij[1]) for ij in pairs if ij[0] == ij[1]]
             # Make sure all ij are in the rk results (some might be missing, which is ok)
-            pairs = [ij for ij in pairs if ij in set(self._rk.results.keys())]
+            pairs = [ij for ij in pairs if self._rk._ok[ij[0],ij[1]]]
             self._rk._calculate_xi_from_pairs(pairs)
             self.xi -= self._rk.xi
 

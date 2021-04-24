@@ -2257,15 +2257,15 @@ def test_nnn():
     # Test compensated zeta
     # First just check the mechanics.
     # If we don't actually do all the cross terms, then compensated is the same as simple.
-    zeta2, varzeta2 = ddd.calculateZeta(rrr,drr=rrr,ddr=rrr)
+    zeta2, varzeta2 = ddd.calculateZeta(rrr,drr=rrr,rdd=rrr)
     print('fake compensated zeta = ',zeta2)
     np.testing.assert_allclose(zeta2, zeta)
 
-    # Error to not have one of rrr, drr, ddr.
+    # Error to not have one of rrr, drr, rdd.
     with assert_raises(TypeError):
-        ddd.calculateZeta(drr=rrr,ddr=rrr)
+        ddd.calculateZeta(drr=rrr,rdd=rrr)
     with assert_raises(TypeError):
-        ddd.calculateZeta(rrr,ddr=rrr)
+        ddd.calculateZeta(rrr,rdd=rrr)
     with assert_raises(TypeError):
         ddd.calculateZeta(rrr,drr=rrr)
     rrr2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
@@ -2273,17 +2273,17 @@ def test_nnn():
                                    nubins=nubins, nvbins=nvbins, sep_units='arcmin')
     # Error if any of them haven't been run yet.
     with assert_raises(ValueError):
-        ddd.calculateZeta(rrr2,drr=rrr,ddr=rrr)
+        ddd.calculateZeta(rrr2,drr=rrr,rdd=rrr)
     with assert_raises(ValueError):
-        ddd.calculateZeta(rrr,drr=rrr2,ddr=rrr)
+        ddd.calculateZeta(rrr,drr=rrr2,rdd=rrr)
     with assert_raises(ValueError):
-        ddd.calculateZeta(rrr,drr=rrr,ddr=rrr2)
+        ddd.calculateZeta(rrr,drr=rrr,rdd=rrr2)
 
     out_file_name3 = os.path.join('output','nnn_out3.fits')
     with assert_raises(TypeError):
-        ddd.write(out_file_name3,drr=rrr,ddr=rrr)
+        ddd.write(out_file_name3,drr=rrr,rdd=rrr)
     with assert_raises(TypeError):
-        ddd.write(out_file_name3,rrr=rrr,ddr=rrr)
+        ddd.write(out_file_name3,rrr=rrr,rdd=rrr)
     with assert_raises(TypeError):
         ddd.write(out_file_name3,rrr=rrr,drr=rrr)
 
@@ -2295,12 +2295,12 @@ def test_nnn():
     # two-point functions xi(d1) + xi(d2) + xi(d3), where [cf. test_nn() in test_nn.py]
     # xi(r) = 1/4pi (L/s)^2 exp(-r^2/4s^2) - 1
     drr = ddd.copy()
-    ddr = ddd.copy()
+    rdd = ddd.copy()
 
     drr.process(cat,rand)
-    ddr.process(rand,cat)
+    rdd.process(rand,cat)
 
-    zeta, varzeta = ddd.calculateZeta(rrr,drr,ddr)
+    zeta, varzeta = ddd.calculateZeta(rrr,drr,rdd)
     print('compensated zeta = ',zeta)
 
     xi1 = (1./(4.*np.pi)) * (L/s)**2 * np.exp(-d1**2/(4.*s**2)) - 1.
@@ -2319,7 +2319,7 @@ def test_nnn():
     np.testing.assert_allclose(np.log(np.abs(zeta)), np.log(np.abs(true_zeta)), atol=0.1*tol_factor)
 
     out_file_name3 = os.path.join('output','nnn_out3.fits')
-    ddd.write(out_file_name3, rrr,drr,ddr)
+    ddd.write(out_file_name3, rrr,drr,rdd)
     data = fitsio.read(out_file_name3)
     np.testing.assert_almost_equal(data['r_nom'], np.exp(ddd.logr).flatten())
     np.testing.assert_almost_equal(data['u_nom'], ddd.u.flatten())
@@ -2337,7 +2337,7 @@ def test_nnn():
     np.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
     np.testing.assert_almost_equal(data['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
     np.testing.assert_almost_equal(data['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
-    np.testing.assert_almost_equal(data['DDR'], ddr.ntri.flatten() * (ddd.tot / ddr.tot))
+    np.testing.assert_almost_equal(data['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
     header = fitsio.read_header(out_file_name3, 1)
     np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
 
@@ -2386,7 +2386,7 @@ def test_nnn():
     np.testing.assert_almost_equal(corr3_output['DDD'], ddd.ntri.flatten())
     np.testing.assert_almost_equal(corr3_output['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
     np.testing.assert_almost_equal(corr3_output['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
-    np.testing.assert_almost_equal(corr3_output['DDR'], ddr.ntri.flatten() * (ddd.tot / ddr.tot))
+    np.testing.assert_almost_equal(corr3_output['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
     header = fitsio.read_header(corr3_outfile, 1)
     np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
 

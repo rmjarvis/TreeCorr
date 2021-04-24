@@ -135,7 +135,7 @@ def corr3(config, logger=None):
         logger.info("Done DDD calculations.")
 
         drr = None
-        ddr = None
+        rdd = None
         if rand1 is None:
             logger.warning("No random catalogs given.  Only doing ntri calculation.")
             rrr = None
@@ -151,10 +151,10 @@ def corr3(config, logger=None):
             drr.process(cat1,rand1)
             logger.info("Done DRR calculations.")
             logger.warning("Performing DDR calculations...")
-            ddr = NNNCorrelation(config,logger)
-            ddr.process(rand1,cat1)
+            rdd = NNNCorrelation(config,logger)
+            rdd.process(rand1,cat1)
             logger.info("Done DDR calculations.")
-        ddd.write(config['nnn_file_name'],rrr,drr,ddr)
+        ddd.write(config['nnn_file_name'],rrr,drr,rdd)
         logger.warning("Wrote NNN correlation to %s",config['nnn_file_name'])
 
     # Do KKK correlation function if necessary

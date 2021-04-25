@@ -1067,7 +1067,6 @@ class BinnedCorr2(object):
         # pairs is input as a list of (i,j) values.
 
         # This is the normal calculation.  It needs to be overridden when there are randoms.
-        self._clear()
         self._sum([self.results[ij] for ij in pairs])
         self._finalize()
 

@@ -703,7 +703,6 @@ class NNNCorrelation(BinnedCorr3):
     def _calculate_xi_from_pairs(self, pairs):
         # Note: we keep the notation ij and pairs here, even though they are really ijk and
         # triples.
-        self._clear()
         self._sum([self.results[ij] for ij in pairs])
         self._finalize()
         ddd = self.weight

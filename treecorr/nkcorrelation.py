@@ -347,6 +347,8 @@ class NKCorrelation(BinnedCorr2):
         np.sum([c.meanlogr for c in others], axis=0, out=self.meanlogr)
         np.sum([c.weight for c in others], axis=0, out=self.weight)
         np.sum([c.npairs for c in others], axis=0, out=self.npairs)
+        self.xi = self.raw_xi
+        self.varxi = self.raw_varxi
 
     def process(self, cat1, cat2, metric=None, num_threads=None, comm=None, low_mem=False,
                 initialize=True, finalize=True):
@@ -446,7 +448,6 @@ class NKCorrelation(BinnedCorr2):
         return self.xi, self.varxi
 
     def _calculate_xi_from_pairs(self, pairs):
-        self._clear()
         self._sum([self.results[ij] for ij in pairs])
         self._finalize()
         if self._rk is not None:

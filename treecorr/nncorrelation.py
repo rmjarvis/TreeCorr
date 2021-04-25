@@ -599,7 +599,6 @@ class NNCorrelation(BinnedCorr2):
         return self.xi, self.varxi
 
     def _calculate_xi_from_pairs(self, pairs):
-        self._clear()
         self._sum([self.results[ij] for ij in pairs])
         self._finalize()
         dd = self.weight

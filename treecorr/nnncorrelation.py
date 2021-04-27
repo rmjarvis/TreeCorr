@@ -1163,6 +1163,10 @@ class NNNCrossCorrelation(BinnedCorr3):
             nnn.tot += tot
         self.tot += tot
 
+    def _finalize(self):
+        for nnn in self._all:
+            nnn._finalize()
+
     def finalize(self):
         """Finalize the calculation of the correlation function.
 
@@ -1185,6 +1189,31 @@ class NNNCrossCorrelation(BinnedCorr3):
             nnn._clear()
         self.tot = 0
 
+    def _sum(self, others):
+        # Equivalent to the operation of:
+        #     self._clear()
+        #     for other in others:
+        #         self += other
+        # but no sanity checks and use numpy.sum for faster calculation.
+        self.tot = np.sum([c.tot for c in others])
+        # Empty ones were only needed for tot.  Remove them now.
+        others = [c for c in others if c.nonempty()]
+        other_all = zip(*[c._all for c in others]) # Transpose list of lists
+        for nnn,o_nnn in zip(self._all, other_all):
+            nnn._sum(o_nnn)
+
+    def _add_tot(self, i, j, k, c1, c2, c3):
+        tot = c1.sumw * c2.sumw * c3.sumw
+        self.tot += tot
+        for c in self._all:
+            c.tot += tot
+        res = self.copy()
+        for c in res._all:
+            c.weight = np.zeros_like(c.weight)
+            c.tot = tot
+        res.tot = tot
+        self.results[(i,j,k)] = res
+
     def __iadd__(self, other):
         """Add a second `NNNCrossCorrelation`'s data to this one.
 
@@ -1204,6 +1233,18 @@ class NNNCrossCorrelation(BinnedCorr3):
         self.n3n2n1 += other.n3n2n1
         self.tot += other.tot
         return self
+
+    def getWeight(self):
+        """The weight array for the current correlation object as a 1-d array.
+
+        For NNNCrossCorrelation, this is always just 1.  We don't currently have any ability
+        to automatically handle a random catalog for NNNCrossCorrelations, so we don't know
+        what the correct weight would be for a given patch or set of patches.  This value
+        is only used by the sample method of covariance estimation, so this limitation means
+        that sample covariances may be expected to be less accurate than normal when used with
+        NNNCorrelations.
+        """
+        return 1.
 
     def process(self, cat1, cat2, cat3=None, metric=None, num_threads=None,
                 comm=None, low_mem=False, initialize=True, finalize=True):
@@ -1261,7 +1302,6 @@ class NNNCrossCorrelation(BinnedCorr3):
                 self.n2n1n3 += self.n3n1n2
                 self.n2n3n1 += self.n3n2n1
                 # Copy back by doing clear and +=.
-                # This makes sure the coords and metric are set properly.
                 self.n1n3n2.clear()
                 self.n3n1n2.clear()
                 self.n3n2n1.clear()

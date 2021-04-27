@@ -862,6 +862,10 @@ def test_ggg_jk():
         print('max log(ratio) = ',np.max(np.abs(np.log(v)-np.log(var_ggg))))
         np.testing.assert_allclose(np.log(v), np.log(var_ggg), atol=0.3*tol_factor)
 
+    # Without func, don't check the accuracy, but make sure it returns something the right shape.
+    cov = gggc.estimate_cov('jackknife')
+    assert cov.shape == (48, 48)
+
 @timer
 def test_nnn_jk():
     # Test jackknife and other covariance estimates for nnn correlations.
@@ -1002,9 +1006,11 @@ def test_nnn_jk():
     patch_centers = big_catp.patch_centers
 
     # Do the same thing with patches on D, but not yet on R.
-    dddp = ddd.copy()
-    rddp = rdd.copy()
-    drrp = drr.copy()
+    dddp = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
+                                   min_u=0.8, max_u=1.0, nubins=1,
+                                   min_v=0.0, max_v=0.2, nvbins=1, rng=rng)
+    rddp = dddp.copy()
+    drrp = dddp.copy()
     catp = treecorr.Catalog(x=x[select], y=y[select], patch_centers=patch_centers)
     print('Patch\tNtot')
     for p in catp.patches:
@@ -1014,6 +1020,11 @@ def test_nnn_jk():
     dddp.process(catp)
     rddp.process(rand_cat, catp)
     drrp.process(catp, rand_cat)
+
+    # Need to run calculateZeta to get patch-based covariance
+    with assert_raises(RuntimeError):
+        dddp.estimate_cov('jackknife')
+
     zeta_s2, var_zeta_s2 = dddp.calculateZeta(rrr)
     print('DDD:',dddp.tot)
     print(dddp.ntri.ravel())
@@ -1407,7 +1418,7 @@ def test_brute_jk():
     np.testing.assert_allclose(np.diagonal(covmap3), varmap3)
 
     # Finally NNN, where we need to use randoms.  Both simple and compensated.
-    ddd = treecorr.NNNCorrelation(nbins=3, min_sep=100., max_sep=300., bin_slop=0, brute=True,
+    ddd = treecorr.NNNCorrelation(nbins=3, min_sep=100., max_sep=300., bin_slop=0,
                                   min_u=0., max_u=1.0, nubins=1,
                                   min_v=0., max_v=1.0, nvbins=1,
                                   var_method='jackknife')
@@ -1429,7 +1440,7 @@ def test_brute_jk():
                                 g2=cat.g2[cat.patch != i])
         rand_cat1 = treecorr.Catalog(x=rand_cat.x[rand_cat.patch != i],
                                      y=rand_cat.y[rand_cat.patch != i])
-        ddd1 = treecorr.NNNCorrelation(nbins=3, min_sep=100., max_sep=300., bin_slop=0, brute=True,
+        ddd1 = treecorr.NNNCorrelation(nbins=3, min_sep=100., max_sep=300., bin_slop=0,
                                        min_u=0., max_u=1.0, nubins=1,
                                        min_v=0., max_v=1.0, nvbins=1)
         drr1 = ddd1.copy()
@@ -1458,6 +1469,27 @@ def test_brute_jk():
     print('NNN: treecorr jackknife varzeta = ',ddd.varzeta.ravel())
     print('NNN: direct jackknife varzeta = ',varzeta2)
     np.testing.assert_allclose(ddd.varzeta.ravel(), varzeta2)
+
+    # Can't do patch calculation with different numbers of patches in rrr, drr, rdd.
+    rand_cat3 = treecorr.Catalog(x=rx, y=ry, npatch=3)
+    cat3 = treecorr.Catalog(x=x, y=y, patch_centers=rand_cat3.patch_centers)
+    rrr3 = rrr.copy()
+    drr3 = drr.copy()
+    rdd3 = rdd.copy()
+    rrr3.process(rand_cat3)
+    drr3.process(cat3, rand_cat3)
+    rdd3.process(rand_cat3, cat3)
+    with assert_raises(RuntimeError):
+        ddd.calculateZeta(rrr3)
+    with assert_raises(RuntimeError):
+        ddd.calculateZeta(rrr3, drr, rdd)
+    with assert_raises(RuntimeError):
+        ddd.calculateZeta(rrr, drr3, rdd3)
+    with assert_raises(RuntimeError):
+        ddd.calculateZeta(rrr, drr, rdd3)
+    with assert_raises(RuntimeError):
+        ddd.calculateZeta(rrr, drr3, rdd)
+
 
 @timer
 def test_finalize_false():
@@ -1620,14 +1652,6 @@ def test_finalize_false():
     np.testing.assert_allclose(ggg1.gam3, ggg2.gam3)
 
     # GGG cross12
-    cat23 = treecorr.Catalog(x=np.concatenate([x_2, x_3]),
-                             y=np.concatenate([y_2, y_3]),
-                             g1=np.concatenate([g1_2, g1_3]),
-                             g2=np.concatenate([g2_2, g2_3]),
-                             k=np.concatenate([k_2, k_3]),
-                             patch_centers=cat.patch_centers)
-    np.testing.assert_array_equal(cat23.patch, cat.patch[nsource:3*nsource])
-
     ggg1.process(cat1, cat23)
     ggg2.process(cat1, cat2, initialize=True, finalize=False)
     ggg2.process(cat1, cat3, initialize=False, finalize=False)
@@ -1703,6 +1727,93 @@ def test_finalize_false():
         np.testing.assert_allclose(ggg1.gam1, ggg2.gam1)
         np.testing.assert_allclose(ggg1.gam2, ggg2.gam2)
         np.testing.assert_allclose(ggg1.gam3, ggg2.gam3)
+
+    # NNN auto
+    nnn1 = treecorr.NNNCorrelation(nbins=3, min_sep=10., max_sep=200., bin_slop=0,
+                                   min_u=0.8, max_u=1.0, nubins=1,
+                                   min_v=0., max_v=0.2, nvbins=1)
+    nnn1.process(cat)
+
+    nnn2 = treecorr.NNNCorrelation(nbins=3, min_sep=10., max_sep=200., bin_slop=0,
+                                   min_u=0.8, max_u=1.0, nubins=1,
+                                   min_v=0., max_v=0.2, nvbins=1)
+    nnn2.process(cat1, initialize=True, finalize=False)
+    nnn2.process(cat2, initialize=False, finalize=False)
+    nnn2.process(cat3, initialize=False, finalize=False)
+    nnn2.process(cat1, cat2, initialize=False, finalize=False)
+    nnn2.process(cat1, cat3, initialize=False, finalize=False)
+    nnn2.process(cat2, cat1, initialize=False, finalize=False)
+    nnn2.process(cat2, cat3, initialize=False, finalize=False)
+    nnn2.process(cat3, cat1, initialize=False, finalize=False)
+    nnn2.process(cat3, cat2, initialize=False, finalize=False)
+    nnn2.process(cat1, cat2, cat3, initialize=False, finalize=True)
+
+    np.testing.assert_allclose(nnn1.ntri, nnn2.ntri)
+    np.testing.assert_allclose(nnn1.weight, nnn2.weight)
+    np.testing.assert_allclose(nnn1.meand1, nnn2.meand1)
+    np.testing.assert_allclose(nnn1.meand2, nnn2.meand2)
+    np.testing.assert_allclose(nnn1.meand3, nnn2.meand3)
+
+    # NNN cross12
+    nnn1.process(cat1, cat23)
+    nnn2.process(cat1, cat2, initialize=True, finalize=False)
+    nnn2.process(cat1, cat3, initialize=False, finalize=False)
+    nnn2.process(cat1, cat2, cat3, initialize=False, finalize=True)
+
+    np.testing.assert_allclose(nnn1.ntri, nnn2.ntri)
+    np.testing.assert_allclose(nnn1.weight, nnn2.weight)
+    np.testing.assert_allclose(nnn1.meand1, nnn2.meand1)
+    np.testing.assert_allclose(nnn1.meand2, nnn2.meand2)
+    np.testing.assert_allclose(nnn1.meand3, nnn2.meand3)
+
+    # NNNCross cross12
+    nnnc1 = treecorr.NNNCrossCorrelation(nbins=3, min_sep=10., max_sep=200., bin_slop=0,
+                                         min_u=0.8, max_u=1.0, nubins=1,
+                                         min_v=0., max_v=0.2, nvbins=1)
+    nnnc1.process(cat1, cat23)
+
+    nnnc2 = treecorr.NNNCrossCorrelation(nbins=3, min_sep=10., max_sep=200., bin_slop=0,
+                                         min_u=0.8, max_u=1.0, nubins=1,
+                                         min_v=0., max_v=0.2, nvbins=1)
+    nnnc2.process(cat1, cat2, initialize=True, finalize=False)
+    nnnc2.process(cat1, cat3, initialize=False, finalize=False)
+    nnnc2.process(cat1, cat2, cat3, initialize=False, finalize=True)
+
+    for perm in ['n1n2n3', 'n1n3n2', 'n2n1n3', 'n2n3n1', 'n3n1n2', 'n3n2n1']:
+        nnn1 = getattr(nnnc1, perm)
+        nnn2 = getattr(nnnc2, perm)
+        np.testing.assert_allclose(nnn1.ntri, nnn2.ntri)
+        np.testing.assert_allclose(nnn1.weight, nnn2.weight)
+        np.testing.assert_allclose(nnn1.meand1, nnn2.meand1)
+        np.testing.assert_allclose(nnn1.meand2, nnn2.meand2)
+        np.testing.assert_allclose(nnn1.meand3, nnn2.meand3)
+
+    # NNN cross
+    nnn1.process(cat, cat2, cat3)
+    nnn2.process(cat1, cat2, cat3, initialize=True, finalize=False)
+    nnn2.process(cat2, cat2, cat3, initialize=False, finalize=False)
+    nnn2.process(cat3, cat2, cat3, initialize=False, finalize=True)
+
+    np.testing.assert_allclose(nnn1.ntri, nnn2.ntri)
+    np.testing.assert_allclose(nnn1.weight, nnn2.weight)
+    np.testing.assert_allclose(nnn1.meand1, nnn2.meand1)
+    np.testing.assert_allclose(nnn1.meand2, nnn2.meand2)
+    np.testing.assert_allclose(nnn1.meand3, nnn2.meand3)
+
+    # NNNCross cross
+    nnnc1.process(cat, cat2, cat3)
+    nnnc2.process(cat1, cat2, cat3, initialize=True, finalize=False)
+    nnnc2.process(cat2, cat2, cat3, initialize=False, finalize=False)
+    nnnc2.process(cat3, cat2, cat3, initialize=False, finalize=True)
+
+    for perm in ['n1n2n3', 'n1n3n2', 'n2n1n3', 'n2n3n1', 'n3n1n2', 'n3n2n1']:
+        nnn1 = getattr(nnnc1, perm)
+        nnn2 = getattr(nnnc2, perm)
+        np.testing.assert_allclose(nnn1.ntri, nnn2.ntri)
+        np.testing.assert_allclose(nnn1.weight, nnn2.weight)
+        np.testing.assert_allclose(nnn1.meand1, nnn2.meand1)
+        np.testing.assert_allclose(nnn1.meand2, nnn2.meand2)
+        np.testing.assert_allclose(nnn1.meand3, nnn2.meand3)
 
 @timer
 def test_lowmem():

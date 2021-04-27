@@ -631,9 +631,13 @@ def test_direct_count_auto():
     rrr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  brute=True, verbose=0)
+                                  brute=True, verbose=0, rng=rng)
     rrr.process(rcat)
     zeta, varzeta = ddd.calculateZeta(rrr)
+
+    # Semi-gratuitous check of BinnedCorr3.rng access.
+    assert rrr.rng is rng
+    assert ddd.rng is not rng
 
     # First do this via the corr3 function.
     config = treecorr.config.read_config('configs/nnn_direct.yaml')
@@ -668,6 +672,7 @@ def test_direct_count_auto():
     print('corr3.zeta[diffs] = ',corr3_output['zeta'][diff_index])
     print('diff[diffs] = ',zeta.flatten()[diff_index] - corr3_output['zeta'][diff_index])
     np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['sigma_zeta'], np.sqrt(varzeta).flatten(), rtol=1.e-3)
 
     # Now calling out to the external corr3 executable.
     # This is the only time we test the corr3 executable.  All other tests use corr3 function.
@@ -678,6 +683,40 @@ def test_direct_count_auto():
     corr3_output = np.genfromtxt(os.path.join('output','nnn_direct.out'), names=True,
                                     skip_header=1)
     np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
+
+    # Also check compensated
+    drr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  brute=True, verbose=0)
+    rdd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  brute=True, verbose=0)
+    drr.process(cat, rcat)
+    rdd.process(rcat, cat)
+    zeta, varzeta = ddd.calculateZeta(rrr,drr,rdd)
+
+    config['nnn_statistic'] = 'compensated'
+    treecorr.corr3(config, logger)
+    corr3_output = np.genfromtxt(os.path.join('output','nnn_direct.out'), names=True, skip_header=1)
+    np.testing.assert_allclose(corr3_output['r_nom'], ddd.rnom.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['u_nom'], ddd.u.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['v_nom'], ddd.v.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['DDD'], ddd.ntri.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['ntri'], ddd.ntri.flatten(), rtol=1.e-3)
+    print('rrr.tot = ',rrr.tot)
+    print('ddd.tot = ',ddd.tot)
+    print('drr.tot = ',drr.tot)
+    print('rdd.tot = ',rdd.tot)
+    rrrf = ddd.tot / rrr.tot
+    drrf = ddd.tot / drr.tot
+    rddf = ddd.tot / rdd.tot
+    np.testing.assert_allclose(corr3_output['RRR'], rrr.ntri.flatten() * rrrf, rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['DRR'], drr.ntri.flatten() * drrf, rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['RDD'], rdd.ntri.flatten() * rddf, rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['sigma_zeta'], np.sqrt(varzeta).flatten(), rtol=1.e-3)
 
     # Repeat with binslop = 0, since the code flow is different from bture=True
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,

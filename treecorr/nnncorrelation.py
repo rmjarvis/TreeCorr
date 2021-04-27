@@ -507,7 +507,8 @@ class NNNCorrelation(BinnedCorr3):
             finalize (bool):    Wether to complete the calculation with a call to `finalize`.
                                 (default: True)
         """
-        self.clear()
+        if initialize:
+            self.clear()
 
         if not isinstance(cat1,list): cat1 = cat1.get_patches()
         if cat2 is not None and not isinstance(cat2,list): cat2 = cat2.get_patches()
@@ -521,7 +522,9 @@ class NNNCorrelation(BinnedCorr3):
             self._process_all_cross12(cat1, cat2, metric, num_threads, comm, low_mem)
         else:
             self._process_all_cross(cat1, cat2, cat3, metric, num_threads, comm, low_mem)
-        self.finalize()
+
+        if finalize:
+            self.finalize()
 
     def _mean_weight(self):
         mean_np = np.mean(self.ntri)
@@ -533,7 +536,7 @@ class NNNCorrelation(BinnedCorr3):
         This raises a RuntimeError if calculateZeta has not been run yet.
         """
         if self._rrr_weight is None:
-            raise RuntimeError("You need to call calculateXi before calling estimate_cov.")
+            raise RuntimeError("You need to call calculateZeta before calling estimate_cov.")
         return self.zeta.ravel()
 
     def getWeight(self):

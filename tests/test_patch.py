@@ -602,6 +602,12 @@ def test_gg_jk():
     t1 = time.time()
     print('Time for non-patch processing = ',t1-t0)
 
+    # Quick gratuitous coverage test:
+    assert '_ok' not in gg1.__dict__
+    assert 'lazy_property' in str(treecorr.GGCorrelation._ok)
+    gg1._ok
+    assert '_ok' in gg1.__dict__
+
     print('weight = ',gg1.weight)
     print('xip = ',gg1.xip)
     print('xim = ',gg1.xim)

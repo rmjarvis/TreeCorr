@@ -862,7 +862,7 @@ def test_catalog_sphere():
     print('rms inertia = ',np.std(inertia))
     assert np.sum(inertia) < 200.  # Total shouldn't increase much. (And often decreases.)
     print(np.std(inertia)/np.mean(inertia))
-    assert np.std(inertia) < 0.07 * np.mean(inertia)  # rms should be even smaller here.
+    assert np.std(inertia) < 0.09 * np.mean(inertia)  # rms should be even smaller here.
     print('mean counts = ',np.mean(counts))
     print('min counts = ',np.min(counts))
     print('max counts = ',np.max(counts))
@@ -954,7 +954,7 @@ def test_catalog_3d():
     print('rms inertia = ',np.std(inertia))
     assert np.sum(inertia) < 200.  # Total shouldn't increase much. (And often decreases.)
     print(np.std(inertia)/np.mean(inertia))
-    assert np.std(inertia) < 0.07 * np.mean(inertia)  # rms should be even smaller here.
+    assert np.std(inertia) < 0.09 * np.mean(inertia)  # rms should be even smaller here.
     print('mean counts = ',np.mean(counts))
     print('min counts = ',np.min(counts))
     print('max counts = ',np.max(counts))

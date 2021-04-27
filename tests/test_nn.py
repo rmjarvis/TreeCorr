@@ -1816,13 +1816,14 @@ def test_split():
             assert not np.all(dd1.npairs == dd2.npairs)
             np.testing.assert_allclose(dd1.npairs, dd2.npairs,rtol=1.e-2)
 
-    # If cat has an rng though, thy should be identical.
+    # If cat has an rng though, they should be identical.
+    # (Also need single thread, else the random values come in a different order still.)
     cat.nfields.clear()
     cat._rng = np.random.RandomState(1234)
-    dd_random1.process(cat)
+    dd_random1.process(cat, num_threads=1)
     cat.nfields.clear()
     cat._rng = np.random.RandomState(1234)
-    dd_random2.process(cat)
+    dd_random2.process(cat, num_threads=1)
     np.testing.assert_array_equal(dd_random1.npairs, dd_random2.npairs)
 
     assert_raises(ValueError, treecorr.NNCorrelation, bin_size=0.1, min_sep=5., max_sep=25.,

@@ -517,7 +517,7 @@ def test_ggg_jk():
             x, y, g1, g2, _ = generate_shear_field(nsource, nhalo, rng1)
             # For some reason std(g2) is coming out about 1.5x larger than std(g1).
             # Probably a sign of some error in the generate function, but I don't see it.
-            # For this purpose I think it doesn't really matter, but it's a bit odd. ¯\_(ツ)_/¯
+            # For this purpose I think it doesn't really matter, but it's a bit odd.
             print(run,': ',np.mean(g1),np.std(g1),np.mean(g2),np.std(g2))
             cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
             ggg = treecorr.GGGCorrelation(nbins=1, min_sep=20., max_sep=40.,

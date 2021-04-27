@@ -1,6 +1,13 @@
 Changes from version 4.1 to 4.2
 ===============================
 
+This will be the last (non-bug-fix) TreeCorr release to support Python 2.7.
+It is becoming harder to continue to support this platform now that it is
+officially sunsetted, so we encourage all users to switch their code to
+Python 3.x ASAP.  TreeCorr is currently compatible with Python versions
+2.7, 3.5, 3.6, 3.7, 3.8, 3.9.  We will probably also drop 3.5 in the next
+release as well, since that is also retired at this point.
+
 
 API Changes
 -----------

@@ -180,17 +180,7 @@ def setup_logger(verbose, log_file=None):
     else:
         name = 'treecorr_' + log_file
     logger = logging.getLogger(name)
-    # Should only be one handler.  If it is the wrong type, then clear it.
-    if len(logger.handlers) >= 1:
-        if log_file is None:
-            if isinstance(logger.handlers[0], logging.FileHandler):
-                #logger.handlers.clear()  (Python 3 only apparently.)
-                del logger.handlers[:]
-        else:
-            if not (isinstance(logger.handlers[0], logging.FileHandler) and
-                    logger.handlers[0].baseFilename == os.path.abspath(log_file)):
-                #logger.handlers.clear()
-                del logger.handlers[:]
+
     if len(logger.handlers) == 0:  # only add handler once!
         if log_file is None:
             handle = logging.StreamHandler(stream=sys.stdout)

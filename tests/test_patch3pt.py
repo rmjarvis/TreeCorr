@@ -867,7 +867,7 @@ def test_nnn_jk():
     # Test jackknife and other covariance estimates for nnn correlations.
 
     if __name__ == '__main__':
-        # This setup takes about 500 sec to run.
+        # This setup takes about 2200 sec to run.
         nhalo = 300
         nsource = 2000
         npatch = 16
@@ -875,7 +875,7 @@ def test_nnn_jk():
         rand_factor = 3
         tol_factor = 1
     elif False:
-        # This setup takes about 39 sec to run.
+        # This setup takes about 1671 sec to run.
         nhalo = 200
         nsource = 1000
         npatch = 16
@@ -883,7 +883,7 @@ def test_nnn_jk():
         rand_factor = 2
         tol_factor = 2
     else:
-        # This setup takes about 37 sec to run.
+        # This setup takes about 147 sec to run.
         nhalo = 100
         nsource = 500
         npatch = 8
@@ -1177,6 +1177,98 @@ def test_nnn_jk():
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnnc))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.8*tol_factor)
+
+    # I haven't implemented calculateZeta for the NNNCrossCorrelation class, because I'm not
+    # actually sure what the right thing to do here is for calculating a single zeta vectors.
+    # Do we do a different one for each of the 6 permutations?  Or one overall one?
+    # So rather than just do something, I'll wait until someone has a coherent use case where
+    # they want this and can explain exactly what the right thing to compute is.
+    # So to just exercise the machinery with NNNCrossCorrelation, I'm using a func parameter
+    # to compute something equivalent to the simple zeta calculation.
+
+    dddc = treecorr.NNNCrossCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
+                                        min_u=0.8, max_u=1.0, nubins=1,
+                                        min_v=0.0, max_v=0.2, nvbins=1, rng=rng)
+    rrrc = treecorr.NNNCrossCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
+                                        min_u=0.8, max_u=1.0, nubins=1,
+                                        min_v=0.0, max_v=0.2, nvbins=1, rng=rng)
+    print('CrossCorrelation:')
+    dddc.process(catp, catp, catp)
+    rrrc.process(rand_catp, rand_catp, rand_catp)
+
+    def cc_zeta(corrs):
+        d, r = corrs
+        d1 = d.n1n2n3.copy()
+        d1._sum(d._all)
+        r1 = r.n1n2n3.copy()
+        r1._sum(r._all)
+        zeta, _ = d1.calculateZeta(r1)
+        return zeta.ravel()
+
+    print('simple: ')
+    zeta_s3 = cc_zeta([dddc, rrrc])
+    print(zeta_s3)
+    np.testing.assert_allclose(zeta_s3, zeta_s1.ravel(), rtol=0.05 * tol_factor)
+
+    print('jackknife:')
+    cov = treecorr.estimate_multi_cov([dddc,rrrc], 'jackknife', cc_zeta)
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.9*tol_factor)
+
+    print('sample:')
+    cov = treecorr.estimate_multi_cov([dddc,rrrc], 'sample', cc_zeta)
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.7*tol_factor)
+
+    print('marked:')
+    cov = treecorr.estimate_multi_cov([dddc,rrrc], 'marked_bootstrap', cc_zeta)
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.8*tol_factor)
+
+    print('bootstrap:')
+    cov = treecorr.estimate_multi_cov([dddc,rrrc], 'bootstrap', cc_zeta)
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=1.0*tol_factor)
+
+    # Repeat with a 1-2 cross-correlation
+    print('CrossCorrelation 1-2:')
+    dddc.process(catp, catp)
+    rrrc.process(rand_catp, rand_catp)
+
+    print('simple: ')
+    zeta_s3 = cc_zeta([dddc, rrrc])
+    print(zeta_s3)
+    np.testing.assert_allclose(zeta_s3, zeta_s1.ravel(), rtol=0.05 * tol_factor)
+
+    print('jackknife:')
+    cov = treecorr.estimate_multi_cov([dddc,rrrc], 'jackknife', cc_zeta)
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.9*tol_factor)
+
+    # In the nosetests version of this, there are zero weight samples, which causes problems
+    # Wait until #123 is fixed to enable this.
+    #print('sample:')
+    #cov = treecorr.estimate_multi_cov([dddc,rrrc], 'sample', cc_zeta)
+    #print(np.diagonal(cov))
+    #print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    #np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.7*tol_factor)
+
+    print('marked:')
+    cov = treecorr.estimate_multi_cov([dddc,rrrc], 'marked_bootstrap', cc_zeta)
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.8*tol_factor)
+
+    print('bootstrap:')
+    cov = treecorr.estimate_multi_cov([dddc,rrrc], 'bootstrap', cc_zeta)
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=1.0*tol_factor)
 
 
 @timer

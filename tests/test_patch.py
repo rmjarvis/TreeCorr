@@ -2154,7 +2154,7 @@ def test_brute_jk():
     gg_xim_list = np.array(gg_xim_list)
     varxi = np.diagonal(np.cov(gg_xim_list.T, bias=True)) * (len(gg_xim_list)-1)
     print('GG: treecorr jackknife varxim = ',gg.varxim)
-    print('GG: direct jackknife varxip = ',varxi)
+    print('GG: direct jackknife varxim = ',varxi)
     np.testing.assert_allclose(gg.varxim, varxi)
     kk_xi_list = np.array(kk_xi_list)
     varxi = np.diagonal(np.cov(kk_xi_list.T, bias=True)) * (len(kk_xi_list)-1)

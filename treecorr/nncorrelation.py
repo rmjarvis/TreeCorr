@@ -592,6 +592,7 @@ class NNCorrelation(BinnedCorr2):
                     new_cij.weight.ravel()[:] = 0
                     new_cij.tot = 0
                     self.results[ij] = new_cij
+                self.__dict__.pop('_ok',None)  # If it was already made, it will need to be redone.
 
         # Now that it's all set up, calculate the covariance and set varxi to the diagonal.
         self.cov = self.estimate_cov(self.var_method)

@@ -716,11 +716,11 @@ class BinnedCorr3(object):
                                 else:
                                     self.results[(i,j,j)] += temp
                                 self += temp
-                                temp.clear()
                             else:
                                 # NNNCorrelation needs to add the tot value
                                 self._add_tot(i, j, j, c1, c2, c2)
 
+                            temp.clear()
                             # One point in c2, 2 in c1.
                             if not self._trivially_zero(c1,c1,c2,metric):
                                 self.logger.info('Process patches %d,%d cross12',j,i)

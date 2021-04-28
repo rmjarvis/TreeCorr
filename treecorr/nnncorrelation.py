@@ -693,7 +693,7 @@ class NNNCorrelation(BinnedCorr3):
                     new_cijk.weight.ravel()[:] = 0
                     new_cijk.tot = 0
                     self.results[ijk] = new_cijk
-                self.__dict__.pop('_ok')  # If it was already made, it will need to be redone.
+                self.__dict__.pop('_ok',None)  # If it was already made, it will need to be redone.
 
         # Now that it's all set up, calculate the covariance and set varzeta to the diagonal.
         self.cov = self.estimate_cov(self.var_method)

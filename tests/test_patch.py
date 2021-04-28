@@ -2554,7 +2554,7 @@ def test_config():
     print('gg2.varxip = ',gg2.varxip)
 
     # Bootstrap has intrinisic randomness, so this doesn't get all that close actually.
-    np.testing.assert_allclose(gg.varxip, gg2.varxip, rtol=0.4)
+    np.testing.assert_allclose(gg.varxip, gg2.varxip, rtol=0.5)
 
     # Jackknife should be exactly equal (so long as npatch is 2^n), since deterministic.
     varxi_jk = gg.estimate_cov('jackknife').diagonal()

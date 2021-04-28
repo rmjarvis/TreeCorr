@@ -502,9 +502,9 @@ class NNNCorrelation(BinnedCorr3):
                                 computation. This only works if using patches. (default: None)
             low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
                                 This only works if using patches. (default: False)
-            initialize (bool):  Wether to begin the calculation with a call to `clear`.
+            initialize (bool):  Whether to begin the calculation with a call to `clear`.
                                 (default: True)
-            finalize (bool):    Wether to complete the calculation with a call to `finalize`.
+            finalize (bool):    Whether to complete the calculation with a call to `finalize`.
                                 (default: True)
         """
         if initialize:
@@ -1276,9 +1276,9 @@ class NNNCrossCorrelation(BinnedCorr3):
                                 computation. This only works if using patches. (default: None)
             low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
                                 This only works if using patches. (default: False)
-            initialize (bool):  Wether to begin the calculation with a call to `clear`.
+            initialize (bool):  Whether to begin the calculation with a call to `clear`.
                                 (default: True)
-            finalize (bool):    Wether to complete the calculation with a call to `finalize`.
+            finalize (bool):    Whether to complete the calculation with a call to `finalize`.
                                 (default: True)
         """
         import math

@@ -415,7 +415,7 @@ class NNNCorrelation(BinnedCorr3):
         tot = c1.sumw * c2.sumw * c3.sumw
         if c2 is c3:
             # Account for 1/2 factor in cross12 cases.
-            tot /= 2
+            tot /= 2.
         self.tot += tot
         # We also have to keep all pairs in the results dict, otherwise the tot calculation
         # gets messed up.  We need to accumulate the tot value of all pairs, even if

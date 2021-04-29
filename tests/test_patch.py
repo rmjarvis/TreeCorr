@@ -2819,6 +2819,18 @@ def test_empty_patches():
     with assert_raises(RuntimeError):
         cov3 = ng3.estimate_cov('sample')
 
+    # Finally, if all the patch pairs have no counts, then this used to fail in a different way.
+    # The easiest way to achieve this is to have the separation range be wrong.
+    ng4 = treecorr.NGCorrelation(bin_size=0.1, bin_slop=0.1, min_sep=1000., max_sep=5000.)
+    ng4.process(cat1p, cat2p)
+    ng4.estimate_cov('jackknife')
+    np.testing.assert_array_equal(ng4.xi, 0.)
+    np.testing.assert_array_equal(ng4.varxi, 0.)
+    np.testing.assert_array_equal(ng4.cov, 0.)
+
+    with assert_raises(RuntimeError):
+        ng4.estimate_cov('sample')
+
     # With even more patches, there was also a different problem with the 1-2p correlation,
     # because some (0,k) pairs don't have any data, so don't end up in results dict.
     npatch = 100

@@ -765,7 +765,7 @@ class BinnedCorr2(object):
                         else:
                             self.logger.info('Skipping %d,%d pair, which are too far apart ' +
                                              'for this set of separations',i,j)
-                        if np.sum(temp.npairs) > 0:
+                        if np.sum(temp.npairs) > 0 or i==j or n1==1 or n2==1:
                             if (i,j) not in self.results:
                                 self.results[(i,j)] = temp.copy()
                             else:
@@ -1338,14 +1338,15 @@ def _cov_sample(corrs, func):
     npatch = _check_patch_nums(corrs, 'sample')
 
     plist = [c._sample_pairs() for c in corrs]
-    for vpairs in plist:
-        if any([len(v) == 0 for v in vpairs]):
-            raise RuntimeError("Cannot compute sample variance when some patches have no data.")
     # Swap order of plist.  Right now it's a list for each corr of a list for each row.
     # We want a list by row with a list for each corr.
     plist = list(zip(*plist))
 
     v,w = _make_cov_design_matrix(corrs, plist, func, 'sample')
+
+    if np.any(w == 0):
+        raise RuntimeError("Cannot compute sample variance when some patches have no data.")
+
     w /= np.sum(w)  # Now w is the fractional weight for each patch
 
     vmean = np.mean(v, axis=0)

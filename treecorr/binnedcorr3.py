@@ -850,7 +850,7 @@ class BinnedCorr3(object):
                         else:
                             self.logger.info('Skipping %d,%d pair, which are too far apart ' +
                                              'for this set of separations',i,j)
-                        if temp.nonempty():
+                        if temp.nonempty() or i==j or n1==1 or n2==1:
                             if (i,j,j) not in self.results:
                                 self.results[(i,j,j)] = temp.copy()
                             else:
@@ -971,7 +971,9 @@ class BinnedCorr3(object):
                             else:
                                 self.logger.info('Skipping %d,%d,%d, which are too far apart ' +
                                                  'for this set of separations',i,j,k)
-                            if temp.nonempty():
+                            if (temp.nonempty() or (i==j==k)
+                                    or (i==j and n3==1) or (i==k and n2==1) or (j==k and n1==1)
+                                    or (n1==n2==1) or (n1==n3==1) or (n2==n3==1)):
                                 if (i,j,k) not in self.results:
                                     self.results[(i,j,k)] = temp.copy()
                                 else:

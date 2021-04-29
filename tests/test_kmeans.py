@@ -66,7 +66,7 @@ def test_dessv():
     print('rms size = ',np.std(sizes))
     assert np.sum(inertia) < 200.  # This is specific to this particular field and npatch.
     print(np.std(inertia)/np.mean(inertia))
-    assert np.std(inertia) < 0.14 * np.mean(inertia)  # rms is usually < 0.2 * mean
+    assert np.std(inertia) < 0.16 * np.mean(inertia)  # rms is usually < 0.2 * mean
     print(np.std(sizes)/np.mean(sizes))
     assert np.std(sizes) < 0.07 * np.mean(sizes)  # sizes have even less spread usually.
 
@@ -99,7 +99,7 @@ def test_dessv():
     print(np.std(inertia)/np.mean(inertia))
     assert np.std(inertia) < 0.07 * np.mean(inertia)  # rms should be even smaller here.
     print(np.std(sizes)/np.mean(sizes))
-    assert np.std(sizes) < 0.05 * np.mean(sizes)  # This isn't usually much smaller.
+    assert np.std(sizes) < 0.06 * np.mean(sizes)  # This isn't usually much smaller.
 
     # This doesn't keep the counts as equal as the standard algorithm.
     print('mean counts = ',np.mean(counts))
@@ -423,7 +423,7 @@ def test_2d():
     print('rms inertia = ',np.std(inertia))
     assert np.sum(inertia) < 5300.
     print(np.std(inertia)/np.mean(inertia))
-    assert np.std(inertia) < 0.08 * np.mean(inertia)
+    assert np.std(inertia) < 0.09 * np.mean(inertia)
     print('mean counts = ',np.mean(counts))
     print('min counts = ',np.min(counts))
     print('max counts = ',np.max(counts))
@@ -862,7 +862,7 @@ def test_catalog_sphere():
     print('rms inertia = ',np.std(inertia))
     assert np.sum(inertia) < 200.  # Total shouldn't increase much. (And often decreases.)
     print(np.std(inertia)/np.mean(inertia))
-    assert np.std(inertia) < 0.09 * np.mean(inertia)  # rms should be even smaller here.
+    assert np.std(inertia) < 0.10 * np.mean(inertia)  # rms should be even smaller here.
     print('mean counts = ',np.mean(counts))
     print('min counts = ',np.min(counts))
     print('max counts = ',np.max(counts))
@@ -954,7 +954,7 @@ def test_catalog_3d():
     print('rms inertia = ',np.std(inertia))
     assert np.sum(inertia) < 200.  # Total shouldn't increase much. (And often decreases.)
     print(np.std(inertia)/np.mean(inertia))
-    assert np.std(inertia) < 0.09 * np.mean(inertia)  # rms should be even smaller here.
+    assert np.std(inertia) < 0.10 * np.mean(inertia)  # rms should be even smaller here.
     print('mean counts = ',np.mean(counts))
     print('min counts = ',np.min(counts))
     print('max counts = ',np.max(counts))

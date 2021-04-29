@@ -163,7 +163,7 @@ def test_kkk_jk():
 
     np.testing.assert_allclose(kkkp.ntri, kkk.ntri, rtol=0.05 * tol_factor)
     np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
-    np.testing.assert_allclose(kkkp.varzeta, kkk.varzeta, rtol=0.05 * tol_factor)
+    np.testing.assert_allclose(kkkp.varzeta, kkk.varzeta, rtol=0.05 * tol_factor, atol=3.e-6)
 
     print('jackknife:')
     cov = kkkp.estimate_cov('jackknife')
@@ -422,7 +422,7 @@ def test_kkk_jk():
 
         np.testing.assert_allclose(k1.ntri, kkk.ntri, rtol=0.05 * tol_factor)
         np.testing.assert_allclose(k1.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
-        np.testing.assert_allclose(k1.varzeta, kkk.varzeta, rtol=0.05 * tol_factor)
+        np.testing.assert_allclose(k1.varzeta, kkk.varzeta, rtol=0.05 * tol_factor, atol=3.e-6)
 
     print('jackknife:')
     cov = kkkc.estimate_cov('jackknife')

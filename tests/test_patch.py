@@ -2750,8 +2750,8 @@ def test_empty_patches():
 
     # Put all the lenses in a tight patch, but the sources in a much larger patch.
     # This seems like the least implausible scenario where this could happen.
-    lens_x = rng.uniform(-5,5,nlens)
-    lens_y = rng.uniform(-5,5,nlens)
+    lens_x = rng.uniform(-1,1,nlens)
+    lens_y = rng.uniform(-1,1,nlens)
     source_x = rng.uniform(-100,100,nsource)
     source_y = rng.uniform(-100,100,nsource)
 

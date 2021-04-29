@@ -1156,26 +1156,32 @@ class BinnedCorr3(object):
     def _jackknife_pairs(self):
         if self.npatch3 == 1:
             if self.npatch2 == 1:
-                return [ [(j,0,0) for j in range(self.npatch1) if j!=i]
+                # k=m=0
+                return [ [(j,k,m) for j,k,m in self.results.keys() if j!=i]
                          for i in range(self.npatch1) ]
             elif self.npatch1 == 1:
-                return [ [(0,j,0) for j in range(self.npatch2) if j!=i]
+                # j=m=0
+                return [ [(j,k,m) for j,k,m in self.results.keys() if k!=i]
                          for i in range(self.npatch2) ]
             else:
+                # m=0
                 assert self.npatch1 == self.npatch2
-                return [ [(j,k,0) for j,k,_ in self.results.keys() if j!=i and k!=i]
-                            for i in range(self.npatch1) ]
+                return [ [(j,k,m) for j,k,m in self.results.keys() if j!=i and k!=i]
+                         for i in range(self.npatch1) ]
         elif self.npatch2 == 1:
             if self.npatch1 == 1:
-                return [ [(0,0,j) for j in range(self.npatch3) if j!=i]
+                # j=k=0
+                return [ [(j,k,m) for j,k,m in self.results.keys() if m!=i]
                          for i in range(self.npatch3) ]
             else:
+                # k=0
                 assert self.npatch1 == self.npatch3
-                return [ [(j,0,k) for j,_,k in self.results.keys() if j!=i and k!=i]
-                            for i in range(self.npatch1) ]
+                return [ [(j,k,m) for j,k,m in self.results.keys() if j!=i and m!=i]
+                         for i in range(self.npatch1) ]
         elif self.npatch1 == 1:
+            # j=0
             assert self.npatch2 == self.npatch3
-            return [ [(0,j,k) for _,j,k in self.results.keys() if j!=i and k!=i]
+            return [ [(j,k,m) for j,k,m in self.results.keys() if k!=i and m!=i]
                      for i in range(self.npatch2) ]
         else:
             assert self.npatch1 == self.npatch2 == self.npatch3
@@ -1185,23 +1191,32 @@ class BinnedCorr3(object):
     def _sample_pairs(self):
         if self.npatch3 == 1:
             if self.npatch2 == 1:
-                return [ [(i,0,0)] for i in range(self.npatch1) ]
+                # k=m=0
+                return [ [(j,k,m) for j,k,m in self.results.keys() if j==i]
+                         for i in range(self.npatch1) ]
             elif self.npatch1 == 1:
-                return [ [(0,i,0)] for i in range(self.npatch2) ]
+                # j=m=0
+                return [ [(j,k,m) for j,k,m in self.results.keys() if k==i]
+                         for i in range(self.npatch2) ]
             else:
+                # m=0
                 assert self.npatch1 == self.npatch2
-                return [ [(j,k,0) for j,k,_ in self.results.keys() if j==i]
+                return [ [(j,k,m) for j,k,m in self.results.keys() if j==i]
                          for i in range(self.npatch1) ]
         elif self.npatch2 == 1:
             if self.npatch1 == 1:
-                return [ [(0,0,i)] for i in range(self.npatch3) ]
+                # j=k=0
+                return [ [(j,k,m) for j,k,m in self.results.keys() if m==i]
+                         for i in range(self.npatch3) ]
             else:
+                # k=0
                 assert self.npatch1 == self.npatch3
-                return [ [(j,0,k) for j,_,k in self.results.keys() if j==i]
+                return [ [(j,k,m) for j,k,m in self.results.keys() if j==i]
                          for i in range(self.npatch1) ]
         elif self.npatch1 == 1:
+            # j=0
             assert self.npatch2 == self.npatch3
-            return [ [(0,j,k) for _,j,k in self.results.keys() if j==i]
+            return [ [(j,k,m) for j,k,m in self.results.keys() if k==i]
                      for i in range(self.npatch2) ]
         else:
             assert self.npatch1 == self.npatch2 == self.npatch3
@@ -1218,16 +1233,16 @@ class BinnedCorr3(object):
     def _marked_pairs(self, indx):
         if self.npatch3 == 1:
             if self.npatch2 == 1:
-                return [ (i,0,0) for i in indx ]
+                return [ (i,0,0) for i in indx if self._ok[i,0,0] ]
             elif self.npatch1 == 1:
-                return [ (0,i,0) for i in indx ]
+                return [ (0,i,0) for i in indx if self._ok[0,i,0] ]
             else:
                 assert self.npatch1 == self.npatch2
                 # Select all pairs where first point is in indx (repeating i as appropriate)
                 return [ (i,j,0) for i in indx for j in range(self.npatch2) if self._ok[i,j,0] ]
         elif self.npatch2 == 1:
             if self.npatch1 == 1:
-                return [ (0,0,i) for i in indx ]
+                return [ (0,0,i) for i in indx if self._ok[0,0,i] ]
             else:
                 assert self.npatch1 == self.npatch3
                 # Select all pairs where first point is in indx (repeating i as appropriate)
@@ -1245,16 +1260,16 @@ class BinnedCorr3(object):
     def _bootstrap_pairs(self, indx):
         if self.npatch3 == 1:
             if self.npatch2 == 1:
-                return [ (i,0,0) for i in indx ]
+                return [ (i,0,0) for i in indx if self._ok[i,0,0] ]
             elif self.npatch1 == 1:
-                return [ (0,i,0) for i in indx ]
+                return [ (0,i,0) for i in indx if self._ok[0,i,0] ]
             else:
                 assert self.npatch1 == self.npatch2
                 return ([ (i,i,0) for i in indx if self._ok[i,i,0] ] +
                         [ (i,j,0) for i in indx for j in indx if self._ok[i,j,0] and i!=j ])
         elif self.npatch2 == 1:
             if self.npatch1 == 1:
-                return [ (0,0,i) for i in indx ]
+                return [ (0,0,i) for i in indx if self._ok[0,0,i] ]
             else:
                 assert self.npatch1 == self.npatch3
                 return ([ (i,0,i) for i in indx if self._ok[i,0,i] ] +

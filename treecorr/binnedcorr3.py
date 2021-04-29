@@ -1179,7 +1179,6 @@ class BinnedCorr3(object):
                      for i in range(self.npatch2) ]
         else:
             assert self.npatch1 == self.npatch2 == self.npatch3
-            #return [ [(j,k,m) for j,k,m in self.results.keys() if sum([j!=i,k!=i,m!=i])>=2]
             return [ [(j,k,m) for j,k,m in self.results.keys() if j!=i and k!=i and m!=i]
                      for i in range(self.npatch1) ]
 

@@ -856,7 +856,6 @@ class BinnedCorr3(object):
                             else:
                                 self.results[(i,j,j)] += temp
                             self += temp
-                            temp.clear()
                         else:
                             # NNNCorrelation needs to add the tot value
                             self._add_tot(i, j, j, c1, c2, c2)

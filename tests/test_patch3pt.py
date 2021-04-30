@@ -871,7 +871,7 @@ def test_nnn_jk():
     # Test jackknife and other covariance estimates for nnn correlations.
 
     if __name__ == '__main__':
-        # This setup takes about 2200 sec to run.
+        # This setup takes about 1200 sec to run.
         nhalo = 300
         nsource = 2000
         npatch = 16
@@ -879,7 +879,7 @@ def test_nnn_jk():
         rand_factor = 3
         tol_factor = 1
     elif False:
-        # This setup takes about 1671 sec to run.
+        # This setup takes about 250 sec to run.
         nhalo = 200
         nsource = 1000
         npatch = 16
@@ -887,7 +887,7 @@ def test_nnn_jk():
         rand_factor = 2
         tol_factor = 2
     else:
-        # This setup takes about 147 sec to run.
+        # This setup takes about 44 sec to run.
         nhalo = 100
         nsource = 500
         npatch = 8
@@ -1002,7 +1002,7 @@ def test_nnn_jk():
     # Make the patches with a large random catalog to make sure the patches are uniform area.
     big_rx = rng.uniform(0,1000, 100*nsource)
     big_ry = rng.uniform(0,1000, 100*nsource)
-    big_catp = treecorr.Catalog(x=big_rx, y=big_ry, npatch=npatch)
+    big_catp = treecorr.Catalog(x=big_rx, y=big_ry, npatch=npatch, rng=rng)
     patch_centers = big_catp.patch_centers
 
     # Do the same thing with patches on D, but not yet on R.
@@ -1063,7 +1063,7 @@ def test_nnn_jk():
     cov = dddp.estimate_cov('marked_bootstrap')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=1.2*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=1.3*tol_factor)
 
     print('bootstrap:')
     cov = dddp.estimate_cov('bootstrap')
@@ -1098,7 +1098,7 @@ def test_nnn_jk():
     cov = dddp.estimate_cov('marked_bootstrap')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnnc))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=2.2*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=2.3*tol_factor)
 
     print('bootstrap:')
     cov = dddp.estimate_cov('bootstrap')
@@ -1130,29 +1130,42 @@ def test_nnn_jk():
     ddd1._calculate_xi_from_pairs(dddp.results.keys())
     np.testing.assert_allclose(ddd1.zeta, dddp.zeta)
 
+    t0 = time.time()
     print('jackknife:')
     cov = dddp.estimate_cov('jackknife')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.9*tol_factor)
+    t1 = time.time()
+    print('t = ',t1-t0)
+    t0 = time.time()
 
     print('sample:')
     cov = dddp.estimate_cov('sample')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.7*tol_factor)
+    t1 = time.time()
+    print('t = ',t1-t0)
+    t0 = time.time()
 
     print('marked:')
     cov = dddp.estimate_cov('marked_bootstrap')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.8*tol_factor)
+    t1 = time.time()
+    print('t = ',t1-t0)
+    t0 = time.time()
 
     print('bootstrap:')
     cov = dddp.estimate_cov('bootstrap')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=1.0*tol_factor)
+    t1 = time.time()
+    print('t = ',t1-t0)
+    t0 = time.time()
 
     print('compensated: ')
     zeta_c2, var_zeta_c2 = dddp.calculateZeta(rrrp, drrp, rddp)
@@ -1165,29 +1178,42 @@ def test_nnn_jk():
     np.testing.assert_allclose(zeta_c2, zeta_c1, rtol=0.05 * tol_factor, atol=1.e-3 * tol_factor)
     np.testing.assert_allclose(var_zeta_c2, var_zeta_c1, rtol=0.05 * tol_factor)
 
+    t0 = time.time()
     print('jackknife:')
     cov = dddp.estimate_cov('jackknife')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnnc))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.8*tol_factor)
+    t1 = time.time()
+    print('t = ',t1-t0)
+    t0 = time.time()
 
     print('sample:')
     cov = dddp.estimate_cov('sample')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnnc))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.8*tol_factor)
+    t1 = time.time()
+    print('t = ',t1-t0)
+    t0 = time.time()
 
     print('marked:')
     cov = dddp.estimate_cov('marked_bootstrap')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnnc))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.8*tol_factor)
+    t1 = time.time()
+    print('t = ',t1-t0)
+    t0 = time.time()
 
     print('bootstrap:')
     cov = dddp.estimate_cov('bootstrap')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnnc))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.8*tol_factor)
+    t1 = time.time()
+    print('t = ',t1-t0)
+    t0 = time.time()
 
     # I haven't implemented calculateZeta for the NNNCrossCorrelation class, because I'm not
     # actually sure what the right thing to do here is for calculating a single zeta vectors.
@@ -1202,7 +1228,7 @@ def test_nnn_jk():
                                         min_v=0.0, max_v=0.2, nvbins=1, rng=rng)
     rrrc = treecorr.NNNCrossCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
                                         min_u=0.8, max_u=1.0, nubins=1,
-                                        min_v=0.0, max_v=0.2, nvbins=1, rng=rng)
+                                        min_v=0.0, max_v=0.2, nvbins=1)
     print('CrossCorrelation:')
     dddc.process(catp, catp, catp)
     rrrc.process(rand_catp, rand_catp, rand_catp)
@@ -1231,19 +1257,19 @@ def test_nnn_jk():
     cov = treecorr.estimate_multi_cov([dddc,rrrc], 'sample', cc_zeta)
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.7*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=1.2*tol_factor)
 
     print('marked:')
     cov = treecorr.estimate_multi_cov([dddc,rrrc], 'marked_bootstrap', cc_zeta)
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.8*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=1.5*tol_factor)
 
     print('bootstrap:')
     cov = treecorr.estimate_multi_cov([dddc,rrrc], 'bootstrap', cc_zeta)
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=1.0*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.6*tol_factor)
 
     # Repeat with a 1-2 cross-correlation
     print('CrossCorrelation 1-2:')
@@ -1265,19 +1291,19 @@ def test_nnn_jk():
     cov = treecorr.estimate_multi_cov([dddc,rrrc], 'sample', cc_zeta)
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.7*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=1.1*tol_factor)
 
     print('marked:')
     cov = treecorr.estimate_multi_cov([dddc,rrrc], 'marked_bootstrap', cc_zeta)
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.8*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=1.5*tol_factor)
 
     print('bootstrap:')
     cov = treecorr.estimate_multi_cov([dddc,rrrc], 'bootstrap', cc_zeta)
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=1.0*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.6*tol_factor)
 
 
 @timer

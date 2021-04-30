@@ -616,6 +616,12 @@ class BinnedCorr3(object):
         self.npatch1 = self.npatch2 = self.npatch3 = 1
         self.__dict__.pop('_ok',None)
 
+    @property
+    def nonzero(self):
+        """Return if there are any values accumulated yet.  (i.e. ntri > 0)
+        """
+        return np.any(self.ntri)
+
     def _add_tot(self, i, j, k, c1, c2, c3):
         # No op for all but NNCorrelation, which needs to add the tot value
         pass
@@ -692,10 +698,10 @@ class BinnedCorr3(object):
                     temp.clear()
                     self.logger.info('Process patch %d auto',i)
                     temp.process_auto(c1,metric,num_threads)
-                    if (i,i,i) not in self.results:
-                        self.results[(i,i,i)] = temp.copy()
-                    else:
+                    if (i,i,i) in self.results and self.results[(i,i,i)].nonzero:
                         self.results[(i,i,i)] += temp
+                    else:
+                        self.results[(i,i,i)] = temp.copy()
                     self += temp
 
                 for jj,c2 in list(enumerate(cat1))[::-1]:
@@ -710,11 +716,11 @@ class BinnedCorr3(object):
                             else:
                                 self.logger.info('Skipping %d,%d pair, which are too far apart ' +
                                                  'for this set of separations',i,j)
-                            if temp.nonempty():
-                                if (i,j,j) not in self.results:
-                                    self.results[(i,j,j)] = temp.copy()
-                                else:
+                            if temp.nonzero:
+                                if (i,j,j) in self.results and self.results[(i,j,j)].nonzero:
                                     self.results[(i,j,j)] += temp
+                                else:
+                                    self.results[(i,j,j)] = temp.copy()
                                 self += temp
                             else:
                                 # NNNCorrelation needs to add the tot value
@@ -725,11 +731,11 @@ class BinnedCorr3(object):
                             if not self._trivially_zero(c1,c1,c2,metric):
                                 self.logger.info('Process patches %d,%d cross12',j,i)
                                 temp.process_cross12(c2,c1, metric, num_threads)
-                            if temp.nonempty():
-                                if (i,i,j) not in self.results:
-                                    self.results[(i,i,j)] = temp.copy()
-                                else:
+                            if temp.nonzero:
+                                if (i,i,j) in self.results and self.results[(i,i,j)].nonzero:
                                     self.results[(i,i,j)] += temp
+                                else:
+                                    self.results[(i,i,j)] = temp.copy()
                                 self += temp
                             else:
                                 # NNNCorrelation needs to add the tot value
@@ -747,11 +753,11 @@ class BinnedCorr3(object):
                                 else:
                                     self.logger.info('Skipping %d,%d,%d, which are too far apart ' +
                                                      'for this set of separations',i,j,k)
-                                if temp.nonempty():
-                                    if (i,j,k) not in self.results:
-                                        self.results[(i,j,k)] = temp.copy()
-                                    else:
+                                if temp.nonzero:
+                                    if (i,j,k) in self.results and self.results[(i,j,k)].nonzero:
                                         self.results[(i,j,k)] += temp
+                                    else:
+                                        self.results[(i,j,k)] = temp.copy()
                                     self += temp
                                 else:
                                     # NNNCorrelation needs to add the tot value
@@ -850,11 +856,11 @@ class BinnedCorr3(object):
                         else:
                             self.logger.info('Skipping %d,%d pair, which are too far apart ' +
                                              'for this set of separations',i,j)
-                        if temp.nonempty() or i==j or n1==1 or n2==1:
-                            if (i,j,j) not in self.results:
-                                self.results[(i,j,j)] = temp.copy()
-                            else:
+                        if temp.nonzero or i==j or n1==1 or n2==1:
+                            if (i,j,j) in self.results and self.results[(i,j,j)].nonzero:
                                 self.results[(i,j,j)] += temp
+                            else:
+                                self.results[(i,j,j)] = temp.copy()
                             self += temp
                         else:
                             # NNNCorrelation needs to add the tot value
@@ -872,11 +878,11 @@ class BinnedCorr3(object):
                             else:
                                 self.logger.info('Skipping %d,%d,%d, which are too far apart ' +
                                                  'for this set of separations',i,j,k)
-                            if temp.nonempty():
-                                if (i,j,k) not in self.results:
-                                    self.results[(i,j,k)] = temp.copy()
-                                else:
+                            if temp.nonzero:
+                                if (i,j,k) in self.results and self.results[(i,j,k)].nonzero:
                                     self.results[(i,j,k)] += temp
+                                else:
+                                    self.results[(i,j,k)] = temp.copy()
                                 self += temp
                             else:
                                 # NNNCorrelation needs to add the tot value
@@ -970,13 +976,13 @@ class BinnedCorr3(object):
                             else:
                                 self.logger.info('Skipping %d,%d,%d, which are too far apart ' +
                                                  'for this set of separations',i,j,k)
-                            if (temp.nonempty() or (i==j==k)
+                            if (temp.nonzero or (i==j==k)
                                     or (i==j and n3==1) or (i==k and n2==1) or (j==k and n1==1)
                                     or (n1==n2==1) or (n1==n3==1) or (n2==n3==1)):
-                                if (i,j,k) not in self.results:
-                                    self.results[(i,j,k)] = temp.copy()
-                                else:
+                                if (i,j,k) in self.results and self.results[(i,j,k)].nonzero:
                                     self.results[(i,j,k)] += temp
+                                else:
+                                    self.results[(i,j,k)] = temp.copy()
                                 self += temp
                             else:
                                 # NNNCorrelation needs to add the tot value

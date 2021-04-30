@@ -575,6 +575,12 @@ class BinnedCorr2(object):
         self.npatch1 = self.npatch2 = 1
         self.__dict__.pop('_ok',None)
 
+    @property
+    def nonzero(self):
+        """Return if there are any values accumulated yet.  (i.e. npairs > 0)
+        """
+        return np.any(self.npairs)
+
     def _add_tot(self, i, j, c1, c2):
         # No op for all but NNCorrelation, which needs to add the tot value
         pass
@@ -668,7 +674,7 @@ class BinnedCorr2(object):
                         else:
                             self.logger.info('Skipping %d,%d pair, which are too far apart ' +
                                              'for this set of separations',i,j)
-                        if np.sum(temp.npairs) > 0:
+                        if temp.nonzero:
                             if (i,j) not in self.results:
                                 self.results[(i,j)] = temp.copy()
                             else:
@@ -765,7 +771,7 @@ class BinnedCorr2(object):
                         else:
                             self.logger.info('Skipping %d,%d pair, which are too far apart ' +
                                              'for this set of separations',i,j)
-                        if np.sum(temp.npairs) > 0 or i==j or n1==1 or n2==1:
+                        if temp.nonzero or i==j or n1==1 or n2==1:
                             if (i,j) not in self.results:
                                 self.results[(i,j)] = temp.copy()
                             else:

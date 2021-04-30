@@ -2831,6 +2831,21 @@ def test_empty_patches():
     with assert_raises(RuntimeError):
         ng4.estimate_cov('sample')
 
+    # With NN and NNN the check happens in a different place.
+    nn = treecorr.NNCorrelation(bin_size=0.1, bin_slop=0.1, min_sep=10., max_sep=100.)
+    nn.process(cat1p)
+    cov = nn.estimate_cov('jackknife', func=lambda c: c.weight)
+    np.testing.assert_array_equal(cov, 0.)
+    with assert_raises(RuntimeError):
+        cov = nn.estimate_cov('sample', func=lambda c: c.weight)
+
+    nnn = treecorr.NNNCorrelation(bin_size=0.1, bin_slop=0.1, min_sep=10., max_sep=100.)
+    nnn.process(cat1p)
+    cov = nnn.estimate_cov('jackknife', func=lambda c: c.weight.ravel())
+    np.testing.assert_array_equal(cov, 0.)
+    with assert_raises(RuntimeError):
+        cov = nnn.estimate_cov('sample', func=lambda c: c.weight.ravel())
+
     # With even more patches, there was also a different problem with the 1-2p correlation,
     # because some (0,k) pairs don't have any data, so don't end up in results dict.
     npatch = 100

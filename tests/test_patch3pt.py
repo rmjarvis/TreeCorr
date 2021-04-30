@@ -1261,13 +1261,11 @@ def test_nnn_jk():
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.9*tol_factor)
 
-    # In the nosetests version of this, there are zero weight samples, which causes problems
-    # Wait until #123 is fixed to enable this.
-    #print('sample:')
-    #cov = treecorr.estimate_multi_cov([dddc,rrrc], 'sample', cc_zeta)
-    #print(np.diagonal(cov))
-    #print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
-    #np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.7*tol_factor)
+    print('sample:')
+    cov = treecorr.estimate_multi_cov([dddc,rrrc], 'sample', cc_zeta)
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.7*tol_factor)
 
     print('marked:')
     cov = treecorr.estimate_multi_cov([dddc,rrrc], 'marked_bootstrap', cc_zeta)

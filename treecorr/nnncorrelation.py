@@ -394,19 +394,23 @@ class NNNCorrelation(BinnedCorr3):
         #     for other in others:
         #         self += other
         # but no sanity checks and use numpy.sum for faster calculation.
-        self.tot = np.sum([c.tot for c in others])
+        tot = np.sum([c.tot for c in others])
         # Empty ones were only needed for tot.  Remove them now.
         others = [c for c in others if c.nonempty()]
-        np.sum([c.meand1 for c in others], axis=0, out=self.meand1)
-        np.sum([c.meanlogd1 for c in others], axis=0, out=self.meanlogd1)
-        np.sum([c.meand2 for c in others], axis=0, out=self.meand2)
-        np.sum([c.meanlogd2 for c in others], axis=0, out=self.meanlogd2)
-        np.sum([c.meand3 for c in others], axis=0, out=self.meand3)
-        np.sum([c.meanlogd3 for c in others], axis=0, out=self.meanlogd3)
-        np.sum([c.meanu for c in others], axis=0, out=self.meanu)
-        np.sum([c.meanv for c in others], axis=0, out=self.meanv)
-        np.sum([c.weight for c in others], axis=0, out=self.weight)
-        np.sum([c.ntri for c in others], axis=0, out=self.ntri)
+        if len(others) == 0:
+            self._clear()
+        else:
+            np.sum([c.meand1 for c in others], axis=0, out=self.meand1)
+            np.sum([c.meanlogd1 for c in others], axis=0, out=self.meanlogd1)
+            np.sum([c.meand2 for c in others], axis=0, out=self.meand2)
+            np.sum([c.meanlogd2 for c in others], axis=0, out=self.meanlogd2)
+            np.sum([c.meand3 for c in others], axis=0, out=self.meand3)
+            np.sum([c.meanlogd3 for c in others], axis=0, out=self.meanlogd3)
+            np.sum([c.meanu for c in others], axis=0, out=self.meanu)
+            np.sum([c.meanv for c in others], axis=0, out=self.meanv)
+            np.sum([c.weight for c in others], axis=0, out=self.weight)
+            np.sum([c.ntri for c in others], axis=0, out=self.ntri)
+        self.tot = tot
 
     def _add_tot(self, i, j, k, c1, c2, c3):
         # When storing results from a patch-based run, tot needs to be accumulated even if
@@ -545,7 +549,10 @@ class NNNCorrelation(BinnedCorr3):
         This is the weight array corresponding to `getStat`.  In this case, it is the denominator
         RRR from the calculation done by calculateZeta().
         """
-        return self._rrr_weight.ravel()
+        if self._rrr_weight is not None:
+            return self._rrr_weight.ravel()
+        else:
+            return self.tot
 
     def calculateZeta(self, rrr, drr=None, rdd=None):
         r"""Calculate the 3pt function given another 3pt function of random
@@ -708,6 +715,8 @@ class NNNCorrelation(BinnedCorr3):
         # triples.
         self._sum([self.results[ij] for ij in pairs])
         self._finalize()
+        if self._rrr is None:
+            return
         ddd = self.weight
         if len(self._rrr.results) > 0:
             # This is the usual case.  R has patches just like D.
@@ -761,7 +770,7 @@ class NNNCorrelation(BinnedCorr3):
             zeta = ddd - rdd * rddf + drr * drrf - denom
         denom[denom == 0] = 1  # Guard against division by zero.
         self.zeta = zeta / denom
-        self.weight = self._rrr_weight = denom
+        self._rrr_weight = denom
 
     def write(self, file_name, rrr=None, drr=None, rdd=None, file_type=None, precision=None):
         r"""Write the correlation function to the file, file_name.

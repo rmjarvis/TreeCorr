@@ -315,6 +315,11 @@ class NNCorrelation(BinnedCorr2):
         """
         self._finalize()
 
+    def nonempty(self):
+        """Return if there are any values accumulated yet.  (i.e. npairs > 0)
+        """
+        return np.sum(self.npairs) > 0
+
     def _clear(self):
         """Clear the data vectors
         """
@@ -353,11 +358,17 @@ class NNCorrelation(BinnedCorr2):
         #     for other in others:
         #         self += other
         # but no sanity checks and use numpy.sum for faster calculation.
-        np.sum([c.meanr for c in others], axis=0, out=self.meanr)
-        np.sum([c.meanlogr for c in others], axis=0, out=self.meanlogr)
-        np.sum([c.weight for c in others], axis=0, out=self.weight)
-        np.sum([c.npairs for c in others], axis=0, out=self.npairs)
-        self.tot = np.sum([c.tot for c in others])
+        tot = np.sum([c.tot for c in others])
+        # Empty ones were only needed for tot.  Remove them now.
+        others = [c for c in others if c.nonempty()]
+        if len(others) == 0:
+            self._clear()
+        else:
+            np.sum([c.meanr for c in others], axis=0, out=self.meanr)
+            np.sum([c.meanlogr for c in others], axis=0, out=self.meanlogr)
+            np.sum([c.weight for c in others], axis=0, out=self.weight)
+            np.sum([c.npairs for c in others], axis=0, out=self.npairs)
+        self.tot = tot
 
     def _add_tot(self, i, j, c1, c2):
         # When storing results from a patch-based run, tot needs to be accumulated even if
@@ -428,7 +439,7 @@ class NNCorrelation(BinnedCorr2):
 
         This raises a RuntimeError if calculateXi has not been run yet.
         """
-        if self._rr_weight is None:
+        if self._rr is None:
             raise RuntimeError("You need to call calculateXi before calling estimate_cov.")
         return self.xi.ravel()
 
@@ -438,7 +449,10 @@ class NNCorrelation(BinnedCorr2):
         This is the weight array corresponding to `getStat`.  In this case, it is the denominator
         RR from the calculation done by calculateXi().
         """
-        return self._rr_weight.ravel()
+        if self._rr_weight is not None:
+            return self._rr_weight.ravel()
+        else:
+            return self.tot
 
     def calculateXi(self, rr, dr=None, rd=None):
         r"""Calculate the correlation function given another correlation function of random
@@ -602,6 +616,8 @@ class NNCorrelation(BinnedCorr2):
     def _calculate_xi_from_pairs(self, pairs):
         self._sum([self.results[ij] for ij in pairs])
         self._finalize()
+        if self._rr is None:
+            return
         dd = self.weight
         if len(self._rr.results) > 0:
             # This is the usual case.  R has patches just like D.
@@ -657,7 +673,7 @@ class NNCorrelation(BinnedCorr2):
             xi = dd - rd * rdf - dr * drf + denom
         denom[denom == 0] = 1  # Guard against division by zero.
         self.xi = xi / denom
-        self.weight = self._rr_weight = denom
+        self._rr_weight = denom
 
     def write(self, file_name, rr=None, dr=None, rd=None, file_type=None, precision=None):
         r"""Write the correlation function to the file, file_name.

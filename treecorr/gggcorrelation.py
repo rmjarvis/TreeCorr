@@ -457,11 +457,6 @@ class GGGCorrelation(BinnedCorr3):
         self.vargam2.ravel()[:] = self.cov.diagonal()[2*self._nbins:3*self._nbins].real
         self.vargam3.ravel()[:] = self.cov.diagonal()[3*self._nbins:4*self._nbins].real
 
-    def nonempty(self):
-        """Return if there are any values accumulated yet.  (i.e. ntri > 0)
-        """
-        return np.sum(self.ntri) > 0
-
     def _clear(self):
         """Clear the data vectors
         """
@@ -509,7 +504,7 @@ class GGGCorrelation(BinnedCorr3):
                 self.max_v == other.max_v):
             raise ValueError("GGGCorrelation to be added is not compatible with this one.")
 
-        if not other.nonempty(): return self
+        if not other.nonzero: return self
         self._set_metric(other.metric, other.coords)
         self.gam0r[:] += other.gam0r[:]
         self.gam0i[:] += other.gam0i[:]
@@ -1398,10 +1393,11 @@ class GGGCrossCorrelation(BinnedCorr3):
         self.g3g1g2.finalize(varg3,varg1,varg2)
         self.g3g2g1.finalize(varg3,varg2,varg1)
 
-    def nonempty(self):
+    @property
+    def nonzero(self):
         """Return if there are any values accumulated yet.  (i.e. ntri > 0)
         """
-        return any([ggg.nonempty() for ggg in self._all])
+        return any([ggg.nonzero for ggg in self._all])
 
     def _clear(self):
         """Clear the data vectors

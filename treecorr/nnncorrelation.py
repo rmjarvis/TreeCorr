@@ -20,7 +20,7 @@ import numpy as np
 from . import _lib, _ffi
 from .binnedcorr3 import BinnedCorr3
 from .util import double_ptr as dp
-from .util import gen_read, gen_write, gen_multi_read, gen_multi_write
+from .util import gen_read, gen_write, gen_multi_read, gen_multi_write, lazy_property
 
 class NNNCorrelation(BinnedCorr3):
     """This class handles the calculation and storage of a 2-point count-count correlation
@@ -207,6 +207,25 @@ class NNNCorrelation(BinnedCorr3):
             ret._rrr = self._rrr.copy()
         return ret
 
+    @lazy_property
+    def _zero_array(self):
+        # An array of all zeros with the same shape as self.weight (and other data arrays)
+        z = np.zeros_like(self.weight)
+        z.flags.writeable=False  # Just to make sure we get an error if we try to change it.
+        return z
+
+    def _zero_copy(self, tot):
+        # A minimal "copy" with zero for the weight array, and the given value for tot.
+        ret = NNNCorrelation.__new__(NNNCorrelation)
+        ret._ro = self._ro
+        ret.ntri = self._zero_array
+        ret.weight = self._zero_array
+        ret.tot = tot
+        ret._corr = None
+        # This override is really the main advantage of using this:
+        setattr(ret, '_nonzero', False)
+        return ret
+
     def __repr__(self):
         return 'NNNCorrelation(config=%r)'%self.config
 
@@ -368,10 +387,10 @@ class NNNCorrelation(BinnedCorr3):
         """
         self._finalize()
 
-    def nonempty(self):
-        """Return if there are any values accumulated yet.  (i.e. ntri > 0)
-        """
-        return np.sum(self.ntri) > 0
+    @lazy_property
+    def _nonzero(self):
+        # The lazy version when we can be sure the object isn't going to accumulate any more.
+        return self.nonzero
 
     def _clear(self):
         """Clear the data vectors
@@ -396,7 +415,7 @@ class NNNCorrelation(BinnedCorr3):
         # but no sanity checks and use numpy.sum for faster calculation.
         tot = np.sum([c.tot for c in others])
         # Empty ones were only needed for tot.  Remove them now.
-        others = [c for c in others if c.nonempty()]
+        others = [c for c in others if c._nonzero]
         if len(others) == 0:
             self._clear()
         else:
@@ -424,10 +443,7 @@ class NNNCorrelation(BinnedCorr3):
         # We also have to keep all pairs in the results dict, otherwise the tot calculation
         # gets messed up.  We need to accumulate the tot value of all pairs, even if
         # the resulting weight is zero.
-        res = self.copy()
-        res.weight = np.zeros_like(self.weight)
-        res.tot = tot
-        self.results[(i,j,k)] = res
+        self.results[(i,j,k)] = self._zero_copy(tot)
 
     def __iadd__(self, other):
         """Add a second `NNNCorrelation`'s data to this one.
@@ -454,7 +470,7 @@ class NNNCorrelation(BinnedCorr3):
         self.tot += other.tot
 
         # If other is empty, then we're done now.
-        if not other.nonempty():
+        if not other.nonzero:
             return self
 
         self.meand1[:] += other.meand1[:]
@@ -697,12 +713,8 @@ class NNNCorrelation(BinnedCorr3):
                         add_ijk.add(ijk)
 
             if len(add_ijk) > 0:
-                template = next(iter(self.results.values()))  # Just need something to copy.
                 for ijk in add_ijk:
-                    new_cijk = template.copy()
-                    new_cijk.weight.ravel()[:] = 0
-                    new_cijk.tot = 0
-                    self.results[ijk] = new_cijk
+                    self.results[ijk] = self._zero_copy(0)
                 self.__dict__.pop('_ok',None)  # If it was already made, it will need to be redone.
 
         # Now that it's all set up, calculate the covariance and set varzeta to the diagonal.
@@ -1067,6 +1079,21 @@ class NNNCrossCorrelation(BinnedCorr3):
         ret._all = [ret.n1n2n3, ret.n1n3n2, ret.n2n1n3, ret.n2n3n1, ret.n3n1n2, ret.n3n2n1]
         return ret
 
+    def _zero_copy(self, tot):
+        # A minimal "copy" with zero for the weight array, and the given value for tot.
+        ret = NNNCrossCorrelation.__new__(NNNCrossCorrelation)
+        ret._ro = self._ro
+        ret.n1n2n3 = self.n1n2n3._zero_copy(tot)
+        ret.n1n3n2 = self.n1n3n2._zero_copy(tot)
+        ret.n2n1n3 = self.n2n1n3._zero_copy(tot)
+        ret.n2n3n1 = self.n2n3n1._zero_copy(tot)
+        ret.n3n1n2 = self.n3n1n2._zero_copy(tot)
+        ret.n3n2n1 = self.n3n2n1._zero_copy(tot)
+        ret._all = [ret.n1n2n3, ret.n1n3n2, ret.n2n1n3, ret.n2n3n1, ret.n3n1n2, ret.n3n2n1]
+        ret.tot = tot
+        setattr(ret, '_nonzero', False)
+        return ret
+
     def __repr__(self):
         return 'NNNCrossCorrelation(config=%r)'%self.config
 
@@ -1189,10 +1216,16 @@ class NNNCrossCorrelation(BinnedCorr3):
         for nnn in self._all:
             nnn.finalize()
 
-    def nonempty(self):
+    @property
+    def nonzero(self):
         """Return if there are any values accumulated yet.  (i.e. ntri > 0)
         """
-        return any(nnn.nonempty() for nnn in self._all)
+        return any(nnn.nonzero for nnn in self._all)
+
+    @lazy_property
+    def _nonzero(self):
+        # The lazy version when we can be sure the object isn't going to accumulate any more.
+        return self.nonzero
 
     def _clear(self):
         """Clear the data vectors
@@ -1209,7 +1242,7 @@ class NNNCrossCorrelation(BinnedCorr3):
         # but no sanity checks and use numpy.sum for faster calculation.
         self.tot = np.sum([c.tot for c in others])
         # Empty ones were only needed for tot.  Remove them now.
-        others = [c for c in others if c.nonempty()]
+        others = [c for c in others if c._nonzero]
         other_all = zip(*[c._all for c in others]) # Transpose list of lists
         for nnn,o_nnn in zip(self._all, other_all):
             nnn._sum(o_nnn)
@@ -1219,12 +1252,7 @@ class NNNCrossCorrelation(BinnedCorr3):
         self.tot += tot
         for c in self._all:
             c.tot += tot
-        res = self.copy()
-        for c in res._all:
-            c.weight = np.zeros_like(c.weight)
-            c.tot = tot
-        res.tot = tot
-        self.results[(i,j,k)] = res
+        self.results[(i,j,k)] = self._zero_copy(tot)
 
     def __iadd__(self, other):
         """Add a second `NNNCrossCorrelation`'s data to this one.

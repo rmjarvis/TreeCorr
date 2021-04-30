@@ -20,7 +20,7 @@ import numpy as np
 from . import _lib, _ffi
 from .binnedcorr2 import BinnedCorr2
 from .util import double_ptr as dp
-from .util import gen_read, gen_write
+from .util import gen_read, gen_write, lazy_property
 
 class NNCorrelation(BinnedCorr2):
     r"""This class handles the calculation and storage of a 2-point count-count correlation
@@ -170,6 +170,25 @@ class NNCorrelation(BinnedCorr2):
             ret._rr = self._rr.copy()
         return ret
 
+    @lazy_property
+    def _zero_array(self):
+        # An array of all zeros with the same shape as self.weight (and other data arrays)
+        z = np.zeros_like(self.weight)
+        z.flags.writeable=False  # Just to make sure we get an error if we try to change it.
+        return z
+
+    def _zero_copy(self, tot):
+        # A minimal "copy" with zero for the weight array, and the given value for tot.
+        ret = NNCorrelation.__new__(NNCorrelation)
+        ret._ro = self._ro
+        ret.npairs = self._zero_array
+        ret.weight = self._zero_array
+        ret.tot = tot
+        ret._corr = None
+        # This override is really the main advantage of using this:
+        setattr(ret, '_nonzero', False)
+        return ret
+
     def __repr__(self):
         return 'NNCorrelation(config=%r)'%self.config
 
@@ -315,10 +334,10 @@ class NNCorrelation(BinnedCorr2):
         """
         self._finalize()
 
-    def nonempty(self):
-        """Return if there are any values accumulated yet.  (i.e. npairs > 0)
-        """
-        return np.sum(self.npairs) > 0
+    @lazy_property
+    def _nonzero(self):
+        # The lazy version when we can be sure the object isn't going to accumulate any more.
+        return self.nonzero
 
     def _clear(self):
         """Clear the data vectors
@@ -360,7 +379,7 @@ class NNCorrelation(BinnedCorr2):
         # but no sanity checks and use numpy.sum for faster calculation.
         tot = np.sum([c.tot for c in others])
         # Empty ones were only needed for tot.  Remove them now.
-        others = [c for c in others if c.nonempty()]
+        others = [c for c in others if c._nonzero]
         if len(others) == 0:
             self._clear()
         else:
@@ -378,11 +397,9 @@ class NNCorrelation(BinnedCorr2):
         self.tot += tot
         # We also have to keep all pairs in the results dict, otherwise the tot calculation
         # gets messed up.  We need to accumulate the tot value of all pairs, even if
-        # the resulting weight is zero.
-        res = self.copy()
-        res.weight = np.zeros_like(self.weight)
-        res.tot = tot
-        self.results[(i,j)] = res
+        # the resulting weight is zero.  But use a minimal copy with just the necessary fields
+        # to save some time.
+        self.results[(i,j)] = self._zero_copy(tot)
 
     def process(self, cat1, cat2=None, metric=None, num_threads=None, comm=None, low_mem=False,
                 initialize=True, finalize=True):
@@ -600,12 +617,8 @@ class NNCorrelation(BinnedCorr2):
                         add_ij.add(ij)
 
             if len(add_ij) > 0:
-                template = next(iter(self.results.values()))  # Just need something to copy.
                 for ij in add_ij:
-                    new_cij = template.copy()
-                    new_cij.weight.ravel()[:] = 0
-                    new_cij.tot = 0
-                    self.results[ij] = new_cij
+                    self.results[ij] = self._zero_copy(0)
                 self.__dict__.pop('_ok',None)  # If it was already made, it will need to be redone.
 
         # Now that it's all set up, calculate the covariance and set varxi to the diagonal.

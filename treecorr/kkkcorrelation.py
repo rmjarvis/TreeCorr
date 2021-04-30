@@ -371,11 +371,6 @@ class KKKCorrelation(BinnedCorr3):
         self.cov = self.estimate_cov(self.var_method)
         self.varzeta.ravel()[:] = self.cov.diagonal()
 
-    def nonempty(self):
-        """Return if there are any values accumulated yet.  (i.e. ntri > 0)
-        """
-        return np.sum(self.ntri) > 0
-
     def _clear(self):
         """Clear the data vectors
         """
@@ -413,7 +408,7 @@ class KKKCorrelation(BinnedCorr3):
                 self.max_v == other.max_v):
             raise ValueError("KKKCorrelation to be added is not compatible with this one.")
 
-        if not other.nonempty(): return self
+        if not other.nonzero: return self
         self._set_metric(other.metric, other.coords)
         self.zeta[:] += other.zeta[:]
         self.meand1[:] += other.meand1[:]
@@ -911,10 +906,11 @@ class KKKCrossCorrelation(BinnedCorr3):
         self.k3k1k2.finalize(vark3,vark1,vark2)
         self.k3k2k1.finalize(vark3,vark2,vark1)
 
-    def nonempty(self):
+    @property
+    def nonzero(self):
         """Return if there are any values accumulated yet.  (i.e. ntri > 0)
         """
-        return any([kkk.nonempty() for kkk in self._all])
+        return any([kkk.nonzero for kkk in self._all])
 
     def _clear(self):
         """Clear the data vectors

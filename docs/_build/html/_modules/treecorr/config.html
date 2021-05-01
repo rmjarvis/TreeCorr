@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>treecorr.config &mdash; TreeCorr 4.1.7 documentation</title>
+  <title>treecorr.config &mdash; TreeCorr 4.2.0 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                4.1
+                4.2
               </div>
             
           
@@ -93,6 +93,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../metric.html#restrictions-on-the-line-of-sight-separation">Restrictions on the Line of Sight Separation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../binning.html">Binning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../patches.html">Patches</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../cov.html">Covariance Estimates</a></li>
@@ -100,7 +101,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 4.0 to 4.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 4.1 to 4.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
 
@@ -187,9 +188,11 @@
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_lib</span>
 <span class="kn">import</span> <span class="nn">coord</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
 
 
 <div class="viewcode-block" id="parse_variable"><a class="viewcode-back" href="../../scripts.html#treecorr.config.parse_variable">[docs]</a><span class="k">def</span> <span class="nf">parse_variable</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
@@ -211,7 +214,7 @@
         <span class="k">if</span> <span class="n">value</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;}&#39;</span><span class="p">,</span><span class="s1">&#39;]&#39;</span><span class="p">,</span><span class="s1">&#39;)&#39;</span><span class="p">]:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;List symbol </span><span class="si">%s</span><span class="s1"> not properly matched&#39;</span><span class="o">%</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">values</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
-        <span class="n">values</span> <span class="o">=</span> <span class="p">[</span> <span class="n">v</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">values</span> <span class="p">]</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="p">[</span> <span class="n">vv</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">vv</span> <span class="ow">in</span> <span class="n">values</span> <span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">values</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="c1"># on whitespace</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -240,11 +243,15 @@
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">val</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
-                <span class="k">return</span> <span class="n">val</span>
+                <span class="nb">bool</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unable to parse </span><span class="si">%s</span><span class="s2"> as a bool.&quot;</span><span class="o">%</span><span class="n">value</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,(</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">)):</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,(</span><span class="nb">bool</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">value</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span><span class="nb">int</span><span class="p">):</span>
+        <span class="c1"># Note: integers aren&#39;t converted to bool, since brute distinguishes 1 vs 2 vs True.</span>
         <span class="k">return</span> <span class="n">value</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unable to parse </span><span class="si">%s</span><span class="s2"> as a bool.&quot;</span><span class="o">%</span><span class="n">value</span><span class="p">)</span></div>
@@ -332,26 +339,19 @@
 
 <span class="sd">    :returns:           The logging.Logger object to use.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">logging</span><span class="o">,</span> <span class="nn">os</span>
-    <span class="n">logging_levels</span> <span class="o">=</span> <span class="p">{</span>  <span class="mi">0</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">CRITICAL</span><span class="p">,</span>
-                        <span class="mi">1</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span>
-                        <span class="mi">2</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
-                        <span class="mi">3</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span> <span class="p">}</span>
-    <span class="n">logging_level</span> <span class="o">=</span> <span class="n">logging_levels</span><span class="p">[</span><span class="n">verbose</span><span class="p">]</span>
+    <span class="n">logging_levels</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">0</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">CRITICAL</span><span class="p">,</span>
+                       <span class="mi">1</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span>
+                       <span class="mi">2</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+                       <span class="mi">3</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span> <span class="p">}</span>
+    <span class="n">logging_level</span> <span class="o">=</span> <span class="n">logging_levels</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">verbose</span><span class="p">)]</span>
 
     <span class="c1"># Setup logging to go to sys.stdout or (if requested) to an output file</span>
-    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;treecorr&#39;</span><span class="p">)</span>
-    <span class="c1"># Should only be one handler.  If it is the wrong type, then clear it.</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">handlers</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">log_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">handlers</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">):</span>
-                <span class="c1">#logger.handlers.clear()  (Python 3 only apparently.)</span>
-                <span class="k">del</span> <span class="n">logger</span><span class="o">.</span><span class="n">handlers</span><span class="p">[:]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">handlers</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">)</span> <span class="ow">and</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">handlers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">baseFilename</span> <span class="o">==</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">log_file</span><span class="p">)):</span>
-                <span class="c1">#logger.handlers.clear()</span>
-                <span class="k">del</span> <span class="n">logger</span><span class="o">.</span><span class="n">handlers</span><span class="p">[:]</span>
+    <span class="k">if</span> <span class="n">log_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;treecorr&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;treecorr_&#39;</span> <span class="o">+</span> <span class="n">log_file</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">handlers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># only add handler once!</span>
         <span class="k">if</span> <span class="n">log_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">handle</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
@@ -362,6 +362,26 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">handle</span><span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging_level</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">logger</span></div>
+
+
+<div class="viewcode-block" id="parse"><a class="viewcode-back" href="../../scripts.html#treecorr.config.parse">[docs]</a><span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_type</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parse the input value as the given type.</span>
+
+<span class="sd">    :param value:       The value to parse.</span>
+<span class="sd">    :param value_type:  The type expected for this.</span>
+<span class="sd">    :param name:        The name of this value. Only used for error reporting.</span>
+
+<span class="sd">    :returns: value</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">value_type</span> <span class="ow">is</span> <span class="nb">bool</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">parse_bool</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value_type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Could not parse </span><span class="si">{}</span><span class="s2">=</span><span class="si">{}</span><span class="s2"> as type </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">value_type</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="check_config"><a class="viewcode-back" href="../../scripts.html#treecorr.config.check_config">[docs]</a><span class="k">def</span> <span class="nf">check_config</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">aliases</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -392,6 +412,9 @@
             <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The parameter </span><span class="si">%s</span><span class="s2"> is deprecated.  You should use </span><span class="si">%s</span><span class="s2"> instead.&quot;</span><span class="o">%</span><span class="p">(</span>
                                <span class="n">key</span><span class="p">,</span> <span class="n">aliases</span><span class="p">[</span><span class="n">key</span><span class="p">]))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The parameter </span><span class="si">%s</span><span class="s2"> is deprecated.  You should use </span><span class="si">%s</span><span class="s2"> instead.&quot;</span><span class="o">%</span><span class="p">(</span>
+                              <span class="n">key</span><span class="p">,</span> <span class="n">aliases</span><span class="p">[</span><span class="n">key</span><span class="p">]),</span> <span class="ne">FutureWarning</span><span class="p">)</span>
             <span class="n">new_key</span> <span class="o">=</span> <span class="n">aliases</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
             <span class="n">config</span><span class="p">[</span><span class="n">new_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
             <span class="k">del</span> <span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
@@ -405,23 +428,18 @@
 
         <span class="c1"># Get the value</span>
         <span class="k">if</span> <span class="n">may_be_list</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">value_type</span> <span class="ow">is</span> <span class="nb">bool</span><span class="p">:</span>
-                <span class="n">value</span> <span class="o">=</span> <span class="p">[</span> <span class="n">parse_bool</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">value</span> <span class="o">=</span> <span class="p">[</span> <span class="n">value_type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="p">]</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="p">[</span><span class="n">parse</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">value_type</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">value_type</span> <span class="ow">is</span> <span class="nb">bool</span><span class="p">:</span>
-                <span class="n">value</span> <span class="o">=</span> <span class="n">parse_bool</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">value</span> <span class="o">=</span> <span class="n">value_type</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">parse</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">value_type</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
 
-        <span class="c1"># If limited allowed values, check that this is one of them.</span>
+        <span class="c1"># If limited allowed value, check that this is one of them.</span>
         <span class="k">if</span> <span class="n">valid_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">value_type</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
                 <span class="n">matches</span> <span class="o">=</span> <span class="p">[</span> <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">valid_values</span> <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="n">v</span> <span class="p">]</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="c1"># Allow the string to be longer.  e.g. degrees is valid if &#39;deg&#39; is in valid_values.</span>
-                    <span class="n">matches</span> <span class="o">=</span> <span class="p">[</span> <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">valid_values</span> <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="p">]</span>
+                    <span class="c1"># Allow the string to be longer.</span>
+                    <span class="c1"># e.g. degrees is valid if &#39;deg&#39; is in valid_values.</span>
+                    <span class="n">matches</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">valid_values</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">v</span><span class="p">)]</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter </span><span class="si">%s</span><span class="s2"> has invalid value </span><span class="si">%s</span><span class="s2">.  Valid values are </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="o">%</span><span class="p">(</span>
                         <span class="n">key</span><span class="p">,</span> <span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">valid_values</span><span class="p">)))</span>
@@ -461,10 +479,11 @@
 
         <span class="c1"># str(value_type) looks like &quot;&lt;type &#39;float&#39;&gt;&quot;</span>
         <span class="c1"># value_type.__name__ looks like &#39;float&#39;</span>
+        <span class="n">value_type_str</span> <span class="o">=</span> <span class="n">value_type</span><span class="o">.</span><span class="vm">__name__</span>
         <span class="k">if</span> <span class="n">may_be_list</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;                Type must be </span><span class="si">{0}</span><span class="s2"> or a list of </span><span class="si">{0}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value_type</span><span class="o">.</span><span class="vm">__name__</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;                Type must be </span><span class="si">{0}</span><span class="s2"> or a list of </span><span class="si">{0}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value_type_str</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;                Type must be </span><span class="si">{0}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value_type</span><span class="o">.</span><span class="vm">__name__</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;                Type must be </span><span class="si">{0}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value_type_str</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">valid_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;                Valid values are </span><span class="si">{0!s}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">valid_values</span><span class="p">))</span>
@@ -490,6 +509,8 @@
         <span class="k">return</span> <span class="n">parse_unit</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">value_type</span> <span class="o">==</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">parse_bool</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">value_type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
 
@@ -541,7 +562,7 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">default</span></div>
 
-<div class="viewcode-block" id="merge_config"><a class="viewcode-back" href="../../scripts.html#treecorr.config.merge_config">[docs]</a><span class="k">def</span> <span class="nf">merge_config</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">valid_params</span><span class="p">):</span>
+<div class="viewcode-block" id="merge_config"><a class="viewcode-back" href="../../scripts.html#treecorr.config.merge_config">[docs]</a><span class="k">def</span> <span class="nf">merge_config</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">valid_params</span><span class="p">,</span> <span class="n">aliases</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Merge in the values from kwargs into config.</span>
 
 <span class="sd">    If either of these is None, then the other one is returned.</span>
@@ -552,6 +573,7 @@
 <span class="sd">    :param kwargs:          A second dict with more or updated values</span>
 <span class="sd">    :param valid_params:    A dict of valid parameters that are allowed for this usage.</span>
 <span class="sd">                            The config dict is allowed to have extra items, but kwargs is not.</span>
+<span class="sd">    :param aliases:         An optional dict of aliases. (default: None)</span>
 
 <span class="sd">    :returns:               The merged dict, including only items that are in valid_params.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -561,10 +583,7 @@
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">valid_params</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
                 <span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-    <span class="k">return</span> <span class="n">check_config</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">valid_params</span><span class="p">)</span></div>
-
-
-
+    <span class="k">return</span> <span class="n">check_config</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">valid_params</span><span class="p">,</span> <span class="n">aliases</span><span class="p">)</span></div>
 </pre></div>
 
            </div>

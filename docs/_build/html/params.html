@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Configuration Parameters &mdash; TreeCorr 4.1.7 documentation</title>
+  <title>Configuration Parameters &mdash; TreeCorr 4.2.0 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                4.1
+                4.2
               </div>
             
           
@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html#restrictions-on-the-line-of-sight-separation">Restrictions on the Line of Sight Separation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
@@ -112,7 +113,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.1 to 4.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -263,7 +264,7 @@ file names to use.  Of course, it is an error to specify both <code class="docut
 and <code class="docutils literal notranslate"><span class="pre">file_name</span></code> (or any of the other corresponding pairs).</p>
 </dd>
 <dt class="field-odd">file_type</dt>
-<dd class="field-odd"><p>(ASCII or FITS) The file type of the input files.</p>
+<dd class="field-odd"><p>(ASCII, FITS, or HDF5) The file type of the input files.</p>
 </dd>
 <dt class="field-even">delimiter</dt>
 <dd class="field-even"><p>(str, default = ‘0’) The delimeter between input values in an ASCII catalog.</p>
@@ -278,11 +279,13 @@ e.g. delimiter=’,’ for a comma-separated value file.  Similarly,
 comment lines usually begin with ‘#’, but you may specify something
 different if necessary.</p>
 </dd>
-<dt class="field-even">hdu</dt>
-<dd class="field-even"><p>(int, default=1) The HDU to use for a binary fits table.</p>
+<dt class="field-even">ext</dt>
+<dd class="field-even"><p>(int/str, default=1 for FITS or root for HDF5) The extension (fits) or group (hdf) to read from</p>
 <p>Normally if you are using a fits file, the binary fits table is
 taken from the first extension, HDU 1.  If you want to read from a
-different HDU, you can specify which one to use here.</p>
+different HDU, you can specify which one to use here. For HDF files,
+the default is to read from the root of the file, but you can also
+specify group names like “/data/cat1”</p>
 </dd>
 <dt class="field-odd">first_row</dt>
 <dd class="field-odd"><p>(int, default=1)</p>
@@ -393,49 +396,49 @@ something, then objects with <code class="docutils literal notranslate"><span cl
 If <code class="docutils literal notranslate"><span class="pre">ok_flag</span></code> is set, then objects with <code class="docutils literal notranslate"><span class="pre">(flag</span> <span class="pre">&amp;</span> <span class="pre">~ok_flag</span> <span class="pre">!=</span> <span class="pre">0)</span></code> will be ignored.
 The default is equivalent to <code class="docutils literal notranslate"><span class="pre">ok_flag</span> <span class="pre">=</span> <span class="pre">0</span></code>, which ignores any flag != 0.</p>
 </dd>
-<dt class="field-odd">x_hdu</dt>
-<dd class="field-odd"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">x_col</span></code>.</p>
+<dt class="field-odd">x_ext</dt>
+<dd class="field-odd"><p>(int/str) Which HDU (fits) or group (HDF) to use for the <code class="docutils literal notranslate"><span class="pre">x_col</span></code>.</p>
 </dd>
-<dt class="field-even">y_hdu</dt>
-<dd class="field-even"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">y_col</span></code>.</p>
+<dt class="field-even">y_ext</dt>
+<dd class="field-even"><p>(int/str) Which HDU (fits) or group (HDF) to use for the <code class="docutils literal notranslate"><span class="pre">y_col</span></code>.</p>
 </dd>
-<dt class="field-odd">z_hdu</dt>
-<dd class="field-odd"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">z_col</span></code>.</p>
+<dt class="field-odd">z_ext</dt>
+<dd class="field-odd"><p>(int/str) Which HDU (fits) or group (HDF) to use for the <code class="docutils literal notranslate"><span class="pre">z_col</span></code>.</p>
 </dd>
-<dt class="field-even">ra_hdu</dt>
-<dd class="field-even"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">ra_col</span></code>.</p>
+<dt class="field-even">ra_ext</dt>
+<dd class="field-even"><p>(int/str) Which HDU (fits) or group (HDF) to use for the <code class="docutils literal notranslate"><span class="pre">ra_col</span></code>.</p>
 </dd>
-<dt class="field-odd">dec_hdu</dt>
-<dd class="field-odd"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">dec_col</span></code>.</p>
+<dt class="field-odd">dec_ext</dt>
+<dd class="field-odd"><p>(int/str) Which HDU (fits) or group (HDF) to use for the <code class="docutils literal notranslate"><span class="pre">dec_col</span></code>.</p>
 </dd>
-<dt class="field-even">r_hdu</dt>
-<dd class="field-even"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">r_col</span></code>.</p>
+<dt class="field-even">r_ext</dt>
+<dd class="field-even"><p>(int/str) Which HDU (fits) or group (HDF) to use for the <code class="docutils literal notranslate"><span class="pre">r_col</span></code>.</p>
 </dd>
-<dt class="field-odd">g1_hdu</dt>
-<dd class="field-odd"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">g1_col</span></code>.</p>
+<dt class="field-odd">g1_ext</dt>
+<dd class="field-odd"><p>(int/str) Which HDU (fits) or group (HDF) to use for the <code class="docutils literal notranslate"><span class="pre">g1_col</span></code>.</p>
 </dd>
-<dt class="field-even">g2_hdu</dt>
-<dd class="field-even"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">g2_col</span></code>.</p>
+<dt class="field-even">g2_ext</dt>
+<dd class="field-even"><p>(int/str) Which HDU (fits) or group (HDF) to use for the <code class="docutils literal notranslate"><span class="pre">g2_col</span></code>.</p>
 </dd>
-<dt class="field-odd">k_hdu</dt>
-<dd class="field-odd"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">k_col</span></code>.</p>
+<dt class="field-odd">k_ext</dt>
+<dd class="field-odd"><p>(int/str) Which HDU (fits) or group (HDF) to use for the <code class="docutils literal notranslate"><span class="pre">k_col</span></code>.</p>
 </dd>
-<dt class="field-even">patch_hdu</dt>
-<dd class="field-even"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">patch_col</span></code>.</p>
+<dt class="field-even">patch_ext</dt>
+<dd class="field-even"><p>(int/str) Which HDU (fits) or group (HDF) to use for the <code class="docutils literal notranslate"><span class="pre">patch_col</span></code>.</p>
 </dd>
-<dt class="field-odd">w_hdu</dt>
-<dd class="field-odd"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">w_col</span></code>.</p>
+<dt class="field-odd">w_ext</dt>
+<dd class="field-odd"><p>(int/str) Which HDU (fits) or group (HDF) to use for the <code class="docutils literal notranslate"><span class="pre">w_col</span></code>.</p>
 </dd>
-<dt class="field-even">wpos_hdu</dt>
-<dd class="field-even"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">wpos_col</span></code>.</p>
+<dt class="field-even">wpos_ext</dt>
+<dd class="field-even"><p>(int/str) Which HDU (fits) or group (HDF) to use for the <code class="docutils literal notranslate"><span class="pre">wpos_col</span></code>.</p>
 </dd>
-<dt class="field-odd">flag_hdu</dt>
-<dd class="field-odd"><p>(int) Which HDU to use for the <code class="docutils literal notranslate"><span class="pre">flag_col</span></code>.</p>
-<p>If you want to use an HDU other than the first one, normally you would
-specify which fits extension to use with the <code class="docutils literal notranslate"><span class="pre">hdu</span></code> parameter.  However, if
-different columns need to come from different HDUs, then you can override
-the default (given by <code class="docutils literal notranslate"><span class="pre">hdu</span></code> or 1 if there is no <code class="docutils literal notranslate"><span class="pre">hdu</span></code> parameter) for each
-column separately.</p>
+<dt class="field-odd">flag_ext</dt>
+<dd class="field-odd"><p>(int/str) Which HDU (fits) or group (HDF) to use for the <code class="docutils literal notranslate"><span class="pre">flag_col</span></code>.</p>
+<p>If you want to use an extension other than the first one, normally you would
+specify which fits extension or HDF5 group to use with the <code class="docutils literal notranslate"><span class="pre">ext</span></code> parameter.
+However, if different columns need to come from different HDUs, then you can
+override the default (given by <code class="docutils literal notranslate"><span class="pre">ext</span></code>, or ‘1’ (fits), or ‘/’ (HDF) if there
+is no <code class="docutils literal notranslate"><span class="pre">ext</span></code> parameter) for each column separately.</p>
 </dd>
 <dt class="field-even">allow_xyz</dt>
 <dd class="field-even"><p>(bool, default=False)</p>
@@ -462,8 +465,8 @@ to the file(s) in files_name2.</p></li>
 <li><p>You may not mix (x,y) columns with (ra,dec) columns, since its meaning
 would be ambiguous.</p></li>
 <li><p>If you don’t need a particular column for one of the files, you may
-use 0 to indicate not to read that column.  This is true both for
-ASCII and FITS input catalogs.</p></li>
+use 0 to indicate not to read that column.  This is true for
+any format of input catalog.</p></li>
 <li><p>Also, if the given column only applies to one of the two input files
 (e.g. k_col for an n-kappa cross-correlation) then you may specify just
 the column name or number for the file to which it does apply.</p></li>

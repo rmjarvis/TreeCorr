@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Index &mdash; TreeCorr 4.1.7 documentation</title>
+  <title>Index &mdash; TreeCorr 4.2.0 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                4.1
+                4.2
               </div>
             
           
@@ -93,6 +93,7 @@
 <li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html#restrictions-on-the-line-of-sight-separation">Restrictions on the Line of Sight Separation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
@@ -100,7 +101,7 @@
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.1 to 4.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -172,11 +173,13 @@
 
 <div class="genindex-jumpbox">
  <a href="#_"><strong>_</strong></a>
+ | <a href="#A"><strong>A</strong></a>
  | <a href="#B"><strong>B</strong></a>
  | <a href="#C"><strong>C</strong></a>
  | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
+ | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
  | <a href="#K"><strong>K</strong></a>
  | <a href="#L"><strong>L</strong></a>
@@ -198,11 +201,15 @@
       <ul>
         <li><a href="ggg.html#treecorr.GGGCorrelation.__eq__">(treecorr.GGGCorrelation method)</a>
 </li>
+        <li><a href="ggg.html#treecorr.GGGCrossCorrelation.__eq__">(treecorr.GGGCrossCorrelation method)</a>
+</li>
         <li><a href="kg.html#treecorr.KGCorrelation.__eq__">(treecorr.KGCorrelation method)</a>
 </li>
         <li><a href="kk.html#treecorr.KKCorrelation.__eq__">(treecorr.KKCorrelation method)</a>
 </li>
         <li><a href="kkk.html#treecorr.KKKCorrelation.__eq__">(treecorr.KKKCorrelation method)</a>
+</li>
+        <li><a href="kkk.html#treecorr.KKKCrossCorrelation.__eq__">(treecorr.KKKCrossCorrelation method)</a>
 </li>
         <li><a href="ng.html#treecorr.NGCorrelation.__eq__">(treecorr.NGCorrelation method)</a>
 </li>
@@ -212,17 +219,23 @@
 </li>
         <li><a href="nnn.html#treecorr.NNNCorrelation.__eq__">(treecorr.NNNCorrelation method)</a>
 </li>
+        <li><a href="nnn.html#treecorr.NNNCrossCorrelation.__eq__">(treecorr.NNNCrossCorrelation method)</a>
+</li>
       </ul></li>
       <li><a href="gg.html#treecorr.GGCorrelation.__iadd__">__iadd__() (treecorr.GGCorrelation method)</a>
 
       <ul>
         <li><a href="ggg.html#treecorr.GGGCorrelation.__iadd__">(treecorr.GGGCorrelation method)</a>
 </li>
+        <li><a href="ggg.html#treecorr.GGGCrossCorrelation.__iadd__">(treecorr.GGGCrossCorrelation method)</a>
+</li>
         <li><a href="kg.html#treecorr.KGCorrelation.__iadd__">(treecorr.KGCorrelation method)</a>
 </li>
         <li><a href="kk.html#treecorr.KKCorrelation.__iadd__">(treecorr.KKCorrelation method)</a>
 </li>
         <li><a href="kkk.html#treecorr.KKKCorrelation.__iadd__">(treecorr.KKKCorrelation method)</a>
+</li>
+        <li><a href="kkk.html#treecorr.KKKCrossCorrelation.__iadd__">(treecorr.KKKCrossCorrelation method)</a>
 </li>
         <li><a href="ng.html#treecorr.NGCorrelation.__iadd__">(treecorr.NGCorrelation method)</a>
 </li>
@@ -232,6 +245,8 @@
 </li>
         <li><a href="nnn.html#treecorr.NNNCorrelation.__iadd__">(treecorr.NNNCorrelation method)</a>
 </li>
+        <li><a href="nnn.html#treecorr.NNNCrossCorrelation.__iadd__">(treecorr.NNNCrossCorrelation method)</a>
+</li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -240,11 +255,15 @@
       <ul>
         <li><a href="ggg.html#treecorr.GGGCorrelation.__init__">(treecorr.GGGCorrelation method)</a>
 </li>
+        <li><a href="ggg.html#treecorr.GGGCrossCorrelation.__init__">(treecorr.GGGCrossCorrelation method)</a>
+</li>
         <li><a href="kg.html#treecorr.KGCorrelation.__init__">(treecorr.KGCorrelation method)</a>
 </li>
         <li><a href="kk.html#treecorr.KKCorrelation.__init__">(treecorr.KKCorrelation method)</a>
 </li>
         <li><a href="kkk.html#treecorr.KKKCorrelation.__init__">(treecorr.KKKCorrelation method)</a>
+</li>
+        <li><a href="kkk.html#treecorr.KKKCrossCorrelation.__init__">(treecorr.KKKCrossCorrelation method)</a>
 </li>
         <li><a href="ng.html#treecorr.NGCorrelation.__init__">(treecorr.NGCorrelation method)</a>
 </li>
@@ -254,17 +273,23 @@
 </li>
         <li><a href="nnn.html#treecorr.NNNCorrelation.__init__">(treecorr.NNNCorrelation method)</a>
 </li>
+        <li><a href="nnn.html#treecorr.NNNCrossCorrelation.__init__">(treecorr.NNNCrossCorrelation method)</a>
+</li>
       </ul></li>
       <li><a href="gg.html#treecorr.GGCorrelation.__repr__">__repr__() (treecorr.GGCorrelation method)</a>
 
       <ul>
         <li><a href="ggg.html#treecorr.GGGCorrelation.__repr__">(treecorr.GGGCorrelation method)</a>
 </li>
+        <li><a href="ggg.html#treecorr.GGGCrossCorrelation.__repr__">(treecorr.GGGCrossCorrelation method)</a>
+</li>
         <li><a href="kg.html#treecorr.KGCorrelation.__repr__">(treecorr.KGCorrelation method)</a>
 </li>
         <li><a href="kk.html#treecorr.KKCorrelation.__repr__">(treecorr.KKCorrelation method)</a>
 </li>
         <li><a href="kkk.html#treecorr.KKKCorrelation.__repr__">(treecorr.KKKCorrelation method)</a>
+</li>
+        <li><a href="kkk.html#treecorr.KKKCrossCorrelation.__repr__">(treecorr.KKKCrossCorrelation method)</a>
 </li>
         <li><a href="ng.html#treecorr.NGCorrelation.__repr__">(treecorr.NGCorrelation method)</a>
 </li>
@@ -274,7 +299,17 @@
 </li>
         <li><a href="nnn.html#treecorr.NNNCorrelation.__repr__">(treecorr.NNNCorrelation method)</a>
 </li>
+        <li><a href="nnn.html#treecorr.NNNCrossCorrelation.__repr__">(treecorr.NNNCrossCorrelation method)</a>
+</li>
       </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="A">A</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="catalog.html#treecorr.reader.AsciiReader">AsciiReader (class in treecorr.reader)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -330,26 +365,20 @@
 </li>
       <li><a href="scripts.html#treecorr.config.check_config">check_config() (in module treecorr.config)</a>
 </li>
-      <li><a href="catalog.html#treecorr.Catalog.checkForNaN">checkForNaN() (treecorr.Catalog method)</a>
-</li>
-      <li><a href="gg.html#treecorr.GGCorrelation.clear">clear() (treecorr.GGCorrelation method)</a>
+      <li><a href="catalog.html#treecorr.reader.AsciiReader.check_valid_ext">check_valid_ext() (treecorr.reader.AsciiReader method)</a>
 
       <ul>
-        <li><a href="ggg.html#treecorr.GGGCorrelation.clear">(treecorr.GGGCorrelation method)</a>
+        <li><a href="catalog.html#treecorr.reader.FitsReader.check_valid_ext">(treecorr.reader.FitsReader method)</a>
 </li>
-        <li><a href="kg.html#treecorr.KGCorrelation.clear">(treecorr.KGCorrelation method)</a>
+        <li><a href="catalog.html#treecorr.reader.HdfReader.check_valid_ext">(treecorr.reader.HdfReader method)</a>
 </li>
-        <li><a href="kk.html#treecorr.KKCorrelation.clear">(treecorr.KKCorrelation method)</a>
+      </ul></li>
+      <li><a href="catalog.html#treecorr.Catalog.checkForNaN">checkForNaN() (treecorr.Catalog method)</a>
 </li>
-        <li><a href="kkk.html#treecorr.KKKCorrelation.clear">(treecorr.KKKCorrelation method)</a>
-</li>
-        <li><a href="ng.html#treecorr.NGCorrelation.clear">(treecorr.NGCorrelation method)</a>
-</li>
-        <li><a href="nk.html#treecorr.NKCorrelation.clear">(treecorr.NKCorrelation method)</a>
-</li>
-        <li><a href="nn.html#treecorr.NNCorrelation.clear">(treecorr.NNCorrelation method)</a>
-</li>
-        <li><a href="nnn.html#treecorr.NNNCorrelation.clear">(treecorr.NNNCorrelation method)</a>
+      <li><a href="correlation2.html#treecorr.BinnedCorr2.clear">clear() (treecorr.BinnedCorr2 method)</a>
+
+      <ul>
+        <li><a href="correlation3.html#treecorr.BinnedCorr3.clear">(treecorr.BinnedCorr3 method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -372,11 +401,15 @@
 </li>
         <li><a href="ggg.html#treecorr.GGGCorrelation.copy">(treecorr.GGGCorrelation method)</a>
 </li>
+        <li><a href="ggg.html#treecorr.GGGCrossCorrelation.copy">(treecorr.GGGCrossCorrelation method)</a>
+</li>
         <li><a href="kg.html#treecorr.KGCorrelation.copy">(treecorr.KGCorrelation method)</a>
 </li>
         <li><a href="kk.html#treecorr.KKCorrelation.copy">(treecorr.KKCorrelation method)</a>
 </li>
         <li><a href="kkk.html#treecorr.KKKCorrelation.copy">(treecorr.KKKCorrelation method)</a>
+</li>
+        <li><a href="kkk.html#treecorr.KKKCrossCorrelation.copy">(treecorr.KKKCrossCorrelation method)</a>
 </li>
         <li><a href="ng.html#treecorr.NGCorrelation.copy">(treecorr.NGCorrelation method)</a>
 </li>
@@ -385,6 +418,8 @@
         <li><a href="nn.html#treecorr.NNCorrelation.copy">(treecorr.NNCorrelation method)</a>
 </li>
         <li><a href="nnn.html#treecorr.NNNCorrelation.copy">(treecorr.NNNCorrelation method)</a>
+</li>
+        <li><a href="nnn.html#treecorr.NNNCrossCorrelation.copy">(treecorr.NNNCrossCorrelation method)</a>
 </li>
       </ul></li>
       <li><a href="scripts.html#treecorr.corr2">corr2() (in module treecorr)</a>
@@ -400,7 +435,11 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="correlation2.html#treecorr.BinnedCorr2.estimate_cov">estimate_cov() (treecorr.BinnedCorr2 method)</a>
+
+      <ul>
+        <li><a href="correlation3.html#treecorr.BinnedCorr3.estimate_cov">(treecorr.BinnedCorr3 method)</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="correlation2.html#treecorr.estimate_multi_cov">estimate_multi_cov() (in module treecorr)</a>
@@ -418,11 +457,15 @@
       <ul>
         <li><a href="ggg.html#treecorr.GGGCorrelation.finalize">(treecorr.GGGCorrelation method)</a>
 </li>
+        <li><a href="ggg.html#treecorr.GGGCrossCorrelation.finalize">(treecorr.GGGCrossCorrelation method)</a>
+</li>
         <li><a href="kg.html#treecorr.KGCorrelation.finalize">(treecorr.KGCorrelation method)</a>
 </li>
         <li><a href="kk.html#treecorr.KKCorrelation.finalize">(treecorr.KKCorrelation method)</a>
 </li>
         <li><a href="kkk.html#treecorr.KKKCorrelation.finalize">(treecorr.KKKCorrelation method)</a>
+</li>
+        <li><a href="kkk.html#treecorr.KKKCrossCorrelation.finalize">(treecorr.KKKCrossCorrelation method)</a>
 </li>
         <li><a href="ng.html#treecorr.NGCorrelation.finalize">(treecorr.NGCorrelation method)</a>
 </li>
@@ -432,7 +475,13 @@
 </li>
         <li><a href="nnn.html#treecorr.NNNCorrelation.finalize">(treecorr.NNNCorrelation method)</a>
 </li>
+        <li><a href="nnn.html#treecorr.NNNCrossCorrelation.finalize">(treecorr.NNNCrossCorrelation method)</a>
+</li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="catalog.html#treecorr.reader.FitsReader">FitsReader (class in treecorr.reader)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -447,14 +496,14 @@
 </li>
       <li><a href="catalog.html#treecorr.Catalog.get_patch_centers">get_patch_centers() (treecorr.Catalog method)</a>
 </li>
+      <li><a href="catalog.html#treecorr.Catalog.get_patch_file_names">get_patch_file_names() (treecorr.Catalog method)</a>
+</li>
       <li><a href="catalog.html#treecorr.Catalog.get_patches">get_patches() (treecorr.Catalog method)</a>
 </li>
       <li><a href="catalog.html#treecorr.Catalog.getGField">getGField() (treecorr.Catalog method)</a>
 </li>
       <li><a href="catalog.html#treecorr.Catalog.getGSimpleField">getGSimpleField() (treecorr.Catalog method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="catalog.html#treecorr.Catalog.getKField">getKField() (treecorr.Catalog method)</a>
 </li>
       <li><a href="catalog.html#treecorr.Catalog.getKSimpleField">getKSimpleField() (treecorr.Catalog method)</a>
@@ -463,13 +512,63 @@
 </li>
       <li><a href="catalog.html#treecorr.Catalog.getNSimpleField">getNSimpleField() (treecorr.Catalog method)</a>
 </li>
+      <li><a href="correlation2.html#treecorr.BinnedCorr2.getStat">getStat() (treecorr.BinnedCorr2 method)</a>
+
+      <ul>
+        <li><a href="correlation3.html#treecorr.BinnedCorr3.getStat">(treecorr.BinnedCorr3 method)</a>
+</li>
+        <li><a href="gg.html#treecorr.GGCorrelation.getStat">(treecorr.GGCorrelation method)</a>
+</li>
+        <li><a href="ggg.html#treecorr.GGGCorrelation.getStat">(treecorr.GGGCorrelation method)</a>
+</li>
+        <li><a href="ggg.html#treecorr.GGGCrossCorrelation.getStat">(treecorr.GGGCrossCorrelation method)</a>
+</li>
+        <li><a href="kkk.html#treecorr.KKKCrossCorrelation.getStat">(treecorr.KKKCrossCorrelation method)</a>
+</li>
+        <li><a href="nn.html#treecorr.NNCorrelation.getStat">(treecorr.NNCorrelation method)</a>
+</li>
+        <li><a href="nnn.html#treecorr.NNNCorrelation.getStat">(treecorr.NNNCorrelation method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="correlation2.html#treecorr.BinnedCorr2.getWeight">getWeight() (treecorr.BinnedCorr2 method)</a>
+
+      <ul>
+        <li><a href="correlation3.html#treecorr.BinnedCorr3.getWeight">(treecorr.BinnedCorr3 method)</a>
+</li>
+        <li><a href="gg.html#treecorr.GGCorrelation.getWeight">(treecorr.GGCorrelation method)</a>
+</li>
+        <li><a href="ggg.html#treecorr.GGGCorrelation.getWeight">(treecorr.GGGCorrelation method)</a>
+</li>
+        <li><a href="ggg.html#treecorr.GGGCrossCorrelation.getWeight">(treecorr.GGGCrossCorrelation method)</a>
+</li>
+        <li><a href="kkk.html#treecorr.KKKCrossCorrelation.getWeight">(treecorr.KKKCrossCorrelation method)</a>
+</li>
+        <li><a href="nn.html#treecorr.NNCorrelation.getWeight">(treecorr.NNCorrelation method)</a>
+</li>
+        <li><a href="nnn.html#treecorr.NNNCorrelation.getWeight">(treecorr.NNNCorrelation method)</a>
+</li>
+        <li><a href="nnn.html#treecorr.NNNCrossCorrelation.getWeight">(treecorr.NNNCrossCorrelation method)</a>
+</li>
+      </ul></li>
       <li><a href="field.html#treecorr.GField">GField (class in treecorr)</a>
 </li>
       <li><a href="gg.html#treecorr.GGCorrelation">GGCorrelation (class in treecorr)</a>
 </li>
       <li><a href="ggg.html#treecorr.GGGCorrelation">GGGCorrelation (class in treecorr)</a>
 </li>
+      <li><a href="ggg.html#treecorr.GGGCrossCorrelation">GGGCrossCorrelation (class in treecorr)</a>
+</li>
       <li><a href="field.html#treecorr.GSimpleField">GSimpleField (class in treecorr)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="H">H</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="catalog.html#treecorr.reader.HdfReader">HdfReader (class in treecorr.reader)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -499,6 +598,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="kkk.html#treecorr.KKKCrossCorrelation">KKKCrossCorrelation (class in treecorr)</a>
+</li>
       <li><a href="field.html#treecorr.Field.kmeans_assign_patches">kmeans_assign_patches() (treecorr.Field method)</a>
 </li>
       <li><a href="field.html#treecorr.Field.kmeans_initialize_centers">kmeans_initialize_centers() (treecorr.Field method)</a>
@@ -544,18 +645,40 @@
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="catalog.html#treecorr.reader.AsciiReader.names">names() (treecorr.reader.AsciiReader method)</a>
+
+      <ul>
+        <li><a href="catalog.html#treecorr.reader.FitsReader.names">(treecorr.reader.FitsReader method)</a>
+</li>
+        <li><a href="catalog.html#treecorr.reader.HdfReader.names">(treecorr.reader.HdfReader method)</a>
+</li>
+      </ul></li>
       <li><a href="field.html#treecorr.NField">NField (class in treecorr)</a>
 </li>
       <li><a href="ng.html#treecorr.NGCorrelation">NGCorrelation (class in treecorr)</a>
 </li>
       <li><a href="nk.html#treecorr.NKCorrelation">NKCorrelation (class in treecorr)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="nn.html#treecorr.NNCorrelation">NNCorrelation (class in treecorr)</a>
 </li>
       <li><a href="nnn.html#treecorr.NNNCorrelation">NNNCorrelation (class in treecorr)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="nnn.html#treecorr.NNNCrossCorrelation">NNNCrossCorrelation (class in treecorr)</a>
+</li>
+      <li><a href="correlation2.html#treecorr.BinnedCorr2.nonzero">nonzero() (treecorr.BinnedCorr2 property)</a>
+
+      <ul>
+        <li><a href="correlation3.html#treecorr.BinnedCorr3.nonzero">(treecorr.BinnedCorr3 property)</a>
+</li>
+        <li><a href="ggg.html#treecorr.GGGCrossCorrelation.nonzero">(treecorr.GGGCrossCorrelation property)</a>
+</li>
+        <li><a href="kkk.html#treecorr.KKKCrossCorrelation.nonzero">(treecorr.KKKCrossCorrelation property)</a>
+</li>
+        <li><a href="nnn.html#treecorr.NNNCrossCorrelation.nonzero">(treecorr.NNNCrossCorrelation property)</a>
+</li>
+      </ul></li>
       <li><a href="field.html#treecorr.NSimpleField">NSimpleField (class in treecorr)</a>
 </li>
       <li><a href="field.html#treecorr.Field.nTopLevelNodes">nTopLevelNodes() (treecorr.Field property)</a>
@@ -566,6 +689,10 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="catalog.html#treecorr.reader.PandasReader">PandasReader (class in treecorr.reader)</a>
+</li>
+      <li><a href="scripts.html#treecorr.config.parse">parse() (in module treecorr.config)</a>
+</li>
       <li><a href="scripts.html#treecorr.config.parse_bool">parse_bool() (in module treecorr.config)</a>
 </li>
       <li><a href="scripts.html#treecorr.config.parse_unit">parse_unit() (in module treecorr.config)</a>
@@ -583,11 +710,15 @@
       <ul>
         <li><a href="ggg.html#treecorr.GGGCorrelation.process">(treecorr.GGGCorrelation method)</a>
 </li>
+        <li><a href="ggg.html#treecorr.GGGCrossCorrelation.process">(treecorr.GGGCrossCorrelation method)</a>
+</li>
         <li><a href="kg.html#treecorr.KGCorrelation.process">(treecorr.KGCorrelation method)</a>
 </li>
         <li><a href="kk.html#treecorr.KKCorrelation.process">(treecorr.KKCorrelation method)</a>
 </li>
         <li><a href="kkk.html#treecorr.KKKCorrelation.process">(treecorr.KKKCorrelation method)</a>
+</li>
+        <li><a href="kkk.html#treecorr.KKKCrossCorrelation.process">(treecorr.KKKCrossCorrelation method)</a>
 </li>
         <li><a href="ng.html#treecorr.NGCorrelation.process">(treecorr.NGCorrelation method)</a>
 </li>
@@ -596,6 +727,8 @@
         <li><a href="nn.html#treecorr.NNCorrelation.process">(treecorr.NNCorrelation method)</a>
 </li>
         <li><a href="nnn.html#treecorr.NNNCorrelation.process">(treecorr.NNNCorrelation method)</a>
+</li>
+        <li><a href="nnn.html#treecorr.NNNCrossCorrelation.process">(treecorr.NNNCrossCorrelation method)</a>
 </li>
       </ul></li>
       <li><a href="gg.html#treecorr.GGCorrelation.process_auto">process_auto() (treecorr.GGCorrelation method)</a>
@@ -619,11 +752,15 @@
       <ul>
         <li><a href="ggg.html#treecorr.GGGCorrelation.process_cross">(treecorr.GGGCorrelation method)</a>
 </li>
+        <li><a href="ggg.html#treecorr.GGGCrossCorrelation.process_cross">(treecorr.GGGCrossCorrelation method)</a>
+</li>
         <li><a href="kg.html#treecorr.KGCorrelation.process_cross">(treecorr.KGCorrelation method)</a>
 </li>
         <li><a href="kk.html#treecorr.KKCorrelation.process_cross">(treecorr.KKCorrelation method)</a>
 </li>
         <li><a href="kkk.html#treecorr.KKKCorrelation.process_cross">(treecorr.KKKCorrelation method)</a>
+</li>
+        <li><a href="kkk.html#treecorr.KKKCrossCorrelation.process_cross">(treecorr.KKKCrossCorrelation method)</a>
 </li>
         <li><a href="ng.html#treecorr.NGCorrelation.process_cross">(treecorr.NGCorrelation method)</a>
 </li>
@@ -633,13 +770,21 @@
 </li>
         <li><a href="nnn.html#treecorr.NNNCorrelation.process_cross">(treecorr.NNNCorrelation method)</a>
 </li>
+        <li><a href="nnn.html#treecorr.NNNCrossCorrelation.process_cross">(treecorr.NNNCrossCorrelation method)</a>
+</li>
       </ul></li>
-      <li><a href="ggg.html#treecorr.GGGCorrelation.process_cross21">process_cross21() (treecorr.GGGCorrelation method)</a>
+      <li><a href="ggg.html#treecorr.GGGCorrelation.process_cross12">process_cross12() (treecorr.GGGCorrelation method)</a>
 
       <ul>
-        <li><a href="kkk.html#treecorr.KKKCorrelation.process_cross21">(treecorr.KKKCorrelation method)</a>
+        <li><a href="ggg.html#treecorr.GGGCrossCorrelation.process_cross12">(treecorr.GGGCrossCorrelation method)</a>
 </li>
-        <li><a href="nnn.html#treecorr.NNNCorrelation.process_cross21">(treecorr.NNNCorrelation method)</a>
+        <li><a href="kkk.html#treecorr.KKKCorrelation.process_cross12">(treecorr.KKKCorrelation method)</a>
+</li>
+        <li><a href="kkk.html#treecorr.KKKCrossCorrelation.process_cross12">(treecorr.KKKCrossCorrelation method)</a>
+</li>
+        <li><a href="nnn.html#treecorr.NNNCorrelation.process_cross12">(treecorr.NNNCorrelation method)</a>
+</li>
+        <li><a href="nnn.html#treecorr.NNNCrossCorrelation.process_cross12">(treecorr.NNNCrossCorrelation method)</a>
 </li>
       </ul></li>
       <li><a href="gg.html#treecorr.GGCorrelation.process_pairwise">process_pairwise() (treecorr.GGCorrelation method)</a>
@@ -667,11 +812,15 @@
       <ul>
         <li><a href="ggg.html#treecorr.GGGCorrelation.read">(treecorr.GGGCorrelation method)</a>
 </li>
+        <li><a href="ggg.html#treecorr.GGGCrossCorrelation.read">(treecorr.GGGCrossCorrelation method)</a>
+</li>
         <li><a href="kg.html#treecorr.KGCorrelation.read">(treecorr.KGCorrelation method)</a>
 </li>
         <li><a href="kk.html#treecorr.KKCorrelation.read">(treecorr.KKCorrelation method)</a>
 </li>
         <li><a href="kkk.html#treecorr.KKKCorrelation.read">(treecorr.KKKCorrelation method)</a>
+</li>
+        <li><a href="kkk.html#treecorr.KKKCrossCorrelation.read">(treecorr.KKKCrossCorrelation method)</a>
 </li>
         <li><a href="ng.html#treecorr.NGCorrelation.read">(treecorr.NGCorrelation method)</a>
 </li>
@@ -681,21 +830,37 @@
 </li>
         <li><a href="nnn.html#treecorr.NNNCorrelation.read">(treecorr.NNNCorrelation method)</a>
 </li>
+        <li><a href="nnn.html#treecorr.NNNCrossCorrelation.read">(treecorr.NNNCrossCorrelation method)</a>
+</li>
+        <li><a href="catalog.html#treecorr.reader.AsciiReader.read">(treecorr.reader.AsciiReader method)</a>
+</li>
+        <li><a href="catalog.html#treecorr.reader.FitsReader.read">(treecorr.reader.FitsReader method)</a>
+</li>
+        <li><a href="catalog.html#treecorr.reader.HdfReader.read">(treecorr.reader.HdfReader method)</a>
+</li>
+        <li><a href="catalog.html#treecorr.reader.PandasReader.read">(treecorr.reader.PandasReader method)</a>
+</li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="catalog.html#treecorr.Catalog.read_ascii">read_ascii() (treecorr.Catalog method)</a>
-</li>
       <li><a href="catalog.html#treecorr.read_catalogs">read_catalogs() (in module treecorr)</a>
 </li>
       <li><a href="scripts.html#treecorr.config.read_config">read_config() (in module treecorr.config)</a>
 </li>
-      <li><a href="catalog.html#treecorr.Catalog.read_fits">read_fits() (treecorr.Catalog method)</a>
-</li>
       <li><a href="catalog.html#treecorr.Catalog.read_patch_centers">read_patch_centers() (treecorr.Catalog method)</a>
+</li>
+      <li><a href="catalog.html#treecorr.Catalog.read_patches">read_patches() (treecorr.Catalog method)</a>
 </li>
       <li><a href="catalog.html#treecorr.Catalog.resize_cache">resize_cache() (treecorr.Catalog method)</a>
 </li>
+      <li><a href="catalog.html#treecorr.reader.AsciiReader.row_count">row_count() (treecorr.reader.AsciiReader method)</a>
+
+      <ul>
+        <li><a href="catalog.html#treecorr.reader.FitsReader.row_count">(treecorr.reader.FitsReader method)</a>
+</li>
+        <li><a href="catalog.html#treecorr.reader.HdfReader.row_count">(treecorr.reader.HdfReader method)</a>
+</li>
+      </ul></li>
       <li><a href="field.html#treecorr.Field.run_kmeans">run_kmeans() (treecorr.Field method)</a>
 </li>
   </ul></td>
@@ -757,11 +922,15 @@
 </li>
         <li><a href="ggg.html#treecorr.GGGCorrelation.write">(treecorr.GGGCorrelation method)</a>
 </li>
+        <li><a href="ggg.html#treecorr.GGGCrossCorrelation.write">(treecorr.GGGCrossCorrelation method)</a>
+</li>
         <li><a href="kg.html#treecorr.KGCorrelation.write">(treecorr.KGCorrelation method)</a>
 </li>
         <li><a href="kk.html#treecorr.KKCorrelation.write">(treecorr.KKCorrelation method)</a>
 </li>
         <li><a href="kkk.html#treecorr.KKKCorrelation.write">(treecorr.KKKCorrelation method)</a>
+</li>
+        <li><a href="kkk.html#treecorr.KKKCrossCorrelation.write">(treecorr.KKKCrossCorrelation method)</a>
 </li>
         <li><a href="ng.html#treecorr.NGCorrelation.write">(treecorr.NGCorrelation method)</a>
 </li>
@@ -771,10 +940,14 @@
 </li>
         <li><a href="nnn.html#treecorr.NNNCorrelation.write">(treecorr.NNNCorrelation method)</a>
 </li>
+        <li><a href="nnn.html#treecorr.NNNCrossCorrelation.write">(treecorr.NNNCrossCorrelation method)</a>
+</li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="catalog.html#treecorr.Catalog.write_patch_centers">write_patch_centers() (treecorr.Catalog method)</a>
+</li>
+      <li><a href="catalog.html#treecorr.Catalog.write_patches">write_patches() (treecorr.Catalog method)</a>
 </li>
       <li><a href="ggg.html#treecorr.GGGCorrelation.writeMap3">writeMap3() (treecorr.GGGCorrelation method)</a>
 </li>

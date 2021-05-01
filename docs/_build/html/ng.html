@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>NGCorrelation: Count-shear correlations &mdash; TreeCorr 4.1.7 documentation</title>
+  <title>NGCorrelation: Count-shear correlations &mdash; TreeCorr 4.2.0 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                4.1
+                4.2
               </div>
             
           
@@ -103,6 +103,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html#restrictions-on-the-line-of-sight-separation">Restrictions on the Line of Sight Separation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
@@ -110,7 +111,7 @@
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.1 to 4.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -276,9 +277,8 @@ arguments, which may be passed either directly or in the config dict.</p>
 <dd><p>Add a second <a class="reference internal" href="#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NGCorrelation</span></code></a>’s data to this one.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>For this to make sense, both <a class="reference internal" href="#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NGCorrelation</span></code></a> objects should have been using
-<a class="reference internal" href="#treecorr.NGCorrelation.process_cross" title="treecorr.NGCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a>, and they should not have had <a class="reference internal" href="#treecorr.NGCorrelation.finalize" title="treecorr.NGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> called yet.
-Then, after adding them together, you should call <a class="reference internal" href="#treecorr.NGCorrelation.finalize" title="treecorr.NGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> on the sum.</p>
+<p>For this to make sense, both <a class="reference internal" href="#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NGCorrelation</span></code></a> objects should not have had <a class="reference internal" href="#treecorr.NGCorrelation.finalize" title="treecorr.NGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a>
+called yet.  Then, after adding them together, you should call <a class="reference internal" href="#treecorr.NGCorrelation.finalize" title="treecorr.NGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> on the sum.</p>
 </div>
 </dd></dl>
 
@@ -379,12 +379,6 @@ are available as <code class="docutils literal notranslate"><span class="pre">ra
 </dd></dl>
 
 <dl class="py method">
-<dt id="treecorr.NGCorrelation.clear">
-<code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.clear" title="Permalink to this definition">¶</a></dt>
-<dd><p>Clear the data vectors</p>
-</dd></dl>
-
-<dl class="py method">
 <dt id="treecorr.NGCorrelation.copy">
 <code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make a copy</p>
@@ -406,7 +400,7 @@ by dividing each column by the total weight.</p>
 
 <dl class="py method">
 <dt id="treecorr.NGCorrelation.process">
-<code class="sig-name descname">process</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat1</span></em>, <em class="sig-param"><span class="n">cat2</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_threads</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">comm</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">low_mem</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.process" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">process</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat1</span></em>, <em class="sig-param"><span class="n">cat2</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_threads</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">comm</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">low_mem</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">initialize</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">finalize</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ngcorrelation.html#NGCorrelation.process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NGCorrelation.process" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the correlation function.</p>
 <p>Both arguments may be lists, in which case all items in the list are used
 for that element of the correlation.</p>
@@ -426,6 +420,10 @@ processes.  If used, the rank=0 process will have the final
 computation. This only works if using patches. (default: None)</p></li>
 <li><p><strong>low_mem</strong> (<em>bool</em>) – Whether to sacrifice a little speed to try to reduce memory usage.
 This only works if using patches. (default: False)</p></li>
+<li><p><strong>initialize</strong> (<em>bool</em>) – Whether to begin the calculation with a call to
+<a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2.clear" title="treecorr.BinnedCorr2.clear"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">BinnedCorr2.clear</span></code></a>.  (default: True)</p></li>
+<li><p><strong>finalize</strong> (<em>bool</em>) – Whether to complete the calculation with a call to <a class="reference internal" href="#treecorr.NGCorrelation.finalize" title="treecorr.NGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a>.
+(default: True)</p></li>
 </ul>
 </dd>
 </dl>
@@ -689,8 +687,42 @@ is related to <span class="math notranslate nohighlight">\(b\)</span>, the galax
 <td><p>The ratio <span class="math notranslate nohighlight">\(\langle N_{ap} M_{ap} \rangle^2 /\)</span>
 <span class="math notranslate nohighlight">\(\langle N_{ap}^2 \rangle \langle M_{ap}^2 \rangle\)</span></p></td>
 </tr>
+<tr class="row-odd"><td><p>sig_norm</p></td>
+<td><p>The sqrt of the variance estimate of this ratio</p></td>
+</tr>
+<tr class="row-even"><td><p>Nsq_Mapsq</p></td>
+<td><p>The ratio <span class="math notranslate nohighlight">\(\langle N_{ap}^2 \rangle / \langle M_{ap}^2 \rangle\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>sig_nn_mm</p></td>
+<td><p>The sqrt of the variance estimate of this ratio</p></td>
+</tr>
 </tbody>
 </table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to write to.</p></li>
+<li><p><strong>gg</strong> (<a class="reference internal" href="gg.html#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><em>GGCorrelation</em></a>) – The auto-correlation of the shear field</p></li>
+<li><p><strong>dd</strong> (<a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><em>NNCorrelation</em></a>) – The auto-correlation of the lens counts (DD)</p></li>
+<li><p><strong>rr</strong> (<a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><em>NNCorrelation</em></a>) – The auto-correlation of the random field (RR)</p></li>
+<li><p><strong>R</strong> (<em>array</em>) – The R values at which to calculate the aperture mass statistics.
+(default: None, which means use self.rnom)</p></li>
+<li><p><strong>dr</strong> (<a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><em>NNCorrelation</em></a>) – The cross-correlation of the data with randoms (DR), if
+desired, in which case the Landy-Szalay estimator will be
+calculated.  (default: None)</p></li>
+<li><p><strong>rd</strong> (<a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><em>NNCorrelation</em></a>) – The cross-correlation of the randoms with data (RD), if
+desired. (default: None, which means use rd=dr)</p></li>
+<li><p><strong>rg</strong> (<a class="reference internal" href="#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><em>NGCorrelation</em></a>) – The cross-correlation using random locations as the lenses
+(RG), if desired.  (default: None)</p></li>
+<li><p><strong>m2_uform</strong> (<em>str</em>) – Which form to use for the aperture mass.  (default: ‘Crittenden’;
+this value can also be given in the constructor in the config dict.)</p></li>
+<li><p><strong>file_type</strong> (<em>str</em>) – The type of file to write (‘ASCII’ or ‘FITS’).  (default: determine
+the type automatically from the extension of file_name.)</p></li>
+<li><p><strong>precision</strong> (<em>int</em>) – For ASCII output catalogs, the desired precision. (default: 4;
+this value can also be given in the constructor in the config dict.)</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>

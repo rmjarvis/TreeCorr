@@ -7,4 +7,8 @@ NNNCorrelation: Count-count-count correlations
     :special-members:
     :show-inheritance:
 
+.. autoclass:: treecorr.NNNCrossCorrelation
+    :members:
+    :special-members:
+    :show-inheritance:
 

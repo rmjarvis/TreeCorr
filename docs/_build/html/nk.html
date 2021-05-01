@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>NKCorrelation: Count-kappa correlations &mdash; TreeCorr 4.1.7 documentation</title>
+  <title>NKCorrelation: Count-kappa correlations &mdash; TreeCorr 4.2.0 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                4.1
+                4.2
               </div>
             
           
@@ -103,6 +103,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html#restrictions-on-the-line-of-sight-separation">Restrictions on the Line of Sight Separation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
@@ -110,7 +111,7 @@
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.1 to 4.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -280,9 +281,8 @@ arguments, which may be passed either directly or in the config dict.</p>
 <dd><p>Add a second <a class="reference internal" href="#treecorr.NKCorrelation" title="treecorr.NKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKCorrelation</span></code></a>’s data to this one.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>For this to make sense, both <a class="reference internal" href="#treecorr.NKCorrelation" title="treecorr.NKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKCorrelation</span></code></a> objects should have been using
-<a class="reference internal" href="#treecorr.NKCorrelation.process_cross" title="treecorr.NKCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a>, and they should not have had <a class="reference internal" href="#treecorr.NKCorrelation.finalize" title="treecorr.NKCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> called yet.
-Then, after adding them together, you should call <a class="reference internal" href="#treecorr.NKCorrelation.finalize" title="treecorr.NKCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> on the sum.</p>
+<p>For this to make sense, both <a class="reference internal" href="#treecorr.NKCorrelation" title="treecorr.NKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKCorrelation</span></code></a> objects should not have had <a class="reference internal" href="#treecorr.NKCorrelation.finalize" title="treecorr.NKCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a>
+called yet.  Then, after adding them together, you should call <a class="reference internal" href="#treecorr.NKCorrelation.finalize" title="treecorr.NKCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> on the sum.</p>
 </div>
 </dd></dl>
 
@@ -332,12 +332,6 @@ if desired.  (default: None)</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="treecorr.NKCorrelation.clear">
-<code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NKCorrelation.clear" title="Permalink to this definition">¶</a></dt>
-<dd><p>Clear the data vectors</p>
-</dd></dl>
-
-<dl class="py method">
 <dt id="treecorr.NKCorrelation.copy">
 <code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NKCorrelation.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make a copy</p>
@@ -359,7 +353,7 @@ by dividing each column by the total weight.</p>
 
 <dl class="py method">
 <dt id="treecorr.NKCorrelation.process">
-<code class="sig-name descname">process</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat1</span></em>, <em class="sig-param"><span class="n">cat2</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_threads</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">comm</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">low_mem</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NKCorrelation.process" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">process</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat1</span></em>, <em class="sig-param"><span class="n">cat2</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_threads</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">comm</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">low_mem</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">initialize</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">finalize</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NKCorrelation.process" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the correlation function.</p>
 <p>Both arguments may be lists, in which case all items in the list are used
 for that element of the correlation.</p>
@@ -379,6 +373,10 @@ processes.  If used, the rank=0 process will have the final
 computation. This only works if using patches. (default: None)</p></li>
 <li><p><strong>low_mem</strong> (<em>bool</em>) – Whether to sacrifice a little speed to try to reduce memory usage.
 This only works if using patches. (default: False)</p></li>
+<li><p><strong>initialize</strong> (<em>bool</em>) – Whether to begin the calculation with a call to
+<a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2.clear" title="treecorr.BinnedCorr2.clear"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">BinnedCorr2.clear</span></code></a>.  (default: True)</p></li>
+<li><p><strong>finalize</strong> (<em>bool</em>) – Whether to complete the calculation with a call to <a class="reference internal" href="#treecorr.NKCorrelation.finalize" title="treecorr.NKCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a>.
+(default: True)</p></li>
 </ul>
 </dd>
 </dl>

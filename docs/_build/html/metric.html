@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Metrics &mdash; TreeCorr 4.1.7 documentation</title>
+  <title>Metrics &mdash; TreeCorr 4.2.0 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                4.1
+                4.2
               </div>
             
           
@@ -103,6 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#periodic">“Periodic”</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="#restrictions-on-the-line-of-sight-separation">Restrictions on the Line of Sight Separation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
@@ -110,7 +111,7 @@
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.1 to 4.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -241,15 +242,6 @@ and it identifies the metric separation as just the perpendicular component, <sp
 separation, <span class="math notranslate nohighlight">\(\theta\)</span>, on the sky, so the two radial vectors are nearly parallel.
 In this limit, the formula for <span class="math notranslate nohighlight">\(d\)</span> reduces to</p>
 <p><span class="math notranslate nohighlight">\(d_{\rm Rperp} \approx \left(\frac{2 r_1 r_2}{r_1+r_2}\right) \theta\)</span></p>
-<p>This metric also permits the use of two other parameters, <code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> and <code class="docutils literal notranslate"><span class="pre">max_rpar</span></code>,
-which set the minimum and maximum values of <span class="math notranslate nohighlight">\(r_\parallel\)</span> for pairs to be included in the
-correlations.</p>
-<p>The sign of <span class="math notranslate nohighlight">\(r_\parallel\)</span> is defined such that positive values mean
-the object from the second catalog is farther away.  Thus, if the first catalog represents
-lenses and the second catalog represents lensed source galaxies, then setting
-<code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> = 0 will restrict the sources to being in the background of each lens.
-Similarly, setting <code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> = -50, <code class="docutils literal notranslate"><span class="pre">max_rpar</span></code> = 50 will restrict the sources to be
-within 50 Mpc (say, assuming the catalog distances are given in Mpc) of the lenses.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>Prior to version 4.0, the “Rperp” name meant what is now called “OldRperp”.
@@ -278,16 +270,6 @@ and it identifies the metric separation as just the perpendicular component, <sp
 separation, <span class="math notranslate nohighlight">\(\theta\)</span>, on the sky, so the two radial vectors are nearly parallel.
 In this limit, the formula for <span class="math notranslate nohighlight">\(d\)</span> reduces to</p>
 <p><span class="math notranslate nohighlight">\(d_{\rm OldRperp} \approx \left(\sqrt{r_1 r_2}\right) \theta\)</span></p>
-<p>As with the regular “Rperp”, this metric permits the use of two other parameters,
-<code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> and <code class="docutils literal notranslate"><span class="pre">max_rpar</span></code>,
-which set the minimum and maximum values of <span class="math notranslate nohighlight">\(r_\parallel\)</span> for pairs to be included in the
-correlations.</p>
-<p>The sign of <span class="math notranslate nohighlight">\(r_\parallel\)</span> is defined such that positive values mean
-the object from the second catalog is farther away.  Thus, if the first catalog represents
-lenses and the second catalog represents lensed source galaxies, then setting
-<code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> = 0 will restrict the sources to being in the background of each lens.
-Similarly, setting <code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> = -50, <code class="docutils literal notranslate"><span class="pre">max_rpar</span></code> = 50 will restrict the sources to be
-within 50 Mpc (say, assuming the catalog distances are given in Mpc) of the lenses.</p>
 </div>
 <div class="section" id="rlens">
 <h2>“Rlens”<a class="headerlink" href="#rlens" title="Permalink to this headline">¶</a></h2>
@@ -301,18 +283,11 @@ radial distance to the object in the first catalog.
 In other words, this is the distance from the first object (nominally the “lens”) to the
 line of sight to the second object (nominally the “source”).  This is commonly referred to
 as the impact parameter of the light path from the source as it passes the lens.</p>
-<p>This metric also permits the use of two other parameters, <code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> and <code class="docutils literal notranslate"><span class="pre">max_rpar</span></code>,
-which set the minimum and maximum values of <span class="math notranslate nohighlight">\(r_\parallel\)</span>, defined as for
-<a class="reference internal" href="#rperp"><span class="std std-ref">&quot;Rperp&quot;</span></a> above, for pairs to be included in the correlations.</p>
-<p>The sign of <span class="math notranslate nohighlight">\(r_\parallel\)</span> is defined such that positive values mean
-the object from the second catalog is farther away. Thus, setting
-<code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> = 0 will restrict the sources to being in the background of each lens.
-Similarly, setting <code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> = -50, <code class="docutils literal notranslate"><span class="pre">max_rpar</span></code> = 50 will restrict the sources to be
-within 50 Mpc (say, assuming the catalog distances are given in Mpc) of the lenses.</p>
 <p>Since the basic metric does not use the radial distance to the source galaxies (<span class="math notranslate nohighlight">\(r_2\)</span>),
 they are not required.  You may just provide (ra,dec) coordinates for the sources.
-However, if you want to use the <code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> or <code class="docutils literal notranslate"><span class="pre">max_rpar</span></code> options, then
-the source coordinates need to include r.</p>
+However, if you want to use the <code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> or <code class="docutils literal notranslate"><span class="pre">max_rpar</span></code> options
+(see <a class="reference internal" href="#restrictions-on-the-line-of-sight-separation"><span class="std std-ref">Restrictions on the Line of Sight Separation</span></a> below),
+then the source coordinates need to include r.</p>
 </div>
 <div class="section" id="periodic">
 <h2>“Periodic”<a class="headerlink" href="#periodic" title="Permalink to this headline">¶</a></h2>
@@ -335,6 +310,31 @@ dz &amp;= \min \left(|z_2 - z_1|, L_z - |z_2-z_1| \right)\end{split}\]</div>
 <p>This metric is particularly relevant for data generated from N-body simuluations, which
 often use periodic boundary conditions.</p>
 </div>
+</div>
+<div class="section" id="restrictions-on-the-line-of-sight-separation">
+<h1>Restrictions on the Line of Sight Separation<a class="headerlink" href="#restrictions-on-the-line-of-sight-separation" title="Permalink to this headline">¶</a></h1>
+<p>There are two additional parameters that are tightly connected to the metric space:
+<code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> and <code class="docutils literal notranslate"><span class="pre">max_rpar</span></code>.
+These set the minimum and maximum values of <span class="math notranslate nohighlight">\(r_\parallel\)</span> for pairs to be included in the
+correlations.</p>
+<p>This is most typically relevant for the Rperp or Rlens metrics, but we now (as of version 4.2)
+allow these parameters for any metric.</p>
+<p>The two different Rperp conventions (FisherRperp and OldRperp) have different definitions of
+<span class="math notranslate nohighlight">\(r_\parallel\)</span> as described above, which are used in the definition of the metric distances.
+These are the same <span class="math notranslate nohighlight">\(r_\parallel\)</span> definitions that are used for the min and max values
+if <code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> and/or <code class="docutils literal notranslate"><span class="pre">max_rpar</span></code> are given.
+For all other metrics, we use the FisherRperp definition for <span class="math notranslate nohighlight">\(r_\parallel\)</span> if needed
+for this purpose.</p>
+<p>The sign of <span class="math notranslate nohighlight">\(r_\parallel\)</span> is defined such that positive values mean
+the object from the second catalog is farther away.  Thus, if the first catalog represents
+lenses and the second catalog represents lensed source galaxies, then setting
+<code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> = 0 will restrict the sources to being in the background of each lens.
+Contrariwise, setting <code class="docutils literal notranslate"><span class="pre">max_rpar</span></code> = 0 will restrict to pairs where the object in the first
+catalog is behind the object in the second catalog.</p>
+<p>Another common use case is to restrict to pairs that are near each other in line of sight distance.
+Setting <code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> = -50, <code class="docutils literal notranslate"><span class="pre">max_rpar</span></code> = 50 will restrict the pairs to only those that are
+separated by no more than 50 Mpc (say, assuming the catalog distances are given in Mpc) along
+the radial direction.</p>
 </div>
 
 

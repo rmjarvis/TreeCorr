@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Changes from version 4.0 to 4.1 &mdash; TreeCorr 4.1.7 documentation</title>
+  <title>Changes from version 4.1 to 4.2 &mdash; TreeCorr 4.2.0 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                4.1
+                4.2
               </div>
             
           
@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html#restrictions-on-the-line-of-sight-separation">Restrictions on the Line of Sight Separation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
@@ -102,19 +103,11 @@
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Changes from version 4.0 to 4.1</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#output-format-changes">Output Format Changes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#performance-improvements">Performance Improvements</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Changes from version 4.1 to 4.2</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#api-changes">API Changes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#performance-improvements">Performance improvements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#new-features">New features</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#deprecations">Deprecations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bug-fixes">Bug Fixes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-4-1-0-to-4-1-1">Changes from version 4.1.0 to 4.1.1</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-4-1-1-to-4-1-2">Changes from version 4.1.1 to 4.1.2</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-4-1-2-to-4-1-3">Changes from version 4.1.2 to 4.1.3</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-4-1-3-to-4-1-4">Changes from version 4.1.3 to 4.1.4</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-4-1-4-to-4-1-5">Changes from version 4.1.4 to 4.1.5</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-4-1-5-to-4-1-6">Changes from version 4.1.5 to 4.1.6</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-4-1-6-to-4-1-7">Changes from version 4.1.6 to 4.1.7</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bug-fixes">Bug fixes</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
@@ -166,7 +159,7 @@
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Changes from version 4.0 to 4.1</li>
+      <li>Changes from version 4.1 to 4.2</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -185,148 +178,86 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="changes-from-version-4-0-to-4-1">
-<h1>Changes from version 4.0 to 4.1<a class="headerlink" href="#changes-from-version-4-0-to-4-1" title="Permalink to this headline">¶</a></h1>
-<p>This release mostly adds the ability to compute jackknife and other estimates of
-the variance (or covariance matrix), which do a better job of capturing sample
-variance than the default (and previously only) method of computing just the
-shot noise component.</p>
-<p>This requires dividing the input Catalog into patches, which can be done by:</p>
-<ol class="arabic simple">
-<li><p>Giving patch numbers explicitly for each galaxy.</p></li>
-<li><p>Having TreeCorr split it into some number of patches for you automatically (using K-Means).</p></li>
-<li><p>Giving the patch centers to use, which will assign each galaxy to the patch corresponding
-to the nearest center position.</p></li>
-</ol>
-<p>For more details about making patches, see <a class="reference external" href="https://rmjarvis.github.io/TreeCorr/_build/html/patches.html">Patches</a></p>
-<p>For details about using patches to compute better covariance matrices,
-see <a class="reference external" href="https://rmjarvis.github.io/TreeCorr/_build/html/cov.html">Covariance Estimates</a></p>
-<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+4.1%22+is%3Aclosed">Relevant PRs and Issues,</a>
+  <div class="section" id="changes-from-version-4-1-to-4-2">
+<h1>Changes from version 4.1 to 4.2<a class="headerlink" href="#changes-from-version-4-1-to-4-2" title="Permalink to this headline">¶</a></h1>
+<p>This update mostly involves some improvements to the new patch-based
+computations, in response to feedback from users, who have been trying it out
+in a variety of use cases.  Especially note the new optional <code class="docutils literal notranslate"><span class="pre">func</span></code> argument
+to <a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2.estimate_cov" title="treecorr.BinnedCorr2.estimate_cov"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">BinnedCorr2.estimate_cov</span></code></a> and <a class="reference internal" href="correlation2.html#treecorr.estimate_multi_cov" title="treecorr.estimate_multi_cov"><code class="xref any py py-func docutils literal notranslate"><span class="pre">estimate_multi_cov</span></code></a>, which lets you
+calculate covariances of arbitrary functions of a correlation object or list
+of correlation objects.  See <a class="reference internal" href="cov.html#covariance-of-derived-quantities"><span class="std std-ref">Covariance of Derived Quantities</span></a> for details.</p>
+<p>Another big improvement is the ability to correctly perform three-point
+cross-correlations. I still don’t have heterogeneous cross correlations like
+NGG or NNG, but now NNN, GGG, and KKK can be done correctly for 2 or 3
+different catalogs.  This update does technically involve an API change,
+since the old code tried to do something when given 3 catalogs, but it
+wasn’t really correct, and (consequently) I don’t think anyone was actually
+trying to use that feature.</p>
+<p>See the listing below for the complete list of new features and changes.
+<a class="reference external" href="https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+4.2%22+is%3Aclosed">Relevant PRs and Issues,</a>
 whose issue numbers are listed below for the relevant items.</p>
-<div class="section" id="output-format-changes">
-<h2>Output Format Changes<a class="headerlink" href="#output-format-changes" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This will be the last (non-bug-fix) TreeCorr release to support Python 2.7.
+It is becoming harder to continue to support this platform now that it is
+officially sunsetted, so we encourage all users to switch their code to
+Python 3.x ASAP.  TreeCorr is currently compatible with Python versions
+2.7, 3.5, 3.6, 3.7, 3.8, 3.9.  We will probably also drop 3.5 in the next
+release as well, since that is also retired at this point.</p>
+</div>
+<div class="section" id="api-changes">
+<h2>API Changes<a class="headerlink" href="#api-changes" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p>When writing an <a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNCorrelation</span></code></a> to a file, if <a class="reference internal" href="nn.html#treecorr.NNCorrelation.calculateXi" title="treecorr.NNCorrelation.calculateXi"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">NNCorrelation.calculateXi</span></code></a> has
-already been called, then the calculated <code class="docutils literal notranslate"><span class="pre">xi</span></code> and <code class="docutils literal notranslate"><span class="pre">varxi</span></code> will be written
-to the output file, even if you don’t provide the random catalog to the
-<a class="reference internal" href="nn.html#treecorr.NNCorrelation.write" title="treecorr.NNCorrelation.write"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">NNCorrelation.write</span></code></a> function. (#99)</p></li>
-<li><p>Similarly, if <a class="reference internal" href="ng.html#treecorr.NGCorrelation.calculateXi" title="treecorr.NGCorrelation.calculateXi"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">NGCorrelation.calculateXi</span></code></a> or <a class="reference internal" href="nk.html#treecorr.NKCorrelation.calculateXi" title="treecorr.NKCorrelation.calculateXi"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">NKCorrelation.calculateXi</span></code></a> has
-been called using a random catalog, then the <code class="docutils literal notranslate"><span class="pre">xi</span></code> and <code class="docutils literal notranslate"><span class="pre">varxi</span></code> columns in
-the output file will be the compensated statistics, rather than the raw ones.
-(#99)</p></li>
+<li><p>Changed the 3pt process function, when given 3 arguments, to accumulate all
+triangles where points from the three input catalogs can fall into any
+of the three triangle corners.  If you need the old behavior of keeping
+track of which catalog goes into which triangle corner, the new
+???CrossCorrelation classes do so both more efficiently and more
+accurately than the previous code. (#115)</p></li>
+<li><p>Changed the <a class="reference internal" href="nnn.html#treecorr.NNNCorrelation.calculateZeta" title="treecorr.NNNCorrelation.calculateZeta"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">NNNCorrelation.calculateZeta</span></code></a> function to only take
+RDD and DRR parameters for the cross terms (if desired) rather than all
+six (DDR, DRD, RDD, DRR, RDR, RRD).  The new cross-correlation behavior of
+the <a class="reference internal" href="nnn.html#treecorr.NNNCorrelation.process" title="treecorr.NNNCorrelation.process"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">NNNCorrelation.process</span></code></a> function now efficiently calculates in RDD what
+used to be calculated in three calls for DDR, DRD, and RDD.  Likewise the
+new DRR calculates what used to require DRR, RDR, and RRD. (#122)</p></li>
 </ul>
 </div>
 <div class="section" id="performance-improvements">
-<h2>Performance Improvements<a class="headerlink" href="#performance-improvements" title="Permalink to this headline">¶</a></h2>
+<h2>Performance improvements<a class="headerlink" href="#performance-improvements" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p>Improved the speed of reading in FITS files, mostly by telling fitsio to read
-all of the columns at once rather than doing them one at a time. (#104)</p></li>
-<li><p>Delayed the loading of Catalogs from files until the data is actually needed.
-Specifically, if the full catalog is never needed, and only patches are used,
-then this allows for a much reduced memory footprint with a new <code class="docutils literal notranslate"><span class="pre">low_mem</span></code>
-option for <code class="docutils literal notranslate"><span class="pre">process</span></code> calls. (#103)</p></li>
-<li><p>Added OpenMP parallelization to the (ra,dec) -&gt; (x,y,z) calculation to speed
-up that step during Catalog loading. (#104)</p></li>
+<li><p>Only show at most 10 rows with NaNs in cases where there are lots of such
+rows. (#111)</p></li>
+<li><p>No longer remakes patches and writes them to disk if they are already present
+on disk.  If you want to force a rewrite for any reason, you can explicitly
+call <a class="reference internal" href="catalog.html#treecorr.Catalog.write_patches" title="treecorr.Catalog.write_patches"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Catalog.write_patches</span></code></a>. (#119)</p></li>
+<li><p>Computing the data/random cross correlations for 3pt are now much faster,
+since you only need one call for RDD and one for DRR, not all the 6 different
+permuations. (Specifically, DDR, DRD, RDR, RRD are no longer needed.) (#122)</p></li>
 </ul>
 </div>
 <div class="section" id="new-features">
 <h2>New features<a class="headerlink" href="#new-features" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p>Added <a class="reference internal" href="field.html#treecorr.Field.run_kmeans" title="treecorr.Field.run_kmeans"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Field.run_kmeans</span></code></a> to run K-Means algorithm on a Field to determine a
-good set of patches to use.  This will be run automatically simply by setting
-<code class="docutils literal notranslate"><span class="pre">npatch</span></code> when building a <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a>. (#88)</p></li>
-<li><p>Added ability to input patch numbers from input file or input arrays using
-<code class="docutils literal notranslate"><span class="pre">patch_col</span></code> or <code class="docutils literal notranslate"><span class="pre">patch</span></code> respectively. (#96)</p></li>
-<li><p>Added ability to write patch centers to a file with <a class="reference internal" href="catalog.html#treecorr.Catalog.write_patch_centers" title="treecorr.Catalog.write_patch_centers"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Catalog.write_patch_centers</span></code></a>.
-(#99)</p></li>
-<li><p>Added ability to define patch numbers from patch centers (either a file or
-the <code class="docutils literal notranslate"><span class="pre">patch_centers</span></code> attribute of another Catalog). (#99)</p></li>
-<li><p>Added the ability to compute jackknife, sample, bootstrap, and marked bootstrap
-variance and covariance estimates by dividing the full calculation into
-correlations across patches.  Set <code class="docutils literal notranslate"><span class="pre">var_method</span></code> in the Correlation class or
-use the <a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2.estimate_cov" title="treecorr.BinnedCorr2.estimate_cov"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">BinnedCorr2.estimate_cov</span></code></a> method. (#24, #50, #96)</p></li>
-<li><p>Added <a class="reference internal" href="correlation2.html#treecorr.estimate_multi_cov" title="treecorr.estimate_multi_cov"><code class="xref any py py-func docutils literal notranslate"><span class="pre">estimate_multi_cov</span></code></a> function, which will the compute covariance
-matrix across multiple statistics that have been run using the same set of patches.
-(#96)</p></li>
-<li><p>Added <code class="docutils literal notranslate"><span class="pre">every_nth</span></code> option for Catalogs to read in a fraction of the rows.  (#99)</p></li>
-<li><p>After calling <a class="reference internal" href="nn.html#treecorr.NNCorrelation.calculateXi" title="treecorr.NNCorrelation.calculateXi"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">NNCorrelation.calculateXi</span></code></a>, the calculated <code class="docutils literal notranslate"><span class="pre">xi</span></code>, <code class="docutils literal notranslate"><span class="pre">varxi</span></code> and
-<code class="docutils literal notranslate"><span class="pre">cov</span></code> are available as attributes. (#99)</p></li>
-<li><p>Added <code class="docutils literal notranslate"><span class="pre">keep_zero_weight</span></code> option to include wpos=0 objects in the total npairs
-if you want.  The default is to throw out wpos=0 objects at the start, but there
-may be reasons to keep them, so that’s now an option when building the Catalog.
-(#99)</p></li>
-<li><p>Added <code class="docutils literal notranslate"><span class="pre">allow_xyz</span></code> option to allow x,y,z columns be provided along with ra,dec
-columns.  Normally this is not allowed, but if you know they are consistent,
-then this option allows them to be input directly to avoid recalculating them.
-(#103)</p></li>
-<li><p>Added <code class="docutils literal notranslate"><span class="pre">low_mem</span></code> option to <code class="docutils literal notranslate"><span class="pre">process</span></code> calls to unload patches that aren’t being
-used, thus saving memory at the expense of some extra I/O time. (#103)</p></li>
-<li><p>Added <code class="docutils literal notranslate"><span class="pre">save_patch_dir</span></code> as an optional location to write patch catalogs for increased
-efficiency when using <code class="docutils literal notranslate"><span class="pre">low_mem</span></code> option. (#103)</p></li>
-<li><p>Added <code class="docutils literal notranslate"><span class="pre">comm</span></code> option to <code class="docutils literal notranslate"><span class="pre">process</span></code> calls to use MPI to split a job up over
-multiple machines. (#98, #104)</p></li>
-</ul>
-</div>
-<div class="section" id="deprecations">
-<h2>Deprecations<a class="headerlink" href="#deprecations" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>The <a class="reference internal" href="nn.html#treecorr.NNCorrelation.process_pairwise" title="treecorr.NNCorrelation.process_pairwise"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_pairwise</span></code></a> functions have all been
-deprecated.  I can’t remember anymore why I added this feature, and I don’t think
-anyone uses it (or the associated <a class="reference internal" href="field.html#treecorr.NSimpleField" title="treecorr.NSimpleField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">SimpleFields</span></code></a>).  If you need this
-functionality, please open an issue to let me know, and I can keep them.  Otherwise,
-I’ll remove them as usesless cruft.</p></li>
+<li><p>Allow min_rpar and max_rpar for Euclidean metric.  Also Periodic, although
+I don’t know if that’s useful. (#101)</p></li>
+<li><p>Added ability to read from hdf5 catalogs.  (#106)</p></li>
+<li><p>Added ability to use named columns in ASCII files if the file has column
+names. (#108)</p></li>
+<li><p>Added optional initialize=False and finalize=False options to process
+functions. (#109)</p></li>
+<li><p>Added ability to do 3 point cross-correlations properly, rather than the not
+exactly correct version that had been implemented.  Not all combinations are
+implemented.  So far just GGG, KKK, and NNN. (#115)</p></li>
+<li><p>Added ability to read from parquet catalogs.  (#117)</p></li>
+<li><p>Added optional func parameter to estimate_cov and estimate_multi_cov. (#118)</p></li>
+<li><p>Added ability to write output files as hdf5.  (#122)</p></li>
 </ul>
 </div>
 <div class="section" id="bug-fixes">
-<h2>Bug Fixes<a class="headerlink" href="#bug-fixes" title="Permalink to this headline">¶</a></h2>
+<h2>Bug fixes<a class="headerlink" href="#bug-fixes" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p>Fixed a bug in 3-point calculations that could cause “Failed Assert: kr &lt; _nbins”.</p></li>
-</ul>
-</div>
-<div class="section" id="changes-from-version-4-1-0-to-4-1-1">
-<h2>Changes from version 4.1.0 to 4.1.1<a class="headerlink" href="#changes-from-version-4-1-0-to-4-1-1" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Made sure ra,dec,r catalogs make patches using just ra,dec, not full 3D position.</p></li>
-<li><p>Fixed a bug when using ra,dec,r catalog with <code class="docutils literal notranslate"><span class="pre">save_patch_dir</span></code> option.</p></li>
-</ul>
-</div>
-<div class="section" id="changes-from-version-4-1-1-to-4-1-2">
-<h2>Changes from version 4.1.1 to 4.1.2<a class="headerlink" href="#changes-from-version-4-1-1-to-4-1-2" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Fixed a bug when reading ascii files with every_nth != 1.</p></li>
-</ul>
-</div>
-<div class="section" id="changes-from-version-4-1-2-to-4-1-3">
-<h2>Changes from version 4.1.2 to 4.1.3<a class="headerlink" href="#changes-from-version-4-1-2-to-4-1-3" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Fixed the same every_nth bug when pandas is not installed.</p></li>
-</ul>
-</div>
-<div class="section" id="changes-from-version-4-1-3-to-4-1-4">
-<h2>Changes from version 4.1.3 to 4.1.4<a class="headerlink" href="#changes-from-version-4-1-3-to-4-1-4" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Fixed a bug when using every_nth in conjunction with explicit numpy arrays.</p></li>
-</ul>
-</div>
-<div class="section" id="changes-from-version-4-1-4-to-4-1-5">
-<h2>Changes from version 4.1.4 to 4.1.5<a class="headerlink" href="#changes-from-version-4-1-4-to-4-1-5" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Fixed read_catalogs to work properly with patches.</p></li>
-</ul>
-</div>
-<div class="section" id="changes-from-version-4-1-5-to-4-1-6">
-<h2>Changes from version 4.1.5 to 4.1.6<a class="headerlink" href="#changes-from-version-4-1-5-to-4-1-6" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Fixed a bug in <a class="reference internal" href="ggg.html#treecorr.GGGCorrelation.calculateMap3" title="treecorr.GGGCorrelation.calculateMap3"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">GGGCorrelation.calculateMap3</span></code></a>, which could sometimes take
-the sqrt of negative numbers, resulting in nans.</p></li>
-</ul>
-</div>
-<div class="section" id="changes-from-version-4-1-6-to-4-1-7">
-<h2>Changes from version 4.1.6 to 4.1.7<a class="headerlink" href="#changes-from-version-4-1-6-to-4-1-7" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Fixed a bug that could result in nans in GGG calculations if any triangles
-are actually three equidistant, collinear points, which can happen if the
-input data is on a grid or at least has highly quantized positions.</p></li>
+<li><p>Fixed a couple problems that could arise in patch-based calculations when
+one or more of the patches have no objects. (#123)</p></li>
 </ul>
 </div>
 </div>

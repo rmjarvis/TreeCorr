@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>KKKCorrelation: Kappa-kappa-kappa correlations &mdash; TreeCorr 4.1.7 documentation</title>
+  <title>KKKCorrelation: Kappa-kappa-kappa correlations &mdash; TreeCorr 4.2.0 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                4.1
+                4.2
               </div>
             
           
@@ -100,6 +100,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html#restrictions-on-the-line-of-sight-separation">Restrictions on the Line of Sight Separation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
@@ -107,7 +108,7 @@
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.1 to 4.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -286,9 +287,8 @@ arguments, which may be passed either directly or in the config dict.</p>
 <dd><p>Add a second <a class="reference internal" href="#treecorr.KKKCorrelation" title="treecorr.KKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCorrelation</span></code></a>’s data to this one.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>For this to make sense, both <a class="reference internal" href="#treecorr.KKKCorrelation" title="treecorr.KKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCorrelation</span></code></a> objects should have been using
-<a class="reference internal" href="#treecorr.KKKCorrelation.process_auto" title="treecorr.KKKCorrelation.process_auto"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_auto</span></code></a> and/or <a class="reference internal" href="#treecorr.KKKCorrelation.process_cross" title="treecorr.KKKCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a>, and they should not have had <a class="reference internal" href="#treecorr.KKKCorrelation.finalize" title="treecorr.KKKCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> called
-yet.  Then, after adding them together, you should call <a class="reference internal" href="#treecorr.KKKCorrelation.finalize" title="treecorr.KKKCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> on the sum.</p>
+<p>For this to make sense, both <a class="reference internal" href="#treecorr.KKKCorrelation" title="treecorr.KKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCorrelation</span></code></a> objects should not have had <a class="reference internal" href="#treecorr.KKKCorrelation.finalize" title="treecorr.KKKCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a>
+called yet.  Then, after adding them together, you should call <a class="reference internal" href="#treecorr.KKKCorrelation.finalize" title="treecorr.KKKCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> on the sum.</p>
 </div>
 </dd></dl>
 
@@ -302,12 +302,6 @@ yet.  Then, after adding them together, you should call <a class="reference inte
 <dt id="treecorr.KKKCorrelation.__repr__">
 <code class="sig-name descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.__repr__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.__repr__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return repr(self).</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="treecorr.KKKCorrelation.clear">
-<code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.clear" title="Permalink to this definition">¶</a></dt>
-<dd><p>Clear the data vectors</p>
 </dd></dl>
 
 <dl class="py method">
@@ -336,32 +330,31 @@ finishes the calculation by dividing by the total weight.</p>
 
 <dl class="py method">
 <dt id="treecorr.KKKCorrelation.process">
-<code class="sig-name descname">process</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat1</span></em>, <em class="sig-param"><span class="n">cat2</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cat3</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_threads</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.process" title="Permalink to this definition">¶</a></dt>
-<dd><p>Accumulate the number of triangles of points between cat1, cat2, and cat3.</p>
+<code class="sig-name descname">process</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat1</span></em>, <em class="sig-param"><span class="n">cat2</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cat3</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_threads</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">comm</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">low_mem</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">initialize</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">finalize</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the 3pt correlation function.</p>
 <ul class="simple">
 <li><p>If only 1 argument is given, then compute an auto-correlation function.</p></li>
 <li><p>If 2 arguments are given, then compute a cross-correlation function with the
-first catalog taking two corners of the triangles. (Not implemented yet.)</p></li>
-<li><p>If 3 arguments are given, then compute a cross-correlation function.</p></li>
+first catalog taking one corner of the triangles, and the second taking two corners.</p></li>
+<li><p>If 3 arguments are given, then compute a three-way cross-correlation function.</p></li>
 </ul>
 <p>All arguments may be lists, in which case all items in the list are used
 for that element of the correlation.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>For a correlation of multiple catalogs, it matters which corner of the
-triangle comes from which catalog.  The final accumulation will have
-d1 &gt; d2 &gt; d3 where d1 is between two points in cat2,cat3; d2 is between
-points in cat1,cat3; and d3 is between points in cat1,cat2.  To accumulate
-all the possible triangles between three catalogs, you should call this
-multiple times with the different catalogs in different positions.</p>
+<p>For a correlation of multiple catalogs, it typically matters which corner of the
+triangle comes from which catalog, which is not kept track of by this function.
+The final accumulation will have d1 &gt; d2 &gt; d3 regardless of which input catalog
+appears at each corner.  The class which keeps track of which catalog appears
+in each position in the triangle is <a class="reference internal" href="#treecorr.KKKCrossCorrelation" title="treecorr.KKKCrossCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCrossCorrelation</span></code></a>.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the first N field.</p></li>
-<li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the second N field, if any.
+<li><p><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the first K field.</p></li>
+<li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the second K field.
 (default: None)</p></li>
-<li><p><strong>cat3</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the third N field, if any.
+<li><p><strong>cat3</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the third K field.
 (default: None)</p></li>
 <li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
 (default: ‘Euclidean’; this value can also be given in the
@@ -369,6 +362,15 @@ constructor in the config dict.)</p></li>
 <li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
 (default: use the number of cpu cores; this value can also be given
 in the constructor in the config dict.)</p></li>
+<li><p><strong>comm</strong> (<em>mpi4py.Comm</em>) – If running MPI, an mpi4py Comm object to communicate between
+processes.  If used, the rank=0 process will have the final
+computation. This only works if using patches. (default: None)</p></li>
+<li><p><strong>low_mem</strong> (<em>bool</em>) – Whether to sacrifice a little speed to try to reduce memory usage.
+This only works if using patches. (default: False)</p></li>
+<li><p><strong>initialize</strong> (<em>bool</em>) – Whether to begin the calculation with a call to
+<a class="reference internal" href="correlation3.html#treecorr.BinnedCorr3.clear" title="treecorr.BinnedCorr3.clear"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">BinnedCorr3.clear</span></code></a>.  (default: True)</p></li>
+<li><p><strong>finalize</strong> (<em>bool</em>) – Whether to complete the calculation with a call to <a class="reference internal" href="#treecorr.KKKCorrelation.finalize" title="treecorr.KKKCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a>.
+(default: True)</p></li>
 </ul>
 </dd>
 </dl>
@@ -400,9 +402,10 @@ in the constructor in the config dict.)</p></li>
 <dt id="treecorr.KKKCorrelation.process_cross">
 <code class="sig-name descname">process_cross</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat1</span></em>, <em class="sig-param"><span class="n">cat2</span></em>, <em class="sig-param"><span class="n">cat3</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_threads</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.process_cross"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.process_cross" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process a set of three catalogs, accumulating the 3pt cross-correlation.</p>
-<p>This accumulates the cross-correlation for the given catalogs.  After
-calling this function as often as desired, the <a class="reference internal" href="#treecorr.KKKCorrelation.finalize" title="treecorr.KKKCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> command will
-finish the calculation of meand1, meanlogd1, etc.</p>
+<p>This accumulates the cross-correlation for the given catalogs as part of a larger
+auto-correlation calculation.  E.g. when splitting up a large catalog into patches,
+this is appropriate to use for the cross correlation between different patches
+as part of the complete auto-correlation of the full catalog.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -421,22 +424,21 @@ in the constructor in the config dict.)</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="treecorr.KKKCorrelation.process_cross21">
-<code class="sig-name descname">process_cross21</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat1</span></em>, <em class="sig-param"><span class="n">cat2</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_threads</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.process_cross21"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.process_cross21" title="Permalink to this definition">¶</a></dt>
-<dd><p>Process two catalogs, accumulating the 3pt cross-correlation, where two of the
-points in each triangle come from the first catalog, and one from the second.</p>
-<p>This accumulates the cross-correlation for the given catalogs.  After
-calling this function as often as desired, the <a class="reference internal" href="#treecorr.KKKCorrelation.finalize" title="treecorr.KKKCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> command will
-finish the calculation of meand1, meanlogd1, etc.</p>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>This is not implemented yet.</p>
-</div>
+<dt id="treecorr.KKKCorrelation.process_cross12">
+<code class="sig-name descname">process_cross12</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat1</span></em>, <em class="sig-param"><span class="n">cat2</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_threads</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.process_cross12"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCorrelation.process_cross12" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process two catalogs, accumulating the 3pt cross-correlation, where one of the
+points in each triangle come from the first catalog, and two come from the second.</p>
+<p>This accumulates the cross-correlation for the given catalogs as part of a larger
+auto-correlation calculation.  E.g. when splitting up a large catalog into patches,
+this is appropriate to use for the cross correlation between different patches
+as part of the complete auto-correlation of the full catalog.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The first catalog to process</p></li>
-<li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The second catalog to process</p></li>
+<li><p><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The first catalog to process. (1 point in each triangle will come
+from this catalog.)</p></li>
+<li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The second catalog to process. (2 points in each triangle will come
+from this catalog.)</p></li>
 <li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
 (default: ‘Euclidean’; this value can also be given in the
 constructor in the config dict.)</p></li>
@@ -545,6 +547,298 @@ fell into each bin</p></td>
 <p>If <code class="docutils literal notranslate"><span class="pre">sep_units</span></code> was given at construction, then the distances will all be in these units.
 Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
 radians (for spherical coordinates).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to write to.</p></li>
+<li><p><strong>file_type</strong> (<em>str</em>) – The type of file to write (‘ASCII’ or ‘FITS’).  (default: determine
+the type automatically from the extension of file_name.)</p></li>
+<li><p><strong>precision</strong> (<em>int</em>) – For ASCII output catalogs, the desired precision. (default: 4;
+this value can also be given in the constructor in the config dict.)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="treecorr.KKKCrossCorrelation">
+<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">KKKCrossCorrelation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCrossCorrelation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCrossCorrelation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">treecorr.binnedcorr3.BinnedCorr3</span></code></p>
+<p>This class handles the calculation a 3-point kappa-kappa-kappa cross-correlation
+function.</p>
+<p>For 3-point cross correlations, it matters which of the two or three fields falls on
+each corner of the triangle.  E.g. is field 1 on the corner opposite d1 (the longest
+size of the triangle) or is it field 2 (or 3) there?  This is in contrast to the 2-point
+correlation where the symmetry of the situation means that it doesn’t matter which point
+is identified with each field.  This makes it significantly more complicated to keep track
+of all the relevant information for a 3-point cross correlation function.</p>
+<p>The <a class="reference internal" href="#treecorr.KKKCorrelation" title="treecorr.KKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCorrelation</span></code></a> class holds a single <span class="math notranslate nohighlight">\(\zeta\)</span> functions describing all
+possible triangles, parameterized according to their relative side lengths ordered as
+d1 &gt; d2 &gt; d3.</p>
+<p>For a cross-correlation of two fields: K1 - K1 - K2 (i.e. the K1 field is at two of the
+corners and K2 is at one corner), then we need three these <span class="math notranslate nohighlight">\(\zeta\)</span> functions
+to capture all of the triangles, since the K2 points may be opposite d1 or d2 or d3.
+For a cross-correlation of three fields: K1 - K2 - K3, we need six sets, to account for
+all of the possible permutations relative to the triangle sides.</p>
+<p>Therefore, this class holds 6 instances of <a class="reference internal" href="#treecorr.KKKCorrelation" title="treecorr.KKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCorrelation</span></code></a>, which in turn hold the
+information about triangles in each of the relevant configurations.  We name these:</p>
+<dl class="simple">
+<dt>Attribute:</dt><dd><p>k1k2k3:     Triangles where K1 is opposite d1, K2 is opposite d2, K3 is opposite d3.
+k1k3k2:     Triangles where K1 is opposite d1, K3 is opposite d2, K2 is opposite d3.
+k2k1k3:     Triangles where K2 is opposite d1, K1 is opposite d2, K3 is opposite d3.
+k2k3k1:     Triangles where K2 is opposite d1, K3 is opposite d2, K1 is opposite d3.
+k3k1k2:     Triangles where K3 is opposite d1, K1 is opposite d2, K2 is opposite d3.
+k3k2k1:     Triangles where K3 is opposite d1, K2 is opposite d2, K1 is opposite d3.</p>
+</dd>
+</dl>
+<p>If for instance K2 and K3 are the same field, then e.g. k1k2k3 and k1k3k2 will have
+the same values.</p>
+<p>Ojects of this class also hold the following attributes, which are identical in each of
+the above KKKCorrelation instances.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nbins</strong> – The number of bins in logr where r = d2</p></li>
+<li><p><strong>bin_size</strong> – The size of the bins in logr</p></li>
+<li><p><strong>min_sep</strong> – The minimum separation being considered</p></li>
+<li><p><strong>max_sep</strong> – The maximum separation being considered</p></li>
+<li><p><strong>nubins</strong> – The number of bins in u where u = d3/d2</p></li>
+<li><p><strong>ubin_size</strong> – The size of the bins in u</p></li>
+<li><p><strong>min_u</strong> – The minimum u being considered</p></li>
+<li><p><strong>max_u</strong> – The maximum u being considered</p></li>
+<li><p><strong>nvbins</strong> – The number of bins in v where v = +-(d1-d2)/d3</p></li>
+<li><p><strong>vbin_size</strong> – The size of the bins in v</p></li>
+<li><p><strong>min_v</strong> – The minimum v being considered</p></li>
+<li><p><strong>max_v</strong> – The maximum v being considered</p></li>
+<li><p><strong>logr1d</strong> – The nominal centers of the nbins bins in log(r).</p></li>
+<li><p><strong>u1d</strong> – The nominal centers of the nubins bins in u.</p></li>
+<li><p><strong>v1d</strong> – The nominal centers of the nvbins bins in v.</p></li>
+</ul>
+</dd>
+</dl>
+<p>If <code class="docutils literal notranslate"><span class="pre">sep_units</span></code> are given (either in the config dict or as a named kwarg) then the distances
+will all be in these units.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you separate out the steps of the <a class="reference internal" href="#treecorr.KKKCrossCorrelation.process" title="treecorr.KKKCrossCorrelation.process"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process</span></code></a> command and use <a class="reference internal" href="#treecorr.KKKCrossCorrelation.process_cross" title="treecorr.KKKCrossCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a> directly,
+then the units will not be applied to <code class="docutils literal notranslate"><span class="pre">meanr</span></code> or <code class="docutils literal notranslate"><span class="pre">meanlogr</span></code> until the <a class="reference internal" href="#treecorr.KKKCrossCorrelation.finalize" title="treecorr.KKKCrossCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a>
+function is called.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>dict</em>) – A configuration dict that can be used to pass in kwargs if desired.
+This dict is allowed to have addition entries besides those listed
+in <a class="reference internal" href="correlation3.html#treecorr.BinnedCorr3" title="treecorr.BinnedCorr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr3</span></code></a>, which are ignored here. (default: None)</p></li>
+<li><p><strong>logger</strong> – If desired, a logger object for logging. (default: None, in which case
+one will be built according to the config dict’s verbose level.)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>**kwargs</strong> – See the documentation for <a class="reference internal" href="correlation3.html#treecorr.BinnedCorr3" title="treecorr.BinnedCorr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr3</span></code></a> for the list of allowed keyword
+arguments, which may be passed either directly or in the config dict.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="treecorr.KKKCrossCorrelation.__eq__">
+<code class="sig-name descname">__eq__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCrossCorrelation.__eq__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCrossCorrelation.__eq__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether two <a class="reference internal" href="#treecorr.KKKCrossCorrelation" title="treecorr.KKKCrossCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCrossCorrelation</span></code></a> instances are equal</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.KKKCrossCorrelation.__iadd__">
+<code class="sig-name descname">__iadd__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCrossCorrelation.__iadd__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCrossCorrelation.__iadd__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a second <a class="reference internal" href="#treecorr.KKKCrossCorrelation" title="treecorr.KKKCrossCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCrossCorrelation</span></code></a>’s data to this one.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For this to make sense, both <a class="reference internal" href="#treecorr.KKKCrossCorrelation" title="treecorr.KKKCrossCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCrossCorrelation</span></code></a> objects should not have had
+<a class="reference internal" href="#treecorr.KKKCrossCorrelation.finalize" title="treecorr.KKKCrossCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> called yet.  Then, after adding them together, you should call <a class="reference internal" href="#treecorr.KKKCrossCorrelation.finalize" title="treecorr.KKKCrossCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a>
+on the sum.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.KKKCrossCorrelation.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCrossCorrelation.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCrossCorrelation.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize <a class="reference internal" href="#treecorr.KKKCrossCorrelation" title="treecorr.KKKCrossCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCrossCorrelation</span></code></a>.  See class doc for details.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.KKKCrossCorrelation.__repr__">
+<code class="sig-name descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCrossCorrelation.__repr__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCrossCorrelation.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return repr(self).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.KKKCrossCorrelation.copy">
+<code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCrossCorrelation.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCrossCorrelation.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a copy</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.KKKCrossCorrelation.finalize">
+<code class="sig-name descname">finalize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vark1</span></em>, <em class="sig-param"><span class="n">vark2</span></em>, <em class="sig-param"><span class="n">vark3</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCrossCorrelation.finalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCrossCorrelation.finalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalize the calculation of the correlation function.</p>
+<p>The <a class="reference internal" href="#treecorr.KKKCrossCorrelation.process_cross" title="treecorr.KKKCrossCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a> command accumulate values in each bin, so they can be called
+multiple times if appropriate.  Afterwards, this command finishes the calculation
+by dividing by the total weight.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vark1</strong> (<em>float</em>) – The kappa variance for the first field that was correlated.</p></li>
+<li><p><strong>vark2</strong> (<em>float</em>) – The kappa variance for the second field that was correlated.</p></li>
+<li><p><strong>vark3</strong> (<em>float</em>) – The kappa variance for the third field that was correlated.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.KKKCrossCorrelation.getStat">
+<code class="sig-name descname">getStat</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCrossCorrelation.getStat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCrossCorrelation.getStat" title="Permalink to this definition">¶</a></dt>
+<dd><p>The standard statistic for the current correlation object as a 1-d array.</p>
+<p>In this case, the concatenation of zeta.ravel() for each combination in the following
+order: k1k2k3, k1k3k2, k2k1k3, k2k3k1, k3k1k2, k3k2k1.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.KKKCrossCorrelation.getWeight">
+<code class="sig-name descname">getWeight</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCrossCorrelation.getWeight"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCrossCorrelation.getWeight" title="Permalink to this definition">¶</a></dt>
+<dd><p>The weight array for the current correlation object as a 1-d array.</p>
+<p>In this case, the concatenation of getWeight() for each combination in the following
+order: k1k2k3, k1k3k2, k2k1k3, k2k3k1, k3k1k2, k3k2k1.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.KKKCrossCorrelation.nonzero">
+<em class="property">property </em><code class="sig-name descname">nonzero</code><a class="headerlink" href="#treecorr.KKKCrossCorrelation.nonzero" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return if there are any values accumulated yet.  (i.e. ntri &gt; 0)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.KKKCrossCorrelation.process">
+<code class="sig-name descname">process</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat1</span></em>, <em class="sig-param"><span class="n">cat2</span></em>, <em class="sig-param"><span class="n">cat3</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_threads</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">comm</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">low_mem</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">initialize</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">finalize</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCrossCorrelation.process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCrossCorrelation.process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accumulate the cross-correlation of the points in the given Catalogs: cat1, cat2, cat3.</p>
+<ul class="simple">
+<li><p>If 2 arguments are given, then compute a cross-correlation function with the
+first catalog taking one corner of the triangles, and the second taking two corners.</p></li>
+<li><p>If 3 arguments are given, then compute a three-way cross-correlation function.</p></li>
+</ul>
+<p>All arguments may be lists, in which case all items in the list are used
+for that element of the correlation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the first K field.</p></li>
+<li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the second K field.</p></li>
+<li><p><strong>cat3</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the third K field.
+(default: None)</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+(default: ‘Euclidean’; this value can also be given in the
+constructor in the config dict.)</p></li>
+<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+(default: use the number of cpu cores; this value can also be given
+in the constructor in the config dict.)</p></li>
+<li><p><strong>comm</strong> (<em>mpi4py.Comm</em>) – If running MPI, an mpi4py Comm object to communicate between
+processes.  If used, the rank=0 process will have the final
+computation. This only works if using patches. (default: None)</p></li>
+<li><p><strong>low_mem</strong> (<em>bool</em>) – Whether to sacrifice a little speed to try to reduce memory usage.
+This only works if using patches. (default: False)</p></li>
+<li><p><strong>initialize</strong> (<em>bool</em>) – Whether to begin the calculation with a call to
+<a class="reference internal" href="correlation3.html#treecorr.BinnedCorr3.clear" title="treecorr.BinnedCorr3.clear"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">BinnedCorr3.clear</span></code></a>.  (default: True)</p></li>
+<li><p><strong>finalize</strong> (<em>bool</em>) – Whether to complete the calculation with a call to <a class="reference internal" href="#treecorr.KKKCrossCorrelation.finalize" title="treecorr.KKKCrossCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a>.
+(default: True)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.KKKCrossCorrelation.process_cross">
+<code class="sig-name descname">process_cross</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat1</span></em>, <em class="sig-param"><span class="n">cat2</span></em>, <em class="sig-param"><span class="n">cat3</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_threads</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCrossCorrelation.process_cross"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCrossCorrelation.process_cross" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a set of three catalogs, accumulating the 3pt cross-correlation.</p>
+<p>This accumulates the cross-correlation for the given catalogs.  After
+calling this function as often as desired, the <a class="reference internal" href="#treecorr.KKKCrossCorrelation.finalize" title="treecorr.KKKCrossCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> command will
+finish the calculation of meand1, meanlogd1, etc.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The first catalog to process</p></li>
+<li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The second catalog to process</p></li>
+<li><p><strong>cat3</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The third catalog to process</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+(default: ‘Euclidean’; this value can also be given in the
+constructor in the config dict.)</p></li>
+<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+(default: use the number of cpu cores; this value can also be given
+in the constructor in the config dict.)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.KKKCrossCorrelation.process_cross12">
+<code class="sig-name descname">process_cross12</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat1</span></em>, <em class="sig-param"><span class="n">cat2</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_threads</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCrossCorrelation.process_cross12"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCrossCorrelation.process_cross12" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process two catalogs, accumulating the 3pt cross-correlation, where one of the
+points in each triangle come from the first catalog, and two come from the second.</p>
+<p>This accumulates the cross-correlation for the given catalogs.  After
+calling this function as often as desired, the <a class="reference internal" href="#treecorr.KKKCrossCorrelation.finalize" title="treecorr.KKKCrossCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> command will
+finish the calculation of meand1, meanlogd1, etc.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This only adds to the attributes k1k2k3, k2k1k3, k2k3k1, not the ones where
+3 comes before 2.  When running this via the regular <a class="reference internal" href="#treecorr.KKKCrossCorrelation.process" title="treecorr.KKKCrossCorrelation.process"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process</span></code></a> method, it will
+combine them at the end to make sure k1k2k3 == k1k3k2, etc. for a complete
+calculation of the 1-2 cross-correlation.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The first catalog to process. (1 point in each triangle will come
+from this catalog.)</p></li>
+<li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The second catalog to process. (2 points in each triangle will come
+from this catalog.)</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+(default: ‘Euclidean’; this value can also be given in the
+constructor in the config dict.)</p></li>
+<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+(default: use the number of cpu cores; this value can also be given
+in the constructor in the config dict.)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.KKKCrossCorrelation.read">
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em>, <em class="sig-param"><span class="n">file_type</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCrossCorrelation.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCrossCorrelation.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read in values from a file.</p>
+<p>This should be a file that was written by TreeCorr, preferably a FITS file, so there
+is no loss of information.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The <a class="reference internal" href="#treecorr.KKKCrossCorrelation" title="treecorr.KKKCrossCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCrossCorrelation</span></code></a> object should be constructed with the same configuration
+parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
+checked by the read function.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to read in.</p></li>
+<li><p><strong>file_type</strong> (<em>str</em>) – The type of file (‘ASCII’ or ‘FITS’).  (default: determine the type
+automatically from the extension of file_name.)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.KKKCrossCorrelation.write">
+<code class="sig-name descname">write</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em>, <em class="sig-param"><span class="n">file_type</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">precision</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCrossCorrelation.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KKKCrossCorrelation.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the cross-correlation functions to the file, file_name.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">

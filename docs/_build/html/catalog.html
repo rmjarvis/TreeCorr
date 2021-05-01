@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Input Data &mdash; TreeCorr 4.1.7 documentation</title>
+  <title>Input Data &mdash; TreeCorr 4.2.0 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                4.1
+                4.2
               </div>
             
           
@@ -94,11 +94,13 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Input Data</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#the-catalog-class">The Catalog class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#other-utilities-related-to-catalogs">Other utilities related to catalogs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#file-readers">File Readers</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html#restrictions-on-the-line-of-sight-separation">Restrictions on the Line of Sight Separation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
@@ -106,7 +108,7 @@
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.1 to 4.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -181,7 +183,7 @@
 <h2>The Catalog class<a class="headerlink" href="#the-catalog-class" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="treecorr.Catalog">
-<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">Catalog</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">config</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">is_rand</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">z</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ra</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dec</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">r</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">w</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">wpos</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">flag</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">g1</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">g2</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">k</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">patch</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">patch_centers</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">Catalog</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">config</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">is_rand</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">z</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ra</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dec</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">r</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">w</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">wpos</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">flag</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">g1</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">g2</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">k</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">patch</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">patch_centers</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">rng</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog" title="Permalink to this definition">¶</a></dt>
 <dd><p>A set of input data (positions and other quantities) to be correlated.</p>
 <p>A Catalog object keeps track of the relevant information for a number of objects to
 be correlated.  The objects each have some kind of position (for instance (x,y), (ra,dec),
@@ -207,9 +209,15 @@ values.  For (x,y) positions, the units are optional (and usually unnecessary).<
 <span class="gp">... </span>                       <span class="n">g1_col</span><span class="o">=</span><span class="s1">&#39;E1&#39;</span><span class="p">,</span> <span class="n">g2_col</span><span class="o">=</span><span class="s1">&#39;E2&#39;</span><span class="p">,</span> <span class="n">ra_units</span><span class="o">=</span><span class="s1">&#39;deg&#39;</span><span class="p">,</span> <span class="n">dec_units</span><span class="o">=</span><span class="s1">&#39;deg&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>This reads the given columns from the input file.  The input file may be either
-a FITS catalog or an ASCII catalog.  Normally the file type is determined according to the
-file’s extension (e.g. ‘.fits’ here), but it can also be set explicitly with <code class="docutils literal notranslate"><span class="pre">file_type</span></code>.</p>
+<p>This reads the given columns from the input file.  The input file may be a FITS file,
+an HDF5 file, a Parquet file, or an ASCII file.  Normally the file type is determined
+according to the file’s extension (e.g. ‘.fits’ here), but it can also be set explicitly
+with <code class="docutils literal notranslate"><span class="pre">file_type</span></code>.</p>
+<p>For FITS, HDF5, and Parquet files, the column names should be strings as shown above.
+For ASCII files, they may be strings if the input file has column names.  But you may
+also use integer values giving the index of which column to use.  We use a 1-based convention
+for these, so x_col=1 would mean to use the first column as the x value. (0 means don’t
+read that column.)</p>
 <p>Finally, you may store all the various parameters in a configuration dict
 and just pass the dict as an argument after the file name:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;ra_col&#39;</span> <span class="p">:</span> <span class="s1">&#39;ALPHA2000&#39;</span><span class="p">,</span>
@@ -311,7 +319,7 @@ desired.  Invalid keys in the config dict are ignored. (default: None)</p></li>
 <li><p><strong>num</strong> (<em>int</em>) – Which number catalog are we reading.  e.g. for NG correlations the
 catalog for the N has num=0, the one for G has num=1.  This is only
 necessary if you are using a config dict where things like <code class="docutils literal notranslate"><span class="pre">x_col</span></code>
-have multiple values.  (default: 0)</p></li>
+have multiple values. (default: 0)</p></li>
 <li><p><strong>logger</strong> – If desired, a Logger object for logging. (default: None, in which case
 one will be built according to the config dict’s verbose level.)</p></li>
 <li><p><strong>is_rand</strong> (<em>bool</em>) – If this is a random file, then setting is_rand to True will let them
@@ -334,7 +342,7 @@ invalid in conjunction with x, y.)</p></li>
 means to use the value weights, w, to weight the positions as well.)</p></li>
 <li><p><strong>flag</strong> (<em>array</em>) – An optional array of flags, indicating objects to skip.  Rows with
 flag != 0 (or technically flag &amp; ~ok_flag != 0) will be given a weight
-of 0.  (default: None)</p></li>
+of 0. (default: None)</p></li>
 <li><p><strong>g1</strong> (<em>array</em>) – The g1 values to use for shear correlations. (g1,g2 may represent any
 spinor field.) (default: None)</p></li>
 <li><p><strong>g2</strong> (<em>array</em>) – The g2 values to use for shear correlations. (g1,g2 may represent any
@@ -356,9 +364,10 @@ from which the patches will be determined. (default: None)</p></li>
 </dd>
 <dt class="field-odd">Keyword Arguments</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>file_type</strong> (<em>str</em>) – What kind of file is the input file. Valid options are ‘ASCII’ or
-‘FITS’ (default: if the file_name extension starts with .fit, then use
-‘FITS’, else ‘ASCII’)</p></li>
+<li><p><strong>file_type</strong> (<em>str</em>) – What kind of file is the input file. Valid options are ‘ASCII’, ‘FITS’
+‘HDF’, or ‘Parquet’ (default: if the file_name extension starts with
+.fit, then use ‘FITS’, or with .hdf, then use ‘HDF’, or with ‘.par’,
+then use ‘Parquet’, else ‘ASCII’)</p></li>
 <li><p><strong>delimiter</strong> (<em>str</em>) – For ASCII files, what delimiter to use between values. (default: None,
 which means any whitespace)</p></li>
 <li><p><strong>comment_marker</strong> (<em>str</em>) – For ASCII files, what token indicates a comment line. (default: ‘#’)</p></li>
@@ -366,9 +375,9 @@ which means any whitespace)</p></li>
 <li><p><strong>last_row</strong> (<em>int</em>) – Which row to take as the last row to be used. (default: -1, which means
 the last row in the file)</p></li>
 <li><p><strong>every_nth</strong> (<em>int</em>) – Only use every nth row of the input catalog. (default: 1)</p></li>
-<li><p><strong>npatch</strong> (<em>int</em>) – <p>How many patches to split the catalog into (using kmeans) for the
-purpose of jackknife variance or other options that involve running via
-patches. (default: 1)</p>
+<li><p><strong>npatch</strong> (<em>int</em>) – <p>How many patches to split the catalog into (using kmeans if no other
+patch information is provided) for the purpose of jackknife variance
+or other options that involve running via patches. (default: 1)</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>If the catalog has ra,dec,r positions, the patches will
@@ -379,34 +388,34 @@ be made using just ra,dec.</p>
 cf. <a class="reference internal" href="field.html#treecorr.Field.run_kmeans" title="treecorr.Field.run_kmeans"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Field.run_kmeans</span></code></a> (default: ‘tree’)</p></li>
 <li><p><strong>kmeans_alt</strong> (<em>str</em>) – If using kmeans to make patches, whether to use the alternate kmeans
 algorithm. cf. <a class="reference internal" href="field.html#treecorr.Field.run_kmeans" title="treecorr.Field.run_kmeans"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Field.run_kmeans</span></code></a> (default: False)</p></li>
-<li><p><strong>x_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the x values. This should be an integer for ASCII
-files or a string for FITS files. (default: 0 or ‘0’, which means not
-to read in this column. When reading from a file, either x_col and
-y_col are required or ra_col and dec_col are required.)</p></li>
-<li><p><strong>y_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the y values. This should be an integer for ASCII
-files or a string for FITS files. (default: 0 or ‘0’, which means not
-to read in this column. When reading from a file, either x_col and
-y_col are required or ra_col and dec_col are required.)</p></li>
-<li><p><strong>z_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the z values. This should be an integer for ASCII
-files or a string for FITS files. (default: 0 or ‘0’, which means not
-to read in this column; invalid in conjunction with ra_col, dec_col.)</p></li>
-<li><p><strong>ra_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the ra values. This should be an integer for
-ASCII files or a string for FITS files. (default: 0 or ‘0’, which
-means not to read in this column. When reading from a file, either
-x_col and y_col are required or ra_col and dec_col are required.)</p></li>
-<li><p><strong>dec_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the dec values. This should be an integer for
-ASCII files or a string for FITS files. (default: 0 or ‘0’, which
-means not to read in this column. When reading from a file, either
-x_col and y_col are required or ra_col and dec_col are required.)</p></li>
-<li><p><strong>r_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the r values. This should be an integer for ASCII
-files or a string for FITS files. (default: 0 or ‘0’, which means not
-to read in this column; invalid in conjunction with x_col, y_col.)</p></li>
+<li><p><strong>x_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the x values. An integer is only allowed for
+ASCII files. (default: ‘0’, which means not to read in this column.
+When reading from a file, either x_col and y_col are required or ra_col
+and dec_col are required.)</p></li>
+<li><p><strong>y_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the y values. An integer is only allowed for
+ASCII files. (default: ‘0’, which means not to read in this column.
+When reading from a file, either x_col and y_col are required or ra_col
+and dec_col are required.)</p></li>
+<li><p><strong>z_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the z values. An integer is only allowed for
+ASCII files. (default: ‘0’, which means not to read in this column;
+invalid in conjunction with ra_col, dec_col.)</p></li>
+<li><p><strong>ra_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the ra values. An integer is only allowed for
+ASCII files. (default: ‘0’, which means not to read in this column.
+When reading from a file, either x_col and y_col are required or ra_col
+and dec_col are required.)</p></li>
+<li><p><strong>dec_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the dec values. An integer is only allowed for
+ASCII files. (default: ‘0’, which means not to read in this column.
+When reading from a file, either x_col and y_col are required or ra_col
+and dec_col are required.)</p></li>
+<li><p><strong>r_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the r values. An integer is only allowed for
+ASCII files. (default: ‘0’, which means not to read in this column;
+invalid in conjunction with x_col, y_col.)</p></li>
 <li><p><strong>x_units</strong> (<em>str</em>) – The units to use for the x values, given as a string.  Valid options are
-arcsec, arcmin, degrees, hours, radians.  (default: radians, although
+arcsec, arcmin, degrees, hours, radians. (default: radians, although
 with (x,y) positions, you can often just ignore the units, and the
 output separations will be in whatever units x and y are in.)</p></li>
 <li><p><strong>y_units</strong> (<em>str</em>) – The units to use for the y values, given as a string.  Valid options are
-arcsec, arcmin, degrees, hours, radians.  (default: radians, although
+arcsec, arcmin, degrees, hours, radians. (default: radians, although
 with (x,y) positions, you can often just ignore the units, and the
 output separations will be in whatever units x and y are in.)</p></li>
 <li><p><strong>ra_units</strong> (<em>str</em>) – The units to use for the ra values, given as a string.  Valid options
@@ -415,31 +424,26 @@ ra_col or providing ra directly)</p></li>
 <li><p><strong>dec_units</strong> (<em>str</em>) – The units to use for the dec values, given as a string.  Valid options
 are arcsec, arcmin, degrees, hours, radians. (required when using
 dec_col or providing dec directly)</p></li>
-<li><p><strong>g1_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the g1 values. This should be an integer for
-ASCII files or a string for FITS files. (default: 0 or ‘0’, which means
-not to read in this column.)</p></li>
-<li><p><strong>g2_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the g2 values. This should be an integer for
-ASCII files or a string for FITS files. (default: 0 or ‘0’, which means
-not to read in this column.)</p></li>
-<li><p><strong>k_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the kappa values. This should be an integer for
-ASCII files or a string for FITS files. (default: 0 or ‘0’, which means
-not to read in this column.)</p></li>
-<li><p><strong>patch_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the patch numbers. This should be an integer
-for ASCII files or a string for FITS files. (default: 0 or ‘0’, which
-means not to read in this column.)</p></li>
-<li><p><strong>w_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the weight values. This should be an integer for
-ASCII files or a string for FITS files. (default: 0 or ‘0’, which means
-not to read in this column.)</p></li>
-<li><p><strong>wpos_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the position weight values. This should be an
-integer for ASCII files or a string for FITS files. (default: 0 or ‘0’,
-which means not to read in this column, in which case wpos=w.)</p></li>
-<li><p><strong>flag_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the flag values. This should be an integer for
-ASCII files or a string for FITS files. Any row with flag != 0 (or
-technically flag &amp; ~ok_flag != 0) will be given a weight of 0.
-(default: 0 or ‘0’, which means not to read in this column.)</p></li>
+<li><p><strong>g1_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the g1 values. An integer is only allowed for
+ASCII files. (default: ‘0’, which means not to read in this column.)</p></li>
+<li><p><strong>g2_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the g2 values. An integer is only allowed for
+ASCII files. (default: ‘0’, which means not to read in this column.)</p></li>
+<li><p><strong>k_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the kappa values. An integer is only allowed for
+ASCII files. (default: ‘0’, which means not to read in this column.)</p></li>
+<li><p><strong>patch_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the patch numbers. An integer is only allowed
+for ASCII files. (default: ‘0’, which means not to read in this column.)</p></li>
+<li><p><strong>w_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the weight values. An integer is only allowed for
+ASCII files. (default: ‘0’, which means not to read in this column.)</p></li>
+<li><p><strong>wpos_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the position weight values. An integer is only
+allowed for ASCII files. (default: ‘0’, which means not to read in this
+column, in which case wpos=w.)</p></li>
+<li><p><strong>flag_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the flag values. An integer is only allowed for
+ASCII files. Any row with flag != 0 (or technically flag &amp; ~ok_flag
+!= 0) will be given a weight of 0. (default: ‘0’, which means not to
+read in this column.)</p></li>
 <li><p><strong>ignore_flag</strong> (<em>int</em>) – Which flags should be ignored. (default: all non-zero flags are ignored.
 Equivalent to ignore_flag = ~0.)</p></li>
-<li><p><strong>ok_flag</strong> (<em>int</em>) – Which flags should be considered ok. (default: 0.  i.e. all non-zero
+<li><p><strong>ok_flag</strong> (<em>int</em>) – Which flags should be considered ok. (default: 0. i.e. all non-zero
 flags are ignored.)</p></li>
 <li><p><strong>allow_xyz</strong> (<em>bool</em>) – Whether to allow x,y,z values in conjunction with ra,dec.  Normally,
 it is an error to have both kinds of positions, but if you know that
@@ -456,20 +460,21 @@ weight of pairs. (default: False)</p></li>
 <li><p><strong>save_patch_dir</strong> (<em>str</em>) – If desired, when building patches from this Catalog, save them
 as FITS files in the given directory for more efficient loading when
 doing cross-patch correlations with the <code class="docutils literal notranslate"><span class="pre">low_mem</span></code> option.</p></li>
-<li><p><strong>hdu</strong> (<em>int</em>) – For FITS files, which hdu to read. (default: 1)</p></li>
-<li><p><strong>x_hdu</strong> (<em>int</em>) – Which hdu to use for the x values. (default: hdu)</p></li>
-<li><p><strong>y_hdu</strong> (<em>int</em>) – Which hdu to use for the y values. (default: hdu)</p></li>
-<li><p><strong>z_hdu</strong> (<em>int</em>) – Which hdu to use for the z values. (default: hdu)</p></li>
-<li><p><strong>ra_hdu</strong> (<em>int</em>) – Which hdu to use for the ra values. (default: hdu)</p></li>
-<li><p><strong>dec_hdu</strong> (<em>int</em>) – Which hdu to use for the dec values. (default: hdu)</p></li>
-<li><p><strong>r_hdu</strong> (<em>int</em>) – Which hdu to use for the r values. (default: hdu)</p></li>
-<li><p><strong>g1_hdu</strong> (<em>int</em>) – Which hdu to use for the g1 values. (default: hdu)</p></li>
-<li><p><strong>g2_hdu</strong> (<em>int</em>) – Which hdu to use for the g2 values. (default: hdu)</p></li>
-<li><p><strong>k_hdu</strong> (<em>int</em>) – Which hdu to use for the k values. (default: hdu)</p></li>
-<li><p><strong>patch_hdu</strong> (<em>int</em>) – Which hdu to use for the patch numbers. (default: hdu)</p></li>
-<li><p><strong>w_hdu</strong> (<em>int</em>) – Which hdu to use for the w values. (default: hdu)</p></li>
-<li><p><strong>wpos_hdu</strong> (<em>int</em>) – Which hdu to use for the wpos values. (default: hdu)</p></li>
-<li><p><strong>flag_hdu</strong> (<em>int</em>) – Which hdu to use for the flag values. (default: hdu)</p></li>
+<li><p><strong>ext</strong> (<em>int/str</em>) – For FITS/HDF files, Which extension to read. (default: 1 for fits,
+root for HDF)</p></li>
+<li><p><strong>x_ext</strong> (<em>int/str</em>) – Which extension to use for the x values. (default: ext)</p></li>
+<li><p><strong>y_ext</strong> (<em>int/str</em>) – Which extension to use for the y values. (default: ext)</p></li>
+<li><p><strong>z_ext</strong> (<em>int/str</em>) – Which extension to use for the z values. (default: ext)</p></li>
+<li><p><strong>ra_ext</strong> (<em>int/str</em>) – Which extension to use for the ra values. (default: ext)</p></li>
+<li><p><strong>dec_ext</strong> (<em>int/str</em>) – Which extension to use for the dec values. (default: ext)</p></li>
+<li><p><strong>r_ext</strong> (<em>int/str</em>) – Which extension to use for the r values. (default: ext)</p></li>
+<li><p><strong>g1_ext</strong> (<em>int/str</em>) – Which extension to use for the g1 values. (default: ext)</p></li>
+<li><p><strong>g2_ext</strong> (<em>int/str</em>) – Which extension to use for the g2 values. (default: ext)</p></li>
+<li><p><strong>k_ext</strong> (<em>int/str</em>) – Which extension to use for the k values. (default: ext)</p></li>
+<li><p><strong>patch_ext</strong> (<em>int/str</em>) – Which extension to use for the patch numbers. (default: ext)</p></li>
+<li><p><strong>w_ext</strong> (<em>int/str</em>) – Which extension to use for the w values. (default: ext)</p></li>
+<li><p><strong>wpos_ext</strong> (<em>int/str</em>) – Which extension to use for the wpos values. (default: ext)</p></li>
+<li><p><strong>flag_ext</strong> (<em>int/str</em>) – Which extension to use for the flag values. (default: ext)</p></li>
 <li><p><strong>verbose</strong> (<em>int</em>) – <p>If no logger is provided, this will optionally specify a logging level
 to use.</p>
 <blockquote>
@@ -482,7 +487,7 @@ to use.</p>
 </div></blockquote>
 </p></li>
 <li><p><strong>log_file</strong> (<em>str</em>) – If no logger is provided, this will specify a file to write the logging
-output.  (default: None; i.e. output to standard output)</p></li>
+output. (default: None; i.e. output to standard output)</p></li>
 <li><p><strong>split_method</strong> (<em>str</em>) – <p>How to split the cells in the tree when building the tree structure.
 Options are:</p>
 <blockquote>
@@ -500,6 +505,8 @@ of the range.</p></li>
 <li><p><strong>cat_precision</strong> (<em>int</em>) – The precision to use when writing a Catalog to an ASCII file. This
 should be an integer, which specifies how many digits to write.
 (default: 16)</p></li>
+<li><p><strong>rng</strong> (<em>RandomState</em>) – If desired, a numpy.random.RandomState instance to use for any random
+number generation (e.g. kmeans patches). (default: None)</p></li>
 <li><p><strong>num_threads</strong> (<em>int</em>) – <p>How many OpenMP threads to use during the catalog load steps.
 (default: use the number of cpu cores)</p>
 <div class="admonition note">
@@ -716,6 +723,12 @@ spherical geometries.  In the latter case, the centers represent
 </dd></dl>
 
 <dl class="py method">
+<dt id="treecorr.Catalog.get_patch_file_names">
+<code class="sig-name descname">get_patch_file_names</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">save_patch_dir</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.get_patch_file_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.get_patch_file_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the names of the files to use for reading/writing patches in save_patch_dir</p>
+</dd></dl>
+
+<dl class="py method">
 <dt id="treecorr.Catalog.get_patches">
 <code class="sig-name descname">get_patches</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">low_mem</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.get_patches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.get_patches" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a list of Catalog instances each representing a single patch from this Catalog</p>
@@ -766,36 +779,6 @@ Also make sure the input is 1-d.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="treecorr.Catalog.read_ascii">
-<code class="sig-name descname">read_ascii</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em>, <em class="sig-param"><span class="n">num</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">is_rand</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.read_ascii"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.read_ascii" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read the catalog from an ASCII file</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to read in.</p></li>
-<li><p><strong>num</strong> (<em>int</em>) – Which number catalog are we reading. (default: 0)</p></li>
-<li><p><strong>is_rand</strong> (<em>bool</em>) – Is this a random catalog? (default: False)</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="treecorr.Catalog.read_fits">
-<code class="sig-name descname">read_fits</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em>, <em class="sig-param"><span class="n">num</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">is_rand</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.read_fits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.read_fits" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read the catalog from a FITS file</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to read in.</p></li>
-<li><p><strong>num</strong> (<em>int</em>) – Which number catalog are we reading. (default: 0)</p></li>
-<li><p><strong>is_rand</strong> (<em>bool</em>) – Is this a random catalog? (default: False)</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt id="treecorr.Catalog.read_patch_centers">
 <code class="sig-name descname">read_patch_centers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.read_patch_centers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.read_patch_centers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read patch centers from a file.</p>
@@ -807,6 +790,28 @@ string, being the file name.  The patch centers are read from the file and retur
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>The centers, as an array, which can be used to determine the patches.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.Catalog.read_patches">
+<code class="sig-name descname">read_patches</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">save_patch_dir</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.read_patches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.read_patches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the patches from files on disk.</p>
+<p>This function assumes that the patches were written using <a class="reference internal" href="#treecorr.Catalog.write_patches" title="treecorr.Catalog.write_patches"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">write_patches</span></code></a>.
+In particular, the file names are not arbitrary, but must match what TreeCorr uses
+in that method.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The patches that are read in will be in an “unloaded” state.  They will load
+as needed when some functionality requires it.  So this is compatible with using
+the <code class="docutils literal notranslate"><span class="pre">low_mem</span></code> option in various places.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>save_patch_dir</strong> (<em>str</em>) – The directory to read from. [default: None, in which
+case self.save_patch_dir will be used.  If that is None, a
+ValueError will be raised.]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1007,6 +1012,22 @@ config dict.)</p></li>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt id="treecorr.Catalog.write_patches">
+<code class="sig-name descname">write_patches</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">save_patch_dir</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#Catalog.write_patches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Catalog.write_patches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the patches to disk as separate files.</p>
+<p>This can be used in conjunction with <code class="docutils literal notranslate"><span class="pre">low_mem=True</span></code> option of <a class="reference internal" href="#treecorr.Catalog.get_patches" title="treecorr.Catalog.get_patches"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">get_patches</span></code></a> (and
+implicitly by the various <a class="reference internal" href="gg.html#treecorr.GGCorrelation.process" title="treecorr.GGCorrelation.process"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process</span></code></a> methods) to only keep
+at most two patches in memory at a time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>save_patch_dir</strong> (<em>str</em>) – The directory to write the patches to. [default: None, in which
+case self.save_patch_dir will be used.  If that is None, a
+ValueError will be raised.]</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </div>
@@ -1048,13 +1069,17 @@ skip k_col, g1_col, and g2_col if they were set for the main catalog.
 
 <dl class="py function">
 <dt id="treecorr.calculateVarG">
-<code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">calculateVarG</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat_list</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#calculateVarG"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.calculateVarG" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">calculateVarG</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat_list</span></em>, <em class="sig-param"><span class="n">low_mem</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#calculateVarG"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.calculateVarG" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the overall shear variance from a list of catalogs.</p>
 <p>The catalogs are assumed to be equivalent, so this is just the average shear
 variance (per component) weighted by the number of objects in each catalog.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>cat_list</strong> – A Catalog or a list of Catalogs for which to calculate the shear variance.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat_list</strong> – A Catalog or a list of Catalogs for which to calculate the shear variance.</p></li>
+<li><p><strong>low_mem</strong> – Whether to try to conserve memory when cat is a list by unloading each
+catalog after getting its individual varg. [default: False]</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>The shear variance per component, aka shape noise.</p>
@@ -1064,13 +1089,17 @@ variance (per component) weighted by the number of objects in each catalog.</p>
 
 <dl class="py function">
 <dt id="treecorr.calculateVarK">
-<code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">calculateVarK</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat_list</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#calculateVarK"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.calculateVarK" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">calculateVarK</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat_list</span></em>, <em class="sig-param"><span class="n">low_mem</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/catalog.html#calculateVarK"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.calculateVarK" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the overall kappa variance from a list of catalogs.</p>
 <p>The catalogs are assumed to be equivalent, so this is just the average kappa
 variance weighted by the number of objects in each catalog.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>cat_list</strong> – A Catalog or a list of Catalogs for which to calculate the kappa variance.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat_list</strong> – A Catalog or a list of Catalogs for which to calculate the kappa variance.</p></li>
+<li><p><strong>low_mem</strong> – Whether to try to conserve memory when cat is a list by unloading each
+catalog after getting its individual vark. [default: False]</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>The kappa variance</p>
@@ -1123,6 +1152,242 @@ the k column rather than g1,g2.</p>
 False if not.</p>
 </dd>
 </dl>
+</dd></dl>
+
+</div>
+<div class="section" id="file-readers">
+<h2>File Readers<a class="headerlink" href="#file-readers" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="treecorr.reader.FitsReader">
+<em class="property">class </em><code class="sig-prename descclassname">treecorr.reader.</code><code class="sig-name descname">FitsReader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/reader.html#FitsReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.reader.FitsReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reader interface for FITS files.
+Uses fitsio to read columns, etc.</p>
+<dl class="py method">
+<dt id="treecorr.reader.FitsReader.check_valid_ext">
+<code class="sig-name descname">check_valid_ext</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ext</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/reader.html#FitsReader.check_valid_ext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.reader.FitsReader.check_valid_ext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if an extension is valid for reading, and raise ValueError if not.</p>
+<p>The ext must both exist and be a table (not an image)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ext</strong> (<em>str/int</em>) – The extension to check</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.reader.FitsReader.names">
+<code class="sig-name descname">names</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ext</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/reader.html#FitsReader.names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.reader.FitsReader.names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of the names of all the columns in an extension</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ext</strong> (<em>str/int</em>) – The extension to search for columns (default: 1)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of string column names</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.reader.FitsReader.read">
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cols</span></em>, <em class="sig-param"><span class="n">s</span><span class="o">=</span><span class="default_value">slice(None, None, None)</span></em>, <em class="sig-param"><span class="n">ext</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/reader.html#FitsReader.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.reader.FitsReader.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a slice of a column or list of columns from a specified extension</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cols</strong> (<em>str/list</em>) – The name(s) of column(s) to read</p></li>
+<li><p><strong>s</strong> (<em>slice/array</em>) – A slice object or selection of integers to read (default: all)</p></li>
+<li><p><strong>ext</strong> (<em>str/int</em><em>)</em>) – The FITS extension to use (default: 1)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The data as a recarray or simple numpy array as appropriate</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.reader.FitsReader.row_count">
+<code class="sig-name descname">row_count</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">col</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ext</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/reader.html#FitsReader.row_count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.reader.FitsReader.row_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Count the number of rows in the named extension</p>
+<p>For compatibility with the HDF interface, which can have columns
+of different lengths, we allow a second argument, col, but it is
+ignored here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>col</strong> (<em>str</em>) – The column to use (ignored)</p></li>
+<li><p><strong>ext</strong> (<em>str/int</em>) – The FITS extension to use (default: 1)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The number of rows</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="treecorr.reader.HdfReader">
+<em class="property">class </em><code class="sig-prename descclassname">treecorr.reader.</code><code class="sig-name descname">HdfReader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/reader.html#HdfReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.reader.HdfReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reader interface for HDF5 files.
+Uses h5py to read columns, etc.</p>
+<dl class="py method">
+<dt id="treecorr.reader.HdfReader.check_valid_ext">
+<code class="sig-name descname">check_valid_ext</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ext</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/reader.html#HdfReader.check_valid_ext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.reader.HdfReader.check_valid_ext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if an extension is valid for reading, and raise ValueError if not.</p>
+<p>The ext must exist - there is no other requirement for HDF files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ext</strong> (<em>str</em>) – The extension to check</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.reader.HdfReader.names">
+<code class="sig-name descname">names</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ext</span><span class="o">=</span><span class="default_value">'/'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/reader.html#HdfReader.names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.reader.HdfReader.names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of the names of all the columns in an extension</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ext</strong> (<em>str</em>) – The extension to search for columns (default: ‘/’)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of string column names</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.reader.HdfReader.read">
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cols</span></em>, <em class="sig-param"><span class="n">s</span><span class="o">=</span><span class="default_value">slice(None, None, None)</span></em>, <em class="sig-param"><span class="n">ext</span><span class="o">=</span><span class="default_value">'/'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/reader.html#HdfReader.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.reader.HdfReader.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a slice of a column or list of columns from a specified extension.</p>
+<p>Slices should always be used when reading HDF files - using a sequence of
+integers is painfully slow.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cols</strong> (<em>str/list</em>) – The name(s) of column(s) to read</p></li>
+<li><p><strong>s</strong> (<em>slice/array</em>) – A slice object or selection of integers to read (default: all)</p></li>
+<li><p><strong>ext</strong> (<em>str</em>) – The HDF (sub-)group to use (default: ‘/’)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The data as a dict or single numpy array as appropriate</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.reader.HdfReader.row_count">
+<code class="sig-name descname">row_count</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">col</span></em>, <em class="sig-param"><span class="n">ext</span><span class="o">=</span><span class="default_value">'/'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/reader.html#HdfReader.row_count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.reader.HdfReader.row_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Count the number of rows in the named extension and column</p>
+<p>Unlike in FitsReader, col is required.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>col</strong> (<em>str</em>) – The column to use</p></li>
+<li><p><strong>ext</strong> (<em>str</em>) – The HDF group name to use (default: ‘/’)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The number of rows</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="treecorr.reader.AsciiReader">
+<em class="property">class </em><code class="sig-prename descclassname">treecorr.reader.</code><code class="sig-name descname">AsciiReader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em>, <em class="sig-param"><span class="n">delimiter</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">comment_marker</span><span class="o">=</span><span class="default_value">'#'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/reader.html#AsciiReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.reader.AsciiReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reader interface for ASCII files using numpy.</p>
+<dl class="py method">
+<dt id="treecorr.reader.AsciiReader.check_valid_ext">
+<code class="sig-name descname">check_valid_ext</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ext</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/reader.html#AsciiReader.check_valid_ext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.reader.AsciiReader.check_valid_ext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if an extension is valid for reading, and raise ValueError if not.</p>
+<p>None is the only valid extension for ASCII files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ext</strong> (<em>str</em>) – The extension to check</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.reader.AsciiReader.names">
+<code class="sig-name descname">names</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ext</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/reader.html#AsciiReader.names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.reader.AsciiReader.names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of the names of all the columns in an extension</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ext</strong> (<em>str</em>) – The extension (ignored)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of string column names</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.reader.AsciiReader.read">
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cols</span></em>, <em class="sig-param"><span class="n">s</span><span class="o">=</span><span class="default_value">slice(None, None, None)</span></em>, <em class="sig-param"><span class="n">ext</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/reader.html#AsciiReader.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.reader.AsciiReader.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a slice of a column or list of columns from a specified extension.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cols</strong> (<em>str/list</em>) – The name(s) of column(s) to read</p></li>
+<li><p><strong>s</strong> (<em>slice/array</em>) – A slice object or selection of integers to read (default: all)</p></li>
+<li><p><strong>ext</strong> (<em>str</em>) – The extension (ignored)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The data as a dict or single numpy array as appropriate</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.reader.AsciiReader.row_count">
+<code class="sig-name descname">row_count</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">col</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ext</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/reader.html#AsciiReader.row_count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.reader.AsciiReader.row_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Count the number of rows in the file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>col</strong> (<em>str</em>) – The column to use (ignored)</p></li>
+<li><p><strong>ext</strong> (<em>str</em>) – The extension (ignored)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The number of rows</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="treecorr.reader.PandasReader">
+<em class="property">class </em><code class="sig-prename descclassname">treecorr.reader.</code><code class="sig-name descname">PandasReader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em>, <em class="sig-param"><span class="n">delimiter</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">comment_marker</span><span class="o">=</span><span class="default_value">'#'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/reader.html#PandasReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.reader.PandasReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reader interface for ASCII files using pandas.</p>
+<dl class="py method">
+<dt id="treecorr.reader.PandasReader.read">
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cols</span></em>, <em class="sig-param"><span class="n">s</span><span class="o">=</span><span class="default_value">slice(None, None, None)</span></em>, <em class="sig-param"><span class="n">ext</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/reader.html#PandasReader.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.reader.PandasReader.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a slice of a column or list of columns from a specified extension.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cols</strong> (<em>str/list</em>) – The name(s) of column(s) to read</p></li>
+<li><p><strong>s</strong> (<em>slice/array</em>) – A slice object or selection of integers to read (default: all)</p></li>
+<li><p><strong>ext</strong> (<em>str</em>) – The extension (ignored)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The data as a dict or single numpy array as appropriate</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </div>

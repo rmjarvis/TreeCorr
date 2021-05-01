@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Three-point Correlation Functions &mdash; TreeCorr 4.1.7 documentation</title>
+  <title>Three-point Correlation Functions &mdash; TreeCorr 4.2.0 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                4.1
+                4.2
               </div>
             
           
@@ -100,6 +100,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html#restrictions-on-the-line-of-sight-separation">Restrictions on the Line of Sight Separation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
@@ -107,7 +108,7 @@
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.1 to 4.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -192,7 +193,7 @@ auto-correlation functions:</p>
 features in common about how they are constructed.  The common features are documented here.</p>
 <dl class="py class">
 <dt id="treecorr.BinnedCorr3">
-<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">BinnedCorr3</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr3.html#BinnedCorr3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr3" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">BinnedCorr3</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">rng</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr3.html#BinnedCorr3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr3" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class stores the results of a 3-point correlation calculation, along with some
 ancillary data.</p>
 <p>This is a base class that is not intended to be constructed directly.  But it has a few
@@ -353,8 +354,6 @@ digits to write. (default: 4)</p></li>
 above.  (default: ‘Euclidean’)</p></li>
 <li><p><strong>bin_type</strong> (<em>str</em>) – What type of binning should be used.  Only one option currently.
 (default: ‘LogRUV’)</p></li>
-<li><p><strong>min_rpar</strong> (<em>float</em>) – Not currently supported for 3 point correlation. (default: None)</p></li>
-<li><p><strong>max_rpar</strong> (<em>float</em>) – Not currently supported for 3 point correlation. (default: None)</p></li>
 <li><p><strong>period</strong> (<em>float</em>) – For the ‘Periodic’ metric, the period to use in all directions.
 (default: None)</p></li>
 <li><p><strong>xperiod</strong> (<em>float</em>) – For the ‘Periodic’ metric, the period to use in the x direction.
@@ -363,8 +362,13 @@ above.  (default: ‘Euclidean’)</p></li>
 (default: period)</p></li>
 <li><p><strong>zperiod</strong> (<em>float</em>) – For the ‘Periodic’ metric, the period to use in the z direction.
 (default: period)</p></li>
-<li><p><strong>var_method</strong> (<em>str</em>) – Which method to use for estimating the variance.  So far, only ‘shot’
-is implemented. (default: ‘shot’)</p></li>
+<li><p><strong>var_method</strong> (<em>str</em>) – Which method to use for estimating the variance. Options are:
+‘shot’, ‘jackknife’, ‘sample’, ‘bootstrap’, ‘marked_bootstrap’.
+(default: ‘shot’)</p></li>
+<li><p><strong>num_bootstrap</strong> (<em>int</em>) – How many bootstrap samples to use for the ‘bootstrap’ and
+‘marked_bootstrap’ var_methods.  (default: 500)</p></li>
+<li><p><strong>rng</strong> (<em>RandomState</em>) – If desired, a numpy.random.RandomState instance to use for bootstrap
+random number generation. (default: None)</p></li>
 <li><p><strong>num_threads</strong> (<em>int</em>) – <p>How many OpenMP threads to use during the calculation.
 (default: use the number of cpu cores; this value can also be given in
 the constructor in the config dict.)</p>
@@ -377,6 +381,109 @@ the constructor in the config dict.)</p>
 </ul>
 </dd>
 </dl>
+<dl class="py method">
+<dt id="treecorr.BinnedCorr3.clear">
+<code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr3.html#BinnedCorr3.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr3.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear all data vectors, the results dict, and any related values.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.BinnedCorr3.estimate_cov">
+<code class="sig-name descname">estimate_cov</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">method</span></em>, <em class="sig-param"><span class="n">func</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr3.html#BinnedCorr3.estimate_cov"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr3.estimate_cov" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate the covariance matrix based on the data</p>
+<p>This function will calculate an estimate of the covariance matrix according to the
+given method.</p>
+<p>Options for <code class="docutils literal notranslate"><span class="pre">method</span></code> include:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>‘shot’ = The variance based on “shot noise” only.  This includes the Poisson
+counts of points for N statistics, shape noise for G statistics, and the observed
+scatter in the values for K statistics.  In this case, the returned covariance
+matrix will be diagonal, since there is no way to estimate the off-diagonal terms.</p></li>
+<li><p>‘jackknife’ = A jackknife estimate of the covariance matrix based on the scatter
+in the measurement when excluding one patch at a time.</p></li>
+<li><p>‘sample’ = An estimate based on the sample covariance of a set of samples,
+taken as the patches of the input catalog.</p></li>
+<li><p>‘bootstrap’ = A bootstrap covariance estimate. It selects patches at random with
+replacement and then generates the statistic using all the auto-correlations at
+their selected repetition plus all the cross terms that aren’t actually auto terms.</p></li>
+<li><p>‘marked_bootstrap’ = An estimate based on a marked-point bootstrap resampling of the
+patches.  Similar to bootstrap, but only samples the patches of the first catalog and
+uses all patches from the second catalog that correspond to each patch selection of
+the first catalog.  cf. <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/">https://ui.adsabs.harvard.edu/abs/2008ApJ…681..726L/</a></p></li>
+</ul>
+</div></blockquote>
+<p>Both ‘bootstrap’ and ‘marked_bootstrap’ use the num_bootstrap parameter, which can be set on
+construction.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For most classes, there is only a single statistic, <code class="docutils literal notranslate"><span class="pre">zeta</span></code>, so this calculates a
+covariance matrix for that vector.  <a class="reference internal" href="ggg.html#treecorr.GGGCorrelation" title="treecorr.GGGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGGCorrelation</span></code></a> has four: <code class="docutils literal notranslate"><span class="pre">gam0</span></code>, <code class="docutils literal notranslate"><span class="pre">gam1</span></code>,
+<code class="docutils literal notranslate"><span class="pre">gam2</span></code>, and <code class="docutils literal notranslate"><span class="pre">gam3</span></code>, so in this case the full data vector is <code class="docutils literal notranslate"><span class="pre">gam0</span></code> followed by
+<code class="docutils literal notranslate"><span class="pre">gam1</span></code>, then <code class="docutils literal notranslate"><span class="pre">gam2</span></code>, then <code class="docutils literal notranslate"><span class="pre">gam3</span></code>, and this calculates the covariance matrix for
+that full vector including both statistics.  The helper function <a class="reference internal" href="#treecorr.BinnedCorr3.getStat" title="treecorr.BinnedCorr3.getStat"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getStat</span></code></a> returns the
+relevant statistic in all cases.</p>
+</div>
+<p>In all cases, the relevant processing needs to already have been completed and finalized.
+And for all methods other than ‘shot’, the processing should have involved an appropriate
+number of patches – preferably more patches than the length of the vector for your
+statistic, although this is not checked.</p>
+<p>The default data vector to use for the covariance matrix is given by the method
+<a class="reference internal" href="#treecorr.BinnedCorr3.getStat" title="treecorr.BinnedCorr3.getStat"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getStat</span></code></a>.  As noted above, this is usually just self.zeta.  However, there is an option
+to compute the covariance of some other function of the correlation object by providing
+an arbitrary function, <code class="docutils literal notranslate"><span class="pre">func</span></code>, which should act on the current correlation object
+and return the data vector of interest.</p>
+<p>For instance, for an <a class="reference internal" href="ggg.html#treecorr.GGGCorrelation" title="treecorr.GGGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGGCorrelation</span></code></a>, you might want to compute the covariance of just
+gam0 and ignore the others.  In this case you could use</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">ggg</span><span class="p">:</span> <span class="n">ggg</span><span class="o">.</span><span class="n">gam0</span>
+</pre></div>
+</div>
+<p>The return value from this func should be a single numpy array. (This is not directly
+checked, but you’ll probably get some kind of exception if it doesn’t behave as expected.)</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The optional <code class="docutils literal notranslate"><span class="pre">func</span></code> parameter is not valid in conjunction with <code class="docutils literal notranslate"><span class="pre">method='shot'</span></code>.
+It only works for the methods that are based on patch combinations.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>method</strong> (<em>str</em>) – Which method to use to estimate the covariance matrix.</p></li>
+<li><p><strong>func</strong> (<em>function</em>) – A unary function that acts on the current correlation object and
+returns the desired data vector. [default: None, which is</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A numpy array with the estimated covariance matrix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.BinnedCorr3.getStat">
+<code class="sig-name descname">getStat</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr3.html#BinnedCorr3.getStat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr3.getStat" title="Permalink to this definition">¶</a></dt>
+<dd><p>The standard statistic for the current correlation object as a 1-d array.</p>
+<p>Usually, this is just self.zeta.  But if the metric is TwoD, this becomes
+self.zeta.ravel().</p>
+<p>And for <a class="reference internal" href="ggg.html#treecorr.GGGCorrelation" title="treecorr.GGGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGGCorrelation</span></code></a>, it is the concatenation of the four different correlations
+[gam0.ravel(), gam1.ravel(), gam2.ravel(), gam3.ravel()].</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.BinnedCorr3.getWeight">
+<code class="sig-name descname">getWeight</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr3.html#BinnedCorr3.getWeight"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr3.getWeight" title="Permalink to this definition">¶</a></dt>
+<dd><p>The weight array for the current correlation object as a 1-d array.</p>
+<p>This is the weight array corresponding to <a class="reference internal" href="#treecorr.BinnedCorr3.getStat" title="treecorr.BinnedCorr3.getStat"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getStat</span></code></a>. Usually just self.weight, but
+raveled for TwoD and duplicated for GGGCorrelation to match what <a class="reference internal" href="#treecorr.BinnedCorr3.getStat" title="treecorr.BinnedCorr3.getStat"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getStat</span></code></a> does in
+those cases.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.BinnedCorr3.nonzero">
+<em class="property">property </em><code class="sig-name descname">nonzero</code><a class="headerlink" href="#treecorr.BinnedCorr3.nonzero" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return if there are any values accumulated yet.  (i.e. ntri &gt; 0)</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>

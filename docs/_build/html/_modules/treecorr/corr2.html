@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>treecorr.corr2 &mdash; TreeCorr 4.1.7 documentation</title>
+  <title>treecorr.corr2 &mdash; TreeCorr 4.2.0 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                4.1
+                4.2
               </div>
             
           
@@ -93,6 +93,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../metric.html#restrictions-on-the-line-of-sight-separation">Restrictions on the Line of Sight Separation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../binning.html">Binning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../patches.html">Patches</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../cov.html">Covariance Estimates</a></li>
@@ -100,7 +101,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 4.0 to 4.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 4.1 to 4.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
 
@@ -185,7 +186,16 @@
 <span class="sd">.. module:: corr2</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">treecorr</span>
+<span class="kn">from</span> <span class="nn">.catalog</span> <span class="kn">import</span> <span class="n">Catalog</span><span class="p">,</span> <span class="n">read_catalogs</span>
+<span class="kn">from</span> <span class="nn">.binnedcorr2</span> <span class="kn">import</span> <span class="n">BinnedCorr2</span>
+<span class="kn">from</span> <span class="nn">.config</span> <span class="kn">import</span> <span class="n">setup_logger</span><span class="p">,</span> <span class="n">check_config</span><span class="p">,</span> <span class="n">print_params</span><span class="p">,</span> <span class="n">get</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">set_omp_threads</span>
+<span class="kn">from</span> <span class="nn">.nncorrelation</span> <span class="kn">import</span> <span class="n">NNCorrelation</span>
+<span class="kn">from</span> <span class="nn">.ngcorrelation</span> <span class="kn">import</span> <span class="n">NGCorrelation</span>
+<span class="kn">from</span> <span class="nn">.nkcorrelation</span> <span class="kn">import</span> <span class="n">NKCorrelation</span>
+<span class="kn">from</span> <span class="nn">.kkcorrelation</span> <span class="kn">import</span> <span class="n">KKCorrelation</span>
+<span class="kn">from</span> <span class="nn">.kgcorrelation</span> <span class="kn">import</span> <span class="n">KGCorrelation</span>
+<span class="kn">from</span> <span class="nn">.ggcorrelation</span> <span class="kn">import</span> <span class="n">GGCorrelation</span>
 
 <span class="c1"># Dict describing the valid parameters, what types they are, and a description:</span>
 <span class="c1"># Each value is a tuple with the following elements:</span>
@@ -200,9 +210,9 @@
 
     <span class="s1">&#39;file_name&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
             <span class="s1">&#39;The file(s) with the galaxy data.&#39;</span><span class="p">),</span>
-    <span class="s1">&#39;file_name2&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>  <span class="kc">None</span><span class="p">,</span>
+    <span class="s1">&#39;file_name2&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
             <span class="s1">&#39;The file(s) to use for the second field for a cross-correlation.&#39;</span><span class="p">),</span>
-    <span class="s1">&#39;rand_file_name&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>  <span class="kc">None</span><span class="p">,</span>
+    <span class="s1">&#39;rand_file_name&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
             <span class="s1">&#39;For NN correlations, a list of random files.&#39;</span><span class="p">),</span>
     <span class="s1">&#39;rand_file_name2&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
             <span class="s1">&#39;The randoms for the second field for a cross-correlation.&#39;</span><span class="p">),</span>
@@ -244,12 +254,12 @@
             <span class="s1">&#39;The output filename for the aperture mass statistics.&#39;</span><span class="p">),</span>
     <span class="s1">&#39;nm_file_name&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
             <span class="s1">&#39;The output filename for &lt;N Map&gt; and related values.&#39;</span><span class="p">),</span>
-    <span class="s1">&#39;norm_file_name&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>  <span class="kc">None</span><span class="p">,</span>
+    <span class="s1">&#39;norm_file_name&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
             <span class="s1">&#39;The output filename for &lt;N Map&gt;^2/&lt;N^2&gt;&lt;Map^2&gt; and related values.&#39;</span><span class="p">),</span>
 <span class="p">}</span>
 
 <span class="c1"># Add in the valid parameters for the relevant classes</span>
-<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">,</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">BinnedCorr2</span> <span class="p">]:</span>
+<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span> <span class="n">Catalog</span><span class="p">,</span> <span class="n">BinnedCorr2</span> <span class="p">]:</span>
     <span class="n">corr2_valid_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">_valid_params</span><span class="p">)</span>
 
 <span class="n">corr2_aliases</span> <span class="o">=</span> <span class="p">{</span>
@@ -271,33 +281,31 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Setup logger based on config verbose value</span>
     <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">logger</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">setup_logger</span><span class="p">(</span>
-                <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;verbose&#39;</span><span class="p">,</span><span class="nb">int</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
-                <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;log_file&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">))</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">setup_logger</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;verbose&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;log_file&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">))</span>
 
     <span class="c1"># Check that config doesn&#39;t have any extra parameters.</span>
     <span class="c1"># (Such values are probably typos.)</span>
     <span class="c1"># Also convert the given parameters to the correct type, etc.</span>
-    <span class="n">config</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">check_config</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">corr2_valid_params</span><span class="p">,</span> <span class="n">corr2_aliases</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">check_config</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">corr2_valid_params</span><span class="p">,</span> <span class="n">corr2_aliases</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
 
     <span class="kn">import</span> <span class="nn">pprint</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Using configuration dict:</span><span class="se">\n</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">config</span><span class="p">))</span>
 
-    <span class="k">if</span> <span class="p">(</span> <span class="s1">&#39;output_dots&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config</span>
-          <span class="ow">and</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;log_file&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
-          <span class="ow">and</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;verbose&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">2</span> <span class="p">):</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;output_dots&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config</span>
+            <span class="ow">and</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;log_file&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;verbose&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">):</span>
         <span class="n">config</span><span class="p">[</span><span class="s1">&#39;output_dots&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="c1"># Set the number of threads</span>
     <span class="n">num_threads</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;num_threads&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;From config dict, num_threads = </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">num_threads</span><span class="p">)</span>
-    <span class="n">treecorr</span><span class="o">.</span><span class="n">set_omp_threads</span><span class="p">(</span><span class="n">num_threads</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
+    <span class="n">set_omp_threads</span><span class="p">(</span><span class="n">num_threads</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
 
     <span class="c1"># Read in the input files.  Each of these is a list.</span>
-    <span class="n">cat1</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">read_catalogs</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s1">&#39;file_name&#39;</span><span class="p">,</span> <span class="s1">&#39;file_list&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
-    <span class="n">cat2</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">read_catalogs</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s1">&#39;file_name2&#39;</span><span class="p">,</span> <span class="s1">&#39;file_list2&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
-    <span class="n">rand1</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">read_catalogs</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s1">&#39;rand_file_name&#39;</span><span class="p">,</span> <span class="s1">&#39;rand_file_list&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
-    <span class="n">rand2</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">read_catalogs</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s1">&#39;rand_file_name2&#39;</span><span class="p">,</span> <span class="s1">&#39;rand_file_list2&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
+    <span class="n">cat1</span> <span class="o">=</span> <span class="n">read_catalogs</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s1">&#39;file_name&#39;</span><span class="p">,</span> <span class="s1">&#39;file_list&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
+    <span class="n">cat2</span> <span class="o">=</span> <span class="n">read_catalogs</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s1">&#39;file_name2&#39;</span><span class="p">,</span> <span class="s1">&#39;file_list2&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
+    <span class="n">rand1</span> <span class="o">=</span> <span class="n">read_catalogs</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s1">&#39;rand_file_name&#39;</span><span class="p">,</span> <span class="s1">&#39;rand_file_list&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
+    <span class="n">rand2</span> <span class="o">=</span> <span class="n">read_catalogs</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s1">&#39;rand_file_name2&#39;</span><span class="p">,</span> <span class="s1">&#39;rand_file_list2&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cat1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Either file_name or file_list is required&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cat2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">cat2</span> <span class="o">=</span> <span class="kc">None</span>
@@ -305,12 +313,12 @@
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rand2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">rand2</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">cat2</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">rand2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;rand_file_name2 is invalid without file_name2&quot;</span><span class="p">)</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done reading input catalogs&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done creating input catalogs&quot;</span><span class="p">)</span>
 
     <span class="c1"># Do GG correlation function if necessary</span>
     <span class="k">if</span> <span class="s1">&#39;gg_file_name&#39;</span> <span class="ow">in</span> <span class="n">config</span> <span class="ow">or</span> <span class="s1">&#39;m2_file_name&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Performing GG calculations...&quot;</span><span class="p">)</span>
-        <span class="n">gg</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">GGCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
+        <span class="n">gg</span> <span class="o">=</span> <span class="n">GGCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
         <span class="n">gg</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span><span class="n">cat2</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done GG calculations.&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="s1">&#39;gg_file_name&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
@@ -325,7 +333,7 @@
         <span class="k">if</span> <span class="n">cat2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;file_name2 is required for ng correlation&quot;</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Performing NG calculations...&quot;</span><span class="p">)</span>
-        <span class="n">ng</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NGCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
+        <span class="n">ng</span> <span class="o">=</span> <span class="n">NGCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
         <span class="n">ng</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span><span class="n">cat2</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done NG calculation.&quot;</span><span class="p">)</span>
 
@@ -335,7 +343,7 @@
             <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ng_statistic&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;compensated&#39;</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;rand_files is required for ng_statistic = compensated&quot;</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ng_statistic&#39;</span><span class="p">,</span><span class="s1">&#39;compensated&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;compensated&#39;</span><span class="p">:</span>
-            <span class="n">rg</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NGCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
+            <span class="n">rg</span> <span class="o">=</span> <span class="n">NGCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
             <span class="n">rg</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">rand1</span><span class="p">,</span><span class="n">cat2</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done RG calculation.&quot;</span><span class="p">)</span>
 
@@ -348,17 +356,17 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrote NMap values to </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;nm_file_name&#39;</span><span class="p">])</span>
 
         <span class="k">if</span> <span class="s1">&#39;norm_file_name&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
-            <span class="n">gg</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">GGCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
+            <span class="n">gg</span> <span class="o">=</span> <span class="n">GGCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
             <span class="n">gg</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat2</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done GG calculation for norm&quot;</span><span class="p">)</span>
-            <span class="n">dd</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NNCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
+            <span class="n">dd</span> <span class="o">=</span> <span class="n">NNCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
             <span class="n">dd</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done DD calculation for norm&quot;</span><span class="p">)</span>
-            <span class="n">rr</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NNCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
+            <span class="n">rr</span> <span class="o">=</span> <span class="n">NNCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
             <span class="n">rr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">rand1</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done RR calculation for norm&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;nn_statistic&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;compensated&#39;</span><span class="p">:</span>
-                <span class="n">dr</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NNCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
+                <span class="n">dr</span> <span class="o">=</span> <span class="n">NNCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
                 <span class="n">dr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span><span class="n">rand1</span><span class="p">)</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done DR calculation for norm&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -370,7 +378,7 @@
     <span class="c1"># Do NN correlation function if necessary</span>
     <span class="k">if</span> <span class="s1">&#39;nn_file_name&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Performing DD calculations...&quot;</span><span class="p">)</span>
-        <span class="n">dd</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NNCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
+        <span class="n">dd</span> <span class="o">=</span> <span class="n">NNCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
         <span class="n">dd</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span><span class="n">cat2</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done DD calculations.&quot;</span><span class="p">)</span>
 
@@ -381,29 +389,29 @@
             <span class="n">rr</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">elif</span> <span class="n">cat2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Performing RR calculations...&quot;</span><span class="p">)</span>
-            <span class="n">rr</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NNCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
+            <span class="n">rr</span> <span class="o">=</span> <span class="n">NNCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
             <span class="n">rr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">rand1</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done RR calculations.&quot;</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;nn_statistic&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;compensated&#39;</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Performing DR calculations...&quot;</span><span class="p">)</span>
-                <span class="n">dr</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NNCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
+                <span class="n">dr</span> <span class="o">=</span> <span class="n">NNCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
                 <span class="n">dr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span><span class="n">rand1</span><span class="p">)</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done DR calculations.&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">rand2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;rand_file_name2 is required when file_name2 is given&quot;</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Performing RR calculations...&quot;</span><span class="p">)</span>
-            <span class="n">rr</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NNCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
+            <span class="n">rr</span> <span class="o">=</span> <span class="n">NNCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
             <span class="n">rr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">rand1</span><span class="p">,</span><span class="n">rand2</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done RR calculations.&quot;</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;nn_statistic&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;compensated&#39;</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Performing DR calculations...&quot;</span><span class="p">)</span>
-                <span class="n">dr</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NNCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
+                <span class="n">dr</span> <span class="o">=</span> <span class="n">NNCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
                 <span class="n">dr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span><span class="n">rand2</span><span class="p">)</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done DR calculations.&quot;</span><span class="p">)</span>
-                <span class="n">rd</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NNCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
+                <span class="n">rd</span> <span class="o">=</span> <span class="n">NNCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
                 <span class="n">rd</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">rand1</span><span class="p">,</span><span class="n">cat2</span><span class="p">)</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done RD calculations.&quot;</span><span class="p">)</span>
         <span class="n">dd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;nn_file_name&#39;</span><span class="p">],</span><span class="n">rr</span><span class="p">,</span><span class="n">dr</span><span class="p">,</span><span class="n">rd</span><span class="p">)</span>
@@ -412,7 +420,7 @@
     <span class="c1"># Do KK correlation function if necessary</span>
     <span class="k">if</span> <span class="s1">&#39;kk_file_name&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Performing KK calculations...&quot;</span><span class="p">)</span>
-        <span class="n">kk</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">KKCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
+        <span class="n">kk</span> <span class="o">=</span> <span class="n">KKCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
         <span class="n">kk</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span><span class="n">cat2</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done KK calculations.&quot;</span><span class="p">)</span>
         <span class="n">kk</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;kk_file_name&#39;</span><span class="p">])</span>
@@ -423,7 +431,7 @@
         <span class="k">if</span> <span class="n">cat2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;file_name2 is required for nk correlation&quot;</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Performing NK calculations...&quot;</span><span class="p">)</span>
-        <span class="n">nk</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NKCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
+        <span class="n">nk</span> <span class="o">=</span> <span class="n">NKCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
         <span class="n">nk</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span><span class="n">cat2</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done NK calculation.&quot;</span><span class="p">)</span>
 
@@ -432,7 +440,7 @@
             <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;nk_statistic&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;compensated&#39;</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;rand_files is required for nk_statistic = compensated&quot;</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;nk_statistic&#39;</span><span class="p">,</span><span class="s1">&#39;compensated&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;compensated&#39;</span><span class="p">:</span>
-            <span class="n">rk</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NKCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
+            <span class="n">rk</span> <span class="o">=</span> <span class="n">NKCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
             <span class="n">rk</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">rand1</span><span class="p">,</span><span class="n">cat2</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done RK calculation.&quot;</span><span class="p">)</span>
 
@@ -444,7 +452,7 @@
         <span class="k">if</span> <span class="n">cat2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;file_name2 is required for kg correlation&quot;</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Performing KG calculations...&quot;</span><span class="p">)</span>
-        <span class="n">kg</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">KGCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
+        <span class="n">kg</span> <span class="o">=</span> <span class="n">KGCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="n">logger</span><span class="p">)</span>
         <span class="n">kg</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span><span class="n">cat2</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done KG calculation.&quot;</span><span class="p">)</span>
         <span class="n">kg</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;kg_file_name&#39;</span><span class="p">])</span>
@@ -454,7 +462,7 @@
 <div class="viewcode-block" id="print_corr2_params"><a class="viewcode-back" href="../../scripts.html#treecorr.print_corr2_params">[docs]</a><span class="k">def</span> <span class="nf">print_corr2_params</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;Print information about the valid parameters that may be given to the `corr2` function.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">print_params</span><span class="p">(</span><span class="n">corr2_valid_params</span><span class="p">)</span></div>
+    <span class="n">print_params</span><span class="p">(</span><span class="n">corr2_valid_params</span><span class="p">)</span></div>
 </pre></div>
 
            </div>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Fields &mdash; TreeCorr 4.1.7 documentation</title>
+  <title>Fields &mdash; TreeCorr 4.2.0 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                4.1
+                4.2
               </div>
             
           
@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html#restrictions-on-the-line-of-sight-separation">Restrictions on the Line of Sight Separation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
@@ -102,7 +103,7 @@
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.1 to 4.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -428,7 +429,7 @@ spherical geometries.  In the latter case, the centers represent
 
 <dl class="py method">
 <dt id="treecorr.Field.kmeans_initialize_centers">
-<code class="sig-name descname">kmeans_initialize_centers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">npatch</span></em>, <em class="sig-param"><span class="n">init</span><span class="o">=</span><span class="default_value">'tree'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#Field.kmeans_initialize_centers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Field.kmeans_initialize_centers" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">kmeans_initialize_centers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">npatch</span></em>, <em class="sig-param"><span class="n">init</span><span class="o">=</span><span class="default_value">'tree'</span></em>, <em class="sig-param"><span class="n">rng</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#Field.kmeans_initialize_centers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Field.kmeans_initialize_centers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use the field’s tree structure to assign good initial centers for a K-Means run.</p>
 <p>The classic K-Means algorithm involves starting with random points as the initial
 centers of the patches.  This has a tendency to result in rather poor results in
@@ -454,6 +455,8 @@ centers.  This is almost always the best choice.</p></li>
 cf. <a class="reference external" href="https://en.wikipedia.org/wiki/K-means%2B%2B">https://en.wikipedia.org/wiki/K-means%2B%2B</a></p></li>
 </ul>
 </p></li>
+<li><p><strong>rng</strong> (<em>RandomState</em>) – If desired, a numpy.random.RandomState instance to use for random
+number generation. (default: None)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -520,7 +523,7 @@ deviation of the inertia rather than the total inertia (aka WCSS).
 
 <dl class="py method">
 <dt id="treecorr.Field.run_kmeans">
-<code class="sig-name descname">run_kmeans</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">npatch</span></em>, <em class="sig-param"><span class="n">max_iter</span><span class="o">=</span><span class="default_value">200</span></em>, <em class="sig-param"><span class="n">tol</span><span class="o">=</span><span class="default_value">1e-05</span></em>, <em class="sig-param"><span class="n">init</span><span class="o">=</span><span class="default_value">'tree'</span></em>, <em class="sig-param"><span class="n">alt</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#Field.run_kmeans"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Field.run_kmeans" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">run_kmeans</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">npatch</span></em>, <em class="sig-param"><span class="n">max_iter</span><span class="o">=</span><span class="default_value">200</span></em>, <em class="sig-param"><span class="n">tol</span><span class="o">=</span><span class="default_value">1e-05</span></em>, <em class="sig-param"><span class="n">init</span><span class="o">=</span><span class="default_value">'tree'</span></em>, <em class="sig-param"><span class="n">alt</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">rng</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#Field.run_kmeans"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.Field.run_kmeans" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use k-means algorithm to set patch labels for a field.</p>
 <p>The k-means algorithm (cf. <a class="reference external" href="https://en.wikipedia.org/wiki/K-means_clustering">https://en.wikipedia.org/wiki/K-means_clustering</a>) identifies
 a center position for each patch.  Each point is then assigned to the patch whose center
@@ -599,6 +602,8 @@ cf. <a class="reference external" href="https://en.wikipedia.org/wiki/K-means%2B
 <li><p><strong>alt</strong> (<em>bool</em>) – Use the alternate assignment algorithm to minimize the standard
 deviation of the inertia rather than the total inertia (aka WCSS).
 (default: False)</p></li>
+<li><p><strong>rng</strong> (<em>RandomState</em>) – If desired, a numpy.random.RandomState instance to use for random
+number generation. (default: None)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -622,7 +627,7 @@ spherical geometries.  In the latter case, the centers represent
 
 <dl class="py class">
 <dt id="treecorr.NField">
-<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">NField</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat</span></em>, <em class="sig-param"><span class="n">min_size</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">max_size</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">split_method</span><span class="o">=</span><span class="default_value">'mean'</span></em>, <em class="sig-param"><span class="n">brute</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">min_top</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">max_top</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#NField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NField" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">NField</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat</span></em>, <em class="sig-param"><span class="n">min_size</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">max_size</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">split_method</span><span class="o">=</span><span class="default_value">'mean'</span></em>, <em class="sig-param"><span class="n">brute</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">min_top</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">max_top</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">rng</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#NField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NField" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class stores the positions and number of objects in a tree structure from which it is
 efficient to compute correlation functions.</p>
 <p>An NField is typically created from a Catalog object using</p>
@@ -644,6 +649,8 @@ efficient to compute correlation functions.</p>
 <li><p><strong>max_top</strong> (<em>int</em>) – The maximum number of top layers to use when setting up the field.
 (default: 10)</p></li>
 <li><p><strong>coords</strong> (<em>str</em>) – The kind of coordinate system to use. (default: cat.coords)</p></li>
+<li><p><strong>rng</strong> (<em>RandomState</em>) – If desired, a numpy.random.RandomState instance to use for random
+number generation. (default: None)</p></li>
 <li><p><strong>logger</strong> (<em>Logger</em>) – A logger file if desired. (default: None)</p></li>
 </ul>
 </dd>
@@ -652,7 +659,7 @@ efficient to compute correlation functions.</p>
 
 <dl class="py class">
 <dt id="treecorr.GField">
-<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">GField</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat</span></em>, <em class="sig-param"><span class="n">min_size</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">max_size</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">split_method</span><span class="o">=</span><span class="default_value">'mean'</span></em>, <em class="sig-param"><span class="n">brute</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">min_top</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">max_top</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#GField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GField" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">GField</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat</span></em>, <em class="sig-param"><span class="n">min_size</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">max_size</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">split_method</span><span class="o">=</span><span class="default_value">'mean'</span></em>, <em class="sig-param"><span class="n">brute</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">min_top</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">max_top</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">rng</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#GField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GField" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class stores the values of a spinor field (gamma in the weak lensing context) in a
 tree structure from which it is efficient to compute correlation functions.</p>
 <p>A GField is typically created from a Catalog object using</p>
@@ -674,6 +681,8 @@ tree structure from which it is efficient to compute correlation functions.</p>
 <li><p><strong>max_top</strong> (<em>int</em>) – The maximum number of top layers to use when setting up the field.
 (default: 10)</p></li>
 <li><p><strong>coords</strong> (<em>str</em>) – The kind of coordinate system to use. (default: cat.coords)</p></li>
+<li><p><strong>rng</strong> (<em>RandomState</em>) – If desired, a numpy.random.RandomState instance to use for random
+number generation. (default: None)</p></li>
 <li><p><strong>logger</strong> (<em>Logger</em>) – A logger file if desired. (default: None)</p></li>
 </ul>
 </dd>
@@ -682,7 +691,7 @@ tree structure from which it is efficient to compute correlation functions.</p>
 
 <dl class="py class">
 <dt id="treecorr.KField">
-<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">KField</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat</span></em>, <em class="sig-param"><span class="n">min_size</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">max_size</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">split_method</span><span class="o">=</span><span class="default_value">'mean'</span></em>, <em class="sig-param"><span class="n">brute</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">min_top</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">max_top</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#KField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KField" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">KField</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat</span></em>, <em class="sig-param"><span class="n">min_size</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">max_size</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">split_method</span><span class="o">=</span><span class="default_value">'mean'</span></em>, <em class="sig-param"><span class="n">brute</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">min_top</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">max_top</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">rng</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#KField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.KField" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class stores the values of a scalar field (kappa in the weak lensing context) in a
 tree structure from which it is efficient to compute correlation functions.</p>
 <p>A KField is typically created from a Catalog object using</p>
@@ -704,6 +713,8 @@ tree structure from which it is efficient to compute correlation functions.</p>
 <li><p><strong>max_top</strong> (<em>int</em>) – The maximum number of top layers to use when setting up the field.
 (default: 10)</p></li>
 <li><p><strong>coords</strong> (<em>str</em>) – The kind of coordinate system to use. (default: cat.coords)</p></li>
+<li><p><strong>rng</strong> (<em>RandomState</em>) – If desired, a numpy.random.RandomState instance to use for random
+number generation. (default: None)</p></li>
 <li><p><strong>logger</strong> (<em>Logger</em>) – A logger file if desired. (default: None)</p></li>
 </ul>
 </dd>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>treecorr.kkcorrelation &mdash; TreeCorr 4.1.7 documentation</title>
+  <title>treecorr.kkcorrelation &mdash; TreeCorr 4.2.0 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                4.1
+                4.2
               </div>
             
           
@@ -93,6 +93,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../metric.html#restrictions-on-the-line-of-sight-separation">Restrictions on the Line of Sight Separation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../binning.html">Binning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../patches.html">Patches</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../cov.html">Covariance Estimates</a></li>
@@ -100,7 +101,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 4.0 to 4.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 4.1 to 4.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
 
@@ -185,11 +186,16 @@
 <span class="sd">.. module:: kkcorrelation</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">treecorr</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_lib</span><span class="p">,</span> <span class="n">_ffi</span>
+<span class="kn">from</span> <span class="nn">.catalog</span> <span class="kn">import</span> <span class="n">calculateVarK</span>
+<span class="kn">from</span> <span class="nn">.binnedcorr2</span> <span class="kn">import</span> <span class="n">BinnedCorr2</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">gen_read</span><span class="p">,</span> <span class="n">gen_write</span>
 
-<div class="viewcode-block" id="KKCorrelation"><a class="viewcode-back" href="../../kk.html#treecorr.KKCorrelation">[docs]</a><span class="k">class</span> <span class="nc">KKCorrelation</span><span class="p">(</span><span class="n">treecorr</span><span class="o">.</span><span class="n">BinnedCorr2</span><span class="p">):</span>
+
+<div class="viewcode-block" id="KKCorrelation"><a class="viewcode-back" href="../../kk.html#treecorr.KKCorrelation">[docs]</a><span class="k">class</span> <span class="nc">KKCorrelation</span><span class="p">(</span><span class="n">BinnedCorr2</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;This class handles the calculation and storage of a 2-point kappa-kappa correlation</span>
 <span class="sd">    function.</span>
 
@@ -264,10 +270,10 @@
 <div class="viewcode-block" id="KKCorrelation.__init__"><a class="viewcode-back" href="../../kk.html#treecorr.KKCorrelation.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize `KKCorrelation`.  See class doc for details.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">treecorr</span><span class="o">.</span><span class="n">BinnedCorr2</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">BinnedCorr2</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_d1</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># KData</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_d2</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># KData</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ro</span><span class="o">.</span><span class="n">_d1</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># KData</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ro</span><span class="o">.</span><span class="n">_d2</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># KData</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">xi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">varxi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">meanr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
@@ -278,22 +284,21 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">corr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_corr&#39;</span><span class="p">):</span>
-            <span class="kn">from</span> <span class="nn">treecorr.util</span> <span class="kn">import</span> <span class="n">double_ptr</span> <span class="k">as</span> <span class="n">dp</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_corr</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">BuildCorr2</span><span class="p">(</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_corr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_corr</span> <span class="o">=</span> <span class="n">_lib</span><span class="o">.</span><span class="n">BuildCorr2</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_d1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bintype</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_min_sep</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_sep</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_nbins</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_bin_size</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">min_rpar</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_rpar</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xperiod</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yperiod</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zperiod</span><span class="p">,</span>
                     <span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xi</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="n">dp</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span>
-                    <span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanr</span><span class="p">),</span><span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span><span class="p">),</span><span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">),</span><span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npairs</span><span class="p">));</span>
+                    <span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanr</span><span class="p">),</span><span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span><span class="p">),</span><span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">),</span><span class="n">dp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npairs</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_corr</span>
 
     <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Using memory allocated from the C layer means we have to explicitly deallocate it</span>
         <span class="c1"># rather than being able to rely on the Python memory manager.</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;corr&#39;</span><span class="p">):</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">_ffi</span><span class="o">.</span><span class="n">_lock</span><span class="o">.</span><span class="n">locked</span><span class="p">():</span> <span class="c1"># pragma: no branch</span>
-                <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">DestroyCorr2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bintype</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_corr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">_ffi</span><span class="o">.</span><span class="n">_lock</span><span class="o">.</span><span class="n">locked</span><span class="p">():</span> <span class="c1"># pragma: no branch</span>
+                <span class="n">_lib</span><span class="o">.</span><span class="n">DestroyCorr2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bintype</span><span class="p">)</span>
 
 <div class="viewcode-block" id="KKCorrelation.__eq__"><a class="viewcode-back" href="../../kk.html#treecorr.KKCorrelation.__eq__">[docs]</a>    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return whether two `KKCorrelation` instances are equal&quot;&quot;&quot;</span>
@@ -320,29 +325,21 @@
 
 <div class="viewcode-block" id="KKCorrelation.copy"><a class="viewcode-back" href="../../kk.html#treecorr.KKCorrelation.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Make a copy&quot;&quot;&quot;</span>
-        <span class="kn">import</span> <span class="nn">copy</span>
-        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
-
-    <span class="k">def</span> <span class="nf">_copy_for_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Make a copy of just the things we need to keep in results.</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="n">KKCorrelation</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">KKCorrelation</span><span class="p">)</span>
-        <span class="n">ret</span><span class="o">.</span><span class="n">_nbins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nbins</span>
-        <span class="n">ret</span><span class="o">.</span><span class="n">xi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xi</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="n">ret</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="n">ret</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span>  <span class="c1"># not deep copy, so cheap, but makes repr work</span>
-        <span class="k">return</span> <span class="n">ret</span>
-
-    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="n">d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;_corr&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span>
-        <span class="n">d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;logger&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># Oh well.  This is just lost in the copy.  Can&#39;t be pickled.</span>
-        <span class="k">return</span> <span class="n">d</span>
-
-    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span> <span class="o">=</span> <span class="n">d</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">setup_logger</span><span class="p">(</span>
-                <span class="n">treecorr</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;verbose&#39;</span><span class="p">,</span><span class="nb">int</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;log_file&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                <span class="c1"># Only items that might change need to by deep copied.</span>
+                <span class="n">ret</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># For everything else, shallow copy is fine.</span>
+                <span class="c1"># In particular don&#39;t deep copy config or logger</span>
+                <span class="c1"># Most of the rest are scalars, which copy fine this way.</span>
+                <span class="c1"># And the read-only things are all in _ro.</span>
+                <span class="c1"># The results dict is trickier.  We rely on it being copied in places, but we</span>
+                <span class="c1"># never add more to it after the copy, so shallow copy is fine.</span>
+                <span class="n">ret</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_corr</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># We&#39;ll want to make a new one of these if we need it.</span>
+        <span class="k">return</span> <span class="n">ret</span></div>
 
 <div class="viewcode-block" id="KKCorrelation.__repr__"><a class="viewcode-back" href="../../kk.html#treecorr.KKCorrelation.__repr__">[docs]</a>    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;KKCorrelation(config=</span><span class="si">%r</span><span class="s1">)&#39;</span><span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span></div>
@@ -370,18 +367,15 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Starting process KK auto-correlations for cat </span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span> <span class="n">cat</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_metric</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">cat</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_num_threads</span><span class="p">(</span><span class="n">num_threads</span><span class="p">)</span>
-
         <span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_minmax_size</span><span class="p">()</span>
 
         <span class="n">field</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">getKField</span><span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_method</span><span class="p">,</span>
                               <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">brute</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Starting </span><span class="si">%d</span><span class="s1"> jobs.&#39;</span><span class="p">,</span><span class="n">field</span><span class="o">.</span><span class="n">nTopLevelNodes</span><span class="p">)</span>
-        <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">ProcessAuto2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dots</span><span class="p">,</span>
-                                   <span class="n">field</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bintype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metric</span><span class="p">)</span></div>
-
+        <span class="n">_lib</span><span class="o">.</span><span class="n">ProcessAuto2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dots</span><span class="p">,</span>
+                          <span class="n">field</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bintype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metric</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="KKCorrelation.process_cross"><a class="viewcode-back" href="../../kk.html#treecorr.KKCorrelation.process_cross">[docs]</a>    <span class="k">def</span> <span class="nf">process_cross</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Process a single pair of catalogs, accumulating the cross-correlation.</span>
@@ -408,9 +402,7 @@
                              <span class="n">cat1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">cat2</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_metric</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">cat1</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">cat2</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_num_threads</span><span class="p">(</span><span class="n">num_threads</span><span class="p">)</span>
-
         <span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_minmax_size</span><span class="p">()</span>
 
         <span class="n">f1</span> <span class="o">=</span> <span class="n">cat1</span><span class="o">.</span><span class="n">getKField</span><span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_method</span><span class="p">,</span>
@@ -421,9 +413,8 @@
                             <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Starting </span><span class="si">%d</span><span class="s1"> jobs.&#39;</span><span class="p">,</span><span class="n">f1</span><span class="o">.</span><span class="n">nTopLevelNodes</span><span class="p">)</span>
-        <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">ProcessCross2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="p">,</span> <span class="n">f1</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">f2</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dots</span><span class="p">,</span>
-                                    <span class="n">f1</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="n">f2</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bintype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metric</span><span class="p">)</span></div>
-
+        <span class="n">_lib</span><span class="o">.</span><span class="n">ProcessCross2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="p">,</span> <span class="n">f1</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">f2</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dots</span><span class="p">,</span>
+                           <span class="n">f1</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="n">f2</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bintype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metric</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="KKCorrelation.process_pairwise"><a class="viewcode-back" href="../../kk.html#treecorr.KKCorrelation.process_pairwise">[docs]</a>    <span class="k">def</span> <span class="nf">process_pairwise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Process a single pair of catalogs, accumulating the cross-correlation, only using</span>
@@ -462,27 +453,15 @@
                              <span class="n">cat1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">cat2</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_metric</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">cat1</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">cat2</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_num_threads</span><span class="p">(</span><span class="n">num_threads</span><span class="p">)</span>
 
         <span class="n">f1</span> <span class="o">=</span> <span class="n">cat1</span><span class="o">.</span><span class="n">getKSimpleField</span><span class="p">()</span>
         <span class="n">f2</span> <span class="o">=</span> <span class="n">cat2</span><span class="o">.</span><span class="n">getKSimpleField</span><span class="p">()</span>
 
-        <span class="n">treecorr</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">ProcessPair</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="p">,</span> <span class="n">f1</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">f2</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dots</span><span class="p">,</span>
-                                  <span class="n">f1</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="n">f2</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bintype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metric</span><span class="p">)</span></div>
+        <span class="n">_lib</span><span class="o">.</span><span class="n">ProcessPair</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="p">,</span> <span class="n">f1</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">f2</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dots</span><span class="p">,</span>
+                         <span class="n">f1</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="n">f2</span><span class="o">.</span><span class="n">_d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bintype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metric</span><span class="p">)</span></div>
 
-
-<div class="viewcode-block" id="KKCorrelation.finalize"><a class="viewcode-back" href="../../kk.html#treecorr.KKCorrelation.finalize">[docs]</a>    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vark1</span><span class="p">,</span> <span class="n">vark2</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Finalize the calculation of the correlation function.</span>
-
-<span class="sd">        The `process_auto` and `process_cross` commands accumulate values in each bin,</span>
-<span class="sd">        so they can be called multiple times if appropriate.  Afterwards, this command</span>
-<span class="sd">        finishes the calculation by dividing each column by the total weight.</span>
-
-<span class="sd">        Parameters:</span>
-<span class="sd">            vark1 (float):  The kappa variance for the first field.</span>
-<span class="sd">            vark2 (float):  The kappa variance for the second field.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">mask1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">!=</span> <span class="mi">0</span>
         <span class="n">mask2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">==</span> <span class="mi">0</span>
 
@@ -497,29 +476,38 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">meanr</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">logr</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span>
 
+<div class="viewcode-block" id="KKCorrelation.finalize"><a class="viewcode-back" href="../../kk.html#treecorr.KKCorrelation.finalize">[docs]</a>    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vark1</span><span class="p">,</span> <span class="n">vark2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Finalize the calculation of the correlation function.</span>
+
+<span class="sd">        The `process_auto` and `process_cross` commands accumulate values in each bin,</span>
+<span class="sd">        so they can be called multiple times if appropriate.  Afterwards, this command</span>
+<span class="sd">        finishes the calculation by dividing each column by the total weight.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            vark1 (float):  The kappa variance for the first field.</span>
+<span class="sd">            vark2 (float):  The kappa variance for the second field.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_finalize</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_var_num</span> <span class="o">=</span> <span class="n">vark1</span> <span class="o">*</span> <span class="n">vark2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cov</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimate_cov</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var_method</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">varxi</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cov</span><span class="o">.</span><span class="n">diagonal</span><span class="p">()</span></div>
 
-
-<div class="viewcode-block" id="KKCorrelation.clear"><a class="viewcode-back" href="../../kk.html#treecorr.KKCorrelation.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Clear the data vectors</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">xi</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xi</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">meanr</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">npairs</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="KKCorrelation.__iadd__"><a class="viewcode-back" href="../../kk.html#treecorr.KKCorrelation.__iadd__">[docs]</a>    <span class="k">def</span> <span class="fm">__iadd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Add a second `KKCorrelation`&#39;s data to this one.</span>
 
 <span class="sd">        .. note::</span>
 
-<span class="sd">            For this to make sense, both `KKCorrelation` objects should have been using</span>
-<span class="sd">            `process_auto` and/or `process_cross`, and they should not have had `finalize` called</span>
-<span class="sd">            yet.  Then, after adding them together, you should call `finalize` on the sum.</span>
+<span class="sd">            For this to make sense, both `KKCorrelation` objects should not have had `finalize`</span>
+<span class="sd">            called yet.  Then, after adding them together, you should call `finalize` on the sum.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">KKCorrelation</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Can only add another KKCorrelation object&quot;</span><span class="p">)</span>
@@ -536,12 +524,24 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">npairs</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">npairs</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
+    <span class="k">def</span> <span class="nf">_sum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">others</span><span class="p">):</span>
+        <span class="c1"># Equivalent to the operation of:</span>
+        <span class="c1">#     self._clear()</span>
+        <span class="c1">#     for other in others:</span>
+        <span class="c1">#         self += other</span>
+        <span class="c1"># but no sanity checks and use numpy.sum for faster calculation.</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">xi</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">others</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">xi</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">meanr</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">others</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">meanr</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">meanlogr</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">others</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">weight</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">others</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">npairs</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">others</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">npairs</span><span class="p">)</span>
 
-<div class="viewcode-block" id="KKCorrelation.process"><a class="viewcode-back" href="../../kk.html#treecorr.KKCorrelation.process">[docs]</a>    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="KKCorrelation.process"><a class="viewcode-back" href="../../kk.html#treecorr.KKCorrelation.process">[docs]</a>    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">initialize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">finalize</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Compute the correlation function.</span>
 
-<span class="sd">        If only 1 argument is given, then compute an auto-correlation function.</span>
-<span class="sd">        If 2 arguments are given, then compute a cross-correlation function.</span>
+<span class="sd">        - If only 1 argument is given, then compute an auto-correlation function.</span>
+<span class="sd">        - If 2 arguments are given, then compute a cross-correlation function.</span>
 
 <span class="sd">        Both arguments may be lists, in which case all items in the list are used</span>
 <span class="sd">        for that element of the correlation.</span>
@@ -561,31 +561,36 @@
 <span class="sd">                                computation. This only works if using patches. (default: None)</span>
 <span class="sd">            low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.</span>
 <span class="sd">                                This only works if using patches. (default: False)</span>
+<span class="sd">            initialize (bool):  Whether to begin the calculation with a call to</span>
+<span class="sd">                                `BinnedCorr2.clear`.  (default: True)</span>
+<span class="sd">            finalize (bool):    Whether to complete the calculation with a call to `finalize`.</span>
+<span class="sd">                                (default: True)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">math</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">initialize</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span> <span class="o">=</span> <span class="n">cat1</span><span class="o">.</span><span class="n">_npatch</span>
             <span class="n">cat1</span> <span class="o">=</span> <span class="n">cat1</span><span class="o">.</span><span class="n">get_patches</span><span class="p">(</span><span class="n">low_mem</span><span class="o">=</span><span class="n">low_mem</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">cat2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span>
         <span class="k">if</span> <span class="n">cat2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cat2</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">npatch2</span> <span class="o">=</span> <span class="n">cat2</span><span class="o">.</span><span class="n">_npatch</span>
             <span class="n">cat2</span> <span class="o">=</span> <span class="n">cat2</span><span class="o">.</span><span class="n">get_patches</span><span class="p">(</span><span class="n">low_mem</span><span class="o">=</span><span class="n">low_mem</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">cat2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">vark1</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">calculateVarK</span><span class="p">(</span><span class="n">cat1</span><span class="p">)</span>
-            <span class="n">vark2</span> <span class="o">=</span> <span class="n">vark1</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;vark = </span><span class="si">%f</span><span class="s2">: sig_k = </span><span class="si">%f</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">vark1</span><span class="p">,</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">vark1</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_process_all_auto</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">low_mem</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">vark1</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">calculateVarK</span><span class="p">(</span><span class="n">cat1</span><span class="p">)</span>
-            <span class="n">vark2</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">calculateVarK</span><span class="p">(</span><span class="n">cat2</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;vark1 = </span><span class="si">%f</span><span class="s2">: sig_k = </span><span class="si">%f</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">vark1</span><span class="p">,</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">vark1</span><span class="p">))</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;vark2 = </span><span class="si">%f</span><span class="s2">: sig_k = </span><span class="si">%f</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">vark2</span><span class="p">,</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">vark2</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_process_all_cross</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">low_mem</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">finalize</span><span class="p">(</span><span class="n">vark1</span><span class="p">,</span><span class="n">vark2</span><span class="p">)</span></div>
 
+        <span class="k">if</span> <span class="n">finalize</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cat2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">vark1</span> <span class="o">=</span> <span class="n">calculateVarK</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="n">low_mem</span><span class="p">)</span>
+                <span class="n">vark2</span> <span class="o">=</span> <span class="n">vark1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;vark = </span><span class="si">%f</span><span class="s2">: sig_k = </span><span class="si">%f</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">vark1</span><span class="p">,</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">vark1</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">vark1</span> <span class="o">=</span> <span class="n">calculateVarK</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="n">low_mem</span><span class="p">)</span>
+                <span class="n">vark2</span> <span class="o">=</span> <span class="n">calculateVarK</span><span class="p">(</span><span class="n">cat2</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="n">low_mem</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;vark1 = </span><span class="si">%f</span><span class="s2">: sig_k = </span><span class="si">%f</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">vark1</span><span class="p">,</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">vark1</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;vark2 = </span><span class="si">%f</span><span class="s2">: sig_k = </span><span class="si">%f</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">vark2</span><span class="p">,</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">vark2</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finalize</span><span class="p">(</span><span class="n">vark1</span><span class="p">,</span><span class="n">vark2</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="KKCorrelation.write"><a class="viewcode-back" href="../../kk.html#treecorr.KKCorrelation.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Write the correlation function to the file, file_name.</span>
@@ -624,7 +629,7 @@
         <span class="n">params</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;coords&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="s1">&#39;metric&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric</span><span class="p">,</span>
                    <span class="s1">&#39;sep_units&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">sep_units</span><span class="p">,</span> <span class="s1">&#39;bin_type&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="p">}</span>
 
-        <span class="n">treecorr</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">gen_write</span><span class="p">(</span>
+        <span class="n">gen_write</span><span class="p">(</span>
             <span class="n">file_name</span><span class="p">,</span>
             <span class="p">[</span><span class="s1">&#39;r_nom&#39;</span><span class="p">,</span><span class="s1">&#39;meanr&#39;</span><span class="p">,</span><span class="s1">&#39;meanlogr&#39;</span><span class="p">,</span><span class="s1">&#39;xi&#39;</span><span class="p">,</span><span class="s1">&#39;sigma_xi&#39;</span><span class="p">,</span><span class="s1">&#39;weight&#39;</span><span class="p">,</span><span class="s1">&#39;npairs&#39;</span><span class="p">],</span>
             <span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span><span class="p">,</span>
@@ -651,24 +656,24 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Reading KK correlations from </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">file_name</span><span class="p">)</span>
 
-        <span class="n">data</span><span class="p">,</span> <span class="n">params</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">gen_read</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="n">file_type</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">,</span> <span class="n">params</span> <span class="o">=</span> <span class="n">gen_read</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="n">file_type</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">)</span>
         <span class="k">if</span> <span class="s1">&#39;R_nom&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">rnom</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;R_nom&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ro</span><span class="o">.</span><span class="n">rnom</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;R_nom&#39;</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">meanr</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;meanR&#39;</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;meanlogR&#39;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">rnom</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;r_nom&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ro</span><span class="o">.</span><span class="n">rnom</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;r_nom&#39;</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">meanr</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;meanr&#39;</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;meanlogr&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ro</span><span class="o">.</span><span class="n">logr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">xi</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;xi&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">varxi</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sigma_xi&#39;</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">npairs</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;npairs&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">coords</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;coords&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">metric</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;metric&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sep_units</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;sep_units&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;bin_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ro</span><span class="o">.</span><span class="n">sep_units</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;sep_units&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ro</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;bin_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></div></div>
 </pre></div>
 
            </div>

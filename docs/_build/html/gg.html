@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>GGCorrelation: Shear-shear correlations &mdash; TreeCorr 4.1.7 documentation</title>
+  <title>GGCorrelation: Shear-shear correlations &mdash; TreeCorr 4.2.0 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                4.1
+                4.2
               </div>
             
           
@@ -103,6 +103,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html#restrictions-on-the-line-of-sight-separation">Restrictions on the Line of Sight Separation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
@@ -110,7 +111,7 @@
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.1 to 4.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -277,8 +278,7 @@ arguments, which may be passed either directly or in the config dict.</p>
 <dd><p>Add a second <a class="reference internal" href="#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a>’s data to this one.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>For this to make sense, both <a class="reference internal" href="#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a> objects should have been using
-<a class="reference internal" href="#treecorr.GGCorrelation.process_auto" title="treecorr.GGCorrelation.process_auto"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_auto</span></code></a> and/or <a class="reference internal" href="#treecorr.GGCorrelation.process_cross" title="treecorr.GGCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a>, and they should not have had <a class="reference internal" href="#treecorr.GGCorrelation.finalize" title="treecorr.GGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a>
+<p>For this to make sense, both <a class="reference internal" href="#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a> objects should not have had <a class="reference internal" href="#treecorr.GGCorrelation.finalize" title="treecorr.GGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a>
 called yet.  Then, after adding them together, you should call <a class="reference internal" href="#treecorr.GGCorrelation.finalize" title="treecorr.GGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> on the sum.</p>
 </div>
 </dd></dl>
@@ -407,12 +407,6 @@ constructor in the config dict.)</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="treecorr.GGCorrelation.clear">
-<code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.clear" title="Permalink to this definition">¶</a></dt>
-<dd><p>Clear the data vectors</p>
-</dd></dl>
-
-<dl class="py method">
 <dt id="treecorr.GGCorrelation.copy">
 <code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make a copy</p>
@@ -436,11 +430,28 @@ finishes the calculation by dividing each column by the total weight.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt id="treecorr.GGCorrelation.getStat">
+<code class="sig-name descname">getStat</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.getStat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.getStat" title="Permalink to this definition">¶</a></dt>
+<dd><p>The standard statistic for the current correlation object as a 1-d array.</p>
+<p>In this case, this is the concatenation of self.xip and self.xim (raveled if necessary).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.GGCorrelation.getWeight">
+<code class="sig-name descname">getWeight</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.getWeight"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.getWeight" title="Permalink to this definition">¶</a></dt>
+<dd><p>The weight array for the current correlation object as a 1-d array.</p>
+<p>This is the weight array corresponding to <a class="reference internal" href="#treecorr.GGCorrelation.getStat" title="treecorr.GGCorrelation.getStat"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getStat</span></code></a>. In this case, the weight is
+duplicated to account for both xip and xim returned as part of getStat().</p>
+</dd></dl>
+
+<dl class="py method">
 <dt id="treecorr.GGCorrelation.process">
-<code class="sig-name descname">process</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat1</span></em>, <em class="sig-param"><span class="n">cat2</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_threads</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">comm</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">low_mem</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.process" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">process</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat1</span></em>, <em class="sig-param"><span class="n">cat2</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_threads</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">comm</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">low_mem</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">initialize</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">finalize</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/ggcorrelation.html#GGCorrelation.process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.GGCorrelation.process" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the correlation function.</p>
-<p>If only 1 argument is given, then compute an auto-correlation function.
-If 2 arguments are given, then compute a cross-correlation function.</p>
+<ul class="simple">
+<li><p>If only 1 argument is given, then compute an auto-correlation function.</p></li>
+<li><p>If 2 arguments are given, then compute a cross-correlation function.</p></li>
+</ul>
 <p>Both arguments may be lists, in which case all items in the list are used
 for that element of the correlation.</p>
 <dl class="field-list simple">
@@ -460,6 +471,10 @@ processes.  If used, the rank=0 process will have the final
 computation. This only works if using patches. (default: None)</p></li>
 <li><p><strong>low_mem</strong> (<em>bool</em>) – Whether to sacrifice a little speed to try to reduce memory usage.
 This only works if using patches. (default: False)</p></li>
+<li><p><strong>initialize</strong> (<em>bool</em>) – Whether to begin the calculation with a call to
+<a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2.clear" title="treecorr.BinnedCorr2.clear"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">BinnedCorr2.clear</span></code></a>.  (default: True)</p></li>
+<li><p><strong>finalize</strong> (<em>bool</em>) – Whether to complete the calculation with a call to <a class="reference internal" href="#treecorr.GGCorrelation.finalize" title="treecorr.GGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a>.
+(default: True)</p></li>
 </ul>
 </dd>
 </dl>

@@ -298,11 +298,11 @@ be a problem, but the source catalog is too large to hold in memory::
     >>> ng.process(lens_cat, source_cat, low_mem=True)
 
 In both cases, the result should be equivalent to what you would get if you could
-hold the catalogs fully in memory.  This usage will generally take somewhat longer,
-but have much lower peak memory.
-(Probably something like a factor of 2 for typical scenarios, but this of course
+hold the catalogs fully in memory, but the peak memory will be much lower.
+The downside is that this usage will generally take somewhat longer --
+probably something like a factor of 2 for typical scenarios, but this of course
 depends heavily on the nature of your calculation, how fast your disk I/O is
-compared to your CPUs, and how many cores you are using.)
+compared to your CPUs, and how many cores you are using.
 
 .. note::
 
@@ -311,6 +311,23 @@ compared to your CPUs, and how many cores you are using.)
     rows in the full catalog and load the ones you need.  If you give it a
     directory, then it will write these data to disk, which will make subsequent
     reads of that patch much faster.
+
+.. warning::
+
+    One caveat with respect to the ``save_patch_dir`` parameter is that if there
+    are already files present in the directory with the right names, then it
+    will go ahead and use them, rather than make new patch files.  This is usually
+    an efficiency gain, since repeated runs with the same data will already have
+    the right patch files present.  However, if you use the same file name and
+    save directory for a different data set, or if you make new patches for the
+    same input file, then TreeCorr won't notice.
+
+    To get TreeCorr to make new patch files, you can either manually delete
+    everything in the save directory before starting, or (easier) call::
+
+        >>> cat.write_patch_files()
+
+    which will overwrite any existing files that may be there with the same names.
 
 Using MPI
 ---------

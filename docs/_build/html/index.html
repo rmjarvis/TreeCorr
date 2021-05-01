@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>TreeCorr Documentation &mdash; TreeCorr 4.1.7 documentation</title>
+  <title>TreeCorr Documentation &mdash; TreeCorr 4.2.0 documentation</title>
   
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                4.1
+                4.2
               </div>
             
           
@@ -94,6 +94,7 @@
 <li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html#restrictions-on-the-line-of-sight-separation">Restrictions on the Line of Sight Separation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
@@ -101,7 +102,7 @@
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.1 to 4.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -193,6 +194,7 @@
 <li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="catalog.html#the-catalog-class">The Catalog class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="catalog.html#other-utilities-related-to-catalogs">Other utilities related to catalogs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="catalog.html#file-readers">File Readers</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a><ul>
@@ -219,6 +221,7 @@
 <li class="toctree-l2"><a class="reference internal" href="metric.html#periodic">“Periodic”</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html#restrictions-on-the-line-of-sight-separation">Restrictions on the Line of Sight Separation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="binning.html#log">“Log”</a></li>
 <li class="toctree-l2"><a class="reference internal" href="binning.html#linear">“Linear”</a></li>
@@ -250,6 +253,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="cov.html#covariance-matrix">Covariance Matrix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cov.html#covariance-of-derived-quantities">Covariance of Derived Quantities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cov.html#random-catalogs">Random Catalogs</a></li>
 </ul>
 </li>
@@ -285,19 +289,11 @@
 <li class="toctree-l2"><a class="reference internal" href="guide.html#manually-accumulating-the-correlation-function">Manually accumulating the correlation function</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#output-format-changes">Output Format Changes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#performance-improvements">Performance Improvements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.1 to 4.2</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#api-changes">API Changes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#performance-improvements">Performance improvements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changes.html#new-features">New features</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#deprecations">Deprecations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#bug-fixes">Bug Fixes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#changes-from-version-4-1-0-to-4-1-1">Changes from version 4.1.0 to 4.1.1</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#changes-from-version-4-1-1-to-4-1-2">Changes from version 4.1.1 to 4.1.2</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#changes-from-version-4-1-2-to-4-1-3">Changes from version 4.1.2 to 4.1.3</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#changes-from-version-4-1-3-to-4-1-4">Changes from version 4.1.3 to 4.1.4</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#changes-from-version-4-1-4-to-4-1-5">Changes from version 4.1.4 to 4.1.5</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#changes-from-version-4-1-5-to-4-1-6">Changes from version 4.1.5 to 4.1.6</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#changes-from-version-4-1-6-to-4-1-7">Changes from version 4.1.6 to 4.1.7</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#bug-fixes">Bug fixes</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Patches &mdash; TreeCorr 4.1.7 documentation</title>
+  <title>Patches &mdash; TreeCorr 4.2.0 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                4.1
+                4.2
               </div>
             
           
@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html#restrictions-on-the-line-of-sight-separation">Restrictions on the Line of Sight Separation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Patches</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#defining-patches-on-input">Defining Patches on Input</a></li>
@@ -109,7 +110,7 @@
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.1 to 4.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -443,11 +444,11 @@ be a problem, but the source catalog is too large to hold in memory:</p>
 </pre></div>
 </div>
 <p>In both cases, the result should be equivalent to what you would get if you could
-hold the catalogs fully in memory.  This usage will generally take somewhat longer,
-but have much lower peak memory.
-(Probably something like a factor of 2 for typical scenarios, but this of course
+hold the catalogs fully in memory, but the peak memory will be much lower.
+The downside is that this usage will generally take somewhat longer –
+probably something like a factor of 2 for typical scenarios, but this of course
 depends heavily on the nature of your calculation, how fast your disk I/O is
-compared to your CPUs, and how many cores you are using.)</p>
+compared to your CPUs, and how many cores you are using.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Technically, the <code class="docutils literal notranslate"><span class="pre">save_patch_dir</span></code> parameter is not required, but it is
@@ -455,6 +456,22 @@ recommended.  The first time a given patch is loaded, it will find the right
 rows in the full catalog and load the ones you need.  If you give it a
 directory, then it will write these data to disk, which will make subsequent
 reads of that patch much faster.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>One caveat with respect to the <code class="docutils literal notranslate"><span class="pre">save_patch_dir</span></code> parameter is that if there
+are already files present in the directory with the right names, then it
+will go ahead and use them, rather than make new patch files.  This is usually
+an efficiency gain, since repeated runs with the same data will already have
+the right patch files present.  However, if you use the same file name and
+save directory for a different data set, or if you make new patches for the
+same input file, then TreeCorr won’t notice.</p>
+<p>To get TreeCorr to make new patch files, you can either manually delete
+everything in the save directory before starting, or (easier) call:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span><span class="o">.</span><span class="n">write_patch_files</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>which will overwrite any existing files that may be there with the same names.</p>
 </div>
 </div>
 <div class="section" id="using-mpi">

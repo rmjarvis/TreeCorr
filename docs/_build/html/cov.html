@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Covariance Estimates &mdash; TreeCorr 4.1.7 documentation</title>
+  <title>Covariance Estimates &mdash; TreeCorr 4.2.0 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                4.1
+                4.2
               </div>
             
           
@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html#restrictions-on-the-line-of-sight-separation">Restrictions on the Line of Sight Separation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Covariance Estimates</a><ul>
@@ -107,6 +108,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#covariance-matrix">Covariance Matrix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#covariance-of-derived-quantities">Covariance of Derived Quantities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#random-catalogs">Random Catalogs</a></li>
 </ul>
 </li>
@@ -114,7 +116,7 @@
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.1 to 4.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -203,12 +205,6 @@ tends to dominate the total variance at large scales.  To estimate this
 component of the total variance from the data, one typically needs to split
 the field into patches and use the variation in the measurement among the
 patches to estimate the overall sample variance.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>So far, these patch-based covariance estimates are only available for
-2-point correlation functions.  Implementing this for 3-point functions
-is still an open issue.</p>
-</div>
 <p>See <a class="reference internal" href="patches.html#patches"><span class="std std-ref">Patches</span></a> for information on defining the patches to use for your input <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a>.</p>
 <div class="section" id="variance-methods">
 <h2>Variance Methods<a class="headerlink" href="#variance-methods" title="Permalink to this headline">¶</a></h2>
@@ -304,7 +300,7 @@ will be saved as the <code class="docutils literal notranslate"><span class="pre
 is complete.</p>
 <p>However, if the processing was done using patches, then you can also compute the
 covariance matrix for any of the above methods without redoing the processing
-using <a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2.estimate_cov" title="treecorr.BinnedCorr2.estimate_cov"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">BinnedCorr2.estimate_cov</span></code></a>.  E.g.:</p>
+using <a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2.estimate_cov" title="treecorr.BinnedCorr2.estimate_cov"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">BinnedCorr2.estimate_cov</span></code></a> or <a class="reference internal" href="correlation3.html#treecorr.BinnedCorr3.estimate_cov" title="treecorr.BinnedCorr3.estimate_cov"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">BinnedCorr3.estimate_cov</span></code></a>.  E.g.:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ng</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NGCorrelation</span><span class="p">(</span><span class="n">nbins</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">min_sep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_sep</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ng</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">lens_cat</span><span class="p">,</span> <span class="n">source_cat</span><span class="p">)</span>  <span class="c1"># At least one of these needs to have patches set.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cov_jk</span> <span class="o">=</span> <span class="n">ng</span><span class="o">.</span><span class="n">estimate_cov</span><span class="p">(</span><span class="s1">&#39;jackknife&#39;</span><span class="p">)</span>
@@ -322,6 +318,39 @@ that were processed using the same patches with <a class="reference internal" hr
 </div>
 <p>This will calculate an estimate of the covariance matrix for the full data vector
 with <code class="docutils literal notranslate"><span class="pre">ng.xi</span></code> followed by <code class="docutils literal notranslate"><span class="pre">gg.xip</span></code> and then <code class="docutils literal notranslate"><span class="pre">gg.xim</span></code>.</p>
+</div>
+<div class="section" id="covariance-of-derived-quantities">
+<h2>Covariance of Derived Quantities<a class="headerlink" href="#covariance-of-derived-quantities" title="Permalink to this headline">¶</a></h2>
+<p>Sometimes your data vector of interest might not be just the raw correlation function,
+or even a list of several correlation functions.  Rather, it might be some derived
+quantity. E.g.</p>
+<ul class="simple">
+<li><p>The ratio or difference of two correlation functions such as <code class="docutils literal notranslate"><span class="pre">nk1.xi</span> <span class="pre">/</span> <span class="pre">nk2.xi</span></code>.</p></li>
+<li><p>The aperture mass variance computed by <a class="reference internal" href="gg.html#treecorr.GGCorrelation.calculateMapSq" title="treecorr.GGCorrelation.calculateMapSq"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">GGCorrelation.calculateMapSq</span></code></a>.</p></li>
+<li><p>One of the other ancillary products such as <code class="docutils literal notranslate"><span class="pre">ng.xi_im</span></code>.</p></li>
+<li><p>A reordering of the data vector, such as putting several <code class="docutils literal notranslate"><span class="pre">gg.xip</span></code> first for multiple
+tomographic bins and then the <code class="docutils literal notranslate"><span class="pre">gg.xim</span></code> for each after that.</p></li>
+</ul>
+<p>These are just examples of what kind of thing you might want. In fact, we enable
+any kind of post-processing you want to do on either a single correlation object
+(using <a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2.estimate_cov" title="treecorr.BinnedCorr2.estimate_cov"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">BinnedCorr2.estimate_cov</span></code></a> or <a class="reference internal" href="correlation3.html#treecorr.BinnedCorr3.estimate_cov" title="treecorr.BinnedCorr3.estimate_cov"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">BinnedCorr3.estimate_cov</span></code></a>) or a list of
+correlation objects (using <a class="reference internal" href="correlation2.html#treecorr.estimate_multi_cov" title="treecorr.estimate_multi_cov"><code class="xref any py py-func docutils literal notranslate"><span class="pre">treecorr.estimate_multi_cov</span></code></a>).</p>
+<p>These functions take an optional <code class="docutils literal notranslate"><span class="pre">func</span></code> parameter, which can be any user-defined
+function that calculates the desired data vector from the given correlation(s).
+For instance, in the first case, where the desired data vector is the ratio of
+two NK correlations, you could find the corresponding covariance matrix as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">corrs</span><span class="p">:</span> <span class="n">corrs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">xi</span> <span class="o">/</span> <span class="n">corrs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">xi</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nk1</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NKCorrelation</span><span class="p">(</span><span class="n">nbins</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">min_sep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_sep</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nk2</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NKCorrelation</span><span class="p">(</span><span class="n">nbins</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">min_sep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_sep</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nk1</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1a</span><span class="p">,</span> <span class="n">cat1b</span><span class="p">)</span>  <span class="c1"># Ideally, all of these use the same patches.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nk2</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat2a</span><span class="p">,</span> <span class="n">cat2b</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">corrs</span> <span class="o">=</span> <span class="p">[</span><span class="n">nk1</span><span class="p">,</span> <span class="n">nk2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ratio</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">corrs</span><span class="p">)</span>  <span class="c1"># = nk1.xi / nk2.xi</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">estimate_multi_cov</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="s1">&#39;jackknife&#39;</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The resulting covariance matrix, <code class="docutils literal notranslate"><span class="pre">cov</span></code>, will be the jackknife estimate for the derived
+data vector, <code class="docutils literal notranslate"><span class="pre">ratio</span></code>.</p>
 </div>
 <div class="section" id="random-catalogs">
 <h2>Random Catalogs<a class="headerlink" href="#random-catalogs" title="Permalink to this headline">¶</a></h2>
@@ -366,6 +395,9 @@ objects passed to <a class="reference internal" href="correlation2.html#treecorr
 <p>As mentioned above, using <code class="docutils literal notranslate"><span class="pre">patch_centers</span></code> is optional for <code class="docutils literal notranslate"><span class="pre">rand</span></code>, but probably recommended.
 In the last line, it would be required that <code class="docutils literal notranslate"><span class="pre">ng</span></code> and <code class="docutils literal notranslate"><span class="pre">gg</span></code> were also made using catalogs
 with the same patch centers that <code class="docutils literal notranslate"><span class="pre">dd</span></code> used.</p>
+<p>The use pattern for <a class="reference internal" href="nnn.html#treecorr.NNNCorrelation" title="treecorr.NNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNNCorrelation</span></code></a> is analogous, where <a class="reference internal" href="nnn.html#treecorr.NNNCorrelation.calculateZeta" title="treecorr.NNNCorrelation.calculateZeta"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">NNNCorrelation.calculateZeta</span></code></a>
+needs to be run to get the covariance estimate, after which it may be used in a list
+past to <a class="reference internal" href="correlation2.html#treecorr.estimate_multi_cov" title="treecorr.estimate_multi_cov"><code class="xref any py py-func docutils literal notranslate"><span class="pre">treecorr.estimate_multi_cov</span></code></a>.</p>
 </div>
 </div>
 

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Overview &mdash; TreeCorr 4.1.7 documentation</title>
+  <title>Overview &mdash; TreeCorr 4.2.0 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                4.1
+                4.2
               </div>
             
           
@@ -110,6 +110,7 @@
 <li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html#restrictions-on-the-line-of-sight-separation">Restrictions on the Line of Sight Separation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
@@ -117,7 +118,7 @@
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.0 to 4.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.1 to 4.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -188,8 +189,8 @@
             
   <div class="section" id="overview">
 <h1>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h1>
-<a class="reference external image-reference" href="https://travis-ci.org/rmjarvis/TreeCorr"><img alt="https://travis-ci.org/rmjarvis/TreeCorr.svg?branch=master" src="https://travis-ci.org/rmjarvis/TreeCorr.svg?branch=master" /></a>
-<a class="reference external image-reference" href="https://codecov.io/gh/rmjarvis/TreeCorr"><img alt="https://codecov.io/gh/rmjarvis/TreeCorr/branch/master/graph/badge.svg" src="https://codecov.io/gh/rmjarvis/TreeCorr/branch/master/graph/badge.svg" /></a>
+<a class="reference external image-reference" href="https://travis-ci.org/rmjarvis/TreeCorr"><img alt="https://travis-ci.org/rmjarvis/TreeCorr.svg?branch=main" src="https://travis-ci.org/rmjarvis/TreeCorr.svg?branch=main" /></a>
+<a class="reference external image-reference" href="https://codecov.io/gh/rmjarvis/TreeCorr"><img alt="https://codecov.io/gh/rmjarvis/TreeCorr/branch/main/graph/badge.svg" src="https://codecov.io/gh/rmjarvis/TreeCorr/branch/main/graph/badge.svg" /></a>
 <p>TreeCorr is a package for efficiently computing 2-point and 3-point correlation
 functions.</p>
 <ul class="simple">
@@ -315,15 +316,17 @@ update your paths to include the directory where ffi.h is found.</p>
 installing cffi, including its libffi dependency.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Two additional modules are not required for basic TreeCorr operations, but are
+<p>Three additional modules are not required for basic TreeCorr operations, but are
 potentially useful.</p>
 <ol class="loweralpha simple">
 <li><p>fitsio is required for reading FITS catalogs or writing to FITS output files.</p></li>
 <li><p>pandas will signficantly speed up reading from ASCII catalogs.</p></li>
+<li><p>h5py is required for reading HDF5 catalogs.</p></li>
 </ol>
-<p>These are both pip installable:</p>
+<p>These are all pip installable:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">fitsio</span>
 <span class="n">pip</span> <span class="n">install</span> <span class="n">pandas</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">h5py</span>
 </pre></div>
 </div>
 <p>But they are not installed with TreeCorr automatically.</p>
@@ -465,7 +468,7 @@ in a fits file would look something like the following:</p>
 </pre></div>
 </div>
 <p>For more details, see our slightly longer <a class="reference external" href="https://rmjarvis.github.io/TreeCorr/_build/html/guide.html">Getting Started Guide</a>.</p>
-<p>Or for a more involved worked example, see our <a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/master/tests/Tutorial.ipynb">Jupyter notebook tutorial</a>.</p>
+<p>Or for a more involved worked example, see our <a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/main/tests/Tutorial.ipynb">Jupyter notebook tutorial</a>.</p>
 <p>And for the complete details about all aspects of the code, see the <a class="reference external" href="http://rmjarvis.github.io/TreeCorr">Sphinx-generated
 documentation</a>.</p>
 </div>

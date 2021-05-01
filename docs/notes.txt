@@ -28,3 +28,4 @@ If major release:
 - Add tagged CHANGELOG blob to the history page in the docs.
 - Clear out CHANGELOG.rst
 - Change github home page to point to releases/M.m
+- Also change the Pages to point to releases/M.m

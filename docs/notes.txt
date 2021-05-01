@@ -19,8 +19,8 @@ Checklist for making a new release:
 - git push --tags
 - Delete the TreeCorr.egg-info directory (in case has extra files)
 - python setup.py sdist
-- Inspect the dist/*.tar.gz tarball to make sure it is accurate.
-- twine upload dist/*.tar.gz
+- Inspect the dist/TreeCorr-M.m.r.tar.gz tarball to make sure it is accurate.
+- twine upload dist/TreeCorr-M.m.r.tar.gz
 - From another directory try out pip install TreeCorr --upgrade
 
 If major release:
@@ -28,3 +28,4 @@ If major release:
 - Add tagged CHANGELOG blob to the history page in the docs.
 - Clear out CHANGELOG.rst
 - Change github home page to point to releases/M.m
+- Also change the Pages to point to releases/M.m

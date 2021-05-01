@@ -22,12 +22,6 @@ component of the total variance from the data, one typically needs to split
 the field into patches and use the variation in the measurement among the
 patches to estimate the overall sample variance.
 
-.. note::
-
-    So far, these patch-based covariance estimates are only available for
-    2-point correlation functions.  Implementing this for 3-point functions
-    is still an open issue.
-
 See `Patches` for information on defining the patches to use for your input `Catalog`.
 
 Variance Methods
@@ -79,7 +73,6 @@ For :math:`w_i`, we use the total weight in the correlation measurement for each
 divided by the total weight in all patches.  This is roughly equal to
 :math:`1/N_\mathrm{patch}` but captures somewhat any patch-to-patch variation in area
 that might be present.
-
 
 "bootstrap"
 ^^^^^^^^^^^
@@ -149,7 +142,7 @@ is complete.
 
 However, if the processing was done using patches, then you can also compute the
 covariance matrix for any of the above methods without redoing the processing
-using `BinnedCorr2.estimate_cov`.  E.g.::
+using `BinnedCorr2.estimate_cov` or `BinnedCorr3.estimate_cov`.  E.g.::
 
     >>> ng = treecorr.NGCorrelation(nbins=10, min_sep=1, max_sep=100)
     >>> ng.process(lens_cat, source_cat)  # At least one of these needs to have patches set.
@@ -167,6 +160,41 @@ that were processed using the same patches with `treecorr.estimate_multi_cov`.  
 
 This will calculate an estimate of the covariance matrix for the full data vector
 with ``ng.xi`` followed by ``gg.xip`` and then ``gg.xim``.
+
+Covariance of Derived Quantities
+--------------------------------
+
+Sometimes your data vector of interest might not be just the raw correlation function,
+or even a list of several correlation functions.  Rather, it might be some derived
+quantity. E.g.
+
+* The ratio or difference of two correlation functions such as ``nk1.xi / nk2.xi``.
+* The aperture mass variance computed by `GGCorrelation.calculateMapSq`.
+* One of the other ancillary products such as ``ng.xi_im``.
+* A reordering of the data vector, such as putting several ``gg.xip`` first for multiple
+  tomographic bins and then the ``gg.xim`` for each after that.
+
+These are just examples of what kind of thing you might want. In fact, we enable
+any kind of post-processing you want to do on either a single correlation object
+(using `BinnedCorr2.estimate_cov` or `BinnedCorr3.estimate_cov`) or a list of
+correlation objects (using `treecorr.estimate_multi_cov`).
+
+These functions take an optional ``func`` parameter, which can be any user-defined
+function that calculates the desired data vector from the given correlation(s).
+For instance, in the first case, where the desired data vector is the ratio of
+two NK correlations, you could find the corresponding covariance matrix as follows::
+
+    >>> func = lambda corrs: corrs[0].xi / corrs[1].xi
+    >>> nk1 = treecorr.NKCorrelation(nbins=10, min_sep=1, max_sep=100)
+    >>> nk2 = treecorr.NKCorrelation(nbins=10, min_sep=1, max_sep=100)
+    >>> nk1.process(cat1a, cat1b)  # Ideally, all of these use the same patches.
+    >>> nk2.process(cat2a, cat2b)
+    >>> corrs = [nk1, nk2]
+    >>> ratio = func(corrs)  # = nk1.xi / nk2.xi
+    >>> cov = treecorr.estimate_multi_cov(corrs, 'jackknife', func)
+
+The resulting covariance matrix, ``cov``, will be the jackknife estimate for the derived
+data vector, ``ratio``.
 
 Random Catalogs
 ---------------
@@ -212,3 +240,7 @@ Here is a worked example::
 As mentioned above, using ``patch_centers`` is optional for ``rand``, but probably recommended.
 In the last line, it would be required that ``ng`` and ``gg`` were also made using catalogs
 with the same patch centers that ``dd`` used.
+
+The use pattern for `NNNCorrelation` is analogous, where `NNNCorrelation.calculateZeta`
+needs to be run to get the covariance estimate, after which it may be used in a list
+past to `treecorr.estimate_multi_cov`.

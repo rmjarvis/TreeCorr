@@ -478,8 +478,8 @@ class KKKCorrelation(BinnedCorr3):
                                 computation. This only works if using patches. (default: None)
             low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
                                 This only works if using patches. (default: False)
-            initialize (bool):  Whether to begin the calculation with a call to `clear`.
-                                (default: True)
+            initialize (bool):  Whether to begin the calculation with a call to
+                                `BinnedCorr3.clear`.  (default: True)
             finalize (bool):    Whether to complete the calculation with a call to `finalize`.
                                 (default: True)
         """
@@ -523,20 +523,6 @@ class KKKCorrelation(BinnedCorr3):
                 self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
                 self.logger.info("vark3 = %f: sig_k = %f",vark3,math.sqrt(vark3))
             self.finalize(vark1,vark2,vark3)
-
-    def getStat(self):
-        """The standard statistic for the current correlation object as a 1-d array.
-
-        In this case, self.zeta.ravel().
-        """
-        return self.zeta.ravel()
-
-    def getWeight(self):
-        """The weight array for the current correlation object as a 1-d array.
-
-        In this case, 4 copies of self.weight.ravel().
-        """
-        return self.weight.ravel()
 
     def write(self, file_name, file_type=None, precision=None):
         r"""Write the correlation function to the file, file_name.
@@ -973,8 +959,8 @@ class KKKCrossCorrelation(BinnedCorr3):
                                 computation. This only works if using patches. (default: None)
             low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
                                 This only works if using patches. (default: False)
-            initialize (bool):  Whether to begin the calculation with a call to `clear`.
-                                (default: True)
+            initialize (bool):  Whether to begin the calculation with a call to
+                                `BinnedCorr3.clear`.  (default: True)
             finalize (bool):    Whether to complete the calculation with a call to `finalize`.
                                 (default: True)
         """

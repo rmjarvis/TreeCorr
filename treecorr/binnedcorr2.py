@@ -801,7 +801,7 @@ class BinnedCorr2(object):
         """The standard statistic for the current correlation object as a 1-d array.
 
         Usually, this is just self.xi.  But if the metric is TwoD, this becomes self.xi.ravel().
-        And for GGCorrelation, it is the concatenation of self.xip and self.xim.
+        And for `GGCorrelation`, it is the concatenation of self.xip and self.xim.
         """
         return self.xi.ravel()
 
@@ -855,7 +855,7 @@ class BinnedCorr2(object):
         statistic, although this is not checked.
 
         The default data vector to use for the covariance matrix is given by the method
-        `getStat`.  As noted above, this is usually just `self.xi`.  However, there is an option
+        `getStat`.  As noted above, this is usually just self.xi.  However, there is an option
         to compute the covariance of some other function of the correlation object by providing
         an arbitrary function, ``func``, which should act on the current correlation object
         and return the data vector of interest.

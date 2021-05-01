@@ -588,8 +588,8 @@ class GGGCorrelation(BinnedCorr3):
                                 computation. This only works if using patches. (default: None)
             low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
                                 This only works if using patches. (default: False)
-            initialize (bool):  Whether to begin the calculation with a call to `clear`.
-                                (default: True)
+            initialize (bool):  Whether to begin the calculation with a call to
+                                `BinnedCorr3.clear`.  (default: True)
             finalize (bool):    Whether to complete the calculation with a call to `finalize`.
                                 (default: True)
         """
@@ -1460,8 +1460,8 @@ class GGGCrossCorrelation(BinnedCorr3):
                                 computation. This only works if using patches. (default: None)
             low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
                                 This only works if using patches. (default: False)
-            initialize (bool):  Whether to begin the calculation with a call to `clear`.
-                                (default: True)
+            initialize (bool):  Whether to begin the calculation with a call to
+                                `BinnedCorr3.clear`.  (default: True)
             finalize (bool):    Whether to complete the calculation with a call to `finalize`.
                                 (default: True)
         """

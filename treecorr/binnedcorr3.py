@@ -1007,6 +1007,26 @@ class BinnedCorr3(object):
                         self += temp
                         self.results.update(temp.results)
 
+    def getStat(self):
+        """The standard statistic for the current correlation object as a 1-d array.
+
+        Usually, this is just self.zeta.  But if the metric is TwoD, this becomes
+        self.zeta.ravel().
+
+        And for `GGGCorrelation`, it is the concatenation of the four different correlations
+        [gam0.ravel(), gam1.ravel(), gam2.ravel(), gam3.ravel()].
+        """
+        return self.zeta.ravel()
+
+    def getWeight(self):
+        """The weight array for the current correlation object as a 1-d array.
+
+        This is the weight array corresponding to `getStat`. Usually just self.weight, but
+        raveled for TwoD and duplicated for GGGCorrelation to match what `getStat` does in
+        those cases.
+        """
+        return self.weight.ravel()
+
     def estimate_cov(self, method, func=None):
         """Estimate the covariance matrix based on the data
 
@@ -1049,7 +1069,7 @@ class BinnedCorr3(object):
         statistic, although this is not checked.
 
         The default data vector to use for the covariance matrix is given by the method
-        `getStat`.  As noted above, this is usually just `self.zeta`.  However, there is an option
+        `getStat`.  As noted above, this is usually just self.zeta.  However, there is an option
         to compute the covariance of some other function of the correlation object by providing
         an arbitrary function, ``func``, which should act on the current correlation object
         and return the data vector of interest.

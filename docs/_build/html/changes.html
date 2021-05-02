@@ -229,7 +229,7 @@ new DRR calculates what used to require DRR, RDR, and RRD. (#122)</p></li>
 rows. (#111)</p></li>
 <li><p>No longer remakes patches and writes them to disk if they are already present
 on disk.  If you want to force a rewrite for any reason, you can explicitly
-call <a class="reference internal" href="catalog.html#treecorr.Catalog.write_patches" title="treecorr.Catalog.write_patches"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Catalog.write_patches</span></code></a>. (#119)</p></li>
+call <a class="reference internal" href="catalog.html#treecorr.Catalog.write_patches" title="treecorr.Catalog.write_patches"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Catalog.write_patches</span></code></a>. (#116)</p></li>
 <li><p>Computing the data/random cross correlations for 3pt are now much faster,
 since you only need one call for RDD and one for DRR, not all the 6 different
 permuations. (Specifically, DDR, DRD, RDR, RRD are no longer needed.) (#122)</p></li>
@@ -238,6 +238,9 @@ permuations. (Specifically, DDR, DRD, RDR, RRD are no longer needed.) (#122)</p>
 <div class="section" id="new-features">
 <h2>New features<a class="headerlink" href="#new-features" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
+<li><p>Implement patch-based calculations for 3-point correlations.  This enables
+things like jackknife correlations, low-memory calculations, and MPI execution
+when doing NNN, KKK, or GGG correlations. (#97, #125)</p></li>
 <li><p>Allow min_rpar and max_rpar for Euclidean metric.  Also Periodic, although
 I don’t know if that’s useful. (#101)</p></li>
 <li><p>Added ability to read from hdf5 catalogs.  (#106)</p></li>

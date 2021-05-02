@@ -187,7 +187,7 @@ often use periodic boundary conditions.
 
 
 Restrictions on the Line of Sight Separation
-============================================
+--------------------------------------------
 
 There are two additional parameters that are tightly connected to the metric space:
 ``min_rpar`` and ``max_rpar``.

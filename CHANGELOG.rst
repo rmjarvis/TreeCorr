@@ -53,7 +53,7 @@ Performance improvements
   rows. (#111)
 - No longer remakes patches and writes them to disk if they are already present
   on disk.  If you want to force a rewrite for any reason, you can explicitly
-  call `Catalog.write_patches`. (#119)
+  call `Catalog.write_patches`. (#116)
 - Computing the data/random cross correlations for 3pt are now much faster,
   since you only need one call for RDD and one for DRR, not all the 6 different
   permuations. (Specifically, DDR, DRD, RDR, RRD are no longer needed.) (#122)
@@ -61,6 +61,9 @@ Performance improvements
 New features
 ------------
 
+- Implement patch-based calculations for 3-point correlations.  This enables
+  things like jackknife correlations, low-memory calculations, and MPI execution
+  when doing NNN, KKK, or GGG correlations. (#97, #125)
 - Allow min_rpar and max_rpar for Euclidean metric.  Also Periodic, although
   I don't know if that's useful. (#101)
 - Added ability to read from hdf5 catalogs.  (#106)

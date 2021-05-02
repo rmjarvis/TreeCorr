@@ -101,9 +101,9 @@
 <li class="toctree-l2"><a class="reference internal" href="#oldrperp">“OldRperp”</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#rlens">“Rlens”</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#periodic">“Periodic”</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#restrictions-on-the-line-of-sight-separation">Restrictions on the Line of Sight Separation</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="#restrictions-on-the-line-of-sight-separation">Restrictions on the Line of Sight Separation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
@@ -310,9 +310,8 @@ dz &amp;= \min \left(|z_2 - z_1|, L_z - |z_2-z_1| \right)\end{split}\]</div>
 <p>This metric is particularly relevant for data generated from N-body simuluations, which
 often use periodic boundary conditions.</p>
 </div>
-</div>
 <div class="section" id="restrictions-on-the-line-of-sight-separation">
-<h1>Restrictions on the Line of Sight Separation<a class="headerlink" href="#restrictions-on-the-line-of-sight-separation" title="Permalink to this headline">¶</a></h1>
+<h2>Restrictions on the Line of Sight Separation<a class="headerlink" href="#restrictions-on-the-line-of-sight-separation" title="Permalink to this headline">¶</a></h2>
 <p>There are two additional parameters that are tightly connected to the metric space:
 <code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> and <code class="docutils literal notranslate"><span class="pre">max_rpar</span></code>.
 These set the minimum and maximum values of <span class="math notranslate nohighlight">\(r_\parallel\)</span> for pairs to be included in the
@@ -335,6 +334,7 @@ catalog is behind the object in the second catalog.</p>
 Setting <code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> = -50, <code class="docutils literal notranslate"><span class="pre">max_rpar</span></code> = 50 will restrict the pairs to only those that are
 separated by no more than 50 Mpc (say, assuming the catalog distances are given in Mpc) along
 the radial direction.</p>
+</div>
 </div>
 
 

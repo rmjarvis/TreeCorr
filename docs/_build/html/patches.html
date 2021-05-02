@@ -506,9 +506,11 @@ complete answer:</p>
 20
 21
 22
-23</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="c1"># File name: run_with_mpi.py</span>
+23
+24</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="c1"># File name: run_with_mpi.py</span>
 <span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span>
 <span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+<span class="n">rank</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
 
 <span class="c1"># Define stuff</span>
 <span class="n">fname</span> <span class="o">=</span> <span class="o">...</span>

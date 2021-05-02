@@ -18,7 +18,7 @@ trying to use that feature.
 
 See the listing below for the complete list of new features and changes.
 `Relevant PRs and Issues,
-<https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+4.2%22+is%3Aclosed>`_
+<https://github.com/rmjarvis/TreeCorr/milestone/7?closed=1>`_
 whose issue numbers are listed below for the relevant items.
 
 .. note::

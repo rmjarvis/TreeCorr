@@ -83,3 +83,9 @@ Bug fixes
 
 - Fixed a couple problems that could arise in patch-based calculations when
   one or more of the patches have no objects. (#123)
+
+
+Changes from version 4.2.0 to 4.2.1
+===================================
+
+- Fixed a bug when running NN correlations with MPI (#127)

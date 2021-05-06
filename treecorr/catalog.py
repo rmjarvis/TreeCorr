@@ -239,7 +239,7 @@ class Catalog(object):
 
         kmeans_init (str):  If using kmeans to make patches, which init method to use.
                             cf. `Field.run_kmeans` (default: 'tree')
-        kmeans_alt (str):   If using kmeans to make patches, whether to use the alternate kmeans
+        kmeans_alt (bool):  If using kmeans to make patches, whether to use the alternate kmeans
                             algorithm. cf. `Field.run_kmeans` (default: False)
 
         x_col (str or int): The column to use for the x values. An integer is only allowed for

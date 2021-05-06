@@ -68,7 +68,7 @@ Parameters about the input file(s)
     file names to use.  Of course, it is an error to specify both ``file_list``
     and ``file_name`` (or any of the other corresponding pairs).
 
-:file_type: (ASCII, FITS, or HDF5) The file type of the input files.
+:file_type: (ASCII, FITS, HDF5, or Parquet) The file type of the input files.
 :delimiter: (str, default = '\0') The delimeter between input values in an ASCII catalog.
 :comment_marker: (str, default = '#') The first (non-whitespace) character of comment lines in an input ASCII catalog.
 
@@ -98,6 +98,30 @@ Parameters about the input file(s)
     The rows are numbered starting with 1.  If ``last_row`` is not positive, it
     means to use to the end of the file.  If ``every_nth`` is set, it will skip
     rows, selecting only 1 out of every n rows.
+
+:npatch: (int, default=1)
+
+    How many patches to split the catalog into (using kmeans if no other
+    patch information is provided) for the purpose of jackknife variance
+    or other options that involve running via patches. (default: 1)
+
+    .. note::
+
+        If the catalog has ra,dec,r positions, the patches will
+        be made using just ra,dec.
+
+:kmeans_init: (str, default='tree')
+:kmeans_alt: (bool, default=False)
+
+    If using kmeans to make patches, these two parameters specify which init method
+    to use and whether to use the alternate kmeans algorithm.
+    cf. `Field.run_kmeans`
+
+:patch_centers: (str)
+
+    Alternative to setting patch by hand or using kmeans, you
+    may instead give patch_centers either as a file name or an array
+    from which the patches will be determined.
 
 :x_col: (int/str) Which column to use for x.
 :y_col: (int/str) Which column to use for y.
@@ -208,26 +232,32 @@ Parameters about the input file(s)
     need to flip the sign of g1 or g2, you may do that with ``flip_g1`` or ``flip_g2``
     (or both).
 
+:keep_zero_weight: (bool, default=False)
 
-Notes about the above parameters
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    Whether to keep objects with wpos=0 in the catalog (including
+    any objects that indirectly get wpos=0 due to NaN or flags), so they
+    would be included in ntot and also in npairs calculations that use
+    this Catalog, although of course not contribute to the accumulated
+    weight of pairs.
 
-- If you are cross-correlating two files with different formats, you may
-  set any of the above items from ``file_type`` to ``flip_g2`` as a two element
-  list (i.e. two values separated by a space).  In this case, the first
-  item refers to the file(s) in ``file_name``, and the second item refers
-  to the file(s) in files_name2.
+.. note::
 
-- You may not mix (x,y) columns with (ra,dec) columns, since its meaning
-  would be ambiguous.
+    - If you are cross-correlating two files with different formats, you may
+      set any of the above items from ``file_type`` to ``flip_g2`` as a two element
+      list (i.e. two values separated by a space).  In this case, the first
+      item refers to the file(s) in ``file_name``, and the second item refers
+      to the file(s) in files_name2.
 
-- If you don't need a particular column for one of the files, you may
-  use 0 to indicate not to read that column.  This is true for
-  any format of input catalog.
+    - You may not mix (x,y) columns with (ra,dec) columns, since its meaning
+      would be ambiguous.
 
-- Also, if the given column only applies to one of the two input files
-  (e.g. k_col for an n-kappa cross-correlation) then you may specify just
-  the column name or number for the file to which it does apply.
+    - If you don't need a particular column for one of the files, you may
+      use 0 to indicate not to read that column.  This is true for
+      any format of input catalog.
+
+    - Also, if the given column only applies to one of the two input files
+      (e.g. k_col for an n-kappa cross-correlation) then you may specify just
+      the column name or number for the file to which it does apply.
 
 
 Parameters about the binned correlation function to be calculated
@@ -294,22 +324,6 @@ Parameters about the binned correlation function to be calculated
     The total number of bins in the v direction will be twice this number.
 :vbin_size: (float) The size of the output bins for v.
 
-:pairwise: (bool, default=False) Whether to do a pair-wise cross-correlation.
-
-    A pair-wise correlation correlates objects on corresponding lines in the two catalogs,
-    rather than correlating all lines in one with all the lines in the other.
-    That is, the data from each row in the first catalog is correlated with the
-    corresponding row in the second catalog.  This only applies to cross-correlations.
-
-    An example of why this might be useful is to measure the tangent shear
-    of galaxies around the field center of the exposures in which they were
-    observed.  You can build a catalog of the field centers corresponding to
-    each galaxy in the catalog, then a pairwise correlation option will only
-    use the corresponding centers where the galaxy was observed, rather than
-    using all the field centers in the whole survey.
-
-    This is currently invalid for 3-point correlations.
-
 :metric: (str, default='Euclidean') Which metric to use for distance measurements.
 
     See `Metrics` for details.
@@ -333,13 +347,6 @@ which output file(s) you specify.  It will do the calculation(s) relevant for
 each output file you set.  For each output file, the first line of the output
 says what the columns are.  See the descriptions below for more information
 about the output columns.
-
-.. warning::
-     The error estimates for all quantities only include the propagation
-     of the shot noise and shape noise through the calculation.  It
-     does not include sample variance, which is almost always important.
-     So the error values should always be treated as an underestimate
-     of the true error bars.
 
 :nn_file_name: (str) The output filename for count-count correlation function.
 

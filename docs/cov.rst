@@ -211,6 +211,9 @@ catalogs, which of course are required when doing an NN correlation.
    that you use the same patch definitions for both the data and the randoms.
    Using patches for the randoms probably leads to slightly better covariance
    estimates in most cases, but the difference in the two results is usually small.
+   (Note: This seems to be less true for 3pt NNN correlations than 2pt NN.
+   Using patches for the randoms gives significantly better covariance estimates
+   in that case than not doing so.)
 3. The covariance calculation cannot happen until you call
    `calculateXi <NNCorrelation.calculateXi>`
    to let TreeCorr know what the RR and DR (if using that) results are.

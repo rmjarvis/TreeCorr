@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Input Data &mdash; TreeCorr 4.2.0 documentation</title>
+  <title>Input Data &mdash; TreeCorr 4.2.1 documentation</title>
   
 
   
@@ -105,9 +105,9 @@
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.1 to 4.2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-2-0-to-4-2-1">Changes from version 4.2.0 to 4.2.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -385,7 +385,7 @@ be made using just ra,dec.</p>
 </p></li>
 <li><p><strong>kmeans_init</strong> (<em>str</em>) – If using kmeans to make patches, which init method to use.
 cf. <a class="reference internal" href="field.html#treecorr.Field.run_kmeans" title="treecorr.Field.run_kmeans"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Field.run_kmeans</span></code></a> (default: ‘tree’)</p></li>
-<li><p><strong>kmeans_alt</strong> (<em>str</em>) – If using kmeans to make patches, whether to use the alternate kmeans
+<li><p><strong>kmeans_alt</strong> (<em>bool</em>) – If using kmeans to make patches, whether to use the alternate kmeans
 algorithm. cf. <a class="reference internal" href="field.html#treecorr.Field.run_kmeans" title="treecorr.Field.run_kmeans"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Field.run_kmeans</span></code></a> (default: False)</p></li>
 <li><p><strong>x_col</strong> (<em>str</em><em> or </em><em>int</em>) – The column to use for the x values. An integer is only allowed for
 ASCII files. (default: ‘0’, which means not to read in this column.

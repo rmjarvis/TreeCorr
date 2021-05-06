@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Using configuration files &mdash; TreeCorr 4.2.0 documentation</title>
+  <title>Using configuration files &mdash; TreeCorr 4.2.1 documentation</title>
   
 
   
@@ -100,16 +100,19 @@
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Using configuration files</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#the-corr2-and-corr3-executables">The corr2 and corr3 executables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-corr2-and-corr3-executables">The corr2 and corr3 executables</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#the-corr2-function-from-python">The corr2 function from python</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#the-corr3-function-from-python">The corr3 function from python</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#other-utilities-related-to-corr2-and-corr3">Other utilities related to corr2 and corr3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-treecorr.config">Utilities related to the configuration dict</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.1 to 4.2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-2-0-to-4-2-1">Changes from version 4.2.0 to 4.2.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -200,8 +203,20 @@ is the name of a configuration file:</p>
 <span class="n">corr3</span> <span class="n">config</span><span class="o">.</span><span class="n">yaml</span>
 </pre></div>
 </div>
-<p>A sample configuration file is provided, called sample_config.yaml.
-See <a class="reference internal" href="params.html#configuration-parameters"><span class="std std-ref">Configuration Parameters</span></a> for the complete documentation about the allowed parameters.</p>
+<p>A sample configuration file is provided, called sample_config.yaml.</p>
+<p>For the complete documentation about the allowed parameters, see:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="params.html#parameters-about-the-input-file-s">Parameters about the input file(s)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="params.html#parameters-about-the-binned-correlation-function-to-be-calculated">Parameters about the binned correlation function to be calculated</a></li>
+<li class="toctree-l2"><a class="reference internal" href="params.html#parameters-about-the-output-file-s">Parameters about the output file(s)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="params.html#derived-output-quantities">Derived output quantities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="params.html#miscellaneous-parameters">Miscellaneous parameters</a></li>
+</ul>
+</li>
+</ul>
+</div>
 <p>YAML is the recommended format for the configuration file, but we
 also allow JSON files if you prefer, or a legacy format, which is
 like an .ini file, but without the section headings, consisting of

@@ -16,7 +16,6 @@ TreeCorr Documentation
    cov
    field
    scripts
-   params
    guide
    changes
    history

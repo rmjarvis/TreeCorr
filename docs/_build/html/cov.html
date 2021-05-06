@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Covariance Estimates &mdash; TreeCorr 4.2.0 documentation</title>
+  <title>Covariance Estimates &mdash; TreeCorr 4.2.1 documentation</title>
   
 
   
@@ -113,9 +113,9 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.1 to 4.2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-2-0-to-4-2-1">Changes from version 4.2.0 to 4.2.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -364,7 +364,10 @@ compared to the shot noise in the data.</p></li>
 <li><p>If you do use patches for the random catalog, then you need to make sure
 that you use the same patch definitions for both the data and the randoms.
 Using patches for the randoms probably leads to slightly better covariance
-estimates in most cases, but the difference in the two results is usually small.</p></li>
+estimates in most cases, but the difference in the two results is usually small.
+(Note: This seems to be less true for 3pt NNN correlations than 2pt NN.
+Using patches for the randoms gives significantly better covariance estimates
+in that case than not doing so.)</p></li>
 <li><p>The covariance calculation cannot happen until you call
 <a class="reference internal" href="nn.html#treecorr.NNCorrelation.calculateXi" title="treecorr.NNCorrelation.calculateXi"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">calculateXi</span></code></a>
 to let TreeCorr know what the RR and DR (if using that) results are.</p></li>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Configuration Parameters &mdash; TreeCorr 4.2.0 documentation</title>
+  <title>Configuration Parameters &mdash; TreeCorr 4.2.1 documentation</title>
   
 
   
@@ -99,20 +99,27 @@
 <li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
-<li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Configuration Parameters</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#parameters-about-the-input-file-s">Parameters about the input file(s)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#notes-about-the-above-parameters">Notes about the above parameters</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="scripts.html">Using configuration files</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="scripts.html#the-corr2-and-corr3-executables">The corr2 and corr3 executables</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Configuration Parameters</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parameters-about-the-input-file-s">Parameters about the input file(s)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parameters-about-the-binned-correlation-function-to-be-calculated">Parameters about the binned correlation function to be calculated</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parameters-about-the-output-file-s">Parameters about the output file(s)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#derived-output-quantities">Derived output quantities</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#miscellaneous-parameters">Miscellaneous parameters</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#parameters-about-the-binned-correlation-function-to-be-calculated">Parameters about the binned correlation function to be calculated</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#parameters-about-the-output-file-s">Parameters about the output file(s)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#derived-output-quantities">Derived output quantities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#miscellaneous-parameters">Miscellaneous parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="scripts.html#the-corr2-function-from-python">The corr2 function from python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scripts.html#the-corr3-function-from-python">The corr3 function from python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scripts.html#other-utilities-related-to-corr2-and-corr3">Other utilities related to corr2 and corr3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scripts.html#module-treecorr.config">Utilities related to the configuration dict</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.1 to 4.2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-2-0-to-4-2-1">Changes from version 4.2.0 to 4.2.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -161,6 +168,8 @@
   <ul class="wy-breadcrumbs">
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="scripts.html">Using configuration files</a> &raquo;</li>
         
       <li>Configuration Parameters</li>
     
@@ -263,7 +272,7 @@ file names to use.  Of course, it is an error to specify both <code class="docut
 and <code class="docutils literal notranslate"><span class="pre">file_name</span></code> (or any of the other corresponding pairs).</p>
 </dd>
 <dt class="field-odd">file_type</dt>
-<dd class="field-odd"><p>(ASCII, FITS, or HDF5) The file type of the input files.</p>
+<dd class="field-odd"><p>(ASCII, FITS, HDF5, or Parquet) The file type of the input files.</p>
 </dd>
 <dt class="field-even">delimiter</dt>
 <dd class="field-even"><p>(str, default = ‘0’) The delimeter between input values in an ASCII catalog.</p>
@@ -299,6 +308,32 @@ You may specify <code class="docutils literal notranslate"><span class="pre">fir
 The rows are numbered starting with 1.  If <code class="docutils literal notranslate"><span class="pre">last_row</span></code> is not positive, it
 means to use to the end of the file.  If <code class="docutils literal notranslate"><span class="pre">every_nth</span></code> is set, it will skip
 rows, selecting only 1 out of every n rows.</p>
+</dd>
+<dt class="field-even">npatch</dt>
+<dd class="field-even"><p>(int, default=1)</p>
+<p>How many patches to split the catalog into (using kmeans if no other
+patch information is provided) for the purpose of jackknife variance
+or other options that involve running via patches. (default: 1)</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If the catalog has ra,dec,r positions, the patches will
+be made using just ra,dec.</p>
+</div>
+</dd>
+<dt class="field-odd">kmeans_init</dt>
+<dd class="field-odd"><p>(str, default=’tree’)</p>
+</dd>
+<dt class="field-even">kmeans_alt</dt>
+<dd class="field-even"><p>(bool, default=False)</p>
+<p>If using kmeans to make patches, these two parameters specify which init method
+to use and whether to use the alternate kmeans algorithm.
+cf. <a class="reference internal" href="field.html#treecorr.Field.run_kmeans" title="treecorr.Field.run_kmeans"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Field.run_kmeans</span></code></a></p>
+</dd>
+<dt class="field-odd">patch_centers</dt>
+<dd class="field-odd"><p>(str)</p>
+<p>Alternative to setting patch by hand or using kmeans, you
+may instead give patch_centers either as a file name or an array
+from which the patches will be determined.</p>
 </dd>
 <dt class="field-even">x_col</dt>
 <dd class="field-even"><p>(int/str) Which column to use for x.</p>
@@ -452,9 +487,17 @@ is no <code class="docutils literal notranslate"><span class="pre">ext</span></c
 need to flip the sign of g1 or g2, you may do that with <code class="docutils literal notranslate"><span class="pre">flip_g1</span></code> or <code class="docutils literal notranslate"><span class="pre">flip_g2</span></code>
 (or both).</p>
 </dd>
+<dt class="field-odd">keep_zero_weight</dt>
+<dd class="field-odd"><p>(bool, default=False)</p>
+<p>Whether to keep objects with wpos=0 in the catalog (including
+any objects that indirectly get wpos=0 due to NaN or flags), so they
+would be included in ntot and also in npairs calculations that use
+this Catalog, although of course not contribute to the accumulated
+weight of pairs.</p>
+</dd>
 </dl>
-<div class="section" id="notes-about-the-above-parameters">
-<h3>Notes about the above parameters<a class="headerlink" href="#notes-about-the-above-parameters" title="Permalink to this headline">¶</a></h3>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
 <ul class="simple">
 <li><p>If you are cross-correlating two files with different formats, you may
 set any of the above items from <code class="docutils literal notranslate"><span class="pre">file_type</span></code> to <code class="docutils literal notranslate"><span class="pre">flip_g2</span></code> as a two element
@@ -551,43 +594,29 @@ The total number of bins in the v direction will be twice this number.</p>
 <dt class="field-even">vbin_size</dt>
 <dd class="field-even"><p>(float) The size of the output bins for v.</p>
 </dd>
-<dt class="field-odd">pairwise</dt>
-<dd class="field-odd"><p>(bool, default=False) Whether to do a pair-wise cross-correlation.</p>
-<p>A pair-wise correlation correlates objects on corresponding lines in the two catalogs,
-rather than correlating all lines in one with all the lines in the other.
-That is, the data from each row in the first catalog is correlated with the
-corresponding row in the second catalog.  This only applies to cross-correlations.</p>
-<p>An example of why this might be useful is to measure the tangent shear
-of galaxies around the field center of the exposures in which they were
-observed.  You can build a catalog of the field centers corresponding to
-each galaxy in the catalog, then a pairwise correlation option will only
-use the corresponding centers where the galaxy was observed, rather than
-using all the field centers in the whole survey.</p>
-<p>This is currently invalid for 3-point correlations.</p>
-</dd>
-<dt class="field-even">metric</dt>
-<dd class="field-even"><p>(str, default=’Euclidean’) Which metric to use for distance measurements.</p>
+<dt class="field-odd">metric</dt>
+<dd class="field-odd"><p>(str, default=’Euclidean’) Which metric to use for distance measurements.</p>
 <p>See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.</p>
 </dd>
-<dt class="field-odd">min_rpar</dt>
-<dd class="field-odd"><p>(float) If the metric supports it, the minimum Rparallel to allow for pairs
+<dt class="field-even">min_rpar</dt>
+<dd class="field-even"><p>(float) If the metric supports it, the minimum Rparallel to allow for pairs
 to be included in the correlation function.</p>
 </dd>
-<dt class="field-even">max_rpar</dt>
-<dd class="field-even"><p>(float) If the metric supports it, the maximum Rparallel to allow for pairs
+<dt class="field-odd">max_rpar</dt>
+<dd class="field-odd"><p>(float) If the metric supports it, the maximum Rparallel to allow for pairs
 to be included in the correlation function.</p>
 </dd>
-<dt class="field-odd">period</dt>
-<dd class="field-odd"><p>(float) For the ‘Periodic’ metric, the period to use in all directions.</p>
+<dt class="field-even">period</dt>
+<dd class="field-even"><p>(float) For the ‘Periodic’ metric, the period to use in all directions.</p>
 </dd>
-<dt class="field-even">xperiod</dt>
-<dd class="field-even"><p>(float) For the ‘Periodic’ metric, the period to use in the x directions.</p>
+<dt class="field-odd">xperiod</dt>
+<dd class="field-odd"><p>(float) For the ‘Periodic’ metric, the period to use in the x directions.</p>
 </dd>
-<dt class="field-odd">yperiod</dt>
-<dd class="field-odd"><p>(float) For the ‘Periodic’ metric, the period to use in the y directions.</p>
+<dt class="field-even">yperiod</dt>
+<dd class="field-even"><p>(float) For the ‘Periodic’ metric, the period to use in the y directions.</p>
 </dd>
-<dt class="field-even">zperiod</dt>
-<dd class="field-even"><p>(float) For the ‘Periodic’ metric, the period to use in the z directions.</p>
+<dt class="field-odd">zperiod</dt>
+<dd class="field-odd"><p>(float) For the ‘Periodic’ metric, the period to use in the z directions.</p>
 </dd>
 </dl>
 </div>
@@ -598,14 +627,6 @@ which output file(s) you specify.  It will do the calculation(s) relevant for
 each output file you set.  For each output file, the first line of the output
 says what the columns are.  See the descriptions below for more information
 about the output columns.</p>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>The error estimates for all quantities only include the propagation
-of the shot noise and shape noise through the calculation.  It
-does not include sample variance, which is almost always important.
-So the error values should always be treated as an underestimate
-of the true error bars.</p>
-</div>
 <dl class="field-list">
 <dt class="field-odd">nn_file_name</dt>
 <dd class="field-odd"><p>(str) The output filename for count-count correlation function.</p>

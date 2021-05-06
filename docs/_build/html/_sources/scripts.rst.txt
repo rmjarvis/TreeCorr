@@ -25,7 +25,12 @@ is the name of a configuration file::
     corr3 config.yaml
 
 A sample configuration file is provided, called sample_config.yaml.
-See `Configuration Parameters` for the complete documentation about the allowed parameters.
+
+For the complete documentation about the allowed parameters, see:
+
+.. toctree::
+
+    params
 
 YAML is the recommended format for the configuration file, but we
 also allow JSON files if you prefer, or a legacy format, which is
@@ -82,4 +87,5 @@ Utilities related to the configuration dict
 
 .. automodule:: treecorr.config
     :members:
+
 

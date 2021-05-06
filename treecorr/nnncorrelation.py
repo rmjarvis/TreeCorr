@@ -218,6 +218,7 @@ class NNNCorrelation(BinnedCorr3):
         # A minimal "copy" with zero for the weight array, and the given value for tot.
         ret = NNNCorrelation.__new__(NNNCorrelation)
         ret._ro = self._ro
+        ret.config = self.config
         ret.ntri = self._zero_array
         ret.weight = self._zero_array
         ret.tot = tot

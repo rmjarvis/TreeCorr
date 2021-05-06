@@ -64,7 +64,7 @@ def do_mpi_corr(comm, Correlation, auto, attr, output=True):
     # First run on one process
     t0 = time.time()
     if rank == 0:
-        corr0 = Correlation(nbins=100, min_sep=1., max_sep=400., sep_units='arcmin')
+        corr0 = Correlation(nbins=10, min_sep=1., max_sep=40., sep_units='arcmin')
         if auto:
             corr0.process(cat)
         else:
@@ -77,7 +77,7 @@ def do_mpi_corr(comm, Correlation, auto, attr, output=True):
 
     # Now run in parallel.
     # Everyone needs to make their own Correlation object.
-    corr1 = Correlation(nbins=100, min_sep=1., max_sep=400., sep_units='arcmin', verbose=1)
+    corr1 = Correlation(nbins=10, min_sep=1., max_sep=40., sep_units='arcmin', verbose=1)
 
     # To use the multiple process, just pass comm to the process command.
     if auto:
@@ -125,7 +125,7 @@ def do_mpi_corr2(comm, Correlation, attr, output=True):
     # First run on one process
     t0 = time.time()
     if rank == 0:
-        corr0 = Correlation(nbins=100, min_sep=1., max_sep=400., sep_units='arcmin')
+        corr0 = Correlation(nbins=10, min_sep=1., max_sep=40., sep_units='arcmin')
         corr0.process(cat1, cat2)
 
     t1 = time.time()
@@ -135,7 +135,7 @@ def do_mpi_corr2(comm, Correlation, attr, output=True):
 
     # Now run in parallel.
     # Everyone needs to make their own Correlation object.
-    corr1 = Correlation(nbins=100, min_sep=1., max_sep=400., sep_units='arcmin', verbose=1)
+    corr1 = Correlation(nbins=10, min_sep=1., max_sep=40., sep_units='arcmin', verbose=1)
 
     # To use the multiple process, just pass comm to the process command.
     corr1.process(cat1, cat2, comm=comm)

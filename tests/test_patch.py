@@ -1332,6 +1332,9 @@ def test_nn_jk():
     np.testing.assert_allclose(xid3, xib2)
     np.testing.assert_allclose(varxid3, varxib3)
 
+    # Check serialization with the zero_copies (this didn't work in 4.2.0)
+    do_pickle(nn3)
+
     # Compare to using a random catalog with patches
     rand_catp = treecorr.Catalog(x=rx, y=ry, patch_centers=full_catp.patch_centers)
     rr4 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)

@@ -63,7 +63,7 @@ def test_mpi_kk():
     mock_mpiexec(1, do_mpi_kk, output)
 
 if __name__ == '__main__':
-    if sys.version_info > (3,0):
+    if sys.version_info < (3,0):
         print("mockmpi does not support python 2")
         exit()
     setup()

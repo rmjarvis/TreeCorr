@@ -199,13 +199,13 @@ public:
     // the galaxies which are used in the correlation function calculations.
 
     Cell(CellData<D,C>* data, const LeafInfo& info) :
-        _data(data), _size(0.), _sizesq(0.), _left(0), _info(info) {}
+        _data(data), _size(0.), _left(0), _info(info) {}
 
     Cell(CellData<D,C>* data, const ListLeafInfo& listinfo) :
-        _data(data), _size(0.), _sizesq(0.), _left(0), _listinfo(listinfo) {}
+        _data(data), _size(0.), _left(0), _listinfo(listinfo) {}
 
-    Cell(CellData<D,C>* data, double size, double sizesq, Cell<D,C>* l, Cell<D,C>* r) :
-        _data(data), _size(size), _sizesq(sizesq), _left(l), _right(r) {}
+    Cell(CellData<D,C>* data, double size, Cell<D,C>* l, Cell<D,C>* r) :
+        _data(data), _size(size), _left(l), _right(r) {}
 
     ~Cell()
     {
@@ -227,7 +227,6 @@ public:
     long getN() const { return _data->getN(); }
 
     double getSize() const { return _size; }
-    double getSizeSq() const { return _sizesq; }
     // For PairCells, getAllSize is different from getSize.
     double getAllSize() const { return _size; }
     double calculateInertia() const;
@@ -251,7 +250,6 @@ protected:
 
     CellData<D,C>* _data;
     float _size;
-    float _sizesq;
 
     Cell<D,C>* _left;
     union {

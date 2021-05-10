@@ -291,7 +291,8 @@ void InitializeCentersKMPP(std::vector<Position<C> >& centers, const std::vector
             //       Not sure how important it is though, since I think the Tree initialization is
             //       normally better, so this is not a very important use case.
             const double coef = C == ThreeD ? 0.6 : 0.5;
-            p[k] = (cells[k]->getN() - centers_per_cell[k]) * (dsq1 + coef * cells[k]->getSizeSq());
+            p[k] = (cells[k]->getN() -
+                        centers_per_cell[k]) * (dsq1 + coef * SQR(cells[k]->getSize()));
             sump += p[k];
         }
         double u = urand();
@@ -398,7 +399,7 @@ struct CalculateInertia
 
     void run(int patch_num, const Cell<D,C>* cell)
     {
-        double ssq = cell->getSizeSq();
+        double ssq = SQR(cell->getSize());
         double w = cell->getW();
         inertia[patch_num] += (cell->getPos() - centers[patch_num]).normSq() * w;
         // Parallel axis theorem says we should add the inertia of this cell about its own
@@ -785,7 +786,7 @@ void KMeansRun2(Field<D,C>*field, double* pycenters, int npatch, int max_iter, d
     // Want rms shift / field.size < tol
     // So sqrt(total_shift^2 / npatch) / field.size < tol
     // total_shift^2 < tol^2 * size^2 * npatch
-    double tolsq = tol*tol * field->getSizeSq() * npatch;
+    double tolsq = SQR(tol * field->getSize()) * npatch;
     xdbg<<"tolsq = "<<tolsq<<std::endl;
 
     // The alt version needs to keep track of the inertia of each patch.
@@ -822,7 +823,7 @@ void KMeansRun2(Field<D,C>*field, double* pycenters, int npatch, int max_iter, d
         // Stop if (rms shift / size) < tol
         if (shiftsq < tolsq) {
             dbg<<"Stopping RunKMeans because rms shift = "<<sqrt(shiftsq/npatch)<<std::endl;
-            dbg<<"tol * size = "<<tol * sqrt(field->getSizeSq())<<std::endl;
+            dbg<<"tol * size = "<<tol * field->getSize()<<std::endl;
             break;
         }
         if (iter == max_iter-1) {

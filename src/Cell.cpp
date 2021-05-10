@@ -456,7 +456,7 @@ Cell<D,C>* BuildCell(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata
         Cell<D,C>* r = BuildCell<D,C,SM>(vdata,minsizesq,brute,mid,end);
         xdbg<<"Made right"<<std::endl;
         xdbg<<data<<"  "<<size<<"  "<<sizesq<<"  "<<l<<"  "<<r<<std::endl;
-        return new Cell<D,C>(data, size, sizesq, l, r);
+        return new Cell<D,C>(data, size, l, r);
     } else {
         // Too small, so stop here anyway.
         ListLeafInfo info;

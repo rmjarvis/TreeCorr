@@ -264,7 +264,7 @@ void Field<D,C>::DoBuildCells() const
                                       top_start[i], top_end[i],
                                       top_data[i], top_sizesq[i]);
         xdbg<<i<<": "<<_cells[i]->getN()<<"  "<<_cells[i]->getW()<<"  "<<
-            _cells[i]->getPos()<<"  "<<_cells[i]->getSize()<<"  "<<_cells[i]->getSizeSq()<<std::endl;
+            _cells[i]->getPos()<<"  "<<_cells[i]->getSize()<<std::endl;
     }
 
     // delete any CellData elements that didn't get kept in the _cells object.

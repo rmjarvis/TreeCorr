@@ -579,6 +579,18 @@ void Cell<D,C>::WriteTree(std::ostream& os, int indent) const
         std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, \
         double minsizesq, bool brute, size_t start, size_t end, \
         CellData<D,C>* data, double sizesq); \
+    template size_t SplitData<D,C,MIDDLE>( \
+        std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, \
+        size_t start, size_t end, const Position<C>& meanpos); \
+    template size_t SplitData<D,C,MEDIAN>( \
+        std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, \
+        size_t start, size_t end, const Position<C>& meanpos); \
+    template size_t SplitData<D,C,MEAN>( \
+        std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, \
+        size_t start, size_t end, const Position<C>& meanpos); \
+    template size_t SplitData<D,C,RANDOM>( \
+        std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, \
+        size_t start, size_t end, const Position<C>& meanpos); \
 
 Inst(NData,Flat);
 Inst(NData,ThreeD);

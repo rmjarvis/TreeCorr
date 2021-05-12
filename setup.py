@@ -316,6 +316,7 @@ int main() {
     return 0;
 }
 """
+    debug=True
     extra_cflags = copt[cc_type]
     extra_lflags = lopt[cc_type]
     success = try_compile(cpp_code, compiler, extra_cflags, extra_lflags)
@@ -328,6 +329,7 @@ int main() {
             pass
         else:
             success = try_compile(cpp_code, compiler, extra_cflags, extra_lflags)
+    debug=False
     return success
 
 def try_cpp(compiler, cflags=[], lflags=[], prepend=None):

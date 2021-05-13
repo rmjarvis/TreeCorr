@@ -89,3 +89,8 @@ Changes from version 4.2.0 to 4.2.1
 ===================================
 
 - Fixed a bug when running NN correlations with MPI (#127)
+
+Changes from version 4.2.1 to 4.2.2
+===================================
+
+- Fixed a build problem with gcc versions 10 and 11.

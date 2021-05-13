@@ -316,6 +316,7 @@ int main() {
     return 0;
 }
 """
+    global debug
     debug=True
     extra_cflags = copt[cc_type]
     extra_lflags = lopt[cc_type]

@@ -199,7 +199,7 @@ def try_compile(cpp_code, compiler, cflags=[], lflags=[], prepend=None):
         return False
 
     # Link
-    cc = compiler.linker_so[0]
+    cc = compiler.compiler_so[0]
     cmd = [cc] + compiler.linker_so[1:] + lflags + [o_name,'-o',exe_name]
     if debug:
         print('cmd = ',' '.join(cmd))

@@ -1063,23 +1063,56 @@ class GGGCorrelation(BinnedCorr3):
             mmmc = np.zeros_like(mcmm)
             varmmcm = np.zeros_like(varmcmm)
             varmmmc = np.zeros_like(varmcmm)
-            for (_k1, _k2, _k3, _mcmm, _varmcmm) in [ (1,k3,k2,mcmm,varmcmm),
-                                                      (k2,1,k3,mmcm,varmmcm),
-                                                      (k2,k3,1,mmcm,varmmcm),
-                                                      (k3,1,k2,mmmc,varmmmc),
-                                                      (k3,k2,1,mmmc,varmmmc) ]:
-                T0, T1, T2, T3 = self._calculateT(s,t,_k1,_k2,_k3)
-                T0 *= sds * d2t
-                T1 *= sds * d2t
-                T2 *= sds * d2t
-                T3 *= sds * d2t
-                # Relies on numpy array overloading += to actually update in place.
-                mmm += T0.dot(gam0)
-                _mcmm += T1.dot(gam1) + T2.dot(gam2) + T3.dot(gam3)
-                varmmm += (np.abs(T0)**2).dot(vargam0)
-                _varmcmm += (np.abs(T1)**2).dot(vargam1)
-                _varmcmm += (np.abs(T2)**2).dot(vargam2)
-                _varmcmm += (np.abs(T3)**2).dot(vargam3)
+
+            # Calculates the T0, T1, T2, and T3 for all combinations of the aperture radii
+            # T0_123 corresponds to T_0(theta1, theta2, theta3) etc.
+            T0_123, T1_123, T2_123, T3_123 = self._calculateT(s, t, 1, k2, k3)
+            T0_132, T1_132, T2_132, T3_132 = self._calculateT(s, t, 1, k3, k2)
+            T0_312, T1_312, T2_312, T3_312 = self._calculateT(s, t, k3, 1, k2)
+            T0_213, T1_213, T2_213, T3_213 = self._calculateT(s, t, k2, 1, k3)
+            T0_231, T1_231, T2_231, T3_231 = self._calculateT(s, t, k2, k3, 1)
+            T0_321, T1_321, T2_321, T3_321 = self._calculateT(s, t, k3, k2, 1)
+
+            # Multiply with Jacobian
+            
+            T0_123 *= sds * d2t
+            T1_123 *= sds * d2t
+            T2_123 *= sds * d2t
+            T3_123 *= sds * d2t
+            
+            T0_132 *= sds * d2t
+            T1_132 *= sds * d2t
+            T2_132 *= sds * d2t
+            T3_132 *= sds * d2t
+
+            T0_312 *= sds * d2t
+            T1_312 *= sds * d2t
+            T2_312 *= sds * d2t
+            T3_312 *= sds * d2t
+            
+            T0_213 *= sds * d2t
+            T1_213 *= sds * d2t
+            T2_213 *= sds * d2t
+            T3_213 *= sds * d2t
+
+            T0_231 *= sds * d2t
+            T1_231 *= sds * d2t
+            T2_231 *= sds * d2t
+            T3_231 *= sds * d2t
+
+            T0_321 *= sds * d2t
+            T1_321 *= sds * d2t
+            T2_321 *= sds * d2t
+            T3_321 *= sds * d2t        
+
+            mmm=(T0_123+T0_132+T0_312+T0_213+T0_231+T0_321).dot(gam0)
+            mcmm=(T1_123+T1_132).dot(gam1)+(T2_312+T2_213).dot(gam2)+(T3_231+T3_321).dot(gam3)
+            mmcm=(T1_213+T1_231).dot(gam1)+(T2_321+T2_123).dot(gam2)+(T3_132+T3_312).dot(gam3)
+            mmmc=(T1_312+T1_321).dot(gam1)+(T2_231+T2_132).dot(gam2)+(T3_123+T3_213).dot(gam3)
+            varmmm=(np.abs(T0_123)**2+np.abs(T0_132)**2+np.abs(T0_312)**2+np.abs(T0_213)**2+np.abs(T0_231)**2+np.abs(T0_321)**2).dot(vargam0)
+            varmcmm=(np.abs(T1_123)**2+np.abs(T1_132)**2).dot(vargam1)+(np.abs(T2_312)**2+np.abs(T2_213)**2).dot(vargam2)+(np.abs(T3_231)**2+np.abs(T3_321)**2).dot(vargam3)
+            varmmcm=(np.abs(T1_213)**2+np.abs(T1_231)**2).dot(vargam1)+(np.abs(T2_321)**2+np.abs(T2_123)**2).dot(vargam2)+(np.abs(T3_132)**2+np.abs(T3_312)**2).dot(vargam3)
+            varmmmc=(np.abs(T1_312)**2+np.abs(T1_321)**2).dot(vargam1)+(np.abs(T2_231)**2+np.abs(T2_132)**2).dot(vargam2)+(np.abs(T3_123)**2+np.abs(T3_213)**2).dot(vargam3)
 
         map3 = 0.25 * np.real(mcmm + mmcm + mmmc + mmm)
         mapmapmx = 0.25 * np.imag(mcmm + mmcm - mmmc + mmm)

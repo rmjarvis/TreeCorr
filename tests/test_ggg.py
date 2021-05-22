@@ -1629,8 +1629,10 @@ def test_map3():
     d1 = ggg.meand1
     d2 = ggg.meand2
     d3 = ggg.meand3
+    u = ggg.meanu
+    v = ggg.meanv
     s = d2
-    tx = (d2**2 + d3**2 - d1**2)/(2.*d2)
+    tx = d3*(0.5*u*(1-v**2) - np.abs(v))
     ty = np.sqrt(d3**2 - tx**2)
     ty[ggg.meanv > 0] *= -1.
     t = tx + 1j * ty
@@ -1692,9 +1694,9 @@ def test_map3():
     print('diff = ',map3-true_map3)
     print('max diff = ',max(abs(map3 - true_map3)))
     np.testing.assert_allclose(map3, true_map3, rtol=0.05, atol=5.e-10)
-    for mx in ggg_map3[1:-1]:
-        print('mx = ',mx)
-        print('max = ',max(abs(mx)))
+    for mx in ggg_map3[1:-1]:  # Last one is var, so don't include that.
+        #print('mx = ',mx)
+        #print('max = ',max(abs(mx)))
         np.testing.assert_allclose(mx, 0., atol=5.e-10)
 
     # Next check the same calculation, but not with k2=k3=1.
@@ -1755,8 +1757,8 @@ def test_map3():
     print('max diff = ',max(abs(map3 - true_map3)))
     np.testing.assert_allclose(map3, true_map3, rtol=0.1, atol=2.e-9)
     for mx in (mapmapmx, mapmxmap, mxmapmap, mxmxmap, mxmapmx, mapmxmx, mx3):
-        print('mx = ',mx)
-        print('max = ',max(abs(mx)))
+        #print('mx = ',mx)
+        #print('max = ',max(abs(mx)))
         np.testing.assert_allclose(mx, 0., atol=2.e-9)
 
     map3_file = 'output/ggg_m3.txt'
@@ -1781,6 +1783,168 @@ def test_map3():
     ggg.writeMap3(map3_file, R=R, precision=16)
     data = np.genfromtxt(os.path.join('output','ggg_m3b.txt'), names=True)
     np.testing.assert_allclose(data['Map3'], map3)
+
+    # Finally add some tests where the B-mode is expected to be non-zero.
+    # The easiest way to do this is to have gamma0 be complex.
+    # Then the real part drives the E-mode, and the imaginary part the B-mode.
+    # Note: The following tests detect the error in the code that was corrected by
+    #       Laila Linke, which she and Sven Heydenreich found by comparing to direct
+    #       Map^3 measurements of the Millenium simulation.  cf. PR #128.
+    #       The code prior to Laila's fix fails these tests.
+    gamma0 = 0.03 + 0.04j
+    true_gam0 = ((-2.*np.pi * gamma0**3)/(3. * L**2 * r0**4) *
+                 np.exp(-(nq1+nq2+nq3)/(2.*r0**2)) * (nq1*nq2*nq3) )
+
+    true_gam1 = ((-2.*np.pi * gamma0 * np.abs(gamma0)**2)/(3. * L**2 * r0**4) *
+                 np.exp(-(nq1+nq2+nq3)/(2.*r0**2)) *
+                 (nq1*nq2*nq3 - 8./3. * r0**2 * q1**2*nq2*nq3/(q2*q3)
+                  + (8./9. * r0**4 * (q1**2 * nq2 * nq3)/(nq1 * q2**2 * q3**2) *
+                     (2.*q1**2 - q2**2 - q3**2)) ))
+
+    true_gam2 = ((-2.*np.pi * gamma0 * np.abs(gamma0)**2)/(3. * L**2 * r0**4) *
+                 np.exp(-(nq1+nq2+nq3)/(2.*r0**2)) *
+                 (nq1*nq2*nq3 - 8./3. * r0**2 * nq1*q2**2*nq3/(q1*q3)
+                  + (8./9. * r0**4 * (nq1 * q2**2 * nq3)/(q1**2 * nq2 * q3**2) *
+                     (2.*q2**2 - q1**2 - q3**2)) ))
+
+    true_gam3 = ((-2.*np.pi * gamma0 * np.abs(gamma0)**2)/(3. * L**2 * r0**4) *
+                 np.exp(-(nq1+nq2+nq3)/(2.*r0**2)) *
+                 (nq1*nq2*nq3 - 8./3. * r0**2 * nq1*nq2*q3**2/(q1*q2)
+                  + (8./9. * r0**4 * (nq1 * nq2 * q3**2)/(q1**2 * q2**2 * nq3) *
+                     (2.*q3**2 - q1**2 - q2**2)) ))
+
+    temp = 2816./243. * np.pi * r0**12 * r**6 / (L**2 * (r**2+r0**2)**8)
+    true_map3 = temp * gamma0.real**3
+    true_map2mx = temp * gamma0.real**2 * gamma0.imag
+    true_mapmx2 = temp * gamma0.real * gamma0.imag**2
+    true_mx3 = temp * gamma0.imag**3
+
+    ggg.gam0r = true_gam0.real
+    ggg.gam1r = true_gam1.real
+    ggg.gam2r = true_gam2.real
+    ggg.gam3r = true_gam3.real
+    ggg.gam0i = true_gam0.imag
+    ggg.gam1i = true_gam1.imag
+    ggg.gam2i = true_gam2.imag
+    ggg.gam3i = true_gam3.imag
+
+    ggg_map3 = ggg.calculateMap3()
+
+    # The E-mode is unchanged from before.
+    map3 = ggg_map3[0]
+    print('map3 = ',map3)
+    print('true_map3 = ',true_map3)
+    print('ratio = ',map3/true_map3)
+    print('diff = ',map3-true_map3)
+    print('max diff = ',max(abs(map3 - true_map3)))
+    np.testing.assert_allclose(map3, true_map3, rtol=0.05, atol=5.e-10)
+
+    # But now the rest of them are non-zero.
+    for map2mx in ggg_map3[1:4]:
+        print('map2mx = ',map2mx)
+        print('true_map2mx = ',true_map2mx)
+        print('ratio = ',map2mx/true_map2mx)
+        print('diff = ',map2mx-true_map2mx)
+        print('max diff = ',max(abs(map2mx - true_map2mx)))
+        np.testing.assert_allclose(map2mx, true_map2mx, rtol=0.05, atol=5.e-10)
+    for mapmx2 in ggg_map3[4:7]:
+        print('mapmx2 = ',mapmx2)
+        print('true_mapmx2 = ',true_mapmx2)
+        print('ratio = ',mapmx2/true_mapmx2)
+        print('diff = ',mapmx2-true_mapmx2)
+        print('max diff = ',max(abs(mapmx2 - true_mapmx2)))
+        np.testing.assert_allclose(mapmx2, true_mapmx2, rtol=0.05, atol=5.e-10)
+    mx3 = ggg_map3[7]
+    print('mx3 = ',mx3)
+    print('true_mx3 = ',true_mx3)
+    print('ratio = ',mx3/true_mx3)
+    print('diff = ',mx3-true_mx3)
+    print('max diff = ',max(abs(mx3 - true_mx3)))
+    np.testing.assert_allclose(mx3, true_mx3, rtol=0.05, atol=5.e-10)
+
+    # Now k = 1,1,2
+    temp = 1024./243.*np.pi * r0**12 * r**6
+    temp *= (575*r**8 + 806*r**6*r0**2 + 438*r**4*r0**4 + 110*r0**6*r**2 + 11*r0**8)
+    temp /= L**2 * (3*r**2+r0**2)**7 * (r**2+r0**2)**5
+    true_map3c = temp * gamma0.real**3
+    true_map2mxc = temp * gamma0.real**2 * gamma0.imag
+    true_mapmx2c = temp * gamma0.real * gamma0.imag**2
+    true_mx3c = temp * gamma0.imag**3
+
+    ggg_map3c = ggg.calculateMap3(k2=1, k3=2)
+    map3c = ggg_map3c[0]
+    print('map3c = ',map3c)
+    print('true_map3 = ',true_map3c)
+    print('ratio = ',map3c/true_map3c)
+    print('diff = ',map3c-true_map3c)
+    print('max diff = ',max(abs(map3c - true_map3c)))
+    np.testing.assert_allclose(map3c, true_map3c, rtol=0.1, atol=1.e-9)
+    for map2mx in ggg_map3c[1:4]:
+        print('map2mx = ',map2mx)
+        print('true_map2mx = ',true_map2mxc)
+        print('ratio = ',map2mx/true_map2mxc)
+        print('diff = ',map2mx-true_map2mxc)
+        print('max diff = ',max(abs(map2mx - true_map2mxc)))
+        np.testing.assert_allclose(map2mx, true_map2mxc, rtol=0.05, atol=1.e-9)
+    for mapmx2 in ggg_map3c[4:7]:
+        print('mapmx2 = ',mapmx2)
+        print('true_mapmx2 = ',true_mapmx2c)
+        print('ratio = ',mapmx2/true_mapmx2c)
+        print('diff = ',mapmx2-true_mapmx2c)
+        print('max diff = ',max(abs(mapmx2 - true_mapmx2c)))
+        np.testing.assert_allclose(mapmx2, true_mapmx2c, rtol=0.05, atol=1.e-9)
+    mx3 = ggg_map3c[7]
+    print('mx3 = ',mx3)
+    print('true_mx3 = ',true_mx3c)
+    print('ratio = ',mx3/true_mx3c)
+    print('diff = ',mx3-true_mx3c)
+    print('max diff = ',max(abs(mx3 - true_mx3c)))
+    np.testing.assert_allclose(mx3, true_mx3c, rtol=0.05, atol=1.e-9)
+
+    # (This is the same but in a different order)
+    ggg_map3d = np.array(ggg.calculateMap3(k2=2, k3=1))
+    np.testing.assert_allclose(ggg_map3d[[0,2,1,3,5,4,6,7,8]], ggg_map3c)
+
+    ggg_map3e = ggg.calculateMap3(k2=1.5, k3=2)
+    temp = 442368.*np.pi * r0**12 * r**6
+    temp *= (1800965*r**12 + 4392108*r**10*r0**2 + 4467940*r**8*r0**4 + 2429536*r**6*r0**6 +
+                   745312*r**4*r0**8 + 122496*r0**10*r**2 + 8448*r0**12)
+    temp /= L**2 * (61*r**4 + 58*r0**2*r**2 + 12*r0**4)**7
+    true_map3e = temp * gamma0.real**3
+    true_map2mxe = temp * gamma0.real**2 * gamma0.imag
+    true_mapmx2e = temp * gamma0.real * gamma0.imag**2
+    true_mx3e = temp * gamma0.imag**3
+
+    map3e = ggg_map3e[0]
+    print('map3e = ',map3e)
+    print('true_map3 = ',true_map3e)
+    print('ratio = ',map3e/true_map3e)
+    print('diff = ',map3e-true_map3e)
+    print('max diff = ',max(abs(map3e - true_map3e)))
+    np.testing.assert_allclose(map3e, true_map3e, rtol=0.1, atol=1.e-9)
+    for map2mx in ggg_map3e[1:4]:
+        print('map2mx = ',map2mx)
+        print('true_map2mx = ',true_map2mxe)
+        print('ratio = ',map2mx/true_map2mxe)
+        print('diff = ',map2mx-true_map2mxe)
+        print('max diff = ',max(abs(map2mx - true_map2mxe)))
+        np.testing.assert_allclose(map2mx, true_map2mxe, rtol=0.05, atol=1.e-9)
+    for mapmx2 in ggg_map3e[4:7]:
+        print('mapmx2 = ',mapmx2)
+        print('true_mapmx2 = ',true_mapmx2e)
+        print('ratio = ',mapmx2/true_mapmx2e)
+        print('diff = ',mapmx2-true_mapmx2e)
+        print('max diff = ',max(abs(mapmx2 - true_mapmx2e)))
+        np.testing.assert_allclose(mapmx2, true_mapmx2e, rtol=0.05, atol=1.e-9)
+    mx3 = ggg_map3e[7]
+    print('mx3 = ',mx3)
+    print('true_mx3 = ',true_mx3e)
+    print('ratio = ',mx3/true_mx3e)
+    print('diff = ',mx3-true_mx3e)
+    print('max diff = ',max(abs(mx3 - true_mx3e)))
+    np.testing.assert_allclose(mx3, true_mx3e, rtol=0.05, atol=1.e-9)
+
+
 
 @timer
 def test_grid():

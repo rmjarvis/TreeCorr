@@ -94,3 +94,9 @@ Changes from version 4.2.1 to 4.2.2
 ===================================
 
 - Fixed a build problem with gcc versions 10 and 11.
+
+Changes from version 4.2.2 to 4.2.3
+===================================
+
+- Fixed a bug in the Map^3 calculation when the aperture radii are different.
+  Thanks to Laila Linke for both finding the problem and providing the fix. (#128)

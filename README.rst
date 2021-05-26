@@ -3,7 +3,6 @@
 .. image:: https://codecov.io/gh/rmjarvis/TreeCorr/branch/main/graph/badge.svg
         :target: https://codecov.io/gh/rmjarvis/TreeCorr
 
-
 TreeCorr is a package for efficiently computing 2-point and 3-point correlation
 functions.
 

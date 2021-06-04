@@ -301,8 +301,10 @@ class GGGCorrelation(BinnedCorr3):
         self._set_num_threads(num_threads)
         min_size, max_size = self._get_minmax_size()
 
-        field = cat.getGField(min_size, max_size, self.split_method,
-                              bool(self.brute), self.min_top, self.max_top, self.coords)
+        field = cat.getGField(min_size=min_size, max_size=max_size,
+                              split_method=self.split_method, brute=bool(self.brute),
+                              min_top=self.min_top, max_top=self.max_top,
+                              coords=self.coords)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         _lib.ProcessAuto3(self.corr, field.data, self.output_dots,
@@ -339,10 +341,16 @@ class GGGCorrelation(BinnedCorr3):
         self._set_num_threads(num_threads)
         min_size, max_size = self._get_minmax_size()
 
-        f1 = cat1.getGField(min_size, max_size, self.split_method,
-                            bool(self.brute), self.min_top, self.max_top, self.coords)
-        f2 = cat2.getGField(min_size, max_size, self.split_method,
-                            bool(self.brute), self.min_top, self.max_top, self.coords)
+        f1 = cat1.getGField(min_size=min_size, max_size=max_size,
+                            split_method=self.split_method,
+                            brute=self.brute is True or self.brute == 1,
+                            min_top=self.min_top, max_top=self.max_top,
+                            coords=self.coords)
+        f2 = cat2.getGField(min_size=min_size, max_size=max_size,
+                            split_method=self.split_method,
+                            brute=self.brute is True or self.brute == 2,
+                            min_top=self.min_top, max_top=self.max_top,
+                            coords=self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         # Note: all 3 correlation objects are the same.  Thus, all triangles will be placed
@@ -381,12 +389,21 @@ class GGGCorrelation(BinnedCorr3):
         self._set_num_threads(num_threads)
         min_size, max_size = self._get_minmax_size()
 
-        f1 = cat1.getGField(min_size, max_size, self.split_method,
-                            bool(self.brute), self.min_top, self.max_top, self.coords)
-        f2 = cat2.getGField(min_size, max_size, self.split_method,
-                            bool(self.brute), self.min_top, self.max_top, self.coords)
-        f3 = cat3.getGField(min_size, max_size, self.split_method,
-                            bool(self.brute), self.min_top, self.max_top, self.coords)
+        f1 = cat1.getGField(min_size=min_size, max_size=max_size,
+                            split_method=self.split_method,
+                            brute=self.brute is True or self.brute == 1,
+                            min_top=self.min_top, max_top=self.max_top,
+                            coords=self.coords)
+        f2 = cat2.getGField(min_size=min_size, max_size=max_size,
+                            split_method=self.split_method,
+                            brute=self.brute is True or self.brute == 2,
+                            min_top=self.min_top, max_top=self.max_top,
+                            coords=self.coords)
+        f3 = cat3.getGField(min_size=min_size, max_size=max_size,
+                            split_method=self.split_method,
+                            brute=self.brute is True or self.brute == 3,
+                            min_top=self.min_top, max_top=self.max_top,
+                            coords=self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         # Note: all 6 correlation objects are the same.  Thus, all triangles will be placed
@@ -1318,10 +1335,16 @@ class GGGCrossCorrelation(BinnedCorr3):
         self._set_num_threads(num_threads)
         min_size, max_size = self._get_minmax_size()
 
-        f1 = cat1.getGField(min_size, max_size, self.split_method,
-                            bool(self.brute), self.min_top, self.max_top, self.coords)
-        f2 = cat2.getGField(min_size, max_size, self.split_method,
-                            bool(self.brute), self.min_top, self.max_top, self.coords)
+        f1 = cat1.getGField(min_size=min_size, max_size=max_size,
+                            split_method=self.split_method,
+                            brute=self.brute is True or self.brute == 1,
+                            min_top=self.min_top, max_top=self.max_top,
+                            coords=self.coords)
+        f2 = cat2.getGField(min_size=min_size, max_size=max_size,
+                            split_method=self.split_method,
+                            brute=self.brute is True or self.brute == 2,
+                            min_top=self.min_top, max_top=self.max_top,
+                            coords=self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         # Note: all 3 correlation objects are the same.  Thus, all triangles will be placed
@@ -1361,12 +1384,21 @@ class GGGCrossCorrelation(BinnedCorr3):
         self._set_num_threads(num_threads)
         min_size, max_size = self._get_minmax_size()
 
-        f1 = cat1.getGField(min_size, max_size, self.split_method,
-                            bool(self.brute), self.min_top, self.max_top, self.coords)
-        f2 = cat2.getGField(min_size, max_size, self.split_method,
-                            bool(self.brute), self.min_top, self.max_top, self.coords)
-        f3 = cat3.getGField(min_size, max_size, self.split_method,
-                            bool(self.brute), self.min_top, self.max_top, self.coords)
+        f1 = cat1.getGField(min_size=min_size, max_size=max_size,
+                            split_method=self.split_method,
+                            brute=self.brute is True or self.brute == 1,
+                            min_top=self.min_top, max_top=self.max_top,
+                            coords=self.coords)
+        f2 = cat2.getGField(min_size=min_size, max_size=max_size,
+                            split_method=self.split_method,
+                            brute=self.brute is True or self.brute == 2,
+                            min_top=self.min_top, max_top=self.max_top,
+                            coords=self.coords)
+        f3 = cat3.getGField(min_size=min_size, max_size=max_size,
+                            split_method=self.split_method,
+                            brute=self.brute is True or self.brute == 3,
+                            min_top=self.min_top, max_top=self.max_top,
+                            coords=self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         _lib.ProcessCross3(self.g1g2g3.corr, self.g1g3g2.corr,

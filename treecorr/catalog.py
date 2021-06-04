@@ -27,6 +27,7 @@ from .config import merge_config, setup_logger, get, get_from_list
 from .util import parse_file_type, LRU_Cache, gen_write, gen_read, set_omp_threads
 from .util import double_ptr as dp
 from .util import long_ptr as lp
+from .util import depr_pos_kwargs
 from .field import NField, KField, GField, NSimpleField, KSimpleField, GSimpleField
 
 class Catalog(object):
@@ -168,6 +169,8 @@ class Catalog(object):
                             file.  Any optional kwargs may be given here in the config dict if
                             desired.  Invalid keys in the config dict are ignored. (default: None)
 
+    Keyword-only Arguments:
+
         num (int):          Which number catalog are we reading.  e.g. for NG correlations the
                             catalog for the N has num=0, the one for G has num=1.  This is only
                             necessary if you are using a config dict where things like ``x_col``
@@ -213,8 +216,6 @@ class Catalog(object):
         patch_centers (array or str): Alternative to setting patch by hand or using kmeans, you
                             may instead give patch_centers either as a file name or an array
                             from which the patches will be determined. (default: None)
-
-    Keyword Arguments:
 
         file_type (str):    What kind of file is the input file. Valid options are 'ASCII', 'FITS'
                             'HDF', or 'Parquet' (default: if the file_name extension starts with
@@ -507,7 +508,8 @@ class Catalog(object):
     }
     _emitted_pandas_warning = False  # Only emit the warning once.  Set to True once we have.
 
-    def __init__(self, file_name=None, config=None, num=0, logger=None, is_rand=False,
+    @depr_pos_kwargs
+    def __init__(self, file_name=None, config=None, *, num=0, logger=None, is_rand=False,
                  x=None, y=None, z=None, ra=None, dec=None, r=None, w=None, wpos=None, flag=None,
                  g1=None, g2=None, k=None, patch=None, patch_centers=None, rng=None, **kwargs):
 
@@ -1623,7 +1625,8 @@ class Catalog(object):
         # But if the weakref is alive, this returns the field we want.
         return self._field()
 
-    def getNField(self, min_size=0, max_size=None, split_method=None, brute=False,
+    @depr_pos_kwargs
+    def getNField(self, *, min_size=0, max_size=None, split_method=None, brute=False,
                   min_top=None, max_top=10, coords=None, logger=None):
         """Return an `NField` based on the positions in this catalog.
 
@@ -1657,7 +1660,8 @@ class Catalog(object):
         return field
 
 
-    def getKField(self, min_size=0, max_size=None, split_method=None, brute=False,
+    @depr_pos_kwargs
+    def getKField(self, *, min_size=0, max_size=None, split_method=None, brute=False,
                   min_top=None, max_top=10, coords=None, logger=None):
         """Return a `KField` based on the k values in this catalog.
 
@@ -1693,7 +1697,8 @@ class Catalog(object):
         return field
 
 
-    def getGField(self, min_size=0, max_size=None, split_method=None, brute=False,
+    @depr_pos_kwargs
+    def getGField(self, *, min_size=0, max_size=None, split_method=None, brute=False,
                   min_top=None, max_top=10, coords=None, logger=None):
         """Return a `GField` based on the g1,g2 values in this catalog.
 
@@ -1729,7 +1734,8 @@ class Catalog(object):
         return field
 
 
-    def getNSimpleField(self, logger=None):
+    @depr_pos_kwargs
+    def getNSimpleField(self, *, logger=None):
         """Return an `NSimpleField` based on the positions in this catalog.
 
         The `NSimpleField` object is cached, so this is efficient to call multiple times.
@@ -1746,7 +1752,8 @@ class Catalog(object):
         return self.nsimplefields(logger=logger)
 
 
-    def getKSimpleField(self, logger=None):
+    @depr_pos_kwargs
+    def getKSimpleField(self, *, logger=None):
         """Return a `KSimpleField` based on the k values in this catalog.
 
         The `KSimpleField` object is cached, so this is efficient to call multiple times.
@@ -1765,7 +1772,8 @@ class Catalog(object):
         return self.ksimplefields(logger=logger)
 
 
-    def getGSimpleField(self, logger=None):
+    @depr_pos_kwargs
+    def getGSimpleField(self, *, logger=None):
         """Return a `GSimpleField` based on the g1,g2 values in this catalog.
 
         The `GSimpleField` object is cached, so this is efficient to call multiple times.
@@ -2039,7 +2047,8 @@ class Catalog(object):
                          for i, name in enumerate(file_names)]
         self.logger.info('Patches created from files %s .. %s',file_names[0],file_names[-1])
 
-    def get_patches(self, low_mem=False):
+    @depr_pos_kwargs
+    def get_patches(self, *, low_mem=False):
         """Return a list of Catalog instances each representing a single patch from this Catalog
 
         After calling this function once, the patches may be repeatedly accessed by the
@@ -2124,7 +2133,8 @@ class Catalog(object):
 
         return self._patches
 
-    def write(self, file_name, file_type=None, cat_precision=None):
+    @depr_pos_kwargs
+    def write(self, file_name, *, file_type=None, cat_precision=None):
         """Write the catalog to a file.
 
         The position columns are output using the same units as were used when building the
@@ -2278,7 +2288,8 @@ class Catalog(object):
                 np.array_equal(self.patch, other.patch))
 
 
-def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=None):
+@depr_pos_kwargs
+def read_catalogs(config, key=None, list_key=None, *, num=0, logger=None, is_rand=None):
     """Read in a list of catalogs for the given key.
 
     key should be the file_name parameter or similar key word.
@@ -2333,11 +2344,12 @@ def read_catalogs(config, key=None, list_key=None, num=0, logger=None, is_rand=N
         file_names = file_names.split()
     ret = []
     for file_name in file_names:
-        ret += Catalog(file_name, config, num, logger, is_rand).get_patches()
+        ret += Catalog(file_name, config, num=num, logger=logger, is_rand=is_rand).get_patches()
     return ret
 
 
-def calculateVarG(cat_list, low_mem=False):
+@depr_pos_kwargs
+def calculateVarG(cat_list, *, low_mem=False):
     """Calculate the overall shear variance from a list of catalogs.
 
     The catalogs are assumed to be equivalent, so this is just the average shear
@@ -2365,7 +2377,8 @@ def calculateVarG(cat_list, low_mem=False):
                 cat.unload()
         return varg / sumw
 
-def calculateVarK(cat_list, low_mem=False):
+@depr_pos_kwargs
+def calculateVarK(cat_list, *, low_mem=False):
     """Calculate the overall kappa variance from a list of catalogs.
 
     The catalogs are assumed to be equivalent, so this is just the average kappa

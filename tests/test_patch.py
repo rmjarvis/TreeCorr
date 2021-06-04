@@ -120,8 +120,8 @@ def test_cat_patches():
         np.testing.assert_array_equal(catb.y,cat5.patches[i].y[cata.nobj:])
 
         # get_patches from a single patch will return a list with just itself.
-        assert cata.get_patches(False) == [cata]
-        assert catb.get_patches(True) == [catb]
+        assert cata.get_patches(low_mem=False) == [cata]
+        assert catb.get_patches(low_mem=True) == [catb]
 
     # Patches start in an unloaded state (by default)
     cat5b = treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
@@ -204,8 +204,8 @@ def test_cat_patches():
         np.testing.assert_array_equal(catb.y,cat6.patches[i].y[cata.nobj:])
 
         # get_patches from a single patch will return a list with just itself.
-        assert cata.get_patches(False) == [cata]
-        assert catb.get_patches(True) == [catb]
+        assert cata.get_patches(low_mem=False) == [cata]
+        assert catb.get_patches(low_mem=True) == [catb]
 
     # 7. Set a single patch number
     cat7 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', patch=3)

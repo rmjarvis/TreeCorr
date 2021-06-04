@@ -511,7 +511,7 @@ class NField(Field):
 
     An NField is typically created from a Catalog object using
 
-        >>> nfield = cat.getNField(min_size, max_size, b)
+        >>> nfield = cat.getNField(min_size=min_size, max_size=max_size)
 
     Parameters:
         cat (Catalog):      The catalog from which to make the field.

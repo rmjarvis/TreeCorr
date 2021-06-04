@@ -131,10 +131,10 @@ def corr2(config, logger=None):
     set_omp_threads(num_threads, logger)
 
     # Read in the input files.  Each of these is a list.
-    cat1 = read_catalogs(config, 'file_name', 'file_list', 0, logger)
-    cat2 = read_catalogs(config, 'file_name2', 'file_list2', 1, logger)
-    rand1 = read_catalogs(config, 'rand_file_name', 'rand_file_list', 0, logger)
-    rand2 = read_catalogs(config, 'rand_file_name2', 'rand_file_list2', 1, logger)
+    cat1 = read_catalogs(config, 'file_name', 'file_list', num=0, logger=logger)
+    cat2 = read_catalogs(config, 'file_name2', 'file_list2', num=1, logger=logger)
+    rand1 = read_catalogs(config, 'rand_file_name', 'rand_file_list', num=0, logger=logger)
+    rand2 = read_catalogs(config, 'rand_file_name2', 'rand_file_list2', num=1, logger=logger)
     if len(cat1) == 0:
         raise TypeError("Either file_name or file_list is required")
     if len(cat2) == 0: cat2 = None

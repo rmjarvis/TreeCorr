@@ -1029,15 +1029,19 @@ class BinnedCorr2(object):
             # The first one though is definitely possible, so we need to check that.
             self.logger.debug("In sample_pairs, making default field for cat1")
             min_size, max_size = self._get_minmax_size()
-            f1 = cat1.getNField(min_size, max_size, self.split_method,
-                                self.brute is True or self.brute == 1,
-                                self.min_top, self.max_top, self.coords)
+            f1 = cat1.getNField(min_size=min_size, max_size=max_size,
+                                split_method=self.split_method,
+                                brute=self.brute is True or self.brute == 1,
+                                min_top=self.min_top, max_top=self.max_top,
+                                coords=self.coords)
         if f2 is None or f2._coords != self._coords:
             self.logger.debug("In sample_pairs, making default field for cat2")
             min_size, max_size = self._get_minmax_size()
-            f2 = cat2.getNField(min_size, max_size, self.split_method,
-                                self.brute is True or self.brute == 2,
-                                self.min_top, self.max_top, self.coords)
+            f2 = cat2.getNField(min_size=min_size, max_size=max_size,
+                                split_method=self.split_method,
+                                brute=self.brute is True or self.brute == 2,
+                                min_top=self.min_top, max_top=self.max_top,
+                                coords=self.coords)
 
         # Apply units to min_sep, max_sep:
         min_sep *= self._sep_units

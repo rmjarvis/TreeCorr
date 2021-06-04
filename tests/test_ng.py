@@ -19,6 +19,7 @@ import sys
 import coord
 import time
 import fitsio
+from unittest import mock
 
 from test_helper import do_pickle, CaptureLog
 from test_helper import assert_raises, timer, assert_warns
@@ -424,8 +425,6 @@ def test_single():
 
     # There is special handling for single-row catalogs when using np.genfromtxt rather
     # than pandas.  So mock it up to make sure we test it.
-    if sys.version_info < (3,): return  # mock only available on python 3
-    from unittest import mock
     treecorr.Catalog._emitted_pandas_warning = False  # Reset this, in case already triggered.
     with mock.patch.dict(sys.modules, {'pandas':None}):
         with CaptureLog() as cl:

@@ -18,6 +18,7 @@ import sys
 import logging
 import fitsio
 import numpy as np
+from unittest import mock
 
 from test_helper import CaptureLog, assert_raises, timer, assert_warns
 
@@ -337,8 +338,6 @@ def test_check():
 
     # corr2 has a list of standard aliases
     # It is currently empty, but let's mock it up to test the functionality.
-    if sys.version_info < (3,): return  # mock only available on python 3
-    from unittest import mock
     with mock.patch('treecorr.corr2_aliases', {'n2_file_name' : 'nn_file_name'}):
         with assert_warns(FutureWarning):
             config2 = treecorr.config.check_config(config1.copy(), valid_params,
@@ -496,8 +495,6 @@ def test_omp():
     # It's hard to tell what happens in the next step, since we can't control what
     # treecorr._lib.SetOMPThreads does.  It depends on whether OpenMP is enabled and
     # how many cores are available.  So let's mock it up.
-    if sys.version_info < (3,): return  # mock only available on python 3
-    from unittest import mock
     with mock.patch('treecorr.util._lib') as _lib:
         # First mock with OpenMP enables and able to use lots of threads
         _lib.SetOMPThreads = lambda x: x
@@ -564,9 +561,9 @@ def test_gen_read_write():
 
     with assert_raises(ValueError):
         treecorr.util.gen_read(file_name, file_type='Invalid')
-    with assert_raises((OSError, IOError)):  # IOError on py2.7
+    with assert_raises(OSError):
         treecorr.util.gen_read(file_name, file_type='ASCII')
-    with assert_raises((OSError, IOError)):
+    with assert_raises(OSError):
         treecorr.util.gen_read(file_name, file_type='FITS')
 
     # Now some working I/O
@@ -665,8 +662,6 @@ def test_gen_read_write():
         assert 'assumed to be HDF' in cl.output
 
     # Check that errors are reasonable if fitsio not installed.
-    if sys.version_info < (3,): return  # mock only available on python 3
-    from unittest import mock
     with mock.patch.dict(sys.modules, {'fitsio':None}):
         with assert_raises(ImportError):
             treecorr.util.gen_write(file_name2, ['a', 'b'], [a,b])
@@ -735,9 +730,9 @@ def test_gen_multi_read_write():
 
     with assert_raises(ValueError):
         treecorr.util.gen_multi_read(file_name, names, file_type='Invalid')
-    with assert_raises((OSError, IOError)):
+    with assert_raises(OSError):
         treecorr.util.gen_multi_read(file_name, names, file_type='ASCII')
-    with assert_raises((OSError, IOError)):
+    with assert_raises(OSError):
         treecorr.util.gen_multi_read(file_name, names, file_type='FITS')
 
 
@@ -833,15 +828,13 @@ def test_gen_multi_read_write():
     alt_names = ['k1','k2','k3']
     with assert_raises(OSError):
         treecorr.util.gen_multi_read(file_name3, alt_names, logger=cl.logger)
-    with assert_raises((OSError, IOError)):
+    with assert_raises(OSError):
         treecorr.util.gen_multi_read(file_name4, alt_names, logger=cl.logger)
     if h5py:
         with assert_raises(OSError):
             treecorr.util.gen_multi_read(file_name5, alt_names, logger=cl.logger)
 
     # Check that errors are reasonable if fitsio not installed.
-    if sys.version_info < (3,): return  # mock only available on python 3
-    from unittest import mock
     with mock.patch.dict(sys.modules, {'fitsio':None}):
         with assert_raises(ImportError):
             treecorr.util.gen_multi_write(file_name2, col_names, names, data)

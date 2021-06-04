@@ -202,7 +202,7 @@ class AsciiReader(object):
                                  delimiter=self.delimiter, max_rows=1)
             self.col_names = []
             if len(data.shape) != 1:  # pragma: no cover
-                raise IOError('Unable to parse the input catalog as a numpy array')
+                raise OSError('Unable to parse the input catalog as a numpy array')
             self.ncols = data.shape[0]
 
         return self

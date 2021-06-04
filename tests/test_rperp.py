@@ -138,7 +138,6 @@ def test_nn_direct_oldrperp():
 
     # If we set Rperp_alias = 'OldRperp', we can use Rperp.
     # Use mock for this
-    if sys.version_info < (3,): return  # mock only available on python 3
     from unittest import mock
     with mock.patch('treecorr.util.Rperp_alias', 'OldRperp'):
         dd.process(cat1, cat2, metric='Rperp')

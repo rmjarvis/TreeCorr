@@ -38,6 +38,7 @@ def get_from_wiki(file_name, host=None):
         except ImportError:
             from urllib import urlopen
         import shutil
+        import ssl
 
         print('downloading %s from %s...'%(local_file_name,url))
         # urllib.request.urlretrieve(url,local_file_name)
@@ -49,13 +50,9 @@ def get_from_wiki(file_name, host=None):
         # But that can only be done with urlopen, not urlretrieve.  So, here is the solution.
         # cf. http://stackoverflow.com/questions/7243750/download-file-from-web-in-python-3
         #     http://stackoverflow.com/questions/27835619/ssl-certificate-verify-failed-error
+        context = ssl._create_unverified_context()
         try:
-            import ssl
-            context = ssl._create_unverified_context()
             u = urlopen(url, context=context)
-        except (AttributeError, TypeError):
-            # Note: prior to 2.7.9, there is no such function or even the context keyword.
-            u = urlopen(url)
         except urllib.error.HTTPError as e:
             print('Caught ',e)
             print('Wait 10 sec and try again.')
@@ -161,7 +158,6 @@ class Dummy(unittest.TestCase):
         pass
 _t = Dummy('nop')
 assert_raises = getattr(_t, 'assertRaises')
-#if sys.version_info > (3,2):
 if False:
     # Note: this should work, but at least sometimes it fails with:
     #    RuntimeError: dictionary changed size during iteration

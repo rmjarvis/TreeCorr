@@ -89,8 +89,6 @@ def get_compiler_type(compiler, check_unknown=True, output=False):
         print('compiler version information: ')
         for line in lines:
             print(line.decode().strip())
-    # Python3 needs this decode bit.
-    # Python2.7 doesn't need it, but it works fine.
     line = lines[0].decode(encoding='UTF-8')
     if line.startswith('Configured'):
         line = lines[1].decode(encoding='UTF-8')

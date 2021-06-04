@@ -23,6 +23,7 @@ import pickle
 from numpy import pi
 import fitsio
 import treecorr
+from unittest import mock
 
 from test_helper import get_from_wiki, CaptureLog, assert_raises, do_pickle, timer, assert_warns
 
@@ -899,9 +900,6 @@ def test_ext():
                          w_col='w', wpos_col='wpos', flag_col='flag',
                          k_col='k', g1_col='g1', g2_col='g2',
                          ext=1)
-
-    if sys.version_info < (3,): return  # mock only available on python 3
-    from unittest import mock
 
     # test that the case where we can't slice works
     # by pretending that we are using an old fitsio version,

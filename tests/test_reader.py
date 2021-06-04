@@ -15,6 +15,7 @@ import os
 import sys
 import numpy as np
 import fitsio
+from unittest import mock
 
 from treecorr.reader import FitsReader, HdfReader, PandasReader, AsciiReader, ParquetReader
 from test_helper import get_from_wiki, assert_raises, timer
@@ -79,9 +80,6 @@ def test_fits_reader():
         # check we can also index by integer, not just number
         d = r.read(['DEC'], np.arange(10), 'AARDWOLF')
         assert d.size==10
-
-        if sys.version_info < (3,): return  # mock only available on python 3
-        from unittest import mock
 
     # Again check things not allowed if not in context
     with assert_raises(RuntimeError):

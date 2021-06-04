@@ -9,6 +9,7 @@ whose issue numbers are listed below for the relevant items.
 API Changes
 -----------
 
+- No longer supports Python 2.7.  Supports Python versions 3.6, 3.7, 3,8, 3.9.
 
 Performance improvements
 ------------------------

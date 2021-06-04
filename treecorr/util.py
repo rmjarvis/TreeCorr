@@ -18,6 +18,9 @@
 import numpy as np
 import os
 import coord
+import functools
+import inspect
+import warnings
 
 from . import _lib, _ffi, Rperp_alias
 
@@ -918,3 +921,57 @@ class lazy_property(object):
         value = self.fget(obj)
         setattr(obj, self.func_name, value)
         return value
+
+
+
+def depr_pos_kwargs(fn):
+    """
+    This decorator will allow the old API where keywords are allowed as positional variables,
+    but it will give a deprecation warning about it.
+
+    @depr_pos_kwargs
+    def func_with_kwargs(a, *, b=3, c=4):
+        ...
+
+    # Expected usage:
+    func_with_kwargs(1, b=5, c=9)
+
+    # This works, but gives a deprecation warning
+    func_with_kwargs(1, 5, 9)
+    """
+    # Note: this is inspired by the legacy_api_wrap decorator by flying-sheep, which does something
+    # similar.
+    # https://github.com/flying-sheep/legacy-api-wrap/blob/master/legacy_api_wrap.py
+    # However, it was reimplemented from scratch my MJ.
+
+    params = inspect.signature(fn).parameters
+    nparams = len(params)
+    nkwargs = len(fn.__kwdefaults__)
+    npos = nparams - nkwargs
+
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        if len(args) > npos:
+            # Make sure providing too many params is still a TypeError.
+            if len(args) > nparams:
+                raise TypeError("{} takes at most {} arguments but {} were given.".format(
+                        fn.__name__, nparams, len(args)))
+
+            # Which names need to turn into kwargs?
+            kw_names = list(params.keys())[npos:len(args)]
+
+            # Warn about deprecated syntax
+            warnings.warn(
+                "Use of keyword-only arguments as positional arguments is deprecated in "+
+                "the function " + fn.__name__ + ". " +
+                "The following parameters now require an explicit keyword name: "+
+                str(kw_names), FutureWarning)
+
+            # But make it work.
+            for a, n in zip(args[npos:], kw_names):
+                kwargs[n] = a
+            args = args[:npos]
+
+        return fn(*args, **kwargs)
+
+    return wrapper

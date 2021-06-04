@@ -106,9 +106,9 @@ def corr3(config, logger=None):
     set_omp_threads(num_threads, logger)
 
     # Read in the input files.  Each of these is a list.
-    cat1 = read_catalogs(config, 'file_name', 'file_list', 0, logger)
+    cat1 = read_catalogs(config, 'file_name', 'file_list', num=0, logger=logger)
     # TODO: when giving file_name2, file_name3, should now do the real CrossCorrelation process.
-    rand1 = read_catalogs(config, 'rand_file_name', 'rand_file_list', 0, logger)
+    rand1 = read_catalogs(config, 'rand_file_name', 'rand_file_list', num=0, logger=logger)
     if len(cat1) == 0:
         raise TypeError("Either file_name or file_list is required")
     if len(rand1) == 0: rand1 = None

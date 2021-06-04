@@ -1575,6 +1575,14 @@ def test_list():
         np.testing.assert_almost_equal(cats[k].x, x_list[k])
         np.testing.assert_almost_equal(cats[k].y, y_list[k])
 
+    # Providing positional args past list_key is now deprecated.
+    with assert_warns(FutureWarning):
+        cats = treecorr.read_catalogs(config, 'file_name', 'file_list', 0, None, None)
+    np.testing.assert_equal(len(cats), ncats)
+    for k in range(ncats):
+        np.testing.assert_almost_equal(cats[k].x, x_list[k])
+        np.testing.assert_almost_equal(cats[k].y, y_list[k])
+
 @timer
 def test_write():
     # Test that writing a Catalog to a file and then reading it back in works correctly
@@ -1734,12 +1742,12 @@ def test_field():
 
     t0 = time.time()
     nfield1 = cat1.getNField()
-    nfield2 = cat2.getNField(0.01, 1)
-    nfield3 = cat3.getNField(1,300, logger=logger)
+    nfield2 = cat2.getNField(min_size=0.01, max_size=1)
+    nfield3 = cat3.getNField(min_size=1, max_size=300, logger=logger)
     t1 = time.time()
     nfield1b = cat1.getNField()
-    nfield2b = cat2.getNField(0.01, 1)
-    nfield3b = cat3.getNField(1,300, logger=logger)
+    nfield2b = cat2.getNField(min_size=0.01, max_size=1)
+    nfield3b = cat3.getNField(min_size=1, max_size=300, logger=logger)
     t2 = time.time()
     assert cat1.nfields.count == 1
     assert cat2.nfields.count == 1
@@ -1754,14 +1762,30 @@ def test_field():
     print('nfield: ',t1-t0,t2-t1)
     assert t2-t1 < t1-t0
 
+    # Check warning if not using kwargs for now-kwarg-only params
+    with assert_warns(FutureWarning):
+        nfield2c = cat2.getNField(0.01, 1)
+    with assert_warns(FutureWarning):
+        nfield2d = cat2.getNField(0.01, max_size=1)
+    with assert_warns(FutureWarning):
+        nfield2e = cat2.getNField(0.01, 1, None, False, None, 10, None, None)
+    with assert_raises(TypeError):
+        # One too many, so this is still an error.
+        nfield2e = cat2.getNField(0.01, 1, None, False, None, 10, None, None, 77)
+    for k in nfield2.__dict__:
+        if k != 'data':
+            assert nfield2c.__dict__[k] == nfield2.__dict__[k]
+            assert nfield2d.__dict__[k] == nfield2.__dict__[k]
+            assert nfield2e.__dict__[k] == nfield2.__dict__[k]
+
     t0 = time.time()
     gfield1 = cat1.getGField()
-    gfield2 = cat2.getGField(0.01, 1)
-    gfield3 = cat3.getGField(1,300, logger=logger)
+    gfield2 = cat2.getGField(min_size=0.01, max_size=1)
+    gfield3 = cat3.getGField(min_size=1, max_size=300, logger=logger)
     t1 = time.time()
     gfield1b = cat1.getGField()
-    gfield2b = cat2.getGField(0.01, 1)
-    gfield3b = cat3.getGField(1,300, logger=logger)
+    gfield2b = cat2.getGField(min_size=0.01, max_size=1)
+    gfield3b = cat3.getGField(min_size=1, max_size=300, logger=logger)
     t2 = time.time()
     assert_raises(TypeError, cat4.getGField)
     assert cat1.gfields.count == 1
@@ -1778,12 +1802,12 @@ def test_field():
 
     t0 = time.time()
     kfield1 = cat1.getKField()
-    kfield2 = cat2.getKField(0.01, 1)
-    kfield3 = cat3.getKField(1,300, logger=logger)
+    kfield2 = cat2.getKField(min_size=0.01, max_size=1)
+    kfield3 = cat3.getKField(min_size=1, max_size=300, logger=logger)
     t1 = time.time()
     kfield1b = cat1.getKField()
-    kfield2b = cat2.getKField(0.01, 1)
-    kfield3b = cat3.getKField(1,300, logger=logger)
+    kfield2b = cat2.getKField(min_size=0.01, max_size=1)
+    kfield3b = cat3.getKField(min_size=1, max_size=300, logger=logger)
     t2 = time.time()
     assert_raises(TypeError, cat4.getKField)
     assert cat1.kfields.count == 1
@@ -1881,12 +1905,12 @@ def test_field():
 
     t0 = time.time()
     nfield1 = cat1.getNField()
-    nfield2 = cat1.getNField(0.01, 1)
-    nfield3 = cat1.getNField(1,300, logger=logger)
+    nfield2 = cat1.getNField(min_size=0.01, max_size=1)
+    nfield3 = cat1.getNField(min_size=1, max_size=300, logger=logger)
     t1 = time.time()
     nfield1b = cat1.getNField()
-    nfield2b = cat1.getNField(0.01, 1)
-    nfield3b = cat1.getNField(1,300, logger=logger)
+    nfield2b = cat1.getNField(min_size=0.01, max_size=1)
+    nfield3b = cat1.getNField(min_size=1, max_size=300, logger=logger)
     t2 = time.time()
     assert cat1.nfields.count == 3
     print('after resize(3) nfield: ',t1-t0,t2-t1)
@@ -1919,12 +1943,12 @@ def test_field():
     assert cat1.nfields.size == 0
     t0 = time.time()
     nfield1 = cat1.getNField()
-    nfield2 = cat1.getNField(0.01, 1)
-    nfield3 = cat1.getNField(1,300, logger=logger)
+    nfield2 = cat1.getNField(min_size=0.01, max_size=1)
+    nfield3 = cat1.getNField(min_size=1, max_size=300, logger=logger)
     t1 = time.time()
     nfield1b = cat1.getNField()
-    nfield2b = cat1.getNField(0.01, 1)
-    nfield3b = cat1.getNField(1,300, logger=logger)
+    nfield2b = cat1.getNField(min_size=0.01, max_size=1)
+    nfield3b = cat1.getNField(min_size=1, max_size=300, logger=logger)
     t2 = time.time()
     # This time, not much time difference.
     print('after resize(0) nfield: ',t1-t0,t2-t1)

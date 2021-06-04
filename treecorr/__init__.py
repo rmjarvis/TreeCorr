@@ -32,9 +32,9 @@ lib_file = os.path.join(treecorr_dir,'_treecorr.so')
 if not os.path.exists(lib_file): # pragma: no cover
     alt_files = glob.glob(os.path.join(os.path.dirname(__file__),'_treecorr*.so'))
     if len(alt_files) == 0:
-        raise IOError("No file '_treecorr.so' found in %s"%treecorr_dir)
+        raise OSError("No file '_treecorr.so' found in %s"%treecorr_dir)
     if len(alt_files) > 1:
-        raise IOError("Multiple files '_treecorr*.so' found in %s: %s"%(treecorr_dir,alt_files))
+        raise OSError("Multiple files '_treecorr*.so' found in %s: %s"%(treecorr_dir,alt_files))
     lib_file = alt_files[0]
 
 # Load the C functions with cffi

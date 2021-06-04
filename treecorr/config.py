@@ -15,7 +15,6 @@
 .. module:: config
 """
 
-from __future__ import print_function
 import sys
 import coord
 import numpy as np

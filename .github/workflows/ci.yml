@@ -22,7 +22,7 @@ jobs:
             matrix:
                 # First all python versions in basic linux
                 os: [ ubuntu-latest ]
-                py: [ 2.7, 3.5, 3.6, 3.7, 3.8, 3.9, pypy3 ]
+                py: [ 3.6, 3.7, 3.8, 3.9, pypy3 ]
                 CC: [ gcc ]
                 CXX: [ g++ ]
 
@@ -30,18 +30,18 @@ jobs:
                 include:
                     # A couple in MacOS
                     - os: macos-latest
-                      py: 2.7
+                      py: 3.7
                       CC: cc
                       CXX: c++
 
                     - os: macos-latest
-                      py: 3.7
+                      py: 3.9
                       CC: cc
                       CXX: c++
 
                     # Check one with clang compiler
                     - os: ubuntu-latest
-                      py: 3.7
+                      py: 3.8
                       CC: clang
                       CXX: clang++
 

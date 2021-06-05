@@ -89,7 +89,7 @@ def test_direct_count():
     rr = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0,
                                 verbose=0, xperiod=Lx, yperiod=Ly)
     rr.process(rcat1,rcat2, metric='Periodic')
-    xi, varxi = dd.calculateXi(rr)
+    xi, varxi = dd.calculateXi(rr=rr)
     print('xi = ',xi)
 
     # Do this via the corr2 function.

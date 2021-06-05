@@ -22,6 +22,8 @@ from .catalog import calculateVarK
 from .binnedcorr2 import BinnedCorr2
 from .util import double_ptr as dp
 from .util import gen_read, gen_write
+from .util import depr_pos_kwargs
+
 
 class NKCorrelation(BinnedCorr2):
     r"""This class handles the calculation and storage of a 2-point count-kappa correlation
@@ -98,10 +100,11 @@ class NKCorrelation(BinnedCorr2):
         **kwargs:       See the documentation for `BinnedCorr2` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
-    def __init__(self, config=None, logger=None, **kwargs):
+    @depr_pos_kwargs
+    def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `NKCorrelation`.  See class doc for details.
         """
-        BinnedCorr2.__init__(self, config, logger, **kwargs)
+        BinnedCorr2.__init__(self, config, logger=logger, **kwargs)
 
         self._ro._d1 = 1  # NData
         self._ro._d2 = 2  # KData
@@ -186,7 +189,8 @@ class NKCorrelation(BinnedCorr2):
     def __repr__(self):
         return 'NKCorrelation(config=%r)'%self.config
 
-    def process_cross(self, cat1, cat2, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_cross(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation.
 
         This accumulates the weighted sums into the bins, but does not finalize
@@ -229,8 +233,8 @@ class NKCorrelation(BinnedCorr2):
         _lib.ProcessCross2(self.corr, f1.data, f2.data, self.output_dots,
                            f1._d, f2._d, self._coords, self._bintype, self._metric)
 
-
-    def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_pairwise(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation, only using
         the corresponding pairs of objects in each catalog.
 
@@ -354,7 +358,8 @@ class NKCorrelation(BinnedCorr2):
         self.xi = self.raw_xi
         self.varxi = self.raw_varxi
 
-    def process(self, cat1, cat2, metric=None, num_threads=None, comm=None, low_mem=False,
+    @depr_pos_kwargs
+    def process(self, cat1, cat2, *, metric=None, num_threads=None, comm=None, low_mem=False,
                 initialize=True, finalize=True):
         """Compute the correlation function.
 
@@ -397,7 +402,8 @@ class NKCorrelation(BinnedCorr2):
             self.logger.info("vark = %f: sig_k = %f",vark,math.sqrt(vark))
             self.finalize(vark)
 
-    def calculateXi(self, rk=None):
+    @depr_pos_kwargs
+    def calculateXi(self, *, rk=None):
         r"""Calculate the correlation function possibly given another correlation function
         that uses random points for the foreground objects.
 
@@ -463,7 +469,7 @@ class NKCorrelation(BinnedCorr2):
             self._rk._calculate_xi_from_pairs(pairs)
             self.xi -= self._rk.xi
 
-    def write(self, file_name, rk=None, file_type=None, precision=None):
+    def write(self, file_name, * ,rk=None, file_type=None, precision=None):
         r"""Write the correlation function to the file, file_name.
 
         - If rk is None, the simple correlation function :math:`\langle \kappa \rangle(R)` is
@@ -504,7 +510,7 @@ class NKCorrelation(BinnedCorr2):
         """
         self.logger.info('Writing NK correlations to %s',file_name)
 
-        xi, varxi = self.calculateXi(rk)
+        xi, varxi = self.calculateXi(rk=rk)
         if precision is None:
             precision = self.config.get('precision', 4)
 
@@ -518,8 +524,8 @@ class NKCorrelation(BinnedCorr2):
               xi, np.sqrt(varxi), self.weight, self.npairs ],
             params=params, precision=precision, file_type=file_type, logger=self.logger)
 
-
-    def read(self, file_name, file_type=None):
+    @depr_pos_kwargs
+    def read(self, file_name, *, file_type=None):
         """Read in values from a file.
 
         This should be a file that was written by TreeCorr, preferably a FITS file, so there

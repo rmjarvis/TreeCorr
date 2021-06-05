@@ -22,6 +22,7 @@ from .catalog import calculateVarK
 from .binnedcorr2 import BinnedCorr2
 from .util import double_ptr as dp
 from .util import gen_read, gen_write
+from .util import depr_pos_kwargs
 
 
 class KKCorrelation(BinnedCorr2):
@@ -96,10 +97,11 @@ class KKCorrelation(BinnedCorr2):
         **kwargs:       See the documentation for `BinnedCorr2` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
-    def __init__(self, config=None, logger=None, **kwargs):
+    @depr_pos_kwargs
+    def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `KKCorrelation`.  See class doc for details.
         """
-        BinnedCorr2.__init__(self, config, logger, **kwargs)
+        BinnedCorr2.__init__(self, config, logger=logger, **kwargs)
 
         self._ro._d1 = 2  # KData
         self._ro._d2 = 2  # KData
@@ -173,7 +175,8 @@ class KKCorrelation(BinnedCorr2):
     def __repr__(self):
         return 'KKCorrelation(config=%r)'%self.config
 
-    def process_auto(self, cat, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_auto(self, cat, *, metric=None, num_threads=None):
         """Process a single catalog, accumulating the auto-correlation.
 
         This accumulates the weighted sums into the bins, but does not finalize
@@ -208,7 +211,8 @@ class KKCorrelation(BinnedCorr2):
         _lib.ProcessAuto2(self.corr, field.data, self.output_dots,
                           field._d, self._coords, self._bintype, self._metric)
 
-    def process_cross(self, cat1, cat2, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_cross(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation.
 
         This accumulates the weighted sums into the bins, but does not finalize
@@ -251,7 +255,8 @@ class KKCorrelation(BinnedCorr2):
         _lib.ProcessCross2(self.corr, f1.data, f2.data, self.output_dots,
                            f1._d, f2._d, self._coords, self._bintype, self._metric)
 
-    def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_pairwise(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation, only using
         the corresponding pairs of objects in each catalog.
 
@@ -371,7 +376,8 @@ class KKCorrelation(BinnedCorr2):
         np.sum([c.weight for c in others], axis=0, out=self.weight)
         np.sum([c.npairs for c in others], axis=0, out=self.npairs)
 
-    def process(self, cat1, cat2=None, metric=None, num_threads=None, comm=None, low_mem=False,
+    @depr_pos_kwargs
+    def process(self, cat1, cat2=None, *, metric=None, num_threads=None, comm=None, low_mem=False,
                 initialize=True, finalize=True):
         """Compute the correlation function.
 
@@ -427,7 +433,8 @@ class KKCorrelation(BinnedCorr2):
                 self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
             self.finalize(vark1,vark2)
 
-    def write(self, file_name, file_type=None, precision=None):
+    @depr_pos_kwargs
+    def write(self, file_name, *, file_type=None, precision=None):
         r"""Write the correlation function to the file, file_name.
 
         The output file will include the following columns:
@@ -471,8 +478,8 @@ class KKCorrelation(BinnedCorr2):
               self.xi, np.sqrt(self.varxi), self.weight, self.npairs ],
             params=params, precision=precision, file_type=file_type, logger=self.logger)
 
-
-    def read(self, file_name, file_type=None):
+    @depr_pos_kwargs
+    def read(self, file_name, *, file_type=None):
         """Read in values from a file.
 
         This should be a file that was written by TreeCorr, preferably a FITS file, so there

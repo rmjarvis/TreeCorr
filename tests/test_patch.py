@@ -1044,7 +1044,7 @@ def test_ng_jk():
     print('Time for processing RG = ',t1-t0)
 
     ng4 = ng3.copy()
-    ng4.calculateXi(rg4)
+    ng4.calculateXi(rg=rg4)
     print('xi = ',ng4.xi)
     print('varxi = ',ng4.varxi)
     print('ratio = ',ng4.varxi / var_xi)
@@ -1070,7 +1070,7 @@ def test_ng_jk():
     print('Time for processing RG = ',t1-t0)
 
     ng5 = ng3.copy()
-    ng5.calculateXi(rg5)
+    ng5.calculateXi(rg=rg5)
     print('xi = ',ng5.xi)
     print('varxi = ',ng5.varxi)
     print('ratio = ',ng5.varxi / var_xi)
@@ -1164,8 +1164,8 @@ def test_nn_jk():
             nr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
             nn.process(cat)
             nr.process(cat, rand_cat)
-            xia, varxi = nn.calculateXi(rr)
-            xib, varxi = nn.calculateXi(rr,nr)
+            xia, varxi = nn.calculateXi(rr=rr)
+            xib, varxi = nn.calculateXi(rr=rr, dr=nr)
             all_xia.append(xia)
             all_xib.append(xib)
 
@@ -1204,9 +1204,9 @@ def test_nn_jk():
     t1 = time.time()
     nr1.process(cat, rand_cat)
     t2 = time.time()
-    xia1, varxia1 = nn1.calculateXi(rr)
+    xia1, varxia1 = nn1.calculateXi(rr=rr)
     t3 = time.time()
-    xib1, varxib1 = nn1.calculateXi(rr,nr1)
+    xib1, varxib1 = nn1.calculateXi(rr=rr, dr=nr1)
     t4 = time.time()
     print('Time for non-patch processing = ',t1-t0, t2-t1, t3-t2, t4-t3)
 
@@ -1244,9 +1244,9 @@ def test_nn_jk():
     t1 = time.time()
     nr2.process(catp, rand_cat)
     t2 = time.time()
-    xia2, varxia2 = nn2.calculateXi(rr)
+    xia2, varxia2 = nn2.calculateXi(rr=rr)
     t3 = time.time()
-    xib2, varxib2 = nn2.calculateXi(rr,nr2)
+    xib2, varxib2 = nn2.calculateXi(rr=rr, dr=nr2)
     t4 = time.time()
     print('Time for shot processing = ',t1-t0, t2-t1, t3-t2, t4-t3)
     print('nn2.weight = ',nn2.weight)
@@ -1275,9 +1275,9 @@ def test_nn_jk():
     t1 = time.time()
     nr3.process(catp, rand_cat)
     t2 = time.time()
-    xia3, varxia3 = nn3.calculateXi(rr)
+    xia3, varxia3 = nn3.calculateXi(rr=rr)
     t3 = time.time()
-    xib3, varxib3 = nn3.calculateXi(rr,nr3)
+    xib3, varxib3 = nn3.calculateXi(rr=rr, dr=nr3)
     t4 = time.time()
     print('Time for jackknife processing = ',t1-t0, t2-t1, t3-t2, t4-t3)
     print('xia = ',xia3)
@@ -1317,14 +1317,14 @@ def test_nn_jk():
     print('Time for cross processing = ',t1-t0)
     np.testing.assert_allclose(nn3.weight, 2*nn2.weight)
     rn3.process(rand_cat, catp)
-    xic3, varxic3 = nn3.calculateXi(rr,rd=rn3)
+    xic3, varxic3 = nn3.calculateXi(rr=rr, rd=rn3)
     print('xic = ',xic3)
     print('varxic = ',varxic3)
     print('ratio = ',varxic3 / var_xib)
     print('ratio = ',varxic3 / varxib3)
     np.testing.assert_allclose(xic3, xib3)
     np.testing.assert_allclose(varxic3, varxib3)
-    xid3, varxid3 = nn3.calculateXi(rr,dr=nr3,rd=rn3)
+    xid3, varxid3 = nn3.calculateXi(rr=rr, dr=nr3, rd=rn3)
     print('xid = ',xid3)
     print('varxid = ',varxid3)
     print('ratio = ',varxid3 / var_xib)
@@ -1351,13 +1351,13 @@ def test_nn_jk():
     np.testing.assert_allclose(nn4.weight, nn2.weight)
     # Save the initial results dict so we test feature of adding additional result keys in dr or rd.
     res = nn4.results.copy()
-    xia4, varxia4 = nn4.calculateXi(rr4)
+    xia4, varxia4 = nn4.calculateXi(rr=rr4)
     nn4.results = res.copy()
-    xib4, varxib4 = nn4.calculateXi(rr4,dr=nr4)
+    xib4, varxib4 = nn4.calculateXi(rr=rr4, dr=nr4)
     nn4.results = res.copy()
-    xic4, varxic4 = nn4.calculateXi(rr4,rd=rn4)
+    xic4, varxic4 = nn4.calculateXi(rr=rr4, rd=rn4)
     nn4.results = res.copy()
-    xid4, varxid4 = nn4.calculateXi(rr4,dr=nr4,rd=rn4)
+    xid4, varxid4 = nn4.calculateXi(rr=rr4, dr=nr4, rd=rn4)
     print('xia = ',xia4)
     print('xib = ',xib4)
     print('xic = ',xic4)
@@ -1379,15 +1379,15 @@ def test_nn_jk():
     # Check some invalid parameters
     # randoms need patches, at least for d part.
     with assert_raises(RuntimeError):
-        nn3.calculateXi(rr,dr=nr1)
+        nn3.calculateXi(rr=rr, dr=nr1)
     with assert_raises(RuntimeError):
-        nn3.calculateXi(rr,dr=rn3)
+        nn3.calculateXi(rr=rr, dr=rn3)
     with assert_raises(RuntimeError):
-        nn3.calculateXi(rr,rd=nr3)
+        nn3.calculateXi(rr=rr, rd=nr3)
     with assert_raises(RuntimeError):
-        nn3.calculateXi(rr,dr=nr3,rd=nr3)
+        nn3.calculateXi(rr=rr, dr=nr3, rd=nr3)
     with assert_raises(RuntimeError):
-        nn3.calculateXi(rr,dr=rn3,rd=rn3)
+        nn3.calculateXi(rr=rr, dr=rn3, rd=rn3)
     # Not run on patches, but need patches
     with assert_raises(ValueError):
         nn1.estimate_cov('jackknife')
@@ -1411,17 +1411,17 @@ def test_nn_jk():
     rn6.process(rand_catp7, catp7)
     nr6.process(catp7, rand_catp7)
     with assert_raises(RuntimeError):
-        nn6.calculateXi(rr4)
+        nn6.calculateXi(rr=rr4)
     with assert_raises(RuntimeError):
-        nn6.calculateXi(rr6, dr=nr4)
+        nn6.calculateXi(rr=rr6, dr=nr4)
     with assert_raises(RuntimeError):
-        nn6.calculateXi(rr6, rd=rn4)
+        nn6.calculateXi(rr=rr6, rd=rn4)
     with assert_raises(RuntimeError):
-        nn6.calculateXi(rr6, dr=nr4, rd=rn6)
+        nn6.calculateXi(rr=rr6, dr=nr4, rd=rn6)
     with assert_raises(RuntimeError):
-        nn6.calculateXi(rr6, dr=nr6, rd=rn4)
+        nn6.calculateXi(rr=rr6, dr=nr6, rd=rn4)
     with assert_raises(RuntimeError):
-        nn6.calculateXi(rr4, dr=nr6, rd=rn6)
+        nn6.calculateXi(rr=rr4, dr=nr6, rd=rn6)
 
 @timer
 def test_kappa_jk():
@@ -1535,7 +1535,7 @@ def test_kappa_jk():
     print('Time for processing RK = ',t1-t0)
 
     nk2 = nk.copy()
-    nk2.calculateXi(rk2)
+    nk2.calculateXi(rk=rk2)
     print('xi = ',nk2.xi)
     print('varxi = ',nk2.varxi)
     print('ratio = ',nk2.varxi / var_nk_xi)
@@ -1551,7 +1551,7 @@ def test_kappa_jk():
     print('Time for processing RK = ',t1-t0)
 
     nk3 = nk.copy()
-    nk3.calculateXi(rk3)
+    nk3.calculateXi(rk=rk3)
     print('xi = ',nk3.xi)
     print('varxi = ',nk3.varxi)
     print('ratio = ',nk3.varxi / var_nk_xi)
@@ -1984,7 +1984,7 @@ def test_clusters():
     print('Time for processing RG = ',t1-t0)
 
     ng3b = ng3.copy()
-    ng3b.calculateXi(rg3)
+    ng3b.calculateXi(rg=rg3)
     print('xi = ',ng3b.xi)
     print('varxi = ',ng3b.varxi)
     print('ratio = ',ng3b.varxi / var_xi)
@@ -2076,7 +2076,7 @@ def test_brute_jk():
     # Repeat with randoms.
     rk = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
     rk.process(rand_lens_cat, source_cat)
-    nk.calculateXi(rk)
+    nk.calculateXi(rk=rk)
     print('With randoms:')
     print('nk = ',nk.xi)
     print('var = ',nk.varxi)
@@ -2095,7 +2095,7 @@ def test_brute_jk():
         nk1.process(lens_cat1, source_cat1)
         rk1 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
         rk1.process(rand_lens_cat1, source_cat1)
-        nk1.calculateXi(rk1)
+        nk1.calculateXi(rk=rk1)
         xi_list.append(nk1.xi)
     xi_list = np.array(xi_list)
     C = np.cov(xi_list.T, bias=True) * (len(xi_list)-1)
@@ -2173,7 +2173,7 @@ def test_brute_jk():
     # Repeat NG with randoms.
     rg = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
     rg.process(rand_lens_cat, source_cat)
-    ng.calculateXi(rg)
+    ng.calculateXi(rg=rg)
 
     xi_list = []
     for i in range(npatch):
@@ -2189,7 +2189,7 @@ def test_brute_jk():
         ng1.process(lens_cat1, source_cat1)
         rg1 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
         rg1.process(rand_lens_cat1, source_cat1)
-        ng1.calculateXi(rg1)
+        ng1.calculateXi(rg=rg1)
         xi_list.append(ng1.xi)
     xi_list = np.array(xi_list)
     C = np.cov(xi_list.T, bias=True) * (len(xi_list)-1)
@@ -2239,14 +2239,14 @@ def test_brute_jk():
         rd1.process(rand_lens_cat1, source_cat1)
         dr1 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
         dr1.process(lens_cat1, rand_source_cat1)
-        xi1_list.append(dd1.calculateXi(rr1)[0])
-        xi2_list.append(dd1.calculateXi(rr1,dr=dr1)[0])
-        xi3_list.append(dd1.calculateXi(rr1,rd=rd1)[0])
-        xi4_list.append(dd1.calculateXi(rr1,dr=dr1,rd=rd1)[0])
+        xi1_list.append(dd1.calculateXi(rr=rr1)[0])
+        xi2_list.append(dd1.calculateXi(rr=rr1, dr=dr1)[0])
+        xi3_list.append(dd1.calculateXi(rr=rr1, rd=rd1)[0])
+        xi4_list.append(dd1.calculateXi(rr=rr1, dr=dr1, rd=rd1)[0])
 
     print('(DD-RR)/RR')
     xi1_list = np.array(xi1_list)
-    xi1, varxi1 = dd.calculateXi(rr)
+    xi1, varxi1 = dd.calculateXi(rr=rr)
     varxi = np.diagonal(np.cov(xi1_list.T, bias=True)) * (len(xi1_list)-1)
     print('treecorr jackknife varxi = ',varxi1)
     print('direct jackknife varxi = ',varxi)
@@ -2254,7 +2254,7 @@ def test_brute_jk():
 
     print('(DD-2DR+RR)/RR')
     xi2_list = np.array(xi2_list)
-    xi2, varxi2 = dd.calculateXi(rr, dr=dr)
+    xi2, varxi2 = dd.calculateXi(rr=rr, dr=dr)
     varxi = np.diagonal(np.cov(xi2_list.T, bias=True)) * (len(xi2_list)-1)
     print('treecorr jackknife varxi = ',varxi2)
     print('direct jackknife varxi = ',varxi)
@@ -2262,7 +2262,7 @@ def test_brute_jk():
 
     print('(DD-2RD+RR)/RR')
     xi3_list = np.array(xi3_list)
-    xi3, varxi3 = dd.calculateXi(rr, rd=rd)
+    xi3, varxi3 = dd.calculateXi(rr=rr, rd=rd)
     varxi = np.diagonal(np.cov(xi3_list.T, bias=True)) * (len(xi3_list)-1)
     print('treecorr jackknife varxi = ',varxi3)
     print('direct jackknife varxi = ',varxi)
@@ -2270,7 +2270,7 @@ def test_brute_jk():
 
     print('(DD-DR-RD+RR)/RR')
     xi4_list = np.array(xi4_list)
-    xi4, varxi4 = dd.calculateXi(rr, rd=rd, dr=dr)
+    xi4, varxi4 = dd.calculateXi(rr=rr, rd=rd, dr=dr)
     varxi = np.diagonal(np.cov(xi4_list.T, bias=True)) * (len(xi4_list)-1)
     print('treecorr jackknife varxi = ',varxi4)
     print('direct jackknife varxi = ',varxi)

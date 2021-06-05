@@ -677,7 +677,7 @@ def test_ng():
                                 verbose=1)
     rg.process(rand_cat, source_cat)
     print('rg.xi = ',rg.xi)
-    xi, xi_im, varxi = ng.calculateXi(rg)
+    xi, xi_im, varxi = ng.calculateXi(rg=rg)
     print('compensated xi = ',xi)
     print('compensated xi_im = ',xi_im)
     print('true_gammat = ',true_gt)
@@ -688,6 +688,13 @@ def test_ng():
     # to the smallish number of lenses, not to edge effects
     np.testing.assert_allclose(xi, true_gt, rtol=0.1)
     np.testing.assert_allclose(xi_im, 0, atol=5.e-3)
+
+    # rg is still allowed as a positional argument, but deprecated
+    with assert_warns(FutureWarning):
+        xi_2, xi_im_2, varxi_2 = ng.calculateXi(rg)
+    np.testing.assert_array_equal(xi_2, xi)
+    np.testing.assert_array_equal(xi_im_2, xi_im)
+    np.testing.assert_array_equal(varxi_2, varxi)
 
     # Check that we get the same result using the corr2 function:
     lens_cat.write(os.path.join('data','ng_lens.fits'))
@@ -730,7 +737,7 @@ def test_ng():
     np.testing.assert_almost_equal(data['npairs'], ng.npairs)
 
     out_file_name2 = os.path.join('output','ng_out2.fits')
-    ng.write(out_file_name2, rg)
+    ng.write(out_file_name2, rg=rg)
     data = fitsio.read(out_file_name2)
     np.testing.assert_almost_equal(data['r_nom'], np.exp(ng.logr))
     np.testing.assert_almost_equal(data['meanr'], ng.meanr)
@@ -886,7 +893,7 @@ def test_nmap():
     np.testing.assert_allclose(data['sig_nmap'], np.sqrt(varnmap), rtol=1.e-8)
 
     fits_name = os.path.join('output', 'ng_norm.zzz')
-    ng.writeNorm(fits_name, gg, dd, rr, file_type='fits')
+    ng.writeNorm(fits_name, gg=gg, dd=dd, rr=rr, file_type='fits')
     data = fitsio.read(fits_name)
     np.testing.assert_allclose(data['NMap'], nmap, rtol=1.e-6)
     np.testing.assert_allclose(data['NMx'], nmx, atol=1.e-6)
@@ -897,6 +904,13 @@ def test_nmap():
     np.testing.assert_allclose(data['sig_mapsq'], np.sqrt(varmap), rtol=1.e-6)
     np.testing.assert_allclose(data['NMap_norm'], nmap_norm, rtol=1.e-6)
     np.testing.assert_allclose(data['Nsq_Mapsq'], napsq_mapsq, rtol=1.e-6)
+
+    with assert_warns(FutureWarning):
+        # This one in particular is worth checking, since some kw-onlt args don't have defaults,
+        # so it didn't actually work with my original implementation of depr_pos_kwargs
+        ng.writeNorm(fits_name, gg, dd, rr, file_type='fits')
+    data2 = fitsio.read(fits_name)
+    np.testing.assert_array_equal(data2, data)
 
     fits_name = os.path.join('output', 'ng_nmap2.fits')
     ng.writeNMap(fits_name, R=R, rg=rg)
@@ -1315,7 +1329,7 @@ def test_varxi():
 
     print('Compensated:')
 
-    all_xis = [ng.calculateXi(rg) for (ng,rg) in zip(all_ngs, all_rgs)]
+    all_xis = [ng.calculateXi(rg=rg) for (ng,rg) in zip(all_ngs, all_rgs)]
     mean_wt = np.mean([ng.weight for ng in all_ngs], axis=0)
     mean_xi = np.mean([xi[0] for xi in all_xis], axis=0)
     var_xi = np.var([xi[0] for xi in all_xis], axis=0)

@@ -382,7 +382,7 @@ class Field(object):
         return patches, centers
 
     @depr_pos_kwargs
-    def kmeans_initialize_centers(self, npatch, *, init='tree', rng=None):
+    def kmeans_initialize_centers(self, npatch, init='tree', *, rng=None):
         """Use the field's tree structure to assign good initial centers for a K-Means run.
 
         The classic K-Means algorithm involves starting with random points as the initial

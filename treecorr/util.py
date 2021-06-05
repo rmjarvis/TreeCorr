@@ -946,6 +946,9 @@ def depr_pos_kwargs(fn):
 
     params = inspect.signature(fn).parameters
     nparams = len(params)
+    # NB. This will trigger a TypeError on initial use if there are no kw-only parameters.
+    #     This is actually a feature, since it's probably a sign that the developer forgot to
+    #     add the *, item to the parameter list.  This decorator doesn't make sense without it.
     nkwargs = len(fn.__kwdefaults__)
     npos = nparams - nkwargs
 

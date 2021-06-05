@@ -22,6 +22,7 @@ from . import _lib, _ffi
 from .util import get_omp_threads, parse_xyzsep, coord_enum
 from .util import long_ptr as lp
 from .util import double_ptr as dp
+from .util import depr_pos_kwargs
 
 def _parse_split_method(split_method):
     if split_method == 'middle': return 0
@@ -263,7 +264,8 @@ class Field(object):
         _lib.FieldGetNear(self.data, x, y, z, sep, self._d, self._coords, lp(ind), n)
         return ind
 
-    def run_kmeans(self, npatch, max_iter=200, tol=1.e-5, init='tree', alt=False, rng=None):
+    @depr_pos_kwargs
+    def run_kmeans(self, npatch, *, max_iter=200, tol=1.e-5, init='tree', alt=False, rng=None):
         r"""Use k-means algorithm to set patch labels for a field.
 
         The k-means algorithm (cf. https://en.wikipedia.org/wiki/K-means_clustering) identifies
@@ -374,12 +376,13 @@ class Field(object):
                   spherical geometries.  In the latter case, the centers represent
                   (x,y,z) coordinates on the unit sphere.
         """
-        centers = self.kmeans_initialize_centers(npatch, init, rng)
-        self.kmeans_refine_centers(centers, max_iter, tol, alt)
+        centers = self.kmeans_initialize_centers(npatch, init=init, rng=rng)
+        self.kmeans_refine_centers(centers, max_iter=max_iter, tol=tol, alt=alt)
         patches = self.kmeans_assign_patches(centers)
         return patches, centers
 
-    def kmeans_initialize_centers(self, npatch, init='tree', rng=None):
+    @depr_pos_kwargs
+    def kmeans_initialize_centers(self, npatch, *, init='tree', rng=None):
         """Use the field's tree structure to assign good initial centers for a K-Means run.
 
         The classic K-Means algorithm involves starting with random points as the initial
@@ -435,7 +438,8 @@ class Field(object):
 
         return centers
 
-    def kmeans_refine_centers(self, centers, max_iter=200, tol=1.e-5, alt=False):
+    @depr_pos_kwargs
+    def kmeans_refine_centers(self, centers, *, max_iter=200, tol=1.e-5, alt=False):
         """Fast implementation of the K-Means algorithm
 
         The standard K-Means algorithm is as follows
@@ -530,7 +534,8 @@ class NField(Field):
                             number generation. (default: None)
         logger (Logger):    A logger file if desired. (default: None)
     """
-    def __init__(self, cat, min_size=0, max_size=None, split_method='mean', brute=False,
+    @depr_pos_kwargs
+    def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, rng=None, logger=None):
         if logger:
             if cat.name != '':
@@ -596,7 +601,8 @@ class KField(Field):
                             number generation. (default: None)
         logger (Logger):    A logger file if desired. (default: None)
     """
-    def __init__(self, cat, min_size=0, max_size=None, split_method='mean', brute=False,
+    @depr_pos_kwargs
+    def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, rng=None, logger=None):
         if logger:
             if cat.name != '':
@@ -660,7 +666,8 @@ class GField(Field):
                             number generation. (default: None)
         logger (Logger):    A logger file if desired. (default: None)
     """
-    def __init__(self, cat, min_size=0, max_size=None, split_method='mean', brute=False,
+    @depr_pos_kwargs
+    def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, rng=None, logger=None):
         if logger:
             if cat.name != '':
@@ -740,7 +747,8 @@ class NSimpleField(SimpleField):
         cat (Catalog):      The catalog from which to make the field.
         logger (Logger):    A logger file if desired. (default: None)
     """
-    def __init__(self, cat, logger=None):
+    @depr_pos_kwargs
+    def __init__(self, cat, *, logger=None):
         if logger:
             if cat.name != '':
                 logger.info('Building NSimpleField from cat %s',cat.name)
@@ -784,7 +792,8 @@ class KSimpleField(SimpleField):
         cat (Catalog):      The catalog from which to make the field.
         logger (Logger):    A logger file if desired. (default: None)
     """
-    def __init__(self, cat, logger=None):
+    @depr_pos_kwargs
+    def __init__(self, cat, *, logger=None):
         if logger:
             if cat.name != '':
                 logger.info('Building KSimpleField from cat %s',cat.name)
@@ -829,7 +838,8 @@ class GSimpleField(SimpleField):
         cat (Catalog):      The catalog from which to make the field.
         logger (Logger):    A logger file if desired. (default: None)
     """
-    def __init__(self, cat, logger=None):
+    @depr_pos_kwargs
+    def __init__(self, cat, *, logger=None):
         if logger:
             if cat.name != '':
                 logger.info('Building GSimpleField from cat %s',cat.name)

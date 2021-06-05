@@ -1481,8 +1481,14 @@ class Catalog(object):
     def nfields(self):
         if not hasattr(self, '_nfields'):
             # Make simple functions that call NField, etc. with self as the first argument.
-            def get_nfield(*args, **kwargs):
-                return NField(self, *args, **kwargs)
+            # Note: LRU_Cache keys on the args, not kwargs, so everything but logger should
+            # be in args for this function.  We convert them to kwargs for the NFields init call.
+            def get_nfield(min_size, max_size, split_method, brute, min_top, max_top, coords,
+                           rng, logger=None):
+                return NField(self, min_size=min_size, max_size=max_size,
+                              split_method=split_method, brute=brute,
+                              min_top=min_top, max_top=max_top, coords=coords,
+                              rng=rng, logger=logger)
             # Now wrap these in LRU_Caches with (initially) just 1 element being cached.
             self._nfields = LRU_Cache(get_nfield, 1)
         return self._nfields
@@ -1490,40 +1496,48 @@ class Catalog(object):
     @property
     def kfields(self):
         if not hasattr(self, '_kfields'):
-            def get_kfield(*args, **kwargs):
-                return KField(self, *args, **kwargs)
+            def get_kfield(min_size, max_size, split_method, brute, min_top, max_top, coords,
+                           rng, logger=None):
+                return KField(self, min_size=min_size, max_size=max_size,
+                              split_method=split_method, brute=brute,
+                              min_top=min_top, max_top=max_top, coords=coords,
+                              rng=rng, logger=logger)
             self._kfields = LRU_Cache(get_kfield, 1)
         return self._kfields
 
     @property
     def gfields(self):
         if not hasattr(self, '_gfields'):
-            def get_gfield(*args, **kwargs):
-                return GField(self, *args, **kwargs)
+            def get_gfield(min_size, max_size, split_method, brute, min_top, max_top, coords,
+                           rng, logger=None):
+                return GField(self, min_size=min_size, max_size=max_size,
+                              split_method=split_method, brute=brute,
+                              min_top=min_top, max_top=max_top, coords=coords,
+                              rng=rng, logger=logger)
             self._gfields = LRU_Cache(get_gfield, 1)
         return self._gfields
 
     @property
     def nsimplefields(self):
         if not hasattr(self, '_nsimplefields'):
-            def get_nsimplefield(*args,**kwargs):
-                return NSimpleField(self,*args,**kwargs)
+            def get_nsimplefield(logger=None):
+                return NSimpleField(self, logger=logger)
             self._nsimplefields = LRU_Cache(get_nsimplefield, 1)
         return self._nsimplefields
 
     @property
     def ksimplefields(self):
         if not hasattr(self, '_ksimplefields'):
-            def get_ksimplefield(*args,**kwargs):
-                return KSimpleField(self,*args,**kwargs)
+            def get_ksimplefield(logger=None):
+                return KSimpleField(self, logger=logger)
             self._ksimplefields = LRU_Cache(get_ksimplefield, 1)
         return self._ksimplefields
 
     @property
     def gsimplefields(self):
         if not hasattr(self, '_gsimplefields'):
-            def get_gsimplefield(*args,**kwargs):
-                return GSimpleField(self,*args,**kwargs)
+            def get_gsimplefield(logger=None):
+                return GSimpleField(self, logger=logger)
             self._gsimplefields = LRU_Cache(get_gsimplefield, 1)
         return self._gsimplefields
 

@@ -22,6 +22,8 @@ from .catalog import calculateVarG
 from .binnedcorr2 import BinnedCorr2
 from .util import double_ptr as dp
 from .util import gen_read, gen_write
+from .util import depr_pos_kwargs
+
 
 class GGCorrelation(BinnedCorr2):
     r"""This class handles the calculation and storage of a 2-point shear-shear correlation
@@ -95,10 +97,11 @@ class GGCorrelation(BinnedCorr2):
         **kwargs:       See the documentation for `BinnedCorr2` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
-    def __init__(self, config=None, logger=None, **kwargs):
+    @depr_pos_kwargs
+    def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `GGCorrelation`.  See class doc for details.
         """
-        BinnedCorr2.__init__(self, config, logger, **kwargs)
+        BinnedCorr2.__init__(self, config, logger=logger, **kwargs)
 
         self._ro._d1 = 3  # GData
         self._ro._d2 = 3  # GData
@@ -180,7 +183,8 @@ class GGCorrelation(BinnedCorr2):
     def __repr__(self):
         return 'GGCorrelation(config=%r)'%self.config
 
-    def process_auto(self, cat, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_auto(self, cat, *, metric=None, num_threads=None):
         """Process a single catalog, accumulating the auto-correlation.
 
         This accumulates the weighted sums into the bins, but does not finalize
@@ -217,7 +221,8 @@ class GGCorrelation(BinnedCorr2):
                           field._d, self._coords, self._bintype, self._metric)
 
 
-    def process_cross(self, cat1, cat2, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_cross(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation.
 
         This accumulates the weighted sums into the bins, but does not finalize
@@ -261,7 +266,8 @@ class GGCorrelation(BinnedCorr2):
                            f1._d, f2._d, self._coords, self._bintype, self._metric)
 
 
-    def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_pairwise(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation, only using
         the corresponding pairs of objects in each catalog.
 
@@ -409,7 +415,8 @@ class GGCorrelation(BinnedCorr2):
         np.sum([c.weight for c in others], axis=0, out=self.weight)
         np.sum([c.npairs for c in others], axis=0, out=self.npairs)
 
-    def process(self, cat1, cat2=None, metric=None, num_threads=None, comm=None, low_mem=False,
+    @depr_pos_kwargs
+    def process(self, cat1, cat2=None, *, metric=None, num_threads=None, comm=None, low_mem=False,
                 initialize=True, finalize=True):
         """Compute the correlation function.
 
@@ -466,7 +473,8 @@ class GGCorrelation(BinnedCorr2):
             self.finalize(varg1,varg2)
 
 
-    def write(self, file_name, file_type=None, precision=None):
+    @depr_pos_kwargs
+    def write(self, file_name, *, file_type=None, precision=None):
         r"""Write the correlation function to the file, file_name.
 
         The output file will include the following columns:
@@ -519,7 +527,8 @@ class GGCorrelation(BinnedCorr2):
             params=params, precision=precision, file_type=file_type, logger=self.logger)
 
 
-    def read(self, file_name, file_type=None):
+    @depr_pos_kwargs
+    def read(self, file_name, *, file_type=None):
         """Read in values from a file.
 
         This should be a file that was written by TreeCorr, preferably a FITS file, so there
@@ -567,7 +576,8 @@ class GGCorrelation(BinnedCorr2):
         self._ro.bin_type = params['bin_type'].strip()
 
 
-    def calculateMapSq(self, R=None, m2_uform=None):
+    @depr_pos_kwargs
+    def calculateMapSq(self, *, R=None, m2_uform=None):
         r"""Calculate the aperture mass statistics from the correlation function.
 
         .. math::
@@ -677,7 +687,8 @@ class GGCorrelation(BinnedCorr2):
         return mapsq, mapsq_im, mxsq, mxsq_im, varmapsq
 
 
-    def calculateGamSq(self, R=None, eb=False):
+    @depr_pos_kwargs
+    def calculateGamSq(self, *, R=None, eb=False):
         r"""Calculate the tophat shear variance from the correlation function.
 
         .. math::
@@ -758,7 +769,8 @@ class GGCorrelation(BinnedCorr2):
         return gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_e
 
 
-    def writeMapSq(self, file_name, R=None, m2_uform=None, file_type=None, precision=None):
+    @depr_pos_kwargs
+    def writeMapSq(self, file_name, *, R=None, m2_uform=None, file_type=None, precision=None):
         r"""Write the aperture mass statistics based on the correlation function to the
         file, file_name.
 
@@ -800,8 +812,8 @@ class GGCorrelation(BinnedCorr2):
 
         if R is None:
             R = self.rnom
-        mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = self.calculateMapSq(R, m2_uform=m2_uform)
-        gamsq, vargamsq = self.calculateGamSq(R)
+        mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = self.calculateMapSq(R=R, m2_uform=m2_uform)
+        gamsq, vargamsq = self.calculateGamSq(R=R)
         if precision is None:
             precision = self.config.get('precision', 4)
 

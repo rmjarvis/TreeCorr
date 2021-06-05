@@ -667,7 +667,7 @@ def test_mapsq():
     # (We provide the range where the results worked out well above.)
     R = gg.rnom[16::2]
     print('R = ',R)
-    mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq(R)
+    mapsq, mapsq_im, mxsq, mxsq_im, varmapsq = gg.calculateMapSq(R=R)
     true_mapsq = true_mapsq[16::2]
     print('mapsq = ',mapsq)
     print('true_mapsq = ',true_mapsq)
@@ -678,6 +678,15 @@ def test_mapsq():
     print('mxsq = ',mxsq)
     print('max = ',max(abs(mxsq)))
     np.testing.assert_allclose(mxsq, 0., atol=3.e-8)
+
+    # Giving R as a positional argument is currently still allowed, but deprecated.
+    with assert_warns(FutureWarning):
+        mapsq_2, mapsq_im_2, mxsq_2, mxsq_im_2, varmapsq_2 = gg.calculateMapSq(R)
+    np.testing.assert_array_equal(mapsq_2, mapsq)
+    np.testing.assert_array_equal(mapsq_im_2, mapsq_im)
+    np.testing.assert_array_equal(mxsq_2, mxsq)
+    np.testing.assert_array_equal(mxsq_im_2, mxsq_im)
+    np.testing.assert_array_equal(varmapsq_2, varmapsq)
 
     mapsq_file = 'output/gg_m2b.txt'
     gg.writeMapSq(mapsq_file, R=R, precision=16)
@@ -750,7 +759,7 @@ def test_mapsq():
     # (We provide the range where the results worked out well above.)
     R = gg.rnom[6:40:4]
     print('R = ',R)
-    gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_eb = gg.calculateGamSq(R, eb=True)
+    gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_eb = gg.calculateGamSq(R=R, eb=True)
     true_gamsq = true_gamsq[6:40:4]
     print('gamsq_e = ',gamsq_e)
     print('true_gamsq = ',true_gamsq)

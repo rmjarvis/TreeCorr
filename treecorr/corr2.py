@@ -147,7 +147,7 @@ def corr2(config, logger=None):
     # Do GG correlation function if necessary
     if 'gg_file_name' in config or 'm2_file_name' in config:
         logger.warning("Performing GG calculations...")
-        gg = GGCorrelation(config,logger)
+        gg = GGCorrelation(config, logger=logger)
         gg.process(cat1,cat2)
         logger.info("Done GG calculations.")
         if 'gg_file_name' in config:
@@ -162,7 +162,7 @@ def corr2(config, logger=None):
         if cat2 is None:
             raise TypeError("file_name2 is required for ng correlation")
         logger.warning("Performing NG calculations...")
-        ng = NGCorrelation(config,logger)
+        ng = NGCorrelation(config, logger=logger)
         ng.process(cat1,cat2)
         logger.info("Done NG calculation.")
 
@@ -172,12 +172,12 @@ def corr2(config, logger=None):
             if config.get('ng_statistic',None) == 'compensated':
                 raise TypeError("rand_files is required for ng_statistic = compensated")
         elif config.get('ng_statistic','compensated') == 'compensated':
-            rg = NGCorrelation(config,logger)
+            rg = NGCorrelation(config, logger=logger)
             rg.process(rand1,cat2)
             logger.info("Done RG calculation.")
 
         if 'ng_file_name' in config:
-            ng.write(config['ng_file_name'], rg)
+            ng.write(config['ng_file_name'], rg=rg)
             logger.warning("Wrote NG correlation to %s",config['ng_file_name'])
         if 'nm_file_name' in config:
             ng.writeNMap(config['nm_file_name'], rg=rg, m2_uform=config['m2_uform'],
@@ -185,17 +185,17 @@ def corr2(config, logger=None):
             logger.warning("Wrote NMap values to %s",config['nm_file_name'])
 
         if 'norm_file_name' in config:
-            gg = GGCorrelation(config,logger)
+            gg = GGCorrelation(config, logger=logger)
             gg.process(cat2)
             logger.info("Done GG calculation for norm")
-            dd = NNCorrelation(config,logger)
+            dd = NNCorrelation(config, logger=logger)
             dd.process(cat1)
             logger.info("Done DD calculation for norm")
-            rr = NNCorrelation(config,logger)
+            rr = NNCorrelation(config, logger=logger)
             rr.process(rand1)
             logger.info("Done RR calculation for norm")
             if config['nn_statistic'] == 'compensated':
-                dr = NNCorrelation(config,logger)
+                dr = NNCorrelation(config, logger=logger)
                 dr.process(cat1,rand1)
                 logger.info("Done DR calculation for norm")
             else:
@@ -207,7 +207,7 @@ def corr2(config, logger=None):
     # Do NN correlation function if necessary
     if 'nn_file_name' in config:
         logger.warning("Performing DD calculations...")
-        dd = NNCorrelation(config,logger)
+        dd = NNCorrelation(config, logger=logger)
         dd.process(cat1,cat2)
         logger.info("Done DD calculations.")
 
@@ -218,38 +218,38 @@ def corr2(config, logger=None):
             rr = None
         elif cat2 is None:
             logger.warning("Performing RR calculations...")
-            rr = NNCorrelation(config,logger)
+            rr = NNCorrelation(config, logger=logger)
             rr.process(rand1)
             logger.info("Done RR calculations.")
 
             if config['nn_statistic'] == 'compensated':
                 logger.warning("Performing DR calculations...")
-                dr = NNCorrelation(config,logger)
+                dr = NNCorrelation(config, logger=logger)
                 dr.process(cat1,rand1)
                 logger.info("Done DR calculations.")
         else:
             if rand2 is None:
                 raise TypeError("rand_file_name2 is required when file_name2 is given")
             logger.warning("Performing RR calculations...")
-            rr = NNCorrelation(config,logger)
+            rr = NNCorrelation(config, logger=logger)
             rr.process(rand1,rand2)
             logger.info("Done RR calculations.")
 
             if config['nn_statistic'] == 'compensated':
                 logger.warning("Performing DR calculations...")
-                dr = NNCorrelation(config,logger)
+                dr = NNCorrelation(config, logger=logger)
                 dr.process(cat1,rand2)
                 logger.info("Done DR calculations.")
-                rd = NNCorrelation(config,logger)
+                rd = NNCorrelation(config, logger=logger)
                 rd.process(rand1,cat2)
                 logger.info("Done RD calculations.")
-        dd.write(config['nn_file_name'],rr,dr,rd)
+        dd.write(config['nn_file_name'], rr=rr, dr=dr, rd=rd)
         logger.warning("Wrote NN correlation to %s",config['nn_file_name'])
 
     # Do KK correlation function if necessary
     if 'kk_file_name' in config:
         logger.warning("Performing KK calculations...")
-        kk = KKCorrelation(config,logger)
+        kk = KKCorrelation(config, logger=logger)
         kk.process(cat1,cat2)
         logger.info("Done KK calculations.")
         kk.write(config['kk_file_name'])
@@ -260,7 +260,7 @@ def corr2(config, logger=None):
         if cat2 is None:
             raise TypeError("file_name2 is required for nk correlation")
         logger.warning("Performing NK calculations...")
-        nk = NKCorrelation(config,logger)
+        nk = NKCorrelation(config, logger=logger)
         nk.process(cat1,cat2)
         logger.info("Done NK calculation.")
 
@@ -269,11 +269,11 @@ def corr2(config, logger=None):
             if config.get('nk_statistic',None) == 'compensated':
                 raise TypeError("rand_files is required for nk_statistic = compensated")
         elif config.get('nk_statistic','compensated') == 'compensated':
-            rk = NKCorrelation(config,logger)
+            rk = NKCorrelation(config, logger=logger)
             rk.process(rand1,cat2)
             logger.info("Done RK calculation.")
 
-        nk.write(config['nk_file_name'], rk)
+        nk.write(config['nk_file_name'], rk=rk)
         logger.warning("Wrote NK correlation to %s",config['nk_file_name'])
 
     # Do KG correlation function if necessary
@@ -281,7 +281,7 @@ def corr2(config, logger=None):
         if cat2 is None:
             raise TypeError("file_name2 is required for kg correlation")
         logger.warning("Performing KG calculations...")
-        kg = KGCorrelation(config,logger)
+        kg = KGCorrelation(config, logger=logger)
         kg.process(cat1,cat2)
         logger.info("Done KG calculation.")
         kg.write(config['kg_file_name'])

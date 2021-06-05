@@ -23,6 +23,7 @@ import coord
 from . import _lib
 from .config import merge_config, setup_logger, get
 from .util import parse_metric, metric_enum, coord_enum, set_omp_threads, lazy_property
+from .util import depr_pos_kwargs
 
 class Namespace(object):
     pass
@@ -271,7 +272,8 @@ class BinnedCorr2(object):
                 'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
     }
 
-    def __init__(self, config=None, logger=None, rng=None, **kwargs):
+    @depr_pos_kwargs
+    def __init__(self, config=None, *, logger=None, rng=None, **kwargs):
         self._corr = None  # Do this first to make sure we always have it for __del__
         self.config = merge_config(config,kwargs,BinnedCorr2._valid_params)
         if logger is None:
@@ -635,7 +637,7 @@ class BinnedCorr2(object):
             return ret
 
         if len(cat1) == 1 and cat1[0].npatch == 1:
-            self.process_auto(cat1[0],metric,num_threads)
+            self.process_auto(cat1[0], metric=metric, num_threads=num_threads)
         else:
             # When patch processing, keep track of the pair-wise results.
             if self.npatch1 == 1:
@@ -658,7 +660,7 @@ class BinnedCorr2(object):
                 if is_my_job(my_indices, i, i, n):
                     temp._clear()
                     self.logger.info('Process patch %d auto',i)
-                    temp.process_auto(c1,metric,num_threads)
+                    temp.process_auto(c1, metric=metric, num_threads=num_threads)
                     if (i,i) not in self.results:
                         self.results[(i,i)] = temp.copy()
                     else:
@@ -670,7 +672,7 @@ class BinnedCorr2(object):
                         temp._clear()
                         if not self._trivially_zero(c1,c2,metric):
                             self.logger.info('Process patches %d,%d cross',i,j)
-                            temp.process_cross(c1,c2,metric,num_threads)
+                            temp.process_cross(c1, c2, metric=metric, num_threads=num_threads)
                         else:
                             self.logger.info('Skipping %d,%d pair, which are too far apart ' +
                                              'for this set of separations',i,j)
@@ -733,9 +735,9 @@ class BinnedCorr2(object):
             for c1,c2 in zip(cat1,cat2):
                 if c1.ntot != c2.ntot:
                     raise ValueError("Number of objects must be equal for pairwise.")
-                self.process_pairwise(c1,c2,metric,num_threads)
+                self.process_pairwise(c1, c2, metric=metric, num_threads=num_threads)
         elif len(cat1) == 1 and len(cat2) == 1 and cat1[0].npatch == 1 and cat2[0].npatch == 1:
-            self.process_cross(cat1[0],cat2[0],metric,num_threads)
+            self.process_cross(cat1[0], cat2[0], metric=metric, num_threads=num_threads)
         else:
             # When patch processing, keep track of the pair-wise results.
             if self.npatch1 == 1:
@@ -767,7 +769,7 @@ class BinnedCorr2(object):
                         temp._clear()
                         if not self._trivially_zero(c1,c2,metric):
                             self.logger.info('Process patches %d,%d cross',i,j)
-                            temp.process_cross(c1,c2,metric,num_threads)
+                            temp.process_cross(c1, c2, metric=metric, num_threads=num_threads)
                         else:
                             self.logger.info('Skipping %d,%d pair, which are too far apart ' +
                                              'for this set of separations',i,j)
@@ -814,7 +816,8 @@ class BinnedCorr2(object):
         """
         return self.weight.ravel()
 
-    def estimate_cov(self, method, func=None):
+    @depr_pos_kwargs
+    def estimate_cov(self, method, *, func=None):
         """Estimate the covariance matrix based on the data
 
         This function will calculate an estimate of the covariance matrix according to the
@@ -887,7 +890,7 @@ class BinnedCorr2(object):
             all_func = lambda corrs: func(corrs[0])
         else:
             all_func = None
-        return estimate_multi_cov([self], method, all_func)
+        return estimate_multi_cov([self], method=method, func=all_func)
 
     def _set_num_threads(self, num_threads):
         if num_threads is None:
@@ -961,7 +964,8 @@ class BinnedCorr2(object):
             # (And for the max_size, always split 10 levels for the top-level cells.)
             return 0., 0.
 
-    def sample_pairs(self, n, cat1, cat2, min_sep, max_sep, metric=None):
+    @depr_pos_kwargs
+    def sample_pairs(self, n, cat1, cat2, *, min_sep, max_sep, metric=None):
         """Return a random sample of n pairs whose separations fall between min_sep and max_sep.
 
         This would typically be used to get some random subset of the indices of pairs that
@@ -999,9 +1003,11 @@ class BinnedCorr2(object):
             cat2 (Catalog):     The catalog from which to sample the second object of each pair.
                                 (This may be the same as cat1.)
             min_sep (float):    The minimum separation for the returned pairs (modulo some slop
-                                allowed by the bin_slop parameter).
+                                allowed by the bin_slop parameter). (Note: keyword name is required
+                                for this parameter: min_sep=min_sep)
             max_sep (float):    The maximum separation for the returned pairs (modulo some slop
-                                allowed by the bin_slop parameter).
+                                allowed by the bin_slop parameter). (Note: keyword name is required
+                                for this parameter: max_sep=max_sep)
             metric (str):       Which metric to use.  See `Metrics` for details.  (default:
                                 self.metric, or 'Euclidean' if not set yet)
 
@@ -1156,7 +1162,8 @@ class BinnedCorr2(object):
             return ret
 
 
-def estimate_multi_cov(corrs, method, func=None):
+@depr_pos_kwargs
+def estimate_multi_cov(corrs, method, *, func=None):
     """Estimate the covariance matrix of multiple statistics.
 
     This is like the method `BinnedCorr2.estimate_cov`, except that it will acoommodate
@@ -1187,7 +1194,7 @@ def estimate_multi_cov(corrs, method, func=None):
     along with the GG xi+ and xi- from the same area, using jackknife covariance estimation,
     you would write::
 
-        >>> cov = treecorr.estimate_multi_cov([ng,gg], 'jackknife')
+        >>> cov = treecorr.estimate_multi_cov([ng,gg], method='jackknife')
 
     In all cases, the relevant processing needs to already have been completed and finalized.
     And for all methods other than 'shot', the processing should have involved an appropriate

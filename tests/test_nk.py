@@ -427,7 +427,7 @@ def test_nk():
                                 verbose=1)
     rk.process(rand_cat, source_cat)
     print('rk.xi = ',rk.xi)
-    xi, varxi = nk.calculateXi(rk)
+    xi, varxi = nk.calculateXi(rk=rk)
     print('compensated xi = ',xi)
     print('true_kappa = ',true_k)
     print('ratio = ',xi / true_k)
@@ -436,6 +436,12 @@ def test_nk():
     # It turns out this doesn't come out much better.  I think the imprecision is mostly just due
     # to the smallish number of lenses, not to edge effects
     np.testing.assert_allclose(nk.xi, true_k, rtol=0.05, atol=1.e-3)
+
+    # rk is still allowed as a positional argument, but deprecated
+    with assert_warns(FutureWarning):
+        xi_2, varxi_2 = nk.calculateXi(rk)
+    np.testing.assert_array_equal(xi_2, xi)
+    np.testing.assert_array_equal(varxi_2, varxi)
 
     # Check that we get the same result using the corr2 function
     lens_cat.write(os.path.join('data','nk_lens.fits'))
@@ -475,7 +481,7 @@ def test_nk():
     np.testing.assert_almost_equal(data['npairs'], nk.npairs)
 
     out_file_name2 = os.path.join('output','nk_out2.fits')
-    nk.write(out_file_name2, rk)
+    nk.write(out_file_name2, rk=rk)
     data = fitsio.read(out_file_name2)
     np.testing.assert_almost_equal(data['r_nom'], np.exp(nk.logr))
     np.testing.assert_almost_equal(data['meanr'], nk.meanr)
@@ -571,7 +577,7 @@ def test_varxi():
 
     print('Compensated:')
 
-    all_xis = [nk.calculateXi(rk) for (nk,rk) in zip(all_nks, all_rks)]
+    all_xis = [nk.calculateXi(rk=rk) for (nk,rk) in zip(all_nks, all_rks)]
     mean_wt = np.mean([nk.weight for nk in all_nks], axis=0)
     mean_xi = np.mean([xi[0] for xi in all_xis], axis=0)
     var_xi = np.var([xi[0] for xi in all_xis], axis=0)

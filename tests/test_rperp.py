@@ -285,8 +285,8 @@ def test_rperp_minmax():
         print('dr2 npairs = ',dr2.npairs[2:-2])
         np.testing.assert_allclose(dr1.npairs, dr2.npairs[2:-2], rtol=1.e-6)
 
-        xi1, varxi1 = dd1.calculateXi(rr1, dr1)
-        xi2, varxi2 = dd2.calculateXi(rr2, dr2)
+        xi1, varxi1 = dd1.calculateXi(rr=rr1, dr=dr1)
+        xi2, varxi2 = dd2.calculateXi(rr=rr2, dr=dr2)
         print('xi1 = ',xi1)
         print('xi2 = ',xi2[2:-2])
         np.testing.assert_allclose(xi1, xi2[2:-2], rtol=1.e-6)

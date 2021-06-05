@@ -481,12 +481,18 @@ def test_direct_count():
     rr = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True,
                                 verbose=0)
     rr.process(rcat1,rcat2)
-    xi, varxi = dd.calculateXi(rr)
+    xi, varxi = dd.calculateXi(rr=rr)
 
     # After calling calculateXi, you can access the result via attributes
     np.testing.assert_array_equal(xi, dd.xi)
     np.testing.assert_array_equal(varxi, dd.varxi)
     np.testing.assert_array_equal(varxi, dd.cov.diagonal())
+
+    # rr is still allowed as a positional argument, but deprecated
+    with assert_warns(FutureWarning):
+        xi_2, varxi_2 = dd.calculateXi(rr)
+    np.testing.assert_array_equal(xi_2, xi)
+    np.testing.assert_array_equal(varxi_2, varxi)
 
     # First do this via the corr2 function.
     config = treecorr.config.read_config('configs/nn_direct.yaml')
@@ -1117,7 +1123,7 @@ def test_direct_linear():
     rd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True,
                                 bin_type='Linear', verbose=0)
     rd.process(rcat1,cat2)
-    xi, varxi = dd.calculateXi(rr, dr, rd)
+    xi, varxi = dd.calculateXi(rr=rr, dr=dr, rd=rd)
 
     # After calling calculateXi, you can access the result via attributes
     np.testing.assert_array_equal(xi, dd.xi)
@@ -1237,7 +1243,7 @@ def test_nn():
     r = dd.meanr
     true_xi = 0.25/np.pi * (L/s)**2 * np.exp(-0.25*r**2/s**2) - 1.
 
-    xi, varxi = dd.calculateXi(rr,dr)
+    xi, varxi = dd.calculateXi(rr=rr,dr=dr)
     print('xi = ',xi)
     print('true_xi = ',true_xi)
     print('ratio = ',xi / true_xi)
@@ -1250,7 +1256,7 @@ def test_nn():
     np.testing.assert_allclose(np.log(np.abs(xi)), np.log(np.abs(true_xi)),
                                atol=0.1*tol_factor)
 
-    simple_xi, simple_varxi = dd.calculateXi(rr)
+    simple_xi, simple_varxi = dd.calculateXi(rr=rr)
     print('simple xi = ',simple_xi)
     print('max rel diff = ',max(abs((simple_xi - true_xi)/true_xi)))
     # The simple calculation (i.e. dd/rr-1, rather than (dd-2dr+rr)/rr as above) is only
@@ -1293,7 +1299,7 @@ def test_nn():
     np.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-3)
 
     # Check the read function (not at very high accuracy for the ASCII I/O)
-    dd.calculateXi(rr,dr)  # reset this to the better calculation
+    dd.calculateXi(rr=rr, dr=dr)  # reset this to the better calculation
     dd2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
     dd2.read(out_file_name)
     np.testing.assert_allclose(dd2.logr, dd.logr, rtol=1.e-3)
@@ -1320,7 +1326,7 @@ def test_nn():
     np.testing.assert_almost_equal(header['tot'], dd.tot)
 
     out_file_name2 = os.path.join('output','nn_out2.fits')
-    dd.write(out_file_name2, rr)
+    dd.write(out_file_name2, rr=rr)
     data = fitsio.read(out_file_name2)
     np.testing.assert_almost_equal(data['r_nom'], np.exp(dd.logr))
     np.testing.assert_almost_equal(data['meanr'], dd.meanr)
@@ -1333,7 +1339,7 @@ def test_nn():
     np.testing.assert_almost_equal(header['tot'], dd.tot)
 
     out_file_name3 = os.path.join('output','nn_out3.fits')
-    dd.write(out_file_name3, rr, dr)
+    dd.write(out_file_name3, rr=rr, dr=dr)
     data = fitsio.read(out_file_name3)
     np.testing.assert_almost_equal(data['r_nom'], np.exp(dd.logr))
     np.testing.assert_almost_equal(data['meanr'], dd.meanr)
@@ -1382,7 +1388,7 @@ def test_nn():
         dd.write(out_file_name3, rd=dr)
 
     # Check the read function
-    dd.calculateXi(rr,dr)  # gets xi, varxi back in dd
+    dd.calculateXi(rr=rr, dr=dr)  # gets xi, varxi back in dd
     dd2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
     dd2.read(out_file_name1)
     np.testing.assert_almost_equal(dd2.logr, dd.logr)
@@ -1525,7 +1531,7 @@ def test_3d():
     r = dd.meanr
     true_xi = 1./(8.*np.pi**1.5) * (L/s)**3 * np.exp(-0.25*r**2/s**2) - 1.
 
-    simple_xi, varxi = dd.calculateXi(rr)
+    simple_xi, varxi = dd.calculateXi(rr=rr)
     print('simple xi = ',simple_xi)
     print('true_xi = ',true_xi)
     print('max rel diff = ',max(abs((simple_xi - true_xi)/true_xi)))
@@ -1533,7 +1539,7 @@ def test_3d():
     np.testing.assert_allclose(np.log(np.abs(simple_xi)), np.log(np.abs(true_xi)),
                                rtol=0.1*tol_factor)
 
-    xi, varxi = dd.calculateXi(rr,dr)
+    xi, varxi = dd.calculateXi(rr=rr, dr=dr)
     print('xi = ',xi)
     print('true_xi = ',true_xi)
     print('ratio = ',xi / true_xi)
@@ -1574,7 +1580,7 @@ def test_3d():
     dd.process(cat)
     rr.process(rand)
     dr.process(cat,rand)
-    xi, varxi = dd.calculateXi(rr,dr)
+    xi, varxi = dd.calculateXi(rr=rr, dr=dr)
     np.testing.assert_allclose(xi, true_xi, rtol=0.1*tol_factor)
     np.testing.assert_allclose(np.log(np.abs(xi)), np.log(np.abs(true_xi)),
                                rtol=0.1*tol_factor)
@@ -1609,7 +1615,7 @@ def test_list():
     rr.process(rand_cats)
     print('rr.npairs = ',rr.npairs)
 
-    xi, varxi = dd.calculateXi(rr)
+    xi, varxi = dd.calculateXi(rr=rr)
     print('xi = ',xi)
 
     # Now do the same thing with one big catalog for each.
@@ -1619,7 +1625,7 @@ def test_list():
     rand_catx = treecorr.Catalog(x=rx.reshape( (nobj*ncats,) ), y=ry.reshape( (nobj*ncats,) ))
     ddx.process(data_catx)
     rrx.process(rand_catx)
-    xix, varxix = ddx.calculateXi(rrx)
+    xix, varxix = ddx.calculateXi(rr=rrx)
 
     print('ddx.npairs = ',ddx.npairs)
     print('rrx.npairs = ',rrx.npairs)
@@ -1874,7 +1880,7 @@ def test_varxi():
 
     print('Uncompensated:')
 
-    all_xis = [dd.calculateXi(rr) for dd,rr in zip(all_dds, all_rrs)]
+    all_xis = [dd.calculateXi(rr=rr) for dd,rr in zip(all_dds, all_rrs)]
     mean_wt = np.mean([dd.weight for dd in all_dds], axis=0)
     mean_np = np.mean([dd.npairs for dd in all_dds], axis=0)
     mean_xi = np.mean([xi[0] for xi in all_xis], axis=0)
@@ -1893,7 +1899,7 @@ def test_varxi():
 
     print('Compensated:')
 
-    all_xis = [dd.calculateXi(rr, dr) for dd,dr,rr in zip(all_dds, all_drs, all_rrs)]
+    all_xis = [dd.calculateXi(rr=rr, dr=dr) for dd,dr,rr in zip(all_dds, all_drs, all_rrs)]
     mean_wt = np.mean([dd.weight for dd in all_dds], axis=0)
     mean_np = np.mean([dd.npairs for dd in all_dds], axis=0)
     mean_xi = np.mean([xi[0] for xi in all_xis], axis=0)
@@ -1912,7 +1918,7 @@ def test_varxi():
 
     print('Compensated with both dr and rd:')
 
-    all_xis = [dd.calculateXi(rr, dr, dr) for dd,dr,rr in zip(all_dds, all_drs, all_rrs)]
+    all_xis = [dd.calculateXi(rr=rr, dr=dr, rd=dr) for dd,dr,rr in zip(all_dds, all_drs, all_rrs)]
     mean_wt = np.mean([dd.weight for dd in all_dds], axis=0)
     mean_xi = np.mean([xi[0] for xi in all_xis], axis=0)
     var_xi = np.var([xi[0] for xi in all_xis], axis=0)
@@ -1929,7 +1935,7 @@ def test_varxi():
 
     print('Compensated with just rd')
 
-    all_xis = [dd.calculateXi(rr, rd=dr) for dd,dr,rr in zip(all_dds, all_drs, all_rrs)]
+    all_xis = [dd.calculateXi(rr=rr, rd=dr) for dd,dr,rr in zip(all_dds, all_drs, all_rrs)]
     mean_wt = np.mean([dd.weight for dd in all_dds], axis=0)
     mean_xi = np.mean([xi[0] for xi in all_xis], axis=0)
     var_xi = np.var([xi[0] for xi in all_xis], axis=0)

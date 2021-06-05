@@ -1100,7 +1100,7 @@ class BinnedCorr3(object):
             all_func = lambda corrs: func(corrs[0])
         else:
             all_func = None
-        return estimate_multi_cov([self], method, all_func)
+        return estimate_multi_cov([self], method, func=all_func)
 
     def _set_num_threads(self, num_threads):
         if num_threads is None:

@@ -21,6 +21,8 @@ from . import _lib, _ffi
 from .binnedcorr2 import BinnedCorr2
 from .util import double_ptr as dp
 from .util import gen_read, gen_write, lazy_property
+from .util import depr_pos_kwargs
+
 
 class NNCorrelation(BinnedCorr2):
     r"""This class handles the calculation and storage of a 2-point count-count correlation
@@ -74,8 +76,8 @@ class NNCorrelation(BinnedCorr2):
         >>> rr.process...           # Likewise for random-random correlations
         >>> dr.process...           # If desired, also do data-random correlations
         >>> rd.process...           # For cross-correlations, also do the reverse.
-        >>> nn.write(file_name,rr,dr,rd)         # Write out to a file.
-        >>> xi,varxi = nn.calculateXi(rr,dr,rd)  # Or get the correlation function directly.
+        >>> nn.write(file_name,rr=rr,dr=dr,rd=rd)         # Write out to a file.
+        >>> xi,varxi = nn.calculateXi(rr=rr,dr=dr,rd=rd)  # Or get correlation function directly.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
@@ -88,10 +90,11 @@ class NNCorrelation(BinnedCorr2):
         **kwargs:       See the documentation for `BinnedCorr2` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
-    def __init__(self, config=None, logger=None, **kwargs):
+    @depr_pos_kwargs
+    def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `NNCorrelation`.  See class doc for details.
         """
-        BinnedCorr2.__init__(self, config, logger, **kwargs)
+        BinnedCorr2.__init__(self, config, logger=logger, **kwargs)
 
         self._ro._d1 = 1  # NData
         self._ro._d2 = 1  # NData
@@ -193,7 +196,8 @@ class NNCorrelation(BinnedCorr2):
     def __repr__(self):
         return 'NNCorrelation(config=%r)'%self.config
 
-    def process_auto(self, cat, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_auto(self, cat, *, metric=None, num_threads=None):
         """Process a single catalog, accumulating the auto-correlation.
 
         This accumulates the auto-correlation for the given catalog.  After
@@ -228,8 +232,8 @@ class NNCorrelation(BinnedCorr2):
                           field._d, self._coords, self._bintype, self._metric)
         self.tot += 0.5 * cat.sumw**2
 
-
-    def process_cross(self, cat1, cat2, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_cross(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation.
 
         This accumulates the cross-correlation for the given catalogs.  After
@@ -272,8 +276,8 @@ class NNCorrelation(BinnedCorr2):
                            f1._d, f2._d, self._coords, self._bintype, self._metric)
         self.tot += cat1.sumw*cat2.sumw
 
-
-    def process_pairwise(self, cat1, cat2, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_pairwise(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation, only using
         the corresponding pairs of objects in each catalog.
 
@@ -408,7 +412,8 @@ class NNCorrelation(BinnedCorr2):
         # to save some time.
         self.results[(i,j)] = self._zero_copy(tot)
 
-    def process(self, cat1, cat2=None, metric=None, num_threads=None, comm=None, low_mem=False,
+    @depr_pos_kwargs
+    def process(self, cat1, cat2=None, *, metric=None, num_threads=None, comm=None, low_mem=False,
                 initialize=True, finalize=True):
         """Compute the correlation function.
 
@@ -478,7 +483,8 @@ class NNCorrelation(BinnedCorr2):
         else:
             return self.tot
 
-    def calculateXi(self, rr, dr=None, rd=None):
+    @depr_pos_kwargs
+    def calculateXi(self, *, rr, dr=None, rd=None):
         r"""Calculate the correlation function given another correlation function of random
         points using the same mask, and possibly cross correlations of the data and random.
 
@@ -695,7 +701,8 @@ class NNCorrelation(BinnedCorr2):
         self.xi = xi / denom
         self._rr_weight = denom
 
-    def write(self, file_name, rr=None, dr=None, rd=None, file_type=None, precision=None):
+    @depr_pos_kwargs
+    def write(self, file_name, *, rr=None, dr=None, rd=None, file_type=None, precision=None):
         r"""Write the correlation function to the file, file_name.
 
         rr is the `NNCorrelation` function for random points.
@@ -760,7 +767,7 @@ class NNCorrelation(BinnedCorr2):
             if rd is not None:
                 raise TypeError("rr must be provided if rd is not None")
         else:
-            xi, varxi = self.calculateXi(rr,dr,rd)
+            xi, varxi = self.calculateXi(rr=rr, dr=dr, rd=rd)
 
             col_names += [ 'xi','sigma_xi','DD','RR' ]
             columns += [ xi, np.sqrt(varxi),
@@ -786,8 +793,8 @@ class NNCorrelation(BinnedCorr2):
             file_name, col_names, columns, params=params,
             precision=precision, file_type=file_type, logger=self.logger)
 
-
-    def read(self, file_name, file_type=None):
+    @depr_pos_kwargs
+    def read(self, file_name, *, file_type=None):
         """Read in values from a file.
 
         This should be a file that was written by TreeCorr, preferably a FITS file, so there
@@ -827,7 +834,8 @@ class NNCorrelation(BinnedCorr2):
             self.xi = data['xi']
             self.varxi = data['sigma_xi']**2
 
-    def calculateNapSq(self, rr, R=None, dr=None, rd=None, m2_uform=None):
+    @depr_pos_kwargs
+    def calculateNapSq(self, *, rr, R=None, dr=None, rd=None, m2_uform=None):
         r"""Calculate the corrollary to the aperture mass statistics for counts.
 
         .. math::
@@ -901,7 +909,7 @@ class NNCorrelation(BinnedCorr2):
                         120. + ssqa*(2320. + ssqa*(-754. + ssqa*(132. - 9.*ssqa))))
         Tp *= ssq
 
-        xi, varxi = self.calculateXi(rr,dr,rd)
+        xi, varxi = self.calculateXi(rr=rr, dr=dr, rd=rd)
 
         # Now do the integral by taking the matrix products.
         # Note that dlogr = bin_size

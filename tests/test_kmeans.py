@@ -472,7 +472,7 @@ def test_init_random():
     print('3d with init=random')
     npatch = 10
     field = cat.getNField()
-    cen1 = field.kmeans_initialize_centers(npatch, init='random')
+    cen1 = field.kmeans_initialize_centers(npatch, 'random')
     assert cen1.shape == (npatch, 3)
     p1 = field.kmeans_assign_patches(cen1)
     print('patches = ',np.unique(p1))
@@ -498,7 +498,7 @@ def test_init_random():
     # Use a field with lots of top level cells
     print('3d with init=random, min_top=10')
     field = cat.getNField(min_top=10)
-    cen1 = field.kmeans_initialize_centers(npatch, init='random')
+    cen1 = field.kmeans_initialize_centers(npatch, 'random')
     assert cen1.shape == (npatch, 3)
     p1 = field.kmeans_assign_patches(cen1)
     print('patches = ',np.unique(p1))
@@ -525,7 +525,7 @@ def test_init_random():
     cat = treecorr.Catalog(x=x, y=y)
     xy = np.array([x, y]).T
     field = cat.getNField()
-    cen1 = field.kmeans_initialize_centers(npatch, init='random')
+    cen1 = field.kmeans_initialize_centers(npatch, 'random')
     assert cen1.shape == (npatch, 2)
     p1 = field.kmeans_assign_patches(cen1)
     print('patches = ',np.unique(p1))
@@ -553,7 +553,7 @@ def test_init_random():
     cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad')
     xyz = np.array([cat.x, cat.y, cat.z]).T
     field = cat.getNField()
-    cen1 = field.kmeans_initialize_centers(npatch, init='random')
+    cen1 = field.kmeans_initialize_centers(npatch, 'random')
     assert cen1.shape == (npatch, 3)
     p1 = field.kmeans_assign_patches(cen1)
     print('patches = ',np.unique(p1))
@@ -621,7 +621,7 @@ def test_init_kmpp():
     print('3d with init=kmeans++')
     npatch = 10
     field = cat.getNField()
-    cen1 = field.kmeans_initialize_centers(npatch, init='kmeans++')
+    cen1 = field.kmeans_initialize_centers(npatch, 'kmeans++')
     assert cen1.shape == (npatch, 3)
     p1 = field.kmeans_assign_patches(cen1)
     print('patches = ',np.unique(p1))
@@ -647,7 +647,7 @@ def test_init_kmpp():
     # Use a field with lots of top level cells
     print('3d with init=kmeans++, min_top=10')
     field = cat.getNField(min_top=10)
-    cen1 = field.kmeans_initialize_centers(npatch, init='kmeans++')
+    cen1 = field.kmeans_initialize_centers(npatch, 'kmeans++')
     assert cen1.shape == (npatch, 3)
     p1 = field.kmeans_assign_patches(cen1)
     print('patches = ',np.unique(p1))
@@ -674,7 +674,7 @@ def test_init_kmpp():
     cat = treecorr.Catalog(x=x, y=y)
     xy = np.array([x, y]).T
     field = cat.getNField()
-    cen1 = field.kmeans_initialize_centers(npatch, init='kmeans++')
+    cen1 = field.kmeans_initialize_centers(npatch, 'kmeans++')
     assert cen1.shape == (npatch, 2)
     p1 = field.kmeans_assign_patches(cen1)
     print('patches = ',np.unique(p1))
@@ -702,7 +702,7 @@ def test_init_kmpp():
     cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad')
     xyz = np.array([cat.x, cat.y, cat.z]).T
     field = cat.getNField()
-    cen1 = field.kmeans_initialize_centers(npatch, init='kmeans++')
+    cen1 = field.kmeans_initialize_centers(npatch, 'kmeans++')
     assert cen1.shape == (npatch, 3)
     p1 = field.kmeans_assign_patches(cen1)
     print('patches = ',np.unique(p1))

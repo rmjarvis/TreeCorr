@@ -21,6 +21,8 @@ from . import _lib, _ffi
 from .binnedcorr3 import BinnedCorr3
 from .util import double_ptr as dp
 from .util import gen_read, gen_write, gen_multi_read, gen_multi_write, lazy_property
+from .util import depr_pos_kwargs
+
 
 class NNNCorrelation(BinnedCorr3):
     """This class handles the calculation and storage of a 2-point count-count correlation
@@ -86,8 +88,8 @@ class NNNCorrelation(BinnedCorr3):
         >>> rrr.process(rand)        # Likewise for random-random correlations
         >>> drr.process(cat,rand)    # If desired, also do data-random correlations
         >>> rdd.process(rand,cat)    # Also with two data and one random
-        >>> nnn.write(file_name,rrr,drr,...)  # Write out to a file.
-        >>> zeta,varzeta = nnn.calculateZeta(rrr,drr,rdd)  # Or get the 3pt function directly.
+        >>> nnn.write(file_name,rrr=rrr,drr=drr,...)  # Write out to a file.
+        >>> zeta,varzeta = nnn.calculateZeta(rrr=rrr,drr=drr,rdd=rdd)  # Or get zeta directly.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
@@ -100,10 +102,11 @@ class NNNCorrelation(BinnedCorr3):
         **kwargs:       See the documentation for `BinnedCorr3` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
-    def __init__(self, config=None, logger=None, **kwargs):
+    @depr_pos_kwargs
+    def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `NNNCorrelation`.  See class doc for details.
         """
-        BinnedCorr3.__init__(self, config, logger, **kwargs)
+        BinnedCorr3.__init__(self, config, logger=logger, **kwargs)
 
         self._ro._d1 = 1  # NData
         self._ro._d2 = 1  # NData
@@ -230,7 +233,8 @@ class NNNCorrelation(BinnedCorr3):
     def __repr__(self):
         return 'NNNCorrelation(config=%r)'%self.config
 
-    def process_auto(self, cat, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_auto(self, cat, *, metric=None, num_threads=None):
         """Process a single catalog, accumulating the auto-correlation.
 
         This accumulates the auto-correlation for the given catalog.  After
@@ -265,7 +269,8 @@ class NNNCorrelation(BinnedCorr3):
                           field._d, self._coords, self._bintype, self._metric)
         self.tot += (1./6.) * cat.sumw**3
 
-    def process_cross12(self, cat1, cat2, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_cross12(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process two catalogs, accumulating the 3pt cross-correlation, where one of the
         points in each triangle come from the first catalog, and two come from the second.
 
@@ -316,7 +321,8 @@ class NNNCorrelation(BinnedCorr3):
                             self._bintype, self._metric)
         self.tot += cat1.sumw * cat2.sumw**2 / 2.
 
-    def process_cross(self, cat1, cat2, cat3, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_cross(self, cat1, cat2, cat3, *, metric=None, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
 
         This accumulates the cross-correlation for the given catalogs as part of a larger
@@ -503,7 +509,8 @@ class NNNCorrelation(BinnedCorr3):
         self.ntri[:] += other.ntri[:]
         return self
 
-    def process(self, cat1, cat2=None, cat3=None, metric=None, num_threads=None,
+    @depr_pos_kwargs
+    def process(self, cat1, cat2=None, cat3=None, *, metric=None, num_threads=None,
                 comm=None, low_mem=False, initialize=True, finalize=True):
         """Accumulate the 3pt correlation of the points in the given Catalog(s).
 
@@ -588,7 +595,8 @@ class NNNCorrelation(BinnedCorr3):
         else:
             return self.tot
 
-    def calculateZeta(self, rrr, drr=None, rdd=None):
+    @depr_pos_kwargs
+    def calculateZeta(self, *, rrr, drr=None, rdd=None):
         r"""Calculate the 3pt function given another 3pt function of random
         points using the same mask, and possibly cross correlations of the data and random.
 
@@ -802,7 +810,8 @@ class NNNCorrelation(BinnedCorr3):
         self.zeta = zeta / denom
         self._rrr_weight = denom
 
-    def write(self, file_name, rrr=None, drr=None, rdd=None, file_type=None, precision=None):
+    @depr_pos_kwargs
+    def write(self, file_name, *, rrr=None, drr=None, rdd=None, file_type=None, precision=None):
         r"""Write the correlation function to the file, file_name.
 
         Normally, at least rrr should be provided, but if this is None, then only the
@@ -894,7 +903,7 @@ class NNNCorrelation(BinnedCorr3):
             columns += [ self.weight, self.ntri ]
         else:
             # This will check for other invalid combinations of rrr, drr, etc.
-            zeta, varzeta = self.calculateZeta(rrr,drr,rdd)
+            zeta, varzeta = self.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)
 
             col_names += [ 'zeta','sigma_zeta','DDD','RRR' ]
             columns += [ zeta, np.sqrt(varzeta),
@@ -916,7 +925,8 @@ class NNNCorrelation(BinnedCorr3):
             file_name, col_names, columns,
             params=params, precision=precision, file_type=file_type, logger=self.logger)
 
-    def read(self, file_name, file_type=None):
+    @depr_pos_kwargs
+    def read(self, file_name, *, file_type=None):
         """Read in values from a file.
 
         This should be a file that was written by TreeCorr, preferably a FITS file, so there
@@ -1036,21 +1046,22 @@ class NNNCrossCorrelation(BinnedCorr3):
         **kwargs:       See the documentation for `BinnedCorr3` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
-    def __init__(self, config=None, logger=None, **kwargs):
+    @depr_pos_kwargs
+    def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `NNNCrossCorrelation`.  See class doc for details.
         """
-        BinnedCorr3.__init__(self, config, logger, **kwargs)
+        BinnedCorr3.__init__(self, config, logger=logger, **kwargs)
 
         self._ro._d1 = 1  # NData
         self._ro._d2 = 1  # NData
         self._ro._d3 = 1  # NData
 
-        self.n1n2n3 = NNNCorrelation(config, logger, **kwargs)
-        self.n1n3n2 = NNNCorrelation(config, logger, **kwargs)
-        self.n2n1n3 = NNNCorrelation(config, logger, **kwargs)
-        self.n2n3n1 = NNNCorrelation(config, logger, **kwargs)
-        self.n3n1n2 = NNNCorrelation(config, logger, **kwargs)
-        self.n3n2n1 = NNNCorrelation(config, logger, **kwargs)
+        self.n1n2n3 = NNNCorrelation(config, logger=logger, **kwargs)
+        self.n1n3n2 = NNNCorrelation(config, logger=logger, **kwargs)
+        self.n2n1n3 = NNNCorrelation(config, logger=logger, **kwargs)
+        self.n2n3n1 = NNNCorrelation(config, logger=logger, **kwargs)
+        self.n3n1n2 = NNNCorrelation(config, logger=logger, **kwargs)
+        self.n3n2n1 = NNNCorrelation(config, logger=logger, **kwargs)
         self._all = [self.n1n2n3, self.n1n3n2, self.n2n1n3, self.n2n3n1, self.n3n1n2, self.n3n2n1]
 
         self.tot = 0.
@@ -1115,7 +1126,8 @@ class NNNCrossCorrelation(BinnedCorr3):
     def __repr__(self):
         return 'NNNCrossCorrelation(config=%r)'%self.config
 
-    def process_cross12(self, cat1, cat2, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_cross12(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process two catalogs, accumulating the 3pt cross-correlation, where one of the
         points in each triangle come from the first catalog, and two come from the second.
 
@@ -1178,7 +1190,8 @@ class NNNCrossCorrelation(BinnedCorr3):
         self.n2n3n1.tot += tot
         self.tot += tot
 
-    def process_cross(self, cat1, cat2, cat3, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_cross(self, cat1, cat2, cat3, *, metric=None, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
 
         This accumulates the cross-correlation for the given catalogs.  After
@@ -1319,7 +1332,8 @@ class NNNCrossCorrelation(BinnedCorr3):
         """
         return 1.
 
-    def process(self, cat1, cat2, cat3=None, metric=None, num_threads=None,
+    @depr_pos_kwargs
+    def process(self, cat1, cat2, cat3=None, *, metric=None, num_threads=None,
                 comm=None, low_mem=False, initialize=True, finalize=True):
         """Accumulate the cross-correlation of the points in the given Catalogs: cat1, cat2, cat3.
 
@@ -1384,7 +1398,8 @@ class NNNCrossCorrelation(BinnedCorr3):
 
             self.finalize()
 
-    def write(self, file_name, file_type=None, precision=None):
+    @depr_pos_kwargs
+    def write(self, file_name, *, file_type=None, precision=None):
         r"""Write the correlation function to the file, file_name.
 
         Parameters:
@@ -1415,7 +1430,8 @@ class NNNCrossCorrelation(BinnedCorr3):
             file_name, col_names, group_names, columns,
             params=params, precision=precision, file_type=file_type, logger=self.logger)
 
-    def read(self, file_name, file_type=None):
+    @depr_pos_kwargs
+    def read(self, file_name, *, file_type=None):
         """Read in values from a file.
 
         This should be a file that was written by TreeCorr, preferably a FITS file, so there

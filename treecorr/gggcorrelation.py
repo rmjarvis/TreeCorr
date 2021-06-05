@@ -22,6 +22,7 @@ from .catalog import calculateVarG
 from .binnedcorr3 import BinnedCorr3
 from .util import double_ptr as dp
 from .util import gen_read, gen_write, gen_multi_read, gen_multi_write
+from .util import depr_pos_kwargs
 
 
 class GGGCorrelation(BinnedCorr3):
@@ -141,10 +142,11 @@ class GGGCorrelation(BinnedCorr3):
         **kwargs:       See the documentation for `BinnedCorr3` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
-    def __init__(self, config=None, logger=None, **kwargs):
+    @depr_pos_kwargs
+    def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `GGGCorrelation`.  See class doc for details.
         """
-        BinnedCorr3.__init__(self, config, logger, **kwargs)
+        BinnedCorr3.__init__(self, config, logger=logger, **kwargs)
 
         self._ro._d1 = 3  # GData
         self._ro._d2 = 3  # GData
@@ -276,7 +278,8 @@ class GGGCorrelation(BinnedCorr3):
     def __repr__(self):
         return 'GGGCorrelation(config=%r)'%self.config
 
-    def process_auto(self, cat, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_auto(self, cat, *, metric=None, num_threads=None):
         """Process a single catalog, accumulating the auto-correlation.
 
         This accumulates the auto-correlation for the given catalog.  After
@@ -310,7 +313,8 @@ class GGGCorrelation(BinnedCorr3):
         _lib.ProcessAuto3(self.corr, field.data, self.output_dots,
                                    field._d, self._coords, self._bintype, self._metric)
 
-    def process_cross12(self, cat1, cat2, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_cross12(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process two catalogs, accumulating the 3pt cross-correlation, where one of the
         points in each triangle come from the first catalog, and two come from the second.
 
@@ -360,7 +364,8 @@ class GGGCorrelation(BinnedCorr3):
                             f1._d, f2._d, self._coords,
                             self._bintype, self._metric)
 
-    def process_cross(self, cat1, cat2, cat3, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_cross(self, cat1, cat2, cat3, *, metric=None, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
 
         This accumulates the cross-correlation for the given catalogs as part of a larger
@@ -568,7 +573,8 @@ class GGGCorrelation(BinnedCorr3):
         np.sum([c.weight for c in others], axis=0, out=self.weight)
         np.sum([c.ntri for c in others], axis=0, out=self.ntri)
 
-    def process(self, cat1, cat2=None, cat3=None, metric=None, num_threads=None,
+    @depr_pos_kwargs
+    def process(self, cat1, cat2=None, cat3=None, *, metric=None, num_threads=None,
                 comm=None, low_mem=False, initialize=True, finalize=True):
         """Compute the 3pt correlation function.
 
@@ -672,7 +678,8 @@ class GGGCorrelation(BinnedCorr3):
         """
         return np.concatenate([self.weight.ravel()] * 4)
 
-    def write(self, file_name, file_type=None, precision=None):
+    @depr_pos_kwargs
+    def write(self, file_name, *, file_type=None, precision=None):
         r"""Write the correlation function to the file, file_name.
 
         As described in the doc string for `GGGCorrelation`, we use the "natural components" of
@@ -755,7 +762,8 @@ class GGGCorrelation(BinnedCorr3):
             file_name, col_names, columns,
             params=params, precision=precision, file_type=file_type, logger=self.logger)
 
-    def read(self, file_name, file_type=None):
+    @depr_pos_kwargs
+    def read(self, file_name, *, file_type=None):
         """Read in values from a file.
 
         This should be a file that was written by TreeCorr, preferably a FITS file, so there
@@ -915,7 +923,8 @@ class GGGCorrelation(BinnedCorr3):
 
         return T0, T1, T2, T3
 
-    def calculateMap3(self, R=None, k2=1, k3=1):
+    @depr_pos_kwargs
+    def calculateMap3(self, *, R=None, k2=1, k3=1):
         r"""Calculate the skewness of the aperture mass from the correlation function.
 
         The equations for this come from Jarvis, Bernstein & Jain (2004, MNRAS, 352).
@@ -1116,7 +1125,8 @@ class GGGCorrelation(BinnedCorr3):
 
         return map3, mapmapmx, mapmxmap, mxmapmap, mxmxmap, mxmapmx, mapmxmx, mx3, var
 
-    def writeMap3(self, file_name, R=None, file_type=None, precision=None):
+    @depr_pos_kwargs
+    def writeMap3(self, file_name, *, R=None, file_type=None, precision=None):
         r"""Write the aperture mass skewness based on the correlation function to the
         file, file_name.
 
@@ -1147,7 +1157,7 @@ class GGGCorrelation(BinnedCorr3):
 
         if R is None:
             R = self.rnom1d
-        stats = self.calculateMap3(R)
+        stats = self.calculateMap3(R=R)
         if precision is None:
             precision = self.config.get('precision', 4)
 
@@ -1233,21 +1243,22 @@ class GGGCrossCorrelation(BinnedCorr3):
         **kwargs:       See the documentation for `BinnedCorr3` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
-    def __init__(self, config=None, logger=None, **kwargs):
+    @depr_pos_kwargs
+    def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `GGGCrossCorrelation`.  See class doc for details.
         """
-        BinnedCorr3.__init__(self, config, logger, **kwargs)
+        BinnedCorr3.__init__(self, config, logger=logger, **kwargs)
 
         self._ro._d1 = 3  # GData
         self._ro._d2 = 3  # GData
         self._ro._d3 = 3  # GData
 
-        self.g1g2g3 = GGGCorrelation(config, logger, **kwargs)
-        self.g1g3g2 = GGGCorrelation(config, logger, **kwargs)
-        self.g2g1g3 = GGGCorrelation(config, logger, **kwargs)
-        self.g2g3g1 = GGGCorrelation(config, logger, **kwargs)
-        self.g3g1g2 = GGGCorrelation(config, logger, **kwargs)
-        self.g3g2g1 = GGGCorrelation(config, logger, **kwargs)
+        self.g1g2g3 = GGGCorrelation(config, logger=logger, **kwargs)
+        self.g1g3g2 = GGGCorrelation(config, logger=logger, **kwargs)
+        self.g2g1g3 = GGGCorrelation(config, logger=logger, **kwargs)
+        self.g2g3g1 = GGGCorrelation(config, logger=logger, **kwargs)
+        self.g3g1g2 = GGGCorrelation(config, logger=logger, **kwargs)
+        self.g3g2g1 = GGGCorrelation(config, logger=logger, **kwargs)
         self._all = [self.g1g2g3, self.g1g3g2, self.g2g1g3, self.g2g3g1, self.g3g1g2, self.g3g2g1]
 
         self.logger.debug('Finished building GGGCrossCorr')
@@ -1296,7 +1307,8 @@ class GGGCrossCorrelation(BinnedCorr3):
     def __repr__(self):
         return 'GGGCrossCorrelation(config=%r)'%self.config
 
-    def process_cross12(self, cat1, cat2, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_cross12(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process two catalogs, accumulating the 3pt cross-correlation, where one of the
         points in each triangle come from the first catalog, and two come from the second.
 
@@ -1354,7 +1366,8 @@ class GGGCrossCorrelation(BinnedCorr3):
                             f1._d, f2._d, self._coords,
                             self._bintype, self._metric)
 
-    def process_cross(self, cat1, cat2, cat3, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_cross(self, cat1, cat2, cat3, *, metric=None, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
 
         This accumulates the cross-correlation for the given catalogs.  After
@@ -1470,7 +1483,8 @@ class GGGCrossCorrelation(BinnedCorr3):
         for i, ggg in enumerate(self._all):
             ggg._sum([c._all[i] for c in others])
 
-    def process(self, cat1, cat2, cat3=None, metric=None, num_threads=None,
+    @depr_pos_kwargs
+    def process(self, cat1, cat2, cat3=None, *, metric=None, num_threads=None,
                 comm=None, low_mem=False, initialize=True, finalize=True):
         """Accumulate the cross-correlation of the points in the given Catalogs: cat1, cat2, cat3.
 
@@ -1561,7 +1575,8 @@ class GGGCrossCorrelation(BinnedCorr3):
         """
         return np.concatenate([ggg.getWeight() for ggg in self._all])
 
-    def write(self, file_name, file_type=None, precision=None):
+    @depr_pos_kwargs
+    def write(self, file_name, *, file_type=None, precision=None):
         r"""Write the cross-correlation functions to the file, file_name.
 
         Parameters:
@@ -1597,7 +1612,8 @@ class GGGCrossCorrelation(BinnedCorr3):
             file_name, col_names, group_names, columns,
             params=params, precision=precision, file_type=file_type, logger=self.logger)
 
-    def read(self, file_name, file_type=None):
+    @depr_pos_kwargs
+    def read(self, file_name, *, file_type=None):
         """Read in values from a file.
 
         This should be a file that was written by TreeCorr, preferably a FITS file, so there

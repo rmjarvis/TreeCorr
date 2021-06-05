@@ -22,6 +22,7 @@ from .catalog import calculateVarK
 from .binnedcorr3 import BinnedCorr3
 from .util import double_ptr as dp
 from .util import gen_read, gen_write, gen_multi_read, gen_multi_write
+from .util import depr_pos_kwargs
 
 
 class KKKCorrelation(BinnedCorr3):
@@ -108,10 +109,11 @@ class KKKCorrelation(BinnedCorr3):
         **kwargs:       See the documentation for `BinnedCorr3` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
-    def __init__(self, config=None, logger=None, **kwargs):
+    @depr_pos_kwargs
+    def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `KKKCorrelation`.  See class doc for details.
         """
-        BinnedCorr3.__init__(self, config, logger, **kwargs)
+        BinnedCorr3.__init__(self, config, logger=logger, **kwargs)
 
         self._ro._d1 = 2  # KData
         self._ro._d2 = 2  # KData
@@ -207,7 +209,8 @@ class KKKCorrelation(BinnedCorr3):
     def __repr__(self):
         return 'KKKCorrelation(config=%r)'%self.config
 
-    def process_auto(self, cat, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_auto(self, cat, *, metric=None, num_threads=None):
         """Process a single catalog, accumulating the auto-correlation.
 
         This accumulates the auto-correlation for the given catalog.  After
@@ -241,7 +244,8 @@ class KKKCorrelation(BinnedCorr3):
         _lib.ProcessAuto3(self.corr, field.data, self.output_dots,
                           field._d, self._coords, self._bintype, self._metric)
 
-    def process_cross12(self, cat1, cat2, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_cross12(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process two catalogs, accumulating the 3pt cross-correlation, where one of the
         points in each triangle come from the first catalog, and two come from the second.
 
@@ -291,7 +295,8 @@ class KKKCorrelation(BinnedCorr3):
                             f1._d, f2._d, self._coords,
                             self._bintype, self._metric)
 
-    def process_cross(self, cat1, cat2, cat3, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_cross(self, cat1, cat2, cat3, *, metric=None, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
 
         This accumulates the cross-correlation for the given catalogs as part of a larger
@@ -458,7 +463,8 @@ class KKKCorrelation(BinnedCorr3):
         np.sum([c.weight for c in others], axis=0, out=self.weight)
         np.sum([c.ntri for c in others], axis=0, out=self.ntri)
 
-    def process(self, cat1, cat2=None, cat3=None, metric=None, num_threads=None,
+    @depr_pos_kwargs
+    def process(self, cat1, cat2=None, cat3=None, *, metric=None, num_threads=None,
                 comm=None, low_mem=False, initialize=True, finalize=True):
         """Compute the 3pt correlation function.
 
@@ -541,7 +547,8 @@ class KKKCorrelation(BinnedCorr3):
                 self.logger.info("vark3 = %f: sig_k = %f",vark3,math.sqrt(vark3))
             self.finalize(vark1,vark2,vark3)
 
-    def write(self, file_name, file_type=None, precision=None):
+    @depr_pos_kwargs
+    def write(self, file_name, *, file_type=None, precision=None):
         r"""Write the correlation function to the file, file_name.
 
         The output file will include the following columns:
@@ -606,7 +613,8 @@ class KKKCorrelation(BinnedCorr3):
             file_name, col_names, columns,
             params=params, precision=precision, file_type=file_type, logger=self.logger)
 
-    def read(self, file_name, file_type=None):
+    @depr_pos_kwargs
+    def read(self, file_name, *, file_type=None):
         """Read in values from a file.
 
         This should be a file that was written by TreeCorr, preferably a FITS file, so there
@@ -727,21 +735,22 @@ class KKKCrossCorrelation(BinnedCorr3):
         **kwargs:       See the documentation for `BinnedCorr3` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
-    def __init__(self, config=None, logger=None, **kwargs):
+    @depr_pos_kwargs
+    def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `KKKCrossCorrelation`.  See class doc for details.
         """
-        BinnedCorr3.__init__(self, config, logger, **kwargs)
+        BinnedCorr3.__init__(self, config, logger=logger, **kwargs)
 
         self._ro._d1 = 2  # KData
         self._ro._d2 = 2  # KData
         self._ro._d3 = 2  # KData
 
-        self.k1k2k3 = KKKCorrelation(config, logger, **kwargs)
-        self.k1k3k2 = KKKCorrelation(config, logger, **kwargs)
-        self.k2k1k3 = KKKCorrelation(config, logger, **kwargs)
-        self.k2k3k1 = KKKCorrelation(config, logger, **kwargs)
-        self.k3k1k2 = KKKCorrelation(config, logger, **kwargs)
-        self.k3k2k1 = KKKCorrelation(config, logger, **kwargs)
+        self.k1k2k3 = KKKCorrelation(config, logger=logger, **kwargs)
+        self.k1k3k2 = KKKCorrelation(config, logger=logger, **kwargs)
+        self.k2k1k3 = KKKCorrelation(config, logger=logger, **kwargs)
+        self.k2k3k1 = KKKCorrelation(config, logger=logger, **kwargs)
+        self.k3k1k2 = KKKCorrelation(config, logger=logger, **kwargs)
+        self.k3k2k1 = KKKCorrelation(config, logger=logger, **kwargs)
         self._all = [self.k1k2k3, self.k1k3k2, self.k2k1k3, self.k2k3k1, self.k3k1k2, self.k3k2k1]
 
         self.logger.debug('Finished building KKKCrossCorr')
@@ -790,7 +799,8 @@ class KKKCrossCorrelation(BinnedCorr3):
     def __repr__(self):
         return 'KKKCrossCorrelation(config=%r)'%self.config
 
-    def process_cross12(self, cat1, cat2, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_cross12(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process two catalogs, accumulating the 3pt cross-correlation, where one of the
         points in each triangle come from the first catalog, and two come from the second.
 
@@ -848,7 +858,8 @@ class KKKCrossCorrelation(BinnedCorr3):
                             f1._d, f2._d, self._coords,
                             self._bintype, self._metric)
 
-    def process_cross(self, cat1, cat2, cat3, metric=None, num_threads=None):
+    @depr_pos_kwargs
+    def process_cross(self, cat1, cat2, cat3, *, metric=None, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
 
         This accumulates the cross-correlation for the given catalogs.  After
@@ -964,7 +975,8 @@ class KKKCrossCorrelation(BinnedCorr3):
         for i, kkk in enumerate(self._all):
             kkk._sum([c._all[i] for c in others])
 
-    def process(self, cat1, cat2, cat3=None, metric=None, num_threads=None,
+    @depr_pos_kwargs
+    def process(self, cat1, cat2, cat3=None, *, metric=None, num_threads=None,
                 comm=None, low_mem=False, initialize=True, finalize=True):
         """Accumulate the cross-correlation of the points in the given Catalogs: cat1, cat2, cat3.
 
@@ -1055,7 +1067,8 @@ class KKKCrossCorrelation(BinnedCorr3):
         """
         return np.concatenate([kkk.getWeight() for kkk in self._all])
 
-    def write(self, file_name, file_type=None, precision=None):
+    @depr_pos_kwargs
+    def write(self, file_name, *, file_type=None, precision=None):
         r"""Write the cross-correlation functions to the file, file_name.
 
         Parameters:
@@ -1087,7 +1100,8 @@ class KKKCrossCorrelation(BinnedCorr3):
             file_name, col_names, group_names, columns,
             params=params, precision=precision, file_type=file_type, logger=self.logger)
 
-    def read(self, file_name, file_type=None):
+    @depr_pos_kwargs
+    def read(self, file_name, *, file_type=None):
         """Read in values from a file.
 
         This should be a file that was written by TreeCorr, preferably a FITS file, so there

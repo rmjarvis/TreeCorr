@@ -23,6 +23,7 @@ import coord
 from . import _lib
 from .config import merge_config, setup_logger, get
 from .util import parse_metric, metric_enum, coord_enum, set_omp_threads, lazy_property
+from .util import depr_pos_kwargs
 from .binnedcorr2 import estimate_multi_cov
 
 class Namespace(object):
@@ -285,7 +286,8 @@ class BinnedCorr3(object):
                 'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
     }
 
-    def __init__(self, config=None, logger=None, rng=None, **kwargs):
+    @depr_pos_kwargs
+    def __init__(self, config=None, *, logger=None, rng=None, **kwargs):
         self._corr = None  # Do this first to make sure we always have it for __del__
         self.config = merge_config(config,kwargs,BinnedCorr3._valid_params)
         if logger is None:
@@ -673,7 +675,7 @@ class BinnedCorr3(object):
                 return False
 
         if len(cat1) == 1 and cat1[0].npatch == 1:
-            self.process_auto(cat1[0], metric, num_threads)
+            self.process_auto(cat1[0], metric=metric, num_threads=num_threads)
 
         else:
             # When patch processing, keep track of the pair-wise results.
@@ -697,7 +699,7 @@ class BinnedCorr3(object):
                 if is_my_job(my_indices, i, i, i, n):
                     temp.clear()
                     self.logger.info('Process patch %d auto',i)
-                    temp.process_auto(c1,metric,num_threads)
+                    temp.process_auto(c1, metric=metric, num_threads=num_threads)
                     if (i,i,i) in self.results and self.results[(i,i,i)].nonzero:
                         self.results[(i,i,i)] += temp
                     else:
@@ -712,7 +714,7 @@ class BinnedCorr3(object):
                             # One point in c1, 2 in c2.
                             if not self._trivially_zero(c1,c2,c2,metric):
                                 self.logger.info('Process patches %d,%d cross12',i,j)
-                                temp.process_cross12(c1,c2, metric, num_threads)
+                                temp.process_cross12(c1, c2, metric=metric, num_threads=num_threads)
                             else:
                                 self.logger.info('Skipping %d,%d pair, which are too far apart ' +
                                                  'for this set of separations',i,j)
@@ -730,7 +732,7 @@ class BinnedCorr3(object):
                             # One point in c2, 2 in c1.
                             if not self._trivially_zero(c1,c1,c2,metric):
                                 self.logger.info('Process patches %d,%d cross12',j,i)
-                                temp.process_cross12(c2,c1, metric, num_threads)
+                                temp.process_cross12(c2, c1, metric=metric, num_threads=num_threads)
                             if temp.nonzero:
                                 if (i,i,j) in self.results and self.results[(i,i,j)].nonzero:
                                     self.results[(i,i,j)] += temp
@@ -749,7 +751,8 @@ class BinnedCorr3(object):
 
                                 if not self._trivially_zero(c1,c2,c3,metric):
                                     self.logger.info('Process patches %d,%d,%d cross',i,j,k)
-                                    temp.process_cross(c1,c2,c3, metric, num_threads)
+                                    temp.process_cross(c1, c2, c3, metric=metric,
+                                                       num_threads=num_threads)
                                 else:
                                     self.logger.info('Skipping %d,%d,%d, which are too far apart ' +
                                                      'for this set of separations',i,j,k)
@@ -819,7 +822,7 @@ class BinnedCorr3(object):
             return ret
 
         if len(cat1) == 1 and len(cat2) == 1 and cat1[0].npatch == 1 and cat2[0].npatch == 1:
-            self.process_cross12(cat1[0], cat2[0], metric, num_threads)
+            self.process_cross12(cat1[0], cat2[0], metric=metric, num_threads=num_threads)
         else:
             # When patch processing, keep track of the pair-wise results.
             if self.npatch1 == 1:
@@ -852,7 +855,7 @@ class BinnedCorr3(object):
                         # One point in c1, 2 in c2.
                         if not self._trivially_zero(c1,c2,c2,metric):
                             self.logger.info('Process patches %d,%d cross12',i,j)
-                            temp.process_cross12(c1,c2, metric, num_threads)
+                            temp.process_cross12(c1, c2, metric=metric, num_threads=num_threads)
                         else:
                             self.logger.info('Skipping %d,%d pair, which are too far apart ' +
                                              'for this set of separations',i,j)
@@ -874,7 +877,8 @@ class BinnedCorr3(object):
 
                             if not self._trivially_zero(c1,c2,c3,metric):
                                 self.logger.info('Process patches %d,%d,%d cross',i,j,k)
-                                temp.process_cross(c1,c2,c3, metric, num_threads)
+                                temp.process_cross(c1, c2, c3, metric=metric,
+                                                   num_threads=num_threads)
                             else:
                                 self.logger.info('Skipping %d,%d,%d, which are too far apart ' +
                                                  'for this set of separations',i,j,k)
@@ -934,7 +938,7 @@ class BinnedCorr3(object):
 
         if (len(cat1) == 1 and len(cat2) == 1 and len(cat3) == 1 and
                 cat1[0].npatch == 1 and cat2[0].npatch == 1 and cat3[0].npatch == 1):
-            self.process_cross(cat1[0],cat2[0],cat3[0], metric, num_threads)
+            self.process_cross(cat1[0], cat2[0], cat3[0], metric=metric, num_threads=num_threads)
         else:
             # When patch processing, keep track of the pair-wise results.
             if self.npatch1 == 1:
@@ -972,7 +976,8 @@ class BinnedCorr3(object):
                             temp.clear()
                             if not self._trivially_zero(c1,c2,c3,metric):
                                 self.logger.info('Process patches %d,%d,%d cross',i,j,k)
-                                temp.process_cross(c1,c2,c3, metric, num_threads)
+                                temp.process_cross(c1, c2, c3, metric=metric,
+                                                   num_threads=num_threads)
                             else:
                                 self.logger.info('Skipping %d,%d,%d, which are too far apart ' +
                                                  'for this set of separations',i,j,k)
@@ -1027,7 +1032,8 @@ class BinnedCorr3(object):
         """
         return self.weight.ravel()
 
-    def estimate_cov(self, method, func=None):
+    @depr_pos_kwargs
+    def estimate_cov(self, method, *, func=None):
         """Estimate the covariance matrix based on the data
 
         This function will calculate an estimate of the covariance matrix according to the

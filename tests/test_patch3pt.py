@@ -928,8 +928,8 @@ def test_nnn_jk():
             ddd.process(cat)
             rdd.process(rand_cat, cat)
             drr.process(cat, rand_cat)
-            zeta_s, _ = ddd.calculateZeta(rrr)
-            zeta_c, _ = ddd.calculateZeta(rrr, drr, rdd)
+            zeta_s, _ = ddd.calculateZeta(rrr=rrr)
+            zeta_c, _ = ddd.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)
             print('simple: ',zeta_s.ravel())
             print('compensated: ',zeta_c.ravel())
             all_nnns.append(zeta_s.ravel())
@@ -984,8 +984,8 @@ def test_nnn_jk():
     ddd.process(cat)
     rdd.process(rand_cat, cat)
     drr.process(cat, rand_cat)
-    zeta_s1, var_zeta_s1 = ddd.calculateZeta(rrr)
-    zeta_c1, var_zeta_c1 = ddd.calculateZeta(rrr, drr, rdd)
+    zeta_s1, var_zeta_s1 = ddd.calculateZeta(rrr=rrr)
+    zeta_c1, var_zeta_c1 = ddd.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)
     print('DDD:',ddd.tot)
     print(ddd.ntri.ravel())
     print('simple: ')
@@ -1025,7 +1025,7 @@ def test_nnn_jk():
     with assert_raises(RuntimeError):
         dddp.estimate_cov('jackknife')
 
-    zeta_s2, var_zeta_s2 = dddp.calculateZeta(rrr)
+    zeta_s2, var_zeta_s2 = dddp.calculateZeta(rrr=rrr)
     print('DDD:',dddp.tot)
     print(dddp.ntri.ravel())
     print('simple: ')
@@ -1071,7 +1071,7 @@ def test_nnn_jk():
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=2.2*tol_factor)
 
-    zeta_c2, var_zeta_c2 = dddp.calculateZeta(rrr, drrp, rddp)
+    zeta_c2, var_zeta_c2 = dddp.calculateZeta(rrr=rrr, drr=drrp, rdd=rddp)
     print('compensated: ')
     print('DRR:',drrp.tot)
     print(drrp.ntri.ravel())
@@ -1118,7 +1118,7 @@ def test_nnn_jk():
     drrp.process(catp, rand_catp)
     rddp.process(rand_catp, catp)
     print('simple: ')
-    zeta_s2, var_zeta_s2 = dddp.calculateZeta(rrrp)
+    zeta_s2, var_zeta_s2 = dddp.calculateZeta(rrr=rrrp)
     print('DDD:',dddp.tot)
     print(dddp.ntri.ravel())
     print(zeta_s2.ravel())
@@ -1168,7 +1168,7 @@ def test_nnn_jk():
     t0 = time.time()
 
     print('compensated: ')
-    zeta_c2, var_zeta_c2 = dddp.calculateZeta(rrrp, drrp, rddp)
+    zeta_c2, var_zeta_c2 = dddp.calculateZeta(rrr=rrrp, drr=drrp, rdd=rddp)
     print('DRR:',drrp.tot)
     print(drrp.ntri.ravel())
     print('RDD:',rddp.tot)
@@ -1239,7 +1239,7 @@ def test_nnn_jk():
         d1._sum(d._all)
         r1 = r.n1n2n3.copy()
         r1._sum(r._all)
-        zeta, _ = d1.calculateZeta(r1)
+        zeta, _ = d1.calculateZeta(rrr=r1)
         return zeta.ravel()
 
     print('simple: ')
@@ -1474,12 +1474,12 @@ def test_brute_jk():
         drr1.process(cat1, rand_cat1)
         rdd1.process(rand_cat1, cat1)
         rrr1.process(rand_cat1)
-        zeta1_list.append(ddd1.calculateZeta(rrr1)[0].ravel())
-        zeta2_list.append(ddd1.calculateZeta(rrr1, drr1, rdd1)[0].ravel())
+        zeta1_list.append(ddd1.calculateZeta(rrr=rrr1)[0].ravel())
+        zeta2_list.append(ddd1.calculateZeta(rrr=rrr1, drr=drr1, rdd=rdd1)[0].ravel())
 
     print('simple')
     zeta1_list = np.array(zeta1_list)
-    zeta2, varzeta2 = ddd.calculateZeta(rrr)
+    zeta2, varzeta2 = ddd.calculateZeta(rrr=rrr)
     varzeta1 = np.diagonal(np.cov(zeta1_list.T, bias=True)) * (len(zeta1_list)-1)
     print('NNN: treecorr jackknife varzeta = ',ddd.varzeta.ravel())
     print('NNN: direct jackknife varzeta = ',varzeta1)
@@ -1488,7 +1488,7 @@ def test_brute_jk():
     print('compensated')
     print(zeta2_list)
     zeta2_list = np.array(zeta2_list)
-    zeta2, varzeta2 = ddd.calculateZeta(rrr, drr=drr, rdd=rdd)
+    zeta2, varzeta2 = ddd.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)
     varzeta2 = np.diagonal(np.cov(zeta2_list.T, bias=True)) * (len(zeta2_list)-1)
     print('NNN: treecorr jackknife varzeta = ',ddd.varzeta.ravel())
     print('NNN: direct jackknife varzeta = ',varzeta2)
@@ -1504,15 +1504,15 @@ def test_brute_jk():
     drr3.process(cat3, rand_cat3)
     rdd3.process(rand_cat3, cat3)
     with assert_raises(RuntimeError):
-        ddd.calculateZeta(rrr3)
+        ddd.calculateZeta(rrr=rrr3)
     with assert_raises(RuntimeError):
-        ddd.calculateZeta(rrr3, drr, rdd)
+        ddd.calculateZeta(rrr=rrr3, drr=drr, rdd=rdd)
     with assert_raises(RuntimeError):
-        ddd.calculateZeta(rrr, drr3, rdd3)
+        ddd.calculateZeta(rrr=rrr, drr=drr3, rdd=rdd3)
     with assert_raises(RuntimeError):
-        ddd.calculateZeta(rrr, drr, rdd3)
+        ddd.calculateZeta(rrr=rrr, drr=drr, rdd=rdd3)
     with assert_raises(RuntimeError):
-        ddd.calculateZeta(rrr, drr3, rdd)
+        ddd.calculateZeta(rrr=rrr, drr=drr3, rdd=rdd)
 
 
 @timer

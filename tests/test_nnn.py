@@ -18,7 +18,7 @@ import os
 import coord
 import fitsio
 
-from test_helper import get_script_name, do_pickle, assert_raises, CaptureLog, timer
+from test_helper import get_script_name, do_pickle, assert_raises, CaptureLog, timer, assert_warns
 from test_helper import is_ccw, is_ccw_3d
 
 @timer
@@ -633,7 +633,7 @@ def test_direct_count_auto():
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   brute=True, verbose=0, rng=rng)
     rrr.process(rcat)
-    zeta, varzeta = ddd.calculateZeta(rrr)
+    zeta, varzeta = ddd.calculateZeta(rrr=rrr)
 
     # Semi-gratuitous check of BinnedCorr3.rng access.
     assert rrr.rng is rng
@@ -695,7 +695,12 @@ def test_direct_count_auto():
                                   brute=True, verbose=0)
     drr.process(cat, rcat)
     rdd.process(rcat, cat)
-    zeta, varzeta = ddd.calculateZeta(rrr,drr,rdd)
+    zeta, varzeta = ddd.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)
+
+    with assert_warns(FutureWarning):
+        zeta2, varzeta2 = ddd.calculateZeta(rrr, drr, rdd)
+    np.testing.assert_array_equal(zeta2, zeta)
+    np.testing.assert_array_equal(varzeta2, varzeta)
 
     config['nnn_statistic'] = 'compensated'
     treecorr.corr3(config, logger)
@@ -2134,7 +2139,7 @@ def test_nnn():
     #print('d3 = ',d3)
     true_zeta = (1./(12.*np.pi**2)) * (L/s)**4 * np.exp(-(d1**2+d2**2+d3**2)/(6.*s**2)) - 1.
 
-    zeta, varzeta = ddd.calculateZeta(rrr)
+    zeta, varzeta = ddd.calculateZeta(rrr=rrr)
     print('zeta = ',zeta)
     print('true_zeta = ',true_zeta)
     print('ratio = ',zeta / true_zeta)
@@ -2177,7 +2182,7 @@ def test_nnn():
     np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
 
     out_file_name2 = os.path.join('output','nnn_out2.fits')
-    ddd.write(out_file_name2, rrr)
+    ddd.write(out_file_name2, rrr=rrr)
     data = fitsio.read(out_file_name2)
     np.testing.assert_almost_equal(data['r_nom'], np.exp(ddd.logr).flatten())
     np.testing.assert_almost_equal(data['u_nom'], ddd.u.flatten())
@@ -2248,7 +2253,7 @@ def test_nnn():
         print('Skipping hdf5 output file, since h5py not installed.')
     else:
         out_file_name3 = os.path.join('output','nnn_out3.hdf5')
-        ddd.write(out_file_name3, rrr)
+        ddd.write(out_file_name3, rrr=rrr)
         with h5py.File(out_file_name3, 'r') as hdf:
             data = hdf['/']
             np.testing.assert_almost_equal(data['r_nom'], np.exp(ddd.logr).flatten())
@@ -2296,35 +2301,35 @@ def test_nnn():
     # Test compensated zeta
     # First just check the mechanics.
     # If we don't actually do all the cross terms, then compensated is the same as simple.
-    zeta2, varzeta2 = ddd.calculateZeta(rrr,drr=rrr,rdd=rrr)
+    zeta2, varzeta2 = ddd.calculateZeta(rrr=rrr, drr=rrr, rdd=rrr)
     print('fake compensated zeta = ',zeta2)
     np.testing.assert_allclose(zeta2, zeta)
 
     # Error to not have one of rrr, drr, rdd.
     with assert_raises(TypeError):
-        ddd.calculateZeta(drr=rrr,rdd=rrr)
+        ddd.calculateZeta(drr=rrr, rdd=rrr)
     with assert_raises(TypeError):
-        ddd.calculateZeta(rrr,rdd=rrr)
+        ddd.calculateZeta(rrr=rrr, rdd=rrr)
     with assert_raises(TypeError):
-        ddd.calculateZeta(rrr,drr=rrr)
+        ddd.calculateZeta(rrr=rrr, drr=rrr)
     rrr2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                    nubins=nubins, nvbins=nvbins, sep_units='arcmin')
     # Error if any of them haven't been run yet.
     with assert_raises(ValueError):
-        ddd.calculateZeta(rrr2,drr=rrr,rdd=rrr)
+        ddd.calculateZeta(rrr=rrr2, drr=rrr, rdd=rrr)
     with assert_raises(ValueError):
-        ddd.calculateZeta(rrr,drr=rrr2,rdd=rrr)
+        ddd.calculateZeta(rrr=rrr, drr=rrr2, rdd=rrr)
     with assert_raises(ValueError):
-        ddd.calculateZeta(rrr,drr=rrr,rdd=rrr2)
+        ddd.calculateZeta(rrr=rrr, drr=rrr, rdd=rrr2)
 
     out_file_name3 = os.path.join('output','nnn_out3.fits')
     with assert_raises(TypeError):
-        ddd.write(out_file_name3,drr=rrr,rdd=rrr)
+        ddd.write(out_file_name3, drr=rrr, rdd=rrr)
     with assert_raises(TypeError):
-        ddd.write(out_file_name3,rrr=rrr,rdd=rrr)
+        ddd.write(out_file_name3, rrr=rrr, rdd=rrr)
     with assert_raises(TypeError):
-        ddd.write(out_file_name3,rrr=rrr,drr=rrr)
+        ddd.write(out_file_name3, rrr=rrr, drr=rrr)
 
     # It's too slow to test the real calculation in nosetests runs, so we stop here if not main.
     if __name__ != '__main__':
@@ -2339,7 +2344,7 @@ def test_nnn():
     drr.process(cat,rand)
     rdd.process(rand,cat)
 
-    zeta, varzeta = ddd.calculateZeta(rrr,drr,rdd)
+    zeta, varzeta = ddd.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)
     print('compensated zeta = ',zeta)
 
     xi1 = (1./(4.*np.pi)) * (L/s)**2 * np.exp(-d1**2/(4.*s**2)) - 1.
@@ -2358,7 +2363,7 @@ def test_nnn():
     np.testing.assert_allclose(np.log(np.abs(zeta)), np.log(np.abs(true_zeta)), atol=0.1*tol_factor)
 
     out_file_name3 = os.path.join('output','nnn_out3.fits')
-    ddd.write(out_file_name3, rrr,drr,rdd)
+    ddd.write(out_file_name3, rrr=rrr, drr=drr, rdd=rdd)
     data = fitsio.read(out_file_name3)
     np.testing.assert_almost_equal(data['r_nom'], np.exp(ddd.logr).flatten())
     np.testing.assert_almost_equal(data['u_nom'], ddd.u.flatten())
@@ -2523,7 +2528,7 @@ def test_3d():
     true_zeta = ((1./(24.*np.sqrt(3)*np.pi**3)) * (L/s)**6 *
                  np.exp(-(d1**2+d2**2+d3**2)/(6.*s**2)) - 1.)
 
-    zeta, varzeta = ddd.calculateZeta(rrr)
+    zeta, varzeta = ddd.calculateZeta(rrr=rrr)
     print('zeta = ',zeta.flatten())
     print('true_zeta = ',true_zeta.flatten())
     print('ratio = ',(zeta / true_zeta).flatten())
@@ -2551,7 +2556,7 @@ def test_3d():
     rand = treecorr.Catalog(x=rx, y=ry, z=rz)
     ddd.process(cat)
     rrr.process(rand)
-    zeta, varzeta = ddd.calculateZeta(rrr)
+    zeta, varzeta = ddd.calculateZeta(rrr=rrr)
     np.testing.assert_allclose(zeta, true_zeta, rtol=0.1*tol_factor)
     np.testing.assert_allclose(np.log(np.abs(zeta)), np.log(np.abs(true_zeta)),
                                   atol=0.1*tol_factor)
@@ -2622,8 +2627,8 @@ def test_list():
     np.testing.assert_allclose(rrr.ntri, rrrx.ntri, rtol=0.1)
     np.testing.assert_allclose(rrr.tot, rrrx.tot)
 
-    zeta, varzeta = ddd.calculateZeta(rrr)
-    zetax, varzetax = dddx.calculateZeta(rrrx)
+    zeta, varzeta = ddd.calculateZeta(rrr=rrr)
+    zetax, varzetax = dddx.calculateZeta(rrr=rrrx)
     print('zeta = ',zeta)
     print('zetax = ',zetax)
     #print('ratio = ',zeta/zetax)

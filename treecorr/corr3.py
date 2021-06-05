@@ -117,7 +117,7 @@ def corr3(config, logger=None):
     # Do GGG correlation function if necessary
     if 'ggg_file_name' in config or 'm3_file_name' in config:
         logger.warning("Performing GGG calculations...")
-        ggg = GGGCorrelation(config,logger)
+        ggg = GGGCorrelation(config, logger=logger)
         ggg.process(cat1)
         logger.info("Done GGG calculations.")
         if 'ggg_file_name' in config:
@@ -130,7 +130,7 @@ def corr3(config, logger=None):
     # Do NNN correlation function if necessary
     if 'nnn_file_name' in config:
         logger.warning("Performing DDD calculations...")
-        ddd = NNNCorrelation(config,logger)
+        ddd = NNNCorrelation(config, logger=logger)
         ddd.process(cat1)
         logger.info("Done DDD calculations.")
 
@@ -141,26 +141,26 @@ def corr3(config, logger=None):
             rrr = None
         else:
             logger.warning("Performing RRR calculations...")
-            rrr = NNNCorrelation(config,logger)
+            rrr = NNNCorrelation(config, logger=logger)
             rrr.process(rand1)
             logger.info("Done RRR calculations.")
 
         if rrr is not None and config['nnn_statistic'] == 'compensated':
             logger.warning("Performing DRR calculations...")
-            drr = NNNCorrelation(config,logger)
+            drr = NNNCorrelation(config, logger=logger)
             drr.process(cat1,rand1)
             logger.info("Done DRR calculations.")
             logger.warning("Performing DDR calculations...")
-            rdd = NNNCorrelation(config,logger)
+            rdd = NNNCorrelation(config, logger=logger)
             rdd.process(rand1,cat1)
             logger.info("Done DDR calculations.")
-        ddd.write(config['nnn_file_name'],rrr,drr,rdd)
+        ddd.write(config['nnn_file_name'], rrr=rrr, drr=drr, rdd=rdd)
         logger.warning("Wrote NNN correlation to %s",config['nnn_file_name'])
 
     # Do KKK correlation function if necessary
     if 'kkk_file_name' in config:
         logger.warning("Performing KKK calculations...")
-        kkk = KKKCorrelation(config,logger)
+        kkk = KKKCorrelation(config, logger=logger)
         kkk.process(cat1)
         logger.info("Done KKK calculations.")
         kkk.write(config['kkk_file_name'])

@@ -106,22 +106,10 @@ jobs:
                 pip install -U -r requirements.txt
 
                 # Extra packages needed for testing
-                pip install -U nose codecov fitsio mpi4py coverage
+                pip install -U nose codecov fitsio mpi4py coverage mockmpi
 
                 # Note: I'd rather include h5py here, but I can't get it to install properly
-                # on GHA for pypy3.  So only do that for regular py2 and py3.
-
-            - name: Install py2.7 dependencies
-              if: matrix.py == 2.7
-              run: |
-                # halotools doesn't work anymore in 3.x (because of astropy change),
-                # so do this in 2.7.
-                pip install -U halotools h5py
-
-            - name: Install py3.x, pypy dependencies
-              if: matrix.py > 3.0 || matrix.py == 'pypy3'
-              run: |
-                pip install -U mockmpi
+                # on GHA for pypy3.  So only do that for regular py3.
 
             - name: Install py3.x dependencies
               # They are slow to install on pypy, where some are installed from scratch.

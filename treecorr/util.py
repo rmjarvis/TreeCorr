@@ -452,6 +452,11 @@ class LRU_Cache(object):
     but added a method for dynamic resizing.  The least recently used cached item is
     overwritten on a cache miss.
 
+    Note: This has additional functionality beyond what functools.lru_cache provides.
+          1. The ability to resize the maxsize non-destructively.
+          2. The key is only on the args, not kwargs, so a logger can be provided as a kwarg
+             without triggering a cache miss.
+
     :param user_function:  A python function to cache.
     :param maxsize:        Maximum number of inputs to cache.  [Default: 1024]
 

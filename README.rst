@@ -96,8 +96,8 @@ that is also relatively straightforward:
 
    Or you can clone the repository using either of the following::
 
-        git clone git@github.com:GalSim-developers/GalSim.git
-        git clone https://github.com/GalSim-developers/GalSim.git
+        git clone git@github.com:rmjarvis/TreeCorr.git
+        git clone https://github.com/rmjarvis/TreeCorr.git
 
    which will start out in the current stable release branch.
 

@@ -1165,7 +1165,7 @@ class GGGCrossCorrelation(BinnedCorr3):
     Therefore, this class holds 6 instances of `GGGCorrelation`, which in turn hold the
     information about triangles in each of the relevant configurations.  We name these:
 
-    Attribute:
+    Attributes:
         g1g2g3:     Triangles where G1 is opposite d1, G2 is opposite d2, G3 is opposite d3.
         g1g3g2:     Triangles where G1 is opposite d1, G3 is opposite d2, G2 is opposite d3.
         g2g1g3:     Triangles where G2 is opposite d1, G1 is opposite d2, G3 is opposite d3.

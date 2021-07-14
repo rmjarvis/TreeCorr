@@ -189,7 +189,17 @@ auto-correlation functions:</p>
 <li class="toctree-l1"><a class="reference internal" href="kkk.html">KKKCorrelation: Kappa-kappa-kappa correlations</a></li>
 </ul>
 </div>
-<p>There are plans to add the various cross-correlations, but they have not yet been implemented.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>There are classes that can handle cross-correlations of the same type:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="nnn.html#treecorr.NNNCrossCorrelation" title="treecorr.NNNCrossCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">treecorr.NNNCrossCorrelation</span></code></a></p></li>
+<li><p><a class="reference internal" href="ggg.html#treecorr.GGGCrossCorrelation" title="treecorr.GGGCrossCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">treecorr.GGGCrossCorrelation</span></code></a></p></li>
+<li><p><a class="reference internal" href="kkk.html#treecorr.KKKCrossCorrelation" title="treecorr.KKKCrossCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">treecorr.KKKCrossCorrelation</span></code></a></p></li>
+</ul>
+<p>However, we do not yet have the ability to compute 3-point cross-correlations across
+different types (such as NNG or KGG, etc.)</p>
+</div>
 <p>Each of the above classes is a sub-class of the base class BinnedCorr3, so they have a number of
 features in common about how they are constructed.  The common features are documented here.</p>
 <dl class="py class">

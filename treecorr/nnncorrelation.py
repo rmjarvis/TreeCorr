@@ -995,7 +995,7 @@ class NNNCrossCorrelation(BinnedCorr3):
     Therefore, this class holds 6 instances of `NNNCorrelation`, which in turn hold the
     information about triangles in each of the relevant configurations.  We name these:
 
-    Attribute:
+    Attributes:
         n1n2n3:     Triangles where N1 is opposite d1, N2 is opposite d2, N3 is opposite d3.
         n1n3n2:     Triangles where N1 is opposite d1, N3 is opposite d2, N2 is opposite d3.
         n2n1n3:     Triangles where N2 is opposite d1, N1 is opposite d2, N3 is opposite d3.

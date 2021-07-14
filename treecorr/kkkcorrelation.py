@@ -684,7 +684,7 @@ class KKKCrossCorrelation(BinnedCorr3):
     Therefore, this class holds 6 instances of `KKKCorrelation`, which in turn hold the
     information about triangles in each of the relevant configurations.  We name these:
 
-    Attribute:
+    Attributes:
         k1k2k3:     Triangles where K1 is opposite d1, K2 is opposite d2, K3 is opposite d3.
         k1k3k2:     Triangles where K1 is opposite d1, K3 is opposite d2, K2 is opposite d3.
         k2k1k3:     Triangles where K2 is opposite d1, K1 is opposite d2, K3 is opposite d3.

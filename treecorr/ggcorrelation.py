@@ -49,7 +49,7 @@ class GGCorrelation(BinnedCorr2):
         meanlogr:   The (weighted) mean value of log(r) for the pairs in each bin.
                     If there are no pairs in a bin, then logr will be used instead.
         xip:        The correlation function, :math:`\xi_+(r)`.
-        xim:        The correlation funciton, :math:`\xi_-(r)`.
+        xim:        The correlation function, :math:`\xi_-(r)`.
         xip_im:     The imaginary part of :math:`\xi_+(r)`.
         xim_im:     The imaginary part of :math:`\xi_-(r)`.
         varxip:     An estimate of the variance of :math:`\xi_+(r)`

@@ -606,7 +606,7 @@ void BinnedCorr2<D1,D2,B>::operator+=(const BinnedCorr2<D1,D2,B>& rhs)
     for (int i=0; i<_nbins; ++i) _npairs[i] += rhs._npairs[i];
 }
 
-template <int D1, int D2, int B> template <int C, int M, int P>
+template <int D1, int D2, int B> template <int M, int P, int C>
 long BinnedCorr2<D1,D2,B>::samplePairs(
     const Field<D1, C>& field1, const Field<D2, C>& field2,
     double minsep, double maxsep, long* i1, long* i2, double* sep, int n)
@@ -636,7 +636,7 @@ long BinnedCorr2<D1,D2,B>::samplePairs(
     return k;
 }
 
-template <int D1, int D2, int B> template <int C, int M, int P>
+template <int D1, int D2, int B> template <int M, int P, int C>
 void BinnedCorr2<D1,D2,B>::samplePairs(
     const Cell<D1, C>& c1, const Cell<D2, C>& c2, const MetricHelper<M,P>& metric,
     double minsep, double minsepsq, double maxsep, double maxsepsq,
@@ -704,29 +704,29 @@ void BinnedCorr2<D1,D2,B>::samplePairs(
             Assert(c1.getRight());
             Assert(c2.getLeft());
             Assert(c2.getRight());
-            samplePairs<C,M,P>(*c1.getLeft(), *c2.getLeft(), metric,
-                               minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
-            samplePairs<C,M,P>(*c1.getLeft(), *c2.getRight(), metric,
-                               minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
-            samplePairs<C,M,P>(*c1.getRight(), *c2.getLeft(), metric,
-                               minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
-            samplePairs<C,M,P>(*c1.getRight(), *c2.getRight(), metric,
-                               minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs(*c1.getLeft(), *c2.getLeft(), metric,
+                        minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs(*c1.getLeft(), *c2.getRight(), metric,
+                        minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs(*c1.getRight(), *c2.getLeft(), metric,
+                        minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs(*c1.getRight(), *c2.getRight(), metric,
+                        minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
         } else if (split1) {
             Assert(c1.getLeft());
             Assert(c1.getRight());
-            samplePairs<C,M,P>(*c1.getLeft(), c2, metric,
-                               minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
-            samplePairs<C,M,P>(*c1.getRight(), c2, metric,
-                               minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs(*c1.getLeft(), c2, metric,
+                        minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs(*c1.getRight(), c2, metric,
+                        minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
         } else {
             Assert(split2);
             Assert(c2.getLeft());
             Assert(c2.getRight());
-            samplePairs<C,M,P>(c1, *c2.getLeft(), metric,
-                               minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
-            samplePairs<C,M,P>(c1, *c2.getRight(), metric,
-                               minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs(c1, *c2.getLeft(), metric,
+                        minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs(c1, *c2.getRight(), metric,
+                        minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
         }
     }
 }
@@ -1514,7 +1514,7 @@ long SamplePairs2d(BinnedCorr2<D1,D2,B>* corr, void* field1, void* field2,
       case Flat:
            Assert((MetricHelper<M,0>::_Flat == int(Flat)));
            Assert(!P);
-           return corr->template samplePairs<MetricHelper<M,0>::_Flat, M, false>(
+           return corr->template samplePairs<M, false>(
                *static_cast<Field<D1,MetricHelper<M,0>::_Flat>*>(field1),
                *static_cast<Field<D2,MetricHelper<M,0>::_Flat>*>(field2),
                minsep, maxsep, i1, i2, sep, n);
@@ -1522,7 +1522,7 @@ long SamplePairs2d(BinnedCorr2<D1,D2,B>* corr, void* field1, void* field2,
       case Sphere:
            Assert((MetricHelper<M,0>::_Sphere == int(Sphere)));
            Assert(!P);
-           return corr->template samplePairs<MetricHelper<M,0>::_Sphere, M, false>(
+           return corr->template samplePairs<M, false>(
                *static_cast<Field<D1,MetricHelper<M,0>::_Sphere>*>(field1),
                *static_cast<Field<D2,MetricHelper<M,0>::_Sphere>*>(field2),
                minsep, maxsep, i1, i2, sep, n);
@@ -1530,12 +1530,12 @@ long SamplePairs2d(BinnedCorr2<D1,D2,B>* corr, void* field1, void* field2,
       case ThreeD:
            Assert((MetricHelper<M,0>::_ThreeD == int(ThreeD)));
            if (P)
-               return corr->template samplePairs<MetricHelper<M,1>::_ThreeD, M, true>(
+               return corr->template samplePairs<M, true>(
                    *static_cast<Field<D1,MetricHelper<M,1>::_ThreeD>*>(field1),
                    *static_cast<Field<D2,MetricHelper<M,1>::_ThreeD>*>(field2),
                    minsep, maxsep, i1, i2, sep, n);
            else
-               return corr->template samplePairs<MetricHelper<M,0>::_ThreeD, M, false>(
+               return corr->template samplePairs<M, false>(
                    *static_cast<Field<D1,MetricHelper<M,0>::_ThreeD>*>(field1),
                    *static_cast<Field<D2,MetricHelper<M,0>::_ThreeD>*>(field2),
                    minsep, maxsep, i1, i2, sep, n);

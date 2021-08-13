@@ -213,6 +213,79 @@ def test_nn_direct_rlens():
 
 
 @timer
+def test_nk_patch_rlens():
+    # This is based on a bug report by Marina Ricci that Rlens with patches failed when
+    # one catalog used ra, dec, r, and the other used just ra, dec.
+
+    ngal = 200
+    s = 10.
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(312, s, (ngal,) )
+    y1 = rng.normal(728, s, (ngal,) )
+    z1 = rng.normal(-932, s, (ngal,) )
+    r1 = np.sqrt( x1*x1 + y1*y1 + z1*z1 )
+    dec1 = np.arcsin(z1/r1)
+    ra1 = np.arctan2(y1,x1)
+    cat1 = treecorr.Catalog(ra=ra1, dec=dec1, r=r1, ra_units='rad', dec_units='rad')
+
+    x2 = rng.normal(312, s, (ngal,) )
+    y2 = rng.normal(728, s, (ngal,) )
+    z2 = rng.normal(-932, s, (ngal,) )
+    r2 = np.sqrt( x2*x2 + y2*y2 + z2*z2 )
+    k2 = rng.uniform(0.98, 1.03, (ngal,) )
+    dec2 = np.arcsin(z2/r2)
+    ra2 = np.arctan2(y2,x2)
+    cat2 = treecorr.Catalog(ra=ra2, dec=dec2, k=k2, ra_units='rad', dec_units='rad')
+
+    min_sep = 1.
+    max_sep = 50.
+    nbins = 50
+    nk = treecorr.NKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
+    nk.process(cat1, cat2, metric='Rlens')
+    print('nk.npairs = ',nk.npairs)
+
+    log_min_sep = np.log(min_sep)
+    log_max_sep = np.log(max_sep)
+    true_npairs = np.zeros(nbins)
+    true_kappa = np.zeros(nbins)
+    bin_size = (log_max_sep - log_min_sep) / nbins
+    for i in range(ngal):
+        for j in range(ngal):
+            # L = |r1| sin(theta)
+            #   = |r1 x r2| / |r2|
+            xcross = y1[i] * z2[j] - z1[i] * y2[j]
+            ycross = z1[i] * x2[j] - x1[i] * z2[j]
+            zcross = x1[i] * y2[j] - y1[i] * x2[j]
+            Rlens = np.sqrt(xcross**2 + ycross**2 + zcross**2) / r2[j]
+            logr = np.log(Rlens)
+            k = int(np.floor( (logr-log_min_sep) / bin_size ))
+            if k < 0: continue
+            if k >= nbins: continue
+            true_npairs[k] += 1
+            true_kappa[k] += k2[j]
+    true_kappa /= true_npairs
+
+    print('true_npairs = ',true_npairs)
+    print('diff = ',nk.npairs - true_npairs)
+    np.testing.assert_array_equal(nk.npairs, true_npairs)
+    print('nk.xi = ',nk.xi)
+    print('true_kappa = ',true_kappa)
+    print('diff = ',nk.xi - true_kappa)
+    np.testing.assert_allclose(nk.xi, true_kappa)
+
+    # This version failed on v4.2.3.
+    cat1p = treecorr.Catalog(ra=ra1, dec=dec1, r=r1, ra_units='rad', dec_units='rad', npatch=4)
+    cat2p = treecorr.Catalog(ra=ra2, dec=dec2, k=k2, ra_units='rad', dec_units='rad',
+                             patch_centers=cat1p.patch_centers)
+    nk2 = treecorr.NKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0)
+    nk2.process(cat1p, cat2p, metric='Rlens')
+    print('nk2.npairs = ',nk2.npairs)
+    print('nk2.xi = ',nk2.xi)
+    np.testing.assert_array_equal(nk2.npairs, true_npairs)
+    np.testing.assert_allclose(nk2.xi, true_kappa)
+
+
+@timer
 def test_rperp_minmax():
     """This test is based on a bug report from Erika Wagoner where the lowest bins were
     getting spuriously high w(rp) values.  It stemmed from a subtlety about how large

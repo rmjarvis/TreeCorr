@@ -138,7 +138,8 @@ jobs:
               # They are slow to install on pypy, where some are installed from scratch.
               if: matrix.py > 3.0
               run: |
-                pip install -U matplotlib nbval ipykernel scipy pandas guppy3 h5py pyarrow
+                # Note: matplotlib 3.4 has a bug when compiled with gcc 11.
+                pip install -U matplotlib==3.3 nbval ipykernel scipy pandas guppy3 h5py pyarrow
 
             - name: List all installed packages for reference
               run: pip list

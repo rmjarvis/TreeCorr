@@ -336,7 +336,7 @@ class NGCorrelation(BinnedCorr2):
                 self.max_sep == other.max_sep):
             raise ValueError("NGCorrelation to be added is not compatible with this one.")
 
-        self._set_metric(other.metric, other.coords)
+        self._set_metric(other.metric, other.coords, other.coords)
         self.raw_xi.ravel()[:] += other.raw_xi.ravel()[:]
         self.raw_xi_im.ravel()[:] += other.raw_xi_im.ravel()[:]
         self.meanr.ravel()[:] += other.meanr.ravel()[:]

@@ -328,7 +328,7 @@ class NKCorrelation(BinnedCorr2):
                 self.max_sep == other.max_sep):
             raise ValueError("NKCorrelation to be added is not compatible with this one.")
 
-        self._set_metric(other.metric, other.coords)
+        self._set_metric(other.metric, other.coords, other.coords)
         self.raw_xi.ravel()[:] += other.raw_xi.ravel()[:]
         self.meanr.ravel()[:] += other.meanr.ravel()[:]
         self.meanlogr.ravel()[:] += other.meanlogr.ravel()[:]

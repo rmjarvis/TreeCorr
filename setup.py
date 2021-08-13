@@ -463,9 +463,10 @@ make it succeed.
 """.format(prefix)
         print(msg)
         q = "Stop the installation here to take care of this?"
-        yn = query_yes_no(q, default='yes')
+        yn = query_yes_no(q, default='no')
         if yn == 'yes':
             sys.exit(1)
+        print("Continuing on...")
 
 def fix_compiler(compiler):
     # Remove any -Wstrict-prototypes in the compiler flags (since invalid for C++)

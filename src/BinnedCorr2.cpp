@@ -186,7 +186,7 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field1, const Field<D2,C>&
     Assert(_coords == -1 || _coords == C);
     _coords = C;
 
-    // Before possibly triggering a call to BuildCells, check if we can early exit.
+    // Check if we can early exit.
     MetricHelper<M,P> metric1(_minrpar, _maxrpar, _xp, _yp, _zp);
     const Position<C>& p1 = field1.getCenter();
     const Position<C>& p2 = field2.getCenter();
@@ -604,6 +604,20 @@ void BinnedCorr2<D1,D2,B>::operator+=(const BinnedCorr2<D1,D2,B>& rhs)
     for (int i=0; i<_nbins; ++i) _meanlogr[i] += rhs._meanlogr[i];
     for (int i=0; i<_nbins; ++i) _weight[i] += rhs._weight[i];
     for (int i=0; i<_nbins; ++i) _npairs[i] += rhs._npairs[i];
+}
+
+template <int D1, int D2, int B> template <int M, int C>
+bool BinnedCorr2<D1,D2,B>::triviallyZero(Position<C> p1, Position<C> p2, double s1, double s2)
+{
+    // Ignore any min/max rpar for this calculation.
+    double minrpar = -std::numeric_limits<double>::max();
+    double maxrpar = std::numeric_limits<double>::max();
+    MetricHelper<M,0> metric(minrpar, maxrpar, _xp, _yp, _zp);
+    const double rsq = metric.DistSq(p1, p2, s1, s2);
+    double s1ps2 = s1 + s2;
+    double rpar = 0;
+    return (BinTypeHelper<B>::tooLargeDist(rsq, s1ps2, _maxsep, _maxsepsq) &&
+            metric.tooLargeDist(p1, p2, rsq, rpar, s1ps2, _fullmaxsep, _fullmaxsepsq));
 }
 
 template <int D1, int D2, int B> template <int M, int P, int C>
@@ -1650,6 +1664,143 @@ long SamplePairs(void* corr, void* field1, void* field2, double minsep, double m
       case GData:
            return SamplePairs2a<GData>(corr, field1, field2, minsep, maxsep,
                                        d2, coords, bin_type, metric, i1, i2, sep, n);
+           break;
+      default:
+           Assert(false);
+    }
+    return 0;
+}
+
+template <int M, int C, int D1, int D2, int B>
+int TriviallyZero2e(BinnedCorr2<D1,D2,B>* corr,
+                    double x1, double y1, double z1, double s1,
+                    double x2, double y2, double z2, double s2)
+{
+    Position<C> p1(x1,y1,z1);
+    Position<C> p2(x2,y2,z2);
+    return corr->template triviallyZero<M>(p1, p2, s1, s2);
+}
+
+template <int M, int D1, int D2, int B>
+int TriviallyZero2d(BinnedCorr2<D1,D2,B>* corr, int coords,
+                    double x1, double y1, double z1, double s1,
+                    double x2, double y2, double z2, double s2)
+{
+    switch(coords) {
+      case Flat:
+           Assert((MetricHelper<M,0>::_Flat == int(Flat)));
+           return TriviallyZero2e<M, MetricHelper<M,0>::_Flat>(
+               corr, x1, y1, z1, s1, x2, y2, z2, s2);
+           break;
+      case Sphere:
+           Assert((MetricHelper<M,0>::_Sphere == int(Sphere)));
+           return TriviallyZero2e<M, MetricHelper<M,0>::_Sphere>(
+               corr, x1, y1, z1, s1, x2, y2, z2, s2);
+           break;
+      case ThreeD:
+           Assert((MetricHelper<M,0>::_ThreeD == int(ThreeD)));
+           return TriviallyZero2e<M, MetricHelper<M,0>::_ThreeD>(
+               corr, x1, y1, z1, s1, x2, y2, z2, s2);
+       default:
+           Assert(false);
+    }
+    return 0;
+}
+
+template <int D1, int D2, int B>
+int TriviallyZero2c(BinnedCorr2<D1,D2,B>* corr, int metric, int coords,
+                    double x1, double y1, double z1, double s1,
+                    double x2, double y2, double z2, double s2)
+{
+    switch(metric) {
+      case Euclidean:
+           return TriviallyZero2d<Euclidean>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
+           break;
+      case Rperp:
+           return TriviallyZero2d<Rperp>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
+           break;
+      case OldRperp:
+           return TriviallyZero2d<OldRperp>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
+           break;
+      case Rlens:
+           return TriviallyZero2d<Rlens>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
+           break;
+      case Arc:
+           return TriviallyZero2d<Arc>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
+           break;
+      case Periodic:
+           return TriviallyZero2d<Periodic>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
+           break;
+      default:
+           Assert(false);
+    }
+    return 0;
+}
+
+template <int D1, int D2>
+int TriviallyZero2b(void* corr, int bin_type, int metric, int coords,
+                    double x1, double y1, double z1, double s1,
+                    double x2, double y2, double z2, double s2)
+{
+    switch(bin_type) {
+      case Log:
+           return TriviallyZero2c(static_cast<BinnedCorr2<D1,D2,Log>*>(corr), metric, coords,
+                                  x1, y1, z1, s1, x2, y2, z2, s2);
+           break;
+      case Linear:
+           return TriviallyZero2c(static_cast<BinnedCorr2<D1,D2,Linear>*>(corr), metric, coords,
+                                  x1, y1, z1, s1, x2, y2, z2, s2);
+           break;
+      case TwoD:
+           return TriviallyZero2c(static_cast<BinnedCorr2<D1,D2,TwoD>*>(corr), metric, coords,
+                                  x1, y1, z1, s1, x2, y2, z2, s2);
+           break;
+      default:
+           Assert(false);
+    }
+    return 0;
+}
+
+template <int D1>
+int TriviallyZero2a(void* corr, int d2, int bin_type, int metric, int coords,
+                    double x1, double y1, double z1, double s1,
+                    double x2, double y2, double z2, double s2)
+{
+    switch(d2) {
+      case NData:
+           return TriviallyZero2b<D1,NData>(corr, bin_type, metric, coords,
+                                            x1, y1, z1, s1, x2, y2, z2, s2);
+           break;
+      case KData:
+           return TriviallyZero2b<D1,KData>(corr, bin_type, metric, coords,
+                                            x1, y1, z1, s1, x2, y2, z2, s2);
+           break;
+      case GData:
+           return TriviallyZero2b<D1,GData>(corr, bin_type, metric, coords,
+                                            x1, y1, z1, s1, x2, y2, z2, s2);
+           break;
+      default:
+           Assert(false);
+    }
+    return 0;
+}
+
+int TriviallyZero(void* corr, int d1, int d2, int bin_type, int metric, int coords,
+                  double x1, double y1, double z1, double s1,
+                  double x2, double y2, double z2, double s2)
+{
+    switch(d1) {
+      case NData:
+           return TriviallyZero2a<NData>(corr, d2, bin_type, metric, coords,
+                                         x1, y1, z1, s1, x2, y2, z2, s2);
+           break;
+      case KData:
+           return TriviallyZero2a<KData>(corr, d2, bin_type, metric, coords,
+                                         x1, y1, z1, s1, x2, y2, z2, s2);
+           break;
+      case GData:
+           return TriviallyZero2a<GData>(corr, d2, bin_type, metric, coords,
+                                         x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       default:
            Assert(false);

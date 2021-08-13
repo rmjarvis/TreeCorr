@@ -324,7 +324,7 @@ class KGCorrelation(BinnedCorr2):
                 self.max_sep == other.max_sep):
             raise ValueError("KGCorrelation to be added is not compatible with this one.")
 
-        self._set_metric(other.metric, other.coords)
+        self._set_metric(other.metric, other.coords, other.coords)
         self.xi.ravel()[:] += other.xi.ravel()[:]
         self.xi_im.ravel()[:] += other.xi_im.ravel()[:]
         self.meanr.ravel()[:] += other.meanr.ravel()[:]

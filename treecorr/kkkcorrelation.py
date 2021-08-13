@@ -431,7 +431,7 @@ class KKKCorrelation(BinnedCorr3):
             raise ValueError("KKKCorrelation to be added is not compatible with this one.")
 
         if not other.nonzero: return self
-        self._set_metric(other.metric, other.coords)
+        self._set_metric(other.metric, other.coords, other.coords, other.coords)
         self.zeta[:] += other.zeta[:]
         self.meand1[:] += other.meand1[:]
         self.meanlogd1[:] += other.meanlogd1[:]

@@ -490,7 +490,7 @@ class NNNCorrelation(BinnedCorr3):
                 self.max_v == other.max_v):
             raise ValueError("NNNCorrelation to be added is not compatible with this one.")
 
-        self._set_metric(other.metric, other.coords)
+        self._set_metric(other.metric, other.coords, other.coords, other.coords)
         self.tot += other.tot
 
         # If other is empty, then we're done now.

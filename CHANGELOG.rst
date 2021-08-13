@@ -100,3 +100,9 @@ Changes from version 4.2.2 to 4.2.3
 
 - Fixed a bug in the Map^3 calculation when the aperture radii are different.
   Thanks to Laila Linke for both finding the problem and providing the fix. (#128)
+
+Changes from version 4.2.3 to 4.2.4
+===================================
+
+- Fixed a bug when running the Rlens metric with patches. Thanks to Marina Ricci
+  for the bug report. (#131)

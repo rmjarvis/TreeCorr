@@ -67,10 +67,10 @@ public:
     void operator+=(const BinnedCorr2<D1,D2,B>& rhs);
 
     // Sample a random subset of pairs in a given range
-    template <int C, int M, int P>
+    template <int M, int P, int C>
     long samplePairs(const Field<D1, C>& field1, const Field<D2, C>& field2,
                      double min_sep, double max_sep, long* i1, long* i2, double* sep, int n);
-    template <int C, int M, int P>
+    template <int M, int P, int C>
     void samplePairs(const Cell<D1, C>& c1, const Cell<D2, C>& c2, const MetricHelper<M,P>& m,
                      double min_sep, double min_sepsq, double max_sep, double max_sepsq,
                      long* i1, long* i2, double* sep, int n, long& k);

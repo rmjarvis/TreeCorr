@@ -84,6 +84,8 @@ public:
                 _maxrpar != std::numeric_limits<double>::max());
     }
 
+    template <int M, int C>
+    bool triviallyZero(Position<C> p1, Position<C> p2, double s1, double s2);
 
 protected:
 

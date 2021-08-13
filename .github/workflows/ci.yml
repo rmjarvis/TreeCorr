@@ -136,10 +136,10 @@ jobs:
 
             - name: Install py3.x dependencies
               # They are slow to install on pypy, where some are installed from scratch.
-              if: matrix.py > 3.0
+              # Also, matplotlib gives an error when compiled on gcc-11.
+              if: matrix.py > 3.0 && matrix.CC != 'gcc-11'
               run: |
-                # Note: matplotlib 3.4 has a bug when compiled with gcc 11.
-                pip install -U "matplotlib<=3.3" nbval ipykernel scipy pandas guppy3 h5py pyarrow
+                pip install -U matplotlib nbval ipykernel scipy pandas guppy3 h5py pyarrow
 
             - name: List all installed packages for reference
               run: pip list

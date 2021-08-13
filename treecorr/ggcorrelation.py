@@ -376,7 +376,7 @@ class GGCorrelation(BinnedCorr2):
                 self.max_sep == other.max_sep):
             raise ValueError("GGCorrelation to be added is not compatible with this one.")
 
-        self._set_metric(other.metric, other.coords)
+        self._set_metric(other.metric, other.coords, other.coords)
         self.xip.ravel()[:] += other.xip.ravel()[:]
         self.xim.ravel()[:] += other.xim.ravel()[:]
         self.xip_im.ravel()[:] += other.xip_im.ravel()[:]

@@ -589,8 +589,9 @@ class BinnedCorr2(object):
         # For now, ignore the metric.  Just be conservative about how much space we need.
         x1,y1,z1,s1 = c1._get_center_size()
         x2,y2,z2,s2 = c2._get_center_size()
-        d = ((x1-x2)**2 + (y1-y2)**2 + (z1-z2)**2)**0.5
-        return (d > s1 + s2 + 2*self._max_sep)  # The 2* is where we are being conservative.
+        return _lib.TriviallyZero(self.corr, self._d1, self._d2, self._bintype,
+                                  self._metric, self._coords,
+                                  x1, y1, z1, s1, x2, y2, z2, s2)
 
     def _process_all_auto(self, cat1, metric, num_threads, comm, low_mem):
 
@@ -651,6 +652,7 @@ class BinnedCorr2(object):
             else:
                 my_indices = None
 
+            self._set_metric(metric, cat1[0].coords)
             temp = self.copy()
             temp.results = {}  # Don't mess up the original results
             for ii,c1 in enumerate(cat1):
@@ -757,6 +759,7 @@ class BinnedCorr2(object):
             else:
                 my_indices = None
 
+            self._set_metric(metric, cat1[0].coords, cat2[0].coords)
             temp = self.copy()
             temp.results = {}  # Don't mess up the original results
             for ii,c1 in enumerate(cat1):

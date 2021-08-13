@@ -35,3 +35,7 @@ extern int GetOMPThreads();
 extern long SamplePairs(void* corr, void* field1, void* field2, double min_sep, double max_sep,
                         int d1, int d2, int coords, int bin_type, int metric,
                         long* i1, long* i2, double* sep, int n);
+
+extern int TriviallyZero(void* corr, int d1, int d2, int bin_type, int metric, int coords,
+                         double x1, double y1, double z1, double s1,
+                         double x2, double y2, double z2, double s2);

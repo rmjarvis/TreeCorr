@@ -1020,8 +1020,6 @@ class GGGCorrelation(BinnedCorr3):
             self.logger.debug("d1[bad] = %s",d1[bad])
             self.logger.debug("d2[bad] = %s",d2[bad])
             self.logger.debug("d3[bad] = %s",d3[bad])
-            self.logger.debug("u[bad] = %s",u[bad])
-            self.logger.debug("v[bad] = %s",v[bad])
             self.logger.debug("tx[bad] = %s",tx[bad])
         bad = np.where(bad)
         tx[bad] = 0  # for now to avoid nans

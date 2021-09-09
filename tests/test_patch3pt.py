@@ -1435,11 +1435,20 @@ def test_brute_jk():
 
     ggg_map3_list = np.array(ggg_map3_list)
     varmap3 = np.diagonal(np.cov(ggg_map3_list.T, bias=True)) * (len(ggg_map3_list)-1)
+
+    # Use estimate_multi_cov
     covmap3 = treecorr.estimate_multi_cov([ggg], 'jackknife',
                                           func=lambda corrs: corrs[0].calculateMap3()[0])
     print('GGG: treecorr jackknife varmap3 = ',np.diagonal(covmap3))
     print('GGG: direct jackknife varmap3 = ',varmap3)
     np.testing.assert_allclose(np.diagonal(covmap3), varmap3)
+
+    # Use estimate_cov
+    covmap3b = ggg.estimate_cov('jackknife', lambda corr: corr.calculateMap3()[0])
+    print('GGG: treecorr jackknife varmap3 = ',np.diagonal(covmap3b))
+    print('GGG: direct jackknife varmap3 = ',varmap3)
+    np.testing.assert_allclose(np.diagonal(covmap3b), varmap3)
+    np.testing.assert_allclose(covmap3b, covmap3, rtol=1.e-10, atol=1.e-10)
 
     # Finally NNN, where we need to use randoms.  Both simple and compensated.
     ddd = treecorr.NNNCorrelation(nbins=3, min_sep=100., max_sep=300., bin_slop=0,

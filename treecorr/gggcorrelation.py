@@ -445,7 +445,7 @@ class GGGCorrelation(BinnedCorr3):
         self._finalize()
         mask1 = self.weight != 0
         mask2 = self.weight == 0
-        self._var_num = varg1 * varg2 * varg3
+        self._var_num = 4 * varg1 * varg2 * varg3
         self.cov = self.estimate_cov(self.var_method)
         # Note: diagonal should be very close to pure real.  So ok to just copy real part.
         diag = self.cov.diagonal()

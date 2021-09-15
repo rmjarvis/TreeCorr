@@ -2129,6 +2129,11 @@ def test_vargam():
         mean_vargam2 = np.mean([ggg.vargam2 for ggg in all_gggs], axis=0)
         mean_vargam3 = np.mean([ggg.vargam3 for ggg in all_gggs], axis=0)
 
+        all_map = [ggg.calculateMap3() for ggg in all_gggs]
+        var_map3 = np.var([m[0] for m in all_map], axis=0)
+        var_mx3 = np.var([m[7] for m in all_map], axis=0)
+        mean_varmap = np.mean([m[8] for m in all_map], axis=0)
+
         np.savez(file_name,
                  mean_gam0r=mean_gam0r, var_gam0r=var_gam0r,
                  mean_gam0i=mean_gam0i, var_gam0i=var_gam0i,
@@ -2141,7 +2146,8 @@ def test_vargam():
                  mean_vargam0=mean_vargam0,
                  mean_vargam1=mean_vargam1,
                  mean_vargam2=mean_vargam2,
-                 mean_vargam3=mean_vargam3)
+                 mean_vargam3=mean_vargam3,
+                 var_map3=var_map3, var_mx3=var_mx3, mean_varmap=mean_varmap)
 
     data = np.load(file_name)
     print('nruns = ',nruns)
@@ -2214,6 +2220,19 @@ def test_vargam():
     np.testing.assert_allclose(mean_vargam3, var_gam3r, rtol=0.03)
     np.testing.assert_allclose(mean_vargam3, var_gam3i, rtol=0.03)
 
+    var_map3 = data['var_map3']
+    var_mx3 = data['var_mx3']
+    mean_varmap = data['mean_varmap']
+    print('mean_varmap = ',mean_varmap)
+    print('var_map3 = ',var_map3)
+    print('ratio = ',var_map3 / mean_varmap)
+    print('max relerr for map3 = ',np.max(np.abs((var_map3 - mean_varmap)/var_map3)))
+    print('var_mx3 = ',var_mx3)
+    print('ratio = ',var_mx3 / mean_varmap)
+    print('max relerr for mx3 = ',np.max(np.abs((var_mx3 - mean_varmap)/var_mx3)))
+    np.testing.assert_allclose(mean_varmap, var_map3, rtol=0.03)
+    np.testing.assert_allclose(mean_varmap, var_mx3, rtol=0.03)
+
 
     # Now the actual test that's based on current code, not just from the saved file.
     # There is a bit more noise on a singe run, so the tolerance needs to be somewhat higher.
@@ -2259,6 +2278,17 @@ def test_vargam():
     print('ratio = ',ggg.vargam3 / var_gam3i)
     np.testing.assert_allclose(ggg.vargam3, var_gam3r, rtol=0.3)
     np.testing.assert_allclose(ggg.vargam3, var_gam3i, rtol=0.3)
+
+    var_map = ggg.calculateMap3()[8]
+    print('max relerr for map3 = ',np.max(np.abs((var_map - var_map3)/var_map3)))
+    print('ratio = ',var_map / var_map3)
+    np.testing.assert_allclose(var_map, var_map3, rtol=0.3)
+
+    var_map = ggg.calculateMap3(k2=1.+1.e-13, k3=1.+2.e-13)[8]
+    print('With k2,k3 != 1')
+    print('max relerr for map3 = ',np.max(np.abs((var_map - var_map3)/var_map3)))
+    print('ratio = ',var_map / var_map3)
+    np.testing.assert_allclose(var_map, var_map3, rtol=0.3)
 
 
 if __name__ == '__main__':

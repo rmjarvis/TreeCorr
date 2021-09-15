@@ -1272,78 +1272,110 @@ def test_varxi():
     # same sources in a given bin, which increased the variance of the mean <g>.
     # So there might be some adjustment that would help improve the estimate of varxi,
     # but at least this unit test shows that it's fairly accurate for *some* scenario.
-    if __name__ == '__main__':
-        nsource = 1000
-        nrand = 10
-        nruns = 50000
-        tol_factor = 1
-    else:
-        nsource = 100
-        nrand = 2
-        nruns = 5000
-        tol_factor = 5
-
+    nsource = 1000
+    nrand = 10
+    nruns = 50000
     lens = treecorr.Catalog(x=[0], y=[0])
-    all_ngs = []
-    all_rgs = []
-    for run in range(nruns):
-        x2 = (rng.random_sample(nsource)-0.5) * L
-        y2 = (rng.random_sample(nsource)-0.5) * L
-        x3 = (rng.random_sample(nrand)-0.5) * L
-        y3 = (rng.random_sample(nrand)-0.5) * L
 
-        r2 = (x2**2 + y2**2)/r0**2
-        g1 = -gamma0 * np.exp(-r2/2.) * (x2**2-y2**2)/r0**2
-        g2 = -gamma0 * np.exp(-r2/2.) * (2.*x2*y2)/r0**2
-        # This time, add some shape noise (different each run).
-        g1 += rng.normal(0, 0.1, size=nsource)
-        g2 += rng.normal(0, 0.1, size=nsource)
-        # Varied weights are hard, but at least check that non-unit weights work correctly.
-        w = np.ones_like(x2) * 5
+    file_name = 'data/test_varxi_ng.npz'
+    print(file_name)
+    if not os.path.isfile(file_name):
+        all_ngs = []
+        all_rgs = []
+        for run in range(nruns):
+            print(f'{run}/{nruns}')
+            x2 = (rng.random_sample(nsource)-0.5) * L
+            y2 = (rng.random_sample(nsource)-0.5) * L
+            x3 = (rng.random_sample(nrand)-0.5) * L
+            y3 = (rng.random_sample(nrand)-0.5) * L
 
-        source = treecorr.Catalog(x=x2, y=y2, w=w, g1=g1, g2=g2)
-        rand = treecorr.Catalog(x=x3, y=y3)
-        ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=5., max_sep=20.)
-        rg = treecorr.NGCorrelation(bin_size=0.1, min_sep=5., max_sep=20.)
-        ng.process(lens, source)
-        rg.process(rand, source)
-        all_ngs.append(ng)
-        all_rgs.append(rg)
+            r2 = (x2**2 + y2**2)/r0**2
+            g1 = -gamma0 * np.exp(-r2/2.) * (x2**2-y2**2)/r0**2
+            g2 = -gamma0 * np.exp(-r2/2.) * (2.*x2*y2)/r0**2
+            # This time, add some shape noise (different each run).
+            g1 += rng.normal(0, 0.1, size=nsource)
+            g2 += rng.normal(0, 0.1, size=nsource)
+            # Varied weights are hard, but at least check that non-unit weights work correctly.
+            w = np.ones_like(x2) * 5
 
+            source = treecorr.Catalog(x=x2, y=y2, w=w, g1=g1, g2=g2)
+            rand = treecorr.Catalog(x=x3, y=y3)
+            ng = treecorr.NGCorrelation(bin_size=0.2, min_sep=10., max_sep=30.)
+            rg = treecorr.NGCorrelation(bin_size=0.2, min_sep=10., max_sep=30.)
+            ng.process(lens, source)
+            rg.process(rand, source)
+            all_ngs.append(ng)
+            all_rgs.append(rg)
+
+        all_xis = [ng.calculateXi() for ng in all_ngs]
+        var_xi_1 = np.var([xi[0] for xi in all_xis], axis=0)
+        mean_varxi_1 = np.mean([xi[2] for xi in all_xis], axis=0)
+
+        all_xis = [ng.calculateXi(rg=rg) for (ng,rg) in zip(all_ngs, all_rgs)]
+        var_xi_2 = np.var([xi[0] for xi in all_xis], axis=0)
+        mean_varxi_2 = np.mean([xi[2] for xi in all_xis], axis=0)
+
+        np.savez(file_name,
+                 var_xi_1=var_xi_1, mean_varxi_1=mean_varxi_1,
+                 var_xi_2=var_xi_2, mean_varxi_2=mean_varxi_2)
+
+    data = np.load(file_name)
+    mean_varxi_1 = data['mean_varxi_1']
+    var_xi_1 = data['var_xi_1']
+    mean_varxi_2 = data['mean_varxi_2']
+    var_xi_2 = data['var_xi_2']
+
+    print('nruns = ',nruns)
     print('Uncompensated:')
-
-    all_xis = [ng.calculateXi() for ng in all_ngs]
-    mean_wt = np.mean([ng.weight for ng in all_ngs], axis=0)
-    mean_xi = np.mean([xi[0] for xi in all_xis], axis=0)
-    var_xi = np.var([xi[0] for xi in all_xis], axis=0)
-    mean_varxi = np.mean([xi[2] for xi in all_xis], axis=0)
-
-    print('mean_xi = ',mean_xi)
-    print('mean_wt = ',mean_wt)
-    print('mean_varxi = ',mean_varxi)
-    print('var_xi = ',var_xi)
-    print('ratio = ',var_xi / mean_varxi)
-    print('max relerr for xi = ',np.max(np.abs((var_xi - mean_varxi)/var_xi)))
-    print('diff = ',var_xi - mean_varxi)
-    np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.03 * tol_factor)
+    print('mean_varxi = ',mean_varxi_1)
+    print('var_xi = ',var_xi_1)
+    print('ratio = ',var_xi_1 / mean_varxi_1)
+    print('max relerr for xi = ',np.max(np.abs((var_xi_1 - mean_varxi_1)/var_xi_1)))
+    print('diff = ',var_xi_1 - mean_varxi_1)
+    np.testing.assert_allclose(mean_varxi_1, var_xi_1, rtol=0.02)
 
     print('Compensated:')
+    print('mean_varxi = ',mean_varxi_2)
+    print('var_xi = ',var_xi_2)
+    print('ratio = ',var_xi_2 / mean_varxi_2)
+    print('max relerr for xi = ',np.max(np.abs((var_xi_2 - mean_varxi_2)/var_xi_2)))
+    print('diff = ',var_xi_2 - mean_varxi_2)
+    np.testing.assert_allclose(mean_varxi_2, var_xi_2, rtol=0.04)
 
-    all_xis = [ng.calculateXi(rg=rg) for (ng,rg) in zip(all_ngs, all_rgs)]
-    mean_wt = np.mean([ng.weight for ng in all_ngs], axis=0)
-    mean_xi = np.mean([xi[0] for xi in all_xis], axis=0)
-    var_xi = np.var([xi[0] for xi in all_xis], axis=0)
-    mean_varxi = np.mean([xi[2] for xi in all_xis], axis=0)
+    # Now the actual test that's based on current code, not just from the saved file.
+    # There is a bit more noise on a singe run, so the tolerance needs to be somewhat higher.
+    x2 = (rng.random_sample(nsource)-0.5) * L
+    y2 = (rng.random_sample(nsource)-0.5) * L
+    x3 = (rng.random_sample(nrand)-0.5) * L
+    y3 = (rng.random_sample(nrand)-0.5) * L
 
-    print('mean_xi = ',mean_xi)
-    print('mean_wt = ',mean_wt)
-    print('mean_varxi = ',mean_varxi)
-    print('var_xi = ',var_xi)
-    print('ratio = ',var_xi / mean_varxi)
-    print('max relerr for xi = ',np.max(np.abs((var_xi - mean_varxi)/var_xi)))
-    print('diff = ',var_xi - mean_varxi)
-    np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.02 * tol_factor)
+    r2 = (x2**2 + y2**2)/r0**2
+    g1 = -gamma0 * np.exp(-r2/2.) * (x2**2-y2**2)/r0**2
+    g2 = -gamma0 * np.exp(-r2/2.) * (2.*x2*y2)/r0**2
+    # This time, add some shape noise (different each run).
+    g1 += rng.normal(0, 0.1, size=nsource)
+    g2 += rng.normal(0, 0.1, size=nsource)
+    # Varied weights are hard, but at least check that non-unit weights work correctly.
+    w = np.ones_like(x2) * 5
 
+    source = treecorr.Catalog(x=x2, y=y2, w=w, g1=g1, g2=g2)
+    rand = treecorr.Catalog(x=x3, y=y3)
+    ng = treecorr.NGCorrelation(bin_size=0.2, min_sep=10., max_sep=30.)
+    rg = treecorr.NGCorrelation(bin_size=0.2, min_sep=10., max_sep=30.)
+    ng.process(lens, source)
+    rg.process(rand, source)
+
+    print('single run:')
+    print('Uncompensated')
+    print('ratio = ',ng.varxi / var_xi_1)
+    print('max relerr for xi = ',np.max(np.abs((ng.varxi - var_xi_1)/var_xi_1)))
+    np.testing.assert_allclose(ng.varxi, var_xi_1, rtol=0.6)
+
+    xi, xi_im, varxi = ng.calculateXi(rg=rg)
+    print('Compensated')
+    print('ratio = ',varxi / var_xi_2)
+    print('max relerr for xi = ',np.max(np.abs((varxi - var_xi_2)/var_xi_2)))
+    np.testing.assert_allclose(varxi, var_xi_2, rtol=0.5)
 
 
 if __name__ == '__main__':

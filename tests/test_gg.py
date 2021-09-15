@@ -1269,43 +1269,54 @@ def test_varxi():
 
     # Note: to get a good estimate of var(xi), you need a lot of runs.  The number of
     # runs matters much more than the number of galaxies for getting this to pass.
-    if __name__ == '__main__':
-        ngal = 1000
-        nruns = 50000
-        tol_factor = 1
-    else:
-        ngal = 100
-        nruns = 5000
-        tol_factor = 5
+    ngal = 1000
+    nruns = 50000
 
+    file_name = 'data/test_varxi_gg.npz'
+    print(file_name)
+    if not os.path.isfile(file_name):
+        all_ggs = []
 
-    all_ggs = []
-    for run in range(nruns):
-        # In addition to the shape noise below, there is shot noise from the random x,y positions.
-        x = (rng.random_sample(ngal)-0.5) * L
-        y = (rng.random_sample(ngal)-0.5) * L
-        # Varied weights are hard, but at least check that non-unit weights work correctly.
-        w = np.ones_like(x) * 5
-        r2 = (x**2 + y**2)/r0**2
-        g1 = -gamma0 * np.exp(-r2/2.) * (x**2-y**2)/r0**2
-        g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
-        # This time, add some shape noise (different each run).
-        g1 += rng.normal(0, 0.3, size=ngal)
-        g2 += rng.normal(0, 0.3, size=ngal)
+        for run in range(nruns):
+            print(f'{run}/{nruns}')
+            # In addition to the shape noise below, there is shot noise from the random x,y positions.
+            x = (rng.random_sample(ngal)-0.5) * L
+            y = (rng.random_sample(ngal)-0.5) * L
+            # Varied weights are hard, but at least check that non-unit weights work correctly.
+            w = np.ones_like(x) * 5
+            r2 = (x**2 + y**2)/r0**2
+            g1 = -gamma0 * np.exp(-r2/2.) * (x**2-y**2)/r0**2
+            g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
+            # This time, add some shape noise (different each run).
+            g1 += rng.normal(0, 0.3, size=ngal)
+            g2 += rng.normal(0, 0.3, size=ngal)
 
-        cat = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
-        gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=10., max_sep=100., sep_units='arcmin',
-                                    verbose=1)
-        gg.process(cat)
-        all_ggs.append(gg)
+            cat = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
+            gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=10., max_sep=100., sep_units='arcmin',
+                                        verbose=1)
+            gg.process(cat)
+            all_ggs.append(gg)
 
-    mean_xip = np.mean([gg.xip for gg in all_ggs], axis=0)
-    var_xip = np.var([gg.xip for gg in all_ggs], axis=0)
-    mean_xim = np.mean([gg.xim for gg in all_ggs], axis=0)
-    var_xim = np.var([gg.xim for gg in all_ggs], axis=0)
-    mean_varxip = np.mean([gg.varxip for gg in all_ggs], axis=0)
-    mean_varxim = np.mean([gg.varxim for gg in all_ggs], axis=0)
+        mean_xip = np.mean([gg.xip for gg in all_ggs], axis=0)
+        var_xip = np.var([gg.xip for gg in all_ggs], axis=0)
+        mean_xim = np.mean([gg.xim for gg in all_ggs], axis=0)
+        var_xim = np.var([gg.xim for gg in all_ggs], axis=0)
+        mean_varxip = np.mean([gg.varxip for gg in all_ggs], axis=0)
+        mean_varxim = np.mean([gg.varxim for gg in all_ggs], axis=0)
 
+        np.savez(file_name,
+                 mean_xip=mean_xip, var_xip=var_xip, mean_varxip=mean_varxip,
+                 mean_xim=mean_xim, var_xim=var_xim, mean_varxim=mean_varxim)
+
+    data = np.load(file_name)
+    mean_xip = data['mean_xip']
+    var_xip = data['var_xip']
+    mean_varxip = data['mean_varxip']
+    mean_xim = data['mean_xim']
+    var_xim = data['var_xim']
+    mean_varxim = data['mean_varxim']
+
+    print('nruns = ',nruns)
     print('mean_xip = ',mean_xip)
     print('mean_xim = ',mean_xim)
     print('mean_varxip = ',mean_varxip)
@@ -1316,8 +1327,31 @@ def test_varxi():
     print('ratio = ',var_xim / mean_varxim)
     print('max relerr for xip = ',np.max(np.abs((var_xip - mean_varxip)/var_xip)))
     print('max relerr for xim = ',np.max(np.abs((var_xim - mean_varxim)/var_xim)))
-    np.testing.assert_allclose(mean_varxip, var_xip, rtol=0.02 * tol_factor)
-    np.testing.assert_allclose(mean_varxim, var_xim, rtol=0.02 * tol_factor)
+    np.testing.assert_allclose(mean_varxip, var_xip, rtol=0.02)
+    np.testing.assert_allclose(mean_varxim, var_xim, rtol=0.02)
+
+    # Now the actual test that's based on current code, not just from the saved file.
+    # There is a bit more noise on a singe run, so the tolerance needs to be somewhat higher.
+    x = (rng.random_sample(ngal)-0.5) * L
+    y = (rng.random_sample(ngal)-0.5) * L
+    # Varied weights are hard, but at least check that non-unit weights work correctly.
+    w = np.ones_like(x) * 5
+    r2 = (x**2 + y**2)/r0**2
+    g1 = -gamma0 * np.exp(-r2/2.) * (x**2-y**2)/r0**2
+    g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
+    # This time, add some shape noise (different each run).
+    g1 += rng.normal(0, 0.3, size=ngal)
+    g2 += rng.normal(0, 0.3, size=ngal)
+
+    cat = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
+    gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=10., max_sep=100., sep_units='arcmin',
+                                verbose=1)
+    gg.process(cat)
+    print('single run:')
+    print('max relerr for xip = ',np.max(np.abs((gg.varxip - var_xip)/var_xip)))
+    print('max relerr for xim = ',np.max(np.abs((gg.varxip - var_xim)/var_xim)))
+    np.testing.assert_allclose(gg.varxip, var_xip, rtol=0.2)
+    np.testing.assert_allclose(gg.varxim, var_xim, rtol=0.2)
 
 
 if __name__ == '__main__':

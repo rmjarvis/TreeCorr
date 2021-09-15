@@ -523,76 +523,103 @@ def test_varxi():
     # same sources in a given bin, which increased the variance of the mean <g>.
     # So there might be some adjustment that would help improve the estimate of varxi,
     # but at least this unit test shows that it's fairly accurate for *some* scenario.
-    if __name__ == '__main__':
-        nsource = 1000
-        nrand = 10
-        nruns = 50000
-        tol_factor = 1
-    else:
-        nsource = 100
-        nrand = 2
-        nruns = 5000
-        tol_factor = 5
-
+    nsource = 1000
+    nrand = 10
+    nruns = 50000
     lens = treecorr.Catalog(x=[0], y=[0])
-    all_nks = []
-    all_rks = []
-    for run in range(nruns):
-        x2 = (rng.random_sample(nsource)-0.5) * L
-        y2 = (rng.random_sample(nsource)-0.5) * L
-        x3 = (rng.random_sample(nrand)-0.5) * L
-        y3 = (rng.random_sample(nrand)-0.5) * L
 
-        r2 = (x2**2 + y2**2)/r0**2
-        k = kappa0 * np.exp(-r2/2.) * (1.-r2/2.)
-        k += rng.normal(0, 0.1, size=nsource)
-        # Varied weights are hard, but at least check that non-unit weights work correctly.
-        w = np.ones_like(x2) * 5
+    file_name = 'data/test_varxi_nk.npz'
+    print(file_name)
+    if not os.path.isfile(file_name):
+        all_nks = []
+        all_rks = []
+        for run in range(nruns):
+            print(f'{run}/{nruns}')
+            x2 = (rng.random_sample(nsource)-0.5) * L
+            y2 = (rng.random_sample(nsource)-0.5) * L
+            x3 = (rng.random_sample(nrand)-0.5) * L
+            y3 = (rng.random_sample(nrand)-0.5) * L
 
-        source = treecorr.Catalog(x=x2, y=y2, w=w, k=k)
-        rand = treecorr.Catalog(x=x3, y=y3)
-        nk = treecorr.NKCorrelation(bin_size=0.1, min_sep=6., max_sep=15.)
-        rk = treecorr.NKCorrelation(bin_size=0.1, min_sep=6., max_sep=15.)
-        nk.process(lens, source)
-        rk.process(rand, source)
-        all_nks.append(nk)
-        all_rks.append(rk)
+            r2 = (x2**2 + y2**2)/r0**2
+            k = kappa0 * np.exp(-r2/2.) * (1.-r2/2.)
+            k += rng.normal(0, 0.1, size=nsource)
+            # Varied weights are hard, but at least check that non-unit weights work correctly.
+            w = np.ones_like(x2) * 5
 
+            source = treecorr.Catalog(x=x2, y=y2, w=w, k=k)
+            rand = treecorr.Catalog(x=x3, y=y3)
+            nk = treecorr.NKCorrelation(bin_size=0.3, min_sep=6., max_sep=15.)
+            rk = treecorr.NKCorrelation(bin_size=0.3, min_sep=6., max_sep=15.)
+            nk.process(lens, source)
+            rk.process(rand, source)
+            all_nks.append(nk)
+            all_rks.append(rk)
+
+        all_xis = [nk.calculateXi() for nk in all_nks]
+        var_xi_1 = np.var([xi[0] for xi in all_xis], axis=0)
+        mean_varxi_1 = np.mean([xi[1] for xi in all_xis], axis=0)
+
+        all_xis = [nk.calculateXi(rk=rk) for (nk,rk) in zip(all_nks, all_rks)]
+        var_xi_2 = np.var([xi[0] for xi in all_xis], axis=0)
+        mean_varxi_2 = np.mean([xi[1] for xi in all_xis], axis=0)
+
+        np.savez(file_name,
+                 var_xi_1=var_xi_1, mean_varxi_1=mean_varxi_1,
+                 var_xi_2=var_xi_2, mean_varxi_2=mean_varxi_2)
+
+    data = np.load(file_name)
+    mean_varxi_1 = data['mean_varxi_1']
+    var_xi_1 = data['var_xi_1']
+    mean_varxi_2 = data['mean_varxi_2']
+    var_xi_2 = data['var_xi_2']
+
+    print('nruns = ',nruns)
     print('Uncompensated:')
-
-    all_xis = [nk.calculateXi() for nk in all_nks]
-    mean_wt = np.mean([nk.weight for nk in all_nks], axis=0)
-    mean_xi = np.mean([xi[0] for xi in all_xis], axis=0)
-    var_xi = np.var([xi[0] for xi in all_xis], axis=0)
-    mean_varxi = np.mean([xi[1] for xi in all_xis], axis=0)
-
-    print('mean_xi = ',mean_xi)
-    print('mean_wt = ',mean_wt)
-    print('mean_varxi = ',mean_varxi)
-    print('var_xi = ',var_xi)
-    print('ratio = ',var_xi / mean_varxi)
-    print('max relerr for xi = ',np.max(np.abs((var_xi - mean_varxi)/var_xi)))
-    print('diff = ',var_xi - mean_varxi)
-    np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.03 * tol_factor)
+    print('mean_varxi = ',mean_varxi_1)
+    print('var_xi = ',var_xi_1)
+    print('ratio = ',var_xi_1 / mean_varxi_1)
+    print('max relerr for xi = ',np.max(np.abs((var_xi_1 - mean_varxi_1)/var_xi_1)))
+    print('diff = ',var_xi_1 - mean_varxi_1)
+    np.testing.assert_allclose(mean_varxi_1, var_xi_1, rtol=0.02)
 
     print('Compensated:')
+    print('mean_varxi = ',mean_varxi_2)
+    print('var_xi = ',var_xi_2)
+    print('ratio = ',var_xi_2 / mean_varxi_2)
+    print('max relerr for xi = ',np.max(np.abs((var_xi_2 - mean_varxi_2)/var_xi_2)))
+    print('diff = ',var_xi_2 - mean_varxi_2)
+    np.testing.assert_allclose(mean_varxi_2, var_xi_2, rtol=0.04)
 
-    all_xis = [nk.calculateXi(rk=rk) for (nk,rk) in zip(all_nks, all_rks)]
-    mean_wt = np.mean([nk.weight for nk in all_nks], axis=0)
-    mean_xi = np.mean([xi[0] for xi in all_xis], axis=0)
-    var_xi = np.var([xi[0] for xi in all_xis], axis=0)
-    mean_varxi = np.mean([xi[1] for xi in all_xis], axis=0)
+    # Now the actual test that's based on current code, not just from the saved file.
+    # There is a bit more noise on a singe run, so the tolerance needs to be somewhat higher.
+    x2 = (rng.random_sample(nsource)-0.5) * L
+    y2 = (rng.random_sample(nsource)-0.5) * L
+    x3 = (rng.random_sample(nrand)-0.5) * L
+    y3 = (rng.random_sample(nrand)-0.5) * L
 
-    print('mean_xi = ',mean_xi)
-    print('mean_wt = ',mean_wt)
-    print('mean_varxi = ',mean_varxi)
-    print('var_xi = ',var_xi)
-    print('ratio = ',var_xi / mean_varxi)
-    print('max relerr for xi = ',np.max(np.abs((var_xi - mean_varxi)/var_xi)))
-    print('diff = ',var_xi - mean_varxi)
-    # Unlike for NG, the agreement is typically slightly worse for the compensated case.
-    # Not sure if this is telling me something important, or just the way it turned out.
-    np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.03 * tol_factor)
+    r2 = (x2**2 + y2**2)/r0**2
+    k = kappa0 * np.exp(-r2/2.) * (1.-r2/2.)
+    k += rng.normal(0, 0.1, size=nsource)
+    w = np.ones_like(x2) * 5
+
+    source = treecorr.Catalog(x=x2, y=y2, w=w, k=k)
+    rand = treecorr.Catalog(x=x3, y=y3)
+    nk = treecorr.NKCorrelation(bin_size=0.3, min_sep=6., max_sep=15.)
+    rk = treecorr.NKCorrelation(bin_size=0.3, min_sep=6., max_sep=15.)
+    nk.process(lens, source)
+    rk.process(rand, source)
+
+    print('single run:')
+    print('Uncompensated')
+    print('ratio = ',nk.varxi / var_xi_1)
+    print('max relerr for xi = ',np.max(np.abs((nk.varxi - var_xi_1)/var_xi_1)))
+    np.testing.assert_allclose(nk.varxi, var_xi_1, rtol=0.3)
+
+    xi, varxi = nk.calculateXi(rk=rk)
+    print('Compensated')
+    print('ratio = ',varxi / var_xi_2)
+    print('max relerr for xi = ',np.max(np.abs((varxi - var_xi_2)/var_xi_2)))
+    np.testing.assert_allclose(varxi, var_xi_2, rtol=0.3)
 
 
 if __name__ == '__main__':

@@ -1843,112 +1843,147 @@ def test_varxi():
     L = 100
     rng = np.random.RandomState(8675309)
 
-    if __name__ == '__main__':
-        ngal = 50
-        nrand = 200
-        nruns = 50000
-        tol_factor = 1
-    else:
-        ngal = 50
-        nrand = 100
-        nruns = 1000
-        tol_factor = 5
+    ngal = 50
+    nrand = 200
+    nruns = 50000
 
-    all_dds = []
-    all_drs = []
-    all_rrs = []
-    for run in range(nruns):
-        x1 = (rng.random_sample(ngal)-0.5) * L
-        y1 = (rng.random_sample(ngal)-0.5) * L
-        x2 = (rng.random_sample(nrand)-0.5) * L
-        y2 = (rng.random_sample(nrand)-0.5) * L
-        # Varied weights are hard, but at least check that non-unit weights work correctly.
-        w = np.ones_like(x1) * 5
-        wr = np.ones_like(x2) * 0.3
+    file_name = 'data/test_varxi_nn.npz'
+    print(file_name)
+    if not os.path.isfile(file_name):
+        all_dds = []
+        all_drs = []
+        all_rrs = []
+        for run in range(nruns):
+            print(f'{run}/{nruns}')
+            x1 = (rng.random_sample(ngal)-0.5) * L
+            y1 = (rng.random_sample(ngal)-0.5) * L
+            x2 = (rng.random_sample(nrand)-0.5) * L
+            y2 = (rng.random_sample(nrand)-0.5) * L
+            # Varied weights are hard, but at least check that non-unit weights work correctly.
+            w = np.ones_like(x1) * 5
+            wr = np.ones_like(x2) * 0.3
 
-        data = treecorr.Catalog(x=x1, y=y1, w=w)
-        rand = treecorr.Catalog(x=x2, y=y2, w=wr)
-        dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=6., max_sep=13.)
-        dr = treecorr.NNCorrelation(bin_size=0.1, min_sep=6., max_sep=13.)
-        rr = treecorr.NNCorrelation(bin_size=0.1, min_sep=6., max_sep=13.)
-        dd.process(data)
-        dr.process(data, rand)
-        rr.process(rand)
-        all_dds.append(dd)
-        all_drs.append(dr)
-        all_rrs.append(rr)
+            data = treecorr.Catalog(x=x1, y=y1, w=w)
+            rand = treecorr.Catalog(x=x2, y=y2, w=wr)
+            dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=6., max_sep=13.)
+            dr = treecorr.NNCorrelation(bin_size=0.1, min_sep=6., max_sep=13.)
+            rr = treecorr.NNCorrelation(bin_size=0.1, min_sep=6., max_sep=13.)
+            dd.process(data)
+            dr.process(data, rand)
+            rr.process(rand)
+            all_dds.append(dd)
+            all_drs.append(dr)
+            all_rrs.append(rr)
 
+        all_xis = [dd.calculateXi(rr=rr) for dd,rr in zip(all_dds, all_rrs)]
+        var_xi_1 = np.var([xi[0] for xi in all_xis], axis=0)
+        mean_varxi_1 = np.mean([xi[1] for xi in all_xis], axis=0)
+
+        all_xis = [dd.calculateXi(rr=rr, dr=dr) for dd,dr,rr in zip(all_dds, all_drs, all_rrs)]
+        var_xi_2 = np.var([xi[0] for xi in all_xis], axis=0)
+        mean_varxi_2 = np.mean([xi[1] for xi in all_xis], axis=0)
+
+        all_xis = [dd.calculateXi(rr=rr, dr=dr, rd=dr) for dd,dr,rr in zip(all_dds, all_drs, all_rrs)]
+        var_xi_3 = np.var([xi[0] for xi in all_xis], axis=0)
+        mean_varxi_3 = np.mean([xi[1] for xi in all_xis], axis=0)
+
+        all_xis = [dd.calculateXi(rr=rr, rd=dr) for dd,dr,rr in zip(all_dds, all_drs, all_rrs)]
+        var_xi_4 = np.var([xi[0] for xi in all_xis], axis=0)
+        mean_varxi_4 = np.mean([xi[1] for xi in all_xis], axis=0)
+
+        np.savez(file_name,
+                 var_xi_1=var_xi_1, mean_varxi_1=mean_varxi_1,
+                 var_xi_2=var_xi_2, mean_varxi_2=mean_varxi_2,
+                 var_xi_3=var_xi_3, mean_varxi_3=mean_varxi_3,
+                 var_xi_4=var_xi_4, mean_varxi_4=mean_varxi_4)
+
+    data = np.load(file_name)
+
+    print('nruns = ',nruns)
     print('Uncompensated:')
-
-    all_xis = [dd.calculateXi(rr=rr) for dd,rr in zip(all_dds, all_rrs)]
-    mean_wt = np.mean([dd.weight for dd in all_dds], axis=0)
-    mean_np = np.mean([dd.npairs for dd in all_dds], axis=0)
-    mean_xi = np.mean([xi[0] for xi in all_xis], axis=0)
-    var_xi = np.var([xi[0] for xi in all_xis], axis=0)
-    mean_varxi = np.mean([xi[1] for xi in all_xis], axis=0)
-
-    print('mean_xi = ',mean_xi)
-    print('mean_wt = ',mean_wt)
-    print('mean_np = ',mean_np)
-    print('mean_varxi = ',mean_varxi)
-    print('var_xi = ',var_xi)
-    print('ratio = ',var_xi / mean_varxi)
-    print('max relerr for xi = ',np.max(np.abs((var_xi - mean_varxi)/var_xi)))
-    print('diff = ',var_xi - mean_varxi)
-    np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.1 * tol_factor)
+    var_xi_1 = data['var_xi_1']
+    mean_varxi_1 = data['mean_varxi_1']
+    print('mean_varxi = ',mean_varxi_1)
+    print('var_xi = ',var_xi_1)
+    print('ratio = ',var_xi_1 / mean_varxi_1)
+    print('max relerr for xi = ',np.max(np.abs((var_xi_1 - mean_varxi_1)/var_xi_1)))
+    print('diff = ',var_xi_1 - mean_varxi_1)
+    np.testing.assert_allclose(mean_varxi_1, var_xi_1, rtol=0.1)
 
     print('Compensated:')
-
-    all_xis = [dd.calculateXi(rr=rr, dr=dr) for dd,dr,rr in zip(all_dds, all_drs, all_rrs)]
-    mean_wt = np.mean([dd.weight for dd in all_dds], axis=0)
-    mean_np = np.mean([dd.npairs for dd in all_dds], axis=0)
-    mean_xi = np.mean([xi[0] for xi in all_xis], axis=0)
-    var_xi = np.var([xi[0] for xi in all_xis], axis=0)
-    mean_varxi = np.mean([xi[1] for xi in all_xis], axis=0)
-
-    print('mean_xi = ',mean_xi)
-    print('mean_wt = ',mean_wt)
-    print('mean_np = ',mean_np)
-    print('mean_varxi = ',mean_varxi)
-    print('var_xi = ',var_xi)
-    print('ratio = ',var_xi / mean_varxi)
-    print('max relerr for xi = ',np.max(np.abs((var_xi - mean_varxi)/var_xi)))
-    print('diff = ',var_xi - mean_varxi)
-    np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.05 * tol_factor)
+    var_xi_2 = data['var_xi_2']
+    mean_varxi_2 = data['mean_varxi_2']
+    print('mean_varxi = ',mean_varxi_2)
+    print('var_xi = ',var_xi_2)
+    print('ratio = ',var_xi_2 / mean_varxi_2)
+    print('max relerr for xi = ',np.max(np.abs((var_xi_2 - mean_varxi_2)/var_xi_2)))
+    print('diff = ',var_xi_2 - mean_varxi_2)
+    np.testing.assert_allclose(mean_varxi_2, var_xi_2, rtol=0.05)
 
     print('Compensated with both dr and rd:')
-
-    all_xis = [dd.calculateXi(rr=rr, dr=dr, rd=dr) for dd,dr,rr in zip(all_dds, all_drs, all_rrs)]
-    mean_wt = np.mean([dd.weight for dd in all_dds], axis=0)
-    mean_xi = np.mean([xi[0] for xi in all_xis], axis=0)
-    var_xi = np.var([xi[0] for xi in all_xis], axis=0)
-    mean_varxi = np.mean([xi[1] for xi in all_xis], axis=0)
-
-    print('mean_xi = ',mean_xi)
-    print('mean_wt = ',mean_wt)
-    print('mean_varxi = ',mean_varxi)
-    print('var_xi = ',var_xi)
-    print('ratio = ',var_xi / mean_varxi)
-    print('max relerr for xi = ',np.max(np.abs((var_xi - mean_varxi)/var_xi)))
-    print('diff = ',var_xi - mean_varxi)
-    np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.05 * tol_factor)
+    var_xi_3 = data['var_xi_3']
+    mean_varxi_3 = data['mean_varxi_3']
+    print('mean_varxi = ',mean_varxi_3)
+    print('var_xi = ',var_xi_3)
+    print('ratio = ',var_xi_3 / mean_varxi_3)
+    print('max relerr for xi = ',np.max(np.abs((var_xi_3 - mean_varxi_3)/var_xi_3)))
+    print('diff = ',var_xi_3 - mean_varxi_3)
+    np.testing.assert_allclose(mean_varxi_3, var_xi_3, rtol=0.05)
 
     print('Compensated with just rd')
+    var_xi_4 = data['var_xi_4']
+    mean_varxi_4 = data['mean_varxi_4']
+    print('mean_varxi = ',mean_varxi_4)
+    print('var_xi = ',var_xi_4)
+    print('ratio = ',var_xi_4 / mean_varxi_4)
+    print('max relerr for xi = ',np.max(np.abs((var_xi_4 - mean_varxi_4)/var_xi_4)))
+    print('diff = ',var_xi_4 - mean_varxi_4)
+    np.testing.assert_allclose(mean_varxi_4, var_xi_4, rtol=0.05)
 
-    all_xis = [dd.calculateXi(rr=rr, rd=dr) for dd,dr,rr in zip(all_dds, all_drs, all_rrs)]
-    mean_wt = np.mean([dd.weight for dd in all_dds], axis=0)
-    mean_xi = np.mean([xi[0] for xi in all_xis], axis=0)
-    var_xi = np.var([xi[0] for xi in all_xis], axis=0)
-    mean_varxi = np.mean([xi[1] for xi in all_xis], axis=0)
+    # Now the actual test that's based on current code, not just from the saved file.
+    # There is a bit more noise on a singe run, so the tolerance needs to be somewhat higher.
+    x1 = (rng.random_sample(ngal)-0.5) * L
+    y1 = (rng.random_sample(ngal)-0.5) * L
+    x2 = (rng.random_sample(nrand)-0.5) * L
+    y2 = (rng.random_sample(nrand)-0.5) * L
+    # Varied weights are hard, but at least check that non-unit weights work correctly.
+    w = np.ones_like(x1) * 5
+    wr = np.ones_like(x2) * 0.3
 
-    print('mean_xi = ',mean_xi)
-    print('mean_wt = ',mean_wt)
-    print('mean_varxi = ',mean_varxi)
-    print('var_xi = ',var_xi)
-    print('ratio = ',var_xi / mean_varxi)
-    print('max relerr for xi = ',np.max(np.abs((var_xi - mean_varxi)/var_xi)))
-    print('diff = ',var_xi - mean_varxi)
-    np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.05 * tol_factor)
+    data = treecorr.Catalog(x=x1, y=y1, w=w)
+    rand = treecorr.Catalog(x=x2, y=y2, w=wr)
+    dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=6., max_sep=13.)
+    dr = treecorr.NNCorrelation(bin_size=0.1, min_sep=6., max_sep=13.)
+    rr = treecorr.NNCorrelation(bin_size=0.1, min_sep=6., max_sep=13.)
+    dd.process(data)
+    dr.process(data, rand)
+    rr.process(rand)
+
+    print('single run')
+    print('Uncompensated')
+    xi, varxi = dd.calculateXi(rr=rr)
+    print('ratio = ',varxi / var_xi_1)
+    print('max relerr for xi = ',np.max(np.abs((varxi - var_xi_1)/var_xi_1)))
+    np.testing.assert_allclose(varxi, var_xi_1, rtol=0.25)
+
+    print('Compensated')
+    xi, varxi = dd.calculateXi(rr=rr, dr=dr)
+    print('ratio = ',varxi / var_xi_2)
+    print('max relerr for xi = ',np.max(np.abs((varxi - var_xi_2)/var_xi_2)))
+    np.testing.assert_allclose(varxi, var_xi_2, rtol=0.25)
+
+    print('Compensated with both dr and rd:')
+    xi, varxi = dd.calculateXi(rr=rr, dr=dr, rd=dr)
+    print('ratio = ',varxi / var_xi_3)
+    print('max relerr for xi = ',np.max(np.abs((varxi - var_xi_3)/var_xi_3)))
+    np.testing.assert_allclose(varxi, var_xi_3, rtol=0.25)
+
+    print('Compensated with just rd:')
+    xi, varxi = dd.calculateXi(rr=rr, rd=dr)
+    print('ratio = ',varxi / var_xi_4)
+    print('max relerr for xi = ',np.max(np.abs((varxi - var_xi_4)/var_xi_4)))
+    np.testing.assert_allclose(varxi, var_xi_4, rtol=0.25)
+
 
 
 @timer

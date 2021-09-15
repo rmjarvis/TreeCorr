@@ -568,46 +568,76 @@ def test_varxi():
 
     # Note: to get a good estimate of var(xi), you need a lot of runs.  The number of
     # runs matters much more than the number of galaxies for getting this to pass.
-    if __name__ == '__main__':
-        ngal = 1000
-        nruns = 50000
-        tol_factor = 1
-    else:
-        ngal = 100
-        nruns = 5000
-        tol_factor = 5
+    ngal = 1000
+    nruns = 50000
 
-    all_kgs = []
-    for run in range(nruns):
-        # In addition to the shape noise below, there is shot noise from the random x,y positions.
-        x = (rng.random_sample(ngal)-0.5) * L
-        y = (rng.random_sample(ngal)-0.5) * L
-        # Varied weights are hard, but at least check that non-unit weights work correctly.
-        w = np.ones_like(x) * 5
-        r2 = (x**2 + y**2)/r0**2
-        g1 = -gamma0 * np.exp(-r2/2.) * (x**2-y**2)/r0**2
-        g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
-        k = kappa0 * np.exp(-r2/2.)
-        # This time, add some shape noise (different each run).
-        g1 += rng.normal(0, 0.3, size=ngal)
-        g2 += rng.normal(0, 0.3, size=ngal)
-        k += rng.normal(0, 0.1, size=ngal)
+    file_name = 'data/test_varxi_kg.npz'
+    print(file_name)
+    if not os.path.isfile(file_name):
+        all_kgs = []
+        for run in range(nruns):
+            print(f'{run}/{nruns}')
+            x = (rng.random_sample(ngal)-0.5) * L
+            y = (rng.random_sample(ngal)-0.5) * L
+            # Varied weights are hard, but at least check that non-unit weights work correctly.
+            w = np.ones_like(x) * 5
+            r2 = (x**2 + y**2)/r0**2
+            g1 = -gamma0 * np.exp(-r2/2.) * (x**2-y**2)/r0**2
+            g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
+            k = kappa0 * np.exp(-r2/2.)
+            # This time, add some shape noise (different each run).
+            g1 += rng.normal(0, 0.3, size=ngal)
+            g2 += rng.normal(0, 0.3, size=ngal)
+            k += rng.normal(0, 0.1, size=ngal)
 
-        cat = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, k=k)
-        kg = treecorr.KGCorrelation(bin_size=0.1, min_sep=10., max_sep=100.)
-        kg.process(cat, cat)
-        all_kgs.append(kg)
+            cat = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, k=k)
+            kg = treecorr.KGCorrelation(bin_size=0.1, min_sep=10., max_sep=100.)
+            kg.process(cat, cat)
+            all_kgs.append(kg)
 
-    mean_xi = np.mean([kg.xi for kg in all_kgs], axis=0)
-    var_xi = np.var([kg.xi for kg in all_kgs], axis=0)
-    mean_varxi = np.mean([kg.varxi for kg in all_kgs], axis=0)
+        mean_xi = np.mean([kg.xi for kg in all_kgs], axis=0)
+        var_xi = np.var([kg.xi for kg in all_kgs], axis=0)
+        mean_varxi = np.mean([kg.varxi for kg in all_kgs], axis=0)
 
+        np.savez(file_name,
+                 mean_xi=mean_xi, var_xi=var_xi, mean_varxi=mean_varxi)
+
+    data = np.load(file_name)
+    mean_xi = data['mean_xi']
+    mean_varxi = data['mean_varxi']
+    var_xi = data['var_xi']
+    print('nruns = ',nruns)
     print('mean_xi = ',mean_xi)
     print('mean_varxi = ',mean_varxi)
     print('var_xi = ',var_xi)
     print('ratio = ',var_xi / mean_varxi)
     print('max relerr for xi = ',np.max(np.abs((var_xi - mean_varxi)/var_xi)))
-    np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.02 * tol_factor)
+    np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.02)
+
+    # Now the actual test that's based on current code, not just from the saved file.
+    # There is a bit more noise on a singe run, so the tolerance needs to be somewhat higher.
+    x = (rng.random_sample(ngal)-0.5) * L
+    y = (rng.random_sample(ngal)-0.5) * L
+    # Varied weights are hard, but at least check that non-unit weights work correctly.
+    w = np.ones_like(x) * 5
+    r2 = (x**2 + y**2)/r0**2
+    g1 = -gamma0 * np.exp(-r2/2.) * (x**2-y**2)/r0**2
+    g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
+    k = kappa0 * np.exp(-r2/2.)
+    # This time, add some shape noise (different each run).
+    g1 += rng.normal(0, 0.3, size=ngal)
+    g2 += rng.normal(0, 0.3, size=ngal)
+    k += rng.normal(0, 0.1, size=ngal)
+
+    cat = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, k=k)
+    kg = treecorr.KGCorrelation(bin_size=0.1, min_sep=10., max_sep=100.)
+    kg.process(cat, cat)
+
+    print('single run:')
+    print('ratio = ',kg.varxi / var_xi)
+    print('max relerr for xi = ',np.max(np.abs((kg.varxi - var_xi)/var_xi)))
+    np.testing.assert_allclose(kg.varxi, var_xi, rtol=0.3)
+
 
 @timer
 def test_negw():

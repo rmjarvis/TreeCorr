@@ -550,41 +550,64 @@ def test_varxi():
 
     # Note: to get a good estimate of var(xi), you need a lot of runs.  The number of
     # runs matters much more than the number of galaxies for getting this to pass.
-    if __name__ == '__main__':
-        ngal = 1000
-        nruns = 50000
-        tol_factor = 1
-    else:
-        ngal = 100
-        nruns = 5000
-        tol_factor = 5
+    ngal = 1000
+    nruns = 50000
 
-    all_kks = []
-    for run in range(nruns):
-        # In addition to the shape noise below, there is shot noise from the random x,y positions.
-        x = (rng.random_sample(ngal)-0.5) * L
-        y = (rng.random_sample(ngal)-0.5) * L
-        # Varied weights are hard, but at least check that non-unit weights work correctly.
-        w = np.ones_like(x) * 5
-        r2 = (x**2 + y**2)/r0**2
-        k = kappa0 * np.exp(-r2/2.)
-        k += rng.normal(0, 0.1, size=ngal)
+    file_name = 'data/test_varxi_kk.npz'
+    print(file_name)
+    if not os.path.isfile(file_name):
+        all_kks = []
+        for run in range(nruns):
+            print(f'{run}/{nruns}')
+            x = (rng.random_sample(ngal)-0.5) * L
+            y = (rng.random_sample(ngal)-0.5) * L
+            # Varied weights are hard, but at least check that non-unit weights work correctly.
+            w = np.ones_like(x) * 5
+            r2 = (x**2 + y**2)/r0**2
+            k = kappa0 * np.exp(-r2/2.)
+            k += rng.normal(0, 0.1, size=ngal)
 
-        cat = treecorr.Catalog(x=x, y=y, w=w, k=k)
-        kk = treecorr.KKCorrelation(bin_size=0.1, min_sep=10., nbins=24)
-        kk.process(cat)
-        all_kks.append(kk)
+            cat = treecorr.Catalog(x=x, y=y, w=w, k=k)
+            kk = treecorr.KKCorrelation(bin_size=0.1, min_sep=10., max_sep=100.)
+            kk.process(cat)
+            all_kks.append(kk)
 
-    mean_xi = np.mean([kk.xi for kk in all_kks], axis=0)
-    var_xi = np.var([kk.xi for kk in all_kks], axis=0)
-    mean_varxi = np.mean([kk.varxi for kk in all_kks], axis=0)
+        mean_xi = np.mean([kk.xi for kk in all_kks], axis=0)
+        var_xi = np.var([kk.xi for kk in all_kks], axis=0)
+        mean_varxi = np.mean([kk.varxi for kk in all_kks], axis=0)
 
+        np.savez(file_name,
+                 mean_xi=mean_xi, var_xi=var_xi, mean_varxi=mean_varxi)
+
+    data = np.load(file_name)
+    mean_xi = data['mean_xi']
+    mean_varxi = data['mean_varxi']
+    var_xi = data['var_xi']
+    print('nruns = ',nruns)
     print('mean_xi = ',mean_xi)
     print('mean_varxi = ',mean_varxi)
     print('var_xi = ',var_xi)
     print('ratio = ',var_xi / mean_varxi)
     print('max relerr for xi = ',np.max(np.abs((var_xi - mean_varxi)/var_xi)))
-    np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.02 * tol_factor)
+    np.testing.assert_allclose(mean_varxi, var_xi, rtol=0.02)
+
+    # Now the actual test that's based on current code, not just from the saved file.
+    # There is a bit more noise on a singe run, so the tolerance needs to be somewhat higher.
+    x = (rng.random_sample(ngal)-0.5) * L
+    y = (rng.random_sample(ngal)-0.5) * L
+    w = np.ones_like(x) * 5
+    r2 = (x**2 + y**2)/r0**2
+    k = kappa0 * np.exp(-r2/2.)
+    k += rng.normal(0, 0.1, size=ngal)
+
+    cat = treecorr.Catalog(x=x, y=y, w=w, k=k)
+    kk = treecorr.KKCorrelation(bin_size=0.1, min_sep=10., max_sep=100.)
+    kk.process(cat)
+
+    print('single run:')
+    print('ratio = ',kk.varxi / var_xi)
+    print('max relerr for xi = ',np.max(np.abs((kk.varxi - var_xi)/var_xi)))
+    np.testing.assert_allclose(kk.varxi, var_xi, rtol=0.3)
 
 
 

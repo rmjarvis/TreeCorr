@@ -1071,30 +1071,35 @@ class GGGCorrelation(BinnedCorr3):
         mcmm = T1.dot(gam1)
         mmcm = T2.dot(gam2)
         mmmc = T3.dot(gam3)
-        varmmm = (np.abs(T0)**2).dot(vargam0)
-        varmcmm = (np.abs(T1)**2).dot(vargam1)
-        varmmcm = (np.abs(T2)**2).dot(vargam2)
-        varmmmc = (np.abs(T3)**2).dot(vargam3)
+
+        # These accumulate the coefficients that are being dotted to gam0,1,2,3 respectively.
+        # Below, we will take the abs^2 and dot it to gam0,1,2,3 in each case to compute the
+        # total variance.
+        # Note: This assumes that gam0, gam1, gam2, gam3 have no covariance.
+        # This is not technically true, but I think it's approximately ok.
+        var0 = T0.copy()
+        var1 = T1.copy()
+        var2 = T2.copy()
+        var3 = T3.copy()
 
         if k2 == 1 and k3 == 1:
             mmm *= 6
-            varmmm *= 6
             mcmm += mmcm
             mcmm += mmmc
             mcmm *= 2
             mmcm = mmmc = mcmm
-            varmcmm += varmmcm
-            varmcmm += varmmmc
-            varmcmm *= 2
-            varmmcm = varmmmc = varmcmm
+            var0 *= 6
+            var1 *= 6
+            var2 *= 6
+            var3 *= 6
         else:
             # Repeat the above for the other permutations
-            for (_k1, _k2, _k3, _mcmm, _mmcm, _mmmc, _varmcmm, _varmmcm, _varmmmc) in [
-                    (1,k3,k2,mcmm,mmmc,mmcm,varmcmm,varmmmc,varmmcm),
-                    (k2,1,k3,mmcm,mcmm,mmmc,varmmcm,varmcmm,varmmmc),
-                    (k2,k3,1,mmcm,mmmc,mcmm,varmmcm,varmmmc,varmcmm),
-                    (k3,1,k2,mmmc,mcmm,mmcm,varmmmc,varmcmm,varmmcm),
-                    (k3,k2,1,mmmc,mmcm,mcmm,varmmmc,varmmcm,varmcmm) ]:
+            for (_k1, _k2, _k3, _mcmm, _mmcm, _mmmc) in [
+                    (1,k3,k2,mcmm,mmmc,mmcm),
+                    (k2,1,k3,mmcm,mcmm,mmmc),
+                    (k2,k3,1,mmcm,mmmc,mcmm),
+                    (k3,1,k2,mmmc,mcmm,mmcm),
+                    (k3,k2,1,mmmc,mmcm,mcmm) ]:
                 T0, T1, T2, T3 = self._calculateT(s,t,_k1,_k2,_k3)
                 T0 *= sds * d2t
                 T1 *= sds * d2t
@@ -1105,10 +1110,10 @@ class GGGCorrelation(BinnedCorr3):
                 _mcmm += T1.dot(gam1)
                 _mmcm += T2.dot(gam2)
                 _mmmc += T3.dot(gam3)
-                varmmm += (np.abs(T0)**2).dot(vargam0)
-                _varmcmm += (np.abs(T1)**2).dot(vargam1)
-                _varmmcm += (np.abs(T2)**2).dot(vargam2)
-                _varmmmc += (np.abs(T3)**2).dot(vargam3)
+                var0 += T0
+                var1 += T1
+                var2 += T2
+                var3 += T3
 
         map3 = 0.25 * np.real(mcmm + mmcm + mmmc + mmm)
         mapmapmx = 0.25 * np.imag(mcmm + mmcm - mmmc + mmm)
@@ -1119,7 +1124,16 @@ class GGGCorrelation(BinnedCorr3):
         mapmxmx = 0.25 * np.real(-mcmm + mmcm + mmmc - mmm)
         mx3 = 0.25 * np.imag(mcmm + mmcm + mmmc - mmm)
 
-        var = (varmcmm + varmmcm + varmmmc + varmmm) / 16.
+        var0 /= 4
+        var1 /= 4
+        var2 /= 4
+        var3 /= 4
+
+        # Now finally add up the coefficient squared times each vargam element.
+        var = np.abs(var0**2).dot(vargam0)
+        var += np.abs(var1**2).dot(vargam1)
+        var += np.abs(var2**2).dot(vargam2)
+        var += np.abs(var3**2).dot(vargam3)
 
         return map3, mapmapmx, mapmxmap, mxmapmap, mxmxmap, mxmapmx, mapmxmx, mx3, var
 

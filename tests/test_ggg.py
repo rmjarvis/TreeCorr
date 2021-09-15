@@ -2067,6 +2067,200 @@ def test_grid():
     assert not np.any(np.isnan(mx3))
 
 
+@timer
+def test_vargam():
+    # Test that the shot noise estimate of vargam is close based on actual variance of many runs
+    # when there is no real signal.  So should be just shot noise.
+
+    # Put in a nominal pattern for g1,g2, but this pattern doesn't have much 3pt correlation.
+    gamma0 = 0.05
+    r0 = 10.
+    L = 50.*r0
+    rng = np.random.RandomState(8675309)
+
+    # Note: to get a good estimate of var(xi), you need a lot of runs.  The number of
+    # runs matters much more than the number of galaxies for getting this to pass.
+    ngal = 300
+    nruns = 50000
+
+    file_name = 'data/test_vargam_ggg.npz'
+    print(file_name)
+    if not os.path.isfile(file_name):
+        all_gggs = []
+
+        for run in range(nruns):
+            print(f'{run}/{nruns}')
+            # In addition to the shape noise below, there is shot noise from the random x,y positions.
+            x = (rng.random_sample(ngal)-0.5) * L
+            y = (rng.random_sample(ngal)-0.5) * L
+            # Varied weights are hard, but at least check that non-unit weights work correctly.
+            w = np.ones_like(x) * 5
+            r2 = (x**2 + y**2)/r0**2
+            g1 = -gamma0 * np.exp(-r2/2.) * (x**2-y**2)/r0**2
+            g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
+            # This time, add some shape noise (different each run).
+            g1 += rng.normal(0, 0.3, size=ngal)
+            g2 += rng.normal(0, 0.3, size=ngal)
+
+            cat = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
+            ggg = treecorr.GGGCorrelation(bin_size=0.5, min_sep=30., max_sep=100.,
+                                          sep_units='arcmin', nubins=3, nvbins=3, verbose=1)
+            ggg.process(cat)
+            all_gggs.append(ggg)
+
+        mean_gam0r = np.mean([ggg.gam0r for ggg in all_gggs], axis=0)
+        mean_gam0i = np.mean([ggg.gam0i for ggg in all_gggs], axis=0)
+        mean_gam1r = np.mean([ggg.gam1r for ggg in all_gggs], axis=0)
+        mean_gam1i = np.mean([ggg.gam1i for ggg in all_gggs], axis=0)
+        mean_gam2r = np.mean([ggg.gam2r for ggg in all_gggs], axis=0)
+        mean_gam2i = np.mean([ggg.gam2i for ggg in all_gggs], axis=0)
+        mean_gam3r = np.mean([ggg.gam3r for ggg in all_gggs], axis=0)
+        mean_gam3i = np.mean([ggg.gam3i for ggg in all_gggs], axis=0)
+        var_gam0r = np.var([ggg.gam0r for ggg in all_gggs], axis=0)
+        var_gam0i = np.var([ggg.gam0i for ggg in all_gggs], axis=0)
+        var_gam1r = np.var([ggg.gam1r for ggg in all_gggs], axis=0)
+        var_gam1i = np.var([ggg.gam1i for ggg in all_gggs], axis=0)
+        var_gam2r = np.var([ggg.gam2r for ggg in all_gggs], axis=0)
+        var_gam2i = np.var([ggg.gam2i for ggg in all_gggs], axis=0)
+        var_gam3r = np.var([ggg.gam3r for ggg in all_gggs], axis=0)
+        var_gam3i = np.var([ggg.gam3i for ggg in all_gggs], axis=0)
+        mean_vargam0 = np.mean([ggg.vargam0 for ggg in all_gggs], axis=0)
+        mean_vargam1 = np.mean([ggg.vargam1 for ggg in all_gggs], axis=0)
+        mean_vargam2 = np.mean([ggg.vargam2 for ggg in all_gggs], axis=0)
+        mean_vargam3 = np.mean([ggg.vargam3 for ggg in all_gggs], axis=0)
+
+        np.savez(file_name,
+                 mean_gam0r=mean_gam0r, var_gam0r=var_gam0r,
+                 mean_gam0i=mean_gam0i, var_gam0i=var_gam0i,
+                 mean_gam1r=mean_gam1r, var_gam1r=var_gam1r,
+                 mean_gam1i=mean_gam1i, var_gam1i=var_gam1i,
+                 mean_gam2r=mean_gam2r, var_gam2r=var_gam2r,
+                 mean_gam2i=mean_gam2i, var_gam2i=var_gam2i,
+                 mean_gam3r=mean_gam3r, var_gam3r=var_gam3r,
+                 mean_gam3i=mean_gam3i, var_gam3i=var_gam3i,
+                 mean_vargam0=mean_vargam0,
+                 mean_vargam1=mean_vargam1,
+                 mean_vargam2=mean_vargam2,
+                 mean_vargam3=mean_vargam3)
+
+    data = np.load(file_name)
+    print('nruns = ',nruns)
+
+    mean_gam0r = data['mean_gam0r']
+    mean_gam0i = data['mean_gam0i']
+    var_gam0r = data['var_gam0r']
+    var_gam0i = data['var_gam0i']
+    mean_vargam0 = data['mean_vargam0']
+    #print('mean_gam0r = ',mean_gam0r)
+    #print('mean_gam0i = ',mean_gam0i)
+    #print('mean_vargam0 = ',mean_vargam0)
+    #print('var_gam0r = ',var_gam0r)
+    #print('ratio = ',var_gam0r / mean_vargam0)
+    print('max relerr for gam0r = ',np.max(np.abs((var_gam0r - mean_vargam0)/var_gam0r)))
+    #print('var_gam0i = ',var_gam0i)
+    #print('ratio = ',var_gam0i / mean_vargam0)
+    print('max relerr for gam0i = ',np.max(np.abs((var_gam0i - mean_vargam0)/var_gam0i)))
+    np.testing.assert_allclose(mean_vargam0, var_gam0r, rtol=0.03)
+    np.testing.assert_allclose(mean_vargam0, var_gam0i, rtol=0.03)
+
+    mean_gam1r = data['mean_gam1r']
+    mean_gam1i = data['mean_gam1i']
+    var_gam1r = data['var_gam1r']
+    var_gam1i = data['var_gam1i']
+    mean_vargam1 = data['mean_vargam1']
+    #print('mean_gam1r = ',mean_gam1r)
+    #print('mean_gam1i = ',mean_gam1i)
+    #print('mean_vargam1 = ',mean_vargam1)
+    #print('var_gam1r = ',var_gam1r)
+    #print('ratio = ',var_gam1r / mean_vargam1)
+    print('max relerr for gam1r = ',np.max(np.abs((var_gam1r - mean_vargam1)/var_gam1r)))
+    #print('var_gam1i = ',var_gam1i)
+    #print('ratio = ',var_gam1i / mean_vargam1)
+    print('max relerr for gam1i = ',np.max(np.abs((var_gam1i - mean_vargam1)/var_gam1i)))
+    np.testing.assert_allclose(mean_vargam1, var_gam1r, rtol=0.03)
+    np.testing.assert_allclose(mean_vargam1, var_gam1i, rtol=0.03)
+
+    mean_gam2r = data['mean_gam2r']
+    mean_gam2i = data['mean_gam2i']
+    var_gam2r = data['var_gam2r']
+    var_gam2i = data['var_gam2i']
+    mean_vargam2 = data['mean_vargam2']
+    #print('mean_gam2r = ',mean_gam2r)
+    #print('mean_gam2i = ',mean_gam2i)
+    #print('mean_vargam2 = ',mean_vargam2)
+    #print('var_gam2r = ',var_gam2r)
+    #print('ratio = ',var_gam2r / mean_vargam2)
+    print('max relerr for gam2r = ',np.max(np.abs((var_gam2r - mean_vargam2)/var_gam2r)))
+    #print('var_gam2i = ',var_gam2i)
+    #print('ratio = ',var_gam2i / mean_vargam2)
+    print('max relerr for gam2i = ',np.max(np.abs((var_gam2i - mean_vargam2)/var_gam2i)))
+    np.testing.assert_allclose(mean_vargam2, var_gam2r, rtol=0.03)
+    np.testing.assert_allclose(mean_vargam2, var_gam2i, rtol=0.03)
+
+    mean_gam3r = data['mean_gam3r']
+    mean_gam3i = data['mean_gam3i']
+    var_gam3r = data['var_gam3r']
+    var_gam3i = data['var_gam3i']
+    mean_vargam3 = data['mean_vargam3']
+    #print('mean_gam3r = ',mean_gam3r)
+    #print('mean_gam3i = ',mean_gam3i)
+    #print('mean_vargam3 = ',mean_vargam3)
+    #print('var_gam3r = ',var_gam3r)
+    #print('ratio = ',var_gam3r / mean_vargam3)
+    print('max relerr for gam3r = ',np.max(np.abs((var_gam3r - mean_vargam3)/var_gam3r)))
+    #print('var_gam3i = ',var_gam3i)
+    #print('ratio = ',var_gam3i / mean_vargam3)
+    print('max relerr for gam3i = ',np.max(np.abs((var_gam3i - mean_vargam3)/var_gam3i)))
+    np.testing.assert_allclose(mean_vargam3, var_gam3r, rtol=0.03)
+    np.testing.assert_allclose(mean_vargam3, var_gam3i, rtol=0.03)
+
+
+    # Now the actual test that's based on current code, not just from the saved file.
+    # There is a bit more noise on a singe run, so the tolerance needs to be somewhat higher.
+    x = (rng.random_sample(ngal)-0.5) * L
+    y = (rng.random_sample(ngal)-0.5) * L
+    # Varied weights are hard, but at least check that non-unit weights work correctly.
+    w = np.ones_like(x) * 5
+    r2 = (x**2 + y**2)/r0**2
+    g1 = -gamma0 * np.exp(-r2/2.) * (x**2-y**2)/r0**2
+    g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
+    g1 += rng.normal(0, 0.3, size=ngal)
+    g2 += rng.normal(0, 0.3, size=ngal)
+
+    cat = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
+    ggg = treecorr.GGGCorrelation(bin_size=0.5, min_sep=30., max_sep=100.,
+                                  sep_units='arcmin', nubins=3, nvbins=3, verbose=1)
+    ggg.process(cat)
+    print('single run:')
+    print('max relerr for gam0r = ',np.max(np.abs((ggg.vargam0 - var_gam0r)/var_gam0r)))
+    print('ratio = ',ggg.vargam0 / var_gam0r)
+    print('max relerr for gam0i = ',np.max(np.abs((ggg.vargam0 - var_gam0i)/var_gam0i)))
+    print('ratio = ',ggg.vargam0 / var_gam0i)
+    np.testing.assert_allclose(ggg.vargam0, var_gam0r, rtol=0.3)
+    np.testing.assert_allclose(ggg.vargam0, var_gam0i, rtol=0.3)
+
+    print('max relerr for gam1r = ',np.max(np.abs((ggg.vargam1 - var_gam1r)/var_gam1r)))
+    print('ratio = ',ggg.vargam1 / var_gam1r)
+    print('max relerr for gam1i = ',np.max(np.abs((ggg.vargam1 - var_gam1i)/var_gam1i)))
+    print('ratio = ',ggg.vargam1 / var_gam1i)
+    np.testing.assert_allclose(ggg.vargam1, var_gam1r, rtol=0.3)
+    np.testing.assert_allclose(ggg.vargam1, var_gam1i, rtol=0.3)
+
+    print('max relerr for gam2r = ',np.max(np.abs((ggg.vargam2 - var_gam2r)/var_gam2r)))
+    print('ratio = ',ggg.vargam2 / var_gam2r)
+    print('max relerr for gam2i = ',np.max(np.abs((ggg.vargam2 - var_gam2i)/var_gam2i)))
+    print('ratio = ',ggg.vargam2 / var_gam2i)
+    np.testing.assert_allclose(ggg.vargam2, var_gam2r, rtol=0.3)
+    np.testing.assert_allclose(ggg.vargam2, var_gam2i, rtol=0.3)
+
+    print('max relerr for gam3r = ',np.max(np.abs((ggg.vargam3 - var_gam3r)/var_gam3r)))
+    print('ratio = ',ggg.vargam3 / var_gam3r)
+    print('max relerr for gam3i = ',np.max(np.abs((ggg.vargam3 - var_gam3i)/var_gam3i)))
+    print('ratio = ',ggg.vargam3 / var_gam3i)
+    np.testing.assert_allclose(ggg.vargam3, var_gam3r, rtol=0.3)
+    np.testing.assert_allclose(ggg.vargam3, var_gam3i, rtol=0.3)
+
+
 if __name__ == '__main__':
     test_direct()
     test_direct_spherical()
@@ -2075,3 +2269,4 @@ if __name__ == '__main__':
     test_ggg()
     test_map3()
     test_grid()
+    test_vargam()

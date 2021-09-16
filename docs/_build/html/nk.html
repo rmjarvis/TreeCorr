@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>NKCorrelation: Count-kappa correlations &mdash; TreeCorr 4.2.3 documentation</title>
+  <title>NKCorrelation: Count-kappa correlations &mdash; TreeCorr 4.2.5 documentation</title>
   
 
   
@@ -114,6 +114,7 @@
 <li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-2-1-to-4-2-2">Changes from version 4.2.1 to 4.2.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-2-2-to-4-2-3">Changes from version 4.2.2 to 4.2.3</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-2-3-to-4-2-4">Changes from version 4.2.3 to 4.2.4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-2-4-to-4-2-5">Changes from version 4.2.4 to 4.2.5</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -188,7 +189,7 @@
 <h1>NKCorrelation: Count-kappa correlations<a class="headerlink" href="#nkcorrelation-count-kappa-correlations" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
 <dt id="treecorr.NKCorrelation">
-<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">NKCorrelation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NKCorrelation" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">treecorr.</span></code><code class="sig-name descname"><span class="pre">NKCorrelation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NKCorrelation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">treecorr.binnedcorr2.BinnedCorr2</span></code></p>
 <p>This class handles the calculation and storage of a 2-point count-kappa correlation
 function.</p>
@@ -273,13 +274,13 @@ arguments, which may be passed either directly or in the config dict.</p>
 </dl>
 <dl class="py method">
 <dt id="treecorr.NKCorrelation.__eq__">
-<code class="sig-name descname">__eq__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.__eq__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NKCorrelation.__eq__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__eq__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.__eq__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NKCorrelation.__eq__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return whether two <a class="reference internal" href="#treecorr.NKCorrelation" title="treecorr.NKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKCorrelation</span></code></a> instances are equal</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="treecorr.NKCorrelation.__iadd__">
-<code class="sig-name descname">__iadd__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.__iadd__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NKCorrelation.__iadd__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__iadd__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.__iadd__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NKCorrelation.__iadd__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a second <a class="reference internal" href="#treecorr.NKCorrelation" title="treecorr.NKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKCorrelation</span></code></a>’s data to this one.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -290,19 +291,19 @@ called yet.  Then, after adding them together, you should call <a class="referen
 
 <dl class="py method">
 <dt id="treecorr.NKCorrelation.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NKCorrelation.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NKCorrelation.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize <a class="reference internal" href="#treecorr.NKCorrelation" title="treecorr.NKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKCorrelation</span></code></a>.  See class doc for details.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="treecorr.NKCorrelation.__repr__">
-<code class="sig-name descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.__repr__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NKCorrelation.__repr__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__repr__</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.__repr__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NKCorrelation.__repr__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return repr(self).</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="treecorr.NKCorrelation.calculateXi">
-<code class="sig-name descname">calculateXi</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rk</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.calculateXi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NKCorrelation.calculateXi" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">calculateXi</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.calculateXi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NKCorrelation.calculateXi" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the correlation function possibly given another correlation function
 that uses random points for the foreground objects.</p>
 <ul class="simple">
@@ -335,13 +336,13 @@ if desired.  (default: None)</p>
 
 <dl class="py method">
 <dt id="treecorr.NKCorrelation.copy">
-<code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NKCorrelation.copy" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">copy</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NKCorrelation.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make a copy</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="treecorr.NKCorrelation.finalize">
-<code class="sig-name descname">finalize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vark</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.finalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NKCorrelation.finalize" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">finalize</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vark</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.finalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NKCorrelation.finalize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Finalize the calculation of the correlation function.</p>
 <p>The <a class="reference internal" href="#treecorr.NKCorrelation.process_cross" title="treecorr.NKCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a> command accumulates values in each bin, so it can be called
 multiple times if appropriate.  Afterwards, this command finishes the calculation
@@ -355,7 +356,7 @@ by dividing each column by the total weight.</p>
 
 <dl class="py method">
 <dt id="treecorr.NKCorrelation.process">
-<code class="sig-name descname">process</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat1</span></em>, <em class="sig-param"><span class="n">cat2</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_threads</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">comm</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">low_mem</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">initialize</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">finalize</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NKCorrelation.process" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">process</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">low_mem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initialize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NKCorrelation.process" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the correlation function.</p>
 <p>Both arguments may be lists, in which case all items in the list are used
 for that element of the correlation.</p>
@@ -386,7 +387,7 @@ This only works if using patches. (default: False)</p></li>
 
 <dl class="py method">
 <dt id="treecorr.NKCorrelation.process_cross">
-<code class="sig-name descname">process_cross</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat1</span></em>, <em class="sig-param"><span class="n">cat2</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_threads</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.process_cross"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NKCorrelation.process_cross" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">process_cross</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.process_cross"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NKCorrelation.process_cross" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process a single pair of catalogs, accumulating the cross-correlation.</p>
 <p>This accumulates the weighted sums into the bins, but does not finalize
 the calculation by dividing by the total weight at the end.  After
@@ -410,7 +411,7 @@ in the constructor in the config dict.)</p></li>
 
 <dl class="py method">
 <dt id="treecorr.NKCorrelation.process_pairwise">
-<code class="sig-name descname">process_pairwise</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cat1</span></em>, <em class="sig-param"><span class="n">cat2</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_threads</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.process_pairwise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NKCorrelation.process_pairwise" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">process_pairwise</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.process_pairwise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NKCorrelation.process_pairwise" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process a single pair of catalogs, accumulating the cross-correlation, only using
 the corresponding pairs of objects in each catalog.</p>
 <p>This accumulates the weighted sums into the bins, but does not finalize
@@ -442,7 +443,7 @@ in the constructor in the config dict.)</p></li>
 
 <dl class="py method">
 <dt id="treecorr.NKCorrelation.read">
-<code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em>, <em class="sig-param"><span class="n">file_type</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NKCorrelation.read" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">read</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NKCorrelation.read" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read in values from a file.</p>
 <p>This should be a file that was written by TreeCorr, preferably a FITS file, so there
 is no loss of information.</p>
@@ -465,7 +466,7 @@ automatically from the extension of file_name.)</p></li>
 
 <dl class="py method">
 <dt id="treecorr.NKCorrelation.write">
-<code class="sig-name descname">write</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em>, <em class="sig-param"><span class="n">rk</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">file_type</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">precision</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.NKCorrelation.write" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">write</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkcorrelation.html#NKCorrelation.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NKCorrelation.write" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write the correlation function to the file, file_name.</p>
 <ul class="simple">
 <li><p>If rk is None, the simple correlation function <span class="math notranslate nohighlight">\(\langle \kappa \rangle(R)\)</span> is

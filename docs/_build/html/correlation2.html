@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Two-point Correlation Functions &mdash; TreeCorr 4.2.3 documentation</title>
+  <title>Two-point Correlation Functions &mdash; TreeCorr 4.2.5 documentation</title>
   
 
   
@@ -114,6 +114,7 @@
 <li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-2-1-to-4-2-2">Changes from version 4.2.1 to 4.2.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-2-2-to-4-2-3">Changes from version 4.2.2 to 4.2.3</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-2-3-to-4-2-4">Changes from version 4.2.3 to 4.2.4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-2-4-to-4-2-5">Changes from version 4.2.4 to 4.2.5</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -200,7 +201,7 @@ functions:</p>
 features in common about how they are constructed.  The common features are documented here.</p>
 <dl class="py class">
 <dt id="treecorr.BinnedCorr2">
-<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">BinnedCorr2</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">rng</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr2" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">treecorr.</span></code><code class="sig-name descname"><span class="pre">BinnedCorr2</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.BinnedCorr2" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class stores the results of a 2-point correlation calculation, along with some
 ancillary data.</p>
 <p>This is a base class that is not intended to be constructed directly.  But it has a few
@@ -387,13 +388,13 @@ random number generation. (default: None)</p></li>
 </dl>
 <dl class="py method">
 <dt id="treecorr.BinnedCorr2.clear">
-<code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr2.clear" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">clear</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.BinnedCorr2.clear" title="Permalink to this definition">¶</a></dt>
 <dd><p>Clear all data vectors, the results dict, and any related values.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="treecorr.BinnedCorr2.estimate_cov">
-<code class="sig-name descname">estimate_cov</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">method</span></em>, <em class="sig-param"><span class="n">func</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2.estimate_cov"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr2.estimate_cov" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">estimate_cov</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2.estimate_cov"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.BinnedCorr2.estimate_cov" title="Permalink to this definition">¶</a></dt>
 <dd><p>Estimate the covariance matrix based on the data</p>
 <p>This function will calculate an estimate of the covariance matrix according to the
 given method.</p>
@@ -465,7 +466,7 @@ equivalent to <code class="docutils literal notranslate"><span class="pre">lambd
 
 <dl class="py method">
 <dt id="treecorr.BinnedCorr2.getStat">
-<code class="sig-name descname">getStat</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2.getStat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr2.getStat" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">getStat</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2.getStat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.BinnedCorr2.getStat" title="Permalink to this definition">¶</a></dt>
 <dd><p>The standard statistic for the current correlation object as a 1-d array.</p>
 <p>Usually, this is just self.xi.  But if the metric is TwoD, this becomes self.xi.ravel().
 And for <a class="reference internal" href="gg.html#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a>, it is the concatenation of self.xip and self.xim.</p>
@@ -473,7 +474,7 @@ And for <a class="reference internal" href="gg.html#treecorr.GGCorrelation" titl
 
 <dl class="py method">
 <dt id="treecorr.BinnedCorr2.getWeight">
-<code class="sig-name descname">getWeight</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2.getWeight"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr2.getWeight" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">getWeight</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2.getWeight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.BinnedCorr2.getWeight" title="Permalink to this definition">¶</a></dt>
 <dd><p>The weight array for the current correlation object as a 1-d array.</p>
 <p>This is the weight array corresponding to <a class="reference internal" href="#treecorr.BinnedCorr2.getStat" title="treecorr.BinnedCorr2.getStat"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getStat</span></code></a>. Usually just self.weight, but
 raveled for TwoD and duplicated for GGCorrelation to match what <a class="reference internal" href="#treecorr.BinnedCorr2.getStat" title="treecorr.BinnedCorr2.getStat"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getStat</span></code></a> does in
@@ -482,13 +483,13 @@ those cases.</p>
 
 <dl class="py method">
 <dt id="treecorr.BinnedCorr2.nonzero">
-<em class="property">property </em><code class="sig-name descname">nonzero</code><a class="headerlink" href="#treecorr.BinnedCorr2.nonzero" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">nonzero</span></code><a class="headerlink" href="#treecorr.BinnedCorr2.nonzero" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return if there are any values accumulated yet.  (i.e. npairs &gt; 0)</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="treecorr.BinnedCorr2.sample_pairs">
-<code class="sig-name descname">sample_pairs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n</span></em>, <em class="sig-param"><span class="n">cat1</span></em>, <em class="sig-param"><span class="n">cat2</span></em>, <em class="sig-param"><span class="n">min_sep</span></em>, <em class="sig-param"><span class="n">max_sep</span></em>, <em class="sig-param"><span class="n">metric</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2.sample_pairs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr2.sample_pairs" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">sample_pairs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_sep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_sep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2.sample_pairs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.BinnedCorr2.sample_pairs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a random sample of n pairs whose separations fall between min_sep and max_sep.</p>
 <p>This would typically be used to get some random subset of the indices of pairs that
 fell into a particular bin of the correlation.  E.g. to get 100 pairs from the third
@@ -548,7 +549,7 @@ self.metric, or ‘Euclidean’ if not set yet)</p></li>
 
 <dl class="py function">
 <dt id="treecorr.estimate_multi_cov">
-<code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">estimate_multi_cov</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">corrs</span></em>, <em class="sig-param"><span class="n">method</span></em>, <em class="sig-param"><span class="n">func</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#estimate_multi_cov"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.estimate_multi_cov" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">treecorr.</span></code><code class="sig-name descname"><span class="pre">estimate_multi_cov</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">corrs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#estimate_multi_cov"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.estimate_multi_cov" title="Permalink to this definition">¶</a></dt>
 <dd><p>Estimate the covariance matrix of multiple statistics.</p>
 <p>This is like the method <a class="reference internal" href="#treecorr.BinnedCorr2.estimate_cov" title="treecorr.BinnedCorr2.estimate_cov"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">BinnedCorr2.estimate_cov</span></code></a>, except that it will acoommodate
 multiple statistics from a list <code class="docutils literal notranslate"><span class="pre">corrs</span></code> of <a class="reference internal" href="#treecorr.BinnedCorr2" title="treecorr.BinnedCorr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr2</span></code></a> objects.</p>

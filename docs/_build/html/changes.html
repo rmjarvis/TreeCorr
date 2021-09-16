@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Changes from version 4.1 to 4.2 &mdash; TreeCorr 4.2.3 documentation</title>
+  <title>Changes from version 4.1 to 4.2 &mdash; TreeCorr 4.2.5 documentation</title>
   
 
   
@@ -32,7 +32,6 @@
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -112,6 +111,7 @@
 <li class="toctree-l1"><a class="reference internal" href="#changes-from-version-4-2-1-to-4-2-2">Changes from version 4.2.1 to 4.2.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#changes-from-version-4-2-2-to-4-2-3">Changes from version 4.2.2 to 4.2.3</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#changes-from-version-4-2-3-to-4-2-4">Changes from version 4.2.3 to 4.2.4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#changes-from-version-4-2-4-to-4-2-5">Changes from version 4.2.4 to 4.2.5</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -269,13 +269,15 @@ one or more of the patches have no objects. (#123)</p></li>
 <div class="section" id="changes-from-version-4-2-0-to-4-2-1">
 <h1>Changes from version 4.2.0 to 4.2.1<a class="headerlink" href="#changes-from-version-4-2-0-to-4-2-1" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
-<li><p>Fixed a bug when running NN correlations with MPI (#127)</p></li>
+<li><p>Fixed a bug when running NN correlations with MPI.  Thanks to Joe Zuntz for
+the bug report. (#127)</p></li>
 </ul>
 </div>
 <div class="section" id="changes-from-version-4-2-1-to-4-2-2">
 <h1>Changes from version 4.2.1 to 4.2.2<a class="headerlink" href="#changes-from-version-4-2-1-to-4-2-2" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
-<li><p>Fixed a build problem with gcc versions 10 and 11.</p></li>
+<li><p>Fixed a build problem with gcc versions 10 and 11.  Thanks to Johannes Lange
+for reporting the problem.</p></li>
 </ul>
 </div>
 <div class="section" id="changes-from-version-4-2-2-to-4-2-3">
@@ -290,6 +292,13 @@ Thanks to Laila Linke for both finding the problem and providing the fix. (#128)
 <ul class="simple">
 <li><p>Fixed a bug when running the Rlens metric with patches. Thanks to Marina Ricci
 for the bug report. (#131)</p></li>
+</ul>
+</div>
+<div class="section" id="changes-from-version-4-2-4-to-4-2-5">
+<h1>Changes from version 4.2.4 to 4.2.5<a class="headerlink" href="#changes-from-version-4-2-4-to-4-2-5" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p>Fixed bugs in the shot noise variance estimate for GGG and the propagation of
+the error to Map3.  Thanks to Lucas Secco for the bug report. (#133)</p></li>
 </ul>
 </div>
 

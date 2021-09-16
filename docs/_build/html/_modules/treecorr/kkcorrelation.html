@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>treecorr.kkcorrelation &mdash; TreeCorr 4.2.3 documentation</title>
+  <title>treecorr.kkcorrelation &mdash; TreeCorr 4.2.5 documentation</title>
   
 
   
@@ -32,7 +32,6 @@
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -104,6 +103,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-1-to-4-2-2">Changes from version 4.2.1 to 4.2.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-2-to-4-2-3">Changes from version 4.2.2 to 4.2.3</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-3-to-4-2-4">Changes from version 4.2.3 to 4.2.4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-4-to-4-2-5">Changes from version 4.2.4 to 4.2.5</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
 
@@ -518,7 +518,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">max_sep</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">max_sep</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;KKCorrelation to be added is not compatible with this one.&quot;</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_set_metric</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">metric</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_metric</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">metric</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">xi</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">xi</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">meanr</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">meanr</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">meanlogr</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span>

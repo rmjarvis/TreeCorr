@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>treecorr.binnedcorr2 &mdash; TreeCorr 4.2.3 documentation</title>
+  <title>treecorr.binnedcorr2 &mdash; TreeCorr 4.2.5 documentation</title>
   
 
   
@@ -32,7 +32,6 @@
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -104,6 +103,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-1-to-4-2-2">Changes from version 4.2.1 to 4.2.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-2-to-4-2-3">Changes from version 4.2.2 to 4.2.3</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-3-to-4-2-4">Changes from version 4.2.3 to 4.2.4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-4-to-4-2-5">Changes from version 4.2.4 to 4.2.5</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
 
@@ -762,8 +762,9 @@
         <span class="c1"># For now, ignore the metric.  Just be conservative about how much space we need.</span>
         <span class="n">x1</span><span class="p">,</span><span class="n">y1</span><span class="p">,</span><span class="n">z1</span><span class="p">,</span><span class="n">s1</span> <span class="o">=</span> <span class="n">c1</span><span class="o">.</span><span class="n">_get_center_size</span><span class="p">()</span>
         <span class="n">x2</span><span class="p">,</span><span class="n">y2</span><span class="p">,</span><span class="n">z2</span><span class="p">,</span><span class="n">s2</span> <span class="o">=</span> <span class="n">c2</span><span class="o">.</span><span class="n">_get_center_size</span><span class="p">()</span>
-        <span class="n">d</span> <span class="o">=</span> <span class="p">((</span><span class="n">x1</span><span class="o">-</span><span class="n">x2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">y1</span><span class="o">-</span><span class="n">y2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">z1</span><span class="o">-</span><span class="n">z2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">d</span> <span class="o">&gt;</span> <span class="n">s1</span> <span class="o">+</span> <span class="n">s2</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_sep</span><span class="p">)</span>  <span class="c1"># The 2* is where we are being conservative.</span>
+        <span class="k">return</span> <span class="n">_lib</span><span class="o">.</span><span class="n">TriviallyZero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bintype</span><span class="p">,</span>
+                                  <span class="bp">self</span><span class="o">.</span><span class="n">_metric</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">,</span>
+                                  <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">z1</span><span class="p">,</span> <span class="n">s1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">,</span> <span class="n">z2</span><span class="p">,</span> <span class="n">s2</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_process_all_auto</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">low_mem</span><span class="p">):</span>
 
@@ -824,6 +825,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">my_indices</span> <span class="o">=</span> <span class="kc">None</span>
 
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_metric</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">cat1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
             <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
             <span class="n">temp</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Don&#39;t mess up the original results</span>
             <span class="k">for</span> <span class="n">ii</span><span class="p">,</span><span class="n">c1</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cat1</span><span class="p">):</span>
@@ -930,6 +932,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">my_indices</span> <span class="o">=</span> <span class="kc">None</span>
 
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_metric</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">cat1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">cat2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
             <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
             <span class="n">temp</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Don&#39;t mess up the original results</span>
             <span class="k">for</span> <span class="n">ii</span><span class="p">,</span><span class="n">c1</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cat1</span><span class="p">):</span>

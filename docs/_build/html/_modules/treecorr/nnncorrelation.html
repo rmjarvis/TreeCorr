@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>treecorr.nnncorrelation &mdash; TreeCorr 4.2.3 documentation</title>
+  <title>treecorr.nnncorrelation &mdash; TreeCorr 4.2.5 documentation</title>
   
 
   
@@ -32,7 +32,6 @@
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -104,6 +103,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-1-to-4-2-2">Changes from version 4.2.1 to 4.2.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-2-to-4-2-3">Changes from version 4.2.2 to 4.2.3</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-3-to-4-2-4">Changes from version 4.2.3 to 4.2.4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-4-to-4-2-5">Changes from version 4.2.4 to 4.2.5</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
 
@@ -640,7 +640,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">max_v</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">max_v</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;NNNCorrelation to be added is not compatible with this one.&quot;</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_set_metric</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">metric</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_metric</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">metric</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tot</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">tot</span>
 
         <span class="c1"># If other is empty, then we&#39;re done now.</span>
@@ -1141,7 +1141,7 @@
 <span class="sd">    Therefore, this class holds 6 instances of `NNNCorrelation`, which in turn hold the</span>
 <span class="sd">    information about triangles in each of the relevant configurations.  We name these:</span>
 
-<span class="sd">    Attribute:</span>
+<span class="sd">    Attributes:</span>
 <span class="sd">        n1n2n3:     Triangles where N1 is opposite d1, N2 is opposite d2, N3 is opposite d3.</span>
 <span class="sd">        n1n3n2:     Triangles where N1 is opposite d1, N3 is opposite d2, N2 is opposite d3.</span>
 <span class="sd">        n2n1n3:     Triangles where N2 is opposite d1, N1 is opposite d2, N3 is opposite d3.</span>

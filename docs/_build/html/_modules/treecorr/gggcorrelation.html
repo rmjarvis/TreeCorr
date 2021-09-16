@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>treecorr.gggcorrelation &mdash; TreeCorr 4.2.3 documentation</title>
+  <title>treecorr.gggcorrelation &mdash; TreeCorr 4.2.5 documentation</title>
   
 
   
@@ -32,7 +32,6 @@
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -104,6 +103,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-1-to-4-2-2">Changes from version 4.2.1 to 4.2.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-2-to-4-2-3">Changes from version 4.2.2 to 4.2.3</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-3-to-4-2-4">Changes from version 4.2.3 to 4.2.4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-4-to-4-2-5">Changes from version 4.2.4 to 4.2.5</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
 
@@ -618,7 +618,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_finalize</span><span class="p">()</span>
         <span class="n">mask1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">!=</span> <span class="mi">0</span>
         <span class="n">mask2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">==</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_var_num</span> <span class="o">=</span> <span class="n">varg1</span> <span class="o">*</span> <span class="n">varg2</span> <span class="o">*</span> <span class="n">varg3</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_var_num</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">varg1</span> <span class="o">*</span> <span class="n">varg2</span> <span class="o">*</span> <span class="n">varg3</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cov</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimate_cov</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var_method</span><span class="p">)</span>
         <span class="c1"># Note: diagonal should be very close to pure real.  So ok to just copy real part.</span>
         <span class="n">diag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cov</span><span class="o">.</span><span class="n">diagonal</span><span class="p">()</span>
@@ -678,7 +678,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;GGGCorrelation to be added is not compatible with this one.&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">other</span><span class="o">.</span><span class="n">nonzero</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_set_metric</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">metric</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_metric</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">metric</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gam0r</span><span class="p">[:]</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">gam0r</span><span class="p">[:]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gam0i</span><span class="p">[:]</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">gam0i</span><span class="p">[:]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gam1r</span><span class="p">[:]</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">gam1r</span><span class="p">[:]</span>
@@ -1220,30 +1220,35 @@
         <span class="n">mcmm</span> <span class="o">=</span> <span class="n">T1</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">gam1</span><span class="p">)</span>
         <span class="n">mmcm</span> <span class="o">=</span> <span class="n">T2</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">gam2</span><span class="p">)</span>
         <span class="n">mmmc</span> <span class="o">=</span> <span class="n">T3</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">gam3</span><span class="p">)</span>
-        <span class="n">varmmm</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">T0</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vargam0</span><span class="p">)</span>
-        <span class="n">varmcmm</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">T1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vargam1</span><span class="p">)</span>
-        <span class="n">varmmcm</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">T2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vargam2</span><span class="p">)</span>
-        <span class="n">varmmmc</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">T3</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vargam3</span><span class="p">)</span>
+
+        <span class="c1"># These accumulate the coefficients that are being dotted to gam0,1,2,3 respectively.</span>
+        <span class="c1"># Below, we will take the abs^2 and dot it to gam0,1,2,3 in each case to compute the</span>
+        <span class="c1"># total variance.</span>
+        <span class="c1"># Note: This assumes that gam0, gam1, gam2, gam3 have no covariance.</span>
+        <span class="c1"># This is not technically true, but I think it&#39;s approximately ok.</span>
+        <span class="n">var0</span> <span class="o">=</span> <span class="n">T0</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">var1</span> <span class="o">=</span> <span class="n">T1</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">var2</span> <span class="o">=</span> <span class="n">T2</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">var3</span> <span class="o">=</span> <span class="n">T3</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">k2</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">k3</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">mmm</span> <span class="o">*=</span> <span class="mi">6</span>
-            <span class="n">varmmm</span> <span class="o">*=</span> <span class="mi">6</span>
             <span class="n">mcmm</span> <span class="o">+=</span> <span class="n">mmcm</span>
             <span class="n">mcmm</span> <span class="o">+=</span> <span class="n">mmmc</span>
             <span class="n">mcmm</span> <span class="o">*=</span> <span class="mi">2</span>
             <span class="n">mmcm</span> <span class="o">=</span> <span class="n">mmmc</span> <span class="o">=</span> <span class="n">mcmm</span>
-            <span class="n">varmcmm</span> <span class="o">+=</span> <span class="n">varmmcm</span>
-            <span class="n">varmcmm</span> <span class="o">+=</span> <span class="n">varmmmc</span>
-            <span class="n">varmcmm</span> <span class="o">*=</span> <span class="mi">2</span>
-            <span class="n">varmmcm</span> <span class="o">=</span> <span class="n">varmmmc</span> <span class="o">=</span> <span class="n">varmcmm</span>
+            <span class="n">var0</span> <span class="o">*=</span> <span class="mi">6</span>
+            <span class="n">var1</span> <span class="o">*=</span> <span class="mi">6</span>
+            <span class="n">var2</span> <span class="o">*=</span> <span class="mi">6</span>
+            <span class="n">var3</span> <span class="o">*=</span> <span class="mi">6</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Repeat the above for the other permutations</span>
-            <span class="k">for</span> <span class="p">(</span><span class="n">_k1</span><span class="p">,</span> <span class="n">_k2</span><span class="p">,</span> <span class="n">_k3</span><span class="p">,</span> <span class="n">_mcmm</span><span class="p">,</span> <span class="n">_mmcm</span><span class="p">,</span> <span class="n">_mmmc</span><span class="p">,</span> <span class="n">_varmcmm</span><span class="p">,</span> <span class="n">_varmmcm</span><span class="p">,</span> <span class="n">_varmmmc</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span>
-                    <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">k3</span><span class="p">,</span><span class="n">k2</span><span class="p">,</span><span class="n">mcmm</span><span class="p">,</span><span class="n">mmmc</span><span class="p">,</span><span class="n">mmcm</span><span class="p">,</span><span class="n">varmcmm</span><span class="p">,</span><span class="n">varmmmc</span><span class="p">,</span><span class="n">varmmcm</span><span class="p">),</span>
-                    <span class="p">(</span><span class="n">k2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">k3</span><span class="p">,</span><span class="n">mmcm</span><span class="p">,</span><span class="n">mcmm</span><span class="p">,</span><span class="n">mmmc</span><span class="p">,</span><span class="n">varmmcm</span><span class="p">,</span><span class="n">varmcmm</span><span class="p">,</span><span class="n">varmmmc</span><span class="p">),</span>
-                    <span class="p">(</span><span class="n">k2</span><span class="p">,</span><span class="n">k3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">mmcm</span><span class="p">,</span><span class="n">mmmc</span><span class="p">,</span><span class="n">mcmm</span><span class="p">,</span><span class="n">varmmcm</span><span class="p">,</span><span class="n">varmmmc</span><span class="p">,</span><span class="n">varmcmm</span><span class="p">),</span>
-                    <span class="p">(</span><span class="n">k3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">k2</span><span class="p">,</span><span class="n">mmmc</span><span class="p">,</span><span class="n">mcmm</span><span class="p">,</span><span class="n">mmcm</span><span class="p">,</span><span class="n">varmmmc</span><span class="p">,</span><span class="n">varmcmm</span><span class="p">,</span><span class="n">varmmcm</span><span class="p">),</span>
-                    <span class="p">(</span><span class="n">k3</span><span class="p">,</span><span class="n">k2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">mmmc</span><span class="p">,</span><span class="n">mmcm</span><span class="p">,</span><span class="n">mcmm</span><span class="p">,</span><span class="n">varmmmc</span><span class="p">,</span><span class="n">varmmcm</span><span class="p">,</span><span class="n">varmcmm</span><span class="p">)</span> <span class="p">]:</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">_k1</span><span class="p">,</span> <span class="n">_k2</span><span class="p">,</span> <span class="n">_k3</span><span class="p">,</span> <span class="n">_mcmm</span><span class="p">,</span> <span class="n">_mmcm</span><span class="p">,</span> <span class="n">_mmmc</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span>
+                    <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">k3</span><span class="p">,</span><span class="n">k2</span><span class="p">,</span><span class="n">mcmm</span><span class="p">,</span><span class="n">mmmc</span><span class="p">,</span><span class="n">mmcm</span><span class="p">),</span>
+                    <span class="p">(</span><span class="n">k2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">k3</span><span class="p">,</span><span class="n">mmcm</span><span class="p">,</span><span class="n">mcmm</span><span class="p">,</span><span class="n">mmmc</span><span class="p">),</span>
+                    <span class="p">(</span><span class="n">k2</span><span class="p">,</span><span class="n">k3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">mmcm</span><span class="p">,</span><span class="n">mmmc</span><span class="p">,</span><span class="n">mcmm</span><span class="p">),</span>
+                    <span class="p">(</span><span class="n">k3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">k2</span><span class="p">,</span><span class="n">mmmc</span><span class="p">,</span><span class="n">mcmm</span><span class="p">,</span><span class="n">mmcm</span><span class="p">),</span>
+                    <span class="p">(</span><span class="n">k3</span><span class="p">,</span><span class="n">k2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">mmmc</span><span class="p">,</span><span class="n">mmcm</span><span class="p">,</span><span class="n">mcmm</span><span class="p">)</span> <span class="p">]:</span>
                 <span class="n">T0</span><span class="p">,</span> <span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">T3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculateT</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">t</span><span class="p">,</span><span class="n">_k1</span><span class="p">,</span><span class="n">_k2</span><span class="p">,</span><span class="n">_k3</span><span class="p">)</span>
                 <span class="n">T0</span> <span class="o">*=</span> <span class="n">sds</span> <span class="o">*</span> <span class="n">d2t</span>
                 <span class="n">T1</span> <span class="o">*=</span> <span class="n">sds</span> <span class="o">*</span> <span class="n">d2t</span>
@@ -1254,10 +1259,10 @@
                 <span class="n">_mcmm</span> <span class="o">+=</span> <span class="n">T1</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">gam1</span><span class="p">)</span>
                 <span class="n">_mmcm</span> <span class="o">+=</span> <span class="n">T2</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">gam2</span><span class="p">)</span>
                 <span class="n">_mmmc</span> <span class="o">+=</span> <span class="n">T3</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">gam3</span><span class="p">)</span>
-                <span class="n">varmmm</span> <span class="o">+=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">T0</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vargam0</span><span class="p">)</span>
-                <span class="n">_varmcmm</span> <span class="o">+=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">T1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vargam1</span><span class="p">)</span>
-                <span class="n">_varmmcm</span> <span class="o">+=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">T2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vargam2</span><span class="p">)</span>
-                <span class="n">_varmmmc</span> <span class="o">+=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">T3</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vargam3</span><span class="p">)</span>
+                <span class="n">var0</span> <span class="o">+=</span> <span class="n">T0</span>
+                <span class="n">var1</span> <span class="o">+=</span> <span class="n">T1</span>
+                <span class="n">var2</span> <span class="o">+=</span> <span class="n">T2</span>
+                <span class="n">var3</span> <span class="o">+=</span> <span class="n">T3</span>
 
         <span class="n">map3</span> <span class="o">=</span> <span class="mf">0.25</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">mcmm</span> <span class="o">+</span> <span class="n">mmcm</span> <span class="o">+</span> <span class="n">mmmc</span> <span class="o">+</span> <span class="n">mmm</span><span class="p">)</span>
         <span class="n">mapmapmx</span> <span class="o">=</span> <span class="mf">0.25</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">mcmm</span> <span class="o">+</span> <span class="n">mmcm</span> <span class="o">-</span> <span class="n">mmmc</span> <span class="o">+</span> <span class="n">mmm</span><span class="p">)</span>
@@ -1268,7 +1273,16 @@
         <span class="n">mapmxmx</span> <span class="o">=</span> <span class="mf">0.25</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="o">-</span><span class="n">mcmm</span> <span class="o">+</span> <span class="n">mmcm</span> <span class="o">+</span> <span class="n">mmmc</span> <span class="o">-</span> <span class="n">mmm</span><span class="p">)</span>
         <span class="n">mx3</span> <span class="o">=</span> <span class="mf">0.25</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">mcmm</span> <span class="o">+</span> <span class="n">mmcm</span> <span class="o">+</span> <span class="n">mmmc</span> <span class="o">-</span> <span class="n">mmm</span><span class="p">)</span>
 
-        <span class="n">var</span> <span class="o">=</span> <span class="p">(</span><span class="n">varmcmm</span> <span class="o">+</span> <span class="n">varmmcm</span> <span class="o">+</span> <span class="n">varmmmc</span> <span class="o">+</span> <span class="n">varmmm</span><span class="p">)</span> <span class="o">/</span> <span class="mf">16.</span>
+        <span class="n">var0</span> <span class="o">/=</span> <span class="mi">4</span>
+        <span class="n">var1</span> <span class="o">/=</span> <span class="mi">4</span>
+        <span class="n">var2</span> <span class="o">/=</span> <span class="mi">4</span>
+        <span class="n">var3</span> <span class="o">/=</span> <span class="mi">4</span>
+
+        <span class="c1"># Now finally add up the coefficient squared times each vargam element.</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">var0</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vargam0</span><span class="p">)</span>
+        <span class="n">var</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">var1</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vargam1</span><span class="p">)</span>
+        <span class="n">var</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">var2</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vargam2</span><span class="p">)</span>
+        <span class="n">var</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">var3</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vargam3</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">map3</span><span class="p">,</span> <span class="n">mapmapmx</span><span class="p">,</span> <span class="n">mapmxmap</span><span class="p">,</span> <span class="n">mxmapmap</span><span class="p">,</span> <span class="n">mxmxmap</span><span class="p">,</span> <span class="n">mxmapmx</span><span class="p">,</span> <span class="n">mapmxmx</span><span class="p">,</span> <span class="n">mx3</span><span class="p">,</span> <span class="n">var</span></div>
 
@@ -1338,7 +1352,7 @@
 <span class="sd">    Therefore, this class holds 6 instances of `GGGCorrelation`, which in turn hold the</span>
 <span class="sd">    information about triangles in each of the relevant configurations.  We name these:</span>
 
-<span class="sd">    Attribute:</span>
+<span class="sd">    Attributes:</span>
 <span class="sd">        g1g2g3:     Triangles where G1 is opposite d1, G2 is opposite d2, G3 is opposite d3.</span>
 <span class="sd">        g1g3g2:     Triangles where G1 is opposite d1, G3 is opposite d2, G2 is opposite d3.</span>
 <span class="sd">        g2g1g3:     Triangles where G2 is opposite d1, G1 is opposite d2, G3 is opposite d3.</span>

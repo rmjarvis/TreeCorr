@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Three-point Correlation Functions &mdash; TreeCorr 4.2.3 documentation</title>
+  <title>Three-point Correlation Functions &mdash; TreeCorr 4.2.5 documentation</title>
   
 
   
@@ -111,6 +111,7 @@
 <li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-2-1-to-4-2-2">Changes from version 4.2.1 to 4.2.2</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-2-2-to-4-2-3">Changes from version 4.2.2 to 4.2.3</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-2-3-to-4-2-4">Changes from version 4.2.3 to 4.2.4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-2-4-to-4-2-5">Changes from version 4.2.4 to 4.2.5</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -205,7 +206,7 @@ different types (such as NNG or KGG, etc.)</p>
 features in common about how they are constructed.  The common features are documented here.</p>
 <dl class="py class">
 <dt id="treecorr.BinnedCorr3">
-<em class="property">class </em><code class="sig-prename descclassname">treecorr.</code><code class="sig-name descname">BinnedCorr3</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">rng</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr3.html#BinnedCorr3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr3" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">treecorr.</span></code><code class="sig-name descname"><span class="pre">BinnedCorr3</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr3.html#BinnedCorr3"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.BinnedCorr3" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class stores the results of a 3-point correlation calculation, along with some
 ancillary data.</p>
 <p>This is a base class that is not intended to be constructed directly.  But it has a few
@@ -395,13 +396,13 @@ the constructor in the config dict.)</p>
 </dl>
 <dl class="py method">
 <dt id="treecorr.BinnedCorr3.clear">
-<code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr3.html#BinnedCorr3.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr3.clear" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">clear</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr3.html#BinnedCorr3.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.BinnedCorr3.clear" title="Permalink to this definition">¶</a></dt>
 <dd><p>Clear all data vectors, the results dict, and any related values.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="treecorr.BinnedCorr3.estimate_cov">
-<code class="sig-name descname">estimate_cov</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">method</span></em>, <em class="sig-param"><span class="n">func</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr3.html#BinnedCorr3.estimate_cov"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr3.estimate_cov" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">estimate_cov</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr3.html#BinnedCorr3.estimate_cov"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.BinnedCorr3.estimate_cov" title="Permalink to this definition">¶</a></dt>
 <dd><p>Estimate the covariance matrix based on the data</p>
 <p>This function will calculate an estimate of the covariance matrix according to the
 given method.</p>
@@ -473,7 +474,7 @@ returns the desired data vector. [default: None, which is</p></li>
 
 <dl class="py method">
 <dt id="treecorr.BinnedCorr3.getStat">
-<code class="sig-name descname">getStat</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr3.html#BinnedCorr3.getStat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr3.getStat" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">getStat</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr3.html#BinnedCorr3.getStat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.BinnedCorr3.getStat" title="Permalink to this definition">¶</a></dt>
 <dd><p>The standard statistic for the current correlation object as a 1-d array.</p>
 <p>Usually, this is just self.zeta.  But if the metric is TwoD, this becomes
 self.zeta.ravel().</p>
@@ -483,7 +484,7 @@ self.zeta.ravel().</p>
 
 <dl class="py method">
 <dt id="treecorr.BinnedCorr3.getWeight">
-<code class="sig-name descname">getWeight</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr3.html#BinnedCorr3.getWeight"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#treecorr.BinnedCorr3.getWeight" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">getWeight</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr3.html#BinnedCorr3.getWeight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.BinnedCorr3.getWeight" title="Permalink to this definition">¶</a></dt>
 <dd><p>The weight array for the current correlation object as a 1-d array.</p>
 <p>This is the weight array corresponding to <a class="reference internal" href="#treecorr.BinnedCorr3.getStat" title="treecorr.BinnedCorr3.getStat"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getStat</span></code></a>. Usually just self.weight, but
 raveled for TwoD and duplicated for GGGCorrelation to match what <a class="reference internal" href="#treecorr.BinnedCorr3.getStat" title="treecorr.BinnedCorr3.getStat"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getStat</span></code></a> does in
@@ -492,7 +493,7 @@ those cases.</p>
 
 <dl class="py method">
 <dt id="treecorr.BinnedCorr3.nonzero">
-<em class="property">property </em><code class="sig-name descname">nonzero</code><a class="headerlink" href="#treecorr.BinnedCorr3.nonzero" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">nonzero</span></code><a class="headerlink" href="#treecorr.BinnedCorr3.nonzero" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return if there are any values accumulated yet.  (i.e. ntri &gt; 0)</p>
 </dd></dl>
 

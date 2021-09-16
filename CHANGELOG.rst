@@ -88,12 +88,14 @@ Bug fixes
 Changes from version 4.2.0 to 4.2.1
 ===================================
 
-- Fixed a bug when running NN correlations with MPI (#127)
+- Fixed a bug when running NN correlations with MPI.  Thanks to Joe Zuntz for
+  the bug report. (#127)
 
 Changes from version 4.2.1 to 4.2.2
 ===================================
 
-- Fixed a build problem with gcc versions 10 and 11.
+- Fixed a build problem with gcc versions 10 and 11.  Thanks to Johannes Lange
+  for reporting the problem.
 
 Changes from version 4.2.2 to 4.2.3
 ===================================
@@ -106,3 +108,9 @@ Changes from version 4.2.3 to 4.2.4
 
 - Fixed a bug when running the Rlens metric with patches. Thanks to Marina Ricci
   for the bug report. (#131)
+
+Changes from version 4.2.4 to 4.2.5
+===================================
+
+- Fixed bugs in the shot noise variance estimate for GGG and the propagation of
+  the error to Map3.  Thanks to Lucas Secco for the bug report. (#133)

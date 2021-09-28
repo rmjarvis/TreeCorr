@@ -1353,6 +1353,65 @@ def test_varxi():
     np.testing.assert_allclose(gg.varxip, var_xip, rtol=0.2)
     np.testing.assert_allclose(gg.varxim, var_xim, rtol=0.2)
 
+@timer
+def test_double():
+    # Test in response to issue #134.  Check that duplicating all the lenses gives the same answer.
+
+    gamma0 = 0.05
+    r0 = 20.
+    ngal = 10000
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(0,r0, (ngal,) )
+    y = rng.normal(0,r0, (ngal,) )
+    z = rng.normal(0,r0, (ngal,) ) + 200
+    r2 = (x**2 + y**2)/r0**2
+    print('min/max r2 = ',np.min(r2),np.max(r2))
+    g1 = -gamma0 * np.exp(-r2/2.) * (x**2-y**2)/r0**2
+    g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
+    print('max g = ',np.max(g1**2+g2**2)**0.5)
+    w = rng.random_sample(ngal) * 10
+    #w = np.ones_like(x)
+    ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
+
+    print('Normal case (all lenses different)')
+    cat = treecorr.Catalog(ra=ra, dec=dec, g1=g1, g2=g2, w=w, ra_units='rad', dec_units='rad')
+    gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=80., max_sep=100., sep_units='arcmin',
+                                verbose=1)
+    gg.process(cat)
+
+    print('xip = ',gg.xip)
+    print('npairs = ',gg.npairs)
+    print('weight = ',gg.weight)
+    #print('xip_im = ',gg.xip_im)
+    #print('xim = ',gg.xim)
+    #print('xim_im = ',gg.xim_im)
+
+    print('Duplicated galaxies')
+    ra_2 = np.concatenate([ra,ra])
+    dec_2 = np.concatenate([dec,dec])
+    g1_2 = np.concatenate([g1,g1])
+    g2_2 = np.concatenate([g2,g2])
+    w_2 = np.concatenate([w,w])
+    cat_2 = treecorr.Catalog(ra=ra_2, dec=dec_2, g1=g1_2, g2=g2_2, w=w_2, ra_units='rad', dec_units='rad')
+    gg_2 = treecorr.GGCorrelation(bin_size=0.1, min_sep=80., max_sep=100., sep_units='arcmin',
+                                  verbose=1)
+    gg_2.process(cat_2)
+
+    print('xip = ',gg_2.xip)
+    print('npairs = ',gg_2.npairs)
+    print('weight/4 = ',gg_2.weight/4)
+    #print('xip_im = ',gg_2.xip_im)
+    #print('xim = ',gg_2.xim)
+    #print('xim_im = ',gg_2.xim_im)
+    print('max diff xip = ',np.max(np.abs(gg_2.xip-gg.xip)))
+    print('max diff xip_im = ',np.max(np.abs(gg_2.xip_im-gg.xip_im)))
+    print('max diff xim = ',np.max(np.abs(gg_2.xim-gg.xim)))
+    print('max diff xim_im = ',np.max(np.abs(gg_2.xim_im-gg.xim_im)))
+    np.testing.assert_allclose(gg_2.xip, gg.xip, rtol=1.e-7)
+    np.testing.assert_allclose(gg_2.xip_im, gg.xip_im, rtol=1.e-7)
+    np.testing.assert_allclose(gg_2.xim, gg.xim, rtol=1.e-7)
+    np.testing.assert_allclose(gg_2.xim_im, gg.xim_im, rtol=1.e-7)
+
 
 if __name__ == '__main__':
     test_direct()
@@ -1364,4 +1423,5 @@ if __name__ == '__main__':
     test_aardvark()
     test_shuffle()
     test_haloellip()
-    test_varxi
+    test_varxi()
+    test_double()

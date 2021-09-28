@@ -1378,6 +1378,62 @@ def test_varxi():
     np.testing.assert_allclose(varxi, var_xi_2, rtol=0.5)
 
 
+@timer
+def test_double():
+    # Test in response to issue #134.  That was about GG correlations, but the same bug could
+    # sho up here, so check that duplicating all the lenses gives the same answer.
+    # Use same signal as in test_ng.
+
+    nlens = 1000
+    nsource = 100000
+    gamma0 = 0.05
+    r0 = 10.
+    L = 50. * r0
+    rng = np.random.RandomState(8675309)
+    xl1 = (rng.random_sample(nlens)-0.5) * L
+    yl1 = (rng.random_sample(nlens)-0.5) * L
+    xs = (rng.random_sample(nsource)-0.5) * L
+    ys = (rng.random_sample(nsource)-0.5) * L
+    g1 = np.zeros( (nsource,) )
+    g2 = np.zeros( (nsource,) )
+    for x,y in zip(xl1,yl1):
+        dx = xs-x
+        dy = ys-y
+        r2 = dx**2 + dy**2
+        gammat = gamma0 * np.exp(-0.5*r2/r0**2)
+        g1 += -gammat * (dx**2-dy**2)/r2
+        g2 += -gammat * (2.*dx*dy)/r2
+
+    # Double the lenses
+    xl2 = np.concatenate([xl1,xl1])
+    yl2 = np.concatenate([yl1,yl1])
+
+    lens_cat1 = treecorr.Catalog(ra=xl1, dec=yl1, ra_units='arcmin', dec_units='arcmin')
+    lens_cat2 = treecorr.Catalog(ra=xl2, dec=yl2, ra_units='arcmin', dec_units='arcmin')
+    source_cat = treecorr.Catalog(ra=xs, dec=ys, g1=g1, g2=g2, ra_units='arcmin', dec_units='arcmin')
+    ng1 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
+                                 verbose=1)
+    ng2 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
+                                 verbose=1)
+
+    print('Normal case (all lenses different)')
+    ng1.process(lens_cat1, source_cat)
+    print('ng.xi = ',ng1.xi)
+    print('ng.xi_im = ',ng1.xi_im)
+
+    print('Duplicated lenses')
+    ng2.process(lens_cat2, source_cat)
+    print('ng.xi = ',ng2.xi)
+    print('ng.xi_im = ',ng2.xi_im)
+
+    print('Difference')
+    print('delta ng.xi = ',ng2.xi-ng1.xi)
+    print('delta ng.xi_im = ',ng2.xi_im-ng1.xi_im)
+    print('max diff = ',max(abs(ng2.xi - ng1.xi)))
+    np.testing.assert_allclose(ng2.xi, ng1.xi, rtol=1.e-3)
+    np.testing.assert_allclose(ng2.xi_im, ng1.xi_im, rtol=1.e-3, atol=1.e-6)
+
+
 if __name__ == '__main__':
     test_direct()
     test_direct_spherical()
@@ -1390,3 +1446,4 @@ if __name__ == '__main__':
     test_pieces()
     test_haloellip()
     test_varxi()
+    test_double()

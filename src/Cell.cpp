@@ -108,7 +108,7 @@ double Cell<D,C>::calculateInertia() const
             double w = leaves[k]->getW();
             inertia2 += w * (p-cen).normSq();
         }
-        if (abs(inertia2 - inertia) > 1.e-8 * inertia) {
+        if (std::abs(inertia2 - inertia) > 1.e-8 * inertia) {
             dbg<<"Cell = "<<*this<<std::endl;
             dbg<<"cen = "<<cen<<std::endl;
             dbg<<"w = "<<getW()<<std::endl;
@@ -223,7 +223,7 @@ std::complex<double> ParallelTransportShift(
         double normBsq = sinB*sinB + cosB*cosB;
         xxdbg<<"A = atan("<<sinA<<"/"<<cosA<<") = "<<atan2(sinA,cosA)*180./M_PI<<std::endl;
         xxdbg<<"B = atan("<<sinB<<"/"<<cosB<<") = "<<atan2(sinB,cosB)*180./M_PI<<std::endl;
-        if (normAsq == 0. || normBsq == 0.) {
+        if (normAsq < 1.e-12 && normBsq < 1.e-12) {
             // Then this point is at the center, no need to project.
             dwg += vdata[i].first->getWG();
         } else {

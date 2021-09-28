@@ -114,3 +114,10 @@ Changes from version 4.2.4 to 4.2.5
 
 - Fixed bugs in the shot noise variance estimate for GGG and the propagation of
   the error to Map3.  Thanks to Lucas Secco for the bug report. (#133)
+
+Changes from version 4.2.5 to 4.2.6
+===================================
+
+- Fixed a numerical bug that could suppress the signal in GG correlations in
+  spherical coordinates if there are multiple objects at the same position.
+  Thanks to Sandra Unruh for the bug report. (#134)

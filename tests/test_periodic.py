@@ -310,7 +310,7 @@ def test_halotools():
 
     # TreeCorr is only a little faster than halotools for this, which makes sense, since
     # this is the exact calculation (bin_slop=0).  But with just a little slop, we get
-    # almost the same result bute faster.  This matters even more for larger N.
+    # almost the same result but faster.  This matters even more for larger N.
     corr = treecorr.NNCorrelation(min_sep=rbins[0], max_sep=rbins[-1], nbins=len(rbins)-1,
                                   period=Lbox, bin_slop=0.2)
     t4 = time.time()

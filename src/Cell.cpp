@@ -201,6 +201,7 @@ std::complex<double> ParallelTransportShift(
     // to account for the different coordinate systems for each measurement.
     xdbg<<"Finish Averages for Center = "<<center<<std::endl;
     std::complex<double> dwg=0.;
+    Position<Sphere> cen(center);
     for(size_t i=start;i<end;++i) {
         xxdbg<<"Project shear "<<(vdata[i].first->getWG()/vdata[i].first->getW())<<
             " at point "<<vdata[i].first->getPos()<<std::endl;
@@ -208,17 +209,14 @@ std::complex<double> ParallelTransportShift(
         // The difference is that here, we just rotate the single shear by
         // (Pi-A-B).  See the comments in ProjectShear2 for understanding
         // the initial bit where we calculate A,B.
-        double x1 = center.getX();
-        double y1 = center.getY();
+        Position<Sphere> pi(vdata[i].first->getPos());
         double z1 = center.getZ();
-        double x2 = vdata[i].first->getPos().getX();
-        double y2 = vdata[i].first->getPos().getY();
-        double z2 = vdata[i].first->getPos().getZ();
-        double temp = x1*x2+y1*y2;
-        double cosA = z1*(1.-z2*z2) - z2*temp;
-        double sinA = y1*x2 - x1*y2;
+        double z2 = pi.getZ();
+        double dsq = (cen - pi).normSq();
+        double cosA = (z1 - z2) + 0.5 * z2 * dsq;
+        double sinA = cen.getY()*pi.getX() - cen.getX()*pi.getY();
         double normAsq = sinA*sinA + cosA*cosA;
-        double cosB = z2*(1.-z1*z1) - z1*temp;
+        double cosB = (z2 - z1) + 0.5 * z1 * dsq;
         double sinB = sinA;
         double normBsq = sinB*sinB + cosB*cosB;
         xxdbg<<"A = atan("<<sinA<<"/"<<cosA<<") = "<<atan2(sinA,cosA)*180./M_PI<<std::endl;

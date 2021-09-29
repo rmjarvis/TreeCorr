@@ -731,13 +731,14 @@ def test_ng_rperp():
 
     true_npairs = [  2193.,   4940.,  10792.,  21846.,  39847.,  53867.,  80555.,
                     105466., 126601.,  80360.]
-    true_xi = [-0.00630174, -0.00049443,  0.00213589, -0.00138997, -0.00106433,
-                0.00246789,  0.00806851,  0.00505585,  0.00719003, -0.00491967]
+    true_xi = [-0.00630175, -0.00049455,  0.00213420, -0.00139003, -0.00105835,
+                0.00244591,  0.00793428,  0.00490051,  0.00703402, -0.00490846]
 
     np.testing.assert_allclose(ng.npairs, true_npairs, rtol=1.e-3)
     # Note: the atol=1.e-4 is only required for a few machines, including Travis and nersc.
     # Other machines match more closely.  Might be worth investigating at some point why this
     # has some platform dependence.
+    # TODO: Check this.  I improved the internal calculation here. This might be more stable now.
     np.testing.assert_allclose(ng.xi, true_xi, rtol=1.e-3, atol=1.e-4)
 
     # Rperp doesn't get exactly the same values, but it's similar.
@@ -749,8 +750,8 @@ def test_ng_rperp():
 
     true_npairs = [  2191.,   4941.,  10820.,  21857.,  39881.,  53873.,  80599.,
                    105355., 126529.,  79872.]
-    true_xi = [-0.0066858, -0.0000599,  0.00175524, -0.00135803, -0.00126972,
-                0.0024636,  0.00787932,  0.00486865, 0.00722583, -0.00532089]
+    true_xi = [-0.0066858, -0.0000600,  0.00175516, -0.00135798, -0.00126890,
+                0.0024375,  0.00774523,  0.00471305, 0.00707688, -0.00530969]
 
     np.testing.assert_allclose(ng.npairs, true_npairs, rtol=1.e-3)
     np.testing.assert_allclose(ng.xi, true_xi, rtol=1.e-3)

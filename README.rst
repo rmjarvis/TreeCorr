@@ -107,7 +107,7 @@ that is also relatively straightforward:
 ^^^^^^^^^^^^^^^^^^^^^^^
 
    All required dependencies should be installed automatically for you by
-   setup.py or conda, so you should not need to worry about these.  But if you
+   pip or conda, so you should not need to worry about these.  But if you
    are interested, the dependencies are:
 
     - numpy
@@ -155,15 +155,15 @@ that is also relatively straightforward:
 3. Install
 ^^^^^^^^^^
 
-   You can then install TreeCorr in the normal way with setup.py.  Typically this would be the
+   You can then install TreeCorr from the local distribution.  Typically this would be the
    command::
 
-        python setup.py install
+        pip install .
 
    If you don't have write permission in your python distribution, you might need
    to use::
 
-        python setup.py install --user
+        pip install . --user
 
    In addition to installing the Python module ``treecorr``, this will install
    the executables ``corr2`` and ``corr3`` in a ``bin`` folder somewhere on your
@@ -184,7 +184,7 @@ that is also relatively straightforward:
 
         pip install -r test_requirements.txt
         cd tests
-        nosetests
+        pytest
 
 
 Two-point Correlations

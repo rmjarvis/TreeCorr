@@ -1456,6 +1456,12 @@ def test_contiguous():
     # input works correctly.  It also checks that the input dtype doesn't have
     # to be float
 
+    try:
+        # This doesn't exist on all systems.
+        float128 = np.float128
+    except AttributeError:
+        float128 = float
+
     source_data = np.array([
             (0.0380569697547, 0.0142782758818, 0.330845443464, -0.111049332655),
             (-0.0261291090735, 0.0863787933931, 0.122954685209, 0.40260430406),
@@ -1464,7 +1470,7 @@ def test_contiguous():
             (0.0457709426026, -0.0299249486373, -0.0406555089425, 0.24515956887),
             (-0.00338578248926, 0.0460291122935, 0.363057738173, -0.524536297555)],
             dtype=[('ra', None), ('dec', np.float64), ('g1', np.float32),
-                   ('g2', np.float128)])
+                   ('g2', float128)])
 
     config = {'min_sep': 0.05, 'max_sep': 0.2, 'sep_units': 'degrees', 'nbins': 5 }
 

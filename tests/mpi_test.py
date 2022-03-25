@@ -195,6 +195,84 @@ def do_mpi_kg(comm, output=True):
 def do_mpi_kk(comm, output=True):
     do_mpi_corr(comm, treecorr.KKCorrelation, True, ['xi', 'npairs'], output)
 
+
+def do_mpi_cov(comm):
+    os.environ['TREECORR_MOCK_MPI_MODE'] = "1"
+    from test_patch import generate_shear_field
+    nside = 200
+    npatch = 16
+    tol_factor = 8
+
+    # Generate a random catalog to use. Because all the processes
+    # have the same random seed they will get the same catalogs,
+    # so everything should work.
+    rng = np.random.RandomState(1234)
+    x, y, g1, g2, _ = generate_shear_field(nside, rng)
+    cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, npatch=npatch)
+    xr, yr, _, _, _ = generate_shear_field(nside, rng)
+    ran_cat = treecorr.Catalog(x=x, y=y, npatch=npatch)
+
+    # Generate the three sets of correlations we will use
+    gg = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    nn = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    rr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    gg.process(cat, comm=comm)
+    ng.process(cat, cat, comm=comm)
+    nn.process(cat, comm=comm)
+    rr.process(ran_cat, comm=comm)
+
+    # Only the root process gets the complete version
+    # when you call the above with comm
+    gg = comm.bcast(gg)
+    ng = comm.bcast(ng)
+    nn = comm.bcast(nn)
+    rr = comm.bcast(rr)
+
+
+    ng.calculateXi()
+    nn.calculateXi(rr=rr)
+
+
+    corrs = [gg, ng, nn]
+
+    # Get the baseline single process covariance
+    if comm.rank == 0:
+        cov1 = treecorr.estimate_multi_cov(corrs, 'jackknife')
+    else:
+        cov1 = None
+    cov1 = comm.bcast(cov1)
+
+    print("\nCOV 1 \n", cov1[0:3,0:3], " for ", comm.rank)
+
+    gg = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    nn = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    rr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    gg.process(cat, comm=comm)
+    ng.process(cat, cat, comm=comm)
+    nn.process(cat, comm=comm)
+    rr.process(ran_cat, comm=comm)
+    # Only the root process gets the complete version
+    # when you call the above with comm
+    gg = comm.bcast(gg)
+    ng = comm.bcast(ng)
+    nn = comm.bcast(nn)
+    rr = comm.bcast(rr)
+
+    ng.calculateXi()
+    nn.calculateXi(rr=rr)
+    corrs = [gg, ng, nn]
+
+    # Compare to the SMP covariance
+    cov2 = treecorr.estimate_multi_cov(corrs, 'jackknife', comm=comm)
+    print("\nCOV 2\n", cov2[0:3,0:3], " for ", comm.rank, "\n")
+
+    np.testing.assert_allclose(cov1, cov2)
+
+
+
+
 if __name__ == '__main__':
     from mpi4py import MPI
     from mpi_helper import NiceComm
@@ -209,3 +287,4 @@ if __name__ == '__main__':
     do_mpi_nn(comm)
     do_mpi_kg(comm)
     do_mpi_kk(comm)
+    do_mpi_cov(comm)

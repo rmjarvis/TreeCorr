@@ -1,72 +1,32 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>treecorr.binnedcorr2 &mdash; TreeCorr 4.2.6 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+  <title>treecorr.binnedcorr2 &mdash; TreeCorr 4.2.7 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+  <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="../../_static/js/theme.js"></script>
-
-    
+    <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../../index.html" class="icon icon-home"> TreeCorr
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
                 4.2
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -74,18 +34,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../catalog.html">Input Data</a></li>
@@ -105,72 +54,34 @@
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-3-to-4-2-4">Changes from version 4.2.3 to 4.2.4</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-4-to-4-2-5">Changes from version 4.2.4 to 4.2.5</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-5-to-4-2-6">Changes from version 4.2.5 to 4.2.6</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-6-to-4-2-7">Changes from version 4.2.6 to 4.2.7</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../index.html">TreeCorr</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-        
           <li><a href="../index.html">Module code</a> &raquo;</li>
-        
       <li>treecorr.binnedcorr2</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   <h1>Source code for treecorr.binnedcorr2</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (c) 2003-2019 by Mike Jarvis</span>
 <span class="c1">#</span>
@@ -193,6 +104,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">coord</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_lib</span>
 <span class="kn">from</span> <span class="nn">.config</span> <span class="kn">import</span> <span class="n">merge_config</span><span class="p">,</span> <span class="n">setup_logger</span><span class="p">,</span> <span class="n">get</span>
@@ -1253,29 +1165,59 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_sum</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="n">ij</span><span class="p">]</span> <span class="k">for</span> <span class="n">ij</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_finalize</span><span class="p">()</span>
 
+    <span class="c1">#########################################################################################</span>
+    <span class="c1">#                                                                                       #</span>
+    <span class="c1"># Important note for the following two functions.                                       #</span>
+    <span class="c1"># These use to have lines like this:    `                                               #</span>
+    <span class="c1">#                                                                                       #</span>
+    <span class="c1">#     return [ [(j,k) for j,k in self.results.keys() if j!=i and k!=i]                  #</span>
+    <span class="c1">#               for i in range(self.npatch1) ]                                          #</span>
+    <span class="c1">#                                                                                       #</span>
+    <span class="c1"># This double list comprehension ends up with a list of lists that takes O(npatch^3)    #</span>
+    <span class="c1"># memory, which for moderately large npatch values (say 500) can be multip[le GBytes.   #</span>
+    <span class="c1">#                                                                                       #</span>
+    <span class="c1"># The straightforward solution was to change this to using generators:                  #</span>
+    <span class="c1">#                                                                                       #</span>
+    <span class="c1">#     return [ ((j,k) for j,k in self.results.keys() if j!=i and k!=i)                  #</span>
+    <span class="c1">#               for i in range(self.npatch1) ]                                          #</span>
+    <span class="c1">#                                                                                       #</span>
+    <span class="c1"># But this doesn&#39;t work because of what I consider a bug in the python language.        #</span>
+    <span class="c1"># Discussed here: https://bugs.python.org/issue7423                                     #</span>
+    <span class="c1">#                                                                                       #</span>
+    <span class="c1"># But Guido disagrees, so we&#39;re stuck with the following syntax instead:                #</span>
+    <span class="c1">#                                                                                       #</span>
+    <span class="c1">#     f = lambda i: ((j,k) for j,k in self.results.keys() if j!=i and k!=i)             #</span>
+    <span class="c1">#     return [ f(i) for i in range(self.npatch1) ]                                      #</span>
+    <span class="c1">#                                                                                       #</span>
+    <span class="c1"># which by all rights should be equivalent, but this one does the binding correctly.    #</span>
+    <span class="c1">#                                                                                       #</span>
+    <span class="c1">#########################################################################################</span>
+
     <span class="k">def</span> <span class="nf">_jackknife_pairs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="c1"># k=0 here.</span>
-            <span class="k">return</span> <span class="p">[</span> <span class="p">[(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">j</span><span class="o">!=</span><span class="n">i</span><span class="p">]</span>
-                     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span><span class="p">)</span> <span class="p">]</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="p">((</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">j</span><span class="o">!=</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">f</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span><span class="p">)]</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="c1"># j=0 here.</span>
-            <span class="k">return</span> <span class="p">[</span> <span class="p">[(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="o">!=</span><span class="n">i</span><span class="p">]</span>
-                     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span><span class="p">)</span> <span class="p">]</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="p">((</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="o">!=</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">f</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span><span class="p">)]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch2</span>
             <span class="c1"># For each i:</span>
             <span class="c1">#    Select all pairs where neither is i.</span>
-            <span class="k">return</span> <span class="p">[</span> <span class="p">[(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">j</span><span class="o">!=</span><span class="n">i</span> <span class="ow">and</span> <span class="n">k</span><span class="o">!=</span><span class="n">i</span><span class="p">]</span>
-                     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span><span class="p">)</span> <span class="p">]</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="p">((</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">j</span><span class="o">!=</span><span class="n">i</span> <span class="ow">and</span> <span class="n">k</span><span class="o">!=</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">f</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span><span class="p">)]</span>
 
     <span class="k">def</span> <span class="nf">_sample_pairs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="c1"># k=0 here.</span>
-            <span class="k">return</span> <span class="p">[</span> <span class="p">[(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">j</span><span class="o">==</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span><span class="p">)</span> <span class="p">]</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="p">((</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">j</span><span class="o">==</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">f</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span><span class="p">)]</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="c1"># j=0 here.</span>
-            <span class="k">return</span> <span class="p">[</span> <span class="p">[(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="o">==</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span><span class="p">)</span> <span class="p">]</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="p">((</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="o">==</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">f</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span><span class="p">)]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch2</span>
             <span class="c1"># Note: It&#39;s not obvious to me a priori which of these should be the right choice.</span>
@@ -1288,7 +1230,8 @@
             <span class="c1">#           for i in range(self.npatch1) ]</span>
             <span class="c1"># For each i:</span>
             <span class="c1">#    Select all pairs where first is i.</span>
-            <span class="k">return</span> <span class="p">[</span> <span class="p">[(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">j</span><span class="o">==</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span><span class="p">)</span> <span class="p">]</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="p">((</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">j</span><span class="o">==</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">f</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span><span class="p">)]</span>
 
     <span class="nd">@lazy_property</span>
     <span class="k">def</span> <span class="nf">_ok</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1299,19 +1242,19 @@
 
     <span class="k">def</span> <span class="nf">_marked_pairs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indx</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">[</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indx</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ok</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="p">]</span>
+            <span class="k">return</span> <span class="p">(</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indx</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ok</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">[</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indx</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ok</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="p">]</span>
+            <span class="k">return</span> <span class="p">(</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indx</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ok</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch2</span>
             <span class="c1"># Select all pairs where first point is in indx (repeating i as appropriate)</span>
-            <span class="k">return</span> <span class="p">[</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indx</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npatch2</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ok</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="p">]</span>
+            <span class="k">return</span> <span class="p">(</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indx</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npatch2</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ok</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_bootstrap_pairs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indx</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">[</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indx</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ok</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="p">]</span>
+            <span class="k">return</span> <span class="p">(</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indx</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ok</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">[</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indx</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ok</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="p">]</span>
+            <span class="k">return</span> <span class="p">(</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indx</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ok</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch2</span>
             <span class="c1"># Include all represented auto-correlations once, repeating as appropriate.</span>
@@ -1319,14 +1262,15 @@
             <span class="c1"># that you would get by looping i in indx and j in indx for cases where i=j at</span>
             <span class="c1"># different places in the indx list.  E.g. if i=3 shows up 3 times in indx, then</span>
             <span class="c1"># the naive way would get 9 instance of (3,3), whereas we only want 3 instances.</span>
-            <span class="n">ret</span> <span class="o">=</span> <span class="p">[</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indx</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ok</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="p">]</span>
+            <span class="n">ret1</span> <span class="o">=</span> <span class="p">(</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indx</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ok</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="p">)</span>
 
             <span class="c1"># And all other pairs that aren&#39;t really auto-correlations.</span>
             <span class="c1"># These can happen at their natural multiplicity from i and j loops.</span>
             <span class="c1"># Note: This is way faster with the precomputed ok matrix.</span>
             <span class="c1"># Like 0.005 seconds per call rather than 1.2 seconds for 128 patches!</span>
-            <span class="n">ret</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indx</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">indx</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ok</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="ow">and</span> <span class="n">i</span><span class="o">!=</span><span class="n">j</span> <span class="p">])</span>
-            <span class="k">return</span> <span class="n">ret</span></div>
+            <span class="n">ret2</span> <span class="o">=</span> <span class="p">(</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indx</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">indx</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ok</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="ow">and</span> <span class="n">i</span><span class="o">!=</span><span class="n">j</span> <span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">ret1</span><span class="p">,</span> <span class="n">ret2</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="estimate_multi_cov"><a class="viewcode-back" href="../../correlation2.html#treecorr.estimate_multi_cov">[docs]</a><span class="k">def</span> <span class="nf">estimate_multi_cov</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -1442,6 +1386,7 @@
 
     <span class="k">for</span> <span class="n">row</span><span class="p">,</span> <span class="n">pairs</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">plist</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">cpairs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">pairs</span><span class="p">):</span>
+            <span class="n">cpairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cpairs</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cpairs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="c1"># This will cause problems downstream if we let it go.</span>
                 <span class="c1"># It probably indicates user error, using an inappropriate covariance estimator.</span>
@@ -1598,46 +1543,30 @@
 </pre></div>
 
            </div>
-           
           </div>
           <footer>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2019, Mike Jarvis.
-
-    </p>
+    <p>&#169; Copyright 2019, Mike Jarvis.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

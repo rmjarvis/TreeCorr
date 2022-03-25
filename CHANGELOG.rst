@@ -121,3 +121,10 @@ Changes from version 4.2.5 to 4.2.6
 - Fixed a numerical bug that could suppress the signal in GG correlations in
   spherical coordinates if there are multiple objects at the same position.
   Thanks to Sandra Unruh for the bug report. (#134)
+
+Changes from version 4.2.6 to 4.2.7
+===================================
+
+- Fixed a memory problem when computing patch-based covariance matrix when npatches
+  is moderately large (e.g. 500). Thanks to Joe Zuntz and Judit Prat for finding and
+  reporting the bug. (#137)

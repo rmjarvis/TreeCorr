@@ -126,13 +126,13 @@ def test_twod():
 
     print('max abs diff = ',np.max(np.abs(kk.xi - xi_brut)))
     print('max rel diff = ',np.max(np.abs(kk.xi - xi_brut)/np.abs(kk.xi)))
-    np.testing.assert_allclose(kk.xi, xi_brut, atol=1.e-7)
+    np.testing.assert_allclose(kk.xi, xi_brut, atol=2.e-7)
 
     # Auto-correlation should do the same thing.
     kk.process(cat1)
     print('max abs diff = ',np.max(np.abs(kk.xi - xi_brut)))
     print('max rel diff = ',np.max(np.abs(kk.xi - xi_brut)/np.abs(kk.xi)))
-    np.testing.assert_allclose(kk.xi, xi_brut, atol=1.e-7)
+    np.testing.assert_allclose(kk.xi, xi_brut, atol=2.e-7)
 
     # Repeat with weights.
     xi_brut = corr2d(x, y, kappa, kappa, w=1./kappa_err**2, rmax=max_sep, bins=nbins)

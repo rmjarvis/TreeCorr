@@ -2866,6 +2866,80 @@ def test_empty_patches():
     cov2m = ng2.estimate_cov('marked_bootstrap')
     cov2b = ng2.estimate_cov('bootstrap')
 
+@timer
+def test_huge_npatch():
+    # Test with npatch = 1000, which used to require >56GB of memory (~56B * npatch^3) when
+    # making the list of patch pairs.  Especially bad for NN, where all patch combos are needed
+    # to get ntot right.
+    # Now this should only require ~56MB for that step, which is much more reasonable.
+
+    if __name__ == '__main__':
+        ngal = 200000
+        npatch = 1000
+    else:
+        ngal = 2000
+        # 50 isn't actually enough to trigger the old memory problem, but no need for
+        # that on a regular test run.
+        npatch = 50
+
+    rng = np.random.RandomState(1234)
+
+    # First without patches:
+    x = rng.uniform(0,100, ngal)
+    y = rng.uniform(0,100, ngal)
+    k = rng.normal(1,0.1, (ngal,) )
+    cat = treecorr.Catalog(x=x, y=y, k=k)
+    kk1 = treecorr.KKCorrelation(bin_size=0.3, min_sep=1., max_sep=100., bin_slop=0.1)
+    t0 = time.time()
+    kk1.process(cat)
+    t1 = time.time()
+    print('Time for non-patch processing = ',t1-t0)
+
+    # Now run with patches:
+    catp = treecorr.Catalog(x=x, y=y, k=k, npatch=npatch)
+    print('Patch\tNlens')
+    for i in range(npatch):
+        print('%d\t%d'%(i,np.sum([catp.patch==i])))
+    kk2 = treecorr.KKCorrelation(bin_size=0.3, min_sep=1., max_sep=100., bin_slop=0.1)
+    t0 = time.time()
+    # I'm getting a KMP runtime error when using threads here.  Hence num_threads=1.
+    # I suspect it's because there is so little to do, locks are cycling too fast for the OS
+    # to correctly manage them.
+    kk2.process(catp, num_threads=1)
+    t1 = time.time()
+    print('Time for patch processing = ',t1-t0)
+    print('kk2.weight = ',kk2.weight)
+    print('ratio = ',kk2.weight / kk1.weight)
+    print('kk2.xi = ',kk2.xi)
+    print('ratio = ',kk2.xi / kk1.xi)
+    np.testing.assert_allclose(kk2.weight, kk1.weight, rtol=1.e-2)
+    np.testing.assert_allclose(kk2.xi, kk1.xi, rtol=2.e-2)
+
+    # Check patch-based covariance calculations:
+    t0 = time.time()
+    cov = kk2.estimate_cov('jackknife')
+    t1 = time.time()
+    print('Time to calculate jackknife covariance = ',t1-t0)
+    print('varxi = ',cov.diagonal())
+
+    t0 = time.time()
+    cov = kk2.estimate_cov('sample')
+    t1 = time.time()
+    print('Time to calculate sample covariance = ',t1-t0)
+    print('varxi = ',cov.diagonal())
+
+    t0 = time.time()
+    cov = kk2.estimate_cov('bootstrap')
+    t1 = time.time()
+    print('Time to calculate bootstrap covariance = ',t1-t0)
+    print('varxi = ',cov.diagonal())
+
+    t0 = time.time()
+    cov = kk2.estimate_cov('marked_bootstrap')
+    t1 = time.time()
+    print('Time to calculate marked_bootstrap covariance = ',t1-t0)
+    print('varxi = ',cov.diagonal())
+
 
 if __name__ == '__main__':
     test_cat_patches()

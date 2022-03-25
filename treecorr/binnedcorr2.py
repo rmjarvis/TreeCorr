@@ -19,6 +19,7 @@ import math
 import numpy as np
 import sys
 import coord
+import itertools
 
 from . import _lib
 from .config import merge_config, setup_logger, get
@@ -1089,29 +1090,59 @@ class BinnedCorr2(object):
         self._sum([self.results[ij] for ij in pairs])
         self._finalize()
 
+    #########################################################################################
+    #                                                                                       #
+    # Important note for the following two functions.                                       #
+    # These use to have lines like this:    `                                               #
+    #                                                                                       #
+    #     return [ [(j,k) for j,k in self.results.keys() if j!=i and k!=i]                  #
+    #               for i in range(self.npatch1) ]                                          #
+    #                                                                                       #
+    # This double list comprehension ends up with a list of lists that takes O(npatch^3)    #
+    # memory, which for moderately large npatch values (say 500) can be multip[le GBytes.   #
+    #                                                                                       #
+    # The straightforward solution was to change this to using generators:                  #
+    #                                                                                       #
+    #     return [ ((j,k) for j,k in self.results.keys() if j!=i and k!=i)                  #
+    #               for i in range(self.npatch1) ]                                          #
+    #                                                                                       #
+    # But this doesn't work because of what I consider a bug in the python language.        #
+    # Discussed here: https://bugs.python.org/issue7423                                     #
+    #                                                                                       #
+    # But Guido disagrees, so we're stuck with the following syntax instead:                #
+    #                                                                                       #
+    #     f = lambda i: ((j,k) for j,k in self.results.keys() if j!=i and k!=i)             #
+    #     return [ f(i) for i in range(self.npatch1) ]                                      #
+    #                                                                                       #
+    # which by all rights should be equivalent, but this one does the binding correctly.    #
+    #                                                                                       #
+    #########################################################################################
+
     def _jackknife_pairs(self):
         if self.npatch2 == 1:
             # k=0 here.
-            return [ [(j,k) for j,k in self.results.keys() if j!=i]
-                     for i in range(self.npatch1) ]
+            f = lambda i: ((j,k) for j,k in self.results.keys() if j!=i)
+            return [f(i) for i in range(self.npatch1)]
         elif self.npatch1 == 1:
             # j=0 here.
-            return [ [(j,k) for j,k in self.results.keys() if k!=i]
-                     for i in range(self.npatch1) ]
+            f = lambda i: ((j,k) for j,k in self.results.keys() if k!=i)
+            return [f(i) for i in range(self.npatch1)]
         else:
             assert self.npatch1 == self.npatch2
             # For each i:
             #    Select all pairs where neither is i.
-            return [ [(j,k) for j,k in self.results.keys() if j!=i and k!=i]
-                     for i in range(self.npatch1) ]
+            f = lambda i: ((j,k) for j,k in self.results.keys() if j!=i and k!=i)
+            return [f(i) for i in range(self.npatch1)]
 
     def _sample_pairs(self):
         if self.npatch2 == 1:
             # k=0 here.
-            return [ [(j,k) for j,k in self.results.keys() if j==i] for i in range(self.npatch1) ]
+            f = lambda i: ((j,k) for j,k in self.results.keys() if j==i)
+            return [f(i) for i in range(self.npatch1)]
         elif self.npatch1 == 1:
             # j=0 here.
-            return [ [(j,k) for j,k in self.results.keys() if k==i] for i in range(self.npatch1) ]
+            f = lambda i: ((j,k) for j,k in self.results.keys() if k==i)
+            return [f(i) for i in range(self.npatch1)]
         else:
             assert self.npatch1 == self.npatch2
             # Note: It's not obvious to me a priori which of these should be the right choice.
@@ -1124,7 +1155,8 @@ class BinnedCorr2(object):
             #           for i in range(self.npatch1) ]
             # For each i:
             #    Select all pairs where first is i.
-            return [ [(j,k) for j,k in self.results.keys() if j==i] for i in range(self.npatch1) ]
+            f = lambda i: ((j,k) for j,k in self.results.keys() if j==i)
+            return [f(i) for i in range(self.npatch1)]
 
     @lazy_property
     def _ok(self):
@@ -1135,19 +1167,19 @@ class BinnedCorr2(object):
 
     def _marked_pairs(self, indx):
         if self.npatch2 == 1:
-            return [ (i,0) for i in indx if self._ok[i,0] ]
+            return ( (i,0) for i in indx if self._ok[i,0] )
         elif self.npatch1 == 1:
-            return [ (0,i) for i in indx if self._ok[0,i] ]
+            return ( (0,i) for i in indx if self._ok[0,i] )
         else:
             assert self.npatch1 == self.npatch2
             # Select all pairs where first point is in indx (repeating i as appropriate)
-            return [ (i,j) for i in indx for j in range(self.npatch2) if self._ok[i,j] ]
+            return ( (i,j) for i in indx for j in range(self.npatch2) if self._ok[i,j] )
 
     def _bootstrap_pairs(self, indx):
         if self.npatch2 == 1:
-            return [ (i,0) for i in indx if self._ok[i,0] ]
+            return ( (i,0) for i in indx if self._ok[i,0] )
         elif self.npatch1 == 1:
-            return [ (0,i) for i in indx if self._ok[0,i] ]
+            return ( (0,i) for i in indx if self._ok[0,i] )
         else:
             assert self.npatch1 == self.npatch2
             # Include all represented auto-correlations once, repeating as appropriate.
@@ -1155,14 +1187,15 @@ class BinnedCorr2(object):
             # that you would get by looping i in indx and j in indx for cases where i=j at
             # different places in the indx list.  E.g. if i=3 shows up 3 times in indx, then
             # the naive way would get 9 instance of (3,3), whereas we only want 3 instances.
-            ret = [ (i,i) for i in indx if self._ok[i,i] ]
+            ret1 = ( (i,i) for i in indx if self._ok[i,i] )
 
             # And all other pairs that aren't really auto-correlations.
             # These can happen at their natural multiplicity from i and j loops.
             # Note: This is way faster with the precomputed ok matrix.
             # Like 0.005 seconds per call rather than 1.2 seconds for 128 patches!
-            ret.extend([ (i,j) for i in indx for j in indx if self._ok[i,j] and i!=j ])
-            return ret
+            ret2 = ( (i,j) for i in indx for j in indx if self._ok[i,j] and i!=j )
+
+            return itertools.chain(ret1, ret2)
 
 
 @depr_pos_kwargs
@@ -1279,6 +1312,7 @@ def _make_cov_design_matrix(corrs, plist, func, name):
 
     for row, pairs in enumerate(plist):
         for c, cpairs in zip(corrs, pairs):
+            cpairs = list(cpairs)
             if len(cpairs) == 0:
                 # This will cause problems downstream if we let it go.
                 # It probably indicates user error, using an inappropriate covariance estimator.

@@ -17,7 +17,7 @@ import sys
 from mockmpi import mock_mpiexec
 
 from test_helper import timer
-from mpi_test import setup, do_mpi_gg, do_mpi_ng, do_mpi_nk, do_mpi_nn, do_mpi_kk, do_mpi_kg
+from mpi_test import setup, do_mpi_gg, do_mpi_ng, do_mpi_nk, do_mpi_nn, do_mpi_kk, do_mpi_kg, do_mpi_cov
 
 @timer
 def test_mpi_gg():
@@ -54,6 +54,14 @@ def test_mpi_kk():
     output = __name__ == '__main__'
     mock_mpiexec(4, do_mpi_kk, output)
     mock_mpiexec(1, do_mpi_kk, output)
+
+
+@unittest.skipIf(sys.version_info < (3, 0), "mock_mpiexec doesn't support python 2")
+@timer
+def test_mpi_cov():
+    mock_mpiexec(1, do_mpi_cov)
+    mock_mpiexec(2, do_mpi_cov)
+
 
 if __name__ == '__main__':
     setup()

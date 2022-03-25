@@ -2,28 +2,35 @@ This file just contains some notes to myself about various things.
 
 Checklist for making a new release:
 
+For new major or minor releases:
+
 - Run test suite on as many machines as possible.
-- Make sure debugging output is turned off.
-- Update the version number to the new M.m.r value in _version.py
 - Read over the CHANGELOG.rst file and edit as needed.
 - Update the wiki pages to incorporate any changes as needed.
 - Update any docs that might need updating.
-- git checkout -b releases/M.m  (if necessary)
+- git checkout -b releases/M.m
 - git push -u origin releases/M.m
-- python setup.py install  (make sure this is current)
+
+For all releases:
+
+- Update the version number to the new M.m.r value in _version.py
+- Update CHANGELOG if necessary.
+- pip install .  (make sure this is current)
 - In docs directory, run update_docs
 - Commit new docs in releases/M.m branch as single commit.
-- Cherry-pick docs commit onto main and push there.
-- Now, back on releases/M.m branch...
-- git tag -a vM.m.r -m vM.m.r
-- git push --tags
-- Delete the TreeCorr.egg-info directory (in case has extra files)
-- python setup.py sdist
-- Inspect the dist/TreeCorr-M.m.r.tar.gz tarball to make sure it is accurate.
-- twine upload dist/TreeCorr-M.m.r.tar.gz
-- From another directory try out pip install TreeCorr --upgrade
+- On GitHub page, go to Code - Tags - Releases
+    (https://github.com/rmjarvis/TreeCorr/releases)
+- Draft a new release
+    - Set tag version vM.m.r
+    - Set target releases/M.m
+    - Set title Version M.m.r
+    - For text, link to CHANGELOG and full docs
+    - Publish Release
+- Check the twine upload that it is running.
+- When done, check pip install treecorr locally.
 
-If major release:
+For major or minor releases:
+
 - Back in main, update version number to M.(m+1) (i.e. no .r)
 - Add tagged CHANGELOG blob to the history page in the docs.
 - Clear out CHANGELOG.rst

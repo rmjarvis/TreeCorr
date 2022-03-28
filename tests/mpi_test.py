@@ -196,12 +196,15 @@ def do_mpi_kk(comm, output=True):
     do_mpi_corr(comm, treecorr.KKCorrelation, True, ['xi', 'npairs'], output)
 
 
-def do_mpi_cov(comm):
-    os.environ['TREECORR_MOCK_MPI_MODE'] = "1"
+def do_mpi_cov(comm, method):
     from test_patch import generate_shear_field
     nside = 200
     npatch = 16
-    tol_factor = 8
+
+    if "bootstrap" in method:
+        tol = 1.0e-5
+    else:
+        tol = 1.0e-8
 
     # Generate a random catalog to use. Because all the processes
     # have the same random seed they will get the same catalogs,
@@ -238,7 +241,7 @@ def do_mpi_cov(comm):
 
     # Get the baseline single process covariance
     if comm.rank == 0:
-        cov1 = treecorr.estimate_multi_cov(corrs, 'jackknife')
+        cov1 = treecorr.estimate_multi_cov(corrs, method)
     else:
         cov1 = None
     cov1 = comm.bcast(cov1)
@@ -265,10 +268,10 @@ def do_mpi_cov(comm):
     corrs = [gg, ng, nn]
 
     # Compare to the SMP covariance
-    cov2 = treecorr.estimate_multi_cov(corrs, 'jackknife', comm=comm)
+    cov2 = treecorr.estimate_multi_cov(corrs, method, comm=comm)
     print("\nCOV 2\n", cov2[0:3,0:3], " for ", comm.rank, "\n")
 
-    np.testing.assert_allclose(cov1, cov2)
+    np.testing.assert_allclose(cov1, cov2, atol=tol)
 
 
 

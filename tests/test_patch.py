@@ -2941,11 +2941,14 @@ def test_huge_npatch():
     print('varxi = ',cov.diagonal())
 
 
-@timer
-def test_smp_cov():
+def core_test_smp_cov(method):
     nside = 200
     npatch = 16
-    tol_factor = 8
+
+    if "bootstrap" in method:
+        tol = 1.0e-5
+    else:
+        tol = 1.0e-8
 
     # Generate a random catalog to use
     rng = np.random.RandomState(1234)
@@ -2968,7 +2971,7 @@ def test_smp_cov():
     corrs = [gg, ng, nn]
 
     # Get the baseline single process covariance
-    cov1 = treecorr.estimate_multi_cov(corrs, 'jackknife')
+    cov1 = treecorr.estimate_multi_cov(corrs, method)
     print("\nCOV 1\n", cov1[0:3,0:3])
 
     gg = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
@@ -2983,10 +2986,10 @@ def test_smp_cov():
     nn.calculateXi(rr=rr)
     corrs = [gg, ng, nn]
 
-    # Compare to the SMP covariance
-    cov2 = treecorr.estimate_multi_cov(corrs, 'jackknife', smp=2)
+
+    cov2 = treecorr.estimate_multi_cov(corrs, method, smp=2)
     print("\nCOV 2\n", cov2[0:3,0:3])
-    np.testing.assert_allclose(cov1, cov2)
+    np.testing.assert_allclose(cov1.diagonal(), cov2.diagonal(), atol=tol)
 
 
     # Again with a different number of processes
@@ -3002,10 +3005,26 @@ def test_smp_cov():
     nn.calculateXi(rr=rr)
     corrs = [gg, ng, nn]
 
-    # Compare to the SMP covariance
-    cov3 = treecorr.estimate_multi_cov(corrs, 'jackknife', smp=6)
+    # Test with six processes
+    cov3 = treecorr.estimate_multi_cov(corrs, method, smp=6)
     print("\nCOV 3\n", cov3[0:3,0:3])
-    np.testing.assert_allclose(cov1, cov3)
+    np.testing.assert_allclose(cov1.diagonal(), cov3.diagonal(), atol=tol)
+
+@timer
+def test_smp_jackknife():
+    core_test_smp_cov("jackknife")
+
+@timer
+def test_smp_bootstrap():
+    core_test_smp_cov("bootstrap")
+
+@timer
+def test_smp_marked_bootstrap():
+    core_test_smp_cov("marked_bootstrap")
+
+@timer
+def test_smp_sample():
+    core_test_smp_cov("sample")
 
 
 if __name__ == '__main__':

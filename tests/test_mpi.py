@@ -58,9 +58,31 @@ def test_mpi_kk():
 
 @unittest.skipIf(sys.version_info < (3, 0), "mock_mpiexec doesn't support python 2")
 @timer
-def test_mpi_cov():
-    mock_mpiexec(1, do_mpi_cov)
-    mock_mpiexec(2, do_mpi_cov)
+def test_mpi_cov_jackknife():
+    mock_mpiexec(1, do_mpi_cov, "jackknife")
+    mock_mpiexec(2, do_mpi_cov, "jackknife")
+    mock_mpiexec(4, do_mpi_cov, "jackknife")
+
+@unittest.skipIf(sys.version_info < (3, 0), "mock_mpiexec doesn't support python 2")
+@timer
+def test_mpi_cov_bootstrap():
+    mock_mpiexec(1, do_mpi_cov, "bootstrap")
+    mock_mpiexec(2, do_mpi_cov, "bootstrap")
+    mock_mpiexec(4, do_mpi_cov, "bootstrap")
+
+@unittest.skipIf(sys.version_info < (3, 0), "mock_mpiexec doesn't support python 2")
+@timer
+def test_mpi_cov_marked_bootstrap():
+    mock_mpiexec(1, do_mpi_cov, "marked_bootstrap")
+    mock_mpiexec(2, do_mpi_cov, "marked_bootstrap")
+    mock_mpiexec(4, do_mpi_cov, "marked_bootstrap")
+
+@unittest.skipIf(sys.version_info < (3, 0), "mock_mpiexec doesn't support python 2")
+@timer
+def test_mpi_cov_sample():
+    mock_mpiexec(1, do_mpi_cov, "sample")
+    mock_mpiexec(2, do_mpi_cov, "sample")
+    mock_mpiexec(4, do_mpi_cov, "sample")
 
 
 if __name__ == '__main__':

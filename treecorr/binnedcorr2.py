@@ -1324,6 +1324,7 @@ def _make_cov_design_matrix_core(corrs, npatch, func, name, rank=0, size=1):
         # We want a list by row with a list for each corr.
         plist = list(zip(*plist))
     elif name == "marked_bootstrap":
+        nboot = np.max([c.num_bootstrap for c in corrs])
         plist = []
         for k in range(nboot):
             # Select a random set of indices to use.  (Will have repeats.)
@@ -1332,14 +1333,13 @@ def _make_cov_design_matrix_core(corrs, npatch, func, name, rank=0, size=1):
             plist.append(vpairs)
     elif name == "bootstrap":
         nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
-
         plist = []
         for k in range(nboot):
             indx = corrs[0].rng.randint(npatch, size=npatch)
             vpairs = [c._bootstrap_pairs(indx) for c in corrs]
             plist.append(vpairs)
     else:
-        raise ValueError("Unknown name %s in _make_cov_design_matrix_core")
+        raise ValueError("Unknown name %s in _make_cov_design_matrix_core" % name)
 
     # Figure out the shape of the design matrix.
     v1 = func(corrs)
@@ -1487,8 +1487,8 @@ def _cov_marked(corrs, func, smp=None, comm=None):
     # C = 1/(nboot) Sum_i (v_i - v_mean) (v_i - v_mean)^T
 
     npatch = _check_patch_nums(corrs, 'marked_bootstrap')
-
-    v,w = _make_cov_design_matrix(corrs, plist, func, 'marked_bootstrap', smp=smp, comm=comm)
+    nboot = np.max([c.num_bootstrap for c in corrs])
+    v,w = _make_cov_design_matrix(corrs, npatch, func, 'marked_bootstrap', smp=smp, comm=comm)
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = 1./(nboot-1) * v.conj().T.dot(v)
@@ -1504,8 +1504,8 @@ def _cov_bootstrap(corrs, func, smp=None, comm=None):
     # tests done in the test suite.  But the difference is generally pretty small.
 
     npatch = _check_patch_nums(corrs, 'bootstrap')
-
-    v,w = _make_cov_design_matrix(corrs, npatch, func, 'bootstrap', smp=comm, comm=comm)
+    nboot = np.max([c.num_bootstrap for c in corrs])
+    v,w = _make_cov_design_matrix(corrs, npatch, func, 'bootstrap', smp=smp, comm=comm)
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = 1./(nboot-1) * v.conj().T.dot(v)

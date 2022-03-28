@@ -2941,12 +2941,12 @@ def test_huge_npatch():
     print('varxi = ',cov.diagonal())
 
 
-def core_test_smp_cov(method):
+def smp_cov_core(method):
     nside = 200
     npatch = 16
 
     if "bootstrap" in method:
-        tol = 1.0e-5
+        tol = 2.0e-5
     else:
         tol = 1.0e-8
 
@@ -3012,19 +3012,19 @@ def core_test_smp_cov(method):
 
 @timer
 def test_smp_jackknife():
-    core_test_smp_cov("jackknife")
+    smp_cov_core("jackknife")
 
 @timer
 def test_smp_bootstrap():
-    core_test_smp_cov("bootstrap")
+    smp_cov_core("bootstrap")
 
 @timer
 def test_smp_marked_bootstrap():
-    core_test_smp_cov("marked_bootstrap")
+    smp_cov_core("marked_bootstrap")
 
 @timer
 def test_smp_sample():
-    core_test_smp_cov("sample")
+    smp_cov_core("sample")
 
 
 if __name__ == '__main__':

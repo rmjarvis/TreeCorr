@@ -202,7 +202,7 @@ def do_mpi_cov(comm, method):
     npatch = 16
 
     if "bootstrap" in method:
-        tol = 1.0e-5
+        tol = 2.0e-5
     else:
         tol = 1.0e-8
 
@@ -290,4 +290,7 @@ if __name__ == '__main__':
     do_mpi_nn(comm)
     do_mpi_kg(comm)
     do_mpi_kk(comm)
-    do_mpi_cov(comm)
+    do_mpi_cov(comm, "jackknife")
+    do_mpi_cov(comm, "bootstrap")
+    do_mpi_cov(comm, "marked_bootstrap")
+    do_mpi_cov(comm, "sample")

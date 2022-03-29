@@ -197,6 +197,7 @@ def do_mpi_kk(comm, output=True):
 
 
 def do_mpi_cov(comm, method):
+    # Test covariance estimation under MPI
     from test_patch import generate_shear_field
     nside = 200
     npatch = 16

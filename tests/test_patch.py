@@ -2942,6 +2942,7 @@ def test_huge_npatch():
 
 
 def smp_cov_core(method):
+    # Test covariance estimation under multiprocessing
     nside = 200
     npatch = 16
 

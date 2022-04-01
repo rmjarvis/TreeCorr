@@ -198,6 +198,7 @@ def do_mpi_kk(comm, output=True):
 
 def do_mpi_cov(comm, method):
     # Test covariance estimation under MPI
+    print("Running test of", method, "with MPI size ",  comm.size)
     from test_patch import generate_shear_field
     nside = 200
     npatch = 16
@@ -221,19 +222,24 @@ def do_mpi_cov(comm, method):
     ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
     nn = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
     rr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    print(comm.rank, "Running GG process")
     gg.process(cat, comm=comm)
+    print(comm.rank, "Running NG process")
     ng.process(cat, cat, comm=comm)
+    print(comm.rank, "Running NN process")
     nn.process(cat, comm=comm)
+    print(comm.rank, "Running RR process")
     rr.process(ran_cat, comm=comm)
 
     # Only the root process gets the complete version
     # when you call the above with comm
+    print(comm.rank, "Broadcasting")
     gg = comm.bcast(gg)
     ng = comm.bcast(ng)
     nn = comm.bcast(nn)
     rr = comm.bcast(rr)
 
-
+    print(comm.rank, "XI calc")
     ng.calculateXi()
     nn.calculateXi(rr=rr)
 
@@ -242,33 +248,41 @@ def do_mpi_cov(comm, method):
 
     # Get the baseline single process covariance
     if comm.rank == 0:
+        print(comm.rank, "Single process covariance")
         cov1 = treecorr.estimate_multi_cov(corrs, method)
     else:
         cov1 = None
     cov1 = comm.bcast(cov1)
 
-    print("\nCOV 1 \n", cov1[0:3,0:3], " for ", comm.rank)
+    print("\nCOV 1 \n", cov1[0:3,0:3], " for rank ", comm.rank, " of ", comm.size)
 
     gg = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
     ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
     nn = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
     rr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    print(comm.rank, "Running GG process 2")
     gg.process(cat, comm=comm)
+    print(comm.rank, "Running NG process 2")
     ng.process(cat, cat, comm=comm)
+    print(comm.rank, "Running NN process 2")
     nn.process(cat, comm=comm)
+    print(comm.rank, "Running RR process 2")
     rr.process(ran_cat, comm=comm)
     # Only the root process gets the complete version
     # when you call the above with comm
+    print(comm.rank, "Broadcasting 2")
     gg = comm.bcast(gg)
     ng = comm.bcast(ng)
     nn = comm.bcast(nn)
     rr = comm.bcast(rr)
 
+    print(comm.rank, "Calculate xi 2")
     ng.calculateXi()
     nn.calculateXi(rr=rr)
     corrs = [gg, ng, nn]
 
-    # Compare to the SMP covariance
+    # Compare to the MPI-estimated covariance
+    print(comm.rank, "MPI cov")
     cov2 = treecorr.estimate_multi_cov(corrs, method, comm=comm)
     print("\nCOV 2\n", cov2[0:3,0:3], " for ", comm.rank, "\n")
 

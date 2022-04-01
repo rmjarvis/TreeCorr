@@ -1312,7 +1312,7 @@ def _make_cov_design_matrix_core(corrs, npatch, func, name, rank=0, size=1):
         func = lambda corrs: np.concatenate([c.getStat() for c in corrs])
 
     # We also can't send generators using SMP or MPI, so instead we need
-    # to create them here. 
+    # to create them here.
     if name == "jackknife":
         plist = [c._jackknife_pairs() for c in corrs]
         # Swap order of plist.  Right now it's a list for each corr of a list for each row.

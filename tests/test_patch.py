@@ -2942,6 +2942,7 @@ def test_huge_npatch():
 
 
 def smp_cov_core(method):
+    print("Running test of", method, "with SMP")
     # Test covariance estimation under multiprocessing
     nside = 200
     npatch = 16
@@ -2963,6 +2964,7 @@ def smp_cov_core(method):
     ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
     nn = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
     rr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    print("Processing catalogs")
     gg.process(cat)
     ng.process(cat, cat)
     nn.process(cat)
@@ -2972,6 +2974,7 @@ def smp_cov_core(method):
     corrs = [gg, ng, nn]
 
     # Get the baseline single process covariance
+    print("Running single-process cov")
     cov1 = treecorr.estimate_multi_cov(corrs, method)
     print("\nCOV 1\n", cov1[0:3,0:3])
 
@@ -2979,6 +2982,7 @@ def smp_cov_core(method):
     ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
     nn = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
     rr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    print("Processing catalogs again")
     gg.process(cat)
     ng.process(cat, cat)
     nn.process(cat)
@@ -2988,6 +2992,7 @@ def smp_cov_core(method):
     corrs = [gg, ng, nn]
 
 
+    print("Running 2-core cov")
     cov2 = treecorr.estimate_multi_cov(corrs, method, smp=2)
     print("\nCOV 2\n", cov2[0:3,0:3])
     np.testing.assert_allclose(cov1.diagonal(), cov2.diagonal(), atol=tol)
@@ -2998,6 +3003,7 @@ def smp_cov_core(method):
     ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
     nn = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
     rr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    print("Processing catalogs yet again")
     gg.process(cat)
     ng.process(cat, cat)
     nn.process(cat)
@@ -3007,6 +3013,7 @@ def smp_cov_core(method):
     corrs = [gg, ng, nn]
 
     # Test with six processes
+    print("Running 3-core cov")
     cov3 = treecorr.estimate_multi_cov(corrs, method, smp=6)
     print("\nCOV 3\n", cov3[0:3,0:3])
     np.testing.assert_allclose(cov1.diagonal(), cov3.diagonal(), atol=tol)

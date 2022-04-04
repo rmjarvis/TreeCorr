@@ -20,7 +20,6 @@ import numpy as np
 import sys
 import coord
 import itertools
-import multiprocessing
 
 from . import _lib
 from .config import merge_config, setup_logger, get
@@ -1200,7 +1199,7 @@ class BinnedCorr2(object):
 
 
 @depr_pos_kwargs
-def estimate_multi_cov(corrs, method, *, func=None, smp=None, comm=None):
+def estimate_multi_cov(corrs, method, *, func=None, comm=None):
     """Estimate the covariance matrix of multiple statistics.
 
     This is like the method `BinnedCorr2.estimate_cov`, except that it will acoommodate
@@ -1251,12 +1250,9 @@ def estimate_multi_cov(corrs, method, *, func=None, smp=None, comm=None):
 
         >>> func = lambda corrs: corrs[0].xi / corrs[1].xi
 
-    This function can be parallelized by passing either smp or comm arguments. Pass an integer
-    smp to use multiprocessing with that number of processes. Pass an mpi4py communicator to
+    This function can be parallelized by passing the comm argument as an mpi4py communicator to
     parallelize using that.  For MPI, all processes should have the same inputs.
     If method == "shot" then parallelization has no effect.
-
-    The func argument is not available when using SMP parallelism.
 
     The return value from this func should be a single numpy array. (This is not directly
     checked, but you'll probably get some kind of exception if it doesn't behave as expected.)
@@ -1272,7 +1268,6 @@ def estimate_multi_cov(corrs, method, *, func=None, smp=None, comm=None):
         func (function):    A unary function that takes the list ``corrs`` and returns the
                             desired full data vector. [default: None, which is equivalent to
                             ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``]
-        smp (int):          If not None, use this many multiprocessing processes
         comm (mpi comm)     If not None, run under MPI
 
     Returns:
@@ -1283,13 +1278,13 @@ def estimate_multi_cov(corrs, method, *, func=None, smp=None, comm=None):
             raise ValueError("func is invalid with method='shot'")
         return _cov_shot(corrs)
     if method == 'jackknife':
-        return _cov_jackknife(corrs, func, smp=smp, comm=comm)
+        return _cov_jackknife(corrs, func, comm=comm)
     elif method == 'bootstrap':
-        return _cov_bootstrap(corrs, func, smp=smp, comm=comm)
+        return _cov_bootstrap(corrs, func, comm=comm)
     elif method == 'marked_bootstrap':
-        return _cov_marked(corrs, func, smp=smp, comm=comm)
+        return _cov_marked(corrs, func, comm=comm)
     elif method == 'sample':
-        return _cov_sample(corrs, func, smp=smp, comm=comm)
+        return _cov_sample(corrs, func, comm=comm)
     else:
         raise ValueError("Invalid method: %s"%method)
 
@@ -1308,11 +1303,11 @@ def _make_cov_design_matrix_core(corrs, npatch, func, name, rank=0, size=1):
     # the original.
     corrs = [c.copy() for c in corrs]
 
-    # We can't pickle functions to send via MPI/SMP, so have to do this here.
+    # We can't pickle functions to send via MPI, so have to do this here.
     if func is None:
         func = lambda corrs: np.concatenate([c.getStat() for c in corrs])
 
-    # We also can't send generators using SMP or MPI, so instead we need
+    # We also can't send generators using MPI, so instead we need
     # to create them here.
     if name == "jackknife":
         plist = [c._jackknife_pairs() for c in corrs]
@@ -1372,23 +1367,8 @@ def _make_cov_design_matrix_core(corrs, npatch, func, name, rank=0, size=1):
         w[row] = np.sum([np.sum(c.getWeight()) for c in corrs])
     return v,w
 
-def _make_cov_design_matrix(corrs, npatch, func, name, smp=None, comm=None):
-    # Cannot use both MPI and SMP at once.
-    if (smp is not None) and (comm is not None):
-        raise ValueError("Specify either comm or smp in estimate_multi_cov, but not both")
-    if (smp is not None) and (func is not None):
-        raise ValueError("Cannot specify func in estimate_multi_cov when using smp")
-    # The SMP version. In this one we create a pool and make a different matrix
-    # on each process, and then sum them together
-    elif smp is not None:
-        with multiprocessing.Pool(smp) as pool:
-            tasks = [(corrs, npatch, func, name, rank, smp) for rank in range(smp)]
-            results = pool.starmap(_make_cov_design_matrix_core, tasks)
-        v = sum(r[0] for r in results)
-        w = sum(r[1] for r in results)
-    # In the MPI version all the processes are expected to be already running this bit.
-    # So we just call the sub-function and then sum the result.
-    elif comm is not None:
+def _make_cov_design_matrix(corrs, npatch, func, name, comm=None):
+    if comm is not None:
         from mpi4py import MPI
         v, w = _make_cov_design_matrix_core(corrs, npatch, func, name, comm.rank, comm.size)
         comm.Allreduce(MPI.IN_PLACE, v)
@@ -1428,7 +1408,7 @@ def _check_patch_nums(corrs, name):
             raise RuntimeError("All correlations must use the same number of patches")
     return npatch
 
-def _cov_jackknife(corrs, func, smp=None, comm=None):
+def _cov_jackknife(corrs, func, comm=None):
     # Calculate the jackknife covariance for the given statistics
 
     # The basic jackknife formula is:
@@ -1438,13 +1418,13 @@ def _cov_jackknife(corrs, func, smp=None, comm=None):
 
     npatch = _check_patch_nums(corrs, 'jackknife')
 
-    v,w = _make_cov_design_matrix(corrs, npatch, func, 'jackknife', smp=smp, comm=comm)
+    v,w = _make_cov_design_matrix(corrs, npatch, func, 'jackknife', comm=comm)
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = (1.-1./npatch) * v.conj().T.dot(v)
     return C
 
-def _cov_sample(corrs, func, smp=None, comm=None):
+def _cov_sample(corrs, func, comm=None):
     # Calculate the sample covariance.
 
     # This is kind of the converse of the jackknife.  We take each patch and use any
@@ -1457,7 +1437,7 @@ def _cov_sample(corrs, func, smp=None, comm=None):
 
     npatch = _check_patch_nums(corrs, 'sample')
 
-    v,w = _make_cov_design_matrix(corrs, npatch, func, 'sample', smp=smp, comm=comm)
+    v,w = _make_cov_design_matrix(corrs, npatch, func, 'sample', comm=comm)
 
     if np.any(w == 0):
         raise RuntimeError("Cannot compute sample variance when some patches have no data.")
@@ -1469,7 +1449,7 @@ def _cov_sample(corrs, func, smp=None, comm=None):
     C = 1./(npatch-1) * (w * v.conj().T).dot(v)
     return C
 
-def _cov_marked(corrs, func, smp=None, comm=None):
+def _cov_marked(corrs, func, comm=None):
     # Calculate the marked-point bootstrap covariance
 
     # This is based on the article A Valid and Fast Spatial Bootstrap for Correlation Functions
@@ -1488,13 +1468,13 @@ def _cov_marked(corrs, func, smp=None, comm=None):
 
     npatch = _check_patch_nums(corrs, 'marked_bootstrap')
     nboot = np.max([c.num_bootstrap for c in corrs])
-    v,w = _make_cov_design_matrix(corrs, npatch, func, 'marked_bootstrap', smp=smp, comm=comm)
+    v,w = _make_cov_design_matrix(corrs, npatch, func, 'marked_bootstrap', comm=comm)
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = 1./(nboot-1) * v.conj().T.dot(v)
     return C
 
-def _cov_bootstrap(corrs, func, smp=None, comm=None):
+def _cov_bootstrap(corrs, func, comm=None):
     # Calculate the 2-patch bootstrap covariance estimate.
 
     # This is a different version of the bootstrap idea.  It selects patches at random with
@@ -1505,7 +1485,7 @@ def _cov_bootstrap(corrs, func, smp=None, comm=None):
 
     npatch = _check_patch_nums(corrs, 'bootstrap')
     nboot = np.max([c.num_bootstrap for c in corrs])
-    v,w = _make_cov_design_matrix(corrs, npatch, func, 'bootstrap', smp=smp, comm=comm)
+    v,w = _make_cov_design_matrix(corrs, npatch, func, 'bootstrap', comm=comm)
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = 1./(nboot-1) * v.conj().T.dot(v)

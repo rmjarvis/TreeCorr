@@ -20,6 +20,7 @@ import numpy as np
 import sys
 import coord
 import itertools
+import multiprocessing
 
 from . import _lib
 from .config import merge_config, setup_logger, get
@@ -1380,7 +1381,6 @@ def _make_cov_design_matrix(corrs, npatch, func, name, smp=None, comm=None):
     # The SMP version. In this one we create a pool and make a different matrix
     # on each process, and then sum them together
     elif smp is not None:
-        import multiprocessing
         with multiprocessing.Pool(smp) as pool:
             tasks = [(corrs, npatch, func, name, rank, smp) for rank in range(smp)]
             results = pool.starmap(_make_cov_design_matrix_core, tasks)

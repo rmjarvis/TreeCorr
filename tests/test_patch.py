@@ -18,7 +18,7 @@ import coord
 import time
 import fitsio
 import treecorr
-
+import multiprocessing
 from test_helper import assert_raises, do_pickle, timer, get_from_wiki, CaptureLog, clear_save
 
 @timer

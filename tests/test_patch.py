@@ -3012,9 +3012,9 @@ def smp_cov_core(method):
     nn.calculateXi(rr=rr)
     corrs = [gg, ng, nn]
 
-    # Test with six processes
+    # Test with three processes
     print("Running 3-core cov")
-    cov3 = treecorr.estimate_multi_cov(corrs, method, smp=6)
+    cov3 = treecorr.estimate_multi_cov(corrs, method, smp=3)
     print("\nCOV 3\n", cov3[0:3,0:3])
     np.testing.assert_allclose(cov1.diagonal(), cov3.diagonal(), atol=tol)
 

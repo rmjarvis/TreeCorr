@@ -18,7 +18,6 @@ import coord
 import time
 import fitsio
 import treecorr
-import multiprocessing
 from test_helper import assert_raises, do_pickle, timer, get_from_wiki, CaptureLog, clear_save
 
 @timer
@@ -2941,100 +2940,6 @@ def test_huge_npatch():
     print('varxi = ',cov.diagonal())
 
 
-def smp_cov_core(method):
-    print("Running test of", method, "with SMP")
-    # Test covariance estimation under multiprocessing
-    nside = 200
-    npatch = 16
-
-    if "bootstrap" in method:
-        tol = 2.0e-5
-    else:
-        tol = 1.0e-8
-
-    # Generate a random catalog to use
-    rng = np.random.RandomState(1234)
-    x, y, g1, g2, _ = generate_shear_field(nside, rng)
-    cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, npatch=npatch)
-    xr, yr, _, _, _ = generate_shear_field(nside, rng)
-    ran_cat = treecorr.Catalog(x=x, y=y, npatch=npatch)
-
-    # Generate the three sets of correlations we will use
-    gg = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-    ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-    nn = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-    rr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-    print("Processing catalogs")
-    gg.process(cat)
-    ng.process(cat, cat)
-    nn.process(cat)
-    rr.process(ran_cat)
-    ng.calculateXi()
-    nn.calculateXi(rr=rr)
-    corrs = [gg, ng, nn]
-
-    # Get the baseline single process covariance
-    print("Running single-process cov")
-    cov1 = treecorr.estimate_multi_cov(corrs, method)
-    print("\nCOV 1\n", cov1[0:3,0:3])
-
-    gg = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-    ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-    nn = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-    rr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-    print("Processing catalogs again")
-    gg.process(cat)
-    ng.process(cat, cat)
-    nn.process(cat)
-    rr.process(ran_cat)
-    ng.calculateXi()
-    nn.calculateXi(rr=rr)
-    corrs = [gg, ng, nn]
-
-
-    print("Running 2-core cov")
-    cov2 = treecorr.estimate_multi_cov(corrs, method, smp=2)
-    print("\nCOV 2\n", cov2[0:3,0:3])
-    np.testing.assert_allclose(cov1.diagonal(), cov2.diagonal(), atol=tol)
-
-
-    # Again with a different number of processes
-    gg = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-    ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-    nn = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-    rr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-    print("Processing catalogs yet again")
-    gg.process(cat)
-    ng.process(cat, cat)
-    nn.process(cat)
-    rr.process(ran_cat)
-    ng.calculateXi()
-    nn.calculateXi(rr=rr)
-    corrs = [gg, ng, nn]
-
-    # Test with three processes
-    print("Running 3-core cov")
-    cov3 = treecorr.estimate_multi_cov(corrs, method, smp=3)
-    print("\nCOV 3\n", cov3[0:3,0:3])
-    np.testing.assert_allclose(cov1.diagonal(), cov3.diagonal(), atol=tol)
-
-@timer
-def test_smp_jackknife():
-    smp_cov_core("jackknife")
-
-@timer
-def test_smp_bootstrap():
-    smp_cov_core("bootstrap")
-
-@timer
-def test_smp_marked_bootstrap():
-    smp_cov_core("marked_bootstrap")
-
-@timer
-def test_smp_sample():
-    smp_cov_core("sample")
-
-
 if __name__ == '__main__':
     test_cat_patches()
     test_cat_centers()
@@ -3049,4 +2954,3 @@ if __name__ == '__main__':
     test_config()
     test_finalize_false()
     test_empty_patches()
-    test_smp_cov()

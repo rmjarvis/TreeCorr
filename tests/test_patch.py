@@ -669,8 +669,8 @@ def test_gg_jk():
     np.testing.assert_allclose(gg3.xip, gg2.xip)
     np.testing.assert_allclose(gg3.xim, gg2.xim)
     # Not perfect, but within about 30%.
-    np.testing.assert_allclose(gg3.varxip, var_xip, rtol=0.3*tol_factor)
-    np.testing.assert_allclose(gg3.varxim, var_xim, rtol=0.3*tol_factor)
+    np.testing.assert_allclose(np.log(gg3.varxip), np.log(var_xip), atol=0.4*tol_factor)
+    np.testing.assert_allclose(np.log(gg3.varxim), np.log(var_xim), atol=0.3*tol_factor)
 
     # Can get the covariance matrix using estimate_cov, which is also stored as cov attribute
     t0 = time.time()
@@ -945,7 +945,7 @@ def test_ng_jk():
     print('ratio = ',ng3.varxi / var_xi)
     np.testing.assert_allclose(ng3.weight, ng2.weight)
     np.testing.assert_allclose(ng3.xi, ng2.xi)
-    np.testing.assert_allclose(ng3.varxi, var_xi, rtol=0.3*tol_factor)
+    np.testing.assert_allclose(np.log(ng3.varxi), np.log(var_xi), atol=0.4*tol_factor)
 
     # Check using estimate_cov
     t0 = time.time()
@@ -966,7 +966,7 @@ def test_ng_jk():
     print('varxi = ',ng4.varxi)
     np.testing.assert_allclose(ng4.weight, ng1.weight, rtol=1.e-2*tol_factor)
     np.testing.assert_allclose(ng4.xi, ng1.xi, rtol=3.e-2*tol_factor)
-    np.testing.assert_allclose(ng4.varxi, var_xi, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(np.log(ng4.varxi), np.log(var_xi), atol=0.6*tol_factor)
 
     ng5 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife',
                                  rng=rng)
@@ -979,7 +979,7 @@ def test_ng_jk():
     print('varxi = ',ng5.varxi)
     np.testing.assert_allclose(ng5.weight, ng1.weight, rtol=1.e-2*tol_factor)
     np.testing.assert_allclose(ng5.xi, ng1.xi, rtol=3.e-2*tol_factor)
-    np.testing.assert_allclose(ng5.varxi, var_xi, rtol=0.4*tol_factor)
+    np.testing.assert_allclose(np.log(ng5.varxi), np.log(var_xi), atol=0.5*tol_factor)
 
     # Check sample covariance estimate
     t0 = time.time()
@@ -988,17 +988,17 @@ def test_ng_jk():
     print('Time to calculate sample covariance = ',t1-t0)
     print('varxi = ',cov_sample.diagonal())
     print('ratio = ',cov_sample.diagonal() / var_xi)
-    np.testing.assert_allclose(cov_sample.diagonal(), var_xi, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(np.log(cov_sample.diagonal()), np.log(var_xi), atol=0.7*tol_factor)
 
     cov_sample = ng4.estimate_cov('sample')
     print('varxi = ',cov_sample.diagonal())
     print('ratio = ',cov_sample.diagonal() / var_xi)
-    np.testing.assert_allclose(cov_sample.diagonal(), var_xi, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(np.log(cov_sample.diagonal()), np.log(var_xi), atol=0.7*tol_factor)
 
     cov_sample = ng5.estimate_cov('sample')
     print('varxi = ',cov_sample.diagonal())
     print('ratio = ',cov_sample.diagonal() / var_xi)
-    np.testing.assert_allclose(cov_sample.diagonal(), var_xi, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(np.log(cov_sample.diagonal()), np.log(var_xi), atol=0.7*tol_factor)
 
     # Check marked_bootstrap covariance estimate
     t0 = time.time()
@@ -1007,15 +1007,15 @@ def test_ng_jk():
     print('Time to calculate marked_bootstrap covariance = ',t1-t0)
     print('varxi = ',cov_boot.diagonal())
     print('ratio = ',cov_boot.diagonal() / var_xi)
-    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.6*tol_factor)
     cov_boot = ng4.estimate_cov('marked_bootstrap')
     print('varxi = ',cov_boot.diagonal())
     print('ratio = ',cov_boot.diagonal() / var_xi)
-    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.6*tol_factor)
+    np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.8*tol_factor)
     cov_boot = ng5.estimate_cov('marked_bootstrap')
     print('varxi = ',cov_boot.diagonal())
     print('ratio = ',cov_boot.diagonal() / var_xi)
-    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.6*tol_factor)
 
     # Check bootstrap covariance estimate.
     t0 = time.time()
@@ -1024,15 +1024,15 @@ def test_ng_jk():
     print('Time to calculate bootstrap covariance = ',t1-t0)
     print('varxi = ',cov_boot.diagonal())
     print('ratio = ',cov_boot.diagonal() / var_xi)
-    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.2*tol_factor)
+    np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.2*tol_factor)
     cov_boot = ng4.estimate_cov('bootstrap')
     print('varxi = ',cov_boot.diagonal())
     print('ratio = ',cov_boot.diagonal() / var_xi)
-    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.6*tol_factor)
     cov_boot = ng5.estimate_cov('bootstrap')
     print('varxi = ',cov_boot.diagonal())
     print('ratio = ',cov_boot.diagonal() / var_xi)
-    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.4*tol_factor)
+    np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.5*tol_factor)
 
     # Use a random catalog
     # In this case the locations of the source catalog are fine to use as our random catalog,
@@ -1050,7 +1050,7 @@ def test_ng_jk():
     print('ratio = ',ng4.varxi / var_xi)
     np.testing.assert_allclose(ng4.weight, ng3.weight, rtol=0.02*tol_factor)
     np.testing.assert_allclose(ng4.xi, ng3.xi, rtol=0.02*tol_factor)
-    np.testing.assert_allclose(ng4.varxi, var_xi, rtol=0.3*tol_factor)
+    np.testing.assert_allclose(np.log(ng4.varxi), np.log(var_xi), atol=0.3*tol_factor)
 
     # Check using estimate_cov
     t0 = time.time()
@@ -1077,7 +1077,7 @@ def test_ng_jk():
     np.testing.assert_allclose(ng5.weight, ng3.weight, rtol=0.02*tol_factor)
     np.testing.assert_allclose(ng5.xi, ng3.xi, rtol=0.02*tol_factor)
     # This does only slightly worse.
-    np.testing.assert_allclose(ng5.varxi, var_xi, rtol=0.4*tol_factor)
+    np.testing.assert_allclose(np.log(ng5.varxi), np.log(var_xi), atol=0.4*tol_factor)
 
     # Check using estimate_cov
     t0 = time.time()
@@ -1127,7 +1127,7 @@ def test_nn_jk():
         tol_factor = 1
     else:
         nside = 500
-        nlens = 500
+        nlens = 1000
         npatch = 8
         rand_factor = 20
         tol_factor = 4
@@ -1285,12 +1285,12 @@ def test_nn_jk():
     print('ratio = ',varxia3 / var_xia)
     np.testing.assert_allclose(nn3.weight, nn2.weight)
     np.testing.assert_allclose(xia3, xia2)
-    np.testing.assert_allclose(varxia3, var_xia, rtol=0.4*tol_factor)
+    np.testing.assert_allclose(np.log(varxia3), np.log(var_xia), atol=0.4*tol_factor)
     print('xib = ',xib3)
     print('varxib = ',varxib3)
     print('ratio = ',varxib3 / var_xib)
     np.testing.assert_allclose(xib3, xib2)
-    np.testing.assert_allclose(varxib3, var_xib, rtol=0.4*tol_factor)
+    np.testing.assert_allclose(np.log(varxib3), np.log(var_xib), atol=0.4*tol_factor)
 
     # Check using estimate_cov
     t0 = time.time()
@@ -1371,8 +1371,8 @@ def test_nn_jk():
     print('varxib = ',varxib4)
     print('ratio = ',varxib4 / var_xib)
     # Using patches for the randoms is not as good.  Only good to rtol=0.6, rather than 0.4 above.
-    np.testing.assert_allclose(varxia4, var_xia, rtol=0.6*tol_factor)
-    np.testing.assert_allclose(varxib4, var_xib, rtol=0.6*tol_factor)
+    np.testing.assert_allclose(np.log(varxia4), np.log(var_xia), atol=0.6*tol_factor)
+    np.testing.assert_allclose(np.log(varxib4), np.log(var_xib), atol=0.6*tol_factor)
     np.testing.assert_allclose(varxic4, varxib4)
     np.testing.assert_allclose(varxid4, varxib4)
 
@@ -1437,7 +1437,7 @@ def test_kappa_jk():
         nside = 200
         nlens = 2000
         npatch = 8
-        tol_factor = 3
+        tol_factor = 4
 
     file_name = 'data/test_kappa_jk_{}.npz'.format(nside)
     print(file_name)
@@ -1516,7 +1516,7 @@ def test_kappa_jk():
     print('varxi = ',nk.varxi)
     print('ratio = ',nk.varxi / var_nk_xi)
     np.testing.assert_array_less((nk.xi - mean_nk_xi)**2/var_nk_xi, 25) # within 5 sigma
-    np.testing.assert_allclose(nk.varxi, var_nk_xi, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(np.log(nk.varxi), np.log(var_nk_xi), atol=0.7*tol_factor)
 
     # Check sample covariance estimate
     cov_xi = nk.estimate_cov('sample')
@@ -1541,7 +1541,7 @@ def test_kappa_jk():
     print('ratio = ',nk2.varxi / var_nk_xi)
     np.testing.assert_allclose(nk2.weight, nk.weight, rtol=0.02*tol_factor)
     np.testing.assert_allclose(nk2.xi, nk.xi, rtol=0.02*tol_factor)
-    np.testing.assert_allclose(nk2.varxi, var_nk_xi, rtol=0.3*tol_factor)
+    np.testing.assert_allclose(np.log(nk2.varxi), np.log(var_nk_xi), atol=0.4*tol_factor)
 
     # Use a random catalog without patches
     rk3 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
@@ -1557,7 +1557,7 @@ def test_kappa_jk():
     print('ratio = ',nk3.varxi / var_nk_xi)
     np.testing.assert_allclose(nk3.weight, nk.weight, rtol=0.02*tol_factor)
     np.testing.assert_allclose(nk3.xi, nk.xi, rtol=0.02*tol_factor)
-    np.testing.assert_allclose(nk3.varxi, var_nk_xi, rtol=0.4*tol_factor)
+    np.testing.assert_allclose(np.log(nk3.varxi), np.log(var_nk_xi), atol=0.4*tol_factor)
 
     # KK
     # Smaller scales to capture the more local kappa correlations.
@@ -1571,7 +1571,7 @@ def test_kappa_jk():
     print('ratio = ',kk.varxi / var_kk_xi)
     np.testing.assert_allclose(kk.weight, kk.weight)
     np.testing.assert_allclose(kk.xi, kk.xi)
-    np.testing.assert_allclose(kk.varxi, var_kk_xi, rtol=0.3*tol_factor)
+    np.testing.assert_allclose(np.log(kk.varxi), np.log(var_kk_xi), atol=0.3*tol_factor)
 
     # Check sample covariance estimate
     cov_xi = kk.estimate_cov('sample')
@@ -1592,7 +1592,7 @@ def test_kappa_jk():
     print('ratio = ',kg.varxi / var_kg_xi)
     np.testing.assert_allclose(kg.weight, kg.weight)
     np.testing.assert_allclose(kg.xi, kg.xi)
-    np.testing.assert_allclose(kg.varxi, var_kg_xi, rtol=0.3*tol_factor)
+    np.testing.assert_allclose(np.log(kg.varxi), np.log(var_kg_xi), atol=0.3*tol_factor)
 
     # Check sample covariance estimate
     cov_xi = kg.estimate_cov('sample')
@@ -1826,7 +1826,7 @@ def test_clusters():
         nlens = 60
         nsource = 1000
         size = 200
-        tol_factor = 3
+        tol_factor = 4
     rng = np.random.RandomState(1234)
 
     def make_gals():
@@ -1901,7 +1901,7 @@ def test_clusters():
     print('pullsq for xi = ',(ng1.xi-mean_xi)**2/var_xi)
     print('max pull for xi = ',np.sqrt(np.max((ng1.xi-mean_xi)**2/var_xi)))
     np.testing.assert_array_less((ng1.xi - mean_xi)**2/var_xi, 25) # within 5 sigma
-    np.testing.assert_allclose(ng1.varxi, mean_varxi, rtol=0.4 * tol_factor)
+    np.testing.assert_allclose(np.log(ng1.varxi), np.log(mean_varxi), atol=0.5*tol_factor)
 
     # The naive error estimates only includes shape noise, so it is an underestimate of
     # the full variance, which includes sample variance.
@@ -1947,7 +1947,7 @@ def test_clusters():
     print('ratio = ',ng3.varxi / var_xi)
     np.testing.assert_allclose(ng3.weight, ng2.weight)
     np.testing.assert_allclose(ng3.xi, ng2.xi)
-    np.testing.assert_allclose(ng3.varxi, var_xi, rtol=0.3*tol_factor)
+    np.testing.assert_allclose(np.log(ng3.varxi), np.log(var_xi), atol=0.3*tol_factor)
 
     # Check sample covariance estimate
     t0 = time.time()
@@ -1990,7 +1990,7 @@ def test_clusters():
     print('ratio = ',ng3b.varxi / var_xi)
     np.testing.assert_allclose(ng3b.weight, ng3.weight, rtol=0.02*tol_factor)
     np.testing.assert_allclose(ng3b.xi, ng3.xi, rtol=0.02*tol_factor)
-    np.testing.assert_allclose(ng3b.varxi, var_xi, rtol=0.3*tol_factor)
+    np.testing.assert_allclose(np.log(ng3b.varxi), np.log(var_xi), atol=0.3*tol_factor)
 
 @timer
 def test_brute_jk():
@@ -2557,7 +2557,7 @@ def test_config():
     print('gg2.varxip = ',gg2.varxip)
 
     # Bootstrap has intrinisic randomness, so this doesn't get all that close actually.
-    np.testing.assert_allclose(gg.varxip, gg2.varxip, rtol=0.6)
+    np.testing.assert_allclose(np.log(gg.varxip), np.log(gg2.varxip), atol=0.6)
 
     # Jackknife should be exactly equal (so long as npatch is 2^n), since deterministic.
     varxi_jk = gg.estimate_cov('jackknife').diagonal()

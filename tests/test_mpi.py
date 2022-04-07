@@ -55,27 +55,31 @@ def test_mpi_kk():
 
 @timer
 def test_mpi_cov_jackknife():
-    mock_mpiexec(1, do_mpi_cov, "jackknife")
-    mock_mpiexec(2, do_mpi_cov, "jackknife")
-    mock_mpiexec(4, do_mpi_cov, "jackknife")
+    output = __name__ == '__main__'
+    mock_mpiexec(1, do_mpi_cov, "jackknife", output)
+    mock_mpiexec(2, do_mpi_cov, "jackknife", output)
+    mock_mpiexec(4, do_mpi_cov, "jackknife", output)
 
 @timer
 def test_mpi_cov_bootstrap():
-    mock_mpiexec(1, do_mpi_cov, "bootstrap")
-    mock_mpiexec(2, do_mpi_cov, "bootstrap")
-    mock_mpiexec(4, do_mpi_cov, "bootstrap")
+    output = __name__ == '__main__'
+    mock_mpiexec(1, do_mpi_cov, "bootstrap", output)
+    mock_mpiexec(2, do_mpi_cov, "bootstrap", output)
+    mock_mpiexec(4, do_mpi_cov, "bootstrap", output)
 
 @timer
 def test_mpi_cov_marked_bootstrap():
-    mock_mpiexec(1, do_mpi_cov, "marked_bootstrap")
-    mock_mpiexec(2, do_mpi_cov, "marked_bootstrap")
-    mock_mpiexec(4, do_mpi_cov, "marked_bootstrap")
+    output = __name__ == '__main__'
+    mock_mpiexec(1, do_mpi_cov, "marked_bootstrap", output)
+    mock_mpiexec(2, do_mpi_cov, "marked_bootstrap", output)
+    mock_mpiexec(4, do_mpi_cov, "marked_bootstrap", output)
 
 @timer
 def test_mpi_cov_sample():
-    mock_mpiexec(1, do_mpi_cov, "sample")
-    mock_mpiexec(2, do_mpi_cov, "sample")
-    mock_mpiexec(4, do_mpi_cov, "sample")
+    output = __name__ == '__main__'
+    mock_mpiexec(1, do_mpi_cov, "sample", output)
+    mock_mpiexec(2, do_mpi_cov, "sample", output)
+    mock_mpiexec(4, do_mpi_cov, "sample", output)
 
 
 if __name__ == '__main__':
@@ -86,3 +90,7 @@ if __name__ == '__main__':
     test_mpi_nn()
     test_mpi_kg()
     test_mpi_kk()
+    test_mpi_cov_jackknife()
+    test_mpi_cov_bootstrap()
+    test_mpi_cov_marked_bootstrap()
+    test_mpi_cov_sample()

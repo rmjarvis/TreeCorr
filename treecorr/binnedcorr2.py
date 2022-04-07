@@ -1288,7 +1288,7 @@ def estimate_multi_cov(corrs, method, *, func=None, comm=None):
     else:
         raise ValueError("Invalid method: %s"%method)
 
-def _make_cov_design_matrix_core(corrs, npatch, func, name, rank=0, size=1):
+def _make_cov_design_matrix_core(corrs, plist, func, name, rank=0, size=1):
     # plist has the pairs to use for each row in the design matrix for each correlation fn.
     # It is a list by row, each element is a list by corr fn of tuples (i,j), being the indices
     # to use from the results dict.
@@ -1306,36 +1306,6 @@ def _make_cov_design_matrix_core(corrs, npatch, func, name, rank=0, size=1):
     # We can't pickle functions to send via MPI, so have to do this here.
     if func is None:
         func = lambda corrs: np.concatenate([c.getStat() for c in corrs])
-
-    # We also can't send generators using MPI, so instead we need
-    # to create them here.
-    if name == "jackknife":
-        plist = [c._jackknife_pairs() for c in corrs]
-        # Swap order of plist.  Right now it's a list for each corr of a list for each row.
-        # We want a list by row with a list for each corr.
-        plist = list(zip(*plist))
-    elif name == "sample":
-        plist = [c._sample_pairs() for c in corrs]
-        # Swap order of plist.  Right now it's a list for each corr of a list for each row.
-        # We want a list by row with a list for each corr.
-        plist = list(zip(*plist))
-    elif name == "marked_bootstrap":
-        nboot = np.max([c.num_bootstrap for c in corrs])
-        plist = []
-        for k in range(nboot):
-            # Select a random set of indices to use.  (Will have repeats.)
-            indx = corrs[0].rng.randint(npatch, size=npatch)
-            vpairs = [c._marked_pairs(indx) for c in corrs]
-            plist.append(vpairs)
-    elif name == "bootstrap":
-        nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
-        plist = []
-        for k in range(nboot):
-            indx = corrs[0].rng.randint(npatch, size=npatch)
-            vpairs = [c._bootstrap_pairs(indx) for c in corrs]
-            plist.append(vpairs)
-    else: # pragma: no cover
-        assert False, "Invalid name %s in _make_cov_design_matrix_core" % name 
 
     # Figure out the shape of the design matrix.
     v1 = func(corrs)
@@ -1367,10 +1337,10 @@ def _make_cov_design_matrix_core(corrs, npatch, func, name, rank=0, size=1):
         w[row] = np.sum([np.sum(c.getWeight()) for c in corrs])
     return v,w
 
-def _make_cov_design_matrix(corrs, npatch, func, name, comm=None):
+def _make_cov_design_matrix(corrs, plist, func, name, comm=None):
     if comm is not None:
         from mpi4py import MPI
-        v, w = _make_cov_design_matrix_core(corrs, npatch, func, name, comm.rank, comm.size)
+        v, w = _make_cov_design_matrix_core(corrs, plist, func, name, comm.rank, comm.size)
         # These two calls collects the v arrays from w arrays from all the processors,
         # sums them all together, and then sends them back to each processor where they
         # are put back in-place, overwriting the original v and w array contents.
@@ -1383,7 +1353,7 @@ def _make_cov_design_matrix(corrs, npatch, func, name, comm=None):
         comm.Allreduce(MPI.IN_PLACE, w)
     # Otherwise we just use the regular version, which implicitly does the whole matrix
     else:
-        v, w = _make_cov_design_matrix_core(corrs, npatch, func, name)
+        v, w = _make_cov_design_matrix_core(corrs, plist, func, name)
     return v, w
 
 def _cov_shot(corrs):
@@ -1426,7 +1396,12 @@ def _cov_jackknife(corrs, func, comm=None):
 
     npatch = _check_patch_nums(corrs, 'jackknife')
 
-    v,w = _make_cov_design_matrix(corrs, npatch, func, 'jackknife', comm=comm)
+    plist = [c._jackknife_pairs() for c in corrs]
+    # Swap order of plist.  Right now it's a list for each corr of a list for each row.
+    # We want a list by row with a list for each corr.
+    plist = list(zip(*plist))
+
+    v,w = _make_cov_design_matrix(corrs, plist, func, 'jackknife', comm=comm)
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = (1.-1./npatch) * v.conj().T.dot(v)
@@ -1445,7 +1420,12 @@ def _cov_sample(corrs, func, comm=None):
 
     npatch = _check_patch_nums(corrs, 'sample')
 
-    v,w = _make_cov_design_matrix(corrs, npatch, func, 'sample', comm=comm)
+    plist = [c._sample_pairs() for c in corrs]
+    # Swap order of plist.  Right now it's a list for each corr of a list for each row.
+    # We want a list by row with a list for each corr.
+    plist = list(zip(*plist))
+
+    v,w = _make_cov_design_matrix(corrs, plist, func, 'sample', comm=comm)
 
     if np.any(w == 0):
         raise RuntimeError("Cannot compute sample variance when some patches have no data.")
@@ -1475,8 +1455,17 @@ def _cov_marked(corrs, func, comm=None):
     # C = 1/(nboot) Sum_i (v_i - v_mean) (v_i - v_mean)^T
 
     npatch = _check_patch_nums(corrs, 'marked_bootstrap')
-    nboot = np.max([c.num_bootstrap for c in corrs])
-    v,w = _make_cov_design_matrix(corrs, npatch, func, 'marked_bootstrap', comm=comm)
+
+    nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
+
+    plist = []
+    for k in range(nboot):
+        # Select a random set of indices to use.  (Will have repeats.)
+        indx = corrs[0].rng.randint(npatch, size=npatch)
+        vpairs = [c._marked_pairs(indx) for c in corrs]
+        plist.append(vpairs)
+
+    v,w = _make_cov_design_matrix(corrs, plist, func, 'marked_bootstrap', comm=comm)
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = 1./(nboot-1) * v.conj().T.dot(v)
@@ -1492,8 +1481,16 @@ def _cov_bootstrap(corrs, func, comm=None):
     # tests done in the test suite.  But the difference is generally pretty small.
 
     npatch = _check_patch_nums(corrs, 'bootstrap')
-    nboot = np.max([c.num_bootstrap for c in corrs])
-    v,w = _make_cov_design_matrix(corrs, npatch, func, 'bootstrap', comm=comm)
+
+    nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
+
+    plist = []
+    for k in range(nboot):
+        indx = corrs[0].rng.randint(npatch, size=npatch)
+        vpairs = [c._bootstrap_pairs(indx) for c in corrs]
+        plist.append(vpairs)
+
+    v,w = _make_cov_design_matrix(corrs, plist, func, 'bootstrap', comm=comm)
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = 1./(nboot-1) * v.conj().T.dot(v)

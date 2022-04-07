@@ -1335,7 +1335,7 @@ def _make_cov_design_matrix_core(corrs, npatch, func, name, rank=0, size=1):
             vpairs = [c._bootstrap_pairs(indx) for c in corrs]
             plist.append(vpairs)
     else:
-        raise ValueError("Unknown name %s in _make_cov_design_matrix_core" % name)
+        assert False, "Invalid name %s in _make_cov_design_matrix_core" % name # pragma: no cover
 
     # Figure out the shape of the design matrix.
     v1 = func(corrs)
@@ -1371,6 +1371,14 @@ def _make_cov_design_matrix(corrs, npatch, func, name, comm=None):
     if comm is not None:
         from mpi4py import MPI
         v, w = _make_cov_design_matrix_core(corrs, npatch, func, name, comm.rank, comm.size)
+        # These two calls collects the v arrays from w arrays from all the processors,
+        # sums them all together, and then sends them back to each processor where they
+        # are put back in-place, overwriting the original v and w array contents.
+        # Each process has an array which is zeros except for the rows it is responsible
+        # for, so the sum fills in the entire array.
+        # Using "Allreduce" instead of "Reduce" means that all processes get a copy of the
+        # final arrays. This may or may not be needed depending on what users subsequently
+        # do with the matrix, but is fast since this matrix isn't large.
         comm.Allreduce(MPI.IN_PLACE, v)
         comm.Allreduce(MPI.IN_PLACE, w)
     # Otherwise we just use the regular version, which implicitly does the whole matrix

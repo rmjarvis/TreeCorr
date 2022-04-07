@@ -30,12 +30,7 @@ jobs:
 
                 # Add some other particular combinations to test
                 include:
-                    # A couple in MacOS
-                    - os: macos-latest
-                      py: 3.7
-                      CC: cc
-                      CXX: c++
-
+                    # One in MacOS
                     - os: macos-latest
                       py: 3.9
                       CC: cc

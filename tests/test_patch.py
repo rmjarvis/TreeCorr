@@ -2939,9 +2939,6 @@ def test_huge_npatch():
     print('Time to calculate marked_bootstrap covariance = ',t1-t0)
     print('varxi = ',cov.diagonal())
 
-def test_bad_multicov_name():
-    with assert_raises(ValueError):
-        treecorr.binnedcorr2._make_cov_design_matrix_core([], 0, None, "fake name")
 
 if __name__ == '__main__':
     test_cat_patches()

@@ -128,3 +128,9 @@ Changes from version 4.2.6 to 4.2.7
 - Fixed a memory problem when computing patch-based covariance matrix when npatches
   is moderately large (e.g. 500). Thanks to Joe Zuntz and Judit Prat for finding and
   reporting the bug. (#137)
+
+Changes from version 4.2.7 to 4.2.8
+===================================
+
+- Fixed a bug in the calculation of jackknife and sample variance when only the second
+  catalog in a cross-correlation uses patches.

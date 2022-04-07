@@ -11,7 +11,6 @@
 #    this list of conditions, and the disclaimer given in the documentation
 #    and/or other materials provided with the distribution.
 
-import unittest
 import sys
 from mockmpi import mock_mpiexec
 
@@ -54,29 +53,24 @@ def test_mpi_kk():
     mock_mpiexec(4, do_mpi_kk, output)
     mock_mpiexec(1, do_mpi_kk, output)
 
-
-@unittest.skipIf(sys.version_info < (3, 0), "mock_mpiexec doesn't support python 2")
 @timer
 def test_mpi_cov_jackknife():
     mock_mpiexec(1, do_mpi_cov, "jackknife")
     mock_mpiexec(2, do_mpi_cov, "jackknife")
     mock_mpiexec(4, do_mpi_cov, "jackknife")
 
-@unittest.skipIf(sys.version_info < (3, 0), "mock_mpiexec doesn't support python 2")
 @timer
 def test_mpi_cov_bootstrap():
     mock_mpiexec(1, do_mpi_cov, "bootstrap")
     mock_mpiexec(2, do_mpi_cov, "bootstrap")
     mock_mpiexec(4, do_mpi_cov, "bootstrap")
 
-@unittest.skipIf(sys.version_info < (3, 0), "mock_mpiexec doesn't support python 2")
 @timer
 def test_mpi_cov_marked_bootstrap():
     mock_mpiexec(1, do_mpi_cov, "marked_bootstrap")
     mock_mpiexec(2, do_mpi_cov, "marked_bootstrap")
     mock_mpiexec(4, do_mpi_cov, "marked_bootstrap")
 
-@unittest.skipIf(sys.version_info < (3, 0), "mock_mpiexec doesn't support python 2")
 @timer
 def test_mpi_cov_sample():
     mock_mpiexec(1, do_mpi_cov, "sample")

@@ -11,7 +11,6 @@
 #    this list of conditions, and the disclaimer given in the documentation
 #    and/or other materials provided with the distribution.
 
-import unittest
 import sys
 from mockmpi import mock_mpiexec
 

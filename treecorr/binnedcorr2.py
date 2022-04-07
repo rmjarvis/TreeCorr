@@ -1126,7 +1126,7 @@ class BinnedCorr2(object):
         elif self.npatch1 == 1:
             # j=0 here.
             f = lambda i: ((j,k) for j,k in self.results.keys() if k!=i)
-            return [f(i) for i in range(self.npatch1)]
+            return [f(i) for i in range(self.npatch2)]
         else:
             assert self.npatch1 == self.npatch2
             # For each i:
@@ -1142,7 +1142,7 @@ class BinnedCorr2(object):
         elif self.npatch1 == 1:
             # j=0 here.
             f = lambda i: ((j,k) for j,k in self.results.keys() if k==i)
-            return [f(i) for i in range(self.npatch1)]
+            return [f(i) for i in range(self.npatch2)]
         else:
             assert self.npatch1 == self.npatch2
             # Note: It's not obvious to me a priori which of these should be the right choice.

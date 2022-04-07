@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>treecorr.binnedcorr2 &mdash; TreeCorr 4.2.7 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <title>treecorr.binnedcorr2 &mdash; TreeCorr 4.2.8 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
@@ -55,6 +55,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-4-to-4-2-5">Changes from version 4.2.4 to 4.2.5</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-5-to-4-2-6">Changes from version 4.2.5 to 4.2.6</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-6-to-4-2-7">Changes from version 4.2.6 to 4.2.7</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-7-to-4-2-8">Changes from version 4.2.7 to 4.2.8</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
 
@@ -1201,7 +1202,7 @@
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="c1"># j=0 here.</span>
             <span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="p">((</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="o">!=</span><span class="n">i</span><span class="p">)</span>
-            <span class="k">return</span> <span class="p">[</span><span class="n">f</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span><span class="p">)]</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">f</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npatch2</span><span class="p">)]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch2</span>
             <span class="c1"># For each i:</span>
@@ -1217,7 +1218,7 @@
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="c1"># j=0 here.</span>
             <span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="p">((</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="o">==</span><span class="n">i</span><span class="p">)</span>
-            <span class="k">return</span> <span class="p">[</span><span class="n">f</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span><span class="p">)]</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">f</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npatch2</span><span class="p">)]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch2</span>
             <span class="c1"># Note: It&#39;s not obvious to me a priori which of these should be the right choice.</span>

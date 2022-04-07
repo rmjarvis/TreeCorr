@@ -1334,8 +1334,8 @@ def _make_cov_design_matrix_core(corrs, npatch, func, name, rank=0, size=1):
             indx = corrs[0].rng.randint(npatch, size=npatch)
             vpairs = [c._bootstrap_pairs(indx) for c in corrs]
             plist.append(vpairs)
-    else:
-        assert False, "Invalid name %s in _make_cov_design_matrix_core" % name # pragma: no cover
+    else: # pragma: no cover
+        assert False, "Invalid name %s in _make_cov_design_matrix_core" % name 
 
     # Figure out the shape of the design matrix.
     v1 = func(corrs)

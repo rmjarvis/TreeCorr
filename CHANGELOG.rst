@@ -20,6 +20,8 @@ API Changes
 Performance improvements
 ------------------------
 
+- Added ability to compute patch-based covariance matrices using MPI. (#138, #139)
+
 
 New features
 ------------

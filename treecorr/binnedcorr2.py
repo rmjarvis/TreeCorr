@@ -20,6 +20,7 @@ import numpy as np
 import sys
 import coord
 import itertools
+import collections
 
 from . import _lib
 from .config import merge_config, setup_logger, get
@@ -1106,96 +1107,121 @@ class BinnedCorr2(object):
     #     return [ ((j,k) for j,k in self.results.keys() if j!=i and k!=i)                  #
     #               for i in range(self.npatch1) ]                                          #
     #                                                                                       #
-    # But this doesn't work because of what I consider a bug in the python language.        #
-    # Discussed here: https://bugs.python.org/issue7423                                     #
-    #                                                                                       #
-    # But Guido disagrees, so we're stuck with the following syntax instead:                #
-    #                                                                                       #
-    #     f = lambda i: ((j,k) for j,k in self.results.keys() if j!=i and k!=i)             #
-    #     return [ f(i) for i in range(self.npatch1) ]                                      #
-    #                                                                                       #
-    # which by all rights should be equivalent, but this one does the binding correctly.    #
+    # But this doesn't work with the MPI covariance calculation, since generators aren't    #
+    # picklable.  So the iterator classes below hold off making the generator until the     #
+    # iteration is actually started, which keeps them picklable.                            #
     #                                                                                       #
     #########################################################################################
 
+    class PairIterator(collections.abc.Iterator):
+        def __init__(self, results, npatch1, npatch2, index, ok=None):
+            self.results = results
+            self.npatch1 = npatch1
+            self.npatch2 = npatch2
+            self.index = index
+            self.ok = ok
+
+        def __iter__(self):
+            self.gen = iter(self.make_gen())
+            return self
+
+        def __next__(self):
+            return next(self.gen)
+
+    class JackknifePairIterator(PairIterator):
+        def make_gen(self):
+            if self.npatch2 == 1:
+                # k=0 here
+                return ((j,k) for j,k in self.results.keys() if j!=self.index)
+            elif self.npatch1 == 1:
+                # j=0 here
+                return ((j,k) for j,k in self.results.keys() if k!=self.index)
+            else:
+                # For each i:
+                #    Select all pairs where neither is i.
+                assert self.npatch1 == self.npatch2
+                return ((j,k) for j,k in self.results.keys() if j!=self.index and k!=self.index)
+
     def _jackknife_pairs(self):
-        if self.npatch2 == 1:
-            # k=0 here.
-            f = lambda i: ((j,k) for j,k in self.results.keys() if j!=i)
-            return [f(i) for i in range(self.npatch1)]
-        elif self.npatch1 == 1:
-            # j=0 here.
-            f = lambda i: ((j,k) for j,k in self.results.keys() if k!=i)
-            return [f(i) for i in range(self.npatch2)]
-        else:
-            assert self.npatch1 == self.npatch2
-            # For each i:
-            #    Select all pairs where neither is i.
-            f = lambda i: ((j,k) for j,k in self.results.keys() if j!=i and k!=i)
-            return [f(i) for i in range(self.npatch1)]
+        np = self.npatch1 if self.npatch1 != 1 else self.npatch2
+        return [self.JackknifePairIterator(self.results, self.npatch1, self.npatch2, i)
+                for i in range(np)]
+
+    class SamplePairIterator(PairIterator):
+        def make_gen(self):
+            if self.npatch2 == 1:
+                # k=0 here.
+                return ((j,k) for j,k in self.results.keys() if j==self.index)
+            elif self.npatch1 == 1:
+                # j=0 here.
+                return ((j,k) for j,k in self.results.keys() if k==self.index)
+            else:
+                assert self.npatch1 == self.npatch2
+                # Note: It's not obvious to me a priori which of these should be the right choice.
+                #       Empirically, they both underestimate the variance, but the second one
+                #       does so less on the tests I have in test_patch.py.  So that's the one I'm
+                #       using.
+                # For each i:
+                #    Select all pairs where either is i.
+                #return ((j,k) for j,k in self.results.keys() if j==self.index or k==self.index)
+                #
+                # For each i:
+                #    Select all pairs where first is i.
+                return ((j,k) for j,k in self.results.keys() if j==self.index)
 
     def _sample_pairs(self):
-        if self.npatch2 == 1:
-            # k=0 here.
-            f = lambda i: ((j,k) for j,k in self.results.keys() if j==i)
-            return [f(i) for i in range(self.npatch1)]
-        elif self.npatch1 == 1:
-            # j=0 here.
-            f = lambda i: ((j,k) for j,k in self.results.keys() if k==i)
-            return [f(i) for i in range(self.npatch2)]
-        else:
-            assert self.npatch1 == self.npatch2
-            # Note: It's not obvious to me a priori which of these should be the right choice.
-            #       Empirically, they both underestimate the variance, but the second one
-            #       does so less on the tests I have in test_patch.py.  So that's the one I'm
-            #       using.
-            # For each i:
-            #    Select all pairs where either is i.
-            #vpairs = [ [(j,k) for j,k in self.results.keys() if j==i or k==i]
-            #           for i in range(self.npatch1) ]
-            # For each i:
-            #    Select all pairs where first is i.
-            f = lambda i: ((j,k) for j,k in self.results.keys() if j==i)
-            return [f(i) for i in range(self.npatch1)]
+        np = self.npatch1 if self.npatch1 != 1 else self.npatch2
+        return [self.SamplePairIterator(self.results, self.npatch1, self.npatch2, i)
+                for i in range(np)]
 
     @lazy_property
     def _ok(self):
+        # It's much faster to make the pair lists for bootstrap iterators if we keep track of
+        # which (i,j) pairs are in the results dict using an "ok" matrix for quick access.
         ok = np.zeros((self.npatch1, self.npatch2), dtype=bool)
         for (i,j) in self.results:
             ok[i,j] = True
         return ok
 
-    def _marked_pairs(self, indx):
-        if self.npatch2 == 1:
-            return ( (i,0) for i in indx if self._ok[i,0] )
-        elif self.npatch1 == 1:
-            return ( (0,i) for i in indx if self._ok[0,i] )
-        else:
-            assert self.npatch1 == self.npatch2
-            # Select all pairs where first point is in indx (repeating i as appropriate)
-            return ( (i,j) for i in indx for j in range(self.npatch2) if self._ok[i,j] )
+    class MarkedPairIterator(PairIterator):
+        def make_gen(self):
+            if self.npatch2 == 1:
+                return ( (i,0) for i in self.index if self.ok[i,0] )
+            elif self.npatch1 == 1:
+                return ( (0,i) for i in self.index if self.ok[0,i] )
+            else:
+                assert self.npatch1 == self.npatch2
+                # Select all pairs where first point is in index (repeating i as appropriate)
+                return ( (i,j) for i in self.index for j in range(self.npatch2) if self.ok[i,j] )
 
-    def _bootstrap_pairs(self, indx):
-        if self.npatch2 == 1:
-            return ( (i,0) for i in indx if self._ok[i,0] )
-        elif self.npatch1 == 1:
-            return ( (0,i) for i in indx if self._ok[0,i] )
-        else:
-            assert self.npatch1 == self.npatch2
-            # Include all represented auto-correlations once, repeating as appropriate.
-            # This needs to be done separately from the below step to avoid extra pairs (i,i)
-            # that you would get by looping i in indx and j in indx for cases where i=j at
-            # different places in the indx list.  E.g. if i=3 shows up 3 times in indx, then
-            # the naive way would get 9 instance of (3,3), whereas we only want 3 instances.
-            ret1 = ( (i,i) for i in indx if self._ok[i,i] )
+    def _marked_pairs(self, index):
+        return self.MarkedPairIterator(self.results, self.npatch1, self.npatch2, index, self._ok)
 
-            # And all other pairs that aren't really auto-correlations.
-            # These can happen at their natural multiplicity from i and j loops.
-            # Note: This is way faster with the precomputed ok matrix.
-            # Like 0.005 seconds per call rather than 1.2 seconds for 128 patches!
-            ret2 = ( (i,j) for i in indx for j in indx if self._ok[i,j] and i!=j )
+    class BootstrapPairIterator(PairIterator):
+        def make_gen(self):
+            if self.npatch2 == 1:
+                return ( (i,0) for i in self.index if self.ok[i,0] )
+            elif self.npatch1 == 1:
+                return ( (0,i) for i in self.index if self.ok[0,i] )
+            else:
+                assert self.npatch1 == self.npatch2
+                # Include all represented auto-correlations once, repeating as appropriate.
+                # This needs to be done separately from the below step to avoid extra pairs (i,i)
+                # that you would get by looping i in index and j in index for cases where i=j at
+                # different places in the index list.  E.g. if i=3 shows up 3 times in index, then
+                # the naive way would get 9 instance of (3,3), whereas we only want 3 instances.
+                ret1 = ( (i,i) for i in self.index if self.ok[i,i] )
 
-            return itertools.chain(ret1, ret2)
+                # And all other pairs that aren't really auto-correlations.
+                # These can happen at their natural multiplicity from i and j loops.
+                # Note: This is way faster with the precomputed ok matrix.
+                # Like 0.005 seconds per call rather than 1.2 seconds for 128 patches!
+                ret2 = ( (i,j) for i in self.index for j in self.index if self.ok[i,j] and i!=j )
+
+                return itertools.chain(ret1, ret2)
+
+    def _bootstrap_pairs(self, index):
+        return self.BootstrapPairIterator(self.results, self.npatch1, self.npatch2, index, self._ok)
 
 
 @depr_pos_kwargs
@@ -1461,8 +1487,8 @@ def _cov_marked(corrs, func, comm=None):
     plist = []
     for k in range(nboot):
         # Select a random set of indices to use.  (Will have repeats.)
-        indx = corrs[0].rng.randint(npatch, size=npatch)
-        vpairs = [c._marked_pairs(indx) for c in corrs]
+        index = corrs[0].rng.randint(npatch, size=npatch)
+        vpairs = [c._marked_pairs(index) for c in corrs]
         plist.append(vpairs)
 
     v,w = _make_cov_design_matrix(corrs, plist, func, 'marked_bootstrap', comm=comm)
@@ -1486,8 +1512,8 @@ def _cov_bootstrap(corrs, func, comm=None):
 
     plist = []
     for k in range(nboot):
-        indx = corrs[0].rng.randint(npatch, size=npatch)
-        vpairs = [c._bootstrap_pairs(indx) for c in corrs]
+        index = corrs[0].rng.randint(npatch, size=npatch)
+        vpairs = [c._bootstrap_pairs(index) for c in corrs]
         plist.append(vpairs)
 
     v,w = _make_cov_design_matrix(corrs, plist, func, 'bootstrap', comm=comm)

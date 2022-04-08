@@ -202,11 +202,7 @@ def do_mpi_cov(comm, method, output=True):
     from test_patch import generate_shear_field
     nside = 200
     npatch = 16
-
-    if "bootstrap" in method:
-        tol = 2.0e-5
-    else:
-        tol = 1.0e-8
+    tol = 1.0e-8
 
     # Generate a random catalog to use. Because all the processes
     # have the same random seed they will get the same catalogs,
@@ -218,10 +214,11 @@ def do_mpi_cov(comm, method, output=True):
     ran_cat = treecorr.Catalog(x=x, y=y, npatch=npatch)
 
     # Generate the three sets of correlations we will use
-    gg = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-    ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-    nn = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-    rr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    rng = np.random.RandomState(31415)
+    gg = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng)
+    ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng)
+    nn = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng)
+    rr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng)
     if output:
         print(comm.rank, "Running GG process")
     gg.process(cat, comm=comm)
@@ -249,7 +246,6 @@ def do_mpi_cov(comm, method, output=True):
     ng.calculateXi()
     nn.calculateXi(rr=rr)
 
-
     corrs = [gg, ng, nn]
 
     # Get the baseline single process covariance
@@ -264,10 +260,11 @@ def do_mpi_cov(comm, method, output=True):
     if output:
         print("\nCOV 1 \n", cov1[0:3,0:3], " for rank ", comm.rank, " of ", comm.size)
 
-    gg = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-    ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-    nn = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-    rr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    rng = np.random.RandomState(31415)
+    gg = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng)
+    ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng)
+    nn = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng)
+    rr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng)
     if output:
         print(comm.rank, "Running GG process 2")
     gg.process(cat, comm=comm)

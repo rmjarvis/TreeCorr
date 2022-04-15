@@ -391,7 +391,7 @@ class Field(object):
         of the inertia at the local minimum that the K-Means algorithm settles into tends to be
         fairly high for typical geometries.
 
-        A better approach is to use the existing tree structure to star out with centers that
+        A better approach is to use the existing tree structure to start out with centers that
         are fairly evenly spread out through the field.  This algorithm traverses the tree
         until we get to a level that has enough cells for the requested number of patches.
         Then it uses the centroids of these cells as the initial patch centers.

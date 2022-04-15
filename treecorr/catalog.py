@@ -1008,6 +1008,10 @@ class Catalog(object):
             field = self.getNField(max_top=max_top, coords=c)
             self.logger.info("Finding %d patches using kmeans.",self._npatch)
             self._patch, self._centers = field.run_kmeans(self._npatch, init=init, alt=alt)
+            # Clear the cached NField, since we will almost certainly not want this
+            # particular one again, even if doing N-based correlations (since max_top, etc.
+            # is almost certainly going to be different).
+            self.nfields.clear()
 
         self.logger.info("   nobj = %d",self.nobj)
 

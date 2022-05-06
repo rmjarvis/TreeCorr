@@ -23,12 +23,7 @@ import inspect
 import warnings
 
 from . import _lib, _ffi, Rperp_alias
-
-def ensure_dir(target):
-    d = os.path.dirname(target)
-    if d != '':
-        if not os.path.exists(d):
-            os.makedirs(d)
+from .writer import AsciiWriter, FitsWriter, HdfWriter
 
 def set_omp_threads(num_threads, logger=None):
     """Set the number of OpenMP threads to use in the C++ layer.
@@ -97,6 +92,21 @@ def parse_file_type(file_type, file_name, output=False, logger=None):
             logger.info("   file_type assumed to be %s from the file name.",file_type)
     return file_type.upper()
 
+def make_writer(file_name, precision=4, file_type=None, logger=None):
+    """Factory function to make a writer instance of the correct type.
+    """
+    # Figure out which file type to use.
+    file_type = parse_file_type(file_type, file_name, output=True, logger=logger)
+    if file_type == 'FITS':
+        writer = FitsWriter(file_name, logger=logger)
+    elif file_type == 'HDF':
+        writer = HdfWriter(file_name, logger=logger)
+    elif file_type == 'ASCII':
+        writer = AsciiWriter(file_name, precision=precision, logger=logger)
+    else:
+        raise ValueError("Invalid file_type %s"%file_type)
+    return writer
+
 def gen_write(file_name, col_names, columns, params=None, precision=4, file_type=None, logger=None):
     """Write some columns to an output file with the given column names.
 
@@ -119,94 +129,11 @@ def gen_write(file_name, col_names, columns, params=None, precision=4, file_type
     for col in columns[1:]:
         if col.shape != columns[0].shape:
             raise ValueError("columns are not all the same shape")
+
     columns = [ col.flatten() for col in columns ]
-
-    ensure_dir(file_name)
-
-    # Figure out which file type to use.
-    file_type = parse_file_type(file_type, file_name, output=True, logger=logger)
-
-    if file_type == 'FITS':
-        try:
-            import fitsio  # noqa: F401
-        except ImportError:
-            if logger:
-                logger.error("Unable to import fitsio.  Cannot write to %s"%file_name)
-            raise
-        with fitsio.FITS(file_name, 'rw', clobber=True) as fits:
-            gen_write_fits(fits, col_names, columns, params)
-    elif file_type == 'ASCII':
-        with open(file_name, 'wb') as fid:
-            gen_write_ascii(fid, col_names, columns, params, precision=precision)
-    elif file_type == 'HDF':
-        try:
-            import h5py  # noqa: F401
-        except ImportError:
-            if logger:
-                logger.error("Unable to import h5py.  Cannot write to %s"%file_name)
-            raise
-        with h5py.File(file_name, 'w') as hdf:
-            gen_write_hdf(hdf, col_names, columns, params)
-
-    else:
-        raise ValueError("Invalid file_type %s"%file_type)
-
-def gen_write_ascii(fid, col_names, columns, params, precision=4):
-    """Write some columns to an output ASCII file with the given column names.
-
-    :param fid:         An open file handler in binary mode. E.g. fid = open(file_name, 'wb')
-    :param col_names:   A list of columns names for the given columns.  These will be written
-                        in a header comment line at the top of the output file.
-    :param columns:     A list of numpy arrays with the data to write.
-    :param params:      A dict of extra parameters to write at the top of the output file.
-    :param precision:   Output precision for ASCII. (default: 4)
-    """
-    ncol = len(col_names)
-    data = np.empty( (len(columns[0]), ncol) )
-    for i,col in enumerate(columns):
-        data[:,i] = col
-
-    width = precision+8
-    # Note: The first one is 1 shorter to allow space for the initial #.
-    header = ("#" + "{:^%d}"%(width-1) + " {:^%d}"%(width) * (ncol-1) + "\n").format(*col_names)
-    fmt = '%%%d.%de'%(width,precision)
-
-    if params is not None:
-        s = '## %r\n'%(params)
-        fid.write(s.encode())
-    fid.write(header.encode())
-    np.savetxt(fid, data, fmt=fmt)
-
-def gen_write_fits(fits, col_names, columns, params, ext=None):
-    """Write some columns to a new FITS extension with the given column names.
-
-    :param fits:        An open fitsio.FITS handler. E.g. fits = fitsio.FITS(file_name, 'rw')
-    :param col_names:   A list of columns names for the given columns.
-    :param columns:     A list of numpy arrays with the data to write.
-    :param params:      A dict of extra parameters to write in the FITS header.
-    :param ext:         An optional name for the extension to write. (default: None)
-    """
-    data = np.empty(len(columns[0]), dtype=[ (name,'f8') for name in col_names ])
-    for (name, col) in zip(col_names, columns):
-        data[name] = col
-    fits.write(data, header=params, extname=ext)
-
-def gen_write_hdf(hdf, col_names, columns, params, group=None):
-    """Write some columns to a new FITS extension with the given column names.
-
-    :param hdf:         An open h5py.File handle. E.g. hdf = h5py.File(file_name, 'w')
-    :param col_names:   A list of columns names for the given columns.
-    :param columns:     A list of numpy arrays with the data to write.
-    :param params:      A dict of extra parameters to write in the HDF attributes.
-    :param group:       An optional name for the group to write in. (default: None,
-                        and the data is written to the root group).
-    """
-    if group is not None:
-        hdf = hdf.create_group(group)
-    if params is not None:
-        hdf.attrs.update(params)
-    for (name, col) in zip(col_names, columns):
-        hdf.create_dataset(name, data=col)
+    writer = make_writer(file_name, precision, file_type, logger)
+    with writer:
+        writer.write(col_names, columns, params=params)
 
 def gen_multi_write(file_name, col_names, group_names, columns,
                     params=None, precision=4, file_type=None, logger=None):
@@ -242,40 +169,10 @@ def gen_multi_write(file_name, col_names, group_names, columns,
                 raise ValueError("columns are not all the same shape")
 
     columns = [ [ col.flatten() for col in group ] for group in columns ]
-
-    ensure_dir(file_name)
-
-    # Figure out which file type to use.
-    file_type = parse_file_type(file_type, file_name, output=True, logger=logger)
-
-    if file_type == 'FITS':
-        try:
-            import fitsio  # noqa: F401
-        except ImportError:
-            if logger:
-                logger.error("Unable to import fitsio.  Cannot write to %s"%file_name)
-            raise
-        with fitsio.FITS(file_name, 'rw', clobber=True) as fits:
-            for name, cols in zip(group_names, columns):
-                gen_write_fits(fits, col_names, cols, params, ext=name)
-    elif file_type == 'ASCII':
-        with open(file_name, 'wb') as fid:
-            for name, cols in zip(group_names, columns):
-                s = '## %s: %d\n'%(name, len(cols[0]))
-                fid.write(s.encode())
-                gen_write_ascii(fid, col_names, cols, params, precision=precision)
-    elif file_type == "HDF":
-        try:
-            import h5py
-        except ImportError:
-            if logger:
-                logger.error("Unable to import h5py.  Cannot write to %s"%file_name)
-            raise
-        with h5py.File(file_name, 'w') as hdf:
-            for name, cols in zip(group_names, columns):
-                gen_write_hdf(hdf, col_names, cols, params, group=name)
-    else:
-        raise ValueError("Invalid file_type %s"%file_type)
+    writer = make_writer(file_name, precision, file_type, logger)
+    with writer:
+        for name, cols in zip(group_names, columns):
+            writer.write(col_names, cols, params=params, name=name)
 
 def gen_read(file_name, file_type=None, logger=None):
     """Read some columns from an input file.

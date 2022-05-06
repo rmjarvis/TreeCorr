@@ -89,3 +89,12 @@ Utilities related to the configuration dict
     :members:
 
 
+File Writers
+------------
+
+.. autoclass:: treecorr.writer.FitsWriter
+    :members:
+.. autoclass:: treecorr.writer.HdfWriter
+    :members:
+.. autoclass:: treecorr.writer.AsciiWriter
+    :members:

@@ -31,3 +31,5 @@ File Readers
     :members:
 .. autoclass:: treecorr.reader.PandasReader
     :members:
+.. autoclass:: treecorr.reader.ParquetReader
+    :members:

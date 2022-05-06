@@ -17,6 +17,10 @@ import coord
 import time
 import fitsio
 import treecorr
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
 from test_helper import assert_raises, do_pickle, timer, get_from_wiki, CaptureLog, clear_save
 
@@ -775,6 +779,17 @@ def test_gg_jk():
     print('ratio = ',cov_boot.diagonal()[n:] / var_xim)
     np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.3*tol_factor)
     np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
+
+    # Check that these still work after roundtripping through a file.
+    file_name = os.path.join('output','test_write_results.pkl')
+    with open(file_name, 'wb') as f:
+        pickle.dump(gg3, f)
+    with open(file_name, 'rb') as f:
+        gg4 = pickle.load(f)
+    cov4 = gg4.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov4, gg3.cov)
+    covxip4 = gg4.estimate_cov('jackknife', func=lambda gg: gg.xip)
+    np.testing.assert_allclose(covxip4, covxip)
 
     # Check some invalid actions
     # Bad var_method

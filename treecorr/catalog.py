@@ -1210,7 +1210,8 @@ class Catalog(object):
 
         # Either both shoudl be 0 or both != 0.
         if (g1_col == '0') != (g2_col == '0'):
-            raise ValueError("g1_col, g2_col are invalid for file %s"%file_name)
+            raise ValueError("g1_col, g2_col=(%s, %s) are invalid for file %s"%(
+                        g1_col,g2_col,file_name))
 
         # This opens the file enough to read things inside.  The full read doesn't happen here.
         with reader:
@@ -1227,44 +1228,44 @@ class Catalog(object):
                 x_ext = get_from_list(self.config, 'x_ext', num, str, ext)
                 y_ext = get_from_list(self.config, 'y_ext', num, str, ext)
                 if x_col not in reader.names(x_ext):
-                    raise ValueError("x_col is invalid for file %s"%file_name)
+                    raise ValueError("x_col=%s is invalid for file %s"%(x_col,file_name))
                 if y_col not in reader.names(y_ext):
-                    raise ValueError("y_col is invalid for file %s"%file_name)
+                    raise ValueError("y_col=%s is invalid for file %s"%(y_col, file_name))
                 if z_col != '0':
                     z_ext = get_from_list(self.config, 'z_ext', num, str, ext)
                     if z_col not in reader.names(z_ext):
-                        raise ValueError("z_col is invalid for file %s"%file_name)
+                        raise ValueError("z_col=%s is invalid for file %s"%(z_col, file_name))
             else:
                 ra_ext = get_from_list(self.config, 'ra_ext', num, str, ext)
                 dec_ext = get_from_list(self.config, 'dec_ext', num, str, ext)
                 if ra_col not in reader.names(ra_ext):
-                    raise ValueError("ra_col is invalid for file %s"%file_name)
+                    raise ValueError("ra_col=%s is invalid for file %s"%(ra_col, file_name))
                 if dec_col not in reader.names(dec_ext):
-                    raise ValueError("dec_col is invalid for file %s"%file_name)
+                    raise ValueError("dec_col=%s is invalid for file %s"%(dec_col, file_name))
                 if r_col != '0':
                     r_ext = get_from_list(self.config, 'r_ext', num, str, ext)
                     if r_col not in reader.names(r_ext):
-                        raise ValueError("r_col is invalid for file %s"%file_name)
+                        raise ValueError("r_col=%s is invalid for file %s"%(r_col, file_name))
 
             if w_col != '0':
                 w_ext = get_from_list(self.config, 'w_ext', num, str, ext)
                 if w_col not in reader.names(w_ext):
-                    raise ValueError("w_col is invalid for file %s"%file_name)
+                    raise ValueError("w_col=%s is invalid for file %s"%(w_col, file_name))
 
             if wpos_col != '0':
                 wpos_ext = get_from_list(self.config, 'wpos_ext', num, str, ext)
                 if wpos_col not in reader.names(wpos_ext):
-                    raise ValueError("wpos_col is invalid for file %s"%file_name)
+                    raise ValueError("wpos_col=%s is invalid for file %s"%(wpos_col, file_name))
 
             if flag_col != '0':
                 flag_ext = get_from_list(self.config, 'flag_ext', num, str, ext)
                 if flag_col not in reader.names(flag_ext):
-                    raise ValueError("flag_col is invalid for file %s"%file_name)
+                    raise ValueError("flag_col=%s is invalid for file %s"%(flag_col, file_name))
 
             if patch_col != '0':
                 patch_ext = get_from_list(self.config, 'patch_ext', num, str, ext)
                 if patch_col not in reader.names(patch_ext):
-                    raise ValueError("patch_col is invalid for file %s"%file_name)
+                    raise ValueError("patch_col=%s is invalid for file %s"%(patch_col, file_name))
 
             if is_rand: return
 
@@ -1274,21 +1275,25 @@ class Catalog(object):
                 if (g1_col not in reader.names(g1_ext) or
                     g2_col not in reader.names(g2_ext)):
                     if isGColRequired(self.orig_config,num):
-                        raise ValueError("g1_col, g2_col are invalid for file %s"%file_name)
+                        raise ValueError(
+                            "g1_col, g2_col=(%s, %s) are invalid for file %s"%(
+                                g1_col, g2_col, file_name))
                     else:
-                        self.logger.warning("Warning: skipping g1_col, g2_col for %s, num=%d "%(
-                                            file_name,num) +
-                                            "because they are invalid, but unneeded.")
+                        self.logger.warning(
+                            "Warning: skipping g1_col, g2_col=(%s, %s) for %s, num=%d "%(
+                                g1_col, g2_col, file_name, num) +
+                            "because they are invalid, but unneeded.")
 
             if k_col != '0':
                 k_ext = get_from_list(self.config, 'k_ext', num, str, ext)
                 if k_col not in reader.names(k_ext):
                     if isKColRequired(self.orig_config,num):
-                        raise ValueError("k_col is invalid for file %s"%file_name)
+                        raise ValueError("k_col=%s is invalid for file %s"%(k_col, file_name))
                     else:
-                        self.logger.warning("Warning: skipping k_col for %s, num=%d "%(
-                                            file_name,num)+
-                                            "because it is invalid, but unneeded.")
+                        self.logger.warning(
+                            "Warning: skipping k_col=%s for %s, num=%d "%(
+                                k_col, file_name, num) +
+                            "because it is invalid, but unneeded.")
 
     def _pandas_warning(self):
         if Catalog._emitted_pandas_warning:

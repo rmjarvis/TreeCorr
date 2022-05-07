@@ -45,8 +45,14 @@ class AsciiReader(object):
         self.file_name = file_name
         self.delimiter = delimiter
         self.comment_marker = comment_marker
-        self.ncols = None
         self.nrows = None
+        self._file = None
+
+    @property
+    def file(self):
+        if self._file is None:
+            raise RuntimeError('Illegal operation when not in a "with" context')
+        return self._file
 
     def __contains__(self, ext):
         """Check if ext is None.
@@ -85,8 +91,7 @@ class AsciiReader(object):
         Returns:
             The data as a dict or single numpy array as appropriate
         """
-        if self.ncols is None:
-            raise RuntimeError('Illegal operation when not in a "with" context')
+        self.file  # Check that we are in a with context, so other things are set up correctly.
 
         # Figure out how many rows to skip at the start
         if isinstance(s, slice) and s.start is not None:
@@ -110,9 +115,10 @@ class AsciiReader(object):
             icols = [geti(col) for col in cols]
 
         # Actually read the data
-        data = np.genfromtxt(self.file_name, comments=self.comment_marker,
+        data = np.genfromtxt(self.file, comments=self.comment_marker,
                              delimiter=self.delimiter, usecols=icols,
                              skip_header=skiprows, max_rows=nrows)
+        self.file.seek(0)
 
         # If only one column, then the shape comes in as one-d.  Reshape it:
         if len(icols) == 1:
@@ -143,15 +149,15 @@ class AsciiReader(object):
         Returns:
             data, params
         """
-        with open(self.file_name) as fid:
-            header = next(fid)
-            params = {}
-            if header[1] == '#':
-                assert header[0] == '#'
-                params = eval(header[2:].strip())
-                header = next(fid)
-            names = header[1:].split()
-            data = np.genfromtxt(fid, names=names, max_rows=max_rows)
+        header = next(self.file)
+        params = {}
+        if header[1] == '#':
+            assert header[0] == '#'
+            params = eval(header[2:].strip())
+            header = next(self.file)
+        names = header[1:].split()
+        data = np.genfromtxt(self.file, names=names, max_rows=max_rows)
+        self.file.seek(0)
         return data, params
 
     def row_count(self, col=None, ext=None):
@@ -164,22 +170,21 @@ class AsciiReader(object):
         Returns:
             The number of rows
         """
-        if self.ncols is None:
-            raise RuntimeError('Illegal operation when not in a "with" context')
         if self.nrows is not None:
             return self.nrows
+
         # cf. https://stackoverflow.com/a/850962/1332281
         # On my system with python 3.7, bufcount was the fastest among these solutions.
         # I also found 256K was the optimal buf size for my system.  Probably YMMV, but
         # micro-optimizing this is not so important.  It's never used by treecorr.
         # Only the FitsReader ever calls row_count other than from the unit tests.
-        with open(self.file_name) as f:
-            lines = 0
-            buf_size = 256 * 1024
-            buf = f.read(buf_size)
-            while buf:
-                lines += buf.count('\n')
-                buf = f.read(buf_size)
+        lines = 0
+        buf_size = 256 * 1024
+        buf = self.file.read(buf_size)
+        while buf:
+            lines += buf.count('\n')
+            buf = self.file.read(buf_size)
+        self.file.seek(0)  # Go back to the beginning
         self.nrows = lines - self.comment_rows
         return self.nrows
 
@@ -192,8 +197,7 @@ class AsciiReader(object):
         Returns:
             A list of string column names
         """
-        if self.ncols is None:
-            raise RuntimeError('Cannot get names when not in a "with" context')
+        self.file  # Check that we are in a with context, so other things are set up correctly.
 
         # Include both int values as strings and any real names we know about.
         return [str(i+1) for i in range(self.ncols)] + list(self.col_names)
@@ -225,11 +229,12 @@ class AsciiReader(object):
                 raise OSError('Unable to parse the input catalog as a numpy array')
             self.ncols = data.shape[0]
 
+        self._file = open(self.file_name, 'r')
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        self.ncols = None  # Marker that we are not in context
-        self.nrows = None
+        self._file.close()
+        self._file = None
 
 
 class PandasReader(AsciiReader):
@@ -267,8 +272,7 @@ class PandasReader(AsciiReader):
             The data as a dict or single numpy array as appropriate
         """
         import pandas
-        if self.ncols is None:
-            raise RuntimeError('Cannot read when not in a "with" context')
+        self.file  # Check that we are in a with context, so other things are set up correctly.
 
         # Figure out how many rows to skip at the start
         if isinstance(s, slice) and s.start is not None:
@@ -306,9 +310,10 @@ class PandasReader(AsciiReader):
             icols = [geti(col) for col in cols]
 
         # Actually read the data
-        df = pandas.read_csv(self.file_name, comment=self.comment_marker,
+        df = pandas.read_csv(self.file, comment=self.comment_marker,
                              sep=self.sep, usecols=icols, header=None,
                              skiprows=skiprows, nrows=nrows)
+        self.file.seek(0)
 
         # Return is slightly different if we have multiple columns or not.
         if np.isscalar(cols):

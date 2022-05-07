@@ -372,6 +372,7 @@ def _test_ascii_reader(r, has_names=True):
         r.read([1,3,9])
     with assert_raises(RuntimeError):
         r.read('ra')
+    r.nrows = None
     with assert_raises(RuntimeError):
         r.row_count(1, None)
     with assert_raises(RuntimeError):

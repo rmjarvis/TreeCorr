@@ -34,7 +34,7 @@ class AsciiReader(object):
     can_slice = True
     default_ext = None
 
-    def __init__(self, file_name, delimiter=None, comment_marker='#'):
+    def __init__(self, file_name, delimiter=None, comment_marker='#', logger=None):
         """
         Parameters:
             file_name (str):        The file name
@@ -134,6 +134,26 @@ class AsciiReader(object):
         else:
             return {col : data[:,i] for i,col in enumerate(cols)}
 
+    def read_all(self, ext=None, max_rows=None):
+        """Read all data in the file, and the parameters in the header, if any.
+
+        Parameters:
+            ext (str):          The extension (ignored)
+
+        Returns:
+            data, params
+        """
+        with open(self.file_name) as fid:
+            header = next(fid)
+            params = {}
+            if header[1] == '#':
+                assert header[0] == '#'
+                params = eval(header[2:].strip())
+                header = next(fid)
+            names = header[1:].split()
+            data = np.genfromtxt(fid, names=names, max_rows=max_rows)
+        return data, params
+
     def row_count(self, col=None, ext=None):
         """Count the number of rows in the file.
 
@@ -215,7 +235,7 @@ class AsciiReader(object):
 class PandasReader(AsciiReader):
     """Reader interface for ASCII files using pandas.
     """
-    def __init__(self, file_name, delimiter=None, comment_marker='#'):
+    def __init__(self, file_name, delimiter=None, comment_marker='#', logger=None):
         """
         Parameters:
             file_name (str):        The file name
@@ -223,8 +243,12 @@ class PandasReader(AsciiReader):
                                     which means any whitespace)
             comment_marker (str):   What token indicates a comment line. (default: '#')
         """
-        # Do this immediately, so we get an ImportError if it isn't available.
-        import pandas  # noqa: F401
+        try:
+            import pandas
+        except ImportError:
+            if logger:
+                logger.error("Unable to import pandas.  Cannot read %s"%file_name)
+            raise
 
         AsciiReader.__init__(self, file_name, delimiter, comment_marker)
         # This is how pandas handles whitespace
@@ -298,7 +322,7 @@ class ParquetReader():
     can_slice = True
     default_ext = None
 
-    def __init__(self, file_name, delimiter=None, comment_marker='#'):
+    def __init__(self, file_name, delimiter=None, comment_marker='#', logger=None):
         """
         Parameters:
             file_name (str):        The file name
@@ -306,8 +330,12 @@ class ParquetReader():
                                     which means any whitespace)
             comment_marker (str):   What token indicates a comment line. (default: '#')
         """
-        # Do this immediately, so we get an ImportError if it isn't available.
-        import pandas  # noqa: F401
+        try:
+            import pandas
+        except ImportError:
+            if logger:
+                logger.error("Unable to import pandas.  Cannot read %s"%file_name)
+            raise
 
         self.file_name = file_name
         self._df = None
@@ -400,12 +428,17 @@ class FitsReader(object):
     """
     default_ext = 1
 
-    def __init__(self, file_name):
+    def __init__(self, file_name, logger=None):
         """
         Parameters:
             file_name (str):    The file name
         """
-        import fitsio
+        try:
+            import fitsio
+        except ImportError:
+            if logger:
+                logger.error("Unable to import fitsio.  Cannot read %s"%file_name)
+            raise
 
         self._file = None  # Only works inside a with block.
 
@@ -479,6 +512,20 @@ class FitsReader(object):
         ext = self._update_ext(ext)
         return self.file[ext][cols][s]
 
+    def read_all(self, ext=1):
+        """Read all data in the file, and the parameters in the header, if any.
+
+        Parameters:
+            ext (str/int):      The FITS extension to use (default: 1)
+
+        Returns:
+            data, params
+        """
+        ext = self._update_ext(ext)
+        data = self.file[ext].read()
+        params = self.file[ext].read_header()
+        return data, params
+
     def row_count(self, col=None, ext=1):
         """Count the number of rows in the named extension
 
@@ -528,12 +575,17 @@ class HdfReader(object):
     can_slice = True
     default_ext = '/'
 
-    def __init__(self, file_name):
+    def __init__(self, file_name, logger=None):
         """
         Parameters:
             file_name (str):    The file name
         """
-        import h5py  # noqa: F401  Just to check right away that it will work.
+        try:
+            import h5py
+        except ImportError:
+            if logger:
+                logger.error("Unable to import h5py.  Cannot read %s"%file_name)
+            raise
 
         self._file = None  # Only works inside a with block.
         self.file_name = file_name
@@ -591,6 +643,33 @@ class HdfReader(object):
             return g[cols][s]
         else:
             return {col : g[col][s] for col in cols}
+
+    def read_all(self, ext='/'):
+        """Read all data in the file, and the parameters in the attributes, if any.
+
+        Parameters:
+            ext (str):          The HDF (sub-)group to use (default: '/')
+
+        Returns:
+            data, params
+        """
+        g = self._group(ext)
+        params = dict(hdf.attrs)
+
+        # This does not actually load the column
+        col_vals =  list(hdf.values())
+        col_names = list(hdf.keys())
+
+        ncol = len(col_names)
+        sz = col_vals[0].size
+        dtype=[(name, col.dtype) for (name, col) in zip(col_names, col_vals)]
+        data = np.empty(sz, dtype=dtype)
+
+        # Now we actually read everything
+        for (name, col) in zip(col_names, col_vals):
+            data[name] = col[:]
+
+        return data, params
 
     def row_count(self, col, ext='/'):
         """Count the number of rows in the named extension and column

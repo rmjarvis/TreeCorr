@@ -24,6 +24,7 @@ import warnings
 
 from . import _lib, _ffi, Rperp_alias
 from .writer import AsciiWriter, FitsWriter, HdfWriter
+from .reader import AsciiReader, FitsReader, HdfReader
 
 def set_omp_threads(num_threads, logger=None):
     """Set the number of OpenMP threads to use in the C++ layer.
@@ -106,6 +107,22 @@ def make_writer(file_name, precision=4, file_type=None, logger=None):
     else:
         raise ValueError("Invalid file_type %s"%file_type)
     return writer
+
+def make_reader(file_name, file_type=None, logger=None):
+    """Factory function to make a writer instance of the correct type.
+    """
+    # Figure out which file type to use.
+    file_type = parse_file_type(file_type, file_name, output=False, logger=logger)
+
+    if file_type == 'FITS':
+        reader = FitsReader(file_name, logger=logger)
+    elif file_type == 'HDF':
+        reader = HdfReader(file_name, logger=logger)
+    elif file_type == 'ASCII':
+        reader = AsciiReader(file_name, logger=logger)
+    else:
+        raise ValueError("Invalid file_type %s"%file_type)
+    return reader
 
 def gen_write(file_name, col_names, columns, params=None, precision=4, file_type=None, logger=None):
     """Write some columns to an output file with the given column names.
@@ -191,33 +208,9 @@ def gen_read(file_name, file_type=None, logger=None):
 
     :returns: (data, params), a numpy ndarray with named columns, and a dict of extra parameters.
     """
-    # Figure out which file type to use.
-    file_type = parse_file_type(file_type, file_name, output=True, logger=logger)
-
-    if file_type == 'FITS':
-        try:
-            import fitsio
-        except ImportError:
-            if logger:
-                logger.error("Unable to import fitsio.  Cannot read %s"%file_name)
-            raise
-        with fitsio.FITS(file_name) as fits:
-            return gen_read_fits(fits, ext=1)
-    elif file_type == 'HDF':
-        try:
-            import h5py
-        except ImportError:
-            if logger:
-                logger.error("Unable to import h5py.  Cannot read %s"%file_name)
-            raise
-        with h5py.File(file_name, 'r') as hdf:
-            return gen_read_hdf(hdf)
-
-    elif file_type == 'ASCII':
-        with open(file_name) as fid:
-            return gen_read_ascii(fid)
-    else:
-        raise ValueError("Invalid file_type %s"%file_type)
+    reader = make_reader(file_name, file_type, logger)
+    with reader:
+        return reader.read_all()
 
 def gen_read_ascii(fid, max_rows=None):
     """Read some columns from an input ASCII file.

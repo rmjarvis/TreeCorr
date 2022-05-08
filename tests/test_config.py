@@ -662,10 +662,8 @@ def test_gen_read_write():
         assert par['p2'] == 'hello'
 
         file_name7 = 'output/valid4.hdf5'
-        with h5py.File(file_name7, "w") as hdf:
-            treecorr.util.gen_write_hdf(hdf, ['a', 'b'], [a,b], params=params, group="my_group")
-        with h5py.File(file_name7, "r") as hdf:
-            data, par = treecorr.util.gen_read_hdf(hdf, group="my_group")
+        treecorr.util.gen_write(file_name7, ['a', 'b'], [a,b], params=params)
+        data, par = treecorr.util.gen_read(file_name7)
         np.testing.assert_array_equal(data['a'], a)
         np.testing.assert_array_equal(data['b'], b)
         print('par = ',par)

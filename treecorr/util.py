@@ -187,8 +187,10 @@ def gen_multi_write(file_name, col_names, group_names, columns,
 
     columns = [ [ col.flatten() for col in group ] for group in columns ]
     writer = make_writer(file_name, precision, file_type, logger)
+    params = {} if params is None else params
     with writer:
         for name, cols in zip(group_names, columns):
+            params['num_rows'] = len(cols[0])
             writer.write(col_names, cols, params=params, name=name)
 
 def gen_read(file_name, file_type=None, logger=None):
@@ -210,8 +212,8 @@ def gen_read(file_name, file_type=None, logger=None):
     """
     reader = make_reader(file_name, file_type, logger)
     with reader:
-        params, max_rows = reader.read_params()
-        data = reader.read_data(max_rows=max_rows)
+        params = reader.read_params()
+        data = reader.read_data()
         return data, params
 
 def gen_multi_read(file_name, group_names, file_type=None, logger=None):
@@ -237,8 +239,9 @@ def gen_multi_read(file_name, group_names, file_type=None, logger=None):
     out = []
     with reader:
         for name in group_names:
-            params, max_rows = reader.read_params(ext=name)
-            data = reader.read_data(ext=name, max_rows=max_rows)
+            params = reader.read_params(ext=name)
+            num_rows = params.get('num_rows', None)
+            data = reader.read_data(ext=name, max_rows=num_rows)
             out.append( (data,params) )
     return out
 

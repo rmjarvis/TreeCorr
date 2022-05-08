@@ -773,6 +773,7 @@ def test_gen_multi_read_write():
     for (d, par), (a,b) in zip(groups, data):
         np.testing.assert_array_equal(d['a'], a)
         np.testing.assert_array_equal(d['b'], b)
+        par.pop('num_rows')
         assert par == dict()
 
     file_name2 = 'output/valid1.fits'

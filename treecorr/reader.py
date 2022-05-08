@@ -143,40 +143,35 @@ class AsciiReader(object):
     def read_params(self, ext=None):
         """Read the params in the given extension, if any.
 
-        Also tries to read the number of rows in the "extension" and returns that as the
-        second return value, which will be needed by read_data.
-
         Parameters:
             ext (str):          The extension (ignored -- Ascii always reads the next group)
 
         Returns:
-            params, max_rows
+            params
         """
         header = next(self.file)
         params = {}
-        max_rows = None
         if header[1] == '#':
             assert header[0] == '#'
             tokens = header[2:].split()
             if tokens[0][0] != '{':
-                # Then before the dict, we have group_name: max_rows
-                name1 = tokens[0][:-1]  # strip off final :
+                # Then before the dict, we have group_name
+                name1 = tokens[0]
                 if name1 != ext:
                     raise OSError("Mismatch in group names.  Expected %s, found %s"%(ext, name1))
-                max_rows = int(tokens[1])
                 header = next(self.file)
             if header[1] == '#':
                 assert header[0] == '#'
                 params = eval(header[2:].strip())
                 header = next(self.file)
-        return params, max_rows
+        return params
 
     def read_data(self, ext=None, max_rows=None):
         """Read all data in the file, and the parameters in the header, if any.
 
         Parameters:
             ext (str):          The extension (ignored -- Ascii always reads the next group)
-            max_rows (int):     The max number of rows to read. (defulat: None)
+            max_rows (int):     The max number of rows to read. (default: None)
 
         Returns:
             data
@@ -544,18 +539,15 @@ class FitsReader(object):
     def read_params(self, ext=1):
         """Read the params in the given extension, if any.
 
-        For compatibility with AsciiReader, returns max_rows for the second return value,
-        which is always None here.
-
         Parameters:
             ext (str/int):      The FITS extension to use (default: 1)
 
         Returns:
-            params, None
+            params
         """
         ext = self._update_ext(ext)
         params = self.file[ext].read_header()
-        return params, None
+        return params
 
     def read_data(self, ext=1, max_rows=None):
         """Read all data in the file, and the parameters in the header, if any.
@@ -693,19 +685,16 @@ class HdfReader(object):
     def read_params(self, ext='/'):
         """Read the params in the given extension, if any.
 
-        For compatibility with AsciiReader, returns max_rows for the second return value,
-        which is always None here.
-
         Parameters:
             ext (str):          The HDF (sub-)group to use (default: '/')
 
         Returns:
-            params, max_rows
+            params
         """
         g = self._group(ext)
         params = dict(g.attrs)
 
-        return params, None
+        return params
 
     def read_data(self, ext='/', max_rows=None):
         """Read all data in the file, and the parameters in the attributes, if any.

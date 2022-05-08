@@ -68,7 +68,7 @@ class AsciiWriter(object):
                     " {:^%d}"%(self.width) * (ncol-1) + "\n").format(*col_names)
 
         if name is not None:
-            s = '## %s: %d\n'%(name, len(columns[0]))
+            s = '## %s\n'%name
             self.file.write(s.encode())
         if params is not None:
             s = '## %r\n'%(params)

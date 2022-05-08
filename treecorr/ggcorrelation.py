@@ -572,7 +572,7 @@ class GGCorrelation(BinnedCorr2):
 
         reader = make_reader(file_name, file_type, self.logger)
         with reader:
-            params, _ = reader.read_params()
+            params = reader.read_params()
             max_rows = params.get('max_rows', None)
             num_patch_pairs = params.get('num_patch_pairs', 0)
 
@@ -582,7 +582,7 @@ class GGCorrelation(BinnedCorr2):
             for i in range(num_patch_pairs):
                 name = 'pp_%d'%i
                 corr = self.copy()
-                params, _ = reader.read_params(ext=name)
+                params = reader.read_params(ext=name)
                 data = reader.read_data(max_rows=max_rows, ext=name)
                 corr._read_from_data(data, params)
                 key = eval(params['key'])

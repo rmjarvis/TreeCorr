@@ -21,7 +21,7 @@ from . import _lib, _ffi
 from .catalog import calculateVarG
 from .binnedcorr2 import BinnedCorr2
 from .util import double_ptr as dp
-from .util import gen_read, gen_write
+from .util import gen_read, gen_write, make_writer, make_reader
 from .util import depr_pos_kwargs
 
 
@@ -474,7 +474,7 @@ class GGCorrelation(BinnedCorr2):
 
 
     @depr_pos_kwargs
-    def write(self, file_name, *, file_type=None, precision=None):
+    def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False):
         r"""Write the correlation function to the file, file_name.
 
         The output file will include the following columns:
@@ -507,25 +507,48 @@ class GGCorrelation(BinnedCorr2):
                                 the type automatically from the extension of file_name.)
             precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
                                 this value can also be given in the constructor in the config dict.)
+            write_patch_results (bool): Whether to write the patch-based results as well.
+                                        (default: False)
         """
         self.logger.info('Writing GG correlations to %s',file_name)
 
         if precision is None:
             precision = self.config.get('precision', 4)
 
+        col_names = ['r_nom', 'meanr', 'meanlogr', 'xip', 'xim', 'xip_im', 'xim_im',
+                     'sigma_xip', 'sigma_xim', 'weight', 'npairs']
+
+        # Note: Only include npatch1, npatch2 in serialization if we are also serializing
+        # results.  Otherwise, the corr that is read in will behave oddly.
+        columns, params = self._data_to_write(include_npatch=write_patch_results)
+
+        if write_patch_results:
+            params['num_patch_pairs'] = len(list(self.results.keys()))
+            params['max_rows'] = len(self.rnom)
+
+        writer = make_writer(file_name, precision, file_type, self.logger)
+        with writer:
+            writer.write(col_names, columns, params=params)
+            if write_patch_results:
+                writer.set_precision(16)
+                for i, (key, corr) in enumerate(self.results.items()):
+                    columns, params = corr._data_to_write()
+                    params['key'] = repr(key)
+                    name = 'pp_%d'%i
+                    writer.write(col_names, columns, params=params, name=name)
+
+    def _data_to_write(self, include_npatch=False):
+        columns = [ self.rnom, self.meanr, self.meanlogr,
+                    self.xip, self.xim, self.xip_im, self.xim_im,
+                    np.sqrt(self.varxip), np.sqrt(self.varxim),
+                    self.weight, self.npairs ]
+        columns = [ col.flatten() for col in columns ]
         params = { 'coords' : self.coords, 'metric' : self.metric,
                    'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
-
-        gen_write(
-            file_name,
-            ['r_nom','meanr','meanlogr','xip','xim','xip_im','xim_im','sigma_xip','sigma_xim',
-             'weight','npairs'],
-            [ self.rnom, self.meanr, self.meanlogr,
-              self.xip, self.xim, self.xip_im, self.xim_im,
-              np.sqrt(self.varxip), np.sqrt(self.varxim),
-              self.weight, self.npairs ],
-            params=params, precision=precision, file_type=file_type, logger=self.logger)
-
+        if include_npatch:
+            params['npatch1'] = self.npatch1
+            params['npatch2'] = self.npatch2
+        return columns, params
 
     @depr_pos_kwargs
     def read(self, file_name, *, file_type=None):
@@ -547,7 +570,25 @@ class GGCorrelation(BinnedCorr2):
         """
         self.logger.info('Reading GG correlations from %s',file_name)
 
-        data, params = gen_read(file_name, file_type=file_type, logger=self.logger)
+        reader = make_reader(file_name, file_type, self.logger)
+        with reader:
+            params, _ = reader.read_params()
+            max_rows = params.get('max_rows', None)
+            num_patch_pairs = params.get('num_patch_pairs', 0)
+
+            data = reader.read_data(max_rows=max_rows)
+            self._read_from_data(data, params)
+
+            for i in range(num_patch_pairs):
+                name = 'pp_%d'%i
+                corr = self.copy()
+                params, _ = reader.read_params(ext=name)
+                data = reader.read_data(max_rows=max_rows, ext=name)
+                corr._read_from_data(data, params)
+                key = eval(params['key'])
+                self.results[key] = corr
+
+    def _read_from_data(self, data, params):
         if 'R_nom' in data.dtype.names:  # pragma: no cover
             self._ro.rnom = data['R_nom']
             self.meanr = data['meanR']
@@ -574,7 +615,8 @@ class GGCorrelation(BinnedCorr2):
         self.metric = params['metric'].strip()
         self._ro.sep_units = params['sep_units'].strip()
         self._ro.bin_type = params['bin_type'].strip()
-
+        self.npatch1 = params.get('npatch1', 1)
+        self.npatch2 = params.get('npatch2', 1)
 
     @depr_pos_kwargs
     def calculateMapSq(self, *, R=None, m2_uform=None):

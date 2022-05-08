@@ -140,25 +140,49 @@ class AsciiReader(object):
         else:
             return {col : data[:,i] for i,col in enumerate(cols)}
 
-    def read_all(self, ext=None, max_rows=None):
-        """Read all data in the file, and the parameters in the header, if any.
+    def read_params(self, ext=None):
+        """Read the params in the given extension, if any.
+
+        Also tries to read the number of rows in the "extension" and returns that as the
+        second return value, which will be needed by read_data.
 
         Parameters:
-            ext (str):          The extension (ignored)
+            ext (str):          The extension (ignored -- Ascii always reads the next group)
 
         Returns:
-            data, params
+            params, max_rows
         """
         header = next(self.file)
         params = {}
+        max_rows = None
         if header[1] == '#':
             assert header[0] == '#'
-            params = eval(header[2:].strip())
-            header = next(self.file)
-        names = header[1:].split()
-        data = np.genfromtxt(self.file, names=names, max_rows=max_rows)
-        self.file.seek(0)
-        return data, params
+            tokens = header[2:].split()
+            if tokens[0][0] != '{':
+                # Then before the dict, we have group_name: max_rows
+                name1 = tokens[0][:-1]  # strip off final :
+                if name1 != ext:
+                    raise OSError("Mismatch in group names.  Expected %s, found %s"%(ext, name1))
+                max_rows = int(tokens[1])
+                header = next(self.file)
+            if header[1] == '#':
+                assert header[0] == '#'
+                params = eval(header[2:].strip())
+                header = next(self.file)
+        return params, max_rows
+
+    def read_data(self, ext=None, max_rows=None):
+        """Read all data in the file, and the parameters in the header, if any.
+
+        Parameters:
+            ext (str):          The extension (ignored -- Ascii always reads the next group)
+            max_rows (int):     The max number of rows to read. (defulat: None)
+
+        Returns:
+            data
+        """
+        data = np.genfromtxt(self.file, names=self.col_names, max_rows=max_rows)
+        return data
 
     def row_count(self, col=None, ext=None):
         """Count the number of rows in the file.
@@ -517,19 +541,35 @@ class FitsReader(object):
         ext = self._update_ext(ext)
         return self.file[ext][cols][s]
 
-    def read_all(self, ext=1):
-        """Read all data in the file, and the parameters in the header, if any.
+    def read_params(self, ext=1):
+        """Read the params in the given extension, if any.
+
+        For compatibility with AsciiReader, returns max_rows for the second return value,
+        which is always None here.
 
         Parameters:
             ext (str/int):      The FITS extension to use (default: 1)
 
         Returns:
-            data, params
+            params, None
+        """
+        ext = self._update_ext(ext)
+        params = self.file[ext].read_header()
+        return params, None
+
+    def read_data(self, ext=1, max_rows=None):
+        """Read all data in the file, and the parameters in the header, if any.
+
+        Parameters:
+            ext (str/int):      The FITS extension to use (default: 1)
+            max_rows (int):     The max number of rows to read. (ignored)
+
+        Returns:
+            data
         """
         ext = self._update_ext(ext)
         data = self.file[ext].read()
-        params = self.file[ext].read_header()
-        return data, params
+        return data
 
     def row_count(self, col=None, ext=1):
         """Count the number of rows in the named extension
@@ -613,9 +653,10 @@ class HdfReader(object):
         return ext in self.file
 
     def _group(self, ext):
-        # get a group from a name, using
-        # the root if the group is empty
-        return self.file[ext]
+        try:
+            return self.file[ext]
+        except KeyError:
+            raise OSError("Group name %s not found in HDF5 file."%(ext))
 
     def check_valid_ext(self, ext):
         """Check if an extension is valid for reading, and raise ValueError if not.
@@ -649,21 +690,38 @@ class HdfReader(object):
         else:
             return {col : g[col][s] for col in cols}
 
-    def read_all(self, ext='/'):
-        """Read all data in the file, and the parameters in the attributes, if any.
+    def read_params(self, ext='/'):
+        """Read the params in the given extension, if any.
+
+        For compatibility with AsciiReader, returns max_rows for the second return value,
+        which is always None here.
 
         Parameters:
             ext (str):          The HDF (sub-)group to use (default: '/')
 
         Returns:
-            data, params
+            params, max_rows
         """
         g = self._group(ext)
-        params = dict(hdf.attrs)
+        params = dict(g.attrs)
+
+        return params, None
+
+    def read_data(self, ext='/', max_rows=None):
+        """Read all data in the file, and the parameters in the attributes, if any.
+
+        Parameters:
+            ext (str):          The HDF (sub-)group to use (default: '/')
+            max_rows (int):     The max number of rows to read. (ignored)
+
+        Returns:
+            data
+        """
+        g = self._group(ext)
 
         # This does not actually load the column
-        col_vals =  list(hdf.values())
-        col_names = list(hdf.keys())
+        col_vals =  list(g.values())
+        col_names = list(g.keys())
 
         ncol = len(col_names)
         sz = col_vals[0].size
@@ -674,7 +732,7 @@ class HdfReader(object):
         for (name, col) in zip(col_names, col_vals):
             data[name] = col[:]
 
-        return data, params
+        return data
 
     def row_count(self, col, ext='/'):
         """Count the number of rows in the named extension and column

@@ -210,67 +210,9 @@ def gen_read(file_name, file_type=None, logger=None):
     """
     reader = make_reader(file_name, file_type, logger)
     with reader:
-        return reader.read_all()
-
-def gen_read_ascii(fid, max_rows=None):
-    """Read some columns from an input ASCII file.
-
-    :param fid:         An open file handler in binary mode. E.g. fid = open(file_name, 'rb')
-    :param max_rows:    How many rows to read. (default: None, which means go to the end)
-
-    :returns: (data, params), a numpy ndarray with named columns, and a dict of extra parameters.
-    """
-    header = next(fid)
-    params = {}
-    if header[1] == '#':
-        assert header[0] == '#'
-        params = eval(header[2:].strip())
-        header = next(fid)
-    names = header[1:].split()
-    data = np.genfromtxt(fid, names=names, max_rows=max_rows)
-    return data, params
-
-def gen_read_fits(fits, ext=1):
-    """Read some columns from an input FITS file.
-
-    :param fits:        An open fitsio.FITS handler. E.g. fits = fitsio.FITS(file_name)
-    :param ext:         An optional name or number for the extension to read. (default: 1)
-
-    :returns: (data, params), a numpy ndarray with named columns, and a dict of extra parameters.
-    """
-    data = fits[ext].read()
-    params = fits[ext].read_header()
-    return data, params
-
-def gen_read_hdf(hdf, group="/"):
-    """Read the columns from an input HDF5 file.
-
-    :param hdf:         An open h5py.File handler. E.g. hdf = h5py.File(file_name, "r")
-    :param group:       An optional name group to read. (default: "/", meaning the file root)
-
-    :returns: (data, params), a numpy ndarray with named columns, and a dict of extra parameters.
-    """
-    try:
-        hdf = hdf[group]
-    except KeyError:
-        raise OSError("Group name %s not found in HDF5 file."%(group))
-    params = dict(hdf.attrs)
-
-    # This does not actually load the column
-    col_vals =  list(hdf.values())
-    col_names = list(hdf.keys())
-
-    ncol = len(col_names)
-    sz = col_vals[0].size
-    dtype=[(name, col.dtype) for (name, col) in zip(col_names, col_vals)]
-    data = np.empty(sz, dtype=dtype)
-
-    # Now we actually read everything
-    for (name, col) in zip(col_names, col_vals):
-        data[name] = col[:]
-
-    return data, params
-
+        params, max_rows = reader.read_params()
+        data = reader.read_data(max_rows=max_rows)
+        return data, params
 
 def gen_multi_read(file_name, group_names, file_type=None, logger=None):
     """Read some columns from an input file.
@@ -280,7 +222,7 @@ def gen_multi_read(file_name, group_names, file_type=None, logger=None):
     .. note::
 
         The input file is expected to have been written by TreeCorr using the
-        `gen_write` function, so we don't have a lot of flexibility in the input structure.
+        `gen_multi_write` function, so we don't have a lot of flexibility in the input structure.
 
     :param file_name:   The name of the file to read.
     :param group_names: A list of group names.  These are the hdu names in FITS format or
@@ -291,50 +233,14 @@ def gen_multi_read(file_name, group_names, file_type=None, logger=None):
 
     :returns: list of (data, params) pairs, one for each group
     """
-    # Figure out which file type to use.
-    file_type = parse_file_type(file_type, file_name, output=True, logger=logger)
-
-    if file_type == 'FITS':
-        try:
-            import fitsio
-        except ImportError:
-            if logger:
-                logger.error("Unable to import fitsio.  Cannot read %s"%file_name)
-            raise
-        out = []
-        with fitsio.FITS(file_name) as fits:
-            for name in group_names:
-                data, params = gen_read_fits(fits, ext=name)
-                out.append( (data,params) )
-        return out
-    elif file_type == 'ASCII':
-        out = []
-        with open(file_name) as fid:
-            for name in group_names:
-                group_line = next(fid)
-                name1, max_rows = group_line[2:].split()
-                name1 = name1[:-1]  # strip off final :
-                if name1 != name:
-                    raise OSError("Mismatch in group names. Expected %s, found %s"%(name,name1))
-                max_rows = int(max_rows)
-                data, params = gen_read_ascii(fid, max_rows=max_rows)
-                out.append( (data,params) )
-        return out
-    elif file_type == "HDF":
-        try:
-            import h5py
-        except ImportError:
-            if logger:
-                logger.error("Unable to import h5py.  Cannot read %s"%file_name)
-            raise
-        out = []
-        with h5py.File(file_name, 'r') as hdf:
-            for name in group_names:
-                data, params = gen_read_hdf(hdf, group=name)
-                out.append( (data,params) )
-        return out
-    else:
-        raise ValueError("Invalid file_type %s"%file_type)
+    reader = make_reader(file_name, file_type, logger)
+    out = []
+    with reader:
+        for name in group_names:
+            params, max_rows = reader.read_params(ext=name)
+            data = reader.read_data(ext=name, max_rows=max_rows)
+            out.append( (data,params) )
+    return out
 
 class LRU_Cache(object):
     """ Simplified Least Recently Used Cache.

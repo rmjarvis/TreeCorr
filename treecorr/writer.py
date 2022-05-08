@@ -33,11 +33,14 @@ class AsciiWriter(object):
             logger:         If desired, a logger object for logging. (default: None)
         """
         self.file_name = file_name
-        self.precision = precision
         self.logger = logger
-        self.width = precision+8
-        self.fmt = '%%%d.%de'%(self.width,self.precision)
+        self.set_precision(precision)
         ensure_dir(file_name)
+
+    def set_precision(self, precision):
+        self.precision = precision
+        self.width = precision+8
+        self.fmt = '%%%d.%de'%(self.width, self.precision)
 
     @property
     def file(self):
@@ -105,6 +108,9 @@ class FitsWriter(object):
         self._file = None
         ensure_dir(file_name)
 
+    def set_precision(self, precision):
+        pass
+
     @property
     def file(self):
         if self._file is None:
@@ -160,6 +166,9 @@ class HdfWriter(object):
         self.logger = logger
         self._file = None
         ensure_dir(file_name)
+
+    def set_precision(self, precision):
+        pass
 
     @property
     def file(self):

@@ -791,6 +791,26 @@ def test_gg_jk():
     covxip4 = gg4.estimate_cov('jackknife', func=lambda gg: gg.xip)
     np.testing.assert_allclose(covxip4, covxip)
 
+    # And again using the normal write command.
+    file_name = os.path.join('output','test_write_results.fits')
+    gg3.write(file_name, write_patch_results=True)
+    gg4 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    gg4.read(file_name)
+    cov4 = gg4.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov4, gg3.cov)
+    covxip4 = gg4.estimate_cov('jackknife', func=lambda gg: gg.xip)
+    np.testing.assert_allclose(covxip4, covxip)
+
+    # Also with ascii, since that works differeny.
+    file_name = os.path.join('output','test_write_results.dat')
+    gg3.write(file_name, write_patch_results=True)
+    gg5 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    gg5.read(file_name)
+    cov5 = gg5.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov5, gg3.cov)
+    covxip5 = gg5.estimate_cov('jackknife', func=lambda gg: gg.xip)
+    np.testing.assert_allclose(covxip5, covxip)
+
     # Check some invalid actions
     # Bad var_method
     with assert_raises(ValueError):

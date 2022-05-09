@@ -811,6 +811,24 @@ def test_gg_jk():
     covxip5 = gg5.estimate_cov('jackknife', func=lambda gg: gg.xip)
     np.testing.assert_allclose(covxip5, covxip)
 
+    # And also try to match the type if HDF
+    try:
+        import h5py  # noqa: F401
+    except ImportError:
+        print('Skipping saving HDF patches, since h5py not installed.')
+        h5py = None
+
+    if h5py is not None:
+        # Finally with hdf
+        file_name = os.path.join('output','test_write_results.hdf5')
+        gg3.write(file_name, write_patch_results=True)
+        gg6 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+        gg6.read(file_name)
+        cov6 = gg6.estimate_cov('jackknife')
+        np.testing.assert_allclose(cov6, gg3.cov)
+        covxip6 = gg6.estimate_cov('jackknife', func=lambda gg: gg.xip)
+        np.testing.assert_allclose(covxip6, covxip)
+
     # Check some invalid actions
     # Bad var_method
     with assert_raises(ValueError):

@@ -23,8 +23,6 @@ def ensure_dir(target):
 class AsciiWriter(object):
     """Write data to an ASCII (text) file.
     """
-    can_store_results = False
-
     def __init__(self, file_name, *, precision=4, logger=None):
         """
         Parameters:
@@ -48,7 +46,7 @@ class AsciiWriter(object):
             raise RuntimeError('Illegal operation when not in a "with" context')
         return self._file
 
-    def write(self, col_names, columns, *, params=None, name=None):
+    def write(self, col_names, columns, *, params=None, ext=None):
         """Write some columns to an output ASCII file with the given column names.
 
         Parameters:
@@ -56,7 +54,7 @@ class AsciiWriter(object):
                             in a header comment line at the top of the output file.
             columns:        A list of numpy arrays with the data to write.
             params:         A dict of extra parameters to write at the top of the output file.
-            name:           Optional name for these data. (default: None)
+            ext:            Optional ext name for these data. (default: None)
         """
         ncol = len(col_names)
         data = np.empty( (len(columns[0]), ncol) )
@@ -67,8 +65,8 @@ class AsciiWriter(object):
         header = ("#" + "{:^%d}"%(self.width-1) +
                     " {:^%d}"%(self.width) * (ncol-1) + "\n").format(*col_names)
 
-        if name is not None:
-            s = '## %s\n'%name
+        if ext is not None:
+            s = '## %s\n'%ext
             self.file.write(s.encode())
         if params is not None:
             s = '## %r\n'%(params)
@@ -88,9 +86,6 @@ class AsciiWriter(object):
 class FitsWriter(object):
     """Writer interface for FITS files.
     """
-    can_store_results = True
-    default_ext = 1
-
     def __init__(self, file_name, *, logger=None):
         """
         Parameters:
@@ -117,7 +112,7 @@ class FitsWriter(object):
             raise RuntimeError('Illegal operation when not in a "with" context')
         return self._file
 
-    def write(self, col_names, columns, *, params=None, name=None):
+    def write(self, col_names, columns, *, params=None, ext=None):
         """Write some columns to an output ASCII file with the given column names.
 
         If name is not None, then it is used as the name of the extension for these data.
@@ -127,12 +122,12 @@ class FitsWriter(object):
                             in a header comment line at the top of the output file.
             columns:        A list of numpy arrays with the data to write.
             params:         A dict of extra parameters to write at the top of the output file.
-            name:           Optional name for these data. (default: None)
+            ext:            Optional ext name for these data. (default: None)
         """
         data = np.empty(len(columns[0]), dtype=[ (c,'f8') for c in col_names ])
         for (c, col) in zip(col_names, columns):
             data[c] = col
-        self.file.write(data, header=params, extname=name)
+        self.file.write(data, header=params, extname=ext)
 
     def __enter__(self):
         import fitsio
@@ -148,8 +143,6 @@ class HdfWriter(object):
     """Writer interface for HDF5 files.
     Uses h5py to read columns, etc.
     """
-    can_store_results = True
-
     def __init__(self, file_name, *, logger=None):
         """
         Parameters:
@@ -176,7 +169,7 @@ class HdfWriter(object):
             raise RuntimeError('Illegal operation when not in a "with" context')
         return self._file
 
-    def write(self, col_names, columns, *, params=None, name=None):
+    def write(self, col_names, columns, *, params=None, ext=None):
         """Write some columns to an output ASCII file with the given column names.
 
         If name is not None, then it is used as the name of the extension for these data.
@@ -186,10 +179,10 @@ class HdfWriter(object):
                             in a header comment line at the top of the output file.
             columns:        A list of numpy arrays with the data to write.
             params:         A dict of extra parameters to write at the top of the output file.
-            name:           Optional name for these data. (default: None)
+            ext:            Optional group name for these data. (default: None)
         """
-        if name is not None:
-            hdf = self.file.create_group(name)
+        if ext is not None:
+            hdf = self.file.create_group(ext)
         else:
             hdf = self.file
         if params is not None:

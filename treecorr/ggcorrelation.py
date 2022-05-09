@@ -526,16 +526,17 @@ class GGCorrelation(BinnedCorr2):
             params['num_patch_pairs'] = len(list(self.results.keys()))
             params['max_rows'] = len(self.rnom)
 
+        name = 'main' if write_patch_results else None
         writer = make_writer(file_name, precision, file_type, self.logger)
         with writer:
-            writer.write(col_names, columns, params=params)
+            writer.write(col_names, columns, params=params, ext=name)
             if write_patch_results:
                 writer.set_precision(16)
                 for i, (key, corr) in enumerate(self.results.items()):
                     columns, params = corr._data_to_write()
                     params['key'] = repr(key)
                     name = 'pp_%d'%i
-                    writer.write(col_names, columns, params=params, name=name)
+                    writer.write(col_names, columns, params=params, ext=name)
 
     def _data_to_write(self, include_npatch=False):
         columns = [ self.rnom, self.meanr, self.meanlogr,
@@ -572,11 +573,12 @@ class GGCorrelation(BinnedCorr2):
 
         reader = make_reader(file_name, file_type, self.logger)
         with reader:
-            params = reader.read_params()
+            name = 'main' if 'main' in reader else None
+            params = reader.read_params(ext=name)
             max_rows = params.get('max_rows', None)
             num_patch_pairs = params.get('num_patch_pairs', 0)
 
-            data = reader.read_data(max_rows=max_rows)
+            data = reader.read_data(max_rows=max_rows, ext=name)
             self._read_from_data(data, params)
 
             for i in range(num_patch_pairs):

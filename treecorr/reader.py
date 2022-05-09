@@ -157,7 +157,7 @@ class AsciiReader(object):
             if tokens[0][0] != '{':
                 # Then before the dict, we have group_name
                 name1 = tokens[0]
-                if name1 != ext:
+                if name1 != ext and ext is not None:
                     raise OSError("Mismatch in group names.  Expected %s, found %s"%(ext, name1))
                 header = next(self.file)
             if header[1] == '#':
@@ -515,6 +515,8 @@ class FitsReader(object):
         # FITS extensions can be indexed by number or
         # string.  Try converting to an integer if the current
         # value is not found.  If not let the error be caught later.
+        if ext is None:
+            ext = 1
         if ext not in self.file:
             try:
                 ext = int(ext)
@@ -522,7 +524,7 @@ class FitsReader(object):
                 pass
         return ext
 
-    def read(self, cols, s=slice(None), ext=1):
+    def read(self, cols, s=slice(None), ext=None):
         """Read a slice of a column or list of columns from a specified extension
 
         Parameters:
@@ -536,7 +538,7 @@ class FitsReader(object):
         ext = self._update_ext(ext)
         return self.file[ext][cols][s]
 
-    def read_params(self, ext=1):
+    def read_params(self, ext=None):
         """Read the params in the given extension, if any.
 
         Parameters:
@@ -549,7 +551,7 @@ class FitsReader(object):
         params = self.file[ext].read_header()
         return params
 
-    def read_data(self, ext=1, max_rows=None):
+    def read_data(self, ext=None, max_rows=None):
         """Read all data in the file, and the parameters in the header, if any.
 
         Parameters:
@@ -563,7 +565,7 @@ class FitsReader(object):
         data = self.file[ext].read()
         return data
 
-    def row_count(self, col=None, ext=1):
+    def row_count(self, col=None, ext=None):
         """Count the number of rows in the named extension
 
         For compatibility with the HDF interface, which can have columns
@@ -580,7 +582,7 @@ class FitsReader(object):
         ext = self._update_ext(ext)
         return self.file[ext].get_nrows()
 
-    def names(self, ext=1):
+    def names(self, ext=None):
         """Return a list of the names of all the columns in an extension
 
         Parameters:
@@ -645,6 +647,8 @@ class HdfReader(object):
         return ext in self.file
 
     def _group(self, ext):
+        if ext is None:
+            ext = '/'
         try:
             return self.file[ext]
         except KeyError:
@@ -662,7 +666,7 @@ class HdfReader(object):
             raise ValueError("Invalid ext={} for file {} (does not exist)".format(
                              ext,self.file_name))
 
-    def read(self, cols, s=slice(None), ext='/'):
+    def read(self, cols, s=slice(None), ext=None):
         """Read a slice of a column or list of columns from a specified extension.
 
         Slices should always be used when reading HDF files - using a sequence of
@@ -682,7 +686,7 @@ class HdfReader(object):
         else:
             return {col : g[col][s] for col in cols}
 
-    def read_params(self, ext='/'):
+    def read_params(self, ext=None):
         """Read the params in the given extension, if any.
 
         Parameters:
@@ -696,7 +700,7 @@ class HdfReader(object):
 
         return params
 
-    def read_data(self, ext='/', max_rows=None):
+    def read_data(self, ext=None, max_rows=None):
         """Read all data in the file, and the parameters in the attributes, if any.
 
         Parameters:
@@ -713,9 +717,9 @@ class HdfReader(object):
         col_names = list(g.keys())
 
         ncol = len(col_names)
-        sz = col_vals[0].size
+        num_rows = col_vals[0].size
         dtype=[(name, col.dtype) for (name, col) in zip(col_names, col_vals)]
-        data = np.empty(sz, dtype=dtype)
+        data = np.empty(num_rows, dtype=dtype)
 
         # Now we actually read everything
         for (name, col) in zip(col_names, col_vals):
@@ -723,7 +727,7 @@ class HdfReader(object):
 
         return data
 
-    def row_count(self, col, ext='/'):
+    def row_count(self, col, ext=None):
         """Count the number of rows in the named extension and column
 
         Unlike in FitsReader, col is required.
@@ -737,7 +741,7 @@ class HdfReader(object):
         """
         return self._group(ext)[col].size
 
-    def names(self, ext='/'):
+    def names(self, ext=None):
         """Return a list of the names of all the columns in an extension
 
         Parameters:

@@ -191,7 +191,7 @@ def gen_multi_write(file_name, col_names, group_names, columns,
     with writer:
         for name, cols in zip(group_names, columns):
             params['num_rows'] = len(cols[0])
-            writer.write(col_names, cols, params=params, name=name)
+            writer.write(col_names, cols, params=params, ext=name)
 
 def gen_read(file_name, file_type=None, logger=None):
     """Read some columns from an input file.

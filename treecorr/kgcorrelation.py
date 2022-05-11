@@ -392,7 +392,7 @@ class KGCorrelation(BinnedCorr2):
             self.finalize(vark,varg)
 
     @depr_pos_kwargs
-    def write(self, file_name, *, file_type=None, precision=None):
+    def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False):
         r"""Write the correlation function to the file, file_name.
 
         The output file will include the following columns:
@@ -424,21 +424,28 @@ class KGCorrelation(BinnedCorr2):
                                 the type automatically from the extension of file_name.)
             precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
                                 this value can also be given in the constructor in the config dict.)
+            write_patch_results (bool): Whether to write the patch-based results as well.
+                                        (default: False)
         """
         self.logger.info('Writing KG correlations to %s',file_name)
-        if precision is None:
-            precision = self.config.get('precision', 4)
+        self._write(file_name, file_type, precision, write_patch_results)
 
-        params = { 'coords' : self.coords, 'metric' : self.metric,
-                   'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
+    @property
+    def _write_col_names(self):
+        return ['r_nom','meanr','meanlogr','kgamT','kgamX','sigma','weight','npairs']
 
-        gen_write(
-            file_name,
-            ['r_nom','meanr','meanlogr','kgamT','kgamX','sigma','weight','npairs'],
-            [ self.rnom, self.meanr, self.meanlogr,
-              self.xi, self.xi_im, np.sqrt(self.varxi),
-              self.weight, self.npairs ],
-            params=params, precision=precision, file_type=file_type, logger=self.logger)
+    @property
+    def _write_data(self):
+        data = [ self.rnom, self.meanr, self.meanlogr,
+                 self.xi, self.xi_im, np.sqrt(self.varxi),
+                 self.weight, self.npairs ]
+        data = [ col.flatten() for col in data ]
+        return data
+
+    @property
+    def _write_params(self):
+        return { 'coords' : self.coords, 'metric' : self.metric,
+                 'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
 
     @depr_pos_kwargs
     def read(self, file_name, *, file_type=None):
@@ -459,8 +466,9 @@ class KGCorrelation(BinnedCorr2):
                                 automatically from the extension of file_name.)
         """
         self.logger.info('Reading KG correlations from %s',file_name)
+        self._read(file_name, file_type)
 
-        data, params = gen_read(file_name, file_type=file_type, logger=self.logger)
+    def _read_from_data(self, data, params):
         if 'R_nom' in data.dtype.names:  # pragma: no cover
             self._ro.rnom = data['R_nom']
             self.meanr = data['meanR']
@@ -479,3 +487,5 @@ class KGCorrelation(BinnedCorr2):
         self.metric = params['metric'].strip()
         self._ro.sep_units = params['sep_units'].strip()
         self._ro.bin_type = params['bin_type'].strip()
+        self.npatch1 = params.get('npatch1', 1)
+        self.npatch2 = params.get('npatch2', 1)

@@ -107,6 +107,9 @@ class NNCorrelation(BinnedCorr2):
         self._rr = None
         self._dr = None
         self._rd = None
+        self._write_rr = None
+        self._write_dr = None
+        self._write_rd = None
         self.logger.debug('Finished building NNCorr')
 
     @property
@@ -184,11 +187,17 @@ class NNCorrelation(BinnedCorr2):
         # A minimal "copy" with zero for the weight array, and the given value for tot.
         ret = NNCorrelation.__new__(NNCorrelation)
         ret._ro = self._ro
+        ret.coords = self.coords
+        ret.metric = self.metric
         ret.config = self.config
-        ret.npairs = self._zero_array
+        ret.meanr = self._zero_array
+        ret.meanlogr = self._zero_array
         ret.weight = self._zero_array
+        ret.npairs = self._zero_array
         ret.tot = tot
         ret._corr = None
+        ret._rr = ret._dr = ret._rd = None
+        ret._write_rr = ret._write_dr = ret._write_rd = None
         # This override is really the main advantage of using this:
         setattr(ret, '_nonzero', False)
         return ret
@@ -702,7 +711,8 @@ class NNCorrelation(BinnedCorr2):
         self._rr_weight = denom
 
     @depr_pos_kwargs
-    def write(self, file_name, *, rr=None, dr=None, rd=None, file_type=None, precision=None):
+    def write(self, file_name, *, rr=None, dr=None, rd=None, file_type=None, precision=None,
+              write_patch_results=False):
         r"""Write the correlation function to the file, file_name.
 
         rr is the `NNCorrelation` function for random points.
@@ -751,47 +761,69 @@ class NNCorrelation(BinnedCorr2):
             precision (int):        For ASCII output catalogs, the desired precision. (default: 4;
                                     this value can also be given in the constructor in the config
                                     dict.)
+            write_patch_results (bool): Whether to write the patch-based results as well.
+                                        (default: False)
         """
         self.logger.info('Writing NN correlations to %s',file_name)
+        # Temporary attributes, so the helper functions can access them.
+        self._write_rr = rr
+        self._write_dr = dr
+        self._write_rd = rd
+        self._write(file_name, file_type, precision, write_patch_results)
+        self._write_rr = None
+        self._write_dr = None
+        self._write_rd = None
 
+    @property
+    def _write_col_names(self):
         col_names = [ 'r_nom','meanr','meanlogr' ]
-        columns = [ self.rnom, self.meanr, self.meanlogr ]
+        rr = self._write_rr
+        dr = self._write_dr
+        rd = self._write_rd
         if rr is None:
             if hasattr(self, 'xi'):
                 col_names += [ 'xi','sigma_xi' ]
-                columns += [ self.xi, np.sqrt(self.varxi) ]
             col_names += [ 'DD', 'npairs' ]
-            columns += [ self.weight, self.npairs ]
+        else:
+            col_names += [ 'xi','sigma_xi','DD','RR' ]
+            if dr is not None and rd is not None:
+                col_names += ['DR','RD']
+            elif dr is not None or rd is not None:
+                col_names += ['DR']
+            col_names += [ 'npairs' ]
+        return col_names
+
+    @property
+    def _write_data(self):
+        data = [ self.rnom, self.meanr, self.meanlogr ]
+        rr = self._write_rr
+        dr = self._write_dr
+        rd = self._write_rd
+        if rr is None:
+            if hasattr(self, 'xi'):
+                data += [ self.xi, np.sqrt(self.varxi) ]
+            data += [ self.weight, self.npairs ]
             if dr is not None:
                 raise TypeError("rr must be provided if dr is not None")
             if rd is not None:
                 raise TypeError("rr must be provided if rd is not None")
         else:
             xi, varxi = self.calculateXi(rr=rr, dr=dr, rd=rd)
-
-            col_names += [ 'xi','sigma_xi','DD','RR' ]
-            columns += [ xi, np.sqrt(varxi),
-                         self.weight, rr.weight * (self.tot/rr.tot) ]
-
+            data += [ xi, np.sqrt(varxi),
+                      self.weight, rr.weight * (self.tot/rr.tot) ]
             if dr is not None and rd is not None:
-                col_names += ['DR','RD']
-                columns += [ dr.weight * (self.tot/dr.tot), rd.weight * (self.tot/rd.tot) ]
+                data += [ dr.weight * (self.tot/dr.tot), rd.weight * (self.tot/rd.tot) ]
             elif dr is not None or rd is not None:
                 if dr is None: dr = rd
-                col_names += ['DR']
-                columns += [ dr.weight * (self.tot/dr.tot) ]
-            col_names += [ 'npairs' ]
-            columns += [ self.npairs ]
+                data += [ dr.weight * (self.tot/dr.tot) ]
+            data += [ self.npairs ]
+        data = [ col.flatten() for col in data ]
+        return data
 
-        if precision is None:
-            precision = self.config.get('precision', 4)
-
-        params = { 'tot' : self.tot, 'coords' : self.coords, 'metric' : self.metric,
-                   'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
-
-        gen_write(
-            file_name, col_names, columns, params=params,
-            precision=precision, file_type=file_type, logger=self.logger)
+    @property
+    def _write_params(self):
+        return { 'tot' : self.tot, 'coords' : self.coords, 'metric' : self.metric,
+                 'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
 
     @depr_pos_kwargs
     def read(self, file_name, *, file_type=None):
@@ -812,8 +844,9 @@ class NNCorrelation(BinnedCorr2):
                                 automatically from the extension of file_name.)
         """
         self.logger.info('Reading NN correlations from %s',file_name)
+        self._read(file_name, file_type)
 
-        data, params = gen_read(file_name, file_type=file_type, logger=self.logger)
+    def _read_from_data(self, data, params):
         if 'R_nom' in data.dtype.names:  # pragma: no cover
             self._ro.rnom = data['R_nom']
             self.meanr = data['meanR']
@@ -833,6 +866,8 @@ class NNCorrelation(BinnedCorr2):
         if 'xi' in data.dtype.names:
             self.xi = data['xi']
             self.varxi = data['sigma_xi']**2
+        self.npatch1 = params.get('npatch1', 1)
+        self.npatch2 = params.get('npatch2', 1)
 
     @depr_pos_kwargs
     def calculateNapSq(self, *, rr, R=None, dr=None, rd=None, m2_uform=None):

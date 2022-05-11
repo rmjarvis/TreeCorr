@@ -164,6 +164,9 @@ class AsciiReader(object):
                 assert header[0] == '#'
                 params = eval(header[2:].strip())
                 header = next(self.file)
+        # In case these changed since the first group. (Which happens for nn.results.)
+        self.col_names = header[1:].split()
+        self.ncols = len(self.col_names)
         return params
 
     def read_data(self, ext=None, max_rows=None):

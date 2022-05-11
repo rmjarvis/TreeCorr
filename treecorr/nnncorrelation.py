@@ -811,7 +811,8 @@ class NNNCorrelation(BinnedCorr3):
         self._rrr_weight = denom
 
     @depr_pos_kwargs
-    def write(self, file_name, *, rrr=None, drr=None, rdd=None, file_type=None, precision=None):
+    def write(self, file_name, *, rrr=None, drr=None, rdd=None, file_type=None, precision=None,
+              write_patch_results=False):
         r"""Write the correlation function to the file, file_name.
 
         Normally, at least rrr should be provided, but if this is None, then only the
@@ -888,42 +889,64 @@ class NNNCorrelation(BinnedCorr3):
             precision (int):        For ASCII output catalogs, the desired precision. (default: 4;
                                     this value can also be given in the constructor in the config
                                     dict.)
+            write_patch_results (bool): Whether to write the patch-based results as well.
+                                        (default: False)
         """
         self.logger.info('Writing NNN correlations to %s',file_name)
+        self._write_rrr = rrr
+        self._write_drr = drr
+        self._write_rdd = rdd
+        self._write(file_name, file_type, precision, write_patch_results)
+        del self._write_rrr
+        del self._write_drr
+        del self._write_rdd
 
+    @property
+    def _write_col_names(self):
+        rrr = self._write_rrr
+        drr = self._write_drr
+        rdd = self._write_rdd
         col_names = [ 'r_nom', 'u_nom', 'v_nom', 'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
                       'meand3', 'meanlogd3', 'meanu', 'meanv' ]
-        columns = [ self.rnom, self.u, self.v,
-                    self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
-                    self.meand3, self.meanlogd3, self.meanu, self.meanv ]
+        if rrr is None:
+            col_names += [ 'DDD', 'ntri' ]
+        else:
+            col_names += [ 'zeta','sigma_zeta','DDD','RRR' ]
+            if drr is not None:
+                col_names += ['DRR','RDD']
+            col_names += [ 'ntri' ]
+        return col_names
+
+    @property
+    def _write_data(self):
+        data = [ self.rnom, self.u, self.v,
+                 self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
+                 self.meand3, self.meanlogd3, self.meanu, self.meanv ]
+        rrr = self._write_rrr
+        drr = self._write_drr
+        rdd = self._write_rdd
         if rrr is None:
             if drr is not None or rdd is not None:
                 raise TypeError("rrr must be provided if other combinations are not None")
-            col_names += [ 'DDD', 'ntri' ]
-            columns += [ self.weight, self.ntri ]
+            data += [ self.weight, self.ntri ]
         else:
             # This will check for other invalid combinations of rrr, drr, etc.
             zeta, varzeta = self.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)
 
-            col_names += [ 'zeta','sigma_zeta','DDD','RRR' ]
-            columns += [ zeta, np.sqrt(varzeta),
-                         self.weight, rrr.weight * (self.tot/rrr.tot) ]
+            data += [ zeta, np.sqrt(varzeta),
+                      self.weight, rrr.weight * (self.tot/rrr.tot) ]
 
             if drr is not None:
-                col_names += ['DRR','RDD']
-                columns += [ drr.weight * (self.tot/drr.tot), rdd.weight * (self.tot/rdd.tot) ]
-            col_names += [ 'ntri' ]
-            columns += [ self.ntri ]
+                data += [ drr.weight * (self.tot/drr.tot), rdd.weight * (self.tot/rdd.tot) ]
+            data += [ self.ntri ]
 
-        if precision is None:
-            precision = self.config.get('precision', 4)
+        data = [ col.flatten() for col in data ]
+        return data
 
-        params = { 'tot' : self.tot, 'coords' : self.coords, 'metric' : self.metric,
-                   'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
-
-        gen_write(
-            file_name, col_names, columns,
-            params=params, precision=precision, file_type=file_type, logger=self.logger)
+    @property
+    def _write_params(self):
+        return { 'tot' : self.tot, 'coords' : self.coords, 'metric' : self.metric,
+                 'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
 
     @depr_pos_kwargs
     def read(self, file_name, *, file_type=None):
@@ -944,8 +967,9 @@ class NNNCorrelation(BinnedCorr3):
                                 automatically from the extension of file_name.)
         """
         self.logger.info('Reading NNN correlations from %s',file_name)
+        self._read(file_name, file_type)
 
-        data, params = gen_read(file_name, file_type=file_type, logger=self.logger)
+    def _read_from_data(self, data, params):
         s = self.logr.shape
         if 'R_nom' in data.dtype.names:  # pragma: no cover
             self._ro.rnom = data['R_nom'].reshape(s)
@@ -969,6 +993,8 @@ class NNNCorrelation(BinnedCorr3):
         self.metric = params['metric'].strip()
         self._ro.sep_units = params['sep_units'].strip()
         self._ro.bin_type = params['bin_type'].strip()
+        self.npatch1 = params.get('npatch1', 1)
+        self.npatch2 = params.get('npatch2', 1)
 
 
 class NNNCrossCorrelation(BinnedCorr3):

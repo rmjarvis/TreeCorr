@@ -548,7 +548,7 @@ class KKKCorrelation(BinnedCorr3):
             self.finalize(vark1,vark2,vark3)
 
     @depr_pos_kwargs
-    def write(self, file_name, *, file_type=None, precision=None):
+    def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False):
         r"""Write the correlation function to the file, file_name.
 
         The output file will include the following columns:
@@ -591,27 +591,32 @@ class KKKCorrelation(BinnedCorr3):
                                 the type automatically from the extension of file_name.)
             precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
                                 this value can also be given in the constructor in the config dict.)
+            write_patch_results (bool): Whether to write the patch-based results as well.
+                                        (default: False)
         """
         self.logger.info('Writing KKK correlations to %s',file_name)
+        self._write(file_name, file_type, precision, write_patch_results)
 
-        col_names = [ 'r_nom', 'u_nom', 'v_nom',
-                      'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
-                      'meand3', 'meanlogd3', 'meanu', 'meanv',
-                      'zeta', 'sigma_zeta', 'weight', 'ntri' ]
-        columns = [ self.rnom, self.u, self.v,
-                    self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
-                    self.meand3, self.meanlogd3, self.meanu, self.meanv,
-                    self.zeta, np.sqrt(self.varzeta), self.weight, self.ntri ]
+    @property
+    def _write_col_names(self):
+        return [ 'r_nom', 'u_nom', 'v_nom',
+                 'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
+                 'meand3', 'meanlogd3', 'meanu', 'meanv',
+                 'zeta', 'sigma_zeta', 'weight', 'ntri' ]
 
-        params = { 'coords' : self.coords, 'metric' : self.metric,
-                   'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
+    @property
+    def _write_data(self):
+        data = [ self.rnom, self.u, self.v,
+                 self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
+                 self.meand3, self.meanlogd3, self.meanu, self.meanv,
+                 self.zeta, np.sqrt(self.varzeta), self.weight, self.ntri ]
+        data = [ col.flatten() for col in data ]
+        return data
 
-        if precision is None:
-            precision = self.config.get('precision', 4)
-
-        gen_write(
-            file_name, col_names, columns,
-            params=params, precision=precision, file_type=file_type, logger=self.logger)
+    @property
+    def _write_params(self):
+        return { 'coords' : self.coords, 'metric' : self.metric,
+                 'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
 
     @depr_pos_kwargs
     def read(self, file_name, *, file_type=None):
@@ -632,8 +637,9 @@ class KKKCorrelation(BinnedCorr3):
                                 automatically from the extension of file_name.)
         """
         self.logger.info('Reading KKK correlations from %s',file_name)
+        self._read(file_name, file_type)
 
-        data, params = gen_read(file_name, file_type=file_type, logger=self.logger)
+    def _read_from_data(self, data, params):
         s = self.logr.shape
         if 'R_nom' in data.dtype.names:  # pragma: no cover
             self._ro.rnom = data['R_nom'].reshape(s)
@@ -658,6 +664,8 @@ class KKKCorrelation(BinnedCorr3):
         self.metric = params['metric'].strip()
         self._ro.sep_units = params['sep_units'].strip()
         self._ro.bin_type = params['bin_type'].strip()
+        self.npatch1 = params.get('npatch1', 1)
+        self.npatch2 = params.get('npatch2', 1)
 
 
 class KKKCrossCorrelation(BinnedCorr3):

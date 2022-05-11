@@ -781,7 +781,7 @@ def test_gg_jk():
     np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
 
     # Check that these still work after roundtripping through a file.
-    file_name = os.path.join('output','test_write_results.pkl')
+    file_name = os.path.join('output','test_write_results_gg.pkl')
     with open(file_name, 'wb') as f:
         pickle.dump(gg3, f)
     with open(file_name, 'rb') as f:
@@ -792,7 +792,7 @@ def test_gg_jk():
     np.testing.assert_allclose(covxip4, covxip)
 
     # And again using the normal write command.
-    file_name = os.path.join('output','test_write_results.fits')
+    file_name = os.path.join('output','test_write_results_gg.fits')
     gg3.write(file_name, write_patch_results=True)
     gg4 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
     gg4.read(file_name)
@@ -802,7 +802,7 @@ def test_gg_jk():
     np.testing.assert_allclose(covxip4, covxip)
 
     # Also with ascii, since that works differeny.
-    file_name = os.path.join('output','test_write_results.dat')
+    file_name = os.path.join('output','test_write_results_gg.dat')
     gg3.write(file_name, write_patch_results=True)
     gg5 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
     gg5.read(file_name)
@@ -813,14 +813,14 @@ def test_gg_jk():
 
     # And also try to match the type if HDF
     try:
-        import h5py  # noqa: F401
+        import h5py
     except ImportError:
         print('Skipping saving HDF patches, since h5py not installed.')
         h5py = None
 
     if h5py is not None:
         # Finally with hdf
-        file_name = os.path.join('output','test_write_results.hdf5')
+        file_name = os.path.join('output','test_write_results_gg.hdf5')
         gg3.write(file_name, write_patch_results=True)
         gg6 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
         gg6.read(file_name)
@@ -1085,6 +1085,42 @@ def test_ng_jk():
     print('varxi = ',cov_boot.diagonal())
     print('ratio = ',cov_boot.diagonal() / var_xi)
     np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.5*tol_factor)
+
+    # Check that these still work after roundtripping through a file.
+    file_name = os.path.join('output','test_write_results_ng.fits')
+    ng3.write(file_name, write_patch_results=True)
+    ng4 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    ng4.read(file_name)
+    print('ng4.xi = ',ng4.xi)
+    print('results = ',ng4.results)
+    print('results = ',ng4.results.keys())
+    cov4 = ng4.estimate_cov('jackknife')
+    print('cov4 = ',cov4)
+    np.testing.assert_allclose(cov4, ng3.cov)
+
+    # Also with ascii, since that works differeny.
+    file_name = os.path.join('output','test_write_results_ng.dat')
+    ng3.write(file_name, write_patch_results=True)
+    ng5 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    ng5.read(file_name)
+    cov5 = ng5.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov5, ng3.cov)
+
+    # And also try to match the type if HDF
+    try:
+        import h5py
+    except ImportError:
+        print('Skipping saving HDF patches, since h5py not installed.')
+        h5py = None
+
+    if h5py is not None:
+        # Finally with hdf
+        file_name = os.path.join('output','test_write_results_ng.hdf5')
+        ng3.write(file_name, write_patch_results=True)
+        ng6 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+        ng6.read(file_name)
+        cov6 = ng6.estimate_cov('jackknife')
+        np.testing.assert_allclose(cov6, ng3.cov)
 
     # Use a random catalog
     # In this case the locations of the source catalog are fine to use as our random catalog,
@@ -1361,6 +1397,65 @@ def test_nn_jk():
     print('ratio = ',cov3b.diagonal() / var_xib)
     np.testing.assert_allclose(cov3b.diagonal(), var_xib, rtol=0.4*tol_factor)
 
+    # Check that these still work after roundtripping through a file.
+    file_name = os.path.join('output','test_write_results_dd.fits')
+    rr_file_name = os.path.join('output','test_write_results_rr.fits')
+    dr_file_name = os.path.join('output','test_write_results_dr.fits')
+    nn3.write(file_name, write_patch_results=True)
+    rr.write(rr_file_name, write_patch_results=True)
+    nr3.write(dr_file_name, write_patch_results=True)
+    nn4 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+    rr4 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+    nr4 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+    nn4.read(file_name)
+    rr4.read(rr_file_name)
+    nr4.read(dr_file_name)
+    nn4.calculateXi(rr=rr4, dr=nr4)
+    cov4 = nn4.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov4, nn3.cov)
+
+    # Also with ascii, since that works differeny.
+    file_name = os.path.join('output','test_write_results_dd.dat')
+    rr_file_name = os.path.join('output','test_write_results_rr.dat')
+    dr_file_name = os.path.join('output','test_write_results_dr.dat')
+    nn3.write(file_name, write_patch_results=True, precision=15)
+    rr.write(rr_file_name, write_patch_results=True, precision=15)
+    nr3.write(dr_file_name, write_patch_results=True, precision=15)
+    nn5 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+    rr5 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+    dr5 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+    nn5.read(file_name)
+    rr5.read(rr_file_name)
+    dr5.read(dr_file_name)
+    nn5.calculateXi(rr=rr5, dr=dr5)
+    cov5 = nn5.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov5, nn3.cov)
+
+    # And also try to match the type if HDF
+    try:
+        import h5py
+    except ImportError:
+        print('Skipping saving HDF patches, since h5py not installed.')
+        h5py = None
+
+    if h5py is not None:
+        # Finally with hdf
+        file_name = os.path.join('output','test_write_results_dd.hdf5')
+        rr_file_name = os.path.join('output','test_write_results_rr.hdf5')
+        dr_file_name = os.path.join('output','test_write_results_dr.hdf5')
+        nn3.write(file_name, write_patch_results=True)
+        rr.write(rr_file_name, write_patch_results=True)
+        nr3.write(dr_file_name, write_patch_results=True)
+        nn6 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+        rr6 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+        dr6 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+        nn6.read(file_name)
+        rr6.read(rr_file_name)
+        dr6.read(dr_file_name)
+        nn6.calculateXi(rr=rr6, dr=dr6)
+        cov6 = nn6.estimate_cov('jackknife')
+        np.testing.assert_allclose(cov6, nn3.cov)
+
     # Check NN cross-correlation and other combinations of dr, rd.
     rn3 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
     t0 = time.time()
@@ -1577,6 +1672,38 @@ def test_kappa_jk():
     print('ratio = ',cov_xi.diagonal() / var_nk_xi)
     np.testing.assert_allclose(cov_xi.diagonal(), var_nk_xi, rtol=0.6*tol_factor)
 
+    # Check that these still work after roundtripping through a file.
+    file_name = os.path.join('output','test_write_results_nk.fits')
+    nk.write(file_name, write_patch_results=True)
+    nk4 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+    nk4.read(file_name)
+    cov4 = nk4.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov4, nk.cov)
+
+    # Also with ascii, since that works differeny.
+    file_name = os.path.join('output','test_write_results_nk.dat')
+    nk.write(file_name, write_patch_results=True)
+    nk5 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+    nk5.read(file_name)
+    cov5 = nk5.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov5, nk.cov)
+
+    # And also try to match the type if HDF
+    try:
+        import h5py
+    except ImportError:
+        print('Skipping saving HDF patches, since h5py not installed.')
+        h5py = None
+
+    if h5py is not None:
+        # Finally with hdf
+        file_name = os.path.join('output','test_write_results_nk.hdf5')
+        nk.write(file_name, write_patch_results=True)
+        nk6 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+        nk6.read(file_name)
+        cov6 = nk6.estimate_cov('jackknife')
+        np.testing.assert_allclose(cov6, nk.cov)
+
     # Use a random catalog
     # In this case the locations of the source catalog are fine to use as our random catalog,
     # since they fill the region where the lenses are allowed to be.
@@ -1632,6 +1759,38 @@ def test_kappa_jk():
     print('ratio = ',cov_xi.diagonal() / var_kk_xi)
     np.testing.assert_allclose(cov_xi.diagonal(), var_kk_xi, rtol=0.4*tol_factor)
 
+    # Check that these still work after roundtripping through a file.
+    file_name = os.path.join('output','test_write_results_kk.fits')
+    kk.write(file_name, write_patch_results=True)
+    kk4 = treecorr.KKCorrelation(bin_size=0.3, min_sep=6., max_sep=30.)
+    kk4.read(file_name)
+    cov4 = kk4.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov4, kk.cov)
+
+    # Also with ascii, since that works differeny.
+    file_name = os.path.join('output','test_write_results_kk.dat')
+    kk.write(file_name, write_patch_results=True)
+    kk5 = treecorr.KKCorrelation(bin_size=0.3, min_sep=6., max_sep=30.)
+    kk5.read(file_name)
+    cov5 = kk5.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov5, kk.cov)
+
+    # And also try to match the type if HDF
+    try:
+        import h5py
+    except ImportError:
+        print('Skipping saving HDF patches, since h5py not installed.')
+        h5py = None
+
+    if h5py is not None:
+        # Finally with hdf
+        file_name = os.path.join('output','test_write_results_kk.hdf5')
+        kk.write(file_name, write_patch_results=True)
+        kk6 = treecorr.KKCorrelation(bin_size=0.3, min_sep=6., max_sep=30.)
+        kk6.read(file_name)
+        cov6 = kk6.estimate_cov('jackknife')
+        np.testing.assert_allclose(cov6, kk.cov)
+
     # KG
     # Same scales as we used for NG, which works fine with kappa as the "lens" too.
     kg = treecorr.KGCorrelation(bin_size=0.3, min_sep=10, max_sep=50., var_method='jackknife')
@@ -1652,6 +1811,38 @@ def test_kappa_jk():
     print('varxi = ',cov_xi.diagonal())
     print('ratio = ',cov_xi.diagonal() / var_kg_xi)
     np.testing.assert_allclose(cov_xi.diagonal(), var_kg_xi, rtol=0.4*tol_factor)
+
+    # Check that these still work after roundtripping through a file.
+    file_name = os.path.join('output','test_write_results_kg.fits')
+    kg.write(file_name, write_patch_results=True)
+    kg4 = treecorr.KGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    kg4.read(file_name)
+    cov4 = kg4.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov4, kg.cov)
+
+    # Also with ascii, since that works differeny.
+    file_name = os.path.join('output','test_write_results_kg.dat')
+    kg.write(file_name, write_patch_results=True)
+    kg5 = treecorr.KGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    kg5.read(file_name)
+    cov5 = kg5.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov5, kg.cov)
+
+    # And also try to match the type if HDF
+    try:
+        import h5py
+    except ImportError:
+        print('Skipping saving HDF patches, since h5py not installed.')
+        h5py = None
+
+    if h5py is not None:
+        # Finally with hdf
+        file_name = os.path.join('output','test_write_results_kg.hdf5')
+        kg.write(file_name, write_patch_results=True)
+        kg6 = treecorr.KGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+        kg6.read(file_name)
+        cov6 = kg6.estimate_cov('jackknife')
+        np.testing.assert_allclose(cov6, kg.cov)
 
     # Do a real multi-statistic covariance.
     t0 = time.time()
@@ -1747,7 +1938,7 @@ def test_save_patches():
 
     # And also try to match the type if HDF
     try:
-        import h5py  # noqa: F401
+        import h5py
     except ImportError:
         print('Skipping saving HDF patches, since h5py not installed.')
         h5py = None

@@ -483,7 +483,8 @@ class NGCorrelation(BinnedCorr2):
             self.xi -= self._rg.xi
 
     @depr_pos_kwargs
-    def write(self, file_name, *, rg=None, file_type=None, precision=None):
+    def write(self, file_name, *, rg=None, file_type=None, precision=None,
+              write_patch_results=False):
         r"""Write the correlation function to the file, file_name.
 
         - If rg is None, the simple correlation function :math:`\langle \gamma_T\rangle` is used.
@@ -522,22 +523,28 @@ class NGCorrelation(BinnedCorr2):
                                 the type automatically from the extension of file_name.)
             precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
                                 this value can also be given in the constructor in the config dict.)
+            write_patch_results (bool): Whether to write the patch-based results as well.
+                                        (default: False)
         """
         self.logger.info('Writing NG correlations to %s',file_name)
+        self.calculateXi(rg=rg)
+        self._write(file_name, file_type, precision, write_patch_results)
 
-        xi, xi_im, varxi = self.calculateXi(rg=rg)
-        if precision is None:
-            precision = self.config.get('precision', 4)
+    @property
+    def _write_col_names(self):
+        return ['r_nom','meanr','meanlogr','gamT','gamX','sigma','weight','npairs']
 
-        params = { 'coords' : self.coords, 'metric' : self.metric,
-                   'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
+    @property
+    def _write_data(self):
+        data = [ self.rnom, self.meanr, self.meanlogr,
+                 self.xi, self.xi_im, np.sqrt(self.varxi), self.weight, self.npairs ]
+        data = [ col.flatten() for col in data ]
+        return data
 
-        gen_write(
-            file_name,
-            ['r_nom','meanr','meanlogr','gamT','gamX','sigma','weight','npairs'],
-            [ self.rnom, self.meanr, self.meanlogr,
-              xi, xi_im, np.sqrt(varxi), self.weight, self.npairs ],
-            params=params, precision=precision, file_type=file_type, logger=self.logger)
+    @property
+    def _write_params(self):
+        return { 'coords' : self.coords, 'metric' : self.metric,
+                 'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
 
     @depr_pos_kwargs
     def read(self, file_name, *, file_type=None):
@@ -558,8 +565,9 @@ class NGCorrelation(BinnedCorr2):
                                 automatically from the extension of file_name.)
         """
         self.logger.info('Reading NG correlations from %s',file_name)
+        self._read(file_name, file_type)
 
-        data, params = gen_read(file_name, file_type=file_type, logger=self.logger)
+    def _read_from_data(self, data, params):
         if 'R_nom' in data.dtype.names:  # pragma: no cover
             self._ro.rnom = data['R_nom']
             self.meanr = data['meanR']
@@ -581,6 +589,8 @@ class NGCorrelation(BinnedCorr2):
         self.raw_xi = self.xi
         self.raw_xi_im = self.xi_im
         self.raw_varxi = self.varxi
+        self.npatch1 = params.get('npatch1', 1)
+        self.npatch2 = params.get('npatch2', 1)
 
     @depr_pos_kwargs
     def calculateNMap(self, *, R=None, rg=None, m2_uform=None):

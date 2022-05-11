@@ -21,7 +21,7 @@ from . import _lib, _ffi
 from .catalog import calculateVarG
 from .binnedcorr2 import BinnedCorr2
 from .util import double_ptr as dp
-from .util import gen_read, gen_write, make_writer, make_reader
+from .util import gen_read, gen_write
 from .util import depr_pos_kwargs
 
 
@@ -511,45 +511,26 @@ class GGCorrelation(BinnedCorr2):
                                         (default: False)
         """
         self.logger.info('Writing GG correlations to %s',file_name)
+        self._write(file_name, file_type, precision, write_patch_results)
 
-        if precision is None:
-            precision = self.config.get('precision', 4)
+    @property
+    def _write_col_names(self):
+        return ['r_nom', 'meanr', 'meanlogr', 'xip', 'xim', 'xip_im', 'xim_im',
+                'sigma_xip', 'sigma_xim', 'weight', 'npairs']
 
-        col_names = ['r_nom', 'meanr', 'meanlogr', 'xip', 'xim', 'xip_im', 'xim_im',
-                     'sigma_xip', 'sigma_xim', 'weight', 'npairs']
+    @property
+    def _write_data(self):
+        data = [ self.rnom, self.meanr, self.meanlogr,
+                 self.xip, self.xim, self.xip_im, self.xim_im,
+                 np.sqrt(self.varxip), np.sqrt(self.varxim),
+                 self.weight, self.npairs ]
+        data = [ col.flatten() for col in data ]
+        return data
 
-        # Note: Only include npatch1, npatch2 in serialization if we are also serializing
-        # results.  Otherwise, the corr that is read in will behave oddly.
-        columns, params = self._data_to_write(include_npatch=write_patch_results)
-
-        if write_patch_results:
-            params['num_patch_pairs'] = len(list(self.results.keys()))
-            params['max_rows'] = len(self.rnom)
-
-        name = 'main' if write_patch_results else None
-        writer = make_writer(file_name, precision, file_type, self.logger)
-        with writer:
-            writer.write(col_names, columns, params=params, ext=name)
-            if write_patch_results:
-                writer.set_precision(16)
-                for i, (key, corr) in enumerate(self.results.items()):
-                    columns, params = corr._data_to_write()
-                    params['key'] = repr(key)
-                    name = 'pp_%d'%i
-                    writer.write(col_names, columns, params=params, ext=name)
-
-    def _data_to_write(self, include_npatch=False):
-        columns = [ self.rnom, self.meanr, self.meanlogr,
-                    self.xip, self.xim, self.xip_im, self.xim_im,
-                    np.sqrt(self.varxip), np.sqrt(self.varxim),
-                    self.weight, self.npairs ]
-        columns = [ col.flatten() for col in columns ]
-        params = { 'coords' : self.coords, 'metric' : self.metric,
-                   'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
-        if include_npatch:
-            params['npatch1'] = self.npatch1
-            params['npatch2'] = self.npatch2
-        return columns, params
+    @property
+    def _write_params(self):
+        return { 'coords' : self.coords, 'metric' : self.metric,
+                 'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
 
     @depr_pos_kwargs
     def read(self, file_name, *, file_type=None):
@@ -570,26 +551,9 @@ class GGCorrelation(BinnedCorr2):
                                 automatically from the extension of file_name.)
         """
         self.logger.info('Reading GG correlations from %s',file_name)
+        self._read(file_name, file_type)
 
-        reader = make_reader(file_name, file_type, self.logger)
-        with reader:
-            name = 'main' if 'main' in reader else None
-            params = reader.read_params(ext=name)
-            max_rows = params.get('max_rows', None)
-            num_patch_pairs = params.get('num_patch_pairs', 0)
-
-            data = reader.read_data(max_rows=max_rows, ext=name)
-            self._read_from_data(data, params)
-
-            for i in range(num_patch_pairs):
-                name = 'pp_%d'%i
-                corr = self.copy()
-                params = reader.read_params(ext=name)
-                data = reader.read_data(max_rows=max_rows, ext=name)
-                corr._read_from_data(data, params)
-                key = eval(params['key'])
-                self.results[key] = corr
-
+    # Helper function used by _read
     def _read_from_data(self, data, params):
         if 'R_nom' in data.dtype.names:  # pragma: no cover
             self._ro.rnom = data['R_nom']

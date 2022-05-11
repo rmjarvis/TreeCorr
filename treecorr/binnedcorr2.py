@@ -25,6 +25,7 @@ import collections
 from . import _lib
 from .config import merge_config, setup_logger, get
 from .util import parse_metric, metric_enum, coord_enum, set_omp_threads, lazy_property
+from .util import make_writer, make_reader
 from .util import depr_pos_kwargs
 
 class Namespace(object):
@@ -1225,6 +1226,58 @@ class BinnedCorr2(object):
     def _bootstrap_pairs(self, index):
         return self.BootstrapPairIterator(self.results, self.npatch1, self.npatch2, index, self._ok)
 
+    def _write(self, file_name, file_type, precision, write_patch_results):
+        if precision is None:
+            precision = self.config.get('precision', 4)
+
+        # These helper properties define what to write for each class.
+        col_names = self._write_col_names
+        data = self._write_data
+        params = self._write_params
+
+        if write_patch_results:
+            # Note: Only include npatch1, npatch2 in serialization if we are also serializing
+            # results.  Otherwise, the corr that is read in will behave oddly.
+            params['npatch1'] = self.npatch1
+            params['npatch2'] = self.npatch2
+            params['num_patch_pairs'] = len(self.results)
+            params['max_rows'] = len(self.rnom)
+
+        name = 'main' if write_patch_results else None
+        writer = make_writer(file_name, precision, file_type, self.logger)
+        with writer:
+            writer.write(col_names, data, params=params, ext=name)
+            if write_patch_results:
+                writer.set_precision(16)
+                for i, (key, corr) in enumerate(self.results.items()):
+                    col_names = corr._write_col_names
+                    data = corr._write_data
+                    params = corr._write_params
+                    params['key'] = repr(key)
+                    name = 'pp_%d'%i
+                    writer.write(col_names, data, params=params, ext=name)
+
+    def _read(self, file_name, file_type):
+        reader = make_reader(file_name, file_type, self.logger)
+        with reader:
+            name = 'main' if 'main' in reader else None
+            params = reader.read_params(ext=name)
+            max_rows = params.get('max_rows', None)
+            num_patch_pairs = params.get('num_patch_pairs', 0)
+            data = reader.read_data(max_rows=max_rows, ext=name)
+
+            # This helper function defines how to set the attributes for each class
+            # based on what was read in.
+            self._read_from_data(data, params)
+
+            for i in range(num_patch_pairs):
+                name = 'pp_%d'%i
+                corr = self.copy()
+                params = reader.read_params(ext=name)
+                data = reader.read_data(max_rows=max_rows, ext=name)
+                corr._read_from_data(data, params)
+                key = eval(params['key'])
+                self.results[key] = corr
 
 @depr_pos_kwargs
 def estimate_multi_cov(corrs, method, *, func=None, comm=None):

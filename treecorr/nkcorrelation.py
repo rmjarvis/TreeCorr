@@ -469,7 +469,8 @@ class NKCorrelation(BinnedCorr2):
             self._rk._calculate_xi_from_pairs(pairs)
             self.xi -= self._rk.xi
 
-    def write(self, file_name, * ,rk=None, file_type=None, precision=None):
+    def write(self, file_name, * ,rk=None, file_type=None, precision=None,
+              write_patch_results=False):
         r"""Write the correlation function to the file, file_name.
 
         - If rk is None, the simple correlation function :math:`\langle \kappa \rangle(R)` is
@@ -507,22 +508,28 @@ class NKCorrelation(BinnedCorr2):
                                 the type automatically from the extension of file_name.)
             precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
                                 this value can also be given in the constructor in the config dict.)
+            write_patch_results (bool): Whether to write the patch-based results as well.
+                                        (default: False)
         """
         self.logger.info('Writing NK correlations to %s',file_name)
+        self.calculateXi(rk=rk)
+        self._write(file_name, file_type, precision, write_patch_results)
 
-        xi, varxi = self.calculateXi(rk=rk)
-        if precision is None:
-            precision = self.config.get('precision', 4)
+    @property
+    def _write_col_names(self):
+        return ['r_nom','meanr','meanlogr','kappa','sigma','weight','npairs']
 
-        params = { 'coords' : self.coords, 'metric' : self.metric,
-                   'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
+    @property
+    def _write_data(self):
+        data = [ self.rnom, self.meanr, self.meanlogr,
+                 self.xi, np.sqrt(self.varxi), self.weight, self.npairs ]
+        data = [ col.flatten() for col in data ]
+        return data
 
-        gen_write(
-            file_name,
-            ['r_nom','meanr','meanlogr','kappa','sigma','weight','npairs'],
-            [ self.rnom, self.meanr, self.meanlogr,
-              xi, np.sqrt(varxi), self.weight, self.npairs ],
-            params=params, precision=precision, file_type=file_type, logger=self.logger)
+    @property
+    def _write_params(self):
+        return { 'coords' : self.coords, 'metric' : self.metric,
+                 'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
 
     @depr_pos_kwargs
     def read(self, file_name, *, file_type=None):
@@ -543,8 +550,9 @@ class NKCorrelation(BinnedCorr2):
                                 automatically from the extension of file_name.)
         """
         self.logger.info('Reading NK correlations from %s',file_name)
+        self._read(file_name, file_type)
 
-        data, params = gen_read(file_name, file_type=file_type, logger=self.logger)
+    def _read_from_data(self, data, params):
         if 'R_nom' in data.dtype.names:  # pragma: no cover
             self._ro.rnom = data['R_nom']
             self.meanr = data['meanR']
@@ -564,3 +572,5 @@ class NKCorrelation(BinnedCorr2):
         self._ro.bin_type = params['bin_type'].strip()
         self.raw_xi = self.xi
         self.raw_varxi = self.varxi
+        self.npatch1 = params.get('npatch1', 1)
+        self.npatch2 = params.get('npatch2', 1)

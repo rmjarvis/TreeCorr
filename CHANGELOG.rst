@@ -26,7 +26,14 @@ Performance improvements
 New features
 ------------
 
+- Added ability to write out the full set of pair-wise results in the write commands, and to
+  read them back in.  This allows correlation objects to still be able to correctly calculate
+  the various patch-based covariance matrix estimates after round-tripping through a file.
+  To use this feature, use ``corr.write(..., write_patch_results=True)``.
+  (#141)
 
 Bug fixes
 ---------
 
+- Fixed a bug where correlation objects using bin_type=TwoD could not be correctly read back
+  in after being written to a file. (#141)

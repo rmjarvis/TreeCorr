@@ -103,7 +103,7 @@ jobs:
                 pip install -U -r requirements.txt
 
                 # Extra packages needed for testing
-                pip install -U nose codecov fitsio mpi4py coverage mockmpi
+                pip install -U nose codecov fitsio mpi4py coverage mockmpi pytest
 
                 # Note: I'd rather include h5py here, but I can't get it to install properly
                 # on GHA for pypy3.  So only do that for regular py3.

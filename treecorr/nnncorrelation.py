@@ -127,6 +127,9 @@ class NNNCorrelation(BinnedCorr3):
         self._rrr = None
         self._drr = None
         self._rdd = None
+        self._write_rrr = None
+        self._write_drr = None
+        self._write_rdd = None
         self.logger.debug('Finished building NNNCorr')
 
     @property
@@ -221,11 +224,23 @@ class NNNCorrelation(BinnedCorr3):
         # A minimal "copy" with zero for the weight array, and the given value for tot.
         ret = NNNCorrelation.__new__(NNNCorrelation)
         ret._ro = self._ro
+        ret.coords = self.coords
+        ret.metric = self.metric
         ret.config = self.config
-        ret.ntri = self._zero_array
+        ret.meand1 = self._zero_array
+        ret.meanlogd1 = self._zero_array
+        ret.meand2 = self._zero_array
+        ret.meanlogd2 = self._zero_array
+        ret.meand3 = self._zero_array
+        ret.meanlogd3 = self._zero_array
+        ret.meanu = self._zero_array
+        ret.meanv = self._zero_array
         ret.weight = self._zero_array
+        ret.ntri = self._zero_array
         ret.tot = tot
         ret._corr = None
+        ret._rrr = ret._drr = ret._rdd = None
+        ret._write_rrr = ret._write_drr = ret._write_rdd = None
         # This override is really the main advantage of using this:
         setattr(ret, '_nonzero', False)
         return ret
@@ -897,9 +912,9 @@ class NNNCorrelation(BinnedCorr3):
         self._write_drr = drr
         self._write_rdd = rdd
         self._write(file_name, file_type, precision, write_patch_results)
-        del self._write_rrr
-        del self._write_drr
-        del self._write_rdd
+        self._write_rrr = None
+        self._write_drr = None
+        self._write_rdd = None
 
     @property
     def _write_col_names(self):
@@ -975,9 +990,6 @@ class NNNCorrelation(BinnedCorr3):
             self._ro.rnom = data['R_nom'].reshape(s)
         else:
             self._ro.rnom = data['r_nom'].reshape(s)
-        self._ro.logr = np.log(self.rnom)
-        self._ro.u = data['u_nom'].reshape(s)
-        self._ro.v = data['v_nom'].reshape(s)
         self.meand1 = data['meand1'].reshape(s)
         self.meanlogd1 = data['meanlogd1'].reshape(s)
         self.meand2 = data['meand2'].reshape(s)
@@ -988,6 +1000,9 @@ class NNNCorrelation(BinnedCorr3):
         self.meanv = data['meanv'].reshape(s)
         self.weight = data['DDD'].reshape(s)
         self.ntri = data['ntri'].reshape(s)
+        if 'zeta' in data.dtype.names:
+            self.zeta = data['zeta'].reshape(s)
+            self.varzeta = data['sigma_zeta'].reshape(s)**2
         self.tot = params['tot']
         self.coords = params['coords'].strip()
         self.metric = params['metric'].strip()
@@ -995,6 +1010,7 @@ class NNNCorrelation(BinnedCorr3):
         self._ro.bin_type = params['bin_type'].strip()
         self.npatch1 = params.get('npatch1', 1)
         self.npatch2 = params.get('npatch2', 1)
+        self.npatch3 = params.get('npatch3', 1)
 
 
 class NNNCrossCorrelation(BinnedCorr3):
@@ -1484,9 +1500,6 @@ class NNNCrossCorrelation(BinnedCorr3):
         for (data, params), name in zip(groups, group_names):
             nnn = getattr(self, name)
             nnn._ro.rnom = data['r_nom'].reshape(s)
-            nnn._ro.logr = np.log(nnn.rnom)
-            nnn._ro.u = data['u_nom'].reshape(s)
-            nnn._ro.v = data['v_nom'].reshape(s)
             nnn.meand1 = data['meand1'].reshape(s)
             nnn.meanlogd1 = data['meanlogd1'].reshape(s)
             nnn.meand2 = data['meand2'].reshape(s)

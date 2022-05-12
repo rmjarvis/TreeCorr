@@ -1344,8 +1344,9 @@ class BinnedCorr3(object):
             # results.  Otherwise, the corr that is read in will behave oddly.
             params['npatch1'] = self.npatch1
             params['npatch2'] = self.npatch2
+            params['npatch3'] = self.npatch3
             params['num_patch_pairs'] = len(list(self.results.keys()))
-            params['max_rows'] = len(self.rnom)
+            params['max_rows'] = len(self.rnom.ravel())
 
         name = 'main' if write_patch_results else None
         writer = make_writer(file_name, precision, file_type, self.logger)
@@ -1373,6 +1374,7 @@ class BinnedCorr3(object):
             # based on what was read in.
             self._read_from_data(data, params)
 
+            self.results = {}
             for i in range(num_patch_pairs):
                 name = 'pp_%d'%i
                 corr = self.copy()

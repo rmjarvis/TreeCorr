@@ -7,7 +7,7 @@ See the listing below for the complete list of new features and changes.
 whose issue numbers are listed below for the relevant items.
 
 Starting with this version, TreeCorr no longer supports Python 2.7.
-We currently support python versions 3.6, 3.7, 3,8, 3.9.
+We currently support python versions 3.6, 3.7, 3,8, 3.9, 3.10.
 
 
 API Changes

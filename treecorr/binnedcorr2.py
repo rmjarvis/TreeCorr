@@ -1270,6 +1270,7 @@ class BinnedCorr2(object):
             # based on what was read in.
             self._read_from_data(data, params)
 
+            self.results = {}
             for i in range(num_patch_pairs):
                 name = 'pp_%d'%i
                 corr = self.copy()

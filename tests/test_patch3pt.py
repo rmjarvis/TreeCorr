@@ -17,6 +17,10 @@ import coord
 import time
 import fitsio
 import treecorr
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
 from test_helper import assert_raises, do_pickle, timer, get_from_wiki, CaptureLog, clear_save
 from test_helper import profile
@@ -191,6 +195,54 @@ def test_kkk_jk():
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.5 * tol_factor)
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.3*tol_factor)
+
+    # Check that these still work after roundtripping through a file.
+    cov1 = kkkp.estimate_cov('jackknife')
+    file_name = os.path.join('output','test_write_results_kkk.pkl')
+    with open(file_name, 'wb') as f:
+        pickle.dump(kkkp, f)
+    with open(file_name, 'rb') as f:
+        kkk2 = pickle.load(f)
+    cov2 = kkk2.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov2, cov1)
+
+    # And again using the normal write command.
+    file_name = os.path.join('output','test_write_results_kkk.fits')
+    kkkp.write(file_name, write_patch_results=True)
+    kkk3 = treecorr.KKKCorrelation(nbins=3, min_sep=30., max_sep=100.,
+                                   min_u=0.9, max_u=1.0, nubins=1,
+                                   min_v=0.0, max_v=0.1, nvbins=1, rng=rng)
+    kkk3.read(file_name)
+    cov3 = kkk3.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov3, cov1)
+
+    # Also with ascii, since that works differeny.
+    file_name = os.path.join('output','test_write_results_kkk.dat')
+    kkkp.write(file_name, write_patch_results=True)
+    kkk4 = treecorr.KKKCorrelation(nbins=3, min_sep=30., max_sep=100.,
+                                   min_u=0.9, max_u=1.0, nubins=1,
+                                   min_v=0.0, max_v=0.1, nvbins=1, rng=rng)
+    kkk4.read(file_name)
+    cov4 = kkk4.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov4, cov1)
+
+    # And also try to match the type if HDF
+    try:
+        import h5py
+    except ImportError:
+        print('Skipping saving HDF patches, since h5py not installed.')
+        h5py = None
+
+    if h5py is not None:
+        # Finally with hdf
+        file_name = os.path.join('output','test_write_results_kkk.hdf5')
+        kkkp.write(file_name, write_patch_results=True)
+        kkk5 = treecorr.KKKCorrelation(nbins=3, min_sep=30., max_sep=100.,
+                                       min_u=0.9, max_u=1.0, nubins=1,
+                                       min_v=0.0, max_v=0.1, nvbins=1, rng=rng)
+        kkk5.read(file_name)
+        cov5 = kkk5.estimate_cov('jackknife')
+        np.testing.assert_allclose(cov5, cov1)
 
     # Now as a cross correlation with all 3 using the same patch catalog.
     print('with 3 patched catalogs:')
@@ -599,6 +651,57 @@ def test_ggg_jk():
     print(np.diagonal(cov).real)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.3*tol_factor)
+
+    # Check that these still work after roundtripping through a file.
+    cov1 = gggp.estimate_cov('jackknife', func=f)
+    file_name = os.path.join('output','test_write_results_ggg.pkl')
+    with open(file_name, 'wb') as fid:
+        pickle.dump(gggp, fid)
+    with open(file_name, 'rb') as fid:
+        ggg2 = pickle.load(fid)
+    cov2 = ggg2.estimate_cov('jackknife', func=f)
+    print('cov1 = ',cov1)
+    print('cov2 = ',cov2)
+    np.testing.assert_allclose(cov2, cov1)
+
+    # And again using the normal write command.
+    file_name = os.path.join('output','test_write_results_ggg.fits')
+    gggp.write(file_name, write_patch_results=True)
+    ggg3 = treecorr.GGGCorrelation(nbins=1, min_sep=20., max_sep=40.,
+                                   min_u=0.6, max_u=1.0, nubins=1,
+                                   min_v=0.0, max_v=0.6, nvbins=1)
+    ggg3.read(file_name)
+    cov3 = ggg3.estimate_cov('jackknife', func=f)
+    print('cov3 = ',cov3)
+    np.testing.assert_allclose(cov3, cov1)
+
+    # Also with ascii, since that works differeny.
+    file_name = os.path.join('output','test_write_results_ggg.dat')
+    gggp.write(file_name, write_patch_results=True)
+    ggg4 = treecorr.GGGCorrelation(nbins=1, min_sep=20., max_sep=40.,
+                                   min_u=0.6, max_u=1.0, nubins=1,
+                                   min_v=0.0, max_v=0.6, nvbins=1)
+    ggg4.read(file_name)
+    cov4 = ggg4.estimate_cov('jackknife', func=f)
+    np.testing.assert_allclose(cov4, cov1)
+
+    # And also try to match the type if HDF
+    try:
+        import h5py
+    except ImportError:
+        print('Skipping saving HDF patches, since h5py not installed.')
+        h5py = None
+
+    if h5py is not None:
+        # Finally with hdf
+        file_name = os.path.join('output','test_write_results_ggg.hdf5')
+        gggp.write(file_name, write_patch_results=True)
+        ggg5 = treecorr.GGGCorrelation(nbins=1, min_sep=20., max_sep=40.,
+                                       min_u=0.6, max_u=1.0, nubins=1,
+                                       min_v=0.0, max_v=0.6, nvbins=1)
+        ggg5.read(file_name)
+        cov5 = ggg5.estimate_cov('jackknife', func=f)
+        np.testing.assert_allclose(cov5, cov1)
 
     # Now as a cross correlation with all 3 using the same patch catalog.
     print('with 3 patched catalogs:')
@@ -1213,6 +1316,84 @@ def test_nnn_jk():
     t1 = time.time()
     print('t = ',t1-t0)
     t0 = time.time()
+
+    # Check that these still work after roundtripping through files.
+    cov1 = dddp.estimate_cov('jackknife')
+    file_name = os.path.join('output','test_write_results_ddd.fits')
+    rrr_file_name = os.path.join('output','test_write_results_rrr.fits')
+    drr_file_name = os.path.join('output','test_write_results_drr.fits')
+    rdd_file_name = os.path.join('output','test_write_results_rdd.fits')
+    dddp.write(file_name, write_patch_results=True)
+    rrrp.write(rrr_file_name, write_patch_results=True)
+    drrp.write(drr_file_name, write_patch_results=True)
+    rddp.write(rdd_file_name, write_patch_results=True)
+    ddd3 = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
+                                   min_u=0.8, max_u=1.0, nubins=1,
+                                   min_v=0.0, max_v=0.2, nvbins=1)
+    rrr3 = ddd3.copy()
+    drr3 = ddd3.copy()
+    rdd3 = ddd3.copy()
+    ddd3.read(file_name)
+    rrr3.read(rrr_file_name)
+    drr3.read(drr_file_name)
+    rdd3.read(rdd_file_name)
+    ddd3.calculateZeta(rrr=rrr3, drr=drr3, rdd=rdd3)
+    cov3 = ddd3.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov3, cov1)
+
+    # Also with ascii, since that works differeny.
+    file_name = os.path.join('output','test_write_results_ddd.dat')
+    rrr_file_name = os.path.join('output','test_write_results_rrr.dat')
+    drr_file_name = os.path.join('output','test_write_results_drr.dat')
+    rdd_file_name = os.path.join('output','test_write_results_rdd.dat')
+    dddp.write(file_name, write_patch_results=True)
+    rrrp.write(rrr_file_name, write_patch_results=True)
+    drrp.write(drr_file_name, write_patch_results=True)
+    rddp.write(rdd_file_name, write_patch_results=True)
+    ddd4 = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
+                                   min_u=0.8, max_u=1.0, nubins=1,
+                                   min_v=0.0, max_v=0.2, nvbins=1)
+    rrr4 = ddd4.copy()
+    drr4 = ddd4.copy()
+    rdd4 = ddd4.copy()
+    ddd4.read(file_name)
+    rrr4.read(rrr_file_name)
+    drr4.read(drr_file_name)
+    rdd4.read(rdd_file_name)
+    ddd4.calculateZeta(rrr=rrr4, drr=drr4, rdd=rdd4)
+    cov4 = ddd4.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov4, cov1)
+
+    # And also try to match the type if HDF
+    try:
+        import h5py
+    except ImportError:
+        print('Skipping saving HDF patches, since h5py not installed.')
+        h5py = None
+
+    if h5py is not None:
+        # Finally with hdf
+        file_name = os.path.join('output','test_write_results_ddd.hdf5')
+        rrr_file_name = os.path.join('output','test_write_results_rrr.hdf5')
+        drr_file_name = os.path.join('output','test_write_results_drr.hdf5')
+        rdd_file_name = os.path.join('output','test_write_results_rdd.hdf5')
+        dddp.write(file_name, write_patch_results=True)
+        rrrp.write(rrr_file_name, write_patch_results=True)
+        drrp.write(drr_file_name, write_patch_results=True)
+        rddp.write(rdd_file_name, write_patch_results=True)
+        ddd5 = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
+                                       min_u=0.8, max_u=1.0, nubins=1,
+                                       min_v=0.0, max_v=0.2, nvbins=1)
+        rrr5 = ddd5.copy()
+        drr5 = ddd5.copy()
+        rdd5 = ddd5.copy()
+        ddd5.read(file_name)
+        rrr5.read(rrr_file_name)
+        drr5.read(drr_file_name)
+        rdd5.read(rdd_file_name)
+        ddd5.calculateZeta(rrr=rrr5, drr=drr5, rdd=rdd5)
+        cov5 = ddd5.estimate_cov('jackknife')
+        np.testing.assert_allclose(cov5, cov1)
 
     # I haven't implemented calculateZeta for the NNNCrossCorrelation class, because I'm not
     # actually sure what the right thing to do here is for calculating a single zeta vectors.

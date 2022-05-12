@@ -645,9 +645,6 @@ class KKKCorrelation(BinnedCorr3):
             self._ro.rnom = data['R_nom'].reshape(s)
         else:
             self._ro.rnom = data['r_nom'].reshape(s)
-        self._ro.logr = np.log(self.rnom)
-        self._ro.u = data['u_nom'].reshape(s)
-        self._ro.v = data['v_nom'].reshape(s)
         self.meand1 = data['meand1'].reshape(s)
         self.meanlogd1 = data['meanlogd1'].reshape(s)
         self.meand2 = data['meand2'].reshape(s)
@@ -666,6 +663,7 @@ class KKKCorrelation(BinnedCorr3):
         self._ro.bin_type = params['bin_type'].strip()
         self.npatch1 = params.get('npatch1', 1)
         self.npatch2 = params.get('npatch2', 1)
+        self.npatch3 = params.get('npatch3', 1)
 
 
 class KKKCrossCorrelation(BinnedCorr3):

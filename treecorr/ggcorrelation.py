@@ -555,28 +555,28 @@ class GGCorrelation(BinnedCorr2):
 
     # Helper function used by _read
     def _read_from_data(self, data, params):
+        s = self.logr.shape
         if 'R_nom' in data.dtype.names:  # pragma: no cover
-            self._ro.rnom = data['R_nom']
-            self.meanr = data['meanR']
-            self.meanlogr = data['meanlogR']
+            self._ro.rnom = data['R_nom'].reshape(s)
+            self.meanr = data['meanR'].reshape(s)
+            self.meanlogr = data['meanlogR'].reshape(s)
         else:
-            self._ro.rnom = data['r_nom']
-            self.meanr = data['meanr']
-            self.meanlogr = data['meanlogr']
-        self._ro.logr = np.log(self.rnom)
-        self.xip = data['xip']
-        self.xim = data['xim']
-        self.xip_im = data['xip_im']
-        self.xim_im = data['xim_im']
+            self._ro.rnom = data['r_nom'].reshape(s)
+            self.meanr = data['meanr'].reshape(s)
+            self.meanlogr = data['meanlogr'].reshape(s)
+        self.xip = data['xip'].reshape(s)
+        self.xim = data['xim'].reshape(s)
+        self.xip_im = data['xip_im'].reshape(s)
+        self.xim_im = data['xim_im'].reshape(s)
         # Read old output files without error.
         if 'sigma_xi' in data.dtype.names:  # pragma: no cover
-            self.varxip = data['sigma_xi']**2
-            self.varxim = data['sigma_xi']**2
+            self.varxip = data['sigma_xi'].reshape(s)**2
+            self.varxim = data['sigma_xi'].reshape(s)**2
         else:
-            self.varxip = data['sigma_xip']**2
-            self.varxim = data['sigma_xim']**2
-        self.weight = data['weight']
-        self.npairs = data['npairs']
+            self.varxip = data['sigma_xip'].reshape(s)**2
+            self.varxim = data['sigma_xim'].reshape(s)**2
+        self.weight = data['weight'].reshape(s)
+        self.npairs = data['npairs'].reshape(s)
         self.coords = params['coords'].strip()
         self.metric = params['metric'].strip()
         self._ro.sep_units = params['sep_units'].strip()

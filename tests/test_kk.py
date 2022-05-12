@@ -424,7 +424,7 @@ def test_kk():
     np.testing.assert_almost_equal(data['npairs'], kk.npairs)
 
     # Check the read function
-    kk2 = treecorr.KKCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin')
+    kk2 = treecorr.KKCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin')
     kk2.read(out_file_name)
     np.testing.assert_almost_equal(kk2.logr, kk.logr)
     np.testing.assert_almost_equal(kk2.meanr, kk.meanr)

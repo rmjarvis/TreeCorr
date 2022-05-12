@@ -1241,7 +1241,7 @@ class BinnedCorr2(object):
             params['npatch1'] = self.npatch1
             params['npatch2'] = self.npatch2
             params['num_patch_pairs'] = len(self.results)
-            params['max_rows'] = len(self.rnom)
+            params['max_rows'] = len(self.rnom.ravel())
 
         name = 'main' if write_patch_results else None
         writer = make_writer(file_name, precision, file_type, self.logger)

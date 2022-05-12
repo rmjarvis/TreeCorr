@@ -209,6 +209,33 @@ def test_twod():
     print('max rel diff = ',np.max(np.abs(nn.weight - counts)/np.abs(nn.weight)))
     np.testing.assert_allclose(nn.weight, counts, atol=1.e-7)
 
+    # Check I/O
+    fits_name = 'output/gg_twod.fits'
+    gg.write(fits_name)
+    gg2 = treecorr.GGCorrelation(bin_size=2, nbins=nbins, bin_type='TwoD')
+    gg2.read(fits_name)
+    np.testing.assert_allclose(gg2.npairs, gg.npairs)
+    np.testing.assert_allclose(gg2.weight, gg.weight)
+    np.testing.assert_allclose(gg2.meanr, gg.meanr)
+    np.testing.assert_allclose(gg2.meanlogr, gg.meanlogr)
+    np.testing.assert_allclose(gg2.xip, gg.xip)
+    np.testing.assert_allclose(gg2.xip_im, gg.xip_im)
+    np.testing.assert_allclose(gg2.xim, gg.xim)
+    np.testing.assert_allclose(gg2.xim_im, gg.xim_im)
+
+    ascii_name = 'output/gg_twod.txt'
+    gg.write(ascii_name, precision=16)
+    gg3 = treecorr.GGCorrelation(bin_size=2, nbins=nbins, bin_type='TwoD')
+    gg3.read(ascii_name)
+    np.testing.assert_allclose(gg3.npairs, gg.npairs)
+    np.testing.assert_allclose(gg3.weight, gg.weight)
+    np.testing.assert_allclose(gg3.meanr, gg.meanr)
+    np.testing.assert_allclose(gg3.meanlogr, gg.meanlogr)
+    np.testing.assert_allclose(gg3.xip, gg.xip)
+    np.testing.assert_allclose(gg3.xip_im, gg.xip_im)
+    np.testing.assert_allclose(gg3.xim, gg.xim)
+    np.testing.assert_allclose(gg3.xim_im, gg.xim_im)
+
     # The other two, NG and KG can't really be checked with the brute force
     # calculator we have here, so we're counting on the above being a sufficient
     # test of all aspects of the twod binning.  I think that it is sufficient, but I

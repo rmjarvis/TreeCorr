@@ -120,7 +120,7 @@ class BinnedCorr3(object):
                             hours, radians.  (default: radians if angular units make sense, but for
                             3-d or flat 2-d positions, the default will just match the units of
                             x,y[,z] coordinates)
-        bin_slop (float):   How much slop to allow in the placement of pairs in the bins.
+        bin_slop (float):   How much slop to allow in the placement of triangles in the bins.
                             If bin_slop = 1, then the bin into which a particular pair is placed
                             may be incorrect by at most 1.0 bin widths.  (default: None, which
                             means to use a bin_slop that gives a maximum error of 10% on any bin,
@@ -228,8 +228,8 @@ class BinnedCorr3(object):
                 'The units to use for min_sep and max_sep.  Also the units of the output '
                 'distances'),
         'bin_slop' : (float, False, None, None,
-                'The fraction of a bin width by which it is ok to let the pairs miss the correct '
-                'bin.',
+                'The fraction of a bin width by which it is ok to let the triangles miss the '
+                'correct bin.',
                 'The default is to use 1 if bin_size <= 0.1, or 0.1/bin_size if bin_size > 0.1.'),
         'nubins' : (int, False, None, None,
                 'The number of output bins to use for u dimension.'),
@@ -1330,7 +1330,7 @@ class BinnedCorr3(object):
                     [ (i,j,k) for i in indx for j in indx if i!=j
                               for k in indx if self._ok[i,j,k] and (i!=k and j!=k) ])
 
-    def _write(self, file_name, file_type, precision, write_patch_results):
+    def _write(self, file_name, file_type, precision, write_patch_results, zero_tot=False):
         if precision is None:
             precision = self.config.get('precision', 4)
 
@@ -1345,8 +1345,18 @@ class BinnedCorr3(object):
             params['npatch1'] = self.npatch1
             params['npatch2'] = self.npatch2
             params['npatch3'] = self.npatch3
-            params['num_patch_pairs'] = len(list(self.results.keys()))
             params['max_rows'] = len(self.rnom.ravel())
+            num_patch_tri = len(self.results)
+            if zero_tot:
+                i = 0
+                for key, corr in self.results.items():
+                    if not corr._nonzero:
+                        name = 'zp_%d'%i
+                        params[name] = repr((key, corr.tot))
+                        num_patch_tri -= 1
+                        i += 1
+                params['num_zero_patch'] = i
+            params['num_patch_tri'] = num_patch_tri
 
         name = 'main' if write_patch_results else None
         writer = make_writer(file_name, precision, file_type, self.logger)
@@ -1354,12 +1364,16 @@ class BinnedCorr3(object):
             writer.write(col_names, data, params=params, ext=name)
             if write_patch_results:
                 writer.set_precision(16)
-                for i, (key, corr) in enumerate(self.results.items()):
+                i = 0
+                for key, corr in self.results.items():
+                    if zero_tot and not corr._nonzero: continue
                     data = corr._write_data
                     params = corr._write_params
                     params['key'] = repr(key)
                     name = 'pp_%d'%i
                     writer.write(col_names, data, params=params, ext=name)
+                    i += 1
+                assert i == num_patch_tri
 
     def _read(self, file_name, file_type):
         reader = make_reader(file_name, file_type, self.logger)
@@ -1367,7 +1381,8 @@ class BinnedCorr3(object):
             name = 'main' if 'main' in reader else None
             params = reader.read_params(ext=name)
             max_rows = params.get('max_rows', None)
-            num_patch_pairs = params.get('num_patch_pairs', 0)
+            num_patch_tri = params.get('num_patch_tri', 0)
+            num_zero_patch = params.get('num_zero_patch', 0)
             data = reader.read_data(max_rows=max_rows, ext=name)
 
             # This helper function defines how to set the attributes for each class
@@ -1375,7 +1390,11 @@ class BinnedCorr3(object):
             self._read_from_data(data, params)
 
             self.results = {}
-            for i in range(num_patch_pairs):
+            for i in range(num_zero_patch):
+                name = 'zp_%d'%i
+                key, tot = eval(params[name])
+                self.results[key] = self._zero_copy(tot)
+            for i in range(num_patch_tri):
                 name = 'pp_%d'%i
                 corr = self.copy()
                 params = reader.read_params(ext=name)

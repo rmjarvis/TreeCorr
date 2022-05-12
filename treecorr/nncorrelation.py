@@ -769,7 +769,7 @@ class NNCorrelation(BinnedCorr2):
         self._write_rr = rr
         self._write_dr = dr
         self._write_rd = rd
-        self._write(file_name, file_type, precision, write_patch_results)
+        self._write(file_name, file_type, precision, write_patch_results, zero_tot=True)
         self._write_rr = None
         self._write_dr = None
         self._write_rd = None

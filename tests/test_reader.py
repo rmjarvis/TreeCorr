@@ -18,7 +18,8 @@ import fitsio
 from unittest import mock
 
 from treecorr.reader import FitsReader, HdfReader, PandasReader, AsciiReader, ParquetReader
-from test_helper import get_from_wiki, assert_raises, timer
+from treecorr.writer import FitsWriter, HdfWriter, AsciiWriter
+from test_helper import get_from_wiki, assert_raises, timer, CaptureLog
 
 @timer
 def test_fits_reader():
@@ -76,6 +77,8 @@ def test_fits_reader():
         d = r.read(['KAPPA', 'MU'])
         assert len(d['KAPPA']) == 390935
         assert len(d['MU']) == 390935
+        kappa = d['KAPPA']
+        mu = d['MU']
 
         # check we can also index by integer, not just number
         d = r.read(['DEC'], np.arange(10), 'AARDWOLF')
@@ -97,6 +100,22 @@ def test_fits_reader():
     with assert_raises(RuntimeError):
         1 in r
 
+    # Check writer too.
+    w = FitsWriter(os.path.join('output','test_fits_writer.fits'))
+    with w:
+        w.write(['KAPPA', 'MU'], [kappa, mu], params={'test': True}, ext='KM')
+    r = FitsReader(os.path.join('output','test_fits_writer.fits'))
+    with r:
+        params = r.read_params(ext='KM')
+        data = r.read_data(ext='KM')
+    assert params['test'] is True
+    assert np.array_equal(data['KAPPA'], kappa)
+    assert np.array_equal(data['MU'], mu)
+
+    # Not allowed to write when not in with context
+    with assert_raises(RuntimeError):
+        w.write(['KAPPA', 'MU'], [kappa, mu], params={'test': True}, ext='KM')
+
     # Regardless of the system's fitsio version, check the two cases in code.
     with mock.patch('fitsio.__version__', '1.0.6'):
         with FitsReader(os.path.join('data','Aardvark.fit')) as r:
@@ -104,6 +123,15 @@ def test_fits_reader():
     with mock.patch('fitsio.__version__', '1.1.0'):
         with FitsReader(os.path.join('data','Aardvark.fit')) as r:
             assert r.can_slice
+    with mock.patch.dict(sys.modules, {'fitsio':None}):
+        with CaptureLog() as cl:
+            with assert_raises(ImportError):
+                FitsReader(os.path.join('data','Aardvark.fit'), logger=cl.logger)
+        assert 'Cannot read' in cl.output
+        with CaptureLog() as cl:
+            with assert_raises(ImportError):
+                FitsWriter(os.path.join('output','test_fits_writer.fits'), logger=cl.logger)
+        assert 'Cannot write to' in cl.output
 
 @timer
 def test_hdf_reader():
@@ -163,6 +191,15 @@ def test_hdf_reader():
         assert set(r.names()) == set("INDEX RA DEC Z EPSILON GAMMA1 GAMMA2 KAPPA MU".split())
         assert set(r.names('/')) == set(r.names())
 
+        # Can read without slice or ext to use defaults
+        g2 = r.read('GAMMA2')
+        assert len(g2) == 390935
+        d = r.read(['KAPPA', 'MU'])
+        assert len(d['KAPPA']) == 390935
+        assert len(d['MU']) == 390935
+        kappa = d['KAPPA']
+        mu = d['MU']
+
     # Again check things not allowed if not in context
     with assert_raises(RuntimeError):
         r.read(['RA'], slice(0,10,2), '/')
@@ -178,6 +215,23 @@ def test_hdf_reader():
         r.names()
     with assert_raises(RuntimeError):
         '/' in r
+
+    # Check writer too.
+    w = HdfWriter(os.path.join('output','test_hdf_writer.hdf'))
+    with w:
+        w.write(['KAPPA', 'MU'], [kappa, mu], params={'test': True}, ext='KM')
+    r = HdfReader(os.path.join('output','test_hdf_writer.hdf'))
+    with r:
+        params = r.read_params(ext='KM')
+        data = r.read_data(ext='KM')
+    assert params['test']
+    assert np.array_equal(data['KAPPA'], kappa)
+    assert np.array_equal(data['MU'], mu)
+
+    # Not allowed to write when not in with context
+    with assert_raises(RuntimeError):
+        w.write(['KAPPA', 'MU'], [kappa, mu], params={'test': True}, ext='KM')
+
 
 @timer
 def test_parquet_reader():
@@ -352,6 +406,9 @@ def _test_ascii_reader(r, has_names=True):
         assert len(all_data['ra']) == 20
         assert r.row_count() == 20
 
+        g1 = all_data['g1']
+        g2 = all_data['g2']
+
         # Check reading specific rows
         data2 = r.read(['ra','x','z'], s2)
         dec2 = r.read('dec', s2)
@@ -363,7 +420,6 @@ def _test_ascii_reader(r, has_names=True):
         assert data2['ra'][0] == 0.34044927
         assert data2['x'][2] == 0.01816738
         assert data2['z'][1] == 0.79008204
-
 
     # Again check things not allowed if not in context
     with assert_raises(RuntimeError):
@@ -381,6 +437,23 @@ def _test_ascii_reader(r, has_names=True):
         r.names(None)
     with assert_raises(RuntimeError):
         r.names()
+
+    # Check writer too.
+    w = AsciiWriter(os.path.join('output','test_hdf_writer.dat'), precision=16)
+    with w:
+        w.write(['g1', 'g2'], [g1, g2], params={'test': True}, ext='g1g2')
+    r = AsciiReader(os.path.join('output','test_hdf_writer.dat'))
+    with r:
+        params = r.read_params(ext='g1g2')
+        data = r.read_data(ext='g1g2')
+    assert params['test']
+    assert np.array_equal(data['g1'], g1)
+    assert np.array_equal(data['g2'], g2)
+
+    # Not allowed to write when not in with context
+    with assert_raises(RuntimeError):
+        w.write(['g1', 'g2'], [g1, g2], params={'test': True}, ext='g1g2')
+
 
 @timer
 def test_ascii_reader():

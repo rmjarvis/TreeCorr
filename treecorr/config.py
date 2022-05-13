@@ -355,23 +355,28 @@ def get_from_list(config, key, num, value_type=str, default=None):
     :param key:         What key to get from config.
     :param num:         Which number element to use if the item is a list.
     :param value_type:  What type should the value be converted to. (default: str)
-    :param default:     What value should be used if the key is not in the config dict.
+    :param default:     What value should be used if the key is not in the config dict,
+                        or the value corresponding to the key is None.
                         (default: None)
 
     :returns:           The specified value, converted as needed.
     """
-    if key in config:
-        values = config[key]
-        if isinstance(values, list):
-            if num >= len(values):
-                raise IndexError("num=%d is out of range of list for %s"%(num,key))
-            return convert(values[num],value_type,key)
-        else:
-            return convert(values,value_type,key)
+    values = config.get(key, None)
+    if isinstance(values, list):
+        try:
+            value = values[num]
+        except IndexError:
+            raise IndexError("num=%d is out of range of list for %s"%(num,key))
+
+        if value is not None:
+            return convert(value, value_type, key)
+        elif default is not None:
+            return convert(default, value_type, key)
+    elif values is not None:
+        return convert(values, value_type, key)
     elif default is not None:
-        return convert(default,value_type,key)
-    else:
-        return default
+        return convert(default, value_type, key)
+
 
 def get(config, key, value_type=str, default=None):
     """A helper function to get a key from config converting to a particular type

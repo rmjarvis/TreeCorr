@@ -213,6 +213,12 @@ def test_ascii():
     np.testing.assert_almost_equal(cat5.x, x * (pi/180.))
     np.testing.assert_almost_equal(cat5.y, y * (pi/180.))
 
+    config['x_units'] = None  # Default is radians
+    config['y_units'] = None  # Default is radians
+    cat5 = treecorr.Catalog(file_name, config)
+    np.testing.assert_almost_equal(cat5.x, x)
+    np.testing.assert_almost_equal(cat5.y, y)
+
     del config['x_units']  # Default is radians
     del config['y_units']
     cat5 = treecorr.Catalog(file_name, config)

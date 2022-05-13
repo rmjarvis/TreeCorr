@@ -379,18 +379,17 @@ def get(config, key, value_type=str, default=None):
     :param config:      The configuration dict from which to get the key value.
     :param key:         Which key to get from config.
     :param value_type:  Which type should the value be converted to. (default: str)
-    :param default:     What value should be used if the key is not in the config dict.
+    :param default:     What value should be used if the key is not in the config dict,
+                        or the value corresponding to the key is None.
                         (default: None)
 
     :returns:           The specified value, converted as needed.
     """
-    if key in config:
-        value = config[key]
+    value = config.get(key, default)
+    if value is not None:
         return convert(value, value_type, key)
     elif default is not None:
-        return convert(default,value_type,key)
-    else:
-        return default
+        return convert(default, value_type, key)
 
 def merge_config(config, kwargs, valid_params, aliases=None):
     """Merge in the values from kwargs into config.

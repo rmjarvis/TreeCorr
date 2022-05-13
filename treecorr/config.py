@@ -333,12 +333,12 @@ def convert(value, value_type, key):
 
     :returns:           The converted value.
     """
-    if 'unit' in key:
+    if value is None:
+        return None
+    elif 'unit' in key:
         return parse_unit(value)
     elif value_type == bool:
         return parse_bool(value)
-    elif value is None:
-        return None
     else:
         return value_type(value)
 

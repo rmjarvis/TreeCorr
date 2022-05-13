@@ -98,19 +98,21 @@ class BinnedCorr2(object):
     Keyword Arguments:
 
         nbins (int):        How many bins to use. (Exactly three of nbins, bin_size, min_sep,
-                            max_sep are required. If nbins is not given, it will be calculated from
-                            the values of the other three, rounding up to the next highest integer.
-                            In this case, bin_size will be readjusted to account for this rounding
-                            up.)
+                            max_sep are required. If nbins is not given or set to None, it will be
+                            calculated from the values of the other three, rounding up to the next
+                            highest integer. In this case, bin_size will be readjusted to account
+                            for this rounding up.)
         bin_size (float):   The width of the bins in log(separation). (Exactly three of nbins,
-                            bin_size, min_sep, max_sep are required.  If bin_size is not given, it
-                            will be calculated from the values of the other three.)
+                            bin_size, min_sep, max_sep are required.  If bin_size is not given or
+                            set to None, it will be calculated from the values of the other three.)
         min_sep (float):    The minimum separation in units of sep_units, if relevant. (Exactly
                             three of nbins, bin_size, min_sep, max_sep are required.  If min_sep is
-                            not given, it will be calculated from the values of the other three.)
+                            not given or set to None, it will be calculated from the values of the
+                            other three.)
         max_sep (float):    The maximum separation in units of sep_units, if relevant. (Exactly
                             three of nbins, bin_size, min_sep, max_sep are required.  If max_sep is
-                            not given, it will be calculated from the values of the other three.
+                            not given or set to None, it will be calculated from the values of the
+                            other three.)
 
         sep_units (str):    The units to use for the separation values, given as a string.  This
                             includes both min_sep and max_sep above, as well as the units of the
@@ -302,12 +304,12 @@ class BinnedCorr2(object):
         self._ro.sep_units = self.config.get('sep_units','')
         self._ro._sep_units = get(self.config,'sep_units',str,'radians')
         self._ro._log_sep_units = math.log(self._sep_units)
-        if 'nbins' not in self.config:
-            if 'max_sep' not in self.config:
+        if self.config.get('nbins', None) is None:
+            if self.config.get('max_sep', None) is None:
                 raise TypeError("Missing required parameter max_sep")
-            if 'min_sep' not in self.config and self.bin_type != 'TwoD':
+            if self.config.get('min_sep', None) is None and self.bin_type != 'TwoD':
                 raise TypeError("Missing required parameter min_sep")
-            if 'bin_size' not in self.config:
+            if self.config.get('bin_size', None) is None:
                 raise TypeError("Missing required parameter bin_size")
             self._ro.min_sep = float(self.config.get('min_sep',0))
             self._ro.max_sep = float(self.config['max_sep'])
@@ -315,10 +317,10 @@ class BinnedCorr2(object):
                 raise ValueError("max_sep must be larger than min_sep")
             self._ro.bin_size = float(self.config['bin_size'])
             self._ro.nbins = None
-        elif 'bin_size' not in self.config:
-            if 'max_sep' not in self.config:
+        elif self.config.get('bin_size', None) is None:
+            if self.config.get('max_sep', None) is None:
                 raise TypeError("Missing required parameter max_sep")
-            if 'min_sep' not in self.config and self.bin_type != 'TwoD':
+            if self.config.get('min_sep', None) is None and self.bin_type != 'TwoD':
                 raise TypeError("Missing required parameter min_sep")
             self._ro.min_sep = float(self.config.get('min_sep',0))
             self._ro.max_sep = float(self.config['max_sep'])
@@ -326,8 +328,8 @@ class BinnedCorr2(object):
                 raise ValueError("max_sep must be larger than min_sep")
             self._ro.nbins = int(self.config['nbins'])
             self._ro.bin_size = None
-        elif 'max_sep' not in self.config:
-            if 'min_sep' not in self.config and self.bin_type != 'TwoD':
+        elif self.config.get('max_sep', None) is None:
+            if self.config.get('min_sep', None) is None and self.bin_type != 'TwoD':
                 raise TypeError("Missing required parameter min_sep")
             self._ro.min_sep = float(self.config.get('min_sep',0))
             self._ro.nbins = int(self.config['nbins'])
@@ -337,7 +339,7 @@ class BinnedCorr2(object):
             if self.bin_type == 'TwoD':
                 raise TypeError("Only 2 of max_sep, bin_size, nbins are allowed "
                                 "for bin_type='TwoD'.")
-            if 'min_sep' in self.config:
+            if self.config.get('min_sep', None) is not None:
                 raise TypeError("Only 3 of min_sep, max_sep, bin_size, nbins are allowed.")
             self._ro.max_sep = float(self.config['max_sep'])
             self._ro.nbins = int(self.config['nbins'])

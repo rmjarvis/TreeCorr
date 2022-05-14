@@ -1224,6 +1224,12 @@ def test_nn():
     dd.process(cat)
     print('dd.npairs = ',dd.npairs)
 
+    # Using nbins=None rather than omitting nbins is equivalent.
+    dd2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., nbins=None, sep_units='arcmin')
+    dd2.process(cat, num_threads=1)
+    dd.process(cat, num_threads=1)
+    assert dd2 == dd
+
     # log(<R>) != <logR>, but it should be close:
     print('meanlogr - log(meanr) = ',dd.meanlogr - np.log(dd.meanr))
     np.testing.assert_allclose(dd.meanlogr, np.log(dd.meanr), atol=1.e-3)

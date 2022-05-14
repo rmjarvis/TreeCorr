@@ -435,6 +435,12 @@ def test_gg():
                                 verbose=1)
     gg.process(cat)
 
+    # Using nbins=None rather than omiting nbins is equivalent.
+    gg2 = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., nbins=None, sep_units='arcmin')
+    gg2.process(cat, num_threads=1)
+    gg.process(cat, num_threads=1)
+    assert gg2 == gg
+
     # log(<R>) != <logR>, but it should be close:
     print('meanlogr - log(meanr) = ',gg.meanlogr - np.log(gg.meanr))
     np.testing.assert_allclose(gg.meanlogr, np.log(gg.meanr), atol=1.e-3)

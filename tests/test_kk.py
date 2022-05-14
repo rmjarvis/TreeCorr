@@ -372,6 +372,13 @@ def test_kk():
                                 verbose=1)
     kk.process(cat)
 
+    # Using nbins=None rather than omiting nbins is equivalent.
+    kk2 = treecorr.KKCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None,
+                                 sep_units='arcmin')
+    kk2.process(cat, num_threads=1)
+    kk.process(cat, num_threads=1)
+    assert kk2 == kk
+
     # log(<R>) != <logR>, but it should be close:
     print('meanlogr - log(meanr) = ',kk.meanlogr - np.log(kk.meanr))
     np.testing.assert_allclose(kk.meanlogr, np.log(kk.meanr), atol=1.e-3)

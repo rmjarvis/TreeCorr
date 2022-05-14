@@ -1338,6 +1338,15 @@ def test_ggg():
                                   sep_units='arcmin', verbose=1)
     ggg.process(cat)
 
+    # Using bin_size=None rather than omiting bin_size is equivalent.
+    ggg2 = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_size=None,
+                                  min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
+                                  nubins=nubins, nvbins=nvbins,
+                                  sep_units='arcmin', verbose=1)
+    ggg2.process(cat, num_threads=1)
+    ggg.process(cat, num_threads=1)
+    assert ggg2 == ggg
+
     # log(<d>) != <logd>, but it should be close:
     print('meanlogd1 - log(meand1) = ',ggg.meanlogd1 - np.log(ggg.meand1))
     print('meanlogd2 - log(meand2) = ',ggg.meanlogd2 - np.log(ggg.meand2))

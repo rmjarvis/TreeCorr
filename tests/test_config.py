@@ -389,20 +389,25 @@ def test_get():
     assert treecorr.config.get_from_list(config1, 'ra_col', 1, int, 2) == 2
     assert treecorr.config.get_from_list(config1, 'ra_col', 1, int) is None
 
-    config1['flip_g1'] = [True, False]
+    config1['flip_g1'] = [True, False, None]
     assert treecorr.config.get_from_list(config1, 'flip_g1', 0, bool) is True
     assert treecorr.config.get_from_list(config1, 'flip_g1', 1, bool) is False
+    assert treecorr.config.get_from_list(config1, 'flip_g1', 2, bool) is None
     assert treecorr.config.get_from_list(config1, 'flip_g1', 0, bool, False) is True
+    assert treecorr.config.get_from_list(config1, 'flip_g1', 1, bool, True) is False
+    assert treecorr.config.get_from_list(config1, 'flip_g1', 2, bool, True) is True
+    assert treecorr.config.get_from_list(config1, 'flip_g1', 2, bool, False) is False
     assert treecorr.config.get_from_list(config1, 'flip_g2', 1, bool) is None
     assert treecorr.config.get_from_list(config1, 'flip_g2', 1, bool, False) is False
     assert treecorr.config.get_from_list(config1, 'flip_g2', 2, bool, False) is False
+    assert treecorr.config.get_from_list(config1, 'flip_g2', 3, bool, True) is True
 
     with assert_raises(IndexError):
         treecorr.config.get_from_list(config1, 'k_col', 2, int)
     with assert_raises(IndexError):
-        treecorr.config.get_from_list(config1, 'flip_g1', 2, bool)
+        treecorr.config.get_from_list(config1, 'flip_g1', 3, bool)
     with assert_raises(IndexError):
-        treecorr.config.get_from_list(config1, 'flip_g1', 2, bool, False)
+        treecorr.config.get_from_list(config1, 'flip_g1', 3, bool, False)
 
 
 @timer

@@ -1149,6 +1149,15 @@ def test_kkk():
                                   sep_units='arcmin', verbose=1)
     kkk.process(cat)
 
+    # Using bin_size=None rather than omiting bin_size is equivalent.
+    kkk2 = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_size=None,
+                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
+                                   nubins=nubins, nvbins=nvbins,
+                                   sep_units='arcmin', verbose=1)
+    kkk2.process(cat, num_threads=1)
+    kkk.process(cat, num_threads=1)
+    assert kkk2 == kkk
+
     # log(<d>) != <logd>, but it should be close:
     print('meanlogd1 - log(meand1) = ',kkk.meanlogd1 - np.log(kkk.meand1))
     print('meanlogd2 - log(meand2) = ',kkk.meanlogd2 - np.log(kkk.meand2))

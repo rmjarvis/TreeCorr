@@ -2093,6 +2093,15 @@ def test_nnn():
     ddd.process(cat)
     #print('ddd.ntri = ',ddd.ntri)
 
+    # Using bin_size=None rather than omitting bin_size is equivalent.
+    ddd2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_size=None,
+                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
+                                   nubins=nubins, nvbins=nvbins,
+                                   sep_units='arcmin', verbose=1)
+    ddd2.process(cat, num_threads=1)
+    ddd.process(cat, num_threads=1)
+    assert ddd2 == ddd
+
     # log(<d>) != <logd>, but it should be close:
     print('meanlogd1 - log(meand1) = ',ddd.meanlogd1 - np.log(ddd.meand1))
     print('meanlogd2 - log(meand2) = ',ddd.meanlogd2 - np.log(ddd.meand2))

@@ -259,9 +259,11 @@ def check_config(config, params, aliases=None, logger=None):
             value = [parse(v, value_type, key) for v in config[key] ]
         else:
             value = parse(config[key], value_type, key)
+            if value is None:
+                continue
 
         # If limited allowed value, check that this is one of them.
-        if valid_values is not None:
+        if valid_values is not None and value is not None:
             if value_type is str:
                 matches = [ v for v in valid_values if value == v ]
                 if len(matches) == 0:

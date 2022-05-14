@@ -447,6 +447,17 @@ def test_merge():
 
 
 @timer
+def test_convert():
+    """Test converting a value to a given type.
+    """
+    assert treecorr.config.convert('10', int, 'n_bins') == 10
+    assert treecorr.config.convert('yes', bool, 'flip_g1') is True
+    assert treecorr.config.convert('0.9', float, 'bin_slop') == 0.9
+    assert treecorr.config.convert(None, str, 'x_units') is None
+    assert np.isclose(treecorr.config.convert('deg', float, 'ra_units'), np.pi / 180.)
+
+
+@timer
 def test_omp():
     """Test setting the number of omp threads.
     """
@@ -874,6 +885,7 @@ if __name__ == '__main__':
     test_print()
     test_get()
     test_merge()
+    test_convert()
     test_omp()
     test_util()
     test_gen_read_write()

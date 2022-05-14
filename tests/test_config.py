@@ -374,6 +374,12 @@ def test_get():
     assert treecorr.config.get(config1, 'flip_g2', bool, False) is False
     assert treecorr.config.get(config1, 'flip_g2', bool) is None
 
+    config1['flip_g2'] = None
+    assert treecorr.config.get(config1, 'flip_g1', bool) is True
+    assert treecorr.config.get(config1, 'flip_g2', bool) is None
+    assert treecorr.config.get(config1, 'flip_g2', bool, True) is True
+    assert treecorr.config.get(config1, 'flip_g2', bool, False) is False
+
     assert treecorr.config.get_from_list(config1, 'k_col', 0, int) == 3
     assert treecorr.config.get_from_list(config1, 'k_col', 0, str) == '3'
     assert treecorr.config.get_from_list(config1, 'k_col', 0) == '3'

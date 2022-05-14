@@ -656,6 +656,12 @@ def test_ng():
                                 verbose=1)
     ng.process(lens_cat, source_cat)
 
+    # Using nbins=None rather than omitting nbins is equivalent.
+    ng2 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None, sep_units='arcmin')
+    ng2.process(lens_cat, source_cat, num_threads=1)
+    ng.process(lens_cat, source_cat, num_threads=1)
+    assert ng2 == ng
+
     r = ng.meanr
     true_gt = gamma0 * np.exp(-0.5*r**2/r0**2)
 

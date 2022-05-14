@@ -495,6 +495,12 @@ def test_kg():
                                 verbose=1)
     kg.process(lens_cat, source_cat)
 
+    # Using nbins=None rather than omiting nbins is equivalent.
+    kg2 = treecorr.KGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None, sep_units='arcmin')
+    kg2.process(lens_cat, source_cat, num_threads=1)
+    kg.process(lens_cat, source_cat, num_threads=1)
+    assert kg2 == kg
+
     r = kg.meanr
     true_gt = gamma0 * np.exp(-0.5*r**2/r0**2)
 

@@ -404,6 +404,12 @@ def test_nk():
                                 verbose=1)
     nk.process(lens_cat, source_cat)
 
+    # Using nbins=None rather than omitting nbins is equivalent.
+    nk2 = treecorr.NKCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None, sep_units='arcmin')
+    nk2.process(lens_cat, source_cat, num_threads=1)
+    nk.process(lens_cat, source_cat, num_threads=1)
+    assert nk2 == nk
+
     # log(<R>) != <logR>, but it should be close:
     print('meanlogr - log(meanr) = ',nk.meanlogr - np.log(nk.meanr))
     np.testing.assert_allclose(nk.meanlogr, np.log(nk.meanr), atol=1.e-3)

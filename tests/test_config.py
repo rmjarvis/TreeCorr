@@ -435,10 +435,19 @@ def test_merge():
         else:
             assert config2[key] == valid_params[key][2]
 
-    # If conflicts, kwargs takes precedence
+    # If conflicts, kwargs takes precedence ...
     kwargs['ra_col'] = 'alpha2000'
     config2 = treecorr.config.merge_config(config1, kwargs, treecorr.Catalog._valid_params)
     assert config2['ra_col'] == 'alpha2000'
+
+    # ... except when the value in kwargs is None.
+    kwargs = {'bin_size': 0.06, 'nbins': None}
+    config2 = treecorr.config.merge_config(config1, kwargs, treecorr.BinnedCorr2._valid_params)
+    assert config2['bin_size'] == 0.06
+    assert config2['nbins'] == config1['nbins']
+    assert kwargs['nbins'] == config2['nbins']
+    assert kwargs['nbins'] is not None
+    # Note: config2 is not in a valid state to be used to initialize BinnedCorr2.
 
     # If kwargs has invalid parameters, exception is raised
     kwargs = { 'cat_prec' : 10 }

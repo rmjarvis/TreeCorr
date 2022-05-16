@@ -444,9 +444,10 @@ def test_merge():
     kwargs = {'bin_size': 0.06, 'nbins': None}
     config2 = treecorr.config.merge_config(config1, kwargs, treecorr.BinnedCorr2._valid_params)
     assert config2['bin_size'] == 0.06
-    assert config2['nbins'] == config1['nbins']
-    assert kwargs['nbins'] == config2['nbins']
+    assert config2['min_sep'] == config1['min_sep']
+    assert config2['max_sep'] == config1['max_sep']
     assert kwargs['nbins'] is None
+    assert config2['nbins'] is None
 
     # If kwargs has invalid parameters, exception is raised
     kwargs = { 'cat_prec' : 10 }

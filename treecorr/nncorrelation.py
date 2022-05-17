@@ -21,6 +21,7 @@ from . import _lib, _ffi
 from .binnedcorr2 import BinnedCorr2
 from .util import double_ptr as dp
 from .util import gen_read, gen_write, lazy_property
+from .util import make_writer, make_reader
 from .util import depr_pos_kwargs
 
 
@@ -766,10 +767,14 @@ class NNCorrelation(BinnedCorr2):
         """
         self.logger.info('Writing NN correlations to %s',file_name)
         # Temporary attributes, so the helper functions can access them.
+        precision = self.config.get('precision', 4) if precision is None else precision
+        name = 'main' if write_patch_results else None
         self._write_rr = rr
         self._write_dr = dr
         self._write_rd = rd
-        self._write(file_name, file_type, precision, write_patch_results, zero_tot=True)
+        writer = make_writer(file_name, precision, file_type, self.logger)
+        with writer:
+            self._write(writer, name, write_patch_results, zero_tot=True)
         self._write_rr = None
         self._write_dr = None
         self._write_rd = None

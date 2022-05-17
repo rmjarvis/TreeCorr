@@ -25,7 +25,7 @@ import collections
 from . import _lib
 from .config import merge_config, setup_logger, get
 from .util import parse_metric, metric_enum, coord_enum, set_omp_threads, lazy_property
-from .util import make_writer, make_reader
+from .util import make_reader
 from .util import depr_pos_kwargs
 
 class Namespace(object):
@@ -1226,10 +1226,7 @@ class BinnedCorr2(object):
     def _bootstrap_pairs(self, index):
         return self.BootstrapPairIterator(self.results, self.npatch1, self.npatch2, index, self._ok)
 
-    def _write(self, file_name, file_type, precision, write_patch_results, zero_tot=False):
-        if precision is None:
-            precision = self.config.get('precision', 4)
-
+    def _write(self, writer, name, write_patch_results, zero_tot=False):
         # These helper properties define what to write for each class.
         col_names = self._write_col_names
         data = self._write_data
@@ -1246,30 +1243,33 @@ class BinnedCorr2(object):
                 i = 0
                 for key, corr in self.results.items():
                     if not corr._nonzero:
-                        name = 'zp_%d'%i
-                        params[name] = repr((key, corr.tot))
+                        if name is None:
+                            zp_name = 'zp_%d'%i
+                        else:
+                            zp_name = name + '_zp_%d'%i
+                        params[zp_name] = repr((key, corr.tot))
                         num_patch_pairs -= 1
                         i += 1
                 params['num_zero_patch'] = i
             params['num_patch_pairs'] = num_patch_pairs
 
-        name = 'main' if write_patch_results else None
-        writer = make_writer(file_name, precision, file_type, self.logger)
-        with writer:
-            writer.write(col_names, data, params=params, ext=name)
-            if write_patch_results:
-                writer.set_precision(16)
-                i = 0
-                for (key, corr) in self.results.items():
-                    if zero_tot and not corr._nonzero: continue
-                    col_names = corr._write_col_names
-                    data = corr._write_data
-                    params = corr._write_params
-                    params['key'] = repr(key)
-                    name = 'pp_%d'%i
-                    writer.write(col_names, data, params=params, ext=name)
-                    i += 1
-                assert i == num_patch_pairs
+        writer.write(col_names, data, params=params, ext=name)
+        if write_patch_results:
+            writer.set_precision(16)
+            i = 0
+            for key, corr in self.results.items():
+                if zero_tot and not corr._nonzero: continue
+                col_names = corr._write_col_names
+                data = corr._write_data
+                params = corr._write_params
+                params['key'] = repr(key)
+                if name is None:
+                    pp_name = 'pp_%d'%i
+                else:
+                    pp_name = name + '_pp_%d'%i
+                writer.write(col_names, data, params=params, ext=pp_name)
+                i += 1
+            assert i == num_patch_pairs
 
     def _read(self, file_name, file_type):
         reader = make_reader(file_name, file_type, self.logger)
@@ -1279,6 +1279,7 @@ class BinnedCorr2(object):
             max_rows = params.get('max_rows', None)
             num_patch_pairs = params.get('num_patch_pairs', 0)
             num_zero_patch = params.get('num_zero_patch', 0)
+            name = 'main' if num_patch_pairs and name is None else name
             data = reader.read_data(max_rows=max_rows, ext=name)
 
             # This helper function defines how to set the attributes for each class
@@ -1287,14 +1288,20 @@ class BinnedCorr2(object):
 
             self.results = {}
             for i in range(num_zero_patch):
-                name = 'zp_%d'%i
-                key, tot = eval(params[name])
+                if name is None:
+                    zp_name = 'zp_%d'%i
+                else:
+                    zp_name = name + '_zp_%d'%i
+                key, tot = eval(params[zp_name])
                 self.results[key] = self._zero_copy(tot)
             for i in range(num_patch_pairs):
-                name = 'pp_%d'%i
+                if name is None:
+                    pp_name = 'pp_%d'%i
+                else:
+                    pp_name = name + '_pp_%d'%i
                 corr = self.copy()
-                params = reader.read_params(ext=name)
-                data = reader.read_data(max_rows=max_rows, ext=name)
+                params = reader.read_params(ext=pp_name)
+                data = reader.read_data(max_rows=max_rows, ext=pp_name)
                 corr._read_from_data(data, params)
                 key = eval(params['key'])
                 self.results[key] = corr

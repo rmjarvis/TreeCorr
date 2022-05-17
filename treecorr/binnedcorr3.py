@@ -23,7 +23,7 @@ import coord
 from . import _lib
 from .config import merge_config, setup_logger, get
 from .util import parse_metric, metric_enum, coord_enum, set_omp_threads, lazy_property
-from .util import make_writer, make_reader
+from .util import make_reader
 from .util import depr_pos_kwargs
 from .binnedcorr2 import estimate_multi_cov
 
@@ -1330,10 +1330,7 @@ class BinnedCorr3(object):
                     [ (i,j,k) for i in indx for j in indx if i!=j
                               for k in indx if self._ok[i,j,k] and (i!=k and j!=k) ])
 
-    def _write(self, file_name, file_type, precision, write_patch_results, zero_tot=False):
-        if precision is None:
-            precision = self.config.get('precision', 4)
-
+    def _write(self, writer, name, write_patch_results, zero_tot=False):
         # These helper properties define what to write for each class.
         col_names = self._write_col_names
         data = self._write_data
@@ -1351,29 +1348,33 @@ class BinnedCorr3(object):
                 i = 0
                 for key, corr in self.results.items():
                     if not corr._nonzero:
-                        name = 'zp_%d'%i
-                        params[name] = repr((key, corr.tot))
+                        if name is None:
+                            zp_name = 'zp_%d'%i
+                        else:
+                            zp_name = name + '_zp_%d'%i
+                        params[zp_name] = repr((key, corr.tot))
                         num_patch_tri -= 1
                         i += 1
                 params['num_zero_patch'] = i
             params['num_patch_tri'] = num_patch_tri
 
-        name = 'main' if write_patch_results else None
-        writer = make_writer(file_name, precision, file_type, self.logger)
-        with writer:
-            writer.write(col_names, data, params=params, ext=name)
-            if write_patch_results:
-                writer.set_precision(16)
-                i = 0
-                for key, corr in self.results.items():
-                    if zero_tot and not corr._nonzero: continue
-                    data = corr._write_data
-                    params = corr._write_params
-                    params['key'] = repr(key)
-                    name = 'pp_%d'%i
-                    writer.write(col_names, data, params=params, ext=name)
-                    i += 1
-                assert i == num_patch_tri
+        writer.write(col_names, data, params=params, ext=name)
+        if write_patch_results:
+            writer.set_precision(16)
+            i = 0
+            for key, corr in self.results.items():
+                if zero_tot and not corr._nonzero: continue
+                col_names = corr._write_col_names
+                data = corr._write_data
+                params = corr._write_params
+                params['key'] = repr(key)
+                if name is None:
+                    pp_name = 'pp_%d'%i
+                else:
+                    pp_name = name + '_pp_%d'%i
+                writer.write(col_names, data, params=params, ext=pp_name)
+                i += 1
+            assert i == num_patch_tri
 
     def _read(self, file_name, file_type):
         reader = make_reader(file_name, file_type, self.logger)
@@ -1383,6 +1384,7 @@ class BinnedCorr3(object):
             max_rows = params.get('max_rows', None)
             num_patch_tri = params.get('num_patch_tri', 0)
             num_zero_patch = params.get('num_zero_patch', 0)
+            name = 'main' if num_patch_tri and name is None else name
             data = reader.read_data(max_rows=max_rows, ext=name)
 
             # This helper function defines how to set the attributes for each class
@@ -1391,14 +1393,20 @@ class BinnedCorr3(object):
 
             self.results = {}
             for i in range(num_zero_patch):
-                name = 'zp_%d'%i
-                key, tot = eval(params[name])
+                if name is None:
+                    zp_name = 'zp_%d'%i
+                else:
+                    zp_name = name + '_zp_%d'%i
+                key, tot = eval(params[zp_name])
                 self.results[key] = self._zero_copy(tot)
             for i in range(num_patch_tri):
-                name = 'pp_%d'%i
+                if name is None:
+                    pp_name = 'pp_%d'%i
+                else:
+                    pp_name = name + '_pp_%d'%i
                 corr = self.copy()
-                params = reader.read_params(ext=name)
-                data = reader.read_data(max_rows=max_rows, ext=name)
+                params = reader.read_params(ext=pp_name)
+                data = reader.read_data(max_rows=max_rows, ext=pp_name)
                 corr._read_from_data(data, params)
                 key = eval(params['key'])
                 self.results[key] = corr

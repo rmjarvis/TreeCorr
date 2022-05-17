@@ -20,8 +20,7 @@ import numpy as np
 from . import _lib, _ffi
 from .binnedcorr3 import BinnedCorr3
 from .util import double_ptr as dp
-from .util import gen_read, gen_write, gen_multi_read, gen_multi_write, lazy_property
-from .util import make_writer, make_reader
+from .util import make_writer, make_reader, lazy_property
 from .util import depr_pos_kwargs
 
 
@@ -914,8 +913,7 @@ class NNNCorrelation(BinnedCorr3):
         self._write_rrr = rrr
         self._write_drr = drr
         self._write_rdd = rdd
-        writer = make_writer(file_name, precision, file_type, self.logger)
-        with writer:
+        with make_writer(file_name, precision, file_type, self.logger) as writer:
             self._write(writer, name, write_patch_results, zero_tot=True)
         self._write_rrr = None
         self._write_drr = None
@@ -987,8 +985,7 @@ class NNNCorrelation(BinnedCorr3):
                                 automatically from the extension of file_name.)
         """
         self.logger.info('Reading NNN correlations from %s',file_name)
-        reader = make_reader(file_name, file_type, self.logger)
-        with reader:
+        with make_reader(file_name, file_type, self.logger) as reader:
             self._read(reader)
 
     def _read_from_data(self, data, params):
@@ -1463,8 +1460,7 @@ class NNNCrossCorrelation(BinnedCorr3):
         self.logger.info('Writing NNN cross-correlations to %s',file_name)
         precision = self.config.get('precision', 4) if precision is None else precision
         name = 'main' if write_patch_results else None
-        writer = make_writer(file_name, precision, file_type, self.logger)
-        with writer:
+        with make_writer(file_name, precision, file_type, self.logger) as writer:
             names = [ 'n1n2n3', 'n1n3n2', 'n2n1n3', 'n2n3n1', 'n3n1n2', 'n3n2n1' ]
             for name, corr in zip(names, self._all):
                 corr._write(writer, name, write_patch_results, zero_tot=True)
@@ -1488,8 +1484,7 @@ class NNNCrossCorrelation(BinnedCorr3):
                                 automatically from the extension of file_name.)
         """
         self.logger.info('Reading NNN cross-correlations from %s',file_name)
-        reader = make_reader(file_name, file_type, self.logger)
-        with reader:
+        with make_reader(file_name, file_type, self.logger) as reader:
             names = [ 'n1n2n3', 'n1n3n2', 'n2n1n3', 'n2n3n1', 'n3n1n2', 'n3n2n1' ]
             for name, corr in zip(names, self._all):
                 corr._read(reader, name)

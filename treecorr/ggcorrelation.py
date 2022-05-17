@@ -21,7 +21,6 @@ from . import _lib, _ffi
 from .catalog import calculateVarG
 from .binnedcorr2 import BinnedCorr2
 from .util import double_ptr as dp
-from .util import gen_read, gen_write
 from .util import make_writer, make_reader
 from .util import depr_pos_kwargs
 
@@ -514,8 +513,7 @@ class GGCorrelation(BinnedCorr2):
         self.logger.info('Writing GG correlations to %s',file_name)
         precision = self.config.get('precision', 4) if precision is None else precision
         name = 'main' if write_patch_results else None
-        writer = make_writer(file_name, precision, file_type, self.logger)
-        with writer:
+        with make_writer(file_name, precision, file_type, self.logger) as writer:
             self._write(writer, name, write_patch_results)
 
     @property
@@ -556,8 +554,7 @@ class GGCorrelation(BinnedCorr2):
                                 automatically from the extension of file_name.)
         """
         self.logger.info('Reading GG correlations from %s',file_name)
-        reader = make_reader(file_name, file_type, self.logger)
-        with reader:
+        with make_reader(file_name, file_type, self.logger) as reader:
             self._read(reader)
 
     # Helper function used by _read
@@ -832,10 +829,9 @@ class GGCorrelation(BinnedCorr2):
         if precision is None:
             precision = self.config.get('precision', 4)
 
-        gen_write(
-            file_name,
-            ['R','Mapsq','Mxsq','MMxa','MMxb','sig_map','Gamsq','sig_gam'],
-            [ R,
-              mapsq, mxsq, mapsq_im, -mxsq_im, np.sqrt(varmapsq),
-              gamsq, np.sqrt(vargamsq) ],
-            precision=precision, file_type=file_type, logger=self.logger)
+        col_names = ['R','Mapsq','Mxsq','MMxa','MMxb','sig_map','Gamsq','sig_gam']
+        columns = [ R,
+                    mapsq, mxsq, mapsq_im, -mxsq_im, np.sqrt(varmapsq),
+                    gamsq, np.sqrt(vargamsq) ]
+        with make_writer(file_name, precision, file_type, logger=self.logger) as writer:
+            writer.write(col_names, columns)

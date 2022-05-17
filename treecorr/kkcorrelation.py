@@ -21,7 +21,6 @@ from . import _lib, _ffi
 from .catalog import calculateVarK
 from .binnedcorr2 import BinnedCorr2
 from .util import double_ptr as dp
-from .util import gen_read, gen_write
 from .util import make_writer, make_reader
 from .util import depr_pos_kwargs
 
@@ -470,8 +469,7 @@ class KKCorrelation(BinnedCorr2):
         self.logger.info('Writing KK correlations to %s',file_name)
         precision = self.config.get('precision', 4) if precision is None else precision
         name = 'main' if write_patch_results else None
-        writer = make_writer(file_name, precision, file_type, self.logger)
-        with writer:
+        with make_writer(file_name, precision, file_type, self.logger) as writer:
             self._write(writer, name, write_patch_results)
 
     @property
@@ -509,8 +507,7 @@ class KKCorrelation(BinnedCorr2):
                                 automatically from the extension of file_name.)
         """
         self.logger.info('Reading KK correlations from %s',file_name)
-        reader = make_reader(file_name, file_type, self.logger)
-        with reader:
+        with make_reader(file_name, file_type, self.logger) as reader:
             self._read(reader)
 
     def _read_from_data(self, data, params):

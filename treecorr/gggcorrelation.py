@@ -21,7 +21,6 @@ from . import _lib, _ffi
 from .catalog import calculateVarG
 from .binnedcorr3 import BinnedCorr3
 from .util import double_ptr as dp
-from .util import gen_read, gen_write, gen_multi_read, gen_multi_write
 from .util import make_writer, make_reader
 from .util import depr_pos_kwargs
 
@@ -744,8 +743,7 @@ class GGGCorrelation(BinnedCorr3):
         self.logger.info('Writing GGG correlations to %s',file_name)
         precision = self.config.get('precision', 4) if precision is None else precision
         name = 'main' if write_patch_results else None
-        writer = make_writer(file_name, precision, file_type, self.logger)
-        with writer:
+        with make_writer(file_name, precision, file_type, self.logger) as writer:
             self._write(writer, name, write_patch_results)
 
     @property
@@ -791,8 +789,7 @@ class GGGCorrelation(BinnedCorr3):
                                 automatically from the extension of file_name.)
         """
         self.logger.info('Reading GGG correlations from %s',file_name)
-        reader = make_reader(file_name, file_type, self.logger)
-        with reader:
+        with make_reader(file_name, file_type, self.logger) as reader:
             self._read(reader)
 
     def _read_from_data(self, data, params):
@@ -1188,11 +1185,10 @@ class GGGCorrelation(BinnedCorr3):
         if precision is None:
             precision = self.config.get('precision', 4)
 
-        gen_write(
-            file_name,
-            ['R','Map3','Map2Mx', 'MapMx2', 'Mx3','sig_map'],
-            [ R, stats[0], stats[1], stats[4], stats[7], np.sqrt(stats[8]) ],
-            precision=precision, file_type=file_type, logger=self.logger)
+        col_names = ['R','Map3','Map2Mx', 'MapMx2', 'Mx3','sig_map']
+        columns = [ R, stats[0], stats[1], stats[4], stats[7], np.sqrt(stats[8]) ]
+        with make_writer(file_name, precision, file_type, logger=self.logger) as writer:
+            writer.write(col_names, columns)
 
 
 class GGGCrossCorrelation(BinnedCorr3):
@@ -1618,8 +1614,7 @@ class GGGCrossCorrelation(BinnedCorr3):
         self.logger.info('Writing GGG cross-correlations to %s',file_name)
         precision = self.config.get('precision', 4) if precision is None else precision
         name = 'main' if write_patch_results else None
-        writer = make_writer(file_name, precision, file_type, self.logger)
-        with writer:
+        with make_writer(file_name, precision, file_type, self.logger) as writer:
             names = [ 'g1g2g3', 'g1g3g2', 'g2g1g3', 'g2g3g1', 'g3g1g2', 'g3g2g1' ]
             for name, corr in zip(names, self._all):
                 corr._write(writer, name, write_patch_results)
@@ -1643,8 +1638,7 @@ class GGGCrossCorrelation(BinnedCorr3):
                                 automatically from the extension of file_name.)
         """
         self.logger.info('Reading GGG cross-correlations from %s',file_name)
-        reader = make_reader(file_name, file_type, self.logger)
-        with reader:
+        with make_reader(file_name, file_type, self.logger) as reader:
             names = [ 'g1g2g3', 'g1g3g2', 'g2g1g3', 'g2g3g1', 'g3g1g2', 'g3g2g1' ]
             for name, corr in zip(names, self._all):
                 corr._read(reader, name)

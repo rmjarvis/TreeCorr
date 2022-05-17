@@ -20,8 +20,7 @@ import numpy as np
 from . import _lib, _ffi
 from .binnedcorr2 import BinnedCorr2
 from .util import double_ptr as dp
-from .util import gen_read, gen_write, lazy_property
-from .util import make_writer, make_reader
+from .util import make_writer, make_reader, lazy_property
 from .util import depr_pos_kwargs
 
 
@@ -772,8 +771,7 @@ class NNCorrelation(BinnedCorr2):
         self._write_rr = rr
         self._write_dr = dr
         self._write_rd = rd
-        writer = make_writer(file_name, precision, file_type, self.logger)
-        with writer:
+        with make_writer(file_name, precision, file_type, self.logger) as writer:
             self._write(writer, name, write_patch_results, zero_tot=True)
         self._write_rr = None
         self._write_dr = None
@@ -849,8 +847,7 @@ class NNCorrelation(BinnedCorr2):
                                 automatically from the extension of file_name.)
         """
         self.logger.info('Reading NN correlations from %s',file_name)
-        reader = make_reader(file_name, file_type, self.logger)
-        with reader:
+        with make_reader(file_name, file_type, self.logger) as reader:
             self._read(reader)
 
     def _read_from_data(self, data, params):

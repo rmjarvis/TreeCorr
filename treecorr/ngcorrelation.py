@@ -21,7 +21,6 @@ from . import _lib, _ffi
 from .catalog import calculateVarG
 from .binnedcorr2 import BinnedCorr2
 from .util import double_ptr as dp
-from .util import gen_read, gen_write
 from .util import make_writer, make_reader
 from .util import depr_pos_kwargs
 
@@ -531,8 +530,7 @@ class NGCorrelation(BinnedCorr2):
         self.calculateXi(rg=rg)
         precision = self.config.get('precision', 4) if precision is None else precision
         name = 'main' if write_patch_results else None
-        writer = make_writer(file_name, precision, file_type, self.logger)
-        with writer:
+        with make_writer(file_name, precision, file_type, self.logger) as writer:
             self._write(writer, name, write_patch_results)
 
     @property
@@ -570,8 +568,7 @@ class NGCorrelation(BinnedCorr2):
                                 automatically from the extension of file_name.)
         """
         self.logger.info('Reading NG correlations from %s',file_name)
-        reader = make_reader(file_name, file_type, self.logger)
-        with reader:
+        with make_reader(file_name, file_type, self.logger) as reader:
             self._read(reader)
 
     def _read_from_data(self, data, params):
@@ -731,11 +728,11 @@ class NGCorrelation(BinnedCorr2):
         if precision is None:
             precision = self.config.get('precision', 4)
 
-        gen_write(
-            file_name,
-            ['R','NMap','NMx','sig_nmap'],
-            [ R, nmap, nmx, np.sqrt(varnmap) ],
-            precision=precision, file_type=file_type, logger=self.logger)
+        col_names = ['R','NMap','NMx','sig_nmap']
+        columns = [ R, nmap, nmx, np.sqrt(varnmap) ]
+        writer = make_writer(file_name, precision, file_type, logger=self.logger)
+        with writer:
+            writer.write(col_names, columns)
 
     @depr_pos_kwargs
     def writeNorm(self, file_name, *, gg, dd, rr, R=None, dr=None, rg=None,
@@ -813,14 +810,14 @@ class NGCorrelation(BinnedCorr2):
         if precision is None:
             precision = self.config.get('precision', 4)
 
-        gen_write(
-            file_name,
-            [ 'R',
-              'NMap','NMx','sig_nmap',
-              'Napsq','sig_napsq','Mapsq','sig_mapsq',
-              'NMap_norm','sig_norm','Nsq_Mapsq','sig_nn_mm' ],
-            [ R,
-              nmap, nmx, np.sqrt(varnmap),
-              nsq, np.sqrt(varnsq), mapsq, np.sqrt(varmapsq),
-              nmnorm, np.sqrt(varnmnorm), nnnorm, np.sqrt(varnnnorm) ],
-            precision=precision, file_type=file_type, logger=self.logger)
+        col_names = [ 'R',
+                      'NMap','NMx','sig_nmap',
+                      'Napsq','sig_napsq','Mapsq','sig_mapsq',
+                      'NMap_norm','sig_norm','Nsq_Mapsq','sig_nn_mm' ]
+        columns = [ R,
+                    nmap, nmx, np.sqrt(varnmap),
+                    nsq, np.sqrt(varnsq), mapsq, np.sqrt(varmapsq),
+                    nmnorm, np.sqrt(varnmnorm), nnnorm, np.sqrt(varnnnorm) ]
+        writer = make_writer(file_name, precision, file_type, logger=self.logger)
+        with writer:
+            writer.write(col_names, columns)

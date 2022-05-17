@@ -24,7 +24,7 @@ import os
 from . import _lib
 from .reader import FitsReader, HdfReader, AsciiReader, PandasReader, ParquetReader
 from .config import merge_config, setup_logger, get, get_from_list
-from .util import parse_file_type, LRU_Cache, gen_write, gen_read, set_omp_threads
+from .util import parse_file_type, LRU_Cache, make_writer, make_reader, set_omp_threads
 from .util import double_ptr as dp
 from .util import long_ptr as lp
 from .util import depr_pos_kwargs
@@ -1902,7 +1902,8 @@ class Catalog(object):
         for i in range(centers.shape[1]):
             columns.append(centers[:,i])
 
-        gen_write(file_name, col_names, columns, precision=16, logger=self.logger)
+        with make_writer(file_name, precision=16, logger=self.logger) as writer:
+            writer.write(col_names, columns)
 
     def read_patch_centers(self, file_name):
         """Read patch centers from a file.
@@ -1918,7 +1919,8 @@ class Catalog(object):
         """
         self.logger.info('Reading centers from %s',file_name)
 
-        data, params = gen_read(file_name, logger=self.logger)
+        with make_reader(file_name, logger=self.logger) as reader:
+            data = reader.read_data()
         if 'z' in data.dtype.names:
             return np.column_stack((data['x'],data['y'],data['z']))
         else:
@@ -2243,8 +2245,10 @@ class Catalog(object):
         if cat_precision is None:
             cat_precision = get(self.config,'cat_precision',int,16)
 
-        gen_write(file_name, col_names, columns, precision=cat_precision,
-                  file_type=file_type, logger=self.logger)
+        writer = make_writer(file_name, precision=cat_precision, file_type=file_type,
+                             logger=self.logger)
+        with writer:
+            writer.write(col_names, columns)
         return col_names
 
     def copy(self):

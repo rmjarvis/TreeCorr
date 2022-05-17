@@ -1707,9 +1707,14 @@ def test_brute_jk():
 @timer
 def test_finalize_false():
 
-    nsource = 80
-    nhalo = 100
-    npatch = 16
+    if __name__ == '__main__':
+        nsource = 80
+        nhalo = 100
+        npatch = 16
+    else:
+        nsource = 80
+        nhalo = 10
+        npatch = 4
 
     # Make three independent data sets
     rng = np.random.RandomState(8675309)

@@ -1387,11 +1387,6 @@ def test_nn():
     header = fitsio.read_header(out_file_name5, 1)
     np.testing.assert_almost_equal(header['tot'], dd.tot)
 
-    with assert_raises(TypeError):
-        dd.write(out_file_name3, dr=dr)
-    with assert_raises(TypeError):
-        dd.write(out_file_name3, rd=dr)
-
     # Check the read function
     dd.calculateXi(rr=rr, dr=dr)  # gets xi, varxi back in dd
     dd2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
@@ -1472,6 +1467,12 @@ def test_nn():
     assert dd6.metric == dd.metric
     assert dd6.sep_units == dd.sep_units
     assert dd6.bin_type == dd.bin_type
+
+    # Cannot omit rr if giving either dr or rd
+    with assert_raises(TypeError):
+        dd.write(out_file_name3, dr=dr)
+    with assert_raises(TypeError):
+        dd.write(out_file_name3, rd=dr)
 
 
 @timer

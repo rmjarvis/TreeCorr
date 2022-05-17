@@ -22,6 +22,7 @@ from .catalog import calculateVarK
 from .binnedcorr3 import BinnedCorr3
 from .util import double_ptr as dp
 from .util import gen_read, gen_write, gen_multi_read, gen_multi_write
+from .util import make_writer, make_reader
 from .util import depr_pos_kwargs
 
 
@@ -595,7 +596,11 @@ class KKKCorrelation(BinnedCorr3):
                                         (default: False)
         """
         self.logger.info('Writing KKK correlations to %s',file_name)
-        self._write(file_name, file_type, precision, write_patch_results)
+        precision = self.config.get('precision', 4) if precision is None else precision
+        name = 'main' if write_patch_results else None
+        writer = make_writer(file_name, precision, file_type, self.logger)
+        with writer:
+            self._write(writer, name, write_patch_results)
 
     @property
     def _write_col_names(self):

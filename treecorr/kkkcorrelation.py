@@ -1081,7 +1081,7 @@ class KKKCrossCorrelation(BinnedCorr3):
         return np.concatenate([kkk.getWeight() for kkk in self._all])
 
     @depr_pos_kwargs
-    def write(self, file_name, *, file_type=None, precision=None):
+    def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False):
         r"""Write the cross-correlation functions to the file, file_name.
 
         Parameters:
@@ -1090,28 +1090,17 @@ class KKKCrossCorrelation(BinnedCorr3):
                                 the type automatically from the extension of file_name.)
             precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
                                 this value can also be given in the constructor in the config dict.)
+            write_patch_results (bool): Whether to write the patch-based results as well.
+                                        (default: False)
         """
         self.logger.info('Writing KKK cross-correlations to %s',file_name)
-
-        col_names = [ 'r_nom', 'u_nom', 'v_nom', 'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
-                      'meand3', 'meanlogd3', 'meanu', 'meanv',
-                      'zeta', 'sigma_zeta', 'weight', 'ntri' ]
-        group_names = [ 'k1k2k3', 'k1k3k2', 'k2k1k3', 'k2k3k1', 'k3k1k2', 'k3k2k1' ]
-        columns = [ [ kkk.rnom, kkk.u, kkk.v,
-                      kkk.meand1, kkk.meanlogd1, kkk.meand2, kkk.meanlogd2,
-                      kkk.meand3, kkk.meanlogd3, kkk.meanu, kkk.meanv,
-                      kkk.zeta, np.sqrt(kkk.varzeta), kkk.weight, kkk.ntri ]
-                    for kkk in self._all ]
-
-        params = { 'coords' : self.coords, 'metric' : self.metric,
-                   'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
-
-        if precision is None:
-            precision = self.config.get('precision', 4)
-
-        gen_multi_write(
-            file_name, col_names, group_names, columns,
-            params=params, precision=precision, file_type=file_type, logger=self.logger)
+        precision = self.config.get('precision', 4) if precision is None else precision
+        name = 'main' if write_patch_results else None
+        writer = make_writer(file_name, precision, file_type, self.logger)
+        with writer:
+            names = [ 'k1k2k3', 'k1k3k2', 'k2k1k3', 'k2k3k1', 'k3k1k2', 'k3k2k1' ]
+            for name, corr in zip(names, self._all):
+                corr._write(writer, name, write_patch_results)
 
     @depr_pos_kwargs
     def read(self, file_name, *, file_type=None):
@@ -1132,31 +1121,8 @@ class KKKCrossCorrelation(BinnedCorr3):
                                 automatically from the extension of file_name.)
         """
         self.logger.info('Reading KKK cross-correlations from %s',file_name)
-
-        group_names = [ 'k1k2k3', 'k1k3k2', 'k2k1k3', 'k2k3k1', 'k3k1k2', 'k3k2k1' ]
-
-        groups = gen_multi_read(
-                file_name, group_names, file_type=file_type, logger=self.logger)
-        s = self.logr.shape
-        for (data, params), name in zip(groups, group_names):
-            kkk = getattr(self, name)
-            kkk._ro.rnom = data['r_nom'].reshape(s)
-            kkk._ro.logr = np.log(kkk.rnom)
-            kkk._ro.u = data['u_nom'].reshape(s)
-            kkk._ro.v = data['v_nom'].reshape(s)
-            kkk.meand1 = data['meand1'].reshape(s)
-            kkk.meanlogd1 = data['meanlogd1'].reshape(s)
-            kkk.meand2 = data['meand2'].reshape(s)
-            kkk.meanlogd2 = data['meanlogd2'].reshape(s)
-            kkk.meand3 = data['meand3'].reshape(s)
-            kkk.meanlogd3 = data['meanlogd3'].reshape(s)
-            kkk.meanu = data['meanu'].reshape(s)
-            kkk.meanv = data['meanv'].reshape(s)
-            kkk.zeta = data['zeta'].reshape(s)
-            kkk.varzeta = data['sigma_zeta'].reshape(s)**2
-            kkk.weight = data['weight'].reshape(s)
-            kkk.ntri = data['ntri'].reshape(s)
-            kkk.coords = params['coords'].strip()
-            kkk.metric = params['metric'].strip()
-            kkk._ro.sep_units = params['sep_units'].strip()
-            kkk._ro.bin_type = params['bin_type'].strip()
+        reader = make_reader(file_name, file_type, self.logger)
+        with reader:
+            names = [ 'k1k2k3', 'k1k3k2', 'k2k1k3', 'k2k3k1', 'k3k1k2', 'k3k2k1' ]
+            for name, corr in zip(names, self._all):
+                corr._read(reader, name)

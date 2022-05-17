@@ -1448,7 +1448,7 @@ class NNNCrossCorrelation(BinnedCorr3):
             self.finalize()
 
     @depr_pos_kwargs
-    def write(self, file_name, *, file_type=None, precision=None):
+    def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False):
         r"""Write the correlation function to the file, file_name.
 
         Parameters:
@@ -1457,27 +1457,17 @@ class NNNCrossCorrelation(BinnedCorr3):
                                 the type automatically from the extension of file_name.)
             precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
                                 this value can also be given in the constructor in the config dict.)
+            write_patch_results (bool): Whether to write the patch-based results as well.
+                                        (default: False)
         """
         self.logger.info('Writing NNN cross-correlations to %s',file_name)
-
-        col_names = [ 'r_nom', 'u_nom', 'v_nom', 'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
-                      'meand3', 'meanlogd3', 'meanu', 'meanv', 'weight', 'ntri' ]
-        group_names = [ 'n1n2n3', 'n1n3n2', 'n2n1n3', 'n2n3n1', 'n3n1n2', 'n3n2n1' ]
-        columns = [ [ nnn.rnom, nnn.u, nnn.v,
-                      nnn.meand1, nnn.meanlogd1, nnn.meand2, nnn.meanlogd2,
-                      nnn.meand3, nnn.meanlogd3, nnn.meanu, nnn.meanv,
-                      nnn.weight, nnn.ntri ]
-                    for nnn in self._all ]
-
-        params = { 'tot' : self.tot, 'coords' : self.coords, 'metric' : self.metric,
-                   'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
-
-        if precision is None:
-            precision = self.config.get('precision', 4)
-
-        gen_multi_write(
-            file_name, col_names, group_names, columns,
-            params=params, precision=precision, file_type=file_type, logger=self.logger)
+        precision = self.config.get('precision', 4) if precision is None else precision
+        name = 'main' if write_patch_results else None
+        writer = make_writer(file_name, precision, file_type, self.logger)
+        with writer:
+            names = [ 'n1n2n3', 'n1n3n2', 'n2n1n3', 'n2n3n1', 'n3n1n2', 'n3n2n1' ]
+            for name, corr in zip(names, self._all):
+                corr._write(writer, name, write_patch_results, zero_tot=True)
 
     @depr_pos_kwargs
     def read(self, file_name, *, file_type=None):
@@ -1498,27 +1488,8 @@ class NNNCrossCorrelation(BinnedCorr3):
                                 automatically from the extension of file_name.)
         """
         self.logger.info('Reading NNN cross-correlations from %s',file_name)
-
-        group_names = [ 'n1n2n3', 'n1n3n2', 'n2n1n3', 'n2n3n1', 'n3n1n2', 'n3n2n1' ]
-
-        groups = gen_multi_read(
-                file_name, group_names, file_type=file_type, logger=self.logger)
-        s = self.logr.shape
-        for (data, params), name in zip(groups, group_names):
-            nnn = getattr(self, name)
-            nnn._ro.rnom = data['r_nom'].reshape(s)
-            nnn.meand1 = data['meand1'].reshape(s)
-            nnn.meanlogd1 = data['meanlogd1'].reshape(s)
-            nnn.meand2 = data['meand2'].reshape(s)
-            nnn.meanlogd2 = data['meanlogd2'].reshape(s)
-            nnn.meand3 = data['meand3'].reshape(s)
-            nnn.meanlogd3 = data['meanlogd3'].reshape(s)
-            nnn.meanu = data['meanu'].reshape(s)
-            nnn.meanv = data['meanv'].reshape(s)
-            nnn.weight = data['weight'].reshape(s)
-            nnn.ntri = data['ntri'].reshape(s)
-            nnn.coords = params['coords'].strip()
-            nnn.metric = params['metric'].strip()
-            nnn._ro.sep_units = params['sep_units'].strip()
-            nnn._ro.bin_type = params['bin_type'].strip()
-            nnn.tot = params['tot']
+        reader = make_reader(file_name, file_type, self.logger)
+        with reader:
+            names = [ 'n1n2n3', 'n1n3n2', 'n2n1n3', 'n2n3n1', 'n3n1n2', 'n3n2n1' ]
+            for name, corr in zip(names, self._all):
+                corr._read(reader, name)

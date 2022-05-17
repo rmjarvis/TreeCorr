@@ -1335,6 +1335,7 @@ class BinnedCorr3(object):
         col_names = self._write_col_names
         data = self._write_data
         params = self._write_params
+        params['num_rows'] = len(self.rnom.ravel())
 
         if write_patch_results:
             # Note: Only include npatch1, npatch2 in serialization if we are also serializing
@@ -1342,7 +1343,6 @@ class BinnedCorr3(object):
             params['npatch1'] = self.npatch1
             params['npatch2'] = self.npatch2
             params['npatch3'] = self.npatch3
-            params['max_rows'] = len(self.rnom.ravel())
             num_patch_tri = len(self.results)
             if zero_tot:
                 i = 0
@@ -1376,37 +1376,35 @@ class BinnedCorr3(object):
                 i += 1
             assert i == num_patch_tri
 
-    def _read(self, file_name, file_type):
-        reader = make_reader(file_name, file_type, self.logger)
-        with reader:
-            name = 'main' if 'main' in reader else None
-            params = reader.read_params(ext=name)
-            max_rows = params.get('max_rows', None)
-            num_patch_tri = params.get('num_patch_tri', 0)
-            num_zero_patch = params.get('num_zero_patch', 0)
-            name = 'main' if num_patch_tri and name is None else name
-            data = reader.read_data(max_rows=max_rows, ext=name)
+    def _read(self, reader, name=None):
+        name = 'main' if 'main' in reader and name is None else name
+        params = reader.read_params(ext=name)
+        num_rows = params.get('num_rows', None)
+        num_patch_tri = params.get('num_patch_tri', 0)
+        num_zero_patch = params.get('num_zero_patch', 0)
+        name = 'main' if num_patch_tri and name is None else name
+        data = reader.read_data(max_rows=num_rows, ext=name)
 
-            # This helper function defines how to set the attributes for each class
-            # based on what was read in.
-            self._read_from_data(data, params)
+        # This helper function defines how to set the attributes for each class
+        # based on what was read in.
+        self._read_from_data(data, params)
 
-            self.results = {}
-            for i in range(num_zero_patch):
-                if name is None:
-                    zp_name = 'zp_%d'%i
-                else:
-                    zp_name = name + '_zp_%d'%i
-                key, tot = eval(params[zp_name])
-                self.results[key] = self._zero_copy(tot)
-            for i in range(num_patch_tri):
-                if name is None:
-                    pp_name = 'pp_%d'%i
-                else:
-                    pp_name = name + '_pp_%d'%i
-                corr = self.copy()
-                params = reader.read_params(ext=pp_name)
-                data = reader.read_data(max_rows=max_rows, ext=pp_name)
-                corr._read_from_data(data, params)
-                key = eval(params['key'])
-                self.results[key] = corr
+        self.results = {}
+        for i in range(num_zero_patch):
+            if name is None:
+                zp_name = 'zp_%d'%i
+            else:
+                zp_name = name + '_zp_%d'%i
+            key, tot = eval(params[zp_name])
+            self.results[key] = self._zero_copy(tot)
+        for i in range(num_patch_tri):
+            if name is None:
+                pp_name = 'pp_%d'%i
+            else:
+                pp_name = name + '_pp_%d'%i
+            corr = self.copy()
+            params = reader.read_params(ext=pp_name)
+            data = reader.read_data(max_rows=num_rows, ext=pp_name)
+            corr._read_from_data(data, params)
+            key = eval(params['key'])
+            self.results[key] = corr

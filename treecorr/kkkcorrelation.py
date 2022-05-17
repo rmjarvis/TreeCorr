@@ -642,7 +642,9 @@ class KKKCorrelation(BinnedCorr3):
                                 automatically from the extension of file_name.)
         """
         self.logger.info('Reading KKK correlations from %s',file_name)
-        self._read(file_name, file_type)
+        reader = make_reader(file_name, file_type, self.logger)
+        with reader:
+            self._read(reader)
 
     def _read_from_data(self, data, params):
         s = self.logr.shape

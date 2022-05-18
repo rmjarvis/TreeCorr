@@ -2,14 +2,6 @@ name: TreeCorr CI
 
 on:
     push:
-        branches:
-            - main
-            - releases/*
-
-    pull_request:
-        branches:
-            - main
-            - releases/*
     workflow_dispatch:
 
 jobs:
@@ -23,36 +15,10 @@ jobs:
         strategy:
             matrix:
                 # First all python versions in basic linux
-                os: [ ubuntu-latest ]
-                py: [ 3.6, 3.7, 3.8, 3.9, "3.10", pypy3 ]
+                os: [ windows-latest ]
+                py: [ 3.9 ]
                 CC: [ gcc ]
                 CXX: [ g++ ]
-
-                # Add some other particular combinations to test
-                include:
-                    # One in MacOS
-                    - os: macos-latest
-                      py: 3.9
-                      CC: cc
-                      CXX: c++
-
-                    # Check one with clang compiler
-                    - os: ubuntu-latest
-                      py: 3.8
-                      CC: clang
-                      CXX: clang++
-
-                    # Check one with gcc-11
-                    - os: ubuntu-latest
-                      py: 3.9
-                      CC: gcc-11
-                      CXX: g++-11
-
-                    # Check one on Windows
-                    - os: windows-latest
-                      py: 3.9
-                      CC: gcc
-                      CXX: g++
 
         steps:
             - uses: actions/checkout@v2

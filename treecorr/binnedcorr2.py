@@ -1242,10 +1242,7 @@ class BinnedCorr2(object):
                 i = 0
                 for key, corr in self.results.items():
                     if not corr._nonzero:
-                        if name is None:
-                            zp_name = 'zp_%d'%i
-                        else:
-                            zp_name = name + '_zp_%d'%i
+                        zp_name = name + '_zp_%d'%i
                         params[zp_name] = repr((key, corr.tot))
                         num_patch_pairs -= 1
                         i += 1
@@ -1262,10 +1259,7 @@ class BinnedCorr2(object):
                 data = corr._write_data
                 params = corr._write_params
                 params['key'] = repr(key)
-                if name is None:
-                    pp_name = 'pp_%d'%i
-                else:
-                    pp_name = name + '_pp_%d'%i
+                pp_name = name + '_pp_%d'%i
                 writer.write(col_names, data, params=params, ext=pp_name)
                 i += 1
             assert i == num_patch_pairs
@@ -1285,17 +1279,11 @@ class BinnedCorr2(object):
 
         self.results = {}
         for i in range(num_zero_patch):
-            if name is None:
-                zp_name = 'zp_%d'%i
-            else:
-                zp_name = name + '_zp_%d'%i
+            zp_name = name + '_zp_%d'%i
             key, tot = eval(params[zp_name])
             self.results[key] = self._zero_copy(tot)
         for i in range(num_patch_pairs):
-            if name is None:
-                pp_name = 'pp_%d'%i
-            else:
-                pp_name = name + '_pp_%d'%i
+            pp_name = name + '_pp_%d'%i
             corr = self.copy()
             params = reader.read_params(ext=pp_name)
             data = reader.read_data(max_rows=num_rows, ext=pp_name)

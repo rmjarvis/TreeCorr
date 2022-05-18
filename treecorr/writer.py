@@ -33,6 +33,7 @@ class AsciiWriter(object):
         self.file_name = file_name
         self.logger = logger
         self.set_precision(precision)
+        self._file = None
         ensure_dir(file_name)
 
     def set_precision(self, precision):

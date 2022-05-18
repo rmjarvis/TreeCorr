@@ -20,6 +20,7 @@ from unittest import mock
 from treecorr.reader import FitsReader, HdfReader, PandasReader, AsciiReader, ParquetReader
 from treecorr.writer import FitsWriter, HdfWriter, AsciiWriter
 from test_helper import get_from_wiki, assert_raises, timer, CaptureLog
+from treecorr.util import make_writer, make_reader
 
 @timer
 def test_fits_reader():
@@ -111,6 +112,33 @@ def test_fits_reader():
     assert params['test'] is True
     assert np.array_equal(data['KAPPA'], kappa)
     assert np.array_equal(data['MU'], mu)
+
+    # Use make_writer, make_reader
+    with make_writer(os.path.join('output','test_fits_writer.fits')) as w:
+        w.write(['KAPPA', 'MU'], [kappa, mu], params={'test': True})
+    with make_reader(os.path.join('output','test_fits_writer.fits')) as r:
+        params = r.read_params()
+        data = r.read_data()
+    assert params['test'] is True
+    assert np.array_equal(data['KAPPA'], kappa)
+    assert np.array_equal(data['MU'], mu)
+
+    # No params
+    with make_writer(os.path.join('output','test_fits_writer.fits')) as w:
+        w.write(['KAPPA', 'MU'], [kappa, mu])
+    with make_reader(os.path.join('output','test_fits_writer.fits')) as r:
+        params = r.read_params()
+        data = r.read_data()
+    assert 'test' not in params   # The test key isn't in params
+    assert params['naxis1'] == 16       # But there are all the regular fits header items.
+    assert params['naxis2'] == 390935
+    assert np.array_equal(data['KAPPA'], kappa)
+    assert np.array_equal(data['MU'], mu)
+
+    with assert_raises(ValueError):
+        make_writer(os.path.join('output','test_fits_writer.fits'), file_type='invalid')
+    with assert_raises(ValueError):
+        make_reader(os.path.join('output','test_fits_writer.fits'), file_type='invalid')
 
     # Not allowed to write when not in with context
     w = FitsWriter(os.path.join('output','test_fits_writer.fits'))
@@ -441,20 +469,50 @@ def _test_ascii_reader(r, has_names=True):
         r.names()
 
     # Check writer too.
-    with AsciiWriter(os.path.join('output','test_hdf_writer.dat'), precision=16) as w:
+    with AsciiWriter(os.path.join('output','test_ascii_writer.dat'), precision=16) as w:
         w.write(['g1', 'g2'], [g1, g2], params={'test': True}, ext='g1g2')
-    with AsciiReader(os.path.join('output','test_hdf_writer.dat')) as r:
+    with AsciiReader(os.path.join('output','test_ascii_writer.dat')) as r:
         params = r.read_params(ext='g1g2')
         data = r.read_data(ext='g1g2')
-    with AsciiReader(os.path.join('output','test_hdf_writer.dat')) as r:
+    assert params['test']
+    assert np.array_equal(data['g1'], g1)
+    assert np.array_equal(data['g2'], g2)
+    with AsciiReader(os.path.join('output','test_ascii_writer.dat')) as r:
         with assert_raises(OSError):
             params = r.read_params(ext='gg')
+
+    # Test no ext name
+    with AsciiWriter(os.path.join('output','test_ascii_writer.dat'), precision=16) as w:
+        w.write(['g1', 'g2'], [g1, g2], params={'test': True})
+    with AsciiReader(os.path.join('output','test_ascii_writer.dat')) as r:
+        params = r.read_params()
+        data = r.read_data()
     assert params['test']
     assert np.array_equal(data['g1'], g1)
     assert np.array_equal(data['g2'], g2)
 
+    # And no params
+    with AsciiWriter(os.path.join('output','test_ascii_writer.dat'), precision=16) as w:
+        w.write(['g1', 'g2'], [g1, g2], ext='g1g2')
+    with AsciiReader(os.path.join('output','test_ascii_writer.dat')) as r:
+        params = r.read_params(ext='g1g2')
+        data = r.read_data(ext='g1g2')
+    assert params == {}
+    assert np.array_equal(data['g1'], g1)
+    assert np.array_equal(data['g2'], g2)
+
+    # Neither
+    with AsciiWriter(os.path.join('output','test_ascii_writer.dat'), precision=16) as w:
+        w.write(['g1', 'g2'], [g1, g2])
+    with AsciiReader(os.path.join('output','test_ascii_writer.dat')) as r:
+        params = r.read_params()
+        data = r.read_data()
+    assert params == {}
+    assert np.array_equal(data['g1'], g1)
+    assert np.array_equal(data['g2'], g2)
+
     # Not allowed to write when not in with context
-    w = AsciiWriter(os.path.join('output','test_hdf_writer.dat'), precision=16)
+    w = AsciiWriter(os.path.join('output','test_ascii_writer.dat'), precision=16)
     with assert_raises(RuntimeError):
         w.write(['g1', 'g2'], [g1, g2], params={'test': True}, ext='g1g2')
 

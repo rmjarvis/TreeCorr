@@ -1713,7 +1713,7 @@ def test_finalize_false():
         npatch = 16
     else:
         nsource = 80
-        nhalo = 10
+        nhalo = 50
         npatch = 4
 
     # Make three independent data sets

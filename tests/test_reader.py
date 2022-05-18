@@ -101,18 +101,19 @@ def test_fits_reader():
         1 in r
 
     # Check writer too.
-    w = FitsWriter(os.path.join('output','test_fits_writer.fits'))
-    with w:
+    with FitsWriter(os.path.join('output','test_fits_writer.fits')) as w:
         w.write(['KAPPA', 'MU'], [kappa, mu], params={'test': True}, ext='KM')
-    r = FitsReader(os.path.join('output','test_fits_writer.fits'))
-    with r:
+    with FitsReader(os.path.join('output','test_fits_writer.fits')) as r:
         params = r.read_params(ext='KM')
         data = r.read_data(ext='KM')
+        with assert_raises(OSError):
+            params = r.read_params(ext='KK')
     assert params['test'] is True
     assert np.array_equal(data['KAPPA'], kappa)
     assert np.array_equal(data['MU'], mu)
 
     # Not allowed to write when not in with context
+    w = FitsWriter(os.path.join('output','test_fits_writer.fits'))
     with assert_raises(RuntimeError):
         w.write(['KAPPA', 'MU'], [kappa, mu], params={'test': True}, ext='KM')
 
@@ -217,18 +218,19 @@ def test_hdf_reader():
         '/' in r
 
     # Check writer too.
-    w = HdfWriter(os.path.join('output','test_hdf_writer.hdf'))
-    with w:
+    with HdfWriter(os.path.join('output','test_hdf_writer.hdf')) as w:
         w.write(['KAPPA', 'MU'], [kappa, mu], params={'test': True}, ext='KM')
-    r = HdfReader(os.path.join('output','test_hdf_writer.hdf'))
-    with r:
+    with HdfReader(os.path.join('output','test_hdf_writer.hdf')) as r:
         params = r.read_params(ext='KM')
         data = r.read_data(ext='KM')
+        with assert_raises(OSError):
+            params = r.read_params(ext='KK')
     assert params['test']
     assert np.array_equal(data['KAPPA'], kappa)
     assert np.array_equal(data['MU'], mu)
 
     # Not allowed to write when not in with context
+    w = HdfWriter(os.path.join('output','test_hdf_writer.hdf'))
     with assert_raises(RuntimeError):
         w.write(['KAPPA', 'MU'], [kappa, mu], params={'test': True}, ext='KM')
 
@@ -439,18 +441,20 @@ def _test_ascii_reader(r, has_names=True):
         r.names()
 
     # Check writer too.
-    w = AsciiWriter(os.path.join('output','test_hdf_writer.dat'), precision=16)
-    with w:
+    with AsciiWriter(os.path.join('output','test_hdf_writer.dat'), precision=16) as w:
         w.write(['g1', 'g2'], [g1, g2], params={'test': True}, ext='g1g2')
-    r = AsciiReader(os.path.join('output','test_hdf_writer.dat'))
-    with r:
+    with AsciiReader(os.path.join('output','test_hdf_writer.dat')) as r:
         params = r.read_params(ext='g1g2')
         data = r.read_data(ext='g1g2')
+    with AsciiReader(os.path.join('output','test_hdf_writer.dat')) as r:
+        with assert_raises(OSError):
+            params = r.read_params(ext='gg')
     assert params['test']
     assert np.array_equal(data['g1'], g1)
     assert np.array_equal(data['g2'], g2)
 
     # Not allowed to write when not in with context
+    w = AsciiWriter(os.path.join('output','test_hdf_writer.dat'), precision=16)
     with assert_raises(RuntimeError):
         w.write(['g1', 'g2'], [g1, g2], params={'test': True}, ext='g1g2')
 

@@ -1208,6 +1208,11 @@ void BinnedCorr3<D1,D2,D3,B>::operator+=(const BinnedCorr3<D1,D2,D3,B>& rhs)
 //
 
 extern "C" {
+
+#ifdef _WIN32
+#define extern __declspec(dllexport)
+#endif
+
 #include "BinnedCorr3_C.h"
 }
 

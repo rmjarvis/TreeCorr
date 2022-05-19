@@ -622,13 +622,14 @@ NOTE: While not a required dependency, if you plan to use TreeCorr to read FITS
             pip install fitsio
 """)
 
-# Check that the path includes the directory where the scripts are installed.
-real_env_path = [os.path.realpath(d) for d in os.environ['PATH'].split(':')]
-if (hasattr(dist,'script_install_dir') and
-    dist.script_install_dir not in os.environ['PATH'].split(':') and
-    os.path.realpath(dist.script_install_dir) not in real_env_path):
+try:
+    # Check that the path includes the directory where the scripts are installed.
+    real_env_path = [os.path.realpath(d) for d in os.environ['PATH'].split(':')]
+    if (hasattr(dist,'script_install_dir') and
+        dist.script_install_dir not in os.environ['PATH'].split(':') and
+        os.path.realpath(dist.script_install_dir) not in real_env_path):
 
-    print("""
+        print("""
 WARNING: The TreeCorr executables were installed in a directory not in your PATH
          If you want to use the executables, you should add the directory
              %s
@@ -639,6 +640,9 @@ WARNING: The TreeCorr executables were installed in a directory not in your PATH
          If you are installing via pip use --install-option="--prefix=PREFIX"
 
 """%(dist.script_install_dir, os.environ['PATH']))
+except Exception:
+    # The path stuff doesn't work on Windows.  So skip this check.
+    pass
 
 # If we get to here, then all was fine.  Go ahead and delete the files in the tmp directory.
 if os.path.exists(local_tmp):

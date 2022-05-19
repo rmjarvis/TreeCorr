@@ -109,7 +109,7 @@ jobs:
                 pip install -U -r requirements.txt
 
                 # Extra packages needed for testing
-                pip install -U nose codecov fitsio mpi4py coverage mockmpi pytest
+                pip install -U nose codecov mpi4py coverage mockmpi pytest
 
                 # Note: I'd rather include h5py here, but I can't get it to install properly
                 # on GHA for pypy3.  So only do that for regular py3.
@@ -119,6 +119,11 @@ jobs:
               if: matrix.py > 3.0
               run: |
                 pip install -U matplotlib nbval ipykernel scipy pandas guppy3 h5py pyarrow
+
+            - name: Install fitsio everywhere but Windows
+              if: matrix.os != 'windows-latest'
+              run: |
+                pip install -U fitsio
 
             - name: List all installed packages for reference
               run: pip list

@@ -966,6 +966,11 @@ void BinnedCorr2<D1,D2,B>::sampleFrom(
 //
 
 extern "C" {
+
+#ifdef _WIN32
+#define extern __declspec(dllexport)
+#endif
+
 #include "BinnedCorr2_C.h"
 }
 

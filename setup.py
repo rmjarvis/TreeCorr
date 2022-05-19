@@ -38,6 +38,7 @@ scripts = ['corr2', 'corr3']
 scripts = [ os.path.join('scripts',f) for f in scripts ]
 
 sources = glob.glob(os.path.join('src','*.cpp'))
+if os.name != 'nt': sources.remove(os.path.join('src','windows.cpp'))
 
 headers = glob.glob(os.path.join('include','*.h'))
 

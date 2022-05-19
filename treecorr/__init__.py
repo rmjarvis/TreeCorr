@@ -26,15 +26,16 @@ import glob
 treecorr_dir = os.path.dirname(__file__)
 include_dir = os.path.join(treecorr_dir,'include')
 
-lib_file = os.path.join(treecorr_dir,'_treecorr.so')
+ext = 'pyd' if os.name == 'nt' else 'so'
+lib_file = os.path.join(treecorr_dir,'_treecorr.' + ext)
 # Some installation (e.g. Travis with python 3.x) name this e.g. _treecorr.cpython-34m.so,
 # so if the normal name doesn't exist, look for something else.
 if not os.path.exists(lib_file): # pragma: no cover
-    alt_files = glob.glob(os.path.join(os.path.dirname(__file__),'_treecorr*.so'))
+    alt_files = glob.glob(os.path.join(os.path.dirname(__file__),'_treecorr*.'+ext))
     if len(alt_files) == 0:
-        raise OSError("No file '_treecorr.so' found in %s"%treecorr_dir)
+        raise OSError("No file '_treecorr.%s' found in %s"%(ext,treecorr_dir))
     if len(alt_files) > 1:
-        raise OSError("Multiple files '_treecorr*.so' found in %s: %s"%(treecorr_dir,alt_files))
+        raise OSError("Multiple files '_treecorr*.%s' found in %s: %s"%(ext,treecorr_dir,alt_files))
     lib_file = alt_files[0]
 
 # Load the C functions with cffi

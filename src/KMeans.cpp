@@ -21,6 +21,11 @@
 #include "dbg.h"
 
 extern "C" {
+
+#ifdef _WIN32
+#define extern __declspec(dllexport)
+#endif
+
 #include "Field_C.h"
 }
 

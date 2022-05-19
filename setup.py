@@ -464,6 +464,9 @@ make it succeed.
             sys.exit(1)
 
 def fix_compiler(compiler):
+    if os.name == 'nt':
+        return [],[]
+
     # Remove any -Wstrict-prototypes in the compiler flags (since invalid for C++)
     try:
         compiler.compiler_so.remove("-Wstrict-prototypes")

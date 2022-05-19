@@ -302,7 +302,7 @@ void BinnedCorr2<D1,D2,B>::processPairwise(
             const double rsq = metric.DistSq(p1, p2, s, s);
             if (BinTypeHelper<B>::isRSqInRange(rsq, p1, p2,
                                                _minsep, _minsepsq, _maxsep, _maxsepsq)) {
-                bc2.template directProcess11(c1,c2,rsq,false);
+                bc2.template directProcess11<>(c1,c2,rsq,false);
             }
         }
 #ifdef _OPENMP

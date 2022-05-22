@@ -14,7 +14,9 @@
 
 //#define DEBUGLOGGING
 
+#ifndef _WIN32
 #include <sys/time.h>
+#endif
 #include <fstream>
 #include <limits>
 
@@ -37,9 +39,15 @@ inline void seed_urandom()
 
 inline void seed_time()
 {
+#ifndef _WIN32
+    // Windows deosn't have this.  sys/time.h is Unix-only.
+    // And /dev/urandom I think also doesn't exist, so seed_urandom will always throw.
+    // But honestly, this isn't that important in TreeCorr, so just skip it.
+    // I.e. use the default random seed using whatever the OS does for us.
     struct timeval tp;
     gettimeofday(&tp,NULL);
     srand(tp.tv_usec);
+#endif
 }
 
 // Return a random number between 0 and 1.

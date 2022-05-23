@@ -14,9 +14,14 @@
 
 //#define DEBUGLOGGING
 
-#ifndef _WIN32
-#include <sys/time.h>
+#ifdef _WIN32
+#define _USE_MATH_DEFINES  // To get M_PI
 #endif
+
+#ifndef _WIN32
+#include <sys/time.h>   // Unix-only
+#endif
+
 #include <fstream>
 #include <limits>
 

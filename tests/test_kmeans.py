@@ -452,7 +452,7 @@ def test_2d():
     print('rms inertia = ',np.std(inertia))
     assert np.sum(inertia) < 5300.
     print(np.std(inertia)/np.mean(inertia))
-    assert np.std(inertia) < 0.19 * np.mean(inertia)
+    assert np.std(inertia) < 0.20 * np.mean(inertia)
     print('mean counts = ',np.mean(counts))
     print('min counts = ',np.min(counts))
     print('max counts = ',np.max(counts))

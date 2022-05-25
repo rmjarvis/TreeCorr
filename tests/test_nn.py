@@ -523,13 +523,17 @@ def test_direct_count():
     # Now calling out to the external corr2 executable.
     # Note: This is one of very few times we test the corr2 executable.
     # For most things, we just run the corr2 function so the test coverage is recorded.
-    import subprocess
-    corr2_exe = get_script_name('corr2')
-    p = subprocess.Popen( [corr2_exe,"configs/nn_direct.yaml","verbose=0"] )
-    p.communicate()
-    corr2_output = np.genfromtxt(os.path.join('output','nn_direct.out'), names=True,
-                                 skip_header=1)
-    np.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-3)
+    if os.name != 'nt':
+        # The normal script doesn't execute on Windows.
+        # If anyone knows how to change this for that platform, I'd welcome a PR.
+        # Until then, skip it.
+        import subprocess
+        corr2_exe = get_script_name('corr2')
+        p = subprocess.Popen( [corr2_exe,"configs/nn_direct.yaml","verbose=0"] )
+        p.communicate()
+        corr2_output = np.genfromtxt(os.path.join('output','nn_direct.out'), names=True,
+                                     skip_header=1)
+        np.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-3)
 
     # Repeat with binslop = 0, since the code flow is different from brute=True
     dd = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0)
@@ -1701,16 +1705,17 @@ def test_list():
     np.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-3)
 
     # Now calling out to the external corr2 executable to test it with extra command-line params
-    import subprocess
-    corr2_exe = get_script_name('corr2')
-    p = subprocess.Popen( [corr2_exe,"configs/nn_list1.yaml","verbose=0"] )
-    p.communicate()
-    corr2_output = np.genfromtxt(os.path.join('output','nn_list1.out'),names=True,skip_header=1)
-    print('xi = ',xi)
-    print('from corr2 output = ',corr2_output['xi'])
-    print('ratio = ',corr2_output['xi']/xi)
-    print('diff = ',corr2_output['xi']-xi)
-    np.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-3)
+    if os.name != 'nt':
+        import subprocess
+        corr2_exe = get_script_name('corr2')
+        p = subprocess.Popen( [corr2_exe,"configs/nn_list1.yaml","verbose=0"] )
+        p.communicate()
+        corr2_output = np.genfromtxt(os.path.join('output','nn_list1.out'),names=True,skip_header=1)
+        print('xi = ',xi)
+        print('from corr2 output = ',corr2_output['xi'])
+        print('ratio = ',corr2_output['xi']/xi)
+        print('diff = ',corr2_output['xi']-xi)
+        np.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-3)
 
     config = treecorr.config.read_config('configs/nn_list2.json')
     treecorr.config.parse_variable(config, 'verbose=0')
@@ -1743,15 +1748,16 @@ def test_list():
     np.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-2)
 
     # Repeat with exe to test -f flag
-    p = subprocess.Popen([corr2_exe, "-f", "yaml", "configs/nn_list4.config", "verbose=3"],
-                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    p.communicate()
-    corr2_output = np.genfromtxt(os.path.join('output','nn_list4.out'),names=True,skip_header=1)
-    print('xi = ',xi)
-    print('from corr2 output = ',corr2_output['xi'])
-    print('ratio = ',corr2_output['xi']/xi)
-    print('diff = ',corr2_output['xi']-xi)
-    np.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-2)
+    if os.name != 'nt':
+        p = subprocess.Popen([corr2_exe, "-f", "yaml", "configs/nn_list4.config", "verbose=3"],
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        p.communicate()
+        corr2_output = np.genfromtxt(os.path.join('output','nn_list4.out'),names=True,skip_header=1)
+        print('xi = ',xi)
+        print('from corr2 output = ',corr2_output['xi'])
+        print('ratio = ',corr2_output['xi']/xi)
+        print('diff = ',corr2_output['xi']-xi)
+        np.testing.assert_allclose(corr2_output['xi'], xi, rtol=1.e-2)
 
     config = treecorr.config.read_config('configs/nn_list5.config', file_type='json')
     treecorr.config.parse_variable(config, 'verbose=0')

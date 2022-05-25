@@ -674,13 +674,14 @@ def test_direct_count_auto():
 
     # Now calling out to the external corr3 executable.
     # This is the only time we test the corr3 executable.  All other tests use corr3 function.
-    import subprocess
-    corr3_exe = get_script_name('corr3')
-    p = subprocess.Popen( [corr3_exe,"configs/nnn_direct.yaml","verbose=0"] )
-    p.communicate()
-    corr3_output = np.genfromtxt(os.path.join('output','nnn_direct.out'), names=True,
-                                    skip_header=1)
-    np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
+    if os.name != 'nt':
+        import subprocess
+        corr3_exe = get_script_name('corr3')
+        p = subprocess.Popen( [corr3_exe,"configs/nnn_direct.yaml","verbose=0"] )
+        p.communicate()
+        corr3_output = np.genfromtxt(os.path.join('output','nnn_direct.out'), names=True,
+                                        skip_header=1)
+        np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
 
     # Also check compensated
     drr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,

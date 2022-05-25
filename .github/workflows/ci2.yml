@@ -105,6 +105,7 @@ jobs:
                        # Less confusing to include it explicitly.
 
             - name: Upload coverage to codecov
+              if: matrix.os == 'ubuntu-latest'
               #uses: codecov/codecov-action@v1  # This didn't work for me.
               run: |
                 cd tests

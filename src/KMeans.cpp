@@ -67,7 +67,7 @@ void InitializeCentersTree(std::vector<Position<C> >& centers, const Cell<D,C>* 
 
 template <int D, int C>
 void InitializeCentersTree(std::vector<Position<C> >& centers, const std::vector<Cell<D,C>*>& cells,
-                           long seed)
+                           long long seed)
 {
     dbg<<"Initialize centers: "<<centers.size()<<"  "<<cells.size()<<std::endl;
     long ncenters = centers.size();
@@ -117,7 +117,7 @@ void InitializeCentersTree(std::vector<Position<C> >& centers, const std::vector
 
 template <int D, int C>
 void InitializeCentersRand(std::vector<Position<C> >& centers, const std::vector<Cell<D,C>*>& cells,
-                           long seed)
+                           long long seed)
 {
     dbg<<"Initialize centers (random): "<<centers.size()<<"  "<<cells.size()<<std::endl;
     // Pick npatch random numbers from the total number of objecst.
@@ -226,7 +226,7 @@ Position<C> InitializeCentersKMPP(const Cell<D,C>* cell,
 
 template <int D, int C>
 void InitializeCentersKMPP(std::vector<Position<C> >& centers, const std::vector<Cell<D,C>*>& cells,
-                           long seed)
+                           long long seed)
 {
     // cf. https://en.wikipedia.org/wiki/K-means%2B%2B
     // The basic KMeans++ algorithm is as follows:
@@ -747,7 +747,7 @@ void ReadCenters(std::vector<Position<Flat> >& centers, const double* pycenters,
 }
 
 template <int D, int C>
-void KMeansInitTree2(Field<D,C>*field, double* pycenters, int npatch, long seed)
+void KMeansInitTree2(Field<D,C>*field, double* pycenters, int npatch, long long seed)
 {
     dbg<<"Start KMeansInitTree for "<<npatch<<" patches\n";
     const std::vector<Cell<D,C>*> cells = field->getCells();
@@ -757,7 +757,7 @@ void KMeansInitTree2(Field<D,C>*field, double* pycenters, int npatch, long seed)
 }
 
 template <int D, int C>
-void KMeansInitRand2(Field<D,C>*field, double* pycenters, int npatch, long seed)
+void KMeansInitRand2(Field<D,C>*field, double* pycenters, int npatch, long long seed)
 {
     dbg<<"Start KMeansInitRand for "<<npatch<<" patches\n";
     const std::vector<Cell<D,C>*> cells = field->getCells();
@@ -767,7 +767,7 @@ void KMeansInitRand2(Field<D,C>*field, double* pycenters, int npatch, long seed)
 }
 
 template <int D, int C>
-void KMeansInitKMPP2(Field<D,C>*field, double* pycenters, int npatch, long seed)
+void KMeansInitKMPP2(Field<D,C>*field, double* pycenters, int npatch, long long seed)
 {
     dbg<<"Start KMeansInitKMPP for "<<npatch<<" patches\n";
     const std::vector<Cell<D,C>*> cells = field->getCells();
@@ -855,7 +855,7 @@ void KMeansAssign2(Field<D,C>*field, double* pycenters, int npatch, long* patche
 }
 
 template <int D>
-void KMeansInitTree1(void* field, double* centers, int npatch, int coords, long seed)
+void KMeansInitTree1(void* field, double* centers, int npatch, int coords, long long seed)
 {
     switch(coords) {
       case Flat:
@@ -870,7 +870,7 @@ void KMeansInitTree1(void* field, double* centers, int npatch, int coords, long 
     }
 }
 
-void KMeansInitTree(void* field, double* centers, int npatch, int d, int coords, long seed)
+void KMeansInitTree(void* field, double* centers, int npatch, int d, int coords, long long seed)
 {
     switch(d) {
       case NData:
@@ -886,7 +886,7 @@ void KMeansInitTree(void* field, double* centers, int npatch, int d, int coords,
 }
 
 template <int D>
-void KMeansInitRand1(void* field, double* centers, int npatch, int coords, long seed)
+void KMeansInitRand1(void* field, double* centers, int npatch, int coords, long long seed)
 {
     switch(coords) {
       case Flat:
@@ -901,7 +901,7 @@ void KMeansInitRand1(void* field, double* centers, int npatch, int coords, long 
     }
 }
 
-void KMeansInitRand(void* field, double* centers, int npatch, int d, int coords, long seed)
+void KMeansInitRand(void* field, double* centers, int npatch, int d, int coords, long long seed)
 {
     switch(d) {
       case NData:
@@ -917,7 +917,7 @@ void KMeansInitRand(void* field, double* centers, int npatch, int d, int coords,
 }
 
 template <int D>
-void KMeansInitKMPP1(void* field, double* centers, int npatch, int coords, long seed)
+void KMeansInitKMPP1(void* field, double* centers, int npatch, int coords, long long seed)
 {
     switch(coords) {
       case Flat:
@@ -932,7 +932,7 @@ void KMeansInitKMPP1(void* field, double* centers, int npatch, int coords, long 
     }
 }
 
-void KMeansInitKMPP(void* field, double* centers, int npatch, int d, int coords, long seed)
+void KMeansInitKMPP(void* field, double* centers, int npatch, int d, int coords, long long seed)
 {
     switch(d) {
       case NData:

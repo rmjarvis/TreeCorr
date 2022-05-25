@@ -164,7 +164,7 @@ template <int D, int C>
 Field<D,C>::Field(double* x, double* y, double* z, double* g1, double* g2, double* k,
                   double* w, double* wpos, long nobj,
                   double minsize, double maxsize,
-                  SplitMethod sm, long seed, bool brute, int mintop, int maxtop) :
+                  SplitMethod sm, long long seed, bool brute, int mintop, int maxtop) :
     _nobj(nobj), _minsize(minsize), _maxsize(maxsize), _sm(sm),
     _brute(brute), _mintop(mintop), _maxtop(maxtop)
 {
@@ -467,7 +467,7 @@ template <int D>
 void* BuildField(double* x, double* y, double* z, double* g1, double* g2, double* k,
                  double* w, double* wpos, long nobj,
                  double minsize, double maxsize,
-                 int sm_int, long seed, int brute, int mintop, int maxtop, int coords)
+                 int sm_int, long long seed, int brute, int mintop, int maxtop, int coords)
 {
     dbg<<"Start BuildField "<<D<<"  "<<coords<<std::endl;
     void* field=0;
@@ -503,7 +503,7 @@ void* BuildField(double* x, double* y, double* z, double* g1, double* g2, double
 void* BuildGField(double* x, double* y, double* z, double* g1, double* g2,
                   double* w, double* wpos, long nobj,
                   double minsize, double maxsize,
-                  int sm_int, long seed, int brute, int mintop, int maxtop, int coords)
+                  int sm_int, long long seed, int brute, int mintop, int maxtop, int coords)
 {
     // Note: Use w for k, since we access k[i], even though value will be ignored.
     return BuildField<GData>(x,y,z, g1,g2,w, w,wpos,nobj, minsize,maxsize, sm_int, seed,
@@ -514,7 +514,7 @@ void* BuildGField(double* x, double* y, double* z, double* g1, double* g2,
 void* BuildKField(double* x, double* y, double* z, double* k,
                   double* w, double* wpos, long nobj,
                   double minsize, double maxsize,
-                  int sm_int, long seed, int brute, int mintop, int maxtop, int coords)
+                  int sm_int, long long seed, int brute, int mintop, int maxtop, int coords)
 {
     // Note: Use w for g1,g2, since we access g1[i],g2[i] even though values are ignored.
     return BuildField<KData>(x,y,z, w,w,k, w,wpos,nobj, minsize,maxsize, sm_int, seed,
@@ -524,7 +524,7 @@ void* BuildKField(double* x, double* y, double* z, double* k,
 void* BuildNField(double* x, double* y, double* z,
                   double* w, double* wpos, long nobj,
                   double minsize, double maxsize,
-                  int sm_int, long seed, int brute, int mintop, int maxtop, int coords)
+                  int sm_int, long long seed, int brute, int mintop, int maxtop, int coords)
 {
     // Note: Use w for g1,g2,k for same reasons as above.
     return BuildField<NData>(x,y,z, w,w,w, w,wpos,nobj, minsize,maxsize, sm_int, seed,

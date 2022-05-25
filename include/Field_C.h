@@ -15,17 +15,17 @@
 extern void* BuildGField(double* x, double* y, double* z, double* g1, double* g2,
                          double* w, double* wpos, long nobj,
                          double minsize, double maxsize,
-                         int sm_int, long seed, int brute, int mintop, int maxtop, int coords);
+                         int sm_int, long long seed, int brute, int mintop, int maxtop, int coords);
 
 extern void* BuildKField(double* x, double* y, double* z, double* k,
                          double* w, double* wpos, long nobj,
                          double minsize, double maxsize,
-                         int sm_int, long seed, int brute, int mintop, int maxtop, int coords);
+                         int sm_int, long long seed, int brute, int mintop, int maxtop, int coords);
 
 extern void* BuildNField(double* x, double* y, double* z,
                          double* w, double* wpos, long nobj,
                          double minsize, double maxsize,
-                         int sm_int, long seed, int brute, int mintop, int maxtop, int coords);
+                         int sm_int, long long seed, int brute, int mintop, int maxtop, int coords);
 
 extern void DestroyGField(void* field, int coords);
 extern void DestroyKField(void* field, int coords);
@@ -50,9 +50,9 @@ extern void DestroyGSimpleField(void* field, int coords);
 extern void DestroyKSimpleField(void* field, int coords);
 extern void DestroyNSimpleField(void* field, int coords);
 
-extern void KMeansInitTree(void* field, double* centers, int npatch, int d, int coords, long seed);
-extern void KMeansInitRand(void* field, double* centers, int npatch, int d, int coords, long seed);
-extern void KMeansInitKMPP(void* field, double* centers, int npatch, int d, int coords, long seed);
+extern void KMeansInitTree(void* field, double* centers, int npatch, int d, int coords, long long seed);
+extern void KMeansInitRand(void* field, double* centers, int npatch, int d, int coords, long long seed);
+extern void KMeansInitKMPP(void* field, double* centers, int npatch, int d, int coords, long long seed);
 extern void KMeansRun(void* field, double* centers, int npatch, int max_iter, double tol,
                       int alt, int d, int coords);
 extern void KMeansAssign(void* field, double* centers, int npatch,

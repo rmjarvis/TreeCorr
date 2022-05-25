@@ -56,7 +56,7 @@ inline void seed_time()
 }
 
 // Return a random number between 0 and 1.
-double urand(long seed)
+double urand(long long seed)
 {
     static bool first = true;
 

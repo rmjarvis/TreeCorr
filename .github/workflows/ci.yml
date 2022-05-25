@@ -139,7 +139,7 @@ jobs:
                        # Less confusing to include it explicitly.
 
             - name: Upload coverage to codecov
-              if: matrix.os == 'ubuntu-latest'
+              if: matrix.os != 'windows-latest'
               #uses: codecov/codecov-action@v1  # This didn't work for me.
               run: |
                 cd tests
@@ -157,7 +157,7 @@ jobs:
             - name: Test MPI
               # The code is already mostly checked in the main tests with mock_mpi.
               # These just check that the code works when run in a real mpi session.
-              if: matrix.py > 3.0
+              if: matrix.os != 'windows-latest'
               run: |
                 cd tests
                 which -a mpiexec

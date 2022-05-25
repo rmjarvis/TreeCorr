@@ -15,7 +15,6 @@ import numpy as np
 import treecorr
 import os
 import coord
-import fitsio
 import time
 
 from test_helper import do_pickle, assert_raises, timer, is_ccw, is_ccw_3d
@@ -131,25 +130,30 @@ def test_direct():
 
     # Check that running via the corr3 script works correctly.
     config = treecorr.config.read_config('configs/ggg_direct.yaml')
-    cat.write(config['file_name'])
-    t1 = time.time()
-    treecorr.corr3(config)
-    t2 = time.time()
-    print('Time for auto correlation = ',t2-t1)
-    data = fitsio.read(config['ggg_file_name'])
-    np.testing.assert_allclose(data['r_nom'], ggg.rnom.flatten())
-    np.testing.assert_allclose(data['u_nom'], ggg.u.flatten())
-    np.testing.assert_allclose(data['v_nom'], ggg.v.flatten())
-    np.testing.assert_allclose(data['ntri'], ggg.ntri.flatten())
-    np.testing.assert_allclose(data['weight'], ggg.weight.flatten())
-    np.testing.assert_allclose(data['gam0r'], ggg.gam0r.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam0i'], ggg.gam0i.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam1r'], ggg.gam1r.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam1i'], ggg.gam1i.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam2r'], ggg.gam2r.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam2i'], ggg.gam2i.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam3r'], ggg.gam3r.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam3i'], ggg.gam3i.flatten(), rtol=1.e-3)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        cat.write(config['file_name'])
+        t1 = time.time()
+        treecorr.corr3(config)
+        t2 = time.time()
+        print('Time for auto correlation = ',t2-t1)
+        data = fitsio.read(config['ggg_file_name'])
+        np.testing.assert_allclose(data['r_nom'], ggg.rnom.flatten())
+        np.testing.assert_allclose(data['u_nom'], ggg.u.flatten())
+        np.testing.assert_allclose(data['v_nom'], ggg.v.flatten())
+        np.testing.assert_allclose(data['ntri'], ggg.ntri.flatten())
+        np.testing.assert_allclose(data['weight'], ggg.weight.flatten())
+        np.testing.assert_allclose(data['gam0r'], ggg.gam0r.flatten(), rtol=1.e-3)
+        np.testing.assert_allclose(data['gam0i'], ggg.gam0i.flatten(), rtol=1.e-3)
+        np.testing.assert_allclose(data['gam1r'], ggg.gam1r.flatten(), rtol=1.e-3)
+        np.testing.assert_allclose(data['gam1i'], ggg.gam1i.flatten(), rtol=1.e-3)
+        np.testing.assert_allclose(data['gam2r'], ggg.gam2r.flatten(), rtol=1.e-3)
+        np.testing.assert_allclose(data['gam2i'], ggg.gam2i.flatten(), rtol=1.e-3)
+        np.testing.assert_allclose(data['gam3r'], ggg.gam3r.flatten(), rtol=1.e-3)
+        np.testing.assert_allclose(data['gam3i'], ggg.gam3i.flatten(), rtol=1.e-3)
 
     # Also check the cross calculation.
     # Here, we get 6x as many triangles, since each triangle is discovered 6 times.
@@ -305,28 +309,33 @@ def test_direct():
     np.testing.assert_allclose(ggg3.gam3r, ggg.gam3r)
     np.testing.assert_allclose(ggg3.gam3i, ggg.gam3i)
 
-    fits_name = 'output/ggg_fits.fits'
-    ggg.write(fits_name)
-    ggg4 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins)
-    ggg4.read(fits_name)
-    np.testing.assert_allclose(ggg4.ntri, ggg.ntri)
-    np.testing.assert_allclose(ggg4.weight, ggg.weight)
-    np.testing.assert_allclose(ggg4.meand1, ggg.meand1)
-    np.testing.assert_allclose(ggg4.meand2, ggg.meand2)
-    np.testing.assert_allclose(ggg4.meand3, ggg.meand3)
-    np.testing.assert_allclose(ggg4.meanlogd1, ggg.meanlogd1)
-    np.testing.assert_allclose(ggg4.meanlogd2, ggg.meanlogd2)
-    np.testing.assert_allclose(ggg4.meanlogd3, ggg.meanlogd3)
-    np.testing.assert_allclose(ggg4.meanu, ggg.meanu)
-    np.testing.assert_allclose(ggg4.meanv, ggg.meanv)
-    np.testing.assert_allclose(ggg4.gam0r, ggg.gam0r)
-    np.testing.assert_allclose(ggg4.gam0i, ggg.gam0i)
-    np.testing.assert_allclose(ggg4.gam1r, ggg.gam1r)
-    np.testing.assert_allclose(ggg4.gam1i, ggg.gam1i)
-    np.testing.assert_allclose(ggg4.gam2r, ggg.gam2r)
-    np.testing.assert_allclose(ggg4.gam2i, ggg.gam2i)
-    np.testing.assert_allclose(ggg4.gam3r, ggg.gam3r)
-    np.testing.assert_allclose(ggg4.gam3i, ggg.gam3i)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        fits_name = 'output/ggg_fits.fits'
+        ggg.write(fits_name)
+        ggg4 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins)
+        ggg4.read(fits_name)
+        np.testing.assert_allclose(ggg4.ntri, ggg.ntri)
+        np.testing.assert_allclose(ggg4.weight, ggg.weight)
+        np.testing.assert_allclose(ggg4.meand1, ggg.meand1)
+        np.testing.assert_allclose(ggg4.meand2, ggg.meand2)
+        np.testing.assert_allclose(ggg4.meand3, ggg.meand3)
+        np.testing.assert_allclose(ggg4.meanlogd1, ggg.meanlogd1)
+        np.testing.assert_allclose(ggg4.meanlogd2, ggg.meanlogd2)
+        np.testing.assert_allclose(ggg4.meanlogd3, ggg.meanlogd3)
+        np.testing.assert_allclose(ggg4.meanu, ggg.meanu)
+        np.testing.assert_allclose(ggg4.meanv, ggg.meanv)
+        np.testing.assert_allclose(ggg4.gam0r, ggg.gam0r)
+        np.testing.assert_allclose(ggg4.gam0i, ggg.gam0i)
+        np.testing.assert_allclose(ggg4.gam1r, ggg.gam1r)
+        np.testing.assert_allclose(ggg4.gam1i, ggg.gam1i)
+        np.testing.assert_allclose(ggg4.gam2r, ggg.gam2r)
+        np.testing.assert_allclose(ggg4.gam2i, ggg.gam2i)
+        np.testing.assert_allclose(ggg4.gam3r, ggg.gam3r)
+        np.testing.assert_allclose(ggg4.gam3i, ggg.gam3i)
 
     assert ggg.var_method == 'shot'  # Only option currently.
 
@@ -486,23 +495,28 @@ def test_direct_spherical():
     np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-5, atol=1.e-8)
 
     # Check that running via the corr3 script works correctly.
-    config = treecorr.config.read_config('configs/ggg_direct_spherical.yaml')
-    cat.write(config['file_name'])
-    treecorr.corr3(config)
-    data = fitsio.read(config['ggg_file_name'])
-    np.testing.assert_allclose(data['r_nom'], ggg.rnom.flatten())
-    np.testing.assert_allclose(data['u_nom'], ggg.u.flatten())
-    np.testing.assert_allclose(data['v_nom'], ggg.v.flatten())
-    np.testing.assert_allclose(data['ntri'], ggg.ntri.flatten())
-    np.testing.assert_allclose(data['weight'], ggg.weight.flatten())
-    np.testing.assert_allclose(data['gam0r'], ggg.gam0r.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam0i'], ggg.gam0i.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam1r'], ggg.gam1r.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam1i'], ggg.gam1i.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam2r'], ggg.gam2r.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam2i'], ggg.gam2i.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam3r'], ggg.gam3r.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(data['gam3i'], ggg.gam3i.flatten(), rtol=1.e-3)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        config = treecorr.config.read_config('configs/ggg_direct_spherical.yaml')
+        cat.write(config['file_name'])
+        treecorr.corr3(config)
+        data = fitsio.read(config['ggg_file_name'])
+        np.testing.assert_allclose(data['r_nom'], ggg.rnom.flatten())
+        np.testing.assert_allclose(data['u_nom'], ggg.u.flatten())
+        np.testing.assert_allclose(data['v_nom'], ggg.v.flatten())
+        np.testing.assert_allclose(data['ntri'], ggg.ntri.flatten())
+        np.testing.assert_allclose(data['weight'], ggg.weight.flatten())
+        np.testing.assert_allclose(data['gam0r'], ggg.gam0r.flatten(), rtol=1.e-3)
+        np.testing.assert_allclose(data['gam0i'], ggg.gam0i.flatten(), rtol=1.e-3)
+        np.testing.assert_allclose(data['gam1r'], ggg.gam1r.flatten(), rtol=1.e-3)
+        np.testing.assert_allclose(data['gam1i'], ggg.gam1i.flatten(), rtol=1.e-3)
+        np.testing.assert_allclose(data['gam2r'], ggg.gam2r.flatten(), rtol=1.e-3)
+        np.testing.assert_allclose(data['gam2i'], ggg.gam2i.flatten(), rtol=1.e-3)
+        np.testing.assert_allclose(data['gam3r'], ggg.gam3r.flatten(), rtol=1.e-3)
+        np.testing.assert_allclose(data['gam3i'], ggg.gam3i.flatten(), rtol=1.e-3)
 
     # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
@@ -912,27 +926,32 @@ def test_direct_cross():
         np.testing.assert_allclose(g2.gam2, g1.gam2)
         np.testing.assert_allclose(g2.gam3, g1.gam3)
 
-    fits_name = 'output/gggc_fits.fits'
-    gggc.write(fits_name)
-    gggc4 = treecorr.GGGCrossCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins)
-    gggc4.read(fits_name)
-    for perm in ['g1g2g3', 'g1g3g2', 'g2g1g3', 'g2g3g1', 'g3g1g2', 'g3g2g1']:
-        g2 = getattr(gggc4, perm)
-        g1 = getattr(gggc, perm)
-        np.testing.assert_allclose(g2.ntri, g1.ntri)
-        np.testing.assert_allclose(g2.weight, g1.weight)
-        np.testing.assert_allclose(g2.meand1, g1.meand1)
-        np.testing.assert_allclose(g2.meand2, g1.meand2)
-        np.testing.assert_allclose(g2.meand3, g1.meand3)
-        np.testing.assert_allclose(g2.meanlogd1, g1.meanlogd1)
-        np.testing.assert_allclose(g2.meanlogd2, g1.meanlogd2)
-        np.testing.assert_allclose(g2.meanlogd3, g1.meanlogd3)
-        np.testing.assert_allclose(g2.meanu, g1.meanu)
-        np.testing.assert_allclose(g2.meanv, g1.meanv)
-        np.testing.assert_allclose(g2.gam0, g1.gam0)
-        np.testing.assert_allclose(g2.gam1, g1.gam1)
-        np.testing.assert_allclose(g2.gam2, g1.gam2)
-        np.testing.assert_allclose(g2.gam3, g1.gam3)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        fits_name = 'output/gggc_fits.fits'
+        gggc.write(fits_name)
+        gggc4 = treecorr.GGGCrossCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins)
+        gggc4.read(fits_name)
+        for perm in ['g1g2g3', 'g1g3g2', 'g2g1g3', 'g2g3g1', 'g3g1g2', 'g3g2g1']:
+            g2 = getattr(gggc4, perm)
+            g1 = getattr(gggc, perm)
+            np.testing.assert_allclose(g2.ntri, g1.ntri)
+            np.testing.assert_allclose(g2.weight, g1.weight)
+            np.testing.assert_allclose(g2.meand1, g1.meand1)
+            np.testing.assert_allclose(g2.meand2, g1.meand2)
+            np.testing.assert_allclose(g2.meand3, g1.meand3)
+            np.testing.assert_allclose(g2.meanlogd1, g1.meanlogd1)
+            np.testing.assert_allclose(g2.meanlogd2, g1.meanlogd2)
+            np.testing.assert_allclose(g2.meanlogd3, g1.meanlogd3)
+            np.testing.assert_allclose(g2.meanu, g1.meanu)
+            np.testing.assert_allclose(g2.meanv, g1.meanv)
+            np.testing.assert_allclose(g2.gam0, g1.gam0)
+            np.testing.assert_allclose(g2.gam1, g1.gam1)
+            np.testing.assert_allclose(g2.gam2, g1.gam2)
+            np.testing.assert_allclose(g2.gam3, g1.gam3)
 
 @timer
 def test_direct_cross12():
@@ -1532,67 +1551,73 @@ def test_ggg():
     np.testing.assert_allclose(corr3_output2['Mx3'], mx3, rtol=1.e-4)
 
     # Check the fits write option
-    out_file_name1 = os.path.join('output','ggg_out1.fits')
-    ggg.write(out_file_name1)
-    data = fitsio.read(out_file_name1)
-    np.testing.assert_almost_equal(data['r_nom'], np.exp(ggg.logr).flatten())
-    np.testing.assert_almost_equal(data['u_nom'], ggg.u.flatten())
-    np.testing.assert_almost_equal(data['v_nom'], ggg.v.flatten())
-    np.testing.assert_almost_equal(data['meand1'], ggg.meand1.flatten())
-    np.testing.assert_almost_equal(data['meanlogd1'], ggg.meanlogd1.flatten())
-    np.testing.assert_almost_equal(data['meand2'], ggg.meand2.flatten())
-    np.testing.assert_almost_equal(data['meanlogd2'], ggg.meanlogd2.flatten())
-    np.testing.assert_almost_equal(data['meand3'], ggg.meand3.flatten())
-    np.testing.assert_almost_equal(data['meanlogd3'], ggg.meanlogd3.flatten())
-    np.testing.assert_almost_equal(data['meanu'], ggg.meanu.flatten())
-    np.testing.assert_almost_equal(data['meanv'], ggg.meanv.flatten())
-    np.testing.assert_almost_equal(data['gam0r'], ggg.gam0.real.flatten())
-    np.testing.assert_almost_equal(data['gam1r'], ggg.gam1.real.flatten())
-    np.testing.assert_almost_equal(data['gam2r'], ggg.gam2.real.flatten())
-    np.testing.assert_almost_equal(data['gam3r'], ggg.gam3.real.flatten())
-    np.testing.assert_almost_equal(data['gam0i'], ggg.gam0.imag.flatten())
-    np.testing.assert_almost_equal(data['gam1i'], ggg.gam1.imag.flatten())
-    np.testing.assert_almost_equal(data['gam2i'], ggg.gam2.imag.flatten())
-    np.testing.assert_almost_equal(data['gam3i'], ggg.gam3.imag.flatten())
-    np.testing.assert_almost_equal(data['sigma_gam0'], np.sqrt(ggg.vargam0.flatten()))
-    np.testing.assert_almost_equal(data['sigma_gam1'], np.sqrt(ggg.vargam1.flatten()))
-    np.testing.assert_almost_equal(data['sigma_gam2'], np.sqrt(ggg.vargam2.flatten()))
-    np.testing.assert_almost_equal(data['sigma_gam3'], np.sqrt(ggg.vargam3.flatten()))
-    np.testing.assert_almost_equal(data['weight'], ggg.weight.flatten())
-    np.testing.assert_almost_equal(data['ntri'], ggg.ntri.flatten())
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        out_file_name1 = os.path.join('output','ggg_out1.fits')
+        ggg.write(out_file_name1)
+        data = fitsio.read(out_file_name1)
+        np.testing.assert_almost_equal(data['r_nom'], np.exp(ggg.logr).flatten())
+        np.testing.assert_almost_equal(data['u_nom'], ggg.u.flatten())
+        np.testing.assert_almost_equal(data['v_nom'], ggg.v.flatten())
+        np.testing.assert_almost_equal(data['meand1'], ggg.meand1.flatten())
+        np.testing.assert_almost_equal(data['meanlogd1'], ggg.meanlogd1.flatten())
+        np.testing.assert_almost_equal(data['meand2'], ggg.meand2.flatten())
+        np.testing.assert_almost_equal(data['meanlogd2'], ggg.meanlogd2.flatten())
+        np.testing.assert_almost_equal(data['meand3'], ggg.meand3.flatten())
+        np.testing.assert_almost_equal(data['meanlogd3'], ggg.meanlogd3.flatten())
+        np.testing.assert_almost_equal(data['meanu'], ggg.meanu.flatten())
+        np.testing.assert_almost_equal(data['meanv'], ggg.meanv.flatten())
+        np.testing.assert_almost_equal(data['gam0r'], ggg.gam0.real.flatten())
+        np.testing.assert_almost_equal(data['gam1r'], ggg.gam1.real.flatten())
+        np.testing.assert_almost_equal(data['gam2r'], ggg.gam2.real.flatten())
+        np.testing.assert_almost_equal(data['gam3r'], ggg.gam3.real.flatten())
+        np.testing.assert_almost_equal(data['gam0i'], ggg.gam0.imag.flatten())
+        np.testing.assert_almost_equal(data['gam1i'], ggg.gam1.imag.flatten())
+        np.testing.assert_almost_equal(data['gam2i'], ggg.gam2.imag.flatten())
+        np.testing.assert_almost_equal(data['gam3i'], ggg.gam3.imag.flatten())
+        np.testing.assert_almost_equal(data['sigma_gam0'], np.sqrt(ggg.vargam0.flatten()))
+        np.testing.assert_almost_equal(data['sigma_gam1'], np.sqrt(ggg.vargam1.flatten()))
+        np.testing.assert_almost_equal(data['sigma_gam2'], np.sqrt(ggg.vargam2.flatten()))
+        np.testing.assert_almost_equal(data['sigma_gam3'], np.sqrt(ggg.vargam3.flatten()))
+        np.testing.assert_almost_equal(data['weight'], ggg.weight.flatten())
+        np.testing.assert_almost_equal(data['ntri'], ggg.ntri.flatten())
 
-    # Check the read function
-    # Note: These don't need the flatten. The read function should reshape them to the right shape.
-    ggg2 = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+        # Check the read function
+        # Note: These don't need the flatten.
+        # The read function should reshape them to the right shape.
+        ggg2 = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                    nubins=nubins, nvbins=nvbins,
                                    sep_units='arcmin', verbose=1)
-    ggg2.read(out_file_name1)
-    np.testing.assert_almost_equal(ggg2.logr, ggg.logr)
-    np.testing.assert_almost_equal(ggg2.u, ggg.u)
-    np.testing.assert_almost_equal(ggg2.v, ggg.v)
-    np.testing.assert_almost_equal(ggg2.meand1, ggg.meand1)
-    np.testing.assert_almost_equal(ggg2.meanlogd1, ggg.meanlogd1)
-    np.testing.assert_almost_equal(ggg2.meand2, ggg.meand2)
-    np.testing.assert_almost_equal(ggg2.meanlogd2, ggg.meanlogd2)
-    np.testing.assert_almost_equal(ggg2.meand3, ggg.meand3)
-    np.testing.assert_almost_equal(ggg2.meanlogd3, ggg.meanlogd3)
-    np.testing.assert_almost_equal(ggg2.meanu, ggg.meanu)
-    np.testing.assert_almost_equal(ggg2.meanv, ggg.meanv)
-    np.testing.assert_almost_equal(ggg2.gam0, ggg.gam0)
-    np.testing.assert_almost_equal(ggg2.gam1, ggg.gam1)
-    np.testing.assert_almost_equal(ggg2.gam2, ggg.gam2)
-    np.testing.assert_almost_equal(ggg2.gam3, ggg.gam3)
-    np.testing.assert_almost_equal(ggg2.vargam0, ggg.vargam0)
-    np.testing.assert_almost_equal(ggg2.vargam1, ggg.vargam1)
-    np.testing.assert_almost_equal(ggg2.vargam2, ggg.vargam2)
-    np.testing.assert_almost_equal(ggg2.vargam3, ggg.vargam3)
-    np.testing.assert_almost_equal(ggg2.weight, ggg.weight)
-    np.testing.assert_almost_equal(ggg2.ntri, ggg.ntri)
-    assert ggg2.coords == ggg.coords
-    assert ggg2.metric == ggg.metric
-    assert ggg2.sep_units == ggg.sep_units
-    assert ggg2.bin_type == ggg.bin_type
+        ggg2.read(out_file_name1)
+        np.testing.assert_almost_equal(ggg2.logr, ggg.logr)
+        np.testing.assert_almost_equal(ggg2.u, ggg.u)
+        np.testing.assert_almost_equal(ggg2.v, ggg.v)
+        np.testing.assert_almost_equal(ggg2.meand1, ggg.meand1)
+        np.testing.assert_almost_equal(ggg2.meanlogd1, ggg.meanlogd1)
+        np.testing.assert_almost_equal(ggg2.meand2, ggg.meand2)
+        np.testing.assert_almost_equal(ggg2.meanlogd2, ggg.meanlogd2)
+        np.testing.assert_almost_equal(ggg2.meand3, ggg.meand3)
+        np.testing.assert_almost_equal(ggg2.meanlogd3, ggg.meanlogd3)
+        np.testing.assert_almost_equal(ggg2.meanu, ggg.meanu)
+        np.testing.assert_almost_equal(ggg2.meanv, ggg.meanv)
+        np.testing.assert_almost_equal(ggg2.gam0, ggg.gam0)
+        np.testing.assert_almost_equal(ggg2.gam1, ggg.gam1)
+        np.testing.assert_almost_equal(ggg2.gam2, ggg.gam2)
+        np.testing.assert_almost_equal(ggg2.gam3, ggg.gam3)
+        np.testing.assert_almost_equal(ggg2.vargam0, ggg.vargam0)
+        np.testing.assert_almost_equal(ggg2.vargam1, ggg.vargam1)
+        np.testing.assert_almost_equal(ggg2.vargam2, ggg.vargam2)
+        np.testing.assert_almost_equal(ggg2.vargam3, ggg.vargam3)
+        np.testing.assert_almost_equal(ggg2.weight, ggg.weight)
+        np.testing.assert_almost_equal(ggg2.ntri, ggg.ntri)
+        assert ggg2.coords == ggg.coords
+        assert ggg2.metric == ggg.metric
+        assert ggg2.sep_units == ggg.sep_units
+        assert ggg2.bin_type == ggg.bin_type
 
 
 @timer

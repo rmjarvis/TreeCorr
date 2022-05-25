@@ -210,18 +210,23 @@ def test_twod():
     np.testing.assert_allclose(nn.weight, counts, atol=1.e-7)
 
     # Check I/O
-    fits_name = 'output/gg_twod.fits'
-    gg.write(fits_name)
-    gg2 = treecorr.GGCorrelation(bin_size=2, nbins=nbins, bin_type='TwoD')
-    gg2.read(fits_name)
-    np.testing.assert_allclose(gg2.npairs, gg.npairs)
-    np.testing.assert_allclose(gg2.weight, gg.weight)
-    np.testing.assert_allclose(gg2.meanr, gg.meanr)
-    np.testing.assert_allclose(gg2.meanlogr, gg.meanlogr)
-    np.testing.assert_allclose(gg2.xip, gg.xip)
-    np.testing.assert_allclose(gg2.xip_im, gg.xip_im)
-    np.testing.assert_allclose(gg2.xim, gg.xim)
-    np.testing.assert_allclose(gg2.xim_im, gg.xim_im)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        fits_name = 'output/gg_twod.fits'
+        gg.write(fits_name)
+        gg2 = treecorr.GGCorrelation(bin_size=2, nbins=nbins, bin_type='TwoD')
+        gg2.read(fits_name)
+        np.testing.assert_allclose(gg2.npairs, gg.npairs)
+        np.testing.assert_allclose(gg2.weight, gg.weight)
+        np.testing.assert_allclose(gg2.meanr, gg.meanr)
+        np.testing.assert_allclose(gg2.meanlogr, gg.meanlogr)
+        np.testing.assert_allclose(gg2.xip, gg.xip)
+        np.testing.assert_allclose(gg2.xip_im, gg.xip_im)
+        np.testing.assert_allclose(gg2.xim, gg.xim)
+        np.testing.assert_allclose(gg2.xim_im, gg.xim_im)
 
     ascii_name = 'output/gg_twod.txt'
     gg.write(ascii_name, precision=16)

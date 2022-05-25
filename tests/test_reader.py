@@ -14,7 +14,6 @@
 import os
 import sys
 import numpy as np
-import fitsio
 from unittest import mock
 
 from treecorr.reader import FitsReader, HdfReader, PandasReader, AsciiReader, ParquetReader
@@ -24,6 +23,11 @@ from treecorr.util import make_writer, make_reader
 
 @timer
 def test_fits_reader():
+    try:
+        import fitsio
+    except ImportError:
+        print('Skip test_fits_reader, since fitsio not installed')
+        return
 
     get_from_wiki('Aardvark.fit')
     r = FitsReader(os.path.join('data','Aardvark.fit'))

@@ -17,7 +17,6 @@ import os
 import sys
 import coord
 import time
-import fitsio
 from unittest import mock
 
 from test_helper import do_pickle, CaptureLog
@@ -88,25 +87,30 @@ def test_direct():
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/ng_direct.yaml')
-    cat1.write(config['file_name'])
-    cat2.write(config['file_name2'])
-    treecorr.corr2(config)
-    data = fitsio.read(config['ng_file_name'])
-    np.testing.assert_allclose(data['r_nom'], ng.rnom)
-    np.testing.assert_allclose(data['npairs'], ng.npairs)
-    np.testing.assert_allclose(data['weight'], ng.weight)
-    np.testing.assert_allclose(data['gamT'], ng.xi, rtol=1.e-3)
-    np.testing.assert_allclose(data['gamX'], ng.xi_im, rtol=1.e-3)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        cat1.write(config['file_name'])
+        cat2.write(config['file_name2'])
+        treecorr.corr2(config)
+        data = fitsio.read(config['ng_file_name'])
+        np.testing.assert_allclose(data['r_nom'], ng.rnom)
+        np.testing.assert_allclose(data['npairs'], ng.npairs)
+        np.testing.assert_allclose(data['weight'], ng.weight)
+        np.testing.assert_allclose(data['gamT'], ng.xi, rtol=1.e-3)
+        np.testing.assert_allclose(data['gamX'], ng.xi_im, rtol=1.e-3)
 
-    # Invalid with only one file_name
-    del config['file_name2']
-    with assert_raises(TypeError):
-        treecorr.corr2(config)
-    config['file_name2'] = 'data/ng_direct_cat2.fits'
-    # Invalid to request compoensated if no rand_file
-    config['ng_statistic'] = 'compensated'
-    with assert_raises(TypeError):
-        treecorr.corr2(config)
+        # Invalid with only one file_name
+        del config['file_name2']
+        with assert_raises(TypeError):
+            treecorr.corr2(config)
+        config['file_name2'] = 'data/ng_direct_cat2.dat'
+        # Invalid to request compoensated if no rand_file
+        config['ng_statistic'] = 'compensated'
+        with assert_raises(TypeError):
+            treecorr.corr2(config)
 
     # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
@@ -150,16 +154,21 @@ def test_direct():
     np.testing.assert_allclose(ng3.xi, ng.xi)
     np.testing.assert_allclose(ng3.xi_im, ng.xi_im)
 
-    fits_name = 'output/ng_fits.fits'
-    ng.write(fits_name)
-    ng4 = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
-    ng4.read(fits_name)
-    np.testing.assert_allclose(ng4.npairs, ng.npairs)
-    np.testing.assert_allclose(ng4.weight, ng.weight)
-    np.testing.assert_allclose(ng4.meanr, ng.meanr)
-    np.testing.assert_allclose(ng4.meanlogr, ng.meanlogr)
-    np.testing.assert_allclose(ng4.xi, ng.xi)
-    np.testing.assert_allclose(ng4.xi_im, ng.xi_im)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        fits_name = 'output/ng_fits.fits'
+        ng.write(fits_name)
+        ng4 = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+        ng4.read(fits_name)
+        np.testing.assert_allclose(ng4.npairs, ng.npairs)
+        np.testing.assert_allclose(ng4.weight, ng.weight)
+        np.testing.assert_allclose(ng4.meanr, ng.meanr)
+        np.testing.assert_allclose(ng4.meanlogr, ng.meanlogr)
+        np.testing.assert_allclose(ng4.xi, ng.xi)
+        np.testing.assert_allclose(ng4.xi_im, ng.xi_im)
 
     with assert_raises(TypeError):
         ng2 += config
@@ -264,15 +273,20 @@ def test_direct_spherical():
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/ng_direct_spherical.yaml')
-    cat1.write(config['file_name'])
-    cat2.write(config['file_name2'])
-    treecorr.corr2(config)
-    data = fitsio.read(config['ng_file_name'])
-    np.testing.assert_allclose(data['r_nom'], ng.rnom)
-    np.testing.assert_allclose(data['npairs'], ng.npairs)
-    np.testing.assert_allclose(data['weight'], ng.weight)
-    np.testing.assert_allclose(data['gamT'], ng.xi, rtol=1.e-3)
-    np.testing.assert_allclose(data['gamX'], ng.xi_im, rtol=1.e-3)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        cat1.write(config['file_name'])
+        cat2.write(config['file_name2'])
+        treecorr.corr2(config)
+        data = fitsio.read(config['ng_file_name'])
+        np.testing.assert_allclose(data['r_nom'], ng.rnom)
+        np.testing.assert_allclose(data['npairs'], ng.npairs)
+        np.testing.assert_allclose(data['weight'], ng.weight)
+        np.testing.assert_allclose(data['gamT'], ng.xi, rtol=1.e-3)
+        np.testing.assert_allclose(data['gamX'], ng.xi_im, rtol=1.e-3)
 
     # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
@@ -702,72 +716,82 @@ def test_ng():
     np.testing.assert_array_equal(varxi_2, varxi)
 
     # Check that we get the same result using the corr2 function:
-    lens_cat.write(os.path.join('data','ng_lens.fits'))
-    source_cat.write(os.path.join('data','ng_source.fits'))
-    rand_cat.write(os.path.join('data','ng_rand.fits'))
     config = treecorr.read_config('configs/ng.yaml')
-    config['verbose'] = 0
-    config['precision'] = 8
-    treecorr.corr2(config)
-    corr2_output = np.genfromtxt(os.path.join('output','ng.out'), names=True, skip_header=1)
-    print('ng.xi = ',ng.xi)
-    print('xi = ',xi)
-    print('from corr2 output = ',corr2_output['gamT'])
-    print('ratio = ',corr2_output['gamT']/xi)
-    print('diff = ',corr2_output['gamT']-xi)
-    np.testing.assert_allclose(corr2_output['gamT'], xi, rtol=1.e-3)
-    print('xi_im from corr2 output = ',corr2_output['gamX'])
-    np.testing.assert_allclose(corr2_output['gamX'], 0., atol=4.e-3)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        lens_cat.write(os.path.join('data','ng_lens.fits'))
+        source_cat.write(os.path.join('data','ng_source.fits'))
+        rand_cat.write(os.path.join('data','ng_rand.fits'))
+        config['verbose'] = 0
+        config['precision'] = 8
+        treecorr.corr2(config)
+        corr2_output = np.genfromtxt(os.path.join('output','ng.out'), names=True, skip_header=1)
+        print('ng.xi = ',ng.xi)
+        print('xi = ',xi)
+        print('from corr2 output = ',corr2_output['gamT'])
+        print('ratio = ',corr2_output['gamT']/xi)
+        print('diff = ',corr2_output['gamT']-xi)
+        np.testing.assert_allclose(corr2_output['gamT'], xi, rtol=1.e-3)
+        print('xi_im from corr2 output = ',corr2_output['gamX'])
+        np.testing.assert_allclose(corr2_output['gamX'], 0., atol=4.e-3)
 
-    # In the corr2 context, you can turn off the compensated bit, even if there are randoms
-    # (e.g. maybe you only want randoms for some nn calculation, but not ng.)
-    config['ng_statistic'] = 'simple'
-    treecorr.corr2(config)
-    corr2_output = np.genfromtxt(os.path.join('output','ng.out'), names=True, skip_header=1)
-    xi_simple, _, _ = ng.calculateXi()
-    np.testing.assert_equal(xi_simple, ng.xi)
-    np.testing.assert_allclose(corr2_output['gamT'], xi_simple, rtol=1.e-3)
+        # In the corr2 context, you can turn off the compensated bit, even if there are randoms
+        # (e.g. maybe you only want randoms for some nn calculation, but not ng.)
+        config['ng_statistic'] = 'simple'
+        treecorr.corr2(config)
+        corr2_output = np.genfromtxt(os.path.join('output','ng.out'), names=True, skip_header=1)
+        xi_simple, _, _ = ng.calculateXi()
+        np.testing.assert_equal(xi_simple, ng.xi)
+        np.testing.assert_allclose(corr2_output['gamT'], xi_simple, rtol=1.e-3)
 
     # Check the fits write option
-    out_file_name1 = os.path.join('output','ng_out1.fits')
-    ng.write(out_file_name1)
-    data = fitsio.read(out_file_name1)
-    np.testing.assert_almost_equal(data['r_nom'], np.exp(ng.logr))
-    np.testing.assert_almost_equal(data['meanr'], ng.meanr)
-    np.testing.assert_almost_equal(data['meanlogr'], ng.meanlogr)
-    np.testing.assert_almost_equal(data['gamT'], ng.xi)
-    np.testing.assert_almost_equal(data['gamX'], ng.xi_im)
-    np.testing.assert_almost_equal(data['sigma'], np.sqrt(ng.varxi))
-    np.testing.assert_almost_equal(data['weight'], ng.weight)
-    np.testing.assert_almost_equal(data['npairs'], ng.npairs)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        out_file_name1 = os.path.join('output','ng_out1.fits')
+        ng.write(out_file_name1)
+        data = fitsio.read(out_file_name1)
+        np.testing.assert_almost_equal(data['r_nom'], np.exp(ng.logr))
+        np.testing.assert_almost_equal(data['meanr'], ng.meanr)
+        np.testing.assert_almost_equal(data['meanlogr'], ng.meanlogr)
+        np.testing.assert_almost_equal(data['gamT'], ng.xi)
+        np.testing.assert_almost_equal(data['gamX'], ng.xi_im)
+        np.testing.assert_almost_equal(data['sigma'], np.sqrt(ng.varxi))
+        np.testing.assert_almost_equal(data['weight'], ng.weight)
+        np.testing.assert_almost_equal(data['npairs'], ng.npairs)
 
-    out_file_name2 = os.path.join('output','ng_out2.fits')
-    ng.write(out_file_name2, rg=rg)
-    data = fitsio.read(out_file_name2)
-    np.testing.assert_almost_equal(data['r_nom'], np.exp(ng.logr))
-    np.testing.assert_almost_equal(data['meanr'], ng.meanr)
-    np.testing.assert_almost_equal(data['meanlogr'], ng.meanlogr)
-    np.testing.assert_almost_equal(data['gamT'], xi)
-    np.testing.assert_almost_equal(data['gamX'], xi_im)
-    np.testing.assert_almost_equal(data['sigma'], np.sqrt(varxi))
-    np.testing.assert_almost_equal(data['weight'], ng.weight)
-    np.testing.assert_almost_equal(data['npairs'], ng.npairs)
+        out_file_name2 = os.path.join('output','ng_out2.fits')
+        ng.write(out_file_name2, rg=rg)
+        data = fitsio.read(out_file_name2)
+        np.testing.assert_almost_equal(data['r_nom'], np.exp(ng.logr))
+        np.testing.assert_almost_equal(data['meanr'], ng.meanr)
+        np.testing.assert_almost_equal(data['meanlogr'], ng.meanlogr)
+        np.testing.assert_almost_equal(data['gamT'], xi)
+        np.testing.assert_almost_equal(data['gamX'], xi_im)
+        np.testing.assert_almost_equal(data['sigma'], np.sqrt(varxi))
+        np.testing.assert_almost_equal(data['weight'], ng.weight)
+        np.testing.assert_almost_equal(data['npairs'], ng.npairs)
 
-    # Check the read function
-    ng2 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin')
-    ng2.read(out_file_name2)
-    np.testing.assert_almost_equal(ng2.logr, ng.logr)
-    np.testing.assert_almost_equal(ng2.meanr, ng.meanr)
-    np.testing.assert_almost_equal(ng2.meanlogr, ng.meanlogr)
-    np.testing.assert_almost_equal(ng2.xi, ng.xi)
-    np.testing.assert_almost_equal(ng2.xi_im, ng.xi_im)
-    np.testing.assert_almost_equal(ng2.varxi, ng.varxi)
-    np.testing.assert_almost_equal(ng2.weight, ng.weight)
-    np.testing.assert_almost_equal(ng2.npairs, ng.npairs)
-    assert ng2.coords == ng.coords
-    assert ng2.metric == ng.metric
-    assert ng2.sep_units == ng.sep_units
-    assert ng2.bin_type == ng.bin_type
+        # Check the read function
+        ng2 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin')
+        ng2.read(out_file_name2)
+        np.testing.assert_almost_equal(ng2.logr, ng.logr)
+        np.testing.assert_almost_equal(ng2.meanr, ng.meanr)
+        np.testing.assert_almost_equal(ng2.meanlogr, ng.meanlogr)
+        np.testing.assert_almost_equal(ng2.xi, ng.xi)
+        np.testing.assert_almost_equal(ng2.xi_im, ng.xi_im)
+        np.testing.assert_almost_equal(ng2.varxi, ng.varxi)
+        np.testing.assert_almost_equal(ng2.weight, ng.weight)
+        np.testing.assert_almost_equal(ng2.npairs, ng.npairs)
+        assert ng2.coords == ng.coords
+        assert ng2.metric == ng.metric
+        assert ng2.sep_units == ng.sep_units
+        assert ng2.bin_type == ng.bin_type
 
 
 @timer
@@ -890,57 +914,61 @@ def test_nmap():
 
     # Also check writing to fits file.
     # For grins, also check the explicit file_type option (which is rarely necessary)
-    fits_name = os.path.join('output', 'ng_nmap.zzz')
-    ng.writeNMap(fits_name, file_type='fits')
-    data = fitsio.read(fits_name)
-    np.testing.assert_allclose(data['NMap'], nmap, rtol=1.e-8)
-    np.testing.assert_allclose(data['NMx'], nmx, atol=1.e-8)
-    np.testing.assert_allclose(data['sig_nmap'], np.sqrt(varnmap), rtol=1.e-8)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        fits_name = os.path.join('output', 'ng_nmap.zzz')
+        ng.writeNMap(fits_name, file_type='fits')
+        data = fitsio.read(fits_name)
+        np.testing.assert_allclose(data['NMap'], nmap, rtol=1.e-8)
+        np.testing.assert_allclose(data['NMx'], nmx, atol=1.e-8)
+        np.testing.assert_allclose(data['sig_nmap'], np.sqrt(varnmap), rtol=1.e-8)
 
-    fits_name = os.path.join('output', 'ng_norm.zzz')
-    ng.writeNorm(fits_name, gg=gg, dd=dd, rr=rr, file_type='fits')
-    data = fitsio.read(fits_name)
-    np.testing.assert_allclose(data['NMap'], nmap, rtol=1.e-6)
-    np.testing.assert_allclose(data['NMx'], nmx, atol=1.e-6)
-    np.testing.assert_allclose(data['sig_nmap'], np.sqrt(varnmap), rtol=1.e-6)
-    np.testing.assert_allclose(data['Napsq'], napsq, rtol=1.e-6)
-    np.testing.assert_allclose(data['sig_napsq'], np.sqrt(varnap), rtol=1.e-6)
-    np.testing.assert_allclose(data['Mapsq'], mapsq, rtol=1.e-6)
-    np.testing.assert_allclose(data['sig_mapsq'], np.sqrt(varmap), rtol=1.e-6)
-    np.testing.assert_allclose(data['NMap_norm'], nmap_norm, rtol=1.e-6)
-    np.testing.assert_allclose(data['Nsq_Mapsq'], napsq_mapsq, rtol=1.e-6)
+        fits_name = os.path.join('output', 'ng_norm.zzz')
+        ng.writeNorm(fits_name, gg=gg, dd=dd, rr=rr, file_type='fits')
+        data = fitsio.read(fits_name)
+        np.testing.assert_allclose(data['NMap'], nmap, rtol=1.e-6)
+        np.testing.assert_allclose(data['NMx'], nmx, atol=1.e-6)
+        np.testing.assert_allclose(data['sig_nmap'], np.sqrt(varnmap), rtol=1.e-6)
+        np.testing.assert_allclose(data['Napsq'], napsq, rtol=1.e-6)
+        np.testing.assert_allclose(data['sig_napsq'], np.sqrt(varnap), rtol=1.e-6)
+        np.testing.assert_allclose(data['Mapsq'], mapsq, rtol=1.e-6)
+        np.testing.assert_allclose(data['sig_mapsq'], np.sqrt(varmap), rtol=1.e-6)
+        np.testing.assert_allclose(data['NMap_norm'], nmap_norm, rtol=1.e-6)
+        np.testing.assert_allclose(data['Nsq_Mapsq'], napsq_mapsq, rtol=1.e-6)
 
-    with assert_warns(FutureWarning):
-        # This one in particular is worth checking, since some kw-onlt args don't have defaults,
-        # so it didn't actually work with my original implementation of depr_pos_kwargs
-        ng.writeNorm(fits_name, gg, dd, rr, file_type='fits')
-    data2 = fitsio.read(fits_name)
-    np.testing.assert_array_equal(data2, data)
+        with assert_warns(FutureWarning):
+            # This one in particular is worth checking, since some kw-onlt args don't have defaults,
+            # so it didn't actually work with my original implementation of depr_pos_kwargs
+            ng.writeNorm(fits_name, gg, dd, rr, file_type='fits')
+        data2 = fitsio.read(fits_name)
+        np.testing.assert_array_equal(data2, data)
 
-    fits_name = os.path.join('output', 'ng_nmap2.fits')
-    ng.writeNMap(fits_name, R=R, rg=rg)
-    data = fitsio.read(fits_name)
-    np.testing.assert_allclose(data['NMap'], nmap2, rtol=1.e-8)
-    np.testing.assert_allclose(data['NMx'], nmx2, atol=1.e-8)
-    np.testing.assert_allclose(data['sig_nmap'], np.sqrt(varnmap2), rtol=1.e-8)
+        fits_name = os.path.join('output', 'ng_nmap2.fits')
+        ng.writeNMap(fits_name, R=R, rg=rg)
+        data = fitsio.read(fits_name)
+        np.testing.assert_allclose(data['NMap'], nmap2, rtol=1.e-8)
+        np.testing.assert_allclose(data['NMx'], nmx2, atol=1.e-8)
+        np.testing.assert_allclose(data['sig_nmap'], np.sqrt(varnmap2), rtol=1.e-8)
 
-    fits_name = os.path.join('output', 'ng_norm2.fits')
-    ng.writeNorm(fits_name, R=R, gg=gg, dd=dd, rr=rr, rg=rg)
-    data = fitsio.read(fits_name)
-    napsq2, varnap2 = dd.calculateNapSq(R=R, rr=rr)
-    mapsq2, mapsq2_im, mxsq2, mxsq2_im, varmap2 = gg.calculateMapSq(R=R, m2_uform='Crittenden')
-    nmap_norm2 = nmap2**2 / napsq2 / mapsq2
-    napsq_mapsq2 = napsq2 / mapsq2
-    np.testing.assert_allclose(data['NMap'], nmap2, rtol=1.e-6)
-    np.testing.assert_allclose(data['NMx'], nmx2, atol=1.e-6)
-    np.testing.assert_allclose(data['sig_nmap'], np.sqrt(varnmap2), rtol=1.e-6)
-    np.testing.assert_allclose(data['Napsq'], napsq2, rtol=2.e-3)
-    np.testing.assert_allclose(data['sig_napsq'], np.sqrt(varnap2), rtol=1.e-6)
-    np.testing.assert_allclose(data['Mapsq'], mapsq2, rtol=1.e-6)
-    np.testing.assert_allclose(data['sig_mapsq'], np.sqrt(varmap2), rtol=1.e-6)
-    np.testing.assert_allclose(data['NMap_norm'], nmap_norm2, rtol=1.e-6)
-    np.testing.assert_allclose(data['Nsq_Mapsq'], napsq_mapsq2, rtol=1.e-6)
-
+        fits_name = os.path.join('output', 'ng_norm2.fits')
+        ng.writeNorm(fits_name, R=R, gg=gg, dd=dd, rr=rr, rg=rg)
+        data = fitsio.read(fits_name)
+        napsq2, varnap2 = dd.calculateNapSq(R=R, rr=rr)
+        mapsq2, mapsq2_im, mxsq2, mxsq2_im, varmap2 = gg.calculateMapSq(R=R, m2_uform='Crittenden')
+        nmap_norm2 = nmap2**2 / napsq2 / mapsq2
+        napsq_mapsq2 = napsq2 / mapsq2
+        np.testing.assert_allclose(data['NMap'], nmap2, rtol=1.e-6)
+        np.testing.assert_allclose(data['NMx'], nmx2, atol=1.e-6)
+        np.testing.assert_allclose(data['sig_nmap'], np.sqrt(varnmap2), rtol=1.e-6)
+        np.testing.assert_allclose(data['Napsq'], napsq2, rtol=2.e-3)
+        np.testing.assert_allclose(data['sig_napsq'], np.sqrt(varnap2), rtol=1.e-6)
+        np.testing.assert_allclose(data['Mapsq'], mapsq2, rtol=1.e-6)
+        np.testing.assert_allclose(data['sig_mapsq'], np.sqrt(varmap2), rtol=1.e-6)
+        np.testing.assert_allclose(data['NMap_norm'], nmap_norm2, rtol=1.e-6)
+        np.testing.assert_allclose(data['Nsq_Mapsq'], napsq_mapsq2, rtol=1.e-6)
 
     # Finally, let's also check the Schneider definition.
     # It doesn't have a nice closed form solution (as far as I can figure out at least).
@@ -997,6 +1025,12 @@ def test_nmap():
 @timer
 def test_pieces():
     # Test that we can do the calculation in pieces and recombine the results
+
+    try:
+        import fitsio
+    except ImportError:
+        print('Skip test_pieces, since fitsio not installed.')
+        return
 
     ncats = 3
     nlens = 1000

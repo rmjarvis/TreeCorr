@@ -17,44 +17,59 @@ from mockmpi import mock_mpiexec
 from test_helper import timer
 from mpi_test import setup, do_mpi_gg, do_mpi_ng, do_mpi_nk, do_mpi_nn, do_mpi_kk, do_mpi_kg, do_mpi_cov
 
+try:
+    import fitsio
+except ImportError:
+    # All the mpi tests use Aardvark.fit, so skip them when fitsio isn't installed.
+    skip=True
+else:
+    skip=False
+
 @timer
 def test_mpi_gg():
+    if skip: return
     output = __name__ == '__main__'
     mock_mpiexec(4, do_mpi_gg, output)
     mock_mpiexec(1, do_mpi_gg, output)
 
 @timer
 def test_mpi_ng():
+    if skip: return
     output = __name__ == '__main__'
     mock_mpiexec(4, do_mpi_ng, output)
     mock_mpiexec(1, do_mpi_ng, output)
 
 @timer
 def test_mpi_nk():
+    if skip: return
     output = __name__ == '__main__'
     mock_mpiexec(4, do_mpi_nk, output)
     mock_mpiexec(1, do_mpi_nk, output)
 
 @timer
 def test_mpi_nn():
+    if skip: return
     output = __name__ == '__main__'
     mock_mpiexec(4, do_mpi_nn, output)
     mock_mpiexec(1, do_mpi_nn, output)
 
 @timer
 def test_mpi_kg():
+    if skip: return
     output = __name__ == '__main__'
     mock_mpiexec(4, do_mpi_kg, output)
     mock_mpiexec(1, do_mpi_kg, output)
 
 @timer
 def test_mpi_kk():
+    if skip: return
     output = __name__ == '__main__'
     mock_mpiexec(4, do_mpi_kk, output)
     mock_mpiexec(1, do_mpi_kk, output)
 
 @timer
 def test_mpi_cov_jackknife():
+    if skip: return
     output = __name__ == '__main__'
     mock_mpiexec(1, do_mpi_cov, "jackknife", output)
     mock_mpiexec(2, do_mpi_cov, "jackknife", output)
@@ -62,6 +77,7 @@ def test_mpi_cov_jackknife():
 
 @timer
 def test_mpi_cov_bootstrap():
+    if skip: return
     output = __name__ == '__main__'
     mock_mpiexec(1, do_mpi_cov, "bootstrap", output)
     mock_mpiexec(2, do_mpi_cov, "bootstrap", output)
@@ -69,6 +85,7 @@ def test_mpi_cov_bootstrap():
 
 @timer
 def test_mpi_cov_marked_bootstrap():
+    if skip: return
     output = __name__ == '__main__'
     mock_mpiexec(1, do_mpi_cov, "marked_bootstrap", output)
     mock_mpiexec(2, do_mpi_cov, "marked_bootstrap", output)
@@ -76,6 +93,7 @@ def test_mpi_cov_marked_bootstrap():
 
 @timer
 def test_mpi_cov_sample():
+    if skip: return
     output = __name__ == '__main__'
     mock_mpiexec(1, do_mpi_cov, "sample", output)
     mock_mpiexec(2, do_mpi_cov, "sample", output)

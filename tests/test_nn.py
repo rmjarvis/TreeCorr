@@ -17,7 +17,6 @@ import os
 import coord
 import time
 import shutil
-import fitsio
 
 from test_helper import get_script_name, do_pickle, CaptureLog
 from test_helper import assert_raises, timer, assert_warns
@@ -627,10 +626,10 @@ def test_direct_count():
 
     # For this one, also check that it automatically makes the directory if necessary.
     shutil.rmtree('output/tmp', ignore_errors=True)
-    fits_name = 'output/tmp/dd_fits.fits'
-    dd.write(fits_name)
+    out_name = 'output/tmp/dd_out.dat'
+    dd.write(out_name, precision=16)
     dd8 = treecorr.NNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
-    dd8.read(fits_name)
+    dd8.read(out_name)
     np.testing.assert_allclose(dd8.npairs, dd.npairs)
     np.testing.assert_allclose(dd8.weight, dd.weight)
     np.testing.assert_allclose(dd8.meanr, dd.meanr)
@@ -704,14 +703,19 @@ def test_direct_spherical():
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/nn_direct_spherical.yaml')
-    cat1.write(config['file_name'])
-    cat2.write(config['file_name2'])
-    treecorr.corr2(config)
-    data = fitsio.read(config['nn_file_name'])
-    print(data.dtype)
-    np.testing.assert_allclose(data['r_nom'], dd.rnom)
-    np.testing.assert_allclose(data['npairs'], dd.npairs)
-    np.testing.assert_allclose(data['DD'], dd.weight)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        cat1.write(config['file_name'])
+        cat2.write(config['file_name2'])
+        treecorr.corr2(config)
+        data = fitsio.read(config['nn_file_name'])
+        print(data.dtype)
+        np.testing.assert_allclose(data['r_nom'], dd.rnom)
+        np.testing.assert_allclose(data['npairs'], dd.npairs)
+        np.testing.assert_allclose(data['DD'], dd.weight)
 
     # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
@@ -1320,159 +1324,163 @@ def test_nn():
     assert dd2.bin_type == dd.bin_type
 
     # Check the fits write option
-    out_file_name1 = os.path.join('output','nn_out1.fits')
-    dd.write(out_file_name1)
-    data = fitsio.read(out_file_name1)
-    np.testing.assert_almost_equal(data['r_nom'], np.exp(dd.logr))
-    np.testing.assert_almost_equal(data['meanr'], dd.meanr)
-    np.testing.assert_almost_equal(data['meanlogr'], dd.meanlogr)
-    np.testing.assert_almost_equal(data['npairs'], dd.npairs)
-    header = fitsio.read_header(out_file_name1, 1)
-    np.testing.assert_almost_equal(header['tot'], dd.tot)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        out_file_name1 = os.path.join('output','nn_out1.fits')
+        dd.write(out_file_name1)
+        data = fitsio.read(out_file_name1)
+        np.testing.assert_almost_equal(data['r_nom'], np.exp(dd.logr))
+        np.testing.assert_almost_equal(data['meanr'], dd.meanr)
+        np.testing.assert_almost_equal(data['meanlogr'], dd.meanlogr)
+        np.testing.assert_almost_equal(data['npairs'], dd.npairs)
+        header = fitsio.read_header(out_file_name1, 1)
+        np.testing.assert_almost_equal(header['tot'], dd.tot)
 
-    out_file_name2 = os.path.join('output','nn_out2.fits')
-    dd.write(out_file_name2, rr=rr)
-    data = fitsio.read(out_file_name2)
-    np.testing.assert_almost_equal(data['r_nom'], np.exp(dd.logr))
-    np.testing.assert_almost_equal(data['meanr'], dd.meanr)
-    np.testing.assert_almost_equal(data['meanlogr'], dd.meanlogr)
-    np.testing.assert_almost_equal(data['xi'], simple_xi)
-    np.testing.assert_almost_equal(data['sigma_xi'], np.sqrt(simple_varxi))
-    np.testing.assert_almost_equal(data['DD'], dd.npairs)
-    np.testing.assert_almost_equal(data['RR'], rr.npairs * (dd.tot / rr.tot))
-    header = fitsio.read_header(out_file_name2, 1)
-    np.testing.assert_almost_equal(header['tot'], dd.tot)
+        out_file_name2 = os.path.join('output','nn_out2.fits')
+        dd.write(out_file_name2, rr=rr)
+        data = fitsio.read(out_file_name2)
+        np.testing.assert_almost_equal(data['r_nom'], np.exp(dd.logr))
+        np.testing.assert_almost_equal(data['meanr'], dd.meanr)
+        np.testing.assert_almost_equal(data['meanlogr'], dd.meanlogr)
+        np.testing.assert_almost_equal(data['xi'], simple_xi)
+        np.testing.assert_almost_equal(data['sigma_xi'], np.sqrt(simple_varxi))
+        np.testing.assert_almost_equal(data['DD'], dd.npairs)
+        np.testing.assert_almost_equal(data['RR'], rr.npairs * (dd.tot / rr.tot))
+        header = fitsio.read_header(out_file_name2, 1)
+        np.testing.assert_almost_equal(header['tot'], dd.tot)
 
-    out_file_name3 = os.path.join('output','nn_out3.fits')
-    dd.write(out_file_name3, rr=rr, dr=dr)
-    data = fitsio.read(out_file_name3)
-    np.testing.assert_almost_equal(data['r_nom'], np.exp(dd.logr))
-    np.testing.assert_almost_equal(data['meanr'], dd.meanr)
-    np.testing.assert_almost_equal(data['meanlogr'], dd.meanlogr)
-    np.testing.assert_almost_equal(data['xi'], xi)
-    np.testing.assert_almost_equal(data['sigma_xi'], np.sqrt(varxi))
-    np.testing.assert_almost_equal(data['DD'], dd.npairs)
-    np.testing.assert_almost_equal(data['RR'], rr.npairs * (dd.tot / rr.tot))
-    np.testing.assert_almost_equal(data['DR'], dr.npairs * (dd.tot / dr.tot))
-    header = fitsio.read_header(out_file_name3, 1)
-    np.testing.assert_almost_equal(header['tot'], dd.tot)
+        out_file_name3 = os.path.join('output','nn_out3.fits')
+        dd.write(out_file_name3, rr=rr, dr=dr)
+        data = fitsio.read(out_file_name3)
+        np.testing.assert_almost_equal(data['r_nom'], np.exp(dd.logr))
+        np.testing.assert_almost_equal(data['meanr'], dd.meanr)
+        np.testing.assert_almost_equal(data['meanlogr'], dd.meanlogr)
+        np.testing.assert_almost_equal(data['xi'], xi)
+        np.testing.assert_almost_equal(data['sigma_xi'], np.sqrt(varxi))
+        np.testing.assert_almost_equal(data['DD'], dd.npairs)
+        np.testing.assert_almost_equal(data['RR'], rr.npairs * (dd.tot / rr.tot))
+        np.testing.assert_almost_equal(data['DR'], dr.npairs * (dd.tot / dr.tot))
+        header = fitsio.read_header(out_file_name3, 1)
+        np.testing.assert_almost_equal(header['tot'], dd.tot)
 
-    out_file_name4 = os.path.join('output','nn_out4.fits')
-    dd.write(out_file_name4)  # Without rr, then xi and varxi are still written, but not RR, DR
-    data = fitsio.read(out_file_name4)
-    np.testing.assert_almost_equal(data['r_nom'], np.exp(dd.logr))
-    np.testing.assert_almost_equal(data['meanr'], dd.meanr)
-    np.testing.assert_almost_equal(data['meanlogr'], dd.meanlogr)
-    np.testing.assert_almost_equal(data['xi'], xi)
-    np.testing.assert_almost_equal(data['sigma_xi'], np.sqrt(varxi))
-    np.testing.assert_almost_equal(data['DD'], dd.npairs)
-    assert 'RR' not in data.dtype.names
-    assert 'DR' not in data.dtype.names
-    header = fitsio.read_header(out_file_name4, 1)
-    np.testing.assert_almost_equal(header['tot'], dd.tot)
+        out_file_name4 = os.path.join('output','nn_out4.fits')
+        dd.write(out_file_name4)  # Without rr, then xi and varxi are still written, but not RR, DR
+        data = fitsio.read(out_file_name4)
+        np.testing.assert_almost_equal(data['r_nom'], np.exp(dd.logr))
+        np.testing.assert_almost_equal(data['meanr'], dd.meanr)
+        np.testing.assert_almost_equal(data['meanlogr'], dd.meanlogr)
+        np.testing.assert_almost_equal(data['xi'], xi)
+        np.testing.assert_almost_equal(data['sigma_xi'], np.sqrt(varxi))
+        np.testing.assert_almost_equal(data['DD'], dd.npairs)
+        assert 'RR' not in data.dtype.names
+        assert 'DR' not in data.dtype.names
+        header = fitsio.read_header(out_file_name4, 1)
+        np.testing.assert_almost_equal(header['tot'], dd.tot)
 
-    out_file_name5 = os.path.join('output','nn_out5.fits')
-    del dd.xi  # Equivalent to not having called calculateXi
-    del dd.varxi
-    dd.write(out_file_name5)
-    data = fitsio.read(out_file_name5)
-    np.testing.assert_almost_equal(data['r_nom'], np.exp(dd.logr))
-    np.testing.assert_almost_equal(data['meanr'], dd.meanr)
-    np.testing.assert_almost_equal(data['meanlogr'], dd.meanlogr)
-    np.testing.assert_almost_equal(data['DD'], dd.npairs)
-    assert 'xi' not in data.dtype.names
-    assert 'varxi' not in data.dtype.names
-    assert 'RR' not in data.dtype.names
-    assert 'DR' not in data.dtype.names
-    header = fitsio.read_header(out_file_name5, 1)
-    np.testing.assert_almost_equal(header['tot'], dd.tot)
+        out_file_name5 = os.path.join('output','nn_out5.fits')
+        del dd.xi  # Equivalent to not having called calculateXi
+        del dd.varxi
+        dd.write(out_file_name5)
+        data = fitsio.read(out_file_name5)
+        np.testing.assert_almost_equal(data['r_nom'], np.exp(dd.logr))
+        np.testing.assert_almost_equal(data['meanr'], dd.meanr)
+        np.testing.assert_almost_equal(data['meanlogr'], dd.meanlogr)
+        np.testing.assert_almost_equal(data['DD'], dd.npairs)
+        assert 'xi' not in data.dtype.names
+        assert 'varxi' not in data.dtype.names
+        assert 'RR' not in data.dtype.names
+        assert 'DR' not in data.dtype.names
+        header = fitsio.read_header(out_file_name5, 1)
+        np.testing.assert_almost_equal(header['tot'], dd.tot)
 
-    # Check the read function
-    dd.calculateXi(rr=rr, dr=dr)  # gets xi, varxi back in dd
-    dd2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
-    dd2.read(out_file_name1)
-    np.testing.assert_almost_equal(dd2.logr, dd.logr)
-    np.testing.assert_almost_equal(dd2.meanr, dd.meanr)
-    np.testing.assert_almost_equal(dd2.meanlogr, dd.meanlogr)
-    np.testing.assert_almost_equal(dd2.npairs, dd.npairs)
-    np.testing.assert_almost_equal(dd2.tot, dd.tot)
-    np.testing.assert_almost_equal(dd2.xi, dd.xi)
-    np.testing.assert_almost_equal(dd2.varxi, dd.varxi)
-    assert dd2.coords == dd.coords
-    assert dd2.metric == dd.metric
-    assert dd2.sep_units == dd.sep_units
-    assert dd2.bin_type == dd.bin_type
+        # Check the read function
+        dd.calculateXi(rr=rr, dr=dr)  # gets xi, varxi back in dd
+        dd2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
+        dd2.read(out_file_name1)
+        np.testing.assert_almost_equal(dd2.logr, dd.logr)
+        np.testing.assert_almost_equal(dd2.meanr, dd.meanr)
+        np.testing.assert_almost_equal(dd2.meanlogr, dd.meanlogr)
+        np.testing.assert_almost_equal(dd2.npairs, dd.npairs)
+        np.testing.assert_almost_equal(dd2.tot, dd.tot)
+        np.testing.assert_almost_equal(dd2.xi, dd.xi)
+        np.testing.assert_almost_equal(dd2.varxi, dd.varxi)
+        assert dd2.coords == dd.coords
+        assert dd2.metric == dd.metric
+        assert dd2.sep_units == dd.sep_units
+        assert dd2.bin_type == dd.bin_type
 
-    dd3 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
-    dd3.read(out_file_name3)
-    np.testing.assert_almost_equal(dd3.logr, dd.logr)
-    np.testing.assert_almost_equal(dd3.meanr, dd.meanr)
-    np.testing.assert_almost_equal(dd3.meanlogr, dd.meanlogr)
-    np.testing.assert_almost_equal(dd3.npairs, dd.npairs)
-    np.testing.assert_almost_equal(dd3.tot, dd.tot)
-    np.testing.assert_almost_equal(dd3.xi, dd.xi)
-    np.testing.assert_almost_equal(dd3.varxi, dd.varxi)
-    assert dd3.coords == dd.coords
-    assert dd3.metric == dd.metric
-    assert dd3.sep_units == dd.sep_units
-    assert dd3.bin_type == dd.bin_type
+        dd3 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
+        dd3.read(out_file_name3)
+        np.testing.assert_almost_equal(dd3.logr, dd.logr)
+        np.testing.assert_almost_equal(dd3.meanr, dd.meanr)
+        np.testing.assert_almost_equal(dd3.meanlogr, dd.meanlogr)
+        np.testing.assert_almost_equal(dd3.npairs, dd.npairs)
+        np.testing.assert_almost_equal(dd3.tot, dd.tot)
+        np.testing.assert_almost_equal(dd3.xi, dd.xi)
+        np.testing.assert_almost_equal(dd3.varxi, dd.varxi)
+        assert dd3.coords == dd.coords
+        assert dd3.metric == dd.metric
+        assert dd3.sep_units == dd.sep_units
+        assert dd3.bin_type == dd.bin_type
 
-    dd4 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
-    dd4.read(out_file_name5)
-    np.testing.assert_almost_equal(dd4.logr, dd.logr)
-    np.testing.assert_almost_equal(dd4.meanr, dd.meanr)
-    np.testing.assert_almost_equal(dd4.meanlogr, dd.meanlogr)
-    np.testing.assert_almost_equal(dd4.npairs, dd.npairs)
-    np.testing.assert_almost_equal(dd4.tot, dd.tot)
-    assert not hasattr(dd4,'xi')
-    assert not hasattr(dd4,'varxi')
-    assert dd4.coords == dd.coords
-    assert dd4.metric == dd.metric
-    assert dd4.sep_units == dd.sep_units
-    assert dd4.bin_type == dd.bin_type
+        dd4 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
+        dd4.read(out_file_name5)
+        np.testing.assert_almost_equal(dd4.logr, dd.logr)
+        np.testing.assert_almost_equal(dd4.meanr, dd.meanr)
+        np.testing.assert_almost_equal(dd4.meanlogr, dd.meanlogr)
+        np.testing.assert_almost_equal(dd4.npairs, dd.npairs)
+        np.testing.assert_almost_equal(dd4.tot, dd.tot)
+        assert not hasattr(dd4,'xi')
+        assert not hasattr(dd4,'varxi')
+        assert dd4.coords == dd.coords
+        assert dd4.metric == dd.metric
+        assert dd4.sep_units == dd.sep_units
+        assert dd4.bin_type == dd.bin_type
 
     # Check the hdf5 write option
     try:
         import h5py  # noqa: F401
     except ImportError:
-        print('Skipping hdf5 output file, since h5py not installed.')
-        return
+        pass
+    else:
+        out_file_name6 = os.path.join('output','nn_out5.hdf5')
+        dd.write(out_file_name6)
+        with h5py.File(out_file_name6, 'r') as hdf:
+            data = hdf['/']
+            np.testing.assert_almost_equal(data['r_nom'], np.exp(dd.logr))
+            np.testing.assert_almost_equal(data['meanr'], dd.meanr)
+            np.testing.assert_almost_equal(data['meanlogr'], dd.meanlogr)
+            np.testing.assert_almost_equal(data['npairs'], dd.npairs)
+            np.testing.assert_almost_equal(data['xi'], xi)
+            np.testing.assert_almost_equal(data['sigma_xi'], np.sqrt(varxi))
+            np.testing.assert_almost_equal(data['DD'], dd.npairs)
+            attrs = data.attrs
+            np.testing.assert_almost_equal(attrs['tot'], dd.tot)
+            assert 'RR' not in data
+            assert 'DR' not in data
 
-    out_file_name6 = os.path.join('output','nn_out5.hdf5')
-    dd.write(out_file_name6)
-    with h5py.File(out_file_name6, 'r') as hdf:
-        data = hdf['/']
-        np.testing.assert_almost_equal(data['r_nom'], np.exp(dd.logr))
-        np.testing.assert_almost_equal(data['meanr'], dd.meanr)
-        np.testing.assert_almost_equal(data['meanlogr'], dd.meanlogr)
-        np.testing.assert_almost_equal(data['npairs'], dd.npairs)
-        np.testing.assert_almost_equal(data['xi'], xi)
-        np.testing.assert_almost_equal(data['sigma_xi'], np.sqrt(varxi))
-        np.testing.assert_almost_equal(data['DD'], dd.npairs)
-        attrs = data.attrs
-        np.testing.assert_almost_equal(attrs['tot'], dd.tot)
-        assert 'RR' not in data
-        assert 'DR' not in data
-
-    dd6 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
-    dd6.read(out_file_name6)
-    np.testing.assert_almost_equal(dd6.logr, dd.logr)
-    np.testing.assert_almost_equal(dd6.meanr, dd.meanr)
-    np.testing.assert_almost_equal(dd6.meanlogr, dd.meanlogr)
-    np.testing.assert_almost_equal(dd6.npairs, dd.npairs)
-    np.testing.assert_almost_equal(dd6.tot, dd.tot)
-    np.testing.assert_almost_equal(dd6.xi, dd.xi)
-    np.testing.assert_almost_equal(dd6.varxi, dd.varxi)
-    assert dd6.coords == dd.coords
-    assert dd6.metric == dd.metric
-    assert dd6.sep_units == dd.sep_units
-    assert dd6.bin_type == dd.bin_type
+        dd6 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
+        dd6.read(out_file_name6)
+        np.testing.assert_almost_equal(dd6.logr, dd.logr)
+        np.testing.assert_almost_equal(dd6.meanr, dd.meanr)
+        np.testing.assert_almost_equal(dd6.meanlogr, dd.meanlogr)
+        np.testing.assert_almost_equal(dd6.npairs, dd.npairs)
+        np.testing.assert_almost_equal(dd6.tot, dd.tot)
+        np.testing.assert_almost_equal(dd6.xi, dd.xi)
+        np.testing.assert_almost_equal(dd6.varxi, dd.varxi)
+        assert dd6.coords == dd.coords
+        assert dd6.metric == dd.metric
+        assert dd6.sep_units == dd.sep_units
+        assert dd6.bin_type == dd.bin_type
 
     # Cannot omit rr if giving either dr or rd
     with assert_raises(TypeError):
-        dd.write(out_file_name3, dr=dr)
+        dd.write(out_file_name, dr=dr)
     with assert_raises(TypeError):
-        dd.write(out_file_name3, rd=dr)
+        dd.write(out_file_name, rd=dr)
 
 
 @timer
@@ -1556,29 +1564,33 @@ def test_3d():
                                rtol=0.1*tol_factor)
 
     # Check that we get the same result using the corr2 function:
-    cat.write(os.path.join('data','nn_3d_data.dat'))
-    rand.write(os.path.join('data','nn_3d_rand.dat'))
     config = treecorr.config.read_config('configs/nn_3d.yaml')
-    config['verbose'] = 0
-    treecorr.corr2(config)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        cat.write(os.path.join('data','nn_3d_data.dat'))
+        rand.write(os.path.join('data','nn_3d_rand.dat'))
+        config['verbose'] = 0
+        treecorr.corr2(config)
+        corr2_outfile = os.path.join('output','nn_3d.fits')
+        corr2_output = fitsio.read(corr2_outfile)
+        print('xi = ',xi)
+        print('from corr2 output = ',corr2_output['xi'])
+        print('ratio = ',corr2_output['xi']/xi)
+        print('diff = ',corr2_output['xi']-xi)
 
-    corr2_outfile = os.path.join('output','nn_3d.fits')
-    corr2_output = fitsio.read(corr2_outfile)
-    print('xi = ',xi)
-    print('from corr2 output = ',corr2_output['xi'])
-    print('ratio = ',corr2_output['xi']/xi)
-    print('diff = ',corr2_output['xi']-xi)
-
-    np.testing.assert_almost_equal(corr2_output['r_nom'], np.exp(dd.logr))
-    np.testing.assert_almost_equal(corr2_output['meanr'], dd.meanr)
-    np.testing.assert_almost_equal(corr2_output['meanlogr'], dd.meanlogr)
-    np.testing.assert_almost_equal(corr2_output['xi'], xi)
-    np.testing.assert_almost_equal(corr2_output['sigma_xi'], np.sqrt(varxi))
-    np.testing.assert_almost_equal(corr2_output['DD'], dd.npairs)
-    np.testing.assert_almost_equal(corr2_output['RR'], rr.npairs * (dd.tot / rr.tot))
-    np.testing.assert_almost_equal(corr2_output['DR'], dr.npairs * (dd.tot / dr.tot))
-    header = fitsio.read_header(corr2_outfile, 1)
-    np.testing.assert_almost_equal(header['tot'], dd.tot)
+        np.testing.assert_almost_equal(corr2_output['r_nom'], np.exp(dd.logr))
+        np.testing.assert_almost_equal(corr2_output['meanr'], dd.meanr)
+        np.testing.assert_almost_equal(corr2_output['meanlogr'], dd.meanlogr)
+        np.testing.assert_almost_equal(corr2_output['xi'], xi)
+        np.testing.assert_almost_equal(corr2_output['sigma_xi'], np.sqrt(varxi))
+        np.testing.assert_almost_equal(corr2_output['DD'], dd.npairs)
+        np.testing.assert_almost_equal(corr2_output['RR'], rr.npairs * (dd.tot / rr.tot))
+        np.testing.assert_almost_equal(corr2_output['DR'], dr.npairs * (dd.tot / dr.tot))
+        header = fitsio.read_header(corr2_outfile, 1)
+        np.testing.assert_almost_equal(header['tot'], dd.tot)
 
     # And repeat with Catalogs that use x,y,z
     cat = treecorr.Catalog(x=x, y=y, z=z)

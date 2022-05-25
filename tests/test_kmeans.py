@@ -15,7 +15,6 @@ import numpy as np
 import os
 import time
 import coord
-import fitsio
 import treecorr
 
 from test_helper import get_from_wiki, assert_raises, timer
@@ -23,6 +22,11 @@ from test_helper import get_from_wiki, assert_raises, timer
 
 @timer
 def test_dessv():
+    try:
+        import fitsio
+    except ImportError:
+        print('Skip test_dessv, since fitsio not installed')
+        return
 
     rng = np.random.RandomState(1234)
 

@@ -15,7 +15,6 @@ import numpy as np
 import treecorr
 import os
 import coord
-import fitsio
 
 from test_helper import get_script_name, do_pickle, assert_raises, CaptureLog, timer, assert_warns
 from test_helper import is_ccw, is_ccw_3d
@@ -909,22 +908,27 @@ def test_direct_count_auto():
         ddd14 += ddd2
     assert "Detected a change in metric" in cl.output
 
-    fits_name = 'output/nnn_fits.fits'
-    ddd.write(fits_name)
-    ddd15 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                   min_u=min_u, max_u=max_u, nubins=nubins,
-                                   min_v=min_v, max_v=max_v, nvbins=nvbins)
-    ddd15.read(fits_name)
-    np.testing.assert_allclose(ddd15.ntri, ddd.ntri)
-    np.testing.assert_allclose(ddd15.weight, ddd.weight)
-    np.testing.assert_allclose(ddd15.meand1, ddd.meand1)
-    np.testing.assert_allclose(ddd15.meand2, ddd.meand2)
-    np.testing.assert_allclose(ddd15.meand3, ddd.meand3)
-    np.testing.assert_allclose(ddd15.meanlogd1, ddd.meanlogd1)
-    np.testing.assert_allclose(ddd15.meanlogd2, ddd.meanlogd2)
-    np.testing.assert_allclose(ddd15.meanlogd3, ddd.meanlogd3)
-    np.testing.assert_allclose(ddd15.meanu, ddd.meanu)
-    np.testing.assert_allclose(ddd15.meanv, ddd.meanv)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        fits_name = 'output/nnn_fits.fits'
+        ddd.write(fits_name)
+        ddd15 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                        min_u=min_u, max_u=max_u, nubins=nubins,
+                                        min_v=min_v, max_v=max_v, nvbins=nvbins)
+        ddd15.read(fits_name)
+        np.testing.assert_allclose(ddd15.ntri, ddd.ntri)
+        np.testing.assert_allclose(ddd15.weight, ddd.weight)
+        np.testing.assert_allclose(ddd15.meand1, ddd.meand1)
+        np.testing.assert_allclose(ddd15.meand2, ddd.meand2)
+        np.testing.assert_allclose(ddd15.meand3, ddd.meand3)
+        np.testing.assert_allclose(ddd15.meanlogd1, ddd.meanlogd1)
+        np.testing.assert_allclose(ddd15.meanlogd2, ddd.meanlogd2)
+        np.testing.assert_allclose(ddd15.meanlogd3, ddd.meanlogd3)
+        np.testing.assert_allclose(ddd15.meanu, ddd.meanu)
+        np.testing.assert_allclose(ddd15.meanv, ddd.meanv)
 
 @timer
 def test_direct_count_cross():
@@ -1153,59 +1157,63 @@ def test_direct_count_cross():
         np.testing.assert_allclose(d2.meanu, d1.meanu)
         np.testing.assert_allclose(d2.meanv, d1.meanv)
 
-    fits_name = 'output/nnnc_fits.fits'
-    dddc.write(fits_name)
-    dddc4 = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                         min_u=min_u, max_u=max_u, nubins=nubins,
-                                         min_v=min_v, max_v=max_v, nvbins=nvbins)
-    dddc4.read(fits_name)
-    for perm in ['n1n2n3', 'n1n3n2', 'n2n1n3', 'n2n3n1', 'n3n1n2', 'n3n2n1']:
-        d2 = getattr(dddc4, perm)
-        d1 = getattr(dddc, perm)
-        np.testing.assert_allclose(d2.ntri, d1.ntri)
-        np.testing.assert_allclose(d2.ntri, d1.ntri)
-        np.testing.assert_allclose(d2.ntri, d1.ntri)
-        np.testing.assert_allclose(d2.ntri, d1.ntri)
-        np.testing.assert_allclose(d2.ntri, d1.ntri)
-        np.testing.assert_allclose(d2.ntri, d1.ntri)
-        np.testing.assert_allclose(d2.meand1, d1.meand1)
-        np.testing.assert_allclose(d2.meand2, d1.meand2)
-        np.testing.assert_allclose(d2.meand3, d1.meand3)
-        np.testing.assert_allclose(d2.meanlogd1, d1.meanlogd1)
-        np.testing.assert_allclose(d2.meanlogd2, d1.meanlogd2)
-        np.testing.assert_allclose(d2.meanlogd3, d1.meanlogd3)
-        np.testing.assert_allclose(d2.meanu, d1.meanu)
-        np.testing.assert_allclose(d2.meanv, d1.meanv)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        fits_name = 'output/nnnc_fits.fits'
+        dddc.write(fits_name)
+        dddc4 = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                             min_u=min_u, max_u=max_u, nubins=nubins,
+                                             min_v=min_v, max_v=max_v, nvbins=nvbins)
+        dddc4.read(fits_name)
+        for perm in ['n1n2n3', 'n1n3n2', 'n2n1n3', 'n2n3n1', 'n3n1n2', 'n3n2n1']:
+            d2 = getattr(dddc4, perm)
+            d1 = getattr(dddc, perm)
+            np.testing.assert_allclose(d2.ntri, d1.ntri)
+            np.testing.assert_allclose(d2.ntri, d1.ntri)
+            np.testing.assert_allclose(d2.ntri, d1.ntri)
+            np.testing.assert_allclose(d2.ntri, d1.ntri)
+            np.testing.assert_allclose(d2.ntri, d1.ntri)
+            np.testing.assert_allclose(d2.ntri, d1.ntri)
+            np.testing.assert_allclose(d2.meand1, d1.meand1)
+            np.testing.assert_allclose(d2.meand2, d1.meand2)
+            np.testing.assert_allclose(d2.meand3, d1.meand3)
+            np.testing.assert_allclose(d2.meanlogd1, d1.meanlogd1)
+            np.testing.assert_allclose(d2.meanlogd2, d1.meanlogd2)
+            np.testing.assert_allclose(d2.meanlogd3, d1.meanlogd3)
+            np.testing.assert_allclose(d2.meanu, d1.meanu)
+            np.testing.assert_allclose(d2.meanv, d1.meanv)
 
     try:
         import h5py
     except ImportError:
-        print('Skipping hdf5 output file, since h5py not installed.')
-        return
-
-    hdf5_name = 'output/nnnc_hdf5.hdf5'
-    dddc.write(hdf5_name)
-    dddc5 = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                         min_u=min_u, max_u=max_u, nubins=nubins,
-                                         min_v=min_v, max_v=max_v, nvbins=nvbins)
-    dddc5.read(hdf5_name)
-    for perm in ['n1n2n3', 'n1n3n2', 'n2n1n3', 'n2n3n1', 'n3n1n2', 'n3n2n1']:
-        d2 = getattr(dddc5, perm)
-        d1 = getattr(dddc, perm)
-        np.testing.assert_allclose(d2.ntri, d1.ntri)
-        np.testing.assert_allclose(d2.ntri, d1.ntri)
-        np.testing.assert_allclose(d2.ntri, d1.ntri)
-        np.testing.assert_allclose(d2.ntri, d1.ntri)
-        np.testing.assert_allclose(d2.ntri, d1.ntri)
-        np.testing.assert_allclose(d2.ntri, d1.ntri)
-        np.testing.assert_allclose(d2.meand1, d1.meand1)
-        np.testing.assert_allclose(d2.meand2, d1.meand2)
-        np.testing.assert_allclose(d2.meand3, d1.meand3)
-        np.testing.assert_allclose(d2.meanlogd1, d1.meanlogd1)
-        np.testing.assert_allclose(d2.meanlogd2, d1.meanlogd2)
-        np.testing.assert_allclose(d2.meanlogd3, d1.meanlogd3)
-        np.testing.assert_allclose(d2.meanu, d1.meanu)
-        np.testing.assert_allclose(d2.meanv, d1.meanv)
+        pass
+    else:
+        hdf5_name = 'output/nnnc_hdf5.hdf5'
+        dddc.write(hdf5_name)
+        dddc5 = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                             min_u=min_u, max_u=max_u, nubins=nubins,
+                                             min_v=min_v, max_v=max_v, nvbins=nvbins)
+        dddc5.read(hdf5_name)
+        for perm in ['n1n2n3', 'n1n3n2', 'n2n1n3', 'n2n3n1', 'n3n1n2', 'n3n2n1']:
+            d2 = getattr(dddc5, perm)
+            d1 = getattr(dddc, perm)
+            np.testing.assert_allclose(d2.ntri, d1.ntri)
+            np.testing.assert_allclose(d2.ntri, d1.ntri)
+            np.testing.assert_allclose(d2.ntri, d1.ntri)
+            np.testing.assert_allclose(d2.ntri, d1.ntri)
+            np.testing.assert_allclose(d2.ntri, d1.ntri)
+            np.testing.assert_allclose(d2.ntri, d1.ntri)
+            np.testing.assert_allclose(d2.meand1, d1.meand1)
+            np.testing.assert_allclose(d2.meand2, d1.meand2)
+            np.testing.assert_allclose(d2.meand3, d1.meand3)
+            np.testing.assert_allclose(d2.meanlogd1, d1.meanlogd1)
+            np.testing.assert_allclose(d2.meanlogd2, d1.meanlogd2)
+            np.testing.assert_allclose(d2.meanlogd3, d1.meanlogd3)
+            np.testing.assert_allclose(d2.meanu, d1.meanu)
+            np.testing.assert_allclose(d2.meanv, d1.meanv)
 
 @timer
 def test_direct_count_cross12():
@@ -1434,14 +1442,19 @@ def test_direct_spherical():
 
     # Check that running via the corr3 script works correctly.
     config = treecorr.config.read_config('configs/nnn_direct_spherical.yaml')
-    cat.write(config['file_name'])
-    treecorr.corr3(config)
-    data = fitsio.read(config['nnn_file_name'])
-    np.testing.assert_allclose(data['r_nom'], ddd.rnom.flatten())
-    np.testing.assert_allclose(data['u_nom'], ddd.u.flatten())
-    np.testing.assert_allclose(data['v_nom'], ddd.v.flatten())
-    np.testing.assert_allclose(data['ntri'], ddd.ntri.flatten())
-    np.testing.assert_allclose(data['DDD'], ddd.weight.flatten())
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        cat.write(config['file_name'])
+        treecorr.corr3(config)
+        data = fitsio.read(config['nnn_file_name'])
+        np.testing.assert_allclose(data['r_nom'], ddd.rnom.flatten())
+        np.testing.assert_allclose(data['u_nom'], ddd.u.flatten())
+        np.testing.assert_allclose(data['v_nom'], ddd.v.flatten())
+        np.testing.assert_allclose(data['ntri'], ddd.ntri.flatten())
+        np.testing.assert_allclose(data['DDD'], ddd.weight.flatten())
 
     # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
@@ -1531,14 +1544,19 @@ def test_direct_arc():
 
     # Check that running via the corr3 script works correctly.
     config = treecorr.config.read_config('configs/nnn_direct_arc.yaml')
-    cat.write(config['file_name'])
-    treecorr.corr3(config)
-    data = fitsio.read(config['nnn_file_name'])
-    np.testing.assert_allclose(data['r_nom'], ddd.rnom.flatten())
-    np.testing.assert_allclose(data['u_nom'], ddd.u.flatten())
-    np.testing.assert_allclose(data['v_nom'], ddd.v.flatten())
-    np.testing.assert_allclose(data['ntri'], ddd.ntri.flatten())
-    np.testing.assert_allclose(data['DDD'], ddd.weight.flatten())
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        cat.write(config['file_name'])
+        treecorr.corr3(config)
+        data = fitsio.read(config['nnn_file_name'])
+        np.testing.assert_allclose(data['r_nom'], ddd.rnom.flatten())
+        np.testing.assert_allclose(data['u_nom'], ddd.u.flatten())
+        np.testing.assert_allclose(data['v_nom'], ddd.v.flatten())
+        np.testing.assert_allclose(data['ntri'], ddd.ntri.flatten())
+        np.testing.assert_allclose(data['DDD'], ddd.weight.flatten())
 
     # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
@@ -2171,94 +2189,100 @@ def test_nnn():
     np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
 
     # Check the fits write option
-    out_file_name1 = os.path.join('output','nnn_out1.fits')
-    ddd.write(out_file_name1)
-    data = fitsio.read(out_file_name1)
-    np.testing.assert_almost_equal(data['r_nom'], np.exp(ddd.logr).flatten())
-    np.testing.assert_almost_equal(data['u_nom'], ddd.u.flatten())
-    np.testing.assert_almost_equal(data['v_nom'], ddd.v.flatten())
-    np.testing.assert_almost_equal(data['meand1'], ddd.meand1.flatten())
-    np.testing.assert_almost_equal(data['meanlogd1'], ddd.meanlogd1.flatten())
-    np.testing.assert_almost_equal(data['meand2'], ddd.meand2.flatten())
-    np.testing.assert_almost_equal(data['meanlogd2'], ddd.meanlogd2.flatten())
-    np.testing.assert_almost_equal(data['meand3'], ddd.meand3.flatten())
-    np.testing.assert_almost_equal(data['meanlogd3'], ddd.meanlogd3.flatten())
-    np.testing.assert_almost_equal(data['meanu'], ddd.meanu.flatten())
-    np.testing.assert_almost_equal(data['meanv'], ddd.meanv.flatten())
-    np.testing.assert_almost_equal(data['ntri'], ddd.ntri.flatten())
-    header = fitsio.read_header(out_file_name1, 1)
-    np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        out_file_name1 = os.path.join('output','nnn_out1.fits')
+        ddd.write(out_file_name1)
+        data = fitsio.read(out_file_name1)
+        np.testing.assert_almost_equal(data['r_nom'], np.exp(ddd.logr).flatten())
+        np.testing.assert_almost_equal(data['u_nom'], ddd.u.flatten())
+        np.testing.assert_almost_equal(data['v_nom'], ddd.v.flatten())
+        np.testing.assert_almost_equal(data['meand1'], ddd.meand1.flatten())
+        np.testing.assert_almost_equal(data['meanlogd1'], ddd.meanlogd1.flatten())
+        np.testing.assert_almost_equal(data['meand2'], ddd.meand2.flatten())
+        np.testing.assert_almost_equal(data['meanlogd2'], ddd.meanlogd2.flatten())
+        np.testing.assert_almost_equal(data['meand3'], ddd.meand3.flatten())
+        np.testing.assert_almost_equal(data['meanlogd3'], ddd.meanlogd3.flatten())
+        np.testing.assert_almost_equal(data['meanu'], ddd.meanu.flatten())
+        np.testing.assert_almost_equal(data['meanv'], ddd.meanv.flatten())
+        np.testing.assert_almost_equal(data['ntri'], ddd.ntri.flatten())
+        header = fitsio.read_header(out_file_name1, 1)
+        np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
 
-    out_file_name2 = os.path.join('output','nnn_out2.fits')
-    ddd.write(out_file_name2, rrr=rrr)
-    data = fitsio.read(out_file_name2)
-    np.testing.assert_almost_equal(data['r_nom'], np.exp(ddd.logr).flatten())
-    np.testing.assert_almost_equal(data['u_nom'], ddd.u.flatten())
-    np.testing.assert_almost_equal(data['v_nom'], ddd.v.flatten())
-    np.testing.assert_almost_equal(data['meand1'], ddd.meand1.flatten())
-    np.testing.assert_almost_equal(data['meanlogd1'], ddd.meanlogd1.flatten())
-    np.testing.assert_almost_equal(data['meand2'], ddd.meand2.flatten())
-    np.testing.assert_almost_equal(data['meanlogd2'], ddd.meanlogd2.flatten())
-    np.testing.assert_almost_equal(data['meand3'], ddd.meand3.flatten())
-    np.testing.assert_almost_equal(data['meanlogd3'], ddd.meanlogd3.flatten())
-    np.testing.assert_almost_equal(data['meanu'], ddd.meanu.flatten())
-    np.testing.assert_almost_equal(data['meanv'], ddd.meanv.flatten())
-    np.testing.assert_almost_equal(data['zeta'], zeta.flatten())
-    np.testing.assert_almost_equal(data['sigma_zeta'], np.sqrt(varzeta).flatten())
-    np.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
-    np.testing.assert_almost_equal(data['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
-    header = fitsio.read_header(out_file_name2, 1)
-    np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
+        out_file_name2 = os.path.join('output','nnn_out2.fits')
+        ddd.write(out_file_name2, rrr=rrr)
+        data = fitsio.read(out_file_name2)
+        np.testing.assert_almost_equal(data['r_nom'], np.exp(ddd.logr).flatten())
+        np.testing.assert_almost_equal(data['u_nom'], ddd.u.flatten())
+        np.testing.assert_almost_equal(data['v_nom'], ddd.v.flatten())
+        np.testing.assert_almost_equal(data['meand1'], ddd.meand1.flatten())
+        np.testing.assert_almost_equal(data['meanlogd1'], ddd.meanlogd1.flatten())
+        np.testing.assert_almost_equal(data['meand2'], ddd.meand2.flatten())
+        np.testing.assert_almost_equal(data['meanlogd2'], ddd.meanlogd2.flatten())
+        np.testing.assert_almost_equal(data['meand3'], ddd.meand3.flatten())
+        np.testing.assert_almost_equal(data['meanlogd3'], ddd.meanlogd3.flatten())
+        np.testing.assert_almost_equal(data['meanu'], ddd.meanu.flatten())
+        np.testing.assert_almost_equal(data['meanv'], ddd.meanv.flatten())
+        np.testing.assert_almost_equal(data['zeta'], zeta.flatten())
+        np.testing.assert_almost_equal(data['sigma_zeta'], np.sqrt(varzeta).flatten())
+        np.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
+        np.testing.assert_almost_equal(data['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
+        header = fitsio.read_header(out_file_name2, 1)
+        np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
 
-    # Check the read function
-    # Note: These don't need the flatten. The read function should reshape them to the right shape.
-    ddd2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                   nubins=nubins, nvbins=nvbins,
-                                   sep_units='arcmin', verbose=1)
-    ddd2.read(out_file_name1)
-    np.testing.assert_almost_equal(ddd2.logr, ddd.logr)
-    np.testing.assert_almost_equal(ddd2.u, ddd.u)
-    np.testing.assert_almost_equal(ddd2.v, ddd.v)
-    np.testing.assert_almost_equal(ddd2.meand1, ddd.meand1)
-    np.testing.assert_almost_equal(ddd2.meanlogd1, ddd.meanlogd1)
-    np.testing.assert_almost_equal(ddd2.meand2, ddd.meand2)
-    np.testing.assert_almost_equal(ddd2.meanlogd2, ddd.meanlogd2)
-    np.testing.assert_almost_equal(ddd2.meand3, ddd.meand3)
-    np.testing.assert_almost_equal(ddd2.meanlogd3, ddd.meanlogd3)
-    np.testing.assert_almost_equal(ddd2.meanu, ddd.meanu)
-    np.testing.assert_almost_equal(ddd2.meanv, ddd.meanv)
-    np.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
-    np.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
-    assert ddd2.coords == ddd.coords
-    assert ddd2.metric == ddd.metric
-    assert ddd2.sep_units == ddd.sep_units
-    assert ddd2.bin_type == ddd.bin_type
+        # Check the read function
+        # Note: These don't need the flatten.
+        # The read function should reshape them to the right shape.
+        ddd2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                       min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
+                                       nubins=nubins, nvbins=nvbins,
+                                       sep_units='arcmin', verbose=1)
+        ddd2.read(out_file_name1)
+        np.testing.assert_almost_equal(ddd2.logr, ddd.logr)
+        np.testing.assert_almost_equal(ddd2.u, ddd.u)
+        np.testing.assert_almost_equal(ddd2.v, ddd.v)
+        np.testing.assert_almost_equal(ddd2.meand1, ddd.meand1)
+        np.testing.assert_almost_equal(ddd2.meanlogd1, ddd.meanlogd1)
+        np.testing.assert_almost_equal(ddd2.meand2, ddd.meand2)
+        np.testing.assert_almost_equal(ddd2.meanlogd2, ddd.meanlogd2)
+        np.testing.assert_almost_equal(ddd2.meand3, ddd.meand3)
+        np.testing.assert_almost_equal(ddd2.meanlogd3, ddd.meanlogd3)
+        np.testing.assert_almost_equal(ddd2.meanu, ddd.meanu)
+        np.testing.assert_almost_equal(ddd2.meanv, ddd.meanv)
+        np.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
+        np.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
+        assert ddd2.coords == ddd.coords
+        assert ddd2.metric == ddd.metric
+        assert ddd2.sep_units == ddd.sep_units
+        assert ddd2.bin_type == ddd.bin_type
 
-    ddd2.read(out_file_name2)
-    np.testing.assert_almost_equal(ddd2.logr, ddd.logr)
-    np.testing.assert_almost_equal(ddd2.u, ddd.u)
-    np.testing.assert_almost_equal(ddd2.v, ddd.v)
-    np.testing.assert_almost_equal(ddd2.meand1, ddd.meand1)
-    np.testing.assert_almost_equal(ddd2.meanlogd1, ddd.meanlogd1)
-    np.testing.assert_almost_equal(ddd2.meand2, ddd.meand2)
-    np.testing.assert_almost_equal(ddd2.meanlogd2, ddd.meanlogd2)
-    np.testing.assert_almost_equal(ddd2.meand3, ddd.meand3)
-    np.testing.assert_almost_equal(ddd2.meanlogd3, ddd.meanlogd3)
-    np.testing.assert_almost_equal(ddd2.meanu, ddd.meanu)
-    np.testing.assert_almost_equal(ddd2.meanv, ddd.meanv)
-    np.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
-    np.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
-    assert ddd2.coords == ddd.coords
-    assert ddd2.metric == ddd.metric
-    assert ddd2.sep_units == ddd.sep_units
-    assert ddd2.bin_type == ddd.bin_type
+        ddd2.read(out_file_name2)
+        np.testing.assert_almost_equal(ddd2.logr, ddd.logr)
+        np.testing.assert_almost_equal(ddd2.u, ddd.u)
+        np.testing.assert_almost_equal(ddd2.v, ddd.v)
+        np.testing.assert_almost_equal(ddd2.meand1, ddd.meand1)
+        np.testing.assert_almost_equal(ddd2.meanlogd1, ddd.meanlogd1)
+        np.testing.assert_almost_equal(ddd2.meand2, ddd.meand2)
+        np.testing.assert_almost_equal(ddd2.meanlogd2, ddd.meanlogd2)
+        np.testing.assert_almost_equal(ddd2.meand3, ddd.meand3)
+        np.testing.assert_almost_equal(ddd2.meanlogd3, ddd.meanlogd3)
+        np.testing.assert_almost_equal(ddd2.meanu, ddd.meanu)
+        np.testing.assert_almost_equal(ddd2.meanv, ddd.meanv)
+        np.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
+        np.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
+        assert ddd2.coords == ddd.coords
+        assert ddd2.metric == ddd.metric
+        assert ddd2.sep_units == ddd.sep_units
+        assert ddd2.bin_type == ddd.bin_type
 
     # Check the hdf5 write option
     try:
         import h5py  # noqa: F401
     except ImportError:
-        print('Skipping hdf5 output file, since h5py not installed.')
+        pass
     else:
         out_file_name3 = os.path.join('output','nnn_out3.hdf5')
         ddd.write(out_file_name3, rrr=rrr)
@@ -2331,7 +2355,7 @@ def test_nnn():
     with assert_raises(ValueError):
         ddd.calculateZeta(rrr=rrr, drr=rrr, rdd=rrr2)
 
-    out_file_name3 = os.path.join('output','nnn_out3.fits')
+    out_file_name3 = os.path.join('output','nnn_out3.dat')
     with assert_raises(TypeError):
         ddd.write(out_file_name3, drr=rrr, rdd=rrr)
     with assert_raises(TypeError):
@@ -2370,77 +2394,82 @@ def test_nnn():
     np.testing.assert_allclose(zeta, true_zeta, rtol=0.1*tol_factor)
     np.testing.assert_allclose(np.log(np.abs(zeta)), np.log(np.abs(true_zeta)), atol=0.1*tol_factor)
 
-    out_file_name3 = os.path.join('output','nnn_out3.fits')
-    ddd.write(out_file_name3, rrr=rrr, drr=drr, rdd=rdd)
-    data = fitsio.read(out_file_name3)
-    np.testing.assert_almost_equal(data['r_nom'], np.exp(ddd.logr).flatten())
-    np.testing.assert_almost_equal(data['u_nom'], ddd.u.flatten())
-    np.testing.assert_almost_equal(data['v_nom'], ddd.v.flatten())
-    np.testing.assert_almost_equal(data['meand1'], ddd.meand1.flatten())
-    np.testing.assert_almost_equal(data['meanlogd1'], ddd.meanlogd1.flatten())
-    np.testing.assert_almost_equal(data['meand2'], ddd.meand2.flatten())
-    np.testing.assert_almost_equal(data['meanlogd2'], ddd.meanlogd2.flatten())
-    np.testing.assert_almost_equal(data['meand3'], ddd.meand3.flatten())
-    np.testing.assert_almost_equal(data['meanlogd3'], ddd.meanlogd3.flatten())
-    np.testing.assert_almost_equal(data['meanu'], ddd.meanu.flatten())
-    np.testing.assert_almost_equal(data['meanv'], ddd.meanv.flatten())
-    np.testing.assert_almost_equal(data['zeta'], zeta.flatten())
-    np.testing.assert_almost_equal(data['sigma_zeta'], np.sqrt(varzeta).flatten())
-    np.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
-    np.testing.assert_almost_equal(data['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
-    np.testing.assert_almost_equal(data['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
-    np.testing.assert_almost_equal(data['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
-    header = fitsio.read_header(out_file_name3, 1)
-    np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        out_file_name3 = os.path.join('output','nnn_out3.fits')
+        ddd.write(out_file_name3, rrr=rrr, drr=drr, rdd=rdd)
+        data = fitsio.read(out_file_name3)
+        np.testing.assert_almost_equal(data['r_nom'], np.exp(ddd.logr).flatten())
+        np.testing.assert_almost_equal(data['u_nom'], ddd.u.flatten())
+        np.testing.assert_almost_equal(data['v_nom'], ddd.v.flatten())
+        np.testing.assert_almost_equal(data['meand1'], ddd.meand1.flatten())
+        np.testing.assert_almost_equal(data['meanlogd1'], ddd.meanlogd1.flatten())
+        np.testing.assert_almost_equal(data['meand2'], ddd.meand2.flatten())
+        np.testing.assert_almost_equal(data['meanlogd2'], ddd.meanlogd2.flatten())
+        np.testing.assert_almost_equal(data['meand3'], ddd.meand3.flatten())
+        np.testing.assert_almost_equal(data['meanlogd3'], ddd.meanlogd3.flatten())
+        np.testing.assert_almost_equal(data['meanu'], ddd.meanu.flatten())
+        np.testing.assert_almost_equal(data['meanv'], ddd.meanv.flatten())
+        np.testing.assert_almost_equal(data['zeta'], zeta.flatten())
+        np.testing.assert_almost_equal(data['sigma_zeta'], np.sqrt(varzeta).flatten())
+        np.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
+        np.testing.assert_almost_equal(data['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
+        np.testing.assert_almost_equal(data['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
+        np.testing.assert_almost_equal(data['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
+        header = fitsio.read_header(out_file_name3, 1)
+        np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
 
-    ddd2.read(out_file_name3)
-    np.testing.assert_almost_equal(ddd2.logr, ddd.logr)
-    np.testing.assert_almost_equal(ddd2.u, ddd.u)
-    np.testing.assert_almost_equal(ddd2.v, ddd.v)
-    np.testing.assert_almost_equal(ddd2.meand1, ddd.meand1)
-    np.testing.assert_almost_equal(ddd2.meanlogd1, ddd.meanlogd1)
-    np.testing.assert_almost_equal(ddd2.meand2, ddd.meand2)
-    np.testing.assert_almost_equal(ddd2.meanlogd2, ddd.meanlogd2)
-    np.testing.assert_almost_equal(ddd2.meand3, ddd.meand3)
-    np.testing.assert_almost_equal(ddd2.meanlogd3, ddd.meanlogd3)
-    np.testing.assert_almost_equal(ddd2.meanu, ddd.meanu)
-    np.testing.assert_almost_equal(ddd2.meanv, ddd.meanv)
-    np.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
-    np.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
-    assert ddd2.coords == ddd.coords
-    assert ddd2.metric == ddd.metric
-    assert ddd2.sep_units == ddd.sep_units
-    assert ddd2.bin_type == ddd.bin_type
+        ddd2.read(out_file_name3)
+        np.testing.assert_almost_equal(ddd2.logr, ddd.logr)
+        np.testing.assert_almost_equal(ddd2.u, ddd.u)
+        np.testing.assert_almost_equal(ddd2.v, ddd.v)
+        np.testing.assert_almost_equal(ddd2.meand1, ddd.meand1)
+        np.testing.assert_almost_equal(ddd2.meanlogd1, ddd.meanlogd1)
+        np.testing.assert_almost_equal(ddd2.meand2, ddd.meand2)
+        np.testing.assert_almost_equal(ddd2.meanlogd2, ddd.meanlogd2)
+        np.testing.assert_almost_equal(ddd2.meand3, ddd.meand3)
+        np.testing.assert_almost_equal(ddd2.meanlogd3, ddd.meanlogd3)
+        np.testing.assert_almost_equal(ddd2.meanu, ddd.meanu)
+        np.testing.assert_almost_equal(ddd2.meanv, ddd.meanv)
+        np.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
+        np.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
+        assert ddd2.coords == ddd.coords
+        assert ddd2.metric == ddd.metric
+        assert ddd2.sep_units == ddd.sep_units
+        assert ddd2.bin_type == ddd.bin_type
 
-    config = treecorr.config.read_config('configs/nnn_compensated.yaml')
-    config['verbose'] = 0
-    treecorr.corr3(config)
-    corr3_outfile = os.path.join('output','nnn_compensated.fits')
-    corr3_output = fitsio.read(corr3_outfile)
-    print('zeta = ',zeta)
-    print('from corr3 output = ',corr3_output['zeta'])
-    print('ratio = ',corr3_output['zeta']/zeta.flatten())
-    print('diff = ',corr3_output['zeta']-zeta.flatten())
+        config = treecorr.config.read_config('configs/nnn_compensated.yaml')
+        config['verbose'] = 0
+        treecorr.corr3(config)
+        corr3_outfile = os.path.join('output','nnn_compensated.fits')
+        corr3_output = fitsio.read(corr3_outfile)
+        print('zeta = ',zeta)
+        print('from corr3 output = ',corr3_output['zeta'])
+        print('ratio = ',corr3_output['zeta']/zeta.flatten())
+        print('diff = ',corr3_output['zeta']-zeta.flatten())
 
-    np.testing.assert_almost_equal(corr3_output['r_nom'], np.exp(ddd.logr).flatten())
-    np.testing.assert_almost_equal(corr3_output['u_nom'], ddd.u.flatten())
-    np.testing.assert_almost_equal(corr3_output['v_nom'], ddd.v.flatten())
-    np.testing.assert_almost_equal(corr3_output['meand1'], ddd.meand1.flatten())
-    np.testing.assert_almost_equal(corr3_output['meanlogd1'], ddd.meanlogd1.flatten())
-    np.testing.assert_almost_equal(corr3_output['meand2'], ddd.meand2.flatten())
-    np.testing.assert_almost_equal(corr3_output['meanlogd2'], ddd.meanlogd2.flatten())
-    np.testing.assert_almost_equal(corr3_output['meand3'], ddd.meand3.flatten())
-    np.testing.assert_almost_equal(corr3_output['meanlogd3'], ddd.meanlogd3.flatten())
-    np.testing.assert_almost_equal(corr3_output['meanu'], ddd.meanu.flatten())
-    np.testing.assert_almost_equal(corr3_output['meanv'], ddd.meanv.flatten())
-    np.testing.assert_almost_equal(corr3_output['zeta'], zeta.flatten())
-    np.testing.assert_almost_equal(corr3_output['sigma_zeta'], np.sqrt(varzeta).flatten())
-    np.testing.assert_almost_equal(corr3_output['DDD'], ddd.ntri.flatten())
-    np.testing.assert_almost_equal(corr3_output['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
-    np.testing.assert_almost_equal(corr3_output['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
-    np.testing.assert_almost_equal(corr3_output['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
-    header = fitsio.read_header(corr3_outfile, 1)
-    np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
+        np.testing.assert_almost_equal(corr3_output['r_nom'], np.exp(ddd.logr).flatten())
+        np.testing.assert_almost_equal(corr3_output['u_nom'], ddd.u.flatten())
+        np.testing.assert_almost_equal(corr3_output['v_nom'], ddd.v.flatten())
+        np.testing.assert_almost_equal(corr3_output['meand1'], ddd.meand1.flatten())
+        np.testing.assert_almost_equal(corr3_output['meanlogd1'], ddd.meanlogd1.flatten())
+        np.testing.assert_almost_equal(corr3_output['meand2'], ddd.meand2.flatten())
+        np.testing.assert_almost_equal(corr3_output['meanlogd2'], ddd.meanlogd2.flatten())
+        np.testing.assert_almost_equal(corr3_output['meand3'], ddd.meand3.flatten())
+        np.testing.assert_almost_equal(corr3_output['meanlogd3'], ddd.meanlogd3.flatten())
+        np.testing.assert_almost_equal(corr3_output['meanu'], ddd.meanu.flatten())
+        np.testing.assert_almost_equal(corr3_output['meanv'], ddd.meanv.flatten())
+        np.testing.assert_almost_equal(corr3_output['zeta'], zeta.flatten())
+        np.testing.assert_almost_equal(corr3_output['sigma_zeta'], np.sqrt(varzeta).flatten())
+        np.testing.assert_almost_equal(corr3_output['DDD'], ddd.ntri.flatten())
+        np.testing.assert_almost_equal(corr3_output['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
+        np.testing.assert_almost_equal(corr3_output['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
+        np.testing.assert_almost_equal(corr3_output['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
+        header = fitsio.read_header(corr3_outfile, 1)
+        np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
 
 
 

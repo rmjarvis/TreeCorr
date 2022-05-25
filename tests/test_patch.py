@@ -15,7 +15,6 @@ import numpy as np
 import os
 import coord
 import time
-import fitsio
 import treecorr
 try:
     import cPickle as pickle
@@ -157,64 +156,69 @@ def test_cat_patches():
         assert cat == cat5b_patches[i]
 
     # 6. Read patch from a column in FITS file
-    file_name6 = os.path.join('output','test_cat_patches.fits')
-    cat4.write(file_name6)
-    cat6 = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
-                            ra_units='rad', dec_units='rad', patch_col='patch')
-    np.testing.assert_array_equal(cat6.patch, p2)
-    cat6b = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
-                             ra_units='rad', dec_units='rad', patch_col='patch', patch_ext=1)
-    np.testing.assert_array_equal(cat6b.patch, p2)
-    assert len(cat6.patches) == npatch
-    assert len(cat6b.patches) == npatch
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        file_name6 = os.path.join('output','test_cat_patches.fits')
+        cat4.write(file_name6)
+        cat6 = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
+                                ra_units='rad', dec_units='rad', patch_col='patch')
+        np.testing.assert_array_equal(cat6.patch, p2)
+        cat6b = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
+                                ra_units='rad', dec_units='rad', patch_col='patch', patch_ext=1)
+        np.testing.assert_array_equal(cat6b.patch, p2)
+        assert len(cat6.patches) == npatch
+        assert len(cat6b.patches) == npatch
 
-    # Calling get_patches will not force loading of the file.
-    cat6c = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
-                             ra_units='rad', dec_units='rad', patch_col='patch')
-    assert not cat6c.loaded
-    cat6c_patches = cat6c.get_patches(low_mem=True)
-    assert cat6c.loaded
-    cat6c._patches = None
-    cat6c_patches2 = cat6c.get_patches(low_mem=True)
-    cat6c._patches = None
-    cat6c_patches3 = cat6c.get_patches(low_mem=False)
-    cat6c._patches = None
-    cat6c_patches4 = cat6c.get_patches()
-    for i in range(4):
-        assert not cat6c_patches[i].loaded
-        assert not cat6c_patches2[i].loaded
-        assert cat6c_patches3[i].loaded
-        assert cat6c_patches4[i].loaded
-        assert np.all(cat6c_patches[i].patch == i)  # Triggers load of patch.
-        np.testing.assert_array_equal(cat6c_patches[i].x, cat6.x[cat6.patch == i])
+        # Calling get_patches will not force loading of the file.
+        cat6c = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
+                                ra_units='rad', dec_units='rad', patch_col='patch')
+        assert not cat6c.loaded
+        cat6c_patches = cat6c.get_patches(low_mem=True)
+        assert cat6c.loaded
+        cat6c._patches = None
+        cat6c_patches2 = cat6c.get_patches(low_mem=True)
+        cat6c._patches = None
+        cat6c_patches3 = cat6c.get_patches(low_mem=False)
+        cat6c._patches = None
+        cat6c_patches4 = cat6c.get_patches()
+        for i in range(4):
+            assert not cat6c_patches[i].loaded
+            assert not cat6c_patches2[i].loaded
+            assert cat6c_patches3[i].loaded
+            assert cat6c_patches4[i].loaded
+            assert np.all(cat6c_patches[i].patch == i)  # Triggers load of patch.
+            np.testing.assert_array_equal(cat6c_patches[i].x, cat6.x[cat6.patch == i])
 
-        cat = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
-                               ra_units='rad', dec_units='rad', patch_col='patch', patch=i)
-        assert cat.patch == cat6.patches[i].patch
-        np.testing.assert_array_equal(cat.x,cat6.patches[i].x)
-        np.testing.assert_array_equal(cat.y,cat6.patches[i].y)
-        assert cat == cat6.patches[i]
-        assert cat == cat6c_patches[i]
-
-        cata = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec', last_row=ngal//2,
+            cat = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
                                 ra_units='rad', dec_units='rad', patch_col='patch', patch=i)
-        catb = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec', first_row=ngal//2+1,
-                                ra_units='rad', dec_units='rad', patch_col='patch', patch=i)
-        assert cata.patch == i
-        np.testing.assert_array_equal(cata.x,cat6.patches[i].x[:cata.nobj])
-        np.testing.assert_array_equal(cata.y,cat6.patches[i].y[:cata.nobj])
-        np.testing.assert_array_equal(catb.x,cat6.patches[i].x[cata.nobj:])
-        np.testing.assert_array_equal(catb.y,cat6.patches[i].y[cata.nobj:])
+            assert cat.patch == cat6.patches[i].patch
+            np.testing.assert_array_equal(cat.x,cat6.patches[i].x)
+            np.testing.assert_array_equal(cat.y,cat6.patches[i].y)
+            assert cat == cat6.patches[i]
+            assert cat == cat6c_patches[i]
 
-        # get_patches from a single patch will return a list with just itself.
-        assert cata.get_patches(low_mem=False) == [cata]
-        assert catb.get_patches(low_mem=True) == [catb]
+            cata = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec', last_row=ngal//2,
+                                    ra_units='rad', dec_units='rad', patch_col='patch', patch=i)
+            catb = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec', first_row=ngal//2+1,
+                                    ra_units='rad', dec_units='rad', patch_col='patch', patch=i)
+            assert cata.patch == i
+            np.testing.assert_array_equal(cata.x,cat6.patches[i].x[:cata.nobj])
+            np.testing.assert_array_equal(cata.y,cat6.patches[i].y[:cata.nobj])
+            np.testing.assert_array_equal(catb.x,cat6.patches[i].x[cata.nobj:])
+            np.testing.assert_array_equal(catb.y,cat6.patches[i].y[cata.nobj:])
+
+            # get_patches from a single patch will return a list with just itself.
+            assert cata.get_patches(low_mem=False) == [cata]
+            assert catb.get_patches(low_mem=True) == [catb]
 
     # 7. Set a single patch number
     cat7 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', patch=3)
     np.testing.assert_array_equal(cat7.patch, 3)
-    cat8 = treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
-                            ra_units='rad', dec_units='rad', patch_col='patch', patch=3)
+    cat8 = treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
+                             patch_col=3, patch=3)
     np.testing.assert_array_equal(cat8.patch, 3)
 
     # low_mem=True works if not from a file, but it's not any different
@@ -265,14 +269,19 @@ def test_cat_patches():
     with assert_raises(TypeError):
         treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
                          patch=p2)
-    # bad patch ext
-    with assert_raises(IOError):
-        treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
-                         ra_units='rad', dec_units='rad', patch_col='patch', patch_ext=2)
-    # bad patch col name for fits
-    with assert_raises(ValueError):
-        treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
-                         ra_units='rad', dec_units='rad', patch_col='patches')
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        # bad patch ext
+        with assert_raises(IOError):
+            treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
+                             ra_units='rad', dec_units='rad', patch_col='patch', patch_ext=2)
+        # bad patch col name for fits
+        with assert_raises(ValueError):
+            treecorr.Catalog(file_name6, ra_col='ra', dec_col='dec',
+                             ra_units='rad', dec_units='rad', patch_col='patches')
 
 @timer
 def test_cat_centers():
@@ -422,27 +431,32 @@ def test_cat_centers():
         assert cat == cat15.patches[i]
 
     # Check fits
-    file_name17 = os.path.join('output','test_cat_centers.fits')
-    cat8.write(file_name17)
-    cat17 = treecorr.Catalog(file_name17, ra_col='ra', dec_col='dec', w_col='w',
-                             ra_units='rad', dec_units='rad',
-                             patch_centers=cat8.patch_centers)
-    assert not cat17.loaded
-    cat17_patches = cat17.get_patches(low_mem=True)
-    assert not cat17.loaded  # Unlike above (in test_cat_patches) it's still unloaded.
-    for i in range(4):  # Don't bother with all the patches.  4 suffices to check this.
-        assert not cat17_patches[i].loaded
-        assert np.all(cat17_patches[i].patch == i)  # Triggers load of patch.
-        np.testing.assert_array_equal(cat17_patches[i].ra, cat17.ra[cat17.patch == i])
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        file_name17 = os.path.join('output','test_cat_centers.fits')
+        cat8.write(file_name17)
+        cat17 = treecorr.Catalog(file_name17, ra_col='ra', dec_col='dec', w_col='w',
+                                 ra_units='rad', dec_units='rad',
+                                 patch_centers=cat8.patch_centers)
+        assert not cat17.loaded
+        cat17_patches = cat17.get_patches(low_mem=True)
+        assert not cat17.loaded  # Unlike above (in test_cat_patches) it's still unloaded.
+        for i in range(4):  # Don't bother with all the patches.  4 suffices to check this.
+            assert not cat17_patches[i].loaded
+            assert np.all(cat17_patches[i].patch == i)  # Triggers load of patch.
+            np.testing.assert_array_equal(cat17_patches[i].ra, cat17.ra[cat17.patch == i])
 
-        cat = treecorr.Catalog(file_name17, ra_col='ra', dec_col='dec', w_col='w',
-                               ra_units='rad', dec_units='rad',
-                               patch_centers=cat8.patch_centers, patch=i)
-        assert cat.patch == cat17.patches[i].patch
-        np.testing.assert_array_equal(cat.ra,cat17_patches[i].ra)
-        np.testing.assert_array_equal(cat.dec,cat17_patches[i].dec)
-        assert cat == cat17_patches[i]
-        assert cat == cat17.patches[i]
+            cat = treecorr.Catalog(file_name17, ra_col='ra', dec_col='dec', w_col='w',
+                                   ra_units='rad', dec_units='rad',
+                                   patch_centers=cat8.patch_centers, patch=i)
+            assert cat.patch == cat17.patches[i].patch
+            np.testing.assert_array_equal(cat.ra,cat17_patches[i].ra)
+            np.testing.assert_array_equal(cat.dec,cat17_patches[i].dec)
+            assert cat == cat17_patches[i]
+            assert cat == cat17.patches[i]
 
     # Check for some invalid values
     # npatch if given must be compatible with patch_centers
@@ -551,7 +565,7 @@ def test_gg_jk():
 
     # The full simulation needs to run a lot of times to get a good estimate of the variance,
     # but this takes a long time.  So we store the results in the repo.
-    # To redo the simulation, just delete the file data/test_gg_jk.fits
+    # To redo the simulation, just delete the file data/test_gg_jk_*.npz
     file_name = 'data/test_gg_jk_{}.npz'.format(nside)
     print(file_name)
     if not os.path.isfile(file_name):
@@ -792,14 +806,19 @@ def test_gg_jk():
     np.testing.assert_allclose(covxip4, covxip)
 
     # And again using the normal write command.
-    file_name = os.path.join('output','test_write_results_gg.fits')
-    gg3.write(file_name, write_patch_results=True)
-    gg4 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-    gg4.read(file_name)
-    cov4 = gg4.estimate_cov('jackknife')
-    np.testing.assert_allclose(cov4, gg3.cov)
-    covxip4 = gg4.estimate_cov('jackknife', func=lambda gg: gg.xip)
-    np.testing.assert_allclose(covxip4, covxip)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        file_name = os.path.join('output','test_write_results_gg.fits')
+        gg3.write(file_name, write_patch_results=True)
+        gg4 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+        gg4.read(file_name)
+        cov4 = gg4.estimate_cov('jackknife')
+        np.testing.assert_allclose(cov4, gg3.cov)
+        covxip4 = gg4.estimate_cov('jackknife', func=lambda gg: gg.xip)
+        np.testing.assert_allclose(covxip4, covxip)
 
     # Also with ascii, since that works differeny.
     file_name = os.path.join('output','test_write_results_gg.dat')
@@ -815,10 +834,8 @@ def test_gg_jk():
     try:
         import h5py
     except ImportError:
-        print('Skipping saving HDF patches, since h5py not installed.')
-        h5py = None
-
-    if h5py is not None:
+        pass
+    else:
         # Finally with hdf
         file_name = os.path.join('output','test_write_results_gg.hdf5')
         gg3.write(file_name, write_patch_results=True)
@@ -1087,16 +1104,21 @@ def test_ng_jk():
     np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.5*tol_factor)
 
     # Check that these still work after roundtripping through a file.
-    file_name = os.path.join('output','test_write_results_ng.fits')
-    ng3.write(file_name, write_patch_results=True)
-    ng4 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-    ng4.read(file_name)
-    print('ng4.xi = ',ng4.xi)
-    print('results = ',ng4.results)
-    print('results = ',ng4.results.keys())
-    cov4 = ng4.estimate_cov('jackknife')
-    print('cov4 = ',cov4)
-    np.testing.assert_allclose(cov4, ng3.cov)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        file_name = os.path.join('output','test_write_results_ng.fits')
+        ng3.write(file_name, write_patch_results=True)
+        ng4 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+        ng4.read(file_name)
+        print('ng4.xi = ',ng4.xi)
+        print('results = ',ng4.results)
+        print('results = ',ng4.results.keys())
+        cov4 = ng4.estimate_cov('jackknife')
+        print('cov4 = ',cov4)
+        np.testing.assert_allclose(cov4, ng3.cov)
 
     # Also with ascii, since that works differeny.
     file_name = os.path.join('output','test_write_results_ng.dat')
@@ -1110,10 +1132,8 @@ def test_ng_jk():
     try:
         import h5py
     except ImportError:
-        print('Skipping saving HDF patches, since h5py not installed.')
-        h5py = None
-
-    if h5py is not None:
+        pass
+    else:
         # Finally with hdf
         file_name = os.path.join('output','test_write_results_ng.hdf5')
         ng3.write(file_name, write_patch_results=True)
@@ -1398,21 +1418,26 @@ def test_nn_jk():
     np.testing.assert_allclose(cov3b.diagonal(), var_xib, rtol=0.4*tol_factor)
 
     # Check that these still work after roundtripping through a file.
-    file_name = os.path.join('output','test_write_results_dd.fits')
-    rr_file_name = os.path.join('output','test_write_results_rr.fits')
-    dr_file_name = os.path.join('output','test_write_results_dr.fits')
-    nn3.write(file_name, write_patch_results=True)
-    rr.write(rr_file_name, write_patch_results=True)
-    nr3.write(dr_file_name, write_patch_results=True)
-    nn4 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
-    rr4 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
-    nr4 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
-    nn4.read(file_name)
-    rr4.read(rr_file_name)
-    nr4.read(dr_file_name)
-    nn4.calculateXi(rr=rr4, dr=nr4)
-    cov4 = nn4.estimate_cov('jackknife')
-    np.testing.assert_allclose(cov4, nn3.cov)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        file_name = os.path.join('output','test_write_results_dd.fits')
+        rr_file_name = os.path.join('output','test_write_results_rr.fits')
+        dr_file_name = os.path.join('output','test_write_results_dr.fits')
+        nn3.write(file_name, write_patch_results=True)
+        rr.write(rr_file_name, write_patch_results=True)
+        nr3.write(dr_file_name, write_patch_results=True)
+        nn4 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+        rr4 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+        nr4 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+        nn4.read(file_name)
+        rr4.read(rr_file_name)
+        nr4.read(dr_file_name)
+        nn4.calculateXi(rr=rr4, dr=nr4)
+        cov4 = nn4.estimate_cov('jackknife')
+        np.testing.assert_allclose(cov4, nn3.cov)
 
     # Also with ascii, since that works differeny.
     file_name = os.path.join('output','test_write_results_dd.dat')
@@ -1435,10 +1460,8 @@ def test_nn_jk():
     try:
         import h5py
     except ImportError:
-        print('Skipping saving HDF patches, since h5py not installed.')
-        h5py = None
-
-    if h5py is not None:
+        pass
+    else:
         # Finally with hdf
         file_name = os.path.join('output','test_write_results_dd.hdf5')
         rr_file_name = os.path.join('output','test_write_results_rr.hdf5')
@@ -1673,12 +1696,17 @@ def test_kappa_jk():
     np.testing.assert_allclose(cov_xi.diagonal(), var_nk_xi, rtol=0.6*tol_factor)
 
     # Check that these still work after roundtripping through a file.
-    file_name = os.path.join('output','test_write_results_nk.fits')
-    nk.write(file_name, write_patch_results=True)
-    nk4 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
-    nk4.read(file_name)
-    cov4 = nk4.estimate_cov('jackknife')
-    np.testing.assert_allclose(cov4, nk.cov)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        file_name = os.path.join('output','test_write_results_nk.fits')
+        nk.write(file_name, write_patch_results=True)
+        nk4 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+        nk4.read(file_name)
+        cov4 = nk4.estimate_cov('jackknife')
+        np.testing.assert_allclose(cov4, nk.cov)
 
     # Also with ascii, since that works differeny.
     file_name = os.path.join('output','test_write_results_nk.dat')
@@ -1692,10 +1720,8 @@ def test_kappa_jk():
     try:
         import h5py
     except ImportError:
-        print('Skipping saving HDF patches, since h5py not installed.')
-        h5py = None
-
-    if h5py is not None:
+        pass
+    else:
         # Finally with hdf
         file_name = os.path.join('output','test_write_results_nk.hdf5')
         nk.write(file_name, write_patch_results=True)
@@ -1760,12 +1786,17 @@ def test_kappa_jk():
     np.testing.assert_allclose(cov_xi.diagonal(), var_kk_xi, rtol=0.4*tol_factor)
 
     # Check that these still work after roundtripping through a file.
-    file_name = os.path.join('output','test_write_results_kk.fits')
-    kk.write(file_name, write_patch_results=True)
-    kk4 = treecorr.KKCorrelation(bin_size=0.3, min_sep=6., max_sep=30.)
-    kk4.read(file_name)
-    cov4 = kk4.estimate_cov('jackknife')
-    np.testing.assert_allclose(cov4, kk.cov)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        file_name = os.path.join('output','test_write_results_kk.fits')
+        kk.write(file_name, write_patch_results=True)
+        kk4 = treecorr.KKCorrelation(bin_size=0.3, min_sep=6., max_sep=30.)
+        kk4.read(file_name)
+        cov4 = kk4.estimate_cov('jackknife')
+        np.testing.assert_allclose(cov4, kk.cov)
 
     # Also with ascii, since that works differeny.
     file_name = os.path.join('output','test_write_results_kk.dat')
@@ -1779,10 +1810,8 @@ def test_kappa_jk():
     try:
         import h5py
     except ImportError:
-        print('Skipping saving HDF patches, since h5py not installed.')
-        h5py = None
-
-    if h5py is not None:
+        pass
+    else:
         # Finally with hdf
         file_name = os.path.join('output','test_write_results_kk.hdf5')
         kk.write(file_name, write_patch_results=True)
@@ -1813,12 +1842,17 @@ def test_kappa_jk():
     np.testing.assert_allclose(cov_xi.diagonal(), var_kg_xi, rtol=0.4*tol_factor)
 
     # Check that these still work after roundtripping through a file.
-    file_name = os.path.join('output','test_write_results_kg.fits')
-    kg.write(file_name, write_patch_results=True)
-    kg4 = treecorr.KGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-    kg4.read(file_name)
-    cov4 = kg4.estimate_cov('jackknife')
-    np.testing.assert_allclose(cov4, kg.cov)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        file_name = os.path.join('output','test_write_results_kg.fits')
+        kg.write(file_name, write_patch_results=True)
+        kg4 = treecorr.KGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+        kg4.read(file_name)
+        cov4 = kg4.estimate_cov('jackknife')
+        np.testing.assert_allclose(cov4, kg.cov)
 
     # Also with ascii, since that works differeny.
     file_name = os.path.join('output','test_write_results_kg.dat')
@@ -1832,10 +1866,8 @@ def test_kappa_jk():
     try:
         import h5py
     except ImportError:
-        print('Skipping saving HDF patches, since h5py not installed.')
-        h5py = None
-
-    if h5py is not None:
+        pass
+    else:
         # Finally with hdf
         file_name = os.path.join('output','test_write_results_kg.hdf5')
         kg.write(file_name, write_patch_results=True)
@@ -1883,6 +1915,11 @@ def test_kappa_jk():
 @timer
 def test_save_patches():
     # Test the option to write the patches to disk
+    try:
+        import fitsio
+    except ImportError:
+        print('Skip test_save_patches, since fitsio not installed.')
+        return
 
     if __name__ == '__main__':
         ngal = 10000
@@ -1940,11 +1977,8 @@ def test_save_patches():
     try:
         import h5py
     except ImportError:
-        print('Skipping saving HDF patches, since h5py not installed.')
-        h5py = None
-
-
-    if h5py is not None:
+        pass
+    else:
         file_name = os.path.join('output','test_save_patches.hdf5')
         cat0.write(file_name)
         # And also try to match the type if HDF
@@ -2522,6 +2556,11 @@ def test_brute_jk():
 @timer
 def test_lowmem():
     # Test using patches to keep the memory usage lower.
+    try:
+        import fitsio
+    except ImportError:
+        print('Skip test_lowmem, since fitsio not installed.')
+        return
 
     if __name__ == '__main__':
         ngal = 2000000
@@ -2772,6 +2811,12 @@ def test_lowmem():
 def test_config():
     """Test using npatch and var_method in config file
     """
+    try:
+        import fitsio
+    except ImportError:
+        print('Skip test_config, since fitsio not installed.')
+        return
+
     get_from_wiki('Aardvark.fit')
     file_name = os.path.join('data','Aardvark.fit')
     config = treecorr.read_config('Aardvark.yaml')

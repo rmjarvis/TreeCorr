@@ -1794,7 +1794,7 @@ def test_field():
     assert cat3.field is nfield3
     # The second time, they should already be made and taken from the cache, so much faster.
     print('nfield: ',t1-t0,t2-t1)
-    assert t2-t1 < t1-t0
+    assert t2-t1 <= t1-t0
 
     # Check warning if not using kwargs for now-kwarg-only params
     with assert_warns(FutureWarning):
@@ -1832,7 +1832,7 @@ def test_field():
     assert gfield2b is gfield2
     assert gfield3b is gfield3
     print('gfield: ',t1-t0,t2-t1)
-    assert t2-t1 < t1-t0
+    assert t2-t1 <= t1-t0
 
     t0 = time.time()
     kfield1 = cat1.getKField()
@@ -1854,7 +1854,7 @@ def test_field():
     assert kfield2b is kfield2
     assert kfield3b is kfield3
     print('kfield: ',t1-t0,t2-t1)
-    assert t2-t1 < t1-t0
+    assert t2-t1 <= t1-t0
 
     t0 = time.time()
     nsimplefield1 = cat1.getNSimpleField()
@@ -1875,7 +1875,7 @@ def test_field():
     assert nsimplefield2b is nsimplefield2
     assert nsimplefield3b is nsimplefield3
     print('nsimplefield: ',t1-t0,t2-t1)
-    assert t2-t1 < t1-t0
+    assert t2-t1 <= t1-t0
 
     t0 = time.time()
     gsimplefield1 = cat1.getGSimpleField()
@@ -1897,7 +1897,7 @@ def test_field():
     assert gsimplefield2b is gsimplefield2
     assert gsimplefield3b is gsimplefield3
     print('gsimplefield: ',t1-t0,t2-t1)
-    assert t2-t1 < t1-t0
+    assert t2-t1 <= t1-t0
 
     t0 = time.time()
     ksimplefield1 = cat1.getKSimpleField()
@@ -1919,7 +1919,7 @@ def test_field():
     assert ksimplefield2b is ksimplefield2
     assert ksimplefield3b is ksimplefield3
     print('ksimplefield: ',t1-t0,t2-t1)
-    assert t2-t1 < t1-t0
+    assert t2-t1 <= t1-t0
 
     # By default, only one is saved.  Check resize_cache option.
     cat1.resize_cache(3)
@@ -1948,7 +1948,7 @@ def test_field():
     t2 = time.time()
     assert cat1.nfields.count == 3
     print('after resize(3) nfield: ',t1-t0,t2-t1)
-    assert t2-t1 < t1-t0
+    assert t2-t1 <= t1-t0
     assert nfield1b is nfield1
     assert nfield2b is nfield2
     assert nfield3b is nfield3

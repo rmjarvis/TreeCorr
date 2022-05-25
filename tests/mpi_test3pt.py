@@ -18,6 +18,11 @@ import treecorr
 
 def setup():
     from test_helper import get_from_wiki
+    try:
+        import fitsio
+    except ImportError:
+        print('Cannot do mpi tests since fitsio is not installed.')
+        return
 
     file_name = os.path.join('data','Aardvark.fit')
     patch_file = os.path.join('data','mpi_patches.fits')

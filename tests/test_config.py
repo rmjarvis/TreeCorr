@@ -15,7 +15,6 @@ import treecorr
 import os
 import sys
 import logging
-import fitsio
 import numpy as np
 from unittest import mock
 

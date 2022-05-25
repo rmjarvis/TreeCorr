@@ -14,11 +14,11 @@
 import numpy as np
 import os
 import coord
-import fitsio
 import treecorr
 
 from test_helper import get_from_wiki, do_pickle, CaptureLog
 from test_helper import assert_raises, timer, assert_warns
+
 
 @timer
 def test_direct():
@@ -96,17 +96,22 @@ def test_direct():
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/gg_direct.yaml')
-    cat1.write(config['file_name'])
-    cat2.write(config['file_name2'])
-    treecorr.corr2(config)
-    data = fitsio.read(config['gg_file_name'])
-    np.testing.assert_allclose(data['r_nom'], gg.rnom)
-    np.testing.assert_allclose(data['npairs'], gg.npairs)
-    np.testing.assert_allclose(data['weight'], gg.weight)
-    np.testing.assert_allclose(data['xip'], gg.xip, rtol=1.e-3)
-    np.testing.assert_allclose(data['xip_im'], gg.xip_im, rtol=1.e-3)
-    np.testing.assert_allclose(data['xim'], gg.xim, rtol=1.e-3)
-    np.testing.assert_allclose(data['xim_im'], gg.xim_im, rtol=1.e-3)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        cat1.write(config['file_name'])
+        cat2.write(config['file_name2'])
+        treecorr.corr2(config)
+        data = fitsio.read(config['gg_file_name'])
+        np.testing.assert_allclose(data['r_nom'], gg.rnom)
+        np.testing.assert_allclose(data['npairs'], gg.npairs)
+        np.testing.assert_allclose(data['weight'], gg.weight)
+        np.testing.assert_allclose(data['xip'], gg.xip, rtol=1.e-3)
+        np.testing.assert_allclose(data['xip_im'], gg.xip_im, rtol=1.e-3)
+        np.testing.assert_allclose(data['xim'], gg.xim, rtol=1.e-3)
+        np.testing.assert_allclose(data['xim_im'], gg.xim_im, rtol=1.e-3)
 
     # Repeat with binslop = 0.
     # And don't do any top-level recursion so we actually test not going to the leaves.
@@ -166,18 +171,23 @@ def test_direct():
     np.testing.assert_allclose(gg3.xim, gg.xim)
     np.testing.assert_allclose(gg3.xim_im, gg.xim_im)
 
-    fits_name = 'output/gg_fits.fits'
-    gg.write(fits_name)
-    gg4 = treecorr.GGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
-    gg4.read(fits_name)
-    np.testing.assert_allclose(gg4.npairs, gg.npairs)
-    np.testing.assert_allclose(gg4.weight, gg.weight)
-    np.testing.assert_allclose(gg4.meanr, gg.meanr)
-    np.testing.assert_allclose(gg4.meanlogr, gg.meanlogr)
-    np.testing.assert_allclose(gg4.xip, gg.xip)
-    np.testing.assert_allclose(gg4.xip_im, gg.xip_im)
-    np.testing.assert_allclose(gg4.xim, gg.xim)
-    np.testing.assert_allclose(gg4.xim_im, gg.xim_im)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        fits_name = 'output/gg_fits.fits'
+        gg.write(fits_name)
+        gg4 = treecorr.GGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+        gg4.read(fits_name)
+        np.testing.assert_allclose(gg4.npairs, gg.npairs)
+        np.testing.assert_allclose(gg4.weight, gg.weight)
+        np.testing.assert_allclose(gg4.meanr, gg.meanr)
+        np.testing.assert_allclose(gg4.meanlogr, gg.meanlogr)
+        np.testing.assert_allclose(gg4.xip, gg.xip)
+        np.testing.assert_allclose(gg4.xip_im, gg.xip_im)
+        np.testing.assert_allclose(gg4.xim, gg.xim)
+        np.testing.assert_allclose(gg4.xim_im, gg.xim_im)
 
     with assert_raises(TypeError):
         gg2 += config
@@ -294,18 +304,23 @@ def test_direct_spherical():
     np.testing.assert_allclose(gg.xim_im, true_xim.imag, rtol=1.e-4, atol=1.e-8)
 
     # Check that running via the corr2 script works correctly.
-    config = treecorr.config.read_config('configs/gg_direct_spherical.yaml')
-    cat1.write(config['file_name'])
-    cat2.write(config['file_name2'])
-    treecorr.corr2(config)
-    data = fitsio.read(config['gg_file_name'])
-    np.testing.assert_allclose(data['r_nom'], gg.rnom)
-    np.testing.assert_allclose(data['npairs'], gg.npairs)
-    np.testing.assert_allclose(data['weight'], gg.weight)
-    np.testing.assert_allclose(data['xip'], gg.xip, rtol=1.e-3)
-    np.testing.assert_allclose(data['xip_im'], gg.xip_im, rtol=1.e-3)
-    np.testing.assert_allclose(data['xim'], gg.xim, rtol=1.e-3)
-    np.testing.assert_allclose(data['xim_im'], gg.xim_im, rtol=1.e-3)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        config = treecorr.config.read_config('configs/gg_direct_spherical.yaml')
+        cat1.write(config['file_name'])
+        cat2.write(config['file_name2'])
+        treecorr.corr2(config)
+        data = fitsio.read(config['gg_file_name'])
+        np.testing.assert_allclose(data['r_nom'], gg.rnom)
+        np.testing.assert_allclose(data['npairs'], gg.npairs)
+        np.testing.assert_allclose(data['weight'], gg.weight)
+        np.testing.assert_allclose(data['xip'], gg.xip, rtol=1.e-3)
+        np.testing.assert_allclose(data['xip_im'], gg.xip_im, rtol=1.e-3)
+        np.testing.assert_allclose(data['xim'], gg.xim, rtol=1.e-3)
+        np.testing.assert_allclose(data['xim_im'], gg.xim_im, rtol=1.e-3)
 
     # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
@@ -488,6 +503,7 @@ def test_gg():
     mapsq_file = 'output/gg_m2.txt'
     gg.writeMapSq(mapsq_file, precision=16)
     data = np.genfromtxt(os.path.join('output','gg_m2.txt'), names=True)
+    print('dtype = ',data.dtype)
     np.testing.assert_allclose(data['Mapsq'], mapsq)
     np.testing.assert_allclose(data['Mxsq'], mxsq)
 
@@ -539,9 +555,9 @@ def test_gg():
     np.testing.assert_allclose(corr2_output2['Mxsq'], mxsq, rtol=1.e-4)
 
     # Check the fits write option
-    out_file_name = os.path.join('output','gg_out.fits')
-    gg.write(out_file_name)
-    data = fitsio.read(out_file_name)
+    out_file_name = os.path.join('output','gg_out.dat')
+    gg.write(out_file_name, precision=16)
+    data = np.genfromtxt(out_file_name, names=True, skip_header=1)
     np.testing.assert_allclose(data['r_nom'], np.exp(gg.logr))
     np.testing.assert_allclose(data['meanr'], gg.meanr)
     np.testing.assert_allclose(data['meanlogr'], gg.meanlogr)
@@ -957,9 +973,13 @@ def test_spherical():
 
 @timer
 def test_aardvark():
-
     # Eric Suchyta did a brute force calculation of the Aardvark catalog, so it is useful to
     # compare the output from my code with that.
+    try:
+        import fitsio
+    except ImportError:
+        print('Skip test_aardvark, since fitsio not installed.')
+        return
 
     get_from_wiki('Aardvark.fit')
     file_name = os.path.join('data','Aardvark.fit')

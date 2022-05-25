@@ -16,7 +16,6 @@ import treecorr
 import os
 import sys
 import coord
-import fitsio
 from unittest import mock
 
 from test_helper import do_pickle, CaptureLog
@@ -83,24 +82,29 @@ def test_direct():
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/nk_direct.yaml')
-    cat1.write(config['file_name'])
-    cat2.write(config['file_name2'])
-    treecorr.corr2(config)
-    data = fitsio.read(config['nk_file_name'])
-    np.testing.assert_allclose(data['r_nom'], nk.rnom)
-    np.testing.assert_allclose(data['npairs'], nk.npairs)
-    np.testing.assert_allclose(data['weight'], nk.weight)
-    np.testing.assert_allclose(data['kappa'], nk.xi, rtol=1.e-3)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        cat1.write(config['file_name'])
+        cat2.write(config['file_name2'])
+        treecorr.corr2(config)
+        data = fitsio.read(config['nk_file_name'])
+        np.testing.assert_allclose(data['r_nom'], nk.rnom)
+        np.testing.assert_allclose(data['npairs'], nk.npairs)
+        np.testing.assert_allclose(data['weight'], nk.weight)
+        np.testing.assert_allclose(data['kappa'], nk.xi, rtol=1.e-3)
 
-    # Invalid with only one file_name
-    del config['file_name2']
-    with assert_raises(TypeError):
-        treecorr.corr2(config)
-    config['file_name2'] = 'data/nk_direct_cat2.fits'
-    # Invalid to request compoensated if no rand_file
-    config['nk_statistic'] = 'compensated'
-    with assert_raises(TypeError):
-        treecorr.corr2(config)
+        # Invalid with only one file_name
+        del config['file_name2']
+        with assert_raises(TypeError):
+            treecorr.corr2(config)
+        config['file_name2'] = 'data/nk_direct_cat2.dat'
+        # Invalid to request compoensated if no rand_file
+        config['nk_statistic'] = 'compensated'
+        with assert_raises(TypeError):
+            treecorr.corr2(config)
 
     # Repeat with binslop = 0, since the code flow is different from brute=True
     # And don't do any top-level recursion so we actually test not going to the leaves.
@@ -152,15 +156,20 @@ def test_direct():
     with assert_raises(ValueError):
         nk2 += nk6
 
-    fits_name = 'output/nk_fits.fits'
-    nk.write(fits_name)
-    nk4 = treecorr.NKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
-    nk4.read(fits_name)
-    np.testing.assert_allclose(nk4.npairs, nk.npairs)
-    np.testing.assert_allclose(nk4.weight, nk.weight)
-    np.testing.assert_allclose(nk4.meanr, nk.meanr)
-    np.testing.assert_allclose(nk4.meanlogr, nk.meanlogr)
-    np.testing.assert_allclose(nk4.xi, nk.xi)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        fits_name = 'output/nk_fits.fits'
+        nk.write(fits_name)
+        nk4 = treecorr.NKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+        nk4.read(fits_name)
+        np.testing.assert_allclose(nk4.npairs, nk.npairs)
+        np.testing.assert_allclose(nk4.weight, nk.weight)
+        np.testing.assert_allclose(nk4.meanr, nk.meanr)
+        np.testing.assert_allclose(nk4.meanlogr, nk.meanlogr)
+        np.testing.assert_allclose(nk4.xi, nk.xi)
 
 
 @timer
@@ -237,14 +246,19 @@ def test_direct_spherical():
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/nk_direct_spherical.yaml')
-    cat1.write(config['file_name'])
-    cat2.write(config['file_name2'])
-    treecorr.corr2(config)
-    data = fitsio.read(config['nk_file_name'])
-    np.testing.assert_allclose(data['r_nom'], nk.rnom)
-    np.testing.assert_allclose(data['npairs'], nk.npairs)
-    np.testing.assert_allclose(data['weight'], nk.weight)
-    np.testing.assert_allclose(data['kappa'], nk.xi, rtol=1.e-3)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        cat1.write(config['file_name'])
+        cat2.write(config['file_name2'])
+        treecorr.corr2(config)
+        data = fitsio.read(config['nk_file_name'])
+        np.testing.assert_allclose(data['r_nom'], nk.rnom)
+        np.testing.assert_allclose(data['npairs'], nk.npairs)
+        np.testing.assert_allclose(data['weight'], nk.weight)
+        np.testing.assert_allclose(data['kappa'], nk.xi, rtol=1.e-3)
 
     # Repeat with binslop = 0, since the code flow is different from brute=True.
     # And don't do any top-level recursion so we actually test not going to the leaves.
@@ -449,67 +463,72 @@ def test_nk():
     np.testing.assert_array_equal(varxi_2, varxi)
 
     # Check that we get the same result using the corr2 function
-    lens_cat.write(os.path.join('data','nk_lens.fits'))
-    source_cat.write(os.path.join('data','nk_source.fits'))
-    rand_cat.write(os.path.join('data','nk_rand.fits'))
-    config = treecorr.read_config('configs/nk.yaml')
-    config['verbose'] = 0
-    config['precision'] = 8
-    treecorr.corr2(config)
-    corr2_output = np.genfromtxt(os.path.join('output','nk.out'), names=True, skip_header=1)
-    print('nk.xi = ',nk.xi)
-    print('xi = ',xi)
-    print('from corr2 output = ',corr2_output['kappa'])
-    print('ratio = ',corr2_output['kappa']/xi)
-    print('diff = ',corr2_output['kappa']-xi)
-    np.testing.assert_allclose(corr2_output['kappa'], xi, rtol=1.e-3)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        lens_cat.write(os.path.join('data','nk_lens.fits'))
+        source_cat.write(os.path.join('data','nk_source.fits'))
+        rand_cat.write(os.path.join('data','nk_rand.fits'))
+        config = treecorr.read_config('configs/nk.yaml')
+        config['verbose'] = 0
+        config['precision'] = 8
+        treecorr.corr2(config)
+        corr2_output = np.genfromtxt(os.path.join('output','nk.out'), names=True, skip_header=1)
+        print('nk.xi = ',nk.xi)
+        print('xi = ',xi)
+        print('from corr2 output = ',corr2_output['kappa'])
+        print('ratio = ',corr2_output['kappa']/xi)
+        print('diff = ',corr2_output['kappa']-xi)
+        np.testing.assert_allclose(corr2_output['kappa'], xi, rtol=1.e-3)
 
-    # In the corr2 context, you can turn off the compensated bit, even if there are randoms
-    # (e.g. maybe you only want randoms for some nn calculation, but not nk.)
-    config['nk_statistic'] = 'simple'
-    treecorr.corr2(config)
-    corr2_output = np.genfromtxt(os.path.join('output','nk.out'), names=True, skip_header=1)
-    xi_simple, _ = nk.calculateXi()
-    np.testing.assert_equal(xi_simple, nk.xi)
-    np.testing.assert_allclose(corr2_output['kappa'], xi_simple, rtol=1.e-3)
+        # In the corr2 context, you can turn off the compensated bit, even if there are randoms
+        # (e.g. maybe you only want randoms for some nn calculation, but not nk.)
+        config['nk_statistic'] = 'simple'
+        treecorr.corr2(config)
+        corr2_output = np.genfromtxt(os.path.join('output','nk.out'), names=True, skip_header=1)
+        xi_simple, _ = nk.calculateXi()
+        np.testing.assert_equal(xi_simple, nk.xi)
+        np.testing.assert_allclose(corr2_output['kappa'], xi_simple, rtol=1.e-3)
 
-    # Check the fits write option
-    out_file_name1 = os.path.join('output','nk_out1.fits')
-    nk.write(out_file_name1)
-    data = fitsio.read(out_file_name1)
-    np.testing.assert_almost_equal(data['r_nom'], np.exp(nk.logr))
-    np.testing.assert_almost_equal(data['meanr'], nk.meanr)
-    np.testing.assert_almost_equal(data['meanlogr'], nk.meanlogr)
-    np.testing.assert_almost_equal(data['kappa'], nk.xi)
-    np.testing.assert_almost_equal(data['sigma'], np.sqrt(nk.varxi))
-    np.testing.assert_almost_equal(data['weight'], nk.weight)
-    np.testing.assert_almost_equal(data['npairs'], nk.npairs)
+        # Check the fits write option
+        out_file_name1 = os.path.join('output','nk_out1.fits')
+        nk.write(out_file_name1)
+        data = fitsio.read(out_file_name1)
+        np.testing.assert_almost_equal(data['r_nom'], np.exp(nk.logr))
+        np.testing.assert_almost_equal(data['meanr'], nk.meanr)
+        np.testing.assert_almost_equal(data['meanlogr'], nk.meanlogr)
+        np.testing.assert_almost_equal(data['kappa'], nk.xi)
+        np.testing.assert_almost_equal(data['sigma'], np.sqrt(nk.varxi))
+        np.testing.assert_almost_equal(data['weight'], nk.weight)
+        np.testing.assert_almost_equal(data['npairs'], nk.npairs)
 
-    out_file_name2 = os.path.join('output','nk_out2.fits')
-    nk.write(out_file_name2, rk=rk)
-    data = fitsio.read(out_file_name2)
-    np.testing.assert_almost_equal(data['r_nom'], np.exp(nk.logr))
-    np.testing.assert_almost_equal(data['meanr'], nk.meanr)
-    np.testing.assert_almost_equal(data['meanlogr'], nk.meanlogr)
-    np.testing.assert_almost_equal(data['kappa'], xi)
-    np.testing.assert_almost_equal(data['sigma'], np.sqrt(varxi))
-    np.testing.assert_almost_equal(data['weight'], nk.weight)
-    np.testing.assert_almost_equal(data['npairs'], nk.npairs)
+        out_file_name2 = os.path.join('output','nk_out2.fits')
+        nk.write(out_file_name2, rk=rk)
+        data = fitsio.read(out_file_name2)
+        np.testing.assert_almost_equal(data['r_nom'], np.exp(nk.logr))
+        np.testing.assert_almost_equal(data['meanr'], nk.meanr)
+        np.testing.assert_almost_equal(data['meanlogr'], nk.meanlogr)
+        np.testing.assert_almost_equal(data['kappa'], xi)
+        np.testing.assert_almost_equal(data['sigma'], np.sqrt(varxi))
+        np.testing.assert_almost_equal(data['weight'], nk.weight)
+        np.testing.assert_almost_equal(data['npairs'], nk.npairs)
 
-    # Check the read function
-    nk2 = treecorr.NKCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin')
-    nk2.read(out_file_name2)
-    np.testing.assert_almost_equal(nk2.logr, nk.logr)
-    np.testing.assert_almost_equal(nk2.meanr, nk.meanr)
-    np.testing.assert_almost_equal(nk2.meanlogr, nk.meanlogr)
-    np.testing.assert_almost_equal(nk2.xi, nk.xi)
-    np.testing.assert_almost_equal(nk2.varxi, nk.varxi)
-    np.testing.assert_almost_equal(nk2.weight, nk.weight)
-    np.testing.assert_almost_equal(nk2.npairs, nk.npairs)
-    assert nk2.coords == nk.coords
-    assert nk2.metric == nk.metric
-    assert nk2.sep_units == nk.sep_units
-    assert nk2.bin_type == nk.bin_type
+        # Check the read function
+        nk2 = treecorr.NKCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin')
+        nk2.read(out_file_name2)
+        np.testing.assert_almost_equal(nk2.logr, nk.logr)
+        np.testing.assert_almost_equal(nk2.meanr, nk.meanr)
+        np.testing.assert_almost_equal(nk2.meanlogr, nk.meanlogr)
+        np.testing.assert_almost_equal(nk2.xi, nk.xi)
+        np.testing.assert_almost_equal(nk2.varxi, nk.varxi)
+        np.testing.assert_almost_equal(nk2.weight, nk.weight)
+        np.testing.assert_almost_equal(nk2.npairs, nk.npairs)
+        assert nk2.coords == nk.coords
+        assert nk2.metric == nk.metric
+        assert nk2.sep_units == nk.sep_units
+        assert nk2.bin_type == nk.bin_type
 
 
 @timer

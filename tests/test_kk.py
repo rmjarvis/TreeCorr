@@ -15,7 +15,6 @@ import numpy as np
 import treecorr
 import os
 import coord
-import fitsio
 
 from test_helper import do_pickle, CaptureLog
 from test_helper import assert_raises, timer, assert_warns
@@ -82,14 +81,19 @@ def test_direct():
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/kk_direct.yaml')
-    cat1.write(config['file_name'])
-    cat2.write(config['file_name2'])
-    treecorr.corr2(config)
-    data = fitsio.read(config['kk_file_name'])
-    np.testing.assert_allclose(data['r_nom'], kk.rnom)
-    np.testing.assert_allclose(data['npairs'], kk.npairs)
-    np.testing.assert_allclose(data['weight'], kk.weight)
-    np.testing.assert_allclose(data['xi'], kk.xi, rtol=1.e-3)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        cat1.write(config['file_name'])
+        cat2.write(config['file_name2'])
+        treecorr.corr2(config)
+        data = fitsio.read(config['kk_file_name'])
+        np.testing.assert_allclose(data['r_nom'], kk.rnom)
+        np.testing.assert_allclose(data['npairs'], kk.npairs)
+        np.testing.assert_allclose(data['weight'], kk.weight)
+        np.testing.assert_allclose(data['xi'], kk.xi, rtol=1.e-3)
 
     # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
@@ -129,15 +133,20 @@ def test_direct():
     np.testing.assert_allclose(kk3.meanlogr, kk.meanlogr)
     np.testing.assert_allclose(kk3.xi, kk.xi)
 
-    fits_name = 'output/kk_fits.fits'
-    kk.write(fits_name)
-    kk4 = treecorr.KKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
-    kk4.read(fits_name)
-    np.testing.assert_allclose(kk4.npairs, kk.npairs)
-    np.testing.assert_allclose(kk4.weight, kk.weight)
-    np.testing.assert_allclose(kk4.meanr, kk.meanr)
-    np.testing.assert_allclose(kk4.meanlogr, kk.meanlogr)
-    np.testing.assert_allclose(kk4.xi, kk.xi)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        fits_name = 'output/kk_fits.fits'
+        kk.write(fits_name)
+        kk4 = treecorr.KKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+        kk4.read(fits_name)
+        np.testing.assert_allclose(kk4.npairs, kk.npairs)
+        np.testing.assert_allclose(kk4.weight, kk.weight)
+        np.testing.assert_allclose(kk4.meanr, kk.meanr)
+        np.testing.assert_allclose(kk4.meanlogr, kk.meanlogr)
+        np.testing.assert_allclose(kk4.xi, kk.xi)
 
     with assert_raises(TypeError):
         kk2 += config
@@ -227,14 +236,19 @@ def test_direct_spherical():
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/kk_direct_spherical.yaml')
-    cat1.write(config['file_name'])
-    cat2.write(config['file_name2'])
-    treecorr.corr2(config)
-    data = fitsio.read(config['kk_file_name'])
-    np.testing.assert_allclose(data['r_nom'], kk.rnom)
-    np.testing.assert_allclose(data['npairs'], kk.npairs)
-    np.testing.assert_allclose(data['weight'], kk.weight)
-    np.testing.assert_allclose(data['xi'], kk.xi, rtol=1.e-3)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        cat1.write(config['file_name'])
+        cat2.write(config['file_name2'])
+        treecorr.corr2(config)
+        data = fitsio.read(config['kk_file_name'])
+        np.testing.assert_allclose(data['r_nom'], kk.rnom)
+        np.testing.assert_allclose(data['npairs'], kk.npairs)
+        np.testing.assert_allclose(data['weight'], kk.weight)
+        np.testing.assert_allclose(data['xi'], kk.xi, rtol=1.e-3)
 
     # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
@@ -412,31 +426,36 @@ def test_kk():
     np.testing.assert_allclose(corr2_output['xi'], kk.xi, rtol=1.e-3)
 
     # Check the fits write option
-    out_file_name = os.path.join('output','kk_out.fits')
-    kk.write(out_file_name)
-    data = fitsio.read(out_file_name)
-    np.testing.assert_almost_equal(data['r_nom'], np.exp(kk.logr))
-    np.testing.assert_almost_equal(data['meanr'], kk.meanr)
-    np.testing.assert_almost_equal(data['meanlogr'], kk.meanlogr)
-    np.testing.assert_almost_equal(data['xi'], kk.xi)
-    np.testing.assert_almost_equal(data['sigma_xi'], np.sqrt(kk.varxi))
-    np.testing.assert_almost_equal(data['weight'], kk.weight)
-    np.testing.assert_almost_equal(data['npairs'], kk.npairs)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        out_file_name = os.path.join('output','kk_out.fits')
+        kk.write(out_file_name)
+        data = fitsio.read(out_file_name)
+        np.testing.assert_almost_equal(data['r_nom'], np.exp(kk.logr))
+        np.testing.assert_almost_equal(data['meanr'], kk.meanr)
+        np.testing.assert_almost_equal(data['meanlogr'], kk.meanlogr)
+        np.testing.assert_almost_equal(data['xi'], kk.xi)
+        np.testing.assert_almost_equal(data['sigma_xi'], np.sqrt(kk.varxi))
+        np.testing.assert_almost_equal(data['weight'], kk.weight)
+        np.testing.assert_almost_equal(data['npairs'], kk.npairs)
 
-    # Check the read function
-    kk2 = treecorr.KKCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin')
-    kk2.read(out_file_name)
-    np.testing.assert_almost_equal(kk2.logr, kk.logr)
-    np.testing.assert_almost_equal(kk2.meanr, kk.meanr)
-    np.testing.assert_almost_equal(kk2.meanlogr, kk.meanlogr)
-    np.testing.assert_almost_equal(kk2.xi, kk.xi)
-    np.testing.assert_almost_equal(kk2.varxi, kk.varxi)
-    np.testing.assert_almost_equal(kk2.weight, kk.weight)
-    np.testing.assert_almost_equal(kk2.npairs, kk.npairs)
-    assert kk2.coords == kk.coords
-    assert kk2.metric == kk.metric
-    assert kk2.sep_units == kk.sep_units
-    assert kk2.bin_type == kk.bin_type
+        # Check the read function
+        kk2 = treecorr.KKCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin')
+        kk2.read(out_file_name)
+        np.testing.assert_almost_equal(kk2.logr, kk.logr)
+        np.testing.assert_almost_equal(kk2.meanr, kk.meanr)
+        np.testing.assert_almost_equal(kk2.meanlogr, kk.meanlogr)
+        np.testing.assert_almost_equal(kk2.xi, kk.xi)
+        np.testing.assert_almost_equal(kk2.varxi, kk.varxi)
+        np.testing.assert_almost_equal(kk2.weight, kk.weight)
+        np.testing.assert_almost_equal(kk2.npairs, kk.npairs)
+        assert kk2.coords == kk.coords
+        assert kk2.metric == kk.metric
+        assert kk2.sep_units == kk.sep_units
+        assert kk2.bin_type == kk.bin_type
 
 @timer
 def test_large_scale():

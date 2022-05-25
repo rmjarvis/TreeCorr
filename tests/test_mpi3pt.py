@@ -17,20 +17,31 @@ from mockmpi import mock_mpiexec
 from test_helper import timer
 from mpi_test3pt import *
 
+try:
+    import fitsio
+except ImportError:
+    # All the mpi tests use Aardvark.fit, so skip them when fitsio isn't installed.
+    skip=True
+else:
+    skip=False
+
 @timer
 def test_mpi_ggg():
+    if skip: return
     output = __name__ == '__main__'
     mock_mpiexec(1, do_mpi_ggg, output)
     mock_mpiexec(4, do_mpi_ggg, output)
 
 @timer
 def test_mpi_kkk():
+    if skip: return
     output = __name__ == '__main__'
     mock_mpiexec(1, do_mpi_kkk, output)
     mock_mpiexec(4, do_mpi_kkk, output)
 
 @timer
 def test_mpi_kkk2():
+    if skip: return
     output = __name__ == '__main__'
     mock_mpiexec(4, do_mpi_kkk2, output)
 

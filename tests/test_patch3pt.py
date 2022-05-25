@@ -15,7 +15,6 @@ import numpy as np
 import os
 import coord
 import time
-import fitsio
 import treecorr
 try:
     import cPickle as pickle
@@ -207,14 +206,19 @@ def test_kkk_jk():
     np.testing.assert_allclose(cov2, cov1)
 
     # And again using the normal write command.
-    file_name = os.path.join('output','test_write_results_kkk.fits')
-    kkkp.write(file_name, write_patch_results=True)
-    kkk3 = treecorr.KKKCorrelation(nbins=3, min_sep=30., max_sep=100.,
-                                   min_u=0.9, max_u=1.0, nubins=1,
-                                   min_v=0.0, max_v=0.1, nvbins=1, rng=rng)
-    kkk3.read(file_name)
-    cov3 = kkk3.estimate_cov('jackknife')
-    np.testing.assert_allclose(cov3, cov1)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        file_name = os.path.join('output','test_write_results_kkk.fits')
+        kkkp.write(file_name, write_patch_results=True)
+        kkk3 = treecorr.KKKCorrelation(nbins=3, min_sep=30., max_sep=100.,
+                                       min_u=0.9, max_u=1.0, nubins=1,
+                                       min_v=0.0, max_v=0.1, nvbins=1, rng=rng)
+        kkk3.read(file_name)
+        cov3 = kkk3.estimate_cov('jackknife')
+        np.testing.assert_allclose(cov3, cov1)
 
     # Also with ascii, since that works differeny.
     file_name = os.path.join('output','test_write_results_kkk.dat')
@@ -665,15 +669,20 @@ def test_ggg_jk():
     np.testing.assert_allclose(cov2, cov1)
 
     # And again using the normal write command.
-    file_name = os.path.join('output','test_write_results_ggg.fits')
-    gggp.write(file_name, write_patch_results=True)
-    ggg3 = treecorr.GGGCorrelation(nbins=1, min_sep=20., max_sep=40.,
-                                   min_u=0.6, max_u=1.0, nubins=1,
-                                   min_v=0.0, max_v=0.6, nvbins=1)
-    ggg3.read(file_name)
-    cov3 = ggg3.estimate_cov('jackknife', func=f)
-    print('cov3 = ',cov3)
-    np.testing.assert_allclose(cov3, cov1)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        file_name = os.path.join('output','test_write_results_ggg.fits')
+        gggp.write(file_name, write_patch_results=True)
+        ggg3 = treecorr.GGGCorrelation(nbins=1, min_sep=20., max_sep=40.,
+                                       min_u=0.6, max_u=1.0, nubins=1,
+                                       min_v=0.0, max_v=0.6, nvbins=1)
+        ggg3.read(file_name)
+        cov3 = ggg3.estimate_cov('jackknife', func=f)
+        print('cov3 = ',cov3)
+        np.testing.assert_allclose(cov3, cov1)
 
     # Also with ascii, since that works differeny.
     file_name = os.path.join('output','test_write_results_ggg.dat')
@@ -1319,27 +1328,32 @@ def test_nnn_jk():
 
     # Check that these still work after roundtripping through files.
     cov1 = dddp.estimate_cov('jackknife')
-    file_name = os.path.join('output','test_write_results_ddd.fits')
-    rrr_file_name = os.path.join('output','test_write_results_rrr.fits')
-    drr_file_name = os.path.join('output','test_write_results_drr.fits')
-    rdd_file_name = os.path.join('output','test_write_results_rdd.fits')
-    dddp.write(file_name, write_patch_results=True)
-    rrrp.write(rrr_file_name, write_patch_results=True)
-    drrp.write(drr_file_name, write_patch_results=True)
-    rddp.write(rdd_file_name, write_patch_results=True)
-    ddd3 = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
-                                   min_u=0.8, max_u=1.0, nubins=1,
-                                   min_v=0.0, max_v=0.2, nvbins=1)
-    rrr3 = ddd3.copy()
-    drr3 = ddd3.copy()
-    rdd3 = ddd3.copy()
-    ddd3.read(file_name)
-    rrr3.read(rrr_file_name)
-    drr3.read(drr_file_name)
-    rdd3.read(rdd_file_name)
-    ddd3.calculateZeta(rrr=rrr3, drr=drr3, rdd=rdd3)
-    cov3 = ddd3.estimate_cov('jackknife')
-    np.testing.assert_allclose(cov3, cov1)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        file_name = os.path.join('output','test_write_results_ddd.fits')
+        rrr_file_name = os.path.join('output','test_write_results_rrr.fits')
+        drr_file_name = os.path.join('output','test_write_results_drr.fits')
+        rdd_file_name = os.path.join('output','test_write_results_rdd.fits')
+        dddp.write(file_name, write_patch_results=True)
+        rrrp.write(rrr_file_name, write_patch_results=True)
+        drrp.write(drr_file_name, write_patch_results=True)
+        rddp.write(rdd_file_name, write_patch_results=True)
+        ddd3 = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
+                                       min_u=0.8, max_u=1.0, nubins=1,
+                                       min_v=0.0, max_v=0.2, nvbins=1)
+        rrr3 = ddd3.copy()
+        drr3 = ddd3.copy()
+        rdd3 = ddd3.copy()
+        ddd3.read(file_name)
+        rrr3.read(rrr_file_name)
+        drr3.read(drr_file_name)
+        rdd3.read(rdd_file_name)
+        ddd3.calculateZeta(rrr=rrr3, drr=drr3, rdd=rdd3)
+        cov3 = ddd3.estimate_cov('jackknife')
+        np.testing.assert_allclose(cov3, cov1)
 
     # Also with ascii, since that works differeny.
     file_name = os.path.join('output','test_write_results_ddd.dat')
@@ -2036,6 +2050,11 @@ def test_finalize_false():
 @timer
 def test_lowmem():
     # Test using patches to keep the memory usage lower.
+    try:
+        import fitsio
+    except ImportError:
+        print('Skip test_lowmem, since fitsio not installed.')
+        return
 
     if __name__ == '__main__':
         nsource = 10000

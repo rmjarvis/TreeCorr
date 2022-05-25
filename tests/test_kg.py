@@ -15,7 +15,6 @@ import numpy as np
 import treecorr
 import os
 import coord
-import fitsio
 
 from test_helper import do_pickle, CaptureLog
 from test_helper import assert_raises, timer, assert_warns
@@ -86,20 +85,25 @@ def test_direct():
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/kg_direct.yaml')
-    cat1.write(config['file_name'])
-    cat2.write(config['file_name2'])
-    treecorr.corr2(config)
-    data = fitsio.read(config['kg_file_name'])
-    np.testing.assert_allclose(data['r_nom'], kg.rnom)
-    np.testing.assert_allclose(data['npairs'], kg.npairs)
-    np.testing.assert_allclose(data['weight'], kg.weight)
-    np.testing.assert_allclose(data['kgamT'], kg.xi, rtol=1.e-3)
-    np.testing.assert_allclose(data['kgamX'], kg.xi_im, rtol=1.e-3)
-
-    # Invalid with only one file_name
-    del config['file_name2']
-    with assert_raises(TypeError):
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        cat1.write(config['file_name'])
+        cat2.write(config['file_name2'])
         treecorr.corr2(config)
+        data = fitsio.read(config['kg_file_name'])
+        np.testing.assert_allclose(data['r_nom'], kg.rnom)
+        np.testing.assert_allclose(data['npairs'], kg.npairs)
+        np.testing.assert_allclose(data['weight'], kg.weight)
+        np.testing.assert_allclose(data['kgamT'], kg.xi, rtol=1.e-3)
+        np.testing.assert_allclose(data['kgamX'], kg.xi_im, rtol=1.e-3)
+
+        # Invalid with only one file_name
+        del config['file_name2']
+        with assert_raises(TypeError):
+            treecorr.corr2(config)
 
     # Repeat with binslop = 0, since code is different for bin_slop=0 and brute=True.
     # And don't do any top-level recursion so we actually test not going to the leaves.
@@ -143,16 +147,21 @@ def test_direct():
     np.testing.assert_allclose(kg3.xi, kg.xi)
     np.testing.assert_allclose(kg3.xi_im, kg.xi_im)
 
-    fits_name = 'output/kg_fits.fits'
-    kg.write(fits_name)
-    kg4 = treecorr.KGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
-    kg4.read(fits_name)
-    np.testing.assert_allclose(kg4.npairs, kg.npairs)
-    np.testing.assert_allclose(kg4.weight, kg.weight)
-    np.testing.assert_allclose(kg4.meanr, kg.meanr)
-    np.testing.assert_allclose(kg4.meanlogr, kg.meanlogr)
-    np.testing.assert_allclose(kg4.xi, kg.xi)
-    np.testing.assert_allclose(kg4.xi_im, kg.xi_im)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        fits_name = 'output/kg_fits.fits'
+        kg.write(fits_name)
+        kg4 = treecorr.KGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+        kg4.read(fits_name)
+        np.testing.assert_allclose(kg4.npairs, kg.npairs)
+        np.testing.assert_allclose(kg4.weight, kg.weight)
+        np.testing.assert_allclose(kg4.meanr, kg.meanr)
+        np.testing.assert_allclose(kg4.meanlogr, kg.meanlogr)
+        np.testing.assert_allclose(kg4.xi, kg.xi)
+        np.testing.assert_allclose(kg4.xi_im, kg.xi_im)
 
     with assert_raises(TypeError):
         kg2 += config
@@ -255,15 +264,20 @@ def test_direct_spherical():
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/kg_direct_spherical.yaml')
-    cat1.write(config['file_name'])
-    cat2.write(config['file_name2'])
-    treecorr.corr2(config)
-    data = fitsio.read(config['kg_file_name'])
-    np.testing.assert_allclose(data['r_nom'], kg.rnom)
-    np.testing.assert_allclose(data['npairs'], kg.npairs)
-    np.testing.assert_allclose(data['weight'], kg.weight)
-    np.testing.assert_allclose(data['kgamT'], kg.xi, rtol=1.e-3)
-    np.testing.assert_allclose(data['kgamX'], kg.xi_im, rtol=1.e-3)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        cat1.write(config['file_name'])
+        cat2.write(config['file_name2'])
+        treecorr.corr2(config)
+        data = fitsio.read(config['kg_file_name'])
+        np.testing.assert_allclose(data['r_nom'], kg.rnom)
+        np.testing.assert_allclose(data['npairs'], kg.npairs)
+        np.testing.assert_allclose(data['weight'], kg.weight)
+        np.testing.assert_allclose(data['kgamT'], kg.xi, rtol=1.e-3)
+        np.testing.assert_allclose(data['kgamX'], kg.xi_im, rtol=1.e-3)
 
     # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
@@ -531,33 +545,38 @@ def test_kg():
     np.testing.assert_allclose(corr2_output['kgamX'], 0., atol=1.e-2)
 
     # Check the fits write option
-    out_file_name1 = os.path.join('output','kg_out1.fits')
-    kg.write(out_file_name1)
-    data = fitsio.read(out_file_name1)
-    np.testing.assert_almost_equal(data['r_nom'], np.exp(kg.logr))
-    np.testing.assert_almost_equal(data['meanr'], kg.meanr)
-    np.testing.assert_almost_equal(data['meanlogr'], kg.meanlogr)
-    np.testing.assert_almost_equal(data['kgamT'], kg.xi)
-    np.testing.assert_almost_equal(data['kgamX'], kg.xi_im)
-    np.testing.assert_almost_equal(data['sigma'], np.sqrt(kg.varxi))
-    np.testing.assert_almost_equal(data['weight'], kg.weight)
-    np.testing.assert_almost_equal(data['npairs'], kg.npairs)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        out_file_name1 = os.path.join('output','kg_out1.fits')
+        kg.write(out_file_name1)
+        data = fitsio.read(out_file_name1)
+        np.testing.assert_almost_equal(data['r_nom'], np.exp(kg.logr))
+        np.testing.assert_almost_equal(data['meanr'], kg.meanr)
+        np.testing.assert_almost_equal(data['meanlogr'], kg.meanlogr)
+        np.testing.assert_almost_equal(data['kgamT'], kg.xi)
+        np.testing.assert_almost_equal(data['kgamX'], kg.xi_im)
+        np.testing.assert_almost_equal(data['sigma'], np.sqrt(kg.varxi))
+        np.testing.assert_almost_equal(data['weight'], kg.weight)
+        np.testing.assert_almost_equal(data['npairs'], kg.npairs)
 
-    # Check the read function
-    kg2 = treecorr.KGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin')
-    kg2.read(out_file_name1)
-    np.testing.assert_almost_equal(kg2.logr, kg.logr)
-    np.testing.assert_almost_equal(kg2.meanr, kg.meanr)
-    np.testing.assert_almost_equal(kg2.meanlogr, kg.meanlogr)
-    np.testing.assert_almost_equal(kg2.xi, kg.xi)
-    np.testing.assert_almost_equal(kg2.xi_im, kg.xi_im)
-    np.testing.assert_almost_equal(kg2.varxi, kg.varxi)
-    np.testing.assert_almost_equal(kg2.weight, kg.weight)
-    np.testing.assert_almost_equal(kg2.npairs, kg.npairs)
-    assert kg2.coords == kg.coords
-    assert kg2.metric == kg.metric
-    assert kg2.sep_units == kg.sep_units
-    assert kg2.bin_type == kg.bin_type
+        # Check the read function
+        kg2 = treecorr.KGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin')
+        kg2.read(out_file_name1)
+        np.testing.assert_almost_equal(kg2.logr, kg.logr)
+        np.testing.assert_almost_equal(kg2.meanr, kg.meanr)
+        np.testing.assert_almost_equal(kg2.meanlogr, kg.meanlogr)
+        np.testing.assert_almost_equal(kg2.xi, kg.xi)
+        np.testing.assert_almost_equal(kg2.xi_im, kg.xi_im)
+        np.testing.assert_almost_equal(kg2.varxi, kg.varxi)
+        np.testing.assert_almost_equal(kg2.weight, kg.weight)
+        np.testing.assert_almost_equal(kg2.npairs, kg.npairs)
+        assert kg2.coords == kg.coords
+        assert kg2.metric == kg.metric
+        assert kg2.sep_units == kg.sep_units
+        assert kg2.bin_type == kg.bin_type
 
 
 @timer

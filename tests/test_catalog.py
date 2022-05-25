@@ -20,7 +20,6 @@ import gc
 import copy
 import pickle
 from numpy import pi
-import fitsio
 import treecorr
 from unittest import mock
 
@@ -474,6 +473,11 @@ def test_ascii():
 
 @timer
 def test_fits():
+    try:
+        import fitsio
+    except ImportError:
+        print('Skip test_fits, since fitsio not installed.')
+        return
     _test_aardvark('Aardvark.fit', 'FITS', 'AARDWOLF')
 
 @timer
@@ -701,6 +705,11 @@ def _test_aardvark(filename, file_type, ext):
 
 @timer
 def test_ext():
+    try:
+        import fitsio
+    except ImportError:
+        print('Skip test_ext, since fitsio not installed.')
+        return
 
     ngal = 200
     s = 10.
@@ -957,6 +966,11 @@ def test_ext():
 @timer
 def test_hdu():
     # Repeat test_ext, but with deprecated hdu names.
+    try:
+        import fitsio
+    except ImportError:
+        print('Skip test_hdu, since fitsio not installed.')
+        return
 
     ngal = 200
     s = 10.
@@ -1649,72 +1663,81 @@ def test_write():
     assert cat2r_asc.k is None
 
     # Test FITS output
-    cat1.write(os.path.join('output','cat1.fits'), file_type='FITS')
-    cat1_fits = treecorr.Catalog(os.path.join('output','cat1.fits'),
-                                 x_col='x', y_col='y', z_col='z')
-    np.testing.assert_almost_equal(cat1_fits.x, x)
-    np.testing.assert_almost_equal(cat1_fits.y, y)
-    np.testing.assert_almost_equal(cat1_fits.z, z)
+    try:
+        import fitsio
+    except ImportError:
+        print('Skipping fits write tests, since h5py not installed.')
+        pass
+    else:
+        cat1.write(os.path.join('output','cat1.fits'), file_type='FITS')
+        cat1_fits = treecorr.Catalog(os.path.join('output','cat1.fits'),
+                                     x_col='x', y_col='y', z_col='z')
+        np.testing.assert_almost_equal(cat1_fits.x, x)
+        np.testing.assert_almost_equal(cat1_fits.y, y)
+        np.testing.assert_almost_equal(cat1_fits.z, z)
 
-    cat2.write(os.path.join('output','cat2.fits'))
-    cat2_fits = treecorr.Catalog(os.path.join('output','cat2.fits'), ra_col='ra', dec_col='dec',
-                                 r_col='r', w_col='w', g1_col='g1', g2_col='g2', k_col='k',
-                                 ra_units='rad', dec_units='rad', file_type='FITS')
-    np.testing.assert_almost_equal(cat2_fits.ra, ra)
-    np.testing.assert_almost_equal(cat2_fits.dec, dec)
-    np.testing.assert_almost_equal(cat2_fits.r, r)
-    np.testing.assert_almost_equal(cat2_fits.w, w)
-    np.testing.assert_almost_equal(cat2_fits.g1, g1)
-    np.testing.assert_almost_equal(cat2_fits.g2, g2)
-    np.testing.assert_almost_equal(cat2_fits.k, k)
+        cat2.write(os.path.join('output','cat2.fits'))
+        cat2_fits = treecorr.Catalog(os.path.join('output','cat2.fits'), ra_col='ra', dec_col='dec',
+                                     r_col='r', w_col='w', g1_col='g1', g2_col='g2', k_col='k',
+                                     ra_units='rad', dec_units='rad', file_type='FITS')
+        np.testing.assert_almost_equal(cat2_fits.ra, ra)
+        np.testing.assert_almost_equal(cat2_fits.dec, dec)
+        np.testing.assert_almost_equal(cat2_fits.r, r)
+        np.testing.assert_almost_equal(cat2_fits.w, w)
+        np.testing.assert_almost_equal(cat2_fits.g1, g1)
+        np.testing.assert_almost_equal(cat2_fits.g2, g2)
+        np.testing.assert_almost_equal(cat2_fits.k, k)
 
-    cat2r_fits = treecorr.Catalog(os.path.join('output','cat2.fits'), ra_col='ra', dec_col='dec',
-                                  r_col='r', w_col='w', g1_col='g1', g2_col='g2', k_col='k',
-                                  ra_units='rad', dec_units='rad', file_type='FITS', is_rand=True)
-    np.testing.assert_almost_equal(cat2r_fits.ra, ra)
-    np.testing.assert_almost_equal(cat2r_fits.dec, dec)
-    np.testing.assert_almost_equal(cat2r_fits.r, r)
-    np.testing.assert_almost_equal(cat2r_fits.w, w)
-    assert cat2r_fits.g1 is None
-    assert cat2r_fits.g2 is None
-    assert cat2r_fits.k is None
+        cat2r_fits = treecorr.Catalog(os.path.join('output','cat2.fits'),
+                                      ra_col='ra', dec_col='dec',
+                                      r_col='r', w_col='w', g1_col='g1', g2_col='g2', k_col='k',
+                                      ra_units='rad', dec_units='rad', file_type='FITS',
+                                      is_rand=True)
+        np.testing.assert_almost_equal(cat2r_fits.ra, ra)
+        np.testing.assert_almost_equal(cat2r_fits.dec, dec)
+        np.testing.assert_almost_equal(cat2r_fits.r, r)
+        np.testing.assert_almost_equal(cat2r_fits.w, w)
+        assert cat2r_fits.g1 is None
+        assert cat2r_fits.g2 is None
+        assert cat2r_fits.k is None
 
     # Test HDF5 output
     try:
         import h5py  # noqa: F401
     except ImportError:
         print('Skipping hdf5 write tests, since h5py not installed.')
-        return
+    else:
+        cat1.write(os.path.join('output','cat1.hdf5'), file_type='HDF')
+        cat1_hdf5 = treecorr.Catalog(os.path.join('output','cat1.hdf5'),
+                                     x_col='x', y_col='y', z_col='z')
+        np.testing.assert_almost_equal(cat1_hdf5.x, x)
+        np.testing.assert_almost_equal(cat1_hdf5.y, y)
+        np.testing.assert_almost_equal(cat1_hdf5.z, z)
 
-    cat1.write(os.path.join('output','cat1.hdf5'), file_type='HDF')
-    cat1_hdf5 = treecorr.Catalog(os.path.join('output','cat1.hdf5'),
-                                 x_col='x', y_col='y', z_col='z')
-    np.testing.assert_almost_equal(cat1_hdf5.x, x)
-    np.testing.assert_almost_equal(cat1_hdf5.y, y)
-    np.testing.assert_almost_equal(cat1_hdf5.z, z)
+        cat2.write(os.path.join('output','cat2.hdf'))
+        cat2_hdf5 = treecorr.Catalog(os.path.join('output','cat2.hdf'), ra_col='ra', dec_col='dec',
+                                     r_col='r', w_col='w', g1_col='g1', g2_col='g2', k_col='k',
+                                     ra_units='rad', dec_units='rad', file_type='HDF5')
+        np.testing.assert_almost_equal(cat2_hdf5.ra, ra)
+        np.testing.assert_almost_equal(cat2_hdf5.dec, dec)
+        np.testing.assert_almost_equal(cat2_hdf5.r, r)
+        np.testing.assert_almost_equal(cat2_hdf5.w, w)
+        np.testing.assert_almost_equal(cat2_hdf5.g1, g1)
+        np.testing.assert_almost_equal(cat2_hdf5.g2, g2)
+        np.testing.assert_almost_equal(cat2_hdf5.k, k)
 
-    cat2.write(os.path.join('output','cat2.hdf'))
-    cat2_hdf5 = treecorr.Catalog(os.path.join('output','cat2.hdf'), ra_col='ra', dec_col='dec',
-                                 r_col='r', w_col='w', g1_col='g1', g2_col='g2', k_col='k',
-                                 ra_units='rad', dec_units='rad', file_type='HDF5')
-    np.testing.assert_almost_equal(cat2_hdf5.ra, ra)
-    np.testing.assert_almost_equal(cat2_hdf5.dec, dec)
-    np.testing.assert_almost_equal(cat2_hdf5.r, r)
-    np.testing.assert_almost_equal(cat2_hdf5.w, w)
-    np.testing.assert_almost_equal(cat2_hdf5.g1, g1)
-    np.testing.assert_almost_equal(cat2_hdf5.g2, g2)
-    np.testing.assert_almost_equal(cat2_hdf5.k, k)
-
-    cat2r_hdf5 = treecorr.Catalog(os.path.join('output','cat2.hdf'), ra_col='ra', dec_col='dec',
-                                  r_col='r', w_col='w', g1_col='g1', g2_col='g2', k_col='k',
-                                  ra_units='rad', dec_units='rad', file_type='HDF5', is_rand=True)
-    np.testing.assert_almost_equal(cat2r_hdf5.ra, ra)
-    np.testing.assert_almost_equal(cat2r_hdf5.dec, dec)
-    np.testing.assert_almost_equal(cat2r_hdf5.r, r)
-    np.testing.assert_almost_equal(cat2r_hdf5.w, w)
-    assert cat2r_hdf5.g1 is None
-    assert cat2r_hdf5.g2 is None
-    assert cat2r_hdf5.k is None
+        cat2r_hdf5 = treecorr.Catalog(os.path.join('output','cat2.hdf'),
+                                      ra_col='ra', dec_col='dec',
+                                      r_col='r', w_col='w', g1_col='g1', g2_col='g2', k_col='k',
+                                      ra_units='rad', dec_units='rad', file_type='HDF5',
+                                      is_rand=True)
+        np.testing.assert_almost_equal(cat2r_hdf5.ra, ra)
+        np.testing.assert_almost_equal(cat2r_hdf5.dec, dec)
+        np.testing.assert_almost_equal(cat2r_hdf5.r, r)
+        np.testing.assert_almost_equal(cat2r_hdf5.w, w)
+        assert cat2r_hdf5.g1 is None
+        assert cat2r_hdf5.g2 is None
+        assert cat2r_hdf5.k is None
 
 @timer
 def test_field():

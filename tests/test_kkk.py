@@ -15,7 +15,6 @@ import numpy as np
 import treecorr
 import os
 import coord
-import fitsio
 
 from test_helper import do_pickle, assert_raises, timer, is_ccw, is_ccw_3d
 
@@ -93,15 +92,20 @@ def test_direct():
 
     # Check that running via the corr3 script works correctly.
     config = treecorr.config.read_config('configs/kkk_direct.yaml')
-    cat.write(config['file_name'])
-    treecorr.corr3(config)
-    data = fitsio.read(config['kkk_file_name'])
-    np.testing.assert_allclose(data['r_nom'], kkk.rnom.flatten())
-    np.testing.assert_allclose(data['u_nom'], kkk.u.flatten())
-    np.testing.assert_allclose(data['v_nom'], kkk.v.flatten())
-    np.testing.assert_allclose(data['ntri'], kkk.ntri.flatten())
-    np.testing.assert_allclose(data['weight'], kkk.weight.flatten())
-    np.testing.assert_allclose(data['zeta'], kkk.zeta.flatten(), rtol=1.e-3)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        cat.write(config['file_name'])
+        treecorr.corr3(config)
+        data = fitsio.read(config['kkk_file_name'])
+        np.testing.assert_allclose(data['r_nom'], kkk.rnom.flatten())
+        np.testing.assert_allclose(data['u_nom'], kkk.u.flatten())
+        np.testing.assert_allclose(data['v_nom'], kkk.v.flatten())
+        np.testing.assert_allclose(data['ntri'], kkk.ntri.flatten())
+        np.testing.assert_allclose(data['weight'], kkk.weight.flatten())
+        np.testing.assert_allclose(data['zeta'], kkk.zeta.flatten(), rtol=1.e-3)
 
     # Also check the cross calculation.
     # Here, we get 6x as many triangles, since each triangle is discovered 6 times.
@@ -191,21 +195,26 @@ def test_direct():
     np.testing.assert_allclose(kkk3.meanv, kkk.meanv)
     np.testing.assert_allclose(kkk3.zeta, kkk.zeta)
 
-    fits_name = 'output/kkk_fits.fits'
-    kkk.write(fits_name)
-    kkk4 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins)
-    kkk4.read(fits_name)
-    np.testing.assert_allclose(kkk4.ntri, kkk.ntri)
-    np.testing.assert_allclose(kkk4.weight, kkk.weight)
-    np.testing.assert_allclose(kkk4.meand1, kkk.meand1)
-    np.testing.assert_allclose(kkk4.meand2, kkk.meand2)
-    np.testing.assert_allclose(kkk4.meand3, kkk.meand3)
-    np.testing.assert_allclose(kkk4.meanlogd1, kkk.meanlogd1)
-    np.testing.assert_allclose(kkk4.meanlogd2, kkk.meanlogd2)
-    np.testing.assert_allclose(kkk4.meanlogd3, kkk.meanlogd3)
-    np.testing.assert_allclose(kkk4.meanu, kkk.meanu)
-    np.testing.assert_allclose(kkk4.meanv, kkk.meanv)
-    np.testing.assert_allclose(kkk4.zeta, kkk.zeta)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        fits_name = 'output/kkk_fits.fits'
+        kkk.write(fits_name)
+        kkk4 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins)
+        kkk4.read(fits_name)
+        np.testing.assert_allclose(kkk4.ntri, kkk.ntri)
+        np.testing.assert_allclose(kkk4.weight, kkk.weight)
+        np.testing.assert_allclose(kkk4.meand1, kkk.meand1)
+        np.testing.assert_allclose(kkk4.meand2, kkk.meand2)
+        np.testing.assert_allclose(kkk4.meand3, kkk.meand3)
+        np.testing.assert_allclose(kkk4.meanlogd1, kkk.meanlogd1)
+        np.testing.assert_allclose(kkk4.meanlogd2, kkk.meanlogd2)
+        np.testing.assert_allclose(kkk4.meanlogd3, kkk.meanlogd3)
+        np.testing.assert_allclose(kkk4.meanu, kkk.meanu)
+        np.testing.assert_allclose(kkk4.meanv, kkk.meanv)
+        np.testing.assert_allclose(kkk4.zeta, kkk.zeta)
 
     with assert_raises(TypeError):
         kkk2 += config
@@ -326,15 +335,20 @@ def test_direct_spherical():
 
     # Check that running via the corr3 script works correctly.
     config = treecorr.config.read_config('configs/kkk_direct_spherical.yaml')
-    cat.write(config['file_name'])
-    treecorr.corr3(config)
-    data = fitsio.read(config['kkk_file_name'])
-    np.testing.assert_allclose(data['r_nom'], kkk.rnom.flatten())
-    np.testing.assert_allclose(data['u_nom'], kkk.u.flatten())
-    np.testing.assert_allclose(data['v_nom'], kkk.v.flatten())
-    np.testing.assert_allclose(data['ntri'], kkk.ntri.flatten())
-    np.testing.assert_allclose(data['weight'], kkk.weight.flatten())
-    np.testing.assert_allclose(data['zeta'], kkk.zeta.flatten(), rtol=1.e-3)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        cat.write(config['file_name'])
+        treecorr.corr3(config)
+        data = fitsio.read(config['kkk_file_name'])
+        np.testing.assert_allclose(data['r_nom'], kkk.rnom.flatten())
+        np.testing.assert_allclose(data['u_nom'], kkk.u.flatten())
+        np.testing.assert_allclose(data['v_nom'], kkk.v.flatten())
+        np.testing.assert_allclose(data['ntri'], kkk.ntri.flatten())
+        np.testing.assert_allclose(data['weight'], kkk.weight.flatten())
+        np.testing.assert_allclose(data['zeta'], kkk.zeta.flatten(), rtol=1.e-3)
 
     # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
@@ -625,24 +639,29 @@ def test_direct_cross():
         np.testing.assert_allclose(k2.meanv, k1.meanv)
         np.testing.assert_allclose(k2.zeta, k1.zeta)
 
-    fits_name = 'output/kkkc_fits.fits'
-    kkkc.write(fits_name)
-    kkkc4 = treecorr.KKKCrossCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins)
-    kkkc4.read(fits_name)
-    for perm in ['k1k2k3', 'k1k3k2', 'k2k1k3', 'k2k3k1', 'k3k1k2', 'k3k2k1']:
-        k2 = getattr(kkkc4, perm)
-        k1 = getattr(kkkc, perm)
-        np.testing.assert_allclose(k2.ntri, k1.ntri)
-        np.testing.assert_allclose(k2.weight, k1.weight)
-        np.testing.assert_allclose(k2.meand1, k1.meand1)
-        np.testing.assert_allclose(k2.meand2, k1.meand2)
-        np.testing.assert_allclose(k2.meand3, k1.meand3)
-        np.testing.assert_allclose(k2.meanlogd1, k1.meanlogd1)
-        np.testing.assert_allclose(k2.meanlogd2, k1.meanlogd2)
-        np.testing.assert_allclose(k2.meanlogd3, k1.meanlogd3)
-        np.testing.assert_allclose(k2.meanu, k1.meanu)
-        np.testing.assert_allclose(k2.meanv, k1.meanv)
-        np.testing.assert_allclose(k2.zeta, k1.zeta)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        fits_name = 'output/kkkc_fits.fits'
+        kkkc.write(fits_name)
+        kkkc4 = treecorr.KKKCrossCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins)
+        kkkc4.read(fits_name)
+        for perm in ['k1k2k3', 'k1k3k2', 'k2k1k3', 'k2k3k1', 'k3k1k2', 'k3k2k1']:
+            k2 = getattr(kkkc4, perm)
+            k1 = getattr(kkkc, perm)
+            np.testing.assert_allclose(k2.ntri, k1.ntri)
+            np.testing.assert_allclose(k2.weight, k1.weight)
+            np.testing.assert_allclose(k2.meand1, k1.meand1)
+            np.testing.assert_allclose(k2.meand2, k1.meand2)
+            np.testing.assert_allclose(k2.meand3, k1.meand3)
+            np.testing.assert_allclose(k2.meanlogd1, k1.meanlogd1)
+            np.testing.assert_allclose(k2.meanlogd2, k1.meanlogd2)
+            np.testing.assert_allclose(k2.meanlogd3, k1.meanlogd3)
+            np.testing.assert_allclose(k2.meanu, k1.meanu)
+            np.testing.assert_allclose(k2.meanv, k1.meanv)
+            np.testing.assert_allclose(k2.zeta, k1.zeta)
 
 @timer
 def test_direct_cross12():
@@ -1217,51 +1236,57 @@ def test_kkk():
     np.testing.assert_almost_equal(corr3_output['zeta'], kkk.zeta.flatten())
 
     # Check the fits write option
-    out_file_name = os.path.join('output','kkk_out.fits')
-    kkk.write(out_file_name)
-    data = fitsio.read(out_file_name)
-    np.testing.assert_almost_equal(data['r_nom'], np.exp(kkk.logr).flatten())
-    np.testing.assert_almost_equal(data['u_nom'], kkk.u.flatten())
-    np.testing.assert_almost_equal(data['v_nom'], kkk.v.flatten())
-    np.testing.assert_almost_equal(data['meand1'], kkk.meand1.flatten())
-    np.testing.assert_almost_equal(data['meanlogd1'], kkk.meanlogd1.flatten())
-    np.testing.assert_almost_equal(data['meand2'], kkk.meand2.flatten())
-    np.testing.assert_almost_equal(data['meanlogd2'], kkk.meanlogd2.flatten())
-    np.testing.assert_almost_equal(data['meand3'], kkk.meand3.flatten())
-    np.testing.assert_almost_equal(data['meanlogd3'], kkk.meanlogd3.flatten())
-    np.testing.assert_almost_equal(data['meanu'], kkk.meanu.flatten())
-    np.testing.assert_almost_equal(data['meanv'], kkk.meanv.flatten())
-    np.testing.assert_almost_equal(data['zeta'], kkk.zeta.flatten())
-    np.testing.assert_almost_equal(data['sigma_zeta'], np.sqrt(kkk.varzeta.flatten()))
-    np.testing.assert_almost_equal(data['weight'], kkk.weight.flatten())
-    np.testing.assert_almost_equal(data['ntri'], kkk.ntri.flatten())
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        out_file_name = os.path.join('output','kkk_out.fits')
+        kkk.write(out_file_name)
+        data = fitsio.read(out_file_name)
+        np.testing.assert_almost_equal(data['r_nom'], np.exp(kkk.logr).flatten())
+        np.testing.assert_almost_equal(data['u_nom'], kkk.u.flatten())
+        np.testing.assert_almost_equal(data['v_nom'], kkk.v.flatten())
+        np.testing.assert_almost_equal(data['meand1'], kkk.meand1.flatten())
+        np.testing.assert_almost_equal(data['meanlogd1'], kkk.meanlogd1.flatten())
+        np.testing.assert_almost_equal(data['meand2'], kkk.meand2.flatten())
+        np.testing.assert_almost_equal(data['meanlogd2'], kkk.meanlogd2.flatten())
+        np.testing.assert_almost_equal(data['meand3'], kkk.meand3.flatten())
+        np.testing.assert_almost_equal(data['meanlogd3'], kkk.meanlogd3.flatten())
+        np.testing.assert_almost_equal(data['meanu'], kkk.meanu.flatten())
+        np.testing.assert_almost_equal(data['meanv'], kkk.meanv.flatten())
+        np.testing.assert_almost_equal(data['zeta'], kkk.zeta.flatten())
+        np.testing.assert_almost_equal(data['sigma_zeta'], np.sqrt(kkk.varzeta.flatten()))
+        np.testing.assert_almost_equal(data['weight'], kkk.weight.flatten())
+        np.testing.assert_almost_equal(data['ntri'], kkk.ntri.flatten())
 
-    # Check the read function
-    # Note: These don't need the flatten. The read function should reshape them to the right shape.
-    kkk2 = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                   nubins=nubins, nvbins=nvbins,
-                                   sep_units='arcmin', verbose=1)
-    kkk2.read(out_file_name)
-    np.testing.assert_almost_equal(kkk2.logr, kkk.logr)
-    np.testing.assert_almost_equal(kkk2.u, kkk.u)
-    np.testing.assert_almost_equal(kkk2.v, kkk.v)
-    np.testing.assert_almost_equal(kkk2.meand1, kkk.meand1)
-    np.testing.assert_almost_equal(kkk2.meanlogd1, kkk.meanlogd1)
-    np.testing.assert_almost_equal(kkk2.meand2, kkk.meand2)
-    np.testing.assert_almost_equal(kkk2.meanlogd2, kkk.meanlogd2)
-    np.testing.assert_almost_equal(kkk2.meand3, kkk.meand3)
-    np.testing.assert_almost_equal(kkk2.meanlogd3, kkk.meanlogd3)
-    np.testing.assert_almost_equal(kkk2.meanu, kkk.meanu)
-    np.testing.assert_almost_equal(kkk2.meanv, kkk.meanv)
-    np.testing.assert_almost_equal(kkk2.zeta, kkk.zeta)
-    np.testing.assert_almost_equal(kkk2.varzeta, kkk.varzeta)
-    np.testing.assert_almost_equal(kkk2.weight, kkk.weight)
-    np.testing.assert_almost_equal(kkk2.ntri, kkk.ntri)
-    assert kkk2.coords == kkk.coords
-    assert kkk2.metric == kkk.metric
-    assert kkk2.sep_units == kkk.sep_units
-    assert kkk2.bin_type == kkk.bin_type
+        # Check the read function
+        # Note: These don't need the flatten.
+        # The read function should reshape them to the right shape.
+        kkk2 = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                       min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
+                                       nubins=nubins, nvbins=nvbins,
+                                       sep_units='arcmin', verbose=1)
+        kkk2.read(out_file_name)
+        np.testing.assert_almost_equal(kkk2.logr, kkk.logr)
+        np.testing.assert_almost_equal(kkk2.u, kkk.u)
+        np.testing.assert_almost_equal(kkk2.v, kkk.v)
+        np.testing.assert_almost_equal(kkk2.meand1, kkk.meand1)
+        np.testing.assert_almost_equal(kkk2.meanlogd1, kkk.meanlogd1)
+        np.testing.assert_almost_equal(kkk2.meand2, kkk.meand2)
+        np.testing.assert_almost_equal(kkk2.meanlogd2, kkk.meanlogd2)
+        np.testing.assert_almost_equal(kkk2.meand3, kkk.meand3)
+        np.testing.assert_almost_equal(kkk2.meanlogd3, kkk.meanlogd3)
+        np.testing.assert_almost_equal(kkk2.meanu, kkk.meanu)
+        np.testing.assert_almost_equal(kkk2.meanv, kkk.meanv)
+        np.testing.assert_almost_equal(kkk2.zeta, kkk.zeta)
+        np.testing.assert_almost_equal(kkk2.varzeta, kkk.varzeta)
+        np.testing.assert_almost_equal(kkk2.weight, kkk.weight)
+        np.testing.assert_almost_equal(kkk2.ntri, kkk.ntri)
+        assert kkk2.coords == kkk.coords
+        assert kkk2.metric == kkk.metric
+        assert kkk2.sep_units == kkk.sep_units
+        assert kkk2.bin_type == kkk.bin_type
 
 if __name__ == '__main__':
     test_direct()

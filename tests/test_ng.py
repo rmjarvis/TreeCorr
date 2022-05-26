@@ -106,7 +106,7 @@ def test_direct():
         del config['file_name2']
         with assert_raises(TypeError):
             treecorr.corr2(config)
-        config['file_name2'] = 'data/ng_direct_cat2.dat'
+        config['file_name2'] = 'data/ng_direct_cat2.fits'
         # Invalid to request compoensated if no rand_file
         config['ng_statistic'] = 'compensated'
         with assert_raises(TypeError):

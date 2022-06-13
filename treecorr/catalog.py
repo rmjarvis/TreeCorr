@@ -673,6 +673,10 @@ class Catalog(object):
             self._patch = self.makeArray(patch,'patch',int)
             if self._patch is not None:
                 self._set_npatch()
+            if self._x is not None:
+                self._apply_xyz_units()
+            if self._ra is not None:
+                self._apply_radec_units()
 
             # Check that all columns have the same length.  (This is impossible in file input)
             if self._x is not None:
@@ -951,9 +955,6 @@ class Catalog(object):
         self.checkForNaN(self._w,'w')
         self.checkForNaN(self._wpos,'wpos')
 
-        # Apply units as appropriate
-        self._apply_units()
-
         # If using ra/dec, generate x,y,z
         # Note: This also makes self.ntot work properly.
         self._generate_xyz()
@@ -1059,18 +1060,17 @@ class Catalog(object):
             use = slice(None)  # Which ironically means use all. :)
         return use
 
-    def _apply_units(self):
-        # Apply units to x,y,ra,dec
-        if self._ra is not None:
-            self.ra_units = get_from_list(self.config,'ra_units',self._num)
-            self.dec_units = get_from_list(self.config,'dec_units',self._num)
-            self._ra *= self.ra_units
-            self._dec *= self.dec_units
-        else:
-            self.x_units = get_from_list(self.config,'x_units',self._num,str, 'radians')
-            self.y_units = get_from_list(self.config,'y_units',self._num,str, 'radians')
-            self._x *= self.x_units
-            self._y *= self.y_units
+    def _apply_radec_units(self):
+        self.ra_units = get_from_list(self.config,'ra_units',self._num)
+        self.dec_units = get_from_list(self.config,'dec_units',self._num)
+        self._ra *= self.ra_units
+        self._dec *= self.dec_units
+
+    def _apply_xyz_units(self):
+        self.x_units = get_from_list(self.config,'x_units',self._num,str, 'radians')
+        self.y_units = get_from_list(self.config,'y_units',self._num,str, 'radians')
+        self._x *= self.x_units
+        self._y *= self.y_units
 
     def _generate_xyz(self):
         if self._x is None:
@@ -1315,6 +1315,7 @@ class Catalog(object):
                 if z_col != '0':
                     self._z = data[z_col].astype(float)
                     self.logger.debug('read z')
+                self._apply_xyz_units()
             if ra_col != '0' and ra_col in data:
                 self._ra = data[ra_col].astype(float)
                 self.logger.debug('read ra')
@@ -1323,6 +1324,7 @@ class Catalog(object):
                 if r_col != '0':
                     self._r = data[r_col].astype(float)
                     self.logger.debug('read r')
+                self._apply_radec_units()
 
         def set_patch(data, patch_col):
             if patch_col != '0' and patch_col in data:
@@ -1424,6 +1426,7 @@ class Catalog(object):
                         for c in use_cols1:
                             data[c] = data1[c]
                     set_pos(data, x_col, y_col, z_col, ra_col, dec_col, r_col)
+                    x_col = y_col = z_col = ra_col = dec_col = r_col = '0'
                 use = self._get_patch_index(self._single_patch)
                 self.select(use)
                 if isinstance(s,np.ndarray):
@@ -2009,7 +2012,10 @@ class Catalog(object):
         file_names = self.get_patch_file_names(save_patch_dir)
         for i, p, file_name in zip(range(self.npatch), self.patches, file_names):
             self.logger.info('Writing patch %d to %s',i,file_name)
-            cols = p.write(file_name)
+            if p.ra is not None:
+                # Don't multiply and divide by the units on round trip.
+                p.ra_units = p.dec_units = 1
+            p.write(file_name)
 
     def read_patches(self, save_patch_dir=None):
         """Read the patches from files on disk.

@@ -1933,15 +1933,17 @@ def test_save_patches():
     y = rng.normal(0,s, (ngal,) ) + 100  # Put everything at large y, so smallish angle on sky
     z = rng.normal(0,s, (ngal,) )
     ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
+    ra *= 180./np.pi
+    dec *= 180./np.pi
 
     file_name = os.path.join('output','test_save_patches.fits')
-    cat0 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad')
+    cat0 = treecorr.Catalog(ra=ra, dec=dec, ra_units='deg', dec_units='deg')
     cat0.write(file_name)
 
 
     # When catalog has explicit ra, dec, etc., then file names are patch000.fits, ...
     clear_save('patch%03d.fits', npatch)
-    cat1 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=npatch,
+    cat1 = treecorr.Catalog(ra=ra, dec=dec, ra_units='deg', dec_units='deg', npatch=npatch,
                             save_patch_dir='output')
     assert len(cat1.patches) == npatch
     for i in range(npatch):
@@ -1956,7 +1958,7 @@ def test_save_patches():
 
     # When catalog is a file, then base name off of given file_name.
     clear_save('test_save_patches_%03d.fits', npatch)
-    cat2 = treecorr.Catalog(file_name, ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
+    cat2 = treecorr.Catalog(file_name, ra_col='ra', dec_col='dec', ra_units='deg', dec_units='deg',
                             npatch=npatch, save_patch_dir='output')
     assert not cat2.loaded
     cat2.get_patches(low_mem=True)
@@ -1983,7 +1985,7 @@ def test_save_patches():
         cat0.write(file_name)
         # And also try to match the type if HDF
         clear_save('test_save_patches_%03d.hdf5', npatch)
-        cat2 = treecorr.Catalog(file_name, ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
+        cat2 = treecorr.Catalog(file_name, ra_col='ra', dec_col='dec', ra_units='deg', dec_units='deg',
                                 npatch=npatch, save_patch_dir='output')
         assert not cat2.loaded
         cat2.get_patches(low_mem=True)
@@ -2577,9 +2579,11 @@ def test_lowmem():
     y = rng.uniform(80,120, (ngal,) )  # Put everything at large y, so smallish angle on sky
     z = rng.uniform(-20,20, (ngal,) )
     ra, dec, r = coord.CelestialCoord.xyz_to_radec(x,y,z, return_r=True)
+    ra *= 180./np.pi  # -> deg
+    dec *= 180./np.pi
 
     file_name = os.path.join('output','test_lowmem.fits')
-    orig_cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad')
+    orig_cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='deg', dec_units='deg')
     orig_cat.write(file_name)
     del orig_cat
 
@@ -2591,14 +2595,14 @@ def test_lowmem():
         hp = None
 
     partial_cat = treecorr.Catalog(file_name, every_nth=100,
-                                   ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
+                                   ra_col='ra', dec_col='dec', ra_units='deg', dec_units='deg',
                                    npatch=npatch)
 
     patch_centers = partial_cat.patch_centers
     del partial_cat
 
     full_cat = treecorr.Catalog(file_name,
-                                ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
+                                ra_col='ra', dec_col='dec', ra_units='deg', dec_units='deg',
                                 patch_centers=patch_centers)
 
     dd = treecorr.NNCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
@@ -2619,7 +2623,7 @@ def test_lowmem():
     # Remake with save_patch_dir.
     clear_save('test_lowmem_%03d.fits', npatch)
     save_cat = treecorr.Catalog(file_name,
-                                ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
+                                ra_col='ra', dec_col='dec', ra_units='deg', dec_units='deg',
                                 patch_centers=patch_centers, save_patch_dir='output')
 
     t0 = time.time()
@@ -2651,7 +2655,7 @@ def test_lowmem():
     g2 = rng.uniform(-0.1,0.1, (ngal//100,) )
     k = rng.uniform(-0.1,0.1, (ngal//100,) )
     gk_cat0 = treecorr.Catalog(ra=ra[:ngal//100], dec=dec[:ngal//100], r=r[:ngal//100],
-                               ra_units='rad', dec_units='rad',
+                               ra_units='deg', dec_units='deg',
                                g1=g1, g2=g2, k=k,
                                npatch=4)
     patch_centers = gk_cat0.patch_centers
@@ -2669,11 +2673,11 @@ def test_lowmem():
     # First GG with normal ra,dec from a file
     clear_save('test_lowmem_gk_%03d.fits', npatch)
     gk_cat1 = treecorr.Catalog(file_name,
-                               ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
+                               ra_col='ra', dec_col='dec', ra_units='deg', dec_units='deg',
                                g1_col='g1', g2_col='g2', k_col='k',
                                patch_centers=patch_centers)
     gk_cat2 = treecorr.Catalog(file_name,
-                               ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
+                               ra_col='ra', dec_col='dec', ra_units='deg', dec_units='deg',
                                g1_col='g1', g2_col='g2', k_col='k',
                                patch_centers=patch_centers, save_patch_dir='output')
 
@@ -2720,11 +2724,11 @@ def test_lowmem():
     # KK with r_col now to test that that works properly.
     clear_save('test_lowmem_gk_%03d.fits', npatch)
     gk_cat1 = treecorr.Catalog(file_name,
-                               ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
+                               ra_col='ra', dec_col='dec', ra_units='deg', dec_units='deg',
                                r_col='r', g1_col='g1', g2_col='g2', k_col='k',
                                patch_centers=patch_centers)
     gk_cat2 = treecorr.Catalog(file_name,
-                               ra_col='ra', dec_col='dec', ra_units='rad', dec_units='rad',
+                               ra_col='ra', dec_col='dec', ra_units='deg', dec_units='deg',
                                r_col='r', g1_col='g1', g2_col='g2', k_col='k',
                                patch_centers=patch_centers, save_patch_dir='output')
 
@@ -2751,11 +2755,11 @@ def test_lowmem():
     clear_save('patch%03d.fits', npatch)
     gk_cat1 = treecorr.Catalog(ra=ra[:ngal//100], dec=dec[:ngal//100], r=r[:ngal//100],
                                g1=g1[:ngal//100], g2=g2[:ngal//100], k=k[:ngal//100],
-                               ra_units='rad', dec_units='rad',
+                               ra_units='deg', dec_units='deg',
                                patch_centers=patch_centers)
     gk_cat2 = treecorr.Catalog(ra=ra[:ngal//100], dec=dec[:ngal//100], r=r[:ngal//100],
                                g1=g1[:ngal//100], g2=g2[:ngal//100], k=k[:ngal//100],
-                               ra_units='rad', dec_units='rad',
+                               ra_units='deg', dec_units='deg',
                                patch_centers=patch_centers, save_patch_dir='output')
 
     nk1 = treecorr.NKCorrelation(bin_size=0.5, min_sep=1., max_sep=20.)
@@ -2781,11 +2785,11 @@ def test_lowmem():
     clear_save('patch%03d.fits', npatch)
     gk_cat1 = treecorr.Catalog(ra=ra[:ngal//100], dec=dec[:ngal//100],
                                g1=g1[:ngal//100], g2=g2[:ngal//100], k=k[:ngal//100],
-                               ra_units='rad', dec_units='rad',
+                               ra_units='deg', dec_units='deg',
                                patch_centers=patch_centers)
     gk_cat2 = treecorr.Catalog(ra=ra[:ngal//100], dec=dec[:ngal//100],
                                g1=g1[:ngal//100], g2=g2[:ngal//100], k=k[:ngal//100],
-                               ra_units='rad', dec_units='rad',
+                               ra_units='deg', dec_units='deg',
                                patch_centers=patch_centers, save_patch_dir='output')
 
     kg1 = treecorr.KGCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')

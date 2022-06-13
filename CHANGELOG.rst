@@ -134,3 +134,9 @@ Changes from version 4.2.7 to 4.2.8
 
 - Fixed a bug in the calculation of jackknife and sample variance when only the second
   catalog in a cross-correlation uses patches.
+
+Changes from version 4.2.8 to 4.2.9
+===================================
+
+- Fixed a error in the low_mem calculation when ra_units and/or dec_units are not
+  radians. Thanks to Chun-Hao To for the bug report. (#144)

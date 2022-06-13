@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Patches &mdash; TreeCorr 4.2.8 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <title>Patches &mdash; TreeCorr 4.2.9 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
@@ -66,6 +66,7 @@
 <li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-2-5-to-4-2-6">Changes from version 4.2.5 to 4.2.6</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-2-6-to-4-2-7">Changes from version 4.2.6 to 4.2.7</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-2-7-to-4-2-8">Changes from version 4.2.7 to 4.2.8</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-2-8-to-4-2-9">Changes from version 4.2.8 to 4.2.9</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -398,7 +399,7 @@ parameter.  When running in an MPI job, you can pass in <code class="docutils li
 and TreeCorr will divide up the work among however many nodes you are using.
 The results will be sent back the the rank 0 node and combined to produce the
 complete answer:</p>
-<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
+<div class="highlight-python notranslate"><div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
 <span class="normal"> 2</span>
 <span class="normal"> 3</span>
 <span class="normal"> 4</span>
@@ -421,7 +422,7 @@ complete answer:</p>
 <span class="normal">21</span>
 <span class="normal">22</span>
 <span class="normal">23</span>
-<span class="normal">24</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="c1"># File name: run_with_mpi.py</span>
+<span class="normal">24</span></pre></div></td><td class="code"><div><pre><span></span><span class="c1"># File name: run_with_mpi.py</span>
 <span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span>
 <span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
 <span class="n">rank</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
@@ -445,8 +446,8 @@ complete answer:</p>
 <span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
     <span class="c1"># Probably do something more interesting with this now...</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;xip = &#39;</span><span class="p">,</span><span class="n">gg</span><span class="o">.</span><span class="n">xip</span><span class="p">)</span>
-</pre></div>
-</td></tr></table></div>
+</pre></div></td></tr></table></div>
+</div>
 <p>You would then run this script using (e.g. with 4 processes):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ mpiexec -n 4 python run_with_mpi.py
 </pre></div>

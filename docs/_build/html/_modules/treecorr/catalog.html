@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>treecorr.catalog &mdash; TreeCorr 4.2.8 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <title>treecorr.catalog &mdash; TreeCorr 4.2.9 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
@@ -56,6 +56,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-5-to-4-2-6">Changes from version 4.2.5 to 4.2.6</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-6-to-4-2-7">Changes from version 4.2.6 to 4.2.7</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-7-to-4-2-8">Changes from version 4.2.7 to 4.2.8</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-2-8-to-4-2-9">Changes from version 4.2.8 to 4.2.9</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
 
@@ -757,6 +758,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_patch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">makeArray</span><span class="p">(</span><span class="n">patch</span><span class="p">,</span><span class="s1">&#39;patch&#39;</span><span class="p">,</span><span class="nb">int</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_patch</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_set_npatch</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_apply_xyz_units</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ra</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_apply_radec_units</span><span class="p">()</span>
 
             <span class="c1"># Check that all columns have the same length.  (This is impossible in file input)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1035,9 +1040,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">checkForNaN</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_w</span><span class="p">,</span><span class="s1">&#39;w&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">checkForNaN</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_wpos</span><span class="p">,</span><span class="s1">&#39;wpos&#39;</span><span class="p">)</span>
 
-        <span class="c1"># Apply units as appropriate</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_apply_units</span><span class="p">()</span>
-
         <span class="c1"># If using ra/dec, generate x,y,z</span>
         <span class="c1"># Note: This also makes self.ntot work properly.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_generate_xyz</span><span class="p">()</span>
@@ -1139,18 +1141,17 @@
             <span class="n">use</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># Which ironically means use all. :)</span>
         <span class="k">return</span> <span class="n">use</span>
 
-    <span class="k">def</span> <span class="nf">_apply_units</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Apply units to x,y,ra,dec</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ra</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">ra_units</span> <span class="o">=</span> <span class="n">get_from_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;ra_units&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_num</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">dec_units</span> <span class="o">=</span> <span class="n">get_from_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;dec_units&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_num</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_ra</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ra_units</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_dec</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dec_units</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">x_units</span> <span class="o">=</span> <span class="n">get_from_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;x_units&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_num</span><span class="p">,</span><span class="nb">str</span><span class="p">,</span> <span class="s1">&#39;radians&#39;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">y_units</span> <span class="o">=</span> <span class="n">get_from_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;y_units&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_num</span><span class="p">,</span><span class="nb">str</span><span class="p">,</span> <span class="s1">&#39;radians&#39;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_x</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_units</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_y</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_units</span>
+    <span class="k">def</span> <span class="nf">_apply_radec_units</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ra_units</span> <span class="o">=</span> <span class="n">get_from_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;ra_units&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_num</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dec_units</span> <span class="o">=</span> <span class="n">get_from_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;dec_units&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_num</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ra</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ra_units</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dec</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dec_units</span>
+
+    <span class="k">def</span> <span class="nf">_apply_xyz_units</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_units</span> <span class="o">=</span> <span class="n">get_from_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;x_units&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_num</span><span class="p">,</span><span class="nb">str</span><span class="p">,</span> <span class="s1">&#39;radians&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_units</span> <span class="o">=</span> <span class="n">get_from_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;y_units&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_num</span><span class="p">,</span><span class="nb">str</span><span class="p">,</span> <span class="s1">&#39;radians&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_x</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_units</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_y</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_units</span>
 
     <span class="k">def</span> <span class="nf">_generate_xyz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1390,6 +1391,7 @@
                 <span class="k">if</span> <span class="n">z_col</span> <span class="o">!=</span> <span class="s1">&#39;0&#39;</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_z</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">z_col</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;read z&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_apply_xyz_units</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">ra_col</span> <span class="o">!=</span> <span class="s1">&#39;0&#39;</span> <span class="ow">and</span> <span class="n">ra_col</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_ra</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">ra_col</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;read ra&#39;</span><span class="p">)</span>
@@ -1398,6 +1400,7 @@
                 <span class="k">if</span> <span class="n">r_col</span> <span class="o">!=</span> <span class="s1">&#39;0&#39;</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_r</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">r_col</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;read r&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_apply_radec_units</span><span class="p">()</span>
 
         <span class="k">def</span> <span class="nf">set_patch</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">patch_col</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">patch_col</span> <span class="o">!=</span> <span class="s1">&#39;0&#39;</span> <span class="ow">and</span> <span class="n">patch_col</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
@@ -1499,6 +1502,7 @@
                         <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">use_cols1</span><span class="p">:</span>
                             <span class="n">data</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">data1</span><span class="p">[</span><span class="n">c</span><span class="p">]</span>
                     <span class="n">set_pos</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">x_col</span><span class="p">,</span> <span class="n">y_col</span><span class="p">,</span> <span class="n">z_col</span><span class="p">,</span> <span class="n">ra_col</span><span class="p">,</span> <span class="n">dec_col</span><span class="p">,</span> <span class="n">r_col</span><span class="p">)</span>
+                    <span class="n">x_col</span> <span class="o">=</span> <span class="n">y_col</span> <span class="o">=</span> <span class="n">z_col</span> <span class="o">=</span> <span class="n">ra_col</span> <span class="o">=</span> <span class="n">dec_col</span> <span class="o">=</span> <span class="n">r_col</span> <span class="o">=</span> <span class="s1">&#39;0&#39;</span>
                 <span class="n">use</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_patch_index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_single_patch</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">use</span><span class="p">)</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
@@ -2062,7 +2066,10 @@
         <span class="n">file_names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_patch_file_names</span><span class="p">(</span><span class="n">save_patch_dir</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">file_name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npatch</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">patches</span><span class="p">,</span> <span class="n">file_names</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Writing patch </span><span class="si">%d</span><span class="s1"> to </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">file_name</span><span class="p">)</span>
-            <span class="n">cols</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span></div>
+            <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">ra</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Don&#39;t multiply and divide by the units on round trip.</span>
+                <span class="n">p</span><span class="o">.</span><span class="n">ra_units</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">dec_units</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Catalog.read_patches"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.read_patches">[docs]</a>    <span class="k">def</span> <span class="nf">read_patches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_patch_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Read the patches from files on disk.</span>

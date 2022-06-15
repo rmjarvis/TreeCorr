@@ -6,8 +6,14 @@ See the listing below for the complete list of new features and changes.
 <https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+4.3%22+is%3Aclosed>`_
 whose issue numbers are listed below for the relevant items.
 
-Starting with this version, TreeCorr no longer supports Python 2.7.
-We currently support python versions 3.6, 3.7, 3,8, 3.9, 3.10.
+System Support Changes
+----------------------
+
+- Starting with this version, TreeCorr no longer supports Python 2.7.
+  We currently support Python versions 3.6, 3.7, 3,8, 3.9, 3.10.
+
+- We now support Windows machines, which we hadn't before this.  Code is now regularly
+  tested on ubuntu, macos and windows. (#143)
 
 
 API Changes

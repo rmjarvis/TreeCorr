@@ -669,6 +669,9 @@ def test_gg_jk():
     np.testing.assert_allclose(gg2.estimate_cov('shot'),
                                np.diag(np.concatenate([gg2.varxip, gg2.varxim])))
 
+    with assert_raises(ValueError):
+        gg2.build_cov_design_matrix('shot')
+
     # Now run with jackknife variance estimate.  Should be much better.
     gg3 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife',
                                  rng=rng)
@@ -702,6 +705,12 @@ def test_gg_jk():
     # And can even get the jackknife covariance from a run that used var_method='shot'
     np.testing.assert_allclose(gg2.estimate_cov('jackknife'), gg3.cov)
 
+    # Test design matrix
+    A, w = gg2.build_cov_design_matrix('jackknife')
+    A -= np.mean(A, axis=0)
+    C = (1-1/npatch) * A.conj().T.dot(A)
+    np.testing.assert_allclose(C, gg3.cov)
+
     # Check that cross-covariance between xip and xim is significant.
     n = gg3.nbins
     print('cross covariance = ',gg3.cov[:n,n:],np.sum(gg3.cov[n:,n:]**2))
@@ -723,6 +732,12 @@ def test_gg_jk():
     np.testing.assert_allclose(cov23[:2*n,2*n:], gg3.cov)
     np.testing.assert_allclose(cov23[2*n:,:2*n], gg3.cov)
 
+    # Test design matrix
+    A, w = treecorr.build_multi_cov_design_matrix([gg2,gg3], 'jackknife')
+    A -= np.mean(A, axis=0)
+    C = (1-1/npatch) * A.conj().T.dot(A)
+    np.testing.assert_allclose(C, cov23)
+
     # Repeat with bootstraps, who used to have a bug related to this
     for method in ['sample', 'marked_bootstrap', 'bootstrap']:
         t0 = time.time()
@@ -741,6 +756,12 @@ def test_gg_jk():
     np.testing.assert_allclose(cov23_alt[n:2*n,n:2*n], gg3.cov[:n,:n])
     np.testing.assert_allclose(cov23_alt[2*n:3*n,2*n:3*n], gg3.cov[n:,n:])
     np.testing.assert_allclose(cov23_alt[3*n:4*n,3*n:4*n], gg3.cov[n:,n:])
+
+    # Test design matrix
+    A, w = treecorr.build_multi_cov_design_matrix([gg2,gg3], 'jackknife', func=func)
+    A -= np.mean(A, axis=0)
+    C = (1-1/npatch) * A.conj().T.dot(A)
+    np.testing.assert_allclose(C, cov23_alt)
 
     # Check a func that changes the stat length
     func = lambda corrs: corrs[0].xip + corrs[1].xip
@@ -767,9 +788,17 @@ def test_gg_jk():
     np.testing.assert_allclose(cov_sample.diagonal()[:n], var_xip, rtol=0.5*tol_factor)
     np.testing.assert_allclose(cov_sample.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
 
+    # Test design matrix
+    A, w = gg2.build_cov_design_matrix('sample')
+    w /= np.sum(w)
+    A -= np.mean(A, axis=0)
+    C = 1./(npatch-1) * (w*A.conj().T).dot(A)
+    np.testing.assert_allclose(C, cov_sample)
+
     # Check marked-point bootstrap covariance estimate
     treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='marked_bootstrap')
     t0 = time.time()
+    rng_state = gg3.rng.get_state()
     cov_boot = gg3.estimate_cov('marked_bootstrap')
     t1 = time.time()
     print('Time to calculate marked_bootstrap covariance = ',t1-t0)
@@ -781,9 +810,18 @@ def test_gg_jk():
     np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.5*tol_factor)
     np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
 
+    # Test design matrix
+    gg2.rng.set_state(rng_state)
+    A, w = gg2.build_cov_design_matrix('marked_bootstrap')
+    nboot = A.shape[0]
+    A -= np.mean(A, axis=0)
+    C = 1./(nboot-1) * A.conj().T.dot(A)
+    np.testing.assert_allclose(C, cov_boot)
+
     # Check bootstrap covariance estimate.
     treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='bootstrap')
     t0 = time.time()
+    rng_state = gg3.rng.get_state()
     cov_boot = gg3.estimate_cov('bootstrap')
     t1 = time.time()
     print('Time to calculate bootstrap covariance = ',t1-t0)
@@ -793,6 +831,14 @@ def test_gg_jk():
     print('ratio = ',cov_boot.diagonal()[n:] / var_xim)
     np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.3*tol_factor)
     np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
+
+    # Test design matrix
+    gg2.rng.set_state(rng_state)
+    A, w = gg2.build_cov_design_matrix('bootstrap')
+    nboot = A.shape[0]
+    A -= np.mean(A, axis=0)
+    C = 1./(nboot-1) * A.conj().T.dot(A)
+    np.testing.assert_allclose(C, cov_boot)
 
     # Check that these still work after roundtripping through a file.
     file_name = os.path.join('output','test_write_results_gg.pkl')

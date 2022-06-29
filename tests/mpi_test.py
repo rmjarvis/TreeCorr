@@ -252,15 +252,24 @@ def do_mpi_cov(comm, method, output=True):
     nn.calculateXi(rr=rr)
 
     corrs = [gg, ng, nn]
+    gg_func = lambda corr: corr.calculateMapSq()[0]
 
     # Get the baseline single process covariance
     if comm.rank == 0:
         if output:
             print(comm.rank, "Single process covariance")
         cov1 = treecorr.estimate_multi_cov(corrs, method)
+        A1, w1 = treecorr.build_multi_cov_design_matrix(corrs, method)
+        cov1b = gg.estimate_cov(method, func=gg_func)
+        A1b, w1b = gg.build_cov_design_matrix(method, func=gg_func)
     else:
-        cov1 = None
+        cov1 = A1 = w1 = cov1b = A1b = w1b = None
     cov1 = comm.bcast(cov1)
+    A1 = comm.bcast(A1)
+    w1 = comm.bcast(w1)
+    cov1b = comm.bcast(cov1b)
+    A1b = comm.bcast(A1b)
+    w1b = comm.bcast(w1b)
 
     if output:
         print("\nCOV 1 \n", cov1[0:3,0:3], " for rank ", comm.rank, " of ", comm.size)
@@ -306,7 +315,14 @@ def do_mpi_cov(comm, method, output=True):
 
     np.testing.assert_allclose(cov1, cov2, atol=tol)
 
+    A2, w2 = treecorr.build_multi_cov_design_matrix(corrs, method, comm=comm)
+    np.testing.assert_allclose(A1, A2, atol=tol)
+    np.testing.assert_allclose(w1, w2, atol=tol)
 
+    cov2b = gg.estimate_cov(method, func=gg_func, comm=comm)
+    A2b, w2b = gg.build_cov_design_matrix(method, func=gg_func, comm=comm)
+    np.testing.assert_allclose(A1b, A2b, atol=tol)
+    np.testing.assert_allclose(w1b, w2b, atol=tol)
 
 
 if __name__ == '__main__':

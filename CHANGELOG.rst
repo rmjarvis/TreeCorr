@@ -39,6 +39,7 @@ New features
   (#141)
 - Allow None as a configuration parameter to be equivalent to not specifying a parameter.
   E.g. ``bin_size=0.1, min_sep=1., max_sep=100., nbins=None`` is allowed now. (#142)
+- Add `BinnedCorr2.build_cov_design_matrix` and `build_multi_cov_design_matrix` functions (#132)
 
 Bug fixes
 ---------

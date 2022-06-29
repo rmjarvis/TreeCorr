@@ -824,7 +824,7 @@ class BinnedCorr2(object):
         return self.weight.ravel()
 
     @depr_pos_kwargs
-    def estimate_cov(self, method, *, func=None):
+    def estimate_cov(self, method, *, func=None, comm=None):
         """Estimate the covariance matrix based on the data
 
         This function will calculate an estimate of the covariance matrix according to the
@@ -846,7 +846,8 @@ class BinnedCorr2(object):
             - 'marked_bootstrap' = An estimate based on a marked-point bootstrap resampling of the
               patches.  Similar to bootstrap, but only samples the patches of the first catalog and
               uses all patches from the second catalog that correspond to each patch selection of
-              the first catalog.  cf. https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/
+              the first catalog.  Based on the algorithm presented in Loh (2008).
+              cf. https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/
 
         Both 'bootstrap' and 'marked_bootstrap' use the num_bootstrap parameter, which can be set on
         construction.
@@ -883,11 +884,16 @@ class BinnedCorr2(object):
             The optional ``func`` parameter is not valid in conjunction with ``method='shot'``.
             It only works for the methods that are based on patch combinations.
 
+        This function can be parallelized by passing the comm argument as an mpi4py communicator
+        to parallelize using that.  For MPI, all processes should have the same inputs.
+        If method == "shot" then parallelization has no effect.
+
         Parameters:
             method (str):       Which method to use to estimate the covariance matrix.
             func (function):    A unary function that acts on the current correlation object and
                                 returns the desired data vector. [default: None, which is
                                 equivalent to ``lambda corr: corr.getStat()``.
+            comm (mpi comm)     If not None, run under MPI
 
         Returns:
             A numpy array with the estimated covariance matrix.
@@ -897,7 +903,50 @@ class BinnedCorr2(object):
             all_func = lambda corrs: func(corrs[0])
         else:
             all_func = None
-        return estimate_multi_cov([self], method=method, func=all_func)
+        return estimate_multi_cov([self], method=method, func=all_func, comm=comm)
+
+    def build_cov_design_matrix(self, method, *, func=None, comm=None):
+        """Build the design matrix that is used for estimating the covariance matrix.
+
+        The design matrix for patch-based covariance estimates is a matrix where each row
+        corresponds to a different estimate of the data vector, :math:`\\xi_i` (or
+        :math:`f(\\xi_i)` if using the optional ``func`` parameter).
+
+        The different of rows in the matrix for each valid ``method`` are:
+
+            - 'shot': This method is not valid here.
+            - 'jackknife': The data vector when excluding a single patch.
+            - 'sample': The data vector using only a single patch for the first catalog.
+            - 'bootstrap': The data vector for a random resampling of the patches keeping the
+              sample total number, but allowing some to repeat.  Cross terms from repeated patches
+              are excluded (since they are really auto terms).
+            - 'marked_bootstrap': The data vector for a random resampling of patches in the first
+              catalog, using all patches for the second catalog.  Based on the algorithm in
+              Loh(2008).
+
+        See `estimate_cov` for more details.
+
+        The return value includes both the design matrix and a vector of weights (the total weight
+        array in the computed correlation functions).  The weights are used for the sample method
+        when estimating the covariance matrix.  The other methods ignore them, but they are provided
+        here in case they are useful.
+
+        Parameters:
+            method (str):       Which method to use to estimate the covariance matrix.
+            func (function):    A unary function that takes the list ``corrs`` and returns the
+                                desired full data vector. [default: None, which is equivalent to
+                                ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``]
+            comm (mpi comm)     If not None, run under MPI
+
+        Returns:
+            A, w: numpy arrays with the design matrix and weights respectively.
+        """
+        if func is not None:
+            # Need to convert it to a function of the first item in the list.
+            all_func = lambda corrs: func(corrs[0])
+        else:
+            all_func = None
+        return build_multi_cov_design_matrix([self], method=method, func=all_func, comm=comm)
 
     def _set_num_threads(self, num_threads):
         if num_threads is None:
@@ -1314,7 +1363,8 @@ def estimate_multi_cov(corrs, method, *, func=None, comm=None):
         - 'marked_bootstrap' = An estimate based on a marked-point bootstrap resampling of the
           patches.  Similar to bootstrap, but only samples the patches of the first catalog and
           uses all patches from the second catalog that correspond to each patch selection of
-          the first catalog.  cf. https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/
+          the first catalog.  Based on the algorithm presented in Loh (2008).
+          cf. https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/
 
     Both 'bootstrap' and 'marked_bootstrap' use the num_bootstrap parameter, which can be set on
     construction.
@@ -1370,7 +1420,7 @@ def estimate_multi_cov(corrs, method, *, func=None, comm=None):
         if func is not None:
             raise ValueError("func is invalid with method='shot'")
         return _cov_shot(corrs)
-    if method == 'jackknife':
+    elif method == 'jackknife':
         return _cov_jackknife(corrs, func, comm=comm)
     elif method == 'bootstrap':
         return _cov_bootstrap(corrs, func, comm=comm)
@@ -1378,6 +1428,55 @@ def estimate_multi_cov(corrs, method, *, func=None, comm=None):
         return _cov_marked(corrs, func, comm=comm)
     elif method == 'sample':
         return _cov_sample(corrs, func, comm=comm)
+    else:
+        raise ValueError("Invalid method: %s"%method)
+
+def build_multi_cov_design_matrix(corrs, method, *, func=None, comm=None):
+    """Build the design matrix that is used for estimating the covariance matrix.
+
+    The design matrix for patch-based covariance estimates is a matrix where each row
+    corresponds to a different estimate of the data vector, :math:`\\xi_i` (or
+    :math:`f(\\xi_i)` if using the optional ``func`` parameter).
+
+    The different of rows in the matrix for each valid ``method`` are:
+
+        - 'shot': This method is not valid here.
+        - 'jackknife': The data vector when excluding a single patch.
+        - 'sample': The data vector using only a single patch for the first catalog.
+        - 'bootstrap': The data vector for a random resampling of the patches keeping the
+          sample total number, but allowing some to repeat.  Cross terms from repeated patches
+          are excluded (since they are really auto terms).
+        - 'marked_bootstrap': The data vector for a random resampling of patches in the first
+          catalog, using all patches for the second catalog.  Based on the algorithm in Loh(2008).
+
+    See `estimate_mult_cov` for more details.
+
+    The return value includes both the design matrix and a vector of weights (the total weight
+    array in the computed correlation functions).  The weights are used for the sample method
+    when estimating the covariance matrix.  The other methods ignore them, but they are provided
+    here in case they are useful.
+
+    Parameters:
+        corrs (list):       A list of `BinnedCorr2` instances.
+        method (str):       Which method to use to estimate the covariance matrix.
+        func (function):    A unary function that takes the list ``corrs`` and returns the
+                            desired full data vector. [default: None, which is equivalent to
+                            ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``]
+        comm (mpi comm)     If not None, run under MPI
+
+    Returns:
+        A, w: numpy arrays with the design matrix and weights respectively.
+    """
+    if method == 'shot':
+        raise ValueError("There is no design matrix for method='shot'")
+    elif method == 'jackknife':
+        return _design_jackknife(corrs, func, comm=comm)
+    elif method == 'bootstrap':
+        return _design_bootstrap(corrs, func, comm=comm)
+    elif method == 'marked_bootstrap':
+        return _design_marked(corrs, func, comm=comm)
+    elif method == 'sample':
+        return _design_sample(corrs, func, comm=comm)
     else:
         raise ValueError("Invalid method: %s"%method)
 
@@ -1479,6 +1578,15 @@ def _check_patch_nums(corrs, name):
             raise RuntimeError("All correlations must use the same number of patches")
     return npatch
 
+def _design_jackknife(corrs, func, comm=None):
+    npatch = _check_patch_nums(corrs, 'jackknife')
+    plist = [c._jackknife_pairs() for c in corrs]
+    # Swap order of plist.  Right now it's a list for each corr of a list for each row.
+    # We want a list by row with a list for each corr.
+    plist = list(zip(*plist))
+
+    return _make_cov_design_matrix(corrs, plist, func, 'jackknife', comm=comm)
+
 def _cov_jackknife(corrs, func, comm=None):
     # Calculate the jackknife covariance for the given statistics
 
@@ -1487,18 +1595,21 @@ def _cov_jackknife(corrs, func, comm=None):
     # where v_i is the vector when excluding patch i, and v_mean is the mean of all {v_i}.
     #   v_i = Sum_jk!=i num_jk / Sum_jk!=i denom_jk
 
-    npatch = _check_patch_nums(corrs, 'jackknife')
-
-    plist = [c._jackknife_pairs() for c in corrs]
-    # Swap order of plist.  Right now it's a list for each corr of a list for each row.
-    # We want a list by row with a list for each corr.
-    plist = list(zip(*plist))
-
-    v,w = _make_cov_design_matrix(corrs, plist, func, 'jackknife', comm=comm)
+    v,w = _design_jackknife(corrs, func, comm)
+    npatch = v.shape[0]
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = (1.-1./npatch) * v.conj().T.dot(v)
     return C
+
+def _design_sample(corrs, func, comm=None):
+    npatch = _check_patch_nums(corrs, 'sample')
+    plist = [c._sample_pairs() for c in corrs]
+    # Swap order of plist.  Right now it's a list for each corr of a list for each row.
+    # We want a list by row with a list for each corr.
+    plist = list(zip(*plist))
+
+    return _make_cov_design_matrix(corrs, plist, func, 'sample', comm=comm)
 
 def _cov_sample(corrs, func, comm=None):
     # Calculate the sample covariance.
@@ -1511,14 +1622,8 @@ def _cov_sample(corrs, func, comm=None):
     # where v_i = Sum_j num_ij / Sum_j denom_ij
     # and w_i is the fraction of the total weight in each patch
 
-    npatch = _check_patch_nums(corrs, 'sample')
-
-    plist = [c._sample_pairs() for c in corrs]
-    # Swap order of plist.  Right now it's a list for each corr of a list for each row.
-    # We want a list by row with a list for each corr.
-    plist = list(zip(*plist))
-
-    v,w = _make_cov_design_matrix(corrs, plist, func, 'sample', comm=comm)
+    v,w = _design_sample(corrs, func, comm)
+    npatch = v.shape[0]
 
     if np.any(w == 0):
         raise RuntimeError("Cannot compute sample variance when some patches have no data.")
@@ -1529,6 +1634,19 @@ def _cov_sample(corrs, func, comm=None):
     v -= vmean
     C = 1./(npatch-1) * (w * v.conj().T).dot(v)
     return C
+
+def _design_marked(corrs, func, comm=None):
+    npatch = _check_patch_nums(corrs, 'marked_bootstrap')
+    nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
+
+    plist = []
+    for k in range(nboot):
+        # Select a random set of indices to use.  (Will have repeats.)
+        index = corrs[0].rng.randint(npatch, size=npatch)
+        vpairs = [c._marked_pairs(index) for c in corrs]
+        plist.append(vpairs)
+
+    return _make_cov_design_matrix(corrs, plist, func, 'marked_bootstrap', comm=comm)
 
 def _cov_marked(corrs, func, comm=None):
     # Calculate the marked-point bootstrap covariance
@@ -1547,22 +1665,24 @@ def _cov_marked(corrs, func, comm=None):
 
     # C = 1/(nboot) Sum_i (v_i - v_mean) (v_i - v_mean)^T
 
-    npatch = _check_patch_nums(corrs, 'marked_bootstrap')
-
-    nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
-
-    plist = []
-    for k in range(nboot):
-        # Select a random set of indices to use.  (Will have repeats.)
-        index = corrs[0].rng.randint(npatch, size=npatch)
-        vpairs = [c._marked_pairs(index) for c in corrs]
-        plist.append(vpairs)
-
-    v,w = _make_cov_design_matrix(corrs, plist, func, 'marked_bootstrap', comm=comm)
+    v,w = _design_marked(corrs, func, comm)
+    nboot = v.shape[0]
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = 1./(nboot-1) * v.conj().T.dot(v)
     return C
+
+def _design_bootstrap(corrs, func, comm=None):
+    npatch = _check_patch_nums(corrs, 'bootstrap')
+    nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
+
+    plist = []
+    for k in range(nboot):
+        index = corrs[0].rng.randint(npatch, size=npatch)
+        vpairs = [c._bootstrap_pairs(index) for c in corrs]
+        plist.append(vpairs)
+
+    return _make_cov_design_matrix(corrs, plist, func, 'bootstrap', comm=comm)
 
 def _cov_bootstrap(corrs, func, comm=None):
     # Calculate the 2-patch bootstrap covariance estimate.
@@ -1573,17 +1693,8 @@ def _cov_bootstrap(corrs, func, comm=None):
     # It seems to do a slightly better job than the marked-point bootstrap above from the
     # tests done in the test suite.  But the difference is generally pretty small.
 
-    npatch = _check_patch_nums(corrs, 'bootstrap')
-
-    nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
-
-    plist = []
-    for k in range(nboot):
-        index = corrs[0].rng.randint(npatch, size=npatch)
-        vpairs = [c._bootstrap_pairs(index) for c in corrs]
-        plist.append(vpairs)
-
-    v,w = _make_cov_design_matrix(corrs, plist, func, 'bootstrap', comm=comm)
+    v,w = _design_bootstrap(corrs, func, comm)
+    nboot = v.shape[0]
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = 1./(nboot-1) * v.conj().T.dot(v)

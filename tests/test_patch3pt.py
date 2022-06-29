@@ -174,6 +174,15 @@ def test_kkk_jk():
     np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.6 * tol_factor)
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.5*tol_factor)
 
+    # Test design matrix
+    A, w = kkkp.build_cov_design_matrix('jackknife')
+    A -= np.mean(A, axis=0)
+    C = (1-1/npatch) * A.conj().T.dot(A)
+    np.testing.assert_allclose(C, cov)
+
+    with assert_raises(ValueError):
+        kkkp.build_cov_design_matrix('shot')
+
     print('sample:')
     cov = kkkp.estimate_cov('sample')
     print(np.diagonal(cov))
@@ -181,19 +190,44 @@ def test_kkk_jk():
     np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.7 * tol_factor)
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.7*tol_factor)
 
+    # Test design matrix
+    A, w = kkkp.build_cov_design_matrix('sample')
+    w /= np.sum(w)
+    A -= np.mean(A, axis=0)
+    C = 1/(npatch-1) * (w*A.conj().T).dot(A)
+    np.testing.assert_allclose(C, cov)
+
     print('marked:')
+    rng_state = kkkp.rng.get_state()
     cov = kkkp.estimate_cov('marked_bootstrap')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.7 * tol_factor)
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.7*tol_factor)
 
+    # Test design matrix
+    kkkp.rng.set_state(rng_state)
+    A, w = kkkp.build_cov_design_matrix('marked_bootstrap')
+    nboot = A.shape[0]
+    A -= np.mean(A, axis=0)
+    C = 1/(nboot-1) * A.conj().T.dot(A)
+    np.testing.assert_allclose(C, cov)
+
     print('bootstrap:')
+    rng_state = kkkp.rng.get_state()
     cov = kkkp.estimate_cov('bootstrap')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.5 * tol_factor)
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.3*tol_factor)
+
+    # Test design matrix
+    kkkp.rng.set_state(rng_state)
+    A, w = kkkp.build_cov_design_matrix('bootstrap')
+    nboot = A.shape[0]
+    A -= np.mean(A, axis=0)
+    C = 1/(nboot-1) * A.conj().T.dot(A)
+    np.testing.assert_allclose(C, cov)
 
     # Check that these still work after roundtripping through a file.
     cov1 = kkkp.estimate_cov('jackknife')
@@ -1446,6 +1480,12 @@ def test_nnn_jk():
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.9*tol_factor)
+
+    # Test design matrix
+    A, w = treecorr.build_multi_cov_design_matrix([dddc,rrrc], method='jackknife', func=cc_zeta)
+    A -= np.mean(A, axis=0)
+    C = (1-1/npatch) * A.conj().T.dot(A)
+    np.testing.assert_allclose(C, cov)
 
     print('sample:')
     cov = treecorr.estimate_multi_cov([dddc,rrrc], 'sample', func=cc_zeta)

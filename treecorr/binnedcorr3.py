@@ -25,7 +25,7 @@ from .config import merge_config, setup_logger, get
 from .util import parse_metric, metric_enum, coord_enum, set_omp_threads, lazy_property
 from .util import make_reader
 from .util import depr_pos_kwargs
-from .binnedcorr2 import estimate_multi_cov
+from .binnedcorr2 import estimate_multi_cov, build_multi_cov_design_matrix
 
 class Namespace(object):
     pass
@@ -1036,7 +1036,7 @@ class BinnedCorr3(object):
         return self.weight.ravel()
 
     @depr_pos_kwargs
-    def estimate_cov(self, method, *, func=None):
+    def estimate_cov(self, method, *, func=None, comm=None):
         """Estimate the covariance matrix based on the data
 
         This function will calculate an estimate of the covariance matrix according to the
@@ -1096,10 +1096,16 @@ class BinnedCorr3(object):
             The optional ``func`` parameter is not valid in conjunction with ``method='shot'``.
             It only works for the methods that are based on patch combinations.
 
+        This function can be parallelized by passing the comm argument as an mpi4py communicator
+        to parallelize using that.  For MPI, all processes should have the same inputs.
+        If method == "shot" then parallelization has no effect.
+
         Parameters:
             method (str):       Which method to use to estimate the covariance matrix.
             func (function):    A unary function that acts on the current correlation object and
                                 returns the desired data vector. [default: None, which is
+                                equivalent to ``lambda corr: corr.getStat()``.
+            comm (mpi comm)     If not None, run under MPI
 
         Returns:
             A numpy array with the estimated covariance matrix.
@@ -1109,7 +1115,50 @@ class BinnedCorr3(object):
             all_func = lambda corrs: func(corrs[0])
         else:
             all_func = None
-        return estimate_multi_cov([self], method, func=all_func)
+        return estimate_multi_cov([self], method, func=all_func, comm=comm)
+
+    def build_cov_design_matrix(self, method, *, func=None, comm=None):
+        """Build the design matrix that is used for estimating the covariance matrix.
+
+        The design matrix for patch-based covariance estimates is a matrix where each row
+        corresponds to a different estimate of the data vector, :math:`\\zeta_i` (or
+        :math:`f(\\zeta_i)` if using the optional ``func`` parameter).
+
+        The different of rows in the matrix for each valid ``method`` are:
+
+            - 'shot': This method is not valid here.
+            - 'jackknife': The data vector when excluding a single patch.
+            - 'sample': The data vector using only a single patch for the first catalog.
+            - 'bootstrap': The data vector for a random resampling of the patches keeping the
+              sample total number, but allowing some to repeat.  Cross terms from repeated patches
+              are excluded (since they are really auto terms).
+            - 'marked_bootstrap': The data vector for a random resampling of patches in the first
+              catalog, using all patches for the second catalog.  Based on the algorithm in
+              Loh(2008).
+
+        See `estimate_cov` for more details.
+
+        The return value includes both the design matrix and a vector of weights (the total weight
+        array in the computed correlation functions).  The weights are used for the sample method
+        when estimating the covariance matrix.  The other methods ignore them, but they are provided
+        here in case they are useful.
+
+        Parameters:
+            method (str):       Which method to use to estimate the covariance matrix.
+            func (function):    A unary function that takes the list ``corrs`` and returns the
+                                desired full data vector. [default: None, which is equivalent to
+                                ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``]
+            comm (mpi comm)     If not None, run under MPI
+
+        Returns:
+            A, w: numpy arrays with the design matrix and weights respectively.
+        """
+        if func is not None:
+            # Need to convert it to a function of the first item in the list.
+            all_func = lambda corrs: func(corrs[0])
+        else:
+            all_func = None
+        return build_multi_cov_design_matrix([self], method=method, func=all_func, comm=comm)
 
     def _set_num_threads(self, num_threads):
         if num_threads is None:

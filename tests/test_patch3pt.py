@@ -182,6 +182,8 @@ def test_kkk_jk():
 
     with assert_raises(ValueError):
         kkkp.build_cov_design_matrix('shot')
+    with assert_raises(ValueError):
+        kkkp.build_cov_design_matrix('invalid')
 
     print('sample:')
     cov = kkkp.estimate_cov('sample')

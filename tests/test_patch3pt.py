@@ -674,6 +674,12 @@ def test_ggg_jk():
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.4*tol_factor)
 
+    # Test design matrix
+    A, w = gggp.build_cov_design_matrix('jackknife', func=f)
+    A -= np.mean(A, axis=0)
+    C = (1-1/npatch) * A.conj().T.dot(A)
+    np.testing.assert_allclose(C, cov)
+
     print('sample:')
     cov = gggp.estimate_cov('sample', func=f)
     print(np.diagonal(cov).real)

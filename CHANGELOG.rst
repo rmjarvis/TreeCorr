@@ -13,7 +13,7 @@ System Support Changes
   We currently support Python versions 3.7, 3,8, 3.9, 3.10.
 
 - We now support Windows machines, which we hadn't before this.  Code is now regularly
-  tested on ubuntu, macos and windows. (#143)
+  tested on ubuntu, macos and windows. (#136, #143)
 
 
 API Changes
@@ -32,6 +32,7 @@ Performance improvements
 New features
 ------------
 
+- Add `BinnedCorr2.build_cov_design_matrix` and `build_multi_cov_design_matrix` functions (#132)
 - Added ability to write out the full set of pair-wise results in the write commands, and to
   read them back in.  This allows correlation objects to still be able to correctly calculate
   the various patch-based covariance matrix estimates after round-tripping through a file.
@@ -39,7 +40,7 @@ New features
   (#141)
 - Allow None as a configuration parameter to be equivalent to not specifying a parameter.
   E.g. ``bin_size=0.1, min_sep=1., max_sep=100., nbins=None`` is allowed now. (#142)
-- Add `BinnedCorr2.build_cov_design_matrix` and `build_multi_cov_design_matrix` functions (#132)
+
 
 Bug fixes
 ---------

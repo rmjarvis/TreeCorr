@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NNNCorrelation: Count-count-count correlations &mdash; TreeCorr 4.3.0 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="GGGCorrelation: Shear-shear-shear correlations" href="ggg.html" />
+    <link rel="prev" title="Three-point Correlation Functions" href="correlation3.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> TreeCorr
+          </a>
+              <div class="version">
+                4.3
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">NNNCorrelation: Count-count-count correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ggg.html">GGGCorrelation: Shear-shear-shear correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kkk.html">KKKCorrelation: Kappa-kappa-kappa correlations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.2 to 4.3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">TreeCorr</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="correlation3.html">Three-point Correlation Functions</a> &raquo;</li>
+      <li>NNNCorrelation: Count-count-count correlations</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/nnn.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="nnncorrelation-count-count-count-correlations">
+<h1>NNNCorrelation: Count-count-count correlations<a class="headerlink" href="#nnncorrelation-count-count-count-correlations" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="treecorr.NNNCorrelation">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">treecorr.</span></code><code class="sig-name descname"><span class="pre">NNNCorrelation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCorrelation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCorrelation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">treecorr.binnedcorr3.BinnedCorr3</span></code></p>
+<p>This class handles the calculation and storage of a 2-point count-count correlation
+function.  i.e. the regular density correlation function.</p>
+<p>See the doc string of <a class="reference internal" href="correlation3.html#treecorr.BinnedCorr3" title="treecorr.BinnedCorr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr3</span></code></a> for a description of how the triangles are binned.</p>
+<p>Ojects of this class holds the following attributes:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>logr</strong> – The nominal center of the bin in log(r) (the natural logarithm of r).</p></li>
+<li><p><strong>nbins</strong> – The number of bins in logr where r = d2</p></li>
+<li><p><strong>bin_size</strong> – The size of the bins in logr</p></li>
+<li><p><strong>min_sep</strong> – The minimum separation being considered</p></li>
+<li><p><strong>max_sep</strong> – The maximum separation being considered</p></li>
+<li><p><strong>nubins</strong> – The number of bins in u where u = d3/d2</p></li>
+<li><p><strong>ubin_size</strong> – The size of the bins in u</p></li>
+<li><p><strong>min_u</strong> – The minimum u being considered</p></li>
+<li><p><strong>max_u</strong> – The maximum u being considered</p></li>
+<li><p><strong>nvbins</strong> – The number of bins in v where v = +-(d1-d2)/d3</p></li>
+<li><p><strong>vbin_size</strong> – The size of the bins in v</p></li>
+<li><p><strong>min_v</strong> – The minimum v being considered</p></li>
+<li><p><strong>max_v</strong> – The maximum v being considered</p></li>
+<li><p><strong>logr1d</strong> – The nominal centers of the nbins bins in log(r).</p></li>
+<li><p><strong>u1d</strong> – The nominal centers of the nubins bins in u.</p></li>
+<li><p><strong>v1d</strong> – The nominal centers of the nvbins bins in v.</p></li>
+</ul>
+</dd>
+</dl>
+<p>In addition, the following attributes are numpy arrays whose shape is (nbins, nubins, nvbins):</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>logr</strong> – The nominal center of the bin in log(r).</p></li>
+<li><p><strong>rnom</strong> – The nominal center of the bin converted to regular distance.
+i.e. r = exp(logr).</p></li>
+<li><p><strong>u</strong> – The nominal center of the bin in u.</p></li>
+<li><p><strong>v</strong> – The nominal center of the bin in v.</p></li>
+<li><p><strong>meand1</strong> – The (weighted) mean value of d1 for the triangles in each bin.</p></li>
+<li><p><strong>meanlogd1</strong> – The mean value of log(d1) for the triangles in each bin.</p></li>
+<li><p><strong>meand2</strong> – The (weighted) mean value of d2 (aka r) for the triangles in each bin.</p></li>
+<li><p><strong>meanlogd2</strong> – The mean value of log(d2) for the triangles in each bin.</p></li>
+<li><p><strong>meand2</strong> – The (weighted) mean value of d3 for the triangles in each bin.</p></li>
+<li><p><strong>meanlogd2</strong> – The mean value of log(d3) for the triangles in each bin.</p></li>
+<li><p><strong>meanu</strong> – The mean value of u for the triangles in each bin.</p></li>
+<li><p><strong>meanv</strong> – The mean value of v for the triangles in each bin.</p></li>
+<li><p><strong>weight</strong> – The total weight in each bin.</p></li>
+<li><p><strong>ntri</strong> – The number of triangles going into each bin (including those where one or
+more objects have w=0).</p></li>
+<li><p><strong>tot</strong> – The total number of triangles processed, which is used to normalize
+the randoms if they have a different number of triangles.</p></li>
+</ul>
+</dd>
+</dl>
+<p>If <code class="docutils literal notranslate"><span class="pre">sep_units</span></code> are given (either in the config dict or as a named kwarg) then the distances
+will all be in these units.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you separate out the steps of the <a class="reference internal" href="#treecorr.NNNCorrelation.process" title="treecorr.NNNCorrelation.process"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process</span></code></a> command and use <a class="reference internal" href="#treecorr.NNNCorrelation.process_auto" title="treecorr.NNNCorrelation.process_auto"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_auto</span></code></a> and/or
+<a class="reference internal" href="#treecorr.NNNCorrelation.process_cross" title="treecorr.NNNCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a>, then the units will not be applied to <code class="docutils literal notranslate"><span class="pre">meanr</span></code> or <code class="docutils literal notranslate"><span class="pre">meanlogr</span></code> until
+the <a class="reference internal" href="#treecorr.NNNCorrelation.finalize" title="treecorr.NNNCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> function is called.</p>
+</div>
+<p>The typical usage pattern is as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nnn</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NNNCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nnn</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat</span><span class="p">)</span>         <span class="c1"># For auto-correlation.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rrr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">rand</span><span class="p">)</span>        <span class="c1"># Likewise for random-random correlations</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">drr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat</span><span class="p">,</span><span class="n">rand</span><span class="p">)</span>    <span class="c1"># If desired, also do data-random correlations</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rdd</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">rand</span><span class="p">,</span><span class="n">cat</span><span class="p">)</span>    <span class="c1"># Also with two data and one random</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nnn</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span><span class="n">rrr</span><span class="o">=</span><span class="n">rrr</span><span class="p">,</span><span class="n">drr</span><span class="o">=</span><span class="n">drr</span><span class="p">,</span><span class="o">...</span><span class="p">)</span>  <span class="c1"># Write out to a file.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zeta</span><span class="p">,</span><span class="n">varzeta</span> <span class="o">=</span> <span class="n">nnn</span><span class="o">.</span><span class="n">calculateZeta</span><span class="p">(</span><span class="n">rrr</span><span class="o">=</span><span class="n">rrr</span><span class="p">,</span><span class="n">drr</span><span class="o">=</span><span class="n">drr</span><span class="p">,</span><span class="n">rdd</span><span class="o">=</span><span class="n">rdd</span><span class="p">)</span>  <span class="c1"># Or get zeta directly.</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>dict</em>) – A configuration dict that can be used to pass in kwargs if desired.
+This dict is allowed to have addition entries besides those listed
+in <a class="reference internal" href="correlation3.html#treecorr.BinnedCorr3" title="treecorr.BinnedCorr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr3</span></code></a>, which are ignored here. (default: None)</p></li>
+<li><p><strong>logger</strong> – If desired, a logger object for logging. (default: None, in which case
+one will be built according to the config dict’s verbose level.)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>**kwargs</strong> – See the documentation for <a class="reference internal" href="correlation3.html#treecorr.BinnedCorr3" title="treecorr.BinnedCorr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr3</span></code></a> for the list of allowed keyword
+arguments, which may be passed either directly or in the config dict.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="treecorr.NNNCorrelation.__eq__">
+<code class="sig-name descname"><span class="pre">__eq__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCorrelation.__eq__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCorrelation.__eq__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether two <a class="reference internal" href="#treecorr.NNNCorrelation" title="treecorr.NNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNNCorrelation</span></code></a> instances are equal</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCorrelation.__iadd__">
+<code class="sig-name descname"><span class="pre">__iadd__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCorrelation.__iadd__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCorrelation.__iadd__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a second <a class="reference internal" href="#treecorr.NNNCorrelation" title="treecorr.NNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNNCorrelation</span></code></a>’s data to this one.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For this to make sense, both <a class="reference internal" href="#treecorr.NNNCorrelation" title="treecorr.NNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNNCorrelation</span></code></a> objects should not have had <a class="reference internal" href="#treecorr.NNNCorrelation.finalize" title="treecorr.NNNCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a>
+called yet.  Then, after adding them together, you should call <a class="reference internal" href="#treecorr.NNNCorrelation.finalize" title="treecorr.NNNCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> on the sum.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCorrelation.__init__">
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCorrelation.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCorrelation.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize <a class="reference internal" href="#treecorr.NNNCorrelation" title="treecorr.NNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNNCorrelation</span></code></a>.  See class doc for details.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCorrelation.__repr__">
+<code class="sig-name descname"><span class="pre">__repr__</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCorrelation.__repr__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCorrelation.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return repr(self).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCorrelation.calculateZeta">
+<code class="sig-name descname"><span class="pre">calculateZeta</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rrr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rdd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCorrelation.calculateZeta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCorrelation.calculateZeta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the 3pt function given another 3pt function of random
+points using the same mask, and possibly cross correlations of the data and random.</p>
+<p>There are two possible formulae that are currently supported.</p>
+<ol class="arabic">
+<li><p>The simplest formula to use is <span class="math notranslate nohighlight">\(\zeta^\prime = (DDD-RRR)/RRR\)</span>.
+In this case, only rrr needs to be given, the <a class="reference internal" href="#treecorr.NNNCorrelation" title="treecorr.NNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNNCorrelation</span></code></a> of a random field.
+However, note that in this case, the return value is not normally called <span class="math notranslate nohighlight">\(\zeta\)</span>.
+Rather, this is an estimator of</p>
+<div class="math notranslate nohighlight">
+\[\zeta^\prime(d_1,d_2,d_3) = \zeta(d_1,d_2,d_3) + \xi(d_1) + \xi(d_2) + \xi(d_3)\]</div>
+<p>where <span class="math notranslate nohighlight">\(\xi\)</span> is the two-point correlation function for each leg of the triangle.
+You would typically want to calculate that separately and subtract off the
+two-point contributions.</p>
+</li>
+<li><p>For auto-correlations, a better formula is <span class="math notranslate nohighlight">\(\zeta = (DDD-RDD+DRR-RRR)/RRR\)</span>.
+In this case, RDD is the number of triangles where 1 point comes from the randoms
+and 2 points are from the data. Similarly, DRR has 1 point from the data and 2 from
+the randoms.  These are what are calculated from calling:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">drr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">data_cat</span><span class="p">,</span> <span class="n">rand_cat</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rdd</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">rand_cat</span><span class="p">,</span> <span class="n">data_cat</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>One might thing the formula should be <span class="math notranslate nohighlight">\(\zeta = (DDD-3RDD+3DRR-RRR)/RRR\)</span>
+by analogy with the 2pt Landy-Szalay formula. However, the way these are
+calculated, the object we are calling RDD already includes triangles where R
+is in each of the 3 locations.  So it is really more like RDD + DRD + DDR.
+These are not computed separately.  Rather the single computation of <code class="docutils literal notranslate"><span class="pre">rdd</span></code>
+described above accumulates all three permutations together.  So that one
+object includes everything for the second term.  Likewise <code class="docutils literal notranslate"><span class="pre">drr</span></code> has all the
+permutations that are relevant for the third term.</p>
+</div>
+</li>
+</ol>
+<ul class="simple">
+<li><p>If only rrr is provided, the first formula will be used.</p></li>
+<li><p>If all of rrr, drr, rdd are provided then the second will be used.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rrr</strong> (<a class="reference internal" href="#treecorr.NNNCorrelation" title="treecorr.NNNCorrelation"><em>NNNCorrelation</em></a>) – The auto-correlation of the random field (RRR)</p></li>
+<li><p><strong>drr</strong> (<a class="reference internal" href="#treecorr.NNNCorrelation" title="treecorr.NNNCorrelation"><em>NNNCorrelation</em></a>) – DRR if desired. (default: None)</p></li>
+<li><p><strong>rdd</strong> (<a class="reference internal" href="#treecorr.NNNCorrelation" title="treecorr.NNNCorrelation"><em>NNNCorrelation</em></a>) – RDD if desired. (default: None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>Tuple containing</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>zeta = array of <span class="math notranslate nohighlight">\(\zeta(d_1,d_2,d_3)\)</span></p></li>
+<li><p>varzeta = array of variance estimates of <span class="math notranslate nohighlight">\(\zeta(d_1,d_2,d_3)\)</span></p></li>
+</ul>
+</div></blockquote>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCorrelation.copy">
+<code class="sig-name descname"><span class="pre">copy</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCorrelation.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCorrelation.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a copy</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCorrelation.finalize">
+<code class="sig-name descname"><span class="pre">finalize</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCorrelation.finalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCorrelation.finalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalize the calculation of meand1, meanlogd1, etc.</p>
+<p>The <a class="reference internal" href="#treecorr.NNNCorrelation.process_auto" title="treecorr.NNNCorrelation.process_auto"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_auto</span></code></a> and <a class="reference internal" href="#treecorr.NNNCorrelation.process_cross" title="treecorr.NNNCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a> commands accumulate values in each bin,
+so they can be called multiple times if appropriate.  Afterwards, this command
+finishes the calculation of meanlogr, meanu, meanv by dividing by the total weight.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCorrelation.getStat">
+<code class="sig-name descname"><span class="pre">getStat</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCorrelation.getStat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCorrelation.getStat" title="Permalink to this definition">¶</a></dt>
+<dd><p>The standard statistic for the current correlation object as a 1-d array.</p>
+<p>This raises a RuntimeError if calculateZeta has not been run yet.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCorrelation.getWeight">
+<code class="sig-name descname"><span class="pre">getWeight</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCorrelation.getWeight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCorrelation.getWeight" title="Permalink to this definition">¶</a></dt>
+<dd><p>The weight array for the current correlation object as a 1-d array.</p>
+<p>This is the weight array corresponding to <a class="reference internal" href="#treecorr.NNNCorrelation.getStat" title="treecorr.NNNCorrelation.getStat"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getStat</span></code></a>.  In this case, it is the denominator
+RRR from the calculation done by calculateZeta().</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCorrelation.process">
+<code class="sig-name descname"><span class="pre">process</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat3</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">low_mem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initialize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCorrelation.process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCorrelation.process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accumulate the 3pt correlation of the points in the given Catalog(s).</p>
+<ul class="simple">
+<li><p>If only 1 argument is given, then compute an auto-correlation function.</p></li>
+<li><p>If 2 arguments are given, then compute a cross-correlation function with the
+first catalog taking one corner of the triangles, and the second taking two corners.</p></li>
+<li><p>If 3 arguments are given, then compute a three-way cross-correlation.</p></li>
+</ul>
+<p>All arguments may be lists, in which case all items in the list are used
+for that element of the correlation.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For a correlation of multiple catalogs, it typically matters which corner of the
+triangle comes from which catalog, which is not kept track of by this function.
+The final accumulation will have d1 &gt; d2 &gt; d3 regardless of which input catalog
+appears at each corner.  The class which keeps track of which catalog appears
+in each position in the triangle is <a class="reference internal" href="#treecorr.NNNCrossCorrelation" title="treecorr.NNNCrossCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNNCrossCorrelation</span></code></a>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the first N field.</p></li>
+<li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the second N field.
+(default: None)</p></li>
+<li><p><strong>cat3</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the third N field.
+(default: None)</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+(default: ‘Euclidean’; this value can also be given in the
+constructor in the config dict.)</p></li>
+<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+(default: use the number of cpu cores; this value can also be given
+in the constructor in the config dict.)</p></li>
+<li><p><strong>comm</strong> (<em>mpi4py.Comm</em>) – If running MPI, an mpi4py Comm object to communicate between
+processes.  If used, the rank=0 process will have the final
+computation. This only works if using patches. (default: None)</p></li>
+<li><p><strong>low_mem</strong> (<em>bool</em>) – Whether to sacrifice a little speed to try to reduce memory usage.
+This only works if using patches. (default: False)</p></li>
+<li><p><strong>initialize</strong> (<em>bool</em>) – Whether to begin the calculation with a call to
+<a class="reference internal" href="correlation3.html#treecorr.BinnedCorr3.clear" title="treecorr.BinnedCorr3.clear"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">BinnedCorr3.clear</span></code></a>.  (default: True)</p></li>
+<li><p><strong>finalize</strong> (<em>bool</em>) – Whether to complete the calculation with a call to <a class="reference internal" href="#treecorr.NNNCorrelation.finalize" title="treecorr.NNNCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a>.
+(default: True)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCorrelation.process_auto">
+<code class="sig-name descname"><span class="pre">process_auto</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCorrelation.process_auto"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCorrelation.process_auto" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a single catalog, accumulating the auto-correlation.</p>
+<p>This accumulates the auto-correlation for the given catalog.  After
+calling this function as often as desired, the <a class="reference internal" href="#treecorr.NNNCorrelation.finalize" title="treecorr.NNNCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> command will
+finish the calculation of meand1, meanlogd1, etc.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The catalog to process</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+(default: ‘Euclidean’; this value can also be given in the
+constructor in the config dict.)</p></li>
+<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+(default: use the number of cpu cores; this value can also be given
+in the constructor in the config dict.)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCorrelation.process_cross">
+<code class="sig-name descname"><span class="pre">process_cross</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat3</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCorrelation.process_cross"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCorrelation.process_cross" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a set of three catalogs, accumulating the 3pt cross-correlation.</p>
+<p>This accumulates the cross-correlation for the given catalogs as part of a larger
+auto-correlation calculation.  E.g. when splitting up a large catalog into patches,
+this is appropriate to use for the cross correlation between different patches
+as part of the complete auto-correlation of the full catalog.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The first catalog to process</p></li>
+<li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The second catalog to process</p></li>
+<li><p><strong>cat3</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The third catalog to process</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+(default: ‘Euclidean’; this value can also be given in the
+constructor in the config dict.)</p></li>
+<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+(default: use the number of cpu cores; this value can also be given
+in the constructor in the config dict.)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCorrelation.process_cross12">
+<code class="sig-name descname"><span class="pre">process_cross12</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat2</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCorrelation.process_cross12"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCorrelation.process_cross12" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process two catalogs, accumulating the 3pt cross-correlation, where one of the
+points in each triangle come from the first catalog, and two come from the second.</p>
+<p>This accumulates the cross-correlation for the given catalogs as part of a larger
+auto-correlation calculation.  E.g. when splitting up a large catalog into patches,
+this is appropriate to use for the cross correlation between different patches
+as part of the complete auto-correlation of the full catalog.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The first catalog to process. (1 point in each triangle will come
+from this catalog.)</p></li>
+<li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The second catalog to process. (2 points in each triangle will come
+from this catalog.)</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+(default: ‘Euclidean’; this value can also be given in the
+constructor in the config dict.)</p></li>
+<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+(default: use the number of cpu cores; this value can also be given
+in the constructor in the config dict.)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCorrelation.read">
+<code class="sig-name descname"><span class="pre">read</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCorrelation.read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCorrelation.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read in values from a file.</p>
+<p>This should be a file that was written by TreeCorr, preferably a FITS file, so there
+is no loss of information.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The <a class="reference internal" href="#treecorr.NNNCorrelation" title="treecorr.NNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNNCorrelation</span></code></a> object should be constructed with the same configuration
+parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
+checked by the read function.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to read in.</p></li>
+<li><p><strong>file_type</strong> (<em>str</em>) – The type of file (‘ASCII’ or ‘FITS’).  (default: determine the type
+automatically from the extension of file_name.)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCorrelation.write">
+<code class="sig-name descname"><span class="pre">write</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rrr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rdd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_patch_results</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCorrelation.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCorrelation.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the correlation function to the file, file_name.</p>
+<p>Normally, at least rrr should be provided, but if this is None, then only the
+basic accumulated number of triangles are output (along with the columns parametrizing
+the size and shape of the triangles).</p>
+<p>If at least rrr is given, then it will output an estimate of the final 3pt correlation
+function, <span class="math notranslate nohighlight">\(\zeta\)</span>. There are two possible formulae that are currently supported.</p>
+<ol class="arabic">
+<li><p>The simplest formula to use is <span class="math notranslate nohighlight">\(\zeta^\prime = (DDD-RRR)/RRR\)</span>.
+In this case, only rrr needs to be given, the <a class="reference internal" href="#treecorr.NNNCorrelation" title="treecorr.NNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNNCorrelation</span></code></a> of a random field.
+However, note that in this case, the return value is not what is normally called
+<span class="math notranslate nohighlight">\(\zeta\)</span>.  Rather, this is an estimator of</p>
+<div class="math notranslate nohighlight">
+\[\zeta^\prime(d_1,d_2,d_3) = \zeta(d_1,d_2,d_3) + \xi(d_1) + \xi(d_2) + \xi(d_3)\]</div>
+<p>where <span class="math notranslate nohighlight">\(\xi\)</span> is the two-point correlation function for each leg of the triangle.
+You would typically want to calculate that separately and subtract off the
+two-point contributions.</p>
+</li>
+<li><p>For auto-correlations, a better formula is <span class="math notranslate nohighlight">\(\zeta = (DDD-RDD+DRR-RRR)/RRR\)</span>.
+In this case, RDD is the number of triangles where 1 point comes from the randoms
+and 2 points are from the data. Similarly, DRR has 1 point from the data and 2 from
+the randoms.
+For this case, all combinations rrr, drr, and rdd must be provided.</p></li>
+</ol>
+<p>The output file will include the following columns:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 86%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>r_nom</p></td>
+<td><p>The nominal center of the bin in r = d2 where d1 &gt; d2 &gt; d3</p></td>
+</tr>
+<tr class="row-odd"><td><p>u_nom</p></td>
+<td><p>The nominal center of the bin in u = d3/d2</p></td>
+</tr>
+<tr class="row-even"><td><p>v_nom</p></td>
+<td><p>The nominal center of the bin in v = +-(d1-d2)/d3</p></td>
+</tr>
+<tr class="row-odd"><td><p>meand1</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle d1\rangle\)</span> of triangles that fell
+into each bin</p></td>
+</tr>
+<tr class="row-even"><td><p>meanlogd1</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle \log(d1)\rangle\)</span> of triangles that
+fell into each bin</p></td>
+</tr>
+<tr class="row-odd"><td><p>meand2</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle d2\rangle\)</span> of triangles that fell
+into each bin</p></td>
+</tr>
+<tr class="row-even"><td><p>meanlogd2</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle \log(d2)\rangle\)</span> of triangles that
+fell into each bin</p></td>
+</tr>
+<tr class="row-odd"><td><p>meand3</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle d3\rangle\)</span> of triangles that fell
+into each bin</p></td>
+</tr>
+<tr class="row-even"><td><p>meanlogd3</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle \log(d3)\rangle\)</span> of triangles that
+fell into each bin</p></td>
+</tr>
+<tr class="row-odd"><td><p>meanu</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle u\rangle\)</span> of triangles that fell
+into each bin</p></td>
+</tr>
+<tr class="row-even"><td><p>meanv</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle v\rangle\)</span> of triangles that fell
+into each bin</p></td>
+</tr>
+<tr class="row-odd"><td><p>zeta</p></td>
+<td><p>The estimator <span class="math notranslate nohighlight">\(\zeta(r,u,v)\)</span> (if rrr is given)</p></td>
+</tr>
+<tr class="row-even"><td><p>sigma_zeta</p></td>
+<td><p>The sqrt of the variance estimate of <span class="math notranslate nohighlight">\(\zeta\)</span>
+(if rrr is given)</p></td>
+</tr>
+<tr class="row-odd"><td><p>DDD</p></td>
+<td><p>The total weight of DDD triangles in each bin</p></td>
+</tr>
+<tr class="row-even"><td><p>RRR</p></td>
+<td><p>The total weight of RRR triangles in each bin (if rrr is given)</p></td>
+</tr>
+<tr class="row-odd"><td><p>DRR</p></td>
+<td><p>The total weight of DRR triangles in each bin (if drr is given)</p></td>
+</tr>
+<tr class="row-even"><td><p>RDD</p></td>
+<td><p>The total weight of RDD triangles in each bin (if rdd is given)</p></td>
+</tr>
+<tr class="row-odd"><td><p>ntri</p></td>
+<td><p>The number of triangles contributing to each bin</p></td>
+</tr>
+</tbody>
+</table>
+<p>If <code class="docutils literal notranslate"><span class="pre">sep_units</span></code> was given at construction, then the distances will all be in these units.
+Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
+radians (for spherical coordinates).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to write to.</p></li>
+<li><p><strong>rrr</strong> (<a class="reference internal" href="#treecorr.NNNCorrelation" title="treecorr.NNNCorrelation"><em>NNNCorrelation</em></a>) – The auto-correlation of the random field (RRR)</p></li>
+<li><p><strong>drr</strong> (<a class="reference internal" href="#treecorr.NNNCorrelation" title="treecorr.NNNCorrelation"><em>NNNCorrelation</em></a>) – DRR if desired. (default: None)</p></li>
+<li><p><strong>rdd</strong> (<a class="reference internal" href="#treecorr.NNNCorrelation" title="treecorr.NNNCorrelation"><em>NNNCorrelation</em></a>) – RDD if desired. (default: None)</p></li>
+<li><p><strong>file_type</strong> (<em>str</em>) – The type of file to write (‘ASCII’ or ‘FITS’).
+(default: determine the type automatically from the extension
+of file_name.)</p></li>
+<li><p><strong>precision</strong> (<em>int</em>) – For ASCII output catalogs, the desired precision. (default: 4;
+this value can also be given in the constructor in the config
+dict.)</p></li>
+<li><p><strong>write_patch_results</strong> (<em>bool</em>) – Whether to write the patch-based results as well.
+(default: False)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="treecorr.NNNCrossCorrelation">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">treecorr.</span></code><code class="sig-name descname"><span class="pre">NNNCrossCorrelation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCrossCorrelation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCrossCorrelation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">treecorr.binnedcorr3.BinnedCorr3</span></code></p>
+<p>This class handles the calculation a 3-point count-count-count cross-correlation
+function.</p>
+<p>For 3-point cross correlations, it matters which of the two or three fields falls on
+each corner of the triangle.  E.g. is field 1 on the corner opposite d1 (the longest
+size of the triangle) or is it field 2 (or 3) there?  This is in contrast to the 2-point
+correlation where the symmetry of the situation means that it doesn’t matter which point
+is identified with each field.  This makes it significantly more complicated to keep track
+of all the relevant information for a 3-point cross correlation function.</p>
+<p>The <a class="reference internal" href="#treecorr.NNNCorrelation" title="treecorr.NNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNNCorrelation</span></code></a> class holds a single <span class="math notranslate nohighlight">\(\zeta\)</span> functions describing all
+possible triangles, parameterized according to their relative side lengths ordered as
+d1 &gt; d2 &gt; d3.</p>
+<p>For a cross-correlation of two fields: N1 - N1 - N2 (i.e. the N1 field is at two of the
+corners and N2 is at one corner), then we need three these <span class="math notranslate nohighlight">\(\zeta\)</span> functions
+to capture all of the triangles, since the N2 points may be opposite d1 or d2 or d3.
+For a cross-correlation of three fields: N1 - N2 - N3, we need six sets, to account for
+all of the possible permutations relative to the triangle sides.</p>
+<p>Therefore, this class holds 6 instances of <a class="reference internal" href="#treecorr.NNNCorrelation" title="treecorr.NNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNNCorrelation</span></code></a>, which in turn hold the
+information about triangles in each of the relevant configurations.  We name these:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n1n2n3</strong> – Triangles where N1 is opposite d1, N2 is opposite d2, N3 is opposite d3.</p></li>
+<li><p><strong>n1n3n2</strong> – Triangles where N1 is opposite d1, N3 is opposite d2, N2 is opposite d3.</p></li>
+<li><p><strong>n2n1n3</strong> – Triangles where N2 is opposite d1, N1 is opposite d2, N3 is opposite d3.</p></li>
+<li><p><strong>n2n3n1</strong> – Triangles where N2 is opposite d1, N3 is opposite d2, N1 is opposite d3.</p></li>
+<li><p><strong>n3n1n2</strong> – Triangles where N3 is opposite d1, N1 is opposite d2, N2 is opposite d3.</p></li>
+<li><p><strong>n3n2n1</strong> – Triangles where N3 is opposite d1, N2 is opposite d2, N1 is opposite d3.</p></li>
+</ul>
+</dd>
+</dl>
+<p>If for instance N2 and N3 are the same field, then e.g. n1n2n3 and n1n3n2 will have
+the same values.</p>
+<p>Ojects of this class also hold the following attributes, which are identical in each of
+the above NNNCorrelation instances.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nbins</strong> – The number of bins in logr where r = d2</p></li>
+<li><p><strong>bin_size</strong> – The size of the bins in logr</p></li>
+<li><p><strong>min_sep</strong> – The minimum separation being considered</p></li>
+<li><p><strong>max_sep</strong> – The maximum separation being considered</p></li>
+<li><p><strong>nubins</strong> – The number of bins in u where u = d3/d2</p></li>
+<li><p><strong>ubin_size</strong> – The size of the bins in u</p></li>
+<li><p><strong>min_u</strong> – The minimum u being considered</p></li>
+<li><p><strong>max_u</strong> – The maximum u being considered</p></li>
+<li><p><strong>nvbins</strong> – The number of bins in v where v = +-(d1-d2)/d3</p></li>
+<li><p><strong>vbin_size</strong> – The size of the bins in v</p></li>
+<li><p><strong>min_v</strong> – The minimum v being considered</p></li>
+<li><p><strong>max_v</strong> – The maximum v being considered</p></li>
+<li><p><strong>logr1d</strong> – The nominal centers of the nbins bins in log(r).</p></li>
+<li><p><strong>u1d</strong> – The nominal centers of the nubins bins in u.</p></li>
+<li><p><strong>v1d</strong> – The nominal centers of the nvbins bins in v.</p></li>
+</ul>
+</dd>
+</dl>
+<p>If <code class="docutils literal notranslate"><span class="pre">sep_units</span></code> are given (either in the config dict or as a named kwarg) then the distances
+will all be in these units.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you separate out the steps of the <a class="reference internal" href="#treecorr.NNNCrossCorrelation.process" title="treecorr.NNNCrossCorrelation.process"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process</span></code></a> command and use <a class="reference internal" href="#treecorr.NNNCrossCorrelation.process_cross" title="treecorr.NNNCrossCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a> directly,
+then the units will not be applied to <code class="docutils literal notranslate"><span class="pre">meanr</span></code> or <code class="docutils literal notranslate"><span class="pre">meanlogr</span></code> until the <a class="reference internal" href="#treecorr.NNNCrossCorrelation.finalize" title="treecorr.NNNCrossCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a>
+function is called.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>dict</em>) – A configuration dict that can be used to pass in kwargs if desired.
+This dict is allowed to have addition entries besides those listed
+in <a class="reference internal" href="correlation3.html#treecorr.BinnedCorr3" title="treecorr.BinnedCorr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr3</span></code></a>, which are ignored here. (default: None)</p></li>
+<li><p><strong>logger</strong> – If desired, a logger object for logging. (default: None, in which case
+one will be built according to the config dict’s verbose level.)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>**kwargs</strong> – See the documentation for <a class="reference internal" href="correlation3.html#treecorr.BinnedCorr3" title="treecorr.BinnedCorr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr3</span></code></a> for the list of allowed keyword
+arguments, which may be passed either directly or in the config dict.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="treecorr.NNNCrossCorrelation.__eq__">
+<code class="sig-name descname"><span class="pre">__eq__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCrossCorrelation.__eq__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCrossCorrelation.__eq__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether two <a class="reference internal" href="#treecorr.NNNCrossCorrelation" title="treecorr.NNNCrossCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNNCrossCorrelation</span></code></a> instances are equal</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCrossCorrelation.__iadd__">
+<code class="sig-name descname"><span class="pre">__iadd__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCrossCorrelation.__iadd__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCrossCorrelation.__iadd__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a second <a class="reference internal" href="#treecorr.NNNCrossCorrelation" title="treecorr.NNNCrossCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNNCrossCorrelation</span></code></a>’s data to this one.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For this to make sense, both <a class="reference internal" href="#treecorr.NNNCrossCorrelation" title="treecorr.NNNCrossCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNNCrossCorrelation</span></code></a> objects should not have had
+<a class="reference internal" href="#treecorr.NNNCrossCorrelation.finalize" title="treecorr.NNNCrossCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> called yet.  Then, after adding them together, you should call <a class="reference internal" href="#treecorr.NNNCrossCorrelation.finalize" title="treecorr.NNNCrossCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a>
+on the sum.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCrossCorrelation.__init__">
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCrossCorrelation.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCrossCorrelation.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize <a class="reference internal" href="#treecorr.NNNCrossCorrelation" title="treecorr.NNNCrossCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNNCrossCorrelation</span></code></a>.  See class doc for details.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCrossCorrelation.__repr__">
+<code class="sig-name descname"><span class="pre">__repr__</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCrossCorrelation.__repr__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCrossCorrelation.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return repr(self).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCrossCorrelation.copy">
+<code class="sig-name descname"><span class="pre">copy</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCrossCorrelation.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCrossCorrelation.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a copy</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCrossCorrelation.finalize">
+<code class="sig-name descname"><span class="pre">finalize</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCrossCorrelation.finalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCrossCorrelation.finalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalize the calculation of the correlation function.</p>
+<p>The <a class="reference internal" href="#treecorr.NNNCrossCorrelation.process_cross" title="treecorr.NNNCrossCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a> command accumulate values in each bin, so they can be called
+multiple times if appropriate.  Afterwards, this command finishes the calculation
+by dividing by the total weight.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCrossCorrelation.getWeight">
+<code class="sig-name descname"><span class="pre">getWeight</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCrossCorrelation.getWeight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCrossCorrelation.getWeight" title="Permalink to this definition">¶</a></dt>
+<dd><p>The weight array for the current correlation object as a 1-d array.</p>
+<p>For NNNCrossCorrelation, this is always just 1.  We don’t currently have any ability
+to automatically handle a random catalog for NNNCrossCorrelations, so we don’t know
+what the correct weight would be for a given patch or set of patches.  This value
+is only used by the sample method of covariance estimation, so this limitation means
+that sample covariances may be expected to be less accurate than normal when used with
+NNNCorrelations.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCrossCorrelation.nonzero">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">nonzero</span></code><a class="headerlink" href="#treecorr.NNNCrossCorrelation.nonzero" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return if there are any values accumulated yet.  (i.e. ntri &gt; 0)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCrossCorrelation.process">
+<code class="sig-name descname"><span class="pre">process</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat3</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">low_mem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initialize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCrossCorrelation.process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCrossCorrelation.process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accumulate the cross-correlation of the points in the given Catalogs: cat1, cat2, cat3.</p>
+<ul class="simple">
+<li><p>If 2 arguments are given, then compute a cross-correlation function with the
+first catalog taking one corner of the triangles, and the second taking two corners.</p></li>
+<li><p>If 3 arguments are given, then compute a three-way cross-correlation function.</p></li>
+</ul>
+<p>All arguments may be lists, in which case all items in the list are used
+for that element of the correlation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the first N field.</p></li>
+<li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the second N field.</p></li>
+<li><p><strong>cat3</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the third N field.
+(default: None)</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+(default: ‘Euclidean’; this value can also be given in the
+constructor in the config dict.)</p></li>
+<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+(default: use the number of cpu cores; this value can also be given
+in the constructor in the config dict.)</p></li>
+<li><p><strong>comm</strong> (<em>mpi4py.Comm</em>) – If running MPI, an mpi4py Comm object to communicate between
+processes.  If used, the rank=0 process will have the final
+computation. This only works if using patches. (default: None)</p></li>
+<li><p><strong>low_mem</strong> (<em>bool</em>) – Whether to sacrifice a little speed to try to reduce memory usage.
+This only works if using patches. (default: False)</p></li>
+<li><p><strong>initialize</strong> (<em>bool</em>) – Whether to begin the calculation with a call to
+<a class="reference internal" href="correlation3.html#treecorr.BinnedCorr3.clear" title="treecorr.BinnedCorr3.clear"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">BinnedCorr3.clear</span></code></a>.  (default: True)</p></li>
+<li><p><strong>finalize</strong> (<em>bool</em>) – Whether to complete the calculation with a call to <a class="reference internal" href="#treecorr.NNNCrossCorrelation.finalize" title="treecorr.NNNCrossCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a>.
+(default: True)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCrossCorrelation.process_cross">
+<code class="sig-name descname"><span class="pre">process_cross</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat3</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCrossCorrelation.process_cross"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCrossCorrelation.process_cross" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a set of three catalogs, accumulating the 3pt cross-correlation.</p>
+<p>This accumulates the cross-correlation for the given catalogs.  After
+calling this function as often as desired, the <a class="reference internal" href="#treecorr.NNNCrossCorrelation.finalize" title="treecorr.NNNCrossCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> command will
+finish the calculation of meand1, meanlogd1, etc.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The first catalog to process</p></li>
+<li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The second catalog to process</p></li>
+<li><p><strong>cat3</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The third catalog to process</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+(default: ‘Euclidean’; this value can also be given in the
+constructor in the config dict.)</p></li>
+<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+(default: use the number of cpu cores; this value can also be given
+in the constructor in the config dict.)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCrossCorrelation.process_cross12">
+<code class="sig-name descname"><span class="pre">process_cross12</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat2</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCrossCorrelation.process_cross12"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCrossCorrelation.process_cross12" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process two catalogs, accumulating the 3pt cross-correlation, where one of the
+points in each triangle come from the first catalog, and two come from the second.</p>
+<p>This accumulates the cross-correlation for the given catalogs.  After
+calling this function as often as desired, the <a class="reference internal" href="#treecorr.NNNCrossCorrelation.finalize" title="treecorr.NNNCrossCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> command will
+finish the calculation of meand1, meanlogd1, etc.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This only adds to the attributes n1n2n3, n2n1n3, n2n3n1, not the ones where
+3 comes before 2.  When running this via the regular <a class="reference internal" href="#treecorr.NNNCrossCorrelation.process" title="treecorr.NNNCrossCorrelation.process"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process</span></code></a> method, it will
+combine them at the end to make sure n1n2n3 == n1n3n2, etc. for a complete
+calculation of the 1-2 cross-correlation.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The first catalog to process. (1 point in each triangle will come
+from this catalog.)</p></li>
+<li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The second catalog to process. (2 points in each triangle will come
+from this catalog.)</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+(default: ‘Euclidean’; this value can also be given in the
+constructor in the config dict.)</p></li>
+<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+(default: use the number of cpu cores; this value can also be given
+in the constructor in the config dict.)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCrossCorrelation.read">
+<code class="sig-name descname"><span class="pre">read</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCrossCorrelation.read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCrossCorrelation.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read in values from a file.</p>
+<p>This should be a file that was written by TreeCorr, preferably a FITS file, so there
+is no loss of information.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The <a class="reference internal" href="#treecorr.NNNCrossCorrelation" title="treecorr.NNNCrossCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNNCrossCorrelation</span></code></a> object should be constructed with the same configuration
+parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
+checked by the read function.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to read in.</p></li>
+<li><p><strong>file_type</strong> (<em>str</em>) – The type of file (‘ASCII’ or ‘FITS’).  (default: determine the type
+automatically from the extension of file_name.)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.NNNCrossCorrelation.write">
+<code class="sig-name descname"><span class="pre">write</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_patch_results</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nnncorrelation.html#NNNCrossCorrelation.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNNCrossCorrelation.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the correlation function to the file, file_name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to write to.</p></li>
+<li><p><strong>file_type</strong> (<em>str</em>) – The type of file to write (‘ASCII’ or ‘FITS’).  (default: determine
+the type automatically from the extension of file_name.)</p></li>
+<li><p><strong>precision</strong> (<em>int</em>) – For ASCII output catalogs, the desired precision. (default: 4;
+this value can also be given in the constructor in the config dict.)</p></li>
+<li><p><strong>write_patch_results</strong> (<em>bool</em>) – Whether to write the patch-based results as well.
+(default: False)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="correlation3.html" class="btn btn-neutral float-left" title="Three-point Correlation Functions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ggg.html" class="btn btn-neutral float-right" title="GGGCorrelation: Shear-shear-shear correlations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Mike Jarvis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

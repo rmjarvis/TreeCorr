@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KGCorrelation: Kappa-shear correlations &mdash; TreeCorr 4.3.0 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Three-point Correlation Functions" href="correlation3.html" />
+    <link rel="prev" title="NKCorrelation: Count-kappa correlations" href="nk.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> TreeCorr
+          </a>
+              <div class="version">
+                4.3
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="nn.html">NNCorrelation: Count-count correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gg.html">GGCorrelation: Shear-shear correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ng.html">NGCorrelation: Count-shear correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kk.html">KKCorrelation: Kappa-kappa correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nk.html">NKCorrelation: Count-kappa correlations</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">KGCorrelation: Kappa-shear correlations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.2 to 4.3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">TreeCorr</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="correlation2.html">Two-point Correlation Functions</a> &raquo;</li>
+      <li>KGCorrelation: Kappa-shear correlations</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/kg.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="kgcorrelation-kappa-shear-correlations">
+<h1>KGCorrelation: Kappa-shear correlations<a class="headerlink" href="#kgcorrelation-kappa-shear-correlations" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="treecorr.KGCorrelation">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">treecorr.</span></code><code class="sig-name descname"><span class="pre">KGCorrelation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kgcorrelation.html#KGCorrelation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KGCorrelation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">treecorr.binnedcorr2.BinnedCorr2</span></code></p>
+<p>This class handles the calculation and storage of a 2-point kappa-shear correlation
+function.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>While we use the term kappa (<span class="math notranslate nohighlight">\(\kappa\)</span>) here and the letter K in various places,
+in fact any scalar field will work here.  For example, you can use this to compute
+correlations of some survey property, such as seeing, with shear, where “kappa” would
+really be the measured property, e.g. the observed sizes of the stars.</p>
+</div>
+<p>Ojects of this class holds the following attributes:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nbins</strong> – The number of bins in logr</p></li>
+<li><p><strong>bin_size</strong> – The size of the bins in logr</p></li>
+<li><p><strong>min_sep</strong> – The minimum separation being considered</p></li>
+<li><p><strong>max_sep</strong> – The maximum separation being considered</p></li>
+</ul>
+</dd>
+</dl>
+<p>In addition, the following attributes are numpy arrays of length (nbins):</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>logr</strong> – The nominal center of the bin in log(r) (the natural logarithm of r).</p></li>
+<li><p><strong>rnom</strong> – The nominal center of the bin converted to regular distance.
+i.e. r = exp(logr).</p></li>
+<li><p><strong>meanr</strong> – The (weighted) mean value of r for the pairs in each bin.
+If there are no pairs in a bin, then exp(logr) will be used instead.</p></li>
+<li><p><strong>meanlogr</strong> – The (weighted) mean value of log(r) for the pairs in each bin.
+If there are no pairs in a bin, then logr will be used instead.</p></li>
+<li><p><strong>xi</strong> – The correlation function, <span class="math notranslate nohighlight">\(\xi(r) = \langle \kappa\, \gamma_T\rangle\)</span>.</p></li>
+<li><p><strong>xi_im</strong> – The imaginary part of <span class="math notranslate nohighlight">\(\xi(r)\)</span>.</p></li>
+<li><p><strong>varxi</strong> – An estimate of the variance of <span class="math notranslate nohighlight">\(\xi\)</span></p></li>
+<li><p><strong>weight</strong> – The total weight in each bin.</p></li>
+<li><p><strong>npairs</strong> – The number of pairs going into each bin (including pairs where one or
+both objects have w=0).</p></li>
+<li><p><strong>cov</strong> – An estimate of the full covariance matrix.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The default method for estimating the variance and covariance attributes (<code class="docutils literal notranslate"><span class="pre">varxi</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">cov</span></code>) is ‘shot’, which only includes the shape noise propagated into the final
+correlation.  This does not include sample variance, so it is always an underestimate of
+the actual variance.  To get better estimates, you need to set <code class="docutils literal notranslate"><span class="pre">var_method</span></code> to something
+else and use patches in the input catalog(s).  cf. <a class="reference internal" href="cov.html#covariance-estimates"><span class="std std-ref">Covariance Estimates</span></a>.</p>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">sep_units</span></code> are given (either in the config dict or as a named kwarg) then the distances
+will all be in these units.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you separate out the steps of the <a class="reference internal" href="#treecorr.KGCorrelation.process" title="treecorr.KGCorrelation.process"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process</span></code></a> command and use <a class="reference internal" href="#treecorr.KGCorrelation.process_cross" title="treecorr.KGCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a>,
+then the units will not be applied to <code class="docutils literal notranslate"><span class="pre">meanr</span></code> or <code class="docutils literal notranslate"><span class="pre">meanlogr</span></code> until the <a class="reference internal" href="#treecorr.KGCorrelation.finalize" title="treecorr.KGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a>
+function is called.</p>
+</div>
+<p>The typical usage pattern is as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">kg</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">KGCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kg</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span><span class="n">cat2</span><span class="p">)</span>   <span class="c1"># Calculate the cross-correlation</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kg</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>     <span class="c1"># Write out to a file.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xi</span> <span class="o">=</span> <span class="n">kg</span><span class="o">.</span><span class="n">xi</span>              <span class="c1"># Or access the correlation function directly.</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>dict</em>) – A configuration dict that can be used to pass in kwargs if desired.
+This dict is allowed to have addition entries besides those listed
+in <a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2" title="treecorr.BinnedCorr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr2</span></code></a>, which are ignored here. (default: None)</p></li>
+<li><p><strong>logger</strong> – If desired, a logger object for logging. (default: None, in which case
+one will be built according to the config dict’s verbose level.)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>**kwargs</strong> – See the documentation for <a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2" title="treecorr.BinnedCorr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr2</span></code></a> for the list of allowed keyword
+arguments, which may be passed either directly or in the config dict.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="treecorr.KGCorrelation.__eq__">
+<code class="sig-name descname"><span class="pre">__eq__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kgcorrelation.html#KGCorrelation.__eq__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KGCorrelation.__eq__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether two <a class="reference internal" href="#treecorr.KGCorrelation" title="treecorr.KGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KGCorrelation</span></code></a> instances are equal</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.KGCorrelation.__iadd__">
+<code class="sig-name descname"><span class="pre">__iadd__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kgcorrelation.html#KGCorrelation.__iadd__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KGCorrelation.__iadd__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a second <a class="reference internal" href="#treecorr.KGCorrelation" title="treecorr.KGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KGCorrelation</span></code></a>’s data to this one.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For this to make sense, both <a class="reference internal" href="#treecorr.KGCorrelation" title="treecorr.KGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KGCorrelation</span></code></a> objects should not have had <a class="reference internal" href="#treecorr.KGCorrelation.finalize" title="treecorr.KGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a>
+called yet.  Then, after adding them together, you should call <a class="reference internal" href="#treecorr.KGCorrelation.finalize" title="treecorr.KGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> on the sum.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.KGCorrelation.__init__">
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kgcorrelation.html#KGCorrelation.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KGCorrelation.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize <a class="reference internal" href="#treecorr.KGCorrelation" title="treecorr.KGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KGCorrelation</span></code></a>.  See class doc for details.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.KGCorrelation.__repr__">
+<code class="sig-name descname"><span class="pre">__repr__</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kgcorrelation.html#KGCorrelation.__repr__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KGCorrelation.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return repr(self).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.KGCorrelation.copy">
+<code class="sig-name descname"><span class="pre">copy</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kgcorrelation.html#KGCorrelation.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KGCorrelation.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a copy</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.KGCorrelation.finalize">
+<code class="sig-name descname"><span class="pre">finalize</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vark</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kgcorrelation.html#KGCorrelation.finalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KGCorrelation.finalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalize the calculation of the correlation function.</p>
+<p>The <a class="reference internal" href="#treecorr.KGCorrelation.process_cross" title="treecorr.KGCorrelation.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a> command accumulates values in each bin, so it can be called
+multiple times if appropriate.  Afterwards, this command finishes the calculation
+by dividing each column by the total weight.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vark</strong> (<em>float</em>) – The kappa variance for the first field.</p></li>
+<li><p><strong>varg</strong> (<em>float</em>) – The shear variance per component for the second field.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.KGCorrelation.process">
+<code class="sig-name descname"><span class="pre">process</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat2</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">low_mem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initialize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kgcorrelation.html#KGCorrelation.process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KGCorrelation.process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the correlation function.</p>
+<p>Both arguments may be lists, in which case all items in the list are used
+for that element of the correlation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the K field.</p></li>
+<li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the G field.</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+(default: ‘Euclidean’; this value can also be given in the
+constructor in the config dict.)</p></li>
+<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+(default: use the number of cpu cores; this value can also be given
+in the constructor in the config dict.)</p></li>
+<li><p><strong>comm</strong> (<em>mpi4py.Comm</em>) – If running MPI, an mpi4py Comm object to communicate between
+processes.  If used, the rank=0 process will have the final
+computation. This only works if using patches. (default: None)</p></li>
+<li><p><strong>low_mem</strong> (<em>bool</em>) – Whether to sacrifice a little speed to try to reduce memory usage.
+This only works if using patches. (default: False)</p></li>
+<li><p><strong>initialize</strong> (<em>bool</em>) – Whether to begin the calculation with a call to
+<a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2.clear" title="treecorr.BinnedCorr2.clear"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">BinnedCorr2.clear</span></code></a>.  (default: True)</p></li>
+<li><p><strong>finalize</strong> (<em>bool</em>) – Whether to complete the calculation with a call to <a class="reference internal" href="#treecorr.KGCorrelation.finalize" title="treecorr.KGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a>.
+(default: True)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.KGCorrelation.process_cross">
+<code class="sig-name descname"><span class="pre">process_cross</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat2</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kgcorrelation.html#KGCorrelation.process_cross"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KGCorrelation.process_cross" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a single pair of catalogs, accumulating the cross-correlation.</p>
+<p>This accumulates the weighted sums into the bins, but does not finalize
+the calculation by dividing by the total weight at the end.  After
+calling this function as often as desired, the <a class="reference internal" href="#treecorr.KGCorrelation.finalize" title="treecorr.KGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> command will
+finish the calculation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The first catalog to process</p></li>
+<li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The second catalog to process</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+(default: ‘Euclidean’; this value can also be given in the
+constructor in the config dict.)</p></li>
+<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+(default: use the number of cpu cores; this value can also be given
+in the constructor in the config dict.)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.KGCorrelation.process_pairwise">
+<code class="sig-name descname"><span class="pre">process_pairwise</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat2</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kgcorrelation.html#KGCorrelation.process_pairwise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KGCorrelation.process_pairwise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a single pair of catalogs, accumulating the cross-correlation, only using
+the corresponding pairs of objects in each catalog.</p>
+<p>This accumulates the weighted sums into the bins, but does not finalize
+the calculation by dividing by the total weight at the end.  After
+calling this function as often as desired, the <a class="reference internal" href="#treecorr.KGCorrelation.finalize" title="treecorr.KGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> command will
+finish the calculation.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 4.1: </span>This function is deprecated and slated to be removed.
+If you have a need for it, please open an issue to describe your use case.</p>
+</div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The first catalog to process</p></li>
+<li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The second catalog to process</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+(default: ‘Euclidean’; this value can also be given in the
+constructor in the config dict.)</p></li>
+<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+(default: use the number of cpu cores; this value can also be given
+in the constructor in the config dict.)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.KGCorrelation.read">
+<code class="sig-name descname"><span class="pre">read</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kgcorrelation.html#KGCorrelation.read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KGCorrelation.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read in values from a file.</p>
+<p>This should be a file that was written by TreeCorr, preferably a FITS file, so there
+is no loss of information.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The <a class="reference internal" href="#treecorr.KGCorrelation" title="treecorr.KGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KGCorrelation</span></code></a> object should be constructed with the same configuration
+parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
+checked by the read function.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to read in.</p></li>
+<li><p><strong>file_type</strong> (<em>str</em>) – The type of file (‘ASCII’ or ‘FITS’).  (default: determine the type
+automatically from the extension of file_name.)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.KGCorrelation.write">
+<code class="sig-name descname"><span class="pre">write</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_patch_results</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kgcorrelation.html#KGCorrelation.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KGCorrelation.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the correlation function to the file, file_name.</p>
+<p>The output file will include the following columns:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 85%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>r_nom</p></td>
+<td><p>The nominal center of the bin in r</p></td>
+</tr>
+<tr class="row-odd"><td><p>meanr</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle r\rangle\)</span> of pairs that
+fell into each bin</p></td>
+</tr>
+<tr class="row-even"><td><p>meanlogr</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle \log(r)\rangle\)</span> of pairs
+that fell into each bin</p></td>
+</tr>
+<tr class="row-odd"><td><p>kgamT</p></td>
+<td><p>The real part of correlation function,
+<span class="math notranslate nohighlight">\(\langle \kappa\, \gamma_T\rangle\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>kgamX</p></td>
+<td><p>The imag part of correlation function,
+<span class="math notranslate nohighlight">\(\langle \kappa\, \gamma_\times\rangle\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>sigma</p></td>
+<td><p>The sqrt of the variance estimate of both of these</p></td>
+</tr>
+<tr class="row-even"><td><p>weight</p></td>
+<td><p>The total weight contributing to each bin</p></td>
+</tr>
+<tr class="row-odd"><td><p>npairs</p></td>
+<td><p>The total number of pairs in each bin</p></td>
+</tr>
+</tbody>
+</table>
+<p>If <code class="docutils literal notranslate"><span class="pre">sep_units</span></code> was given at construction, then the distances will all be in these units.
+Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
+radians (for spherical coordinates).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to write to.</p></li>
+<li><p><strong>file_type</strong> (<em>str</em>) – The type of file to write (‘ASCII’ or ‘FITS’).  (default: determine
+the type automatically from the extension of file_name.)</p></li>
+<li><p><strong>precision</strong> (<em>int</em>) – For ASCII output catalogs, the desired precision. (default: 4;
+this value can also be given in the constructor in the config dict.)</p></li>
+<li><p><strong>write_patch_results</strong> (<em>bool</em>) – Whether to write the patch-based results as well.
+(default: False)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="nk.html" class="btn btn-neutral float-left" title="NKCorrelation: Count-kappa correlations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="correlation3.html" class="btn btn-neutral float-right" title="Three-point Correlation Functions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Mike Jarvis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

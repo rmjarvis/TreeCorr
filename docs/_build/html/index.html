@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TreeCorr Documentation &mdash; TreeCorr 4.3.0 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Overview" href="overview.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="#" class="icon icon-home"> TreeCorr
+          </a>
+              <div class="version">
+                4.3
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.2 to 4.3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">TreeCorr</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
+      <li>TreeCorr Documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="treecorr-documentation">
+<h1>TreeCorr Documentation<a class="headerlink" href="#treecorr-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#installation">Installation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="overview.html#download-treecorr">1. Download TreeCorr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="overview.html#install-dependencies">2. Install dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="overview.html#install">3. Install</a></li>
+<li class="toctree-l3"><a class="reference internal" href="overview.html#run-tests-optional">4. Run Tests (optional)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#two-point-correlations">Two-point Correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#three-point-correlations">Three-point Correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#running-corr2-and-corr3">Running corr2 and corr3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#using-the-python-module">Using the Python module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#reporting-bugs">Reporting bugs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#requesting-features">Requesting features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="catalog.html#the-catalog-class">The Catalog class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="catalog.html#other-utilities-related-to-catalogs">Other utilities related to catalogs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="catalog.html#file-readers">File Readers</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="nn.html">NNCorrelation: Count-count correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gg.html">GGCorrelation: Shear-shear correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ng.html">NGCorrelation: Count-shear correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kk.html">KKCorrelation: Kappa-kappa correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nk.html">NKCorrelation: Count-kappa correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kg.html">KGCorrelation: Kappa-shear correlations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="nnn.html">NNNCorrelation: Count-count-count correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ggg.html">GGGCorrelation: Shear-shear-shear correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kkk.html">KKKCorrelation: Kappa-kappa-kappa correlations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="metric.html#euclidean">“Euclidean”</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metric.html#arc">“Arc”</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metric.html#rperp-or-fisherrperp">“Rperp” or “FisherRperp”</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metric.html#oldrperp">“OldRperp”</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metric.html#rlens">“Rlens”</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metric.html#periodic">“Periodic”</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metric.html#restrictions-on-the-line-of-sight-separation">Restrictions on the Line of Sight Separation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="binning.html#log">“Log”</a></li>
+<li class="toctree-l2"><a class="reference internal" href="binning.html#linear">“Linear”</a></li>
+<li class="toctree-l2"><a class="reference internal" href="binning.html#twod">“TwoD”</a></li>
+<li class="toctree-l2"><a class="reference internal" href="binning.html#output-quantities">Output quantities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="binning.html#other-options-for-binning">Other options for binning</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="binning.html#sep-units">sep_units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="binning.html#bin-slop">bin_slop</a></li>
+<li class="toctree-l3"><a class="reference internal" href="binning.html#brute">brute</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="patches.html#defining-patches-on-input">Defining Patches on Input</a></li>
+<li class="toctree-l2"><a class="reference internal" href="patches.html#running-k-means">Running K-Means</a></li>
+<li class="toctree-l2"><a class="reference internal" href="patches.html#using-patch-centers">Using Patch Centers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="patches.html#reducing-memory-use">Reducing Memory Use</a></li>
+<li class="toctree-l2"><a class="reference internal" href="patches.html#using-mpi">Using MPI</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cov.html#variance-methods">Variance Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cov.html#shot">“shot”</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cov.html#jackknife">“jackknife”</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cov.html#sample">“sample”</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cov.html#bootstrap">“bootstrap”</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cov.html#marked-bootstrap">“marked_bootstrap”</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cov.html#covariance-matrix">Covariance Matrix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cov.html#covariance-of-derived-quantities">Covariance of Derived Quantities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cov.html#random-catalogs">Random Catalogs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="scripts.html#the-corr2-and-corr3-executables">The corr2 and corr3 executables</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="params.html">Configuration Parameters</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="params.html#parameters-about-the-input-file-s">Parameters about the input file(s)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="params.html#parameters-about-the-binned-correlation-function-to-be-calculated">Parameters about the binned correlation function to be calculated</a></li>
+<li class="toctree-l4"><a class="reference internal" href="params.html#parameters-about-the-output-file-s">Parameters about the output file(s)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="params.html#derived-output-quantities">Derived output quantities</a></li>
+<li class="toctree-l4"><a class="reference internal" href="params.html#miscellaneous-parameters">Miscellaneous parameters</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="scripts.html#the-corr2-function-from-python">The corr2 function from python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scripts.html#the-corr3-function-from-python">The corr3 function from python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scripts.html#other-utilities-related-to-corr2-and-corr3">Other utilities related to corr2 and corr3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scripts.html#module-treecorr.config">Utilities related to the configuration dict</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scripts.html#file-writers">File Writers</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="guide.html#jupyter-tutorial">Jupyter Tutorial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide.html#shear-shear-auto-correlation">Shear-shear auto-correlation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide.html#other-two-point-correlation-classes">Other Two-point Correlation Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide.html#loading-a-catalog">Loading a Catalog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide.html#building-a-catalog-from-numpy-arrays">Building a Catalog from numpy arrays</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide.html#defining-the-binning">Defining the binning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide.html#three-point-correlation-classes">Three-point Correlation Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide.html#using-random-catalogs">Using random catalogs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide.html#manually-accumulating-the-correlation-function">Manually accumulating the correlation function</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.2 to 4.3</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#system-support-changes">System Support Changes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#api-changes">API Changes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#performance-improvements">Performance improvements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#new-features">New features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#bug-fixes">Bug fixes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
+</ul>
+</div>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="overview.html" class="btn btn-neutral float-right" title="Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Mike Jarvis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

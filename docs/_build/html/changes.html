@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Changes from version 4.2 to 4.3 &mdash; TreeCorr 4.3.0 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Previous History" href="history.html" />
+    <link rel="prev" title="Getting Started Guide" href="guide.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> TreeCorr
+          </a>
+              <div class="version">
+                4.3
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Changes from version 4.2 to 4.3</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#system-support-changes">System Support Changes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#api-changes">API Changes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#performance-improvements">Performance improvements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#new-features">New features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bug-fixes">Bug fixes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">TreeCorr</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Changes from version 4.2 to 4.3</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/changes.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="changes-from-version-4-2-to-4-3">
+<h1>Changes from version 4.2 to 4.3<a class="headerlink" href="#changes-from-version-4-2-to-4-3" title="Permalink to this headline">¶</a></h1>
+<p>See the listing below for the complete list of new features and changes.
+<a class="reference external" href="https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+4.3%22+is%3Aclosed">Relevant PRs and Issues,</a>
+whose issue numbers are listed below for the relevant items.</p>
+<div class="section" id="system-support-changes">
+<h2>System Support Changes<a class="headerlink" href="#system-support-changes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Starting with this version, TreeCorr no longer supports Python 2.7 or 3.6.
+We currently support Python versions 3.7, 3,8, 3.9, 3.10.</p></li>
+<li><p>We now support Windows machines, which we hadn’t before this.  Code is now regularly
+tested on ubuntu, macos and windows. (#136, #143)</p></li>
+</ul>
+</div>
+<div class="section" id="api-changes">
+<h2>API Changes<a class="headerlink" href="#api-changes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Many function parameters are now keyword-only.  The old syntax allowing these parameters
+to be positional still works, but is deprecated. (#129)</p></li>
+</ul>
+</div>
+<div class="section" id="performance-improvements">
+<h2>Performance improvements<a class="headerlink" href="#performance-improvements" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Added ability to compute patch-based covariance matrices using MPI. (#138, #139)</p></li>
+</ul>
+</div>
+<div class="section" id="new-features">
+<h2>New features<a class="headerlink" href="#new-features" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Add <a class="reference internal" href="correlation2.html#treecorr.BinnedCorr2.build_cov_design_matrix" title="treecorr.BinnedCorr2.build_cov_design_matrix"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">BinnedCorr2.build_cov_design_matrix</span></code></a> and <a class="reference internal" href="correlation2.html#treecorr.build_multi_cov_design_matrix" title="treecorr.build_multi_cov_design_matrix"><code class="xref any py py-func docutils literal notranslate"><span class="pre">build_multi_cov_design_matrix</span></code></a> functions (#132)</p></li>
+<li><p>Added ability to write out the full set of pair-wise results in the write commands, and to
+read them back in.  This allows correlation objects to still be able to correctly calculate
+the various patch-based covariance matrix estimates after round-tripping through a file.
+To use this feature, use <code class="docutils literal notranslate"><span class="pre">corr.write(...,</span> <span class="pre">write_patch_results=True)</span></code>. (#141)</p></li>
+<li><p>Allow None as a configuration parameter to be equivalent to not specifying a parameter.
+E.g. <code class="docutils literal notranslate"><span class="pre">bin_size=0.1,</span> <span class="pre">min_sep=1.,</span> <span class="pre">max_sep=100.,</span> <span class="pre">nbins=None</span></code> is allowed now. (#142)</p></li>
+</ul>
+</div>
+<div class="section" id="bug-fixes">
+<h2>Bug fixes<a class="headerlink" href="#bug-fixes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Fixed a bug where correlation objects using bin_type=TwoD could not be correctly read back
+in after being written to a file. (#141)</p></li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="guide.html" class="btn btn-neutral float-left" title="Getting Started Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="history.html" class="btn btn-neutral float-right" title="Previous History" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Mike Jarvis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

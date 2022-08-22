@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Two-point Correlation Functions &mdash; TreeCorr 4.3.0 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="NNCorrelation: Count-count correlations" href="nn.html" />
+    <link rel="prev" title="Input Data" href="catalog.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> TreeCorr
+          </a>
+              <div class="version">
+                4.3
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Two-point Correlation Functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="nn.html">NNCorrelation: Count-count correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gg.html">GGCorrelation: Shear-shear correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ng.html">NGCorrelation: Count-shear correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kk.html">KKCorrelation: Kappa-kappa correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nk.html">NKCorrelation: Count-kappa correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kg.html">KGCorrelation: Kappa-shear correlations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.2 to 4.3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">TreeCorr</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Two-point Correlation Functions</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/correlation2.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="two-point-correlation-functions">
+<h1>Two-point Correlation Functions<a class="headerlink" href="#two-point-correlation-functions" title="Permalink to this headline">¶</a></h1>
+<p>There are 6 differenct classes for calculating the different possible two-point correlation
+functions:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="nn.html">NNCorrelation: Count-count correlations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gg.html">GGCorrelation: Shear-shear correlations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ng.html">NGCorrelation: Count-shear correlations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="kk.html">KKCorrelation: Kappa-kappa correlations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nk.html">NKCorrelation: Count-kappa correlations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="kg.html">KGCorrelation: Kappa-shear correlations</a></li>
+</ul>
+</div>
+<p>Each of the above classes is a sub-class of the base class BinnedCorr2, so they have a number of
+features in common about how they are constructed.  The common features are documented here.</p>
+<dl class="py class">
+<dt id="treecorr.BinnedCorr2">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">treecorr.</span></code><code class="sig-name descname"><span class="pre">BinnedCorr2</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.BinnedCorr2" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class stores the results of a 2-point correlation calculation, along with some
+ancillary data.</p>
+<p>This is a base class that is not intended to be constructed directly.  But it has a few
+helper functions that derived classes can use to help perform their calculations.  See
+the derived classes for more details:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="gg.html#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a> handles shear-shear correlation functions</p></li>
+<li><p><a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNCorrelation</span></code></a> handles count-count correlation functions</p></li>
+<li><p><a class="reference internal" href="kk.html#treecorr.KKCorrelation" title="treecorr.KKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKCorrelation</span></code></a> handles kappa-kappa correlation functions</p></li>
+<li><p><a class="reference internal" href="ng.html#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NGCorrelation</span></code></a> handles count-shear correlation functions</p></li>
+<li><p><a class="reference internal" href="nk.html#treecorr.NKCorrelation" title="treecorr.NKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKCorrelation</span></code></a> handles count-kappa correlation functions</p></li>
+<li><p><a class="reference internal" href="kg.html#treecorr.KGCorrelation" title="treecorr.KGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KGCorrelation</span></code></a> handles kappa-shear correlation functions</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When we refer to kappa in the correlation functions, that is because TreeCorr was
+originally designed for weak lensing applications.  But in fact any scalar quantity
+may be used here.  CMB temperature fluctuations for example.</p>
+</div>
+<p>The constructor for all derived classes take a config dict as the first argument,
+since this is often how we keep track of parameters, but if you don’t want to
+use one or if you want to change some parameters from what are in a config dict,
+then you can use normal kwargs, which take precedence over anything in the config dict.</p>
+<p>There are a number of possible definitions for the distance between two points, which
+are appropriate for different use cases.  These are specified by the <code class="docutils literal notranslate"><span class="pre">metric</span></code> parameter.
+The possible options are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>‘Euclidean’ = straight line Euclidean distance between two points.</p></li>
+<li><p>‘FisherRperp’ = the perpendicular component of the distance, following the
+definitions in Fisher et al, 1994 (MNRAS, 267, 927).</p></li>
+<li><p>‘OldRperp’ = the perpendicular component of the distance using the definition
+of Rperp from TreeCorr v3.x.</p></li>
+<li><p>‘Rperp’ = an alias for FisherRperp.  You can change it to be an alias for
+OldRperp if you want by setting <code class="docutils literal notranslate"><span class="pre">treecorr.Rperp_alias</span> <span class="pre">=</span> <span class="pre">'OldRperp'</span></code> before
+using it.</p></li>
+<li><p>‘Rlens’ = the distance from the first object (taken to be a lens) to the line
+connecting Earth and the second object (taken to be a lensed source).</p></li>
+<li><p>‘Arc’ = the true great circle distance for spherical coordinates.</p></li>
+<li><p>‘Periodic’ = Like Euclidean, but with periodic boundaries.</p></li>
+</ul>
+</div></blockquote>
+<p>See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for more information about these various metric options.</p>
+<p>There are also a few different possibile binning prescriptions to define the range of
+distances, which should be placed into each bin.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>‘Log’ - logarithmic binning in the distance.  The bin steps will be uniform in
+log(r) from log(min_sep) .. log(max_sep).</p></li>
+<li><p>‘Linear’ - linear binning in the distance.  The bin steps will be uniform in r
+from min_sep .. max_sep.</p></li>
+<li><p>‘TwoD’ = 2-dimensional binning from x = (-max_sep .. max_sep) and
+y = (-max_sep .. max_sep).  The bin steps will be uniform in both x and y.
+(i.e. linear in x,y)</p></li>
+</ul>
+</div></blockquote>
+<p>See <a class="reference internal" href="binning.html#binning"><span class="std std-ref">Binning</span></a> for more information about the different binning options.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>dict</em>) – A configuration dict that can be used to pass in the below kwargs if
+desired.  This dict is allowed to have addition entries in addition
+to those listed below, which are ignored here. (default: None)</p></li>
+<li><p><strong>logger</strong> – If desired, a logger object for logging. (default: None, in which case
+one will be built according to the config dict’s verbose level.)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>nbins</strong> (<em>int</em>) – How many bins to use. (Exactly three of nbins, bin_size, min_sep,
+max_sep are required. If nbins is not given or set to None, it will be
+calculated from the values of the other three, rounding up to the next
+highest integer. In this case, bin_size will be readjusted to account
+for this rounding up.)</p></li>
+<li><p><strong>bin_size</strong> (<em>float</em>) – The width of the bins in log(separation). (Exactly three of nbins,
+bin_size, min_sep, max_sep are required.  If bin_size is not given or
+set to None, it will be calculated from the values of the other three.)</p></li>
+<li><p><strong>min_sep</strong> (<em>float</em>) – The minimum separation in units of sep_units, if relevant. (Exactly
+three of nbins, bin_size, min_sep, max_sep are required.  If min_sep is
+not given or set to None, it will be calculated from the values of the
+other three.)</p></li>
+<li><p><strong>max_sep</strong> (<em>float</em>) – The maximum separation in units of sep_units, if relevant. (Exactly
+three of nbins, bin_size, min_sep, max_sep are required.  If max_sep is
+not given or set to None, it will be calculated from the values of the
+other three.)</p></li>
+<li><p><strong>sep_units</strong> (<em>str</em>) – The units to use for the separation values, given as a string.  This
+includes both min_sep and max_sep above, as well as the units of the
+output distance values.  Valid options are arcsec, arcmin, degrees,
+hours, radians.  (default: radians if angular units make sense, but for
+3-d or flat 2-d positions, the default will just match the units of
+x,y[,z] coordinates)</p></li>
+<li><p><strong>bin_slop</strong> (<em>float</em>) – How much slop to allow in the placement of pairs in the bins.
+If bin_slop = 1, then the bin into which a particular pair is placed
+may be incorrect by at most 1.0 bin widths.  (default: None, which
+means to use a bin_slop that gives a maximum error of 10% on any bin,
+which has been found to yield good results for most application.</p></li>
+<li><p><strong>brute</strong> (<em>bool</em>) – <p>Whether to use the “brute force” algorithm.  (default: False) Options
+are:</p>
+<blockquote>
+<div><ul>
+<li><p>False (the default): Stop at non-leaf cells whenever the error in
+the separation is compatible with the given bin_slop.</p></li>
+<li><p>True: Go to the leaves for both catalogs.</p></li>
+<li><p>1: Always go to the leaves for cat1, but stop at non-leaf cells of
+cat2 when the error is compatible with the given bin_slop.</p></li>
+<li><p>2: Always go to the leaves for cat2, but stop at non-leaf cells of
+cat1 when the error is compatible with the given bin_slop.</p></li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>verbose</strong> (<em>int</em>) – <p>If no logger is provided, this will optionally specify a logging level
+to use:</p>
+<blockquote>
+<div><ul>
+<li><p>0 means no logging output</p></li>
+<li><p>1 means to output warnings only (default)</p></li>
+<li><p>2 means to output various progress information</p></li>
+<li><p>3 means to output extensive debugging information</p></li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>log_file</strong> (<em>str</em>) – If no logger is provided, this will specify a file to write the logging
+output.  (default: None; i.e. output to standard output)</p></li>
+<li><p><strong>output_dots</strong> (<em>bool</em>) – Whether to output progress dots during the calcualtion of the
+correlation function. (default: False unless verbose is given and &gt;= 2,
+in which case True)</p></li>
+<li><p><strong>split_method</strong> (<em>str</em>) – <p>How to split the cells in the tree when building the tree structure.
+Options are:</p>
+<ul>
+<li><p>mean = Use the arithmetic mean of the coordinate being split.
+(default)</p></li>
+<li><p>median = Use the median of the coordinate being split.</p></li>
+<li><p>middle = Use the middle of the range; i.e. the average of the minimum
+and maximum value.</p></li>
+<li><p>random: Use a random point somewhere in the middle two quartiles of
+the range.</p></li>
+</ul>
+</p></li>
+<li><p><strong>min_top</strong> (<em>int</em>) – The minimum number of top layers to use when setting up the field.
+(default: <span class="math notranslate nohighlight">\(\max(3, \log_2(N_{\rm cpu}))\)</span>)</p></li>
+<li><p><strong>max_top</strong> (<em>int</em>) – The maximum number of top layers to use when setting up the field.
+The top-level cells are where each calculation job starts. There will
+typically be of order <span class="math notranslate nohighlight">\(2^{\rm max\_top}\)</span> top-level cells.
+(default: 10)</p></li>
+<li><p><strong>precision</strong> (<em>int</em>) – The precision to use for the output values. This specifies how many
+digits to write. (default: 4)</p></li>
+<li><p><strong>pairwise</strong> (<em>bool</em>) – Whether to use a different kind of calculation for cross correlations
+whereby corresponding items in the two catalogs are correlated pairwise
+rather than the usual case of every item in one catalog being correlated
+with every item in the other catalog. (default: False) (DEPRECATED)</p></li>
+<li><p><strong>m2_uform</strong> (<em>str</em>) – The default functional form to use for aperture mass calculations.
+see <a class="reference internal" href="gg.html#treecorr.GGCorrelation.calculateMapSq" title="treecorr.GGCorrelation.calculateMapSq"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">calculateMapSq</span></code></a> for more details.  (default: ‘Crittenden’)</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use for distance measurements.  Options are listed
+above.  (default: ‘Euclidean’)</p></li>
+<li><p><strong>bin_type</strong> (<em>str</em>) – What type of binning should be used.  Options are listed above.
+(default: ‘Log’)</p></li>
+<li><p><strong>min_rpar</strong> (<em>float</em>) – The minimum difference in Rparallel to allow for pairs being included
+in the correlation function.  (default: None)</p></li>
+<li><p><strong>max_rpar</strong> (<em>float</em>) – The maximum difference in Rparallel to allow for pairs being included
+in the correlation function.  (default: None)</p></li>
+<li><p><strong>period</strong> (<em>float</em>) – For the ‘Periodic’ metric, the period to use in all directions.
+(default: None)</p></li>
+<li><p><strong>xperiod</strong> (<em>float</em>) – For the ‘Periodic’ metric, the period to use in the x direction.
+(default: period)</p></li>
+<li><p><strong>yperiod</strong> (<em>float</em>) – For the ‘Periodic’ metric, the period to use in the y direction.
+(default: period)</p></li>
+<li><p><strong>zperiod</strong> (<em>float</em>) – For the ‘Periodic’ metric, the period to use in the z direction.
+(default: period)</p></li>
+<li><p><strong>var_method</strong> (<em>str</em>) – Which method to use for estimating the variance. Options are:
+‘shot’, ‘jackknife’, ‘sample’, ‘bootstrap’, ‘marked_bootstrap’.
+(default: ‘shot’)</p></li>
+<li><p><strong>num_bootstrap</strong> (<em>int</em>) – How many bootstrap samples to use for the ‘bootstrap’ and
+‘marked_bootstrap’ var_methods.  (default: 500)</p></li>
+<li><p><strong>rng</strong> (<em>RandomState</em>) – If desired, a numpy.random.RandomState instance to use for bootstrap
+random number generation. (default: None)</p></li>
+<li><p><strong>num_threads</strong> (<em>int</em>) – <p>How many OpenMP threads to use during the calculation.
+(default: use the number of cpu cores)</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This won’t work if the system’s C compiler cannot use OpenMP
+(e.g. clang prior to version 3.7.)</p>
+</div>
+</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="treecorr.BinnedCorr2.build_cov_design_matrix">
+<code class="sig-name descname"><span class="pre">build_cov_design_matrix</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2.build_cov_design_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.BinnedCorr2.build_cov_design_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build the design matrix that is used for estimating the covariance matrix.</p>
+<p>The design matrix for patch-based covariance estimates is a matrix where each row
+corresponds to a different estimate of the data vector, <span class="math notranslate nohighlight">\(\xi_i\)</span> (or
+<span class="math notranslate nohighlight">\(f(\xi_i)\)</span> if using the optional <code class="docutils literal notranslate"><span class="pre">func</span></code> parameter).</p>
+<p>The different of rows in the matrix for each valid <code class="docutils literal notranslate"><span class="pre">method</span></code> are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>‘shot’: This method is not valid here.</p></li>
+<li><p>‘jackknife’: The data vector when excluding a single patch.</p></li>
+<li><p>‘sample’: The data vector using only a single patch for the first catalog.</p></li>
+<li><p>‘bootstrap’: The data vector for a random resampling of the patches keeping the
+sample total number, but allowing some to repeat.  Cross terms from repeated patches
+are excluded (since they are really auto terms).</p></li>
+<li><p>‘marked_bootstrap’: The data vector for a random resampling of patches in the first
+catalog, using all patches for the second catalog.  Based on the algorithm in
+Loh(2008).</p></li>
+</ul>
+</div></blockquote>
+<p>See <a class="reference internal" href="#treecorr.BinnedCorr2.estimate_cov" title="treecorr.BinnedCorr2.estimate_cov"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">estimate_cov</span></code></a> for more details.</p>
+<p>The return value includes both the design matrix and a vector of weights (the total weight
+array in the computed correlation functions).  The weights are used for the sample method
+when estimating the covariance matrix.  The other methods ignore them, but they are provided
+here in case they are useful.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>method</strong> (<em>str</em>) – Which method to use to estimate the covariance matrix.</p></li>
+<li><p><strong>func</strong> (<em>function</em>) – A unary function that takes the list <code class="docutils literal notranslate"><span class="pre">corrs</span></code> and returns the
+desired full data vector. [default: None, which is equivalent to
+<code class="docutils literal notranslate"><span class="pre">lambda</span> <span class="pre">corrs:</span> <span class="pre">np.concatenate([c.getStat()</span> <span class="pre">for</span> <span class="pre">c</span> <span class="pre">in</span> <span class="pre">corrs])</span></code>]</p></li>
+<li><p><strong>comm</strong> (<em>mpi comm</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>numpy arrays with the design matrix and weights respectively.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>A, w</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.BinnedCorr2.clear">
+<code class="sig-name descname"><span class="pre">clear</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.BinnedCorr2.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear all data vectors, the results dict, and any related values.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.BinnedCorr2.estimate_cov">
+<code class="sig-name descname"><span class="pre">estimate_cov</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2.estimate_cov"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.BinnedCorr2.estimate_cov" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate the covariance matrix based on the data</p>
+<p>This function will calculate an estimate of the covariance matrix according to the
+given method.</p>
+<p>Options for <code class="docutils literal notranslate"><span class="pre">method</span></code> include:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>‘shot’ = The variance based on “shot noise” only.  This includes the Poisson
+counts of points for N statistics, shape noise for G statistics, and the observed
+scatter in the values for K statistics.  In this case, the returned covariance
+matrix will be diagonal, since there is no way to estimate the off-diagonal terms.</p></li>
+<li><p>‘jackknife’ = A jackknife estimate of the covariance matrix based on the scatter
+in the measurement when excluding one patch at a time.</p></li>
+<li><p>‘sample’ = An estimate based on the sample covariance of a set of samples,
+taken as the patches of the input catalog.</p></li>
+<li><p>‘bootstrap’ = A bootstrap covariance estimate. It selects patches at random with
+replacement and then generates the statistic using all the auto-correlations at
+their selected repetition plus all the cross terms that aren’t actually auto terms.</p></li>
+<li><p>‘marked_bootstrap’ = An estimate based on a marked-point bootstrap resampling of the
+patches.  Similar to bootstrap, but only samples the patches of the first catalog and
+uses all patches from the second catalog that correspond to each patch selection of
+the first catalog.  Based on the algorithm presented in Loh (2008).
+cf. <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/">https://ui.adsabs.harvard.edu/abs/2008ApJ…681..726L/</a></p></li>
+</ul>
+</div></blockquote>
+<p>Both ‘bootstrap’ and ‘marked_bootstrap’ use the num_bootstrap parameter, which can be set on
+construction.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For most classes, there is only a single statistic, so this calculates a covariance
+matrix for that vector.  <a class="reference internal" href="gg.html#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a> has two: <code class="docutils literal notranslate"><span class="pre">xip</span></code> and <code class="docutils literal notranslate"><span class="pre">xim</span></code>, so in this
+case the full data vector is <code class="docutils literal notranslate"><span class="pre">xip</span></code> followed by <code class="docutils literal notranslate"><span class="pre">xim</span></code>, and this calculates the
+covariance matrix for that full vector including both statistics.  The helper
+function <a class="reference internal" href="#treecorr.BinnedCorr2.getStat" title="treecorr.BinnedCorr2.getStat"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getStat</span></code></a> returns the relevant statistic in all cases.</p>
+</div>
+<p>In all cases, the relevant processing needs to already have been completed and finalized.
+And for all methods other than ‘shot’, the processing should have involved an appropriate
+number of patches – preferably more patches than the length of the vector for your
+statistic, although this is not checked.</p>
+<p>The default data vector to use for the covariance matrix is given by the method
+<a class="reference internal" href="#treecorr.BinnedCorr2.getStat" title="treecorr.BinnedCorr2.getStat"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getStat</span></code></a>.  As noted above, this is usually just self.xi.  However, there is an option
+to compute the covariance of some other function of the correlation object by providing
+an arbitrary function, <code class="docutils literal notranslate"><span class="pre">func</span></code>, which should act on the current correlation object
+and return the data vector of interest.</p>
+<p>For instance, for an <a class="reference internal" href="ng.html#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NGCorrelation</span></code></a>, you might want to compute the covariance of the
+imaginary part, <code class="docutils literal notranslate"><span class="pre">ng.xi_im</span></code>, rather than the real part.  In this case you could use</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">ng</span><span class="p">:</span> <span class="n">ng</span><span class="o">.</span><span class="n">xi_im</span>
+</pre></div>
+</div>
+<p>The return value from this func should be a single numpy array. (This is not directly
+checked, but you’ll probably get some kind of exception if it doesn’t behave as expected.)</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The optional <code class="docutils literal notranslate"><span class="pre">func</span></code> parameter is not valid in conjunction with <code class="docutils literal notranslate"><span class="pre">method='shot'</span></code>.
+It only works for the methods that are based on patch combinations.</p>
+</div>
+<p>This function can be parallelized by passing the comm argument as an mpi4py communicator
+to parallelize using that.  For MPI, all processes should have the same inputs.
+If method == “shot” then parallelization has no effect.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>method</strong> (<em>str</em>) – Which method to use to estimate the covariance matrix.</p></li>
+<li><p><strong>func</strong> (<em>function</em>) – A unary function that acts on the current correlation object and
+returns the desired data vector. [default: None, which is
+equivalent to <code class="docutils literal notranslate"><span class="pre">lambda</span> <span class="pre">corr:</span> <span class="pre">corr.getStat()</span></code>.</p></li>
+<li><p><strong>comm</strong> (<em>mpi comm</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A numpy array with the estimated covariance matrix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.BinnedCorr2.getStat">
+<code class="sig-name descname"><span class="pre">getStat</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2.getStat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.BinnedCorr2.getStat" title="Permalink to this definition">¶</a></dt>
+<dd><p>The standard statistic for the current correlation object as a 1-d array.</p>
+<p>Usually, this is just self.xi.  But if the metric is TwoD, this becomes self.xi.ravel().
+And for <a class="reference internal" href="gg.html#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a>, it is the concatenation of self.xip and self.xim.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.BinnedCorr2.getWeight">
+<code class="sig-name descname"><span class="pre">getWeight</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2.getWeight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.BinnedCorr2.getWeight" title="Permalink to this definition">¶</a></dt>
+<dd><p>The weight array for the current correlation object as a 1-d array.</p>
+<p>This is the weight array corresponding to <a class="reference internal" href="#treecorr.BinnedCorr2.getStat" title="treecorr.BinnedCorr2.getStat"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getStat</span></code></a>. Usually just self.weight, but
+raveled for TwoD and duplicated for GGCorrelation to match what <a class="reference internal" href="#treecorr.BinnedCorr2.getStat" title="treecorr.BinnedCorr2.getStat"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getStat</span></code></a> does in
+those cases.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.BinnedCorr2.nonzero">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">nonzero</span></code><a class="headerlink" href="#treecorr.BinnedCorr2.nonzero" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return if there are any values accumulated yet.  (i.e. npairs &gt; 0)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="treecorr.BinnedCorr2.sample_pairs">
+<code class="sig-name descname"><span class="pre">sample_pairs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat2</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_sep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_sep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#BinnedCorr2.sample_pairs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.BinnedCorr2.sample_pairs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a random sample of n pairs whose separations fall between min_sep and max_sep.</p>
+<p>This would typically be used to get some random subset of the indices of pairs that
+fell into a particular bin of the correlation.  E.g. to get 100 pairs from the third
+bin of a <a class="reference internal" href="#treecorr.BinnedCorr2" title="treecorr.BinnedCorr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr2</span></code></a> instance, corr, you could write:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">min_sep</span> <span class="o">=</span> <span class="n">corr</span><span class="o">.</span><span class="n">left_edges</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>   <span class="c1"># third bin has i=2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">max_sep</span> <span class="o">=</span> <span class="n">corr</span><span class="o">.</span><span class="n">right_edges</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i1</span><span class="p">,</span> <span class="n">i2</span><span class="p">,</span> <span class="n">sep</span> <span class="o">=</span> <span class="n">corr</span><span class="o">.</span><span class="n">sample_pairs</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">min_sep</span><span class="p">,</span> <span class="n">max_sep</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The min_sep and max_sep should use the same units as were defined when constructing
+the corr instance.</p>
+<p>The selection process will also use the same bin_slop as specified (either explicitly or
+implicitly) when constructing the corr instance.  This means that some of the pairs may
+have actual separations slightly outside of the specified range.  If you want a selection
+using an exact range without any slop, you should construct a new Correlation instance
+with bin_slop=0, and call sample_pairs with that.</p>
+<p>The returned separations will likewise correspond to the separation of the cells in the
+tree that TreeCorr used to place the pairs into the given bin.  Therefore, if these cells
+were not leaf cells, then they will not typically be equal to the real separations for the
+given metric.  If you care about the exact separations for each pair, you should either
+call sample_pairs from a Correlation instance with brute=True or recalculate the
+distances yourself from the original data.</p>
+<p>Also, note that min_sep and max_sep may be arbitrary.  There is no requirement that they
+be edges of one of the standard bins for this correlation function.  There is also no
+requirement that this correlation instance has already accumulated pairs via a call
+to process with these catalogs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – How many samples to return.</p></li>
+<li><p><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The catalog from which to sample the first object of each pair.</p></li>
+<li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The catalog from which to sample the second object of each pair.
+(This may be the same as cat1.)</p></li>
+<li><p><strong>min_sep</strong> (<em>float</em>) – The minimum separation for the returned pairs (modulo some slop
+allowed by the bin_slop parameter). (Note: keyword name is required
+for this parameter: min_sep=min_sep)</p></li>
+<li><p><strong>max_sep</strong> (<em>float</em>) – The maximum separation for the returned pairs (modulo some slop
+allowed by the bin_slop parameter). (Note: keyword name is required
+for this parameter: max_sep=max_sep)</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.  (default:
+self.metric, or ‘Euclidean’ if not set yet)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>Tuple containing</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>i1 (array): indices of objects from cat1</p></li>
+<li><p>i2 (array): indices of objects from cat2</p></li>
+<li><p>sep (array): separations of the pairs of objects (i1,i2)</p></li>
+</ul>
+</div></blockquote>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="treecorr.estimate_multi_cov">
+<code class="sig-prename descclassname"><span class="pre">treecorr.</span></code><code class="sig-name descname"><span class="pre">estimate_multi_cov</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">corrs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#estimate_multi_cov"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.estimate_multi_cov" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate the covariance matrix of multiple statistics.</p>
+<p>This is like the method <a class="reference internal" href="#treecorr.BinnedCorr2.estimate_cov" title="treecorr.BinnedCorr2.estimate_cov"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">BinnedCorr2.estimate_cov</span></code></a>, except that it will acoommodate
+multiple statistics from a list <code class="docutils literal notranslate"><span class="pre">corrs</span></code> of <a class="reference internal" href="#treecorr.BinnedCorr2" title="treecorr.BinnedCorr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr2</span></code></a> objects.</p>
+<p>Options for <code class="docutils literal notranslate"><span class="pre">method</span></code> include:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>‘shot’ = The variance based on “shot noise” only.  This includes the Poisson
+counts of points for N statistics, shape noise for G statistics, and the observed
+scatter in the values for K statistics.  In this case, the returned covariance
+matrix will be diagonal, since there is no way to estimate the off-diagonal terms.</p></li>
+<li><p>‘jackknife’ = A jackknife estimate of the covariance matrix based on the scatter
+in the measurement when excluding one patch at a time.</p></li>
+<li><p>‘sample’ = An estimate based on the sample covariance of a set of samples,
+taken as the patches of the input catalog.</p></li>
+<li><p>‘bootstrap’ = A bootstrap covariance estimate. It selects patches at random with
+replacement and then generates the statistic using all the auto-correlations at
+their selected repetition plus all the cross terms that aren’t actually auto terms.</p></li>
+<li><p>‘marked_bootstrap’ = An estimate based on a marked-point bootstrap resampling of the
+patches.  Similar to bootstrap, but only samples the patches of the first catalog and
+uses all patches from the second catalog that correspond to each patch selection of
+the first catalog.  Based on the algorithm presented in Loh (2008).
+cf. <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/">https://ui.adsabs.harvard.edu/abs/2008ApJ…681..726L/</a></p></li>
+</ul>
+</div></blockquote>
+<p>Both ‘bootstrap’ and ‘marked_bootstrap’ use the num_bootstrap parameter, which can be set on
+construction.</p>
+<p>For example, to find the combined covariance matrix for an NG tangential shear statistc,
+along with the GG xi+ and xi- from the same area, using jackknife covariance estimation,
+you would write:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">estimate_multi_cov</span><span class="p">([</span><span class="n">ng</span><span class="p">,</span><span class="n">gg</span><span class="p">],</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;jackknife&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In all cases, the relevant processing needs to already have been completed and finalized.
+And for all methods other than ‘shot’, the processing should have involved an appropriate
+number of patches – preferably more patches than the length of the vector for your
+statistic, although this is not checked.</p>
+<p>The default order of the covariance matrix is to simply concatenate the data vectors
+for each corr in the list <code class="docutils literal notranslate"><span class="pre">corrs</span></code>.  However, if you want to do something more complicated,
+you may provide an arbitrary function, <code class="docutils literal notranslate"><span class="pre">func</span></code>, which should act on the list of correlations.
+For instance, if you have several <a class="reference internal" href="gg.html#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a> objects and would like to order the
+covariance such that all xi+ results come first, and then all xi- results, you could use</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">corrs</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">xip</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corrs</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">xim</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corrs</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Or if you want to compute the covariance matrix of some derived quantity like the ratio
+of two correlations, you could use</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">corrs</span><span class="p">:</span> <span class="n">corrs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">xi</span> <span class="o">/</span> <span class="n">corrs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">xi</span>
+</pre></div>
+</div>
+<p>This function can be parallelized by passing the comm argument as an mpi4py communicator to
+parallelize using that.  For MPI, all processes should have the same inputs.
+If method == “shot” then parallelization has no effect.</p>
+<p>The return value from this func should be a single numpy array. (This is not directly
+checked, but you’ll probably get some kind of exception if it doesn’t behave as expected.)</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The optional <code class="docutils literal notranslate"><span class="pre">func</span></code> parameter is not valid in conjunction with <code class="docutils literal notranslate"><span class="pre">method='shot'</span></code>.
+It only works for the methods that are based on patch combinations.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>corrs</strong> (<em>list</em>) – A list of <a class="reference internal" href="#treecorr.BinnedCorr2" title="treecorr.BinnedCorr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr2</span></code></a> instances.</p></li>
+<li><p><strong>method</strong> (<em>str</em>) – Which method to use to estimate the covariance matrix.</p></li>
+<li><p><strong>func</strong> (<em>function</em>) – A unary function that takes the list <code class="docutils literal notranslate"><span class="pre">corrs</span></code> and returns the
+desired full data vector. [default: None, which is equivalent to
+<code class="docutils literal notranslate"><span class="pre">lambda</span> <span class="pre">corrs:</span> <span class="pre">np.concatenate([c.getStat()</span> <span class="pre">for</span> <span class="pre">c</span> <span class="pre">in</span> <span class="pre">corrs])</span></code>]</p></li>
+<li><p><strong>comm</strong> (<em>mpi comm</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A numpy array with the estimated covariance matrix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="treecorr.build_multi_cov_design_matrix">
+<code class="sig-prename descclassname"><span class="pre">treecorr.</span></code><code class="sig-name descname"><span class="pre">build_multi_cov_design_matrix</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">corrs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/binnedcorr2.html#build_multi_cov_design_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.build_multi_cov_design_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build the design matrix that is used for estimating the covariance matrix.</p>
+<p>The design matrix for patch-based covariance estimates is a matrix where each row
+corresponds to a different estimate of the data vector, <span class="math notranslate nohighlight">\(\xi_i\)</span> (or
+<span class="math notranslate nohighlight">\(f(\xi_i)\)</span> if using the optional <code class="docutils literal notranslate"><span class="pre">func</span></code> parameter).</p>
+<p>The different of rows in the matrix for each valid <code class="docutils literal notranslate"><span class="pre">method</span></code> are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>‘shot’: This method is not valid here.</p></li>
+<li><p>‘jackknife’: The data vector when excluding a single patch.</p></li>
+<li><p>‘sample’: The data vector using only a single patch for the first catalog.</p></li>
+<li><p>‘bootstrap’: The data vector for a random resampling of the patches keeping the
+sample total number, but allowing some to repeat.  Cross terms from repeated patches
+are excluded (since they are really auto terms).</p></li>
+<li><p>‘marked_bootstrap’: The data vector for a random resampling of patches in the first
+catalog, using all patches for the second catalog.  Based on the algorithm in Loh(2008).</p></li>
+</ul>
+</div></blockquote>
+<p>See <a class="reference internal" href="#treecorr.estimate_multi_cov" title="treecorr.estimate_multi_cov"><code class="xref any py py-func docutils literal notranslate"><span class="pre">estimate_multi_cov</span></code></a> for more details.</p>
+<p>The return value includes both the design matrix and a vector of weights (the total weight
+array in the computed correlation functions).  The weights are used for the sample method
+when estimating the covariance matrix.  The other methods ignore them, but they are provided
+here in case they are useful.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>corrs</strong> (<em>list</em>) – A list of <a class="reference internal" href="#treecorr.BinnedCorr2" title="treecorr.BinnedCorr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">BinnedCorr2</span></code></a> instances.</p></li>
+<li><p><strong>method</strong> (<em>str</em>) – Which method to use to estimate the covariance matrix.</p></li>
+<li><p><strong>func</strong> (<em>function</em>) – A unary function that takes the list <code class="docutils literal notranslate"><span class="pre">corrs</span></code> and returns the
+desired full data vector. [default: None, which is equivalent to
+<code class="docutils literal notranslate"><span class="pre">lambda</span> <span class="pre">corrs:</span> <span class="pre">np.concatenate([c.getStat()</span> <span class="pre">for</span> <span class="pre">c</span> <span class="pre">in</span> <span class="pre">corrs])</span></code>]</p></li>
+<li><p><strong>comm</strong> (<em>mpi comm</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>numpy arrays with the design matrix and weights respectively.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>A, w</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="catalog.html" class="btn btn-neutral float-left" title="Input Data" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="nn.html" class="btn btn-neutral float-right" title="NNCorrelation: Count-count correlations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Mike Jarvis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -23,3 +23,5 @@ features in common about how they are constructed.  The common features are docu
 
 .. autofunction:: treecorr.estimate_multi_cov
 
+.. autofunction:: treecorr.build_multi_cov_design_matrix
+

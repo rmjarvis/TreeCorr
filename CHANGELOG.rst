@@ -36,8 +36,7 @@ New features
 - Added ability to write out the full set of pair-wise results in the write commands, and to
   read them back in.  This allows correlation objects to still be able to correctly calculate
   the various patch-based covariance matrix estimates after round-tripping through a file.
-  To use this feature, use ``corr.write(..., write_patch_results=True)``.
-  (#141)
+  To use this feature, use ``corr.write(..., write_patch_results=True)``. (#141)
 - Allow None as a configuration parameter to be equivalent to not specifying a parameter.
   E.g. ``bin_size=0.1, min_sep=1., max_sep=100., nbins=None`` is allowed now. (#142)
 

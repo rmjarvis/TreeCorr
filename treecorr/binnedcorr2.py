@@ -1449,7 +1449,7 @@ def build_multi_cov_design_matrix(corrs, method, *, func=None, comm=None):
         - 'marked_bootstrap': The data vector for a random resampling of patches in the first
           catalog, using all patches for the second catalog.  Based on the algorithm in Loh(2008).
 
-    See `estimate_mult_cov` for more details.
+    See `estimate_multi_cov` for more details.
 
     The return value includes both the design matrix and a vector of weights (the total weight
     array in the computed correlation functions).  The weights are used for the sample method

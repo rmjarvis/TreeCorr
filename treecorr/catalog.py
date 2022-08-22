@@ -169,7 +169,7 @@ class Catalog(object):
                             file.  Any optional kwargs may be given here in the config dict if
                             desired.  Invalid keys in the config dict are ignored. (default: None)
 
-    Keyword-only Arguments:
+    Keyword Arguments:
 
         num (int):          Which number catalog are we reading.  e.g. for NG correlations the
                             catalog for the N has num=0, the one for G has num=1.  This is only

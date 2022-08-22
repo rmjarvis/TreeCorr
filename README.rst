@@ -72,7 +72,7 @@ system, you might need to use one of the following variants for pip installation
     sudo pip install treecorr
     pip install treecorr --user
 
-The latter installs the Python module into ``~/.local/lib/python3.7/site-packages``,
+The latter installs the Python module into ``~/.local/lib/python3.X/site-packages``,
 which is normally already in your PYTHONPATH, but it puts the executables
 ``corr2`` and ``corr3`` into ``~/.local/bin`` which is probably not in your PATH.
 To use these scripts, you should add this directory to your PATH.  If you would
@@ -81,7 +81,7 @@ rather install into a different prefix rather than ~/.local, you can use::
     pip install treecorr --install-option="--prefix=PREFIX"
 
 This would install the executables into ``PREFIX/bin`` and the Python module
-into ``PREFIX/lib/python3.7/site-packages``.
+into ``PREFIX/lib/python3.X/site-packages``.
 
 
 If you would rather download the tarball and install TreeCorr yourself,

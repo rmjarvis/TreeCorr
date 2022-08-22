@@ -9,8 +9,8 @@ whose issue numbers are listed below for the relevant items.
 System Support Changes
 ----------------------
 
-- Starting with this version, TreeCorr no longer supports Python 2.7.
-  We currently support Python versions 3.6, 3.7, 3,8, 3.9, 3.10.
+- Starting with this version, TreeCorr no longer supports Python 2.7 or 3.6.
+  We currently support Python versions 3.7, 3,8, 3.9, 3.10.
 
 - We now support Windows machines, which we hadn't before this.  Code is now regularly
   tested on ubuntu, macos and windows. (#143)

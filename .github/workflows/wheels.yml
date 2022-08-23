@@ -20,8 +20,8 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.9.0
         env:
-          CIBW_BEFORE_ALL_LINUX: apt-get install -y libffi-dev
-          CIBW_BEFORE_ALL_MACOS: brew install libffi
+          CIBW_BEFORE_ALL_LINUX: yum install -y libffi-devel || true
+          CIBW_BEFORE_ALL_MACOS: brew install libffi || true
 
       - uses: actions/upload-artifact@v3
         with:

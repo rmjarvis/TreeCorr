@@ -38,6 +38,11 @@ class Catalog(object):
     (x,y,z), etc.), and possibly some extra information such as weights (w), shear values (g1,g2),
     or kappa values (k).
 
+    .. note::
+
+        See `Shear Conventions` for some discussion of the conventions used in TreeCorr
+        for the orientation of the spin-2 shear values.
+
     The simplest way to build a Catalog is to simply pass in numpy arrays for each
     piece of information you want included.  For instance::
 

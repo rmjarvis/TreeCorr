@@ -3,7 +3,7 @@ Shear Conventions
 
 A shear field (or in general an arbitrary spin-2 complex field, also known as a "spinor")
 is described by two real numbers in the input `Catalog`, called :math:`g_1` and :math:`g_2`.
-The complex complex-valued :math:`g` is defined as:
+The complex-valued :math:`g` is defined as:
 
 .. math::
 
@@ -30,6 +30,8 @@ And it is negative imaginary when parallel to the line :math:`y=-x`.
 
 .. image:: xy_shear.png
 
+In other words, the phase angle :math:`\phi` is measured counter-clockwise from the
+x-axis.
 
 Spherical Geometries
 --------------------
@@ -53,16 +55,17 @@ when oriented along NE-SW.
 
 .. image:: nw_shear.png
 
+
 Options to adjust the convention
 --------------------------------
 
 Not all surveys and simulations conform to the above convention, particularly related
-to the sign of two components.  The most common alternative is to align the axes
+to the sign of the two components.  The most common alternative is to align the axes
 with north still up, but as seen from space looking along the path of the light bundle
 as it travels towards Earth.  This flips the E and W directions, so West is to the
 left, not right.  The upshot of this choice is that it flips the sign of the imaginary
 component, g2.  Sometimes simulations choose conventions that are equivalent to flipping
-the sign of g1 (either instead of or in addition to flipping g2).
+the sign of g1, either instead of or in addition to flipping g2.
 
 Because of this variation in conventions, TreeCorr provides two input parameters to
 flip the sign of either component to match the standard convention.

@@ -88,7 +88,7 @@
 <h1>Shear Conventions<a class="headerlink" href="#shear-conventions" title="Permalink to this headline">¶</a></h1>
 <p>A shear field (or in general an arbitrary spin-2 complex field, also known as a “spinor”)
 is described by two real numbers in the input <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a>, called <span class="math notranslate nohighlight">\(g_1\)</span> and <span class="math notranslate nohighlight">\(g_2\)</span>.
-The complex complex-valued <span class="math notranslate nohighlight">\(g\)</span> is defined as:</p>
+The complex-valued <span class="math notranslate nohighlight">\(g\)</span> is defined as:</p>
 <div class="math notranslate nohighlight">
 \[g = g_1 + i g_2 = |g| e^{2 i \phi}\]</div>
 <p>These values are used in all “G” correlation function classes: <a class="reference internal" href="gg.html#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a>,
@@ -107,6 +107,8 @@ shear is oriented parallel to the x-axis.  It is negative real when parallel to
 the y-axis.  It is positive imaginary when parallel to the line <span class="math notranslate nohighlight">\(y=x\)</span>.
 And it is negative imaginary when parallel to the line <span class="math notranslate nohighlight">\(y=-x\)</span>.</p>
 <img alt="_images/xy_shear.png" src="_images/xy_shear.png" />
+<p>In other words, the phase angle <span class="math notranslate nohighlight">\(\phi\)</span> is measured counter-clockwise from the
+x-axis.</p>
 </div>
 <div class="section" id="spherical-geometries">
 <h2>Spherical Geometries<a class="headerlink" href="#spherical-geometries" title="Permalink to this headline">¶</a></h2>
@@ -129,12 +131,12 @@ when oriented along NE-SW.</p>
 <div class="section" id="options-to-adjust-the-convention">
 <h2>Options to adjust the convention<a class="headerlink" href="#options-to-adjust-the-convention" title="Permalink to this headline">¶</a></h2>
 <p>Not all surveys and simulations conform to the above convention, particularly related
-to the sign of two components.  The most common alternative is to align the axes
+to the sign of the two components.  The most common alternative is to align the axes
 with north still up, but as seen from space looking along the path of the light bundle
 as it travels towards Earth.  This flips the E and W directions, so West is to the
 left, not right.  The upshot of this choice is that it flips the sign of the imaginary
 component, g2.  Sometimes simulations choose conventions that are equivalent to flipping
-the sign of g1 (either instead of or in addition to flipping g2).</p>
+the sign of g1, either instead of or in addition to flipping g2.</p>
 <p>Because of this variation in conventions, TreeCorr provides two input parameters to
 flip the sign of either component to match the standard convention.
 Setting <code class="docutils literal notranslate"><span class="pre">flip_g1=True</span></code> when making a <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a> will cause it to flip the sign of all

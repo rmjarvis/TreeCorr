@@ -13,7 +13,7 @@ These values are used in all "G" correlation function classes: `GGCorrelation`,
 `NGCorrelation`, `KGCorrelation`, and `GGGCorrelation`.
 
 Spin-2 fields have the property that when the coordinate system rotates by an angle
-:math:`\theta`, the complex value changes by a factor of :math:`\text{exp}(2 i \theta)`.
+:math:`\theta`, the complex value changes by a factor of :math:`\text{exp}(-2 i \theta)`.
 That is, they transform as an ellipse or a "headless" line segment (where neither end is special,
 unlike a vector). When the coordinates are rotated by 180 degrees, the ellipse or line segment
 is mapped back onto itself, and the shear value is unchanged.

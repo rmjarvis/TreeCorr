@@ -491,12 +491,26 @@ def test_omp():
 
     # If num_threads == 1, it should always set to 1
     assert treecorr.set_omp_threads(1) == 1
+    assert treecorr.get_omp_threads() == 1
 
     # If num_threads > 1, it could be 1 or up to the input num_threads
     assert treecorr.set_omp_threads(2) >= 1
     assert treecorr.set_omp_threads(2) <= 2
     assert treecorr.set_omp_threads(20) >= 1
     assert treecorr.set_omp_threads(20) <= 20
+    num_threads = treecorr.set_omp_threads(20)
+    assert treecorr.get_omp_threads() == num_threads
+
+    # If limit max_omp_threads, then set_omp cannot exceed this.
+    treecorr.set_max_omp_threads(1)
+    assert treecorr.set_omp_threads(2) == 1
+    assert treecorr.set_omp_threads(20) == 1
+    treecorr.set_max_omp_threads(3)
+    assert treecorr.set_omp_threads(2) >= 1
+    assert treecorr.set_omp_threads(2) <= 2
+    assert treecorr.set_omp_threads(20) >= 1
+    assert treecorr.set_omp_threads(20) <= 3
+    treecorr.set_max_omp_threads(None)
 
     # Repeat and check that appropriate messages are emitted
     with CaptureLog() as cl:
@@ -580,5 +594,3 @@ if __name__ == '__main__':
     test_convert()
     test_omp()
     test_util()
-    test_gen_read_write()
-    test_gen_multi_read_write()

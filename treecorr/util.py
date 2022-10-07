@@ -26,6 +26,18 @@ from . import _lib, _ffi, Rperp_alias
 from .writer import AsciiWriter, FitsWriter, HdfWriter
 from .reader import AsciiReader, FitsReader, HdfReader
 
+max_omp_threads=None
+
+def set_max_omp_threads(num_threads, logger=None):
+    """Set the maximum allowed number of OpenMP threads to use in the C++ layer in any
+    further TreeCorr functions
+
+    :param num_threads: The target maximum number of threads to allow.  None means no limit.
+    :param logger:      If desired, a logger object for logging any warnings here. (default: None)
+    """
+    global max_omp_threads
+    max_omp_threads=num_threads
+
 def set_omp_threads(num_threads, logger=None):
     """Set the number of OpenMP threads to use in the C++ layer.
 
@@ -44,6 +56,12 @@ def set_omp_threads(num_threads, logger=None):
         num_threads = multiprocessing.cpu_count()
         if logger:
             logger.debug('multiprocessing.cpu_count() = %d',num_threads)
+
+    # Max at max_omp_threads, if set.
+    if max_omp_threads is not None and num_threads > max_omp_threads:
+        num_threads = max_omp_threads
+        if logger:
+            logger.debug('max_omp_threads = %d',max_omp_threads)
 
     # Tell OpenMP to use this many threads
     if logger:

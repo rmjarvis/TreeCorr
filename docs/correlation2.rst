@@ -25,3 +25,8 @@ features in common about how they are constructed.  The common features are docu
 
 .. autofunction:: treecorr.build_multi_cov_design_matrix
 
+.. autofunction:: treecorr.set_max_omp_threads
+
+.. autofunction:: treecorr.set_omp_threads
+
+.. autofunction:: treecorr.get_omp_threads

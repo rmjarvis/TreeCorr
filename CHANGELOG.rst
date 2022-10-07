@@ -46,3 +46,9 @@ Bug fixes
 
 - Fixed a bug where correlation objects using bin_type=TwoD could not be correctly read back
   in after being written to a file. (#141)
+
+
+Changes from version 4.3.0 to 4.3.1
+===================================
+
+- Added `set_max_omp_threads` function to enable turning off OpenMP completely for TreeCorr.

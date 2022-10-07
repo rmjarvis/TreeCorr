@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>treecorr.util &mdash; TreeCorr 4.3.0 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> TreeCorr
+          </a>
+              <div class="version">
+                4.3
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../catalog.html">Input Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../correlation2.html">Two-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../shear.html">Shear Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cov.html">Covariance Estimates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Using configuration files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 4.2 to 4.3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-3-0-to-4-3-1">Changes from version 4.3.0 to 4.3.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TreeCorr</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>treecorr.util</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for treecorr.util</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2003-2019 by Mike Jarvis</span>
+<span class="c1">#</span>
+<span class="c1"># TreeCorr is free software: redistribution and use in source and binary forms,</span>
+<span class="c1"># with or without modification, are permitted provided that the following</span>
+<span class="c1"># conditions are met:</span>
+<span class="c1">#</span>
+<span class="c1"># 1. Redistributions of source code must retain the above copyright notice, this</span>
+<span class="c1">#    list of conditions, and the disclaimer given in the accompanying LICENSE</span>
+<span class="c1">#    file.</span>
+<span class="c1"># 2. Redistributions in binary form must reproduce the above copyright notice,</span>
+<span class="c1">#    this list of conditions, and the disclaimer given in the documentation</span>
+<span class="c1">#    and/or other materials provided with the distribution.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: util</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">coord</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_lib</span><span class="p">,</span> <span class="n">_ffi</span><span class="p">,</span> <span class="n">Rperp_alias</span>
+<span class="kn">from</span> <span class="nn">.writer</span> <span class="kn">import</span> <span class="n">AsciiWriter</span><span class="p">,</span> <span class="n">FitsWriter</span><span class="p">,</span> <span class="n">HdfWriter</span>
+<span class="kn">from</span> <span class="nn">.reader</span> <span class="kn">import</span> <span class="n">AsciiReader</span><span class="p">,</span> <span class="n">FitsReader</span><span class="p">,</span> <span class="n">HdfReader</span>
+
+<span class="n">max_omp_threads</span><span class="o">=</span><span class="kc">None</span>
+
+<div class="viewcode-block" id="set_max_omp_threads"><a class="viewcode-back" href="../../correlation2.html#treecorr.set_max_omp_threads">[docs]</a><span class="k">def</span> <span class="nf">set_max_omp_threads</span><span class="p">(</span><span class="n">num_threads</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Set the maximum allowed number of OpenMP threads to use in the C++ layer in any</span>
+<span class="sd">    further TreeCorr functions</span>
+
+<span class="sd">    :param num_threads: The target maximum number of threads to allow.  None means no limit.</span>
+<span class="sd">    :param logger:      If desired, a logger object for logging any warnings here. (default: None)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">max_omp_threads</span>
+    <span class="n">max_omp_threads</span><span class="o">=</span><span class="n">num_threads</span></div>
+
+<div class="viewcode-block" id="set_omp_threads"><a class="viewcode-back" href="../../correlation2.html#treecorr.set_omp_threads">[docs]</a><span class="k">def</span> <span class="nf">set_omp_threads</span><span class="p">(</span><span class="n">num_threads</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Set the number of OpenMP threads to use in the C++ layer.</span>
+
+<span class="sd">    :param num_threads: The target number of threads to use</span>
+<span class="sd">    :param logger:      If desired, a logger object for logging any warnings here. (default: None)</span>
+
+<span class="sd">    :returns:           The  number of threads OpenMP reports that it will use.  Typically this</span>
+<span class="sd">                        matches the input, but OpenMP reserves the right not to comply with</span>
+<span class="sd">                        the requested number of threads.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">input_num_threads</span> <span class="o">=</span> <span class="n">num_threads</span>  <span class="c1"># Save the input value.</span>
+
+    <span class="c1"># If num_threads is auto, get it from cpu_count</span>
+    <span class="k">if</span> <span class="n">num_threads</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">num_threads</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">multiprocessing</span>
+        <span class="n">num_threads</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;multiprocessing.cpu_count() = </span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">num_threads</span><span class="p">)</span>
+
+    <span class="c1"># Max at max_omp_threads, if set.</span>
+    <span class="k">if</span> <span class="n">max_omp_threads</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">num_threads</span> <span class="o">&gt;</span> <span class="n">max_omp_threads</span><span class="p">:</span>
+        <span class="n">num_threads</span> <span class="o">=</span> <span class="n">max_omp_threads</span>
+        <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;max_omp_threads = </span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">max_omp_threads</span><span class="p">)</span>
+
+    <span class="c1"># Tell OpenMP to use this many threads</span>
+    <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Telling OpenMP to use </span><span class="si">%d</span><span class="s1"> threads&#39;</span><span class="p">,</span><span class="n">num_threads</span><span class="p">)</span>
+    <span class="n">num_threads</span> <span class="o">=</span> <span class="n">_lib</span><span class="o">.</span><span class="n">SetOMPThreads</span><span class="p">(</span><span class="n">num_threads</span><span class="p">)</span>
+
+    <span class="c1"># Report back appropriately.</span>
+    <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;OpenMP reports that it will use </span><span class="si">%d</span><span class="s1"> threads&#39;</span><span class="p">,</span><span class="n">num_threads</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">num_threads</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Using </span><span class="si">%d</span><span class="s1"> threads.&#39;</span><span class="p">,</span><span class="n">num_threads</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">input_num_threads</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">input_num_threads</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># Only warn if the user specifically asked for num_threads != 1.</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Unable to use multiple threads, since OpenMP is not enabled.&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">num_threads</span></div>
+
+<div class="viewcode-block" id="get_omp_threads"><a class="viewcode-back" href="../../correlation2.html#treecorr.get_omp_threads">[docs]</a><span class="k">def</span> <span class="nf">get_omp_threads</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Get the number of OpenMP threads currently set to be used in the C++ layer.</span>
+
+<span class="sd">    :returns:           The  number of threads OpenMP reports that it will use.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_lib</span><span class="o">.</span><span class="n">GetOMPThreads</span><span class="p">()</span></div>
+
+<span class="k">def</span> <span class="nf">parse_file_type</span><span class="p">(</span><span class="n">file_type</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parse the file_type from the file_name if necessary</span>
+
+<span class="sd">    :param file_type:   The input file_type.  If None, then parse from file_name&#39;s extension.</span>
+<span class="sd">    :param file_name:   The filename to use for parsing if necessary.</span>
+<span class="sd">    :param output:      Limit to output file types (FITS/ASCII)? (default: False)</span>
+<span class="sd">    :param logger:      A logger if desired. (default: None)</span>
+
+<span class="sd">    :returns: The parsed file_type.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">file_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">os</span>
+        <span class="n">name</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ext</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;.fit&#39;</span><span class="p">):</span>
+            <span class="n">file_type</span> <span class="o">=</span> <span class="s1">&#39;FITS&#39;</span>
+        <span class="k">elif</span> <span class="n">ext</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;.hdf&#39;</span><span class="p">):</span>
+            <span class="n">file_type</span> <span class="o">=</span> <span class="s1">&#39;HDF&#39;</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">output</span> <span class="ow">and</span> <span class="n">ext</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;.par&#39;</span><span class="p">):</span>
+            <span class="n">file_type</span> <span class="o">=</span> <span class="s1">&#39;Parquet&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">file_type</span> <span class="o">=</span> <span class="s1">&#39;ASCII&#39;</span>
+        <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;   file_type assumed to be </span><span class="si">%s</span><span class="s2"> from the file name.&quot;</span><span class="p">,</span><span class="n">file_type</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">file_type</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">make_writer</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Factory function to make a writer instance of the correct type.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Figure out which file type to use.</span>
+    <span class="n">file_type</span> <span class="o">=</span> <span class="n">parse_file_type</span><span class="p">(</span><span class="n">file_type</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">file_type</span> <span class="o">==</span> <span class="s1">&#39;FITS&#39;</span><span class="p">:</span>
+        <span class="n">writer</span> <span class="o">=</span> <span class="n">FitsWriter</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">file_type</span> <span class="o">==</span> <span class="s1">&#39;HDF&#39;</span><span class="p">:</span>
+        <span class="n">writer</span> <span class="o">=</span> <span class="n">HdfWriter</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">file_type</span> <span class="o">==</span> <span class="s1">&#39;ASCII&#39;</span><span class="p">:</span>
+        <span class="n">writer</span> <span class="o">=</span> <span class="n">AsciiWriter</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid file_type </span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">file_type</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">writer</span>
+
+<span class="k">def</span> <span class="nf">make_reader</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Factory function to make a writer instance of the correct type.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Figure out which file type to use.</span>
+    <span class="n">file_type</span> <span class="o">=</span> <span class="n">parse_file_type</span><span class="p">(</span><span class="n">file_type</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">file_type</span> <span class="o">==</span> <span class="s1">&#39;FITS&#39;</span><span class="p">:</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">FitsReader</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">file_type</span> <span class="o">==</span> <span class="s1">&#39;HDF&#39;</span><span class="p">:</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">HdfReader</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">file_type</span> <span class="o">==</span> <span class="s1">&#39;ASCII&#39;</span><span class="p">:</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">AsciiReader</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid file_type </span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">file_type</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">reader</span>
+
+<span class="k">class</span> <span class="nc">LRU_Cache</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Simplified Least Recently Used Cache.</span>
+<span class="sd">    Mostly stolen from http://code.activestate.com/recipes/577970-simplified-lru-cache/,</span>
+<span class="sd">    but added a method for dynamic resizing.  The least recently used cached item is</span>
+<span class="sd">    overwritten on a cache miss.</span>
+
+<span class="sd">    Note: This has additional functionality beyond what functools.lru_cache provides.</span>
+<span class="sd">          1. The ability to resize the maxsize non-destructively.</span>
+<span class="sd">          2. The key is only on the args, not kwargs, so a logger can be provided as a kwarg</span>
+<span class="sd">             without triggering a cache miss.</span>
+
+<span class="sd">    :param user_function:  A python function to cache.</span>
+<span class="sd">    :param maxsize:        Maximum number of inputs to cache.  [Default: 1024]</span>
+
+<span class="sd">    Usage</span>
+<span class="sd">    -----</span>
+<span class="sd">    &gt;&gt;&gt; def slow_function(*args) # A slow-to-evaluate python function</span>
+<span class="sd">    &gt;&gt;&gt;    ...</span>
+<span class="sd">    &gt;&gt;&gt;</span>
+<span class="sd">    &gt;&gt;&gt; v1 = slow_function(*k1)  # Calling function is slow</span>
+<span class="sd">    &gt;&gt;&gt; v1 = slow_function(*k1)  # Calling again with same args is still slow</span>
+<span class="sd">    &gt;&gt;&gt; cache = galsim.utilities.LRU_Cache(slow_function)</span>
+<span class="sd">    &gt;&gt;&gt; v1 = cache(*k1)  # Returns slow_function(*k1), slowly the first time</span>
+<span class="sd">    &gt;&gt;&gt; v1 = cache(*k1)  # Returns slow_function(*k1) again, but fast this time.</span>
+
+<span class="sd">    Methods</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; cache.resize(maxsize) # Resize the cache, either upwards or downwards.  Upwards resizing</span>
+<span class="sd">                              # is non-destructive.  Downwards resizing will remove the least</span>
+<span class="sd">                              # recently used items first.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_function</span><span class="p">,</span> <span class="n">maxsize</span><span class="o">=</span><span class="mi">1024</span><span class="p">):</span>
+        <span class="c1"># Link layout:     [PREV, NEXT, KEY, RESULT]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_function</span> <span class="o">=</span> <span class="n">user_function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">last</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maxsize</span><span class="p">):</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">last</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">last</span> <span class="o">=</span> <span class="p">[</span><span class="n">last</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">last</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">key</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">link</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">link</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Cache hit: move link to last position</span>
+            <span class="n">link_prev</span><span class="p">,</span> <span class="n">link_next</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">result</span> <span class="o">=</span> <span class="n">link</span>
+            <span class="n">link_prev</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">link_next</span>
+            <span class="n">link_next</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">link_prev</span>
+            <span class="n">last</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">last</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">link</span>
+            <span class="n">link</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">last</span>
+            <span class="n">link</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span>
+            <span class="k">return</span> <span class="n">result</span>
+        <span class="c1"># Cache miss: evaluate and insert new key/value at root, then increment root</span>
+        <span class="c1">#             so that just-evaluated value is in last position.</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">user_function</span><span class="p">(</span><span class="o">*</span><span class="n">key</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
+        <span class="n">oldroot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">oldkey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">oldroot</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">oldkey</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Lists all items stored in the cache&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">([</span><span class="n">v</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">last_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the most recently used value&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">resize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maxsize</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Resize the cache.  Increasing the size of the cache is non-destructive, i.e.,</span>
+<span class="sd">        previously cached inputs remain in the cache.  Decreasing the size of the cache will</span>
+<span class="sd">        necessarily remove items from the cache if the cache is already filled.  Items are removed</span>
+<span class="sd">        in least recently used order.</span>
+
+<span class="sd">        :param maxsize: The new maximum number of inputs to cache.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">oldsize</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">maxsize</span> <span class="o">==</span> <span class="n">oldsize</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">maxsize</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid maxsize&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">maxsize</span> <span class="o">&lt;</span> <span class="n">oldsize</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">oldsize</span> <span class="o">-</span> <span class="n">maxsize</span><span class="p">):</span>
+                    <span class="c1"># Delete root.next</span>
+                    <span class="n">current_next_link</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">new_next_link</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">new_next_link</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span>
+                    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">current_next_link</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="p">,</span> <span class="n">maxsize</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span> <span class="c1"># maxsize &gt; oldsize:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maxsize</span> <span class="o">-</span> <span class="n">oldsize</span><span class="p">):</span>
+                    <span class="c1"># Insert between root and root.next</span>
+                    <span class="n">key</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">link</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">link</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">link</span>
+
+    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Clear all items from the cache.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">maxsize</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">last</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maxsize</span><span class="p">):</span>
+            <span class="n">last</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Sever pointer to any existing result.</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">last</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">last</span> <span class="o">=</span> <span class="p">[</span><span class="n">last</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">last</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">double_ptr</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Cast x as a double* to pass to library C functions</span>
+
+<span class="sd">    :param x:   A numpy array assumed to have dtype = float.</span>
+
+<span class="sd">    :returns:   A version of the array that can be passed to cffi C functions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_ffi</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="s1">&#39;double*&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># This fails if x is read_only</span>
+        <span class="c1">#return _ffi.cast(&#39;double*&#39;, _ffi.from_buffer(x))</span>
+        <span class="c1"># This works, presumably by ignoring the numpy read_only flag.  Although, I think it&#39;s ok.</span>
+        <span class="k">return</span> <span class="n">_ffi</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="s1">&#39;double*&#39;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">ctypes</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">long_ptr</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Cast x as a long* to pass to library C functions</span>
+
+<span class="sd">    :param x:   A numpy array assumed to have dtype = int.</span>
+
+<span class="sd">    :returns:   A version of the array that can be passed to cffi C functions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pragma: no cover   (I don&#39;t ever have x=None for this one.)</span>
+        <span class="k">return</span> <span class="n">_ffi</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="s1">&#39;long*&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_ffi</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="s1">&#39;long*&#39;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">ctypes</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">parse_metric</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">coords2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coords3</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert a string metric into the corresponding enum to pass to the C code.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">coords2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">auto</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">auto</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># Special Rlens doesn&#39;t care about the distance to the sources, so spherical is fine</span>
+        <span class="c1"># for cat2, cat3 in that case.</span>
+        <span class="k">if</span> <span class="n">metric</span> <span class="o">==</span> <span class="s1">&#39;Rlens&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">coords2</span> <span class="o">==</span> <span class="s1">&#39;spherical&#39;</span><span class="p">:</span> <span class="n">coords2</span> <span class="o">=</span> <span class="s1">&#39;3d&#39;</span>
+            <span class="k">if</span> <span class="n">coords3</span> <span class="o">==</span> <span class="s1">&#39;spherical&#39;</span><span class="p">:</span> <span class="n">coords3</span> <span class="o">=</span> <span class="s1">&#39;3d&#39;</span>
+
+        <span class="k">if</span> <span class="n">metric</span> <span class="o">==</span> <span class="s1">&#39;Arc&#39;</span><span class="p">:</span>
+            <span class="c1"># If all coords are 3d, then leave it 3d, but if any are spherical,</span>
+            <span class="c1"># then convert to spherical.</span>
+            <span class="k">if</span> <span class="nb">all</span><span class="p">([</span><span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;3d&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="n">coords</span><span class="p">,</span> <span class="n">coords2</span><span class="p">,</span> <span class="n">coords3</span><span class="p">]]):</span>
+                <span class="c1"># Leave coords as &#39;3d&#39;</span>
+                <span class="k">pass</span>
+            <span class="k">elif</span> <span class="nb">any</span><span class="p">([</span><span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;spherical&#39;</span><span class="p">,</span> <span class="s1">&#39;3d&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="n">coords</span><span class="p">,</span> <span class="n">coords2</span><span class="p">,</span> <span class="n">coords3</span><span class="p">]]):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Arc metric is only valid for catalogs with spherical positions.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">any</span><span class="p">([</span><span class="n">c</span> <span class="o">==</span> <span class="s1">&#39;spherical&#39;</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="n">coords</span><span class="p">,</span> <span class="n">coords2</span><span class="p">,</span> <span class="n">coords3</span><span class="p">]]):</span>  <span class="c1"># pragma: no branch</span>
+                <span class="c1"># Switch to spherical</span>
+                <span class="n">coords</span> <span class="o">=</span> <span class="s1">&#39;spherical&#39;</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                <span class="c1"># This is impossible now, but here in case we add additional coordinates.</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot correlate catalogs with different coordinate systems.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span> <span class="p">(</span><span class="n">coords2</span> <span class="o">!=</span> <span class="n">coords</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">coords3</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">coords3</span> <span class="o">!=</span> <span class="n">coords</span><span class="p">)</span> <span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot correlate catalogs with different coordinate systems.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">coords</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;flat&#39;</span><span class="p">,</span> <span class="s1">&#39;spherical&#39;</span><span class="p">,</span> <span class="s1">&#39;3d&#39;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid coords </span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">coords</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">metric</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Euclidean&#39;</span><span class="p">,</span> <span class="s1">&#39;Rperp&#39;</span><span class="p">,</span> <span class="s1">&#39;OldRperp&#39;</span><span class="p">,</span> <span class="s1">&#39;FisherRperp&#39;</span><span class="p">,</span> <span class="s1">&#39;Rlens&#39;</span><span class="p">,</span> <span class="s1">&#39;Arc&#39;</span><span class="p">,</span> <span class="s1">&#39;Periodic&#39;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid metric </span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">metric</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">metric</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Rperp&#39;</span><span class="p">,</span> <span class="s1">&#39;OldRperp&#39;</span><span class="p">,</span> <span class="s1">&#39;FisherRperp&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">coords</span> <span class="o">!=</span> <span class="s1">&#39;3d&#39;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> metric is only valid for catalogs with 3d positions.&quot;</span><span class="o">%</span><span class="n">metric</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">metric</span> <span class="o">==</span> <span class="s1">&#39;Rlens&#39;</span> <span class="ow">and</span> <span class="n">auto</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Rlens metric is only valid for cross correlations.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">metric</span> <span class="o">==</span> <span class="s1">&#39;Rlens&#39;</span> <span class="ow">and</span> <span class="n">coords</span> <span class="o">!=</span> <span class="s1">&#39;3d&#39;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Rlens metric is only valid for catalogs with 3d positions.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">metric</span> <span class="o">==</span> <span class="s1">&#39;Arc&#39;</span> <span class="ow">and</span> <span class="n">coords</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;spherical&#39;</span><span class="p">,</span> <span class="s1">&#39;3d&#39;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Arc metric is only valid for catalogs with spherical positions.&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">coords</span><span class="p">,</span> <span class="n">metric</span>
+
+<span class="k">def</span> <span class="nf">coord_enum</span><span class="p">(</span><span class="n">coords</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the C++-layer enum for the given string value of coords.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">coords</span> <span class="o">==</span> <span class="s1">&#39;flat&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_lib</span><span class="o">.</span><span class="n">Flat</span>
+    <span class="k">elif</span> <span class="n">coords</span> <span class="o">==</span> <span class="s1">&#39;spherical&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_lib</span><span class="o">.</span><span class="n">Sphere</span>
+    <span class="k">elif</span> <span class="n">coords</span> <span class="o">==</span> <span class="s1">&#39;3d&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_lib</span><span class="o">.</span><span class="n">ThreeD</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid coords </span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">coords</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">metric_enum</span><span class="p">(</span><span class="n">metric</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the C++-layer enum for the given string value of metric.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">metric</span> <span class="o">==</span> <span class="s1">&#39;Euclidean&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_lib</span><span class="o">.</span><span class="n">Euclidean</span>
+    <span class="k">elif</span> <span class="n">metric</span> <span class="o">==</span> <span class="s1">&#39;Rperp&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">metric_enum</span><span class="p">(</span><span class="n">Rperp_alias</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">metric</span> <span class="o">==</span> <span class="s1">&#39;FisherRperp&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_lib</span><span class="o">.</span><span class="n">Rperp</span>
+    <span class="k">elif</span> <span class="n">metric</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;OldRperp&#39;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">_lib</span><span class="o">.</span><span class="n">OldRperp</span>
+    <span class="k">elif</span> <span class="n">metric</span> <span class="o">==</span> <span class="s1">&#39;Rlens&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_lib</span><span class="o">.</span><span class="n">Rlens</span>
+    <span class="k">elif</span> <span class="n">metric</span> <span class="o">==</span> <span class="s1">&#39;Arc&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_lib</span><span class="o">.</span><span class="n">Arc</span>
+    <span class="k">elif</span> <span class="n">metric</span> <span class="o">==</span> <span class="s1">&#39;Periodic&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_lib</span><span class="o">.</span><span class="n">Periodic</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid metric </span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">metric</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">parse_xyzsep</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">_coords</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parse the different options for passing a coordinate and separation.</span>
+
+<span class="sd">    The allowed parameters are:</span>
+
+<span class="sd">    1. If _coords == Flat:</span>
+
+<span class="sd">        :param x:       The x coordinate of the location for which to count nearby points.</span>
+<span class="sd">        :param y:       The y coordinate of the location for which to count nearby points.</span>
+<span class="sd">        :param sep:     The separation distance</span>
+
+<span class="sd">    2. If _coords == ThreeD:</span>
+
+<span class="sd">    Either</span>
+<span class="sd">        :param x:       The x coordinate of the location for which to count nearby points.</span>
+<span class="sd">        :param y:       The y coordinate of the location for which to count nearby points.</span>
+<span class="sd">        :param z:       The z coordinate of the location for which to count nearby points.</span>
+<span class="sd">        :param sep:     The separation distance</span>
+
+<span class="sd">    Or</span>
+<span class="sd">        :param ra:      The right ascension of the location for which to count nearby points.</span>
+<span class="sd">        :param dec:     The declination of the location for which to count nearby points.</span>
+<span class="sd">        :param r:       The distance to the location for which to count nearby points.</span>
+<span class="sd">        :param sep:     The separation distance</span>
+
+<span class="sd">    3. If _coords == Sphere:</span>
+
+<span class="sd">        :param ra:      The right ascension of the location for which to count nearby points.</span>
+<span class="sd">        :param dec:     The declination of the location for which to count nearby points.</span>
+<span class="sd">        :param sep:     The separation distance as an angle</span>
+
+<span class="sd">    For all angle parameters (ra, dec, sep), this quantity may be a coord.Angle instance, or</span>
+<span class="sd">    units maybe be provided as ra_units, dec_units or sep_units respectively.</span>
+
+<span class="sd">    Finally, in cases where ra, dec are allowed, a coord.CelestialCoord instance may be</span>
+<span class="sd">    provided as the first argument.</span>
+
+<span class="sd">    :returns: The effective (x, y, z, sep) as a tuple.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">radec</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">_coords</span> <span class="o">==</span> <span class="n">_lib</span><span class="o">.</span><span class="n">Flat</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;x&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required argument x&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;y&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required argument y&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;sep&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required argument sep&quot;</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+            <span class="n">sep</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;sep&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;x,y should be given as either args or kwargs, not mixed.&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;sep&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required argument sep&quot;</span><span class="p">)</span>
+            <span class="n">x</span><span class="p">,</span><span class="n">y</span> <span class="o">=</span> <span class="n">args</span>
+            <span class="n">sep</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;sep&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">sep</span> <span class="o">=</span> <span class="n">args</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Too many positional args&quot;</span><span class="p">)</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">elif</span> <span class="n">_coords</span> <span class="o">==</span> <span class="n">_lib</span><span class="o">.</span><span class="n">ThreeD</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;x&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;y&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required argument y&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s1">&#39;z&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required argument z&quot;</span><span class="p">)</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+                <span class="n">z</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;ra&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required argument ra&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s1">&#39;dec&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required argument dec&quot;</span><span class="p">)</span>
+                <span class="n">ra</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;ra&#39;</span><span class="p">)</span>
+                <span class="n">dec</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;dec&#39;</span><span class="p">)</span>
+                <span class="n">radec</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="s1">&#39;r&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required argument r&quot;</span><span class="p">)</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;sep&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required argument sep&quot;</span><span class="p">)</span>
+            <span class="n">sep</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;sep&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coord</span><span class="o">.</span><span class="n">CelestialCoord</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid unnamed argument </span><span class="si">%r</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">ra</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ra</span>
+            <span class="n">dec</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dec</span>
+            <span class="n">radec</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="s1">&#39;r&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required argument r&quot;</span><span class="p">)</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;sep&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required argument sep&quot;</span><span class="p">)</span>
+            <span class="n">sep</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;sep&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coord</span><span class="o">.</span><span class="n">CelestialCoord</span><span class="p">):</span>
+                <span class="n">ra</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ra</span>
+                <span class="n">dec</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dec</span>
+                <span class="n">radec</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ra</span><span class="p">,</span> <span class="n">dec</span> <span class="o">=</span> <span class="n">args</span>
+                <span class="n">radec</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="s1">&#39;r&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required argument r&quot;</span><span class="p">)</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;sep&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required argument sep&quot;</span><span class="p">)</span>
+            <span class="n">sep</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;sep&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coord</span><span class="o">.</span><span class="n">CelestialCoord</span><span class="p">):</span>
+                <span class="n">ra</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ra</span>
+                <span class="n">dec</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dec</span>
+                <span class="n">radec</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">sep</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coord</span><span class="o">.</span><span class="n">Angle</span><span class="p">):</span>
+                <span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="n">args</span>
+                <span class="n">radec</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="s1">&#39;sep&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required argument sep&quot;</span><span class="p">)</span>
+                <span class="n">sep</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;sep&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="s1">&#39;ra_units&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="s1">&#39;dec_units&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="n">args</span>
+                <span class="n">radec</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="s1">&#39;sep&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required argument sep&quot;</span><span class="p">)</span>
+                <span class="n">sep</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;sep&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">args</span>
+                <span class="k">if</span> <span class="s1">&#39;sep&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required argument sep&quot;</span><span class="p">)</span>
+                <span class="n">sep</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;sep&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coord</span><span class="o">.</span><span class="n">Angle</span><span class="p">):</span>
+                <span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">sep</span> <span class="o">=</span> <span class="n">args</span>
+                <span class="n">radec</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">elif</span> <span class="s1">&#39;ra_units&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="s1">&#39;dec_units&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">sep</span> <span class="o">=</span> <span class="n">args</span>
+                <span class="n">radec</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">sep</span> <span class="o">=</span> <span class="n">args</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Too many positional args&quot;</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>  <span class="c1"># Sphere</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;ra&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required argument ra&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;dec&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required argument dec&quot;</span><span class="p">)</span>
+            <span class="n">ra</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;ra&#39;</span><span class="p">)</span>
+            <span class="n">dec</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;dec&#39;</span><span class="p">)</span>
+            <span class="n">radec</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="s1">&#39;sep&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required argument sep&quot;</span><span class="p">)</span>
+            <span class="n">sep</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;sep&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coord</span><span class="o">.</span><span class="n">CelestialCoord</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid unnamed argument </span><span class="si">%r</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">ra</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ra</span>
+            <span class="n">dec</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dec</span>
+            <span class="n">radec</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="s1">&#39;sep&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required argument sep&quot;</span><span class="p">)</span>
+            <span class="n">sep</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;sep&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coord</span><span class="o">.</span><span class="n">CelestialCoord</span><span class="p">):</span>
+                <span class="n">ra</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ra</span>
+                <span class="n">dec</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dec</span>
+                <span class="n">radec</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">sep</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ra</span><span class="p">,</span> <span class="n">dec</span> <span class="o">=</span> <span class="n">args</span>
+                <span class="n">radec</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="s1">&#39;sep&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required argument sep&quot;</span><span class="p">)</span>
+                <span class="n">sep</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;sep&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">sep</span> <span class="o">=</span> <span class="n">args</span>
+            <span class="n">radec</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Too many positional args&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sep</span><span class="p">,</span> <span class="n">coord</span><span class="o">.</span><span class="n">Angle</span><span class="p">):</span>
+            <span class="k">if</span> <span class="s1">&#39;sep_units&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required argument sep_units&quot;</span><span class="p">)</span>
+            <span class="n">sep</span> <span class="o">=</span> <span class="n">sep</span> <span class="o">*</span> <span class="n">coord</span><span class="o">.</span><span class="n">AngleUnit</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;sep_units&#39;</span><span class="p">))</span>
+        <span class="c1"># We actually want the chord distance for this angle.</span>
+        <span class="n">sep</span> <span class="o">=</span> <span class="mf">2.</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">sep</span><span class="o">/</span><span class="mf">2.</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">radec</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">coord</span><span class="o">.</span><span class="n">Angle</span><span class="p">):</span>
+            <span class="k">if</span> <span class="s1">&#39;ra_units&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required argument ra_units&quot;</span><span class="p">)</span>
+            <span class="n">ra</span> <span class="o">=</span> <span class="n">ra</span> <span class="o">*</span> <span class="n">coord</span><span class="o">.</span><span class="n">AngleUnit</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;ra_units&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dec</span><span class="p">,</span> <span class="n">coord</span><span class="o">.</span><span class="n">Angle</span><span class="p">):</span>
+            <span class="k">if</span> <span class="s1">&#39;dec_units&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Missing required argument dec_units&quot;</span><span class="p">)</span>
+            <span class="n">dec</span> <span class="o">=</span> <span class="n">dec</span> <span class="o">*</span> <span class="n">coord</span><span class="o">.</span><span class="n">AngleUnit</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;dec_units&#39;</span><span class="p">))</span>
+        <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span> <span class="o">=</span> <span class="n">coord</span><span class="o">.</span><span class="n">CelestialCoord</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">)</span><span class="o">.</span><span class="n">get_xyz</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">_coords</span> <span class="o">==</span> <span class="n">_lib</span><span class="o">.</span><span class="n">ThreeD</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">*=</span> <span class="n">r</span>
+            <span class="n">y</span> <span class="o">*=</span> <span class="n">r</span>
+            <span class="n">z</span> <span class="o">*=</span> <span class="n">r</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid kwargs: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">kwargs</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">z</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">sep</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">lazy_property</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This decorator will act similarly to @property, but will be efficient for multiple access</span>
+<span class="sd">    to values that require some significant calculation.</span>
+
+<span class="sd">    It works by replacing the attribute with the computed value, so after the first access,</span>
+<span class="sd">    the property (an attribute of the class) is superseded by the new attribute of the instance.</span>
+
+<span class="sd">    Usage::</span>
+
+<span class="sd">        @lazy_property</span>
+<span class="sd">        def slow_function_to_be_used_as_a_property(self):</span>
+<span class="sd">            x =  ...  # Some slow calculation.</span>
+<span class="sd">            return x</span>
+
+<span class="sd">    Base on an answer from http://stackoverflow.com/a/6849299</span>
+<span class="sd">    This implementation taken from GalSim utilities.py</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fget</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fget</span> <span class="o">=</span> <span class="n">fget</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">func_name</span> <span class="o">=</span> <span class="n">fget</span><span class="o">.</span><span class="vm">__name__</span>
+
+    <span class="k">def</span> <span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fget</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">func_name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+
+
+<span class="k">def</span> <span class="nf">depr_pos_kwargs</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This decorator will allow the old API where keywords are allowed as positional variables,</span>
+<span class="sd">    but it will give a deprecation warning about it.</span>
+
+<span class="sd">    @depr_pos_kwargs</span>
+<span class="sd">    def func_with_kwargs(a, *, b=3, c=4):</span>
+<span class="sd">        ...</span>
+
+<span class="sd">    # Expected usage:</span>
+<span class="sd">    func_with_kwargs(1, b=5, c=9)</span>
+
+<span class="sd">    # This works, but gives a deprecation warning</span>
+<span class="sd">    func_with_kwargs(1, 5, 9)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Note: this is inspired by the legacy_api_wrap decorator by flying-sheep, which does something</span>
+    <span class="c1"># similar.</span>
+    <span class="c1"># https://github.com/flying-sheep/legacy-api-wrap/blob/master/legacy_api_wrap.py</span>
+    <span class="c1"># However, it was reimplemented from scratch my MJ.</span>
+
+    <span class="n">params</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span>
+    <span class="n">nparams</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+    <span class="n">npos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">p</span><span class="o">.</span><span class="n">kind</span> <span class="ow">in</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">POSITIONAL_ONLY</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">POSITIONAL_OR_KEYWORD</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
+    <span class="k">assert</span> <span class="n">nparams</span> <span class="o">&gt;</span> <span class="n">npos</span>  <span class="c1"># Otherwise developer probably forgot to add the * to the signature!</span>
+
+    <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">npos</span><span class="p">:</span>
+            <span class="c1"># Make sure providing too many params is still a TypeError.</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">nparams</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> takes at most </span><span class="si">{}</span><span class="s2"> arguments but </span><span class="si">{}</span><span class="s2"> were given.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">fn</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">nparams</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)))</span>
+
+            <span class="c1"># Which names need to turn into kwargs?</span>
+            <span class="n">kw_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">npos</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)]</span>
+
+            <span class="c1"># Warn about deprecated syntax</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;Use of keyword-only arguments as positional arguments is deprecated in &quot;</span><span class="o">+</span>
+                <span class="s2">&quot;the function &quot;</span> <span class="o">+</span> <span class="n">fn</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s2">&quot;. &quot;</span> <span class="o">+</span>
+                <span class="s2">&quot;The following parameters now require an explicit keyword name: &quot;</span><span class="o">+</span>
+                <span class="nb">str</span><span class="p">(</span><span class="n">kw_names</span><span class="p">),</span> <span class="ne">FutureWarning</span><span class="p">)</span>
+
+            <span class="c1"># But make it work.</span>
+            <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="n">npos</span><span class="p">:],</span> <span class="n">kw_names</span><span class="p">):</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="n">args</span><span class="p">[:</span><span class="n">npos</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">wrapper</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Mike Jarvis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -60,6 +60,7 @@
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.2 to 4.3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-4-3-0-to-4-3-1">Changes from version 4.3.0 to 4.3.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -625,6 +626,51 @@ desired full data vector. [default: None, which is equivalent to
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>A, w</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="treecorr.set_max_omp_threads">
+<code class="sig-prename descclassname"><span class="pre">treecorr.</span></code><code class="sig-name descname"><span class="pre">set_max_omp_threads</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_threads</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/util.html#set_max_omp_threads"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.set_max_omp_threads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the maximum allowed number of OpenMP threads to use in the C++ layer in any
+further TreeCorr functions</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_threads</strong> – The target maximum number of threads to allow.  None means no limit.</p></li>
+<li><p><strong>logger</strong> – If desired, a logger object for logging any warnings here. (default: None)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="treecorr.set_omp_threads">
+<code class="sig-prename descclassname"><span class="pre">treecorr.</span></code><code class="sig-name descname"><span class="pre">set_omp_threads</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_threads</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/util.html#set_omp_threads"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.set_omp_threads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the number of OpenMP threads to use in the C++ layer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_threads</strong> – The target number of threads to use</p></li>
+<li><p><strong>logger</strong> – If desired, a logger object for logging any warnings here. (default: None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The  number of threads OpenMP reports that it will use.  Typically this
+matches the input, but OpenMP reserves the right not to comply with
+the requested number of threads.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="treecorr.get_omp_threads">
+<code class="sig-prename descclassname"><span class="pre">treecorr.</span></code><code class="sig-name descname"><span class="pre">get_omp_threads</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/util.html#get_omp_threads"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.get_omp_threads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the number of OpenMP threads currently set to be used in the C++ layer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The  number of threads OpenMP reports that it will use.</p>
 </dd>
 </dl>
 </dd></dl>

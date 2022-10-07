@@ -7,20 +7,53 @@ on:
       - published
 
 jobs:
-  build_wheels:
-    name: Build wheels on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
 
+  build_linux_wheels:
+    name: Build wheels on standard linux
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.9.0
         env:
+          CIBW_BUILD: "*manylinux*"
+          CIBW_SKIP: cp36* pp*
           CIBW_BEFORE_ALL_LINUX: yum install -y libffi-devel || true
+
+      - uses: actions/upload-artifact@v3
+        with:
+          path: ./wheelhouse/*.whl
+
+  build_musl_wheels:
+    name: Build wheels on musl linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.9.0
+        env:
+          CIBW_BUILD: "*musllinux*"
+          CIBW_SKIP: cp36* pp*
+          # I think musl always uses apk, but it doesn't seem to need ffi installed, so this works.
+          CIBW_BEFORE_ALL_LINUX: yum install -y libffi-devel || true
+
+      - uses: actions/upload-artifact@v3
+        with:
+          path: ./wheelhouse/*.whl
+
+  build_macosx_wheels:
+    name: Build wheels on macosx
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.9.0
+        env:
+          CIBW_BUILD: "*macosx*"
+          CIBW_SKIP: cp36* pp*
           CIBW_BEFORE_ALL_MACOS: brew install libffi || true
 
       - uses: actions/upload-artifact@v3
@@ -38,7 +71,7 @@ jobs:
 
       - uses: actions/setup-python@v3
         with:
-          python-version: 3.8
+          python-version: "3.10"
 
       - name: Install dependencies
         run: |

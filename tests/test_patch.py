@@ -215,7 +215,7 @@ def test_cat_patches():
             assert catb.get_patches(low_mem=True) == [catb]
 
     # 7. Set a single patch number
-    cat7 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', patch=3)
+    cat7 = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', patch=3, npatch=npatch)
     np.testing.assert_array_equal(cat7.patch, 3)
     cat8 = treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
                              patch_col=3, patch=3)
@@ -244,6 +244,9 @@ def test_cat_patches():
     # Note: npatch larger than what is in patch is ok.
     #       It indicates that this is part of a larger group with more patches.
     treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', npatch=300, patch=p2)
+    # npatch required if patch is an integer
+    with assert_raises(ValueError):
+        treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', patch=3)
     # patch has to have same number of entries
     with assert_raises(ValueError):
         treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', patch=p2[:17])
@@ -1998,7 +2001,7 @@ def test_save_patches():
         patch_file_name = os.path.join('output','patch%03d.fits'%i)
         assert os.path.exists(patch_file_name)
         cat_i = treecorr.Catalog(patch_file_name, ra_col='ra', dec_col='dec',
-                                 ra_units='rad', dec_units='rad', patch=i)
+                                 ra_units='rad', dec_units='rad', patch=i, npatch=npatch)
         assert not cat_i.loaded
         assert cat1.patches[i].loaded
         assert cat_i == cat1.patches[i]
@@ -2016,7 +2019,7 @@ def test_save_patches():
         patch_file_name = os.path.join('output','test_save_patches_%03d.fits'%i)
         assert os.path.exists(patch_file_name)
         cat_i = treecorr.Catalog(patch_file_name, ra_col='ra', dec_col='dec',
-                                 ra_units='rad', dec_units='rad', patch=i)
+                                 ra_units='rad', dec_units='rad', patch=i, npatch=npatch)
         assert not cat_i.loaded
         assert not cat2.patches[i].loaded
         assert cat_i == cat2.patches[i]
@@ -2043,7 +2046,7 @@ def test_save_patches():
             patch_file_name = os.path.join('output','test_save_patches_%03d.hdf5'%i)
             assert os.path.exists(patch_file_name)
             cat_i = treecorr.Catalog(patch_file_name, ra_col='ra', dec_col='dec',
-                                     ra_units='rad', dec_units='rad', patch=i)
+                                     ra_units='rad', dec_units='rad', patch=i, npatch=npatch)
             assert not cat_i.loaded
             assert not cat2.patches[i].loaded
             assert cat_i == cat2.patches[i]
@@ -2072,7 +2075,7 @@ def test_save_patches():
     for i in range(npatch):
         patch_file_name = os.path.join('output','test_save_patches2_%03d.fits'%i)
         assert os.path.exists(patch_file_name)
-        cat_i = treecorr.Catalog(patch_file_name, patch=i,
+        cat_i = treecorr.Catalog(patch_file_name, patch=i, npatch=npatch,
                                  x_col='x', y_col='y', z_col='z', w_col='w',
                                  g1_col='g1', g2_col='g2', k_col='k')
         assert not cat_i.loaded
@@ -2103,7 +2106,7 @@ def test_save_patches():
         patch_file_name = cat5.patches[i].file_name
         assert patch_file_name == os.path.join('output','test_save_patches2_%03d.fits'%i)
         assert os.path.exists(patch_file_name)
-        cat_i = treecorr.Catalog(patch_file_name, patch=i,
+        cat_i = treecorr.Catalog(patch_file_name, patch=i, npatch=npatch,
                                  x_col='x', y_col='y', wpos_col='wpos', k_col='k')
         assert not cat_i.loaded
         assert not cat5.patches[i].loaded

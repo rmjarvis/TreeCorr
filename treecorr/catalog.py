@@ -216,7 +216,12 @@ class Catalog(object):
 
                                 This may also be an int if the entire catalog represents a
                                 single patch.  If ``patch_centers`` is given this will select those
-                                items from the full input that correspond to the given patch number.
+                                items from the full input that correspond to the given patch
+                                number.  Similarly if ``patch_col`` is given.
+
+                                If neither of these are given, then all items are set to have the
+                                given patch number, and ``npatch`` is required to set the total
+                                number of patches, which this catalog is a part of.
 
         patch_centers (array or str): Alternative to setting patch by hand or using kmeans, you
                             may instead give patch_centers either as a file name or an array
@@ -242,6 +247,10 @@ class Catalog(object):
 
                                 If the catalog has ra,dec,r positions, the patches will
                                 be made using just ra,dec.
+
+                            If ``patch`` is given, then this sets the total number of patches
+                            that are relevant for the area that was split into patches, which
+                            may include more catalogs than just this one.
 
         kmeans_init (str):  If using kmeans to make patches, which init method to use.
                             cf. `Field.run_kmeans` (default: 'tree')
@@ -474,7 +483,7 @@ class Catalog(object):
 
         'keep_zero_weight' : (bool, False, False, None,
                 'Whether to keep objects with zero weight in the catalog'),
-        'npatch' : (int, False, 1, None,
+        'npatch' : (int, False, None, None,
                 'Number of patches to split the catalog into'),
         'kmeans_init' : (str, False, 'tree', ['tree','random','kmeans++'],
                 'Which initialization method to use for kmeans when making patches'),
@@ -576,15 +585,6 @@ class Catalog(object):
         if self.every_nth < 1:
             raise ValueError("every_nth should be >= 1")
 
-        if 'npatch' in self.config and self.config['npatch'] != 1:
-            self._npatch = get(self.config,'npatch',int)
-            if self._npatch < 1:
-                raise ValueError("npatch must be >= 1")
-        elif self.config.get('patch_col',0) not in (0,'0'):
-            self._npatch = None  # Mark that we need to finish loading to figure out npatch.
-        else:
-            self._npatch = 1  # We might yet change this, but it will be correct at end of init.
-
         try:
             self._single_patch = int(patch)
         except TypeError:
@@ -603,9 +603,20 @@ class Catalog(object):
                 self._centers = patch_centers
             else:
                 self._centers = self.read_patch_centers(patch_centers)
-            if self._npatch not in [None, 1, self._centers.shape[0]]:
-                raise ValueError("npatch is incompatible with provided centers")
             self._npatch = self._centers.shape[0]
+            if self.config.get('npatch', self._npatch) != self._npatch:
+                raise ValueError("npatch is incompatible with provided centers")
+        elif 'npatch' in self.config:
+            self._npatch = get(self.config,'npatch',int)
+            if self._npatch < 1:
+                raise ValueError("npatch must be >= 1")
+        elif self.config.get('patch_col',0) not in (0,'0'):
+            self._npatch = None  # Mark that we need to finish loading to figure out npatch.
+        elif self._single_patch:
+            raise ValueError("Either npatch or patch_centers is required when providing "
+                             "an integer patch value.")
+        else:
+            self._npatch = 1  # We might yet change this, but it will be correct at end of init.
 
         self.save_patch_dir = self.config.get('save_patch_dir',None)
         allow_xyz = self.config.get('allow_xyz', False)
@@ -2079,7 +2090,7 @@ class Catalog(object):
         for i, file_name in zip(range(self.npatch), file_names):
             if not os.path.isfile(file_name):
                 raise OSError("Patch file %s not found"%file_name)
-        self._patches = [Catalog(file_name=name, patch=i, **kwargs)
+        self._patches = [Catalog(file_name=name, patch=i, npatch=self.npatch, **kwargs)
                          for i, name in enumerate(file_names)]
         self.logger.info('Patches created from files %s .. %s',file_names[0],file_names[-1])
 

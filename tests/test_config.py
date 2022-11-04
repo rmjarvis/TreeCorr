@@ -510,6 +510,9 @@ def test_omp():
     assert treecorr.set_omp_threads(2) <= 2
     assert treecorr.set_omp_threads(20) >= 1
     assert treecorr.set_omp_threads(20) <= 3
+    with CaptureLog() as cl:
+        treecorr.set_omp_threads(20, logger=cl.logger)
+    assert "max_omp_threads = 3" in cl.output
     treecorr.set_max_omp_threads(None)
 
     # Repeat and check that appropriate messages are emitted

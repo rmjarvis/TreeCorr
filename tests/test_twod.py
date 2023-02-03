@@ -121,6 +121,31 @@ def test_twod():
     kk = treecorr.KKCorrelation(min_sep=0., max_sep=max_sep, nbins=nbins, bin_type='TwoD',
                                 brute=True)
 
+    # Check the dx, dy and related properies
+    bin_size = 2*max_sep / nbins
+    dx = np.linspace(-max_sep+bin_size/2, max_sep-bin_size/2, nbins)
+    dx, dy = np.meshgrid(dx, dx)
+
+    np.testing.assert_allclose(kk.left_edges, dx - bin_size/2)
+    np.testing.assert_allclose(kk.right_edges, dx + bin_size/2)
+    np.testing.assert_allclose(kk.top_edges, dy + bin_size/2)
+    np.testing.assert_allclose(kk.bottom_edges, dy - bin_size/2)
+    np.testing.assert_allclose(kk.dxnom, dx)
+    np.testing.assert_allclose(kk.dynom, dy)
+    np.testing.assert_allclose(kk.rnom, np.hypot(dx,dy))
+    np.testing.assert_allclose(np.exp(kk.logr), np.hypot(dx,dy))
+
+    # Non-TwoD Correlation objects don't have some of these.
+    kk2 = treecorr.KKCorrelation(min_sep=0., max_sep=max_sep, nbins=nbins, bin_type='Linear')
+    with assert_raises(AttributeError):
+        kk2.top_edges
+    with assert_raises(AttributeError):
+        kk2.bottom_edges
+    with assert_raises(AttributeError):
+        kk2.dxnom
+    with assert_raises(AttributeError):
+        kk2.dynom
+
     # First the simplest case to get right: cross correlation of the catalog with itself.
     kk.process(cat1, cat1)
 

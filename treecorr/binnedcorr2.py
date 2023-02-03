@@ -409,6 +409,8 @@ class BinnedCorr2(object):
                               dtype=float)
             sep += 0.5 * self.bin_size
             dx, dy = np.meshgrid(sep, sep)
+            self._ro.dxnom = dx
+            self._ro.dynom = dy
             self._ro.left_edges = dx - 0.5*self.bin_size
             self._ro.right_edges = dx + 0.5*self.bin_size
             self._ro.bottom_edges = dy - 0.5*self.bin_size
@@ -519,6 +521,10 @@ class BinnedCorr2(object):
     def top_edges(self): return self._ro.top_edges
     @property
     def bottom_edges(self): return self._ro.bottom_edges
+    @property
+    def dxnom(self): return self._ro.dxnom
+    @property
+    def dynom(self): return self._ro.dynom
     @property
     def _bintype(self): return self._ro._bintype
     @property

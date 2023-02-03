@@ -56,4 +56,4 @@ Changes from version 4.3.0 to 4.3.1
 Changes from version 4.3.1 to 4.3.2
 ===================================
 
-- Added `dxnom` and `dynom` properties when bin_type is 'TwoD'.
+- Added ``dxnom`` and ``dynom`` properties when bin_type is 'TwoD'.

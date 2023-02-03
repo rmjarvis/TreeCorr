@@ -119,8 +119,7 @@ class FitsWriter(object):
         If name is not None, then it is used as the name of the extension for these data.
 
         Parameters:
-            col_names:      A list of columns names for the given columns.  These will be written
-                            in a header comment line at the top of the output file.
+            col_names:      A list of columns names for the given columns.
             columns:        A list of numpy arrays with the data to write.
             params:         A dict of extra parameters to write at the top of the output file.
             ext:            Optional ext name for these data. (default: None)
@@ -176,8 +175,7 @@ class HdfWriter(object):
         If name is not None, then it is used as the name of the extension for these data.
 
         Parameters:
-            col_names:      A list of columns names for the given columns.  These will be written
-                            in a header comment line at the top of the output file.
+            col_names:      A list of columns names for the given columns.
             columns:        A list of numpy arrays with the data to write.
             params:         A dict of extra parameters to write at the top of the output file.
             ext:            Optional group name for these data. (default: None)

@@ -107,6 +107,8 @@ The last two quantities are only available after finishing a calculation (e.g. w
 
 In addition to the above, "TwoD" binning also includes the following:
 
+    - ``dxnom`` The x separation at the nominal centers of the 2-D bins.
+    - ``dynom`` The y separation at the nominal centers of the 2-D bins.
     - ``bottom_edges`` The y separation at the bottom edges of the 2-D bins. Like
       ``left_edges``, but for the y values rather than the x values.
     - ``top_edges`` The y separation at the top edges of the 2-D bins. Like

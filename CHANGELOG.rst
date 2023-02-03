@@ -52,3 +52,8 @@ Changes from version 4.3.0 to 4.3.1
 ===================================
 
 - Added `set_max_omp_threads` function to enable turning off OpenMP completely for TreeCorr.
+
+Changes from version 4.3.1 to 4.3.2
+===================================
+
+- Added `dxnom` and `dynom` properties when bin_type is 'TwoD'.

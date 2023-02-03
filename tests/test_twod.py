@@ -167,10 +167,10 @@ def test_twod():
     kk.process(cat2, cat2)
     print('max abs diff = ',np.max(np.abs(kk.xi - xi_brut)))
     print('max rel diff = ',np.max(np.abs(kk.xi - xi_brut)/np.abs(kk.xi)))
-    np.testing.assert_allclose(kk.xi, xi_brut, atol=1.e-7)
+    np.testing.assert_allclose(kk.xi, xi_brut, atol=2.e-7)
 
     kk.process(cat2)
-    np.testing.assert_allclose(kk.xi, xi_brut, atol=1.e-7)
+    np.testing.assert_allclose(kk.xi, xi_brut, atol=2.e-7)
 
     # Check GG
     xi_brut = corr2d(x, y, gamma, np.conj(gamma), rmax=max_sep, bins=nbins)

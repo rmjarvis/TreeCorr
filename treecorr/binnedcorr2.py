@@ -369,8 +369,6 @@ class BinnedCorr2(object):
             self._ro.right_edges = self.rnom * half_bin
             self._ro._nbins = self.nbins
             self._ro._bintype = _lib.Log
-            min_log_bin_size = self.bin_size
-            max_log_bin_size = self.bin_size
             max_good_slop = 0.1 / self.bin_size
         elif self.bin_type == 'Linear':
             if self.nbins is None:
@@ -393,9 +391,10 @@ class BinnedCorr2(object):
             self._ro.logr = np.log(self.rnom)
             self._ro._nbins = self.nbins
             self._ro._bintype = _lib.Linear
-            min_log_bin_size = self.bin_size / self.max_sep
-            max_log_bin_size = self.bin_size / (self.min_sep + self.bin_size/2)
-            max_good_slop = 0.1 / max_log_bin_size
+            # max dr/r = 0.1,
+            # dr = bin_slop * bin_size
+            # min r = min_sep
+            max_good_slop = 0.1 * (self.min_sep + self.bin_size/2) / self.bin_size
         elif self.bin_type == 'TwoD':
             if self.nbins is None:
                 self._ro.nbins = int(math.ceil(2.*self.max_sep / self.bin_size))
@@ -421,9 +420,7 @@ class BinnedCorr2(object):
             self._ro.logr[self.rnom==0.] = -np.inf
             self._ro._nbins = self.nbins**2
             self._ro._bintype = _lib.TwoD
-            min_log_bin_size = self.bin_size / self.max_sep
-            max_log_bin_size = self.bin_size / (self.min_sep + self.bin_size/2)
-            max_good_slop = 0.1 / max_log_bin_size
+            max_good_slop = 0.1
         else:  # pragma: no cover  (Already checked by config layer)
             raise ValueError("Invalid bin_type %s"%self.bin_type)
 
@@ -439,7 +436,6 @@ class BinnedCorr2(object):
         self._ro._max_sep = self.max_sep * self._sep_units
         if self.bin_type in ['Linear', 'TwoD']:
             self._ro._bin_size = self.bin_size * self._sep_units
-            min_log_bin_size *= self._sep_units
         else:
             self._ro._bin_size = self.bin_size
 
@@ -452,7 +448,7 @@ class BinnedCorr2(object):
         self._ro.bin_slop = get(self.config,'bin_slop',float,-1.0)
         if self.bin_slop < 0.0:
             self._ro.bin_slop = min(max_good_slop, 1.0)
-        self._ro.b = min_log_bin_size * self.bin_slop
+        self._ro.b = self.bin_size * self.bin_slop
         if self.bin_slop > max_good_slop + 0.0001:  # Add some numerical slop
             self.logger.warning(
                 "Using bin_slop = %g, bin_size = %g, b = %g\n"%(self.bin_slop,self.bin_size,self.b)+

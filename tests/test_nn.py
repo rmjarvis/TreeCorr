@@ -364,7 +364,7 @@ def test_linear_binning():
     print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 1
     np.testing.assert_almost_equal(nn.bin_slop, 0.05)
-    np.testing.assert_almost_equal(nn.b, 0.0025)
+    np.testing.assert_almost_equal(nn.b, 0.05)
 
     with CaptureLog() as cl:
         nn = treecorr.NNCorrelation(min_sep=0, max_sep=20, bin_size=1, bin_slop=1.0,
@@ -374,7 +374,7 @@ def test_linear_binning():
     print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 1
     assert nn.bin_slop == 1.0
-    np.testing.assert_almost_equal(nn.b, 0.05)
+    np.testing.assert_almost_equal(nn.b, 1.0)
 
     with CaptureLog() as cl:
         nn = treecorr.NNCorrelation(min_sep=0, max_sep=20, bin_size=1, bin_slop=0.2,
@@ -383,7 +383,7 @@ def test_linear_binning():
     print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 1
     assert nn.bin_slop == 0.2
-    np.testing.assert_almost_equal(nn.b, 0.01)
+    np.testing.assert_almost_equal(nn.b, 0.2)
 
     nn = treecorr.NNCorrelation(min_sep=0, max_sep=20, bin_size=1, bin_slop=0.0,
                                 bin_type='Linear')
@@ -392,24 +392,24 @@ def test_linear_binning():
     assert nn.bin_slop == 0.0
     assert nn.b == 0.0
 
-    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=2.0, verbose=0,
+    nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_slop=0.1, verbose=0,
                                 bin_type='Linear')
     print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.1
-    assert nn.bin_slop == 2.0
+    assert nn.bin_slop == 0.1
     np.testing.assert_almost_equal(nn.b, 0.01)
 
     nn = treecorr.NNCorrelation(min_sep=0, max_sep=20, bin_size=0.4, bin_type='Linear')
     print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.4
-    np.testing.assert_almost_equal(nn.b, 0.001)
     np.testing.assert_almost_equal(nn.bin_slop, 0.05)
+    np.testing.assert_almost_equal(nn.b, 0.02)
 
     nn = treecorr.NNCorrelation(min_sep=5, max_sep=20, bin_size=0.05, bin_type='Linear')
     print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 0.05
-    np.testing.assert_almost_equal(nn.bin_slop, 1)
-    np.testing.assert_almost_equal(nn.b, 0.0025)
+    np.testing.assert_almost_equal(nn.bin_slop, 1.0)
+    np.testing.assert_almost_equal(nn.b, 0.05)
 
 
 @timer
@@ -2067,7 +2067,7 @@ def test_linear_binslop():
     cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='deg', dec_units='deg')
 
     for bin_type in ['Log', 'Linear']:
-        dd0 = treecorr.NNCorrelation(min_sep=0.5, max_sep=1, nbins=3, bin_slop=0.,
+        dd0 = treecorr.NNCorrelation(min_sep=0.1, max_sep=0.6, nbins=5, bin_slop=0.,
                                     bin_type=bin_type, sep_units='deg')
         dd0.process(cat, num_threads=1)
         print('dd0.rnom = ',dd0.rnom)
@@ -2075,7 +2075,7 @@ def test_linear_binslop():
         print('dd0.npairs = ',dd0.npairs)
 
         for bin_slop in [1.e-3, 1.e-2, 1.e-1]:
-            dd1 = treecorr.NNCorrelation(min_sep=0.5, max_sep=1, nbins=3, bin_slop=bin_slop,
+            dd1 = treecorr.NNCorrelation(min_sep=0.1, max_sep=0.6, nbins=5, bin_slop=bin_slop,
                                         bin_type=bin_type, sep_units='deg')
             dd1.process(cat, num_threads=1)
 
@@ -2083,9 +2083,9 @@ def test_linear_binslop():
             print('dd1.rnom = ',dd1.rnom)
             print('dd1.meanr = ',dd1.meanr)
             print('dd1.npairs = ',dd1.npairs)
-            # The difference between the two should be less than bin_slop for all bins.
+            # The difference between the two should be less than few x bin_slop for all bins.
             print('rel diff = ',(dd1.npairs - dd0.npairs)/dd0.npairs)
-            np.testing.assert_allclose(dd1.npairs, dd0.npairs, rtol=bin_slop)
+            np.testing.assert_allclose(dd1.npairs, dd0.npairs, rtol=3*bin_slop)
 
 
 if __name__ == '__main__':

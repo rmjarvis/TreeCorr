@@ -57,3 +57,9 @@ Changes from version 4.3.1 to 4.3.2
 ===================================
 
 - Added ``dxnom`` and ``dynom`` properties when bin_type is 'TwoD'.
+
+Changes from version 4.3.2 to 4.3.3
+===================================
+
+- Fixed a bug in how TwoD and Linear bin_types handle bin_slop.
+- Raise an error if user tries to use TwoD bin_type with non-flat coords.

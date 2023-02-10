@@ -152,6 +152,8 @@ in after being written to a file. (#141)</p></li>
 <ul class="simple">
 <li><p>Fixed a bug in how TwoD and Linear bin_types handle bin_slop.</p></li>
 <li><p>Raise an error if user tries to use TwoD bin_type with non-flat coords.</p></li>
+<li><p>Delay calculation of covariance matrix until requested.  (Especially important for TwoD binning
+with many bins.)</p></li>
 </ul>
 </div>
 

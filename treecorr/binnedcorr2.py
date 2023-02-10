@@ -969,9 +969,19 @@ class BinnedCorr2(object):
                 raise ValueError("min_rpar is only valid for 3d coordinates")
             if self.max_rpar != sys.float_info.max:
                 raise ValueError("max_rpar is only valid for 3d coordinates")
+        if self.bin_type == 'TwoD' and (coords != 'flat' or metric != 'Euclidean'):
+            raise ValueError("TwoD binning is only valid with flat coordinates "
+                             "with a Euclidean metric.")
         if self.sep_units != '' and coords == '3d' and metric != 'Arc':
             raise ValueError("sep_units is invalid with 3d coordinates. "
                              "min_sep and max_sep should be in the same units as r (or x,y,z).")
+        if metric == 'Periodic':
+            if self.xperiod == 0 or self.yperiod == 0 or (coords=='3d' and self.zperiod == 0):
+                raise ValueError("Periodic metric requires setting the period to use.")
+        else:
+            if self.xperiod != 0 or self.yperiod != 0 or self.zperiod != 0:
+                raise ValueError("period options are not valid for %s metric."%metric)
+
         if self.coords is not None or self.metric is not None:
             if coords != self.coords:
                 self.logger.warning("Detected a change in catalog coordinate systems.\n"+
@@ -979,12 +989,7 @@ class BinnedCorr2(object):
             if metric != self.metric:
                 self.logger.warning("Detected a change in metric.\n"+
                                     "This probably doesn't make sense!")
-        if metric == 'Periodic':
-            if self.xperiod == 0 or self.yperiod == 0 or (coords=='3d' and self.zperiod == 0):
-                raise ValueError("Periodic metric requires setting the period to use.")
-        else:
-            if self.xperiod != 0 or self.yperiod != 0 or self.zperiod != 0:
-                raise ValueError("period options are not valid for %s metric."%metric)
+
         self.coords = coords  # These are the regular string values
         self.metric = metric
         self._coords = coord_enum(coords)  # These are the C++-layer enums

@@ -467,6 +467,13 @@ def test_twod_equiv():
     nz_weight = rr.weight[rr.weight > 0]
     np.testing.assert_allclose(nz_weight, np.mean(nz_weight), rtol=0.2)
 
+    # Finally, if someone tries to run TwoD on a catalog with spherical or 3d coordinates, it
+    # should raise an error.  (This was Daniel's original problem, which was super confusing
+    # to diagnose, since TreeCorr just blithely gave wrong answers for this before.)
+    cat_sph = treecorr.Catalog(ra=x, dec=y, k=scalar_field_values, ra_units='rad', dec_units='rad')
+    with assert_raises(ValueError):
+        rr.process(cat_sph)
+
 if __name__ == '__main__':
     test_twod()
     test_twod_singlebin()

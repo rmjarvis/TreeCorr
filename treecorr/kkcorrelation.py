@@ -106,11 +106,13 @@ class KKCorrelation(BinnedCorr2):
         self._ro._d1 = 2  # KData
         self._ro._d2 = 2  # KData
         self.xi = np.zeros_like(self.rnom, dtype=float)
-        self.varxi = np.zeros_like(self.rnom, dtype=float)
         self.meanr = np.zeros_like(self.rnom, dtype=float)
         self.meanlogr = np.zeros_like(self.rnom, dtype=float)
         self.weight = np.zeros_like(self.rnom, dtype=float)
         self.npairs = np.zeros_like(self.rnom, dtype=float)
+        self._varxi = None
+        self._cov = None
+        self._var_num = 0
         self.logger.debug('Finished building KKCorr')
 
     @property
@@ -329,8 +331,14 @@ class KKCorrelation(BinnedCorr2):
         """
         self._finalize()
         self._var_num = vark1 * vark2
-        self.cov = self.estimate_cov(self.var_method)
-        self.varxi.ravel()[:] = self.cov.diagonal()
+
+    @property
+    def varxi(self):
+        if self._varxi is None:
+            self._varxi = np.zeros_like(self.rnom, dtype=float)
+            if self._var_num != 0:
+                self._varxi.ravel()[:] = self.cov.diagonal()
+        return self._varxi
 
     def _clear(self):
         """Clear the data vectors
@@ -340,6 +348,8 @@ class KKCorrelation(BinnedCorr2):
         self.meanlogr.ravel()[:] = 0
         self.weight.ravel()[:] = 0
         self.npairs.ravel()[:] = 0
+        self._varxi = None
+        self._cov = None
 
     def __iadd__(self, other):
         """Add a second `KKCorrelation`'s data to this one.
@@ -521,7 +531,7 @@ class KKCorrelation(BinnedCorr2):
             self.meanr = data['meanr'].reshape(s)
             self.meanlogr = data['meanlogr'].reshape(s)
         self.xi = data['xi'].reshape(s)
-        self.varxi = data['sigma_xi'].reshape(s)**2
+        self._varxi = data['sigma_xi'].reshape(s)**2
         self.weight = data['weight'].reshape(s)
         self.npairs = data['npairs'].reshape(s)
         self.coords = params['coords'].strip()

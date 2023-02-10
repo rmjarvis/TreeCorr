@@ -109,14 +109,15 @@ class NKCorrelation(BinnedCorr2):
         self._ro._d1 = 1  # NData
         self._ro._d2 = 2  # KData
         self.xi = np.zeros_like(self.rnom, dtype=float)
-        self.varxi = np.zeros_like(self.rnom, dtype=float)
         self.meanr = np.zeros_like(self.rnom, dtype=float)
         self.meanlogr = np.zeros_like(self.rnom, dtype=float)
         self.weight = np.zeros_like(self.rnom, dtype=float)
         self.npairs = np.zeros_like(self.rnom, dtype=float)
         self.raw_xi = self.xi
-        self.raw_varxi = self.varxi
         self._rk = None
+        self._raw_varxi = None
+        self._cov = None
+        self._var_num = 0
         self.logger.debug('Finished building NKCorr')
 
     @property
@@ -178,10 +179,8 @@ class NKCorrelation(BinnedCorr2):
         ret._corr = None # We'll want to make a new one of these if we need it.
         if self.xi is self.raw_xi:
             ret.raw_xi = ret.xi
-            ret.raw_varxi = ret.varxi
         else:
             ret.raw_xi = self.raw_xi.copy()
-            ret.raw_varxi = self.raw_varxi.copy()
         if self._rk is not None:
             ret._rk = self._rk.copy()
         return ret
@@ -306,20 +305,33 @@ class NKCorrelation(BinnedCorr2):
         """
         self._finalize()
         self._var_num = vark
-        self.cov = self.estimate_cov(self.var_method)
-        self.raw_varxi.ravel()[:] = self.cov.diagonal()
+
+    @property
+    def raw_varxi(self):
+        if self._raw_varxi is None:
+            self._raw_varxi = np.zeros_like(self.rnom, dtype=float)
+            if self._var_num != 0:
+                self._raw_varxi.ravel()[:] = self.cov.diagonal()
+        return self._raw_varxi
+
+    @property
+    def varxi(self):
+        if self._varxi is None:
+            self._varxi = self.raw_varxi
+        return self._varxi
 
     def _clear(self):
         """Clear the data vectors
         """
         self.raw_xi.ravel()[:] = 0
-        self.raw_varxi.ravel()[:] = 0
         self.meanr.ravel()[:] = 0
         self.meanlogr.ravel()[:] = 0
         self.weight.ravel()[:] = 0
         self.npairs.ravel()[:] = 0
         self.xi = self.raw_xi
-        self.varxi = self.raw_varxi
+        self._raw_varxi = None
+        self._varxi = None
+        self._cov = None
 
     def __iadd__(self, other):
         """Add a second `NKCorrelation`'s data to this one.
@@ -356,7 +368,9 @@ class NKCorrelation(BinnedCorr2):
         np.sum([c.weight for c in others], axis=0, out=self.weight)
         np.sum([c.npairs for c in others], axis=0, out=self.npairs)
         self.xi = self.raw_xi
-        self.varxi = self.raw_varxi
+        self._raw_varxi = None
+        self._varxi = None
+        self._cov = None
 
     @depr_pos_kwargs
     def process(self, cat1, cat2, *, metric=None, num_threads=None, comm=None, low_mem=False,
@@ -447,13 +461,14 @@ class NKCorrelation(BinnedCorr2):
                     new_cij.weight.ravel()[:] = 0
                     self.results[ij] = new_cij
 
-                self.cov = self.estimate_cov(self.var_method)
-                self.varxi.ravel()[:] = self.cov.diagonal()
+                self._cov = self.estimate_cov(self.var_method)
+                self._varxi = np.zeros_like(self.rnom, dtype=float)
+                self._varxi.ravel()[:] = self.cov.diagonal()
             else:
-                self.varxi = self.raw_varxi + rk.varxi
+                self._varxi = self.raw_varxi + rk.varxi
         else:
             self.xi = self.raw_xi
-            self.varxi = self.raw_varxi
+            self._varxi = self.raw_varxi
 
         return self.xi, self.varxi
 
@@ -567,7 +582,7 @@ class NKCorrelation(BinnedCorr2):
             self.meanr = data['meanr'].reshape(s)
             self.meanlogr = data['meanlogr'].reshape(s)
         self.xi = data['kappa'].reshape(s)
-        self.varxi = data['sigma'].reshape(s)**2
+        self._varxi = data['sigma'].reshape(s)**2
         self.weight = data['weight'].reshape(s)
         self.npairs = data['npairs'].reshape(s)
         self.coords = params['coords'].strip()
@@ -575,6 +590,6 @@ class NKCorrelation(BinnedCorr2):
         self._ro.sep_units = params['sep_units'].strip()
         self._ro.bin_type = params['bin_type'].strip()
         self.raw_xi = self.xi
-        self.raw_varxi = self.varxi
+        self._raw_varxi = self._varxi
         self.npatch1 = params.get('npatch1', 1)
         self.npatch2 = params.get('npatch2', 1)

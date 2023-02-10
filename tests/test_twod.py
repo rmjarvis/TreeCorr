@@ -389,7 +389,11 @@ def test_twod_equiv():
     # Mostly it checks that the TwoD binning gets the same answer as 1-d when the profile
     # really is radial.  It also checks that the weights are relatively uniform, which they
     # weren't originally due to a bug in the binslop calculations for TwoD.
-    from scipy.fft import fftn, ifftn
+    try:
+        from scipy.fft import fftn, ifftn
+    except ImportError:
+        print('Skipping test_twod, since uses scipy, and scipy is not installed.')
+        return
 
     #Define grid
     N = 1000

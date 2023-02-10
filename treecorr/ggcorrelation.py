@@ -109,12 +109,14 @@ class GGCorrelation(BinnedCorr2):
         self.xim = np.zeros_like(self.rnom, dtype=float)
         self.xip_im = np.zeros_like(self.rnom, dtype=float)
         self.xim_im = np.zeros_like(self.rnom, dtype=float)
-        self.varxip = np.zeros_like(self.rnom, dtype=float)
-        self.varxim = np.zeros_like(self.rnom, dtype=float)
         self.meanr = np.zeros_like(self.rnom, dtype=float)
         self.meanlogr = np.zeros_like(self.rnom, dtype=float)
         self.weight = np.zeros_like(self.rnom, dtype=float)
         self.npairs = np.zeros_like(self.rnom, dtype=float)
+        self._varxip = None
+        self._varxim = None
+        self._cov = None
+        self._var_num = 0
         self.logger.debug('Finished building GGCorr')
 
     @property
@@ -358,9 +360,22 @@ class GGCorrelation(BinnedCorr2):
         """
         self._finalize()
         self._var_num = 2. * varg1 * varg2
-        self.cov = self.estimate_cov(self.var_method)
-        self.varxip.ravel()[:] = self.cov.diagonal()[:self._nbins]
-        self.varxim.ravel()[:] = self.cov.diagonal()[self._nbins:]
+
+    @property
+    def varxip(self):
+        if self._varxip is None:
+            self._varxip = np.zeros_like(self.rnom, dtype=float)
+            if self._var_num != 0:
+                self._varxip.ravel()[:] = self.cov.diagonal()[:self._nbins]
+        return self._varxip
+
+    @property
+    def varxim(self):
+        if self._varxim is None:
+            self._varxim = np.zeros_like(self.rnom, dtype=float)
+            if self._var_num != 0:
+                self._varxim.ravel()[:] = self.cov.diagonal()[self._nbins:]
+        return self._varxim
 
     def _clear(self):
         """Clear the data vectors
@@ -373,6 +388,9 @@ class GGCorrelation(BinnedCorr2):
         self.meanlogr.ravel()[:] = 0
         self.weight.ravel()[:] = 0
         self.npairs.ravel()[:] = 0
+        self._varxip = None
+        self._varxim = None
+        self._cov = None
 
     def __iadd__(self, other):
         """Add a second `GGCorrelation`'s data to this one.
@@ -574,11 +592,11 @@ class GGCorrelation(BinnedCorr2):
         self.xim_im = data['xim_im'].reshape(s)
         # Read old output files without error.
         if 'sigma_xi' in data.dtype.names:  # pragma: no cover
-            self.varxip = data['sigma_xi'].reshape(s)**2
-            self.varxim = data['sigma_xi'].reshape(s)**2
+            self._varxip = data['sigma_xi'].reshape(s)**2
+            self._varxim = data['sigma_xi'].reshape(s)**2
         else:
-            self.varxip = data['sigma_xip'].reshape(s)**2
-            self.varxim = data['sigma_xim'].reshape(s)**2
+            self._varxip = data['sigma_xip'].reshape(s)**2
+            self._varxim = data['sigma_xim'].reshape(s)**2
         self.weight = data['weight'].reshape(s)
         self.npairs = data['npairs'].reshape(s)
         self.coords = params['coords'].strip()

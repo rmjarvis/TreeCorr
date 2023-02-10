@@ -110,6 +110,8 @@ class NNCorrelation(BinnedCorr2):
         self._write_rr = None
         self._write_dr = None
         self._write_rd = None
+        self._cov = None
+        self._var_num = 0
         self.logger.debug('Finished building NNCorr')
 
     @property
@@ -174,6 +176,8 @@ class NNCorrelation(BinnedCorr2):
             ret._dr = self._dr.copy()
         if self._rr is not None:
             ret._rr = self._rr.copy()
+        if self._cov is not None:
+            ret._cov = self._cov.copy()
         return ret
 
     @lazy_property
@@ -198,6 +202,7 @@ class NNCorrelation(BinnedCorr2):
         ret._corr = None
         ret._rr = ret._dr = ret._rd = None
         ret._write_rr = ret._write_dr = ret._write_rd = None
+        ret._cov = None
         # This override is really the main advantage of using this:
         setattr(ret, '_nonzero', False)
         return ret
@@ -644,7 +649,7 @@ class NNCorrelation(BinnedCorr2):
                 self.__dict__.pop('_ok',None)  # If it was already made, it will need to be redone.
 
         # Now that it's all set up, calculate the covariance and set varxi to the diagonal.
-        self.cov = self.estimate_cov(self.var_method)
+        self._cov = self.estimate_cov(self.var_method)
         self.varxi = self.cov.diagonal()
         return self.xi, self.varxi
 

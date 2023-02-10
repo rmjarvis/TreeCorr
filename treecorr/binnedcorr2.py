@@ -562,6 +562,12 @@ class BinnedCorr2(object):
     @property
     def _d2(self): return self._ro._d2
 
+    @property
+    def cov(self):
+        if self._cov is None:
+            self._cov = self.estimate_cov(self.var_method)
+        return self._cov
+
     def __getstate__(self):
         d = self.__dict__.copy()
         d.pop('_corr',None)

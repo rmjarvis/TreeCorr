@@ -383,6 +383,91 @@ def test_twod_singlebin():
     np.testing.assert_array_equal(kg2.npairs, ng2.npairs)
     np.testing.assert_allclose(kg2.xi, 10.*ng2.xi, atol=1.e-10)
 
+
+def test_twod_equiv():
+    # This test is based on a script from Daniel Charles that wasn't working correctly.
+    # Mostly it checks that the TwoD binning gets the same answer as 1-d when the profile
+    # really is radial.  It also checks that the weights are relatively uniform, which they
+    # weren't originally due to a bug in the binslop calculations for TwoD.
+    from scipy.fft import fftn, ifftn
+
+    #Define grid
+    N = 1000
+    pixel_size = 5e-5
+    edges = np.linspace(-N/2*pixel_size,N/2*pixel_size,N+1)
+    pixel_nominal_value = 0.5*(edges[1:] + edges[:-1])
+    xy_grid = np.meshgrid(pixel_nominal_value, pixel_nominal_value)
+
+    #grid in fourier space
+    n_xy = len(pixel_nominal_value)
+    k_xy = 2*np.pi*np.fft.fftfreq(n_xy)/pixel_size
+    identity = np.ones_like(k_xy)
+    KX2 = np.einsum('i,j', k_xy**2, identity)
+    KY2 = np.einsum('i,j', identity, k_xy**2)
+    grid_k = np.sqrt(KX2 + KY2)
+
+    #Input correlation function
+    def corr(x,y):
+        c = np.exp(-1/2*(x/50e-4)**2)*np.exp(-1/2*(y/50e-4)**2)
+        return(c)
+    c = corr(xy_grid[0],xy_grid[1])
+
+    #Power spectrum
+    p = fftn(c)
+
+    # flip phases of fft to account for origin in center
+    tmp = np.ones(p.shape[0])
+    tmp[1::2]=-1
+    p *= tmp
+    p *= tmp[:,np.newaxis]
+    #print(p)
+
+    #SAMPLE
+    np.random.seed(12345)
+    sample_k = np.random.normal(0,1,size=(N,N))
+    sample_with_pk = sample_k*np.sqrt(p)
+    rs = np.fft.ifftn(sample_with_pk, norm='ortho')
+    real_space_map = np.real(rs)
+
+    #Pick random positions to measure
+    npoints = 50000
+    x_indices = np.random.randint(0,N,size=npoints)
+    y_indices = np.random.randint(0,N,size=npoints)
+    scalar_field_values = real_space_map[x_indices,y_indices]
+    x = pixel_nominal_value[x_indices]
+    y = pixel_nominal_value[y_indices]
+
+    #treecorr measurement
+    cat = treecorr.Catalog(x=x, y=y, k=scalar_field_values)
+    rr = treecorr.KKCorrelation(bin_type='TwoD', bin_size=5e-5, nbins=201)
+    rr.process(cat)
+
+    rr2 = treecorr.KKCorrelation(bin_type='Linear', bin_size=5e-5, nbins=100, min_sep=2.5e-5)
+    rr2.process(cat)
+
+    print(np.shape(rr.xi))
+    print('rr.xi = ',rr.xi[100][100:])
+    print('rr2.xi = ',rr2.xi)
+    print('rr2.w = ',rr2.weight)
+    print('rr.w = ',rr.weight[100][100:])
+
+    # The TwoD version should match the Linear one along any of the spines.
+    np.testing.assert_allclose(rr.xi[100,101:], rr2.xi, atol=0.05)
+    np.testing.assert_allclose(rr.xi[100,99::-1], rr2.xi, atol=0.05)
+    np.testing.assert_allclose(rr.xi[101:,100], rr2.xi, atol=0.05)
+    np.testing.assert_allclose(rr.xi[99::-1,100], rr2.xi, atol=0.05)
+
+    # The weights don't match of course.
+    # But for TwoD, all the weights should be fairly similar, since they cover almost the same
+    # amount of phase space in how 2 points can be arranged.
+    # The exception is the very center, where there are no pairs (since in this case bin_size
+    # and the original pixel_size are equal).
+    # Note: this didn't used to be true before fixing how bin_slop is handled for TwoD binning.
+    assert rr.weight[100,100] == 0
+    nz_weight = rr.weight[rr.weight > 0]
+    np.testing.assert_allclose(nz_weight, np.mean(nz_weight), rtol=0.2)
+
 if __name__ == '__main__':
     test_twod()
     test_twod_singlebin()
+    test_twod_equiv()

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>treecorr.binnedcorr3 &mdash; TreeCorr 4.3.2 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <title>treecorr.binnedcorr3 &mdash; TreeCorr 4.3.3 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
@@ -51,6 +51,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 4.2 to 4.3</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-3-0-to-4-3-1">Changes from version 4.3.0 to 4.3.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-3-1-to-4-3-2">Changes from version 4.3.1 to 4.3.2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html#changes-from-version-4-3-2-to-4-3-3">Changes from version 4.3.2 to 4.3.3</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
 
@@ -1099,8 +1100,8 @@
 <div class="viewcode-block" id="BinnedCorr3.getStat"><a class="viewcode-back" href="../../correlation3.html#treecorr.BinnedCorr3.getStat">[docs]</a>    <span class="k">def</span> <span class="nf">getStat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;The standard statistic for the current correlation object as a 1-d array.</span>
 
-<span class="sd">        Usually, this is just self.zeta.  But if the metric is TwoD, this becomes</span>
-<span class="sd">        self.zeta.ravel().</span>
+<span class="sd">        Usually, this is just self.zeta.  But in case we have a multi-dimensional array</span>
+<span class="sd">        at some point (like TwoD for 2pt), use self.zeta.ravel().</span>
 
 <span class="sd">        And for `GGGCorrelation`, it is the concatenation of the four different correlations</span>
 <span class="sd">        [gam0.ravel(), gam1.ravel(), gam2.ravel(), gam3.ravel()].</span>
@@ -1110,9 +1111,8 @@
 <div class="viewcode-block" id="BinnedCorr3.getWeight"><a class="viewcode-back" href="../../correlation3.html#treecorr.BinnedCorr3.getWeight">[docs]</a>    <span class="k">def</span> <span class="nf">getWeight</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;The weight array for the current correlation object as a 1-d array.</span>
 
-<span class="sd">        This is the weight array corresponding to `getStat`. Usually just self.weight, but</span>
-<span class="sd">        raveled for TwoD and duplicated for GGGCorrelation to match what `getStat` does in</span>
-<span class="sd">        those cases.</span>
+<span class="sd">        This is the weight array corresponding to `getStat`. Usually just self.weight.ravel(),</span>
+<span class="sd">        but duplicated for GGGCorrelation to match what `getStat` does in that case.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span></div>
 

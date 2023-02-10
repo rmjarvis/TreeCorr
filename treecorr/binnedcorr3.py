@@ -1018,8 +1018,8 @@ class BinnedCorr3(object):
     def getStat(self):
         """The standard statistic for the current correlation object as a 1-d array.
 
-        Usually, this is just self.zeta.  But if the metric is TwoD, this becomes
-        self.zeta.ravel().
+        Usually, this is just self.zeta.  But in case we have a multi-dimensional array
+        at some point (like TwoD for 2pt), use self.zeta.ravel().
 
         And for `GGGCorrelation`, it is the concatenation of the four different correlations
         [gam0.ravel(), gam1.ravel(), gam2.ravel(), gam3.ravel()].
@@ -1029,9 +1029,8 @@ class BinnedCorr3(object):
     def getWeight(self):
         """The weight array for the current correlation object as a 1-d array.
 
-        This is the weight array corresponding to `getStat`. Usually just self.weight, but
-        raveled for TwoD and duplicated for GGGCorrelation to match what `getStat` does in
-        those cases.
+        This is the weight array corresponding to `getStat`. Usually just self.weight.ravel(),
+        but duplicated for GGGCorrelation to match what `getStat` does in that case.
         """
         return self.weight.ravel()
 

@@ -17,22 +17,7 @@ import time
 
 from test_helper import assert_raises, timer
 
-def get_correlation_length_matrix(size, e1, e2):
-
-    if abs(e1)>1:
-        e1 = 0
-    if abs(e2)>1:
-        e2 = 0
-    e = np.sqrt(e1**2 + e2**2)
-    q = (1-e) / (1+e)
-    phi = 0.5 * np.arctan2(e2,e1)
-    rot = np.array([[np.cos(phi), np.sin(phi)],
-                    [-np.sin(phi), np.cos(phi)]])
-    ell = np.array([[size**2, 0],
-                    [0, (size * q)**2]])
-    L = np.dot(rot.T, ell.dot(rot))
-    return L
-
+# This is Pierre-Francois's original code for calculating the two-d correlation function.
 def corr2d(x, y, kappa1, kappa2, w=None, rmax=1., bins=513, return_counts=False):
 
     hrange = [ [-rmax,rmax], [-rmax,rmax] ]

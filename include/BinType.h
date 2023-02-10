@@ -278,6 +278,10 @@ struct BinTypeHelper<TwoD>
         int i = int((dx + maxsep) / binsize);
         int j = int((dy + maxsep) / binsize);
         int n = int(2*maxsep / binsize+0.5);
+        Assert(i<=n);
+        if (i == n) --i;
+        Assert(j<=n);
+        if (j == n) --j;
         return j*n + i;
     }
 

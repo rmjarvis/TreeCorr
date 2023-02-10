@@ -530,6 +530,15 @@ def test_omp():
     assert "Using %s threads"%num_threads not in cl.output
     assert "Unable to use multiple threads" not in cl.output
 
+    treecorr.set_max_omp_threads(3)
+    with CaptureLog() as cl:
+        treecorr.set_omp_threads(10, logger=cl.logger)
+    print(cl.output)
+    assert "multiprocessing.cpu_count() = " not in cl.output
+    assert "max_omp_threads = " in cl.output
+    assert "Telling OpenMP to use 3 threads" in cl.output
+    treecorr.set_max_omp_threads(None)
+
     with CaptureLog() as cl:
         treecorr.set_omp_threads(2, logger=cl.logger)
     assert "multiprocessing.cpu_count() = " not in cl.output

@@ -109,7 +109,7 @@ jobs:
                 pip install -U -r requirements.txt
 
                 # Extra packages needed for testing
-                pip install -U nose codecov mpi4py coverage mockmpi pytest
+                pip install -U nose mpi4py coverage mockmpi pytest
 
                 # Note: I'd rather include h5py here, but I can't get it to install properly
                 # on GHA for pypy3.  So only do that for regular py3.
@@ -141,6 +141,7 @@ jobs:
             - name: Upload coverage to codecov
               if: matrix.os != 'windows-latest'
               #uses: codecov/codecov-action@v1  # This didn't work for me.
+              # TODO: Supposedly there is a v2 now that might work better.
               run: |
                 cd tests
                 pwd -P
@@ -148,7 +149,6 @@ jobs:
                 coverage combine || true  # (Not necessary I think, but just in case.)
                 coverage report
                 ls -la
-                #codecov  # This also didn't work.
                 # cf. https://community.codecov.io/t/github-not-getting-codecov-report-after-switching-from-travis-to-github-actions-for-ci/
                 # The solution was to switch to the bash uploader line instead.
                 bash <(curl -s https://codecov.io/bash)

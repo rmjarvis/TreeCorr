@@ -195,12 +195,20 @@ where each pair of points is always placed into the correct bin.
 
 But if ``bin_slop`` > 0, then any given pair is allowed to be placed in the wrong bin
 so long as the true separation is within this fraction of a bin from the edge.
-For example, if a bin nominally goes from 10 to 20 arcmin, then with bin_slop = 0.05,
+For example, if a bin nominally goes from 10 to 20 arcmin, then with ``bin_slop`` = 0.05,
 TreeCorr will accumulate pairs with separations ranging from 9.5 to 20.5 arcmin into this
 bin.  (I.e. the slop is 0.05 of the bin width on each side.)
 Note that some of the pairs with separations from 9.5 to 10.5 would possibly fall into the
 lower bin instead.  Likewise some from 19.5 to 20.5 would fall in the higher bin.
 So both edges are a little fuzzy.
+
+Furthermore, for a given set of pairs that we accumulate as a group, we only allow a
+total of the given ``bin_slop`` on both sides of the bin combined.  For instance, with
+the above example, if a group of pairs to accumulate had a mean separation of 15 arcmin,
+but the range was :math:`\pm 5.5`, then the total slop would be considered 0.5 + 0.5 = 1.0,
+which is too much.  So that group would be further subdivided.  However, if the range was
+only :math:`\pm 5.25`, then the total slop would be 0.25 + 0.25 = 0.5, which would be
+considered acceptable.
 
 For large number of objects, the shifts up and down tend to cancel out, so there is typically
 very little bias in the results.  Statistically, about as many pairs scatter up as scatter

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>treecorr.catalog &mdash; TreeCorr 4.3.3 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <title>treecorr.catalog &mdash; TreeCorr 4.4 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
@@ -25,7 +25,7 @@
             <a href="../../index.html" class="icon icon-home"> TreeCorr
           </a>
               <div class="version">
-                4.3
+                4.4
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -298,7 +298,12 @@
 
 <span class="sd">                                This may also be an int if the entire catalog represents a</span>
 <span class="sd">                                single patch.  If ``patch_centers`` is given this will select those</span>
-<span class="sd">                                items from the full input that correspond to the given patch number.</span>
+<span class="sd">                                items from the full input that correspond to the given patch</span>
+<span class="sd">                                number.  Similarly if ``patch_col`` is given.</span>
+
+<span class="sd">                                If neither of these are given, then all items are set to have the</span>
+<span class="sd">                                given patch number, and ``npatch`` is required to set the total</span>
+<span class="sd">                                number of patches, which this catalog is a part of.</span>
 
 <span class="sd">        patch_centers (array or str): Alternative to setting patch by hand or using kmeans, you</span>
 <span class="sd">                            may instead give patch_centers either as a file name or an array</span>
@@ -324,6 +329,10 @@
 
 <span class="sd">                                If the catalog has ra,dec,r positions, the patches will</span>
 <span class="sd">                                be made using just ra,dec.</span>
+
+<span class="sd">                            If ``patch`` is given, then this sets the total number of patches</span>
+<span class="sd">                            that are relevant for the area that was split into patches, which</span>
+<span class="sd">                            may include more catalogs than just this one.</span>
 
 <span class="sd">        kmeans_init (str):  If using kmeans to make patches, which init method to use.</span>
 <span class="sd">                            cf. `Field.run_kmeans` (default: &#39;tree&#39;)</span>
@@ -556,7 +565,7 @@
 
         <span class="s1">&#39;keep_zero_weight&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="s1">&#39;Whether to keep objects with zero weight in the catalog&#39;</span><span class="p">),</span>
-        <span class="s1">&#39;npatch&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s1">&#39;npatch&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="s1">&#39;Number of patches to split the catalog into&#39;</span><span class="p">),</span>
         <span class="s1">&#39;kmeans_init&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;tree&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;tree&#39;</span><span class="p">,</span><span class="s1">&#39;random&#39;</span><span class="p">,</span><span class="s1">&#39;kmeans++&#39;</span><span class="p">],</span>
                 <span class="s1">&#39;Which initialization method to use for kmeans when making patches&#39;</span><span class="p">),</span>
@@ -658,15 +667,6 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">every_nth</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;every_nth should be &gt;= 1&quot;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="s1">&#39;npatch&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;npatch&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_npatch</span> <span class="o">=</span> <span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;npatch&#39;</span><span class="p">,</span><span class="nb">int</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_npatch</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;npatch must be &gt;= 1&quot;</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;patch_col&#39;</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s1">&#39;0&#39;</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_npatch</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Mark that we need to finish loading to figure out npatch.</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_npatch</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># We might yet change this, but it will be correct at end of init.</span>
-
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_single_patch</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">patch</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
@@ -685,9 +685,20 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_centers</span> <span class="o">=</span> <span class="n">patch_centers</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_centers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_patch_centers</span><span class="p">(</span><span class="n">patch_centers</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_npatch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_centers</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]]:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;npatch is incompatible with provided centers&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_npatch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_centers</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;npatch&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_npatch</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_npatch</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;npatch is incompatible with provided centers&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="s1">&#39;npatch&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_npatch</span> <span class="o">=</span> <span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;npatch&#39;</span><span class="p">,</span><span class="nb">int</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_npatch</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;npatch must be &gt;= 1&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;patch_col&#39;</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s1">&#39;0&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_npatch</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Mark that we need to finish loading to figure out npatch.</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_single_patch</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Either npatch or patch_centers is required when providing &quot;</span>
+                             <span class="s2">&quot;an integer patch value.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_npatch</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># We might yet change this, but it will be correct at end of init.</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">save_patch_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;save_patch_dir&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span>
         <span class="n">allow_xyz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;allow_xyz&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
@@ -2161,7 +2172,7 @@
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">file_name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npatch</span><span class="p">),</span> <span class="n">file_names</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">file_name</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s2">&quot;Patch file </span><span class="si">%s</span><span class="s2"> not found&quot;</span><span class="o">%</span><span class="n">file_name</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_patches</span> <span class="o">=</span> <span class="p">[</span><span class="n">Catalog</span><span class="p">(</span><span class="n">file_name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">patch</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_patches</span> <span class="o">=</span> <span class="p">[</span><span class="n">Catalog</span><span class="p">(</span><span class="n">file_name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">patch</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">npatch</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">npatch</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
                          <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">file_names</span><span class="p">)]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Patches created from files </span><span class="si">%s</span><span class="s1"> .. </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">file_names</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">file_names</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span></div>
 

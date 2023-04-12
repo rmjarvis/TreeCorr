@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Binning &mdash; TreeCorr 4.3.3 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <title>Binning &mdash; TreeCorr 4.4 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
@@ -12,6 +12,7 @@
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -27,7 +28,7 @@
             <a href="index.html" class="icon icon-home"> TreeCorr
           </a>
               <div class="version">
-                4.3
+                4.4
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -271,12 +272,19 @@ If <code class="docutils literal notranslate"><span class="pre">bin_slop</span><
 where each pair of points is always placed into the correct bin.</p>
 <p>But if <code class="docutils literal notranslate"><span class="pre">bin_slop</span></code> &gt; 0, then any given pair is allowed to be placed in the wrong bin
 so long as the true separation is within this fraction of a bin from the edge.
-For example, if a bin nominally goes from 10 to 20 arcmin, then with bin_slop = 0.05,
+For example, if a bin nominally goes from 10 to 20 arcmin, then with <code class="docutils literal notranslate"><span class="pre">bin_slop</span></code> = 0.05,
 TreeCorr will accumulate pairs with separations ranging from 9.5 to 20.5 arcmin into this
 bin.  (I.e. the slop is 0.05 of the bin width on each side.)
 Note that some of the pairs with separations from 9.5 to 10.5 would possibly fall into the
 lower bin instead.  Likewise some from 19.5 to 20.5 would fall in the higher bin.
 So both edges are a little fuzzy.</p>
+<p>Furthermore, for a given set of pairs that we accumulate as a group, we only allow a
+total of the given <code class="docutils literal notranslate"><span class="pre">bin_slop</span></code> on both sides of the bin combined.  For instance, with
+the above example, if a group of pairs to accumulate had a mean separation of 15 arcmin,
+but the range was <span class="math notranslate nohighlight">\(\pm 5.5\)</span>, then the total slop would be considered 0.5 + 0.5 = 1.0,
+which is too much.  So that group would be further subdivided.  However, if the range was
+only <span class="math notranslate nohighlight">\(\pm 5.25\)</span>, then the total slop would be 0.25 + 0.25 = 0.5, which would be
+considered acceptable.</p>
 <p>For large number of objects, the shifts up and down tend to cancel out, so there is typically
 very little bias in the results.  Statistically, about as many pairs scatter up as scatter
 down, so the resulting counts come out pretty close to correct.  Furthermore, the total

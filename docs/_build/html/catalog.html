@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Input Data &mdash; TreeCorr 4.3.3 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <title>Input Data &mdash; TreeCorr 4.4 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
@@ -28,7 +28,7 @@
             <a href="index.html" class="icon icon-home"> TreeCorr
           </a>
               <div class="version">
-                4.3
+                4.4
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -273,7 +273,11 @@ any scalar field.) (default: None)</p></li>
 <p class="admonition-title">Note</p>
 <p>This may also be an int if the entire catalog represents a
 single patch.  If <code class="docutils literal notranslate"><span class="pre">patch_centers</span></code> is given this will select those
-items from the full input that correspond to the given patch number.</p>
+items from the full input that correspond to the given patch
+number.  Similarly if <code class="docutils literal notranslate"><span class="pre">patch_col</span></code> is given.</p>
+<p>If neither of these are given, then all items are set to have the
+given patch number, and <code class="docutils literal notranslate"><span class="pre">npatch</span></code> is required to set the total
+number of patches, which this catalog is a part of.</p>
 </div>
 </p></li>
 <li><p><strong>patch_centers</strong> (<em>array</em><em> or </em><em>str</em>) – Alternative to setting patch by hand or using kmeans, you
@@ -298,6 +302,9 @@ or other options that involve running via patches. (default: 1)</p>
 <p>If the catalog has ra,dec,r positions, the patches will
 be made using just ra,dec.</p>
 </div>
+<p>If <code class="docutils literal notranslate"><span class="pre">patch</span></code> is given, then this sets the total number of patches
+that are relevant for the area that was split into patches, which
+may include more catalogs than just this one.</p>
 </p></li>
 <li><p><strong>kmeans_init</strong> (<em>str</em>) – If using kmeans to make patches, which init method to use.
 cf. <a class="reference internal" href="field.html#treecorr.Field.run_kmeans" title="treecorr.Field.run_kmeans"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Field.run_kmeans</span></code></a> (default: ‘tree’)</p></li>

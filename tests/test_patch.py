@@ -3298,3 +3298,4 @@ if __name__ == '__main__':
     test_config()
     test_finalize_false()
     test_empty_patches()
+    test_huge_npatch()

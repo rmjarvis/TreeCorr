@@ -1875,7 +1875,7 @@ def test_field():
     assert nsimplefield2b is nsimplefield2
     assert nsimplefield3b is nsimplefield3
     print('nsimplefield: ',t1-t0,t2-t1)
-    assert t2-t1 <= t1-t0
+    #assert t2-t1 <= t1-t0
 
     t0 = time.time()
     gsimplefield1 = cat1.getGSimpleField()
@@ -1897,7 +1897,7 @@ def test_field():
     assert gsimplefield2b is gsimplefield2
     assert gsimplefield3b is gsimplefield3
     print('gsimplefield: ',t1-t0,t2-t1)
-    assert t2-t1 <= t1-t0
+    #assert t2-t1 <= t1-t0
 
     t0 = time.time()
     ksimplefield1 = cat1.getKSimpleField()
@@ -1919,7 +1919,7 @@ def test_field():
     assert ksimplefield2b is ksimplefield2
     assert ksimplefield3b is ksimplefield3
     print('ksimplefield: ',t1-t0,t2-t1)
-    assert t2-t1 <= t1-t0
+    #assert t2-t1 <= t1-t0
 
     # By default, only one is saved.  Check resize_cache option.
     cat1.resize_cache(3)

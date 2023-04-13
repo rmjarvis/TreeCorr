@@ -1,3 +1,4 @@
 fitsio>=0.9
 pandas>=0.20
 scipy>=1.2
+mockmpi>=0.8

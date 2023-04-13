@@ -1544,7 +1544,11 @@ def _make_cov_design_matrix_core(corrs, plist, func, name, rank=0, size=1):
 
 def _make_cov_design_matrix(corrs, plist, func, name, comm=None):
     if comm is not None:
-        from mpi4py import MPI
+        try:
+            from mpi4py.MPI import IN_PLACE
+        except ImportError:
+            # Probably testing using MockMPI...
+            IN_PLACE = 1
         v, w = _make_cov_design_matrix_core(corrs, plist, func, name, comm.rank, comm.size)
         # These two calls collects the v arrays from w arrays from all the processors,
         # sums them all together, and then sends them back to each processor where they
@@ -1554,8 +1558,8 @@ def _make_cov_design_matrix(corrs, plist, func, name, comm=None):
         # Using "Allreduce" instead of "Reduce" means that all processes get a copy of the
         # final arrays. This may or may not be needed depending on what users subsequently
         # do with the matrix, but is fast since this matrix isn't large.
-        comm.Allreduce(MPI.IN_PLACE, v)
-        comm.Allreduce(MPI.IN_PLACE, w)
+        comm.Allreduce(IN_PLACE, v)
+        comm.Allreduce(IN_PLACE, w)
     # Otherwise we just use the regular version, which implicitly does the whole matrix
     else:
         v, w = _make_cov_design_matrix_core(corrs, plist, func, name)

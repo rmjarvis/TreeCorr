@@ -2211,8 +2211,6 @@ class Catalog(object):
         g2            self.g2 if not None
         k             self.k if not None
         patch         self.patch if not None
-        meanR         The mean value <R> of pairs that fell into each bin.
-        meanlogR      The mean value <logR> of pairs that fell into each bin.
         ========      =======================================================
 
         Parameters:

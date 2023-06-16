@@ -1,4 +1,3 @@
-from __future__ import print_function
 import sys
 import os
 import glob
@@ -43,12 +42,14 @@ if os.name != 'nt': sources.remove(os.path.join('src','windows.cpp'))
 headers = glob.glob(os.path.join('include','*.h'))
 
 copt = {
-    'gcc' : ['-fopenmp','-O3','-ffast-math'],
-    'icc' : ['-openmp','-O3'],
-    'clang' : ['-O3','-ffast-math', '-stdlib=libc++'],
-    'clang w/ OpenMP' : ['-fopenmp','-O3','-ffast-math', '-stdlib=libc++'],
-    'clang w/ Intel OpenMP' : ['-Xpreprocessor','-fopenmp','-O3','-ffast-math', '-stdlib=libc++'],
-    'clang w/ manual OpenMP' : ['-Xpreprocessor','-fopenmp','-O3','-ffast-math', '-stdlib=libc++'],
+    'gcc' : ['-fopenmp','-O3','-ffast-math','-std=c++11'],
+    'icc' : ['-openmp','-O3','-std=c++11'],
+    'clang' : ['-O3','-ffast-math', '-stdlib=libc++','-std=c++11'],
+    'clang w/ OpenMP' : ['-fopenmp','-O3','-ffast-math', '-stdlib=libc++','-std=c++11'],
+    'clang w/ Intel OpenMP' : ['-Xpreprocessor','-fopenmp','-O3','-ffast-math',
+                               '-stdlib=libc++','-std=c++11'],
+    'clang w/ manual OpenMP' : ['-Xpreprocessor','-fopenmp','-O3','-ffast-math',
+                                '-stdlib=libc++','-std=c++11'],
     'unknown' : [],
 }
 lopt = {
@@ -349,120 +350,6 @@ def try_cpp(compiler, cflags=[], lflags=[], prepend=None):
     """)
     return try_compile(cpp_code, compiler, cflags, lflags, prepend=prepend)
 
-
-def check_ffi_compile(compiler, cflags=[], lflags=[]):
-    ffi_code = """
-#include "ffi/ffi.h"
-int main() {
-    return 0;
-}
-"""
-    print("Checking if you have ffi installed on your system...")
-    if try_compile(ffi_code, compiler, cflags, lflags):
-        print('Found "ffi/ffi.h"')
-        return True
-    else:
-        print('Unable to compile file with #include "ffi/ffi.h"')
-        print('Trying ffi.h instead...')
-        ffi_code = ffi_code.replace('ffi/ffi.h', 'ffi.h')
-        if try_compile(ffi_code, compiler, cflags, lflags):
-            print('Found "ffi.h"')
-            return True
-        else:
-            print("Unable to compile when including either ffi/ffi.h or just ffi.h")
-            return False
-
-# Based on recipe 577058: http://code.activestate.com/recipes/577058/
-def query_yes_no(question, default="yes", timeout=30):
-    """Ask a yes/no question via raw_input() and return their answer.
-
-    "question" is a string that is presented to the user.
-    "default" is the presumed answer if the user just hits <Enter>.
-        It must be "yes" (the default), "no" or None (meaning
-        an answer is required of the user).
-
-    The "answer" return value is one of "yes" or "no".
-    """
-    valid = {"yes":"yes",   "y":"yes",  "ye":"yes",
-             "no":"no",     "n":"no"}
-    if default is None:
-        prompt = " [y/n] "
-    elif default == "yes":
-        prompt = " [Y/n] "
-    elif default == "no":
-        prompt = " [y/N] "
-    else:
-        raise ValueError("invalid default answer: '%s'" % default)
-
-    while 1:
-        sys.stdout.write(question + prompt)
-        sys.stdout.flush()
-        i, _, _ = select.select( [sys.stdin], [], [], timeout )
-
-        if i:
-            choice = sys.stdin.readline().strip()
-        else:
-            sys.stdout.write("\nPrompt timed out after %s seconds.\n"%timeout)
-            return default
-
-        if default is not None and choice == '':
-            return default
-        elif choice in valid.keys():
-            return valid[choice]
-        else:
-            sys.stdout.write("Please respond with 'yes' or 'no' (or 'y' or 'n').\n")
-
-
-def check_ffi(compiler, cflags=[], lflags=[]):
-    try:
-        import cffi  # noqa: F401
-    except ImportError:
-        # Then cffi will need to be installed.
-        # It requires libffi, so check if it is available.
-        if check_ffi_compile(compiler, cflags, lflags):
-            return
-        # libffi needs to be installed.  Give a helpful message about how to do so.
-        prefix = '/SOME/APPROPRIATE/PREFIX'
-        prefix_param = [param for param in sys.argv if param.startswith('--prefix=')]
-        if len(prefix_param) == 1:
-            prefix = prefix_param[0].split('=')[1]
-            prefix = os.path.expanduser(prefix)
-        msg = """
-WARNING: TreeCorr uses cffi, which in turn requires libffi to be installed.
-         As the latter is not a python package, pip cannot download and
-         install it.  However, it is fairly straightforward to install.
-
-On Linux, you can use one of the following:
-
-    apt-get install libffi-dev
-    yum install libffi-devel
-
-On a Mac, it should be available after you do:
-
-    xcode-select --install
-
-If neither of those work for you, you can install it yourself with the
-following commands:
-
-    wget ftp://sourceware.org:/pub/libffi/libffi-3.2.1.tar.gz
-    tar xfz libffi-3.2.1.tar.gz
-    cd libffi-3.2.1
-    ./configure --prefix={0}
-    make
-    make install
-    cp */include/ffi*.h {0}/include
-    cd ..
-
-If you have already done this, then check the command (given above) that failed.  You may
-need to add a directory to either C_INCLUDE_PATH, LIBRARY_PATH, or LD_LIBRARY_PATH to
-make it succeed.
-""".format(prefix)
-        print(msg)
-        q = "Stop the installation here to take care of this?"
-        yn = query_yes_no(q, default='yes')
-        if yn == 'yes':
-            sys.exit(1)
-
 def fix_compiler(compiler):
     if os.name == 'nt':
         return [],[]
@@ -503,8 +390,6 @@ def fix_compiler(compiler):
         print(str(compiler.compiler_so))
         raise OSError("Compiler does not work for compiling C++ code")
 
-    check_ffi(compiler, extra_cflags, extra_lflags)
-
     # Check if we can use ccache to speed up repeated compilation.
     if not already_have_ccache and try_cpp(compiler, prepend='ccache'):
         print('Using ccache')
@@ -519,6 +404,40 @@ def fix_compiler(compiler):
 # In particular, we want to use different compiler options for OpenMP in each case.
 # cf. http://stackoverflow.com/questions/724664/python-distutils-how-to-get-a-compiler-that-is-going-to-be-used
 class my_builder( build_ext ):
+
+    def finalize_options(self):
+        super().finalize_options()
+
+        self.include_dirs.append('include')
+
+        # Add pybind11's include dir
+        # GalSim has a whole long thing for this.
+        # I don't remember why this was so hard, but I'm just copying it over wholesale.
+        # Probably the first one is almost always the one that gets found.
+        import pybind11
+        print('PyBind11 is version ',pybind11.__version__)
+        print('Looking for pybind11 header files: ')
+        locations = [pybind11.get_include(user=True),
+                    pybind11.get_include(user=False),
+                    '/usr/include',
+                    '/usr/local/include']
+        for try_dir in locations:
+            print('  ',try_dir,end='')
+            if os.path.isfile(os.path.join(try_dir, 'pybind11/pybind11.h')):
+                print('  (yes)')
+                self.include_dirs.append(try_dir)
+                break
+            else:
+                print('  (no)')
+        else:
+            # Last time through, raise an error.
+            print("Could not find pybind11 header files.")
+            print("They should have been in one of the following locations:")
+            for l in locations:
+                if l is not None:
+                    print("   ", l)
+            raise OSError("Could not find PyBind11")
+
     def build_extensions(self):
         cflags, lflags = fix_compiler(self.compiler)
 
@@ -527,7 +446,6 @@ class my_builder( build_ext ):
             e.extra_compile_args = cflags
             for flag in lflags:
                 e.extra_link_args.append(flag)
-            e.include_dirs = ['include']
 
         # Now run the normal build function.
         build_ext.build_extensions(self)
@@ -557,7 +475,8 @@ ext = Extension("treecorr._treecorr",
                 depends=headers,
                 undef_macros=undef_macros)
 
-dependencies = ['numpy', 'cffi', 'pyyaml', 'LSSTDESC.Coord>=1.1']
+build_dep = ['setuptools>=38', 'numpy>=1.17', 'pybind11>=2.2']
+run_dep = ['pyyaml', 'LSSTDESC.Coord>=1.1']
 
 with open('README.rst') as file:
     long_description = file.read()
@@ -587,21 +506,14 @@ dist = setup(
     packages=['treecorr'],
     package_data={'treecorr' : headers },
     ext_modules=[ext],
-    install_requires=dependencies,
+    setup_requires=build_dep,
+    install_requires=build_dep + run_dep,
     cmdclass={'build_ext': my_builder,
               'install_scripts': my_install_scripts,
               'easy_install': my_easy_install,
               },
     scripts=scripts
 )
-
-# I don't actually need these installed for TreeCorr, but I wanted to figure out how to do
-# it, so I played with it here.  distutils installs these automatically when the headers argument
-# is given to setup.  But setuptools doesn't.  cf. http://bugs.python.org/setuptools/issue142
-#cmd = install_headers(dist)
-#cmd.finalize_options()
-#print('Installing headers to ',cmd.install_dir)
-#cmd.run()
 
 # Check if pandas and fitsio are installed.
 try:

@@ -7,6 +7,12 @@ See the listing below for the complete list of new features and changes.
 whose issue numbers are listed below for the relevant items.
 
 
+Dependency Change
+-----------------
+
+- Switched from cffi to pybind11 for the C++ bindings.
+
+
 API Changes
 -----------
 

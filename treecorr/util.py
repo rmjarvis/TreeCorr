@@ -22,7 +22,8 @@ import functools
 import inspect
 import warnings
 
-from . import _lib, _ffi, Rperp_alias
+from . import _treecorr as _lib
+from . import Rperp_alias
 from .writer import AsciiWriter, FitsWriter, HdfWriter
 from .reader import AsciiReader, FitsReader, HdfReader
 
@@ -278,12 +279,9 @@ def double_ptr(x):
     :returns:   A version of the array that can be passed to cffi C functions.
     """
     if x is None:
-        return _ffi.cast('double*', 0)
+        return 0
     else:
-        # This fails if x is read_only
-        #return _ffi.cast('double*', _ffi.from_buffer(x))
-        # This works, presumably by ignoring the numpy read_only flag.  Although, I think it's ok.
-        return _ffi.cast('double*', x.ctypes.data)
+        return x.ctypes.data
 
 def long_ptr(x):
     """
@@ -294,9 +292,9 @@ def long_ptr(x):
     :returns:   A version of the array that can be passed to cffi C functions.
     """
     if x is None:  # pragma: no cover   (I don't ever have x=None for this one.)
-        return _ffi.cast('long*', 0)
+        return 0
     else:
-        return _ffi.cast('long*', x.ctypes.data)
+        return x.ctypes.data
 
 def parse_metric(metric, coords, coords2=None, coords3=None):
     """

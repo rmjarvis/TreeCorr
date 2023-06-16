@@ -16,6 +16,8 @@
 // Also to turn on dbg<< messages.
 //#define DEBUGLOGGING
 
+#include "PyBind11Helper.h"
+
 #include <vector>
 #include <set>
 #include <map>
@@ -971,7 +973,7 @@ extern "C" {
 #define extern __declspec(dllexport)
 #endif
 
-#include "BinnedCorr2_C.h"
+//#include "BinnedCorr2_C.h"
 }
 
 template <int D1, int D2>
@@ -1046,8 +1048,8 @@ void* BuildCorr2a(int d2, int bin_type,
 void* BuildCorr2(int d1, int d2, int bin_type,
                  double minsep, double maxsep, int nbins, double binsize, double b,
                  double minrpar, double maxrpar, double xp, double yp, double zp,
-                 double* xi0, double* xi1, double* xi2, double* xi3,
-                 double* meanr, double* meanlogr, double* weight, double* npairs)
+                 size_t xi0, size_t xi1, size_t xi2, size_t xi3,
+                 size_t meanr, size_t meanlogr, size_t weight, size_t npairs)
 {
     dbg<<"Start BuildCorr2: "<<d1<<" "<<d2<<" "<<bin_type<<std::endl;
     void* corr=0;
@@ -1056,19 +1058,40 @@ void* BuildCorr2(int d1, int d2, int bin_type,
            corr = BuildCorr2a<NData>(d2, bin_type,
                                      minsep, maxsep, nbins, binsize, b,
                                      minrpar, maxrpar, xp, yp, zp,
-                                     xi0, xi1, xi2, xi3, meanr, meanlogr, weight, npairs);
+                                     reinterpret_cast<double*>(xi0),
+                                     reinterpret_cast<double*>(xi1),
+                                     reinterpret_cast<double*>(xi2),
+                                     reinterpret_cast<double*>(xi3),
+                                     reinterpret_cast<double*>(meanr),
+                                     reinterpret_cast<double*>(meanlogr),
+                                     reinterpret_cast<double*>(weight),
+                                     reinterpret_cast<double*>(npairs));
            break;
       case KData:
            corr = BuildCorr2a<KData>(d2, bin_type,
                                      minsep, maxsep, nbins, binsize, b,
                                      minrpar, maxrpar, xp, yp, zp,
-                                     xi0, xi1, xi2, xi3, meanr, meanlogr, weight, npairs);
+                                     reinterpret_cast<double*>(xi0),
+                                     reinterpret_cast<double*>(xi1),
+                                     reinterpret_cast<double*>(xi2),
+                                     reinterpret_cast<double*>(xi3),
+                                     reinterpret_cast<double*>(meanr),
+                                     reinterpret_cast<double*>(meanlogr),
+                                     reinterpret_cast<double*>(weight),
+                                     reinterpret_cast<double*>(npairs));
            break;
       case GData:
            corr = BuildCorr2a<GData>(d2, bin_type,
                                      minsep, maxsep, nbins, binsize, b,
                                      minrpar, maxrpar, xp, yp, zp,
-                                     xi0, xi1, xi2, xi3, meanr, meanlogr, weight, npairs);
+                                     reinterpret_cast<double*>(xi0),
+                                     reinterpret_cast<double*>(xi1),
+                                     reinterpret_cast<double*>(xi2),
+                                     reinterpret_cast<double*>(xi3),
+                                     reinterpret_cast<double*>(meanr),
+                                     reinterpret_cast<double*>(meanlogr),
+                                     reinterpret_cast<double*>(weight),
+                                     reinterpret_cast<double*>(npairs));
            break;
       default:
            Assert(false);
@@ -1653,22 +1676,34 @@ long SamplePairs2a(void* corr, void* field1, void* field2, double minsep, double
 
 long SamplePairs(void* corr, void* field1, void* field2, double minsep, double maxsep,
                  int d1, int d2, int coords, int bin_type, int metric,
-                 long* i1, long* i2, double* sep, int n)
+                 size_t i1, size_t i2, size_t sep, int n)
 {
     dbg<<"Start SamplePairs: "<<d1<<" "<<d2<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
 
     switch(d1) {
       case NData:
            return SamplePairs2a<NData>(corr, field1, field2, minsep, maxsep,
-                                       d2, coords, bin_type, metric, i1, i2, sep, n);
+                                       d2, coords, bin_type, metric,
+                                       reinterpret_cast<long*>(i1),
+                                       reinterpret_cast<long*>(i2),
+                                       reinterpret_cast<double*>(sep),
+                                       n);
            break;
       case KData:
            return SamplePairs2a<KData>(corr, field1, field2, minsep, maxsep,
-                                       d2, coords, bin_type, metric, i1, i2, sep, n);
+                                       d2, coords, bin_type, metric,
+                                       reinterpret_cast<long*>(i1),
+                                       reinterpret_cast<long*>(i2),
+                                       reinterpret_cast<double*>(sep),
+                                       n);
            break;
       case GData:
            return SamplePairs2a<GData>(corr, field1, field2, minsep, maxsep,
-                                       d2, coords, bin_type, metric, i1, i2, sep, n);
+                                       d2, coords, bin_type, metric,
+                                       reinterpret_cast<long*>(i1),
+                                       reinterpret_cast<long*>(i2),
+                                       reinterpret_cast<double*>(sep),
+                                       n);
            break;
       default:
            Assert(false);
@@ -1811,4 +1846,41 @@ int TriviallyZero(void* corr, int d1, int d2, int bin_type, int metric, int coor
            Assert(false);
     }
     return 0;
+}
+
+// Export the above functions using pybind11
+
+void pyExportBinnedCorr2(py::module& _treecorr)
+{
+    _treecorr.def("BuildCorr2", &BuildCorr2);
+    _treecorr.def("DestroyCorr2", &DestroyCorr2);
+    _treecorr.def("ProcessAuto2", &ProcessAuto2);
+    _treecorr.def("ProcessCross2", &ProcessCross2);
+    _treecorr.def("ProcessPair", &ProcessPair);
+    _treecorr.def("SetOMPThreads", &SetOMPThreads);
+    _treecorr.def("GetOMPThreads", &GetOMPThreads);
+    _treecorr.def("SamplePairs", &SamplePairs);
+    _treecorr.def("TriviallyZero", &TriviallyZero);
+
+    py::enum_<BinType>(_treecorr, "BinType")
+        .value("Log", Log)
+        .value("Linear", Linear)
+        .value("TwoD", TwoD)
+        .export_values();
+
+    py::enum_<Coord>(_treecorr, "Coord")
+        .value("Flat", Flat)
+        .value("Sphere", Sphere)
+        .value("ThreeD", ThreeD)
+        .export_values();
+
+    py::enum_<Metric>(_treecorr, "Metric")
+        .value("Euclidean", Euclidean)
+        .value("Rperp", Rperp)
+        .value("Rlens", Rlens)
+        .value("Arc", Arc)
+        .value("OldRperp", OldRperp)
+        .value("Periodic", Periodic)
+        .export_values();
+
 }

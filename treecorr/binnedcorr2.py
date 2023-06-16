@@ -22,7 +22,7 @@ import coord
 import itertools
 import collections
 
-from . import _lib
+from . import _treecorr as _lib
 from .config import merge_config, setup_logger, get
 from .util import parse_metric, metric_enum, coord_enum, set_omp_threads, lazy_property
 from .util import depr_pos_kwargs

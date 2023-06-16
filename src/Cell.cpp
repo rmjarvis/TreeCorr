@@ -438,6 +438,7 @@ Cell<D,C>* BuildCell(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata
             vdata[start].first = 0; // Make sure calling routine doesn't delete this one!
         }
         xdbg<<"Make leaf cell from "<<*data<<std::endl;
+        Assert(data->getN() == 1);
         LeafInfo info = vdata[start].second; // Only copies as a LeafInfo, so throws away wpos.
         xdbg<<"info.index = "<<info.index<<"  "<<vdata[start].second.index<<std::endl;
         return new Cell<D,C>(data, info);

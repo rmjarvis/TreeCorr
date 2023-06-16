@@ -21,7 +21,7 @@ import weakref
 import copy
 import os
 
-from . import _lib
+from . import _treecorr as _lib
 from .reader import FitsReader, HdfReader, AsciiReader, PandasReader, ParquetReader
 from .config import merge_config, setup_logger, get, get_from_list
 from .util import parse_file_type, LRU_Cache, make_writer, make_reader, set_omp_threads

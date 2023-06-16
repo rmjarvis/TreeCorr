@@ -18,7 +18,7 @@
 import numpy as np
 import weakref
 
-from . import _lib, _ffi
+from . import _treecorr as _lib
 from .util import get_omp_threads, parse_xyzsep, coord_enum
 from .util import long_ptr as lp
 from .util import double_ptr as dp
@@ -569,11 +569,7 @@ class NField(Field):
 
         # In case __init__ failed to get that far
         if hasattr(self,'data'):  # pragma: no branch
-            # I don't get this, but sometimes it gets here when the ffi.lock is already locked.
-            # When that happens, this will freeze in a `with ffi._lock` line in the ffi api.py.
-            # So, don't do that, and just accept the memory leak instead.
-            if not _ffi._lock.locked(): # pragma: no branch
-                _lib.DestroyNField(self.data, self._coords)
+            _lib.DestroyNField(self.data, self._coords)
 
 
 class KField(Field):
@@ -637,8 +633,7 @@ class KField(Field):
 
         # In case __init__ failed to get that far
         if hasattr(self,'data'):  # pragma: no branch
-            if not _ffi._lock.locked(): # pragma: no branch
-                _lib.DestroyKField(self.data, self._coords)
+            _lib.DestroyKField(self.data, self._coords)
 
 
 class GField(Field):
@@ -702,8 +697,7 @@ class GField(Field):
 
         # In case __init__ failed to get that far
         if hasattr(self,'data'):  # pragma: no branch
-            if not _ffi._lock.locked(): # pragma: no branch
-                _lib.DestroyGField(self.data, self._coords)
+            _lib.DestroyGField(self.data, self._coords)
 
 
 class SimpleField(object):
@@ -770,8 +764,7 @@ class NSimpleField(SimpleField):
 
         # In case __init__ failed to get that far
         if hasattr(self,'data'):  # pragma: no branch
-            if not _ffi._lock.locked(): # pragma: no branch
-                _lib.DestroyNSimpleField(self.data, self._coords)
+            _lib.DestroyNSimpleField(self.data, self._coords)
 
 
 class KSimpleField(SimpleField):
@@ -816,8 +809,7 @@ class KSimpleField(SimpleField):
 
         # In case __init__ failed to get that far
         if hasattr(self,'data'):  # pragma: no branch
-            if not _ffi._lock.locked(): # pragma: no branch
-                _lib.DestroyKSimpleField(self.data, self._coords)
+            _lib.DestroyKSimpleField(self.data, self._coords)
 
 
 class GSimpleField(SimpleField):
@@ -862,5 +854,4 @@ class GSimpleField(SimpleField):
 
         # In case __init__ failed to get that far
         if hasattr(self,'data'):  # pragma: no branch
-            if not _ffi._lock.locked(): # pragma: no branch
-                _lib.DestroyGSimpleField(self.data, self._coords)
+            _lib.DestroyGSimpleField(self.data, self._coords)

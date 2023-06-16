@@ -12,8 +12,8 @@
  *    and/or other materials provided with the distribution.
  */
 
-extern void* BuildGField(double* x, double* y, double* z, double* g1, double* g2,
-                         double* w, double* wpos, long nobj,
+extern void* BuildGField(size_t x, size_t y, size_t z, size_t g1, size_t g2,
+                         size_t w, size_t wpos, long nobj,
                          double minsize, double maxsize,
                          int sm_int, long long seed, int brute, int mintop, int maxtop, int coords);
 

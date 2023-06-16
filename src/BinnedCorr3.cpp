@@ -14,6 +14,8 @@
 
 //#define DEBUGLOGGING
 
+#include "PyBind11Helper.h"
+
 #include "dbg.h"
 #include "BinnedCorr3.h"
 #include "Split.h"
@@ -1213,7 +1215,7 @@ extern "C" {
 #define extern __declspec(dllexport)
 #endif
 
-#include "BinnedCorr3_C.h"
+//#include "BinnedCorr3_C.h"
 }
 
 
@@ -1245,11 +1247,11 @@ void* BuildCorr3(int d1, int d2, int d3, int bin_type,
                  double minu, double maxu, int nubins, double ubinsize, double bu,
                  double minv, double maxv, int nvbins, double vbinsize, double bv,
                  double xp, double yp, double zp,
-                 double* zeta0, double* zeta1, double* zeta2, double* zeta3,
-                 double* zeta4, double* zeta5, double* zeta6, double* zeta7,
-                 double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
-                 double* meand3, double* meanlogd3, double* meanu, double* meanv,
-                 double* weight, double* ntri)
+                 size_t zeta0, size_t zeta1, size_t zeta2, size_t zeta3,
+                 size_t zeta4, size_t zeta5, size_t zeta6, size_t zeta7,
+                 size_t meand1, size_t meanlogd1, size_t meand2, size_t meanlogd2,
+                 size_t meand3, size_t meanlogd3, size_t meanu, size_t meanv,
+                 size_t weight, size_t ntri)
 {
     dbg<<"Start BuildCorr3 "<<d1<<" "<<d2<<" "<<d3<<" "<<bin_type<<std::endl;
     void* corr=0;
@@ -1262,9 +1264,24 @@ void* BuildCorr3(int d1, int d2, int d3, int bin_type,
                minu, maxu, nubins, ubinsize, bu,
                minv, maxv, nvbins, vbinsize, bv,
                xp, yp, zp,
-               zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7,
-               meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv,
-               weight, ntri);
+               reinterpret_cast<double*>(zeta0),
+               reinterpret_cast<double*>(zeta1),
+               reinterpret_cast<double*>(zeta2),
+               reinterpret_cast<double*>(zeta3),
+               reinterpret_cast<double*>(zeta4),
+               reinterpret_cast<double*>(zeta5),
+               reinterpret_cast<double*>(zeta6),
+               reinterpret_cast<double*>(zeta7),
+               reinterpret_cast<double*>(meand1),
+               reinterpret_cast<double*>(meanlogd1),
+               reinterpret_cast<double*>(meand2),
+               reinterpret_cast<double*>(meanlogd2),
+               reinterpret_cast<double*>(meand3),
+               reinterpret_cast<double*>(meanlogd3),
+               reinterpret_cast<double*>(meanu),
+               reinterpret_cast<double*>(meanv),
+               reinterpret_cast<double*>(weight),
+               reinterpret_cast<double*>(ntri));
            break;
       case KData:
            corr = BuildCorr3c<KData,KData,KData>(
@@ -1272,9 +1289,24 @@ void* BuildCorr3(int d1, int d2, int d3, int bin_type,
                minu, maxu, nubins, ubinsize, bu,
                minv, maxv, nvbins, vbinsize, bv,
                xp, yp, zp,
-               zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7,
-               meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv,
-               weight, ntri);
+               reinterpret_cast<double*>(zeta0),
+               reinterpret_cast<double*>(zeta1),
+               reinterpret_cast<double*>(zeta2),
+               reinterpret_cast<double*>(zeta3),
+               reinterpret_cast<double*>(zeta4),
+               reinterpret_cast<double*>(zeta5),
+               reinterpret_cast<double*>(zeta6),
+               reinterpret_cast<double*>(zeta7),
+               reinterpret_cast<double*>(meand1),
+               reinterpret_cast<double*>(meanlogd1),
+               reinterpret_cast<double*>(meand2),
+               reinterpret_cast<double*>(meanlogd2),
+               reinterpret_cast<double*>(meand3),
+               reinterpret_cast<double*>(meanlogd3),
+               reinterpret_cast<double*>(meanu),
+               reinterpret_cast<double*>(meanv),
+               reinterpret_cast<double*>(weight),
+               reinterpret_cast<double*>(ntri));
            break;
       case GData:
            corr = BuildCorr3c<GData,GData,GData>(
@@ -1282,9 +1314,24 @@ void* BuildCorr3(int d1, int d2, int d3, int bin_type,
                minu, maxu, nubins, ubinsize, bu,
                minv, maxv, nvbins, vbinsize, bv,
                xp, yp, zp,
-               zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7,
-               meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv,
-               weight, ntri);
+               reinterpret_cast<double*>(zeta0),
+               reinterpret_cast<double*>(zeta1),
+               reinterpret_cast<double*>(zeta2),
+               reinterpret_cast<double*>(zeta3),
+               reinterpret_cast<double*>(zeta4),
+               reinterpret_cast<double*>(zeta5),
+               reinterpret_cast<double*>(zeta6),
+               reinterpret_cast<double*>(zeta7),
+               reinterpret_cast<double*>(meand1),
+               reinterpret_cast<double*>(meanlogd1),
+               reinterpret_cast<double*>(meand2),
+               reinterpret_cast<double*>(meanlogd2),
+               reinterpret_cast<double*>(meand3),
+               reinterpret_cast<double*>(meanlogd3),
+               reinterpret_cast<double*>(meanu),
+               reinterpret_cast<double*>(meanv),
+               reinterpret_cast<double*>(weight),
+               reinterpret_cast<double*>(ntri));
            break;
       default:
            Assert(false);
@@ -1598,4 +1645,15 @@ void ProcessCross3(void* corr123, void* corr132, void* corr213,
       default:
            Assert(false);
     }
+}
+
+// Export the above functions using pybind11
+
+void pyExportBinnedCorr3(py::module& _treecorr)
+{
+    _treecorr.def("BuildCorr3", &BuildCorr3);
+    _treecorr.def("DestroyCorr3", &DestroyCorr3);
+    _treecorr.def("ProcessAuto3", &ProcessAuto3);
+    _treecorr.def("ProcessCross12", &ProcessCross12);
+    _treecorr.def("ProcessCross3", &ProcessCross3);
 }

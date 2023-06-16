@@ -14,6 +14,8 @@
 
 //#define DEBUGLOGGING
 
+#include "PyBind11Helper.h"
+
 #include <vector>
 #include <cmath>
 #include "Field.h"
@@ -26,7 +28,7 @@ extern "C" {
 #define extern __declspec(dllexport)
 #endif
 
-#include "Field_C.h"
+//#include "Field_C.h"
 }
 
 // In BinnedCorr2.cpp
@@ -870,8 +872,9 @@ void KMeansInitTree1(void* field, double* centers, int npatch, int coords, long 
     }
 }
 
-void KMeansInitTree(void* field, double* centers, int npatch, int d, int coords, long long seed)
+void KMeansInitTree(void* field, size_t cenp, int npatch, int d, int coords, long long seed)
 {
+    double* centers = reinterpret_cast<double*>(cenp);
     switch(d) {
       case NData:
            KMeansInitTree1<NData>(field, centers, npatch, coords, seed);
@@ -901,8 +904,9 @@ void KMeansInitRand1(void* field, double* centers, int npatch, int coords, long 
     }
 }
 
-void KMeansInitRand(void* field, double* centers, int npatch, int d, int coords, long long seed)
+void KMeansInitRand(void* field, size_t cenp, int npatch, int d, int coords, long long seed)
 {
+    double* centers = reinterpret_cast<double*>(cenp);
     switch(d) {
       case NData:
            KMeansInitRand1<NData>(field, centers, npatch, coords, seed);
@@ -932,8 +936,9 @@ void KMeansInitKMPP1(void* field, double* centers, int npatch, int coords, long 
     }
 }
 
-void KMeansInitKMPP(void* field, double* centers, int npatch, int d, int coords, long long seed)
+void KMeansInitKMPP(void* field, size_t cenp, int npatch, int d, int coords, long long seed)
 {
+    double* centers = reinterpret_cast<double*>(cenp);
     switch(d) {
       case NData:
            KMeansInitKMPP1<NData>(field, centers, npatch, coords, seed);
@@ -964,9 +969,10 @@ void KMeansRun1(void* field, double* centers, int npatch, int max_iter, double t
     }
 }
 
-void KMeansRun(void* field, double* centers, int npatch, int max_iter, double tol, int alt,
+void KMeansRun(void* field, size_t cenp, int npatch, int max_iter, double tol, int alt,
                int d, int coords)
 {
+    double* centers = reinterpret_cast<double*>(cenp);
     switch(d) {
       case NData:
            KMeansRun1<NData>(field, centers, npatch, max_iter, tol, bool(alt), coords);
@@ -996,9 +1002,10 @@ void KMeansAssign1(void* field, double* centers, int npatch, long* patches, long
     }
 }
 
-void KMeansAssign(void* field, double* centers, int npatch, long* patches, long n,
-                  int d, int coords)
+void KMeansAssign(void* field, size_t cenp, int npatch, size_t pp, long n, int d, int coords)
 {
+    double* centers = reinterpret_cast<double*>(cenp);
+    long* patches = reinterpret_cast<long*>(pp);
     switch(d) {
       case NData:
            KMeansAssign1<NData>(field, centers, npatch, patches, n, coords);
@@ -1012,9 +1019,14 @@ void KMeansAssign(void* field, double* centers, int npatch, long* patches, long 
     }
 }
 
-void QuickAssign(double* centers, int npatch,
-                 double* x, double* y, double* z, long* patches, long n)
+void QuickAssign(size_t cenp, int npatch,
+                 size_t xp, size_t yp, size_t zp, size_t pp, long n)
 {
+    double* centers = reinterpret_cast<double*>(cenp);
+    double* x = reinterpret_cast<double*>(xp);
+    double* y = reinterpret_cast<double*>(yp);
+    double* z = reinterpret_cast<double*>(zp);
+    long* patches = reinterpret_cast<long*>(pp);
     if (z) {
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static)
@@ -1051,9 +1063,14 @@ void QuickAssign(double* centers, int npatch,
 }
 
 
-void SelectPatch(int patch, double* centers, int npatch, double* x, double* y, double* z,
-                 long* use, long n)
+void SelectPatch(int patch, size_t cenp, int npatch, size_t xp, size_t yp, size_t zp,
+                 size_t usep, long n)
 {
+    double* centers = reinterpret_cast<double*>(cenp);
+    double* x = reinterpret_cast<double*>(xp);
+    double* y = reinterpret_cast<double*>(yp);
+    double* z = reinterpret_cast<double*>(zp);
+    long* use = reinterpret_cast<long*>(usep);
     // Notation: p = the good patch we are looking for
     //           q = other patches
     //           if p is the closest, then use = 1, else use = 0.
@@ -1104,8 +1121,14 @@ void SelectPatch(int patch, double* centers, int npatch, double* x, double* y, d
     }
 }
 
-void GenerateXYZ(double* x, double* y, double* z, double* ra, double* dec, double* r, long n)
+void GenerateXYZ(size_t xp, size_t yp, size_t zp, size_t rap, size_t decp, size_t rp, long n)
 {
+    double* x = reinterpret_cast<double*>(xp);
+    double* y = reinterpret_cast<double*>(yp);
+    double* z = reinterpret_cast<double*>(zp);
+    double* ra = reinterpret_cast<double*>(rap);
+    double* dec = reinterpret_cast<double*>(decp);
+    double* r = reinterpret_cast<double*>(rp);
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static)
 #endif
@@ -1131,4 +1154,18 @@ void GenerateXYZ(double* x, double* y, double* z, double* ra, double* dec, doubl
             z[i] *= r[i];
         }
     }
+}
+
+// Export the above functions using pybind11
+
+void pyExportKMeans(py::module& _treecorr)
+{
+    _treecorr.def("KMeansInitTree", &KMeansInitTree);
+    _treecorr.def("KMeansInitRand", &KMeansInitRand);
+    _treecorr.def("KMeansInitKMPP", &KMeansInitKMPP);
+    _treecorr.def("KMeansRun", &KMeansRun);
+    _treecorr.def("KMeansAssign", &KMeansAssign);
+    _treecorr.def("QuickAssign", &QuickAssign);
+    _treecorr.def("SelectPatch", &SelectPatch);
+    _treecorr.def("GenerateXYZ", &GenerateXYZ);
 }

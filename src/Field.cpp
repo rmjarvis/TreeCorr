@@ -14,6 +14,8 @@
 
 //#define DEBUGLOGGING
 
+#include "PyBind11Helper.h"
+
 #include <cstddef>  // for ptrdiff_t
 #include "Field.h"
 #include "Cell.h"
@@ -460,7 +462,7 @@ extern "C" {
 #define extern __declspec(dllexport)
 #endif
 
-#include "Field_C.h"
+//#include "Field_C.h"
 }
 
 template <int D>
@@ -474,7 +476,6 @@ void* BuildField(double* x, double* y, double* z, double* g1, double* g2, double
     SplitMethod sm = static_cast<SplitMethod>(sm_int);
     switch(coords) {
       case Flat:
-           // Note: Use w for k, since we access k[i], even though value will be ignored.
            field = static_cast<void*>(new Field<D,Flat>(x, y, 0, g1, g2, k,
                                                         w, wpos, nobj,
                                                         minsize, maxsize,
@@ -500,34 +501,57 @@ void* BuildField(double* x, double* y, double* z, double* g1, double* g2, double
     return field;
 }
 
-void* BuildGField(double* x, double* y, double* z, double* g1, double* g2,
-                  double* w, double* wpos, long nobj,
+void* BuildGField(size_t x, size_t y, size_t z, size_t g1, size_t g2,
+                  size_t w, size_t wpos, long nobj,
                   double minsize, double maxsize,
                   int sm_int, long long seed, int brute, int mintop, int maxtop, int coords)
 {
     // Note: Use w for k, since we access k[i], even though value will be ignored.
-    return BuildField<GData>(x,y,z, g1,g2,w, w,wpos,nobj, minsize,maxsize, sm_int, seed,
-                             brute,mintop,maxtop,coords);
+    return BuildField<GData>(reinterpret_cast<double*>(x),
+                             reinterpret_cast<double*>(y),
+                             reinterpret_cast<double*>(z),
+                             reinterpret_cast<double*>(g1),
+                             reinterpret_cast<double*>(g2),
+                             reinterpret_cast<double*>(w),
+                             reinterpret_cast<double*>(w),
+                             reinterpret_cast<double*>(wpos),
+                             nobj, minsize, maxsize, sm_int, seed,
+                             brute, mintop, maxtop, coords);
 }
 
-
-void* BuildKField(double* x, double* y, double* z, double* k,
-                  double* w, double* wpos, long nobj,
+void* BuildKField(size_t x, size_t y, size_t z, size_t k,
+                  size_t w, size_t wpos, long nobj,
                   double minsize, double maxsize,
                   int sm_int, long long seed, int brute, int mintop, int maxtop, int coords)
 {
     // Note: Use w for g1,g2, since we access g1[i],g2[i] even though values are ignored.
-    return BuildField<KData>(x,y,z, w,w,k, w,wpos,nobj, minsize,maxsize, sm_int, seed,
+    return BuildField<KData>(reinterpret_cast<double*>(x),
+                             reinterpret_cast<double*>(y),
+                             reinterpret_cast<double*>(z),
+                             reinterpret_cast<double*>(w),
+                             reinterpret_cast<double*>(w),
+                             reinterpret_cast<double*>(k),
+                             reinterpret_cast<double*>(w),
+                             reinterpret_cast<double*>(wpos),
+                             nobj, minsize,maxsize, sm_int, seed,
                              brute,mintop,maxtop,coords);
 }
 
-void* BuildNField(double* x, double* y, double* z,
-                  double* w, double* wpos, long nobj,
+void* BuildNField(size_t x, size_t y, size_t z,
+                  size_t w, size_t wpos, long nobj,
                   double minsize, double maxsize,
                   int sm_int, long long seed, int brute, int mintop, int maxtop, int coords)
 {
     // Note: Use w for g1,g2,k for same reasons as above.
-    return BuildField<NData>(x,y,z, w,w,w, w,wpos,nobj, minsize,maxsize, sm_int, seed,
+    return BuildField<NData>(reinterpret_cast<double*>(x),
+                             reinterpret_cast<double*>(y),
+                             reinterpret_cast<double*>(z),
+                             reinterpret_cast<double*>(w),
+                             reinterpret_cast<double*>(w),
+                             reinterpret_cast<double*>(w),
+                             reinterpret_cast<double*>(w),
+                             reinterpret_cast<double*>(wpos),
+                             nobj, minsize,maxsize, sm_int, seed,
                              brute,mintop,maxtop,coords);
 }
 
@@ -642,8 +666,9 @@ void FieldGetNear1(void* field, double x, double y, double z, double sep, int co
 }
 
 void FieldGetNear(void* field, double x, double y, double z, double sep, int d, int coords,
-                  long* indices, long n)
+                  size_t inp, long n)
 {
+    long* indices = reinterpret_cast<long*>(inp);
     switch(d) {
       case NData:
            FieldGetNear1<NData>(field, x, y, z, sep, coords, indices, n);
@@ -681,17 +706,47 @@ void* BuildSimpleField(double* x, double* y, double* z, double* g1, double* g2, 
     return field;
 }
 
-void* BuildGSimpleField(double* x, double* y, double* z, double* g1, double* g2,
-                        double* w, double* wpos, long nobj, int coords)
-{ return BuildSimpleField<GData>(x,y,z,g1,g2,w,w,wpos,nobj,coords); }
+void* BuildGSimpleField(size_t x, size_t y, size_t z, size_t g1, size_t g2,
+                        size_t w, size_t wpos, long nobj, int coords)
+{
+    return BuildSimpleField<GData>(reinterpret_cast<double*>(x),
+                                   reinterpret_cast<double*>(y),
+                                   reinterpret_cast<double*>(z),
+                                   reinterpret_cast<double*>(g1),
+                                   reinterpret_cast<double*>(g2),
+                                   reinterpret_cast<double*>(w),
+                                   reinterpret_cast<double*>(w),
+                                   reinterpret_cast<double*>(wpos),
+                                   nobj,coords);
+}
 
-void* BuildKSimpleField(double* x, double* y, double* z, double* k,
-                        double* w, double* wpos, long nobj, int coords)
-{ return BuildSimpleField<KData>(x,y,z,w,w,k,w,wpos,nobj,coords); }
+void* BuildKSimpleField(size_t x, size_t y, size_t z, size_t k,
+                        size_t w, size_t wpos, long nobj, int coords)
+{
+    return BuildSimpleField<KData>(reinterpret_cast<double*>(x),
+                                   reinterpret_cast<double*>(y),
+                                   reinterpret_cast<double*>(z),
+                                   reinterpret_cast<double*>(w),
+                                   reinterpret_cast<double*>(w),
+                                   reinterpret_cast<double*>(k),
+                                   reinterpret_cast<double*>(w),
+                                   reinterpret_cast<double*>(wpos),
+                                   nobj,coords);
+}
 
-void* BuildNSimpleField(double* x, double* y, double* z,
-                        double* w, double* wpos, long nobj, int coords)
-{ return BuildSimpleField<NData>(x,y,z,w,w,w,w,wpos,nobj,coords); }
+void* BuildNSimpleField(size_t x, size_t y, size_t z,
+                        size_t w, size_t wpos, long nobj, int coords)
+{
+    return BuildSimpleField<NData>(reinterpret_cast<double*>(x),
+                                   reinterpret_cast<double*>(y),
+                                   reinterpret_cast<double*>(z),
+                                   reinterpret_cast<double*>(w),
+                                   reinterpret_cast<double*>(w),
+                                   reinterpret_cast<double*>(w),
+                                   reinterpret_cast<double*>(w),
+                                   reinterpret_cast<double*>(wpos),
+                                   nobj,coords);
+}
 
 template <int D>
 void DestroySimpleField(void* field, int coords)
@@ -720,3 +775,23 @@ void DestroyKSimpleField(void* field, int coords)
 void DestroyNSimpleField(void* field, int coords)
 { DestroySimpleField<NData>(field, coords); }
 
+// Export the above functions using pybind11
+
+void pyExportField(py::module& _treecorr)
+{
+    _treecorr.def("BuildNField", &BuildNField);
+    _treecorr.def("BuildKField", &BuildKField);
+    _treecorr.def("BuildGField", &BuildGField);
+    _treecorr.def("DestroyNField", &DestroyNField);
+    _treecorr.def("DestroyKField", &DestroyKField);
+    _treecorr.def("DestroyGField", &DestroyGField);
+    _treecorr.def("FieldGetNTopLevel", &FieldGetNTopLevel);
+    _treecorr.def("FieldCountNear", &FieldCountNear);
+    _treecorr.def("FieldGetNear", &FieldGetNear);
+    _treecorr.def("BuildNSimpleField", &BuildNSimpleField);
+    _treecorr.def("BuildKSimpleField", &BuildKSimpleField);
+    _treecorr.def("BuildGSimpleField", &BuildGSimpleField);
+    _treecorr.def("DestroyNSimpleField", &DestroyNSimpleField);
+    _treecorr.def("DestroyKSimpleField", &DestroyKSimpleField);
+    _treecorr.def("DestroyGSimpleField", &DestroyGSimpleField);
+}

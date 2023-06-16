@@ -113,7 +113,7 @@ that is also relatively straightforward:
     - numpy
     - pyyaml
     - LSSTDESC.Coord
-    - cffi
+    - pybind11
 
    They can all be installed at once by running::
 
@@ -123,33 +123,30 @@ that is also relatively straightforward:
 
         conda install -c conda-forge treecorr --only-deps
 
-   The last dependency is the only one that typically could cause any problems, since it in
-   turn depends on a library called libffi.  This is a common thing to have installed already
-   on linux machines, so it is likely that you won't have any trouble with it, but if you get
-   errors about "ffi.h" not being found, then you may need to either install it yourself or
-   update your paths to include the directory where ffi.h is found.
-
-   See https://cffi.readthedocs.io/en/latest/installation.html for more information about
-   installing cffi, including its libffi dependency.
-
    .. note::
 
-        Three additional modules are not required for basic TreeCorr operations, but are
+        Several additional modules are not required for basic TreeCorr operations, but are
         potentially useful.
 
-        a) fitsio is required for reading FITS catalogs or writing to FITS output files.
-
-        b) pandas will signficantly speed up reading from ASCII catalogs.
-
-        c) h5py is required for reading HDF5 catalogs.
+        - fitsio is required for reading FITS catalogs or writing to FITS output files.
+        - pandas will signficantly speed up reading from ASCII catalogs.
+        - pandas and pyarrow are required for reading Parquet files.
+        - h5py is required for reading HDF5 catalogs.
+        - mpi4py is required for running TreeCorr across multiple machines using MPI.
 
         These are all pip installable::
 
             pip install fitsio
             pip install pandas
+            pip install pyarrow
             pip install h5py
+            pip install mpi4py
 
         But they are not installed with TreeCorr automatically.
+
+        Also, beware that many HPC machines (e.g. NERSC) have special instructions for installing
+        mpi4py, so the above command may not work on such systems.  If you have trouble, look
+        for specialized instructions about how to install mpi4py properly on your system.
 
 
 3. Install

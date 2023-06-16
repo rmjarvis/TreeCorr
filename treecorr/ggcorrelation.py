@@ -17,7 +17,7 @@
 
 import numpy as np
 
-from . import _lib, _ffi
+from . import _treecorr as _lib
 from .catalog import calculateVarG
 from .binnedcorr2 import BinnedCorr2
 from .util import double_ptr as dp
@@ -134,8 +134,7 @@ class GGCorrelation(BinnedCorr2):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if self._corr is not None:
-            if not _ffi._lock.locked(): # pragma: no branch
-                _lib.DestroyCorr2(self.corr, self._d1, self._d2, self._bintype)
+            _lib.DestroyCorr2(self.corr, self._d1, self._d2, self._bintype)
 
     def __eq__(self, other):
         """Return whether two `GGCorrelation` instances are equal"""

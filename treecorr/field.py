@@ -425,11 +425,11 @@ class Field(object):
             centers = np.empty((npatch, 3))
         seed = 0 if rng is None else int(rng.random_sample() * 2**63)
         if init == 'tree':
-            _lib.KMeansInitTree(self.data, centers, int(npatch), self._d, self._coords, seed)
+            _lib.KMeansInitTree(self.data, centers, int(npatch), self._coords, seed)
         elif init == 'random':
-            _lib.KMeansInitRand(self.data, centers, int(npatch), self._d, self._coords, seed)
+            _lib.KMeansInitRand(self.data, centers, int(npatch), self._coords, seed)
         elif init == 'kmeans++':
-            _lib.KMeansInitKMPP(self.data, centers, int(npatch), self._d, self._coords, seed)
+            _lib.KMeansInitKMPP(self.data, centers, int(npatch), self._coords, seed)
         else:
             raise ValueError("Invalid init: %s. "%init +
                              "Must be one of 'tree', 'random', or 'kmeans++.'")
@@ -482,7 +482,7 @@ class Field(object):
         """
         npatch = centers.shape[0]
         _lib.KMeansRun(self.data, centers, npatch, int(max_iter), float(tol),
-                       bool(alt), self._d, self._coords)
+                       bool(alt), self._coords)
 
     def kmeans_assign_patches(self, centers):
         """Assign patch numbers to each point according to the given centers.
@@ -502,7 +502,7 @@ class Field(object):
         patches = np.empty(self.ntot, dtype=int)
         npatch = centers.shape[0]
         centers = np.ascontiguousarray(centers)
-        _lib.KMeansAssign(self.data, centers, npatch, patches, self._d, self._coords)
+        _lib.KMeansAssign(self.data, centers, npatch, patches, self._coords)
         return patches
 
 

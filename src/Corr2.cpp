@@ -23,7 +23,7 @@
 #include <map>
 
 #include "dbg.h"
-#include "BinnedCorr2.h"
+#include "Corr2.h"
 #include "Split.h"
 #include "ProjectHelper.h"
 #include "Metric.h"
@@ -37,7 +37,7 @@
 #define MAX(a,b) (a > b ? a : b)
 
 template <int D1, int D2, int B>
-BinnedCorr2<D1,D2,B>::BinnedCorr2(
+Corr2<D1,D2,B>::Corr2(
     double minsep, double maxsep, int nbins, double binsize, double b,
     double minrpar, double maxrpar, double xp, double yp, double zp,
     double* xi0, double* xi1, double* xi2, double* xi3,
@@ -47,7 +47,7 @@ BinnedCorr2<D1,D2,B>::BinnedCorr2(
     _coords(-1), _owns_data(false),
     _xi(xi0,xi1,xi2,xi3), _meanr(meanr), _meanlogr(meanlogr), _weight(weight), _npairs(npairs)
 {
-    dbg<<"BinnedCorr2 constructor\n";
+    dbg<<"Corr2 constructor\n";
     // Some helpful variables we can calculate once here.
     _logminsep = log(_minsep);
     _halfminsep = 0.5*_minsep;
@@ -65,7 +65,7 @@ BinnedCorr2<D1,D2,B>::BinnedCorr2(
 }
 
 template <int D1, int D2, int B>
-BinnedCorr2<D1,D2,B>::BinnedCorr2(const BinnedCorr2<D1,D2,B>& rhs, bool copy_data) :
+Corr2<D1,D2,B>::Corr2(const Corr2<D1,D2,B>& rhs, bool copy_data) :
     _minsep(rhs._minsep), _maxsep(rhs._maxsep), _nbins(rhs._nbins),
     _binsize(rhs._binsize), _b(rhs._b),
     _minrpar(rhs._minrpar), _maxrpar(rhs._maxrpar),
@@ -76,7 +76,7 @@ BinnedCorr2<D1,D2,B>::BinnedCorr2(const BinnedCorr2<D1,D2,B>& rhs, bool copy_dat
     _coords(rhs._coords), _owns_data(true),
     _xi(0,0,0,0), _weight(0)
 {
-    dbg<<"BinnedCorr2 copy constructor\n";
+    dbg<<"Corr2 copy constructor\n";
     _xi.new_data(_nbins);
     _meanr = new double[_nbins];
     _meanlogr = new double[_nbins];
@@ -88,9 +88,9 @@ BinnedCorr2<D1,D2,B>::BinnedCorr2(const BinnedCorr2<D1,D2,B>& rhs, bool copy_dat
 }
 
 template <int D1, int D2, int B>
-BinnedCorr2<D1,D2,B>::~BinnedCorr2()
+Corr2<D1,D2,B>::~Corr2()
 {
-    dbg<<"BinnedCorr2 destructor\n";
+    dbg<<"Corr2 destructor\n";
     if (_owns_data) {
         _xi.delete_data(_nbins);
         delete [] _meanr; _meanr = 0;
@@ -100,23 +100,23 @@ BinnedCorr2<D1,D2,B>::~BinnedCorr2()
     }
 }
 
-// BinnedCorr2::process2 is invalid if D1 != D2, so this helper struct lets us only call
+// Corr2::process2 is invalid if D1 != D2, so this helper struct lets us only call
 // process2 when D1 == D2.
 template <int D1, int D2, int B, int C, int M, int P>
 struct ProcessHelper
 {
-    static void process2(BinnedCorr2<D1,D2,B>& , const Cell<D1,C>&, const MetricHelper<M,P>& ) {}
+    static void process2(Corr2<D1,D2,B>& , const Cell<D1,C>&, const MetricHelper<M,P>& ) {}
 };
 
 template <int D, int B, int C, int M, int P>
 struct ProcessHelper<D,D,B,C,M,P>
 {
-    static void process2(BinnedCorr2<D,D,B>& b, const Cell<D,C>& c12, const MetricHelper<M,P>& m)
+    static void process2(Corr2<D,D,B>& b, const Cell<D,C>& c12, const MetricHelper<M,P>& m)
     { b.template process2<C,M,P>(c12, m); }
 };
 
 template <int D1, int D2, int B>
-void BinnedCorr2<D1,D2,B>::clear()
+void Corr2<D1,D2,B>::clear()
 {
     _xi.clear(_nbins);
     for (int i=0; i<_nbins; ++i) _meanr[i] = 0.;
@@ -127,7 +127,7 @@ void BinnedCorr2<D1,D2,B>::clear()
 }
 
 template <int D1, int D2, int B> template <int C, int M, int P>
-void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field, bool dots)
+void Corr2<D1,D2,B>::process(const Field<D1,C>& field, bool dots)
 {
     xdbg<<"Start process (auto): M,P,C = "<<M<<"  "<<P<<"  "<<C<<std::endl;
     Assert(D1 == D2);
@@ -141,9 +141,9 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field, bool dots)
 #pragma omp parallel
     {
         // Give each thread their own copy of the data vector to fill in.
-        BinnedCorr2<D1,D2,B> bc2(*this,false);
+        Corr2<D1,D2,B> bc2(*this,false);
 #else
-        BinnedCorr2<D1,D2,B>& bc2 = *this;
+        Corr2<D1,D2,B>& bc2 = *this;
 #endif
 
         // Inside the omp parallel, so each thread has its own MetricHelper.
@@ -181,7 +181,7 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field, bool dots)
 }
 
 template <int D1, int D2, int B> template <int C, int M, int P>
-void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field1, const Field<D2,C>& field2,
+void Corr2<D1,D2,B>::process(const Field<D1,C>& field1, const Field<D2,C>& field2,
                                    bool dots)
 {
     xdbg<<"Start process (cross): M,P,C = "<<M<<"  "<<P<<"  "<<C<<std::endl;
@@ -217,9 +217,9 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field1, const Field<D2,C>&
 #pragma omp parallel
     {
         // Give each thread their own copy of the data vector to fill in.
-        BinnedCorr2<D1,D2,B> bc2(*this,false);
+        Corr2<D1,D2,B> bc2(*this,false);
 #else
-        BinnedCorr2<D1,D2,B>& bc2 = *this;
+        Corr2<D1,D2,B>& bc2 = *this;
 #endif
 
         MetricHelper<M,P> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
@@ -255,7 +255,7 @@ void BinnedCorr2<D1,D2,B>::process(const Field<D1,C>& field1, const Field<D2,C>&
 }
 
 template <int D1, int D2, int B> template <int C, int M, int P>
-void BinnedCorr2<D1,D2,B>::processPairwise(
+void Corr2<D1,D2,B>::processPairwise(
     const SimpleField<D1,C>& field1, const SimpleField<D2,C>& field2, bool dots)
 {
     Assert(_coords == -1 || _coords == C);
@@ -273,9 +273,9 @@ void BinnedCorr2<D1,D2,B>::processPairwise(
 #pragma omp parallel
     {
         // Give each thread their own copy of the data vector to fill in.
-        BinnedCorr2<D1,D2,B> bc2(*this,false);
+        Corr2<D1,D2,B> bc2(*this,false);
 #else
-        BinnedCorr2<D1,D2,B>& bc2 = *this;
+        Corr2<D1,D2,B>& bc2 = *this;
 #endif
 
         MetricHelper<M,P> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
@@ -319,7 +319,7 @@ void BinnedCorr2<D1,D2,B>::processPairwise(
 }
 
 template <int D1, int D2, int B> template <int C, int M, int P>
-void BinnedCorr2<D1,D2,B>::process2(const Cell<D1,C>& c12, const MetricHelper<M,P>& metric)
+void Corr2<D1,D2,B>::process2(const Cell<D1,C>& c12, const MetricHelper<M,P>& metric)
 {
     if (c12.getW() == 0.) return;
     if (c12.getSize() <= _halfminsep) return;
@@ -332,7 +332,7 @@ void BinnedCorr2<D1,D2,B>::process2(const Cell<D1,C>& c12, const MetricHelper<M,
 }
 
 template <int D1, int D2, int B> template <int C, int M, int P>
-void BinnedCorr2<D1,D2,B>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2,
+void Corr2<D1,D2,B>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2,
                                      const MetricHelper<M,P>& metric, bool do_reverse)
 {
     //set_verbose(2);
@@ -522,7 +522,7 @@ struct DirectHelper<GData,GData>
 };
 
 template <int D1, int D2, int B> template <int C>
-void BinnedCorr2<D1,D2,B>::directProcess11(
+void Corr2<D1,D2,B>::directProcess11(
     const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double rsq, bool do_reverse,
     int k, double r, double logr)
 {
@@ -587,7 +587,7 @@ void BinnedCorr2<D1,D2,B>::directProcess11(
 }
 
 template <int D1, int D2, int B>
-void BinnedCorr2<D1,D2,B>::operator=(const BinnedCorr2<D1,D2,B>& rhs)
+void Corr2<D1,D2,B>::operator=(const Corr2<D1,D2,B>& rhs)
 {
     Assert(rhs._nbins == _nbins);
     _xi.copy(rhs._xi,_nbins);
@@ -598,7 +598,7 @@ void BinnedCorr2<D1,D2,B>::operator=(const BinnedCorr2<D1,D2,B>& rhs)
 }
 
 template <int D1, int D2, int B>
-void BinnedCorr2<D1,D2,B>::operator+=(const BinnedCorr2<D1,D2,B>& rhs)
+void Corr2<D1,D2,B>::operator+=(const Corr2<D1,D2,B>& rhs)
 {
     Assert(rhs._nbins == _nbins);
     _xi.add(rhs._xi,_nbins);
@@ -609,7 +609,7 @@ void BinnedCorr2<D1,D2,B>::operator+=(const BinnedCorr2<D1,D2,B>& rhs)
 }
 
 template <int D1, int D2, int B> template <int M, int C>
-bool BinnedCorr2<D1,D2,B>::triviallyZero(Position<C> p1, Position<C> p2, double s1, double s2)
+bool Corr2<D1,D2,B>::triviallyZero(Position<C> p1, Position<C> p2, double s1, double s2)
 {
     // Ignore any min/max rpar for this calculation.
     double minrpar = -std::numeric_limits<double>::max();
@@ -623,7 +623,7 @@ bool BinnedCorr2<D1,D2,B>::triviallyZero(Position<C> p1, Position<C> p2, double 
 }
 
 template <int D1, int D2, int B> template <int M, int P, int C>
-long BinnedCorr2<D1,D2,B>::samplePairs(
+long Corr2<D1,D2,B>::samplePairs(
     const Field<D1, C>& field1, const Field<D2, C>& field2,
     double minsep, double maxsep, long* i1, long* i2, double* sep, int n)
 {
@@ -653,7 +653,7 @@ long BinnedCorr2<D1,D2,B>::samplePairs(
 }
 
 template <int D1, int D2, int B> template <int M, int P, int C>
-void BinnedCorr2<D1,D2,B>::samplePairs(
+void Corr2<D1,D2,B>::samplePairs(
     const Cell<D1, C>& c1, const Cell<D2, C>& c2, const MetricHelper<M,P>& metric,
     double minsep, double minsepsq, double maxsep, double maxsepsq,
     long* i1, long* i2, double* sep, int n, long& k)
@@ -790,7 +790,7 @@ void SelectRandomFrom(long m, std::vector<long>& selection)
 }
 
 template <int D1, int D2, int B> template <int C>
-void BinnedCorr2<D1,D2,B>::sampleFrom(
+void Corr2<D1,D2,B>::sampleFrom(
     const Cell<D1, C>& c1, const Cell<D2, C>& c2, double rsq, double r,
     long* i1, long* i2, double* sep, int n, long& k)
 {
@@ -976,17 +976,17 @@ void* BuildCorr2b(int bin_type,
 {
     switch(bin_type) {
       case Log:
-           return static_cast<void*>(new BinnedCorr2<D1,D2,Log>(
+           return static_cast<void*>(new Corr2<D1,D2,Log>(
                    minsep, maxsep, nbins, binsize, b, minrpar, maxrpar, xp, yp, zp,
                    xi0, xi1, xi2, xi3, meanr, meanlogr, weight, npairs));
            break;
       case Linear:
-           return static_cast<void*>(new BinnedCorr2<D1,D2,Linear>(
+           return static_cast<void*>(new Corr2<D1,D2,Linear>(
                    minsep, maxsep, nbins, binsize, b, minrpar, maxrpar, xp, yp, zp,
                    xi0, xi1, xi2, xi3, meanr, meanlogr, weight, npairs));
            break;
       case TwoD:
-           return static_cast<void*>(new BinnedCorr2<D1,D2,TwoD>(
+           return static_cast<void*>(new Corr2<D1,D2,TwoD>(
                    minsep, maxsep, nbins, binsize, b, minrpar, maxrpar, xp, yp, zp,
                    xi0, xi1, xi2, xi3, meanr, meanlogr, weight, npairs));
            break;
@@ -1089,13 +1089,13 @@ void DestroyCorr2b(void* corr, int bin_type)
 {
     switch(bin_type) {
       case Log:
-           delete static_cast<BinnedCorr2<D1,D2,Log>*>(corr);
+           delete static_cast<Corr2<D1,D2,Log>*>(corr);
            break;
       case Linear:
-           delete static_cast<BinnedCorr2<D1,D2,Linear>*>(corr);
+           delete static_cast<Corr2<D1,D2,Linear>*>(corr);
            break;
       case TwoD:
-           delete static_cast<BinnedCorr2<D1,D2,TwoD>*>(corr);
+           delete static_cast<Corr2<D1,D2,TwoD>*>(corr);
            break;
       default:
            Assert(false);
@@ -1140,7 +1140,7 @@ void DestroyCorr2(void* corr, int d1, int d2, int bin_type)
 }
 
 template <int M, int D, int B>
-void ProcessAuto2d(BinnedCorr2<D,D,B>* corr, void* field, int dots, int coords)
+void ProcessAuto2d(Corr2<D,D,B>* corr, void* field, int dots, int coords)
 {
     const bool P = corr->nontrivialRPar();
     dbg<<"ProcessAuto: coords = "<<coords<<", metric = "<<M<<", P = "<<P<<std::endl;
@@ -1173,7 +1173,7 @@ void ProcessAuto2d(BinnedCorr2<D,D,B>* corr, void* field, int dots, int coords)
 }
 
 template <int D, int B>
-void ProcessAuto2c(BinnedCorr2<D,D,B>* corr, void* field, int dots,
+void ProcessAuto2c(Corr2<D,D,B>* corr, void* field, int dots,
                    int coords, int metric)
 {
     switch(metric) {
@@ -1205,13 +1205,13 @@ void ProcessAuto2b(void* corr, void* field, int dots, int coords, int bin_type, 
 {
     switch(bin_type) {
       case Log:
-           ProcessAuto2c(static_cast<BinnedCorr2<D,D,Log>*>(corr), field, dots, coords, metric);
+           ProcessAuto2c(static_cast<Corr2<D,D,Log>*>(corr), field, dots, coords, metric);
            break;
       case Linear:
-           ProcessAuto2c(static_cast<BinnedCorr2<D,D,Linear>*>(corr), field, dots, coords, metric);
+           ProcessAuto2c(static_cast<Corr2<D,D,Linear>*>(corr), field, dots, coords, metric);
            break;
       case TwoD:
-           ProcessAuto2c(static_cast<BinnedCorr2<D,D,TwoD>*>(corr), field, dots, coords, metric);
+           ProcessAuto2c(static_cast<Corr2<D,D,TwoD>*>(corr), field, dots, coords, metric);
            break;
       default:
            Assert(false);
@@ -1239,7 +1239,7 @@ void ProcessAuto2(void* corr, void* field, int dots,
 }
 
 template <int M, int D1, int D2, int B>
-void ProcessCross2d(BinnedCorr2<D1,D2,B>* corr, void* field1, void* field2, int dots, int coords)
+void ProcessCross2d(Corr2<D1,D2,B>* corr, void* field1, void* field2, int dots, int coords)
 {
     const bool P = corr->nontrivialRPar();
     dbg<<"ProcessCross: coords = "<<coords<<", metric = "<<M<<", P = "<<P<<std::endl;
@@ -1276,7 +1276,7 @@ void ProcessCross2d(BinnedCorr2<D1,D2,B>* corr, void* field1, void* field2, int 
 }
 
 template <int D1, int D2, int B>
-void ProcessCross2c(BinnedCorr2<D1,D2,B>* corr, void* field1, void* field2, int dots,
+void ProcessCross2c(Corr2<D1,D2,B>* corr, void* field1, void* field2, int dots,
                     int coords, int metric)
 {
     switch(metric) {
@@ -1309,15 +1309,15 @@ void ProcessCross2b(void* corr, void* field1, void* field2, int dots,
 {
     switch(bin_type) {
       case Log:
-           ProcessCross2c(static_cast<BinnedCorr2<D1,D2,Log>*>(corr), field1, field2, dots,
+           ProcessCross2c(static_cast<Corr2<D1,D2,Log>*>(corr), field1, field2, dots,
                           coords, metric);
            break;
       case Linear:
-           ProcessCross2c(static_cast<BinnedCorr2<D1,D2,Linear>*>(corr), field1, field2, dots,
+           ProcessCross2c(static_cast<Corr2<D1,D2,Linear>*>(corr), field1, field2, dots,
                           coords, metric);
            break;
       case TwoD:
-           ProcessCross2c(static_cast<BinnedCorr2<D1,D2,TwoD>*>(corr), field1, field2, dots,
+           ProcessCross2c(static_cast<Corr2<D1,D2,TwoD>*>(corr), field1, field2, dots,
                           coords, metric);
            break;
       default:
@@ -1376,7 +1376,7 @@ void ProcessCross2(void* corr, void* field1, void* field2, int dots,
 }
 
 template <int M, int D1, int D2, int B>
-void ProcessPair2d(BinnedCorr2<D1,D2,B>* corr, void* field1, void* field2, int dots, int coords)
+void ProcessPair2d(Corr2<D1,D2,B>* corr, void* field1, void* field2, int dots, int coords)
 {
     const bool P = corr->nontrivialRPar();
     dbg<<"ProcessPair: coords = "<<coords<<", metric = "<<M<<", P = "<<P<<std::endl;
@@ -1413,7 +1413,7 @@ void ProcessPair2d(BinnedCorr2<D1,D2,B>* corr, void* field1, void* field2, int d
 }
 
 template <int D1, int D2, int B>
-void ProcessPair2c(BinnedCorr2<D1,D2,B>* corr, void* field1, void* field2, int dots,
+void ProcessPair2c(Corr2<D1,D2,B>* corr, void* field1, void* field2, int dots,
                    int coords, int metric)
 {
     switch(metric) {
@@ -1446,15 +1446,15 @@ void ProcessPair2b(void* corr, void* field1, void* field2, int dots,
 {
     switch(bin_type) {
       case Log:
-           ProcessPair2c(static_cast<BinnedCorr2<D1,D2,Log>*>(corr), field1, field2, dots,
+           ProcessPair2c(static_cast<Corr2<D1,D2,Log>*>(corr), field1, field2, dots,
                          coords, metric);
            break;
       case Linear:
-           ProcessPair2c(static_cast<BinnedCorr2<D1,D2,Linear>*>(corr), field1, field2, dots,
+           ProcessPair2c(static_cast<Corr2<D1,D2,Linear>*>(corr), field1, field2, dots,
                          coords, metric);
            break;
       case TwoD:
-           ProcessPair2c(static_cast<BinnedCorr2<D1,D2,TwoD>*>(corr), field1, field2, dots,
+           ProcessPair2c(static_cast<Corr2<D1,D2,TwoD>*>(corr), field1, field2, dots,
                          coords, metric);
            break;
       default:
@@ -1529,7 +1529,7 @@ int GetOMPThreads()
 }
 
 template <int M, int D1, int D2, int B>
-long SamplePairs2d(BinnedCorr2<D1,D2,B>* corr, void* field1, void* field2,
+long SamplePairs2d(Corr2<D1,D2,B>* corr, void* field1, void* field2,
                    double minsep, double maxsep,
                    int coords, long* i1, long* i2, double* sep, int n)
 {
@@ -1573,7 +1573,7 @@ long SamplePairs2d(BinnedCorr2<D1,D2,B>* corr, void* field1, void* field2,
 }
 
 template <int D1, int D2, int B>
-long SamplePairs2c(BinnedCorr2<D1,D2,B>* corr, void* field1, void* field2,
+long SamplePairs2c(Corr2<D1,D2,B>* corr, void* field1, void* field2,
                    double minsep, double maxsep,
                    int coords, int metric, long* i1, long* i2, double* sep, int n)
 {
@@ -1615,12 +1615,12 @@ long SamplePairs2b(void* corr, void* field1, void* field2, double minsep, double
 {
     switch(bin_type) {
       case Log:
-           return SamplePairs2c(static_cast<BinnedCorr2<D1,D2,Log>*>(corr),
+           return SamplePairs2c(static_cast<Corr2<D1,D2,Log>*>(corr),
                                 field1, field2, minsep, maxsep,
                                 coords, metric, i1, i2, sep, n);
            break;
       case Linear:
-           return SamplePairs2c(static_cast<BinnedCorr2<D1,D2,Linear>*>(corr),
+           return SamplePairs2c(static_cast<Corr2<D1,D2,Linear>*>(corr),
                                 field1, field2, minsep, maxsep,
                                 coords, metric, i1, i2, sep, n);
            break;
@@ -1699,7 +1699,7 @@ long SamplePairs(void* corr, void* field1, void* field2, double minsep, double m
 }
 
 template <int M, int C, int D1, int D2, int B>
-int TriviallyZero2e(BinnedCorr2<D1,D2,B>* corr,
+int TriviallyZero2e(Corr2<D1,D2,B>* corr,
                     double x1, double y1, double z1, double s1,
                     double x2, double y2, double z2, double s2)
 {
@@ -1709,7 +1709,7 @@ int TriviallyZero2e(BinnedCorr2<D1,D2,B>* corr,
 }
 
 template <int M, int D1, int D2, int B>
-int TriviallyZero2d(BinnedCorr2<D1,D2,B>* corr, int coords,
+int TriviallyZero2d(Corr2<D1,D2,B>* corr, int coords,
                     double x1, double y1, double z1, double s1,
                     double x2, double y2, double z2, double s2)
 {
@@ -1735,7 +1735,7 @@ int TriviallyZero2d(BinnedCorr2<D1,D2,B>* corr, int coords,
 }
 
 template <int D1, int D2, int B>
-int TriviallyZero2c(BinnedCorr2<D1,D2,B>* corr, int metric, int coords,
+int TriviallyZero2c(Corr2<D1,D2,B>* corr, int metric, int coords,
                     double x1, double y1, double z1, double s1,
                     double x2, double y2, double z2, double s2)
 {
@@ -1771,15 +1771,15 @@ int TriviallyZero2b(void* corr, int bin_type, int metric, int coords,
 {
     switch(bin_type) {
       case Log:
-           return TriviallyZero2c(static_cast<BinnedCorr2<D1,D2,Log>*>(corr), metric, coords,
+           return TriviallyZero2c(static_cast<Corr2<D1,D2,Log>*>(corr), metric, coords,
                                   x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       case Linear:
-           return TriviallyZero2c(static_cast<BinnedCorr2<D1,D2,Linear>*>(corr), metric, coords,
+           return TriviallyZero2c(static_cast<Corr2<D1,D2,Linear>*>(corr), metric, coords,
                                   x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       case TwoD:
-           return TriviallyZero2c(static_cast<BinnedCorr2<D1,D2,TwoD>*>(corr), metric, coords,
+           return TriviallyZero2c(static_cast<Corr2<D1,D2,TwoD>*>(corr), metric, coords,
                                   x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       default:
@@ -1837,7 +1837,7 @@ int TriviallyZero(void* corr, int d1, int d2, int bin_type, int metric, int coor
 
 // Export the above functions using pybind11
 
-void pyExportBinnedCorr2(py::module& _treecorr)
+void pyExportCorr2(py::module& _treecorr)
 {
     _treecorr.def("BuildCorr2", &BuildCorr2);
     _treecorr.def("DestroyCorr2", &DestroyCorr2);

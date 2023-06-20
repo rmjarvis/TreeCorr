@@ -26,14 +26,14 @@
 template <int DC1, int DC2, int DC3>
 struct ZetaData;
 
-// BinnedCorr3 encapsulates a binned correlation function.
+// Corr3 encapsulates a binned correlation function.
 template <int DC1, int DC2, int DC3, int B>
-class BinnedCorr3
+class Corr3
 {
 
 public:
 
-    BinnedCorr3(double minsep, double maxsep, int nbins, double binsize, double b,
+    Corr3(double minsep, double maxsep, int nbins, double binsize, double b,
                 double minu, double maxu, int nubins, double ubinsize, double bu,
                 double minv, double maxv, int nvbins, double vbinsize, double bv,
                 double xp, double yp, double zp,
@@ -42,20 +42,20 @@ public:
                 double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
                 double* meand3, double* meanlogd3, double* meanu, double* meanv,
                 double* weight, double* ntri);
-    BinnedCorr3(const BinnedCorr3& rhs, bool copy_data=true);
-    ~BinnedCorr3();
+    Corr3(const Corr3& rhs, bool copy_data=true);
+    ~Corr3();
 
     void clear();  // Set all data to 0.
 
     template <int C, int M>
     void process(const Field<DC1, C>& field, bool dots);
     template <int C, int M>
-    void process(BinnedCorr3<DC2,DC1,DC2,B>* corr212, BinnedCorr3<DC2,DC2,DC1,B>* corr221,
+    void process(Corr3<DC2,DC1,DC2,B>* corr212, Corr3<DC2,DC2,DC1,B>* corr221,
                  const Field<DC1, C>& field1, const Field<DC2, C>& field2, bool dots);
     template <int C, int M>
-    void process(BinnedCorr3<DC1,DC3,DC2,B>* corr132,
-                 BinnedCorr3<DC2,DC1,DC3,B>* corr213, BinnedCorr3<DC2,DC3,DC1,B>* corr231,
-                 BinnedCorr3<DC3,DC1,DC2,B>* corr312, BinnedCorr3<DC3,DC2,DC1,B>* corr321,
+    void process(Corr3<DC1,DC3,DC2,B>* corr132,
+                 Corr3<DC2,DC1,DC3,B>* corr213, Corr3<DC2,DC3,DC1,B>* corr231,
+                 Corr3<DC3,DC1,DC2,B>* corr312, Corr3<DC3,DC2,DC1,B>* corr321,
                  const Field<DC1, C>& field1, const Field<DC2, C>& field2,
                  const Field<DC3, C>& field3, bool dots);
 
@@ -64,21 +64,21 @@ public:
     void process3(const Cell<DC1,C>* c1, const MetricHelper<M,0>& metric);
 
     template <int C, int M>
-    void process12(BinnedCorr3<DC2,DC1,DC2,B>& bc212, BinnedCorr3<DC2,DC2,DC1,B>& bc221,
+    void process12(Corr3<DC2,DC1,DC2,B>& bc212, Corr3<DC2,DC2,DC1,B>& bc221,
                    const Cell<DC1,C>* c1, const Cell<DC2,C>* c2, const MetricHelper<M,0>& metric);
 
     template <int C, int M>
-    void process111(BinnedCorr3<DC1,DC3,DC2,B>& bc132,
-                    BinnedCorr3<DC2,DC1,DC3,B>& bc213, BinnedCorr3<DC2,DC3,DC1,B>& bc231,
-                    BinnedCorr3<DC3,DC1,DC2,B>& bc312, BinnedCorr3<DC3,DC2,DC1,B>& bc321,
+    void process111(Corr3<DC1,DC3,DC2,B>& bc132,
+                    Corr3<DC2,DC1,DC3,B>& bc213, Corr3<DC2,DC3,DC1,B>& bc231,
+                    Corr3<DC3,DC1,DC2,B>& bc312, Corr3<DC3,DC2,DC1,B>& bc321,
                     const Cell<DC1,C>* c1, const Cell<DC2,C>* c2, const Cell<DC3,C>* c3,
                     const MetricHelper<M,0>& metric,
                     double d1sq=0., double d2sq=0., double d3sq=0.);
 
     template <int C, int M>
-    void process111Sorted(BinnedCorr3<DC1,DC3,DC2,B>& bc132,
-                          BinnedCorr3<DC2,DC1,DC3,B>& bc213, BinnedCorr3<DC2,DC3,DC1,B>& bc231,
-                          BinnedCorr3<DC3,DC1,DC2,B>& bc312, BinnedCorr3<DC3,DC2,DC1,B>& bc321,
+    void process111Sorted(Corr3<DC1,DC3,DC2,B>& bc132,
+                          Corr3<DC2,DC1,DC3,B>& bc213, Corr3<DC2,DC3,DC1,B>& bc231,
+                          Corr3<DC3,DC1,DC2,B>& bc312, Corr3<DC3,DC2,DC1,B>& bc321,
                           const Cell<DC1,C>* c1, const Cell<DC2,C>* c2, const Cell<DC3,C>* c3,
                           const MetricHelper<M,0>& metric,
                           double d1sq=0., double d2sq=0., double d3sq=0.);
@@ -89,8 +89,8 @@ public:
                           const double logr, const double u, const double v, const int index);
 
     // Note: op= only copies _data.  Not all the params.
-    void operator=(const BinnedCorr3<DC1,DC2,DC3,B>& rhs);
-    void operator+=(const BinnedCorr3<DC1,DC2,DC3,B>& rhs);
+    void operator=(const Corr3<DC1,DC2,DC3,B>& rhs);
+    void operator+=(const Corr3<DC1,DC2,DC3,B>& rhs);
 
 protected:
 

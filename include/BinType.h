@@ -15,11 +15,15 @@
 #ifndef TreeCorr_BinType_H
 #define TreeCorr_BinType_H
 
-// The BinType enum is defined here:
-#include "BinType_C.h"
 #include <limits>
 #include <cmath>
 
+// We use a code for the type of binning to use:
+// Log is logarithmic spacing in r
+// Linear is linear spacing in r
+// TwoD is linear spacing in x,y
+
+enum BinType { Log=1, Linear=2, TwoD=3 };
 
 template <int M>
 struct BinTypeHelper;

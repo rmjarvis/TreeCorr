@@ -1205,19 +1205,9 @@ void BinnedCorr3<D1,D2,D3,B>::operator+=(const BinnedCorr3<D1,D2,D3,B>& rhs)
 
 //
 //
-// The C interface for python
+// The functions we call from Python.
 //
 //
-
-extern "C" {
-
-#ifdef _WIN32
-#define extern __declspec(dllexport)
-#endif
-
-//#include "BinnedCorr3_C.h"
-}
-
 
 template <int D1, int D2, int D3>
 void* BuildCorr3c(int bin_type,

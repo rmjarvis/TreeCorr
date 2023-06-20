@@ -15,11 +15,18 @@
 #ifndef TreeCorr_Metric_H
 #define TreeCorr_Metric_H
 
-// The Metric enum is defined here:
-#include "Metric_C.h"
 #include <limits>
 #include <cmath>
 
+// We use a code for the metric to use:
+// Euclidean is Euclidean in (x,y) or (x,y,z)
+// Rperp uses the perpendicular component of the separation as the distance
+// Rlens uses the perpendicular component at the lens (the first catalog) distance
+// Arc uses the great circle distance between two points on the sphere
+// OldRperp uses the old definition of Rperp and Rpar.
+// Periodic is Euclidean with periodic boundary conditions.
+
+enum Metric { Euclidean=1, Rperp=2, Rlens=3, Arc=4, OldRperp=5, Periodic=6 };
 
 template <int M, int P>
 struct MetricHelper;

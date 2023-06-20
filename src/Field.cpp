@@ -452,18 +452,9 @@ SimpleField<D,C>::~SimpleField()
 
 //
 //
-// Now the C-C++ interface functions that get used in python:
+// The functions we call from Python.
 //
 //
-
-extern "C" {
-
-#ifdef _WIN32
-#define extern __declspec(dllexport)
-#endif
-
-//#include "Field_C.h"
-}
 
 template <int D>
 void* BuildField(double* x, double* y, double* z, double* g1, double* g2, double* k,

@@ -963,18 +963,9 @@ void BinnedCorr2<D1,D2,B>::sampleFrom(
 
 //
 //
-// The C interface for python
+// The functions we call from Python.
 //
 //
-
-extern "C" {
-
-#ifdef _WIN32
-#define extern __declspec(dllexport)
-#endif
-
-//#include "BinnedCorr2_C.h"
-}
 
 template <int D1, int D2>
 void* BuildCorr2b(int bin_type,

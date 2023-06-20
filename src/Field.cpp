@@ -162,6 +162,11 @@ inline WPosLeafInfo get_wpos(double* wpos, double* w, long i)
     return wp;
 }
 
+template <bool B>
+double at(double* x, int i) { return x[i]; }
+template <>
+double at<false>(double* x, int i) { return 0.; }
+
 template <int D, int C>
 Field<D,C>::Field(double* x, double* y, double* z, double* g1, double* g2, double* k,
                   double* w, double* wpos, long nobj,
@@ -175,7 +180,9 @@ Field<D,C>::Field(double* x, double* y, double* z, double* g1, double* g2, doubl
     xdbg<<"D,C = "<<D<<','<<C<<std::endl;
     xdbg<<"First few values are:\n";
     for(int i=0;i<5;++i) {
-        xdbg<<x[i]<<"  "<<y[i]<<"  "<<(z?z[i]:0)<<"  "<<g1[i]<<"  "<<g2[i]<<"  "<<k[i]<<"  "<<w[i]<<"  "<<(wpos?wpos[i]:0)<<std::endl;
+        xdbg<<x[i]<<"  "<<y[i]<<"  "<<(z?z[i]:0)<<"  "<<at<D==GData>(g1,i)<<"  "<<
+            at<D==GData>(g2,i)<<"  "<<at<D==KData>(k,i)<<"  "<<w[i]<<"  "<<
+            (wpos?wpos[i]:0)<<std::endl;
     }
 
     if (seed != 0) { urand(seed); }
@@ -184,16 +191,18 @@ Field<D,C>::Field(double* x, double* y, double* z, double* g1, double* g2, doubl
         for(long i=0;i<nobj;++i) {
             WPosLeafInfo wp = get_wpos(wpos,w,i);
             _celldata.push_back(std::make_pair(
-                    CellDataHelper<D,C>::build(x[i],y[i],z[i],g1[i],g2[i],k[i],w[i]),
-                    wp));
+                    CellDataHelper<D,C>::build(
+                        x[i], y[i], z[i], at<D==GData>(g1,i), at<D==GData>(g2,i),
+                        at<D==KData>(k,i), w[i]), wp));
         }
     } else {
         Assert(C == Flat);
         for(long i=0;i<nobj;++i) {
             WPosLeafInfo wp = get_wpos(wpos,w,i);
             _celldata.push_back(std::make_pair(
-                    CellDataHelper<D,C>::build(x[i],y[i],0.,g1[i],g2[i],k[i],w[i]),
-                    wp));
+                    CellDataHelper<D,C>::build(
+                        x[i], y[i], 0., at<D==GData>(g1,i), at<D==GData>(g2,i),
+                        at<D==KData>(k,i), w[i]), wp));
         }
     }
     dbg<<"Built celldata with "<<_celldata.size()<<" entries\n";
@@ -419,16 +428,18 @@ SimpleField<D,C>::SimpleField(
         for(long i=0;i<nobj;++i) {
             WPosLeafInfo wp = get_wpos(wpos,w,i);
             celldata.push_back(std::make_pair(
-                    CellDataHelper<D,C>::build(x[i],y[i],z[i],g1[i],g2[i],k[i],w[i]),
-                    wp));
+                    CellDataHelper<D,C>::build(
+                        x[i], y[i], z[i], at<D==GData>(g1,i), at<D==GData>(g2,i),
+                        at<D==KData>(k,i), w[i]), wp));
         }
     } else {
         Assert(C == Flat);
         for(long i=0;i<nobj;++i) {
             WPosLeafInfo wp = get_wpos(wpos,w,i);
             celldata.push_back(std::make_pair(
-                    CellDataHelper<D,C>::build(x[i],y[i],0.,g1[i],g2[i],k[i],w[i]),
-                    wp));
+                    CellDataHelper<D,C>::build(
+                        x[i], y[i], 0., at<D==GData>(g1,i), at<D==GData>(g2,i),
+                        at<D==KData>(k,i), w[i]), wp));
         }
     }
     dbg<<"Built celldata with "<<celldata.size()<<" entries\n";
@@ -522,8 +533,7 @@ void* BuildGField(py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<
     double* w = static_cast<double*>(wp.request().ptr);
     double* wpos = wposp.request().size == 0 ? 0 : static_cast<double*>(wposp.request().ptr);
 
-    // Note: Use w for k, since we access k[i], even though value will be ignored.
-    return BuildField<GData>(x, y, z, g1, g2, w, w, wpos,
+    return BuildField<GData>(x, y, z, g1, g2, 0, w, wpos,
                              nobj, minsize, maxsize, sm_int, seed,
                              brute, mintop, maxtop, coords);
 }
@@ -554,8 +564,7 @@ void* BuildKField(py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<
     double* w = static_cast<double*>(wp.request().ptr);
     double* wpos = wposp.request().size == 0 ? 0 : static_cast<double*>(wposp.request().ptr);
 
-    // Note: Use w for g1,g2, since we access g1[i],g2[i] even though values are ignored.
-    return BuildField<KData>(x, y, z, w, w, k, w, wpos,
+    return BuildField<KData>(x, y, z, 0, 0, k, w, wpos,
                              nobj, minsize, maxsize, sm_int, seed,
                              brute, mintop, maxtop, coords);
 }
@@ -583,8 +592,7 @@ void* BuildNField(py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<
     double* w = static_cast<double*>(wp.request().ptr);
     double* wpos = wposp.request().size == 0 ? 0 : static_cast<double*>(wposp.request().ptr);
 
-    // Note: Use w for g1,g2,k for same reasons as above.
-    return BuildField<NData>(x, y, z, w, w, w, w, wpos,
+    return BuildField<NData>(x, y, z, 0, 0, 0, w, wpos,
                              nobj, minsize, maxsize, sm_int, seed,
                              brute, mintop, maxtop, coords);
 }
@@ -772,7 +780,7 @@ void* BuildGSimpleField(py::array_t<double>& xp, py::array_t<double>& yp, py::ar
     double* w = static_cast<double*>(wp.request().ptr);
     double* wpos = wposp.request().size == 0 ? 0 : static_cast<double*>(wposp.request().ptr);
 
-    return BuildSimpleField<GData>(x, y, z, g1, g2, w, w, wpos, nobj, coords);
+    return BuildSimpleField<GData>(x, y, z, g1, g2, 0, w, wpos, nobj, coords);
 }
 
 void* BuildKSimpleField(py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
@@ -801,7 +809,7 @@ void* BuildKSimpleField(py::array_t<double>& xp, py::array_t<double>& yp, py::ar
     double* w = static_cast<double*>(wp.request().ptr);
     double* wpos = wposp.request().size == 0 ? 0 : static_cast<double*>(wposp.request().ptr);
 
-    return BuildSimpleField<KData>(x, y, z, w, w, k, w, wpos, nobj, coords);
+    return BuildSimpleField<KData>(x, y, z, 0, 0, k, w, wpos, nobj, coords);
 }
 
 
@@ -827,7 +835,7 @@ void* BuildNSimpleField(py::array_t<double>& xp, py::array_t<double>& yp, py::ar
     double* w = static_cast<double*>(wp.request().ptr);
     double* wpos = wposp.request().size == 0 ? 0 : static_cast<double*>(wposp.request().ptr);
 
-    return BuildSimpleField<NData>(x, y, z, w, w, w, w, wpos, nobj, coords);
+    return BuildSimpleField<NData>(x, y, z, 0, 0, 0, w, wpos, nobj, coords);
 }
 
 template <int D>

@@ -100,7 +100,7 @@ class Field(object):
     def nTopLevelNodes(self):
         """The number of top-level nodes.
         """
-        return _lib.FieldGetNTopLevel(self.data, self._d, self._coords)
+        return self.data.getNTopLevel();
 
     @property
     def cat(self):
@@ -178,7 +178,7 @@ class Field(object):
     def _count_near(self, x, y, z, sep):
         # If self.min_size > 0, these results may be approximate, since the tree will have
         # grouped points within this separation together.
-        return _lib.FieldCountNear(self.data, x, y, z, sep, self._d, self._coords)
+        return self.data.countNear(x, y, z, sep)
 
     def get_near(self, *args, **kwargs):
         """Get the indices of points near a given coordinate.
@@ -259,7 +259,7 @@ class Field(object):
         n = self._count_near(x, y, z, sep)
         indices = np.empty(n, dtype=int)
         # Now fill the array with the indices of the nearby points.
-        _lib.FieldGetNear(self.data, x, y, z, sep, self._d, self._coords, indices)
+        self.data.getNear(x, y, z, sep, indices)
         return indices
 
     @depr_pos_kwargs
@@ -555,19 +555,11 @@ class NField(Field):
 
         zx = cat.z if cat.z is not None else np.array([])
         wpx = cat.wpos if cat.wpos is not None else np.array([])
-        self.data = _lib.BuildNField(cat.x, cat.y, zx, cat.w, wpx,
-                                     self.min_size, self.max_size, self._sm, seed,
-                                     self.brute, self.min_top, self.max_top, self._coords)
+        self.data = _lib.NField(cat.x, cat.y, zx, cat.w, wpx,
+                                self.min_size, self.max_size, self._sm, seed,
+                                self.brute, self.min_top, self.max_top, self._coords)
         if logger:
             logger.debug('Finished building NField (%s)',self.coords)
-
-    def __del__(self):
-        # Using memory allocated from the C layer means we have to explicitly deallocate it
-        # rather than being able to rely on the Python memory manager.
-
-        # In case __init__ failed to get that far
-        if hasattr(self,'data'):  # pragma: no branch
-            _lib.DestroyNField(self.data, self._coords)
 
 
 class KField(Field):
@@ -619,19 +611,11 @@ class KField(Field):
 
         zx = cat.z if cat.z is not None else np.array([])
         wpx = cat.wpos if cat.wpos is not None else np.array([])
-        self.data = _lib.BuildKField(cat.x, cat.y, zx, cat.k, cat.w, wpx,
-                                     self.min_size, self.max_size, self._sm, seed,
-                                     self.brute, self.min_top, self.max_top, self._coords)
+        self.data = _lib.KField(cat.x, cat.y, zx, cat.k, cat.w, wpx,
+                                self.min_size, self.max_size, self._sm, seed,
+                                self.brute, self.min_top, self.max_top, self._coords)
         if logger:
             logger.debug('Finished building KField (%s)',self.coords)
-
-    def __del__(self):
-        # Using memory allocated from the C layer means we have to explicitly deallocate it
-        # rather than being able to rely on the Python memory manager.
-
-        # In case __init__ failed to get that far
-        if hasattr(self,'data'):  # pragma: no branch
-            _lib.DestroyKField(self.data, self._coords)
 
 
 class GField(Field):
@@ -683,19 +667,11 @@ class GField(Field):
 
         zx = cat.z if cat.z is not None else np.array([])
         wpx = cat.wpos if cat.wpos is not None else np.array([])
-        self.data = _lib.BuildGField(cat.x, cat.y, zx, cat.g1, cat.g2, cat.w, wpx,
-                                     self.min_size, self.max_size, self._sm, seed,
-                                     self.brute, self.min_top, self.max_top, self._coords)
+        self.data = _lib.GField(cat.x, cat.y, zx, cat.g1, cat.g2, cat.w, wpx,
+                                self.min_size, self.max_size, self._sm, seed,
+                                self.brute, self.min_top, self.max_top, self._coords)
         if logger:
             logger.debug('Finished building GField (%s)',self.coords)
-
-    def __del__(self):
-        # Using memory allocated from the C layer means we have to explicitly deallocate it
-        # rather than being able to rely on the Python memory manager.
-
-        # In case __init__ failed to get that far
-        if hasattr(self,'data'):  # pragma: no branch
-            _lib.DestroyGField(self.data, self._coords)
 
 
 class SimpleField(object):
@@ -752,17 +728,9 @@ class NSimpleField(SimpleField):
 
         zx = cat.z if cat.z is not None else np.array([])
         wpx = cat.wpos if cat.wpos is not None else np.array([])
-        self.data = _lib.BuildNSimpleField(cat.x, cat.y, zx, cat.w, wpx, self._coords)
+        self.data = _lib.NSimpleField(cat.x, cat.y, zx, cat.w, wpx, self._coords)
         if logger:
             logger.debug('Finished building NSimpleField (%s)',self.coords)
-
-    def __del__(self):
-        # Using memory allocated from the C layer means we have to explicitly deallocate it
-        # rather than being able to rely on the Python memory manager.
-
-        # In case __init__ failed to get that far
-        if hasattr(self,'data'):  # pragma: no branch
-            _lib.DestroyNSimpleField(self.data, self._coords)
 
 
 class KSimpleField(SimpleField):
@@ -796,17 +764,9 @@ class KSimpleField(SimpleField):
 
         zx = cat.z if cat.z is not None else np.array([])
         wpx = cat.wpos if cat.wpos is not None else np.array([])
-        self.data = _lib.BuildKSimpleField(cat.x, cat.y, zx, cat.k, cat.w, wpx, self._coords)
+        self.data = _lib.KSimpleField(cat.x, cat.y, zx, cat.k, cat.w, wpx, self._coords)
         if logger:
             logger.debug('Finished building KSimpleField (%s)',self.coords)
-
-    def __del__(self):
-        # Using memory allocated from the C layer means we have to explicitly deallocate it
-        # rather than being able to rely on the Python memory manager.
-
-        # In case __init__ failed to get that far
-        if hasattr(self,'data'):  # pragma: no branch
-            _lib.DestroyKSimpleField(self.data, self._coords)
 
 
 class GSimpleField(SimpleField):
@@ -840,15 +800,6 @@ class GSimpleField(SimpleField):
 
         zx = cat.z if cat.z is not None else np.array([])
         wpx = cat.wpos if cat.wpos is not None else np.array([])
-        self.data = _lib.BuildGSimpleField(cat.x, cat.y, zx, cat.g1, cat.g2, cat.w, wpx,
-                                           self._coords)
+        self.data = _lib.GSimpleField(cat.x, cat.y, zx, cat.g1, cat.g2, cat.w, wpx, self._coords)
         if logger:
             logger.debug('Finished building KSimpleField (%s)',self.coords)
-
-    def __del__(self):
-        # Using memory allocated from the C layer means we have to explicitly deallocate it
-        # rather than being able to rely on the Python memory manager.
-
-        # In case __init__ failed to get that far
-        if hasattr(self,'data'):  # pragma: no branch
-            _lib.DestroyGSimpleField(self.data, self._coords)

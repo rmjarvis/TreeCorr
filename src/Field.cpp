@@ -468,46 +468,42 @@ SimpleField<D,C>::~SimpleField()
 //
 
 template <int D>
-void* BuildField(double* x, double* y, double* z, double* g1, double* g2, double* k,
+BaseField<D>* BuildField(double* x, double* y, double* z, double* g1, double* g2, double* k,
                  double* w, double* wpos, long nobj,
                  double minsize, double maxsize,
                  int sm_int, long long seed, int brute, int mintop, int maxtop, int coords)
 {
     dbg<<"Start BuildField "<<D<<"  "<<coords<<std::endl;
-    void* field=0;
     SplitMethod sm = static_cast<SplitMethod>(sm_int);
     switch(coords) {
       case Flat:
-           field = static_cast<void*>(new Field<D,Flat>(x, y, 0, g1, g2, k,
-                                                        w, wpos, nobj,
-                                                        minsize, maxsize,
-                                                        sm, seed,
-                                                        bool(brute), mintop, maxtop));
-           break;
+           return new Field<D,Flat>(x, y, 0, g1, g2, k,
+                                    w, wpos, nobj,
+                                    minsize, maxsize,
+                                    sm, seed,
+                                    bool(brute), mintop, maxtop);
       case Sphere:
-           field = static_cast<void*>(new Field<D,Sphere>(x, y, z, g1, g2, k,
-                                                          w, wpos, nobj,
-                                                          minsize, maxsize,
-                                                          sm, seed,
-                                                          bool(brute), mintop, maxtop));
-           break;
+           return new Field<D,Sphere>(x, y, z, g1, g2, k,
+                                      w, wpos, nobj,
+                                      minsize, maxsize,
+                                      sm, seed,
+                                      bool(brute), mintop, maxtop);
       case ThreeD:
-           field = static_cast<void*>(new Field<D,ThreeD>(x, y, z, g1, g2, k,
-                                                          w, wpos, nobj,
-                                                          minsize, maxsize,
-                                                          sm, seed,
-                                                          bool(brute), mintop, maxtop));
-           break;
+           return new Field<D,ThreeD>(x, y, z, g1, g2, k,
+                                      w, wpos, nobj,
+                                      minsize, maxsize,
+                                      sm, seed,
+                                      bool(brute), mintop, maxtop);
     }
-    xdbg<<"field = "<<field<<std::endl;
-    return field;
+    return 0;
 }
 
-void* BuildGField(py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
-                  py::array_t<double>& g1p, py::array_t<double>& g2p,
-                  py::array_t<double>& wp, py::array_t<double>& wposp,
-                  double minsize, double maxsize,
-                  int sm_int, long long seed, int brute, int mintop, int maxtop, int coords)
+BaseField<GData>* BuildGField(
+    py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
+    py::array_t<double>& g1p, py::array_t<double>& g2p,
+    py::array_t<double>& wp, py::array_t<double>& wposp,
+    double minsize, double maxsize,
+    int sm_int, long long seed, int brute, int mintop, int maxtop, int coords)
 {
     Assert(xp.request().ndim == 1);
     Assert(yp.request().ndim == 1);
@@ -538,10 +534,11 @@ void* BuildGField(py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<
                              brute, mintop, maxtop, coords);
 }
 
-void* BuildKField(py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
-                  py::array_t<double>& kp, py::array_t<double>& wp, py::array_t<double>& wposp,
-                  double minsize, double maxsize,
-                  int sm_int, long long seed, int brute, int mintop, int maxtop, int coords)
+BaseField<KData>* BuildKField(
+    py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
+    py::array_t<double>& kp, py::array_t<double>& wp, py::array_t<double>& wposp,
+    double minsize, double maxsize,
+    int sm_int, long long seed, int brute, int mintop, int maxtop, int coords)
 {
     Assert(xp.request().ndim == 1);
     Assert(yp.request().ndim == 1);
@@ -569,10 +566,11 @@ void* BuildKField(py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<
                              brute, mintop, maxtop, coords);
 }
 
-void* BuildNField(py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
-                  py::array_t<double>& wp, py::array_t<double>& wposp,
-                  double minsize, double maxsize,
-                  int sm_int, long long seed, int brute, int mintop, int maxtop, int coords)
+BaseField<NData>* BuildNField(
+    py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
+    py::array_t<double>& wp, py::array_t<double>& wposp,
+    double minsize, double maxsize,
+    int sm_int, long long seed, int brute, int mintop, int maxtop, int coords)
 {
     Assert(xp.request().ndim == 1);
     Assert(yp.request().ndim == 1);
@@ -598,163 +596,40 @@ void* BuildNField(py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<
 }
 
 template <int D>
-void DestroyField(void* field, int coords)
-{
-    dbg<<"Start DestroyField "<<D<<"  "<<coords<<std::endl;
-    xdbg<<"field = "<<field<<std::endl;
-    switch(coords) {
-      case Flat:
-           delete static_cast<Field<D,Flat>*>(field);
-           break;
-      case Sphere:
-           delete static_cast<Field<D,Sphere>*>(field);
-           break;
-      case ThreeD:
-           delete static_cast<Field<D,ThreeD>*>(field);
-           break;
-    }
-}
-
-void DestroyGField(void* field, int coords)
-{ DestroyField<GData>(field, coords); }
-
-void DestroyKField(void* field, int coords)
-{ DestroyField<KData>(field, coords); }
-
-void DestroyNField(void* field, int coords)
-{ DestroyField<NData>(field, coords); }
-
-template <int D>
-long FieldGetNTopLevel1(void* field, int coords)
-{
-    switch(coords) {
-      case Flat:
-           return static_cast<Field<D,Flat>*>(field)->getNTopLevel();
-           break;
-      case Sphere:
-           return static_cast<Field<D,Sphere>*>(field)->getNTopLevel();
-           break;
-      case ThreeD:
-           return static_cast<Field<D,ThreeD>*>(field)->getNTopLevel();
-           break;
-    }
-    return 0;  // Can't get here, but saves a compiler warning
-}
-
-long FieldGetNTopLevel(void* field, int d, int coords)
-{
-    switch(d) {
-      case NData:
-        return FieldGetNTopLevel1<NData>(field, coords);
-        break;
-      case KData:
-        return FieldGetNTopLevel1<KData>(field, coords);
-        break;
-      case GData:
-        return FieldGetNTopLevel1<GData>(field, coords);
-        break;
-    }
-    return 0;  // Can't get here, but saves a compiler warning
-}
-
-template <int D>
-long FieldCountNear1(void* field, double x, double y, double z, double sep, int coords)
-{
-    switch(coords) {
-      case Flat:
-           return static_cast<Field<D,Flat>*>(field)->countNear(x,y,z,sep);
-           break;
-      case Sphere:
-           return static_cast<Field<D,Sphere>*>(field)->countNear(x,y,z,sep);
-           break;
-      case ThreeD:
-           return static_cast<Field<D,ThreeD>*>(field)->countNear(x,y,z,sep);
-           break;
-    }
-    return 0;  // Can't get here, but saves a compiler warning
-}
-
-long FieldCountNear(void* field, double x, double y, double z, double sep, int d, int coords)
-{
-    switch(d) {
-      case NData:
-           return FieldCountNear1<NData>(field, x, y, z, sep, coords);
-           break;
-      case KData:
-           return FieldCountNear1<KData>(field, x, y, z, sep, coords);
-           break;
-      case GData:
-           return FieldCountNear1<GData>(field, x, y, z, sep, coords);
-           break;
-    }
-    return 0;  // Can't get here, but saves a compiler warning
-}
-
-template <int D>
-void FieldGetNear1(void* field, double x, double y, double z, double sep, int coords,
-                   long* indices, long n)
-{
-    switch(coords) {
-      case Flat:
-           static_cast<Field<D,Flat>*>(field)->getNear(x,y,z,sep,indices,n);
-           break;
-      case Sphere:
-           static_cast<Field<D,Sphere>*>(field)->getNear(x,y,z,sep,indices,n);
-           break;
-      case ThreeD:
-           static_cast<Field<D,ThreeD>*>(field)->getNear(x,y,z,sep,indices,n);
-           break;
-    }
-}
-
-void FieldGetNear(void* field, double x, double y, double z, double sep, int d, int coords,
+void FieldGetNear(BaseField<D>* field, double x, double y, double z, double sep,
                   py::array_t<long>& inp)
 {
     Assert(inp.request().ndim == 1);
     long n = inp.request().size;
     long* indices = static_cast<long*>(inp.request().ptr);
-
-    switch(d) {
-      case NData:
-           FieldGetNear1<NData>(field, x, y, z, sep, coords, indices, n);
-           break;
-      case KData:
-           FieldGetNear1<KData>(field, x, y, z, sep, coords, indices, n);
-           break;
-      case GData:
-           FieldGetNear1<GData>(field, x, y, z, sep, coords, indices, n);
-           break;
-    }
+    field->getNear(x,y,z,sep,indices,n);
 }
 
 template <int D>
-void* BuildSimpleField(double* x, double* y, double* z, double* g1, double* g2, double* k,
-                       double* w, double* wpos, long nobj, int coords)
+BaseSimpleField<D>* BuildSimpleField(
+    double* x, double* y, double* z, double* g1, double* g2, double* k,
+    double* w, double* wpos, long nobj, int coords)
 {
     dbg<<"Start BuildSimpleField "<<D<<"  "<<coords<<std::endl;
-    void* field=0;
     switch (coords) {
       case Flat:
-           field = static_cast<void*>(new SimpleField<D,Flat>(x, y, 0, g1, g2, k,
-                                                              w, wpos, nobj));
-           break;
+           return new SimpleField<D,Flat>(x, y, 0, g1, g2, k,
+                                          w, wpos, nobj);
       case Sphere:
-           field = static_cast<void*>(new SimpleField<D,Sphere>(x, y, z, g1, g2, k,
-                                                                w, wpos, nobj));
-           break;
+           return new SimpleField<D,Sphere>(x, y, z, g1, g2, k,
+                                            w, wpos, nobj);
       case ThreeD:
-           field = static_cast<void*>(new SimpleField<D,ThreeD>(x, y, z, g1, g2, k,
-                                                                w, wpos, nobj));
-           break;
+           return new SimpleField<D,ThreeD>(x, y, z, g1, g2, k,
+                                            w, wpos, nobj);
     }
-    xdbg<<"field = "<<field<<std::endl;
-    return field;
+    return 0;
 }
 
-void* BuildGSimpleField(py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
-                        py::array_t<double>& g1p, py::array_t<double>& g2p,
-                        py::array_t<double>& wp, py::array_t<double>& wposp,
-                        int coords)
+BaseSimpleField<GData>* BuildGSimpleField(
+    py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
+    py::array_t<double>& g1p, py::array_t<double>& g2p,
+    py::array_t<double>& wp, py::array_t<double>& wposp,
+    int coords)
 {
     Assert(xp.request().ndim == 1);
     Assert(yp.request().ndim == 1);
@@ -783,10 +658,11 @@ void* BuildGSimpleField(py::array_t<double>& xp, py::array_t<double>& yp, py::ar
     return BuildSimpleField<GData>(x, y, z, g1, g2, 0, w, wpos, nobj, coords);
 }
 
-void* BuildKSimpleField(py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
-                        py::array_t<double>& kp,
-                        py::array_t<double>& wp, py::array_t<double> wposp,
-                        int coords)
+BaseSimpleField<KData>* BuildKSimpleField(
+    py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
+    py::array_t<double>& kp,
+    py::array_t<double>& wp, py::array_t<double> wposp,
+    int coords)
 {
     Assert(xp.request().ndim == 1);
     Assert(yp.request().ndim == 1);
@@ -812,10 +688,10 @@ void* BuildKSimpleField(py::array_t<double>& xp, py::array_t<double>& yp, py::ar
     return BuildSimpleField<KData>(x, y, z, 0, 0, k, w, wpos, nobj, coords);
 }
 
-
-void* BuildNSimpleField(py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
-                        py::array_t<double>& wp, py::array_t<double>& wposp,
-                        int coords)
+BaseSimpleField<NData>* BuildNSimpleField(
+    py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
+    py::array_t<double>& wp, py::array_t<double>& wposp,
+    int coords)
 {
     Assert(xp.request().ndim == 1);
     Assert(yp.request().ndim == 1);
@@ -838,50 +714,39 @@ void* BuildNSimpleField(py::array_t<double>& xp, py::array_t<double>& yp, py::ar
     return BuildSimpleField<NData>(x, y, z, 0, 0, 0, w, wpos, nobj, coords);
 }
 
-template <int D>
-void DestroySimpleField(void* field, int coords)
-{
-    dbg<<"Start DestroySimpleField "<<D<<"  "<<coords<<std::endl;
-    xdbg<<"field = "<<field<<std::endl;
-    switch(coords) {
-      case Flat:
-           delete static_cast<SimpleField<D,Flat>*>(field);
-           break;
-      case Sphere:
-           delete static_cast<SimpleField<D,Sphere>*>(field);
-           break;
-      case ThreeD:
-           delete static_cast<SimpleField<D,ThreeD>*>(field);
-           break;
-    }
-}
-
-void DestroyGSimpleField(void* field, int coords)
-{ DestroySimpleField<GData>(field, coords); }
-
-void DestroyKSimpleField(void* field, int coords)
-{ DestroySimpleField<KData>(field, coords); }
-
-void DestroyNSimpleField(void* field, int coords)
-{ DestroySimpleField<NData>(field, coords); }
-
 // Export the above functions using pybind11
+
+template <int D, typename F>
+void WrapField(F& field)
+{
+    typedef void (*getNear_type)(BaseField<D>* field, double x, double y, double z,
+                                 double sep, py::array_t<long>& inp);
+    field.def("getNObj", &BaseField<D>::getNObj);
+    field.def("getSize", &BaseField<D>::getSize);
+    field.def("countNear", &BaseField<D>::countNear);
+    field.def("getNear", getNear_type(&FieldGetNear));
+    field.def("getNTopLevel", &BaseField<D>::getNTopLevel);
+}
 
 void pyExportField(py::module& _treecorr)
 {
-    _treecorr.def("BuildNField", &BuildNField);
-    _treecorr.def("BuildKField", &BuildKField);
-    _treecorr.def("BuildGField", &BuildGField);
-    _treecorr.def("DestroyNField", &DestroyNField);
-    _treecorr.def("DestroyKField", &DestroyKField);
-    _treecorr.def("DestroyGField", &DestroyGField);
-    _treecorr.def("FieldGetNTopLevel", &FieldGetNTopLevel);
-    _treecorr.def("FieldCountNear", &FieldCountNear);
-    _treecorr.def("FieldGetNear", &FieldGetNear);
-    _treecorr.def("BuildNSimpleField", &BuildNSimpleField);
-    _treecorr.def("BuildKSimpleField", &BuildKSimpleField);
-    _treecorr.def("BuildGSimpleField", &BuildGSimpleField);
-    _treecorr.def("DestroyNSimpleField", &DestroyNSimpleField);
-    _treecorr.def("DestroyKSimpleField", &DestroyKSimpleField);
-    _treecorr.def("DestroyGSimpleField", &DestroyGSimpleField);
+    py::class_<BaseField<NData> > nfield(_treecorr, "NField");
+    py::class_<BaseField<KData> > kfield(_treecorr, "KField");
+    py::class_<BaseField<GData> > gfield(_treecorr, "GField");
+
+    nfield.def(py::init(&BuildNField));
+    kfield.def(py::init(&BuildKField));
+    gfield.def(py::init(&BuildGField));
+
+    WrapField<NData>(nfield);
+    WrapField<KData>(kfield);
+    WrapField<GData>(gfield);
+
+    py::class_<BaseSimpleField<NData> > nsimplefield(_treecorr, "NSimpleField");
+    py::class_<BaseSimpleField<KData> > ksimplefield(_treecorr, "KSimpleField");
+    py::class_<BaseSimpleField<GData> > gsimplefield(_treecorr, "GSimpleField");
+
+    nsimplefield.def(py::init(&BuildNSimpleField));
+    ksimplefield.def(py::init(&BuildKSimpleField));
+    gsimplefield.def(py::init(&BuildGSimpleField));
 }

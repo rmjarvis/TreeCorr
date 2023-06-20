@@ -35,8 +35,22 @@
 //     Rlens for the perpendicular component at the location of the "lens" (c1)
 //     Arc for great circle distances on the sphere
 
+template <int D>
+class BaseField
+{
+public:
+    virtual ~BaseField() {}
+
+    virtual long getNObj() const = 0;
+    virtual double getSizeSq() const = 0;
+    virtual double getSize() const = 0;
+    virtual long countNear(double x, double y, double z, double sep) const = 0;
+    virtual void getNear(double x, double y, double z, double sep, long* indices, long n) const = 0;
+    virtual long getNTopLevel() const = 0;
+};
+
 template <int D, int C>
-class Field
+class Field : public BaseField<D>
 {
 public:
     Field(double* x, double* y, double* z, double* g1, double* g2, double* k,
@@ -78,8 +92,15 @@ private:
 
 // A SimpleField just stores the celldata.  It doesn't go on to build up the Cells.
 // It is used by processPairwise.
+template <int D>
+class BaseSimpleField
+{
+public:
+    virtual ~BaseSimpleField() {}
+};
+
 template <int D, int C>
-class SimpleField
+class SimpleField : public BaseSimpleField<D>
 {
 public:
     SimpleField(double* x, double* y, double* z, double* g1, double* g2, double* k,

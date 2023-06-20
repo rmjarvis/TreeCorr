@@ -22,7 +22,7 @@
 #include "Cell.h"
 #include "dbg.h"
 
-// In BinnedCorr2.cpp
+// In Corr2.cpp
 extern void SelectRandomFrom(long m, std::vector<long>& selection);
 
 template <int D, int C>

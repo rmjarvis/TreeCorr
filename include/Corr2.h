@@ -26,19 +26,19 @@
 template <int D1, int D2>
 struct XiData;
 
-// BinnedCorr2 encapsulates a binned correlation function.
+// Corr2 encapsulates a binned correlation function.
 template <int D1, int D2, int B>
-class BinnedCorr2
+class Corr2
 {
 
 public:
 
-    BinnedCorr2(double minsep, double maxsep, int nbins, double binsize, double b,
+    Corr2(double minsep, double maxsep, int nbins, double binsize, double b,
                 double minrpar, double maxrpar, double xp, double yp, double zp,
                 double* xi0, double* xi1, double* xi2, double* xi3,
                 double* meanr, double* meanlogr, double* weight, double* npairs);
-    BinnedCorr2(const BinnedCorr2& rhs, bool copy_data=true);
-    ~BinnedCorr2();
+    Corr2(const Corr2& rhs, bool copy_data=true);
+    ~Corr2();
 
     void clear();  // Set all data to 0.
 
@@ -63,8 +63,8 @@ public:
                          bool do_reverse, int k=-1, double r=0., double logr=0.);
 
     // Note: op= only copies _data.  Not all the params.
-    void operator=(const BinnedCorr2<D1,D2,B>& rhs);
-    void operator+=(const BinnedCorr2<D1,D2,B>& rhs);
+    void operator=(const Corr2<D1,D2,B>& rhs);
+    void operator+=(const Corr2<D1,D2,B>& rhs);
 
     // Sample a random subset of pairs in a given range
     template <int M, int P, int C>

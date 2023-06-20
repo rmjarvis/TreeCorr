@@ -23,11 +23,11 @@
 #include "BinType.h"
 #include "Metric.h"
 
-template <int DC1, int DC2, int DC3>
+template <int D1, int D2, int D3>
 struct ZetaData;
 
 // Corr3 encapsulates a binned correlation function.
-template <int DC1, int DC2, int DC3, int B>
+template <int D1, int D2, int D3, int B>
 class Corr3
 {
 
@@ -48,49 +48,49 @@ public:
     void clear();  // Set all data to 0.
 
     template <int C, int M>
-    void process(const Field<DC1, C>& field, bool dots);
+    void process(const Field<D1,C>& field, bool dots);
     template <int C, int M>
-    void process(Corr3<DC2,DC1,DC2,B>* corr212, Corr3<DC2,DC2,DC1,B>* corr221,
-                 const Field<DC1, C>& field1, const Field<DC2, C>& field2, bool dots);
+    void process(Corr3<D2,D1,D2,B>* corr212, Corr3<D2,D2,D1,B>* corr221,
+                 const Field<D1,C>& field1, const Field<D2,C>& field2, bool dots);
     template <int C, int M>
-    void process(Corr3<DC1,DC3,DC2,B>* corr132,
-                 Corr3<DC2,DC1,DC3,B>* corr213, Corr3<DC2,DC3,DC1,B>* corr231,
-                 Corr3<DC3,DC1,DC2,B>* corr312, Corr3<DC3,DC2,DC1,B>* corr321,
-                 const Field<DC1, C>& field1, const Field<DC2, C>& field2,
-                 const Field<DC3, C>& field3, bool dots);
+    void process(Corr3<D1,D3,D2,B>* corr132,
+                 Corr3<D2,D1,D3,B>* corr213, Corr3<D2,D3,D1,B>* corr231,
+                 Corr3<D3,D1,D2,B>* corr312, Corr3<D3,D2,D1,B>* corr321,
+                 const Field<D1,C>& field1, const Field<D2,C>& field2,
+                 const Field<D3,C>& field3, bool dots);
 
     // Main worker functions for calculating the result
     template <int C, int M>
-    void process3(const Cell<DC1,C>* c1, const MetricHelper<M,0>& metric);
+    void process3(const Cell<D1,C>* c1, const MetricHelper<M,0>& metric);
 
     template <int C, int M>
-    void process12(Corr3<DC2,DC1,DC2,B>& bc212, Corr3<DC2,DC2,DC1,B>& bc221,
-                   const Cell<DC1,C>* c1, const Cell<DC2,C>* c2, const MetricHelper<M,0>& metric);
+    void process12(Corr3<D2,D1,D2,B>& bc212, Corr3<D2,D2,D1,B>& bc221,
+                   const Cell<D1,C>* c1, const Cell<D2,C>* c2, const MetricHelper<M,0>& metric);
 
     template <int C, int M>
-    void process111(Corr3<DC1,DC3,DC2,B>& bc132,
-                    Corr3<DC2,DC1,DC3,B>& bc213, Corr3<DC2,DC3,DC1,B>& bc231,
-                    Corr3<DC3,DC1,DC2,B>& bc312, Corr3<DC3,DC2,DC1,B>& bc321,
-                    const Cell<DC1,C>* c1, const Cell<DC2,C>* c2, const Cell<DC3,C>* c3,
+    void process111(Corr3<D1,D3,D2,B>& bc132,
+                    Corr3<D2,D1,D3,B>& bc213, Corr3<D2,D3,D1,B>& bc231,
+                    Corr3<D3,D1,D2,B>& bc312, Corr3<D3,D2,D1,B>& bc321,
+                    const Cell<D1,C>* c1, const Cell<D2,C>* c2, const Cell<D3,C>* c3,
                     const MetricHelper<M,0>& metric,
                     double d1sq=0., double d2sq=0., double d3sq=0.);
 
     template <int C, int M>
-    void process111Sorted(Corr3<DC1,DC3,DC2,B>& bc132,
-                          Corr3<DC2,DC1,DC3,B>& bc213, Corr3<DC2,DC3,DC1,B>& bc231,
-                          Corr3<DC3,DC1,DC2,B>& bc312, Corr3<DC3,DC2,DC1,B>& bc321,
-                          const Cell<DC1,C>* c1, const Cell<DC2,C>* c2, const Cell<DC3,C>* c3,
+    void process111Sorted(Corr3<D1,D3,D2,B>& bc132,
+                          Corr3<D2,D1,D3,B>& bc213, Corr3<D2,D3,D1,B>& bc231,
+                          Corr3<D3,D1,D2,B>& bc312, Corr3<D3,D2,D1,B>& bc321,
+                          const Cell<D1,C>* c1, const Cell<D2,C>* c2, const Cell<D3,C>* c3,
                           const MetricHelper<M,0>& metric,
                           double d1sq=0., double d2sq=0., double d3sq=0.);
 
     template <int C>
-    void directProcess111(const Cell<DC1,C>& c1, const Cell<DC2,C>& c2, const Cell<DC3,C>& c3,
+    void directProcess111(const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
                           const double d1, const double d2, const double d3,
                           const double logr, const double u, const double v, const int index);
 
     // Note: op= only copies _data.  Not all the params.
-    void operator=(const Corr3<DC1,DC2,DC3,B>& rhs);
-    void operator+=(const Corr3<DC1,DC2,DC3,B>& rhs);
+    void operator=(const Corr3<D1,D2,D3,B>& rhs);
+    void operator+=(const Corr3<D1,D2,D3,B>& rhs);
 
 protected:
 
@@ -136,7 +136,7 @@ protected:
 
     // The different correlation functions have different numbers of arrays for zeta,
     // so encapsulate that difference with a templated ZetaData class.
-    ZetaData<DC1,DC2,DC3> _zeta;
+    ZetaData<D1,D2,D3> _zeta;
     double* _meand1;
     double* _meanlogd1;
     double* _meand2;
@@ -149,7 +149,7 @@ protected:
     double* _ntri;
 };
 
-template <int DC1, int DC2, int DC3>
+template <int D1, int D2, int D3>
 struct ZetaData // This works for NNK, NKK, KKK
 {
     ZetaData(double* zeta0, double*, double*, double*, double*, double*, double*, double*) :
@@ -157,9 +157,9 @@ struct ZetaData // This works for NNK, NKK, KKK
 
     void new_data(int n) { zeta = new double[n]; }
     void delete_data() { delete [] zeta; zeta = 0; }
-    void copy(const ZetaData<DC1,DC2,DC3>& rhs, int n)
+    void copy(const ZetaData<D1,D2,D3>& rhs, int n)
     { for (int i=0; i<n; ++i) zeta[i] = rhs.zeta[i]; }
-    void add(const ZetaData<DC1,DC2,DC3>& rhs, int n)
+    void add(const ZetaData<D1,D2,D3>& rhs, int n)
     { for (int i=0; i<n; ++i) zeta[i] += rhs.zeta[i]; }
     void clear(int n)
     { for (int i=0; i<n; ++i) zeta[i] = 0.; }
@@ -171,12 +171,12 @@ struct ZetaData // This works for NNK, NKK, KKK
     double* zeta;
 };
 
-template <int DC1, int DC2, int DC3>
-inline std::ostream& operator<<(std::ostream& os, const ZetaData<DC1, DC2, DC3>& zeta)
+template <int D1, int D2, int D3>
+inline std::ostream& operator<<(std::ostream& os, const ZetaData<D1,D2,D3>& zeta)
 { zeta.write(os); return os; }
 
-template <int DC1, int DC2>
-struct ZetaData<DC1, DC2, GData> // This works for NNG, NKG, KKG
+template <int D1, int D2>
+struct ZetaData<D1,D2,GData> // This works for NNG, NKG, KKG
 {
     ZetaData(double* z0, double* z1, double*, double*, double*, double*, double*, double*) :
         zeta(z0), zeta_im(z1) {}
@@ -191,12 +191,12 @@ struct ZetaData<DC1, DC2, GData> // This works for NNG, NKG, KKG
         delete [] zeta; zeta = 0;
         delete [] zeta_im; zeta_im = 0;
     }
-    void copy(const ZetaData<DC1,DC2,GData>& rhs, int n)
+    void copy(const ZetaData<D1,D2,GData>& rhs, int n)
     {
         for (int i=0; i<n; ++i) zeta[i] = rhs.zeta[i];
         for (int i=0; i<n; ++i) zeta_im[i] = rhs.zeta_im[i];
     }
-    void add(const ZetaData<DC1,DC2,GData>& rhs, int n)
+    void add(const ZetaData<D1,D2,GData>& rhs, int n)
     {
         for (int i=0; i<n; ++i) zeta[i] += rhs.zeta[i];
         for (int i=0; i<n; ++i) zeta_im[i] += rhs.zeta_im[i];
@@ -215,8 +215,8 @@ struct ZetaData<DC1, DC2, GData> // This works for NNG, NKG, KKG
     double* zeta_im;
 };
 
-template <int DC1>
-struct ZetaData<DC1, GData, GData> // This works for NGG, KGG
+template <int D1>
+struct ZetaData<D1,GData,GData> // This works for NGG, KGG
 {
     ZetaData(double* z0, double* z1, double* z2, double* z3, double*, double*, double*, double*) :
         zetap(z0), zetap_im(z1), zetam(z2), zetam_im(z3) {}
@@ -235,14 +235,14 @@ struct ZetaData<DC1, GData, GData> // This works for NGG, KGG
         delete [] zetam; zetam = 0;
         delete [] zetam_im; zetam_im = 0;
     }
-    void copy(const ZetaData<DC1,GData,GData>& rhs, int n)
+    void copy(const ZetaData<D1,GData,GData>& rhs, int n)
     {
         for (int i=0; i<n; ++i) zetap[i] = rhs.zetap[i];
         for (int i=0; i<n; ++i) zetap_im[i] = rhs.zetap_im[i];
         for (int i=0; i<n; ++i) zetam[i] = rhs.zetam[i];
         for (int i=0; i<n; ++i) zetam_im[i] = rhs.zetam_im[i];
     }
-    void add(const ZetaData<DC1,GData,GData>& rhs, int n)
+    void add(const ZetaData<D1,GData,GData>& rhs, int n)
     {
         for (int i=0; i<n; ++i) zetap[i] += rhs.zetap[i];
         for (int i=0; i<n; ++i) zetap_im[i] += rhs.zetap_im[i];

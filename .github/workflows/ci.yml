@@ -74,12 +74,12 @@ jobs:
                     ${{ runner.os }}-${{ matrix.py }}-pip-
                     ${{ runner.os }}-
 
-            - name: Install libffi, etc. on linux
+            - name: Install mpi on linux
               if: matrix.os == 'ubuntu-latest'
               run: |
                 echo ${{ matrix.os }}
                 sudo -H apt-get -qq update
-                sudo -H apt-get install -y libffi-dev openmpi-bin libopenmpi-dev
+                sudo -H apt-get install -y openmpi-bin libopenmpi-dev
 
             - name: Install gcc-11
               if: matrix.CC == 'gcc-11'
@@ -88,7 +88,7 @@ jobs:
                 sudo -H apt-get -qq update
                 sudo -H apt-get install -y gcc-11 g++-11
 
-            - name: Install libffi, etc. on MacOS
+            - name: Install mpi on MacOS
               if: matrix.os == 'macos-latest'
               # brew sometimes exits with 1 if things are already installed.
               # continue-on-error means that this still counds as success for this step.
@@ -96,7 +96,7 @@ jobs:
               run: |
                 echo ${{ matrix.os }}
                 brew update
-                brew install libffi openmpi
+                brew install openmpi
 
             - name: Install basic dependencies
               run: |

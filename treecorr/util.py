@@ -270,32 +270,6 @@ class LRU_Cache(object):
     def size(self):
         return len(self.cache)
 
-def double_ptr(x):
-    """
-    Cast x as a double* to pass to library C functions
-
-    :param x:   A numpy array assumed to have dtype = float.
-
-    :returns:   A version of the array that can be passed to cffi C functions.
-    """
-    if x is None:
-        return 0
-    else:
-        return x.ctypes.data
-
-def long_ptr(x):
-    """
-    Cast x as a long* to pass to library C functions
-
-    :param x:   A numpy array assumed to have dtype = int.
-
-    :returns:   A version of the array that can be passed to cffi C functions.
-    """
-    if x is None:  # pragma: no cover   (I don't ever have x=None for this one.)
-        return 0
-    else:
-        return x.ctypes.data
-
 def parse_metric(metric, coords, coords2=None, coords3=None):
     """
     Convert a string metric into the corresponding enum to pass to the C code.

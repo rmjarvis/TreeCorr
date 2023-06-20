@@ -1237,12 +1237,35 @@ void* BuildCorr3(int d1, int d2, int d3, int bin_type,
                  double minu, double maxu, int nubins, double ubinsize, double bu,
                  double minv, double maxv, int nvbins, double vbinsize, double bv,
                  double xp, double yp, double zp,
-                 size_t zeta0, size_t zeta1, size_t zeta2, size_t zeta3,
-                 size_t zeta4, size_t zeta5, size_t zeta6, size_t zeta7,
-                 size_t meand1, size_t meanlogd1, size_t meand2, size_t meanlogd2,
-                 size_t meand3, size_t meanlogd3, size_t meanu, size_t meanv,
-                 size_t weight, size_t ntri)
+                 py::array_t<double>& zeta0p, py::array_t<double>& zeta1p,
+                 py::array_t<double>& zeta2p, py::array_t<double>& zeta3p,
+                 py::array_t<double>& zeta4p, py::array_t<double>& zeta5p,
+                 py::array_t<double>& zeta6p, py::array_t<double>& zeta7p,
+                 py::array_t<double>& meand1p, py::array_t<double>& meanlogd1p,
+                 py::array_t<double>& meand2p, py::array_t<double>& meanlogd2p,
+                 py::array_t<double>& meand3p, py::array_t<double>& meanlogd3p,
+                 py::array_t<double>& meanup, py::array_t<double>& meanvp,
+                 py::array_t<double>& weightp, py::array_t<double>& ntrip)
 {
+    double* zeta0 = zeta0p.request().size == 0 ? 0 : static_cast<double*>(zeta0p.request().ptr);
+    double* zeta1 = zeta1p.request().size == 0 ? 0 : static_cast<double*>(zeta1p.request().ptr);
+    double* zeta2 = zeta2p.request().size == 0 ? 0 : static_cast<double*>(zeta2p.request().ptr);
+    double* zeta3 = zeta3p.request().size == 0 ? 0 : static_cast<double*>(zeta3p.request().ptr);
+    double* zeta4 = zeta4p.request().size == 0 ? 0 : static_cast<double*>(zeta4p.request().ptr);
+    double* zeta5 = zeta5p.request().size == 0 ? 0 : static_cast<double*>(zeta5p.request().ptr);
+    double* zeta6 = zeta6p.request().size == 0 ? 0 : static_cast<double*>(zeta6p.request().ptr);
+    double* zeta7 = zeta7p.request().size == 0 ? 0 : static_cast<double*>(zeta7p.request().ptr);
+    double* meand1 = static_cast<double*>(meand1p.request().ptr);
+    double* meanlogd1 = static_cast<double*>(meanlogd1p.request().ptr);
+    double* meand2 = static_cast<double*>(meand2p.request().ptr);
+    double* meanlogd2 = static_cast<double*>(meanlogd2p.request().ptr);
+    double* meand3 = static_cast<double*>(meand3p.request().ptr);
+    double* meanlogd3 = static_cast<double*>(meanlogd3p.request().ptr);
+    double* meanu = static_cast<double*>(meanup.request().ptr);
+    double* meanv = static_cast<double*>(meanvp.request().ptr);
+    double* weight = static_cast<double*>(weightp.request().ptr);
+    double* ntri = static_cast<double*>(ntrip.request().ptr);
+
     dbg<<"Start BuildCorr3 "<<d1<<" "<<d2<<" "<<d3<<" "<<bin_type<<std::endl;
     void* corr=0;
     Assert(d2 == d1);
@@ -1254,24 +1277,9 @@ void* BuildCorr3(int d1, int d2, int d3, int bin_type,
                minu, maxu, nubins, ubinsize, bu,
                minv, maxv, nvbins, vbinsize, bv,
                xp, yp, zp,
-               reinterpret_cast<double*>(zeta0),
-               reinterpret_cast<double*>(zeta1),
-               reinterpret_cast<double*>(zeta2),
-               reinterpret_cast<double*>(zeta3),
-               reinterpret_cast<double*>(zeta4),
-               reinterpret_cast<double*>(zeta5),
-               reinterpret_cast<double*>(zeta6),
-               reinterpret_cast<double*>(zeta7),
-               reinterpret_cast<double*>(meand1),
-               reinterpret_cast<double*>(meanlogd1),
-               reinterpret_cast<double*>(meand2),
-               reinterpret_cast<double*>(meanlogd2),
-               reinterpret_cast<double*>(meand3),
-               reinterpret_cast<double*>(meanlogd3),
-               reinterpret_cast<double*>(meanu),
-               reinterpret_cast<double*>(meanv),
-               reinterpret_cast<double*>(weight),
-               reinterpret_cast<double*>(ntri));
+               zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7,
+               meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3,
+               meanu, meanv, weight, ntri);
            break;
       case KData:
            corr = BuildCorr3c<KData,KData,KData>(
@@ -1279,24 +1287,9 @@ void* BuildCorr3(int d1, int d2, int d3, int bin_type,
                minu, maxu, nubins, ubinsize, bu,
                minv, maxv, nvbins, vbinsize, bv,
                xp, yp, zp,
-               reinterpret_cast<double*>(zeta0),
-               reinterpret_cast<double*>(zeta1),
-               reinterpret_cast<double*>(zeta2),
-               reinterpret_cast<double*>(zeta3),
-               reinterpret_cast<double*>(zeta4),
-               reinterpret_cast<double*>(zeta5),
-               reinterpret_cast<double*>(zeta6),
-               reinterpret_cast<double*>(zeta7),
-               reinterpret_cast<double*>(meand1),
-               reinterpret_cast<double*>(meanlogd1),
-               reinterpret_cast<double*>(meand2),
-               reinterpret_cast<double*>(meanlogd2),
-               reinterpret_cast<double*>(meand3),
-               reinterpret_cast<double*>(meanlogd3),
-               reinterpret_cast<double*>(meanu),
-               reinterpret_cast<double*>(meanv),
-               reinterpret_cast<double*>(weight),
-               reinterpret_cast<double*>(ntri));
+               zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7,
+               meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3,
+               meanu, meanv, weight, ntri);
            break;
       case GData:
            corr = BuildCorr3c<GData,GData,GData>(
@@ -1304,24 +1297,9 @@ void* BuildCorr3(int d1, int d2, int d3, int bin_type,
                minu, maxu, nubins, ubinsize, bu,
                minv, maxv, nvbins, vbinsize, bv,
                xp, yp, zp,
-               reinterpret_cast<double*>(zeta0),
-               reinterpret_cast<double*>(zeta1),
-               reinterpret_cast<double*>(zeta2),
-               reinterpret_cast<double*>(zeta3),
-               reinterpret_cast<double*>(zeta4),
-               reinterpret_cast<double*>(zeta5),
-               reinterpret_cast<double*>(zeta6),
-               reinterpret_cast<double*>(zeta7),
-               reinterpret_cast<double*>(meand1),
-               reinterpret_cast<double*>(meanlogd1),
-               reinterpret_cast<double*>(meand2),
-               reinterpret_cast<double*>(meanlogd2),
-               reinterpret_cast<double*>(meand3),
-               reinterpret_cast<double*>(meanlogd3),
-               reinterpret_cast<double*>(meanu),
-               reinterpret_cast<double*>(meanv),
-               reinterpret_cast<double*>(weight),
-               reinterpret_cast<double*>(ntri));
+               zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7,
+               meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3,
+               meanu, meanv, weight, ntri);
            break;
       default:
            Assert(false);

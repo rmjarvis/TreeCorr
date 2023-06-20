@@ -20,7 +20,6 @@ import numpy as np
 from . import _treecorr as _lib
 from .catalog import calculateVarG, calculateVarK
 from .binnedcorr2 import BinnedCorr2
-from .util import double_ptr as dp
 from .util import make_writer, make_reader
 from .util import depr_pos_kwargs
 
@@ -119,12 +118,13 @@ class KGCorrelation(BinnedCorr2):
     @property
     def corr(self):
         if self._corr is None:
+            x = np.array([])
             self._corr = _lib.BuildCorr2(
                     self._d1, self._d2, self._bintype,
                     self._min_sep,self._max_sep,self._nbins,self._bin_size,self.b,
                     self.min_rpar, self.max_rpar, self.xperiod, self.yperiod, self.zperiod,
-                    dp(self.xi),dp(self.xi_im), dp(None), dp(None),
-                    dp(self.meanr),dp(self.meanlogr),dp(self.weight),dp(self.npairs))
+                    self.xi, self.xi_im, x, x,
+                    self.meanr, self.meanlogr, self.weight, self.npairs)
         return self._corr
 
     def __del__(self):

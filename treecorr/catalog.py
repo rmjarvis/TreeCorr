@@ -25,8 +25,6 @@ from . import _treecorr as _lib
 from .reader import FitsReader, HdfReader, AsciiReader, PandasReader, ParquetReader
 from .config import merge_config, setup_logger, get, get_from_list
 from .util import parse_file_type, LRU_Cache, make_writer, make_reader, set_omp_threads
-from .util import double_ptr as dp
-from .util import long_ptr as lp
 from .util import depr_pos_kwargs
 from .field import NField, KField, GField, NSimpleField, KSimpleField, GSimpleField
 
@@ -1041,8 +1039,8 @@ class Catalog(object):
         self._patch = np.empty(self.ntot, dtype=int)
         centers = np.ascontiguousarray(self._centers)
         set_omp_threads(self.config.get('num_threads',None))
-        _lib.QuickAssign(dp(centers), self._npatch,
-                         dp(self.x), dp(self.y), dp(self.z), lp(self._patch), self.ntot)
+        zx = self.z if self.z is not None else np.array([])
+        _lib.QuickAssign(centers, self.npatch, self.x, self.y, zx, self._patch)
 
     def _set_npatch(self):
         npatch = max(self._patch) + 1
@@ -1059,8 +1057,6 @@ class Catalog(object):
         elif self._centers is not None:
             self._generate_xyz()
             use = np.empty(self.ntot, dtype=int)
-            from .util import double_ptr as dp
-            from .util import long_ptr as lp
             npatch = self._centers.shape[0]
             centers = np.ascontiguousarray(self._centers)
             if self._z is None:
@@ -1068,9 +1064,8 @@ class Catalog(object):
             else:
                 assert centers.shape[1] == 3
             set_omp_threads(self.config.get('num_threads',None))
-            _lib.SelectPatch(single_patch, dp(centers), npatch,
-                             dp(self._x), dp(self._y), dp(self._z),
-                             lp(use), self.ntot)
+            zx = self._z if self._z is not None else np.array([])
+            _lib.SelectPatch(single_patch, centers, self.npatch, self._x, self._y, zx, use)
             use = np.where(use)[0]
         else:
             use = slice(None)  # Which ironically means use all. :)
@@ -1098,10 +1093,9 @@ class Catalog(object):
             self._x = np.empty(ntot, dtype=float)
             self._y = np.empty(ntot, dtype=float)
             self._z = np.empty(ntot, dtype=float)
-            from .util import double_ptr as dp
             set_omp_threads(self.config.get('num_threads',None))
-            _lib.GenerateXYZ(dp(self._x), dp(self._y), dp(self._z),
-                             dp(self._ra), dp(self._dec), dp(self._r), ntot)
+            rx = self._r if self._r is not None else np.array([])
+            _lib.GenerateXYZ(self._x, self._y, self._z, self._ra, self._dec, rx)
             self.x_units = self.y_units = 1.
 
     def _select_patch(self, single_patch):

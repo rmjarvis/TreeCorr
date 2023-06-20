@@ -19,7 +19,6 @@ import numpy as np
 
 from . import _treecorr as _lib
 from .binnedcorr3 import BinnedCorr3
-from .util import double_ptr as dp
 from .util import make_writer, make_reader, lazy_property
 from .util import depr_pos_kwargs
 
@@ -135,17 +134,17 @@ class NNNCorrelation(BinnedCorr3):
     @property
     def corr(self):
         if self._corr is None:
+            x = np.array([])
             self._corr = _lib.BuildCorr3(
                     self._d1, self._d2, self._d3, self._bintype,
                     self._min_sep,self._max_sep,self.nbins,self._bin_size,self.b,
                     self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
                     self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
                     self.xperiod, self.yperiod, self.zperiod,
-                    dp(None), dp(None), dp(None), dp(None),
-                    dp(None), dp(None), dp(None), dp(None),
-                    dp(self.meand1), dp(self.meanlogd1), dp(self.meand2), dp(self.meanlogd2),
-                    dp(self.meand3), dp(self.meanlogd3), dp(self.meanu), dp(self.meanv),
-                    dp(self.weight), dp(self.ntri))
+                    x, x, x, x, x, x, x, x,
+                    self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
+                    self.meand3, self.meanlogd3, self.meanu, self.meanv,
+                    self.weight, self.ntri)
         return self._corr
 
     def __del__(self):

@@ -1087,9 +1087,6 @@ class BinnedCorr2(object):
                 - i2 (array): indices of objects from cat2
                 - sep (array): separations of the pairs of objects (i1,i2)
         """
-        from .util import long_ptr as lp
-        from .util import double_ptr as dp
-
         if metric is None:
             metric = self.config.get('metric', 'Euclidean')
 
@@ -1127,7 +1124,7 @@ class BinnedCorr2(object):
         sep = np.zeros(n, dtype=float)
         ntot = _lib.SamplePairs(self.corr, f1.data, f2.data, min_sep, max_sep,
                                 f1._d, f2._d, self._coords, self._bintype, self._metric,
-                                lp(i1), lp(i2), dp(sep), n)
+                                i1, i2, sep)
 
         if ntot < n:
             n = ntot

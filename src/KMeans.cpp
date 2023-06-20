@@ -863,9 +863,11 @@ void KMeansInitTree1(void* field, double* centers, int npatch, int coords, long 
     }
 }
 
-void KMeansInitTree(void* field, size_t cenp, int npatch, int d, int coords, long long seed)
+void KMeansInitTree(void* field, py::array_t<double>& cenp, int npatch, int d, int coords,
+                    long long seed)
 {
-    double* centers = reinterpret_cast<double*>(cenp);
+    Assert(cenp.request().ndim == 1);
+    double* centers = static_cast<double*>(cenp.request().ptr);
     switch(d) {
       case NData:
            KMeansInitTree1<NData>(field, centers, npatch, coords, seed);
@@ -895,9 +897,11 @@ void KMeansInitRand1(void* field, double* centers, int npatch, int coords, long 
     }
 }
 
-void KMeansInitRand(void* field, size_t cenp, int npatch, int d, int coords, long long seed)
+void KMeansInitRand(void* field, py::array_t<double>& cenp, int npatch, int d, int coords,
+                    long long seed)
 {
-    double* centers = reinterpret_cast<double*>(cenp);
+    Assert(cenp.request().ndim == 1);
+    double* centers = static_cast<double*>(cenp.request().ptr);
     switch(d) {
       case NData:
            KMeansInitRand1<NData>(field, centers, npatch, coords, seed);
@@ -927,9 +931,11 @@ void KMeansInitKMPP1(void* field, double* centers, int npatch, int coords, long 
     }
 }
 
-void KMeansInitKMPP(void* field, size_t cenp, int npatch, int d, int coords, long long seed)
+void KMeansInitKMPP(void* field, py::array_t<double>& cenp, int npatch, int d, int coords,
+                    long long seed)
 {
-    double* centers = reinterpret_cast<double*>(cenp);
+    Assert(cenp.request().ndim == 1);
+    double* centers = static_cast<double*>(cenp.request().ptr);
     switch(d) {
       case NData:
            KMeansInitKMPP1<NData>(field, centers, npatch, coords, seed);
@@ -960,10 +966,12 @@ void KMeansRun1(void* field, double* centers, int npatch, int max_iter, double t
     }
 }
 
-void KMeansRun(void* field, size_t cenp, int npatch, int max_iter, double tol, int alt,
-               int d, int coords)
+void KMeansRun(void* field, py::array_t<double>& cenp, int npatch, int max_iter, double tol,
+               int alt, int d, int coords)
 {
-    double* centers = reinterpret_cast<double*>(cenp);
+    Assert(cenp.request().ndim == 1);
+    double* centers = static_cast<double*>(cenp.request().ptr);
+
     switch(d) {
       case NData:
            KMeansRun1<NData>(field, centers, npatch, max_iter, tol, bool(alt), coords);
@@ -993,10 +1001,16 @@ void KMeansAssign1(void* field, double* centers, int npatch, long* patches, long
     }
 }
 
-void KMeansAssign(void* field, size_t cenp, int npatch, size_t pp, long n, int d, int coords)
+void KMeansAssign(void* field, py::array_t<double>& cenp, int npatch,
+                  py::array_t<long>& pp, int d, int coords)
 {
-    double* centers = reinterpret_cast<double*>(cenp);
-    long* patches = reinterpret_cast<long*>(pp);
+    Assert(cenp.request().ndim == 1);
+    Assert(pp.request().ndim == 1);
+    long n = pp.request().size;
+
+    double* centers = static_cast<double*>(cenp.request().ptr);
+    long* patches = static_cast<long*>(pp.request().ptr);
+
     switch(d) {
       case NData:
            KMeansAssign1<NData>(field, centers, npatch, patches, n, coords);
@@ -1010,15 +1024,29 @@ void KMeansAssign(void* field, size_t cenp, int npatch, size_t pp, long n, int d
     }
 }
 
-void QuickAssign(size_t cenp, int npatch,
-                 size_t xp, size_t yp, size_t zp, size_t pp, long n)
+void QuickAssign(py::array_t<double>& cenp, int npatch,
+                 py::array_t<double>& xp, py::array_t<double>& yp,
+                 py::array_t<double>& zp, py::array_t<long>& pp)
 {
-    double* centers = reinterpret_cast<double*>(cenp);
-    double* x = reinterpret_cast<double*>(xp);
-    double* y = reinterpret_cast<double*>(yp);
-    double* z = reinterpret_cast<double*>(zp);
-    long* patches = reinterpret_cast<long*>(pp);
-    if (z) {
+    Assert(cenp.request().ndim == 1);
+    Assert(xp.request().ndim == 1);
+    Assert(yp.request().ndim == 1);
+    Assert(zp.request().ndim == 1);
+    Assert(pp.request().ndim == 1);
+    long n = xp.request().size;
+    Assert(yp.request().size == n);
+    Assert(zp.request().size == n || zp.request().size == 0);
+    Assert(pp.request().size == n);
+
+    double* centers = static_cast<double*>(cenp.request().ptr);
+    double* x = static_cast<double*>(xp.request().ptr);
+    double* y = static_cast<double*>(yp.request().ptr);
+    long* patches = static_cast<long*>(pp.request().ptr);
+
+    if (zp.request().size > 0) {
+        Assert(cenp.request().size == npatch * 3);
+        long npatch = cenp.request().size / 3;
+        double* z = static_cast<double*>(zp.request().ptr);
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static)
 #endif
@@ -1035,6 +1063,7 @@ void QuickAssign(size_t cenp, int npatch,
             patches[i] = kmin;
         }
     } else {
+        Assert(cenp.request().size == npatch * 2);
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static)
 #endif
@@ -1054,22 +1083,37 @@ void QuickAssign(size_t cenp, int npatch,
 }
 
 
-void SelectPatch(int patch, size_t cenp, int npatch, size_t xp, size_t yp, size_t zp,
-                 size_t usep, long n)
+void SelectPatch(int patch, py::array_t<double>& cenp, int npatch,
+                 py::array_t<double>& xp, py::array_t<double>& yp,
+                 py::array_t<double>& zp, py::array_t<long>& usep)
 {
-    double* centers = reinterpret_cast<double*>(cenp);
-    double* x = reinterpret_cast<double*>(xp);
-    double* y = reinterpret_cast<double*>(yp);
-    double* z = reinterpret_cast<double*>(zp);
-    long* use = reinterpret_cast<long*>(usep);
+    Assert(cenp.request().ndim == 1);
+    Assert(xp.request().ndim == 1);
+    Assert(yp.request().ndim == 1);
+    Assert(zp.request().ndim == 1);
+    Assert(usep.request().ndim == 1);
+    long n = xp.request().size;
+    Assert(yp.request().size == n);
+    Assert(zp.request().size == n || zp.request().size == 0);
+    Assert(usep.request().size == n);
+    Assert(patch < npatch);
+
+    double* centers = static_cast<double*>(cenp.request().ptr);
+    double* x = static_cast<double*>(xp.request().ptr);
+    double* y = static_cast<double*>(yp.request().ptr);
+    long* use = static_cast<long*>(usep.request().ptr);
+
     // Notation: p = the good patch we are looking for
     //           q = other patches
     //           if p is the closest, then use = 1, else use = 0.
-    if (z) {
+
+    if (zp.request().size > 0) {
         // 3d version
+        Assert(cenp.request().size == npatch * 3);
         double px = centers[3*patch];
         double py = centers[3*patch+1];
         double pz = centers[3*patch+2];
+        double* z = static_cast<double*>(zp.request().ptr);
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static)
 #endif
@@ -1090,6 +1134,7 @@ void SelectPatch(int patch, size_t cenp, int npatch, size_t xp, size_t yp, size_
         }
     } else {
         // 2d version
+        Assert(cenp.request().size == npatch * 3);
         double px = centers[2*patch];
         double py = centers[2*patch+1];
 #ifdef _OPENMP
@@ -1112,14 +1157,29 @@ void SelectPatch(int patch, size_t cenp, int npatch, size_t xp, size_t yp, size_
     }
 }
 
-void GenerateXYZ(size_t xp, size_t yp, size_t zp, size_t rap, size_t decp, size_t rp, long n)
+void GenerateXYZ(
+    py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
+    py::array_t<double>& rap, py::array_t<double>& decp, py::array_t<double>& rp)
 {
-    double* x = reinterpret_cast<double*>(xp);
-    double* y = reinterpret_cast<double*>(yp);
-    double* z = reinterpret_cast<double*>(zp);
-    double* ra = reinterpret_cast<double*>(rap);
-    double* dec = reinterpret_cast<double*>(decp);
-    double* r = reinterpret_cast<double*>(rp);
+    Assert(xp.request().ndim == 1);
+    Assert(yp.request().ndim == 1);
+    Assert(zp.request().ndim == 1);
+    Assert(rap.request().ndim == 1);
+    Assert(decp.request().ndim == 1);
+    Assert(rp.request().ndim == 1);
+    long n = xp.request().size;
+    Assert(yp.request().size == n);
+    Assert(zp.request().size == n);
+    Assert(rap.request().size == n);
+    Assert(decp.request().size == n);
+    Assert(rp.request().size == n || rp.request().size == 0);
+    double* x = static_cast<double*>(xp.request().ptr);
+    double* y = static_cast<double*>(yp.request().ptr);
+    double* z = static_cast<double*>(zp.request().ptr);
+    double* ra = static_cast<double*>(rap.request().ptr);
+    double* dec = static_cast<double*>(decp.request().ptr);
+    double* r = rp.request().size == 0 ? 0 : static_cast<double*>(rp.request().ptr);
+
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static)
 #endif

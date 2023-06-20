@@ -32,9 +32,9 @@ inline double safe_norm(const std::complex<double>& z)
 template <>
 struct ProjectHelper<Flat>
 {
-    template <int DC1>
+    template <int D1>
     static void ProjectShear(
-        const Cell<DC1,Flat>& c1, const Cell<GData,Flat>& c2, std::complex<double>& g2)
+        const Cell<D1,Flat>& c1, const Cell<GData,Flat>& c2, std::complex<double>& g2)
     {
         // Project given shear to the line connecting them.
         std::complex<double> cr(c2.getData().getPos() - c1.getData().getPos());
@@ -155,9 +155,9 @@ struct ProjectHelper<Sphere>
         g2 *= expm2ialpha;
     }
 
-    template <int DC1>
+    template <int D1>
     static void ProjectShear(
-        const Cell<DC1,Sphere>& c1, const Cell<GData,Sphere>& c2, std::complex<double>& g2)
+        const Cell<D1,Sphere>& c1, const Cell<GData,Sphere>& c2, std::complex<double>& g2)
     {
         const Position<Sphere>& p1 = c1.getData().getPos();
         const Position<Sphere>& p2 = c2.getData().getPos();
@@ -200,9 +200,9 @@ struct ProjectHelper<Sphere>
 template <>
 struct ProjectHelper<ThreeD>
 {
-    template <int DC1>
+    template <int D1>
     static void ProjectShear(
-        const Cell<DC1,ThreeD>& c1, const Cell<GData,ThreeD>& c2, std::complex<double>& g2)
+        const Cell<D1,ThreeD>& c1, const Cell<GData,ThreeD>& c2, std::complex<double>& g2)
     {
         const Position<ThreeD>& p1 = c1.getData().getPos();
         const Position<ThreeD>& p2 = c2.getData().getPos();

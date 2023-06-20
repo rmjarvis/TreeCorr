@@ -290,7 +290,7 @@ single large shear catalog::
 Second, a cross-correlation, where the lens catalog is small enough not to
 be a problem, but the source catalog is too large to hold in memory::
 
-    >>> len_cat = treecorr.Catalog(lens_file, lens_config, npatch=N)
+    >>> lens_cat = treecorr.Catalog(lens_file, lens_config, npatch=N)
     >>> source_cat = treecorr.Catalog(source_file, source_config,
     ...                               patch_centers=lens_cat.patch_centers,
     ...                               save_patch_dir=tmp_dir)

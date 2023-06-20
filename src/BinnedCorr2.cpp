@@ -1039,9 +1039,20 @@ void* BuildCorr2a(int d2, int bin_type,
 void* BuildCorr2(int d1, int d2, int bin_type,
                  double minsep, double maxsep, int nbins, double binsize, double b,
                  double minrpar, double maxrpar, double xp, double yp, double zp,
-                 size_t xi0, size_t xi1, size_t xi2, size_t xi3,
-                 size_t meanr, size_t meanlogr, size_t weight, size_t npairs)
+                 py::array_t<double>& xi0p, py::array_t<double>& xi1p,
+                 py::array_t<double>& xi2p, py::array_t<double>& xi3p,
+                 py::array_t<double>& meanrp, py::array_t<double>& meanlogrp,
+                 py::array_t<double>& weightp, py::array_t<double>& npairsp)
 {
+    double* xi0 = xi0p.request().size == 0 ? 0 : static_cast<double*>(xi0p.request().ptr);
+    double* xi1 = xi1p.request().size == 0 ? 0 : static_cast<double*>(xi1p.request().ptr);
+    double* xi2 = xi2p.request().size == 0 ? 0 : static_cast<double*>(xi2p.request().ptr);
+    double* xi3 = xi3p.request().size == 0 ? 0 : static_cast<double*>(xi3p.request().ptr);
+    double* meanr = static_cast<double*>(meanrp.request().ptr);
+    double* meanlogr = static_cast<double*>(meanlogrp.request().ptr);
+    double* weight = static_cast<double*>(weightp.request().ptr);
+    double* npairs = static_cast<double*>(npairsp.request().ptr);
+
     dbg<<"Start BuildCorr2: "<<d1<<" "<<d2<<" "<<bin_type<<std::endl;
     void* corr=0;
     switch(d1) {
@@ -1049,40 +1060,22 @@ void* BuildCorr2(int d1, int d2, int bin_type,
            corr = BuildCorr2a<NData>(d2, bin_type,
                                      minsep, maxsep, nbins, binsize, b,
                                      minrpar, maxrpar, xp, yp, zp,
-                                     reinterpret_cast<double*>(xi0),
-                                     reinterpret_cast<double*>(xi1),
-                                     reinterpret_cast<double*>(xi2),
-                                     reinterpret_cast<double*>(xi3),
-                                     reinterpret_cast<double*>(meanr),
-                                     reinterpret_cast<double*>(meanlogr),
-                                     reinterpret_cast<double*>(weight),
-                                     reinterpret_cast<double*>(npairs));
+                                     xi0, xi1, xi2, xi3,
+                                     meanr, meanlogr, weight, npairs);
            break;
       case KData:
            corr = BuildCorr2a<KData>(d2, bin_type,
                                      minsep, maxsep, nbins, binsize, b,
                                      minrpar, maxrpar, xp, yp, zp,
-                                     reinterpret_cast<double*>(xi0),
-                                     reinterpret_cast<double*>(xi1),
-                                     reinterpret_cast<double*>(xi2),
-                                     reinterpret_cast<double*>(xi3),
-                                     reinterpret_cast<double*>(meanr),
-                                     reinterpret_cast<double*>(meanlogr),
-                                     reinterpret_cast<double*>(weight),
-                                     reinterpret_cast<double*>(npairs));
+                                     xi0, xi1, xi2, xi3,
+                                     meanr, meanlogr, weight, npairs);
            break;
       case GData:
            corr = BuildCorr2a<GData>(d2, bin_type,
                                      minsep, maxsep, nbins, binsize, b,
                                      minrpar, maxrpar, xp, yp, zp,
-                                     reinterpret_cast<double*>(xi0),
-                                     reinterpret_cast<double*>(xi1),
-                                     reinterpret_cast<double*>(xi2),
-                                     reinterpret_cast<double*>(xi3),
-                                     reinterpret_cast<double*>(meanr),
-                                     reinterpret_cast<double*>(meanlogr),
-                                     reinterpret_cast<double*>(weight),
-                                     reinterpret_cast<double*>(npairs));
+                                     xi0, xi1, xi2, xi3,
+                                     meanr, meanlogr, weight, npairs);
            break;
       default:
            Assert(false);
@@ -1667,34 +1660,37 @@ long SamplePairs2a(void* corr, void* field1, void* field2, double minsep, double
 
 long SamplePairs(void* corr, void* field1, void* field2, double minsep, double maxsep,
                  int d1, int d2, int coords, int bin_type, int metric,
-                 size_t i1, size_t i2, size_t sep, int n)
+                 py::array_t<long>& i1p, py::array_t<long>& i2p, py::array_t<double>& sepp)
 {
+    Assert(i1p.request().ndim == 1);
+    Assert(i2p.request().ndim == 1);
+    Assert(sepp.request().ndim == 1);
+
+    long n = i1p.request().size;
+    Assert(i2p.request().size == n);
+    Assert(sepp.request().size == n);
+
+    long* i1 = static_cast<long*>(i1p.request().ptr);
+    long* i2 = static_cast<long*>(i2p.request().ptr);
+    double* sep = static_cast<double*>(sepp.request().ptr);
+
     dbg<<"Start SamplePairs: "<<d1<<" "<<d2<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
 
     switch(d1) {
       case NData:
            return SamplePairs2a<NData>(corr, field1, field2, minsep, maxsep,
                                        d2, coords, bin_type, metric,
-                                       reinterpret_cast<long*>(i1),
-                                       reinterpret_cast<long*>(i2),
-                                       reinterpret_cast<double*>(sep),
-                                       n);
+                                       i1, i2, sep, n);
            break;
       case KData:
            return SamplePairs2a<KData>(corr, field1, field2, minsep, maxsep,
                                        d2, coords, bin_type, metric,
-                                       reinterpret_cast<long*>(i1),
-                                       reinterpret_cast<long*>(i2),
-                                       reinterpret_cast<double*>(sep),
-                                       n);
+                                       i1, i2, sep, n);
            break;
       case GData:
            return SamplePairs2a<GData>(corr, field1, field2, minsep, maxsep,
                                        d2, coords, bin_type, metric,
-                                       reinterpret_cast<long*>(i1),
-                                       reinterpret_cast<long*>(i2),
-                                       reinterpret_cast<double*>(sep),
-                                       n);
+                                       i1, i2, sep, n);
            break;
       default:
            Assert(false);

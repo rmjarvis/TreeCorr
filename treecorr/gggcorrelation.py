@@ -20,7 +20,6 @@ import numpy as np
 from . import _treecorr as _lib
 from .catalog import calculateVarG
 from .binnedcorr3 import BinnedCorr3
-from .util import double_ptr as dp
 from .util import make_writer, make_reader
 from .util import depr_pos_kwargs
 
@@ -201,11 +200,11 @@ class GGGCorrelation(BinnedCorr3):
                     self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
                     self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
                     self.xperiod, self.yperiod, self.zperiod,
-                    dp(self.gam0r), dp(self.gam0i), dp(self.gam1r), dp(self.gam1i),
-                    dp(self.gam2r), dp(self.gam2i), dp(self.gam3r), dp(self.gam3i),
-                    dp(self.meand1), dp(self.meanlogd1), dp(self.meand2), dp(self.meanlogd2),
-                    dp(self.meand3), dp(self.meanlogd3), dp(self.meanu), dp(self.meanv),
-                    dp(self.weight), dp(self.ntri))
+                    self.gam0r, self.gam0i, self.gam1r, self.gam1i,
+                    self.gam2r, self.gam2i, self.gam3r, self.gam3i,
+                    self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
+                    self.meand3, self.meanlogd3, self.meanu, self.meanv,
+                    self.weight, self.ntri)
         return self._corr
 
     def __del__(self):

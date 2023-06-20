@@ -20,8 +20,6 @@ import weakref
 
 from . import _treecorr as _lib
 from .util import get_omp_threads, parse_xyzsep, coord_enum
-from .util import long_ptr as lp
-from .util import double_ptr as dp
 from .util import depr_pos_kwargs
 
 def _parse_split_method(split_method):
@@ -259,10 +257,10 @@ class Field(object):
         # grouped points within this separation together.
         # First count how many there are, so we can allocate the array for the indices.
         n = self._count_near(x, y, z, sep)
-        ind = np.empty(n, dtype=int)
+        indices = np.empty(n, dtype=int)
         # Now fill the array with the indices of the nearby points.
-        _lib.FieldGetNear(self.data, x, y, z, sep, self._d, self._coords, lp(ind), n)
-        return ind
+        _lib.FieldGetNear(self.data, x, y, z, sep, self._d, self._coords, indices)
+        return indices
 
     @depr_pos_kwargs
     def run_kmeans(self, npatch, *, max_iter=200, tol=1.e-5, init='tree', alt=False, rng=None):
@@ -427,11 +425,11 @@ class Field(object):
             centers = np.empty((npatch, 3))
         seed = 0 if rng is None else int(rng.random_sample() * 2**63)
         if init == 'tree':
-            _lib.KMeansInitTree(self.data, dp(centers), int(npatch), self._d, self._coords, seed)
+            _lib.KMeansInitTree(self.data, centers, int(npatch), self._d, self._coords, seed)
         elif init == 'random':
-            _lib.KMeansInitRand(self.data, dp(centers), int(npatch), self._d, self._coords, seed)
+            _lib.KMeansInitRand(self.data, centers, int(npatch), self._d, self._coords, seed)
         elif init == 'kmeans++':
-            _lib.KMeansInitKMPP(self.data, dp(centers), int(npatch), self._d, self._coords, seed)
+            _lib.KMeansInitKMPP(self.data, centers, int(npatch), self._d, self._coords, seed)
         else:
             raise ValueError("Invalid init: %s. "%init +
                              "Must be one of 'tree', 'random', or 'kmeans++.'")
@@ -483,7 +481,7 @@ class Field(object):
                                 (default: False)
         """
         npatch = centers.shape[0]
-        _lib.KMeansRun(self.data, dp(centers), npatch, int(max_iter), float(tol),
+        _lib.KMeansRun(self.data, centers, npatch, int(max_iter), float(tol),
                        bool(alt), self._d, self._coords)
 
     def kmeans_assign_patches(self, centers):
@@ -504,8 +502,7 @@ class Field(object):
         patches = np.empty(self.ntot, dtype=int)
         npatch = centers.shape[0]
         centers = np.ascontiguousarray(centers)
-        _lib.KMeansAssign(self.data, dp(centers), npatch,
-                          lp(patches), self.ntot, self._d, self._coords)
+        _lib.KMeansAssign(self.data, centers, npatch, patches, self._d, self._coords)
         return patches
 
 
@@ -556,8 +553,9 @@ class NField(Field):
         self._coords = coord_enum(self.coords)  # These are the C++-layer enums
         seed = 0 if rng is None else int(rng.random_sample() * 2**63)
 
-        self.data = _lib.BuildNField(dp(cat.x), dp(cat.y), dp(cat.z),
-                                     dp(cat.w), dp(cat.wpos), cat.ntot,
+        zx = cat.z if cat.z is not None else np.array([])
+        wpx = cat.wpos if cat.wpos is not None else np.array([])
+        self.data = _lib.BuildNField(cat.x, cat.y, zx, cat.w, wpx,
                                      self.min_size, self.max_size, self._sm, seed,
                                      self.brute, self.min_top, self.max_top, self._coords)
         if logger:
@@ -619,9 +617,9 @@ class KField(Field):
         self._coords = coord_enum(self.coords)  # These are the C++-layer enums
         seed = 0 if rng is None else int(rng.random_sample() * 2**63)
 
-        self.data = _lib.BuildKField(dp(cat.x), dp(cat.y), dp(cat.z),
-                                     dp(cat.k),
-                                     dp(cat.w), dp(cat.wpos), cat.ntot,
+        zx = cat.z if cat.z is not None else np.array([])
+        wpx = cat.wpos if cat.wpos is not None else np.array([])
+        self.data = _lib.BuildKField(cat.x, cat.y, zx, cat.k, cat.w, wpx,
                                      self.min_size, self.max_size, self._sm, seed,
                                      self.brute, self.min_top, self.max_top, self._coords)
         if logger:
@@ -683,9 +681,9 @@ class GField(Field):
         self._coords = coord_enum(self.coords)  # These are the C++-layer enums
         seed = 0 if rng is None else int(rng.random_sample() * 2**63)
 
-        self.data = _lib.BuildGField(dp(cat.x), dp(cat.y), dp(cat.z),
-                                     dp(cat.g1), dp(cat.g2),
-                                     dp(cat.w), dp(cat.wpos), cat.ntot,
+        zx = cat.z if cat.z is not None else np.array([])
+        wpx = cat.wpos if cat.wpos is not None else np.array([])
+        self.data = _lib.BuildGField(cat.x, cat.y, zx, cat.g1, cat.g2, cat.w, wpx,
                                      self.min_size, self.max_size, self._sm, seed,
                                      self.brute, self.min_top, self.max_top, self._coords)
         if logger:
@@ -752,9 +750,9 @@ class NSimpleField(SimpleField):
         self.coords = cat.coords
         self._coords = coord_enum(self.coords)  # These are the C++-layer enums
 
-        self.data = _lib.BuildNSimpleField(dp(cat.x), dp(cat.y), dp(cat.z),
-                                           dp(cat.w), dp(cat.wpos), cat.ntot,
-                                           self._coords)
+        zx = cat.z if cat.z is not None else np.array([])
+        wpx = cat.wpos if cat.wpos is not None else np.array([])
+        self.data = _lib.BuildNSimpleField(cat.x, cat.y, zx, cat.w, wpx, self._coords)
         if logger:
             logger.debug('Finished building NSimpleField (%s)',self.coords)
 
@@ -796,10 +794,9 @@ class KSimpleField(SimpleField):
         self.coords = cat.coords
         self._coords = coord_enum(self.coords)  # These are the C++-layer enums
 
-        self.data = _lib.BuildKSimpleField(dp(cat.x), dp(cat.y), dp(cat.z),
-                                           dp(cat.k),
-                                           dp(cat.w), dp(cat.wpos), cat.ntot,
-                                           self._coords)
+        zx = cat.z if cat.z is not None else np.array([])
+        wpx = cat.wpos if cat.wpos is not None else np.array([])
+        self.data = _lib.BuildKSimpleField(cat.x, cat.y, zx, cat.k, cat.w, wpx, self._coords)
         if logger:
             logger.debug('Finished building KSimpleField (%s)',self.coords)
 
@@ -841,9 +838,9 @@ class GSimpleField(SimpleField):
         self.coords = cat.coords
         self._coords = coord_enum(self.coords)  # These are the C++-layer enums
 
-        self.data = _lib.BuildGSimpleField(dp(cat.x), dp(cat.y), dp(cat.z),
-                                           dp(cat.g1), dp(cat.g2),
-                                           dp(cat.w), dp(cat.wpos), cat.ntot,
+        zx = cat.z if cat.z is not None else np.array([])
+        wpx = cat.wpos if cat.wpos is not None else np.array([])
+        self.data = _lib.BuildGSimpleField(cat.x, cat.y, zx, cat.g1, cat.g2, cat.w, wpx,
                                            self._coords)
         if logger:
             logger.debug('Finished building KSimpleField (%s)',self.coords)

@@ -492,58 +492,101 @@ void* BuildField(double* x, double* y, double* z, double* g1, double* g2, double
     return field;
 }
 
-void* BuildGField(size_t x, size_t y, size_t z, size_t g1, size_t g2,
-                  size_t w, size_t wpos, long nobj,
+void* BuildGField(py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
+                  py::array_t<double>& g1p, py::array_t<double>& g2p,
+                  py::array_t<double>& wp, py::array_t<double>& wposp,
                   double minsize, double maxsize,
                   int sm_int, long long seed, int brute, int mintop, int maxtop, int coords)
 {
+    Assert(xp.request().ndim == 1);
+    Assert(yp.request().ndim == 1);
+    Assert(zp.request().ndim == 1);
+    Assert(g1p.request().ndim == 1);
+    Assert(g2p.request().ndim == 1);
+    Assert(wp.request().ndim == 1);
+    Assert(wposp.request().ndim == 1);
+
+    long nobj = xp.request().size;
+    Assert(yp.request().size == nobj);
+    Assert(zp.request().size == nobj || zp.request().size == 0);
+    Assert(g1p.request().size == nobj);
+    Assert(g2p.request().size == nobj);
+    Assert(wp.request().size == nobj);
+    Assert(wposp.request().size == nobj || wposp.request().size == 0);
+
+    double* x = static_cast<double*>(xp.request().ptr);
+    double* y = static_cast<double*>(yp.request().ptr);
+    double* z = zp.request().size == 0 ? 0 : static_cast<double*>(zp.request().ptr);
+    double* g1 = static_cast<double*>(g1p.request().ptr);
+    double* g2 = static_cast<double*>(g2p.request().ptr);
+    double* w = static_cast<double*>(wp.request().ptr);
+    double* wpos = wposp.request().size == 0 ? 0 : static_cast<double*>(wposp.request().ptr);
+
     // Note: Use w for k, since we access k[i], even though value will be ignored.
-    return BuildField<GData>(reinterpret_cast<double*>(x),
-                             reinterpret_cast<double*>(y),
-                             reinterpret_cast<double*>(z),
-                             reinterpret_cast<double*>(g1),
-                             reinterpret_cast<double*>(g2),
-                             reinterpret_cast<double*>(w),
-                             reinterpret_cast<double*>(w),
-                             reinterpret_cast<double*>(wpos),
+    return BuildField<GData>(x, y, z, g1, g2, w, w, wpos,
                              nobj, minsize, maxsize, sm_int, seed,
                              brute, mintop, maxtop, coords);
 }
 
-void* BuildKField(size_t x, size_t y, size_t z, size_t k,
-                  size_t w, size_t wpos, long nobj,
+void* BuildKField(py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
+                  py::array_t<double>& kp, py::array_t<double>& wp, py::array_t<double>& wposp,
                   double minsize, double maxsize,
                   int sm_int, long long seed, int brute, int mintop, int maxtop, int coords)
 {
+    Assert(xp.request().ndim == 1);
+    Assert(yp.request().ndim == 1);
+    Assert(zp.request().ndim == 1);
+    Assert(kp.request().ndim == 1);
+    Assert(wp.request().ndim == 1);
+    Assert(wposp.request().ndim == 1);
+
+    long nobj = xp.request().size;
+    Assert(yp.request().size == nobj);
+    Assert(zp.request().size == nobj || zp.request().size == 0);
+    Assert(kp.request().size == nobj);
+    Assert(wp.request().size == nobj);
+    Assert(wposp.request().size == nobj || wposp.request().size == 0);
+
+    double* x = static_cast<double*>(xp.request().ptr);
+    double* y = static_cast<double*>(yp.request().ptr);
+    double* z = zp.request().size == 0 ? 0 : static_cast<double*>(zp.request().ptr);
+    double* k = static_cast<double*>(kp.request().ptr);
+    double* w = static_cast<double*>(wp.request().ptr);
+    double* wpos = wposp.request().size == 0 ? 0 : static_cast<double*>(wposp.request().ptr);
+
     // Note: Use w for g1,g2, since we access g1[i],g2[i] even though values are ignored.
-    return BuildField<KData>(reinterpret_cast<double*>(x),
-                             reinterpret_cast<double*>(y),
-                             reinterpret_cast<double*>(z),
-                             reinterpret_cast<double*>(w),
-                             reinterpret_cast<double*>(w),
-                             reinterpret_cast<double*>(k),
-                             reinterpret_cast<double*>(w),
-                             reinterpret_cast<double*>(wpos),
-                             nobj, minsize,maxsize, sm_int, seed,
-                             brute,mintop,maxtop,coords);
+    return BuildField<KData>(x, y, z, w, w, k, w, wpos,
+                             nobj, minsize, maxsize, sm_int, seed,
+                             brute, mintop, maxtop, coords);
 }
 
-void* BuildNField(size_t x, size_t y, size_t z,
-                  size_t w, size_t wpos, long nobj,
+void* BuildNField(py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
+                  py::array_t<double>& wp, py::array_t<double>& wposp,
                   double minsize, double maxsize,
                   int sm_int, long long seed, int brute, int mintop, int maxtop, int coords)
 {
+    Assert(xp.request().ndim == 1);
+    Assert(yp.request().ndim == 1);
+    Assert(zp.request().ndim == 1);
+    Assert(wp.request().ndim == 1);
+    Assert(wposp.request().ndim == 1);
+
+    long nobj = xp.request().size;
+    Assert(yp.request().size == nobj);
+    Assert(zp.request().size == nobj || zp.request().size == 0);
+    Assert(wp.request().size == nobj);
+    Assert(wposp.request().size == nobj || wposp.request().size == 0);
+
+    double* x = static_cast<double*>(xp.request().ptr);
+    double* y = static_cast<double*>(yp.request().ptr);
+    double* z = zp.request().size == 0 ? 0 : static_cast<double*>(zp.request().ptr);
+    double* w = static_cast<double*>(wp.request().ptr);
+    double* wpos = wposp.request().size == 0 ? 0 : static_cast<double*>(wposp.request().ptr);
+
     // Note: Use w for g1,g2,k for same reasons as above.
-    return BuildField<NData>(reinterpret_cast<double*>(x),
-                             reinterpret_cast<double*>(y),
-                             reinterpret_cast<double*>(z),
-                             reinterpret_cast<double*>(w),
-                             reinterpret_cast<double*>(w),
-                             reinterpret_cast<double*>(w),
-                             reinterpret_cast<double*>(w),
-                             reinterpret_cast<double*>(wpos),
-                             nobj, minsize,maxsize, sm_int, seed,
-                             brute,mintop,maxtop,coords);
+    return BuildField<NData>(x, y, z, w, w, w, w, wpos,
+                             nobj, minsize, maxsize, sm_int, seed,
+                             brute, mintop, maxtop, coords);
 }
 
 template <int D>
@@ -657,9 +700,12 @@ void FieldGetNear1(void* field, double x, double y, double z, double sep, int co
 }
 
 void FieldGetNear(void* field, double x, double y, double z, double sep, int d, int coords,
-                  size_t inp, long n)
+                  py::array_t<long>& inp)
 {
-    long* indices = reinterpret_cast<long*>(inp);
+    Assert(inp.request().ndim == 1);
+    long n = inp.request().size;
+    long* indices = static_cast<long*>(inp.request().ptr);
+
     switch(d) {
       case NData:
            FieldGetNear1<NData>(field, x, y, z, sep, coords, indices, n);
@@ -697,46 +743,91 @@ void* BuildSimpleField(double* x, double* y, double* z, double* g1, double* g2, 
     return field;
 }
 
-void* BuildGSimpleField(size_t x, size_t y, size_t z, size_t g1, size_t g2,
-                        size_t w, size_t wpos, long nobj, int coords)
+void* BuildGSimpleField(py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
+                        py::array_t<double>& g1p, py::array_t<double>& g2p,
+                        py::array_t<double>& wp, py::array_t<double>& wposp,
+                        int coords)
 {
-    return BuildSimpleField<GData>(reinterpret_cast<double*>(x),
-                                   reinterpret_cast<double*>(y),
-                                   reinterpret_cast<double*>(z),
-                                   reinterpret_cast<double*>(g1),
-                                   reinterpret_cast<double*>(g2),
-                                   reinterpret_cast<double*>(w),
-                                   reinterpret_cast<double*>(w),
-                                   reinterpret_cast<double*>(wpos),
-                                   nobj,coords);
+    Assert(xp.request().ndim == 1);
+    Assert(yp.request().ndim == 1);
+    Assert(zp.request().ndim == 1);
+    Assert(g1p.request().ndim == 1);
+    Assert(g2p.request().ndim == 1);
+    Assert(wp.request().ndim == 1);
+    Assert(wposp.request().ndim == 1);
+
+    long nobj = xp.request().size;
+    Assert(yp.request().size == nobj);
+    Assert(zp.request().size == nobj || zp.request().size == 0);
+    Assert(g1p.request().size == nobj);
+    Assert(g2p.request().size == nobj);
+    Assert(wp.request().size == nobj);
+    Assert(wposp.request().size == nobj || wposp.request().size == 0);
+
+    double* x = static_cast<double*>(xp.request().ptr);
+    double* y = static_cast<double*>(yp.request().ptr);
+    double* z = zp.request().size == 0 ? 0 : static_cast<double*>(zp.request().ptr);
+    double* g1 = static_cast<double*>(g1p.request().ptr);
+    double* g2 = static_cast<double*>(g2p.request().ptr);
+    double* w = static_cast<double*>(wp.request().ptr);
+    double* wpos = wposp.request().size == 0 ? 0 : static_cast<double*>(wposp.request().ptr);
+
+    return BuildSimpleField<GData>(x, y, z, g1, g2, w, w, wpos, nobj, coords);
 }
 
-void* BuildKSimpleField(size_t x, size_t y, size_t z, size_t k,
-                        size_t w, size_t wpos, long nobj, int coords)
+void* BuildKSimpleField(py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
+                        py::array_t<double>& kp,
+                        py::array_t<double>& wp, py::array_t<double> wposp,
+                        int coords)
 {
-    return BuildSimpleField<KData>(reinterpret_cast<double*>(x),
-                                   reinterpret_cast<double*>(y),
-                                   reinterpret_cast<double*>(z),
-                                   reinterpret_cast<double*>(w),
-                                   reinterpret_cast<double*>(w),
-                                   reinterpret_cast<double*>(k),
-                                   reinterpret_cast<double*>(w),
-                                   reinterpret_cast<double*>(wpos),
-                                   nobj,coords);
+    Assert(xp.request().ndim == 1);
+    Assert(yp.request().ndim == 1);
+    Assert(zp.request().ndim == 1);
+    Assert(kp.request().ndim == 1);
+    Assert(wp.request().ndim == 1);
+    Assert(wposp.request().ndim == 1);
+
+    long nobj = xp.request().size;
+    Assert(yp.request().size == nobj);
+    Assert(zp.request().size == nobj || zp.request().size == 0);
+    Assert(kp.request().size == nobj);
+    Assert(wp.request().size == nobj);
+    Assert(wposp.request().size == nobj || wposp.request().size == 0);
+
+    double* x = static_cast<double*>(xp.request().ptr);
+    double* y = static_cast<double*>(yp.request().ptr);
+    double* z = zp.request().size == 0 ? 0 : static_cast<double*>(zp.request().ptr);
+    double* k = static_cast<double*>(kp.request().ptr);
+    double* w = static_cast<double*>(wp.request().ptr);
+    double* wpos = wposp.request().size == 0 ? 0 : static_cast<double*>(wposp.request().ptr);
+
+    return BuildSimpleField<KData>(x, y, z, w, w, k, w, wpos, nobj, coords);
 }
 
-void* BuildNSimpleField(size_t x, size_t y, size_t z,
-                        size_t w, size_t wpos, long nobj, int coords)
+
+void* BuildNSimpleField(py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
+                        py::array_t<double>& wp, py::array_t<double>& wposp,
+                        int coords)
 {
-    return BuildSimpleField<NData>(reinterpret_cast<double*>(x),
-                                   reinterpret_cast<double*>(y),
-                                   reinterpret_cast<double*>(z),
-                                   reinterpret_cast<double*>(w),
-                                   reinterpret_cast<double*>(w),
-                                   reinterpret_cast<double*>(w),
-                                   reinterpret_cast<double*>(w),
-                                   reinterpret_cast<double*>(wpos),
-                                   nobj,coords);
+    Assert(xp.request().ndim == 1);
+    Assert(yp.request().ndim == 1);
+    Assert(zp.request().ndim == 1);
+    Assert(wp.request().ndim == 1);
+    Assert(wposp.request().ndim == 1);
+
+    long nobj = xp.request().size;
+    Assert(yp.request().size == nobj);
+    Assert(zp.request().size == nobj || zp.request().size == 0);
+    Assert(wp.request().size == nobj);
+    Assert(wposp.request().size == nobj || wposp.request().size == 0);
+
+    double* x = static_cast<double*>(xp.request().ptr);
+    double* y = static_cast<double*>(yp.request().ptr);
+    double* z = zp.request().size == 0 ? 0 : static_cast<double*>(zp.request().ptr);
+    double* w = static_cast<double*>(wp.request().ptr);
+    double* wpos = wposp.request().size == 0 ? 0 : static_cast<double*>(wposp.request().ptr);
+
+    return BuildSimpleField<NData>(x, y, z, w, w, w, w, wpos, nobj, coords);
 }
 
 template <int D>

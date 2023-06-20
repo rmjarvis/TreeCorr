@@ -848,8 +848,12 @@ void KMeansAssign2(Field<D,C>*field, double* pycenters, int npatch, long* patche
 }
 
 template <int D>
-void KMeansInitTree1(void* field, double* centers, int npatch, int coords, long long seed)
+void KMeansInitTree(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
+                    int coords, long long seed)
 {
+    Assert(cenp.request().ndim == 1);
+    double* centers = static_cast<double*>(cenp.request().ptr);
+
     switch(coords) {
       case Flat:
            KMeansInitTree2(static_cast<Field<D,Flat>*>(field), centers, npatch, seed);
@@ -863,27 +867,13 @@ void KMeansInitTree1(void* field, double* centers, int npatch, int coords, long 
     }
 }
 
-void KMeansInitTree(void* field, py::array_t<double>& cenp, int npatch, int d, int coords,
-                    long long seed)
+template <int D>
+void KMeansInitRand(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
+                    int coords, long long seed)
 {
     Assert(cenp.request().ndim == 1);
     double* centers = static_cast<double*>(cenp.request().ptr);
-    switch(d) {
-      case NData:
-           KMeansInitTree1<NData>(field, centers, npatch, coords, seed);
-           break;
-      case KData:
-           KMeansInitTree1<KData>(field, centers, npatch, coords, seed);
-           break;
-      case GData:
-           KMeansInitTree1<GData>(field, centers, npatch, coords, seed);
-           break;
-    }
-}
 
-template <int D>
-void KMeansInitRand1(void* field, double* centers, int npatch, int coords, long long seed)
-{
     switch(coords) {
       case Flat:
            KMeansInitRand2(static_cast<Field<D,Flat>*>(field), centers, npatch, seed);
@@ -897,27 +887,13 @@ void KMeansInitRand1(void* field, double* centers, int npatch, int coords, long 
     }
 }
 
-void KMeansInitRand(void* field, py::array_t<double>& cenp, int npatch, int d, int coords,
-                    long long seed)
+template <int D>
+void KMeansInitKMPP(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
+                    int coords, long long seed)
 {
     Assert(cenp.request().ndim == 1);
     double* centers = static_cast<double*>(cenp.request().ptr);
-    switch(d) {
-      case NData:
-           KMeansInitRand1<NData>(field, centers, npatch, coords, seed);
-           break;
-      case KData:
-           KMeansInitRand1<KData>(field, centers, npatch, coords, seed);
-           break;
-      case GData:
-           KMeansInitRand1<GData>(field, centers, npatch, coords, seed);
-           break;
-    }
-}
 
-template <int D>
-void KMeansInitKMPP1(void* field, double* centers, int npatch, int coords, long long seed)
-{
     switch(coords) {
       case Flat:
            KMeansInitKMPP2(static_cast<Field<D,Flat>*>(field), centers, npatch, seed);
@@ -931,28 +907,13 @@ void KMeansInitKMPP1(void* field, double* centers, int npatch, int coords, long 
     }
 }
 
-void KMeansInitKMPP(void* field, py::array_t<double>& cenp, int npatch, int d, int coords,
-                    long long seed)
+template <int D>
+void KMeansRun(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
+               int max_iter, double tol, bool alt, int coords)
 {
     Assert(cenp.request().ndim == 1);
     double* centers = static_cast<double*>(cenp.request().ptr);
-    switch(d) {
-      case NData:
-           KMeansInitKMPP1<NData>(field, centers, npatch, coords, seed);
-           break;
-      case KData:
-           KMeansInitKMPP1<KData>(field, centers, npatch, coords, seed);
-           break;
-      case GData:
-           KMeansInitKMPP1<GData>(field, centers, npatch, coords, seed);
-           break;
-    }
-}
 
-template <int D>
-void KMeansRun1(void* field, double* centers, int npatch, int max_iter, double tol, bool alt,
-                int coords)
-{
     switch(coords) {
       case Flat:
            KMeansRun2(static_cast<Field<D,Flat>*>(field), centers, npatch, max_iter, tol, alt);
@@ -966,28 +927,17 @@ void KMeansRun1(void* field, double* centers, int npatch, int max_iter, double t
     }
 }
 
-void KMeansRun(void* field, py::array_t<double>& cenp, int npatch, int max_iter, double tol,
-               int alt, int d, int coords)
+template <int D>
+void KMeansAssign(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
+                  py::array_t<long>& pp, int coords)
 {
     Assert(cenp.request().ndim == 1);
+    Assert(pp.request().ndim == 1);
+    long n = pp.request().size;
+
     double* centers = static_cast<double*>(cenp.request().ptr);
+    long* patches = static_cast<long*>(pp.request().ptr);
 
-    switch(d) {
-      case NData:
-           KMeansRun1<NData>(field, centers, npatch, max_iter, tol, bool(alt), coords);
-           break;
-      case KData:
-           KMeansRun1<KData>(field, centers, npatch, max_iter, tol, bool(alt), coords);
-           break;
-      case GData:
-           KMeansRun1<GData>(field, centers, npatch, max_iter, tol, bool(alt), coords);
-           break;
-    }
-}
-
-template <int D>
-void KMeansAssign1(void* field, double* centers, int npatch, long* patches, long n, int coords)
-{
     switch(coords) {
       case Flat:
            KMeansAssign2(static_cast<Field<D,Flat>*>(field), centers, npatch, patches, n);
@@ -997,29 +947,6 @@ void KMeansAssign1(void* field, double* centers, int npatch, long* patches, long
            break;
       case ThreeD:
            KMeansAssign2(static_cast<Field<D,ThreeD>*>(field), centers, npatch, patches, n);
-           break;
-    }
-}
-
-void KMeansAssign(void* field, py::array_t<double>& cenp, int npatch,
-                  py::array_t<long>& pp, int d, int coords)
-{
-    Assert(cenp.request().ndim == 1);
-    Assert(pp.request().ndim == 1);
-    long n = pp.request().size;
-
-    double* centers = static_cast<double*>(cenp.request().ptr);
-    long* patches = static_cast<long*>(pp.request().ptr);
-
-    switch(d) {
-      case NData:
-           KMeansAssign1<NData>(field, centers, npatch, patches, n, coords);
-           break;
-      case KData:
-           KMeansAssign1<KData>(field, centers, npatch, patches, n, coords);
-           break;
-      case GData:
-           KMeansAssign1<GData>(field, centers, npatch, patches, n, coords);
            break;
     }
 }
@@ -1208,14 +1135,30 @@ void GenerateXYZ(
 }
 
 // Export the above functions using pybind11
+//
+template <int D>
+void WrapKMeans(py::module& _treecorr)
+{
+    typedef void (*init_type)(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
+                              int coords, long long seed);
+    typedef void (*run_type)(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
+                            int max_iter, double tol, bool alt, int coords);
+    typedef void (*assign_type)(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
+                                py::array_t<long>& pp, int coords);
+
+    _treecorr.def("KMeansInitTree", init_type(&KMeansInitTree));
+    _treecorr.def("KMeansInitRand", init_type(&KMeansInitRand));
+    _treecorr.def("KMeansInitKMPP", init_type(&KMeansInitKMPP));
+    _treecorr.def("KMeansRun", run_type(&KMeansRun));
+    _treecorr.def("KMeansAssign", assign_type(&KMeansAssign));
+}
 
 void pyExportKMeans(py::module& _treecorr)
 {
-    _treecorr.def("KMeansInitTree", &KMeansInitTree);
-    _treecorr.def("KMeansInitRand", &KMeansInitRand);
-    _treecorr.def("KMeansInitKMPP", &KMeansInitKMPP);
-    _treecorr.def("KMeansRun", &KMeansRun);
-    _treecorr.def("KMeansAssign", &KMeansAssign);
+    WrapKMeans<NData>(_treecorr);
+    WrapKMeans<KData>(_treecorr);
+    WrapKMeans<GData>(_treecorr);
+
     _treecorr.def("QuickAssign", &QuickAssign);
     _treecorr.def("SelectPatch", &SelectPatch);
     _treecorr.def("GenerateXYZ", &GenerateXYZ);

@@ -121,19 +121,12 @@ class GGCorrelation(BinnedCorr2):
     @property
     def corr(self):
         if self._corr is None:
-            self._corr = _lib.BuildCorr2(
-                    self._d1, self._d2, self._bintype,
-                    self._min_sep,self._max_sep,self._nbins,self._bin_size,self.b,
-                    self.min_rpar, self.max_rpar, self.xperiod, self.yperiod, self.zperiod,
-                    self.xip, self.xip_im, self.xim, self.xim_im,
-                    self.meanr, self.meanlogr, self.weight, self.npairs)
+            self._corr = _lib.GGCorr(self._bintype, self._min_sep, self._max_sep, self._nbins,
+                                     self._bin_size, self.b, self.min_rpar, self.max_rpar,
+                                     self.xperiod, self.yperiod, self.zperiod,
+                                     self.xip, self.xip_im, self.xim, self.xim_im,
+                                     self.meanr, self.meanlogr, self.weight, self.npairs)
         return self._corr
-
-    def __del__(self):
-        # Using memory allocated from the C layer means we have to explicitly deallocate it
-        # rather than being able to rely on the Python memory manager.
-        if self._corr is not None:
-            _lib.DestroyCorr2(self.corr, self._d1, self._d2)
 
     def __eq__(self, other):
         """Return whether two `GGCorrelation` instances are equal"""
@@ -217,8 +210,8 @@ class GGCorrelation(BinnedCorr2):
                               coords=self.coords)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        _lib.ProcessAuto2(self.corr, field.data, self.output_dots,
-                          field._d, self._coords, self._bintype, self._metric)
+        self.corr.processAuto(field.data, self.output_dots,
+                              self._coords, self._bintype, self._metric)
 
 
     @depr_pos_kwargs
@@ -262,8 +255,8 @@ class GGCorrelation(BinnedCorr2):
                             coords=self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        _lib.ProcessCross2(self.corr, f1.data, f2.data, self.output_dots,
-                           f1._d, f2._d, self._coords, self._bintype, self._metric)
+        self.corr.processCross(f1.data, f2.data, self.output_dots,
+                               self._coords, self._bintype, self._metric)
 
 
     @depr_pos_kwargs
@@ -309,8 +302,8 @@ class GGCorrelation(BinnedCorr2):
         f1 = cat1.getGSimpleField()
         f2 = cat2.getGSimpleField()
 
-        _lib.ProcessPair(self.corr, f1.data, f2.data, self.output_dots,
-                         f1._d, f2._d, self._coords, self._bintype, self._metric)
+        self.corr.processPair(f1.data, f2.data, self.output_dots,
+                              self._coords, self._bintype, self._metric)
 
     def getStat(self):
         """The standard statistic for the current correlation object as a 1-d array.

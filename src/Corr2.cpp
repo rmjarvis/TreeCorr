@@ -993,65 +993,13 @@ void BaseCorr2::sampleFrom(
 //
 
 template <int D1, int D2>
-void* BuildCorr2b(int bin_type,
-                  double minsep, double maxsep, int nbins, double binsize, double b,
-                  double minrpar, double maxrpar, double xp, double yp, double zp,
-                  double* xi0, double* xi1, double* xi2, double* xi3,
-                  double* meanr, double* meanlogr, double* weight, double* npairs)
-{
-    return static_cast<void*>(new Corr2<D1,D2>(
-            static_cast<BinType>(bin_type),
-            minsep, maxsep, nbins, binsize, b, minrpar, maxrpar, xp, yp, zp,
-            xi0, xi1, xi2, xi3, meanr, meanlogr, weight, npairs));
-}
-
-template <int D1>
-void* BuildCorr2a(int d2, int bin_type,
-                  double minsep, double maxsep, int nbins, double binsize, double b,
-                  double minrpar, double maxrpar, double xp, double yp, double zp,
-                  double* xi0, double* xi1, double* xi2, double* xi3,
-                  double* meanr, double* meanlogr, double* weight, double* npairs)
-{
-    // Note: we only ever call this with d2 >= d1, so the MAX bit below is equivalent to
-    // just using d2 for the cases that actually get called, but doing this saves some
-    // compile time and some size in the final library from not instantiating templates
-    // that aren't needed.
-    switch(d2) {
-      case NData:
-           return BuildCorr2b<D1,MAX(D1,NData)>(bin_type,
-                                                minsep, maxsep, nbins, binsize, b,
-                                                minrpar, maxrpar, xp, yp, zp,
-                                                xi0, xi1, xi2, xi3,
-                                                meanr, meanlogr, weight, npairs);
-           break;
-      case KData:
-           return BuildCorr2b<D1,MAX(D1,KData)>(bin_type,
-                                                minsep, maxsep, nbins, binsize, b,
-                                                minrpar, maxrpar, xp, yp, zp,
-                                                xi0, xi1, xi2, xi3,
-                                                meanr, meanlogr, weight, npairs);
-           break;
-      case GData:
-           return BuildCorr2b<D1,MAX(D1,GData)>(bin_type,
-                                                minsep, maxsep, nbins, binsize, b,
-                                                minrpar, maxrpar, xp, yp, zp,
-                                                xi0, xi1, xi2, xi3,
-                                                meanr, meanlogr, weight, npairs);
-           break;
-      default:
-           Assert(false);
-    }
-    return 0;
-}
-
-
-void* BuildCorr2(int d1, int d2, int bin_type,
-                 double minsep, double maxsep, int nbins, double binsize, double b,
-                 double minrpar, double maxrpar, double xp, double yp, double zp,
-                 py::array_t<double>& xi0p, py::array_t<double>& xi1p,
-                 py::array_t<double>& xi2p, py::array_t<double>& xi3p,
-                 py::array_t<double>& meanrp, py::array_t<double>& meanlogrp,
-                 py::array_t<double>& weightp, py::array_t<double>& npairsp)
+Corr2<D1,D2>* BuildCorr2(
+    int bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+    double minrpar, double maxrpar, double xp, double yp, double zp,
+    py::array_t<double>& xi0p, py::array_t<double>& xi1p,
+    py::array_t<double>& xi2p, py::array_t<double>& xi3p,
+    py::array_t<double>& meanrp, py::array_t<double>& meanlogrp,
+    py::array_t<double>& weightp, py::array_t<double>& npairsp)
 {
     double* xi0 = xi0p.request().size == 0 ? 0 : static_cast<double*>(xi0p.request().ptr);
     double* xi1 = xi1p.request().size == 0 ? 0 : static_cast<double*>(xi1p.request().ptr);
@@ -1062,82 +1010,14 @@ void* BuildCorr2(int d1, int d2, int bin_type,
     double* weight = static_cast<double*>(weightp.request().ptr);
     double* npairs = static_cast<double*>(npairsp.request().ptr);
 
-    dbg<<"Start BuildCorr2: "<<d1<<" "<<d2<<" "<<bin_type<<std::endl;
-    void* corr=0;
-    switch(d1) {
-      case NData:
-           corr = BuildCorr2a<NData>(d2, bin_type,
-                                     minsep, maxsep, nbins, binsize, b,
-                                     minrpar, maxrpar, xp, yp, zp,
-                                     xi0, xi1, xi2, xi3,
-                                     meanr, meanlogr, weight, npairs);
-           break;
-      case KData:
-           corr = BuildCorr2a<KData>(d2, bin_type,
-                                     minsep, maxsep, nbins, binsize, b,
-                                     minrpar, maxrpar, xp, yp, zp,
-                                     xi0, xi1, xi2, xi3,
-                                     meanr, meanlogr, weight, npairs);
-           break;
-      case GData:
-           corr = BuildCorr2a<GData>(d2, bin_type,
-                                     minsep, maxsep, nbins, binsize, b,
-                                     minrpar, maxrpar, xp, yp, zp,
-                                     xi0, xi1, xi2, xi3,
-                                     meanr, meanlogr, weight, npairs);
-           break;
-      default:
-           Assert(false);
-    }
-    xdbg<<"corr = "<<corr<<std::endl;
-    return corr;
-}
-
-template <int D1, int D2>
-void DestroyCorr2b(void* corr)
-{
-    delete static_cast<Corr2<D1,D2>*>(corr);
-}
-
-template <int D1>
-void DestroyCorr2a(void* corr, int d2)
-{
-    switch(d2) {
-      case NData:
-           DestroyCorr2b<D1,MAX(D1,NData)>(corr);
-           break;
-      case KData:
-           DestroyCorr2b<D1,MAX(D1,KData)>(corr);
-           break;
-      case GData:
-           DestroyCorr2b<D1,MAX(D1,GData)>(corr);
-           break;
-      default:
-           Assert(false);
-    }
-}
-
-void DestroyCorr2(void* corr, int d1, int d2)
-{
-    dbg<<"Start DestroyCorr2: "<<d1<<" "<<d2<<std::endl;
-    xdbg<<"corr = "<<corr<<std::endl;
-    switch(d1) {
-      case NData:
-           DestroyCorr2a<NData>(corr, d2);
-           break;
-      case KData:
-           DestroyCorr2a<KData>(corr, d2);
-           break;
-      case GData:
-           DestroyCorr2a<GData>(corr, d2);
-           break;
-      default:
-           Assert(false);
-    }
+    return new Corr2<D1,D2>(
+            static_cast<BinType>(bin_type),
+            minsep, maxsep, nbins, binsize, b, minrpar, maxrpar, xp, yp, zp,
+            xi0, xi1, xi2, xi3, meanr, meanlogr, weight, npairs);
 }
 
 template <int B, int M, int D>
-void ProcessAuto2d(Corr2<D,D>* corr, void* field, int dots, int coords)
+void ProcessAuto2d(Corr2<D,D>* corr, BaseField<D>* field, int dots, int coords)
 {
     const bool P = corr->nontrivialRPar();
     dbg<<"ProcessAuto: coords = "<<coords<<", metric = "<<M<<", P = "<<P<<std::endl;
@@ -1170,8 +1050,7 @@ void ProcessAuto2d(Corr2<D,D>* corr, void* field, int dots, int coords)
 }
 
 template <int B, int D>
-void ProcessAuto2c(Corr2<D,D>* corr, void* field, int dots,
-                   int coords, int metric)
+void ProcessAuto2c(Corr2<D,D>* corr, BaseField<D>* field, int dots, int coords, int metric)
 {
     switch(metric) {
       case Euclidean:
@@ -1198,37 +1077,18 @@ void ProcessAuto2c(Corr2<D,D>* corr, void* field, int dots,
 }
 
 template <int D>
-void ProcessAuto2b(void* corr, void* field, int dots, int coords, int bin_type, int metric)
+void ProcessAuto(Corr2<D,D>* corr, BaseField<D>* field,
+                 int dots, int coords, int bin_type, int metric)
 {
     switch(bin_type) {
       case Log:
-           ProcessAuto2c<Log>(static_cast<Corr2<D,D>*>(corr), field, dots, coords, metric);
+           ProcessAuto2c<Log>(corr, field, dots, coords, metric);
            break;
       case Linear:
-           ProcessAuto2c<Linear>(static_cast<Corr2<D,D>*>(corr), field, dots, coords, metric);
+           ProcessAuto2c<Linear>(corr, field, dots, coords, metric);
            break;
       case TwoD:
-           ProcessAuto2c<TwoD>(static_cast<Corr2<D,D>*>(corr), field, dots, coords, metric);
-           break;
-      default:
-           Assert(false);
-    }
-}
-
-void ProcessAuto2(void* corr, void* field, int dots,
-                  int d, int coords, int bin_type, int metric)
-{
-    dbg<<"Start ProcessAuto2: "<<d<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
-
-    switch(d) {
-      case NData:
-           ProcessAuto2b<NData>(corr, field, dots, coords, bin_type, metric);
-           break;
-      case KData:
-           ProcessAuto2b<KData>(corr, field, dots, coords, bin_type, metric);
-           break;
-      case GData:
-           ProcessAuto2b<GData>(corr, field, dots, coords, bin_type, metric);
+           ProcessAuto2c<TwoD>(corr, field, dots, coords, metric);
            break;
       default:
            Assert(false);
@@ -1236,7 +1096,8 @@ void ProcessAuto2(void* corr, void* field, int dots,
 }
 
 template <int B, int M, int D1, int D2>
-void ProcessCross2d(Corr2<D1,D2>* corr, void* field1, void* field2, int dots, int coords)
+void ProcessCross2d(Corr2<D1,D2>* corr, BaseField<D1>* field1, BaseField<D2>* field2,
+                    int dots, int coords)
 {
     const bool P = corr->nontrivialRPar();
     dbg<<"ProcessCross: coords = "<<coords<<", metric = "<<M<<", P = "<<P<<std::endl;
@@ -1273,8 +1134,8 @@ void ProcessCross2d(Corr2<D1,D2>* corr, void* field1, void* field2, int dots, in
 }
 
 template <int B, int D1, int D2>
-void ProcessCross2c(Corr2<D1,D2>* corr, void* field1, void* field2, int dots,
-                    int coords, int metric)
+void ProcessCross2c(Corr2<D1,D2>* corr, BaseField<D1>* field1, BaseField<D2>* field2,
+                    int dots, int coords, int metric)
 {
     switch(metric) {
       case Euclidean:
@@ -1301,71 +1162,19 @@ void ProcessCross2c(Corr2<D1,D2>* corr, void* field1, void* field2, int dots,
 }
 
 template <int D1, int D2>
-void ProcessCross2b(void* corr, void* field1, void* field2, int dots,
-                    int coords, int bin_type, int metric)
+void ProcessCross(Corr2<D1,D2>* corr, BaseField<D1>* field1, BaseField<D2>* field2,
+                  int dots, int coords, int bin_type, int metric)
 {
+    dbg<<"Start ProcessCross: "<<D1<<" "<<D2<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
     switch(bin_type) {
       case Log:
-           ProcessCross2c<Log>(static_cast<Corr2<D1,D2>*>(corr), field1, field2, dots,
-                               coords, metric);
+           ProcessCross2c<Log>(corr, field1, field2, dots, coords, metric);
            break;
       case Linear:
-           ProcessCross2c<Linear>(static_cast<Corr2<D1,D2>*>(corr), field1, field2, dots,
-                                  coords, metric);
+           ProcessCross2c<Linear>(corr, field1, field2, dots, coords, metric);
            break;
       case TwoD:
-           ProcessCross2c<TwoD>(static_cast<Corr2<D1,D2>*>(corr), field1, field2, dots,
-                                coords, metric);
-           break;
-      default:
-           Assert(false);
-    }
-}
-
-template <int D1>
-void ProcessCross2a(void* corr, void* field1, void* field2, int dots,
-                    int d2, int coords, int bin_type, int metric)
-{
-    // Note: we only ever call this with d2 >= d1, so the MAX bit below is equivalent to
-    // just using d2 for the cases that actually get called, but doing this saves some
-    // compile time and some size in the final library from not instantiating templates
-    // that aren't needed.
-    Assert(d2 >= D1);
-    switch(d2) {
-      case NData:
-           ProcessCross2b<D1,MAX(D1,NData)>(corr, field1, field2, dots,
-                                            coords, bin_type, metric);
-           break;
-      case KData:
-           ProcessCross2b<D1,MAX(D1,KData)>(corr, field1, field2, dots,
-                                            coords, bin_type, metric);
-           break;
-      case GData:
-           ProcessCross2b<D1,MAX(D1,GData)>(corr, field1, field2, dots,
-                                            coords, bin_type, metric);
-           break;
-      default:
-           Assert(false);
-    }
-}
-
-void ProcessCross2(void* corr, void* field1, void* field2, int dots,
-                   int d1, int d2, int coords, int bin_type, int metric)
-{
-    dbg<<"Start ProcessCross2: "<<d1<<" "<<d2<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
-
-    switch(d1) {
-      case NData:
-           ProcessCross2a<NData>(corr, field1, field2, dots,
-                                 d2, coords, bin_type, metric);
-           break;
-      case KData:
-           ProcessCross2a<KData>(corr, field1, field2, dots,
-                                 d2, coords, bin_type, metric);
-           break;
-      case GData:
-           ProcessCross2a<GData>(corr, field1, field2, dots,
-                                 d2, coords, bin_type, metric);
+           ProcessCross2c<TwoD>(corr, field1, field2, dots, coords, metric);
            break;
       default:
            Assert(false);
@@ -1373,7 +1182,8 @@ void ProcessCross2(void* corr, void* field1, void* field2, int dots,
 }
 
 template <int B, int M, int D1, int D2>
-void ProcessPair2d(Corr2<D1,D2>* corr, void* field1, void* field2, int dots, int coords)
+void ProcessPair2d(Corr2<D1,D2>* corr, BaseSimpleField<D1>* field1, BaseSimpleField<D2>* field2,
+                   int dots, int coords)
 {
     const bool P = corr->nontrivialRPar();
     dbg<<"ProcessPair: coords = "<<coords<<", metric = "<<M<<", P = "<<P<<std::endl;
@@ -1410,8 +1220,8 @@ void ProcessPair2d(Corr2<D1,D2>* corr, void* field1, void* field2, int dots, int
 }
 
 template <int B, int D1, int D2>
-void ProcessPair2c(Corr2<D1,D2>* corr, void* field1, void* field2, int dots,
-                   int coords, int metric)
+void ProcessPair2c(Corr2<D1,D2>* corr, BaseSimpleField<D1>* field1, BaseSimpleField<D2>* field2,
+                   int dots, int coords, int metric)
 {
     switch(metric) {
       case Euclidean:
@@ -1438,73 +1248,23 @@ void ProcessPair2c(Corr2<D1,D2>* corr, void* field1, void* field2, int dots,
 }
 
 template <int D1, int D2>
-void ProcessPair2b(void* corr, void* field1, void* field2, int dots,
-                   int coords, int bin_type, int metric)
+void ProcessPair(Corr2<D1,D2>* corr, BaseSimpleField<D1>* field1, BaseSimpleField<D2>* field2,
+                 int dots, int coords, int bin_type, int metric)
 {
     switch(bin_type) {
       case Log:
-           ProcessPair2c<Log>(static_cast<Corr2<D1,D2>*>(corr), field1, field2, dots,
-                              coords, metric);
+           ProcessPair2c<Log>(corr, field1, field2, dots, coords, metric);
            break;
       case Linear:
-           ProcessPair2c<Linear>(static_cast<Corr2<D1,D2>*>(corr), field1, field2, dots,
-                                 coords, metric);
+           ProcessPair2c<Linear>(corr, field1, field2, dots, coords, metric);
            break;
       case TwoD:
-           ProcessPair2c<TwoD>(static_cast<Corr2<D1,D2>*>(corr), field1, field2, dots,
-                               coords, metric);
+           ProcessPair2c<TwoD>(corr, field1, field2, dots, coords, metric);
            break;
       default:
            Assert(false);
     }
 }
-
-template <int D1>
-void ProcessPair2a(void* corr, void* field1, void* field2, int dots,
-                   int d2, int coords, int bin_type, int metric)
-{
-    Assert(d2 >= D1);
-    switch(d2) {
-      case NData:
-           ProcessPair2b<D1,MAX(D1,NData)>(corr, field1, field2, dots,
-                                           coords, bin_type, metric);
-           break;
-      case KData:
-           ProcessPair2b<D1,MAX(D1,KData)>(corr, field1, field2, dots,
-                                           coords, bin_type, metric);
-           break;
-      case GData:
-           ProcessPair2b<D1,MAX(D1,GData)>(corr, field1, field2, dots,
-                                           coords, bin_type, metric);
-           break;
-      default:
-           Assert(false);
-    }
-}
-
-void ProcessPair(void* corr, void* field1, void* field2, int dots,
-                 int d1, int d2, int coords, int bin_type, int metric)
-{
-    dbg<<"Start ProcessPair: "<<d1<<" "<<d2<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
-
-    switch(d1) {
-      case NData:
-           ProcessPair2a<NData>(corr, field1, field2, dots,
-                                d2, coords, bin_type, metric);
-           break;
-      case KData:
-           ProcessPair2a<KData>(corr, field1, field2, dots,
-                                d2, coords, bin_type, metric);
-           break;
-      case GData:
-           ProcessPair2a<GData>(corr, field1, field2, dots,
-                                d2, coords, bin_type, metric);
-           break;
-      default:
-           Assert(false);
-    }
-}
-
 
 int SetOMPThreads(int num_threads)
 {
@@ -1606,15 +1366,10 @@ long SamplePairs2c(BaseCorr2* corr, BaseField<D1>* field1, BaseField<D2>* field2
 }
 
 template <int D1, int D2>
-long SamplePairs(void* corrp, BaseField<D1>* field1, BaseField<D2>* field2,
-                 double minsep, double maxsep,
-                 int coords, int bin_type, int metric,
+long SamplePairs(BaseCorr2* corr, BaseField<D1>* field1, BaseField<D2>* field2,
+                 double minsep, double maxsep, int coords, int bin_type, int metric,
                  py::array_t<long>& i1p, py::array_t<long>& i2p, py::array_t<double>& sepp)
 {
-    Assert(i1p.request().ndim == 1);
-    Assert(i2p.request().ndim == 1);
-    Assert(sepp.request().ndim == 1);
-
     long n = i1p.request().size;
     Assert(i2p.request().size == n);
     Assert(sepp.request().size == n);
@@ -1624,8 +1379,6 @@ long SamplePairs(void* corrp, BaseField<D1>* field1, BaseField<D2>* field2,
     double* sep = static_cast<double*>(sepp.request().ptr);
 
     dbg<<"Start SamplePairs: "<<D1<<" "<<D2<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
-
-    BaseCorr2* corr = static_cast<BaseCorr2*>(corrp);
 
     switch(bin_type) {
       case Log:
@@ -1711,21 +1464,21 @@ int TriviallyZero2c(BaseCorr2* corr, int metric, int coords,
     return 0;
 }
 
-int TriviallyZero(void* corr, int bin_type, int metric, int coords,
+int TriviallyZero(BaseCorr2* corr, int bin_type, int metric, int coords,
                   double x1, double y1, double z1, double s1,
                   double x2, double y2, double z2, double s2)
 {
     switch(bin_type) {
       case Log:
-           return TriviallyZero2c<Log>(static_cast<BaseCorr2*>(corr), metric, coords,
+           return TriviallyZero2c<Log>(corr, metric, coords,
                                        x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       case Linear:
-           return TriviallyZero2c<Linear>(static_cast<BaseCorr2*>(corr), metric, coords,
+           return TriviallyZero2c<Linear>(corr, metric, coords,
                                           x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       case TwoD:
-           return TriviallyZero2c<TwoD>(static_cast<BaseCorr2*>(corr), metric, coords,
+           return TriviallyZero2c<TwoD>(corr, metric, coords,
                                         x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       default:
@@ -1737,35 +1490,70 @@ int TriviallyZero(void* corr, int bin_type, int metric, int coords,
 // Export the above functions using pybind11
 
 template <int D1, int D2>
-void WrapCorr2(py::module& _treecorr, std::string prefix)
+struct WrapAuto
 {
-    typedef long (*sample_type)(void* corr,
+    template <typename C>
+    static void run(C& corr2) {}
+};
+
+template <int D>
+struct WrapAuto<D,D>
+{
+    template <typename C>
+    static void run(C& corr2)
+    {
+        typedef void (*auto_type)(Corr2<D,D>* corr, BaseField<D>* field,
+                                  int dots, int coords, int bin_type, int metric);
+        corr2.def("processAuto", auto_type(&ProcessAuto));
+    }
+};
+
+template <int D1, int D2, typename W>
+void WrapCorr2(py::module& _treecorr, std::string prefix, W& base_corr2)
+{
+    typedef Corr2<D1,D2>* (*init_type)(
+        int bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+        double minrpar, double maxrpar, double xp, double yp, double zp,
+        py::array_t<double>& xi0p, py::array_t<double>& xi1p,
+        py::array_t<double>& xi2p, py::array_t<double>& xi3p,
+        py::array_t<double>& meanrp, py::array_t<double>& meanlogrp,
+        py::array_t<double>& weightp, py::array_t<double>& npairsp);
+
+    typedef long (*sample_type)(BaseCorr2* corr,
                                 BaseField<D1>* field1, BaseField<D2>* field2,
                                 double minsep, double maxsep, int coords, int bin_type, int metric,
                                 py::array_t<long>& i1p, py::array_t<long>& i2p,
                                 py::array_t<double>& sepp);
+    typedef void (*cross_type)(Corr2<D1,D2>* corr,
+                               BaseField<D1>* field1, BaseField<D2>* field2,
+                               int dots, int coords, int bin_type, int metric);
+    typedef void (*pair_type)(Corr2<D1,D2>* corr,
+                              BaseSimpleField<D1>* field1, BaseSimpleField<D2>* field2,
+                              int dots, int coords, int bin_type, int metric);
 
-    _treecorr.def("SamplePairs", sample_type(&SamplePairs));
+    py::class_<Corr2<D1,D2>, BaseCorr2> corr2(_treecorr, (prefix + "Corr").c_str());
+    corr2.def(py::init(init_type(&BuildCorr2)));
+    corr2.def("processCross", cross_type(&ProcessCross));
+    corr2.def("processPair", pair_type(&ProcessPair));
+    WrapAuto<D1,D2>::run(corr2);
+
+    base_corr2.def("samplePairs", sample_type(&SamplePairs));
 }
-
 
 void pyExportCorr2(py::module& _treecorr)
 {
-    _treecorr.def("BuildCorr2", &BuildCorr2);
-    _treecorr.def("DestroyCorr2", &DestroyCorr2);
-    _treecorr.def("ProcessAuto2", &ProcessAuto2);
-    _treecorr.def("ProcessCross2", &ProcessCross2);
-    _treecorr.def("ProcessPair", &ProcessPair);
+    py::class_<BaseCorr2> base_corr2(_treecorr, "BaseCorr2");
+    base_corr2.def("triviallyZero", &TriviallyZero);
+
+    WrapCorr2<NData,NData>(_treecorr, "NN", base_corr2);
+    WrapCorr2<NData,KData>(_treecorr, "NK", base_corr2);
+    WrapCorr2<NData,GData>(_treecorr, "NG", base_corr2);
+    WrapCorr2<KData,KData>(_treecorr, "KK", base_corr2);
+    WrapCorr2<KData,GData>(_treecorr, "KG", base_corr2);
+    WrapCorr2<GData,GData>(_treecorr, "GG", base_corr2);
+
     _treecorr.def("SetOMPThreads", &SetOMPThreads);
     _treecorr.def("GetOMPThreads", &GetOMPThreads);
-    _treecorr.def("TriviallyZero", &TriviallyZero);
-
-    WrapCorr2<NData,NData>(_treecorr, "NN");
-    WrapCorr2<NData,KData>(_treecorr, "NK");
-    WrapCorr2<NData,GData>(_treecorr, "NG");
-    WrapCorr2<KData,KData>(_treecorr, "KK");
-    WrapCorr2<KData,GData>(_treecorr, "KG");
-    WrapCorr2<GData,GData>(_treecorr, "GG");
 
     py::enum_<BinType>(_treecorr, "BinType")
         .value("Log", Log)

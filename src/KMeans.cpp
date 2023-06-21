@@ -851,7 +851,6 @@ template <int D>
 void KMeansInitTree(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
                     int coords, long long seed)
 {
-    Assert(cenp.request().ndim == 1);
     double* centers = static_cast<double*>(cenp.request().ptr);
 
     switch(coords) {
@@ -864,6 +863,8 @@ void KMeansInitTree(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
       case ThreeD:
            KMeansInitTree2(static_cast<Field<D,ThreeD>*>(field), centers, npatch, seed);
            break;
+      default:
+           Assert(false);
     }
 }
 
@@ -871,7 +872,6 @@ template <int D>
 void KMeansInitRand(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
                     int coords, long long seed)
 {
-    Assert(cenp.request().ndim == 1);
     double* centers = static_cast<double*>(cenp.request().ptr);
 
     switch(coords) {
@@ -884,6 +884,8 @@ void KMeansInitRand(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
       case ThreeD:
            KMeansInitRand2(static_cast<Field<D,ThreeD>*>(field), centers, npatch, seed);
            break;
+      default:
+           Assert(false);
     }
 }
 
@@ -891,7 +893,6 @@ template <int D>
 void KMeansInitKMPP(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
                     int coords, long long seed)
 {
-    Assert(cenp.request().ndim == 1);
     double* centers = static_cast<double*>(cenp.request().ptr);
 
     switch(coords) {
@@ -904,6 +905,8 @@ void KMeansInitKMPP(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
       case ThreeD:
            KMeansInitKMPP2(static_cast<Field<D,ThreeD>*>(field), centers, npatch, seed);
            break;
+      default:
+           Assert(false);
     }
 }
 
@@ -911,7 +914,6 @@ template <int D>
 void KMeansRun(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
                int max_iter, double tol, bool alt, int coords)
 {
-    Assert(cenp.request().ndim == 1);
     double* centers = static_cast<double*>(cenp.request().ptr);
 
     switch(coords) {
@@ -924,6 +926,8 @@ void KMeansRun(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
       case ThreeD:
            KMeansRun2(static_cast<Field<D,ThreeD>*>(field), centers, npatch, max_iter, tol, alt);
            break;
+      default:
+           Assert(false);
     }
 }
 
@@ -931,8 +935,6 @@ template <int D>
 void KMeansAssign(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
                   py::array_t<long>& pp, int coords)
 {
-    Assert(cenp.request().ndim == 1);
-    Assert(pp.request().ndim == 1);
     long n = pp.request().size;
 
     double* centers = static_cast<double*>(cenp.request().ptr);
@@ -948,6 +950,8 @@ void KMeansAssign(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
       case ThreeD:
            KMeansAssign2(static_cast<Field<D,ThreeD>*>(field), centers, npatch, patches, n);
            break;
+      default:
+           Assert(false);
     }
 }
 
@@ -955,11 +959,6 @@ void QuickAssign(py::array_t<double>& cenp, int npatch,
                  py::array_t<double>& xp, py::array_t<double>& yp,
                  py::array_t<double>& zp, py::array_t<long>& pp)
 {
-    Assert(cenp.request().ndim == 1);
-    Assert(xp.request().ndim == 1);
-    Assert(yp.request().ndim == 1);
-    Assert(zp.request().ndim == 1);
-    Assert(pp.request().ndim == 1);
     long n = xp.request().size;
     Assert(yp.request().size == n);
     Assert(zp.request().size == n || zp.request().size == 0);
@@ -1014,11 +1013,6 @@ void SelectPatch(int patch, py::array_t<double>& cenp, int npatch,
                  py::array_t<double>& xp, py::array_t<double>& yp,
                  py::array_t<double>& zp, py::array_t<long>& usep)
 {
-    Assert(cenp.request().ndim == 1);
-    Assert(xp.request().ndim == 1);
-    Assert(yp.request().ndim == 1);
-    Assert(zp.request().ndim == 1);
-    Assert(usep.request().ndim == 1);
     long n = xp.request().size;
     Assert(yp.request().size == n);
     Assert(zp.request().size == n || zp.request().size == 0);
@@ -1088,12 +1082,6 @@ void GenerateXYZ(
     py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
     py::array_t<double>& rap, py::array_t<double>& decp, py::array_t<double>& rp)
 {
-    Assert(xp.request().ndim == 1);
-    Assert(yp.request().ndim == 1);
-    Assert(zp.request().ndim == 1);
-    Assert(rap.request().ndim == 1);
-    Assert(decp.request().ndim == 1);
-    Assert(rp.request().ndim == 1);
     long n = xp.request().size;
     Assert(yp.request().size == n);
     Assert(zp.request().size == n);

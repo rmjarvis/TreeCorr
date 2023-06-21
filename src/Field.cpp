@@ -494,6 +494,8 @@ BaseField<D>* BuildField(double* x, double* y, double* z, double* g1, double* g2
                                       minsize, maxsize,
                                       sm, seed,
                                       bool(brute), mintop, maxtop);
+      default:
+           Assert(false);
     }
     return 0;
 }
@@ -505,14 +507,6 @@ BaseField<GData>* BuildGField(
     double minsize, double maxsize,
     int sm_int, long long seed, int brute, int mintop, int maxtop, int coords)
 {
-    Assert(xp.request().ndim == 1);
-    Assert(yp.request().ndim == 1);
-    Assert(zp.request().ndim == 1);
-    Assert(g1p.request().ndim == 1);
-    Assert(g2p.request().ndim == 1);
-    Assert(wp.request().ndim == 1);
-    Assert(wposp.request().ndim == 1);
-
     long nobj = xp.request().size;
     Assert(yp.request().size == nobj);
     Assert(zp.request().size == nobj || zp.request().size == 0);
@@ -540,13 +534,6 @@ BaseField<KData>* BuildKField(
     double minsize, double maxsize,
     int sm_int, long long seed, int brute, int mintop, int maxtop, int coords)
 {
-    Assert(xp.request().ndim == 1);
-    Assert(yp.request().ndim == 1);
-    Assert(zp.request().ndim == 1);
-    Assert(kp.request().ndim == 1);
-    Assert(wp.request().ndim == 1);
-    Assert(wposp.request().ndim == 1);
-
     long nobj = xp.request().size;
     Assert(yp.request().size == nobj);
     Assert(zp.request().size == nobj || zp.request().size == 0);
@@ -572,12 +559,6 @@ BaseField<NData>* BuildNField(
     double minsize, double maxsize,
     int sm_int, long long seed, int brute, int mintop, int maxtop, int coords)
 {
-    Assert(xp.request().ndim == 1);
-    Assert(yp.request().ndim == 1);
-    Assert(zp.request().ndim == 1);
-    Assert(wp.request().ndim == 1);
-    Assert(wposp.request().ndim == 1);
-
     long nobj = xp.request().size;
     Assert(yp.request().size == nobj);
     Assert(zp.request().size == nobj || zp.request().size == 0);
@@ -599,7 +580,6 @@ template <int D>
 void FieldGetNear(BaseField<D>* field, double x, double y, double z, double sep,
                   py::array_t<long>& inp)
 {
-    Assert(inp.request().ndim == 1);
     long n = inp.request().size;
     long* indices = static_cast<long*>(inp.request().ptr);
     field->getNear(x,y,z,sep,indices,n);
@@ -621,6 +601,8 @@ BaseSimpleField<D>* BuildSimpleField(
       case ThreeD:
            return new SimpleField<D,ThreeD>(x, y, z, g1, g2, k,
                                             w, wpos, nobj);
+      default:
+           Assert(false);
     }
     return 0;
 }
@@ -631,14 +613,6 @@ BaseSimpleField<GData>* BuildGSimpleField(
     py::array_t<double>& wp, py::array_t<double>& wposp,
     int coords)
 {
-    Assert(xp.request().ndim == 1);
-    Assert(yp.request().ndim == 1);
-    Assert(zp.request().ndim == 1);
-    Assert(g1p.request().ndim == 1);
-    Assert(g2p.request().ndim == 1);
-    Assert(wp.request().ndim == 1);
-    Assert(wposp.request().ndim == 1);
-
     long nobj = xp.request().size;
     Assert(yp.request().size == nobj);
     Assert(zp.request().size == nobj || zp.request().size == 0);
@@ -664,13 +638,6 @@ BaseSimpleField<KData>* BuildKSimpleField(
     py::array_t<double>& wp, py::array_t<double> wposp,
     int coords)
 {
-    Assert(xp.request().ndim == 1);
-    Assert(yp.request().ndim == 1);
-    Assert(zp.request().ndim == 1);
-    Assert(kp.request().ndim == 1);
-    Assert(wp.request().ndim == 1);
-    Assert(wposp.request().ndim == 1);
-
     long nobj = xp.request().size;
     Assert(yp.request().size == nobj);
     Assert(zp.request().size == nobj || zp.request().size == 0);
@@ -693,12 +660,6 @@ BaseSimpleField<NData>* BuildNSimpleField(
     py::array_t<double>& wp, py::array_t<double>& wposp,
     int coords)
 {
-    Assert(xp.request().ndim == 1);
-    Assert(yp.request().ndim == 1);
-    Assert(zp.request().ndim == 1);
-    Assert(wp.request().ndim == 1);
-    Assert(wposp.request().ndim == 1);
-
     long nobj = xp.request().size;
     Assert(yp.request().size == nobj);
     Assert(zp.request().size == nobj || zp.request().size == 0);
@@ -734,6 +695,8 @@ void pyExportField(py::module& _treecorr)
     py::class_<BaseField<KData> > kfield(_treecorr, "KField");
     py::class_<BaseField<GData> > gfield(_treecorr, "GField");
 
+    // These aren't included in the WrapField template, since the function signatures
+    // aren't the same.
     nfield.def(py::init(&BuildNField));
     kfield.def(py::init(&BuildKField));
     gfield.def(py::init(&BuildGField));

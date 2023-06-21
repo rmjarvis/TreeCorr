@@ -603,9 +603,8 @@ class BinnedCorr2(object):
         # For now, ignore the metric.  Just be conservative about how much space we need.
         x1,y1,z1,s1 = c1._get_center_size()
         x2,y2,z2,s2 = c2._get_center_size()
-        return _lib.TriviallyZero(self.corr, self._bintype,
-                                  self._metric, self._coords,
-                                  x1, y1, z1, s1, x2, y2, z2, s2)
+        return self.corr.triviallyZero(self._bintype, self._metric, self._coords,
+                                       x1, y1, z1, s1, x2, y2, z2, s2)
 
     def _process_all_auto(self, cat1, metric, num_threads, comm, low_mem):
 
@@ -1122,9 +1121,8 @@ class BinnedCorr2(object):
         i1 = np.zeros(n, dtype=int)
         i2 = np.zeros(n, dtype=int)
         sep = np.zeros(n, dtype=float)
-        ntot = _lib.SamplePairs(self.corr, f1.data, f2.data, min_sep, max_sep,
-                                self._coords, self._bintype, self._metric,
-                                i1, i2, sep)
+        ntot = self.corr.samplePairs(f1.data, f2.data, min_sep, max_sep, self._coords,
+                                     self._bintype, self._metric, i1, i2, sep)
 
         if ntot < n:
             n = ntot

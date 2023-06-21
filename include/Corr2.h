@@ -29,7 +29,6 @@ struct XiData;
 // Things that don't need to access the data vectors can live in the base class.
 class BaseCorr2
 {
-
 public:
 
     BaseCorr2(BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,

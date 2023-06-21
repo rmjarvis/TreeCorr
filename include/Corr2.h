@@ -27,54 +27,54 @@ template <int D1, int D2>
 struct XiData;
 
 // Corr2 encapsulates a binned correlation function.
-template <int D1, int D2, int B>
+template <int D1, int D2>
 class Corr2
 {
 
 public:
 
-    Corr2(double minsep, double maxsep, int nbins, double binsize, double b,
-                double minrpar, double maxrpar, double xp, double yp, double zp,
-                double* xi0, double* xi1, double* xi2, double* xi3,
-                double* meanr, double* meanlogr, double* weight, double* npairs);
+    Corr2(BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+          double minrpar, double maxrpar, double xp, double yp, double zp,
+          double* xi0, double* xi1, double* xi2, double* xi3,
+          double* meanr, double* meanlogr, double* weight, double* npairs);
     Corr2(const Corr2& rhs, bool copy_data=true);
     ~Corr2();
 
     void clear();  // Set all data to 0.
 
-    template <int C, int M, int P>
+    template <int B, int M, int P, int C>
     void process(const Field<D1, C>& field, bool dots);
-    template <int C, int M, int P>
+    template <int B, int M, int P, int C>
     void process(const Field<D1, C>& field1, const Field<D2, C>& field2, bool dots);
-    template <int C, int M, int P>
+    template <int B, int M, int P, int C>
     void processPairwise(const SimpleField<D1, C>& field, const SimpleField<D2, C>& field2,
                          bool dots);
 
     // Main worker functions for calculating the result
-    template <int C, int M, int P>
+    template <int B, int M, int P, int C>
     void process2(const Cell<D1,C>& c12, const MetricHelper<M,P>& m);
 
-    template <int C, int M, int P>
+    template <int B, int M, int P, int C>
     void process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2, const MetricHelper<M,P>& m,
                    bool do_reverse);
 
-    template <int C>
+    template <int B, int C>
     void directProcess11(const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double dsq,
                          bool do_reverse, int k=-1, double r=0., double logr=0.);
 
     // Note: op= only copies _data.  Not all the params.
-    void operator=(const Corr2<D1,D2,B>& rhs);
-    void operator+=(const Corr2<D1,D2,B>& rhs);
+    void operator=(const Corr2<D1,D2>& rhs);
+    void operator+=(const Corr2<D1,D2>& rhs);
 
     // Sample a random subset of pairs in a given range
-    template <int M, int P, int C>
+    template <int B, int M, int P, int C>
     long samplePairs(const Field<D1, C>& field1, const Field<D2, C>& field2,
                      double min_sep, double max_sep, long* i1, long* i2, double* sep, int n);
-    template <int M, int P, int C>
+    template <int B, int M, int P, int C>
     void samplePairs(const Cell<D1, C>& c1, const Cell<D2, C>& c2, const MetricHelper<M,P>& m,
                      double min_sep, double min_sepsq, double max_sep, double max_sepsq,
                      long* i1, long* i2, double* sep, int n, long& k);
-    template <int C>
+    template <int B, int C>
     void sampleFrom(const Cell<D1, C>& c1, const Cell<D2, C>& c2, double rsq, double r,
                     long* i1, long* i2, double* sep, int n, long& k);
 
@@ -84,7 +84,7 @@ public:
                 _maxrpar != std::numeric_limits<double>::max());
     }
 
-    template <int M, int C>
+    template <int B, int M, int C>
     bool triviallyZero(Position<C> p1, Position<C> p2, double s1, double s2);
 
 protected:

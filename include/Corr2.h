@@ -26,9 +26,60 @@
 template <int D1, int D2>
 struct XiData;
 
+// Things that don't need to access the data vectors can live in the base class.
+class BaseCorr2
+{
+
+public:
+
+    BaseCorr2(BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+              double minrpar, double maxrpar, double xp, double yp, double zp);
+    BaseCorr2(const BaseCorr2& rhs);
+    ~BaseCorr2() {}
+
+    // Sample a random subset of pairs in a given range
+    template <int B, int M, int P, int D1, int D2, int C>
+    long samplePairs(const Field<D1, C>& field1, const Field<D2, C>& field2,
+                     double min_sep, double max_sep, long* i1, long* i2, double* sep, int n);
+    template <int B, int M, int P, int D1, int D2, int C>
+    void samplePairs(const Cell<D1, C>& c1, const Cell<D2, C>& c2, const MetricHelper<M,P>& m,
+                     double min_sep, double min_sepsq, double max_sep, double max_sepsq,
+                     long* i1, long* i2, double* sep, int n, long& k);
+    template <int B, int D1, int D2, int C>
+    void sampleFrom(const Cell<D1, C>& c1, const Cell<D2, C>& c2, double rsq, double r,
+                    long* i1, long* i2, double* sep, int n, long& k);
+
+    bool nontrivialRPar() const
+    {
+        return (_minrpar != -std::numeric_limits<double>::max() ||
+                _maxrpar != std::numeric_limits<double>::max());
+    }
+
+    template <int B, int M, int C>
+    bool triviallyZero(Position<C> p1, Position<C> p2, double s1, double s2);
+
+protected:
+
+    double _minsep;
+    double _maxsep;
+    int _nbins;
+    double _binsize;
+    double _b;
+    double _minrpar, _maxrpar;
+    double _xp, _yp, _zp;
+    double _logminsep;
+    double _halfminsep;
+    double _minsepsq;
+    double _maxsepsq;
+    double _bsq;
+    double _fullmaxsep;
+    double _fullmaxsepsq;
+    int _coords; // Stores the kind of coordinates being used for the analysis.
+};
+
 // Corr2 encapsulates a binned correlation function.
 template <int D1, int D2>
-class Corr2
+class Corr2 : public BaseCorr2
 {
 
 public:
@@ -66,44 +117,7 @@ public:
     void operator=(const Corr2<D1,D2>& rhs);
     void operator+=(const Corr2<D1,D2>& rhs);
 
-    // Sample a random subset of pairs in a given range
-    template <int B, int M, int P, int C>
-    long samplePairs(const Field<D1, C>& field1, const Field<D2, C>& field2,
-                     double min_sep, double max_sep, long* i1, long* i2, double* sep, int n);
-    template <int B, int M, int P, int C>
-    void samplePairs(const Cell<D1, C>& c1, const Cell<D2, C>& c2, const MetricHelper<M,P>& m,
-                     double min_sep, double min_sepsq, double max_sep, double max_sepsq,
-                     long* i1, long* i2, double* sep, int n, long& k);
-    template <int B, int C>
-    void sampleFrom(const Cell<D1, C>& c1, const Cell<D2, C>& c2, double rsq, double r,
-                    long* i1, long* i2, double* sep, int n, long& k);
-
-    bool nontrivialRPar() const
-    {
-        return (_minrpar != -std::numeric_limits<double>::max() ||
-                _maxrpar != std::numeric_limits<double>::max());
-    }
-
-    template <int B, int M, int C>
-    bool triviallyZero(Position<C> p1, Position<C> p2, double s1, double s2);
-
 protected:
-
-    double _minsep;
-    double _maxsep;
-    int _nbins;
-    double _binsize;
-    double _b;
-    double _minrpar, _maxrpar;
-    double _xp, _yp, _zp;
-    double _logminsep;
-    double _halfminsep;
-    double _minsepsq;
-    double _maxsepsq;
-    double _bsq;
-    double _fullmaxsep;
-    double _fullmaxsepsq;
-    int _coords; // Stores the kind of coordinates being used for the analysis.
 
     // These are usually allocated in the python layer and just built up here.
     // So all we have here is a bare pointer for each of them.

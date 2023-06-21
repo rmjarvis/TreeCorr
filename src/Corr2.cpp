@@ -52,16 +52,11 @@ double CalculateFullMaxSep(BinType bin_type, double minsep, double maxsep, int n
     return 0.;
 }
 
-template <int D1, int D2>
-Corr2<D1,D2>::Corr2(
+BaseCorr2::BaseCorr2(
     BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
-    double minrpar, double maxrpar, double xp, double yp, double zp,
-    double* xi0, double* xi1, double* xi2, double* xi3,
-    double* meanr, double* meanlogr, double* weight, double* npairs) :
+    double minrpar, double maxrpar, double xp, double yp, double zp) :
     _minsep(minsep), _maxsep(maxsep), _nbins(nbins), _binsize(binsize), _b(b),
-    _minrpar(minrpar), _maxrpar(maxrpar), _xp(xp), _yp(yp), _zp(zp),
-    _coords(-1), _owns_data(false),
-    _xi(xi0,xi1,xi2,xi3), _meanr(meanr), _meanlogr(meanlogr), _weight(weight), _npairs(npairs)
+    _minrpar(minrpar), _maxrpar(maxrpar), _xp(xp), _yp(yp), _zp(zp), _coords(-1)
 {
     dbg<<"Corr2 constructor\n";
     // Some helpful variables we can calculate once here.
@@ -80,8 +75,19 @@ Corr2<D1,D2>::Corr2(
     dbg<<"period = "<<_xp<<"  "<<_yp<<"  "<<_zp<<std::endl;
 }
 
+
 template <int D1, int D2>
-Corr2<D1,D2>::Corr2(const Corr2<D1,D2>& rhs, bool copy_data) :
+Corr2<D1,D2>::Corr2(
+    BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+    double minrpar, double maxrpar, double xp, double yp, double zp,
+    double* xi0, double* xi1, double* xi2, double* xi3,
+    double* meanr, double* meanlogr, double* weight, double* npairs) :
+    BaseCorr2(bin_type, minsep, maxsep, nbins, binsize, b, minrpar, maxrpar, xp, yp, zp),
+    _owns_data(false),
+    _xi(xi0,xi1,xi2,xi3), _meanr(meanr), _meanlogr(meanlogr), _weight(weight), _npairs(npairs)
+{}
+
+BaseCorr2::BaseCorr2(const BaseCorr2& rhs) :
     _minsep(rhs._minsep), _maxsep(rhs._maxsep), _nbins(rhs._nbins),
     _binsize(rhs._binsize), _b(rhs._b),
     _minrpar(rhs._minrpar), _maxrpar(rhs._maxrpar),
@@ -89,8 +95,12 @@ Corr2<D1,D2>::Corr2(const Corr2<D1,D2>& rhs, bool copy_data) :
     _logminsep(rhs._logminsep), _halfminsep(rhs._halfminsep),
     _minsepsq(rhs._minsepsq), _maxsepsq(rhs._maxsepsq), _bsq(rhs._bsq),
     _fullmaxsep(rhs._fullmaxsep), _fullmaxsepsq(rhs._fullmaxsepsq),
-    _coords(rhs._coords), _owns_data(true),
-    _xi(0,0,0,0), _weight(0)
+    _coords(rhs._coords)
+{}
+
+template <int D1, int D2>
+Corr2<D1,D2>::Corr2(const Corr2<D1,D2>& rhs, bool copy_data) :
+    BaseCorr2(rhs), _owns_data(true), _xi(0,0,0,0), _weight(0)
 {
     dbg<<"Corr2 copy constructor\n";
     _xi.new_data(_nbins);
@@ -623,8 +633,8 @@ void Corr2<D1,D2>::operator+=(const Corr2<D1,D2>& rhs)
     for (int i=0; i<_nbins; ++i) _npairs[i] += rhs._npairs[i];
 }
 
-template <int D1, int D2> template <int B, int M, int C>
-bool Corr2<D1,D2>::triviallyZero(Position<C> p1, Position<C> p2, double s1, double s2)
+template <int B, int M, int C>
+bool BaseCorr2::triviallyZero(Position<C> p1, Position<C> p2, double s1, double s2)
 {
     // Ignore any min/max rpar for this calculation.
     double minrpar = -std::numeric_limits<double>::max();
@@ -637,8 +647,8 @@ bool Corr2<D1,D2>::triviallyZero(Position<C> p1, Position<C> p2, double s1, doub
             metric.tooLargeDist(p1, p2, rsq, rpar, s1ps2, _fullmaxsep, _fullmaxsepsq));
 }
 
-template <int D1, int D2> template <int B, int M, int P, int C>
-long Corr2<D1,D2>::samplePairs(
+template <int B, int M, int P, int D1, int D2, int C>
+long BaseCorr2::samplePairs(
     const Field<D1, C>& field1, const Field<D2, C>& field2,
     double minsep, double maxsep, long* i1, long* i2, double* sep, int n)
 {
@@ -667,8 +677,8 @@ long Corr2<D1,D2>::samplePairs(
     return k;
 }
 
-template <int D1, int D2> template <int B, int M, int P, int C>
-void Corr2<D1,D2>::samplePairs(
+template <int B, int M, int P, int D1, int D2, int C>
+void BaseCorr2::samplePairs(
     const Cell<D1, C>& c1, const Cell<D2, C>& c2, const MetricHelper<M,P>& metric,
     double minsep, double minsepsq, double maxsep, double maxsepsq,
     long* i1, long* i2, double* sep, int n, long& k)
@@ -804,8 +814,8 @@ void SelectRandomFrom(long m, std::vector<long>& selection)
     }
 }
 
-template <int D1, int D2> template <int B, int C>
-void Corr2<D1,D2>::sampleFrom(
+template <int B, int D1, int D2, int C>
+void BaseCorr2::sampleFrom(
     const Cell<D1, C>& c1, const Cell<D2, C>& c2, double rsq, double r,
     long* i1, long* i2, double* sep, int n, long& k)
 {
@@ -1516,7 +1526,7 @@ int GetOMPThreads()
 }
 
 template <int B, int M, int D1, int D2>
-long SamplePairs2d(Corr2<D1,D2>* corr, void* field1, void* field2,
+long SamplePairs2d(BaseCorr2* corr, BaseField<D1>* field1, BaseField<D2>* field2,
                    double minsep, double maxsep,
                    int coords, long* i1, long* i2, double* sep, int n)
 {
@@ -1560,7 +1570,7 @@ long SamplePairs2d(Corr2<D1,D2>* corr, void* field1, void* field2,
 }
 
 template <int B, int D1, int D2>
-long SamplePairs2c(Corr2<D1,D2>* corr, void* field1, void* field2,
+long SamplePairs2c(BaseCorr2* corr, BaseField<D1>* field1, BaseField<D2>* field2,
                    double minsep, double maxsep,
                    int coords, int metric, long* i1, long* i2, double* sep, int n)
 {
@@ -1596,57 +1606,9 @@ long SamplePairs2c(Corr2<D1,D2>* corr, void* field1, void* field2,
 }
 
 template <int D1, int D2>
-long SamplePairs2b(void* corr, void* field1, void* field2, double minsep, double maxsep,
-                   int coords, int bin_type, int metric,
-                   long* i1, long* i2, double* sep, int n)
-{
-    switch(bin_type) {
-      case Log:
-           return SamplePairs2c<Log>(static_cast<Corr2<D1,D2>*>(corr),
-                                     field1, field2, minsep, maxsep,
-                                     coords, metric, i1, i2, sep, n);
-           break;
-      case Linear:
-           return SamplePairs2c<Linear>(static_cast<Corr2<D1,D2>*>(corr),
-                                        field1, field2, minsep, maxsep,
-                                        coords, metric, i1, i2, sep, n);
-           break;
-      case TwoD:
-           // TwoD not implemented.
-           break;
-      default:
-           Assert(false);
-    }
-    return 0;
-}
-
-template <int D1>
-long SamplePairs2a(void* corr, void* field1, void* field2, double minsep, double maxsep,
-                   int d2, int coords, int bin_type, int metric,
-                   long* i1, long* i2, double* sep, int n)
-{
-    Assert(d2 >= D1);
-    switch(d2) {
-      case NData:
-           return SamplePairs2b<D1,MAX(D1,NData)>(corr, field1, field2, minsep, maxsep,
-                                                  coords, bin_type, metric, i1, i2, sep, n);
-           break;
-      case KData:
-           return SamplePairs2b<D1,MAX(D1,KData)>(corr, field1, field2, minsep, maxsep,
-                                                  coords, bin_type, metric, i1, i2, sep, n);
-           break;
-      case GData:
-           return SamplePairs2b<D1,MAX(D1,GData)>(corr, field1, field2, minsep, maxsep,
-                                                  coords, bin_type, metric, i1, i2, sep, n);
-           break;
-      default:
-           Assert(false);
-    }
-    return 0;
-}
-
-long SamplePairs(void* corr, void* field1, void* field2, double minsep, double maxsep,
-                 int d1, int d2, int coords, int bin_type, int metric,
+long SamplePairs(void* corrp, BaseField<D1>* field1, BaseField<D2>* field2,
+                 double minsep, double maxsep,
+                 int coords, int bin_type, int metric,
                  py::array_t<long>& i1p, py::array_t<long>& i2p, py::array_t<double>& sepp)
 {
     Assert(i1p.request().ndim == 1);
@@ -1661,23 +1623,21 @@ long SamplePairs(void* corr, void* field1, void* field2, double minsep, double m
     long* i2 = static_cast<long*>(i2p.request().ptr);
     double* sep = static_cast<double*>(sepp.request().ptr);
 
-    dbg<<"Start SamplePairs: "<<d1<<" "<<d2<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
+    dbg<<"Start SamplePairs: "<<D1<<" "<<D2<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
 
-    switch(d1) {
-      case NData:
-           return SamplePairs2a<NData>(corr, field1, field2, minsep, maxsep,
-                                       d2, coords, bin_type, metric,
-                                       i1, i2, sep, n);
+    BaseCorr2* corr = static_cast<BaseCorr2*>(corrp);
+
+    switch(bin_type) {
+      case Log:
+           return SamplePairs2c<Log>(corr, field1, field2, minsep, maxsep,
+                                     coords, metric, i1, i2, sep, n);
            break;
-      case KData:
-           return SamplePairs2a<KData>(corr, field1, field2, minsep, maxsep,
-                                       d2, coords, bin_type, metric,
-                                       i1, i2, sep, n);
+      case Linear:
+           return SamplePairs2c<Linear>(corr, field1, field2, minsep, maxsep,
+                                        coords, metric, i1, i2, sep, n);
            break;
-      case GData:
-           return SamplePairs2a<GData>(corr, field1, field2, minsep, maxsep,
-                                       d2, coords, bin_type, metric,
-                                       i1, i2, sep, n);
+      case TwoD:
+           // TwoD not implemented.
            break;
       default:
            Assert(false);
@@ -1685,8 +1645,8 @@ long SamplePairs(void* corr, void* field1, void* field2, double minsep, double m
     return 0;
 }
 
-template <int B, int M, int C, int D1, int D2>
-int TriviallyZero2e(Corr2<D1,D2>* corr,
+template <int B, int M, int C>
+int TriviallyZero2e(BaseCorr2* corr,
                     double x1, double y1, double z1, double s1,
                     double x2, double y2, double z2, double s2)
 {
@@ -1695,8 +1655,8 @@ int TriviallyZero2e(Corr2<D1,D2>* corr,
     return corr->template triviallyZero<B,M>(p1, p2, s1, s2);
 }
 
-template <int B, int M, int D1, int D2>
-int TriviallyZero2d(Corr2<D1,D2>* corr, int coords,
+template <int B, int M>
+int TriviallyZero2d(BaseCorr2* corr, int coords,
                     double x1, double y1, double z1, double s1,
                     double x2, double y2, double z2, double s2)
 {
@@ -1721,8 +1681,8 @@ int TriviallyZero2d(Corr2<D1,D2>* corr, int coords,
     return 0;
 }
 
-template <int B, int D1, int D2>
-int TriviallyZero2c(Corr2<D1,D2>* corr, int metric, int coords,
+template <int B>
+int TriviallyZero2c(BaseCorr2* corr, int metric, int coords,
                     double x1, double y1, double z1, double s1,
                     double x2, double y2, double z2, double s2)
 {
@@ -1751,22 +1711,21 @@ int TriviallyZero2c(Corr2<D1,D2>* corr, int metric, int coords,
     return 0;
 }
 
-template <int D1, int D2>
-int TriviallyZero2b(void* corr, int bin_type, int metric, int coords,
-                    double x1, double y1, double z1, double s1,
-                    double x2, double y2, double z2, double s2)
+int TriviallyZero(void* corr, int bin_type, int metric, int coords,
+                  double x1, double y1, double z1, double s1,
+                  double x2, double y2, double z2, double s2)
 {
     switch(bin_type) {
       case Log:
-           return TriviallyZero2c<Log>(static_cast<Corr2<D1,D2>*>(corr), metric, coords,
+           return TriviallyZero2c<Log>(static_cast<BaseCorr2*>(corr), metric, coords,
                                        x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       case Linear:
-           return TriviallyZero2c<Linear>(static_cast<Corr2<D1,D2>*>(corr), metric, coords,
+           return TriviallyZero2c<Linear>(static_cast<BaseCorr2*>(corr), metric, coords,
                                           x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       case TwoD:
-           return TriviallyZero2c<TwoD>(static_cast<Corr2<D1,D2>*>(corr), metric, coords,
+           return TriviallyZero2c<TwoD>(static_cast<BaseCorr2*>(corr), metric, coords,
                                         x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       default:
@@ -1775,54 +1734,20 @@ int TriviallyZero2b(void* corr, int bin_type, int metric, int coords,
     return 0;
 }
 
-template <int D1>
-int TriviallyZero2a(void* corr, int d2, int bin_type, int metric, int coords,
-                    double x1, double y1, double z1, double s1,
-                    double x2, double y2, double z2, double s2)
-{
-    switch(d2) {
-      case NData:
-           return TriviallyZero2b<D1,NData>(corr, bin_type, metric, coords,
-                                            x1, y1, z1, s1, x2, y2, z2, s2);
-           break;
-      case KData:
-           return TriviallyZero2b<D1,KData>(corr, bin_type, metric, coords,
-                                            x1, y1, z1, s1, x2, y2, z2, s2);
-           break;
-      case GData:
-           return TriviallyZero2b<D1,GData>(corr, bin_type, metric, coords,
-                                            x1, y1, z1, s1, x2, y2, z2, s2);
-           break;
-      default:
-           Assert(false);
-    }
-    return 0;
-}
-
-int TriviallyZero(void* corr, int d1, int d2, int bin_type, int metric, int coords,
-                  double x1, double y1, double z1, double s1,
-                  double x2, double y2, double z2, double s2)
-{
-    switch(d1) {
-      case NData:
-           return TriviallyZero2a<NData>(corr, d2, bin_type, metric, coords,
-                                         x1, y1, z1, s1, x2, y2, z2, s2);
-           break;
-      case KData:
-           return TriviallyZero2a<KData>(corr, d2, bin_type, metric, coords,
-                                         x1, y1, z1, s1, x2, y2, z2, s2);
-           break;
-      case GData:
-           return TriviallyZero2a<GData>(corr, d2, bin_type, metric, coords,
-                                         x1, y1, z1, s1, x2, y2, z2, s2);
-           break;
-      default:
-           Assert(false);
-    }
-    return 0;
-}
-
 // Export the above functions using pybind11
+
+template <int D1, int D2>
+void WrapCorr2(py::module& _treecorr, std::string prefix)
+{
+    typedef long (*sample_type)(void* corr,
+                                BaseField<D1>* field1, BaseField<D2>* field2,
+                                double minsep, double maxsep, int coords, int bin_type, int metric,
+                                py::array_t<long>& i1p, py::array_t<long>& i2p,
+                                py::array_t<double>& sepp);
+
+    _treecorr.def("SamplePairs", sample_type(&SamplePairs));
+}
+
 
 void pyExportCorr2(py::module& _treecorr)
 {
@@ -1833,8 +1758,14 @@ void pyExportCorr2(py::module& _treecorr)
     _treecorr.def("ProcessPair", &ProcessPair);
     _treecorr.def("SetOMPThreads", &SetOMPThreads);
     _treecorr.def("GetOMPThreads", &GetOMPThreads);
-    _treecorr.def("SamplePairs", &SamplePairs);
     _treecorr.def("TriviallyZero", &TriviallyZero);
+
+    WrapCorr2<NData,NData>(_treecorr, "NN");
+    WrapCorr2<NData,KData>(_treecorr, "NK");
+    WrapCorr2<NData,GData>(_treecorr, "NG");
+    WrapCorr2<KData,KData>(_treecorr, "KK");
+    WrapCorr2<KData,GData>(_treecorr, "KG");
+    WrapCorr2<GData,GData>(_treecorr, "GG");
 
     py::enum_<BinType>(_treecorr, "BinType")
         .value("Log", Log)

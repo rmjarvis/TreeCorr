@@ -603,7 +603,7 @@ class BinnedCorr2(object):
         # For now, ignore the metric.  Just be conservative about how much space we need.
         x1,y1,z1,s1 = c1._get_center_size()
         x2,y2,z2,s2 = c2._get_center_size()
-        return _lib.TriviallyZero(self.corr, self._d1, self._d2, self._bintype,
+        return _lib.TriviallyZero(self.corr, self._bintype,
                                   self._metric, self._coords,
                                   x1, y1, z1, s1, x2, y2, z2, s2)
 
@@ -1123,7 +1123,7 @@ class BinnedCorr2(object):
         i2 = np.zeros(n, dtype=int)
         sep = np.zeros(n, dtype=float)
         ntot = _lib.SamplePairs(self.corr, f1.data, f2.data, min_sep, max_sep,
-                                f1._d, f2._d, self._coords, self._bintype, self._metric,
+                                self._coords, self._bintype, self._metric,
                                 i1, i2, sep)
 
         if ntot < n:

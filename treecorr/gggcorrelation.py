@@ -211,7 +211,7 @@ class GGGCorrelation(BinnedCorr3):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if self._corr is not None:
-            _lib.DestroyCorr3(self.corr, self._d1, self._d2, self._d3, self._bintype)
+            _lib.DestroyCorr3(self.corr, self._d1, self._d2, self._d3)
 
     def __eq__(self, other):
         """Return whether two `GGGCorrelation` instances are equal"""

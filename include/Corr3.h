@@ -27,70 +27,70 @@ template <int D1, int D2, int D3>
 struct ZetaData;
 
 // Corr3 encapsulates a binned correlation function.
-template <int D1, int D2, int D3, int B>
+template <int D1, int D2, int D3>
 class Corr3
 {
 
 public:
 
-    Corr3(double minsep, double maxsep, int nbins, double binsize, double b,
-                double minu, double maxu, int nubins, double ubinsize, double bu,
-                double minv, double maxv, int nvbins, double vbinsize, double bv,
-                double xp, double yp, double zp,
-                double* zeta0, double* zeta1, double* zeta2, double* zeta3,
-                double* zeta4, double* zeta5, double* zeta6, double* zeta7,
-                double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
-                double* meand3, double* meanlogd3, double* meanu, double* meanv,
-                double* weight, double* ntri);
+    Corr3(BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+          double minu, double maxu, int nubins, double ubinsize, double bu,
+          double minv, double maxv, int nvbins, double vbinsize, double bv,
+          double xp, double yp, double zp,
+          double* zeta0, double* zeta1, double* zeta2, double* zeta3,
+          double* zeta4, double* zeta5, double* zeta6, double* zeta7,
+          double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
+          double* meand3, double* meanlogd3, double* meanu, double* meanv,
+          double* weight, double* ntri);
     Corr3(const Corr3& rhs, bool copy_data=true);
     ~Corr3();
 
     void clear();  // Set all data to 0.
 
-    template <int C, int M>
+    template <int B, int M, int C>
     void process(const Field<D1,C>& field, bool dots);
-    template <int C, int M>
-    void process(Corr3<D2,D1,D2,B>* corr212, Corr3<D2,D2,D1,B>* corr221,
+    template <int B, int M, int C>
+    void process(Corr3<D2,D1,D2>* corr212, Corr3<D2,D2,D1>* corr221,
                  const Field<D1,C>& field1, const Field<D2,C>& field2, bool dots);
-    template <int C, int M>
-    void process(Corr3<D1,D3,D2,B>* corr132,
-                 Corr3<D2,D1,D3,B>* corr213, Corr3<D2,D3,D1,B>* corr231,
-                 Corr3<D3,D1,D2,B>* corr312, Corr3<D3,D2,D1,B>* corr321,
+    template <int B, int M, int C>
+    void process(Corr3<D1,D3,D2>* corr132,
+                 Corr3<D2,D1,D3>* corr213, Corr3<D2,D3,D1>* corr231,
+                 Corr3<D3,D1,D2>* corr312, Corr3<D3,D2,D1>* corr321,
                  const Field<D1,C>& field1, const Field<D2,C>& field2,
                  const Field<D3,C>& field3, bool dots);
 
     // Main worker functions for calculating the result
-    template <int C, int M>
+    template <int B, int M, int C>
     void process3(const Cell<D1,C>* c1, const MetricHelper<M,0>& metric);
 
-    template <int C, int M>
-    void process12(Corr3<D2,D1,D2,B>& bc212, Corr3<D2,D2,D1,B>& bc221,
+    template <int B, int M, int C>
+    void process12(Corr3<D2,D1,D2>& bc212, Corr3<D2,D2,D1>& bc221,
                    const Cell<D1,C>* c1, const Cell<D2,C>* c2, const MetricHelper<M,0>& metric);
 
-    template <int C, int M>
-    void process111(Corr3<D1,D3,D2,B>& bc132,
-                    Corr3<D2,D1,D3,B>& bc213, Corr3<D2,D3,D1,B>& bc231,
-                    Corr3<D3,D1,D2,B>& bc312, Corr3<D3,D2,D1,B>& bc321,
+    template <int B, int M, int C>
+    void process111(Corr3<D1,D3,D2>& bc132,
+                    Corr3<D2,D1,D3>& bc213, Corr3<D2,D3,D1>& bc231,
+                    Corr3<D3,D1,D2>& bc312, Corr3<D3,D2,D1>& bc321,
                     const Cell<D1,C>* c1, const Cell<D2,C>* c2, const Cell<D3,C>* c3,
                     const MetricHelper<M,0>& metric,
                     double d1sq=0., double d2sq=0., double d3sq=0.);
 
-    template <int C, int M>
-    void process111Sorted(Corr3<D1,D3,D2,B>& bc132,
-                          Corr3<D2,D1,D3,B>& bc213, Corr3<D2,D3,D1,B>& bc231,
-                          Corr3<D3,D1,D2,B>& bc312, Corr3<D3,D2,D1,B>& bc321,
+    template <int B, int M, int C>
+    void process111Sorted(Corr3<D1,D3,D2>& bc132,
+                          Corr3<D2,D1,D3>& bc213, Corr3<D2,D3,D1>& bc231,
+                          Corr3<D3,D1,D2>& bc312, Corr3<D3,D2,D1>& bc321,
                           const Cell<D1,C>* c1, const Cell<D2,C>* c2, const Cell<D3,C>* c3,
                           const MetricHelper<M,0>& metric,
                           double d1sq=0., double d2sq=0., double d3sq=0.);
 
-    template <int C>
+    template <int B, int C>
     void directProcess111(const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
                           const double d1, const double d2, const double d3,
                           const double logr, const double u, const double v, const int index);
 
     // Note: op= only copies _data.  Not all the params.
-    void operator=(const Corr3<D1,D2,D3,B>& rhs);
-    void operator+=(const Corr3<D1,D2,D3,B>& rhs);
+    void operator=(const Corr3<D1,D2,D3>& rhs);
+    void operator+=(const Corr3<D1,D2,D3>& rhs);
 
 protected:
 

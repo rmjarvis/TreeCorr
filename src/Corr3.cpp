@@ -25,9 +25,9 @@
 #include "omp.h"
 #endif
 
-template <int D1, int D2, int D3, int B>
-Corr3<D1,D2,D3,B>::Corr3(
-    double minsep, double maxsep, int nbins, double binsize, double b,
+template <int D1, int D2, int D3>
+Corr3<D1,D2,D3>::Corr3(
+    BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
     double minu, double maxu, int nubins, double ubinsize, double bu,
     double minv, double maxv, int nvbins, double vbinsize, double bv,
     double xp, double yp, double zp,
@@ -65,8 +65,8 @@ Corr3<D1,D2,D3,B>::Corr3(
     _ntot = _nbins * _nuv;
 }
 
-template <int D1, int D2, int D3, int B>
-Corr3<D1,D2,D3,B>::Corr3(const Corr3<D1,D2,D3,B>& rhs, bool copy_data) :
+template <int D1, int D2, int D3>
+Corr3<D1,D2,D3>::Corr3(const Corr3<D1,D2,D3>& rhs, bool copy_data) :
     _minsep(rhs._minsep), _maxsep(rhs._maxsep), _nbins(rhs._nbins),
     _binsize(rhs._binsize), _b(rhs._b),
     _minu(rhs._minu), _maxu(rhs._maxu), _nubins(rhs._nubins),
@@ -97,8 +97,8 @@ Corr3<D1,D2,D3,B>::Corr3(const Corr3<D1,D2,D3,B>& rhs, bool copy_data) :
     else clear();
 }
 
-template <int D1, int D2, int D3, int B>
-Corr3<D1,D2,D3,B>::~Corr3()
+template <int D1, int D2, int D3>
+Corr3<D1,D2,D3>::~Corr3()
 {
     if (_owns_data) {
         _zeta.delete_data();
@@ -115,8 +115,8 @@ Corr3<D1,D2,D3,B>::~Corr3()
     }
 }
 
-template <int D1, int D2, int D3, int B>
-void Corr3<D1,D2,D3,B>::clear()
+template <int D1, int D2, int D3>
+void Corr3<D1,D2,D3>::clear()
 {
     _zeta.clear(_ntot);
     for (int i=0; i<_ntot; ++i) _meand1[i] = 0.;
@@ -134,69 +134,69 @@ void Corr3<D1,D2,D3,B>::clear()
 
 // Corr3::process3 is invalid if D1 != D2 or D3, so this helper struct lets us only call
 // process3, process12 and process111 when D1 == D2 == D3
-template <int D1, int D2, int D3, int B, int C, int M>
+template <int D1, int D2, int D3, int B, int M, int C>
 struct ProcessHelper
 {
-    static void process3(Corr3<D1,D2,D3,B>& , const Cell<D1,C>*, const MetricHelper<M,0>&) {}
-    static void process12(Corr3<D1,D2,D3,B>& , const Cell<D1,C>*, const Cell<D2,C>*,
+    static void process3(Corr3<D1,D2,D3>& , const Cell<D1,C>*, const MetricHelper<M,0>&) {}
+    static void process12(Corr3<D1,D2,D3>& , const Cell<D1,C>*, const Cell<D2,C>*,
                           const MetricHelper<M,0>&) {}
-    static void process111(Corr3<D1,D2,D3,B>& , const Cell<D1,C>*, const Cell<D2,C>*,
+    static void process111(Corr3<D1,D2,D3>& , const Cell<D1,C>*, const Cell<D2,C>*,
                            const Cell<D3,C>*, const MetricHelper<M,0>&) {}
-    static void process12(Corr3<D1,D2,D2,B>& , Corr3<D2,D1,D2,B>& , Corr3<D2,D2,D1,B>& ,
+    static void process12(Corr3<D1,D2,D2>& , Corr3<D2,D1,D2>& , Corr3<D2,D2,D1>& ,
                           const Cell<D1,C>* , const Cell<D2,C>* ,
                           const MetricHelper<M,0>& ) {}
-    static void process111(Corr3<D1,D2,D2,B>& , Corr3<D2,D1,D2,B>& , Corr3<D2,D2,D1,B>& ,
+    static void process111(Corr3<D1,D2,D2>& , Corr3<D2,D1,D2>& , Corr3<D2,D2,D1>& ,
                            const Cell<D1,C>* , const Cell<D2,C>* , const Cell<D2,C>*,
                            const MetricHelper<M,0>& ) {}
 };
 
-template <int D1, int D2, int B, int C, int M>
-struct ProcessHelper<D1,D2,D2,B,C,M>
+template <int D1, int D2, int B, int M, int C>
+struct ProcessHelper<D1,D2,D2,B,M,C>
 {
-    static void process3(Corr3<D1,D2,D2,B>& b, const Cell<D1,C>*, const MetricHelper<M,0>&) {}
-    static void process12(Corr3<D1,D2,D2,B>& b,
+    static void process3(Corr3<D1,D2,D2>& b, const Cell<D1,C>*, const MetricHelper<M,0>&) {}
+    static void process12(Corr3<D1,D2,D2>& b,
                           const Cell<D1,C>* , const Cell<D2,C>*,
                           const MetricHelper<M,0>&) {}
-    static void process111(Corr3<D1,D2,D2,B>& b,
+    static void process111(Corr3<D1,D2,D2>& b,
                            const Cell<D1,C>* , const Cell<D2,C>*, const Cell<D2,C>*,
                            const MetricHelper<M,0>&) {}
-    static void process12(Corr3<D1,D2,D2,B>& b122, Corr3<D2,D1,D2,B>& b212, Corr3<D2,D2,D1,B>& b221,
+    static void process12(Corr3<D1,D2,D2>& b122, Corr3<D2,D1,D2>& b212, Corr3<D2,D2,D1>& b221,
                           const Cell<D1,C>* c1, const Cell<D2,C>* c2,
                           const MetricHelper<M,0>& metric)
-    { b122.template process12<C,M>(b212,b221,c1,c2, metric); }
-    static void process111(Corr3<D1,D2,D2,B>& b122, Corr3<D2,D1,D2,B>& b212,
-                           Corr3<D2,D2,D1,B>& b221,
+    { b122.template process12<B>(b212,b221,c1,c2, metric); }
+    static void process111(Corr3<D1,D2,D2>& b122, Corr3<D2,D1,D2>& b212,
+                           Corr3<D2,D2,D1>& b221,
                            const Cell<D1,C>* c1, const Cell<D2,C>* c2, const Cell<D2,C>* c3,
                            const MetricHelper<M,0>& metric)
-    { b122.template process111<C,M>(b122,b212,b221,b212,b221,c1,c2,c3, metric); }
+    { b122.template process111<B>(b122,b212,b221,b212,b221,c1,c2,c3, metric); }
 };
 
-template <int D, int B, int C, int M>
-struct ProcessHelper<D,D,D,B,C,M>
+template <int D, int B, int M, int C>
+struct ProcessHelper<D,D,D,B,M,C>
 {
-    static void process3(Corr3<D,D,D,B>& b, const Cell<D,C>* c1,
+    static void process3(Corr3<D,D,D>& b, const Cell<D,C>* c1,
                          const MetricHelper<M,0>& metric)
-    { b.template process3<C,M>(c1, metric); }
-    static void process12(Corr3<D,D,D,B>& b,
+    { b.template process3<B>(c1, metric); }
+    static void process12(Corr3<D,D,D>& b,
                           const Cell<D,C>* c1, const Cell<D,C>* c2,
                           const MetricHelper<M,0>& metric)
-    { b.template process12<C,M>(b,b,c1,c2, metric); }
-    static void process111(Corr3<D,D,D,B>& b,
+    { b.template process12<B>(b,b,c1,c2, metric); }
+    static void process111(Corr3<D,D,D>& b,
                            const Cell<D,C>* c1, const Cell<D,C>* c2, const Cell<D,C>* c3,
                            const MetricHelper<M,0>& metric)
-    { b.template process111<C,M>(b,b,b,b,b,c1,c2,c3, metric); }
-    static void process12(Corr3<D,D,D,B>& b122, Corr3<D,D,D,B>& b212, Corr3<D,D,D,B>& b221,
+    { b.template process111<B>(b,b,b,b,b,c1,c2,c3, metric); }
+    static void process12(Corr3<D,D,D>& b122, Corr3<D,D,D>& b212, Corr3<D,D,D>& b221,
                           const Cell<D,C>* c1, const Cell<D,C>* c2,
                           const MetricHelper<M,0>& metric)
-    { b122.template process12<C,M>(b212,b221,c1,c2, metric); }
-    static void process111(Corr3<D,D,D,B>& b122, Corr3<D,D,D,B>& b212, Corr3<D,D,D,B>& b221,
+    { b122.template process12<B>(b212,b221,c1,c2, metric); }
+    static void process111(Corr3<D,D,D>& b122, Corr3<D,D,D>& b212, Corr3<D,D,D>& b221,
                            const Cell<D,C>* c1, const Cell<D,C>* c2, const Cell<D,C>* c3,
                            const MetricHelper<M,0>& metric)
-    { b122.template process111<C,M>(b122,b212,b221,b212,b221,c1,c2,c3, metric); }
+    { b122.template process111<B>(b122,b212,b221,b212,b221,c1,c2,c3, metric); }
 };
 
-template <int D1, int D2, int D3, int B> template <int C, int M>
-void Corr3<D1,D2,D3,B>::process(const Field<D1,C>& field, bool dots)
+template <int D1, int D2, int D3> template <int B, int M, int C>
+void Corr3<D1,D2,D3>::process(const Field<D1,C>& field, bool dots)
 {
     Assert(D1 == D2);
     Assert(D1 == D3);
@@ -213,9 +213,9 @@ void Corr3<D1,D2,D3,B>::process(const Field<D1,C>& field, bool dots)
 #pragma omp parallel
     {
         // Give each thread their own copy of the data vector to fill in.
-        Corr3<D1,D2,D3,B> bc3(*this,false);
+        Corr3<D1,D2,D3> bc3(*this,false);
 #else
-        Corr3<D1,D2,D3,B>& bc3 = *this;
+        Corr3<D1,D2,D3>& bc3 = *this;
 #endif
 
 #ifdef _OPENMP
@@ -236,14 +236,14 @@ void Corr3<D1,D2,D3,B>::process(const Field<D1,C>& field, bool dots)
                 if (verbose_level >= 2) c1->WriteTree(get_dbgout());
 #endif
             }
-            ProcessHelper<D1,D2,D3,B,C,M>::process3(bc3,c1, metric);
+            ProcessHelper<D1,D2,D3,B,M,C>::process3(bc3,c1, metric);
             for (long j=i+1;j<n1;++j) {
                 const Cell<D1,C>* c2 = field.getCells()[j];
-                ProcessHelper<D1,D2,D3,B,C,M>::process12(bc3,c1,c2, metric);
-                ProcessHelper<D1,D2,D3,B,C,M>::process12(bc3,c2,c1, metric);
+                ProcessHelper<D1,D2,D3,B,M,C>::process12(bc3,c1,c2, metric);
+                ProcessHelper<D1,D2,D3,B,M,C>::process12(bc3,c2,c1, metric);
                 for (long k=j+1;k<n1;++k) {
                     const Cell<D1,C>* c3 = field.getCells()[k];
-                    ProcessHelper<D1,D2,D3,B,C,M>::process111(bc3,c1,c2,c3, metric);
+                    ProcessHelper<D1,D2,D3,B,M,C>::process111(bc3,c1,c2,c3, metric);
                 }
             }
         }
@@ -259,9 +259,9 @@ void Corr3<D1,D2,D3,B>::process(const Field<D1,C>& field, bool dots)
     xdbg<<"zeta[0] -> "<<_zeta<<std::endl;
 }
 
-template <int D1, int D2, int D3, int B> template <int C, int M>
-void Corr3<D1,D2,D3,B>::process(Corr3<D2,D1,D2,B>* corr212, Corr3<D2,D2,D1,B>* corr221,
-                                const Field<D1,C>& field1, const Field<D2,C>& field2, bool dots)
+template <int D1, int D2, int D3> template <int B, int M, int C>
+void Corr3<D1,D2,D3>::process(Corr3<D2,D1,D2>* corr212, Corr3<D2,D2,D1>* corr221,
+                              const Field<D1,C>& field1, const Field<D2,C>& field2, bool dots)
 {
     xdbg<<"_coords = "<<_coords<<std::endl;
     xdbg<<"C = "<<C<<std::endl;
@@ -297,13 +297,13 @@ void Corr3<D1,D2,D3,B>::process(Corr3<D2,D1,D2,B>* corr212, Corr3<D2,D2,D1,B>* c
 #pragma omp parallel
     {
         // Give each thread their own copy of the data vector to fill in.
-        Corr3<D2,D2,D1,B> bc122(*this,false);
-        Corr3<D2,D1,D2,B> bc212(*corr212,false);
-        Corr3<D1,D2,D2,B> bc221(*corr221,false);
+        Corr3<D2,D2,D1> bc122(*this,false);
+        Corr3<D2,D1,D2> bc212(*corr212,false);
+        Corr3<D1,D2,D2> bc221(*corr221,false);
 #else
-        Corr3<D2,D2,D1,B>& bc122 = *this;
-        Corr3<D2,D1,D2,B>& bc212 = *corr212;
-        Corr3<D2,D2,D2,B>& bc221 = *corr221;
+        Corr3<D2,D2,D1>& bc122 = *this;
+        Corr3<D2,D1,D2>& bc212 = *corr212;
+        Corr3<D2,D2,D2>& bc221 = *corr221;
 #endif
 
 #ifdef _OPENMP
@@ -322,10 +322,10 @@ void Corr3<D1,D2,D3,B>::process(Corr3<D2,D1,D2,B>* corr212, Corr3<D2,D2,D1,B>* c
             const Cell<D1,C>* c1 = field1.getCells()[i];
             for (long j=0;j<n2;++j) {
                 const Cell<D2,C>* c2 = field2.getCells()[j];
-                ProcessHelper<D1,D2,D3,B,C,M>::process12(bc122,bc212,bc221, c1,c2, metric);
+                ProcessHelper<D1,D2,D3,B,M,C>::process12(bc122,bc212,bc221, c1,c2, metric);
                 for (long k=j+1;k<n2;++k) {
                     const Cell<D2,C>* c3 = field2.getCells()[k];
-                    ProcessHelper<D1,D2,D3,B,C,M>::process111(bc122,bc212,bc221, c1,c2,c3, metric);
+                    ProcessHelper<D1,D2,D3,B,M,C>::process111(bc122,bc212,bc221, c1,c2,c3, metric);
                 }
             }
         }
@@ -342,12 +342,12 @@ void Corr3<D1,D2,D3,B>::process(Corr3<D2,D1,D2,B>* corr212, Corr3<D2,D2,D1,B>* c
     if (dots) std::cout<<std::endl;
 }
 
-template <int D1, int D2, int D3, int B> template <int C, int M>
-void Corr3<D1,D2,D3,B>::process(Corr3<D1,D3,D2,B>* corr132,
-                                Corr3<D2,D1,D3,B>* corr213, Corr3<D2,D3,D1,B>* corr231,
-                                Corr3<D3,D1,D2,B>* corr312, Corr3<D3,D2,D1,B>* corr321,
-                                const Field<D1,C>& field1, const Field<D2,C>& field2,
-                                const Field<D3,C>& field3, bool dots)
+template <int D1, int D2, int D3> template <int B, int M, int C>
+void Corr3<D1,D2,D3>::process(Corr3<D1,D3,D2>* corr132,
+                              Corr3<D2,D1,D3>* corr213, Corr3<D2,D3,D1>* corr231,
+                              Corr3<D3,D1,D2>* corr312, Corr3<D3,D2,D1>* corr321,
+                              const Field<D1,C>& field1, const Field<D2,C>& field2,
+                              const Field<D3,C>& field3, bool dots)
 {
     xdbg<<"_coords = "<<_coords<<std::endl;
     xdbg<<"C = "<<C<<std::endl;
@@ -392,19 +392,19 @@ void Corr3<D1,D2,D3,B>::process(Corr3<D1,D3,D2,B>* corr132,
 #pragma omp parallel
     {
         // Give each thread their own copy of the data vector to fill in.
-        Corr3<D1,D2,D3,B> bc123(*this,false);
-        Corr3<D1,D3,D2,B> bc132(*corr132,false);
-        Corr3<D2,D1,D3,B> bc213(*corr213,false);
-        Corr3<D2,D3,D1,B> bc231(*corr231,false);
-        Corr3<D3,D1,D2,B> bc312(*corr312,false);
-        Corr3<D3,D2,D1,B> bc321(*corr321,false);
+        Corr3<D1,D2,D3> bc123(*this,false);
+        Corr3<D1,D3,D2> bc132(*corr132,false);
+        Corr3<D2,D1,D3> bc213(*corr213,false);
+        Corr3<D2,D3,D1> bc231(*corr231,false);
+        Corr3<D3,D1,D2> bc312(*corr312,false);
+        Corr3<D3,D2,D1> bc321(*corr321,false);
 #else
-        Corr3<D1,D2,D3,B>& bc123 = *this;
-        Corr3<D1,D3,D2,B>& bc132 = *corr132;
-        Corr3<D2,D1,D3,B>& bc213 = *corr213;
-        Corr3<D2,D3,D1,B>& bc231 = *corr231;
-        Corr3<D3,D1,D2,B>& bc312 = *corr312;
-        Corr3<D3,D2,D1,B>& bc321 = *corr321;
+        Corr3<D1,D2,D3>& bc123 = *this;
+        Corr3<D1,D3,D2>& bc132 = *corr132;
+        Corr3<D2,D1,D3>& bc213 = *corr213;
+        Corr3<D2,D3,D1>& bc231 = *corr231;
+        Corr3<D3,D1,D2>& bc312 = *corr312;
+        Corr3<D3,D2,D1>& bc321 = *corr321;
 #endif
 
 #ifdef _OPENMP
@@ -425,7 +425,7 @@ void Corr3<D1,D2,D3,B>::process(Corr3<D1,D3,D2,B>* corr132,
                 const Cell<D2,C>* c2 = field2.getCells()[j];
                 for (long k=0;k<n3;++k) {
                     const Cell<D3,C>* c3 = field3.getCells()[k];
-                    bc123.template process111<C,M>(
+                    bc123.template process111<B>(
                         bc132, bc213, bc231, bc312, bc321,
                         c1, c2, c3, metric);
                 }
@@ -447,8 +447,8 @@ void Corr3<D1,D2,D3,B>::process(Corr3<D1,D3,D2,B>* corr132,
     if (dots) std::cout<<std::endl;
 }
 
-template <int D1, int D2, int D3, int B> template <int C, int M>
-void Corr3<D1,D2,D3,B>::process3(const Cell<D1,C>* c1, const MetricHelper<M,0>& metric)
+template <int D1, int D2, int D3> template <int B, int M, int C>
+void Corr3<D1,D2,D3>::process3(const Cell<D1,C>* c1, const MetricHelper<M,0>& metric)
 {
     // Does all triangles with 3 points in c1
     xdbg<<"Process3: c1 = "<<c1->getData().getPos()<<"  "<<"  "<<c1->getSize()<<"  "<<c1->getData().getN()<<std::endl;
@@ -463,16 +463,16 @@ void Corr3<D1,D2,D3,B>::process3(const Cell<D1,C>* c1, const MetricHelper<M,0>& 
 
     Assert(c1->getLeft());
     Assert(c1->getRight());
-    process3<C,M>(c1->getLeft(), metric);
-    process3<C,M>(c1->getRight(), metric);
-    process12<C,M>(*this, *this, c1->getLeft(),c1->getRight(), metric);
-    process12<C,M>(*this, *this, c1->getRight(),c1->getLeft(), metric);
+    process3<B>(c1->getLeft(), metric);
+    process3<B>(c1->getRight(), metric);
+    process12<B>(*this, *this, c1->getLeft(),c1->getRight(), metric);
+    process12<B>(*this, *this, c1->getRight(),c1->getLeft(), metric);
 }
 
-template <int D1, int D2, int D3, int B> template <int C, int M>
-void Corr3<D1,D2,D3,B>::process12(Corr3<D2,D1,D2,B>& bc212, Corr3<D2,D2,D1,B>& bc221,
-                                  const Cell<D1,C>* c1, const Cell<D2,C>* c2,
-                                  const MetricHelper<M,0>& metric)
+template <int D1, int D2, int D3> template <int B, int M, int C>
+void Corr3<D1,D2,D3>::process12(Corr3<D2,D1,D2>& bc212, Corr3<D2,D2,D1>& bc221,
+                                const Cell<D1,C>* c1, const Cell<D2,C>* c2,
+                                const MetricHelper<M,0>& metric)
 {
     // Does all triangles with one point in c1 and the other two points in c2
     xdbg<<"Process12: c1 = "<<c1->getData().getPos()<<"  "<<"  "<<c1->getSize()<<"  "<<c1->getData().getN()<<std::endl;
@@ -527,10 +527,10 @@ void Corr3<D1,D2,D3,B>::process12(Corr3<D2,D1,D2,B>& bc212, Corr3<D2,D2,D1,B>& b
 
     Assert(c2->getLeft());
     Assert(c2->getRight());
-    process12<C,M>(bc212, bc221, c1, c2->getLeft(), metric);
-    process12<C,M>(bc212, bc221, c1, c2->getRight(), metric);
+    process12<B>(bc212, bc221, c1, c2->getLeft(), metric);
+    process12<B>(bc212, bc221, c1, c2->getRight(), metric);
     // 111 order is 123, 132, 213, 231, 312, 321   Here 3->2.
-    process111<C,M>(*this,bc212,bc221,bc212,bc221, c1, c2->getLeft(), c2->getRight(), metric);
+    process111<B>(*this,bc212,bc221,bc212,bc221, c1, c2->getLeft(), c2->getRight(), metric);
 }
 
 static bool stop111(
@@ -640,11 +640,11 @@ static bool stop111(
     return false;
 }
 
-template <int D1, int D2, int D3, int B> template <int C, int M>
-void Corr3<D1,D2,D3,B>::process111(
-    Corr3<D1,D3,D2,B>& bc132,
-    Corr3<D2,D1,D3,B>& bc213, Corr3<D2,D3,D1,B>& bc231,
-    Corr3<D3,D1,D2,B>& bc312, Corr3<D3,D2,D1,B>& bc321,
+template <int D1, int D2, int D3> template <int B, int M, int C>
+void Corr3<D1,D2,D3>::process111(
+    Corr3<D1,D3,D2>& bc132,
+    Corr3<D2,D1,D3>& bc213, Corr3<D2,D3,D1>& bc231,
+    Corr3<D3,D1,D2>& bc312, Corr3<D3,D2,D1>& bc321,
     const Cell<D1,C>* c1, const Cell<D2,C>* c2, const Cell<D3,C>* c3,
     const MetricHelper<M,0>& metric, double d1sq, double d2sq, double d3sq)
 {
@@ -673,50 +673,51 @@ void Corr3<D1,D2,D3,B>::process111(
 
     xdbg<<"Before sort: d123 = "<<sqrt(d1sq)<<"  "<<sqrt(d2sq)<<"  "<<sqrt(d3sq)<<std::endl;
 
-    Corr3<D1,D2,D3,B>& bc123 = *this;  // alias for clarity.
+    Corr3<D1,D2,D3>& bc123 = *this;  // alias for clarity.
+
     // Need to end up with d1 > d2 > d3
     if (d1sq > d2sq) {
         if (d2sq > d3sq) {
             xdbg<<"123\n";
             // 123 -> 123
-            bc123.process111Sorted(bc132,bc213,bc231,bc312,bc321,
-                                   c1,c2,c3, metric, d1sq,d2sq,d3sq);
+            bc123.template process111Sorted<B>(bc132,bc213,bc231,bc312,bc321,
+                                               c1,c2,c3, metric, d1sq,d2sq,d3sq);
         } else if (d1sq > d3sq) {
             xdbg<<"132\n";
             // 132 -> 123
-            bc132.process111Sorted(bc123,bc312,bc321,bc213,bc231,
-                                   c1,c3,c2, metric, d1sq,d3sq,d2sq);
+            bc132.template process111Sorted<B>(bc123,bc312,bc321,bc213,bc231,
+                                               c1,c3,c2, metric, d1sq,d3sq,d2sq);
         } else {
             xdbg<<"312\n";
             // 312 -> 123
-            bc312.process111Sorted(bc321,bc132,bc123,bc231,bc213,
-                                   c3,c1,c2, metric, d3sq,d1sq,d2sq);
+            bc312.template process111Sorted<B>(bc321,bc132,bc123,bc231,bc213,
+                                               c3,c1,c2, metric, d3sq,d1sq,d2sq);
         }
     } else {
         if (d1sq > d3sq) {
             xdbg<<"213\n";
             // 213 -> 123
-            bc213.process111Sorted(bc231,bc123,bc132,bc321,bc312,
-                                   c2,c1,c3, metric, d2sq,d1sq,d3sq);
+            bc213.template process111Sorted<B>(bc231,bc123,bc132,bc321,bc312,
+                                               c2,c1,c3, metric, d2sq,d1sq,d3sq);
         } else if (d2sq > d3sq) {
             xdbg<<"231\n";
             // 231 -> 123
-            bc231.process111Sorted(bc213,bc321,bc312,bc123,bc132,
-                                   c2,c3,c1, metric, d2sq,d3sq,d1sq);
+            bc231.template process111Sorted<B>(bc213,bc321,bc312,bc123,bc132,
+                                               c2,c3,c1, metric, d2sq,d3sq,d1sq);
         } else {
             xdbg<<"321\n";
             // 321 -> 123
-            bc321.process111Sorted(bc312,bc231,bc213,bc132,bc123,
-                                   c3,c2,c1, metric, d3sq,d2sq,d1sq);
+            bc321.template process111Sorted<B>(bc312,bc231,bc213,bc132,bc123,
+                                               c3,c2,c1, metric, d3sq,d2sq,d1sq);
         }
     }
 }
 
-template <int D1, int D2, int D3, int B> template <int C, int M>
-void Corr3<D1,D2,D3,B>::process111Sorted(
-    Corr3<D1,D3,D2,B>& bc132,
-    Corr3<D2,D1,D3,B>& bc213, Corr3<D2,D3,D1,B>& bc231,
-    Corr3<D3,D1,D2,B>& bc312, Corr3<D3,D2,D1,B>& bc321,
+template <int D1, int D2, int D3> template <int B, int M, int C>
+void Corr3<D1,D2,D3>::process111Sorted(
+    Corr3<D1,D3,D2>& bc132,
+    Corr3<D2,D1,D3>& bc213, Corr3<D2,D3,D1>& bc231,
+    Corr3<D3,D1,D2>& bc312, Corr3<D3,D2,D1>& bc321,
     const Cell<D1,C>* c1, const Cell<D2,C>* c2, const Cell<D3,C>* c3,
     const MetricHelper<M,0>& metric, double d1sq, double d2sq, double d3sq)
 {
@@ -878,36 +879,36 @@ void Corr3<D1,D2,D3,B>::process111Sorted(
                     Assert(c2->getRight());
                     Assert(c3->getLeft());
                     Assert(c3->getRight());
-                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                    c1->getLeft(),c2->getLeft(),c3->getLeft(),metric);
-                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                    c1->getLeft(),c2->getLeft(),c3->getRight(),metric);
-                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                    c1->getLeft(),c2->getRight(),c3->getLeft(),metric);
-                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                    c1->getLeft(),c2->getRight(),c3->getRight(),metric);
-                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                    c1->getRight(),c2->getLeft(),c3->getLeft(),metric);
-                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                    c1->getRight(),c2->getLeft(),c3->getRight(),metric);
-                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                    c1->getRight(),c2->getRight(),c3->getLeft(),metric);
-                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                    c1->getRight(),c2->getRight(),c3->getRight(),metric);
+                    process111<B>(bc132,bc213,bc231,bc312,bc321,
+                                  c1->getLeft(),c2->getLeft(),c3->getLeft(),metric);
+                    process111<B>(bc132,bc213,bc231,bc312,bc321,
+                                  c1->getLeft(),c2->getLeft(),c3->getRight(),metric);
+                    process111<B>(bc132,bc213,bc231,bc312,bc321,
+                                  c1->getLeft(),c2->getRight(),c3->getLeft(),metric);
+                    process111<B>(bc132,bc213,bc231,bc312,bc321,
+                                  c1->getLeft(),c2->getRight(),c3->getRight(),metric);
+                    process111<B>(bc132,bc213,bc231,bc312,bc321,
+                                  c1->getRight(),c2->getLeft(),c3->getLeft(),metric);
+                    process111<B>(bc132,bc213,bc231,bc312,bc321,
+                                  c1->getRight(),c2->getLeft(),c3->getRight(),metric);
+                    process111<B>(bc132,bc213,bc231,bc312,bc321,
+                                  c1->getRight(),c2->getRight(),c3->getLeft(),metric);
+                    process111<B>(bc132,bc213,bc231,bc312,bc321,
+                                  c1->getRight(),c2->getRight(),c3->getRight(),metric);
                 } else {
                     // split 2,3
                     Assert(c2->getLeft());
                     Assert(c2->getRight());
                     Assert(c3->getLeft());
                     Assert(c3->getRight());
-                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                    c1,c2->getLeft(),c3->getLeft(),metric);
-                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                    c1,c2->getLeft(),c3->getRight(),metric);
-                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                    c1,c2->getRight(),c3->getLeft(),metric);
-                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                    c1,c2->getRight(),c3->getRight(),metric);
+                    process111<B>(bc132,bc213,bc231,bc312,bc321,
+                                  c1,c2->getLeft(),c3->getLeft(),metric);
+                    process111<B>(bc132,bc213,bc231,bc312,bc321,
+                                  c1,c2->getLeft(),c3->getRight(),metric);
+                    process111<B>(bc132,bc213,bc231,bc312,bc321,
+                                  c1,c2->getRight(),c3->getLeft(),metric);
+                    process111<B>(bc132,bc213,bc231,bc312,bc321,
+                                  c1,c2->getRight(),c3->getRight(),metric);
                 }
             } else {
                 if (split1) {
@@ -916,22 +917,22 @@ void Corr3<D1,D2,D3,B>::process111Sorted(
                     Assert(c1->getRight());
                     Assert(c3->getLeft());
                     Assert(c3->getRight());
-                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                    c1->getLeft(),c2,c3->getLeft(),metric);
-                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                    c1->getLeft(),c2,c3->getRight(),metric);
-                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                    c1->getRight(),c2,c3->getLeft(),metric);
-                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                    c1->getRight(),c2,c3->getRight(),metric);
+                    process111<B>(bc132,bc213,bc231,bc312,bc321,
+                                  c1->getLeft(),c2,c3->getLeft(),metric);
+                    process111<B>(bc132,bc213,bc231,bc312,bc321,
+                                  c1->getLeft(),c2,c3->getRight(),metric);
+                    process111<B>(bc132,bc213,bc231,bc312,bc321,
+                                  c1->getRight(),c2,c3->getLeft(),metric);
+                    process111<B>(bc132,bc213,bc231,bc312,bc321,
+                                  c1->getRight(),c2,c3->getRight(),metric);
                 } else {
                     // split 3 only
                     Assert(c3->getLeft());
                     Assert(c3->getRight());
-                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                    c1,c2,c3->getLeft(),metric,0.,0.,d3sq);
-                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                    c1,c2,c3->getRight(),metric,0.,0.,d3sq);
+                    process111<B>(bc132,bc213,bc231,bc312,bc321,
+                                  c1,c2,c3->getLeft(),metric,0.,0.,d3sq);
+                    process111<B>(bc132,bc213,bc231,bc312,bc321,
+                                  c1,c2,c3->getRight(),metric,0.,0.,d3sq);
                 }
             }
         } else {
@@ -942,31 +943,31 @@ void Corr3<D1,D2,D3,B>::process111Sorted(
                     Assert(c1->getRight());
                     Assert(c2->getLeft());
                     Assert(c2->getRight());
-                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                    c1->getLeft(),c2->getLeft(),c3,metric);
-                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                    c1->getLeft(),c2->getRight(),c3,metric);
-                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                    c1->getRight(),c2->getLeft(),c3,metric);
-                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                    c1->getRight(),c2->getRight(),c3,metric);
+                    process111<B>(bc132,bc213,bc231,bc312,bc321,
+                                  c1->getLeft(),c2->getLeft(),c3,metric);
+                    process111<B>(bc132,bc213,bc231,bc312,bc321,
+                                  c1->getLeft(),c2->getRight(),c3,metric);
+                    process111<B>(bc132,bc213,bc231,bc312,bc321,
+                                  c1->getRight(),c2->getLeft(),c3,metric);
+                    process111<B>(bc132,bc213,bc231,bc312,bc321,
+                                  c1->getRight(),c2->getRight(),c3,metric);
                 } else {
                     // split 2 only
                     Assert(c2->getLeft());
                     Assert(c2->getRight());
-                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                    c1,c2->getLeft(),c3,metric,0.,d2sq);
-                    process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                    c1,c2->getRight(),c3,metric,0.,d2sq);
+                    process111<B>(bc132,bc213,bc231,bc312,bc321,
+                                  c1,c2->getLeft(),c3,metric,0.,d2sq);
+                    process111<B>(bc132,bc213,bc231,bc312,bc321,
+                                  c1,c2->getRight(),c3,metric,0.,d2sq);
                 }
             } else {
                 // split 1 only
                 Assert(c1->getLeft());
                 Assert(c1->getRight());
-                process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                c1->getLeft(),c2,c3,metric,d1sq);
-                process111<C,M>(bc132,bc213,bc231,bc312,bc321,
-                                c1->getRight(),c2,c3,metric,d1sq);
+                process111<B>(bc132,bc213,bc231,bc312,bc321,
+                              c1->getLeft(),c2,c3,metric,d1sq);
+                process111<B>(bc132,bc213,bc231,bc312,bc321,
+                              c1->getRight(),c2,c3,metric,d1sq);
             }
         }
     } else {
@@ -975,6 +976,7 @@ void Corr3<D1,D2,D3,B>::process111Sorted(
         Assert(d3 > 0.);
         Assert(u > 0.);
         Assert(v >= 0.);  // v can potentially == 0.
+
         // No splits required.
         // Now we can check to make sure the final d2, u, v are in the right ranges.
         if (d2 < _minsep || d2 >= _maxsep) {
@@ -1049,7 +1051,7 @@ void Corr3<D1,D2,D3,B>::process111Sorted(
         if (index < 0 || index >= _ntot) {
             return;
         }
-        directProcess111<C>(*c1,*c2,*c3,d1,d2,d3,logr,u,v,index);
+        directProcess111<B>(*c1,*c2,*c3,d1,d2,d3,logr,u,v,index);
     }
 }
 
@@ -1133,8 +1135,8 @@ struct DirectHelper<GData,GData,GData>
 };
 
 
-template <int D1, int D2, int D3, int B> template <int C>
-void Corr3<D1,D2,D3,B>::directProcess111(
+template <int D1, int D2, int D3> template <int B, int C>
+void Corr3<D1,D2,D3>::directProcess111(
     const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
     const double d1, const double d2, const double d3,
     const double logr, const double u, const double v, const int index)
@@ -1159,8 +1161,8 @@ void Corr3<D1,D2,D3,B>::directProcess111(
     DirectHelper<D1,D2,D3>::template ProcessZeta<C>(c1,c2,c3,d1,d2,d3,_zeta,index);
 }
 
-template <int D1, int D2, int D3, int B>
-void Corr3<D1,D2,D3,B>::operator=(const Corr3<D1,D2,D3,B>& rhs)
+template <int D1, int D2, int D3>
+void Corr3<D1,D2,D3>::operator=(const Corr3<D1,D2,D3>& rhs)
 {
     Assert(rhs._ntot == _ntot);
     _zeta.copy(rhs._zeta,_ntot);
@@ -1176,8 +1178,8 @@ void Corr3<D1,D2,D3,B>::operator=(const Corr3<D1,D2,D3,B>& rhs)
     for (int i=0; i<_ntot; ++i) _ntri[i] = rhs._ntri[i];
 }
 
-template <int D1, int D2, int D3, int B>
-void Corr3<D1,D2,D3,B>::operator+=(const Corr3<D1,D2,D3,B>& rhs)
+template <int D1, int D2, int D3>
+void Corr3<D1,D2,D3>::operator+=(const Corr3<D1,D2,D3>& rhs)
 {
     Assert(rhs._ntot == _ntot);
     _zeta.add(rhs._zeta,_ntot);
@@ -1211,9 +1213,8 @@ void* BuildCorr3c(int bin_type,
                   double* meand3, double* meanlogd3, double* meanu, double* meanv,
                   double* weight, double* ntri)
 {
-    Assert(bin_type == Log);
-    return static_cast<void*>(new Corr3<D1,D2,D3,Log>(
-            minsep, maxsep, nbins, binsize, b,
+    return static_cast<void*>(new Corr3<D1,D2,D3>(
+            static_cast<BinType>(bin_type), minsep, maxsep, nbins, binsize, b,
             minu, maxu, nubins, ubinsize, bu,
             minv, maxv, nvbins, vbinsize, bv,
             xp, yp, zp,
@@ -1299,50 +1300,49 @@ void* BuildCorr3(int d1, int d2, int d3, int bin_type,
 }
 
 template <int D1, int D2, int D3>
-void DestroyCorr3c(void* corr, int bin_type)
+void DestroyCorr3c(void* corr)
 {
-    Assert(bin_type == Log);  // This is the only one we have yet.
-    delete static_cast<Corr3<D1,D2,D3,Log>*>(corr);
+    delete static_cast<Corr3<D1,D2,D3>*>(corr);
 }
 
-void DestroyCorr3(void* corr, int d1, int d2, int d3, int bin_type)
+void DestroyCorr3(void* corr, int d1, int d2, int d3)
 {
-    dbg<<"Start DestroyCorr "<<d1<<" "<<d2<<" "<<d3<<" "<<bin_type<<std::endl;
+    dbg<<"Start DestroyCorr "<<d1<<" "<<d2<<" "<<d3<<std::endl;
     xdbg<<"corr = "<<corr<<std::endl;
     Assert(d2 == d1); // For now don't bother with the next two layers to resolve these.
     Assert(d3 == d1);
     switch(d1) {
       case NData:
-           DestroyCorr3c<NData, NData, NData>(corr, bin_type);
+           DestroyCorr3c<NData, NData, NData>(corr);
            break;
       case KData:
-           DestroyCorr3c<KData, KData, KData>(corr, bin_type);
+           DestroyCorr3c<KData, KData, KData>(corr);
            break;
       case GData:
-           DestroyCorr3c<GData, GData, GData>(corr, bin_type);
+           DestroyCorr3c<GData, GData, GData>(corr);
            break;
       default:
            Assert(false);
     }
 }
 
-template <int M, int D, int B>
-void ProcessAuto3e(Corr3<D,D,D,B>* corr, void* field, int dots, int coords)
+template <int B, int M, int D>
+void ProcessAuto3e(Corr3<D,D,D>* corr, void* field, int dots, int coords)
 {
     switch(coords) {
       case Flat:
            Assert((MetricHelper<M,0>::_Flat == int(Flat)));
-           corr->template process<MetricHelper<M,0>::_Flat,M>(
+           corr->template process<B,M>(
                *static_cast<Field<D,MetricHelper<M,0>::_Flat>*>(field), dots);
            break;
       case Sphere:
            Assert((MetricHelper<M,0>::_Sphere == int(Sphere)));
-           corr->template process<MetricHelper<M,0>::_Sphere,M>(
+           corr->template process<B,M>(
                *static_cast<Field<D,MetricHelper<M,0>::_Sphere>*>(field), dots);
            break;
       case ThreeD:
            Assert((MetricHelper<M,0>::_ThreeD == int(ThreeD)));
-           corr->template process<MetricHelper<M,0>::_ThreeD,M>(
+           corr->template process<B,M>(
                *static_cast<Field<D,MetricHelper<M,0>::_ThreeD>*>(field), dots);
            break;
       default:
@@ -1350,18 +1350,18 @@ void ProcessAuto3e(Corr3<D,D,D,B>* corr, void* field, int dots, int coords)
     }
 }
 
-template <int D, int B>
-void ProcessAuto3d(Corr3<D,D,D,B>* corr, void* field, int dots, int coords, int metric)
+template <int B, int D>
+void ProcessAuto3d(Corr3<D,D,D>* corr, void* field, int dots, int coords, int metric)
 {
     switch(metric) {
       case Euclidean:
-           ProcessAuto3e<Euclidean>(corr, field, dots, coords);
+           ProcessAuto3e<B,Euclidean>(corr, field, dots, coords);
            break;
       case Arc:
-           ProcessAuto3e<Arc>(corr, field, dots, coords);
+           ProcessAuto3e<B,Arc>(corr, field, dots, coords);
            break;
       case Periodic:
-           ProcessAuto3e<Periodic>(corr, field, dots, coords);
+           ProcessAuto3e<B,Periodic>(corr, field, dots, coords);
            break;
       default:
            Assert(false);
@@ -1372,7 +1372,7 @@ template <int D>
 void ProcessAuto3c(void* corr, void* field, int dots, int coords, int bin_type, int metric)
 {
     Assert(bin_type == Log);
-    ProcessAuto3d(static_cast<Corr3<D,D,D,Log>*>(corr), field, dots, coords, metric);
+    ProcessAuto3d<Log>(static_cast<Corr3<D,D,D>*>(corr), field, dots, coords, metric);
 }
 
 void ProcessAuto3(void* corr, void* field, int dots, int d, int coords, int bin_type, int metric)
@@ -1394,29 +1394,29 @@ void ProcessAuto3(void* corr, void* field, int dots, int d, int coords, int bin_
     }
 }
 
-template <int M, int D1, int D2, int B>
-void ProcessCross12e(Corr3<D1,D2,D2,B>* corr122, Corr3<D2,D1,D2,B>* corr212,
-                     Corr3<D2,D2,D1,B>* corr221,
+template <int B, int M, int D1, int D2>
+void ProcessCross12e(Corr3<D1,D2,D2>* corr122, Corr3<D2,D1,D2>* corr212,
+                     Corr3<D2,D2,D1>* corr221,
                      void* field1, void* field2, int dots, int coords)
 {
     switch(coords) {
       case Flat:
            Assert((MetricHelper<M,0>::_Flat == int(Flat)));
-           corr122->template process<MetricHelper<M,0>::_Flat,M>(
+           corr122->template process<B,M>(
                corr212, corr221,
                *static_cast<Field<D1,MetricHelper<M,0>::_Flat>*>(field1),
                *static_cast<Field<D2,MetricHelper<M,0>::_Flat>*>(field2), dots);
            break;
       case Sphere:
            Assert((MetricHelper<M,0>::_Sphere == int(Sphere)));
-           corr122->template process<MetricHelper<M,0>::_Sphere,M>(
+           corr122->template process<B,M>(
                corr212, corr221,
                *static_cast<Field<D1,MetricHelper<M,0>::_Sphere>*>(field1),
                *static_cast<Field<D2,MetricHelper<M,0>::_Sphere>*>(field2), dots);
            break;
       case ThreeD:
            Assert((MetricHelper<M,0>::_ThreeD == int(ThreeD)));
-           corr122->template process<MetricHelper<M,0>::_ThreeD,M>(
+           corr122->template process<B,M>(
                corr212, corr221,
                *static_cast<Field<D1,MetricHelper<M,0>::_ThreeD>*>(field1),
                *static_cast<Field<D2,MetricHelper<M,0>::_ThreeD>*>(field2), dots);
@@ -1426,23 +1426,23 @@ void ProcessCross12e(Corr3<D1,D2,D2,B>* corr122, Corr3<D2,D1,D2,B>* corr212,
     }
 }
 
-template <int D1, int D2, int B>
-void ProcessCross12d(Corr3<D1,D2,D2,B>* corr122, Corr3<D2,D1,D2,B>* corr212,
-                     Corr3<D2,D2,D1,B>* corr221,
+template <int B, int D1, int D2>
+void ProcessCross12d(Corr3<D1,D2,D2>* corr122, Corr3<D2,D1,D2>* corr212,
+                     Corr3<D2,D2,D1>* corr221,
                      void* field1, void* field2, int dots, int coords, int metric)
 {
     switch(metric) {
       case Euclidean:
-           ProcessCross12e<Euclidean>(corr122, corr212, corr221,
-                                     field1, field2, dots, coords);
+           ProcessCross12e<Log,Euclidean>(corr122, corr212, corr221,
+                                          field1, field2, dots, coords);
            break;
       case Arc:
-           ProcessCross12e<Arc>(corr122, corr212, corr221,
-                               field1, field2, dots, coords);
+           ProcessCross12e<Log,Arc>(corr122, corr212, corr221,
+                                    field1, field2, dots, coords);
            break;
       case Periodic:
-           ProcessCross12e<Periodic>(corr122, corr212, corr221,
-                                    field1, field2, dots, coords);
+           ProcessCross12e<Log,Periodic>(corr122, corr212, corr221,
+                                         field1, field2, dots, coords);
            break;
       default:
            Assert(false);
@@ -1455,10 +1455,10 @@ void ProcessCross12c(void* corr122, void* corr212, void* corr221,
                      int bin_type, int coords, int metric)
 {
     Assert(bin_type == Log);
-    ProcessCross12d(static_cast<Corr3<D1,D2,D2,Log>*>(corr122),
-                   static_cast<Corr3<D2,D1,D2,Log>*>(corr212),
-                   static_cast<Corr3<D2,D2,D1,Log>*>(corr221),
-                   field1, field2, dots, coords, metric);
+    ProcessCross12d<Log>(static_cast<Corr3<D1,D2,D2>*>(corr122),
+                         static_cast<Corr3<D2,D1,D2>*>(corr212),
+                         static_cast<Corr3<D2,D2,D1>*>(corr221),
+                         field1, field2, dots, coords, metric);
 }
 
 void ProcessCross12(void* corr122, void* corr212, void* corr221,
@@ -1489,17 +1489,17 @@ void ProcessCross12(void* corr122, void* corr212, void* corr221,
     }
 }
 
-template <int M, int D1, int D2, int D3, int B>
-void ProcessCross3e(Corr3<D1,D2,D3,B>* corr123, Corr3<D1,D3,D2,B>* corr132,
-                    Corr3<D2,D1,D3,B>* corr213, Corr3<D2,D3,D1,B>* corr231,
-                    Corr3<D3,D1,D2,B>* corr312, Corr3<D3,D2,D1,B>* corr321,
+template <int B, int M, int D1, int D2, int D3>
+void ProcessCross3e(Corr3<D1,D2,D3>* corr123, Corr3<D1,D3,D2>* corr132,
+                    Corr3<D2,D1,D3>* corr213, Corr3<D2,D3,D1>* corr231,
+                    Corr3<D3,D1,D2>* corr312, Corr3<D3,D2,D1>* corr321,
                     void* field1, void* field2, void* field3,
                     int dots, int coords)
 {
     switch(coords) {
       case Flat:
            Assert((MetricHelper<M,0>::_Flat == int(Flat)));
-           corr123->template process<MetricHelper<M,0>::_Flat,M>(
+           corr123->template process<B,M>(
                corr132, corr213, corr231, corr312, corr321,
                *static_cast<Field<D1,MetricHelper<M,0>::_Flat>*>(field1),
                *static_cast<Field<D2,MetricHelper<M,0>::_Flat>*>(field2),
@@ -1507,7 +1507,7 @@ void ProcessCross3e(Corr3<D1,D2,D3,B>* corr123, Corr3<D1,D3,D2,B>* corr132,
            break;
       case Sphere:
            Assert((MetricHelper<M,0>::_Sphere == int(Sphere)));
-           corr123->template process<MetricHelper<M,0>::_Sphere,M>(
+           corr123->template process<B,M>(
                corr132, corr213, corr231, corr312, corr321,
                *static_cast<Field<D1,MetricHelper<M,0>::_Sphere>*>(field1),
                *static_cast<Field<D2,MetricHelper<M,0>::_Sphere>*>(field2),
@@ -1515,7 +1515,7 @@ void ProcessCross3e(Corr3<D1,D2,D3,B>* corr123, Corr3<D1,D3,D2,B>* corr132,
            break;
       case ThreeD:
            Assert((MetricHelper<M,0>::_ThreeD == int(ThreeD)));
-           corr123->template process<MetricHelper<M,0>::_ThreeD,M>(
+           corr123->template process<B,M>(
                corr132, corr213, corr231, corr312, corr321,
                *static_cast<Field<D1,MetricHelper<M,0>::_ThreeD>*>(field1),
                *static_cast<Field<D2,MetricHelper<M,0>::_ThreeD>*>(field2),
@@ -1526,25 +1526,25 @@ void ProcessCross3e(Corr3<D1,D2,D3,B>* corr123, Corr3<D1,D3,D2,B>* corr132,
     }
 }
 
-template <int D1, int D2, int D3, int B>
-void ProcessCross3d(Corr3<D1,D2,D3,B>* corr123, Corr3<D1,D3,D2,B>* corr132,
-                    Corr3<D2,D1,D3,B>* corr213, Corr3<D2,D3,D1,B>* corr231,
-                    Corr3<D3,D1,D2,B>* corr312, Corr3<D3,D2,D1,B>* corr321,
+template <int B, int D1, int D2, int D3>
+void ProcessCross3d(Corr3<D1,D2,D3>* corr123, Corr3<D1,D3,D2>* corr132,
+                    Corr3<D2,D1,D3>* corr213, Corr3<D2,D3,D1>* corr231,
+                    Corr3<D3,D1,D2>* corr312, Corr3<D3,D2,D1>* corr321,
                     void* field1, void* field2, void* field3,
                     int dots, int coords, int metric)
 {
     switch(metric) {
       case Euclidean:
-           ProcessCross3e<Euclidean>(corr123, corr132, corr213, corr231, corr312, corr321,
-                                     field1, field2, field3, dots, coords);
+           ProcessCross3e<B,Euclidean>(corr123, corr132, corr213, corr231, corr312, corr321,
+                                       field1, field2, field3, dots, coords);
            break;
       case Arc:
-           ProcessCross3e<Arc>(corr123, corr132, corr213, corr231, corr312, corr321,
-                               field1, field2, field3, dots, coords);
+           ProcessCross3e<B,Arc>(corr123, corr132, corr213, corr231, corr312, corr321,
+                                 field1, field2, field3, dots, coords);
            break;
       case Periodic:
-           ProcessCross3e<Periodic>(corr123, corr132, corr213, corr231, corr312, corr321,
-                                    field1, field2, field3, dots, coords);
+           ProcessCross3e<B,Periodic>(corr123, corr132, corr213, corr231, corr312, corr321,
+                                      field1, field2, field3, dots, coords);
            break;
       default:
            Assert(false);
@@ -1558,13 +1558,13 @@ void ProcessCross3c(void* corr123, void* corr132, void* corr213,
                     int bin_type, int coords, int metric)
 {
     Assert(bin_type == Log);
-    ProcessCross3d(static_cast<Corr3<D1,D2,D3,Log>*>(corr123),
-                   static_cast<Corr3<D1,D3,D2,Log>*>(corr132),
-                   static_cast<Corr3<D2,D1,D3,Log>*>(corr213),
-                   static_cast<Corr3<D2,D3,D1,Log>*>(corr231),
-                   static_cast<Corr3<D3,D1,D2,Log>*>(corr312),
-                   static_cast<Corr3<D3,D2,D1,Log>*>(corr321),
-                   field1, field2, field3, dots, coords, metric);
+    ProcessCross3d<Log>(static_cast<Corr3<D1,D2,D3>*>(corr123),
+                        static_cast<Corr3<D1,D3,D2>*>(corr132),
+                        static_cast<Corr3<D2,D1,D3>*>(corr213),
+                        static_cast<Corr3<D2,D3,D1>*>(corr231),
+                        static_cast<Corr3<D3,D1,D2>*>(corr312),
+                        static_cast<Corr3<D3,D2,D1>*>(corr321),
+                        field1, field2, field3, dots, coords, metric);
 }
 
 void ProcessCross3(void* corr123, void* corr132, void* corr213,

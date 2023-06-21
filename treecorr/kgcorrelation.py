@@ -131,7 +131,7 @@ class KGCorrelation(BinnedCorr2):
         # Using memory allocated from the C layer means we have to explicitly deallocate it
         # rather than being able to rely on the Python memory manager.
         if self._corr is not None:
-            _lib.DestroyCorr2(self.corr, self._d1, self._d2, self._bintype)
+            _lib.DestroyCorr2(self.corr, self._d1, self._d2)
 
     def __eq__(self, other):
         """Return whether two `KGCorrelation` instances are equal"""

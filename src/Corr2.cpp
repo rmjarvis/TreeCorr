@@ -36,9 +36,25 @@
 // for compile-time constexpr in C++14, which we don't require.
 #define MAX(a,b) (a > b ? a : b)
 
-template <int D1, int D2, int B>
-Corr2<D1,D2,B>::Corr2(
-    double minsep, double maxsep, int nbins, double binsize, double b,
+double CalculateFullMaxSep(BinType bin_type, double minsep, double maxsep, int nbins,
+                           double binsize)
+{
+    switch(bin_type) {
+      case Log:
+           return BinTypeHelper<Log>::calculateFullMaxSep(minsep, maxsep, nbins, binsize);
+      case Linear:
+           return BinTypeHelper<Linear>::calculateFullMaxSep(minsep, maxsep, nbins, binsize);
+      case TwoD:
+           return BinTypeHelper<TwoD>::calculateFullMaxSep(minsep, maxsep, nbins, binsize);
+      default:
+           Assert(false);
+    }
+    return 0.;
+}
+
+template <int D1, int D2>
+Corr2<D1,D2>::Corr2(
+    BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
     double minrpar, double maxrpar, double xp, double yp, double zp,
     double* xi0, double* xi1, double* xi2, double* xi3,
     double* meanr, double* meanlogr, double* weight, double* npairs) :
@@ -54,7 +70,7 @@ Corr2<D1,D2,B>::Corr2(
     _minsepsq = _minsep*_minsep;
     _maxsepsq = _maxsep*_maxsep;
     _bsq = _b * _b;
-    _fullmaxsep = BinTypeHelper<B>::calculateFullMaxSep(minsep, maxsep, nbins, binsize);
+    _fullmaxsep = CalculateFullMaxSep(bin_type, minsep, maxsep, nbins, binsize);
     _fullmaxsepsq = _fullmaxsep*_fullmaxsep;
     dbg<<"minsep, maxsep = "<<_minsep<<"  "<<_maxsep<<std::endl;
     dbg<<"nbins = "<<_nbins<<std::endl;
@@ -64,8 +80,8 @@ Corr2<D1,D2,B>::Corr2(
     dbg<<"period = "<<_xp<<"  "<<_yp<<"  "<<_zp<<std::endl;
 }
 
-template <int D1, int D2, int B>
-Corr2<D1,D2,B>::Corr2(const Corr2<D1,D2,B>& rhs, bool copy_data) :
+template <int D1, int D2>
+Corr2<D1,D2>::Corr2(const Corr2<D1,D2>& rhs, bool copy_data) :
     _minsep(rhs._minsep), _maxsep(rhs._maxsep), _nbins(rhs._nbins),
     _binsize(rhs._binsize), _b(rhs._b),
     _minrpar(rhs._minrpar), _maxrpar(rhs._maxrpar),
@@ -87,8 +103,8 @@ Corr2<D1,D2,B>::Corr2(const Corr2<D1,D2,B>& rhs, bool copy_data) :
     else clear();
 }
 
-template <int D1, int D2, int B>
-Corr2<D1,D2,B>::~Corr2()
+template <int D1, int D2>
+Corr2<D1,D2>::~Corr2()
 {
     dbg<<"Corr2 destructor\n";
     if (_owns_data) {
@@ -102,21 +118,21 @@ Corr2<D1,D2,B>::~Corr2()
 
 // Corr2::process2 is invalid if D1 != D2, so this helper struct lets us only call
 // process2 when D1 == D2.
-template <int D1, int D2, int B, int C, int M, int P>
+template <int D1, int D2, int B, int M, int P, int C>
 struct ProcessHelper
 {
-    static void process2(Corr2<D1,D2,B>& , const Cell<D1,C>&, const MetricHelper<M,P>& ) {}
+    static void process2(Corr2<D1,D2>& , const Cell<D1,C>&, const MetricHelper<M,P>& ) {}
 };
 
-template <int D, int B, int C, int M, int P>
-struct ProcessHelper<D,D,B,C,M,P>
+template <int D, int B, int M, int P, int C>
+struct ProcessHelper<D,D,B,M,P,C>
 {
-    static void process2(Corr2<D,D,B>& b, const Cell<D,C>& c12, const MetricHelper<M,P>& m)
-    { b.template process2<C,M,P>(c12, m); }
+    static void process2(Corr2<D,D>& b, const Cell<D,C>& c12, const MetricHelper<M,P>& m)
+    { b.template process2<B,M,P>(c12, m); }
 };
 
-template <int D1, int D2, int B>
-void Corr2<D1,D2,B>::clear()
+template <int D1, int D2>
+void Corr2<D1,D2>::clear()
 {
     _xi.clear(_nbins);
     for (int i=0; i<_nbins; ++i) _meanr[i] = 0.;
@@ -126,8 +142,8 @@ void Corr2<D1,D2,B>::clear()
     _coords = -1;
 }
 
-template <int D1, int D2, int B> template <int C, int M, int P>
-void Corr2<D1,D2,B>::process(const Field<D1,C>& field, bool dots)
+template <int D1, int D2> template <int B, int M, int P, int C>
+void Corr2<D1,D2>::process(const Field<D1,C>& field, bool dots)
 {
     xdbg<<"Start process (auto): M,P,C = "<<M<<"  "<<P<<"  "<<C<<std::endl;
     Assert(D1 == D2);
@@ -141,9 +157,9 @@ void Corr2<D1,D2,B>::process(const Field<D1,C>& field, bool dots)
 #pragma omp parallel
     {
         // Give each thread their own copy of the data vector to fill in.
-        Corr2<D1,D2,B> bc2(*this,false);
+        Corr2<D1,D2> bc2(*this,false);
 #else
-        Corr2<D1,D2,B>& bc2 = *this;
+        Corr2<D1,D2>& bc2 = *this;
 #endif
 
         // Inside the omp parallel, so each thread has its own MetricHelper.
@@ -163,10 +179,10 @@ void Corr2<D1,D2,B>::process(const Field<D1,C>& field, bool dots)
                 if (dots) std::cout<<'.'<<std::flush;
             }
             const Cell<D1,C>& c1 = *field.getCells()[i];
-            ProcessHelper<D1,D2,B,C,M,P>::process2(bc2, c1, metric);
+            ProcessHelper<D1,D2,B,M,P,C>::process2(bc2, c1, metric);
             for (long j=i+1;j<n1;++j) {
                 const Cell<D1,C>& c2 = *field.getCells()[j];
-                bc2.process11<C,M,P>(c1, c2, metric, BinTypeHelper<B>::doReverse());
+                bc2.process11<B,M,P>(c1, c2, metric, BinTypeHelper<B>::doReverse());
             }
         }
 #ifdef _OPENMP
@@ -180,9 +196,8 @@ void Corr2<D1,D2,B>::process(const Field<D1,C>& field, bool dots)
     if (dots) std::cout<<std::endl;
 }
 
-template <int D1, int D2, int B> template <int C, int M, int P>
-void Corr2<D1,D2,B>::process(const Field<D1,C>& field1, const Field<D2,C>& field2,
-                                   bool dots)
+template <int D1, int D2> template <int B, int M, int P, int C>
+void Corr2<D1,D2>::process(const Field<D1,C>& field1, const Field<D2,C>& field2, bool dots)
 {
     xdbg<<"Start process (cross): M,P,C = "<<M<<"  "<<P<<"  "<<C<<std::endl;
     Assert(_coords == -1 || _coords == C);
@@ -217,9 +232,9 @@ void Corr2<D1,D2,B>::process(const Field<D1,C>& field1, const Field<D2,C>& field
 #pragma omp parallel
     {
         // Give each thread their own copy of the data vector to fill in.
-        Corr2<D1,D2,B> bc2(*this,false);
+        Corr2<D1,D2> bc2(*this,false);
 #else
-        Corr2<D1,D2,B>& bc2 = *this;
+        Corr2<D1,D2>& bc2 = *this;
 #endif
 
         MetricHelper<M,P> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
@@ -240,7 +255,7 @@ void Corr2<D1,D2,B>::process(const Field<D1,C>& field1, const Field<D2,C>& field
             const Cell<D1,C>& c1 = *field1.getCells()[i];
             for (long j=0;j<n2;++j) {
                 const Cell<D2,C>& c2 = *field2.getCells()[j];
-                bc2.process11<C,M,P>(c1, c2, metric, false);
+                bc2.process11<B,M,P>(c1, c2, metric, false);
             }
         }
 #ifdef _OPENMP
@@ -254,8 +269,8 @@ void Corr2<D1,D2,B>::process(const Field<D1,C>& field1, const Field<D2,C>& field
     if (dots) std::cout<<std::endl;
 }
 
-template <int D1, int D2, int B> template <int C, int M, int P>
-void Corr2<D1,D2,B>::processPairwise(
+template <int D1, int D2> template <int B, int M, int P, int C>
+void Corr2<D1,D2>::processPairwise(
     const SimpleField<D1,C>& field1, const SimpleField<D2,C>& field2, bool dots)
 {
     Assert(_coords == -1 || _coords == C);
@@ -273,9 +288,9 @@ void Corr2<D1,D2,B>::processPairwise(
 #pragma omp parallel
     {
         // Give each thread their own copy of the data vector to fill in.
-        Corr2<D1,D2,B> bc2(*this,false);
+        Corr2<D1,D2> bc2(*this,false);
 #else
-        Corr2<D1,D2,B>& bc2 = *this;
+        Corr2<D1,D2>& bc2 = *this;
 #endif
 
         MetricHelper<M,P> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
@@ -304,7 +319,7 @@ void Corr2<D1,D2,B>::processPairwise(
             const double rsq = metric.DistSq(p1, p2, s, s);
             if (BinTypeHelper<B>::isRSqInRange(rsq, p1, p2,
                                                _minsep, _minsepsq, _maxsep, _maxsepsq)) {
-                bc2.template directProcess11<>(c1,c2,rsq,false);
+                bc2.template directProcess11<B>(c1,c2,rsq,false);
             }
         }
 #ifdef _OPENMP
@@ -318,22 +333,22 @@ void Corr2<D1,D2,B>::processPairwise(
     if (dots) std::cout<<std::endl;
 }
 
-template <int D1, int D2, int B> template <int C, int M, int P>
-void Corr2<D1,D2,B>::process2(const Cell<D1,C>& c12, const MetricHelper<M,P>& metric)
+template <int D1, int D2> template <int B, int M, int P, int C>
+void Corr2<D1,D2>::process2(const Cell<D1,C>& c12, const MetricHelper<M,P>& metric)
 {
     if (c12.getW() == 0.) return;
     if (c12.getSize() <= _halfminsep) return;
 
     Assert(c12.getLeft());
     Assert(c12.getRight());
-    process2<C,M,P>(*c12.getLeft(), metric);
-    process2<C,M,P>(*c12.getRight(), metric);
-    process11<C,M,P>(*c12.getLeft(), *c12.getRight(), metric, BinTypeHelper<B>::doReverse());
+    process2<B,M,P>(*c12.getLeft(), metric);
+    process2<B,M,P>(*c12.getRight(), metric);
+    process11<B,M,P>(*c12.getLeft(), *c12.getRight(), metric, BinTypeHelper<B>::doReverse());
 }
 
-template <int D1, int D2, int B> template <int C, int M, int P>
-void Corr2<D1,D2,B>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2,
-                                     const MetricHelper<M,P>& metric, bool do_reverse)
+template <int D1, int D2> template <int B, int M, int P, int C>
+void Corr2<D1,D2>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2,
+                             const MetricHelper<M,P>& metric, bool do_reverse)
 {
     //set_verbose(2);
     xdbg<<"Start process11 for "<<c1.getPos()<<",  "<<c2.getPos()<<"   ";
@@ -378,7 +393,7 @@ void Corr2<D1,D2,B>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2,
     {
         xdbg<<"Drop into single bin.\n";
         if (BinTypeHelper<B>::isRSqInRange(rsq, p1, p2, _minsep, _minsepsq, _maxsep, _maxsepsq)) {
-            directProcess11(c1,c2,rsq,do_reverse,k,r,logr);
+            directProcess11<B>(c1,c2,rsq,do_reverse,k,r,logr);
         }
     } else {
         xdbg<<"Need to split.\n";
@@ -395,21 +410,21 @@ void Corr2<D1,D2,B>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2,
             Assert(c1.getRight());
             Assert(c2.getLeft());
             Assert(c2.getRight());
-            process11<C,M,P>(*c1.getLeft(),*c2.getLeft(),metric,do_reverse);
-            process11<C,M,P>(*c1.getLeft(),*c2.getRight(),metric,do_reverse);
-            process11<C,M,P>(*c1.getRight(),*c2.getLeft(),metric,do_reverse);
-            process11<C,M,P>(*c1.getRight(),*c2.getRight(),metric,do_reverse);
+            process11<B,M,P>(*c1.getLeft(),*c2.getLeft(),metric,do_reverse);
+            process11<B,M,P>(*c1.getLeft(),*c2.getRight(),metric,do_reverse);
+            process11<B,M,P>(*c1.getRight(),*c2.getLeft(),metric,do_reverse);
+            process11<B,M,P>(*c1.getRight(),*c2.getRight(),metric,do_reverse);
         } else if (split1) {
             Assert(c1.getLeft());
             Assert(c1.getRight());
-            process11<C,M,P>(*c1.getLeft(),c2,metric,do_reverse);
-            process11<C,M,P>(*c1.getRight(),c2,metric,do_reverse);
+            process11<B,M,P>(*c1.getLeft(),c2,metric,do_reverse);
+            process11<B,M,P>(*c1.getRight(),c2,metric,do_reverse);
         } else {
             Assert(split2);
             Assert(c2.getLeft());
             Assert(c2.getRight());
-            process11<C,M,P>(c1,*c2.getLeft(),metric,do_reverse);
-            process11<C,M,P>(c1,*c2.getRight(),metric,do_reverse);
+            process11<B,M,P>(c1,*c2.getLeft(),metric,do_reverse);
+            process11<B,M,P>(c1,*c2.getRight(),metric,do_reverse);
         }
     }
 }
@@ -521,8 +536,8 @@ struct DirectHelper<GData,GData>
     }
 };
 
-template <int D1, int D2, int B> template <int C>
-void Corr2<D1,D2,B>::directProcess11(
+template <int D1, int D2> template <int B, int C>
+void Corr2<D1,D2>::directProcess11(
     const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double rsq, bool do_reverse,
     int k, double r, double logr)
 {
@@ -586,8 +601,8 @@ void Corr2<D1,D2,B>::directProcess11(
     DirectHelper<D1,D2>::template ProcessXi<C>(c1,c2,rsq,_xi,k,k2);
 }
 
-template <int D1, int D2, int B>
-void Corr2<D1,D2,B>::operator=(const Corr2<D1,D2,B>& rhs)
+template <int D1, int D2>
+void Corr2<D1,D2>::operator=(const Corr2<D1,D2>& rhs)
 {
     Assert(rhs._nbins == _nbins);
     _xi.copy(rhs._xi,_nbins);
@@ -597,8 +612,8 @@ void Corr2<D1,D2,B>::operator=(const Corr2<D1,D2,B>& rhs)
     for (int i=0; i<_nbins; ++i) _npairs[i] = rhs._npairs[i];
 }
 
-template <int D1, int D2, int B>
-void Corr2<D1,D2,B>::operator+=(const Corr2<D1,D2,B>& rhs)
+template <int D1, int D2>
+void Corr2<D1,D2>::operator+=(const Corr2<D1,D2>& rhs)
 {
     Assert(rhs._nbins == _nbins);
     _xi.add(rhs._xi,_nbins);
@@ -608,8 +623,8 @@ void Corr2<D1,D2,B>::operator+=(const Corr2<D1,D2,B>& rhs)
     for (int i=0; i<_nbins; ++i) _npairs[i] += rhs._npairs[i];
 }
 
-template <int D1, int D2, int B> template <int M, int C>
-bool Corr2<D1,D2,B>::triviallyZero(Position<C> p1, Position<C> p2, double s1, double s2)
+template <int D1, int D2> template <int B, int M, int C>
+bool Corr2<D1,D2>::triviallyZero(Position<C> p1, Position<C> p2, double s1, double s2)
 {
     // Ignore any min/max rpar for this calculation.
     double minrpar = -std::numeric_limits<double>::max();
@@ -622,8 +637,8 @@ bool Corr2<D1,D2,B>::triviallyZero(Position<C> p1, Position<C> p2, double s1, do
             metric.tooLargeDist(p1, p2, rsq, rpar, s1ps2, _fullmaxsep, _fullmaxsepsq));
 }
 
-template <int D1, int D2, int B> template <int M, int P, int C>
-long Corr2<D1,D2,B>::samplePairs(
+template <int D1, int D2> template <int B, int M, int P, int C>
+long Corr2<D1,D2>::samplePairs(
     const Field<D1, C>& field1, const Field<D2, C>& field2,
     double minsep, double maxsep, long* i1, long* i2, double* sep, int n)
 {
@@ -646,14 +661,14 @@ long Corr2<D1,D2,B>::samplePairs(
         const Cell<D1,C>& c1 = *field1.getCells()[i];
         for (long j=0;j<n2;++j) {
             const Cell<D2,C>& c2 = *field2.getCells()[j];
-            samplePairs(c1, c2, metric, minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs<B>(c1, c2, metric, minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
         }
     }
     return k;
 }
 
-template <int D1, int D2, int B> template <int M, int P, int C>
-void Corr2<D1,D2,B>::samplePairs(
+template <int D1, int D2> template <int B, int M, int P, int C>
+void Corr2<D1,D2>::samplePairs(
     const Cell<D1, C>& c1, const Cell<D2, C>& c2, const MetricHelper<M,P>& metric,
     double minsep, double minsepsq, double maxsep, double maxsepsq,
     long* i1, long* i2, double* sep, int n, long& k)
@@ -704,7 +719,7 @@ void Corr2<D1,D2,B>::samplePairs(
         xdbg<<"minsepsq = "<<minsepsq<<std::endl;
         xdbg<<"maxsepsq = "<<maxsepsq<<std::endl;
         if (BinTypeHelper<B>::isRSqInRange(rsq, p1, p2, minsep, minsepsq, maxsep, maxsepsq)) {
-            sampleFrom(c1,c2,rsq,r,i1,i2,sep,n,k);
+            sampleFrom<B>(c1,c2,rsq,r,i1,i2,sep,n,k);
         }
     } else {
         xdbg<<"Need to split.\n";
@@ -720,29 +735,29 @@ void Corr2<D1,D2,B>::samplePairs(
             Assert(c1.getRight());
             Assert(c2.getLeft());
             Assert(c2.getRight());
-            samplePairs(*c1.getLeft(), *c2.getLeft(), metric,
-                        minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
-            samplePairs(*c1.getLeft(), *c2.getRight(), metric,
-                        minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
-            samplePairs(*c1.getRight(), *c2.getLeft(), metric,
-                        minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
-            samplePairs(*c1.getRight(), *c2.getRight(), metric,
-                        minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs<B>(*c1.getLeft(), *c2.getLeft(), metric,
+                           minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs<B>(*c1.getLeft(), *c2.getRight(), metric,
+                           minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs<B>(*c1.getRight(), *c2.getLeft(), metric,
+                           minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs<B>(*c1.getRight(), *c2.getRight(), metric,
+                           minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
         } else if (split1) {
             Assert(c1.getLeft());
             Assert(c1.getRight());
-            samplePairs(*c1.getLeft(), c2, metric,
-                        minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
-            samplePairs(*c1.getRight(), c2, metric,
-                        minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs<B>(*c1.getLeft(), c2, metric,
+                           minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs<B>(*c1.getRight(), c2, metric,
+                           minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
         } else {
             Assert(split2);
             Assert(c2.getLeft());
             Assert(c2.getRight());
-            samplePairs(c1, *c2.getLeft(), metric,
-                        minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
-            samplePairs(c1, *c2.getRight(), metric,
-                        minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs<B>(c1, *c2.getLeft(), metric,
+                           minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
+            samplePairs<B>(c1, *c2.getRight(), metric,
+                           minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
         }
     }
 }
@@ -789,8 +804,8 @@ void SelectRandomFrom(long m, std::vector<long>& selection)
     }
 }
 
-template <int D1, int D2, int B> template <int C>
-void Corr2<D1,D2,B>::sampleFrom(
+template <int D1, int D2> template <int B, int C>
+void Corr2<D1,D2>::sampleFrom(
     const Cell<D1, C>& c1, const Cell<D2, C>& c2, double rsq, double r,
     long* i1, long* i2, double* sep, int n, long& k)
 {
@@ -974,26 +989,10 @@ void* BuildCorr2b(int bin_type,
                   double* xi0, double* xi1, double* xi2, double* xi3,
                   double* meanr, double* meanlogr, double* weight, double* npairs)
 {
-    switch(bin_type) {
-      case Log:
-           return static_cast<void*>(new Corr2<D1,D2,Log>(
-                   minsep, maxsep, nbins, binsize, b, minrpar, maxrpar, xp, yp, zp,
-                   xi0, xi1, xi2, xi3, meanr, meanlogr, weight, npairs));
-           break;
-      case Linear:
-           return static_cast<void*>(new Corr2<D1,D2,Linear>(
-                   minsep, maxsep, nbins, binsize, b, minrpar, maxrpar, xp, yp, zp,
-                   xi0, xi1, xi2, xi3, meanr, meanlogr, weight, npairs));
-           break;
-      case TwoD:
-           return static_cast<void*>(new Corr2<D1,D2,TwoD>(
-                   minsep, maxsep, nbins, binsize, b, minrpar, maxrpar, xp, yp, zp,
-                   xi0, xi1, xi2, xi3, meanr, meanlogr, weight, npairs));
-           break;
-      default:
-           Assert(false);
-    }
-    return 0;
+    return static_cast<void*>(new Corr2<D1,D2>(
+            static_cast<BinType>(bin_type),
+            minsep, maxsep, nbins, binsize, b, minrpar, maxrpar, xp, yp, zp,
+            xi0, xi1, xi2, xi3, meanr, meanlogr, weight, npairs));
 }
 
 template <int D1>
@@ -1085,62 +1084,50 @@ void* BuildCorr2(int d1, int d2, int bin_type,
 }
 
 template <int D1, int D2>
-void DestroyCorr2b(void* corr, int bin_type)
+void DestroyCorr2b(void* corr)
 {
-    switch(bin_type) {
-      case Log:
-           delete static_cast<Corr2<D1,D2,Log>*>(corr);
-           break;
-      case Linear:
-           delete static_cast<Corr2<D1,D2,Linear>*>(corr);
-           break;
-      case TwoD:
-           delete static_cast<Corr2<D1,D2,TwoD>*>(corr);
-           break;
-      default:
-           Assert(false);
-    }
+    delete static_cast<Corr2<D1,D2>*>(corr);
 }
 
 template <int D1>
-void DestroyCorr2a(void* corr, int d2, int bin_type)
+void DestroyCorr2a(void* corr, int d2)
 {
     switch(d2) {
       case NData:
-           DestroyCorr2b<D1,MAX(D1,NData)>(corr, bin_type);
+           DestroyCorr2b<D1,MAX(D1,NData)>(corr);
            break;
       case KData:
-           DestroyCorr2b<D1,MAX(D1,KData)>(corr, bin_type);
+           DestroyCorr2b<D1,MAX(D1,KData)>(corr);
            break;
       case GData:
-           DestroyCorr2b<D1,MAX(D1,GData)>(corr, bin_type);
+           DestroyCorr2b<D1,MAX(D1,GData)>(corr);
            break;
       default:
            Assert(false);
     }
 }
 
-void DestroyCorr2(void* corr, int d1, int d2, int bin_type)
+void DestroyCorr2(void* corr, int d1, int d2)
 {
-    dbg<<"Start DestroyCorr2: "<<d1<<" "<<d2<<" "<<bin_type<<std::endl;
+    dbg<<"Start DestroyCorr2: "<<d1<<" "<<d2<<std::endl;
     xdbg<<"corr = "<<corr<<std::endl;
     switch(d1) {
       case NData:
-           DestroyCorr2a<NData>(corr, d2, bin_type);
+           DestroyCorr2a<NData>(corr, d2);
            break;
       case KData:
-           DestroyCorr2a<KData>(corr, d2, bin_type);
+           DestroyCorr2a<KData>(corr, d2);
            break;
       case GData:
-           DestroyCorr2a<GData>(corr, d2, bin_type);
+           DestroyCorr2a<GData>(corr, d2);
            break;
       default:
            Assert(false);
     }
 }
 
-template <int M, int D, int B>
-void ProcessAuto2d(Corr2<D,D,B>* corr, void* field, int dots, int coords)
+template <int B, int M, int D>
+void ProcessAuto2d(Corr2<D,D>* corr, void* field, int dots, int coords)
 {
     const bool P = corr->nontrivialRPar();
     dbg<<"ProcessAuto: coords = "<<coords<<", metric = "<<M<<", P = "<<P<<std::endl;
@@ -1149,22 +1136,22 @@ void ProcessAuto2d(Corr2<D,D,B>* corr, void* field, int dots, int coords)
       case Flat:
            Assert((MetricHelper<M,0>::_Flat == int(Flat)));
            Assert(!P);
-           corr->template process<MetricHelper<M,0>::_Flat, M, false>(
+           corr->template process<B,M,false>(
                *static_cast<Field<D,MetricHelper<M,0>::_Flat>*>(field), dots);
            break;
       case Sphere:
            Assert((MetricHelper<M,0>::_Sphere == int(Sphere)));
            Assert(!P);
-           corr->template process<MetricHelper<M,0>::_Sphere, M, false>(
+           corr->template process<B,M,false>(
                *static_cast<Field<D,MetricHelper<M,0>::_Sphere>*>(field), dots);
            break;
       case ThreeD:
            Assert((MetricHelper<M,0>::_ThreeD == int(ThreeD)));
            if (P)
-               corr->template process<MetricHelper<M,1>::_ThreeD, M, true>(
+               corr->template process<B,M,true>(
                    *static_cast<Field<D,MetricHelper<M,1>::_ThreeD>*>(field), dots);
            else
-               corr->template process<MetricHelper<M,0>::_ThreeD, M, false>(
+               corr->template process<B,M,false>(
                    *static_cast<Field<D,MetricHelper<M,0>::_ThreeD>*>(field), dots);
            break;
       default:
@@ -1172,28 +1159,28 @@ void ProcessAuto2d(Corr2<D,D,B>* corr, void* field, int dots, int coords)
     }
 }
 
-template <int D, int B>
-void ProcessAuto2c(Corr2<D,D,B>* corr, void* field, int dots,
+template <int B, int D>
+void ProcessAuto2c(Corr2<D,D>* corr, void* field, int dots,
                    int coords, int metric)
 {
     switch(metric) {
       case Euclidean:
-           ProcessAuto2d<Euclidean>(corr, field, dots, coords);
+           ProcessAuto2d<B,Euclidean>(corr, field, dots, coords);
            break;
       case Rperp:
-           ProcessAuto2d<Rperp>(corr, field, dots, coords);
+           ProcessAuto2d<B,Rperp>(corr, field, dots, coords);
            break;
       case OldRperp:
-           ProcessAuto2d<OldRperp>(corr, field, dots, coords);
+           ProcessAuto2d<B,OldRperp>(corr, field, dots, coords);
            break;
       case Rlens:
-           ProcessAuto2d<Rlens>(corr, field, dots, coords);
+           ProcessAuto2d<B,Rlens>(corr, field, dots, coords);
            break;
       case Arc:
-           ProcessAuto2d<Arc>(corr, field, dots, coords);
+           ProcessAuto2d<B,Arc>(corr, field, dots, coords);
            break;
       case Periodic:
-           ProcessAuto2d<Periodic>(corr, field, dots, coords);
+           ProcessAuto2d<B,Periodic>(corr, field, dots, coords);
            break;
       default:
            Assert(false);
@@ -1205,13 +1192,13 @@ void ProcessAuto2b(void* corr, void* field, int dots, int coords, int bin_type, 
 {
     switch(bin_type) {
       case Log:
-           ProcessAuto2c(static_cast<Corr2<D,D,Log>*>(corr), field, dots, coords, metric);
+           ProcessAuto2c<Log>(static_cast<Corr2<D,D>*>(corr), field, dots, coords, metric);
            break;
       case Linear:
-           ProcessAuto2c(static_cast<Corr2<D,D,Linear>*>(corr), field, dots, coords, metric);
+           ProcessAuto2c<Linear>(static_cast<Corr2<D,D>*>(corr), field, dots, coords, metric);
            break;
       case TwoD:
-           ProcessAuto2c(static_cast<Corr2<D,D,TwoD>*>(corr), field, dots, coords, metric);
+           ProcessAuto2c<TwoD>(static_cast<Corr2<D,D>*>(corr), field, dots, coords, metric);
            break;
       default:
            Assert(false);
@@ -1238,8 +1225,8 @@ void ProcessAuto2(void* corr, void* field, int dots,
     }
 }
 
-template <int M, int D1, int D2, int B>
-void ProcessCross2d(Corr2<D1,D2,B>* corr, void* field1, void* field2, int dots, int coords)
+template <int B, int M, int D1, int D2>
+void ProcessCross2d(Corr2<D1,D2>* corr, void* field1, void* field2, int dots, int coords)
 {
     const bool P = corr->nontrivialRPar();
     dbg<<"ProcessCross: coords = "<<coords<<", metric = "<<M<<", P = "<<P<<std::endl;
@@ -1248,25 +1235,25 @@ void ProcessCross2d(Corr2<D1,D2,B>* corr, void* field1, void* field2, int dots, 
       case Flat:
            Assert((MetricHelper<M,0>::_Flat == int(Flat)));
            Assert(!P);
-           corr->template process<MetricHelper<M,0>::_Flat, M, false>(
+           corr->template process<B,M,false>(
                *static_cast<Field<D1,MetricHelper<M,0>::_Flat>*>(field1),
                *static_cast<Field<D2,MetricHelper<M,0>::_Flat>*>(field2), dots);
            break;
       case Sphere:
            Assert((MetricHelper<M,0>::_Sphere == int(Sphere)));
            Assert(!P);
-           corr->template process<MetricHelper<M,0>::_Sphere, M, false>(
+           corr->template process<B,M,false>(
                *static_cast<Field<D1,MetricHelper<M,0>::_Sphere>*>(field1),
                *static_cast<Field<D2,MetricHelper<M,0>::_Sphere>*>(field2), dots);
            break;
       case ThreeD:
            Assert((MetricHelper<M,0>::_ThreeD == int(ThreeD)));
            if (P)
-               corr->template process<MetricHelper<M,1>::_ThreeD, M, true>(
+               corr->template process<B,M,true>(
                    *static_cast<Field<D1,MetricHelper<M,1>::_ThreeD>*>(field1),
                    *static_cast<Field<D2,MetricHelper<M,1>::_ThreeD>*>(field2), dots);
            else
-               corr->template process<MetricHelper<M,0>::_ThreeD, M, false>(
+               corr->template process<B,M,false>(
                    *static_cast<Field<D1,MetricHelper<M,0>::_ThreeD>*>(field1),
                    *static_cast<Field<D2,MetricHelper<M,0>::_ThreeD>*>(field2), dots);
            break;
@@ -1275,28 +1262,28 @@ void ProcessCross2d(Corr2<D1,D2,B>* corr, void* field1, void* field2, int dots, 
     }
 }
 
-template <int D1, int D2, int B>
-void ProcessCross2c(Corr2<D1,D2,B>* corr, void* field1, void* field2, int dots,
+template <int B, int D1, int D2>
+void ProcessCross2c(Corr2<D1,D2>* corr, void* field1, void* field2, int dots,
                     int coords, int metric)
 {
     switch(metric) {
       case Euclidean:
-           ProcessCross2d<Euclidean>(corr, field1, field2, dots, coords);
+           ProcessCross2d<B,Euclidean>(corr, field1, field2, dots, coords);
            break;
       case Rperp:
-           ProcessCross2d<Rperp>(corr, field1, field2, dots, coords);
+           ProcessCross2d<B,Rperp>(corr, field1, field2, dots, coords);
            break;
       case OldRperp:
-           ProcessCross2d<OldRperp>(corr, field1, field2, dots, coords);
+           ProcessCross2d<B,OldRperp>(corr, field1, field2, dots, coords);
            break;
       case Rlens:
-           ProcessCross2d<Rlens>(corr, field1, field2, dots, coords);
+           ProcessCross2d<B,Rlens>(corr, field1, field2, dots, coords);
            break;
       case Arc:
-           ProcessCross2d<Arc>(corr, field1, field2, dots, coords);
+           ProcessCross2d<B,Arc>(corr, field1, field2, dots, coords);
            break;
       case Periodic:
-           ProcessCross2d<Periodic>(corr, field1, field2, dots, coords);
+           ProcessCross2d<B,Periodic>(corr, field1, field2, dots, coords);
            break;
       default:
            Assert(false);
@@ -1309,16 +1296,16 @@ void ProcessCross2b(void* corr, void* field1, void* field2, int dots,
 {
     switch(bin_type) {
       case Log:
-           ProcessCross2c(static_cast<Corr2<D1,D2,Log>*>(corr), field1, field2, dots,
-                          coords, metric);
+           ProcessCross2c<Log>(static_cast<Corr2<D1,D2>*>(corr), field1, field2, dots,
+                               coords, metric);
            break;
       case Linear:
-           ProcessCross2c(static_cast<Corr2<D1,D2,Linear>*>(corr), field1, field2, dots,
-                          coords, metric);
+           ProcessCross2c<Linear>(static_cast<Corr2<D1,D2>*>(corr), field1, field2, dots,
+                                  coords, metric);
            break;
       case TwoD:
-           ProcessCross2c(static_cast<Corr2<D1,D2,TwoD>*>(corr), field1, field2, dots,
-                          coords, metric);
+           ProcessCross2c<TwoD>(static_cast<Corr2<D1,D2>*>(corr), field1, field2, dots,
+                                coords, metric);
            break;
       default:
            Assert(false);
@@ -1375,8 +1362,8 @@ void ProcessCross2(void* corr, void* field1, void* field2, int dots,
     }
 }
 
-template <int M, int D1, int D2, int B>
-void ProcessPair2d(Corr2<D1,D2,B>* corr, void* field1, void* field2, int dots, int coords)
+template <int B, int M, int D1, int D2>
+void ProcessPair2d(Corr2<D1,D2>* corr, void* field1, void* field2, int dots, int coords)
 {
     const bool P = corr->nontrivialRPar();
     dbg<<"ProcessPair: coords = "<<coords<<", metric = "<<M<<", P = "<<P<<std::endl;
@@ -1385,25 +1372,25 @@ void ProcessPair2d(Corr2<D1,D2,B>* corr, void* field1, void* field2, int dots, i
       case Flat:
            Assert((MetricHelper<M,0>::_Flat == int(Flat)));
            Assert(!P);
-           corr->template processPairwise<MetricHelper<M,0>::_Flat, M, false>(
+           corr->template processPairwise<B,M,false>(
                *static_cast<SimpleField<D1,MetricHelper<M,0>::_Flat>*>(field1),
                *static_cast<SimpleField<D2,MetricHelper<M,0>::_Flat>*>(field2), dots);
            break;
       case Sphere:
            Assert((MetricHelper<M,0>::_Sphere == int(Sphere)));
            Assert(!P);
-           corr->template processPairwise<MetricHelper<M,0>::_Sphere, M, false>(
+           corr->template processPairwise<B,M,false>(
                *static_cast<SimpleField<D1,MetricHelper<M,0>::_Sphere>*>(field1),
                *static_cast<SimpleField<D2,MetricHelper<M,0>::_Sphere>*>(field2), dots);
            break;
       case ThreeD:
            Assert((MetricHelper<M,0>::_ThreeD == int(ThreeD)));
            if (P)
-               corr->template processPairwise<MetricHelper<M,1>::_ThreeD, M, true>(
+               corr->template processPairwise<B,M,true>(
                    *static_cast<SimpleField<D1,MetricHelper<M,1>::_ThreeD>*>(field1),
                    *static_cast<SimpleField<D2,MetricHelper<M,1>::_ThreeD>*>(field2), dots);
            else
-               corr->template processPairwise<MetricHelper<M,0>::_ThreeD, M, false>(
+               corr->template processPairwise<B,M,false>(
                    *static_cast<SimpleField<D1,MetricHelper<M,0>::_ThreeD>*>(field1),
                    *static_cast<SimpleField<D2,MetricHelper<M,0>::_ThreeD>*>(field2), dots);
            break;
@@ -1412,28 +1399,28 @@ void ProcessPair2d(Corr2<D1,D2,B>* corr, void* field1, void* field2, int dots, i
     }
 }
 
-template <int D1, int D2, int B>
-void ProcessPair2c(Corr2<D1,D2,B>* corr, void* field1, void* field2, int dots,
+template <int B, int D1, int D2>
+void ProcessPair2c(Corr2<D1,D2>* corr, void* field1, void* field2, int dots,
                    int coords, int metric)
 {
     switch(metric) {
       case Euclidean:
-           ProcessPair2d<Euclidean>(corr, field1, field2, dots, coords);
+           ProcessPair2d<B,Euclidean>(corr, field1, field2, dots, coords);
            break;
       case Rperp:
-           ProcessPair2d<Rperp>(corr, field1, field2, dots, coords);
+           ProcessPair2d<B,Rperp>(corr, field1, field2, dots, coords);
            break;
       case OldRperp:
-           ProcessPair2d<OldRperp>(corr, field1, field2, dots, coords);
+           ProcessPair2d<B,OldRperp>(corr, field1, field2, dots, coords);
            break;
       case Rlens:
-           ProcessPair2d<Rlens>(corr, field1, field2, dots, coords);
+           ProcessPair2d<B,Rlens>(corr, field1, field2, dots, coords);
            break;
       case Arc:
-           ProcessPair2d<Arc>(corr, field1, field2, dots, coords);
+           ProcessPair2d<B,Arc>(corr, field1, field2, dots, coords);
            break;
       case Periodic:
-           ProcessPair2d<Periodic>(corr, field1, field2, dots, coords);
+           ProcessPair2d<B,Periodic>(corr, field1, field2, dots, coords);
            break;
       default:
            Assert(false);
@@ -1446,16 +1433,16 @@ void ProcessPair2b(void* corr, void* field1, void* field2, int dots,
 {
     switch(bin_type) {
       case Log:
-           ProcessPair2c(static_cast<Corr2<D1,D2,Log>*>(corr), field1, field2, dots,
-                         coords, metric);
+           ProcessPair2c<Log>(static_cast<Corr2<D1,D2>*>(corr), field1, field2, dots,
+                              coords, metric);
            break;
       case Linear:
-           ProcessPair2c(static_cast<Corr2<D1,D2,Linear>*>(corr), field1, field2, dots,
-                         coords, metric);
+           ProcessPair2c<Linear>(static_cast<Corr2<D1,D2>*>(corr), field1, field2, dots,
+                                 coords, metric);
            break;
       case TwoD:
-           ProcessPair2c(static_cast<Corr2<D1,D2,TwoD>*>(corr), field1, field2, dots,
-                         coords, metric);
+           ProcessPair2c<TwoD>(static_cast<Corr2<D1,D2>*>(corr), field1, field2, dots,
+                               coords, metric);
            break;
       default:
            Assert(false);
@@ -1528,8 +1515,8 @@ int GetOMPThreads()
 #endif
 }
 
-template <int M, int D1, int D2, int B>
-long SamplePairs2d(Corr2<D1,D2,B>* corr, void* field1, void* field2,
+template <int B, int M, int D1, int D2>
+long SamplePairs2d(Corr2<D1,D2>* corr, void* field1, void* field2,
                    double minsep, double maxsep,
                    int coords, long* i1, long* i2, double* sep, int n)
 {
@@ -1540,7 +1527,7 @@ long SamplePairs2d(Corr2<D1,D2,B>* corr, void* field1, void* field2,
       case Flat:
            Assert((MetricHelper<M,0>::_Flat == int(Flat)));
            Assert(!P);
-           return corr->template samplePairs<M, false>(
+           return corr->template samplePairs<B,M,false>(
                *static_cast<Field<D1,MetricHelper<M,0>::_Flat>*>(field1),
                *static_cast<Field<D2,MetricHelper<M,0>::_Flat>*>(field2),
                minsep, maxsep, i1, i2, sep, n);
@@ -1548,7 +1535,7 @@ long SamplePairs2d(Corr2<D1,D2,B>* corr, void* field1, void* field2,
       case Sphere:
            Assert((MetricHelper<M,0>::_Sphere == int(Sphere)));
            Assert(!P);
-           return corr->template samplePairs<M, false>(
+           return corr->template samplePairs<B,M,false>(
                *static_cast<Field<D1,MetricHelper<M,0>::_Sphere>*>(field1),
                *static_cast<Field<D2,MetricHelper<M,0>::_Sphere>*>(field2),
                minsep, maxsep, i1, i2, sep, n);
@@ -1556,12 +1543,12 @@ long SamplePairs2d(Corr2<D1,D2,B>* corr, void* field1, void* field2,
       case ThreeD:
            Assert((MetricHelper<M,0>::_ThreeD == int(ThreeD)));
            if (P)
-               return corr->template samplePairs<M, true>(
+               return corr->template samplePairs<B,M,true>(
                    *static_cast<Field<D1,MetricHelper<M,1>::_ThreeD>*>(field1),
                    *static_cast<Field<D2,MetricHelper<M,1>::_ThreeD>*>(field2),
                    minsep, maxsep, i1, i2, sep, n);
            else
-               return corr->template samplePairs<M, false>(
+               return corr->template samplePairs<B,M,false>(
                    *static_cast<Field<D1,MetricHelper<M,0>::_ThreeD>*>(field1),
                    *static_cast<Field<D2,MetricHelper<M,0>::_ThreeD>*>(field2),
                    minsep, maxsep, i1, i2, sep, n);
@@ -1572,35 +1559,35 @@ long SamplePairs2d(Corr2<D1,D2,B>* corr, void* field1, void* field2,
     return 0;
 }
 
-template <int D1, int D2, int B>
-long SamplePairs2c(Corr2<D1,D2,B>* corr, void* field1, void* field2,
+template <int B, int D1, int D2>
+long SamplePairs2c(Corr2<D1,D2>* corr, void* field1, void* field2,
                    double minsep, double maxsep,
                    int coords, int metric, long* i1, long* i2, double* sep, int n)
 {
     switch(metric) {
       case Euclidean:
-           return SamplePairs2d<Euclidean>(corr, field1, field2, minsep, maxsep,
-                                           coords, i1, i2, sep, n);
+           return SamplePairs2d<B,Euclidean>(corr, field1, field2, minsep, maxsep,
+                                             coords, i1, i2, sep, n);
            break;
       case Rperp:
-           return SamplePairs2d<Rperp>(corr, field1, field2, minsep, maxsep,
-                                       coords, i1, i2, sep, n);
+           return SamplePairs2d<B,Rperp>(corr, field1, field2, minsep, maxsep,
+                                         coords, i1, i2, sep, n);
            break;
       case OldRperp:
-           return SamplePairs2d<OldRperp>(corr, field1, field2, minsep, maxsep,
-                                          coords, i1, i2, sep, n);
+           return SamplePairs2d<B,OldRperp>(corr, field1, field2, minsep, maxsep,
+                                            coords, i1, i2, sep, n);
            break;
       case Rlens:
-           return SamplePairs2d<Rlens>(corr, field1, field2, minsep, maxsep,
-                                       coords, i1, i2, sep, n);
+           return SamplePairs2d<B,Rlens>(corr, field1, field2, minsep, maxsep,
+                                         coords, i1, i2, sep, n);
            break;
       case Arc:
-           return SamplePairs2d<Arc>(corr, field1, field2, minsep, maxsep,
-                                     coords, i1, i2, sep, n);
+           return SamplePairs2d<B,Arc>(corr, field1, field2, minsep, maxsep,
+                                       coords, i1, i2, sep, n);
            break;
       case Periodic:
-           return SamplePairs2d<Periodic>(corr, field1, field2, minsep, maxsep,
-                                          coords, i1, i2, sep, n);
+           return SamplePairs2d<B,Periodic>(corr, field1, field2, minsep, maxsep,
+                                            coords, i1, i2, sep, n);
            break;
       default:
            Assert(false);
@@ -1615,14 +1602,14 @@ long SamplePairs2b(void* corr, void* field1, void* field2, double minsep, double
 {
     switch(bin_type) {
       case Log:
-           return SamplePairs2c(static_cast<Corr2<D1,D2,Log>*>(corr),
-                                field1, field2, minsep, maxsep,
-                                coords, metric, i1, i2, sep, n);
+           return SamplePairs2c<Log>(static_cast<Corr2<D1,D2>*>(corr),
+                                     field1, field2, minsep, maxsep,
+                                     coords, metric, i1, i2, sep, n);
            break;
       case Linear:
-           return SamplePairs2c(static_cast<Corr2<D1,D2,Linear>*>(corr),
-                                field1, field2, minsep, maxsep,
-                                coords, metric, i1, i2, sep, n);
+           return SamplePairs2c<Linear>(static_cast<Corr2<D1,D2>*>(corr),
+                                        field1, field2, minsep, maxsep,
+                                        coords, metric, i1, i2, sep, n);
            break;
       case TwoD:
            // TwoD not implemented.
@@ -1698,65 +1685,65 @@ long SamplePairs(void* corr, void* field1, void* field2, double minsep, double m
     return 0;
 }
 
-template <int M, int C, int D1, int D2, int B>
-int TriviallyZero2e(Corr2<D1,D2,B>* corr,
+template <int B, int M, int C, int D1, int D2>
+int TriviallyZero2e(Corr2<D1,D2>* corr,
                     double x1, double y1, double z1, double s1,
                     double x2, double y2, double z2, double s2)
 {
     Position<C> p1(x1,y1,z1);
     Position<C> p2(x2,y2,z2);
-    return corr->template triviallyZero<M>(p1, p2, s1, s2);
+    return corr->template triviallyZero<B,M>(p1, p2, s1, s2);
 }
 
-template <int M, int D1, int D2, int B>
-int TriviallyZero2d(Corr2<D1,D2,B>* corr, int coords,
+template <int B, int M, int D1, int D2>
+int TriviallyZero2d(Corr2<D1,D2>* corr, int coords,
                     double x1, double y1, double z1, double s1,
                     double x2, double y2, double z2, double s2)
 {
     switch(coords) {
       case Flat:
            Assert((MetricHelper<M,0>::_Flat == int(Flat)));
-           return TriviallyZero2e<M, MetricHelper<M,0>::_Flat>(
+           return TriviallyZero2e<B,M,MetricHelper<M,0>::_Flat>(
                corr, x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       case Sphere:
            Assert((MetricHelper<M,0>::_Sphere == int(Sphere)));
-           return TriviallyZero2e<M, MetricHelper<M,0>::_Sphere>(
+           return TriviallyZero2e<B,M,MetricHelper<M,0>::_Sphere>(
                corr, x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       case ThreeD:
            Assert((MetricHelper<M,0>::_ThreeD == int(ThreeD)));
-           return TriviallyZero2e<M, MetricHelper<M,0>::_ThreeD>(
+           return TriviallyZero2e<B,M,MetricHelper<M,0>::_ThreeD>(
                corr, x1, y1, z1, s1, x2, y2, z2, s2);
-       default:
+      default:
            Assert(false);
     }
     return 0;
 }
 
-template <int D1, int D2, int B>
-int TriviallyZero2c(Corr2<D1,D2,B>* corr, int metric, int coords,
+template <int B, int D1, int D2>
+int TriviallyZero2c(Corr2<D1,D2>* corr, int metric, int coords,
                     double x1, double y1, double z1, double s1,
                     double x2, double y2, double z2, double s2)
 {
     switch(metric) {
       case Euclidean:
-           return TriviallyZero2d<Euclidean>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
+           return TriviallyZero2d<B,Euclidean>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       case Rperp:
-           return TriviallyZero2d<Rperp>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
+           return TriviallyZero2d<B,Rperp>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       case OldRperp:
-           return TriviallyZero2d<OldRperp>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
+           return TriviallyZero2d<B,OldRperp>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       case Rlens:
-           return TriviallyZero2d<Rlens>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
+           return TriviallyZero2d<B,Rlens>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       case Arc:
-           return TriviallyZero2d<Arc>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
+           return TriviallyZero2d<B,Arc>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       case Periodic:
-           return TriviallyZero2d<Periodic>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
+           return TriviallyZero2d<B,Periodic>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       default:
            Assert(false);
@@ -1771,16 +1758,16 @@ int TriviallyZero2b(void* corr, int bin_type, int metric, int coords,
 {
     switch(bin_type) {
       case Log:
-           return TriviallyZero2c(static_cast<Corr2<D1,D2,Log>*>(corr), metric, coords,
-                                  x1, y1, z1, s1, x2, y2, z2, s2);
+           return TriviallyZero2c<Log>(static_cast<Corr2<D1,D2>*>(corr), metric, coords,
+                                       x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       case Linear:
-           return TriviallyZero2c(static_cast<Corr2<D1,D2,Linear>*>(corr), metric, coords,
-                                  x1, y1, z1, s1, x2, y2, z2, s2);
+           return TriviallyZero2c<Linear>(static_cast<Corr2<D1,D2>*>(corr), metric, coords,
+                                          x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       case TwoD:
-           return TriviallyZero2c(static_cast<Corr2<D1,D2,TwoD>*>(corr), metric, coords,
-                                  x1, y1, z1, s1, x2, y2, z2, s2);
+           return TriviallyZero2c<TwoD>(static_cast<Corr2<D1,D2>*>(corr), metric, coords,
+                                        x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       default:
            Assert(false);

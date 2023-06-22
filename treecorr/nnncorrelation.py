@@ -18,16 +18,16 @@
 import numpy as np
 
 from . import _treecorr as _lib
-from .binnedcorr3 import BinnedCorr3
+from .corr3 import Corr3
 from .util import make_writer, make_reader, lazy_property
 from .util import depr_pos_kwargs
 
 
-class NNNCorrelation(BinnedCorr3):
+class NNNCorrelation(Corr3):
     """This class handles the calculation and storage of a 2-point count-count correlation
     function.  i.e. the regular density correlation function.
 
-    See the doc string of `BinnedCorr3` for a description of how the triangles are binned.
+    See the doc string of `Corr3` for a description of how the triangles are binned.
 
     Ojects of this class holds the following attributes:
 
@@ -93,19 +93,19 @@ class NNNCorrelation(BinnedCorr3):
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have addition entries besides those listed
-                        in `BinnedCorr3`, which are ignored here. (default: None)
+                        in `Corr3`, which are ignored here. (default: None)
         logger:         If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
-        **kwargs:       See the documentation for `BinnedCorr3` for the list of allowed keyword
+        **kwargs:       See the documentation for `Corr3` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
     @depr_pos_kwargs
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `NNNCorrelation`.  See class doc for details.
         """
-        BinnedCorr3.__init__(self, config, logger=logger, **kwargs)
+        Corr3.__init__(self, config, logger=logger, **kwargs)
 
         self._ro._d1 = 1  # NData
         self._ro._d2 = 1  # NData
@@ -553,7 +553,7 @@ class NNNCorrelation(BinnedCorr3):
             low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
                                 This only works if using patches. (default: False)
             initialize (bool):  Whether to begin the calculation with a call to
-                                `BinnedCorr3.clear`.  (default: True)
+                                `Corr3.clear`.  (default: True)
             finalize (bool):    Whether to complete the calculation with a call to `finalize`.
                                 (default: True)
         """
@@ -1007,7 +1007,7 @@ class NNNCorrelation(BinnedCorr3):
         self.npatch3 = params.get('npatch3', 1)
 
 
-class NNNCrossCorrelation(BinnedCorr3):
+class NNNCrossCorrelation(Corr3):
     r"""This class handles the calculation a 3-point count-count-count cross-correlation
     function.
 
@@ -1074,19 +1074,19 @@ class NNNCrossCorrelation(BinnedCorr3):
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have addition entries besides those listed
-                        in `BinnedCorr3`, which are ignored here. (default: None)
+                        in `Corr3`, which are ignored here. (default: None)
         logger:         If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
-        **kwargs:       See the documentation for `BinnedCorr3` for the list of allowed keyword
+        **kwargs:       See the documentation for `Corr3` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
     @depr_pos_kwargs
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `NNNCrossCorrelation`.  See class doc for details.
         """
-        BinnedCorr3.__init__(self, config, logger=logger, **kwargs)
+        Corr3.__init__(self, config, logger=logger, **kwargs)
 
         self._ro._d1 = 1  # NData
         self._ro._d2 = 1  # NData
@@ -1396,7 +1396,7 @@ class NNNCrossCorrelation(BinnedCorr3):
             low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
                                 This only works if using patches. (default: False)
             initialize (bool):  Whether to begin the calculation with a call to
-                                `BinnedCorr3.clear`.  (default: True)
+                                `Corr3.clear`.  (default: True)
             finalize (bool):    Whether to complete the calculation with a call to `finalize`.
                                 (default: True)
         """

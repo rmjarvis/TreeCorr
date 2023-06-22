@@ -9,7 +9,7 @@ In most cases, you will probably want to use the default Metric, called "Euclide
 which just uses the normal Euclidean distance between two points.  However, there are a few
 other options, which are useful for various applications.
 
-Both `BinnedCorr2` and `BinnedCorr3` take an optional
+Both `Corr2` and `Corr3` take an optional
 ``metric`` parameter, which should be one of the following string values:
 
 

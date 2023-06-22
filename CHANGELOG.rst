@@ -1,4 +1,4 @@
-Changes from version 4.3 to 4.4
+Changes from version 4.3 to 5.0
 ===============================
 
 See the listing below for the complete list of new features and changes.
@@ -21,6 +21,8 @@ API Changes
   there were some use cases where a user could get away with not providing ``npatch`` and things
   would nonetheless still work.  But now we explicitly check for it, so those use cases do
   require passing ``npatch`` now.  (#150)
+- Renamed the base classes BinnedCorr2 -> Corr2 and BinnedCorr3 -> Corr3.  These are not normally
+  used directly by users, so it shouldn't be noticeable in user code.
 
 
 Performance improvements

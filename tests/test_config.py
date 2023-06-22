@@ -452,7 +452,7 @@ def test_merge():
 
     # ... even when when the value in kwargs is None.
     kwargs = {'bin_size': 0.06, 'nbins': None}
-    config2 = treecorr.config.merge_config(config1, kwargs, treecorr.BinnedCorr2._valid_params)
+    config2 = treecorr.config.merge_config(config1, kwargs, treecorr.Corr2._valid_params)
     assert config2['bin_size'] == 0.06
     assert config2['min_sep'] == config1['min_sep']
     assert config2['max_sep'] == config1['max_sep']

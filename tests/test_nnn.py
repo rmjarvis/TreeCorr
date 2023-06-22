@@ -633,7 +633,7 @@ def test_direct_count_auto():
     rrr.process(rcat)
     zeta, varzeta = ddd.calculateZeta(rrr=rrr)
 
-    # Semi-gratuitous check of BinnedCorr3.rng access.
+    # Semi-gratuitous check of Corr3.rng access.
     assert rrr.rng is rng
     assert ddd.rng is not rng
 

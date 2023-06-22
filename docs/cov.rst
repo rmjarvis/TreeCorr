@@ -142,7 +142,7 @@ is complete.
 
 However, if the processing was done using patches, then you can also compute the
 covariance matrix for any of the above methods without redoing the processing
-using `BinnedCorr2.estimate_cov` or `BinnedCorr3.estimate_cov`.  E.g.::
+using `Corr2.estimate_cov` or `Corr3.estimate_cov`.  E.g.::
 
     >>> ng = treecorr.NGCorrelation(nbins=10, min_sep=1, max_sep=100)
     >>> ng.process(lens_cat, source_cat)  # At least one of these needs to have patches set.
@@ -176,7 +176,7 @@ quantity. E.g.
 
 These are just examples of what kind of thing you might want. In fact, we enable
 any kind of post-processing you want to do on either a single correlation object
-(using `BinnedCorr2.estimate_cov` or `BinnedCorr3.estimate_cov`) or a list of
+(using `Corr2.estimate_cov` or `Corr3.estimate_cov`) or a list of
 correlation objects (using `treecorr.estimate_multi_cov`).
 
 These functions take an optional ``func`` parameter, which can be any user-defined
@@ -220,7 +220,7 @@ catalogs, which of course are required when doing an NN correlation.
 4. After calling `dd.calculateXi <NNCorrelation.calculateXi>`, ``dd``
    will have ``varxi`` and ``cov`` attributes calculated according
    to whatever ``var_method`` you specified.
-5. It also allows you to call `dd.estimate_cov <BinnedCorr2.estimate_cov>`
+5. It also allows you to call `dd.estimate_cov <Corr2.estimate_cov>`
    with any different method you want.
    And you can include ``dd`` in a list of correlation
    objects passed to `treecorr.estimate_multi_cov`.

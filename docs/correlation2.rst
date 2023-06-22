@@ -14,10 +14,10 @@ functions:
     nk
     kg
 
-Each of the above classes is a sub-class of the base class BinnedCorr2, so they have a number of
+Each of the above classes is a sub-class of the base class Corr2, so they have a number of
 features in common about how they are constructed.  The common features are documented here.
 
-.. autoclass:: treecorr.BinnedCorr2
+.. autoclass:: treecorr.Corr2
     :members:
 
 

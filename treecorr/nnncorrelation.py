@@ -18,7 +18,7 @@
 import numpy as np
 
 from . import _treecorr as _lib
-from .corr3 import Corr3
+from .corr3base import Corr3
 from .util import make_writer, make_reader, lazy_property
 from .util import depr_pos_kwargs
 

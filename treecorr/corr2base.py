@@ -12,7 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 """
-.. module:: corr2
+.. module:: corr2base
 """
 
 import math

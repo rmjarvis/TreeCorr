@@ -16,7 +16,7 @@
 """
 
 from .catalog import Catalog, read_catalogs
-from .corr3 import Corr3
+from .corr3base import Corr3
 from .config import setup_logger, check_config, print_params
 from .util import set_omp_threads
 from .nnncorrelation import NNNCorrelation

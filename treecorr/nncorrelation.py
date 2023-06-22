@@ -18,12 +18,12 @@
 import numpy as np
 
 from . import _treecorr as _lib
-from .binnedcorr2 import BinnedCorr2
+from .corr2 import Corr2
 from .util import make_writer, make_reader, lazy_property
 from .util import depr_pos_kwargs
 
 
-class NNCorrelation(BinnedCorr2):
+class NNCorrelation(Corr2):
     r"""This class handles the calculation and storage of a 2-point count-count correlation
     function.  i.e. the regular density correlation function.
 
@@ -81,19 +81,19 @@ class NNCorrelation(BinnedCorr2):
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have addition entries besides those listed
-                        in `BinnedCorr2`, which are ignored here. (default: None)
+                        in `Corr2`, which are ignored here. (default: None)
         logger:         If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
-        **kwargs:       See the documentation for `BinnedCorr2` for the list of allowed keyword
+        **kwargs:       See the documentation for `Corr2` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
     @depr_pos_kwargs
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `NNCorrelation`.  See class doc for details.
         """
-        BinnedCorr2.__init__(self, config, logger=logger, **kwargs)
+        Corr2.__init__(self, config, logger=logger, **kwargs)
 
         self._ro._d1 = 1  # NData
         self._ro._d2 = 1  # NData
@@ -445,7 +445,7 @@ class NNCorrelation(BinnedCorr2):
             low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
                                 This only works if using patches. (default: False)
             initialize (bool):  Whether to begin the calculation with a call to
-                                `BinnedCorr2.clear`.  (default: True)
+                                `Corr2.clear`.  (default: True)
             finalize (bool):    Whether to complete the calculation with a call to `finalize`.
                                 (default: True)
         """
@@ -512,7 +512,7 @@ class NNCorrelation(BinnedCorr2):
             estimates, you need to set ``var_method`` to something else and use patches in the
             input catalog(s).  cf. `Covariance Estimates`.
 
-        After calling this method, you can use the `BinnedCorr2.estimate_cov` method or use this
+        After calling this method, you can use the `Corr2.estimate_cov` method or use this
         correlation object in the `estimate_multi_cov` function.  Also, the calculated xi and
         varxi returned from this function will be available as attributes.
 

@@ -4,7 +4,7 @@ Binning
 To be useful, the measured correlations need to be binned in some way to
 find the average correlation among many pairs of nearly the same separation.
 The different ways to bin the results may be specified using the ``bin_type``
-parameter in `BinnedCorr2`.
+parameter in `Corr2`.
 
 "Log"
 -----
@@ -133,7 +133,7 @@ Other options for binning
 -------------------------
 
 There are a few other options that affect the binning, which can be set when constructing
-any of the `BinnedCorr2` or `BinnedCorr3` classes.
+any of the `Corr2` or `Corr3` classes.
 
 sep_units
 ^^^^^^^^^

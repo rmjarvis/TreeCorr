@@ -19,12 +19,12 @@ import numpy as np
 
 from . import _treecorr as _lib
 from .catalog import calculateVarK
-from .binnedcorr3 import BinnedCorr3
+from .corr3 import Corr3
 from .util import make_writer, make_reader
 from .util import depr_pos_kwargs
 
 
-class KKKCorrelation(BinnedCorr3):
+class KKKCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point kappa-kappa-kappa correlation
     function.
 
@@ -35,7 +35,7 @@ class KKKCorrelation(BinnedCorr3):
         correlations of the CMB temperature fluctuations, where "kappa" would really be
         :math:`\Delta T`.
 
-    See the doc string of `BinnedCorr3` for a description of how the triangles are binned.
+    See the doc string of `Corr3` for a description of how the triangles are binned.
 
     Ojects of this class holds the following attributes:
 
@@ -100,19 +100,19 @@ class KKKCorrelation(BinnedCorr3):
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have addition entries besides those listed
-                        in `BinnedCorr3`, which are ignored here. (default: None)
+                        in `Corr3`, which are ignored here. (default: None)
         logger:         If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
-        **kwargs:       See the documentation for `BinnedCorr3` for the list of allowed keyword
+        **kwargs:       See the documentation for `Corr3` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
     @depr_pos_kwargs
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `KKKCorrelation`.  See class doc for details.
         """
-        BinnedCorr3.__init__(self, config, logger=logger, **kwargs)
+        Corr3.__init__(self, config, logger=logger, **kwargs)
 
         self._ro._d1 = 2  # KData
         self._ro._d2 = 2  # KData
@@ -492,7 +492,7 @@ class KKKCorrelation(BinnedCorr3):
             low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
                                 This only works if using patches. (default: False)
             initialize (bool):  Whether to begin the calculation with a call to
-                                `BinnedCorr3.clear`.  (default: True)
+                                `Corr3.clear`.  (default: True)
             finalize (bool):    Whether to complete the calculation with a call to `finalize`.
                                 (default: True)
         """
@@ -660,7 +660,7 @@ class KKKCorrelation(BinnedCorr3):
         self.npatch3 = params.get('npatch3', 1)
 
 
-class KKKCrossCorrelation(BinnedCorr3):
+class KKKCrossCorrelation(Corr3):
     r"""This class handles the calculation a 3-point kappa-kappa-kappa cross-correlation
     function.
 
@@ -727,19 +727,19 @@ class KKKCrossCorrelation(BinnedCorr3):
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have addition entries besides those listed
-                        in `BinnedCorr3`, which are ignored here. (default: None)
+                        in `Corr3`, which are ignored here. (default: None)
         logger:         If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
-        **kwargs:       See the documentation for `BinnedCorr3` for the list of allowed keyword
+        **kwargs:       See the documentation for `Corr3` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
     @depr_pos_kwargs
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `KKKCrossCorrelation`.  See class doc for details.
         """
-        BinnedCorr3.__init__(self, config, logger=logger, **kwargs)
+        Corr3.__init__(self, config, logger=logger, **kwargs)
 
         self._ro._d1 = 2  # KData
         self._ro._d2 = 2  # KData
@@ -1003,7 +1003,7 @@ class KKKCrossCorrelation(BinnedCorr3):
             low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
                                 This only works if using patches. (default: False)
             initialize (bool):  Whether to begin the calculation with a call to
-                                `BinnedCorr3.clear`.  (default: True)
+                                `Corr3.clear`.  (default: True)
             finalize (bool):    Whether to complete the calculation with a call to `finalize`.
                                 (default: True)
         """

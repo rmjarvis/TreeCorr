@@ -19,12 +19,12 @@ import numpy as np
 
 from . import _treecorr as _lib
 from .catalog import calculateVarG
-from .binnedcorr3 import BinnedCorr3
+from .corr3 import Corr3
 from .util import make_writer, make_reader
 from .util import depr_pos_kwargs
 
 
-class GGGCorrelation(BinnedCorr3):
+class GGGCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point shear-shear-shear correlation
     function.
 
@@ -51,7 +51,7 @@ class GGGCorrelation(BinnedCorr3):
     sides d1, d2, d3 respectively, where d1 > d2 > d3, and :math:`{}^*` indicates complex
     conjugation.
 
-    See the doc string of `BinnedCorr3` for a description of how the triangles
+    See the doc string of `Corr3` for a description of how the triangles
     are binned.
 
     This class only holds one set of these :math:`\Gamma` functions, which means that it is only
@@ -133,19 +133,19 @@ class GGGCorrelation(BinnedCorr3):
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have addition entries besides those listed
-                        in `BinnedCorr3`, which are ignored here. (default: None)
+                        in `Corr3`, which are ignored here. (default: None)
         logger:         If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
-        **kwargs:       See the documentation for `BinnedCorr3` for the list of allowed keyword
+        **kwargs:       See the documentation for `Corr3` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
     @depr_pos_kwargs
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `GGGCorrelation`.  See class doc for details.
         """
-        BinnedCorr3.__init__(self, config, logger=logger, **kwargs)
+        Corr3.__init__(self, config, logger=logger, **kwargs)
 
         self._ro._d1 = 3  # GData
         self._ro._d2 = 3  # GData
@@ -602,7 +602,7 @@ class GGGCorrelation(BinnedCorr3):
             low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
                                 This only works if using patches. (default: False)
             initialize (bool):  Whether to begin the calculation with a call to
-                                `BinnedCorr3.clear`.  (default: True)
+                                `Corr3.clear`.  (default: True)
             finalize (bool):    Whether to complete the calculation with a call to `finalize`.
                                 (default: True)
         """
@@ -1181,7 +1181,7 @@ class GGGCorrelation(BinnedCorr3):
             writer.write(col_names, columns)
 
 
-class GGGCrossCorrelation(BinnedCorr3):
+class GGGCrossCorrelation(Corr3):
     r"""This class handles the calculation a 3-point shear-shear-shear cross-correlation
     function.
 
@@ -1248,19 +1248,19 @@ class GGGCrossCorrelation(BinnedCorr3):
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have addition entries besides those listed
-                        in `BinnedCorr3`, which are ignored here. (default: None)
+                        in `Corr3`, which are ignored here. (default: None)
         logger:         If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
-        **kwargs:       See the documentation for `BinnedCorr3` for the list of allowed keyword
+        **kwargs:       See the documentation for `Corr3` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
     @depr_pos_kwargs
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `GGGCrossCorrelation`.  See class doc for details.
         """
-        BinnedCorr3.__init__(self, config, logger=logger, **kwargs)
+        Corr3.__init__(self, config, logger=logger, **kwargs)
 
         self._ro._d1 = 3  # GData
         self._ro._d2 = 3  # GData
@@ -1524,7 +1524,7 @@ class GGGCrossCorrelation(BinnedCorr3):
             low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
                                 This only works if using patches. (default: False)
             initialize (bool):  Whether to begin the calculation with a call to
-                                `BinnedCorr3.clear`.  (default: True)
+                                `Corr3.clear`.  (default: True)
             finalize (bool):    Whether to complete the calculation with a call to `finalize`.
                                 (default: True)
         """

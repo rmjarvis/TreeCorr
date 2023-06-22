@@ -22,10 +22,10 @@ auto-correlation functions:
     However, we do not yet have the ability to compute 3-point cross-correlations across
     different types (such as NNG or KGG, etc.)
 
-Each of the above classes is a sub-class of the base class BinnedCorr3, so they have a number of
+Each of the above classes is a sub-class of the base class Corr3, so they have a number of
 features in common about how they are constructed.  The common features are documented here.
 
-.. autoclass:: treecorr.BinnedCorr3
+.. autoclass:: treecorr.Corr3
     :members:
 
 

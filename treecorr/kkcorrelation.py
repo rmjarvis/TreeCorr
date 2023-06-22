@@ -19,12 +19,12 @@ import numpy as np
 
 from . import _treecorr as _lib
 from .catalog import calculateVarK
-from .binnedcorr2 import BinnedCorr2
+from .corr2 import Corr2
 from .util import make_writer, make_reader
 from .util import depr_pos_kwargs
 
 
-class KKCorrelation(BinnedCorr2):
+class KKCorrelation(Corr2):
     r"""This class handles the calculation and storage of a 2-point kappa-kappa correlation
     function.
 
@@ -88,19 +88,19 @@ class KKCorrelation(BinnedCorr2):
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have addition entries besides those listed
-                        in `BinnedCorr2`, which are ignored here. (default: None)
+                        in `Corr2`, which are ignored here. (default: None)
         logger:         If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
-        **kwargs:       See the documentation for `BinnedCorr2` for the list of allowed keyword
+        **kwargs:       See the documentation for `Corr2` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
     @depr_pos_kwargs
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `KKCorrelation`.  See class doc for details.
         """
-        BinnedCorr2.__init__(self, config, logger=logger, **kwargs)
+        Corr2.__init__(self, config, logger=logger, **kwargs)
 
         self._ro._d1 = 2  # KData
         self._ro._d2 = 2  # KData
@@ -405,7 +405,7 @@ class KKCorrelation(BinnedCorr2):
             low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
                                 This only works if using patches. (default: False)
             initialize (bool):  Whether to begin the calculation with a call to
-                                `BinnedCorr2.clear`.  (default: True)
+                                `Corr2.clear`.  (default: True)
             finalize (bool):    Whether to complete the calculation with a call to `finalize`.
                                 (default: True)
         """

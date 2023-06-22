@@ -24,7 +24,6 @@ from . import _treecorr
 from .config import merge_config, setup_logger, get
 from .util import parse_metric, metric_enum, coord_enum, set_omp_threads, lazy_property
 from .util import make_reader
-from .util import depr_pos_kwargs
 from .corr2base import estimate_multi_cov, build_multi_cov_design_matrix
 
 class Namespace(object):
@@ -289,7 +288,6 @@ class Corr3(object):
                 'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
     }
 
-    @depr_pos_kwargs
     def __init__(self, config=None, *, logger=None, rng=None, **kwargs):
         self._corr = None  # Do this first to make sure we always have it for __del__
         self.config = merge_config(config,kwargs,Corr3._valid_params)
@@ -1028,7 +1026,6 @@ class Corr3(object):
         """
         return self.weight.ravel()
 
-    @depr_pos_kwargs
     def estimate_cov(self, method, *, func=None, comm=None):
         """Estimate the covariance matrix based on the data
 

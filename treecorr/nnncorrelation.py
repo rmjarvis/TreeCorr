@@ -20,7 +20,6 @@ import numpy as np
 from . import _treecorr
 from .corr3base import Corr3
 from .util import make_writer, make_reader, lazy_property
-from .util import depr_pos_kwargs
 
 
 class NNNCorrelation(Corr3):
@@ -101,7 +100,6 @@ class NNNCorrelation(Corr3):
         **kwargs:       See the documentation for `Corr3` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
-    @depr_pos_kwargs
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `NNNCorrelation`.  See class doc for details.
         """
@@ -237,7 +235,6 @@ class NNNCorrelation(Corr3):
     def __repr__(self):
         return 'NNNCorrelation(config=%r)'%self.config
 
-    @depr_pos_kwargs
     def process_auto(self, cat, *, metric=None, num_threads=None):
         """Process a single catalog, accumulating the auto-correlation.
 
@@ -273,7 +270,6 @@ class NNNCorrelation(Corr3):
                               self._coords, self._bintype, self._metric)
         self.tot += (1./6.) * cat.sumw**3
 
-    @depr_pos_kwargs
     def process_cross12(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process two catalogs, accumulating the 3pt cross-correlation, where one of the
         points in each triangle come from the first catalog, and two come from the second.
@@ -324,7 +320,6 @@ class NNNCorrelation(Corr3):
                                  self._coords, self._bintype, self._metric)
         self.tot += cat1.sumw * cat2.sumw**2 / 2.
 
-    @depr_pos_kwargs
     def process_cross(self, cat1, cat2, cat3, *, metric=None, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
 
@@ -511,7 +506,6 @@ class NNNCorrelation(Corr3):
         self.ntri[:] += other.ntri[:]
         return self
 
-    @depr_pos_kwargs
     def process(self, cat1, cat2=None, cat3=None, *, metric=None, num_threads=None,
                 comm=None, low_mem=False, initialize=True, finalize=True):
         """Accumulate the 3pt correlation of the points in the given Catalog(s).
@@ -597,7 +591,6 @@ class NNNCorrelation(Corr3):
         else:
             return self.tot
 
-    @depr_pos_kwargs
     def calculateZeta(self, *, rrr, drr=None, rdd=None):
         r"""Calculate the 3pt function given another 3pt function of random
         points using the same mask, and possibly cross correlations of the data and random.
@@ -812,7 +805,6 @@ class NNNCorrelation(Corr3):
         self.zeta = zeta / denom
         self._rrr_weight = denom
 
-    @depr_pos_kwargs
     def write(self, file_name, *, rrr=None, drr=None, rdd=None, file_type=None, precision=None,
               write_patch_results=False):
         r"""Write the correlation function to the file, file_name.
@@ -953,7 +945,6 @@ class NNNCorrelation(Corr3):
         return { 'tot' : self.tot, 'coords' : self.coords, 'metric' : self.metric,
                  'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
 
-    @depr_pos_kwargs
     def read(self, file_name, *, file_type=None):
         """Read in values from a file.
 
@@ -1079,7 +1070,6 @@ class NNNCrossCorrelation(Corr3):
         **kwargs:       See the documentation for `Corr3` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
-    @depr_pos_kwargs
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `NNNCrossCorrelation`.  See class doc for details.
         """
@@ -1155,7 +1145,6 @@ class NNNCrossCorrelation(Corr3):
     def __repr__(self):
         return 'NNNCrossCorrelation(config=%r)'%self.config
 
-    @depr_pos_kwargs
     def process_cross12(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process two catalogs, accumulating the 3pt cross-correlation, where one of the
         points in each triangle come from the first catalog, and two come from the second.
@@ -1218,7 +1207,6 @@ class NNNCrossCorrelation(Corr3):
         self.n2n3n1.tot += tot
         self.tot += tot
 
-    @depr_pos_kwargs
     def process_cross(self, cat1, cat2, cat3, *, metric=None, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
 
@@ -1360,7 +1348,6 @@ class NNNCrossCorrelation(Corr3):
         """
         return 1.
 
-    @depr_pos_kwargs
     def process(self, cat1, cat2, cat3=None, *, metric=None, num_threads=None,
                 comm=None, low_mem=False, initialize=True, finalize=True):
         """Accumulate the cross-correlation of the points in the given Catalogs: cat1, cat2, cat3.
@@ -1426,7 +1413,6 @@ class NNNCrossCorrelation(Corr3):
 
             self.finalize()
 
-    @depr_pos_kwargs
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False):
         r"""Write the correlation function to the file, file_name.
 
@@ -1447,7 +1433,6 @@ class NNNCrossCorrelation(Corr3):
             for name, corr in zip(names, self._all):
                 corr._write(writer, name, write_patch_results, zero_tot=True)
 
-    @depr_pos_kwargs
     def read(self, file_name, *, file_type=None):
         """Read in values from a file.
 

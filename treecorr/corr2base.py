@@ -25,7 +25,6 @@ import collections
 from . import _treecorr
 from .config import merge_config, setup_logger, get
 from .util import parse_metric, metric_enum, coord_enum, set_omp_threads, lazy_property
-from .util import depr_pos_kwargs
 
 class Namespace(object):
     pass
@@ -276,7 +275,6 @@ class Corr2(object):
                 'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
     }
 
-    @depr_pos_kwargs
     def __init__(self, config=None, *, logger=None, rng=None, **kwargs):
         self._corr = None  # Do this first to make sure we always have it for __del__
         self.config = merge_config(config,kwargs,Corr2._valid_params)
@@ -826,7 +824,6 @@ class Corr2(object):
         """
         return self.weight.ravel()
 
-    @depr_pos_kwargs
     def estimate_cov(self, method, *, func=None, comm=None):
         """Estimate the covariance matrix based on the data
 
@@ -1028,7 +1025,6 @@ class Corr2(object):
             # (And for the max_size, always split 10 levels for the top-level cells.)
             return 0., 0.
 
-    @depr_pos_kwargs
     def sample_pairs(self, n, cat1, cat2, *, min_sep, max_sep, metric=None):
         """Return a random sample of n pairs whose separations fall between min_sep and max_sep.
 
@@ -1344,7 +1340,6 @@ class Corr2(object):
             key = eval(params['key'])
             self.results[key] = corr
 
-@depr_pos_kwargs
 def estimate_multi_cov(corrs, method, *, func=None, comm=None):
     """Estimate the covariance matrix of multiple statistics.
 

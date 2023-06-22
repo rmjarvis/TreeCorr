@@ -486,12 +486,6 @@ def test_direct_count():
     np.testing.assert_array_equal(varxi, dd.varxi)
     np.testing.assert_array_equal(varxi, dd.cov.diagonal())
 
-    # rr is still allowed as a positional argument, but deprecated
-    with assert_warns(FutureWarning):
-        xi_2, varxi_2 = dd.calculateXi(rr)
-    np.testing.assert_array_equal(xi_2, xi)
-    np.testing.assert_array_equal(varxi_2, varxi)
-
     # First do this via the corr2 function.
     config = treecorr.config.read_config('configs/nn_direct.yaml')
     logger = treecorr.config.setup_logger(0)

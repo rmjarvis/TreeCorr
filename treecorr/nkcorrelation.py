@@ -21,7 +21,6 @@ from . import _treecorr
 from .catalog import calculateVarK
 from .corr2base import Corr2
 from .util import make_writer, make_reader
-from .util import depr_pos_kwargs
 
 
 class NKCorrelation(Corr2):
@@ -99,7 +98,6 @@ class NKCorrelation(Corr2):
         **kwargs:       See the documentation for `Corr2` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
-    @depr_pos_kwargs
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `NKCorrelation`.  See class doc for details.
         """
@@ -178,7 +176,6 @@ class NKCorrelation(Corr2):
     def __repr__(self):
         return 'NKCorrelation(config=%r)'%self.config
 
-    @depr_pos_kwargs
     def process_cross(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation.
 
@@ -222,7 +219,6 @@ class NKCorrelation(Corr2):
         self.corr.processCross(f1.data, f2.data, self.output_dots,
                                self._coords, self._bintype, self._metric)
 
-    @depr_pos_kwargs
     def process_pairwise(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation, only using
         the corresponding pairs of objects in each catalog.
@@ -362,7 +358,6 @@ class NKCorrelation(Corr2):
         self._varxi = None
         self._cov = None
 
-    @depr_pos_kwargs
     def process(self, cat1, cat2, *, metric=None, num_threads=None, comm=None, low_mem=False,
                 initialize=True, finalize=True):
         """Compute the correlation function.
@@ -406,7 +401,6 @@ class NKCorrelation(Corr2):
             self.logger.info("vark = %f: sig_k = %f",vark,math.sqrt(vark))
             self.finalize(vark)
 
-    @depr_pos_kwargs
     def calculateXi(self, *, rk=None):
         r"""Calculate the correlation function possibly given another correlation function
         that uses random points for the foreground objects.
@@ -539,7 +533,6 @@ class NKCorrelation(Corr2):
         return { 'coords' : self.coords, 'metric' : self.metric,
                  'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
 
-    @depr_pos_kwargs
     def read(self, file_name, *, file_type=None):
         """Read in values from a file.
 

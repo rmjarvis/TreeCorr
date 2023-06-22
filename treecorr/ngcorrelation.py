@@ -21,7 +21,6 @@ from . import _treecorr
 from .catalog import calculateVarG
 from .corr2base import Corr2
 from .util import make_writer, make_reader
-from .util import depr_pos_kwargs
 
 
 class NGCorrelation(Corr2):
@@ -94,7 +93,6 @@ class NGCorrelation(Corr2):
         **kwargs:       See the documentation for `Corr2` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
-    @depr_pos_kwargs
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `NGCorrelation`.  See class doc for details.
         """
@@ -179,7 +177,6 @@ class NGCorrelation(Corr2):
     def __repr__(self):
         return 'NGCorrelation(config=%r)'%self.config
 
-    @depr_pos_kwargs
     def process_cross(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation.
 
@@ -223,7 +220,6 @@ class NGCorrelation(Corr2):
         self.corr.processCross(f1.data, f2.data, self.output_dots,
                                self._coords, self._bintype, self._metric)
 
-    @depr_pos_kwargs
     def process_pairwise(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation, only using
         the corresponding pairs of objects in each catalog.
@@ -372,7 +368,6 @@ class NGCorrelation(Corr2):
         self._varxi = None
         self._cov = None
 
-    @depr_pos_kwargs
     def process(self, cat1, cat2, *, metric=None, num_threads=None, comm=None, low_mem=False,
                 initialize=True, finalize=True):
         """Compute the correlation function.
@@ -416,7 +411,6 @@ class NGCorrelation(Corr2):
             self.logger.info("varg = %f: sig_sn (per component) = %f",varg,math.sqrt(varg))
             self.finalize(varg)
 
-    @depr_pos_kwargs
     def calculateXi(self, *, rg=None):
         r"""Calculate the correlation function possibly given another correlation function
         that uses random points for the foreground objects.
@@ -487,7 +481,6 @@ class NGCorrelation(Corr2):
             self._rg._calculate_xi_from_pairs(pairs)
             self.xi -= self._rg.xi
 
-    @depr_pos_kwargs
     def write(self, file_name, *, rg=None, file_type=None, precision=None,
               write_patch_results=False):
         r"""Write the correlation function to the file, file_name.
@@ -554,7 +547,6 @@ class NGCorrelation(Corr2):
         return { 'coords' : self.coords, 'metric' : self.metric,
                  'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
 
-    @depr_pos_kwargs
     def read(self, file_name, *, file_type=None):
         """Read in values from a file.
 
@@ -601,7 +593,6 @@ class NGCorrelation(Corr2):
         self.npatch1 = params.get('npatch1', 1)
         self.npatch2 = params.get('npatch2', 1)
 
-    @depr_pos_kwargs
     def calculateNMap(self, *, R=None, rg=None, m2_uform=None):
         r"""Calculate the aperture mass statistics from the correlation function.
 
@@ -690,7 +681,6 @@ class NGCorrelation(Corr2):
 
         return nmap, nmx, varnmap
 
-    @depr_pos_kwargs
     def writeNMap(self, file_name, *, R=None, rg=None, m2_uform=None, file_type=None,
                   precision=None):
         r"""Write the cross correlation of the foreground galaxy counts with the aperture mass
@@ -739,7 +729,6 @@ class NGCorrelation(Corr2):
         with writer:
             writer.write(col_names, columns)
 
-    @depr_pos_kwargs
     def writeNorm(self, file_name, *, gg, dd, rr, R=None, dr=None, rg=None,
                   m2_uform=None, file_type=None, precision=None):
         r"""Write the normalized aperture mass cross-correlation to the file, file_name.

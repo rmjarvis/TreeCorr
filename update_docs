@@ -1,3 +1,5 @@
 #sphinx-apidoc -f -o . ../treecorr/
+cd docs
 make clean
 make html
+cd ..

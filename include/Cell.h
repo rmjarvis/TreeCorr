@@ -227,8 +227,6 @@ public:
     long getN() const { return _data->getN(); }
 
     double getSize() const { return _size; }
-    // For PairCells, getAllSize is different from getSize.
-    double getAllSize() const { return _size; }
     double calculateInertia() const;
 
     const Cell<D,C>* getLeft() const { return _left; }

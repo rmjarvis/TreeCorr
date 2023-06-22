@@ -1001,14 +1001,14 @@ Corr2<D1,D2>* BuildCorr2(
     py::array_t<double>& meanrp, py::array_t<double>& meanlogrp,
     py::array_t<double>& weightp, py::array_t<double>& npairsp)
 {
-    double* xi0 = xi0p.request().size == 0 ? 0 : static_cast<double*>(xi0p.request().ptr);
-    double* xi1 = xi1p.request().size == 0 ? 0 : static_cast<double*>(xi1p.request().ptr);
-    double* xi2 = xi2p.request().size == 0 ? 0 : static_cast<double*>(xi2p.request().ptr);
-    double* xi3 = xi3p.request().size == 0 ? 0 : static_cast<double*>(xi3p.request().ptr);
-    double* meanr = static_cast<double*>(meanrp.request().ptr);
-    double* meanlogr = static_cast<double*>(meanlogrp.request().ptr);
-    double* weight = static_cast<double*>(weightp.request().ptr);
-    double* npairs = static_cast<double*>(npairsp.request().ptr);
+    double* xi0 = xi0p.size() == 0 ? 0 : static_cast<double*>(xi0p.mutable_data());
+    double* xi1 = xi1p.size() == 0 ? 0 : static_cast<double*>(xi1p.mutable_data());
+    double* xi2 = xi2p.size() == 0 ? 0 : static_cast<double*>(xi2p.mutable_data());
+    double* xi3 = xi3p.size() == 0 ? 0 : static_cast<double*>(xi3p.mutable_data());
+    double* meanr = static_cast<double*>(meanrp.mutable_data());
+    double* meanlogr = static_cast<double*>(meanlogrp.mutable_data());
+    double* weight = static_cast<double*>(weightp.mutable_data());
+    double* npairs = static_cast<double*>(npairsp.mutable_data());
 
     return new Corr2<D1,D2>(
             bin_type, minsep, maxsep, nbins, binsize, b, minrpar, maxrpar, xp, yp, zp,
@@ -1369,13 +1369,13 @@ long SamplePairs(BaseCorr2* corr, BaseField<D1>* field1, BaseField<D2>* field2,
                  double minsep, double maxsep, Coord coords, BinType bin_type, Metric metric,
                  py::array_t<long>& i1p, py::array_t<long>& i2p, py::array_t<double>& sepp)
 {
-    long n = i1p.request().size;
-    Assert(i2p.request().size == n);
-    Assert(sepp.request().size == n);
+    long n = i1p.size();
+    Assert(i2p.size() == n);
+    Assert(sepp.size() == n);
 
-    long* i1 = static_cast<long*>(i1p.request().ptr);
-    long* i2 = static_cast<long*>(i2p.request().ptr);
-    double* sep = static_cast<double*>(sepp.request().ptr);
+    long* i1 = static_cast<long*>(i1p.mutable_data());
+    long* i2 = static_cast<long*>(i2p.mutable_data());
+    double* sep = static_cast<double*>(sepp.mutable_data());
 
     dbg<<"Start SamplePairs: "<<D1<<" "<<D2<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
 

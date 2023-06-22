@@ -102,8 +102,6 @@ class GGCorrelation(Corr2):
         """
         Corr2.__init__(self, config, logger=logger, **kwargs)
 
-        self._ro._d1 = 3  # GData
-        self._ro._d2 = 3  # GData
         self.xip = np.zeros_like(self.rnom, dtype=float)
         self.xim = np.zeros_like(self.rnom, dtype=float)
         self.xip_im = np.zeros_like(self.rnom, dtype=float)

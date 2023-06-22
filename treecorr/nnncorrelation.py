@@ -107,9 +107,6 @@ class NNNCorrelation(Corr3):
         """
         Corr3.__init__(self, config, logger=logger, **kwargs)
 
-        self._ro._d1 = 1  # NData
-        self._ro._d2 = 1  # NData
-        self._ro._d3 = 1  # NData
         shape = self.logr.shape
         self.meand1 = np.zeros(shape, dtype=float)
         self.meanlogd1 = np.zeros(shape, dtype=float)
@@ -1087,10 +1084,6 @@ class NNNCrossCorrelation(Corr3):
         """Initialize `NNNCrossCorrelation`.  See class doc for details.
         """
         Corr3.__init__(self, config, logger=logger, **kwargs)
-
-        self._ro._d1 = 1  # NData
-        self._ro._d2 = 1  # NData
-        self._ro._d3 = 1  # NData
 
         self.n1n2n3 = NNNCorrelation(config, logger=logger, **kwargs)
         self.n1n3n2 = NNNCorrelation(config, logger=logger, **kwargs)

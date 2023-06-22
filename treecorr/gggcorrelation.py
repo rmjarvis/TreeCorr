@@ -147,9 +147,6 @@ class GGGCorrelation(Corr3):
         """
         Corr3.__init__(self, config, logger=logger, **kwargs)
 
-        self._ro._d1 = 3  # GData
-        self._ro._d2 = 3  # GData
-        self._ro._d3 = 3  # GData
         shape = self.logr.shape
         self.gam0r = np.zeros(shape, dtype=float)
         self.gam1r = np.zeros(shape, dtype=float)
@@ -1261,10 +1258,6 @@ class GGGCrossCorrelation(Corr3):
         """Initialize `GGGCrossCorrelation`.  See class doc for details.
         """
         Corr3.__init__(self, config, logger=logger, **kwargs)
-
-        self._ro._d1 = 3  # GData
-        self._ro._d2 = 3  # GData
-        self._ro._d3 = 3  # GData
 
         self.g1g2g3 = GGGCorrelation(config, logger=logger, **kwargs)
         self.g1g3g2 = GGGCorrelation(config, logger=logger, **kwargs)

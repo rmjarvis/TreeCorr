@@ -102,8 +102,6 @@ class KGCorrelation(Corr2):
         """
         Corr2.__init__(self, config, logger=logger, **kwargs)
 
-        self._ro._d1 = 2  # KData
-        self._ro._d2 = 3  # GData
         self.xi = np.zeros_like(self.rnom, dtype=float)
         self.xi_im = np.zeros_like(self.rnom, dtype=float)
         self.meanr = np.zeros_like(self.rnom, dtype=float)

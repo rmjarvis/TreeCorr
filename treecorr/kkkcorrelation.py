@@ -114,9 +114,6 @@ class KKKCorrelation(Corr3):
         """
         Corr3.__init__(self, config, logger=logger, **kwargs)
 
-        self._ro._d1 = 2  # KData
-        self._ro._d2 = 2  # KData
-        self._ro._d3 = 2  # KData
         shape = self.logr.shape
         self.zeta = np.zeros(shape, dtype=float)
         self.varzeta = np.zeros(shape, dtype=float)
@@ -740,10 +737,6 @@ class KKKCrossCorrelation(Corr3):
         """Initialize `KKKCrossCorrelation`.  See class doc for details.
         """
         Corr3.__init__(self, config, logger=logger, **kwargs)
-
-        self._ro._d1 = 2  # KData
-        self._ro._d2 = 2  # KData
-        self._ro._d3 = 2  # KData
 
         self.k1k2k3 = KKKCorrelation(config, logger=logger, **kwargs)
         self.k1k3k2 = KKKCorrelation(config, logger=logger, **kwargs)

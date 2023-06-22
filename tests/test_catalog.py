@@ -1601,14 +1601,6 @@ def test_list():
         np.testing.assert_almost_equal(cats[k].x, x_list[k])
         np.testing.assert_almost_equal(cats[k].y, y_list[k])
 
-    # Providing positional args past list_key is now deprecated.
-    with assert_warns(FutureWarning):
-        cats = treecorr.read_catalogs(config, 'file_name', 'file_list', 0, None, None)
-    np.testing.assert_equal(len(cats), ncats)
-    for k in range(ncats):
-        np.testing.assert_almost_equal(cats[k].x, x_list[k])
-        np.testing.assert_almost_equal(cats[k].y, y_list[k])
-
 @timer
 def test_write():
     # Test that writing a Catalog to a file and then reading it back in works correctly
@@ -1797,22 +1789,6 @@ def test_field():
     print('nfield: ',t1-t0,t2-t1)
     if platform.python_implementation() != 'PyPy':
         assert t2-t1 <= t1-t0
-
-    # Check warning if not using kwargs for now-kwarg-only params
-    with assert_warns(FutureWarning):
-        nfield2c = cat2.getNField(0.01, 1)
-    with assert_warns(FutureWarning):
-        nfield2d = cat2.getNField(0.01, max_size=1)
-    with assert_warns(FutureWarning):
-        nfield2e = cat2.getNField(0.01, 1, None, False, None, 10, None, None)
-    with assert_raises(TypeError):
-        # One too many, so this is still an error.
-        nfield2e = cat2.getNField(0.01, 1, None, False, None, 10, None, None, 77)
-    for k in nfield2.__dict__:
-        if k != 'data':
-            assert nfield2c.__dict__[k] == nfield2.__dict__[k]
-            assert nfield2d.__dict__[k] == nfield2.__dict__[k]
-            assert nfield2e.__dict__[k] == nfield2.__dict__[k]
 
     t0 = time.time()
     gfield1 = cat1.getGField()

@@ -20,7 +20,6 @@ import numpy as np
 from . import _treecorr
 from .corr2base import Corr2
 from .util import make_writer, make_reader, lazy_property
-from .util import depr_pos_kwargs
 
 
 class NNCorrelation(Corr2):
@@ -89,7 +88,6 @@ class NNCorrelation(Corr2):
         **kwargs:       See the documentation for `Corr2` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
-    @depr_pos_kwargs
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `NNCorrelation`.  See class doc for details.
         """
@@ -200,7 +198,6 @@ class NNCorrelation(Corr2):
     def __repr__(self):
         return 'NNCorrelation(config=%r)'%self.config
 
-    @depr_pos_kwargs
     def process_auto(self, cat, *, metric=None, num_threads=None):
         """Process a single catalog, accumulating the auto-correlation.
 
@@ -236,7 +233,6 @@ class NNCorrelation(Corr2):
                               self._coords, self._bintype, self._metric)
         self.tot += 0.5 * cat.sumw**2
 
-    @depr_pos_kwargs
     def process_cross(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation.
 
@@ -280,7 +276,6 @@ class NNCorrelation(Corr2):
                                self._coords, self._bintype, self._metric)
         self.tot += cat1.sumw*cat2.sumw
 
-    @depr_pos_kwargs
     def process_pairwise(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation, only using
         the corresponding pairs of objects in each catalog.
@@ -416,7 +411,6 @@ class NNCorrelation(Corr2):
         # to save some time.
         self.results[(i,j)] = self._zero_copy(tot)
 
-    @depr_pos_kwargs
     def process(self, cat1, cat2=None, *, metric=None, num_threads=None, comm=None, low_mem=False,
                 initialize=True, finalize=True):
         """Compute the correlation function.
@@ -487,7 +481,6 @@ class NNCorrelation(Corr2):
         else:
             return self.tot
 
-    @depr_pos_kwargs
     def calculateXi(self, *, rr, dr=None, rd=None):
         r"""Calculate the correlation function given another correlation function of random
         points using the same mask, and possibly cross correlations of the data and random.
@@ -705,7 +698,6 @@ class NNCorrelation(Corr2):
         self.xi = xi / denom
         self._rr_weight = denom
 
-    @depr_pos_kwargs
     def write(self, file_name, *, rr=None, dr=None, rd=None, file_type=None, precision=None,
               write_patch_results=False):
         r"""Write the correlation function to the file, file_name.
@@ -823,7 +815,6 @@ class NNCorrelation(Corr2):
         return { 'tot' : self.tot, 'coords' : self.coords, 'metric' : self.metric,
                  'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
 
-    @depr_pos_kwargs
     def read(self, file_name, *, file_type=None):
         """Read in values from a file.
 
@@ -868,7 +859,6 @@ class NNCorrelation(Corr2):
         self.npatch1 = params.get('npatch1', 1)
         self.npatch2 = params.get('npatch2', 1)
 
-    @depr_pos_kwargs
     def calculateNapSq(self, *, rr, R=None, dr=None, rd=None, m2_uform=None):
         r"""Calculate the corrollary to the aperture mass statistics for counts.
 

@@ -20,7 +20,6 @@ import weakref
 
 from . import _treecorr
 from .util import get_omp_threads, parse_xyzsep, coord_enum
-from .util import depr_pos_kwargs
 
 def _parse_split_method(split_method):
     if split_method == 'middle': return _treecorr.Middle
@@ -262,7 +261,6 @@ class Field(object):
         self.data.getNear(x, y, z, sep, indices)
         return indices
 
-    @depr_pos_kwargs
     def run_kmeans(self, npatch, *, max_iter=200, tol=1.e-5, init='tree', alt=False, rng=None):
         r"""Use k-means algorithm to set patch labels for a field.
 
@@ -379,7 +377,6 @@ class Field(object):
         patches = self.kmeans_assign_patches(centers)
         return patches, centers
 
-    @depr_pos_kwargs
     def kmeans_initialize_centers(self, npatch, init='tree', *, rng=None):
         """Use the field's tree structure to assign good initial centers for a K-Means run.
 
@@ -436,7 +433,6 @@ class Field(object):
 
         return centers
 
-    @depr_pos_kwargs
     def kmeans_refine_centers(self, centers, *, max_iter=200, tol=1.e-5, alt=False):
         """Fast implementation of the K-Means algorithm
 
@@ -531,7 +527,6 @@ class NField(Field):
                             number generation. (default: None)
         logger (Logger):    A logger file if desired. (default: None)
     """
-    @depr_pos_kwargs
     def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, rng=None, logger=None):
         if logger:
@@ -587,7 +582,6 @@ class KField(Field):
                             number generation. (default: None)
         logger (Logger):    A logger file if desired. (default: None)
     """
-    @depr_pos_kwargs
     def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, rng=None, logger=None):
         if logger:
@@ -643,7 +637,6 @@ class GField(Field):
                             number generation. (default: None)
         logger (Logger):    A logger file if desired. (default: None)
     """
-    @depr_pos_kwargs
     def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, rng=None, logger=None):
         if logger:
@@ -715,7 +708,6 @@ class NSimpleField(SimpleField):
         cat (Catalog):      The catalog from which to make the field.
         logger (Logger):    A logger file if desired. (default: None)
     """
-    @depr_pos_kwargs
     def __init__(self, cat, *, logger=None):
         if logger:
             if cat.name != '':
@@ -751,7 +743,6 @@ class KSimpleField(SimpleField):
         cat (Catalog):      The catalog from which to make the field.
         logger (Logger):    A logger file if desired. (default: None)
     """
-    @depr_pos_kwargs
     def __init__(self, cat, *, logger=None):
         if logger:
             if cat.name != '':
@@ -787,7 +778,6 @@ class GSimpleField(SimpleField):
         cat (Catalog):      The catalog from which to make the field.
         logger (Logger):    A logger file if desired. (default: None)
     """
-    @depr_pos_kwargs
     def __init__(self, cat, *, logger=None):
         if logger:
             if cat.name != '':

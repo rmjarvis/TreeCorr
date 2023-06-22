@@ -456,12 +456,6 @@ def test_nk():
     # to the smallish number of lenses, not to edge effects
     np.testing.assert_allclose(nk.xi, true_k, rtol=0.05, atol=1.e-3)
 
-    # rk is still allowed as a positional argument, but deprecated
-    with assert_warns(FutureWarning):
-        xi_2, varxi_2 = nk.calculateXi(rk)
-    np.testing.assert_array_equal(xi_2, xi)
-    np.testing.assert_array_equal(varxi_2, varxi)
-
     # Check that we get the same result using the corr2 function
     try:
         import fitsio

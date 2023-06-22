@@ -708,13 +708,6 @@ def test_ng():
     np.testing.assert_allclose(xi, true_gt, rtol=0.1)
     np.testing.assert_allclose(xi_im, 0, atol=5.e-3)
 
-    # rg is still allowed as a positional argument, but deprecated
-    with assert_warns(FutureWarning):
-        xi_2, xi_im_2, varxi_2 = ng.calculateXi(rg)
-    np.testing.assert_array_equal(xi_2, xi)
-    np.testing.assert_array_equal(xi_im_2, xi_im)
-    np.testing.assert_array_equal(varxi_2, varxi)
-
     # Check that we get the same result using the corr2 function:
     config = treecorr.read_config('configs/ng.yaml')
     try:
@@ -938,13 +931,6 @@ def test_nmap():
         np.testing.assert_allclose(data['sig_mapsq'], np.sqrt(varmap), rtol=1.e-6)
         np.testing.assert_allclose(data['NMap_norm'], nmap_norm, rtol=1.e-6)
         np.testing.assert_allclose(data['Nsq_Mapsq'], napsq_mapsq, rtol=1.e-6)
-
-        with assert_warns(FutureWarning):
-            # This one in particular is worth checking, since some kw-onlt args don't have defaults,
-            # so it didn't actually work with my original implementation of depr_pos_kwargs
-            ng.writeNorm(fits_name, gg, dd, rr, file_type='fits')
-        data2 = fitsio.read(fits_name)
-        np.testing.assert_array_equal(data2, data)
 
         fits_name = os.path.join('output', 'ng_nmap2.fits')
         ng.writeNMap(fits_name, R=R, rg=rg)

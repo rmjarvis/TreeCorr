@@ -700,21 +700,6 @@ def test_mapsq():
     print('max = ',max(abs(mxsq)))
     np.testing.assert_allclose(mxsq, 0., atol=3.e-8)
 
-    # Giving R as a positional argument is currently still allowed, but deprecated.
-    with assert_warns(FutureWarning):
-        mapsq_2, mapsq_im_2, mxsq_2, mxsq_im_2, varmapsq_2 = gg.calculateMapSq(R)
-    np.testing.assert_array_equal(mapsq_2, mapsq)
-    np.testing.assert_array_equal(mapsq_im_2, mapsq_im)
-    np.testing.assert_array_equal(mxsq_2, mxsq)
-    np.testing.assert_array_equal(mxsq_im_2, mxsq_im)
-    np.testing.assert_array_equal(varmapsq_2, varmapsq)
-
-    mapsq_file = 'output/gg_m2b.txt'
-    gg.writeMapSq(mapsq_file, R=R, precision=16)
-    data = np.genfromtxt(mapsq_file, names=True)
-    np.testing.assert_allclose(data['Mapsq'], mapsq)
-    np.testing.assert_allclose(data['Mxsq'], mxsq)
-
     # Also check the Schneider version.  The math isn't quite as nice here, but it is tractable
     # using a different formula than I used above:
     # Map^2(R) = int k P(k) W(kR) dk

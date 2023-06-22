@@ -696,11 +696,6 @@ def test_direct_count_auto():
     rdd.process(rcat, cat)
     zeta, varzeta = ddd.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)
 
-    with assert_warns(FutureWarning):
-        zeta2, varzeta2 = ddd.calculateZeta(rrr, drr, rdd)
-    np.testing.assert_array_equal(zeta2, zeta)
-    np.testing.assert_array_equal(varzeta2, varzeta)
-
     config['nnn_statistic'] = 'compensated'
     treecorr.corr3(config, logger)
     corr3_output = np.genfromtxt(os.path.join('output','nnn_direct.out'), names=True, skip_header=1)

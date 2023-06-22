@@ -21,7 +21,6 @@ from . import _treecorr
 from .catalog import calculateVarG
 from .corr2base import Corr2
 from .util import make_writer, make_reader
-from .util import depr_pos_kwargs
 
 
 class GGCorrelation(Corr2):
@@ -96,7 +95,6 @@ class GGCorrelation(Corr2):
         **kwargs:       See the documentation for `Corr2` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
-    @depr_pos_kwargs
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `GGCorrelation`.  See class doc for details.
         """
@@ -174,7 +172,6 @@ class GGCorrelation(Corr2):
     def __repr__(self):
         return 'GGCorrelation(config=%r)'%self.config
 
-    @depr_pos_kwargs
     def process_auto(self, cat, *, metric=None, num_threads=None):
         """Process a single catalog, accumulating the auto-correlation.
 
@@ -212,7 +209,6 @@ class GGCorrelation(Corr2):
                               self._coords, self._bintype, self._metric)
 
 
-    @depr_pos_kwargs
     def process_cross(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation.
 
@@ -257,7 +253,6 @@ class GGCorrelation(Corr2):
                                self._coords, self._bintype, self._metric)
 
 
-    @depr_pos_kwargs
     def process_pairwise(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation, only using
         the corresponding pairs of objects in each catalog.
@@ -422,7 +417,6 @@ class GGCorrelation(Corr2):
         np.sum([c.weight for c in others], axis=0, out=self.weight)
         np.sum([c.npairs for c in others], axis=0, out=self.npairs)
 
-    @depr_pos_kwargs
     def process(self, cat1, cat2=None, *, metric=None, num_threads=None, comm=None, low_mem=False,
                 initialize=True, finalize=True):
         """Compute the correlation function.
@@ -480,7 +474,6 @@ class GGCorrelation(Corr2):
             self.finalize(varg1,varg2)
 
 
-    @depr_pos_kwargs
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False):
         r"""Write the correlation function to the file, file_name.
 
@@ -542,7 +535,6 @@ class GGCorrelation(Corr2):
         return { 'coords' : self.coords, 'metric' : self.metric,
                  'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
 
-    @depr_pos_kwargs
     def read(self, file_name, *, file_type=None):
         """Read in values from a file.
 
@@ -595,7 +587,6 @@ class GGCorrelation(Corr2):
         self.npatch1 = params.get('npatch1', 1)
         self.npatch2 = params.get('npatch2', 1)
 
-    @depr_pos_kwargs
     def calculateMapSq(self, *, R=None, m2_uform=None):
         r"""Calculate the aperture mass statistics from the correlation function.
 
@@ -706,7 +697,6 @@ class GGCorrelation(Corr2):
         return mapsq, mapsq_im, mxsq, mxsq_im, varmapsq
 
 
-    @depr_pos_kwargs
     def calculateGamSq(self, *, R=None, eb=False):
         r"""Calculate the tophat shear variance from the correlation function.
 
@@ -788,7 +778,6 @@ class GGCorrelation(Corr2):
         return gamsq, vargamsq, gamsq_e, gamsq_b, vargamsq_e
 
 
-    @depr_pos_kwargs
     def writeMapSq(self, file_name, *, R=None, m2_uform=None, file_type=None, precision=None):
         r"""Write the aperture mass statistics based on the correlation function to the
         file, file_name.

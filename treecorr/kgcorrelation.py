@@ -21,7 +21,6 @@ from . import _treecorr
 from .catalog import calculateVarG, calculateVarK
 from .corr2base import Corr2
 from .util import make_writer, make_reader
-from .util import depr_pos_kwargs
 
 
 class KGCorrelation(Corr2):
@@ -96,7 +95,6 @@ class KGCorrelation(Corr2):
         **kwargs:       See the documentation for `Corr2` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
-    @depr_pos_kwargs
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `KGCorrelation`.  See class doc for details.
         """
@@ -169,7 +167,6 @@ class KGCorrelation(Corr2):
     def __repr__(self):
         return 'KGCorrelation(config=%r)'%self.config
 
-    @depr_pos_kwargs
     def process_cross(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation.
 
@@ -213,7 +210,6 @@ class KGCorrelation(Corr2):
         self.corr.processCross(f1.data, f2.data, self.output_dots,
                                self._coords, self._bintype, self._metric)
 
-    @depr_pos_kwargs
     def process_pairwise(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation, only using
         the corresponding pairs of objects in each catalog.
@@ -346,7 +342,6 @@ class KGCorrelation(Corr2):
         np.sum([c.weight for c in others], axis=0, out=self.weight)
         np.sum([c.npairs for c in others], axis=0, out=self.npairs)
 
-    @depr_pos_kwargs
     def process(self, cat1, cat2, *, metric=None, num_threads=None, comm=None, low_mem=False,
                 initialize=True, finalize=True):
         """Compute the correlation function.
@@ -391,7 +386,6 @@ class KGCorrelation(Corr2):
             self.logger.info("varg = %f: sig_sn (per component) = %f",varg,math.sqrt(varg))
             self.finalize(vark,varg)
 
-    @depr_pos_kwargs
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False):
         r"""Write the correlation function to the file, file_name.
 
@@ -450,7 +444,6 @@ class KGCorrelation(Corr2):
         return { 'coords' : self.coords, 'metric' : self.metric,
                  'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
 
-    @depr_pos_kwargs
     def read(self, file_name, *, file_type=None):
         """Read in values from a file.
 

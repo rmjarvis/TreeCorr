@@ -25,7 +25,6 @@ from . import _treecorr
 from .reader import FitsReader, HdfReader, AsciiReader, PandasReader, ParquetReader
 from .config import merge_config, setup_logger, get, get_from_list
 from .util import parse_file_type, LRU_Cache, make_writer, make_reader, set_omp_threads
-from .util import depr_pos_kwargs
 from .field import NField, KField, GField, NSimpleField, KSimpleField, GSimpleField
 
 class Catalog(object):
@@ -520,7 +519,6 @@ class Catalog(object):
     }
     _emitted_pandas_warning = False  # Only emit the warning once.  Set to True once we have.
 
-    @depr_pos_kwargs
     def __init__(self, file_name=None, config=None, *, num=0, logger=None, is_rand=False,
                  x=None, y=None, z=None, ra=None, dec=None, r=None, w=None, wpos=None, flag=None,
                  g1=None, g2=None, k=None, patch=None, patch_centers=None, rng=None, **kwargs):
@@ -1661,7 +1659,6 @@ class Catalog(object):
         # But if the weakref is alive, this returns the field we want.
         return self._field()
 
-    @depr_pos_kwargs
     def getNField(self, *, min_size=0, max_size=None, split_method=None, brute=False,
                   min_top=None, max_top=10, coords=None, logger=None):
         """Return an `NField` based on the positions in this catalog.
@@ -1696,7 +1693,6 @@ class Catalog(object):
         return field
 
 
-    @depr_pos_kwargs
     def getKField(self, *, min_size=0, max_size=None, split_method=None, brute=False,
                   min_top=None, max_top=10, coords=None, logger=None):
         """Return a `KField` based on the k values in this catalog.
@@ -1733,7 +1729,6 @@ class Catalog(object):
         return field
 
 
-    @depr_pos_kwargs
     def getGField(self, *, min_size=0, max_size=None, split_method=None, brute=False,
                   min_top=None, max_top=10, coords=None, logger=None):
         """Return a `GField` based on the g1,g2 values in this catalog.
@@ -1770,7 +1765,6 @@ class Catalog(object):
         return field
 
 
-    @depr_pos_kwargs
     def getNSimpleField(self, *, logger=None):
         """Return an `NSimpleField` based on the positions in this catalog.
 
@@ -1788,7 +1782,6 @@ class Catalog(object):
         return self.nsimplefields(logger=logger)
 
 
-    @depr_pos_kwargs
     def getKSimpleField(self, *, logger=None):
         """Return a `KSimpleField` based on the k values in this catalog.
 
@@ -1808,7 +1801,6 @@ class Catalog(object):
         return self.ksimplefields(logger=logger)
 
 
-    @depr_pos_kwargs
     def getGSimpleField(self, *, logger=None):
         """Return a `GSimpleField` based on the g1,g2 values in this catalog.
 
@@ -2088,7 +2080,6 @@ class Catalog(object):
                          for i, name in enumerate(file_names)]
         self.logger.info('Patches created from files %s .. %s',file_names[0],file_names[-1])
 
-    @depr_pos_kwargs
     def get_patches(self, *, low_mem=False):
         """Return a list of Catalog instances each representing a single patch from this Catalog
 
@@ -2174,7 +2165,6 @@ class Catalog(object):
 
         return self._patches
 
-    @depr_pos_kwargs
     def write(self, file_name, *, file_type=None, cat_precision=None):
         """Write the catalog to a file.
 
@@ -2329,7 +2319,6 @@ class Catalog(object):
                 np.array_equal(self.patch, other.patch))
 
 
-@depr_pos_kwargs
 def read_catalogs(config, key=None, list_key=None, *, num=0, logger=None, is_rand=None):
     """Read in a list of catalogs for the given key.
 
@@ -2389,7 +2378,6 @@ def read_catalogs(config, key=None, list_key=None, *, num=0, logger=None, is_ran
     return ret
 
 
-@depr_pos_kwargs
 def calculateVarG(cat_list, *, low_mem=False):
     """Calculate the overall shear variance from a list of catalogs.
 
@@ -2418,7 +2406,6 @@ def calculateVarG(cat_list, *, low_mem=False):
                 cat.unload()
         return varg / sumw
 
-@depr_pos_kwargs
 def calculateVarK(cat_list, *, low_mem=False):
     """Calculate the overall kappa variance from a list of catalogs.
 

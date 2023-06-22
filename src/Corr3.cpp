@@ -25,26 +25,15 @@
 #include "omp.h"
 #endif
 
-template <int D1, int D2, int D3>
-Corr3<D1,D2,D3>::Corr3(
+BaseCorr3::BaseCorr3(
     BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
     double minu, double maxu, int nubins, double ubinsize, double bu,
     double minv, double maxv, int nvbins, double vbinsize, double bv,
-    double xp, double yp, double zp,
-    double* zeta0, double* zeta1, double* zeta2, double* zeta3,
-    double* zeta4, double* zeta5, double* zeta6, double* zeta7,
-    double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
-    double* meand3, double* meanlogd3, double* meanu, double* meanv,
-    double* weight, double* ntri) :
+    double xp, double yp, double zp):
     _minsep(minsep), _maxsep(maxsep), _nbins(nbins), _binsize(binsize), _b(b),
     _minu(minu), _maxu(maxu), _nubins(nubins), _ubinsize(ubinsize), _bu(bu),
     _minv(minv), _maxv(maxv), _nvbins(nvbins), _vbinsize(vbinsize), _bv(bv),
-    _xp(xp), _yp(yp), _zp(zp),
-    _coords(-1), _owns_data(false),
-    _zeta(zeta0,zeta1,zeta2,zeta3,zeta4,zeta5,zeta6,zeta7),
-    _meand1(meand1), _meanlogd1(meanlogd1), _meand2(meand2), _meanlogd2(meanlogd2),
-    _meand3(meand3), _meanlogd3(meanlogd3), _meanu(meanu), _meanv(meanv),
-    _weight(weight), _ntri(ntri)
+    _xp(xp), _yp(yp), _zp(zp), _coords(-1)
 {
     // Some helpful variables we can calculate once here.
     _logminsep = log(_minsep);
@@ -66,7 +55,28 @@ Corr3<D1,D2,D3>::Corr3(
 }
 
 template <int D1, int D2, int D3>
-Corr3<D1,D2,D3>::Corr3(const Corr3<D1,D2,D3>& rhs, bool copy_data) :
+Corr3<D1,D2,D3>::Corr3(
+    BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+    double minu, double maxu, int nubins, double ubinsize, double bu,
+    double minv, double maxv, int nvbins, double vbinsize, double bv,
+    double xp, double yp, double zp,
+    double* zeta0, double* zeta1, double* zeta2, double* zeta3,
+    double* zeta4, double* zeta5, double* zeta6, double* zeta7,
+    double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
+    double* meand3, double* meanlogd3, double* meanu, double* meanv,
+    double* weight, double* ntri) :
+    BaseCorr3(bin_type, minsep, maxsep, nbins, binsize, b,
+              minu, maxu, nubins, ubinsize, bu,
+              minv, maxv, nvbins, vbinsize, bv,
+              xp, yp, zp),
+    _owns_data(false),
+    _zeta(zeta0,zeta1,zeta2,zeta3,zeta4,zeta5,zeta6,zeta7),
+    _meand1(meand1), _meanlogd1(meanlogd1), _meand2(meand2), _meanlogd2(meanlogd2),
+    _meand3(meand3), _meanlogd3(meanlogd3), _meanu(meanu), _meanv(meanv),
+    _weight(weight), _ntri(ntri)
+{}
+
+BaseCorr3::BaseCorr3(const BaseCorr3& rhs):
     _minsep(rhs._minsep), _maxsep(rhs._maxsep), _nbins(rhs._nbins),
     _binsize(rhs._binsize), _b(rhs._b),
     _minu(rhs._minu), _maxu(rhs._maxu), _nubins(rhs._nubins),
@@ -78,8 +88,14 @@ Corr3<D1,D2,D3>::Corr3(const Corr3<D1,D2,D3>& rhs, bool copy_data) :
     _minusq(rhs._minusq), _maxusq(rhs._maxusq),
     _minvsq(rhs._minvsq), _maxvsq(rhs._maxvsq),
     _bsq(rhs._bsq), _busq(rhs._busq), _bvsq(rhs._bvsq), _sqrttwobv(rhs._sqrttwobv),
-    _coords(rhs._coords), _nvbins2(rhs._nvbins2), _nuv(rhs._nuv), _ntot(rhs._ntot),
-    _owns_data(true), _zeta(0,0,0,0,0,0,0,0), _weight(0)
+    _nvbins2(rhs._nvbins2), _nuv(rhs._nuv), _ntot(rhs._ntot), _coords(rhs._coords)
+{}
+
+
+template <int D1, int D2, int D3>
+Corr3<D1,D2,D3>::Corr3(const Corr3<D1,D2,D3>& rhs, bool copy_data) :
+    BaseCorr3(rhs), _owns_data(true),
+    _zeta(0,0,0,0,0,0,0,0), _weight(0)
 {
     _zeta.new_data(_ntot);
     _meand1 = new double[_ntot];
@@ -1202,41 +1218,20 @@ void Corr3<D1,D2,D3>::operator+=(const Corr3<D1,D2,D3>& rhs)
 //
 
 template <int D1, int D2, int D3>
-void* BuildCorr3c(int bin_type,
-                  double minsep, double maxsep, int nbins, double binsize, double b,
-                  double minu, double maxu, int nubins, double ubinsize, double bu,
-                  double minv, double maxv, int nvbins, double vbinsize, double bv,
-                  double xp, double yp, double zp,
-                  double* zeta0, double* zeta1, double* zeta2, double* zeta3,
-                  double* zeta4, double* zeta5, double* zeta6, double* zeta7,
-                  double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
-                  double* meand3, double* meanlogd3, double* meanu, double* meanv,
-                  double* weight, double* ntri)
-{
-    return static_cast<void*>(new Corr3<D1,D2,D3>(
-            static_cast<BinType>(bin_type), minsep, maxsep, nbins, binsize, b,
-            minu, maxu, nubins, ubinsize, bu,
-            minv, maxv, nvbins, vbinsize, bv,
-            xp, yp, zp,
-            zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7,
-            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3, meanu, meanv,
-            weight, ntri));
-}
-
-void* BuildCorr3(int d1, int d2, int d3, int bin_type,
-                 double minsep, double maxsep, int nbins, double binsize, double b,
-                 double minu, double maxu, int nubins, double ubinsize, double bu,
-                 double minv, double maxv, int nvbins, double vbinsize, double bv,
-                 double xp, double yp, double zp,
-                 py::array_t<double>& zeta0p, py::array_t<double>& zeta1p,
-                 py::array_t<double>& zeta2p, py::array_t<double>& zeta3p,
-                 py::array_t<double>& zeta4p, py::array_t<double>& zeta5p,
-                 py::array_t<double>& zeta6p, py::array_t<double>& zeta7p,
-                 py::array_t<double>& meand1p, py::array_t<double>& meanlogd1p,
-                 py::array_t<double>& meand2p, py::array_t<double>& meanlogd2p,
-                 py::array_t<double>& meand3p, py::array_t<double>& meanlogd3p,
-                 py::array_t<double>& meanup, py::array_t<double>& meanvp,
-                 py::array_t<double>& weightp, py::array_t<double>& ntrip)
+Corr3<D1,D2,D3>* BuildCorr3(
+    int bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+    double minu, double maxu, int nubins, double ubinsize, double bu,
+    double minv, double maxv, int nvbins, double vbinsize, double bv,
+    double xp, double yp, double zp,
+    py::array_t<double>& zeta0p, py::array_t<double>& zeta1p,
+    py::array_t<double>& zeta2p, py::array_t<double>& zeta3p,
+    py::array_t<double>& zeta4p, py::array_t<double>& zeta5p,
+    py::array_t<double>& zeta6p, py::array_t<double>& zeta7p,
+    py::array_t<double>& meand1p, py::array_t<double>& meanlogd1p,
+    py::array_t<double>& meand2p, py::array_t<double>& meanlogd2p,
+    py::array_t<double>& meand3p, py::array_t<double>& meanlogd3p,
+    py::array_t<double>& meanup, py::array_t<double>& meanvp,
+    py::array_t<double>& weightp, py::array_t<double>& ntrip)
 {
     double* zeta0 = zeta0p.request().size == 0 ? 0 : static_cast<double*>(zeta0p.request().ptr);
     double* zeta1 = zeta1p.request().size == 0 ? 0 : static_cast<double*>(zeta1p.request().ptr);
@@ -1257,77 +1252,20 @@ void* BuildCorr3(int d1, int d2, int d3, int bin_type,
     double* weight = static_cast<double*>(weightp.request().ptr);
     double* ntri = static_cast<double*>(ntrip.request().ptr);
 
-    dbg<<"Start BuildCorr3 "<<d1<<" "<<d2<<" "<<d3<<" "<<bin_type<<std::endl;
-    void* corr=0;
-    Assert(d2 == d1);
-    Assert(d3 == d1);
-    switch(d1) {
-      case NData:
-           corr = BuildCorr3c<NData,NData,NData>(
-               bin_type, minsep, maxsep, nbins, binsize, b,
-               minu, maxu, nubins, ubinsize, bu,
-               minv, maxv, nvbins, vbinsize, bv,
-               xp, yp, zp,
-               zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7,
-               meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3,
-               meanu, meanv, weight, ntri);
-           break;
-      case KData:
-           corr = BuildCorr3c<KData,KData,KData>(
-               bin_type, minsep, maxsep, nbins, binsize, b,
-               minu, maxu, nubins, ubinsize, bu,
-               minv, maxv, nvbins, vbinsize, bv,
-               xp, yp, zp,
-               zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7,
-               meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3,
-               meanu, meanv, weight, ntri);
-           break;
-      case GData:
-           corr = BuildCorr3c<GData,GData,GData>(
-               bin_type, minsep, maxsep, nbins, binsize, b,
-               minu, maxu, nubins, ubinsize, bu,
-               minv, maxv, nvbins, vbinsize, bv,
-               xp, yp, zp,
-               zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7,
-               meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3,
-               meanu, meanv, weight, ntri);
-           break;
-      default:
-           Assert(false);
-    }
-    xdbg<<"corr = "<<corr<<std::endl;
-    return corr;
-}
+    dbg<<"Start BuildCorr3 "<<D1<<" "<<D2<<" "<<D3<<" "<<bin_type<<std::endl;
+    Assert(D2 == D1);
+    Assert(D3 == D1);
 
-template <int D1, int D2, int D3>
-void DestroyCorr3c(void* corr)
-{
-    delete static_cast<Corr3<D1,D2,D3>*>(corr);
-}
-
-void DestroyCorr3(void* corr, int d1, int d2, int d3)
-{
-    dbg<<"Start DestroyCorr "<<d1<<" "<<d2<<" "<<d3<<std::endl;
-    xdbg<<"corr = "<<corr<<std::endl;
-    Assert(d2 == d1); // For now don't bother with the next two layers to resolve these.
-    Assert(d3 == d1);
-    switch(d1) {
-      case NData:
-           DestroyCorr3c<NData, NData, NData>(corr);
-           break;
-      case KData:
-           DestroyCorr3c<KData, KData, KData>(corr);
-           break;
-      case GData:
-           DestroyCorr3c<GData, GData, GData>(corr);
-           break;
-      default:
-           Assert(false);
-    }
+    return new Corr3<D1,D2,D3>(
+            static_cast<BinType>(bin_type), minsep, maxsep, nbins, binsize, b,
+            minu, maxu, nubins, ubinsize, bu, minv, maxv, nvbins, vbinsize, bv, xp, yp, zp,
+            zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7,
+            meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3,
+            meanu, meanv, weight, ntri);
 }
 
 template <int B, int M, int D>
-void ProcessAuto3e(Corr3<D,D,D>* corr, void* field, int dots, int coords)
+void ProcessAuto3e(Corr3<D,D,D>* corr, BaseField<D>* field, int dots, int coords)
 {
     switch(coords) {
       case Flat:
@@ -1351,7 +1289,7 @@ void ProcessAuto3e(Corr3<D,D,D>* corr, void* field, int dots, int coords)
 }
 
 template <int B, int D>
-void ProcessAuto3d(Corr3<D,D,D>* corr, void* field, int dots, int coords, int metric)
+void ProcessAuto3d(Corr3<D,D,D>* corr, BaseField<D>* field, int dots, int coords, int metric)
 {
     switch(metric) {
       case Euclidean:
@@ -1369,35 +1307,19 @@ void ProcessAuto3d(Corr3<D,D,D>* corr, void* field, int dots, int coords, int me
 }
 
 template <int D>
-void ProcessAuto3c(void* corr, void* field, int dots, int coords, int bin_type, int metric)
+void ProcessAuto(Corr3<D,D,D>* corr, BaseField<D>* field,
+                 int dots, int coords, int bin_type, int metric)
 {
+    dbg<<"Start ProcessAuto "<<D<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
     Assert(bin_type == Log);
-    ProcessAuto3d<Log>(static_cast<Corr3<D,D,D>*>(corr), field, dots, coords, metric);
-}
 
-void ProcessAuto3(void* corr, void* field, int dots, int d, int coords, int bin_type, int metric)
-{
-    dbg<<"Start ProcessAuto3 "<<d<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
-
-    switch(d) {
-      case NData:
-           ProcessAuto3c<NData>(corr, field, dots, coords, bin_type, metric);
-           break;
-      case KData:
-           ProcessAuto3c<KData>(corr, field, dots, coords, bin_type, metric);
-           break;
-      case GData:
-           ProcessAuto3c<GData>(corr, field, dots, coords, bin_type, metric);
-           break;
-      default:
-           Assert(false);
-    }
+    ProcessAuto3d<Log>(corr, field, dots, coords, metric);
 }
 
 template <int B, int M, int D1, int D2>
 void ProcessCross12e(Corr3<D1,D2,D2>* corr122, Corr3<D2,D1,D2>* corr212,
                      Corr3<D2,D2,D1>* corr221,
-                     void* field1, void* field2, int dots, int coords)
+                     BaseField<D1>* field1, BaseField<D2>* field2, int dots, int coords)
 {
     switch(coords) {
       case Flat:
@@ -1426,11 +1348,12 @@ void ProcessCross12e(Corr3<D1,D2,D2>* corr122, Corr3<D2,D1,D2>* corr212,
     }
 }
 
-template <int B, int D1, int D2>
-void ProcessCross12d(Corr3<D1,D2,D2>* corr122, Corr3<D2,D1,D2>* corr212,
-                     Corr3<D2,D2,D1>* corr221,
-                     void* field1, void* field2, int dots, int coords, int metric)
+template <int D1, int D2>
+void ProcessCross12(Corr3<D1,D2,D2>* corr122, Corr3<D2,D1,D2>* corr212, Corr3<D2,D2,D1>* corr221,
+                    BaseField<D1>* field1, BaseField<D2>* field2,
+                    int dots, int coords, int bin_type, int metric)
 {
+    Assert(bin_type == Log);
     switch(metric) {
       case Euclidean:
            ProcessCross12e<Log,Euclidean>(corr122, corr212, corr221,
@@ -1449,51 +1372,11 @@ void ProcessCross12d(Corr3<D1,D2,D2>* corr122, Corr3<D2,D1,D2>* corr212,
     }
 }
 
-template <int D1, int D2>
-void ProcessCross12c(void* corr122, void* corr212, void* corr221,
-                     void* field1, void* field2, int dots,
-                     int bin_type, int coords, int metric)
-{
-    Assert(bin_type == Log);
-    ProcessCross12d<Log>(static_cast<Corr3<D1,D2,D2>*>(corr122),
-                         static_cast<Corr3<D2,D1,D2>*>(corr212),
-                         static_cast<Corr3<D2,D2,D1>*>(corr221),
-                         field1, field2, dots, coords, metric);
-}
-
-void ProcessCross12(void* corr122, void* corr212, void* corr221,
-                    void* field1, void* field2, int dots,
-                    int d1, int d2, int coords, int bin_type, int metric)
-{
-    dbg<<"Start ProcessCross12 "<<d1<<" "<<d2<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
-
-    Assert(d2 == d1);
-    switch(d1) {
-      case NData:
-           ProcessCross12c<NData,NData>(corr122, corr212, corr221,
-                                        field1, field2, dots,
-                                        bin_type, coords, metric);
-           break;
-      case KData:
-           ProcessCross12c<KData,KData>(corr122, corr212, corr221,
-                                        field1, field2, dots,
-                                        bin_type, coords, metric);
-           break;
-      case GData:
-           ProcessCross12c<GData,GData>(corr122, corr212, corr221,
-                                        field1, field2, dots,
-                                        bin_type, coords, metric);
-           break;
-      default:
-           Assert(false);
-    }
-}
-
 template <int B, int M, int D1, int D2, int D3>
 void ProcessCross3e(Corr3<D1,D2,D3>* corr123, Corr3<D1,D3,D2>* corr132,
                     Corr3<D2,D1,D3>* corr213, Corr3<D2,D3,D1>* corr231,
                     Corr3<D3,D1,D2>* corr312, Corr3<D3,D2,D1>* corr321,
-                    void* field1, void* field2, void* field3,
+                    BaseField<D1>* field1, BaseField<D2>* field2, BaseField<D3>* field3,
                     int dots, int coords)
 {
     switch(coords) {
@@ -1530,7 +1413,7 @@ template <int B, int D1, int D2, int D3>
 void ProcessCross3d(Corr3<D1,D2,D3>* corr123, Corr3<D1,D3,D2>* corr132,
                     Corr3<D2,D1,D3>* corr213, Corr3<D2,D3,D1>* corr231,
                     Corr3<D3,D1,D2>* corr312, Corr3<D3,D2,D1>* corr321,
-                    void* field1, void* field2, void* field3,
+                    BaseField<D1>* field1, BaseField<D2>* field2, BaseField<D3>* field3,
                     int dots, int coords, int metric)
 {
     switch(metric) {
@@ -1552,58 +1435,98 @@ void ProcessCross3d(Corr3<D1,D2,D3>* corr123, Corr3<D1,D3,D2>* corr132,
 }
 
 template <int D1, int D2, int D3>
-void ProcessCross3c(void* corr123, void* corr132, void* corr213,
-                    void* corr231, void* corr312, void* corr321,
-                    void* field1, void* field2, void* field3, int dots,
-                    int bin_type, int coords, int metric)
+void ProcessCross(Corr3<D1,D2,D3>* corr123, Corr3<D1,D3,D2>* corr132, Corr3<D2,D1,D3>* corr213,
+                  Corr3<D2,D3,D1>* corr231, Corr3<D3,D1,D2>* corr312, Corr3<D3,D2,D1>* corr321,
+                  BaseField<D1>* field1, BaseField<D2>* field2, BaseField<D3>* field3,
+                  int dots, int coords, int bin_type, int metric)
 {
+    dbg<<"Start ProcessCross3 "<<D1<<" "<<D2<<" "<<D3<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
+
+    Assert(D2 == D1);
+    Assert(D3 == D1);
     Assert(bin_type == Log);
-    ProcessCross3d<Log>(static_cast<Corr3<D1,D2,D3>*>(corr123),
-                        static_cast<Corr3<D1,D3,D2>*>(corr132),
-                        static_cast<Corr3<D2,D1,D3>*>(corr213),
-                        static_cast<Corr3<D2,D3,D1>*>(corr231),
-                        static_cast<Corr3<D3,D1,D2>*>(corr312),
-                        static_cast<Corr3<D3,D2,D1>*>(corr321),
+
+    ProcessCross3d<Log>(corr123, corr132, corr213, corr231, corr312, corr321,
                         field1, field2, field3, dots, coords, metric);
-}
-
-void ProcessCross3(void* corr123, void* corr132, void* corr213,
-                   void* corr231, void* corr312, void* corr321,
-                   void* field1, void* field2, void* field3, int dots,
-                   int d1, int d2, int d3, int coords, int bin_type, int metric)
-{
-    dbg<<"Start ProcessCross3 "<<d1<<" "<<d2<<" "<<d3<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
-
-    Assert(d2 == d1);
-    Assert(d3 == d1);
-    switch(d1) {
-      case NData:
-           ProcessCross3c<NData,NData,NData>(corr123, corr132, corr213, corr231, corr312, corr321,
-                                             field1, field2, field3, dots,
-                                             bin_type, coords, metric);
-           break;
-      case KData:
-           ProcessCross3c<KData,KData,KData>(corr123, corr132, corr213, corr231, corr312, corr321,
-                                             field1, field2, field3, dots,
-                                             bin_type, coords, metric);
-           break;
-      case GData:
-           ProcessCross3c<GData,GData,GData>(corr123, corr132, corr213, corr231, corr312, corr321,
-                                             field1, field2, field3, dots,
-                                             bin_type, coords, metric);
-           break;
-      default:
-           Assert(false);
-    }
 }
 
 // Export the above functions using pybind11
 
+template <int D1, int D2, int D3>
+struct WrapAuto
+{
+    template <typename C>
+    static void run(C& corr3) {}
+};
+
+template <int D1, int D2>
+struct WrapAuto<D1,D2,D2>
+{
+    template <typename C>
+    static void run(C& corr3)
+    {
+        typedef void (*cross12_type)(Corr3<D1,D2,D2>* corr122, Corr3<D2,D1,D2>* corr212,
+                                     Corr3<D2,D2,D1>* corr221,
+                                     BaseField<D1>* field1, BaseField<D2>* field2,
+                                     int dots, int coords, int bin_type, int metric);
+        corr3.def("processCross12", cross12_type(&ProcessCross12));
+    }
+};
+
+template <int D>
+struct WrapAuto<D,D,D>
+{
+    template <typename C>
+    static void run(C& corr3)
+    {
+        typedef void (*auto_type)(Corr3<D,D,D>* corr, BaseField<D>* field,
+                                  int dots, int coords, int bin_type, int metric);
+        typedef void (*cross12_type)(Corr3<D,D,D>* corr122, Corr3<D,D,D>* corr212,
+                                     Corr3<D,D,D>* corr221,
+                                     BaseField<D>* field1, BaseField<D>* field2,
+                                     int dots, int coords, int bin_type, int metric);
+
+        corr3.def("processAuto", auto_type(&ProcessAuto));
+        corr3.def("processCross12", cross12_type(&ProcessCross12));
+    }
+};
+
+template <int D1, int D2, int D3, typename W>
+void WrapCorr3(py::module& _treecorr, std::string prefix, W& base_corr3)
+{
+    typedef Corr3<D1,D2,D3>* (*init_type)(
+        int bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+        double minu, double maxu, int nubins, double ubinsize, double bu,
+        double minv, double maxv, int nvbins, double vbinsize, double bv,
+        double xp, double yp, double zp,
+        py::array_t<double>& zeta0p, py::array_t<double>& zeta1p,
+        py::array_t<double>& zeta2p, py::array_t<double>& zeta3p,
+        py::array_t<double>& zeta4p, py::array_t<double>& zeta5p,
+        py::array_t<double>& zeta6p, py::array_t<double>& zeta7p,
+        py::array_t<double>& meand1p, py::array_t<double>& meanlogd1p,
+        py::array_t<double>& meand2p, py::array_t<double>& meanlogd2p,
+        py::array_t<double>& meand3p, py::array_t<double>& meanlogd3p,
+        py::array_t<double>& meanup, py::array_t<double>& meanvp,
+        py::array_t<double>& weightp, py::array_t<double>& ntrip);
+
+    typedef void (*cross_type)(Corr3<D1,D2,D3>* corr123, Corr3<D1,D3,D2>* corr132,
+                               Corr3<D2,D1,D3>* corr213, Corr3<D2,D3,D1>* corr231,
+                               Corr3<D3,D1,D2>* corr312, Corr3<D3,D2,D1>* corr321,
+                               BaseField<D1>* field1, BaseField<D2>* field2, BaseField<D3>* field3,
+                               int dots, int coords, int bin_type, int metric);
+
+    py::class_<Corr3<D1,D2,D3>, BaseCorr3> corr3(_treecorr, (prefix + "Corr").c_str());
+    corr3.def(py::init(init_type(&BuildCorr3)));
+    corr3.def("processCross", cross_type(&ProcessCross));
+
+    WrapAuto<D1,D2,D3>::run(corr3);
+}
+
 void pyExportCorr3(py::module& _treecorr)
 {
-    _treecorr.def("BuildCorr3", &BuildCorr3);
-    _treecorr.def("DestroyCorr3", &DestroyCorr3);
-    _treecorr.def("ProcessAuto3", &ProcessAuto3);
-    _treecorr.def("ProcessCross12", &ProcessCross12);
-    _treecorr.def("ProcessCross3", &ProcessCross3);
+    py::class_<BaseCorr3> base_corr3(_treecorr, "BaseCorr3");
+
+    WrapCorr3<NData,NData,NData>(_treecorr, "NNN", base_corr3);
+    WrapCorr3<KData,KData,KData>(_treecorr, "KKK", base_corr3);
+    WrapCorr3<GData,GData,GData>(_treecorr, "GGG", base_corr3);
 }

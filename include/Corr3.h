@@ -26,11 +26,62 @@
 template <int D1, int D2, int D3>
 struct ZetaData;
 
+// Things that don't need to access the data vectors can live in the base class.
+// Unlike for Corr2, there's not much here, but use the same structure anyway
+// in case something turns up that would be useful to put it here.
+class BaseCorr3
+{
+public:
+
+    BaseCorr3(BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+              double minu, double maxu, int nubins, double ubinsize, double bu,
+              double minv, double maxv, int nvbins, double vbinsize, double bv,
+              double xp, double yp, double zp);
+    BaseCorr3(const BaseCorr3& rhs);
+    ~BaseCorr3() {}
+
+protected:
+
+    double _minsep;
+    double _maxsep;
+    int _nbins;
+    double _binsize;
+    double _b;
+    double _minu;
+    double _maxu;
+    int _nubins;
+    double _ubinsize;
+    double _bu;
+    double _minv;
+    double _maxv;
+    int _nvbins;
+    double _vbinsize;
+    double _bv;
+    double _xp, _yp, _zp;
+    double _logminsep;
+    double _halfminsep;
+    double _halfmind3;
+    double _minsepsq;
+    double _maxsepsq;
+    double _minusq;
+    double _maxusq;
+    double _minvsq;
+    double _maxvsq;
+    double _bsq;
+    double _busq;
+    double _bvsq;
+    double _sqrttwobv;
+    int _nvbins2; // = nvbins * 2
+    int _nuv; // = nubins * nvbins2
+    int _ntot; // = nbins * nubins2 * nvbins
+    int _coords; // Stores the kind of coordinates being used for the analysis.
+
+};
+
 // Corr3 encapsulates a binned correlation function.
 template <int D1, int D2, int D3>
-class Corr3
+class Corr3 : public BaseCorr3
 {
-
 public:
 
     Corr3(BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
@@ -93,40 +144,6 @@ public:
     void operator+=(const Corr3<D1,D2,D3>& rhs);
 
 protected:
-
-    double _minsep;
-    double _maxsep;
-    int _nbins;
-    double _binsize;
-    double _b;
-    double _minu;
-    double _maxu;
-    int _nubins;
-    double _ubinsize;
-    double _bu;
-    double _minv;
-    double _maxv;
-    int _nvbins;
-    double _vbinsize;
-    double _bv;
-    double _xp, _yp, _zp;
-    double _logminsep;
-    double _halfminsep;
-    double _halfmind3;
-    double _minsepsq;
-    double _maxsepsq;
-    double _minusq;
-    double _maxusq;
-    double _minvsq;
-    double _maxvsq;
-    double _bsq;
-    double _busq;
-    double _bvsq;
-    double _sqrttwobv;
-    int _coords; // Stores the kind of coordinates being used for the analysis.
-    int _nvbins2; // = nvbins * 2
-    int _nuv; // = nubins * nvbins2
-    int _ntot; // = nbins * nubins2 * nvbins
 
     // These are usually allocated in the python layer and just built up here.
     // So all we have here is a bare pointer for each of them.

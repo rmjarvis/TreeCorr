@@ -1233,24 +1233,24 @@ Corr3<D1,D2,D3>* BuildCorr3(
     py::array_t<double>& meanup, py::array_t<double>& meanvp,
     py::array_t<double>& weightp, py::array_t<double>& ntrip)
 {
-    double* zeta0 = zeta0p.request().size == 0 ? 0 : static_cast<double*>(zeta0p.request().ptr);
-    double* zeta1 = zeta1p.request().size == 0 ? 0 : static_cast<double*>(zeta1p.request().ptr);
-    double* zeta2 = zeta2p.request().size == 0 ? 0 : static_cast<double*>(zeta2p.request().ptr);
-    double* zeta3 = zeta3p.request().size == 0 ? 0 : static_cast<double*>(zeta3p.request().ptr);
-    double* zeta4 = zeta4p.request().size == 0 ? 0 : static_cast<double*>(zeta4p.request().ptr);
-    double* zeta5 = zeta5p.request().size == 0 ? 0 : static_cast<double*>(zeta5p.request().ptr);
-    double* zeta6 = zeta6p.request().size == 0 ? 0 : static_cast<double*>(zeta6p.request().ptr);
-    double* zeta7 = zeta7p.request().size == 0 ? 0 : static_cast<double*>(zeta7p.request().ptr);
-    double* meand1 = static_cast<double*>(meand1p.request().ptr);
-    double* meanlogd1 = static_cast<double*>(meanlogd1p.request().ptr);
-    double* meand2 = static_cast<double*>(meand2p.request().ptr);
-    double* meanlogd2 = static_cast<double*>(meanlogd2p.request().ptr);
-    double* meand3 = static_cast<double*>(meand3p.request().ptr);
-    double* meanlogd3 = static_cast<double*>(meanlogd3p.request().ptr);
-    double* meanu = static_cast<double*>(meanup.request().ptr);
-    double* meanv = static_cast<double*>(meanvp.request().ptr);
-    double* weight = static_cast<double*>(weightp.request().ptr);
-    double* ntri = static_cast<double*>(ntrip.request().ptr);
+    double* zeta0 = zeta0p.size() == 0 ? 0 : static_cast<double*>(zeta0p.mutable_data());
+    double* zeta1 = zeta1p.size() == 0 ? 0 : static_cast<double*>(zeta1p.mutable_data());
+    double* zeta2 = zeta2p.size() == 0 ? 0 : static_cast<double*>(zeta2p.mutable_data());
+    double* zeta3 = zeta3p.size() == 0 ? 0 : static_cast<double*>(zeta3p.mutable_data());
+    double* zeta4 = zeta4p.size() == 0 ? 0 : static_cast<double*>(zeta4p.mutable_data());
+    double* zeta5 = zeta5p.size() == 0 ? 0 : static_cast<double*>(zeta5p.mutable_data());
+    double* zeta6 = zeta6p.size() == 0 ? 0 : static_cast<double*>(zeta6p.mutable_data());
+    double* zeta7 = zeta7p.size() == 0 ? 0 : static_cast<double*>(zeta7p.mutable_data());
+    double* meand1 = static_cast<double*>(meand1p.mutable_data());
+    double* meanlogd1 = static_cast<double*>(meanlogd1p.mutable_data());
+    double* meand2 = static_cast<double*>(meand2p.mutable_data());
+    double* meanlogd2 = static_cast<double*>(meanlogd2p.mutable_data());
+    double* meand3 = static_cast<double*>(meand3p.mutable_data());
+    double* meanlogd3 = static_cast<double*>(meanlogd3p.mutable_data());
+    double* meanu = static_cast<double*>(meanup.mutable_data());
+    double* meanv = static_cast<double*>(meanvp.mutable_data());
+    double* weight = static_cast<double*>(weightp.mutable_data());
+    double* ntri = static_cast<double*>(ntrip.mutable_data());
 
     dbg<<"Start BuildCorr3 "<<D1<<" "<<D2<<" "<<D3<<" "<<bin_type<<std::endl;
     Assert(D2 == D1);

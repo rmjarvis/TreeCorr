@@ -53,8 +53,9 @@ template <int D, int C>
 class Field : public BaseField<D>
 {
 public:
-    Field(double* x, double* y, double* z, double* g1, double* g2, double* k,
-          double* w, double* wpos, long nobj,
+    Field(const double* x, const double* y, const double* z,
+          const double* g1, const double* g2, const double* k,
+          const double* w, const double* wpos, long nobj,
           double minsize, double maxsize,
           SplitMethod sm, long long seed, bool brute, int mintop, int maxtop);
     ~Field();
@@ -103,8 +104,9 @@ template <int D, int C>
 class SimpleField : public BaseSimpleField<D>
 {
 public:
-    SimpleField(double* x, double* y, double* z, double* g1, double* g2, double* k,
-                double* w, double* wpos, long nobj);
+    SimpleField(const double* x, const double* y, const double* z,
+                const double* g1, const double* g2, const double* k,
+                const double* w, const double* wpos, long nobj);
     ~SimpleField();
 
     long getNObj() const { return long(_cells.size()); }

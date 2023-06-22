@@ -154,7 +154,7 @@ struct CellDataHelper<GData,Sphere>
     { return new CellData<GData,Sphere>(Position<Sphere>(x,y,z), std::complex<double>(g1,g2), w); }
 };
 
-inline WPosLeafInfo get_wpos(double* wpos, double* w, long i)
+inline WPosLeafInfo get_wpos(const double* wpos, const double* w, long i)
 {
     WPosLeafInfo wp;
     wp.wpos = wpos ? wpos[i] : w[i];
@@ -163,13 +163,14 @@ inline WPosLeafInfo get_wpos(double* wpos, double* w, long i)
 }
 
 template <bool B>
-double at(double* x, int i) { return x[i]; }
+double at(const double* x, int i) { return x[i]; }
 template <>
-double at<false>(double* x, int i) { return 0.; }
+double at<false>(const double* x, int i) { return 0.; }
 
 template <int D, int C>
-Field<D,C>::Field(double* x, double* y, double* z, double* g1, double* g2, double* k,
-                  double* w, double* wpos, long nobj,
+Field<D,C>::Field(const double* x, const double* y, const double* z,
+                  const double* g1, const double* g2, const double* k,
+                  const double* w, const double* wpos, long nobj,
                   double minsize, double maxsize,
                   SplitMethod sm, long long seed, bool brute, int mintop, int maxtop) :
     _nobj(nobj), _minsize(minsize), _maxsize(maxsize), _sm(sm),
@@ -417,8 +418,9 @@ void Field<D,C>::getNear(double x, double y, double z, double sep, long* indices
 
 template <int D, int C>
 SimpleField<D,C>::SimpleField(
-    double* x, double* y, double* z, double* g1, double* g2, double* k,
-    double* w, double* wpos, long nobj)
+    const double* x, const double* y, const double* z,
+    const double* g1, const double* g2, const double* k,
+    const double* w, const double* wpos, long nobj)
 {
     // This bit is the same as the start of the Field constructor.
     dbg<<"Starting to Build SimpleField with "<<nobj<<" objects\n";
@@ -468,10 +470,12 @@ SimpleField<D,C>::~SimpleField()
 //
 
 template <int D>
-BaseField<D>* BuildField(double* x, double* y, double* z, double* g1, double* g2, double* k,
-                 double* w, double* wpos, long nobj,
-                 double minsize, double maxsize,
-                 SplitMethod sm, long long seed, bool brute, int mintop, int maxtop, Coord coords)
+BaseField<D>* BuildField(const double* x, const double* y, const double* z,
+                         const double* g1, const double* g2, const double* k,
+                         const double* w, const double* wpos, long nobj,
+                         double minsize, double maxsize,
+                         SplitMethod sm, long long seed, bool brute,
+                         int mintop, int maxtop, Coord coords)
 {
     dbg<<"Start BuildField "<<D<<"  "<<coords<<std::endl;
     switch(coords) {
@@ -506,21 +510,21 @@ BaseField<GData>* BuildGField(
     double minsize, double maxsize,
     SplitMethod sm, long long seed, bool brute, int mintop, int maxtop, Coord coords)
 {
-    long nobj = xp.request().size;
-    Assert(yp.request().size == nobj);
-    Assert(zp.request().size == nobj || zp.request().size == 0);
-    Assert(g1p.request().size == nobj);
-    Assert(g2p.request().size == nobj);
-    Assert(wp.request().size == nobj);
-    Assert(wposp.request().size == nobj || wposp.request().size == 0);
+    long nobj = xp.size();
+    Assert(yp.size() == nobj);
+    Assert(zp.size() == nobj || zp.size() == 0);
+    Assert(g1p.size() == nobj);
+    Assert(g2p.size() == nobj);
+    Assert(wp.size() == nobj);
+    Assert(wposp.size() == nobj || wposp.size() == 0);
 
-    double* x = static_cast<double*>(xp.request().ptr);
-    double* y = static_cast<double*>(yp.request().ptr);
-    double* z = zp.request().size == 0 ? 0 : static_cast<double*>(zp.request().ptr);
-    double* g1 = static_cast<double*>(g1p.request().ptr);
-    double* g2 = static_cast<double*>(g2p.request().ptr);
-    double* w = static_cast<double*>(wp.request().ptr);
-    double* wpos = wposp.request().size == 0 ? 0 : static_cast<double*>(wposp.request().ptr);
+    const double* x = static_cast<const double*>(xp.data());
+    const double* y = static_cast<const double*>(yp.data());
+    const double* z = zp.size() == 0 ? 0 : static_cast<const double*>(zp.data());
+    const double* g1 = static_cast<const double*>(g1p.data());
+    const double* g2 = static_cast<const double*>(g2p.data());
+    const double* w = static_cast<const double*>(wp.data());
+    const double* wpos = wposp.size() == 0 ? 0 : static_cast<const double*>(wposp.data());
 
     return BuildField<GData>(x, y, z, g1, g2, 0, w, wpos,
                              nobj, minsize, maxsize, sm, seed,
@@ -533,19 +537,19 @@ BaseField<KData>* BuildKField(
     double minsize, double maxsize,
     SplitMethod sm, long long seed, bool brute, int mintop, int maxtop, Coord coords)
 {
-    long nobj = xp.request().size;
-    Assert(yp.request().size == nobj);
-    Assert(zp.request().size == nobj || zp.request().size == 0);
-    Assert(kp.request().size == nobj);
-    Assert(wp.request().size == nobj);
-    Assert(wposp.request().size == nobj || wposp.request().size == 0);
+    long nobj = xp.size();
+    Assert(yp.size() == nobj);
+    Assert(zp.size() == nobj || zp.size() == 0);
+    Assert(kp.size() == nobj);
+    Assert(wp.size() == nobj);
+    Assert(wposp.size() == nobj || wposp.size() == 0);
 
-    double* x = static_cast<double*>(xp.request().ptr);
-    double* y = static_cast<double*>(yp.request().ptr);
-    double* z = zp.request().size == 0 ? 0 : static_cast<double*>(zp.request().ptr);
-    double* k = static_cast<double*>(kp.request().ptr);
-    double* w = static_cast<double*>(wp.request().ptr);
-    double* wpos = wposp.request().size == 0 ? 0 : static_cast<double*>(wposp.request().ptr);
+    const double* x = static_cast<const double*>(xp.data());
+    const double* y = static_cast<const double*>(yp.data());
+    const double* z = zp.size() == 0 ? 0 : static_cast<const double*>(zp.data());
+    const double* k = static_cast<const double*>(kp.data());
+    const double* w = static_cast<const double*>(wp.data());
+    const double* wpos = wposp.size() == 0 ? 0 : static_cast<const double*>(wposp.data());
 
     return BuildField<KData>(x, y, z, 0, 0, k, w, wpos,
                              nobj, minsize, maxsize, sm, seed,
@@ -558,17 +562,17 @@ BaseField<NData>* BuildNField(
     double minsize, double maxsize,
     SplitMethod sm, long long seed, bool brute, int mintop, int maxtop, Coord coords)
 {
-    long nobj = xp.request().size;
-    Assert(yp.request().size == nobj);
-    Assert(zp.request().size == nobj || zp.request().size == 0);
-    Assert(wp.request().size == nobj);
-    Assert(wposp.request().size == nobj || wposp.request().size == 0);
+    long nobj = xp.size();
+    Assert(yp.size() == nobj);
+    Assert(zp.size() == nobj || zp.size() == 0);
+    Assert(wp.size() == nobj);
+    Assert(wposp.size() == nobj || wposp.size() == 0);
 
-    double* x = static_cast<double*>(xp.request().ptr);
-    double* y = static_cast<double*>(yp.request().ptr);
-    double* z = zp.request().size == 0 ? 0 : static_cast<double*>(zp.request().ptr);
-    double* w = static_cast<double*>(wp.request().ptr);
-    double* wpos = wposp.request().size == 0 ? 0 : static_cast<double*>(wposp.request().ptr);
+    const double* x = static_cast<const double*>(xp.data());
+    const double* y = static_cast<const double*>(yp.data());
+    const double* z = zp.size() == 0 ? 0 : static_cast<const double*>(zp.data());
+    const double* w = static_cast<const double*>(wp.data());
+    const double* wpos = wposp.size() == 0 ? 0 : static_cast<const double*>(wposp.data());
 
     return BuildField<NData>(x, y, z, 0, 0, 0, w, wpos,
                              nobj, minsize, maxsize, sm, seed,
@@ -579,15 +583,15 @@ template <int D>
 void FieldGetNear(BaseField<D>* field, double x, double y, double z, double sep,
                   py::array_t<long>& inp)
 {
-    long n = inp.request().size;
-    long* indices = static_cast<long*>(inp.request().ptr);
+    long n = inp.size();
+    long* indices = static_cast<long*>(inp.mutable_data());
     field->getNear(x,y,z,sep,indices,n);
 }
 
 template <int D>
 BaseSimpleField<D>* BuildSimpleField(
-    double* x, double* y, double* z, double* g1, double* g2, double* k,
-    double* w, double* wpos, long nobj, Coord coords)
+    const double* x, const double* y, const double* z, const double* g1, const double* g2, const double* k,
+    const double* w, const double* wpos, long nobj, Coord coords)
 {
     dbg<<"Start BuildSimpleField "<<D<<"  "<<coords<<std::endl;
     switch (coords) {
@@ -612,21 +616,21 @@ BaseSimpleField<GData>* BuildGSimpleField(
     py::array_t<double>& wp, py::array_t<double>& wposp,
     Coord coords)
 {
-    long nobj = xp.request().size;
-    Assert(yp.request().size == nobj);
-    Assert(zp.request().size == nobj || zp.request().size == 0);
-    Assert(g1p.request().size == nobj);
-    Assert(g2p.request().size == nobj);
-    Assert(wp.request().size == nobj);
-    Assert(wposp.request().size == nobj || wposp.request().size == 0);
+    long nobj = xp.size();
+    Assert(yp.size() == nobj);
+    Assert(zp.size() == nobj || zp.size() == 0);
+    Assert(g1p.size() == nobj);
+    Assert(g2p.size() == nobj);
+    Assert(wp.size() == nobj);
+    Assert(wposp.size() == nobj || wposp.size() == 0);
 
-    double* x = static_cast<double*>(xp.request().ptr);
-    double* y = static_cast<double*>(yp.request().ptr);
-    double* z = zp.request().size == 0 ? 0 : static_cast<double*>(zp.request().ptr);
-    double* g1 = static_cast<double*>(g1p.request().ptr);
-    double* g2 = static_cast<double*>(g2p.request().ptr);
-    double* w = static_cast<double*>(wp.request().ptr);
-    double* wpos = wposp.request().size == 0 ? 0 : static_cast<double*>(wposp.request().ptr);
+    const double* x = static_cast<const double*>(xp.data());
+    const double* y = static_cast<const double*>(yp.data());
+    const double* z = zp.size() == 0 ? 0 : static_cast<const double*>(zp.data());
+    const double* g1 = static_cast<const double*>(g1p.data());
+    const double* g2 = static_cast<const double*>(g2p.data());
+    const double* w = static_cast<const double*>(wp.data());
+    const double* wpos = wposp.size() == 0 ? 0 : static_cast<const double*>(wposp.data());
 
     return BuildSimpleField<GData>(x, y, z, g1, g2, 0, w, wpos, nobj, coords);
 }
@@ -637,19 +641,19 @@ BaseSimpleField<KData>* BuildKSimpleField(
     py::array_t<double>& wp, py::array_t<double> wposp,
     Coord coords)
 {
-    long nobj = xp.request().size;
-    Assert(yp.request().size == nobj);
-    Assert(zp.request().size == nobj || zp.request().size == 0);
-    Assert(kp.request().size == nobj);
-    Assert(wp.request().size == nobj);
-    Assert(wposp.request().size == nobj || wposp.request().size == 0);
+    long nobj = xp.size();
+    Assert(yp.size() == nobj);
+    Assert(zp.size() == nobj || zp.size() == 0);
+    Assert(kp.size() == nobj);
+    Assert(wp.size() == nobj);
+    Assert(wposp.size() == nobj || wposp.size() == 0);
 
-    double* x = static_cast<double*>(xp.request().ptr);
-    double* y = static_cast<double*>(yp.request().ptr);
-    double* z = zp.request().size == 0 ? 0 : static_cast<double*>(zp.request().ptr);
-    double* k = static_cast<double*>(kp.request().ptr);
-    double* w = static_cast<double*>(wp.request().ptr);
-    double* wpos = wposp.request().size == 0 ? 0 : static_cast<double*>(wposp.request().ptr);
+    const double* x = static_cast<const double*>(xp.data());
+    const double* y = static_cast<const double*>(yp.data());
+    const double* z = zp.size() == 0 ? 0 : static_cast<const double*>(zp.data());
+    const double* k = static_cast<const double*>(kp.data());
+    const double* w = static_cast<const double*>(wp.data());
+    const double* wpos = wposp.size() == 0 ? 0 : static_cast<const double*>(wposp.data());
 
     return BuildSimpleField<KData>(x, y, z, 0, 0, k, w, wpos, nobj, coords);
 }
@@ -659,17 +663,17 @@ BaseSimpleField<NData>* BuildNSimpleField(
     py::array_t<double>& wp, py::array_t<double>& wposp,
     Coord coords)
 {
-    long nobj = xp.request().size;
-    Assert(yp.request().size == nobj);
-    Assert(zp.request().size == nobj || zp.request().size == 0);
-    Assert(wp.request().size == nobj);
-    Assert(wposp.request().size == nobj || wposp.request().size == 0);
+    long nobj = xp.size();
+    Assert(yp.size() == nobj);
+    Assert(zp.size() == nobj || zp.size() == 0);
+    Assert(wp.size() == nobj);
+    Assert(wposp.size() == nobj || wposp.size() == 0);
 
-    double* x = static_cast<double*>(xp.request().ptr);
-    double* y = static_cast<double*>(yp.request().ptr);
-    double* z = zp.request().size == 0 ? 0 : static_cast<double*>(zp.request().ptr);
-    double* w = static_cast<double*>(wp.request().ptr);
-    double* wpos = wposp.request().size == 0 ? 0 : static_cast<double*>(wposp.request().ptr);
+    const double* x = static_cast<const double*>(xp.data());
+    const double* y = static_cast<const double*>(yp.data());
+    const double* z = zp.size() == 0 ? 0 : static_cast<const double*>(zp.data());
+    const double* w = static_cast<const double*>(wp.data());
+    const double* wpos = wposp.size() == 0 ? 0 : static_cast<const double*>(wposp.data());
 
     return BuildSimpleField<NData>(x, y, z, 0, 0, 0, w, wpos, nobj, coords);
 }

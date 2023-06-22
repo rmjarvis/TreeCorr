@@ -677,16 +677,57 @@ BaseSimpleField<NData>* BuildNSimpleField(
 
 // Export the above functions using pybind11
 
+// Also wrap some functions that live in KMeans.cpp
+template <int D>
+void KMeansInitTree(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
+                    int coords, long long seed);
+template <int D>
+void KMeansInitRand(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
+                    int coords, long long seed);
+template <int D>
+void KMeansInitKMPP(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
+                    int coords, long long seed);
+template <int D>
+void KMeansRun(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
+               int max_iter, double tol, bool alt, int coords);
+template <int D>
+void KMeansAssign(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
+                  py::array_t<long>& pp, int coords);
+void QuickAssign(py::array_t<double>& cenp, int npatch,
+                 py::array_t<double>& xp, py::array_t<double>& yp,
+                 py::array_t<double>& zp, py::array_t<long>& pp);
+void SelectPatch(int patch, py::array_t<double>& cenp, int npatch,
+                 py::array_t<double>& xp, py::array_t<double>& yp,
+                 py::array_t<double>& zp, py::array_t<long>& usep);
+void GenerateXYZ(
+    py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
+    py::array_t<double>& rap, py::array_t<double>& decp, py::array_t<double>& rp);
+
+
 template <int D, typename F>
 void WrapField(F& field)
 {
     typedef void (*getNear_type)(BaseField<D>* field, double x, double y, double z,
                                  double sep, py::array_t<long>& inp);
+
+    typedef void (*init_type)(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
+                              int coords, long long seed);
+    typedef void (*run_type)(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
+                            int max_iter, double tol, bool alt, int coords);
+    typedef void (*assign_type)(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
+                                py::array_t<long>& pp, int coords);
+
     field.def("getNObj", &BaseField<D>::getNObj);
     field.def("getSize", &BaseField<D>::getSize);
     field.def("countNear", &BaseField<D>::countNear);
     field.def("getNear", getNear_type(&FieldGetNear));
     field.def("getNTopLevel", &BaseField<D>::getNTopLevel);
+
+    field.def("KMeansInitTree", init_type(&KMeansInitTree));
+    field.def("KMeansInitRand", init_type(&KMeansInitRand));
+    field.def("KMeansInitKMPP", init_type(&KMeansInitKMPP));
+    field.def("KMeansRun", run_type(&KMeansRun));
+    field.def("KMeansAssign", assign_type(&KMeansAssign));
 }
 
 void pyExportField(py::module& _treecorr)
@@ -712,4 +753,8 @@ void pyExportField(py::module& _treecorr)
     nsimplefield.def(py::init(&BuildNSimpleField));
     ksimplefield.def(py::init(&BuildKSimpleField));
     gsimplefield.def(py::init(&BuildGSimpleField));
+
+    _treecorr.def("QuickAssign", &QuickAssign);
+    _treecorr.def("SelectPatch", &SelectPatch);
+    _treecorr.def("GenerateXYZ", &GenerateXYZ);
 }

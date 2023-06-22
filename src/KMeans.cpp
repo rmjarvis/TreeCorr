@@ -1008,7 +1008,6 @@ void QuickAssign(py::array_t<double>& cenp, int npatch,
     }
 }
 
-
 void SelectPatch(int patch, py::array_t<double>& cenp, int npatch,
                  py::array_t<double>& xp, py::array_t<double>& yp,
                  py::array_t<double>& zp, py::array_t<long>& usep)
@@ -1122,32 +1121,20 @@ void GenerateXYZ(
     }
 }
 
-// Export the above functions using pybind11
-//
-template <int D>
-void WrapKMeans(py::module& _treecorr)
-{
-    typedef void (*init_type)(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-                              int coords, long long seed);
-    typedef void (*run_type)(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-                            int max_iter, double tol, bool alt, int coords);
-    typedef void (*assign_type)(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-                                py::array_t<long>& pp, int coords);
+// Instantiate versions that are wrapped in Field.cpp
 
-    _treecorr.def("KMeansInitTree", init_type(&KMeansInitTree));
-    _treecorr.def("KMeansInitRand", init_type(&KMeansInitRand));
-    _treecorr.def("KMeansInitKMPP", init_type(&KMeansInitKMPP));
-    _treecorr.def("KMeansRun", run_type(&KMeansRun));
-    _treecorr.def("KMeansAssign", assign_type(&KMeansAssign));
-}
+#define Inst(D)\
+    template void KMeansInitTree(BaseField<D>* field, py::array_t<double>& cenp, int npatch, \
+                        int coords, long long seed); \
+    template void KMeansInitRand(BaseField<D>* field, py::array_t<double>& cenp, int npatch, \
+                        int coords, long long seed); \
+    template void KMeansInitKMPP(BaseField<D>* field, py::array_t<double>& cenp, int npatch, \
+                        int coords, long long seed); \
+    template void KMeansRun(BaseField<D>* field, py::array_t<double>& cenp, int npatch, \
+                int max_iter, double tol, bool alt, int coords); \
+    template void KMeansAssign(BaseField<D>* field, py::array_t<double>& cenp, int npatch, \
+                    py::array_t<long>& pp, int coords); \
 
-void pyExportKMeans(py::module& _treecorr)
-{
-    WrapKMeans<NData>(_treecorr);
-    WrapKMeans<KData>(_treecorr);
-    WrapKMeans<GData>(_treecorr);
-
-    _treecorr.def("QuickAssign", &QuickAssign);
-    _treecorr.def("SelectPatch", &SelectPatch);
-    _treecorr.def("GenerateXYZ", &GenerateXYZ);
-}
+Inst(NData);
+Inst(KData);
+Inst(GData);

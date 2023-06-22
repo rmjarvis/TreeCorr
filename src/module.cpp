@@ -20,14 +20,12 @@
 #include "PyBind11Helper.h"
 
 void pyExportField(py::module&);
-void pyExportKMeans(py::module&);
 void pyExportCorr2(py::module&);
 void pyExportCorr3(py::module&);
 
 PYBIND11_MODULE(_treecorr, _treecorr)
 {
     pyExportField(_treecorr);
-    pyExportKMeans(_treecorr);
     pyExportCorr2(_treecorr);
     pyExportCorr3(_treecorr);
 }

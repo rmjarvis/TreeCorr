@@ -194,11 +194,11 @@ class GGGCorrelation(BinnedCorr3):
     @property
     def corr(self):
         if self._corr is None:
-            self._corr = _lib.BuildCorr3(
-                    self._d1, self._d2, self._d3, self._bintype,
-                    self._min_sep,self._max_sep,self.nbins,self._bin_size,self.b,
-                    self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
-                    self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
+            self._corr = _lib.GGGCorr(
+                    self._bintype,
+                    self._min_sep, self._max_sep, self.nbins, self._bin_size, self.b,
+                    self.min_u, self.max_u, self.nubins, self.ubin_size, self.bu,
+                    self.min_v, self.max_v, self.nvbins, self.vbin_size, self.bv,
                     self.xperiod, self.yperiod, self.zperiod,
                     self.gam0r, self.gam0i, self.gam1r, self.gam1i,
                     self.gam2r, self.gam2i, self.gam3r, self.gam3i,
@@ -206,12 +206,6 @@ class GGGCorrelation(BinnedCorr3):
                     self.meand3, self.meanlogd3, self.meanu, self.meanv,
                     self.weight, self.ntri)
         return self._corr
-
-    def __del__(self):
-        # Using memory allocated from the C layer means we have to explicitly deallocate it
-        # rather than being able to rely on the Python memory manager.
-        if self._corr is not None:
-            _lib.DestroyCorr3(self.corr, self._d1, self._d2, self._d3)
 
     def __eq__(self, other):
         """Return whether two `GGGCorrelation` instances are equal"""
@@ -308,8 +302,8 @@ class GGGCorrelation(BinnedCorr3):
                               coords=self.coords)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        _lib.ProcessAuto3(self.corr, field.data, self.output_dots,
-                                   field._d, self._coords, self._bintype, self._metric)
+        self.corr.processAuto(field.data, self.output_dots,
+                              self._coords, self._bintype, self._metric)
 
     @depr_pos_kwargs
     def process_cross12(self, cat1, cat2, *, metric=None, num_threads=None):
@@ -357,10 +351,9 @@ class GGGCorrelation(BinnedCorr3):
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         # Note: all 3 correlation objects are the same.  Thus, all triangles will be placed
         # into self.corr, whichever way the three catalogs are permuted for each triangle.
-        _lib.ProcessCross12(self.corr, self.corr, self.corr,
-                            f1.data, f2.data, self.output_dots,
-                            f1._d, f2._d, self._coords,
-                            self._bintype, self._metric)
+        self.corr.processCross12(self.corr, self.corr,
+                                 f1.data, f2.data, self.output_dots,
+                                 self._coords, self._bintype, self._metric)
 
     @depr_pos_kwargs
     def process_cross(self, cat1, cat2, cat3, *, metric=None, num_threads=None):
@@ -411,10 +404,9 @@ class GGGCorrelation(BinnedCorr3):
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         # Note: all 6 correlation objects are the same.  Thus, all triangles will be placed
         # into self.corr, whichever way the three catalogs are permuted for each triangle.
-        _lib.ProcessCross3(self.corr, self.corr, self.corr,
-                           self.corr, self.corr, self.corr,
-                           f1.data, f2.data, f3.data, self.output_dots,
-                           f1._d, f2._d, f3._d, self._coords, self._bintype, self._metric)
+        self.corr.processCross(self.corr, self.corr, self.corr, self.corr, self.corr,
+                               f1.data, f2.data, f3.data, self.output_dots,
+                               self._coords, self._bintype, self._metric)
 
     def _finalize(self):
         mask1 = self.weight != 0
@@ -1382,10 +1374,9 @@ class GGGCrossCorrelation(BinnedCorr3):
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         # Note: all 3 correlation objects are the same.  Thus, all triangles will be placed
         # into self.corr, whichever way the three catalogs are permuted for each triangle.
-        _lib.ProcessCross12(self.g1g2g3.corr, self.g2g1g3.corr, self.g2g3g1.corr,
-                            f1.data, f2.data, self.output_dots,
-                            f1._d, f2._d, self._coords,
-                            self._bintype, self._metric)
+        self.g1g2g3.corr.processCross12(self.g2g1g3.corr, self.g2g3g1.corr,
+                                        f1.data, f2.data, self.output_dots,
+                                        self._coords, self._bintype, self._metric)
 
     @depr_pos_kwargs
     def process_cross(self, cat1, cat2, cat3, *, metric=None, num_threads=None):
@@ -1435,11 +1426,11 @@ class GGGCrossCorrelation(BinnedCorr3):
                             coords=self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        _lib.ProcessCross3(self.g1g2g3.corr, self.g1g3g2.corr,
-                           self.g2g1g3.corr, self.g2g3g1.corr,
-                           self.g3g1g2.corr, self.g3g2g1.corr,
-                           f1.data, f2.data, f3.data, self.output_dots,
-                           f1._d, f2._d, f3._d, self._coords, self._bintype, self._metric)
+        self.g1g2g3.corr.processCross(self.g1g3g2.corr,
+                                      self.g2g1g3.corr, self.g2g3g1.corr,
+                                      self.g3g1g2.corr, self.g3g2g1.corr,
+                                      f1.data, f2.data, f3.data, self.output_dots,
+                                      self._coords, self._bintype, self._metric)
 
     def _finalize(self):
         for ggg in self._all:

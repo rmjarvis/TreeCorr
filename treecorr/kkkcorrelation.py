@@ -136,23 +136,17 @@ class KKKCorrelation(BinnedCorr3):
     def corr(self):
         if self._corr is None:
             x = np.array([])
-            self._corr = _lib.BuildCorr3(
-                    self._d1, self._d2, self._d3, self._bintype,
-                    self._min_sep,self._max_sep,self.nbins,self._bin_size,self.b,
-                    self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,
-                    self.min_v,self.max_v,self.nvbins,self.vbin_size,self.bv,
+            self._corr = _lib.KKKCorr(
+                    self._bintype,
+                    self._min_sep, self._max_sep, self.nbins, self._bin_size, self.b,
+                    self.min_u, self.max_u, self.nubins, self.ubin_size, self.bu,
+                    self.min_v, self.max_v, self.nvbins, self.vbin_size, self.bv,
                     self.xperiod, self.yperiod, self.zperiod,
                     self.zeta, x, x, x, x, x, x, x,
                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
                     self.meand3, self.meanlogd3, self.meanu, self.meanv,
                     self.weight, self.ntri)
         return self._corr
-
-    def __del__(self):
-        # Using memory allocated from the C layer means we have to explicitly deallocate it
-        # rather than being able to rely on the Python memory manager.
-        if self._corr is not None:
-            _lib.DestroyCorr3(self.corr, self._d1, self._d2, self._d3)
 
     def __eq__(self, other):
         """Return whether two `KKKCorrelation` instances are equal"""
@@ -239,8 +233,8 @@ class KKKCorrelation(BinnedCorr3):
                               coords=self.coords)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        _lib.ProcessAuto3(self.corr, field.data, self.output_dots,
-                          field._d, self._coords, self._bintype, self._metric)
+        self.corr.processAuto(field.data, self.output_dots,
+                              self._coords, self._bintype, self._metric)
 
     @depr_pos_kwargs
     def process_cross12(self, cat1, cat2, *, metric=None, num_threads=None):
@@ -288,10 +282,9 @@ class KKKCorrelation(BinnedCorr3):
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         # Note: all 3 correlation objects are the same.  Thus, all triangles will be placed
         # into self.corr, whichever way the three catalogs are permuted for each triangle.
-        _lib.ProcessCross12(self.corr, self.corr, self.corr,
-                            f1.data, f2.data, self.output_dots,
-                            f1._d, f2._d, self._coords,
-                            self._bintype, self._metric)
+        self.corr.processCross12(self.corr, self.corr,
+                                 f1.data, f2.data, self.output_dots,
+                                 self._coords, self._bintype, self._metric)
 
     @depr_pos_kwargs
     def process_cross(self, cat1, cat2, cat3, *, metric=None, num_threads=None):
@@ -342,10 +335,9 @@ class KKKCorrelation(BinnedCorr3):
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         # Note: all 6 correlation objects are the same.  Thus, all triangles will be placed
         # into self.corr, whichever way the three catalogs are permuted for each triangle.
-        _lib.ProcessCross3(self.corr, self.corr, self.corr,
-                           self.corr, self.corr, self.corr,
-                           f1.data, f2.data, f3.data, self.output_dots,
-                           f1._d, f2._d, f3._d, self._coords, self._bintype, self._metric)
+        self.corr.processCross(self.corr, self.corr, self.corr, self.corr, self.corr,
+                               f1.data, f2.data, f3.data, self.output_dots,
+                               self._coords, self._bintype, self._metric)
 
     def _finalize(self):
         mask1 = self.weight != 0
@@ -861,10 +853,9 @@ class KKKCrossCorrelation(BinnedCorr3):
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         # Note: all 3 correlation objects are the same.  Thus, all triangles will be placed
         # into self.corr, whichever way the three catalogs are permuted for each triangle.
-        _lib.ProcessCross12(self.k1k2k3.corr, self.k2k1k3.corr, self.k2k3k1.corr,
-                            f1.data, f2.data, self.output_dots,
-                            f1._d, f2._d, self._coords,
-                            self._bintype, self._metric)
+        self.k1k2k3.corr.processCross12(self.k2k1k3.corr, self.k2k3k1.corr,
+                                        f1.data, f2.data, self.output_dots,
+                                        self._coords, self._bintype, self._metric)
 
     @depr_pos_kwargs
     def process_cross(self, cat1, cat2, cat3, *, metric=None, num_threads=None):
@@ -914,11 +905,11 @@ class KKKCrossCorrelation(BinnedCorr3):
                             coords=self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        _lib.ProcessCross3(self.k1k2k3.corr, self.k1k3k2.corr,
-                           self.k2k1k3.corr, self.k2k3k1.corr,
-                           self.k3k1k2.corr, self.k3k2k1.corr,
-                           f1.data, f2.data, f3.data, self.output_dots,
-                           f1._d, f2._d, f3._d, self._coords, self._bintype, self._metric)
+        self.k1k2k3.corr.processCross(self.k1k3k2.corr,
+                                      self.k2k1k3.corr, self.k2k3k1.corr,
+                                      self.k3k1k2.corr, self.k3k2k1.corr,
+                                      f1.data, f2.data, f3.data, self.output_dots,
+                                      self._coords, self._bintype, self._metric)
 
     def _finalize(self):
         for kkk in self._all:

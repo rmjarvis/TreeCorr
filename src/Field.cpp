@@ -416,53 +416,6 @@ void Field<D,C>::getNear(double x, double y, double z, double sep, long* indices
     }
 }
 
-template <int D, int C>
-SimpleField<D,C>::SimpleField(
-    const double* x, const double* y, const double* z,
-    const double* g1, const double* g2, const double* k,
-    const double* w, const double* wpos, long nobj)
-{
-    // This bit is the same as the start of the Field constructor.
-    dbg<<"Starting to Build SimpleField with "<<nobj<<" objects\n";
-    std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> > celldata;
-    celldata.reserve(nobj);
-    if (z) {
-        for(long i=0;i<nobj;++i) {
-            WPosLeafInfo wp = get_wpos(wpos,w,i);
-            celldata.push_back(std::make_pair(
-                    CellDataHelper<D,C>::build(
-                        x[i], y[i], z[i], at<D==GData>(g1,i), at<D==GData>(g2,i),
-                        at<D==KData>(k,i), w[i]), wp));
-        }
-    } else {
-        Assert(C == Flat);
-        for(long i=0;i<nobj;++i) {
-            WPosLeafInfo wp = get_wpos(wpos,w,i);
-            celldata.push_back(std::make_pair(
-                    CellDataHelper<D,C>::build(
-                        x[i], y[i], 0., at<D==GData>(g1,i), at<D==GData>(g2,i),
-                        at<D==KData>(k,i), w[i]), wp));
-        }
-    }
-    dbg<<"Built celldata with "<<celldata.size()<<" entries\n";
-
-    // However, now we just turn each item into a leaf Cell and keep them all in a single vector.
-    ptrdiff_t n = celldata.size();
-    _cells.resize(n);
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
-    for(ptrdiff_t i=0;i<n;++i)
-        _cells[i] = new Cell<D,C>(celldata[i].first, celldata[i].second);
-}
-
-template <int D, int C>
-SimpleField<D,C>::~SimpleField()
-{
-    for(size_t i=0; i<_cells.size(); ++i) delete _cells[i];
-}
-
-
 //
 //
 // The functions we call from Python.
@@ -588,96 +541,6 @@ void FieldGetNear(BaseField<D>* field, double x, double y, double z, double sep,
     field->getNear(x,y,z,sep,indices,n);
 }
 
-template <int D>
-BaseSimpleField<D>* BuildSimpleField(
-    const double* x, const double* y, const double* z, const double* g1, const double* g2, const double* k,
-    const double* w, const double* wpos, long nobj, Coord coords)
-{
-    dbg<<"Start BuildSimpleField "<<D<<"  "<<coords<<std::endl;
-    switch (coords) {
-      case Flat:
-           return new SimpleField<D,Flat>(x, y, 0, g1, g2, k,
-                                          w, wpos, nobj);
-      case Sphere:
-           return new SimpleField<D,Sphere>(x, y, z, g1, g2, k,
-                                            w, wpos, nobj);
-      case ThreeD:
-           return new SimpleField<D,ThreeD>(x, y, z, g1, g2, k,
-                                            w, wpos, nobj);
-      default:
-           Assert(false);
-    }
-    return 0;
-}
-
-BaseSimpleField<GData>* BuildGSimpleField(
-    py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
-    py::array_t<double>& g1p, py::array_t<double>& g2p,
-    py::array_t<double>& wp, py::array_t<double>& wposp,
-    Coord coords)
-{
-    long nobj = xp.size();
-    Assert(yp.size() == nobj);
-    Assert(zp.size() == nobj || zp.size() == 0);
-    Assert(g1p.size() == nobj);
-    Assert(g2p.size() == nobj);
-    Assert(wp.size() == nobj);
-    Assert(wposp.size() == nobj || wposp.size() == 0);
-
-    const double* x = static_cast<const double*>(xp.data());
-    const double* y = static_cast<const double*>(yp.data());
-    const double* z = zp.size() == 0 ? 0 : static_cast<const double*>(zp.data());
-    const double* g1 = static_cast<const double*>(g1p.data());
-    const double* g2 = static_cast<const double*>(g2p.data());
-    const double* w = static_cast<const double*>(wp.data());
-    const double* wpos = wposp.size() == 0 ? 0 : static_cast<const double*>(wposp.data());
-
-    return BuildSimpleField<GData>(x, y, z, g1, g2, 0, w, wpos, nobj, coords);
-}
-
-BaseSimpleField<KData>* BuildKSimpleField(
-    py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
-    py::array_t<double>& kp,
-    py::array_t<double>& wp, py::array_t<double> wposp,
-    Coord coords)
-{
-    long nobj = xp.size();
-    Assert(yp.size() == nobj);
-    Assert(zp.size() == nobj || zp.size() == 0);
-    Assert(kp.size() == nobj);
-    Assert(wp.size() == nobj);
-    Assert(wposp.size() == nobj || wposp.size() == 0);
-
-    const double* x = static_cast<const double*>(xp.data());
-    const double* y = static_cast<const double*>(yp.data());
-    const double* z = zp.size() == 0 ? 0 : static_cast<const double*>(zp.data());
-    const double* k = static_cast<const double*>(kp.data());
-    const double* w = static_cast<const double*>(wp.data());
-    const double* wpos = wposp.size() == 0 ? 0 : static_cast<const double*>(wposp.data());
-
-    return BuildSimpleField<KData>(x, y, z, 0, 0, k, w, wpos, nobj, coords);
-}
-
-BaseSimpleField<NData>* BuildNSimpleField(
-    py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
-    py::array_t<double>& wp, py::array_t<double>& wposp,
-    Coord coords)
-{
-    long nobj = xp.size();
-    Assert(yp.size() == nobj);
-    Assert(zp.size() == nobj || zp.size() == 0);
-    Assert(wp.size() == nobj);
-    Assert(wposp.size() == nobj || wposp.size() == 0);
-
-    const double* x = static_cast<const double*>(xp.data());
-    const double* y = static_cast<const double*>(yp.data());
-    const double* z = zp.size() == 0 ? 0 : static_cast<const double*>(zp.data());
-    const double* w = static_cast<const double*>(wp.data());
-    const double* wpos = wposp.size() == 0 ? 0 : static_cast<const double*>(wposp.data());
-
-    return BuildSimpleField<NData>(x, y, z, 0, 0, 0, w, wpos, nobj, coords);
-}
-
 // Export the above functions using pybind11
 
 // Also wrap some functions that live in KMeans.cpp
@@ -748,14 +611,6 @@ void pyExportField(py::module& _treecorr)
     WrapField<NData>(nfield);
     WrapField<KData>(kfield);
     WrapField<GData>(gfield);
-
-    py::class_<BaseSimpleField<NData> > nsimplefield(_treecorr, "NSimpleField");
-    py::class_<BaseSimpleField<KData> > ksimplefield(_treecorr, "KSimpleField");
-    py::class_<BaseSimpleField<GData> > gsimplefield(_treecorr, "GSimpleField");
-
-    nsimplefield.def(py::init(&BuildNSimpleField));
-    ksimplefield.def(py::init(&BuildKSimpleField));
-    gsimplefield.def(py::init(&BuildGSimpleField));
 
     _treecorr.def("QuickAssign", &QuickAssign);
     _treecorr.def("SelectPatch", &SelectPatch);

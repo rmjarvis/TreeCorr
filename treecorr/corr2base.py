@@ -168,10 +168,6 @@ class Corr2(object):
                             (default: 10)
         precision (int):    The precision to use for the output values. This specifies how many
                             digits to write. (default: 4)
-        pairwise (bool):    Whether to use a different kind of calculation for cross correlations
-                            whereby corresponding items in the two catalogs are correlated pairwise
-                            rather than the usual case of every item in one catalog being correlated
-                            with every item in the other catalog. (default: False) (DEPRECATED)
         m2_uform (str):     The default functional form to use for aperture mass calculations.
                             see `calculateMapSq` for more details.  (default: 'Crittenden')
 
@@ -243,8 +239,6 @@ class Corr2(object):
                 'The maximum number of top layers to use when setting up the field.'),
         'precision' : (int, False, 4, None,
                 'The number of digits after the decimal in the output.'),
-        'pairwise' : (bool, True, False, None,
-                'Whether to do a pair-wise cross-correlation. (DEPRECATED)'),
         'm2_uform' : (str, False, 'Crittenden', ['Crittenden', 'Schneider'],
                 'The function form of the mass aperture.'),
         'metric': (str, False, 'Euclidean', ['Euclidean', 'Rperp', 'FisherRperp', 'OldRperp',
@@ -732,18 +726,7 @@ class Corr2(object):
             else:
                 return False
 
-        if get(self.config,'pairwise',bool,False):
-            import warnings
-            warnings.warn("The pairwise option is slated to be removed in a future version. "+
-                          "If you are actually using this parameter usefully, please "+
-                          "open an issue to describe your use case.", FutureWarning)
-            if len(cat1) != len(cat2):
-                raise ValueError("Number of files for 1 and 2 must be equal for pairwise.")
-            for c1,c2 in zip(cat1,cat2):
-                if c1.ntot != c2.ntot:
-                    raise ValueError("Number of objects must be equal for pairwise.")
-                self.process_pairwise(c1, c2, metric=metric, num_threads=num_threads)
-        elif len(cat1) == 1 and len(cat2) == 1 and cat1[0].npatch == 1 and cat2[0].npatch == 1:
+        if len(cat1) == 1 and len(cat2) == 1 and cat1[0].npatch == 1 and cat2[0].npatch == 1:
             self.process_cross(cat1[0], cat2[0], metric=metric, num_threads=num_threads)
         else:
             # When patch processing, keep track of the pair-wise results.

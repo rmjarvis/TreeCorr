@@ -534,6 +534,7 @@ def test_direct_spherical():
     np.testing.assert_allclose(ggg.gam3r, true_gam3.real, rtol=1.e-3, atol=1.e-4)
     np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-3, atol=1.e-4)
 
+
 @timer
 def test_direct_cross():
     # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
@@ -952,6 +953,7 @@ def test_direct_cross():
             np.testing.assert_allclose(g2.gam1, g1.gam1)
             np.testing.assert_allclose(g2.gam2, g1.gam2)
             np.testing.assert_allclose(g2.gam3, g1.gam3)
+
 
 @timer
 def test_direct_cross12():
@@ -1976,7 +1978,6 @@ def test_map3():
     print('diff = ',mx3-true_mx3e)
     print('max diff = ',max(abs(mx3 - true_mx3e)))
     np.testing.assert_allclose(mx3, true_mx3e, rtol=0.05, atol=1.e-9)
-
 
 
 @timer

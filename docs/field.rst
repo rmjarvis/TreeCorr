@@ -18,10 +18,6 @@ There are several kinds of `Field` classes.
     - `KField` holds both counts of objects and the mean "kappa" of those objects.
       It is used for correlations with a K in the name, including
       `KKCorrelation`, `NKCorrelation`, `KGCorrelation`, and `KKKCorrelation`.
-    - `SimpleField` is a different base class, which packages the information in a list
-      rather than a tree.  Its subclasses, `NSimpleField`, `GSimpleField`, and
-      `KSimpleField`, are used instead of the regular `Field` types when doing
-      ``pairwise`` correlations.
 
 Typically, one would not create any of these objects directly, but would instead
 use Catalog methods `getNField`, `getGField`, `getKField`.  Or indeed, usually, one
@@ -38,16 +34,3 @@ does not even do that, and just lets the relevant ``process`` command do so for 
 
 .. autoclass:: treecorr.KField
     :members:
-
-.. autoclass:: treecorr.SimpleField
-    :members:
-
-.. autoclass:: treecorr.NSimpleField
-    :members:
-
-.. autoclass:: treecorr.GSimpleField
-    :members:
-
-.. autoclass:: treecorr.KSimpleField
-    :members:
-

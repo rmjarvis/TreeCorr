@@ -10,7 +10,7 @@ whose issue numbers are listed below for the relevant items.
 Dependency Change
 -----------------
 
-- Switched from cffi to pybind11 for the C++ bindings.
+- Switched from cffi to pybind11 for the C++ bindings. (#155)
 
 
 API Changes
@@ -22,7 +22,7 @@ API Changes
   would nonetheless still work.  But now we explicitly check for it, so those use cases do
   require passing ``npatch`` now.  (#150)
 - Renamed the base classes BinnedCorr2 -> Corr2 and BinnedCorr3 -> Corr3.  These are not normally
-  used directly by users, so it shouldn't be noticeable in user code.
+  used directly by users, so it shouldn't be noticeable in user code. (#155)
 
 
 Performance improvements

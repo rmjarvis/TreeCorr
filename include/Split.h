@@ -22,8 +22,8 @@ inline void CalcSplit(
     const double s1, const double s2, const double s1ps2, const double b)
 {
     // This function determines whether either input cell needs to be
-    // split.  It is written as a template so that the second cell
-    // can be either a Cell or a PairCell.  (The same rules apply.)
+    // split.
+    //
     // If you already know that c1 needs to be split, then split1 can
     // be input as true, and we only check c2.  (and vice versa)
     // In normal operation, both are input as false, and we check

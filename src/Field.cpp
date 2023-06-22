@@ -221,17 +221,17 @@ void Field<D,C>::BuildCells() const
     if (_celldata.size() == 0) return;
 
     switch (_sm) {
-      case MIDDLE:
-           DoBuildCells<MIDDLE>();
+      case Middle:
+           DoBuildCells<Middle>();
            break;
-      case MEDIAN:
-           DoBuildCells<MEDIAN>();
+      case Median:
+           DoBuildCells<Median>();
            break;
-      case MEAN:
-           DoBuildCells<MEAN>();
+      case Mean:
+           DoBuildCells<Mean>();
            break;
-      case RANDOM:
-           DoBuildCells<RANDOM>();
+      case Random:
+           DoBuildCells<Random>();
            break;
       default:
            throw std::runtime_error("Invalid SplitMethod");
@@ -471,10 +471,9 @@ template <int D>
 BaseField<D>* BuildField(double* x, double* y, double* z, double* g1, double* g2, double* k,
                  double* w, double* wpos, long nobj,
                  double minsize, double maxsize,
-                 int sm_int, long long seed, int brute, int mintop, int maxtop, int coords)
+                 SplitMethod sm, long long seed, bool brute, int mintop, int maxtop, Coord coords)
 {
     dbg<<"Start BuildField "<<D<<"  "<<coords<<std::endl;
-    SplitMethod sm = static_cast<SplitMethod>(sm_int);
     switch(coords) {
       case Flat:
            return new Field<D,Flat>(x, y, 0, g1, g2, k,
@@ -505,7 +504,7 @@ BaseField<GData>* BuildGField(
     py::array_t<double>& g1p, py::array_t<double>& g2p,
     py::array_t<double>& wp, py::array_t<double>& wposp,
     double minsize, double maxsize,
-    int sm_int, long long seed, int brute, int mintop, int maxtop, int coords)
+    SplitMethod sm, long long seed, bool brute, int mintop, int maxtop, Coord coords)
 {
     long nobj = xp.request().size;
     Assert(yp.request().size == nobj);
@@ -524,7 +523,7 @@ BaseField<GData>* BuildGField(
     double* wpos = wposp.request().size == 0 ? 0 : static_cast<double*>(wposp.request().ptr);
 
     return BuildField<GData>(x, y, z, g1, g2, 0, w, wpos,
-                             nobj, minsize, maxsize, sm_int, seed,
+                             nobj, minsize, maxsize, sm, seed,
                              brute, mintop, maxtop, coords);
 }
 
@@ -532,7 +531,7 @@ BaseField<KData>* BuildKField(
     py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
     py::array_t<double>& kp, py::array_t<double>& wp, py::array_t<double>& wposp,
     double minsize, double maxsize,
-    int sm_int, long long seed, int brute, int mintop, int maxtop, int coords)
+    SplitMethod sm, long long seed, bool brute, int mintop, int maxtop, Coord coords)
 {
     long nobj = xp.request().size;
     Assert(yp.request().size == nobj);
@@ -549,7 +548,7 @@ BaseField<KData>* BuildKField(
     double* wpos = wposp.request().size == 0 ? 0 : static_cast<double*>(wposp.request().ptr);
 
     return BuildField<KData>(x, y, z, 0, 0, k, w, wpos,
-                             nobj, minsize, maxsize, sm_int, seed,
+                             nobj, minsize, maxsize, sm, seed,
                              brute, mintop, maxtop, coords);
 }
 
@@ -557,7 +556,7 @@ BaseField<NData>* BuildNField(
     py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
     py::array_t<double>& wp, py::array_t<double>& wposp,
     double minsize, double maxsize,
-    int sm_int, long long seed, int brute, int mintop, int maxtop, int coords)
+    SplitMethod sm, long long seed, bool brute, int mintop, int maxtop, Coord coords)
 {
     long nobj = xp.request().size;
     Assert(yp.request().size == nobj);
@@ -572,7 +571,7 @@ BaseField<NData>* BuildNField(
     double* wpos = wposp.request().size == 0 ? 0 : static_cast<double*>(wposp.request().ptr);
 
     return BuildField<NData>(x, y, z, 0, 0, 0, w, wpos,
-                             nobj, minsize, maxsize, sm_int, seed,
+                             nobj, minsize, maxsize, sm, seed,
                              brute, mintop, maxtop, coords);
 }
 
@@ -588,7 +587,7 @@ void FieldGetNear(BaseField<D>* field, double x, double y, double z, double sep,
 template <int D>
 BaseSimpleField<D>* BuildSimpleField(
     double* x, double* y, double* z, double* g1, double* g2, double* k,
-    double* w, double* wpos, long nobj, int coords)
+    double* w, double* wpos, long nobj, Coord coords)
 {
     dbg<<"Start BuildSimpleField "<<D<<"  "<<coords<<std::endl;
     switch (coords) {
@@ -611,7 +610,7 @@ BaseSimpleField<GData>* BuildGSimpleField(
     py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
     py::array_t<double>& g1p, py::array_t<double>& g2p,
     py::array_t<double>& wp, py::array_t<double>& wposp,
-    int coords)
+    Coord coords)
 {
     long nobj = xp.request().size;
     Assert(yp.request().size == nobj);
@@ -636,7 +635,7 @@ BaseSimpleField<KData>* BuildKSimpleField(
     py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
     py::array_t<double>& kp,
     py::array_t<double>& wp, py::array_t<double> wposp,
-    int coords)
+    Coord coords)
 {
     long nobj = xp.request().size;
     Assert(yp.request().size == nobj);
@@ -658,7 +657,7 @@ BaseSimpleField<KData>* BuildKSimpleField(
 BaseSimpleField<NData>* BuildNSimpleField(
     py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
     py::array_t<double>& wp, py::array_t<double>& wposp,
-    int coords)
+    Coord coords)
 {
     long nobj = xp.request().size;
     Assert(yp.request().size == nobj);
@@ -680,19 +679,19 @@ BaseSimpleField<NData>* BuildNSimpleField(
 // Also wrap some functions that live in KMeans.cpp
 template <int D>
 void KMeansInitTree(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-                    int coords, long long seed);
+                    Coord coords, long long seed);
 template <int D>
 void KMeansInitRand(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-                    int coords, long long seed);
+                    Coord coords, long long seed);
 template <int D>
 void KMeansInitKMPP(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-                    int coords, long long seed);
+                    Coord coords, long long seed);
 template <int D>
 void KMeansRun(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-               int max_iter, double tol, bool alt, int coords);
+               int max_iter, double tol, bool alt, Coord coords);
 template <int D>
 void KMeansAssign(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-                  py::array_t<long>& pp, int coords);
+                  py::array_t<long>& pp, Coord coords);
 void QuickAssign(py::array_t<double>& cenp, int npatch,
                  py::array_t<double>& xp, py::array_t<double>& yp,
                  py::array_t<double>& zp, py::array_t<long>& pp);
@@ -711,11 +710,11 @@ void WrapField(F& field)
                                  double sep, py::array_t<long>& inp);
 
     typedef void (*init_type)(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-                              int coords, long long seed);
+                              Coord coords, long long seed);
     typedef void (*run_type)(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-                            int max_iter, double tol, bool alt, int coords);
+                            int max_iter, double tol, bool alt, Coord coords);
     typedef void (*assign_type)(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-                                py::array_t<long>& pp, int coords);
+                                py::array_t<long>& pp, Coord coords);
 
     field.def("getNObj", &BaseField<D>::getNObj);
     field.def("getSize", &BaseField<D>::getSize);

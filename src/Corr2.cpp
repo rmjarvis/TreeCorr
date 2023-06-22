@@ -994,7 +994,7 @@ void BaseCorr2::sampleFrom(
 
 template <int D1, int D2>
 Corr2<D1,D2>* BuildCorr2(
-    int bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+    BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
     double minrpar, double maxrpar, double xp, double yp, double zp,
     py::array_t<double>& xi0p, py::array_t<double>& xi1p,
     py::array_t<double>& xi2p, py::array_t<double>& xi3p,
@@ -1011,13 +1011,12 @@ Corr2<D1,D2>* BuildCorr2(
     double* npairs = static_cast<double*>(npairsp.request().ptr);
 
     return new Corr2<D1,D2>(
-            static_cast<BinType>(bin_type),
-            minsep, maxsep, nbins, binsize, b, minrpar, maxrpar, xp, yp, zp,
+            bin_type, minsep, maxsep, nbins, binsize, b, minrpar, maxrpar, xp, yp, zp,
             xi0, xi1, xi2, xi3, meanr, meanlogr, weight, npairs);
 }
 
 template <int B, int M, int D>
-void ProcessAuto2d(Corr2<D,D>* corr, BaseField<D>* field, int dots, int coords)
+void ProcessAuto2d(Corr2<D,D>* corr, BaseField<D>* field, bool dots, Coord coords)
 {
     const bool P = corr->nontrivialRPar();
     dbg<<"ProcessAuto: coords = "<<coords<<", metric = "<<M<<", P = "<<P<<std::endl;
@@ -1050,7 +1049,7 @@ void ProcessAuto2d(Corr2<D,D>* corr, BaseField<D>* field, int dots, int coords)
 }
 
 template <int B, int D>
-void ProcessAuto2c(Corr2<D,D>* corr, BaseField<D>* field, int dots, int coords, int metric)
+void ProcessAuto2c(Corr2<D,D>* corr, BaseField<D>* field, bool dots, Coord coords, Metric metric)
 {
     switch(metric) {
       case Euclidean:
@@ -1078,7 +1077,7 @@ void ProcessAuto2c(Corr2<D,D>* corr, BaseField<D>* field, int dots, int coords, 
 
 template <int D>
 void ProcessAuto(Corr2<D,D>* corr, BaseField<D>* field,
-                 int dots, int coords, int bin_type, int metric)
+                 bool dots, Coord coords, BinType bin_type, Metric metric)
 {
     switch(bin_type) {
       case Log:
@@ -1097,7 +1096,7 @@ void ProcessAuto(Corr2<D,D>* corr, BaseField<D>* field,
 
 template <int B, int M, int D1, int D2>
 void ProcessCross2d(Corr2<D1,D2>* corr, BaseField<D1>* field1, BaseField<D2>* field2,
-                    int dots, int coords)
+                    bool dots, Coord coords)
 {
     const bool P = corr->nontrivialRPar();
     dbg<<"ProcessCross: coords = "<<coords<<", metric = "<<M<<", P = "<<P<<std::endl;
@@ -1135,7 +1134,7 @@ void ProcessCross2d(Corr2<D1,D2>* corr, BaseField<D1>* field1, BaseField<D2>* fi
 
 template <int B, int D1, int D2>
 void ProcessCross2c(Corr2<D1,D2>* corr, BaseField<D1>* field1, BaseField<D2>* field2,
-                    int dots, int coords, int metric)
+                    bool dots, Coord coords, Metric metric)
 {
     switch(metric) {
       case Euclidean:
@@ -1163,7 +1162,7 @@ void ProcessCross2c(Corr2<D1,D2>* corr, BaseField<D1>* field1, BaseField<D2>* fi
 
 template <int D1, int D2>
 void ProcessCross(Corr2<D1,D2>* corr, BaseField<D1>* field1, BaseField<D2>* field2,
-                  int dots, int coords, int bin_type, int metric)
+                  bool dots, Coord coords, BinType bin_type, Metric metric)
 {
     dbg<<"Start ProcessCross: "<<D1<<" "<<D2<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
     switch(bin_type) {
@@ -1183,7 +1182,7 @@ void ProcessCross(Corr2<D1,D2>* corr, BaseField<D1>* field1, BaseField<D2>* fiel
 
 template <int B, int M, int D1, int D2>
 void ProcessPair2d(Corr2<D1,D2>* corr, BaseSimpleField<D1>* field1, BaseSimpleField<D2>* field2,
-                   int dots, int coords)
+                   bool dots, Coord coords)
 {
     const bool P = corr->nontrivialRPar();
     dbg<<"ProcessPair: coords = "<<coords<<", metric = "<<M<<", P = "<<P<<std::endl;
@@ -1221,7 +1220,7 @@ void ProcessPair2d(Corr2<D1,D2>* corr, BaseSimpleField<D1>* field1, BaseSimpleFi
 
 template <int B, int D1, int D2>
 void ProcessPair2c(Corr2<D1,D2>* corr, BaseSimpleField<D1>* field1, BaseSimpleField<D2>* field2,
-                   int dots, int coords, int metric)
+                   bool dots, Coord coords, Metric metric)
 {
     switch(metric) {
       case Euclidean:
@@ -1249,7 +1248,7 @@ void ProcessPair2c(Corr2<D1,D2>* corr, BaseSimpleField<D1>* field1, BaseSimpleFi
 
 template <int D1, int D2>
 void ProcessPair(Corr2<D1,D2>* corr, BaseSimpleField<D1>* field1, BaseSimpleField<D2>* field2,
-                 int dots, int coords, int bin_type, int metric)
+                 bool dots, Coord coords, BinType bin_type, Metric metric)
 {
     switch(bin_type) {
       case Log:
@@ -1288,7 +1287,7 @@ int GetOMPThreads()
 template <int B, int M, int D1, int D2>
 long SamplePairs2d(BaseCorr2* corr, BaseField<D1>* field1, BaseField<D2>* field2,
                    double minsep, double maxsep,
-                   int coords, long* i1, long* i2, double* sep, int n)
+                   Coord coords, long* i1, long* i2, double* sep, int n)
 {
     const bool P = corr->nontrivialRPar();
     dbg<<"SamplePairs: coords = "<<coords<<", metric = "<<M<<", P = "<<P<<std::endl;
@@ -1332,7 +1331,7 @@ long SamplePairs2d(BaseCorr2* corr, BaseField<D1>* field1, BaseField<D2>* field2
 template <int B, int D1, int D2>
 long SamplePairs2c(BaseCorr2* corr, BaseField<D1>* field1, BaseField<D2>* field2,
                    double minsep, double maxsep,
-                   int coords, int metric, long* i1, long* i2, double* sep, int n)
+                   Coord coords, Metric metric, long* i1, long* i2, double* sep, int n)
 {
     switch(metric) {
       case Euclidean:
@@ -1367,7 +1366,7 @@ long SamplePairs2c(BaseCorr2* corr, BaseField<D1>* field1, BaseField<D2>* field2
 
 template <int D1, int D2>
 long SamplePairs(BaseCorr2* corr, BaseField<D1>* field1, BaseField<D2>* field2,
-                 double minsep, double maxsep, int coords, int bin_type, int metric,
+                 double minsep, double maxsep, Coord coords, BinType bin_type, Metric metric,
                  py::array_t<long>& i1p, py::array_t<long>& i2p, py::array_t<double>& sepp)
 {
     long n = i1p.request().size;
@@ -1409,7 +1408,7 @@ int TriviallyZero2e(BaseCorr2* corr,
 }
 
 template <int B, int M>
-int TriviallyZero2d(BaseCorr2* corr, int coords,
+int TriviallyZero2d(BaseCorr2* corr, Coord coords,
                     double x1, double y1, double z1, double s1,
                     double x2, double y2, double z2, double s2)
 {
@@ -1435,7 +1434,7 @@ int TriviallyZero2d(BaseCorr2* corr, int coords,
 }
 
 template <int B>
-int TriviallyZero2c(BaseCorr2* corr, int metric, int coords,
+int TriviallyZero2c(BaseCorr2* corr, Metric metric, Coord coords,
                     double x1, double y1, double z1, double s1,
                     double x2, double y2, double z2, double s2)
 {
@@ -1464,7 +1463,7 @@ int TriviallyZero2c(BaseCorr2* corr, int metric, int coords,
     return 0;
 }
 
-int TriviallyZero(BaseCorr2* corr, int bin_type, int metric, int coords,
+int TriviallyZero(BaseCorr2* corr, BinType bin_type, Metric metric, Coord coords,
                   double x1, double y1, double z1, double s1,
                   double x2, double y2, double z2, double s2)
 {
@@ -1503,7 +1502,7 @@ struct WrapAuto<D,D>
     static void run(C& corr2)
     {
         typedef void (*auto_type)(Corr2<D,D>* corr, BaseField<D>* field,
-                                  int dots, int coords, int bin_type, int metric);
+                                  bool dots, Coord coords, BinType bin_type, Metric metric);
         corr2.def("processAuto", auto_type(&ProcessAuto));
     }
 };
@@ -1512,7 +1511,7 @@ template <int D1, int D2, typename W>
 void WrapCorr2(py::module& _treecorr, std::string prefix, W& base_corr2)
 {
     typedef Corr2<D1,D2>* (*init_type)(
-        int bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+        BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
         double minrpar, double maxrpar, double xp, double yp, double zp,
         py::array_t<double>& xi0p, py::array_t<double>& xi1p,
         py::array_t<double>& xi2p, py::array_t<double>& xi3p,
@@ -1521,15 +1520,16 @@ void WrapCorr2(py::module& _treecorr, std::string prefix, W& base_corr2)
 
     typedef long (*sample_type)(BaseCorr2* corr,
                                 BaseField<D1>* field1, BaseField<D2>* field2,
-                                double minsep, double maxsep, int coords, int bin_type, int metric,
+                                double minsep, double maxsep,
+                                Coord coords, BinType bin_type, Metric metric,
                                 py::array_t<long>& i1p, py::array_t<long>& i2p,
                                 py::array_t<double>& sepp);
     typedef void (*cross_type)(Corr2<D1,D2>* corr,
                                BaseField<D1>* field1, BaseField<D2>* field2,
-                               int dots, int coords, int bin_type, int metric);
+                               bool dots, Coord coords, BinType bin_type, Metric metric);
     typedef void (*pair_type)(Corr2<D1,D2>* corr,
                               BaseSimpleField<D1>* field1, BaseSimpleField<D2>* field2,
-                              int dots, int coords, int bin_type, int metric);
+                              bool dots, Coord coords, BinType bin_type, Metric metric);
 
     py::class_<Corr2<D1,D2>, BaseCorr2> corr2(_treecorr, (prefix + "Corr").c_str());
     corr2.def(py::init(init_type(&BuildCorr2)));
@@ -1555,6 +1555,7 @@ void pyExportCorr2(py::module& _treecorr)
     _treecorr.def("SetOMPThreads", &SetOMPThreads);
     _treecorr.def("GetOMPThreads", &GetOMPThreads);
 
+    // Also wrap all the enums we want to have in the Python layer.
     py::enum_<BinType>(_treecorr, "BinType")
         .value("Log", Log)
         .value("Linear", Linear)
@@ -1574,6 +1575,13 @@ void pyExportCorr2(py::module& _treecorr)
         .value("Arc", Arc)
         .value("OldRperp", OldRperp)
         .value("Periodic", Periodic)
+        .export_values();
+
+    py::enum_<SplitMethod>(_treecorr, "SplitMethod")
+        .value("Middle", Middle)
+        .value("Median", Median)
+        .value("Mean", Mean)
+        .value("Random", Random)
         .export_values();
 
 }

@@ -23,7 +23,7 @@
 #include "Position.h"
 #include "dbg.h"
 
-enum SplitMethod { MIDDLE, MEDIAN, MEAN, RANDOM };
+enum SplitMethod { Middle, Median, Mean, Random };
 
 const double PI = 3.141592653589793;
 const double TWOPI = 2.*PI;

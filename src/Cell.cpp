@@ -314,7 +314,7 @@ template <int D, int C, int SM>
 struct SplitDataCore;
 
 template <int D, int C>
-struct SplitDataCore<D, C, MIDDLE>
+struct SplitDataCore<D, C, Middle>
 {
     // Middle is the average of the min and max value of x or y
     static size_t run(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
@@ -330,7 +330,7 @@ struct SplitDataCore<D, C, MIDDLE>
 };
 
 template <int D, int C>
-struct SplitDataCore<D, C, MEDIAN>
+struct SplitDataCore<D, C, Median>
 {
     // Median is the point which divides the group into equal numbers
     static size_t run(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
@@ -347,7 +347,7 @@ struct SplitDataCore<D, C, MEDIAN>
 };
 
 template <int D, int C>
-struct SplitDataCore<D, C, MEAN>
+struct SplitDataCore<D, C, Mean>
 {
     // Mean is the weighted average value of x or y
     static size_t run(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
@@ -363,7 +363,7 @@ struct SplitDataCore<D, C, MEAN>
 };
 
 template <int D, int C>
-struct SplitDataCore<D, C, RANDOM>
+struct SplitDataCore<D, C, Random>
 {
     // Random is a random point from the first quartile to the third quartile
     static size_t run(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
@@ -372,7 +372,7 @@ struct SplitDataCore<D, C, RANDOM>
     {
         DataCompare<D,C> comp(split);
 
-        // The code for RANDOM is same as MEDIAN except for the next line.
+        // The code for Random is same as Median except for the next line.
         // Note: The lo and hi values are slightly subtle.  We want to make sure if there
         // are only two values, we actually split.  So if start=1, end=3, the only possible
         // result should be mid=2.  Otherwise, we want roughly 2/5 and 3/5 of the span.
@@ -411,10 +411,10 @@ size_t SplitData(
         // With duplicate entries, can get mid == start or mid == end.
         // This should only happen if all entries in this set are equal.
         // So it should be safe to just take the mid = (start + end)/2.
-        // But just to be safe, re-call this function with sm = MEDIAN to
+        // But just to be safe, re-call this function with sm = Median to
         // make sure.
-        Assert(SM != MEDIAN);
-        return SplitData<D,C,MEDIAN>(vdata,start,end,meanpos);
+        Assert(SM != Median);
+        return SplitData<D,C,Median>(vdata,start,end,meanpos);
     }
     Assert(mid > start);
     Assert(mid < end);
@@ -575,32 +575,32 @@ void Cell<D,C>::WriteTree(std::ostream& os, int indent) const
         const Position<C>& cen, \
         const std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, \
         size_t start, size_t end); \
-    template Cell<D,C>* BuildCell<D,C,MIDDLE>( \
+    template Cell<D,C>* BuildCell<D,C,Middle>( \
         std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, \
         double minsizesq, bool brute, size_t start, size_t end, \
         CellData<D,C>* data, double sizesq); \
-    template Cell<D,C>* BuildCell<D,C,MEDIAN>( \
+    template Cell<D,C>* BuildCell<D,C,Median>( \
         std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, \
         double minsizesq, bool brute, size_t start, size_t end, \
         CellData<D,C>* data, double sizesq); \
-    template Cell<D,C>* BuildCell<D,C,MEAN>( \
+    template Cell<D,C>* BuildCell<D,C,Mean>( \
         std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, \
         double minsizesq, bool brute, size_t start, size_t end, \
         CellData<D,C>* data, double sizesq); \
-    template Cell<D,C>* BuildCell<D,C,RANDOM>( \
+    template Cell<D,C>* BuildCell<D,C,Random>( \
         std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, \
         double minsizesq, bool brute, size_t start, size_t end, \
         CellData<D,C>* data, double sizesq); \
-    template size_t SplitData<D,C,MIDDLE>( \
+    template size_t SplitData<D,C,Middle>( \
         std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, \
         size_t start, size_t end, const Position<C>& meanpos); \
-    template size_t SplitData<D,C,MEDIAN>( \
+    template size_t SplitData<D,C,Median>( \
         std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, \
         size_t start, size_t end, const Position<C>& meanpos); \
-    template size_t SplitData<D,C,MEAN>( \
+    template size_t SplitData<D,C,Mean>( \
         std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, \
         size_t start, size_t end, const Position<C>& meanpos); \
-    template size_t SplitData<D,C,RANDOM>( \
+    template size_t SplitData<D,C,Random>( \
         std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata, \
         size_t start, size_t end, const Position<C>& meanpos); \
 

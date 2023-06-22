@@ -849,7 +849,7 @@ void KMeansAssign2(Field<D,C>*field, double* pycenters, int npatch, long* patche
 
 template <int D>
 void KMeansInitTree(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-                    int coords, long long seed)
+                    Coord coords, long long seed)
 {
     double* centers = static_cast<double*>(cenp.request().ptr);
 
@@ -870,7 +870,7 @@ void KMeansInitTree(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
 
 template <int D>
 void KMeansInitRand(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-                    int coords, long long seed)
+                    Coord coords, long long seed)
 {
     double* centers = static_cast<double*>(cenp.request().ptr);
 
@@ -891,7 +891,7 @@ void KMeansInitRand(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
 
 template <int D>
 void KMeansInitKMPP(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-                    int coords, long long seed)
+                    Coord coords, long long seed)
 {
     double* centers = static_cast<double*>(cenp.request().ptr);
 
@@ -912,7 +912,7 @@ void KMeansInitKMPP(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
 
 template <int D>
 void KMeansRun(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-               int max_iter, double tol, bool alt, int coords)
+               int max_iter, double tol, bool alt, Coord coords)
 {
     double* centers = static_cast<double*>(cenp.request().ptr);
 
@@ -933,7 +933,7 @@ void KMeansRun(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
 
 template <int D>
 void KMeansAssign(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-                  py::array_t<long>& pp, int coords)
+                  py::array_t<long>& pp, Coord coords)
 {
     long n = pp.request().size;
 
@@ -1125,15 +1125,15 @@ void GenerateXYZ(
 
 #define Inst(D)\
     template void KMeansInitTree(BaseField<D>* field, py::array_t<double>& cenp, int npatch, \
-                        int coords, long long seed); \
+                        Coord coords, long long seed); \
     template void KMeansInitRand(BaseField<D>* field, py::array_t<double>& cenp, int npatch, \
-                        int coords, long long seed); \
+                        Coord coords, long long seed); \
     template void KMeansInitKMPP(BaseField<D>* field, py::array_t<double>& cenp, int npatch, \
-                        int coords, long long seed); \
+                        Coord coords, long long seed); \
     template void KMeansRun(BaseField<D>* field, py::array_t<double>& cenp, int npatch, \
-                int max_iter, double tol, bool alt, int coords); \
+                int max_iter, double tol, bool alt, Coord coords); \
     template void KMeansAssign(BaseField<D>* field, py::array_t<double>& cenp, int npatch, \
-                    py::array_t<long>& pp, int coords); \
+                    py::array_t<long>& pp, Coord coords); \
 
 Inst(NData);
 Inst(KData);

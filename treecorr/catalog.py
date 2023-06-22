@@ -501,22 +501,7 @@ class Catalog(object):
         'cat_precision' : (int, False, 16, None,
                 'The number of digits after the decimal in the output.'),
     }
-    _aliases = {
-        'hdu' : 'ext',
-        'x_hdu' : 'x_ext',
-        'y_hdu' : 'y_ext',
-        'z_hdu' : 'z_ext',
-        'ra_hdu' : 'ra_ext',
-        'dec_hdu' : 'dec_ext',
-        'r_hdu' : 'r_ext',
-        'g1_hdu' : 'g1_ext',
-        'g2_hdu' : 'g2_ext',
-        'k_hdu' : 'k_ext',
-        'w_hdu' : 'w_ext',
-        'wpos_hdu' : 'wpos_ext',
-        'flag_hdu' : 'flag_ext',
-        'patch_hdu' : 'patch_ext',
-    }
+    _aliases = {}
     _emitted_pandas_warning = False  # Only emit the warning once.  Set to True once we have.
 
     def __init__(self, file_name=None, config=None, *, num=0, logger=None, is_rand=False,

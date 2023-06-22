@@ -19,7 +19,7 @@ import numpy as np
 
 from . import _treecorr as _lib
 from .catalog import calculateVarG, calculateVarK
-from .corr2 import Corr2
+from .corr2base import Corr2
 from .util import make_writer, make_reader
 from .util import depr_pos_kwargs
 

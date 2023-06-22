@@ -12,7 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 """
-.. module:: corr3
+.. module:: corr3base
 """
 
 import math
@@ -25,7 +25,7 @@ from .config import merge_config, setup_logger, get
 from .util import parse_metric, metric_enum, coord_enum, set_omp_threads, lazy_property
 from .util import make_reader
 from .util import depr_pos_kwargs
-from .corr2 import estimate_multi_cov, build_multi_cov_design_matrix
+from .corr2base import estimate_multi_cov, build_multi_cov_design_matrix
 
 class Namespace(object):
     pass

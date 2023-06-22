@@ -21,7 +21,7 @@ import weakref
 import copy
 import os
 
-from . import _treecorr as _lib
+from . import _treecorr
 from .reader import FitsReader, HdfReader, AsciiReader, PandasReader, ParquetReader
 from .config import merge_config, setup_logger, get, get_from_list
 from .util import parse_file_type, LRU_Cache, make_writer, make_reader, set_omp_threads
@@ -1040,7 +1040,7 @@ class Catalog(object):
         centers = np.ascontiguousarray(self._centers)
         set_omp_threads(self.config.get('num_threads',None))
         zx = self.z if self.z is not None else np.array([])
-        _lib.QuickAssign(centers, self.npatch, self.x, self.y, zx, self._patch)
+        _treecorr.QuickAssign(centers, self.npatch, self.x, self.y, zx, self._patch)
 
     def _set_npatch(self):
         npatch = max(self._patch) + 1
@@ -1065,7 +1065,7 @@ class Catalog(object):
                 assert centers.shape[1] == 3
             set_omp_threads(self.config.get('num_threads',None))
             zx = self._z if self._z is not None else np.array([])
-            _lib.SelectPatch(single_patch, centers, self.npatch, self._x, self._y, zx, use)
+            _treecorr.SelectPatch(single_patch, centers, self.npatch, self._x, self._y, zx, use)
             use = np.where(use)[0]
         else:
             use = slice(None)  # Which ironically means use all. :)
@@ -1095,7 +1095,7 @@ class Catalog(object):
             self._z = np.empty(ntot, dtype=float)
             set_omp_threads(self.config.get('num_threads',None))
             rx = self._r if self._r is not None else np.array([])
-            _lib.GenerateXYZ(self._x, self._y, self._z, self._ra, self._dec, rx)
+            _treecorr.GenerateXYZ(self._x, self._y, self._z, self._ra, self._dec, rx)
             self.x_units = self.y_units = 1.
 
     def _select_patch(self, single_patch):

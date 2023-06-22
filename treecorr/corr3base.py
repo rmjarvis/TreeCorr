@@ -20,7 +20,7 @@ import numpy as np
 import sys
 import coord
 
-from . import _treecorr as _lib
+from . import _treecorr
 from .config import merge_config, setup_logger, get
 from .util import parse_metric, metric_enum, coord_enum, set_omp_threads, lazy_property
 from .util import make_reader
@@ -313,7 +313,7 @@ class Corr3(object):
             self._ro.output_dots = get(self.config,'verbose',int,1) >= 2
 
         self._ro.bin_type = self.config.get('bin_type', None)
-        self._ro._bintype = _lib.Log
+        self._ro._bintype = _treecorr.Log
 
         self._ro.sep_units = self.config.get('sep_units','')
         self._ro._sep_units = get(self.config,'sep_units',str,'radians')

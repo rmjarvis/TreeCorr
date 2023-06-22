@@ -17,7 +17,7 @@
 
 import numpy as np
 
-from . import _treecorr as _lib
+from . import _treecorr
 from .catalog import calculateVarK
 from .corr2base import Corr2
 from .util import make_writer, make_reader
@@ -123,11 +123,11 @@ class NKCorrelation(Corr2):
     def corr(self):
         if self._corr is None:
             x = np.array([])
-            self._corr = _lib.NKCorr(self._bintype, self._min_sep, self._max_sep, self._nbins,
-                                     self._bin_size, self.b, self.min_rpar, self.max_rpar,
-                                     self.xperiod, self.yperiod, self.zperiod,
-                                     self.raw_xi, x, x, x,
-                                     self.meanr, self.meanlogr, self.weight, self.npairs)
+            self._corr = _treecorr.NKCorr(self._bintype, self._min_sep, self._max_sep, self._nbins,
+                                          self._bin_size, self.b, self.min_rpar, self.max_rpar,
+                                          self.xperiod, self.yperiod, self.zperiod,
+                                          self.raw_xi, x, x, x,
+                                          self.meanr, self.meanlogr, self.weight, self.npairs)
         return self._corr
 
     def __eq__(self, other):

@@ -548,11 +548,11 @@ def test_omp():
     assert "Telling OpenMP to use 2 threads" in cl.output
 
     # It's hard to tell what happens in the next step, since we can't control what
-    # treecorr._lib.SetOMPThreads does.  It depends on whether OpenMP is enabled and
+    # treecorr._treecorr.SetOMPThreads does.  It depends on whether OpenMP is enabled and
     # how many cores are available.  So let's mock it up.
-    with mock.patch('treecorr.util._lib') as _lib:
+    with mock.patch('treecorr.util._treecorr') as _treecorr:
         # First mock with OpenMP enables and able to use lots of threads
-        _lib.SetOMPThreads = lambda x: x
+        _treecorr.SetOMPThreads = lambda x: x
         assert treecorr.set_omp_threads(20) == 20
         with CaptureLog() as cl:
             treecorr.set_omp_threads(20, logger=cl.logger)
@@ -560,7 +560,7 @@ def test_omp():
         assert "Using 20 threads" in cl.output
 
         # Next only 4 threads available
-        _lib.SetOMPThreads = lambda x: 4 if x > 4 else x
+        _treecorr.SetOMPThreads = lambda x: 4 if x > 4 else x
         assert treecorr.set_omp_threads(20) == 4
         with CaptureLog() as cl:
             treecorr.set_omp_threads(20, logger=cl.logger)
@@ -573,7 +573,7 @@ def test_omp():
         assert "OpenMP reports that it will use 2 threads" in cl.output
 
         # Finally, no OpenMP
-        _lib.SetOMPThreads = lambda x: 1
+        _treecorr.SetOMPThreads = lambda x: 1
         assert treecorr.set_omp_threads(20) == 1
         with CaptureLog() as cl:
             treecorr.set_omp_threads(20, logger=cl.logger)

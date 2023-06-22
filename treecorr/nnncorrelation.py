@@ -17,7 +17,7 @@
 
 import numpy as np
 
-from . import _treecorr as _lib
+from . import _treecorr
 from .corr3base import Corr3
 from .util import make_writer, make_reader, lazy_property
 from .util import depr_pos_kwargs
@@ -135,7 +135,7 @@ class NNNCorrelation(Corr3):
     def corr(self):
         if self._corr is None:
             x = np.array([])
-            self._corr = _lib.NNNCorr(
+            self._corr = _treecorr.NNNCorr(
                     self._bintype,
                     self._min_sep,self._max_sep,self.nbins,self._bin_size,self.b,
                     self.min_u,self.max_u,self.nubins,self.ubin_size,self.bu,

@@ -17,7 +17,7 @@
 
 import numpy as np
 
-from . import _treecorr as _lib
+from . import _treecorr
 from .catalog import calculateVarK
 from .corr3base import Corr3
 from .util import make_writer, make_reader
@@ -136,7 +136,7 @@ class KKKCorrelation(Corr3):
     def corr(self):
         if self._corr is None:
             x = np.array([])
-            self._corr = _lib.KKKCorr(
+            self._corr = _treecorr.KKKCorr(
                     self._bintype,
                     self._min_sep, self._max_sep, self.nbins, self._bin_size, self.b,
                     self.min_u, self.max_u, self.nubins, self.ubin_size, self.bu,

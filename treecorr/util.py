@@ -22,7 +22,7 @@ import functools
 import inspect
 import warnings
 
-from . import _treecorr as _lib
+from . import _treecorr
 from . import Rperp_alias
 from .writer import AsciiWriter, FitsWriter, HdfWriter
 from .reader import AsciiReader, FitsReader, HdfReader
@@ -67,7 +67,7 @@ def set_omp_threads(num_threads, logger=None):
     # Tell OpenMP to use this many threads
     if logger:
         logger.debug('Telling OpenMP to use %d threads',num_threads)
-    num_threads = _lib.SetOMPThreads(num_threads)
+    num_threads = _treecorr.SetOMPThreads(num_threads)
 
     # Report back appropriately.
     if logger:
@@ -85,7 +85,7 @@ def get_omp_threads():
 
     :returns:           The  number of threads OpenMP reports that it will use.
     """
-    return _lib.GetOMPThreads()
+    return _treecorr.GetOMPThreads()
 
 def parse_file_type(file_type, file_name, output=False, logger=None):
     """Parse the file_type from the file_name if necessary
@@ -323,11 +323,11 @@ def coord_enum(coords):
     """Return the C++-layer enum for the given string value of coords.
     """
     if coords == 'flat':
-        return _lib.Flat
+        return _treecorr.Flat
     elif coords == 'spherical':
-        return _lib.Sphere
+        return _treecorr.Sphere
     elif coords == '3d':
-        return _lib.ThreeD
+        return _treecorr.ThreeD
     else:
         raise ValueError("Invalid coords %s"%coords)
 
@@ -335,19 +335,19 @@ def metric_enum(metric):
     """Return the C++-layer enum for the given string value of metric.
     """
     if metric == 'Euclidean':
-        return _lib.Euclidean
+        return _treecorr.Euclidean
     elif metric == 'Rperp':
         return metric_enum(Rperp_alias)
     elif metric == 'FisherRperp':
-        return _lib.Rperp
+        return _treecorr.Rperp
     elif metric in ['OldRperp']:
-        return _lib.OldRperp
+        return _treecorr.OldRperp
     elif metric == 'Rlens':
-        return _lib.Rlens
+        return _treecorr.Rlens
     elif metric == 'Arc':
-        return _lib.Arc
+        return _treecorr.Arc
     elif metric == 'Periodic':
-        return _lib.Periodic
+        return _treecorr.Periodic
     else:
         raise ValueError("Invalid metric %s"%metric)
 
@@ -391,7 +391,7 @@ def parse_xyzsep(args, kwargs, _coords):
     :returns: The effective (x, y, z, sep) as a tuple.
     """
     radec = False
-    if _coords == _lib.Flat:
+    if _coords == _treecorr.Flat:
         if len(args) == 0:
             if 'x' not in kwargs:
                 raise TypeError("Missing required argument x")
@@ -415,7 +415,7 @@ def parse_xyzsep(args, kwargs, _coords):
             raise TypeError("Too many positional args")
         z = 0
 
-    elif _coords == _lib.ThreeD:
+    elif _coords == _treecorr.ThreeD:
         if len(args) == 0:
             if 'x' in kwargs:
                 if 'y' not in kwargs:
@@ -557,7 +557,7 @@ def parse_xyzsep(args, kwargs, _coords):
                 raise TypeError("Missing required argument dec_units")
             dec = dec * coord.AngleUnit.from_name(kwargs.pop('dec_units'))
         x,y,z = coord.CelestialCoord(ra, dec).get_xyz()
-        if _coords == _lib.ThreeD:
+        if _coords == _treecorr.ThreeD:
             x *= r
             y *= r
             z *= r

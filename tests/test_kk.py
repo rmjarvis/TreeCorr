@@ -261,71 +261,6 @@ def test_direct_spherical():
 
 
 @timer
-def test_pairwise():
-    # Test the pairwise option.
-
-    ngal = 1000
-    s = 10.
-    rng = np.random.RandomState(8675309)
-    x1 = rng.normal(0,s, (ngal,) )
-    y1 = rng.normal(0,s, (ngal,) )
-    w1 = rng.random_sample(ngal)
-    k1 = rng.normal(10,1, (ngal,) )
-
-    x2 = rng.normal(0,s, (ngal,) )
-    y2 = rng.normal(0,s, (ngal,) )
-    w2 = rng.random_sample(ngal)
-    k2 = rng.normal(0,3, (ngal,) )
-
-    w1 = np.ones_like(w1)
-    w2 = np.ones_like(w2)
-
-    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1)
-    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2)
-
-    min_sep = 5.
-    max_sep = 50.
-    nbins = 10
-    bin_size = np.log(max_sep/min_sep) / nbins
-    kk = treecorr.KKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
-    with assert_warns(FutureWarning):
-        kk.process_pairwise(cat1, cat2)
-    kk.finalize(cat1.vark, cat2.vark)
-
-    true_npairs = np.zeros(nbins, dtype=int)
-    true_weight = np.zeros(nbins, dtype=float)
-    true_xi = np.zeros(nbins, dtype=float)
-
-    rsq = (x1-x2)**2 + (y1-y2)**2
-    r = np.sqrt(rsq)
-
-    ww = w1 * w2
-    xi = ww * k1 * k2
-
-    index = np.floor(np.log(r/min_sep) / bin_size).astype(int)
-    mask = (index >= 0) & (index < nbins)
-    np.add.at(true_npairs, index[mask], 1)
-    np.add.at(true_weight, index[mask], ww[mask])
-    np.add.at(true_xi, index[mask], xi[mask])
-
-    true_xi /= true_weight
-
-    np.testing.assert_array_equal(kk.npairs, true_npairs)
-    np.testing.assert_allclose(kk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(kk.xi, true_xi, rtol=1.e-4, atol=1.e-8)
-
-    # If cats have names, then the logger will mention them.
-    # Also, test running with optional args.
-    cat1.name = "first"
-    cat2.name = "second"
-    with CaptureLog() as cl:
-        kk.logger = cl.logger
-        with assert_warns(FutureWarning):
-            kk.process_pairwise(cat1, cat2, metric='Euclidean', num_threads=2)
-    assert "for cats first, second" in cl.output
-
-
-@timer
 def test_constant():
     # A fairly trivial test is to use a constant value of kappa everywhere.
 
@@ -639,7 +574,6 @@ def test_varxi():
 if __name__ == '__main__':
     test_direct()
     test_direct_spherical()
-    test_pairwise()
     test_constant()
     test_kk()
     test_large_scale()

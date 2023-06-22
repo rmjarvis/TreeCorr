@@ -280,70 +280,6 @@ void Corr2<D1,D2>::process(const Field<D1,C>& field1, const Field<D2,C>& field2,
 }
 
 template <int D1, int D2> template <int B, int M, int P, int C>
-void Corr2<D1,D2>::processPairwise(
-    const SimpleField<D1,C>& field1, const SimpleField<D2,C>& field2, bool dots)
-{
-    Assert(_coords == -1 || _coords == C);
-    _coords = C;
-    const long nobj = field1.getNObj();
-    const long nobj2 = field2.getNObj();
-    xdbg<<"field1 has "<<nobj<<" objects\n";
-    xdbg<<"field2 has "<<nobj2<<" objects\n";
-    Assert(nobj > 0);
-    Assert(nobj == nobj2);
-
-    const long sqrtn = long(sqrt(double(nobj)));
-
-#ifdef _OPENMP
-#pragma omp parallel
-    {
-        // Give each thread their own copy of the data vector to fill in.
-        Corr2<D1,D2> bc2(*this,false);
-#else
-        Corr2<D1,D2>& bc2 = *this;
-#endif
-
-        MetricHelper<M,P> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
-
-#ifdef _OPENMP
-#pragma omp for schedule(static)
-#endif
-        for (long i=0;i<nobj;++i) {
-            // Let the progress dots happen every sqrt(n) iterations.
-            if (dots && (i % sqrtn == 0)) {
-#ifdef _OPENMP
-#pragma omp critical
-#endif
-                {
-#ifdef _OPENMP
-                    xdbg<<omp_get_thread_num()<<" "<<i<<std::endl;
-#endif
-                    std::cout<<'.'<<std::flush;
-                }
-            }
-            const Cell<D1,C>& c1 = *field1.getCells()[i];
-            const Cell<D2,C>& c2 = *field2.getCells()[i];
-            const Position<C>& p1 = c1.getPos();
-            const Position<C>& p2 = c2.getPos();
-            double s=0.;
-            const double rsq = metric.DistSq(p1, p2, s, s);
-            if (BinTypeHelper<B>::isRSqInRange(rsq, p1, p2,
-                                               _minsep, _minsepsq, _maxsep, _maxsepsq)) {
-                bc2.template directProcess11<B>(c1,c2,rsq,false);
-            }
-        }
-#ifdef _OPENMP
-        // Accumulate the results
-#pragma omp critical
-        {
-            *this += bc2;
-        }
-    }
-#endif
-    if (dots) std::cout<<std::endl;
-}
-
-template <int D1, int D2> template <int B, int M, int P, int C>
 void Corr2<D1,D2>::process2(const Cell<D1,C>& c12, const MetricHelper<M,P>& metric)
 {
     if (c12.getW() == 0.) return;
@@ -1180,91 +1116,6 @@ void ProcessCross(Corr2<D1,D2>* corr, BaseField<D1>* field1, BaseField<D2>* fiel
     }
 }
 
-template <int B, int M, int D1, int D2>
-void ProcessPair2d(Corr2<D1,D2>* corr, BaseSimpleField<D1>* field1, BaseSimpleField<D2>* field2,
-                   bool dots, Coord coords)
-{
-    const bool P = corr->nontrivialRPar();
-    dbg<<"ProcessPair: coords = "<<coords<<", metric = "<<M<<", P = "<<P<<std::endl;
-
-    switch(coords) {
-      case Flat:
-           Assert((MetricHelper<M,0>::_Flat == int(Flat)));
-           Assert(!P);
-           corr->template processPairwise<B,M,false>(
-               *static_cast<SimpleField<D1,MetricHelper<M,0>::_Flat>*>(field1),
-               *static_cast<SimpleField<D2,MetricHelper<M,0>::_Flat>*>(field2), dots);
-           break;
-      case Sphere:
-           Assert((MetricHelper<M,0>::_Sphere == int(Sphere)));
-           Assert(!P);
-           corr->template processPairwise<B,M,false>(
-               *static_cast<SimpleField<D1,MetricHelper<M,0>::_Sphere>*>(field1),
-               *static_cast<SimpleField<D2,MetricHelper<M,0>::_Sphere>*>(field2), dots);
-           break;
-      case ThreeD:
-           Assert((MetricHelper<M,0>::_ThreeD == int(ThreeD)));
-           if (P)
-               corr->template processPairwise<B,M,true>(
-                   *static_cast<SimpleField<D1,MetricHelper<M,1>::_ThreeD>*>(field1),
-                   *static_cast<SimpleField<D2,MetricHelper<M,1>::_ThreeD>*>(field2), dots);
-           else
-               corr->template processPairwise<B,M,false>(
-                   *static_cast<SimpleField<D1,MetricHelper<M,0>::_ThreeD>*>(field1),
-                   *static_cast<SimpleField<D2,MetricHelper<M,0>::_ThreeD>*>(field2), dots);
-           break;
-      default:
-           Assert(false);
-    }
-}
-
-template <int B, int D1, int D2>
-void ProcessPair2c(Corr2<D1,D2>* corr, BaseSimpleField<D1>* field1, BaseSimpleField<D2>* field2,
-                   bool dots, Coord coords, Metric metric)
-{
-    switch(metric) {
-      case Euclidean:
-           ProcessPair2d<B,Euclidean>(corr, field1, field2, dots, coords);
-           break;
-      case Rperp:
-           ProcessPair2d<B,Rperp>(corr, field1, field2, dots, coords);
-           break;
-      case OldRperp:
-           ProcessPair2d<B,OldRperp>(corr, field1, field2, dots, coords);
-           break;
-      case Rlens:
-           ProcessPair2d<B,Rlens>(corr, field1, field2, dots, coords);
-           break;
-      case Arc:
-           ProcessPair2d<B,Arc>(corr, field1, field2, dots, coords);
-           break;
-      case Periodic:
-           ProcessPair2d<B,Periodic>(corr, field1, field2, dots, coords);
-           break;
-      default:
-           Assert(false);
-    }
-}
-
-template <int D1, int D2>
-void ProcessPair(Corr2<D1,D2>* corr, BaseSimpleField<D1>* field1, BaseSimpleField<D2>* field2,
-                 bool dots, Coord coords, BinType bin_type, Metric metric)
-{
-    switch(bin_type) {
-      case Log:
-           ProcessPair2c<Log>(corr, field1, field2, dots, coords, metric);
-           break;
-      case Linear:
-           ProcessPair2c<Linear>(corr, field1, field2, dots, coords, metric);
-           break;
-      case TwoD:
-           ProcessPair2c<TwoD>(corr, field1, field2, dots, coords, metric);
-           break;
-      default:
-           Assert(false);
-    }
-}
-
 int SetOMPThreads(int num_threads)
 {
 #ifdef _OPENMP
@@ -1527,14 +1378,10 @@ void WrapCorr2(py::module& _treecorr, std::string prefix, W& base_corr2)
     typedef void (*cross_type)(Corr2<D1,D2>* corr,
                                BaseField<D1>* field1, BaseField<D2>* field2,
                                bool dots, Coord coords, BinType bin_type, Metric metric);
-    typedef void (*pair_type)(Corr2<D1,D2>* corr,
-                              BaseSimpleField<D1>* field1, BaseSimpleField<D2>* field2,
-                              bool dots, Coord coords, BinType bin_type, Metric metric);
 
     py::class_<Corr2<D1,D2>, BaseCorr2> corr2(_treecorr, (prefix + "Corr").c_str());
     corr2.def(py::init(init_type(&BuildCorr2)));
     corr2.def("processCross", cross_type(&ProcessCross));
-    corr2.def("processPair", pair_type(&ProcessPair));
     WrapAuto<D1,D2>::run(corr2);
 
     base_corr2.def("samplePairs", sample_type(&SamplePairs));

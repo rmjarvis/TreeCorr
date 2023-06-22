@@ -300,73 +300,6 @@ def test_direct_spherical():
 
 
 @timer
-def test_pairwise():
-    # Test the pairwise option.
-
-    ngal = 1000
-    s = 10.
-    rng = np.random.RandomState(8675309)
-    x1 = rng.normal(0,s, (ngal,) )
-    y1 = rng.normal(0,s, (ngal,) )
-    w1 = rng.random_sample(ngal)
-
-    x2 = rng.normal(0,s, (ngal,) )
-    y2 = rng.normal(0,s, (ngal,) )
-    w2 = rng.random_sample(ngal)
-    g12 = rng.normal(0,0.2, (ngal,) )
-    g22 = rng.normal(0,0.2, (ngal,) )
-
-    w1 = np.ones_like(w1)
-    w2 = np.ones_like(w2)
-
-    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1)
-    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g12, g2=g22)
-
-    min_sep = 5.
-    max_sep = 50.
-    nbins = 10
-    bin_size = np.log(max_sep/min_sep) / nbins
-    ng = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
-    with assert_warns(FutureWarning):
-        ng.process_pairwise(cat1, cat2)
-    ng.finalize(cat2.varg)
-
-    true_npairs = np.zeros(nbins, dtype=int)
-    true_weight = np.zeros(nbins, dtype=float)
-    true_xi = np.zeros(nbins, dtype=complex)
-
-    rsq = (x1-x2)**2 + (y1-y2)**2
-    r = np.sqrt(rsq)
-    expmialpha = ((x1-x2) - 1j*(y1-y2)) / r
-
-    ww = w1 * w2
-    xi = -ww * (g12 + 1j*g22) * expmialpha**2
-
-    index = np.floor(np.log(r/min_sep) / bin_size).astype(int)
-    mask = (index >= 0) & (index < nbins)
-    np.add.at(true_npairs, index[mask], 1)
-    np.add.at(true_weight, index[mask], ww[mask])
-    np.add.at(true_xi, index[mask], xi[mask])
-
-    true_xi /= true_weight
-
-    np.testing.assert_array_equal(ng.npairs, true_npairs)
-    np.testing.assert_allclose(ng.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(ng.xi, true_xi.real, rtol=1.e-4, atol=1.e-8)
-    np.testing.assert_allclose(ng.xi_im, true_xi.imag, rtol=1.e-4, atol=1.e-8)
-
-    # If cats have names, then the logger will mention them.
-    # Also, test running with optional args.
-    cat1.name = "first"
-    cat2.name = "second"
-    with CaptureLog() as cl:
-        ng.logger = cl.logger
-        with assert_warns(FutureWarning):
-            ng.process_pairwise(cat1, cat2, metric='Euclidean', num_threads=2)
-    assert "for cats first, second" in cl.output
-
-
-@timer
 def test_single():
     # Use gamma_t(r) = gamma0 exp(-r^2/2r0^2) around a single lens
     # i.e. gamma(r) = -gamma0 exp(-r^2/2r0^2) (x+iy)^2/r^2
@@ -446,66 +379,6 @@ def test_single():
     corr2_output = np.genfromtxt(os.path.join('output','ng_single.out'), names=True,
                                  skip_header=1)
     np.testing.assert_allclose(corr2_output['gamT'], ng.xi, rtol=1.e-3)
-
-
-
-@timer
-def test_pairwise2():
-    # Test the same profile, but with the pairwise calcualtion:
-    nsource = 300000
-    gamma0 = 0.05
-    r0 = 10.
-    L = 5. * r0
-    rng = np.random.RandomState(8675309)
-    x = (rng.random_sample(nsource)-0.5) * L
-    y = (rng.random_sample(nsource)-0.5) * L
-    r2 = (x**2 + y**2)
-    gammat = gamma0 * np.exp(-0.5*r2/r0**2)
-    g1 = -gammat * (x**2-y**2)/r2
-    g2 = -gammat * (2.*x*y)/r2
-
-    dx = (rng.random_sample(nsource)-0.5) * L
-    dx = (rng.random_sample(nsource)-0.5) * L
-
-    lens_cat = treecorr.Catalog(x=dx, y=dx, x_units='arcmin', y_units='arcmin')
-    source_cat = treecorr.Catalog(x=x+dx, y=y+dx, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
-    ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
-                                verbose=1, pairwise=True)
-    with assert_warns(FutureWarning):
-        ng.process(lens_cat, source_cat)
-
-    r = ng.meanr
-    true_gt = gamma0 * np.exp(-0.5*r**2/r0**2)
-
-    print('ng.xi = ',ng.xi)
-    print('ng.xi_im = ',ng.xi_im)
-    print('true_gammat = ',true_gt)
-    print('ratio = ',ng.xi / true_gt)
-    print('diff = ',ng.xi - true_gt)
-    print('max diff = ',max(abs(ng.xi - true_gt)))
-    # I don't really understand why this comes out slightly less accurate.
-    # I would have thought it would be slightly more accurate because it doesn't use the
-    # approximations intrinsic to the tree calculation.
-    np.testing.assert_allclose(ng.xi, true_gt, rtol=3.e-2)
-    np.testing.assert_allclose(ng.xi_im, 0, atol=1.e-4)
-
-    # Check that we get the same result using the corr2 function:
-    lens_cat.write(os.path.join('data','ng_pairwise_lens.dat'))
-    source_cat.write(os.path.join('data','ng_pairwise_source.dat'))
-    config = treecorr.read_config('configs/ng_pairwise.yaml')
-    config['verbose'] = 0
-    with assert_warns(FutureWarning):
-        treecorr.corr2(config)
-    corr2_output = np.genfromtxt(os.path.join('output','ng_pairwise.out'), names=True,
-                                 skip_header=1)
-    print('ng.xi = ',ng.xi)
-    print('from corr2 output = ',corr2_output['gamT'])
-    print('ratio = ',corr2_output['gamT']/ng.xi)
-    print('diff = ',corr2_output['gamT']-ng.xi)
-    np.testing.assert_allclose(corr2_output['gamT'], ng.xi, rtol=1.e-3)
-
-    print('xi_im from corr2 output = ',corr2_output['gamX'])
-    np.testing.assert_allclose(corr2_output['gamX'], 0, atol=1.e-4)
 
 
 @timer
@@ -1462,9 +1335,7 @@ def test_double():
 if __name__ == '__main__':
     test_direct()
     test_direct_spherical()
-    test_pairwise()
     test_single()
-    test_pairwise2()
     test_spherical()
     test_ng()
     test_nmap()

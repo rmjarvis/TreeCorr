@@ -91,29 +91,4 @@ private:
 
 };
 
-// A SimpleField just stores the celldata.  It doesn't go on to build up the Cells.
-// It is used by processPairwise.
-template <int D>
-class BaseSimpleField
-{
-public:
-    virtual ~BaseSimpleField() {}
-};
-
-template <int D, int C>
-class SimpleField : public BaseSimpleField<D>
-{
-public:
-    SimpleField(const double* x, const double* y, const double* z,
-                const double* g1, const double* g2, const double* k,
-                const double* w, const double* wpos, long nobj);
-    ~SimpleField();
-
-    long getNObj() const { return long(_cells.size()); }
-    const std::vector<Cell<D,C>*>& getCells() const { return _cells; }
-
-private:
-    std::vector<Cell<D,C>*> _cells;
-};
-
 #endif

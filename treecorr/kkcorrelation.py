@@ -243,51 +243,6 @@ class KKCorrelation(Corr2):
         self.corr.processCross(f1.data, f2.data, self.output_dots,
                                self._coords, self._bintype, self._metric)
 
-    def process_pairwise(self, cat1, cat2, *, metric=None, num_threads=None):
-        """Process a single pair of catalogs, accumulating the cross-correlation, only using
-        the corresponding pairs of objects in each catalog.
-
-        This accumulates the weighted sums into the bins, but does not finalize
-        the calculation by dividing by the total weight at the end.  After
-        calling this function as often as desired, the `finalize` command will
-        finish the calculation.
-
-        .. warning::
-
-            .. deprecated:: 4.1
-
-                This function is deprecated and slated to be removed.
-                If you have a need for it, please open an issue to describe your use case.
-
-        Parameters:
-            cat1 (Catalog):     The first catalog to process
-            cat2 (Catalog):     The second catalog to process
-            metric (str):       Which metric to use.  See `Metrics` for details.
-                                (default: 'Euclidean'; this value can also be given in the
-                                constructor in the config dict.)
-            num_threads (int):  How many OpenMP threads to use during the calculation.
-                                (default: use the number of cpu cores; this value can also be given
-                                in the constructor in the config dict.)
-        """
-        import warnings
-        warnings.warn("The process_pairwise function is slated to be removed in a future version. "+
-                      "If you are actually using this function usefully, please "+
-                      "open an issue to describe your use case.", FutureWarning)
-        if cat1.name == '' and cat2.name == '':
-            self.logger.info('Starting process KK pairwise-correlations')
-        else:
-            self.logger.info('Starting process KK pairwise-correlations for cats %s, %s.',
-                             cat1.name, cat2.name)
-
-        self._set_metric(metric, cat1.coords, cat2.coords)
-        self._set_num_threads(num_threads)
-
-        f1 = cat1.getKSimpleField()
-        f2 = cat2.getKSimpleField()
-
-        self.corr.processPair(f1.data, f2.data, self.output_dots,
-                              self._coords, self._bintype, self._metric)
-
     def _finalize(self):
         mask1 = self.weight != 0
         mask2 = self.weight == 0

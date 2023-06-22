@@ -1688,85 +1688,14 @@ def test_field():
     if platform.python_implementation() != 'PyPy':
         assert t2-t1 <= t1-t0
 
-    t0 = time.time()
-    nsimplefield1 = cat1.getNSimpleField()
-    nsimplefield2 = cat2.getNSimpleField()
-    nsimplefield3 = cat3.getNSimpleField(logger=logger)
-    t1 = time.time()
-    nsimplefield1b = cat1.getNSimpleField()
-    nsimplefield2b = cat2.getNSimpleField()
-    nsimplefield3b = cat3.getNSimpleField(logger=logger)
-    t2 = time.time()
-    assert cat1.nsimplefields.count == 1
-    assert cat2.nsimplefields.count == 1
-    assert cat3.nsimplefields.count == 1
-    assert cat1.field is kfield1   # SimpleFields don't supplant the field attribute
-    assert cat2.field is kfield2
-    assert cat3.field is kfield3
-    assert nsimplefield1b is nsimplefield1
-    assert nsimplefield2b is nsimplefield2
-    assert nsimplefield3b is nsimplefield3
-    print('nsimplefield: ',t1-t0,t2-t1)
-    #assert t2-t1 <= t1-t0
-
-    t0 = time.time()
-    gsimplefield1 = cat1.getGSimpleField()
-    gsimplefield2 = cat2.getGSimpleField()
-    gsimplefield3 = cat3.getGSimpleField(logger=logger)
-    t1 = time.time()
-    gsimplefield1b = cat1.getGSimpleField()
-    gsimplefield2b = cat2.getGSimpleField()
-    gsimplefield3b = cat3.getGSimpleField(logger=logger)
-    t2 = time.time()
-    assert_raises(TypeError, cat4.getGSimpleField)
-    assert cat1.gsimplefields.count == 1
-    assert cat2.gsimplefields.count == 1
-    assert cat3.gsimplefields.count == 1
-    assert cat1.field is kfield1   # SimpleFields don't supplant the field attribute
-    assert cat2.field is kfield2
-    assert cat3.field is kfield3
-    assert gsimplefield1b is gsimplefield1
-    assert gsimplefield2b is gsimplefield2
-    assert gsimplefield3b is gsimplefield3
-    print('gsimplefield: ',t1-t0,t2-t1)
-    #assert t2-t1 <= t1-t0
-
-    t0 = time.time()
-    ksimplefield1 = cat1.getKSimpleField()
-    ksimplefield2 = cat2.getKSimpleField()
-    ksimplefield3 = cat3.getKSimpleField(logger=logger)
-    t1 = time.time()
-    ksimplefield1b = cat1.getKSimpleField()
-    ksimplefield2b = cat2.getKSimpleField()
-    ksimplefield3b = cat3.getKSimpleField(logger=logger)
-    t2 = time.time()
-    assert_raises(TypeError, cat4.getKSimpleField)
-    assert cat1.ksimplefields.count == 1
-    assert cat2.ksimplefields.count == 1
-    assert cat3.ksimplefields.count == 1
-    assert cat1.field is kfield1   # SimpleFields don't supplant the field attribute
-    assert cat2.field is kfield2
-    assert cat3.field is kfield3
-    assert ksimplefield1b is ksimplefield1
-    assert ksimplefield2b is ksimplefield2
-    assert ksimplefield3b is ksimplefield3
-    print('ksimplefield: ',t1-t0,t2-t1)
-    #assert t2-t1 <= t1-t0
-
     # By default, only one is saved.  Check resize_cache option.
     cat1.resize_cache(3)
     assert cat1.nfields.size == 3
     assert cat1.kfields.size == 3
     assert cat1.gfields.size == 3
-    assert cat1.nsimplefields.size == 3
-    assert cat1.ksimplefields.size == 3
-    assert cat1.gsimplefields.size == 3
     assert cat1.nfields.count == 1
     assert cat1.kfields.count == 1
     assert cat1.gfields.count == 1
-    assert cat1.nsimplefields.count == 1
-    assert cat1.ksimplefields.count == 1
-    assert cat1.gsimplefields.count == 1
     assert cat1.field is kfield1
 
     t0 = time.time()
@@ -1799,9 +1728,6 @@ def test_field():
     assert cat1.nfields.count == 0
     assert cat1.gfields.count == 0
     assert cat1.kfields.count == 0
-    assert cat1.nsimplefields.count == 0
-    assert cat1.gsimplefields.count == 0
-    assert cat1.ksimplefields.count == 0
     assert cat1.field is None
 
     # Can also resize to 0
@@ -1836,7 +1762,6 @@ def test_field():
 
     # Check NotImplementedError for base classes.
     assert_raises(NotImplementedError, treecorr.Field)
-    assert_raises(NotImplementedError, treecorr.SimpleField)
 
 
 @timer

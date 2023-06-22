@@ -25,7 +25,7 @@ from . import _treecorr
 from .reader import FitsReader, HdfReader, AsciiReader, PandasReader, ParquetReader
 from .config import merge_config, setup_logger, get, get_from_list
 from .util import parse_file_type, LRU_Cache, make_writer, make_reader, set_omp_threads
-from .field import NField, KField, GField, NSimpleField, KSimpleField, GSimpleField
+from .field import NField, KField, GField
 
 class Catalog(object):
     """A set of input data (positions and other quantities) to be correlated.
@@ -1522,30 +1522,6 @@ class Catalog(object):
             self._gfields = LRU_Cache(get_gfield, 1)
         return self._gfields
 
-    @property
-    def nsimplefields(self):
-        if not hasattr(self, '_nsimplefields'):
-            def get_nsimplefield(logger=None):
-                return NSimpleField(self, logger=logger)
-            self._nsimplefields = LRU_Cache(get_nsimplefield, 1)
-        return self._nsimplefields
-
-    @property
-    def ksimplefields(self):
-        if not hasattr(self, '_ksimplefields'):
-            def get_ksimplefield(logger=None):
-                return KSimpleField(self, logger=logger)
-            self._ksimplefields = LRU_Cache(get_ksimplefield, 1)
-        return self._ksimplefields
-
-    @property
-    def gsimplefields(self):
-        if not hasattr(self, '_gsimplefields'):
-            def get_gsimplefield(logger=None):
-                return GSimpleField(self, logger=logger)
-            self._gsimplefields = LRU_Cache(get_gsimplefield, 1)
-        return self._gsimplefields
-
     def resize_cache(self, maxsize):
         """Resize all field caches.
 
@@ -1586,9 +1562,6 @@ class Catalog(object):
             >>> cat.nfields.resize(maxsize)
             >>> cat.kfields.resize(maxsize)
             >>> cat.gfields.resize(maxsize)
-            >>> cat.nsimplefields.resize(maxsize)
-            >>> cat.ksimplefields.resize(maxsize)
-            >>> cat.gsimplefields.resize(maxsize)
 
         Parameters:
             maxsize (float):    The new maximum number of fields of each type to cache.
@@ -1596,9 +1569,6 @@ class Catalog(object):
         if hasattr(self, '_nfields'): self.nfields.resize(maxsize)
         if hasattr(self, '_kfields'): self.kfields.resize(maxsize)
         if hasattr(self, '_gfields'): self.gfields.resize(maxsize)
-        if hasattr(self, '_nsimplefields'): self.nsimplefields.resize(maxsize)
-        if hasattr(self, '_ksimplefields'): self.ksimplefields.resize(maxsize)
-        if hasattr(self, '_gsimplefields'): self.gsimplefields.resize(maxsize)
 
     def clear_cache(self):
         """Clear all field caches.
@@ -1625,16 +1595,10 @@ class Catalog(object):
             >>> cat.nfields.clear()
             >>> cat.kfields.clear()
             >>> cat.gfields.clear()
-            >>> cat.nsimplefields.clear()
-            >>> cat.ksimplefields.clear()
-            >>> cat.gsimplefields.clear()
         """
         if hasattr(self, '_nfields'): self.nfields.clear()
         if hasattr(self, '_kfields'): self.kfields.clear()
         if hasattr(self, '_gfields'): self.gfields.clear()
-        if hasattr(self, '_nsimplefields'): self.nsimplefields.clear()
-        if hasattr(self, '_ksimplefields'): self.ksimplefields.clear()
-        if hasattr(self, '_gsimplefields'): self.gsimplefields.clear()
         self._field = lambda : None  # Acts like a dead weakref
 
     @property
@@ -1748,61 +1712,6 @@ class Catalog(object):
                              rng=self._rng, logger=logger)
         self._field = weakref.ref(field)
         return field
-
-
-    def getNSimpleField(self, *, logger=None):
-        """Return an `NSimpleField` based on the positions in this catalog.
-
-        The `NSimpleField` object is cached, so this is efficient to call multiple times.
-        cf. `resize_cache` and `clear_cache`
-
-        Parameters:
-            logger:     A Logger object if desired (default: self.logger)
-
-        Returns:
-            An `NSimpleField` object
-        """
-        if logger is None:
-            logger = self.logger
-        return self.nsimplefields(logger=logger)
-
-
-    def getKSimpleField(self, *, logger=None):
-        """Return a `KSimpleField` based on the k values in this catalog.
-
-        The `KSimpleField` object is cached, so this is efficient to call multiple times.
-        cf. `resize_cache` and `clear_cache`
-
-        Parameters:
-            logger:     A Logger object if desired (default: self.logger)
-
-        Returns:
-            A `KSimpleField` object
-        """
-        if self.k is None:
-            raise TypeError("k is not defined.")
-        if logger is None:
-            logger = self.logger
-        return self.ksimplefields(logger=logger)
-
-
-    def getGSimpleField(self, *, logger=None):
-        """Return a `GSimpleField` based on the g1,g2 values in this catalog.
-
-        The `GSimpleField` object is cached, so this is efficient to call multiple times.
-        cf. `resize_cache` and `clear_cache`
-
-        Parameters:
-            logger:             A Logger object if desired (default: self.logger)
-
-        Returns:
-            A `GSimpleField` object
-        """
-        if self.g1 is None or self.g2 is None:
-            raise TypeError("g1,g2 are not defined.")
-        if logger is None:
-            logger = self.logger
-        return self.gsimplefields(logger=logger)
 
     def _weighted_mean(self, x, idx=None):
         # Find the weighted mean of some column.
@@ -2251,9 +2160,6 @@ class Catalog(object):
         d.pop('_nfields',None)
         d.pop('_kfields',None)
         d.pop('_gfields',None)
-        d.pop('_nsimplefields',None)
-        d.pop('_ksimplefields',None)
-        d.pop('_gsimplefields',None)
         return d
 
     def __setstate__(self, d):

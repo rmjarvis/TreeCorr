@@ -96,9 +96,6 @@ public:
     void process(const Field<D1, C>& field, bool dots);
     template <int B, int M, int P, int C>
     void process(const Field<D1, C>& field1, const Field<D2, C>& field2, bool dots);
-    template <int B, int M, int P, int C>
-    void processPairwise(const SimpleField<D1, C>& field, const SimpleField<D2, C>& field2,
-                         bool dots);
 
     // Main worker functions for calculating the result
     template <int B, int M, int P, int C>

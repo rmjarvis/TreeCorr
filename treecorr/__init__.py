@@ -39,7 +39,6 @@ from .ngcorrelation import NGCorrelation
 from .nkcorrelation import NKCorrelation
 from .kgcorrelation import KGCorrelation
 from .field import Field, NField, KField, GField
-from .field import SimpleField, NSimpleField, KSimpleField, GSimpleField
 from .corr3base import Corr3
 from .nnncorrelation import NNNCorrelation, NNNCrossCorrelation
 from .kkkcorrelation import KKKCorrelation, KKKCrossCorrelation

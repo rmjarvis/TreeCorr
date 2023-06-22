@@ -152,7 +152,7 @@ class GenPairCell
 public:
 
     GenPairCell(int nthetabins, double minsize,
-                std::vector<DataType>& pairdata, SplitMethod sm=MEAN,
+                std::vector<DataType>& pairdata, SplitMethod sm=Mean,
                 size_t start=0, size_t end=0);
     ~GenPairCell()
     { if(left) delete left; if(right) delete right; }

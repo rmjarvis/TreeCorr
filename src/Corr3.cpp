@@ -1219,7 +1219,7 @@ void Corr3<D1,D2,D3>::operator+=(const Corr3<D1,D2,D3>& rhs)
 
 template <int D1, int D2, int D3>
 Corr3<D1,D2,D3>* BuildCorr3(
-    int bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+    BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
     double minu, double maxu, int nubins, double ubinsize, double bu,
     double minv, double maxv, int nvbins, double vbinsize, double bv,
     double xp, double yp, double zp,
@@ -1257,7 +1257,7 @@ Corr3<D1,D2,D3>* BuildCorr3(
     Assert(D3 == D1);
 
     return new Corr3<D1,D2,D3>(
-            static_cast<BinType>(bin_type), minsep, maxsep, nbins, binsize, b,
+            bin_type, minsep, maxsep, nbins, binsize, b,
             minu, maxu, nubins, ubinsize, bu, minv, maxv, nvbins, vbinsize, bv, xp, yp, zp,
             zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7,
             meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3,
@@ -1265,7 +1265,7 @@ Corr3<D1,D2,D3>* BuildCorr3(
 }
 
 template <int B, int M, int D>
-void ProcessAuto3e(Corr3<D,D,D>* corr, BaseField<D>* field, int dots, int coords)
+void ProcessAuto3e(Corr3<D,D,D>* corr, BaseField<D>* field, bool dots, Coord coords)
 {
     switch(coords) {
       case Flat:
@@ -1289,7 +1289,7 @@ void ProcessAuto3e(Corr3<D,D,D>* corr, BaseField<D>* field, int dots, int coords
 }
 
 template <int B, int D>
-void ProcessAuto3d(Corr3<D,D,D>* corr, BaseField<D>* field, int dots, int coords, int metric)
+void ProcessAuto3d(Corr3<D,D,D>* corr, BaseField<D>* field, bool dots, Coord coords, Metric metric)
 {
     switch(metric) {
       case Euclidean:
@@ -1308,7 +1308,7 @@ void ProcessAuto3d(Corr3<D,D,D>* corr, BaseField<D>* field, int dots, int coords
 
 template <int D>
 void ProcessAuto(Corr3<D,D,D>* corr, BaseField<D>* field,
-                 int dots, int coords, int bin_type, int metric)
+                 bool dots, Coord coords, BinType bin_type, Metric metric)
 {
     dbg<<"Start ProcessAuto "<<D<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
     Assert(bin_type == Log);
@@ -1319,7 +1319,7 @@ void ProcessAuto(Corr3<D,D,D>* corr, BaseField<D>* field,
 template <int B, int M, int D1, int D2>
 void ProcessCross12e(Corr3<D1,D2,D2>* corr122, Corr3<D2,D1,D2>* corr212,
                      Corr3<D2,D2,D1>* corr221,
-                     BaseField<D1>* field1, BaseField<D2>* field2, int dots, int coords)
+                     BaseField<D1>* field1, BaseField<D2>* field2, bool dots, Coord coords)
 {
     switch(coords) {
       case Flat:
@@ -1351,7 +1351,7 @@ void ProcessCross12e(Corr3<D1,D2,D2>* corr122, Corr3<D2,D1,D2>* corr212,
 template <int D1, int D2>
 void ProcessCross12(Corr3<D1,D2,D2>* corr122, Corr3<D2,D1,D2>* corr212, Corr3<D2,D2,D1>* corr221,
                     BaseField<D1>* field1, BaseField<D2>* field2,
-                    int dots, int coords, int bin_type, int metric)
+                    bool dots, Coord coords, BinType bin_type, Metric metric)
 {
     Assert(bin_type == Log);
     switch(metric) {
@@ -1377,7 +1377,7 @@ void ProcessCross3e(Corr3<D1,D2,D3>* corr123, Corr3<D1,D3,D2>* corr132,
                     Corr3<D2,D1,D3>* corr213, Corr3<D2,D3,D1>* corr231,
                     Corr3<D3,D1,D2>* corr312, Corr3<D3,D2,D1>* corr321,
                     BaseField<D1>* field1, BaseField<D2>* field2, BaseField<D3>* field3,
-                    int dots, int coords)
+                    bool dots, Coord coords)
 {
     switch(coords) {
       case Flat:
@@ -1414,7 +1414,7 @@ void ProcessCross3d(Corr3<D1,D2,D3>* corr123, Corr3<D1,D3,D2>* corr132,
                     Corr3<D2,D1,D3>* corr213, Corr3<D2,D3,D1>* corr231,
                     Corr3<D3,D1,D2>* corr312, Corr3<D3,D2,D1>* corr321,
                     BaseField<D1>* field1, BaseField<D2>* field2, BaseField<D3>* field3,
-                    int dots, int coords, int metric)
+                    bool dots, Coord coords, Metric metric)
 {
     switch(metric) {
       case Euclidean:
@@ -1438,7 +1438,7 @@ template <int D1, int D2, int D3>
 void ProcessCross(Corr3<D1,D2,D3>* corr123, Corr3<D1,D3,D2>* corr132, Corr3<D2,D1,D3>* corr213,
                   Corr3<D2,D3,D1>* corr231, Corr3<D3,D1,D2>* corr312, Corr3<D3,D2,D1>* corr321,
                   BaseField<D1>* field1, BaseField<D2>* field2, BaseField<D3>* field3,
-                  int dots, int coords, int bin_type, int metric)
+                  bool dots, Coord coords, BinType bin_type, Metric metric)
 {
     dbg<<"Start ProcessCross3 "<<D1<<" "<<D2<<" "<<D3<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
 
@@ -1468,7 +1468,7 @@ struct WrapAuto<D1,D2,D2>
         typedef void (*cross12_type)(Corr3<D1,D2,D2>* corr122, Corr3<D2,D1,D2>* corr212,
                                      Corr3<D2,D2,D1>* corr221,
                                      BaseField<D1>* field1, BaseField<D2>* field2,
-                                     int dots, int coords, int bin_type, int metric);
+                                     bool dots, Coord coords, BinType bin_type, Metric metric);
         corr3.def("processCross12", cross12_type(&ProcessCross12));
     }
 };
@@ -1480,11 +1480,11 @@ struct WrapAuto<D,D,D>
     static void run(C& corr3)
     {
         typedef void (*auto_type)(Corr3<D,D,D>* corr, BaseField<D>* field,
-                                  int dots, int coords, int bin_type, int metric);
+                                  bool dots, Coord coords, BinType bin_type, Metric metric);
         typedef void (*cross12_type)(Corr3<D,D,D>* corr122, Corr3<D,D,D>* corr212,
                                      Corr3<D,D,D>* corr221,
                                      BaseField<D>* field1, BaseField<D>* field2,
-                                     int dots, int coords, int bin_type, int metric);
+                                     bool dots, Coord coords, BinType bin_type, Metric metric);
 
         corr3.def("processAuto", auto_type(&ProcessAuto));
         corr3.def("processCross12", cross12_type(&ProcessCross12));
@@ -1495,7 +1495,7 @@ template <int D1, int D2, int D3, typename W>
 void WrapCorr3(py::module& _treecorr, std::string prefix, W& base_corr3)
 {
     typedef Corr3<D1,D2,D3>* (*init_type)(
-        int bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+        BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
         double minu, double maxu, int nubins, double ubinsize, double bu,
         double minv, double maxv, int nvbins, double vbinsize, double bv,
         double xp, double yp, double zp,
@@ -1513,7 +1513,7 @@ void WrapCorr3(py::module& _treecorr, std::string prefix, W& base_corr3)
                                Corr3<D2,D1,D3>* corr213, Corr3<D2,D3,D1>* corr231,
                                Corr3<D3,D1,D2>* corr312, Corr3<D3,D2,D1>* corr321,
                                BaseField<D1>* field1, BaseField<D2>* field2, BaseField<D3>* field3,
-                               int dots, int coords, int bin_type, int metric);
+                               bool dots, Coord coords, BinType bin_type, Metric metric);
 
     py::class_<Corr3<D1,D2,D3>, BaseCorr3> corr3(_treecorr, (prefix + "Corr").c_str());
     corr3.def(py::init(init_type(&BuildCorr3)));

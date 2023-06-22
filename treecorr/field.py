@@ -23,10 +23,10 @@ from .util import get_omp_threads, parse_xyzsep, coord_enum
 from .util import depr_pos_kwargs
 
 def _parse_split_method(split_method):
-    if split_method == 'middle': return 0
-    elif split_method == 'median': return 1
-    elif split_method == 'mean': return 2
-    else: return 3  # random
+    if split_method == 'middle': return _lib.Middle
+    elif split_method == 'median': return _lib.Median
+    elif split_method == 'mean': return _lib.Mean
+    else: return _lib.Random  # random
 
 
 class Field(object):

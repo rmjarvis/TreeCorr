@@ -17,7 +17,7 @@
 
 import numpy as np
 
-from . import _treecorr as _lib
+from . import _treecorr
 from .catalog import calculateVarG
 from .corr3base import Corr3
 from .util import make_writer, make_reader
@@ -194,7 +194,7 @@ class GGGCorrelation(Corr3):
     @property
     def corr(self):
         if self._corr is None:
-            self._corr = _lib.GGGCorr(
+            self._corr = _treecorr.GGGCorr(
                     self._bintype,
                     self._min_sep, self._max_sep, self.nbins, self._bin_size, self.b,
                     self.min_u, self.max_u, self.nubins, self.ubin_size, self.bu,

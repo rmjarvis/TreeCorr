@@ -18,15 +18,15 @@
 import numpy as np
 import weakref
 
-from . import _treecorr as _lib
+from . import _treecorr
 from .util import get_omp_threads, parse_xyzsep, coord_enum
 from .util import depr_pos_kwargs
 
 def _parse_split_method(split_method):
-    if split_method == 'middle': return _lib.Middle
-    elif split_method == 'median': return _lib.Median
-    elif split_method == 'mean': return _lib.Mean
-    else: return _lib.Random  # random
+    if split_method == 'middle': return _treecorr.Middle
+    elif split_method == 'median': return _treecorr.Median
+    elif split_method == 'mean': return _treecorr.Mean
+    else: return _treecorr.Random  # random
 
 
 class Field(object):
@@ -244,7 +244,7 @@ class Field(object):
             ind = self._get_near(x, y, z, sep1)
             # Now check the actual radii of these points using the catalog x,y,z values.
             rsq = (self.cat.x[ind]-x)**2 + (self.cat.y[ind]-y)**2
-            if self._coords != _lib.Flat:
+            if self._coords != _treecorr.Flat:
                 rsq += (self.cat.z[ind]-z)**2
             # Select the ones with r < sep
             near = rsq < sep**2
@@ -419,7 +419,7 @@ class Field(object):
             raise ValueError("Invalid npatch.  Cannot be greater than self.ntot.")
         if npatch < 1:
             raise ValueError("Invalid npatch.  Cannot be less than 1.")
-        if self._coords == _lib.Flat:
+        if self._coords == _treecorr.Flat:
             centers = np.empty((npatch, 2))
         else:
             centers = np.empty((npatch, 3))
@@ -555,9 +555,9 @@ class NField(Field):
 
         zx = cat.z if cat.z is not None else np.array([])
         wpx = cat.wpos if cat.wpos is not None else np.array([])
-        self.data = _lib.NField(cat.x, cat.y, zx, cat.w, wpx,
-                                self.min_size, self.max_size, self._sm, seed,
-                                self.brute, self.min_top, self.max_top, self._coords)
+        self.data = _treecorr.NField(cat.x, cat.y, zx, cat.w, wpx,
+                                     self.min_size, self.max_size, self._sm, seed,
+                                     self.brute, self.min_top, self.max_top, self._coords)
         if logger:
             logger.debug('Finished building NField (%s)',self.coords)
 
@@ -611,9 +611,9 @@ class KField(Field):
 
         zx = cat.z if cat.z is not None else np.array([])
         wpx = cat.wpos if cat.wpos is not None else np.array([])
-        self.data = _lib.KField(cat.x, cat.y, zx, cat.k, cat.w, wpx,
-                                self.min_size, self.max_size, self._sm, seed,
-                                self.brute, self.min_top, self.max_top, self._coords)
+        self.data = _treecorr.KField(cat.x, cat.y, zx, cat.k, cat.w, wpx,
+                                     self.min_size, self.max_size, self._sm, seed,
+                                     self.brute, self.min_top, self.max_top, self._coords)
         if logger:
             logger.debug('Finished building KField (%s)',self.coords)
 
@@ -667,9 +667,9 @@ class GField(Field):
 
         zx = cat.z if cat.z is not None else np.array([])
         wpx = cat.wpos if cat.wpos is not None else np.array([])
-        self.data = _lib.GField(cat.x, cat.y, zx, cat.g1, cat.g2, cat.w, wpx,
-                                self.min_size, self.max_size, self._sm, seed,
-                                self.brute, self.min_top, self.max_top, self._coords)
+        self.data = _treecorr.GField(cat.x, cat.y, zx, cat.g1, cat.g2, cat.w, wpx,
+                                     self.min_size, self.max_size, self._sm, seed,
+                                     self.brute, self.min_top, self.max_top, self._coords)
         if logger:
             logger.debug('Finished building GField (%s)',self.coords)
 
@@ -728,7 +728,7 @@ class NSimpleField(SimpleField):
 
         zx = cat.z if cat.z is not None else np.array([])
         wpx = cat.wpos if cat.wpos is not None else np.array([])
-        self.data = _lib.NSimpleField(cat.x, cat.y, zx, cat.w, wpx, self._coords)
+        self.data = _treecorr.NSimpleField(cat.x, cat.y, zx, cat.w, wpx, self._coords)
         if logger:
             logger.debug('Finished building NSimpleField (%s)',self.coords)
 
@@ -764,7 +764,7 @@ class KSimpleField(SimpleField):
 
         zx = cat.z if cat.z is not None else np.array([])
         wpx = cat.wpos if cat.wpos is not None else np.array([])
-        self.data = _lib.KSimpleField(cat.x, cat.y, zx, cat.k, cat.w, wpx, self._coords)
+        self.data = _treecorr.KSimpleField(cat.x, cat.y, zx, cat.k, cat.w, wpx, self._coords)
         if logger:
             logger.debug('Finished building KSimpleField (%s)',self.coords)
 
@@ -800,6 +800,7 @@ class GSimpleField(SimpleField):
 
         zx = cat.z if cat.z is not None else np.array([])
         wpx = cat.wpos if cat.wpos is not None else np.array([])
-        self.data = _lib.GSimpleField(cat.x, cat.y, zx, cat.g1, cat.g2, cat.w, wpx, self._coords)
+        self.data = _treecorr.GSimpleField(cat.x, cat.y, zx, cat.g1, cat.g2, cat.w, wpx,
+                                           self._coords)
         if logger:
             logger.debug('Finished building KSimpleField (%s)',self.coords)

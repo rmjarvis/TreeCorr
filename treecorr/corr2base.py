@@ -22,7 +22,7 @@ import coord
 import itertools
 import collections
 
-from . import _treecorr as _lib
+from . import _treecorr
 from .config import merge_config, setup_logger, get
 from .util import parse_metric, metric_enum, coord_enum, set_omp_threads, lazy_property
 from .util import depr_pos_kwargs
@@ -368,7 +368,7 @@ class Corr2(object):
             self._ro.left_edges = self.rnom / half_bin
             self._ro.right_edges = self.rnom * half_bin
             self._ro._nbins = self.nbins
-            self._ro._bintype = _lib.Log
+            self._ro._bintype = _treecorr.Log
             max_good_slop = 0.1 / self.bin_size
         elif self.bin_type == 'Linear':
             if self.nbins is None:
@@ -390,7 +390,7 @@ class Corr2(object):
             self._ro.right_edges = self.rnom + 0.5*self.bin_size
             self._ro.logr = np.log(self.rnom)
             self._ro._nbins = self.nbins
-            self._ro._bintype = _lib.Linear
+            self._ro._bintype = _treecorr.Linear
             # max dr/r = 0.1,
             # dr = bin_slop * bin_size
             # min r = min_sep
@@ -419,7 +419,7 @@ class Corr2(object):
             np.log(self.rnom, out=self._ro.logr, where=self.rnom > 0)
             self._ro.logr[self.rnom==0.] = -np.inf
             self._ro._nbins = self.nbins**2
-            self._ro._bintype = _lib.TwoD
+            self._ro._bintype = _treecorr.TwoD
             max_good_slop = 0.1
         else:  # pragma: no cover  (Already checked by config layer)
             raise ValueError("Invalid bin_type %s"%self.bin_type)

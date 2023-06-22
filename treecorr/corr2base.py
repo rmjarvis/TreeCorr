@@ -557,10 +557,6 @@ class Corr2(object):
     def var_method(self): return self._ro.var_method
     @property
     def num_bootstrap(self): return self._ro.num_bootstrap
-    @property
-    def _d1(self): return self._ro._d1
-    @property
-    def _d2(self): return self._ro._d2
 
     @property
     def cov(self):

@@ -95,8 +95,6 @@ class NNCorrelation(Corr2):
         """
         Corr2.__init__(self, config, logger=logger, **kwargs)
 
-        self._ro._d1 = 1  # NData
-        self._ro._d2 = 1  # NData
         self.meanr = np.zeros_like(self.rnom, dtype=float)
         self.meanlogr = np.zeros_like(self.rnom, dtype=float)
         self.weight = np.zeros_like(self.rnom, dtype=float)

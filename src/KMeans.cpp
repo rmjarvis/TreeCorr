@@ -847,112 +847,42 @@ void KMeansAssign2(Field<D,C>*field, const double* pycenters, int npatch, long* 
     xdbg<<"After AssignPatches\n";
 }
 
-template <int D>
-void KMeansInitTree(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-                    Coord coords, long long seed)
+template <int D, int C>
+void KMeansInitTree(Field<D,C>* field, py::array_t<double>& cenp, int npatch, long long seed)
 {
     double* centers = static_cast<double*>(cenp.mutable_data());
-
-    switch(coords) {
-      case Flat:
-           KMeansInitTree2(static_cast<Field<D,Flat>*>(field), centers, npatch, seed);
-           break;
-      case Sphere:
-           KMeansInitTree2(static_cast<Field<D,Sphere>*>(field), centers, npatch, seed);
-           break;
-      case ThreeD:
-           KMeansInitTree2(static_cast<Field<D,ThreeD>*>(field), centers, npatch, seed);
-           break;
-      default:
-           Assert(false);
-    }
+    KMeansInitTree2(field, centers, npatch, seed);
 }
 
-template <int D>
-void KMeansInitRand(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-                    Coord coords, long long seed)
+template <int D, int C>
+void KMeansInitRand(Field<D,C>* field, py::array_t<double>& cenp, int npatch, long long seed)
 {
     double* centers = static_cast<double*>(cenp.mutable_data());
-
-    switch(coords) {
-      case Flat:
-           KMeansInitRand2(static_cast<Field<D,Flat>*>(field), centers, npatch, seed);
-           break;
-      case Sphere:
-           KMeansInitRand2(static_cast<Field<D,Sphere>*>(field), centers, npatch, seed);
-           break;
-      case ThreeD:
-           KMeansInitRand2(static_cast<Field<D,ThreeD>*>(field), centers, npatch, seed);
-           break;
-      default:
-           Assert(false);
-    }
+    KMeansInitRand2(field, centers, npatch, seed);
 }
 
-template <int D>
-void KMeansInitKMPP(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-                    Coord coords, long long seed)
+template <int D, int C>
+void KMeansInitKMPP(Field<D,C>* field, py::array_t<double>& cenp, int npatch, long long seed)
 {
     double* centers = static_cast<double*>(cenp.mutable_data());
-
-    switch(coords) {
-      case Flat:
-           KMeansInitKMPP2(static_cast<Field<D,Flat>*>(field), centers, npatch, seed);
-           break;
-      case Sphere:
-           KMeansInitKMPP2(static_cast<Field<D,Sphere>*>(field), centers, npatch, seed);
-           break;
-      case ThreeD:
-           KMeansInitKMPP2(static_cast<Field<D,ThreeD>*>(field), centers, npatch, seed);
-           break;
-      default:
-           Assert(false);
-    }
+    KMeansInitKMPP2(field, centers, npatch, seed);
 }
 
-template <int D>
-void KMeansRun(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-               int max_iter, double tol, bool alt, Coord coords)
+template <int D, int C>
+void KMeansRun(Field<D,C>* field, py::array_t<double>& cenp, int npatch,
+               int max_iter, double tol, bool alt)
 {
     double* centers = static_cast<double*>(cenp.mutable_data());
-
-    switch(coords) {
-      case Flat:
-           KMeansRun2(static_cast<Field<D,Flat>*>(field), centers, npatch, max_iter, tol, alt);
-           break;
-      case Sphere:
-           KMeansRun2(static_cast<Field<D,Sphere>*>(field), centers, npatch, max_iter, tol, alt);
-           break;
-      case ThreeD:
-           KMeansRun2(static_cast<Field<D,ThreeD>*>(field), centers, npatch, max_iter, tol, alt);
-           break;
-      default:
-           Assert(false);
-    }
+    KMeansRun2(field, centers, npatch, max_iter, tol, alt);
 }
 
-template <int D>
-void KMeansAssign(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-                  py::array_t<long>& pp, Coord coords)
+template <int D, int C>
+void KMeansAssign(Field<D,C>* field, py::array_t<double>& cenp, int npatch, py::array_t<long>& pp)
 {
     long n = pp.size();
-
     const double* centers = static_cast<const double*>(cenp.data());
     long* patches = static_cast<long*>(pp.mutable_data());
-
-    switch(coords) {
-      case Flat:
-           KMeansAssign2(static_cast<Field<D,Flat>*>(field), centers, npatch, patches, n);
-           break;
-      case Sphere:
-           KMeansAssign2(static_cast<Field<D,Sphere>*>(field), centers, npatch, patches, n);
-           break;
-      case ThreeD:
-           KMeansAssign2(static_cast<Field<D,ThreeD>*>(field), centers, npatch, patches, n);
-           break;
-      default:
-           Assert(false);
-    }
+    KMeansAssign2(field, centers, npatch, patches, n);
 }
 
 void QuickAssign(py::array_t<double>& cenp, int npatch,
@@ -1054,7 +984,7 @@ void SelectPatch(int patch, py::array_t<double>& cenp, int npatch,
         }
     } else {
         // 2d version
-        Assert(cenp.size() == npatch * 3);
+        Assert(cenp.size() == npatch * 2);
         double px = centers[2*patch];
         double py = centers[2*patch+1];
 #ifdef _OPENMP
@@ -1123,18 +1053,24 @@ void GenerateXYZ(
 
 // Instantiate versions that are wrapped in Field.cpp
 
-#define Inst(D)\
-    template void KMeansInitTree(BaseField<D>* field, py::array_t<double>& cenp, int npatch, \
-                        Coord coords, long long seed); \
-    template void KMeansInitRand(BaseField<D>* field, py::array_t<double>& cenp, int npatch, \
-                        Coord coords, long long seed); \
-    template void KMeansInitKMPP(BaseField<D>* field, py::array_t<double>& cenp, int npatch, \
-                        Coord coords, long long seed); \
-    template void KMeansRun(BaseField<D>* field, py::array_t<double>& cenp, int npatch, \
-                int max_iter, double tol, bool alt, Coord coords); \
-    template void KMeansAssign(BaseField<D>* field, py::array_t<double>& cenp, int npatch, \
-                    py::array_t<long>& pp, Coord coords); \
+#define Inst(D,C)\
+    template void KMeansInitTree(Field<D,C>* field, py::array_t<double>& cenp, int npatch, \
+                                 long long seed); \
+    template void KMeansInitRand(Field<D,C>* field, py::array_t<double>& cenp, int npatch, \
+                                 long long seed); \
+    template void KMeansInitKMPP(Field<D,C>* field, py::array_t<double>& cenp, int npatch, \
+                                 long long seed); \
+    template void KMeansRun(Field<D,C>* field, py::array_t<double>& cenp, int npatch, \
+                            int max_iter, double tol, bool alt); \
+    template void KMeansAssign(Field<D,C>* field, py::array_t<double>& cenp, int npatch, \
+                               py::array_t<long>& pp); \
 
-Inst(NData);
-Inst(KData);
-Inst(GData);
+Inst(NData,Flat);
+Inst(NData,Sphere);
+Inst(NData,ThreeD);
+Inst(KData,Flat);
+Inst(KData,Sphere);
+Inst(KData,ThreeD);
+Inst(GData,Flat);
+Inst(GData,Sphere);
+Inst(GData,ThreeD);

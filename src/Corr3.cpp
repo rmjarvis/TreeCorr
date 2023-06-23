@@ -1264,232 +1264,182 @@ Corr3<D1,D2,D3>* BuildCorr3(
             meanu, meanv, weight, ntri);
 }
 
-template <int B, int M, int D>
-void ProcessAuto3e(Corr3<D,D,D>* corr, BaseField<D>* field, bool dots, Coord coords)
+template <int B, int M, int D, int C>
+void ProcessAuto3e(Corr3<D,D,D>* corr, Field<D,C>* field, bool dots)
 {
-    switch(coords) {
-      case Flat:
-           Assert((MetricHelper<M,0>::_Flat == int(Flat)));
-           corr->template process<B,M>(
-               *static_cast<Field<D,MetricHelper<M,0>::_Flat>*>(field), dots);
-           break;
-      case Sphere:
-           Assert((MetricHelper<M,0>::_Sphere == int(Sphere)));
-           corr->template process<B,M>(
-               *static_cast<Field<D,MetricHelper<M,0>::_Sphere>*>(field), dots);
-           break;
-      case ThreeD:
-           Assert((MetricHelper<M,0>::_ThreeD == int(ThreeD)));
-           corr->template process<B,M>(
-               *static_cast<Field<D,MetricHelper<M,0>::_ThreeD>*>(field), dots);
-           break;
-      default:
-           Assert(false);
-    }
+    Assert((ValidMC<M,C>::_M == M));
+    corr->template process<B,ValidMC<M,C>::_M>(*field, dots);
 }
 
-template <int B, int D>
-void ProcessAuto3d(Corr3<D,D,D>* corr, BaseField<D>* field, bool dots, Coord coords, Metric metric)
+template <int B, int D, int C>
+void ProcessAuto3d(Corr3<D,D,D>* corr, Field<D,C>* field, bool dots, Metric metric)
 {
     switch(metric) {
       case Euclidean:
-           ProcessAuto3e<B,Euclidean>(corr, field, dots, coords);
+           ProcessAuto3e<B,Euclidean>(corr, field, dots);
            break;
       case Arc:
-           ProcessAuto3e<B,Arc>(corr, field, dots, coords);
+           ProcessAuto3e<B,Arc>(corr, field, dots);
            break;
       case Periodic:
-           ProcessAuto3e<B,Periodic>(corr, field, dots, coords);
+           ProcessAuto3e<B,Periodic>(corr, field, dots);
            break;
       default:
            Assert(false);
     }
 }
 
-template <int D>
-void ProcessAuto(Corr3<D,D,D>* corr, BaseField<D>* field,
-                 bool dots, Coord coords, BinType bin_type, Metric metric)
+template <int D, int C>
+void ProcessAuto(Corr3<D,D,D>* corr, Field<D,C>* field,
+                 bool dots, BinType bin_type, Metric metric)
 {
-    dbg<<"Start ProcessAuto "<<D<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
+    dbg<<"Start ProcessAuto "<<D<<" "<<bin_type<<" "<<metric<<std::endl;
     Assert(bin_type == Log);
 
-    ProcessAuto3d<Log>(corr, field, dots, coords, metric);
+    ProcessAuto3d<Log>(corr, field, dots, metric);
 }
 
-template <int B, int M, int D1, int D2>
+template <int B, int M, int D1, int D2, int C>
 void ProcessCross12e(Corr3<D1,D2,D2>* corr122, Corr3<D2,D1,D2>* corr212,
                      Corr3<D2,D2,D1>* corr221,
-                     BaseField<D1>* field1, BaseField<D2>* field2, bool dots, Coord coords)
+                     Field<D1,C>* field1, Field<D2,C>* field2, bool dots)
 {
-    switch(coords) {
-      case Flat:
-           Assert((MetricHelper<M,0>::_Flat == int(Flat)));
-           corr122->template process<B,M>(
-               corr212, corr221,
-               *static_cast<Field<D1,MetricHelper<M,0>::_Flat>*>(field1),
-               *static_cast<Field<D2,MetricHelper<M,0>::_Flat>*>(field2), dots);
-           break;
-      case Sphere:
-           Assert((MetricHelper<M,0>::_Sphere == int(Sphere)));
-           corr122->template process<B,M>(
-               corr212, corr221,
-               *static_cast<Field<D1,MetricHelper<M,0>::_Sphere>*>(field1),
-               *static_cast<Field<D2,MetricHelper<M,0>::_Sphere>*>(field2), dots);
-           break;
-      case ThreeD:
-           Assert((MetricHelper<M,0>::_ThreeD == int(ThreeD)));
-           corr122->template process<B,M>(
-               corr212, corr221,
-               *static_cast<Field<D1,MetricHelper<M,0>::_ThreeD>*>(field1),
-               *static_cast<Field<D2,MetricHelper<M,0>::_ThreeD>*>(field2), dots);
-           break;
-      default:
-           Assert(false);
-    }
+    Assert((ValidMC<M,C>::_M == M));
+    corr122->template process<B,ValidMC<M,C>::_M>(corr212, corr221, *field1, *field2, dots);
 }
 
-template <int D1, int D2>
+template <int D1, int D2, int C>
 void ProcessCross12(Corr3<D1,D2,D2>* corr122, Corr3<D2,D1,D2>* corr212, Corr3<D2,D2,D1>* corr221,
-                    BaseField<D1>* field1, BaseField<D2>* field2,
-                    bool dots, Coord coords, BinType bin_type, Metric metric)
+                    Field<D1,C>* field1, Field<D2,C>* field2,
+                    bool dots, BinType bin_type, Metric metric)
 {
     Assert(bin_type == Log);
     switch(metric) {
       case Euclidean:
            ProcessCross12e<Log,Euclidean>(corr122, corr212, corr221,
-                                          field1, field2, dots, coords);
+                                          field1, field2, dots);
            break;
       case Arc:
            ProcessCross12e<Log,Arc>(corr122, corr212, corr221,
-                                    field1, field2, dots, coords);
+                                    field1, field2, dots);
            break;
       case Periodic:
            ProcessCross12e<Log,Periodic>(corr122, corr212, corr221,
-                                         field1, field2, dots, coords);
+                                         field1, field2, dots);
            break;
       default:
            Assert(false);
     }
 }
 
-template <int B, int M, int D1, int D2, int D3>
+template <int B, int M, int D1, int D2, int D3, int C>
 void ProcessCross3e(Corr3<D1,D2,D3>* corr123, Corr3<D1,D3,D2>* corr132,
                     Corr3<D2,D1,D3>* corr213, Corr3<D2,D3,D1>* corr231,
                     Corr3<D3,D1,D2>* corr312, Corr3<D3,D2,D1>* corr321,
-                    BaseField<D1>* field1, BaseField<D2>* field2, BaseField<D3>* field3,
-                    bool dots, Coord coords)
+                    Field<D1,C>* field1, Field<D2,C>* field2, Field<D3,C>* field3,
+                    bool dots)
 {
-    switch(coords) {
-      case Flat:
-           Assert((MetricHelper<M,0>::_Flat == int(Flat)));
-           corr123->template process<B,M>(
+    Assert((ValidMC<M,C>::_M == M));
+    corr123->template process<B,ValidMC<M,C>::_M>(
                corr132, corr213, corr231, corr312, corr321,
-               *static_cast<Field<D1,MetricHelper<M,0>::_Flat>*>(field1),
-               *static_cast<Field<D2,MetricHelper<M,0>::_Flat>*>(field2),
-               *static_cast<Field<D3,MetricHelper<M,0>::_Flat>*>(field3), dots);
-           break;
-      case Sphere:
-           Assert((MetricHelper<M,0>::_Sphere == int(Sphere)));
-           corr123->template process<B,M>(
-               corr132, corr213, corr231, corr312, corr321,
-               *static_cast<Field<D1,MetricHelper<M,0>::_Sphere>*>(field1),
-               *static_cast<Field<D2,MetricHelper<M,0>::_Sphere>*>(field2),
-               *static_cast<Field<D3,MetricHelper<M,0>::_Sphere>*>(field3), dots);
-           break;
-      case ThreeD:
-           Assert((MetricHelper<M,0>::_ThreeD == int(ThreeD)));
-           corr123->template process<B,M>(
-               corr132, corr213, corr231, corr312, corr321,
-               *static_cast<Field<D1,MetricHelper<M,0>::_ThreeD>*>(field1),
-               *static_cast<Field<D2,MetricHelper<M,0>::_ThreeD>*>(field2),
-               *static_cast<Field<D3,MetricHelper<M,0>::_ThreeD>*>(field3), dots);
-           break;
-      default:
-           Assert(false);
-    }
+               *field1, *field2, *field3, dots);
 }
 
-template <int B, int D1, int D2, int D3>
+template <int B, int D1, int D2, int D3, int C>
 void ProcessCross3d(Corr3<D1,D2,D3>* corr123, Corr3<D1,D3,D2>* corr132,
                     Corr3<D2,D1,D3>* corr213, Corr3<D2,D3,D1>* corr231,
                     Corr3<D3,D1,D2>* corr312, Corr3<D3,D2,D1>* corr321,
-                    BaseField<D1>* field1, BaseField<D2>* field2, BaseField<D3>* field3,
-                    bool dots, Coord coords, Metric metric)
+                    Field<D1,C>* field1, Field<D2,C>* field2, Field<D3,C>* field3,
+                    bool dots, Metric metric)
 {
     switch(metric) {
       case Euclidean:
            ProcessCross3e<B,Euclidean>(corr123, corr132, corr213, corr231, corr312, corr321,
-                                       field1, field2, field3, dots, coords);
+                                       field1, field2, field3, dots);
            break;
       case Arc:
            ProcessCross3e<B,Arc>(corr123, corr132, corr213, corr231, corr312, corr321,
-                                 field1, field2, field3, dots, coords);
+                                 field1, field2, field3, dots);
            break;
       case Periodic:
            ProcessCross3e<B,Periodic>(corr123, corr132, corr213, corr231, corr312, corr321,
-                                      field1, field2, field3, dots, coords);
+                                      field1, field2, field3, dots);
            break;
       default:
            Assert(false);
     }
 }
 
-template <int D1, int D2, int D3>
+template <int D1, int D2, int D3, int C>
 void ProcessCross(Corr3<D1,D2,D3>* corr123, Corr3<D1,D3,D2>* corr132, Corr3<D2,D1,D3>* corr213,
                   Corr3<D2,D3,D1>* corr231, Corr3<D3,D1,D2>* corr312, Corr3<D3,D2,D1>* corr321,
-                  BaseField<D1>* field1, BaseField<D2>* field2, BaseField<D3>* field3,
-                  bool dots, Coord coords, BinType bin_type, Metric metric)
+                  Field<D1,C>* field1, Field<D2,C>* field2, Field<D3,C>* field3,
+                  bool dots, BinType bin_type, Metric metric)
 {
-    dbg<<"Start ProcessCross3 "<<D1<<" "<<D2<<" "<<D3<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
+    dbg<<"Start ProcessCross3 "<<D1<<" "<<D2<<" "<<D3<<" "<<bin_type<<" "<<metric<<std::endl;
 
     Assert(D2 == D1);
     Assert(D3 == D1);
     Assert(bin_type == Log);
 
     ProcessCross3d<Log>(corr123, corr132, corr213, corr231, corr312, corr321,
-                        field1, field2, field3, dots, coords, metric);
+                        field1, field2, field3, dots, metric);
 }
 
 // Export the above functions using pybind11
 
-template <int D1, int D2, int D3>
+template <int D1, int D2, int D3, int C>
 struct WrapAuto
 {
-    template <typename C>
-    static void run(C& corr3) {}
+    template <typename W>
+    static void run(W& corr3) {}
 };
 
-template <int D1, int D2>
-struct WrapAuto<D1,D2,D2>
+template <int D1, int D2, int C>
+struct WrapAuto<D1,D2,D2,C>
 {
-    template <typename C>
-    static void run(C& corr3)
+    template <typename W>
+    static void run(W& corr3)
     {
         typedef void (*cross12_type)(Corr3<D1,D2,D2>* corr122, Corr3<D2,D1,D2>* corr212,
                                      Corr3<D2,D2,D1>* corr221,
-                                     BaseField<D1>* field1, BaseField<D2>* field2,
-                                     bool dots, Coord coords, BinType bin_type, Metric metric);
+                                     Field<D1,C>* field1, Field<D2,C>* field2,
+                                     bool dots, BinType bin_type, Metric metric);
         corr3.def("processCross12", cross12_type(&ProcessCross12));
     }
 };
 
-template <int D>
-struct WrapAuto<D,D,D>
+template <int D, int C>
+struct WrapAuto<D,D,D,C>
 {
-    template <typename C>
-    static void run(C& corr3)
+    template <typename W>
+    static void run(W& corr3)
     {
-        typedef void (*auto_type)(Corr3<D,D,D>* corr, BaseField<D>* field,
-                                  bool dots, Coord coords, BinType bin_type, Metric metric);
+        typedef void (*auto_type)(Corr3<D,D,D>* corr, Field<D,C>* field,
+                                  bool dots, BinType bin_type, Metric metric);
         typedef void (*cross12_type)(Corr3<D,D,D>* corr122, Corr3<D,D,D>* corr212,
                                      Corr3<D,D,D>* corr221,
-                                     BaseField<D>* field1, BaseField<D>* field2,
-                                     bool dots, Coord coords, BinType bin_type, Metric metric);
+                                     Field<D,C>* field1, Field<D,C>* field2,
+                                     bool dots, BinType bin_type, Metric metric);
 
         corr3.def("processAuto", auto_type(&ProcessAuto));
         corr3.def("processCross12", cross12_type(&ProcessCross12));
     }
 };
+
+template <int D1, int D2, int D3, int C, typename W1, typename W2>
+void WrapCoord(py::module& _treecorr, W1& corr3, W2& base_corr3)
+{
+    typedef void (*cross_type)(Corr3<D1,D2,D3>* corr123, Corr3<D1,D3,D2>* corr132,
+                               Corr3<D2,D1,D3>* corr213, Corr3<D2,D3,D1>* corr231,
+                               Corr3<D3,D1,D2>* corr312, Corr3<D3,D2,D1>* corr321,
+                               Field<D1,C>* field1, Field<D2,C>* field2, Field<D3,C>* field3,
+                               bool dots, BinType bin_type, Metric metric);
+
+    corr3.def("processCross", cross_type(&ProcessCross));
+    WrapAuto<D1,D2,D3,C>::run(corr3);
+}
+
 
 template <int D1, int D2, int D3, typename W>
 void WrapCorr3(py::module& _treecorr, std::string prefix, W& base_corr3)
@@ -1509,17 +1459,12 @@ void WrapCorr3(py::module& _treecorr, std::string prefix, W& base_corr3)
         py::array_t<double>& meanup, py::array_t<double>& meanvp,
         py::array_t<double>& weightp, py::array_t<double>& ntrip);
 
-    typedef void (*cross_type)(Corr3<D1,D2,D3>* corr123, Corr3<D1,D3,D2>* corr132,
-                               Corr3<D2,D1,D3>* corr213, Corr3<D2,D3,D1>* corr231,
-                               Corr3<D3,D1,D2>* corr312, Corr3<D3,D2,D1>* corr321,
-                               BaseField<D1>* field1, BaseField<D2>* field2, BaseField<D3>* field3,
-                               bool dots, Coord coords, BinType bin_type, Metric metric);
-
     py::class_<Corr3<D1,D2,D3>, BaseCorr3> corr3(_treecorr, (prefix + "Corr").c_str());
     corr3.def(py::init(init_type(&BuildCorr3)));
-    corr3.def("processCross", cross_type(&ProcessCross));
 
-    WrapAuto<D1,D2,D3>::run(corr3);
+    WrapCoord<D1,D2,D3,Flat>(_treecorr, corr3, base_corr3);
+    WrapCoord<D1,D2,D3,Sphere>(_treecorr, corr3, base_corr3);
+    WrapCoord<D1,D2,D3,ThreeD>(_treecorr, corr3, base_corr3);
 }
 
 void pyExportCorr3(py::module& _treecorr)

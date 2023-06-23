@@ -422,46 +422,27 @@ void Field<D,C>::getNear(double x, double y, double z, double sep, long* indices
 //
 //
 
-template <int D>
-BaseField<D>* BuildField(const double* x, const double* y, const double* z,
-                         const double* g1, const double* g2, const double* k,
-                         const double* w, const double* wpos, long nobj,
-                         double minsize, double maxsize,
-                         SplitMethod sm, long long seed, bool brute,
-                         int mintop, int maxtop, Coord coords)
+template <int D, int C>
+Field<D,C>* BuildField(const double* x, const double* y, const double* z,
+                       const double* g1, const double* g2, const double* k,
+                       const double* w, const double* wpos, long nobj,
+                       double minsize, double maxsize,
+                       SplitMethod sm, long long seed, bool brute,
+                       int mintop, int maxtop)
 {
-    dbg<<"Start BuildField "<<D<<"  "<<coords<<std::endl;
-    switch(coords) {
-      case Flat:
-           return new Field<D,Flat>(x, y, 0, g1, g2, k,
-                                    w, wpos, nobj,
-                                    minsize, maxsize,
-                                    sm, seed,
-                                    bool(brute), mintop, maxtop);
-      case Sphere:
-           return new Field<D,Sphere>(x, y, z, g1, g2, k,
-                                      w, wpos, nobj,
-                                      minsize, maxsize,
-                                      sm, seed,
-                                      bool(brute), mintop, maxtop);
-      case ThreeD:
-           return new Field<D,ThreeD>(x, y, z, g1, g2, k,
-                                      w, wpos, nobj,
-                                      minsize, maxsize,
-                                      sm, seed,
-                                      bool(brute), mintop, maxtop);
-      default:
-           Assert(false);
-    }
-    return 0;
+    dbg<<"Start BuildField "<<D<<"  "<<C<<std::endl;
+    return new Field<D,C>(x, y, z, g1, g2, k,
+                          w, wpos, nobj, minsize, maxsize,
+                          sm, seed, brute, mintop, maxtop);
 }
 
-BaseField<GData>* BuildGField(
+template <int C>
+Field<GData,C>* BuildGField(
     py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
     py::array_t<double>& g1p, py::array_t<double>& g2p,
     py::array_t<double>& wp, py::array_t<double>& wposp,
     double minsize, double maxsize,
-    SplitMethod sm, long long seed, bool brute, int mintop, int maxtop, Coord coords)
+    SplitMethod sm, long long seed, bool brute, int mintop, int maxtop)
 {
     long nobj = xp.size();
     Assert(yp.size() == nobj);
@@ -479,16 +460,17 @@ BaseField<GData>* BuildGField(
     const double* w = static_cast<const double*>(wp.data());
     const double* wpos = wposp.size() == 0 ? 0 : static_cast<const double*>(wposp.data());
 
-    return BuildField<GData>(x, y, z, g1, g2, 0, w, wpos,
-                             nobj, minsize, maxsize, sm, seed,
-                             brute, mintop, maxtop, coords);
+    return BuildField<GData,C>(x, y, z, g1, g2, 0, w, wpos,
+                               nobj, minsize, maxsize, sm, seed,
+                               brute, mintop, maxtop);
 }
 
-BaseField<KData>* BuildKField(
+template <int C>
+Field<KData,C>* BuildKField(
     py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
     py::array_t<double>& kp, py::array_t<double>& wp, py::array_t<double>& wposp,
     double minsize, double maxsize,
-    SplitMethod sm, long long seed, bool brute, int mintop, int maxtop, Coord coords)
+    SplitMethod sm, long long seed, bool brute, int mintop, int maxtop)
 {
     long nobj = xp.size();
     Assert(yp.size() == nobj);
@@ -504,16 +486,17 @@ BaseField<KData>* BuildKField(
     const double* w = static_cast<const double*>(wp.data());
     const double* wpos = wposp.size() == 0 ? 0 : static_cast<const double*>(wposp.data());
 
-    return BuildField<KData>(x, y, z, 0, 0, k, w, wpos,
-                             nobj, minsize, maxsize, sm, seed,
-                             brute, mintop, maxtop, coords);
+    return BuildField<KData,C>(x, y, z, 0, 0, k, w, wpos,
+                               nobj, minsize, maxsize, sm, seed,
+                               brute, mintop, maxtop);
 }
 
-BaseField<NData>* BuildNField(
+template <int C>
+Field<NData,C>* BuildNField(
     py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
     py::array_t<double>& wp, py::array_t<double>& wposp,
     double minsize, double maxsize,
-    SplitMethod sm, long long seed, bool brute, int mintop, int maxtop, Coord coords)
+    SplitMethod sm, long long seed, bool brute, int mintop, int maxtop)
 {
     long nobj = xp.size();
     Assert(yp.size() == nobj);
@@ -527,13 +510,13 @@ BaseField<NData>* BuildNField(
     const double* w = static_cast<const double*>(wp.data());
     const double* wpos = wposp.size() == 0 ? 0 : static_cast<const double*>(wposp.data());
 
-    return BuildField<NData>(x, y, z, 0, 0, 0, w, wpos,
-                             nobj, minsize, maxsize, sm, seed,
-                             brute, mintop, maxtop, coords);
+    return BuildField<NData,C>(x, y, z, 0, 0, 0, w, wpos,
+                               nobj, minsize, maxsize, sm, seed,
+                               brute, mintop, maxtop);
 }
 
-template <int D>
-void FieldGetNear(BaseField<D>* field, double x, double y, double z, double sep,
+template <int D, int C>
+void FieldGetNear(Field<D,C>* field, double x, double y, double z, double sep,
                   py::array_t<long>& inp)
 {
     long n = inp.size();
@@ -544,21 +527,18 @@ void FieldGetNear(BaseField<D>* field, double x, double y, double z, double sep,
 // Export the above functions using pybind11
 
 // Also wrap some functions that live in KMeans.cpp
-template <int D>
-void KMeansInitTree(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-                    Coord coords, long long seed);
-template <int D>
-void KMeansInitRand(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-                    Coord coords, long long seed);
-template <int D>
-void KMeansInitKMPP(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-                    Coord coords, long long seed);
-template <int D>
-void KMeansRun(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-               int max_iter, double tol, bool alt, Coord coords);
-template <int D>
-void KMeansAssign(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-                  py::array_t<long>& pp, Coord coords);
+template <int D, int C>
+void KMeansInitTree(Field<D,C>* field, py::array_t<double>& cenp, int npatch, long long seed);
+template <int D, int C>
+void KMeansInitRand(Field<D,C>* field, py::array_t<double>& cenp, int npatch, long long seed);
+template <int D, int C>
+void KMeansInitKMPP(Field<D,C>* field, py::array_t<double>& cenp, int npatch, long long seed);
+template <int D, int C>
+void KMeansRun(Field<D,C>* field, py::array_t<double>& cenp, int npatch,
+               int max_iter, double tol, bool alt);
+template <int D, int C>
+void KMeansAssign(Field<D,C>* field, py::array_t<double>& cenp, int npatch, py::array_t<long>& pp);
+
 void QuickAssign(py::array_t<double>& cenp, int npatch,
                  py::array_t<double>& xp, py::array_t<double>& yp,
                  py::array_t<double>& zp, py::array_t<long>& pp);
@@ -570,24 +550,24 @@ void GenerateXYZ(
     py::array_t<double>& rap, py::array_t<double>& decp, py::array_t<double>& rp);
 
 
-template <int D, typename F>
+template <int D, int C, typename F>
 void WrapField(F& field)
 {
-    typedef void (*getNear_type)(BaseField<D>* field, double x, double y, double z,
+    typedef void (*getnear_type)(Field<D,C>* field, double x, double y, double z,
                                  double sep, py::array_t<long>& inp);
 
-    typedef void (*init_type)(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-                              Coord coords, long long seed);
-    typedef void (*run_type)(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-                            int max_iter, double tol, bool alt, Coord coords);
-    typedef void (*assign_type)(BaseField<D>* field, py::array_t<double>& cenp, int npatch,
-                                py::array_t<long>& pp, Coord coords);
+    typedef void (*init_type)(Field<D,C>* field, py::array_t<double>& cenp, int npatch,
+                              long long seed);
+    typedef void (*run_type)(Field<D,C>* field, py::array_t<double>& cenp, int npatch,
+                            int max_iter, double tol, bool alt);
+    typedef void (*assign_type)(Field<D,C>* field, py::array_t<double>& cenp, int npatch,
+                                py::array_t<long>& pp);
 
-    field.def("getNObj", &BaseField<D>::getNObj);
-    field.def("getSize", &BaseField<D>::getSize);
-    field.def("countNear", &BaseField<D>::countNear);
-    field.def("getNear", getNear_type(&FieldGetNear));
-    field.def("getNTopLevel", &BaseField<D>::getNTopLevel);
+    field.def("getNObj", &Field<D,C>::getNObj);
+    field.def("getSize", &Field<D,C>::getSize);
+    field.def("countNear", &Field<D,C>::countNear);
+    field.def("getNear", getnear_type(&FieldGetNear));
+    field.def("getNTopLevel", &Field<D,C>::getNTopLevel);
 
     field.def("KMeansInitTree", init_type(&KMeansInitTree));
     field.def("KMeansInitRand", init_type(&KMeansInitRand));
@@ -596,21 +576,46 @@ void WrapField(F& field)
     field.def("KMeansAssign", assign_type(&KMeansAssign));
 }
 
-void pyExportField(py::module& _treecorr)
+template <int C>
+void WrapCoord(py::module& _treecorr, std::string Cstr)
 {
-    py::class_<BaseField<NData> > nfield(_treecorr, "NField");
-    py::class_<BaseField<KData> > kfield(_treecorr, "KField");
-    py::class_<BaseField<GData> > gfield(_treecorr, "GField");
+    typedef Field<NData,C>* (*nfield_type)(
+        py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
+        py::array_t<double>& wp, py::array_t<double>& wposp,
+        double minsize, double maxsize,
+        SplitMethod sm, long long seed, bool brute, int mintop, int maxtop);
+    typedef Field<KData,C>* (*kfield_type)(
+        py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
+        py::array_t<double>& kp, py::array_t<double>& wp, py::array_t<double>& wposp,
+        double minsize, double maxsize,
+        SplitMethod sm, long long seed, bool brute, int mintop, int maxtop);
+    typedef Field<GData,C>* (*gfield_type)(
+        py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
+        py::array_t<double>& g1p, py::array_t<double>& g2p,
+        py::array_t<double>& wp, py::array_t<double>& wposp,
+        double minsize, double maxsize,
+        SplitMethod sm, long long seed, bool brute, int mintop, int maxtop);
+
+    py::class_<Field<NData,C> > nfield(_treecorr, ("NField" + Cstr).c_str());
+    py::class_<Field<KData,C> > kfield(_treecorr, ("KField" + Cstr).c_str());
+    py::class_<Field<GData,C> > gfield(_treecorr, ("GField" + Cstr).c_str());
 
     // These aren't included in the WrapField template, since the function signatures
     // aren't the same.
-    nfield.def(py::init(&BuildNField));
-    kfield.def(py::init(&BuildKField));
-    gfield.def(py::init(&BuildGField));
+    nfield.def(py::init(nfield_type(&BuildNField)));
+    kfield.def(py::init(kfield_type(&BuildKField)));
+    gfield.def(py::init(gfield_type(&BuildGField)));
 
-    WrapField<NData>(nfield);
-    WrapField<KData>(kfield);
-    WrapField<GData>(gfield);
+    WrapField<NData, C>(nfield);
+    WrapField<KData, C>(kfield);
+    WrapField<GData, C>(gfield);
+}
+
+void pyExportField(py::module& _treecorr)
+{
+    WrapCoord<Flat>(_treecorr, "Flat");
+    WrapCoord<Sphere>(_treecorr, "Sphere");
+    WrapCoord<ThreeD>(_treecorr, "ThreeD");
 
     _treecorr.def("QuickAssign", &QuickAssign);
     _treecorr.def("SelectPatch", &SelectPatch);

@@ -208,7 +208,7 @@ class KGCorrelation(Corr2):
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         self.corr.processCross(f1.data, f2.data, self.output_dots,
-                               self._coords, self._bintype, self._metric)
+                               self._bintype, self._metric)
 
     def _finalize(self):
         mask1 = self.weight != 0

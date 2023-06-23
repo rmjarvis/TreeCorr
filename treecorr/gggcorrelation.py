@@ -297,7 +297,7 @@ class GGGCorrelation(Corr3):
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         self.corr.processAuto(field.data, self.output_dots,
-                              self._coords, self._bintype, self._metric)
+                              self._bintype, self._metric)
 
     def process_cross12(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process two catalogs, accumulating the 3pt cross-correlation, where one of the
@@ -346,7 +346,7 @@ class GGGCorrelation(Corr3):
         # into self.corr, whichever way the three catalogs are permuted for each triangle.
         self.corr.processCross12(self.corr, self.corr,
                                  f1.data, f2.data, self.output_dots,
-                                 self._coords, self._bintype, self._metric)
+                                 self._bintype, self._metric)
 
     def process_cross(self, cat1, cat2, cat3, *, metric=None, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
@@ -398,7 +398,7 @@ class GGGCorrelation(Corr3):
         # into self.corr, whichever way the three catalogs are permuted for each triangle.
         self.corr.processCross(self.corr, self.corr, self.corr, self.corr, self.corr,
                                f1.data, f2.data, f3.data, self.output_dots,
-                               self._coords, self._bintype, self._metric)
+                               self._bintype, self._metric)
 
     def _finalize(self):
         mask1 = self.weight != 0
@@ -1357,7 +1357,7 @@ class GGGCrossCorrelation(Corr3):
         # into self.corr, whichever way the three catalogs are permuted for each triangle.
         self.g1g2g3.corr.processCross12(self.g2g1g3.corr, self.g2g3g1.corr,
                                         f1.data, f2.data, self.output_dots,
-                                        self._coords, self._bintype, self._metric)
+                                        self._bintype, self._metric)
 
     def process_cross(self, cat1, cat2, cat3, *, metric=None, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
@@ -1410,7 +1410,7 @@ class GGGCrossCorrelation(Corr3):
                                       self.g2g1g3.corr, self.g2g3g1.corr,
                                       self.g3g1g2.corr, self.g3g2g1.corr,
                                       f1.data, f2.data, f3.data, self.output_dots,
-                                      self._coords, self._bintype, self._metric)
+                                      self._bintype, self._metric)
 
     def _finalize(self):
         for ggg in self._all:

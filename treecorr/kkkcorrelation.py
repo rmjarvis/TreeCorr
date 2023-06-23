@@ -228,7 +228,7 @@ class KKKCorrelation(Corr3):
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         self.corr.processAuto(field.data, self.output_dots,
-                              self._coords, self._bintype, self._metric)
+                              self._bintype, self._metric)
 
     def process_cross12(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process two catalogs, accumulating the 3pt cross-correlation, where one of the
@@ -277,7 +277,7 @@ class KKKCorrelation(Corr3):
         # into self.corr, whichever way the three catalogs are permuted for each triangle.
         self.corr.processCross12(self.corr, self.corr,
                                  f1.data, f2.data, self.output_dots,
-                                 self._coords, self._bintype, self._metric)
+                                 self._bintype, self._metric)
 
     def process_cross(self, cat1, cat2, cat3, *, metric=None, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
@@ -329,7 +329,7 @@ class KKKCorrelation(Corr3):
         # into self.corr, whichever way the three catalogs are permuted for each triangle.
         self.corr.processCross(self.corr, self.corr, self.corr, self.corr, self.corr,
                                f1.data, f2.data, f3.data, self.output_dots,
-                               self._coords, self._bintype, self._metric)
+                               self._bintype, self._metric)
 
     def _finalize(self):
         mask1 = self.weight != 0
@@ -838,7 +838,7 @@ class KKKCrossCorrelation(Corr3):
         # into self.corr, whichever way the three catalogs are permuted for each triangle.
         self.k1k2k3.corr.processCross12(self.k2k1k3.corr, self.k2k3k1.corr,
                                         f1.data, f2.data, self.output_dots,
-                                        self._coords, self._bintype, self._metric)
+                                        self._bintype, self._metric)
 
     def process_cross(self, cat1, cat2, cat3, *, metric=None, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
@@ -891,7 +891,7 @@ class KKKCrossCorrelation(Corr3):
                                       self.k2k1k3.corr, self.k2k3k1.corr,
                                       self.k3k1k2.corr, self.k3k2k1.corr,
                                       f1.data, f2.data, f3.data, self.output_dots,
-                                      self._coords, self._bintype, self._metric)
+                                      self._bintype, self._metric)
 
     def _finalize(self):
         for kkk in self._all:

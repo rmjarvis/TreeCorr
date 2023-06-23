@@ -198,7 +198,7 @@ class KKCorrelation(Corr2):
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         self.corr.processAuto(field.data, self.output_dots,
-                              self._coords, self._bintype, self._metric)
+                              self._bintype, self._metric)
 
     def process_cross(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation.
@@ -241,7 +241,7 @@ class KKCorrelation(Corr2):
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         self.corr.processCross(f1.data, f2.data, self.output_dots,
-                               self._coords, self._bintype, self._metric)
+                               self._bintype, self._metric)
 
     def _finalize(self):
         mask1 = self.weight != 0

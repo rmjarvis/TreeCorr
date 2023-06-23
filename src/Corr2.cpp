@@ -535,7 +535,7 @@ void Corr2<D1,D2>::directProcess11(
     if (do_reverse) {
         k2 = BinTypeHelper<B>::calculateBinK(p2, p1, r, logr, _binsize,
                                              _minsep, _maxsep, _logminsep);
-        if (k == _nbins) --k;  // As before, this can (rarely) happen.
+        if (k2 == _nbins) --k2;  // As before, this can (rarely) happen.
         Assert(k2 >= 0);
         Assert(k2 < _nbins);
         _npairs[k2] += nn;

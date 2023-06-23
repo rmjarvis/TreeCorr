@@ -422,11 +422,11 @@ class Field(object):
             centers = np.empty((npatch, 3))
         seed = 0 if rng is None else int(rng.random_sample() * 2**63)
         if init == 'tree':
-            self.data.KMeansInitTree(centers, int(npatch), self._coords, seed)
+            self.data.KMeansInitTree(centers, int(npatch), seed)
         elif init == 'random':
-            self.data.KMeansInitRand(centers, int(npatch), self._coords, seed)
+            self.data.KMeansInitRand(centers, int(npatch), seed)
         elif init == 'kmeans++':
-            self.data.KMeansInitKMPP(centers, int(npatch), self._coords, seed)
+            self.data.KMeansInitKMPP(centers, int(npatch), seed)
         else:
             raise ValueError("Invalid init: %s. "%init +
                              "Must be one of 'tree', 'random', or 'kmeans++.'")
@@ -477,8 +477,7 @@ class Field(object):
                                 (default: False)
         """
         npatch = centers.shape[0]
-        self.data.KMeansRun(centers, npatch, int(max_iter), float(tol),
-                            bool(alt), self._coords)
+        self.data.KMeansRun(centers, npatch, int(max_iter), float(tol), bool(alt))
 
     def kmeans_assign_patches(self, centers):
         """Assign patch numbers to each point according to the given centers.
@@ -498,7 +497,7 @@ class Field(object):
         patches = np.empty(self.ntot, dtype=int)
         npatch = centers.shape[0]
         centers = np.ascontiguousarray(centers)
-        self.data.KMeansAssign(centers, npatch, patches, self._coords)
+        self.data.KMeansAssign(centers, npatch, patches)
         return patches
 
 
@@ -550,9 +549,18 @@ class NField(Field):
 
         zx = cat.z if cat.z is not None else np.array([])
         wpx = cat.wpos if cat.wpos is not None else np.array([])
-        self.data = _treecorr.NField(cat.x, cat.y, zx, cat.w, wpx,
-                                     self.min_size, self.max_size, self._sm, seed,
-                                     self.brute, self.min_top, self.max_top, self._coords)
+        if self._coords == _treecorr.Flat:
+            self.data = _treecorr.NFieldFlat(cat.x, cat.y, zx, cat.w, wpx,
+                                             self.min_size, self.max_size, self._sm, seed,
+                                             self.brute, self.min_top, self.max_top)
+        elif self._coords == _treecorr.Sphere:
+            self.data = _treecorr.NFieldSphere(cat.x, cat.y, zx, cat.w, wpx,
+                                               self.min_size, self.max_size, self._sm, seed,
+                                               self.brute, self.min_top, self.max_top)
+        else:
+            self.data = _treecorr.NFieldThreeD(cat.x, cat.y, zx, cat.w, wpx,
+                                               self.min_size, self.max_size, self._sm, seed,
+                                               self.brute, self.min_top, self.max_top)
         if logger:
             logger.debug('Finished building NField (%s)',self.coords)
 
@@ -605,9 +613,18 @@ class KField(Field):
 
         zx = cat.z if cat.z is not None else np.array([])
         wpx = cat.wpos if cat.wpos is not None else np.array([])
-        self.data = _treecorr.KField(cat.x, cat.y, zx, cat.k, cat.w, wpx,
-                                     self.min_size, self.max_size, self._sm, seed,
-                                     self.brute, self.min_top, self.max_top, self._coords)
+        if self._coords == _treecorr.Flat:
+            self.data = _treecorr.KFieldFlat(cat.x, cat.y, zx, cat.k, cat.w, wpx,
+                                             self.min_size, self.max_size, self._sm, seed,
+                                             self.brute, self.min_top, self.max_top)
+        elif self._coords == _treecorr.Sphere:
+            self.data = _treecorr.KFieldSphere(cat.x, cat.y, zx, cat.k, cat.w, wpx,
+                                               self.min_size, self.max_size, self._sm, seed,
+                                               self.brute, self.min_top, self.max_top)
+        else:
+            self.data = _treecorr.KFieldThreeD(cat.x, cat.y, zx, cat.k, cat.w, wpx,
+                                               self.min_size, self.max_size, self._sm, seed,
+                                               self.brute, self.min_top, self.max_top)
         if logger:
             logger.debug('Finished building KField (%s)',self.coords)
 
@@ -660,8 +677,17 @@ class GField(Field):
 
         zx = cat.z if cat.z is not None else np.array([])
         wpx = cat.wpos if cat.wpos is not None else np.array([])
-        self.data = _treecorr.GField(cat.x, cat.y, zx, cat.g1, cat.g2, cat.w, wpx,
-                                     self.min_size, self.max_size, self._sm, seed,
-                                     self.brute, self.min_top, self.max_top, self._coords)
+        if self._coords == _treecorr.Flat:
+            self.data = _treecorr.GFieldFlat(cat.x, cat.y, zx, cat.g1, cat.g2, cat.w, wpx,
+                                             self.min_size, self.max_size, self._sm, seed,
+                                             self.brute, self.min_top, self.max_top)
+        elif self._coords == _treecorr.Sphere:
+            self.data = _treecorr.GFieldSphere(cat.x, cat.y, zx, cat.g1, cat.g2, cat.w, wpx,
+                                               self.min_size, self.max_size, self._sm, seed,
+                                               self.brute, self.min_top, self.max_top)
+        else:
+            self.data = _treecorr.GFieldThreeD(cat.x, cat.y, zx, cat.g1, cat.g2, cat.w, wpx,
+                                               self.min_size, self.max_size, self._sm, seed,
+                                               self.brute, self.min_top, self.max_top)
         if logger:
             logger.debug('Finished building GField (%s)',self.coords)

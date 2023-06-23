@@ -45,7 +45,7 @@ public:
                      double min_sep, double min_sepsq, double max_sep, double max_sepsq,
                      long* i1, long* i2, double* sep, int n, long& k);
     template <int B, int D1, int D2, int C>
-    void sampleFrom(const Cell<D1, C>& c1, const Cell<D2, C>& c2, double rsq, double r,
+    void sampleFrom(const Cell<D1,C>& c1, const Cell<D2,C>& c2, double rsq, double r,
                     long* i1, long* i2, double* sep, int n, long& k);
 
     bool nontrivialRPar() const

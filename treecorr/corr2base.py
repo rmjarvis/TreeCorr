@@ -1096,7 +1096,7 @@ class Corr2(object):
         i1 = np.zeros(n, dtype=int)
         i2 = np.zeros(n, dtype=int)
         sep = np.zeros(n, dtype=float)
-        ntot = self.corr.samplePairs(f1.data, f2.data, min_sep, max_sep, self._coords,
+        ntot = self.corr.samplePairs(f1.data, f2.data, min_sep, max_sep,
                                      self._bintype, self._metric, i1, i2, sep)
 
         if ntot < n:

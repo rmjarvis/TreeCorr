@@ -951,165 +951,128 @@ Corr2<D1,D2>* BuildCorr2(
             xi0, xi1, xi2, xi3, meanr, meanlogr, weight, npairs);
 }
 
-template <int B, int M, int D>
-void ProcessAuto2d(Corr2<D,D>* corr, BaseField<D>* field, bool dots, Coord coords)
+template <int B, int M, int D, int C>
+void ProcessAuto2d(Corr2<D,D>* corr, Field<D,C>* field, bool dots)
 {
     const bool P = corr->nontrivialRPar();
-    dbg<<"ProcessAuto: coords = "<<coords<<", metric = "<<M<<", P = "<<P<<std::endl;
+    dbg<<"ProcessAuto: coords = "<<C<<", metric = "<<M<<", P = "<<P<<std::endl;
 
-    switch(coords) {
-      case Flat:
-           Assert((MetricHelper<M,0>::_Flat == int(Flat)));
-           Assert(!P);
-           corr->template process<B,M,false>(
-               *static_cast<Field<D,MetricHelper<M,0>::_Flat>*>(field), dots);
-           break;
-      case Sphere:
-           Assert((MetricHelper<M,0>::_Sphere == int(Sphere)));
-           Assert(!P);
-           corr->template process<B,M,false>(
-               *static_cast<Field<D,MetricHelper<M,0>::_Sphere>*>(field), dots);
-           break;
-      case ThreeD:
-           Assert((MetricHelper<M,0>::_ThreeD == int(ThreeD)));
-           if (P)
-               corr->template process<B,M,true>(
-                   *static_cast<Field<D,MetricHelper<M,1>::_ThreeD>*>(field), dots);
-           else
-               corr->template process<B,M,false>(
-                   *static_cast<Field<D,MetricHelper<M,0>::_ThreeD>*>(field), dots);
-           break;
-      default:
-           Assert(false);
+    // Only call the actual function if the M/C combination is valid.
+    // The Assert checks that this only gets called when the combination is actually valid.
+    // But other combinations are nominally instantiated, and give various compiler errors
+    // when they are tried.  So this _M business make sure such combinations aren't instantiated.
+    // (Plus they would add code that is never used, leading to code bloat.)
+    Assert((ValidMC<M,C>::_M == M));
+    if (P) {
+        Assert(C == ThreeD);
+        corr->template process<B, ValidMC<M,C>::_M, (C==ThreeD)>(*field, dots);
+    } else {
+        corr->template process<B, ValidMC<M,C>::_M, false>(*field, dots);
     }
 }
 
-template <int B, int D>
-void ProcessAuto2c(Corr2<D,D>* corr, BaseField<D>* field, bool dots, Coord coords, Metric metric)
+template <int B, int D, int C>
+void ProcessAuto2c(Corr2<D,D>* corr, Field<D,C>* field, bool dots, Metric metric)
 {
     switch(metric) {
       case Euclidean:
-           ProcessAuto2d<B,Euclidean>(corr, field, dots, coords);
+           ProcessAuto2d<B,Euclidean>(corr, field, dots);
            break;
       case Rperp:
-           ProcessAuto2d<B,Rperp>(corr, field, dots, coords);
+           ProcessAuto2d<B,Rperp>(corr, field, dots);
            break;
       case OldRperp:
-           ProcessAuto2d<B,OldRperp>(corr, field, dots, coords);
+           ProcessAuto2d<B,OldRperp>(corr, field, dots);
            break;
       case Rlens:
-           ProcessAuto2d<B,Rlens>(corr, field, dots, coords);
+           ProcessAuto2d<B,Rlens>(corr, field, dots);
            break;
       case Arc:
-           ProcessAuto2d<B,Arc>(corr, field, dots, coords);
+           ProcessAuto2d<B,Arc>(corr, field, dots);
            break;
       case Periodic:
-           ProcessAuto2d<B,Periodic>(corr, field, dots, coords);
+           ProcessAuto2d<B,Periodic>(corr, field, dots);
            break;
       default:
            Assert(false);
     }
 }
 
-template <int D>
-void ProcessAuto(Corr2<D,D>* corr, BaseField<D>* field,
-                 bool dots, Coord coords, BinType bin_type, Metric metric)
+template <int D, int C>
+void ProcessAuto(Corr2<D,D>* corr, Field<D,C>* field, bool dots, BinType bin_type, Metric metric)
 {
     switch(bin_type) {
       case Log:
-           ProcessAuto2c<Log>(corr, field, dots, coords, metric);
+           ProcessAuto2c<Log>(corr, field, dots, metric);
            break;
       case Linear:
-           ProcessAuto2c<Linear>(corr, field, dots, coords, metric);
+           ProcessAuto2c<Linear>(corr, field, dots, metric);
            break;
       case TwoD:
-           ProcessAuto2c<TwoD>(corr, field, dots, coords, metric);
+           ProcessAuto2c<TwoD>(corr, field, dots, metric);
            break;
       default:
            Assert(false);
     }
 }
 
-template <int B, int M, int D1, int D2>
-void ProcessCross2d(Corr2<D1,D2>* corr, BaseField<D1>* field1, BaseField<D2>* field2,
-                    bool dots, Coord coords)
+template <int B, int M, int D1, int D2, int C>
+void ProcessCross2d(Corr2<D1,D2>* corr, Field<D1,C>* field1, Field<D2,C>* field2, bool dots)
 {
     const bool P = corr->nontrivialRPar();
-    dbg<<"ProcessCross: coords = "<<coords<<", metric = "<<M<<", P = "<<P<<std::endl;
+    dbg<<"ProcessCross: coords = "<<C<<", metric = "<<M<<", P = "<<P<<std::endl;
 
-    switch(coords) {
-      case Flat:
-           Assert((MetricHelper<M,0>::_Flat == int(Flat)));
-           Assert(!P);
-           corr->template process<B,M,false>(
-               *static_cast<Field<D1,MetricHelper<M,0>::_Flat>*>(field1),
-               *static_cast<Field<D2,MetricHelper<M,0>::_Flat>*>(field2), dots);
-           break;
-      case Sphere:
-           Assert((MetricHelper<M,0>::_Sphere == int(Sphere)));
-           Assert(!P);
-           corr->template process<B,M,false>(
-               *static_cast<Field<D1,MetricHelper<M,0>::_Sphere>*>(field1),
-               *static_cast<Field<D2,MetricHelper<M,0>::_Sphere>*>(field2), dots);
-           break;
-      case ThreeD:
-           Assert((MetricHelper<M,0>::_ThreeD == int(ThreeD)));
-           if (P)
-               corr->template process<B,M,true>(
-                   *static_cast<Field<D1,MetricHelper<M,1>::_ThreeD>*>(field1),
-                   *static_cast<Field<D2,MetricHelper<M,1>::_ThreeD>*>(field2), dots);
-           else
-               corr->template process<B,M,false>(
-                   *static_cast<Field<D1,MetricHelper<M,0>::_ThreeD>*>(field1),
-                   *static_cast<Field<D2,MetricHelper<M,0>::_ThreeD>*>(field2), dots);
-           break;
-      default:
-           Assert(false);
+    Assert((ValidMC<M,C>::_M == M));
+    if (P) {
+        Assert(C == ThreeD);
+        corr->template process<B, ValidMC<M,C>::_M, C==ThreeD>(*field1, *field2, dots);
+    } else {
+        corr->template process<B, ValidMC<M,C>::_M, false>(*field1, *field2, dots);
     }
 }
 
-template <int B, int D1, int D2>
-void ProcessCross2c(Corr2<D1,D2>* corr, BaseField<D1>* field1, BaseField<D2>* field2,
-                    bool dots, Coord coords, Metric metric)
+template <int B, int D1, int D2, int C>
+void ProcessCross2c(Corr2<D1,D2>* corr, Field<D1,C>* field1, Field<D2,C>* field2,
+                    bool dots, Metric metric)
 {
     switch(metric) {
       case Euclidean:
-           ProcessCross2d<B,Euclidean>(corr, field1, field2, dots, coords);
+           ProcessCross2d<B,Euclidean>(corr, field1, field2, dots);
            break;
       case Rperp:
-           ProcessCross2d<B,Rperp>(corr, field1, field2, dots, coords);
+           ProcessCross2d<B,Rperp>(corr, field1, field2, dots);
            break;
       case OldRperp:
-           ProcessCross2d<B,OldRperp>(corr, field1, field2, dots, coords);
+           ProcessCross2d<B,OldRperp>(corr, field1, field2, dots);
            break;
       case Rlens:
-           ProcessCross2d<B,Rlens>(corr, field1, field2, dots, coords);
+           ProcessCross2d<B,Rlens>(corr, field1, field2, dots);
            break;
       case Arc:
-           ProcessCross2d<B,Arc>(corr, field1, field2, dots, coords);
+           ProcessCross2d<B,Arc>(corr, field1, field2, dots);
            break;
       case Periodic:
-           ProcessCross2d<B,Periodic>(corr, field1, field2, dots, coords);
+           ProcessCross2d<B,Periodic>(corr, field1, field2, dots);
            break;
       default:
            Assert(false);
     }
 }
 
-template <int D1, int D2>
-void ProcessCross(Corr2<D1,D2>* corr, BaseField<D1>* field1, BaseField<D2>* field2,
-                  bool dots, Coord coords, BinType bin_type, Metric metric)
+template <int D1, int D2, int C>
+void ProcessCross(Corr2<D1,D2>* corr, Field<D1,C>* field1, Field<D2,C>* field2,
+                  bool dots, BinType bin_type, Metric metric)
 {
-    dbg<<"Start ProcessCross: "<<D1<<" "<<D2<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
+    dbg<<"Start ProcessCross: "<<D1<<" "<<D2<<" "<<bin_type<<" "<<metric<<std::endl;
     switch(bin_type) {
       case Log:
-           ProcessCross2c<Log>(corr, field1, field2, dots, coords, metric);
+           ProcessCross2c<Log>(corr, field1, field2, dots, metric);
            break;
       case Linear:
-           ProcessCross2c<Linear>(corr, field1, field2, dots, coords, metric);
+           ProcessCross2c<Linear>(corr, field1, field2, dots, metric);
            break;
       case TwoD:
-           ProcessCross2c<TwoD>(corr, field1, field2, dots, coords, metric);
+           ProcessCross2c<TwoD>(corr, field1, field2, dots, metric);
            break;
       default:
            Assert(false);
@@ -1135,79 +1098,48 @@ int GetOMPThreads()
 #endif
 }
 
-template <int B, int M, int D1, int D2>
-long SamplePairs2d(BaseCorr2* corr, BaseField<D1>* field1, BaseField<D2>* field2,
+template <int B, int M, int D1, int D2, int C>
+long SamplePairs2d(BaseCorr2* corr, Field<D1,C>* field1, Field<D2,C>* field2,
                    double minsep, double maxsep,
-                   Coord coords, long* i1, long* i2, double* sep, int n)
+                   long* i1, long* i2, double* sep, int n)
 {
     const bool P = corr->nontrivialRPar();
-    dbg<<"SamplePairs: coords = "<<coords<<", metric = "<<M<<", P = "<<P<<std::endl;
+    dbg<<"SamplePairs: coords = "<<C<<", metric = "<<M<<", P = "<<P<<std::endl;
 
-    switch(coords) {
-      case Flat:
-           Assert((MetricHelper<M,0>::_Flat == int(Flat)));
-           Assert(!P);
-           return corr->template samplePairs<B,M,false>(
-               *static_cast<Field<D1,MetricHelper<M,0>::_Flat>*>(field1),
-               *static_cast<Field<D2,MetricHelper<M,0>::_Flat>*>(field2),
-               minsep, maxsep, i1, i2, sep, n);
-           break;
-      case Sphere:
-           Assert((MetricHelper<M,0>::_Sphere == int(Sphere)));
-           Assert(!P);
-           return corr->template samplePairs<B,M,false>(
-               *static_cast<Field<D1,MetricHelper<M,0>::_Sphere>*>(field1),
-               *static_cast<Field<D2,MetricHelper<M,0>::_Sphere>*>(field2),
-               minsep, maxsep, i1, i2, sep, n);
-           break;
-      case ThreeD:
-           Assert((MetricHelper<M,0>::_ThreeD == int(ThreeD)));
-           if (P)
-               return corr->template samplePairs<B,M,true>(
-                   *static_cast<Field<D1,MetricHelper<M,1>::_ThreeD>*>(field1),
-                   *static_cast<Field<D2,MetricHelper<M,1>::_ThreeD>*>(field2),
-                   minsep, maxsep, i1, i2, sep, n);
-           else
-               return corr->template samplePairs<B,M,false>(
-                   *static_cast<Field<D1,MetricHelper<M,0>::_ThreeD>*>(field1),
-                   *static_cast<Field<D2,MetricHelper<M,0>::_ThreeD>*>(field2),
-                   minsep, maxsep, i1, i2, sep, n);
-           break;
-      default:
-           Assert(false);
+    Assert((ValidMC<M,C>::_M == M));
+    if (P) {
+        Assert(C == ThreeD);
+        return corr->template samplePairs<B, ValidMC<M,C>::_M, C==ThreeD>(
+            *field1, *field2, minsep, maxsep, i1, i2, sep, n);
+    } else {
+        return corr->template samplePairs<B, ValidMC<M,C>::_M, false>(
+            *field1, *field2, minsep, maxsep, i1, i2, sep, n);
     }
-    return 0;
 }
 
-template <int B, int D1, int D2>
-long SamplePairs2c(BaseCorr2* corr, BaseField<D1>* field1, BaseField<D2>* field2,
-                   double minsep, double maxsep,
-                   Coord coords, Metric metric, long* i1, long* i2, double* sep, int n)
+template <int B, int D1, int D2, int C>
+long SamplePairs2c(BaseCorr2* corr, Field<D1,C>* field1, Field<D2,C>* field2,
+                   double minsep, double maxsep, Metric metric,
+                   long* i1, long* i2, double* sep, int n)
 {
     switch(metric) {
       case Euclidean:
-           return SamplePairs2d<B,Euclidean>(corr, field1, field2, minsep, maxsep,
-                                             coords, i1, i2, sep, n);
+           return SamplePairs2d<B,Euclidean>(corr, field1, field2, minsep, maxsep, i1, i2, sep, n);
            break;
       case Rperp:
-           return SamplePairs2d<B,Rperp>(corr, field1, field2, minsep, maxsep,
-                                         coords, i1, i2, sep, n);
+           return SamplePairs2d<B,Rperp>(corr, field1, field2, minsep, maxsep, i1, i2, sep, n);
            break;
       case OldRperp:
-           return SamplePairs2d<B,OldRperp>(corr, field1, field2, minsep, maxsep,
-                                            coords, i1, i2, sep, n);
+           return SamplePairs2d<B,OldRperp>(corr, field1, field2, minsep, maxsep, i1, i2, sep, n);
            break;
       case Rlens:
-           return SamplePairs2d<B,Rlens>(corr, field1, field2, minsep, maxsep,
-                                         coords, i1, i2, sep, n);
+           return SamplePairs2d<B,Rlens>(corr, field1, field2, minsep, maxsep, i1, i2, sep, n);
            break;
       case Arc:
-           return SamplePairs2d<B,Arc>(corr, field1, field2, minsep, maxsep,
-                                       coords, i1, i2, sep, n);
+           return SamplePairs2d<B,Arc>(corr, field1, field2, minsep, maxsep, i1, i2, sep, n);
            break;
       case Periodic:
-           return SamplePairs2d<B,Periodic>(corr, field1, field2, minsep, maxsep,
-                                            coords, i1, i2, sep, n);
+           return SamplePairs2d<B,Periodic>(corr, field1, field2, minsep, maxsep, i1, i2, sep, n);
            break;
       default:
            Assert(false);
@@ -1215,9 +1147,9 @@ long SamplePairs2c(BaseCorr2* corr, BaseField<D1>* field1, BaseField<D2>* field2
     return 0;
 }
 
-template <int D1, int D2>
-long SamplePairs(BaseCorr2* corr, BaseField<D1>* field1, BaseField<D2>* field2,
-                 double minsep, double maxsep, Coord coords, BinType bin_type, Metric metric,
+template <int D1, int D2, int C>
+long SamplePairs(BaseCorr2* corr, Field<D1,C>* field1, Field<D2,C>* field2,
+                 double minsep, double maxsep, BinType bin_type, Metric metric,
                  py::array_t<long>& i1p, py::array_t<long>& i2p, py::array_t<double>& sepp)
 {
     long n = i1p.size();
@@ -1228,16 +1160,16 @@ long SamplePairs(BaseCorr2* corr, BaseField<D1>* field1, BaseField<D2>* field2,
     long* i2 = static_cast<long*>(i2p.mutable_data());
     double* sep = static_cast<double*>(sepp.mutable_data());
 
-    dbg<<"Start SamplePairs: "<<D1<<" "<<D2<<" "<<coords<<" "<<bin_type<<" "<<metric<<std::endl;
+    dbg<<"Start SamplePairs: "<<D1<<" "<<D2<<" "<<bin_type<<" "<<metric<<std::endl;
 
     switch(bin_type) {
       case Log:
            return SamplePairs2c<Log>(corr, field1, field2, minsep, maxsep,
-                                     coords, metric, i1, i2, sep, n);
+                                     metric, i1, i2, sep, n);
            break;
       case Linear:
            return SamplePairs2c<Linear>(corr, field1, field2, minsep, maxsep,
-                                        coords, metric, i1, i2, sep, n);
+                                        metric, i1, i2, sep, n);
            break;
       case TwoD:
            // TwoD not implemented.
@@ -1339,24 +1271,43 @@ int TriviallyZero(BaseCorr2* corr, BinType bin_type, Metric metric, Coord coords
 
 // Export the above functions using pybind11
 
-template <int D1, int D2>
+template <int D1, int D2, int C>
 struct WrapAuto
 {
-    template <typename C>
-    static void run(C& corr2) {}
+    template <typename W>
+    static void run(W& corr2) {}
 };
 
-template <int D>
-struct WrapAuto<D,D>
+template <int D, int C>
+struct WrapAuto<D,D,C>
 {
-    template <typename C>
-    static void run(C& corr2)
+    template <typename W>
+    static void run(W& corr2)
     {
-        typedef void (*auto_type)(Corr2<D,D>* corr, BaseField<D>* field,
-                                  bool dots, Coord coords, BinType bin_type, Metric metric);
+        typedef void (*auto_type)(Corr2<D,D>* corr, Field<D,C>* field,
+                                  bool dots, BinType bin_type, Metric metric);
         corr2.def("processAuto", auto_type(&ProcessAuto));
     }
 };
+
+template <int D1, int D2, int C, typename W1, typename W2>
+void WrapCoord(py::module& _treecorr, W1& corr2, W2& base_corr2)
+{
+    typedef long (*sample_type)(BaseCorr2* corr,
+                                Field<D1,C>* field1, Field<D2,C>* field2,
+                                double minsep, double maxsep,
+                                BinType bin_type, Metric metric,
+                                py::array_t<long>& i1p, py::array_t<long>& i2p,
+                                py::array_t<double>& sepp);
+    typedef void (*cross_type)(Corr2<D1,D2>* corr,
+                               Field<D1,C>* field1, Field<D2,C>* field2,
+                               bool dots, BinType bin_type, Metric metric);
+
+    corr2.def("processCross", cross_type(&ProcessCross));
+    WrapAuto<D1,D2,C>::run(corr2);
+
+    base_corr2.def("samplePairs", sample_type(&SamplePairs));
+}
 
 template <int D1, int D2, typename W>
 void WrapCorr2(py::module& _treecorr, std::string prefix, W& base_corr2)
@@ -1369,22 +1320,12 @@ void WrapCorr2(py::module& _treecorr, std::string prefix, W& base_corr2)
         py::array_t<double>& meanrp, py::array_t<double>& meanlogrp,
         py::array_t<double>& weightp, py::array_t<double>& npairsp);
 
-    typedef long (*sample_type)(BaseCorr2* corr,
-                                BaseField<D1>* field1, BaseField<D2>* field2,
-                                double minsep, double maxsep,
-                                Coord coords, BinType bin_type, Metric metric,
-                                py::array_t<long>& i1p, py::array_t<long>& i2p,
-                                py::array_t<double>& sepp);
-    typedef void (*cross_type)(Corr2<D1,D2>* corr,
-                               BaseField<D1>* field1, BaseField<D2>* field2,
-                               bool dots, Coord coords, BinType bin_type, Metric metric);
-
     py::class_<Corr2<D1,D2>, BaseCorr2> corr2(_treecorr, (prefix + "Corr").c_str());
     corr2.def(py::init(init_type(&BuildCorr2)));
-    corr2.def("processCross", cross_type(&ProcessCross));
-    WrapAuto<D1,D2>::run(corr2);
 
-    base_corr2.def("samplePairs", sample_type(&SamplePairs));
+    WrapCoord<D1,D2,Flat>(_treecorr, corr2, base_corr2);
+    WrapCoord<D1,D2,Sphere>(_treecorr, corr2, base_corr2);
+    WrapCoord<D1,D2,ThreeD>(_treecorr, corr2, base_corr2);
 }
 
 void pyExportCorr2(py::module& _treecorr)
@@ -1430,5 +1371,4 @@ void pyExportCorr2(py::module& _treecorr)
         .value("Mean", Mean)
         .value("Random", Random)
         .export_values();
-
 }

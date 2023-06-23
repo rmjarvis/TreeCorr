@@ -35,7 +35,6 @@
 //     Rlens for the perpendicular component at the location of the "lens" (c1)
 //     Arc for great circle distances on the sphere
 
-template <int D>
 class BaseField
 {
 public:
@@ -50,7 +49,7 @@ public:
 };
 
 template <int D, int C>
-class Field : public BaseField<D>
+class Field : public BaseField
 {
 public:
     Field(const double* x, const double* y, const double* z,

@@ -267,7 +267,7 @@ class NNNCorrelation(Corr3):
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         self.corr.processAuto(field.data, self.output_dots,
-                              self._coords, self._bintype, self._metric)
+                              self._bintype, self._metric)
         self.tot += (1./6.) * cat.sumw**3
 
     def process_cross12(self, cat1, cat2, *, metric=None, num_threads=None):
@@ -317,7 +317,7 @@ class NNNCorrelation(Corr3):
         # into self.corr, whichever way the three catalogs are permuted for each triangle.
         self.corr.processCross12(self.corr, self.corr,
                                  f1.data, f2.data, self.output_dots,
-                                 self._coords, self._bintype, self._metric)
+                                 self._bintype, self._metric)
         self.tot += cat1.sumw * cat2.sumw**2 / 2.
 
     def process_cross(self, cat1, cat2, cat3, *, metric=None, num_threads=None):
@@ -370,7 +370,7 @@ class NNNCorrelation(Corr3):
         # into self.corr, whichever way the three catalogs are permuted for each triangle.
         self.corr.processCross(self.corr, self.corr, self.corr, self.corr, self.corr,
                                f1.data, f2.data, f3.data, self.output_dots,
-                               self._coords, self._bintype, self._metric)
+                               self._bintype, self._metric)
         self.tot += cat1.sumw * cat2.sumw * cat3.sumw
 
     def _finalize(self):
@@ -1200,7 +1200,7 @@ class NNNCrossCorrelation(Corr3):
         # into self.corr, whichever way the three catalogs are permuted for each triangle.
         self.n1n2n3.corr.processCross12(self.n2n1n3.corr, self.n2n3n1.corr,
                                         f1.data, f2.data, self.output_dots,
-                                        self._coords, self._bintype, self._metric)
+                                        self._bintype, self._metric)
         tot = cat1.sumw * cat2.sumw**2 / 2.
         self.n1n2n3.tot += tot
         self.n2n1n3.tot += tot
@@ -1258,7 +1258,7 @@ class NNNCrossCorrelation(Corr3):
                                       self.n2n1n3.corr, self.n2n3n1.corr,
                                       self.n3n1n2.corr, self.n3n2n1.corr,
                                       f1.data, f2.data, f3.data, self.output_dots,
-                                      self._coords, self._bintype, self._metric)
+                                      self._bintype, self._metric)
         tot = cat1.sumw * cat2.sumw * cat3.sumw
         for nnn in self._all:
             nnn.tot += tot

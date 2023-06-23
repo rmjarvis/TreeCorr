@@ -784,5 +784,21 @@ struct MetricHelper<Periodic, P>
 
 };
 
+// A quick helper struct so we only instantiate valid combinations of M, C
+template <int M, int C>
+struct ValidMC;
+
+template <int M>
+struct ValidMC<M,Flat>
+{ enum { _M = MetricHelper<M,0>::_Flat == Flat ? M : Euclidean }; };
+
+template <int M>
+struct ValidMC<M,Sphere>
+{ enum { _M = MetricHelper<M,0>::_Sphere == Sphere ? M : Euclidean }; };
+
+template <int M>
+struct ValidMC<M,ThreeD>
+{ enum { _M = MetricHelper<M,0>::_ThreeD == ThreeD ? M : Euclidean }; };
+
 #endif
 

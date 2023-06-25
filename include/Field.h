@@ -35,29 +35,13 @@
 //     Rlens for the perpendicular component at the location of the "lens" (c1)
 //     Arc for great circle distances on the sphere
 
+template <int C>
 class BaseField
 {
 public:
-    virtual ~BaseField() {}
-
-    virtual long getNObj() const = 0;
-    virtual double getSizeSq() const = 0;
-    virtual double getSize() const = 0;
-    virtual long countNear(double x, double y, double z, double sep) const = 0;
-    virtual void getNear(double x, double y, double z, double sep, long* indices, long n) const = 0;
-    virtual long getNTopLevel() const = 0;
-};
-
-template <int D, int C>
-class Field : public BaseField
-{
-public:
-    Field(const double* x, const double* y, const double* z,
-          const double* g1, const double* g2, const double* k,
-          const double* w, const double* wpos, long nobj,
-          double minsize, double maxsize,
-          SplitMethod sm, long long seed, bool brute, int mintop, int maxtop);
-    ~Field();
+    BaseField(long nobj, double minsize, double maxsize,
+              SplitMethod sm, long long seed, bool brute, int mintop, int maxtop);
+    virtual ~BaseField();
 
     long getNObj() const { return _nobj; }
     double getSizeSq() const { return _sizesq; }
@@ -67,8 +51,6 @@ public:
     const std::vector<BaseCell<C>*>& getCells() const { BuildCells(); return _cells; }
     long countNear(double x, double y, double z, double sep) const;
     void getNear(double x, double y, double z, double sep, long* indices, long n) const;
-
-private:
 
     long _nobj;
     double _minsize;
@@ -84,10 +66,28 @@ private:
     // This is set at the start, but once we finish making all the cells, we don't need it anymore.
     mutable std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> > _celldata;
 
+protected:
+    virtual void BuildCells() const = 0;
+};
+
+template <int D, int C>
+class Field : public BaseField<C>
+{
+public:
+    Field(const double* x, const double* y, const double* z,
+          const double* g1, const double* g2, const double* k,
+          const double* w, const double* wpos, long nobj,
+          double minsize, double maxsize,
+          SplitMethod sm, long long seed, bool brute, int mintop, int maxtop);
+
+protected:
     // This finishes the work of the Field constructor.
     void BuildCells() const;
-    template <int SM> void DoBuildCells() const;
 
+private:
+
+    template <int SM>
+    void DoBuildCells() const;
 };
 
 #endif

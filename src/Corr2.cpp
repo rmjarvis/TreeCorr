@@ -586,9 +586,9 @@ bool BaseCorr2::triviallyZero(Position<C> p1, Position<C> p2, double s1, double 
             metric.tooLargeDist(p1, p2, rsq, rpar, s1ps2, _fullmaxsep, _fullmaxsepsq));
 }
 
-template <int B, int M, int P, int D1, int D2, int C>
+template <int B, int M, int P, int C>
 long BaseCorr2::samplePairs(
-    const Field<D1, C>& field1, const Field<D2, C>& field2,
+    const BaseField<C>& field1, const BaseField<C>& field2,
     double minsep, double maxsep, long* i1, long* i2, double* sep, int n)
 {
     Assert(_coords == -1 || _coords == C);
@@ -1101,8 +1101,8 @@ int GetOMPThreads()
 #endif
 }
 
-template <int B, int M, int D1, int D2, int C>
-long SamplePairs2d(BaseCorr2* corr, Field<D1,C>* field1, Field<D2,C>* field2,
+template <int B, int M, int C>
+long SamplePairs2d(BaseCorr2* corr, BaseField<C>* field1, BaseField<C>* field2,
                    double minsep, double maxsep,
                    long* i1, long* i2, double* sep, int n)
 {
@@ -1120,8 +1120,8 @@ long SamplePairs2d(BaseCorr2* corr, Field<D1,C>* field1, Field<D2,C>* field2,
     }
 }
 
-template <int B, int D1, int D2, int C>
-long SamplePairs2c(BaseCorr2* corr, Field<D1,C>* field1, Field<D2,C>* field2,
+template <int B, int C>
+long SamplePairs2c(BaseCorr2* corr, BaseField<C>* field1, BaseField<C>* field2,
                    double minsep, double maxsep, Metric metric,
                    long* i1, long* i2, double* sep, int n)
 {
@@ -1150,8 +1150,8 @@ long SamplePairs2c(BaseCorr2* corr, Field<D1,C>* field1, Field<D2,C>* field2,
     return 0;
 }
 
-template <int D1, int D2, int C>
-long SamplePairs(BaseCorr2* corr, Field<D1,C>* field1, Field<D2,C>* field2,
+template <int C>
+long SamplePairs(BaseCorr2* corr, BaseField<C>* field1, BaseField<C>* field2,
                  double minsep, double maxsep, BinType bin_type, Metric metric,
                  py::array_t<long>& i1p, py::array_t<long>& i2p, py::array_t<double>& sepp)
 {
@@ -1163,7 +1163,7 @@ long SamplePairs(BaseCorr2* corr, Field<D1,C>* field1, Field<D2,C>* field2,
     long* i2 = static_cast<long*>(i2p.mutable_data());
     double* sep = static_cast<double*>(sepp.mutable_data());
 
-    dbg<<"Start SamplePairs: "<<D1<<" "<<D2<<" "<<bin_type<<" "<<metric<<std::endl;
+    dbg<<"Start SamplePairs: "<<bin_type<<" "<<metric<<std::endl;
 
     switch(bin_type) {
       case Log:
@@ -1294,22 +1294,14 @@ struct WrapAuto<D,D,C>
 };
 
 template <int D1, int D2, int C, typename W1, typename W2>
-void WrapCoord(py::module& _treecorr, W1& corr2, W2& base_corr2)
+void WrapCross(py::module& _treecorr, W1& corr2, W2& base_corr2)
 {
-    typedef long (*sample_type)(BaseCorr2* corr,
-                                Field<D1,C>* field1, Field<D2,C>* field2,
-                                double minsep, double maxsep,
-                                BinType bin_type, Metric metric,
-                                py::array_t<long>& i1p, py::array_t<long>& i2p,
-                                py::array_t<double>& sepp);
     typedef void (*cross_type)(Corr2<D1,D2>* corr,
                                Field<D1,C>* field1, Field<D2,C>* field2,
                                bool dots, BinType bin_type, Metric metric);
 
     corr2.def("processCross", cross_type(&ProcessCross));
     WrapAuto<D1,D2,C>::run(corr2);
-
-    base_corr2.def("samplePairs", sample_type(&SamplePairs));
 }
 
 template <int D1, int D2, typename W>
@@ -1326,15 +1318,32 @@ void WrapCorr2(py::module& _treecorr, std::string prefix, W& base_corr2)
     py::class_<Corr2<D1,D2>, BaseCorr2> corr2(_treecorr, (prefix + "Corr").c_str());
     corr2.def(py::init(init_type(&BuildCorr2)));
 
-    WrapCoord<D1,D2,Flat>(_treecorr, corr2, base_corr2);
-    WrapCoord<D1,D2,Sphere>(_treecorr, corr2, base_corr2);
-    WrapCoord<D1,D2,ThreeD>(_treecorr, corr2, base_corr2);
+    WrapCross<D1,D2,Flat>(_treecorr, corr2, base_corr2);
+    WrapCross<D1,D2,Sphere>(_treecorr, corr2, base_corr2);
+    WrapCross<D1,D2,ThreeD>(_treecorr, corr2, base_corr2);
+}
+
+template <int C, typename W>
+void WrapSample(py::module& _treecorr, W& base_corr2)
+{
+    typedef long (*sample_type)(BaseCorr2* corr,
+                                BaseField<C>* field1, BaseField<C>* field2,
+                                double minsep, double maxsep,
+                                BinType bin_type, Metric metric,
+                                py::array_t<long>& i1p, py::array_t<long>& i2p,
+                                py::array_t<double>& sepp);
+
+    base_corr2.def("samplePairs", sample_type(&SamplePairs));
 }
 
 void pyExportCorr2(py::module& _treecorr)
 {
     py::class_<BaseCorr2> base_corr2(_treecorr, "BaseCorr2");
     base_corr2.def("triviallyZero", &TriviallyZero);
+
+    WrapSample<Flat>(_treecorr, base_corr2);
+    WrapSample<Sphere>(_treecorr, base_corr2);
+    WrapSample<ThreeD>(_treecorr, base_corr2);
 
     WrapCorr2<NData,NData>(_treecorr, "NN", base_corr2);
     WrapCorr2<NData,KData>(_treecorr, "NK", base_corr2);

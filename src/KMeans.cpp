@@ -739,8 +739,8 @@ void ReadCenters(std::vector<Position<Flat> >& centers, const double* pycenters,
     }
 }
 
-template <int D, int C>
-void KMeansInitTree2(Field<D,C>*field, double* pycenters, int npatch, long long seed)
+template <int C>
+void KMeansInitTree2(BaseField<C>*field, double* pycenters, int npatch, long long seed)
 {
     dbg<<"Start KMeansInitTree for "<<npatch<<" patches\n";
     const std::vector<BaseCell<C>*> cells = field->getCells();
@@ -749,8 +749,8 @@ void KMeansInitTree2(Field<D,C>*field, double* pycenters, int npatch, long long 
     WriteCenters(centers, pycenters, npatch);
 }
 
-template <int D, int C>
-void KMeansInitRand2(Field<D,C>*field, double* pycenters, int npatch, long long seed)
+template <int C>
+void KMeansInitRand2(BaseField<C>*field, double* pycenters, int npatch, long long seed)
 {
     dbg<<"Start KMeansInitRand for "<<npatch<<" patches\n";
     const std::vector<BaseCell<C>*> cells = field->getCells();
@@ -759,8 +759,8 @@ void KMeansInitRand2(Field<D,C>*field, double* pycenters, int npatch, long long 
     WriteCenters(centers, pycenters, npatch);
 }
 
-template <int D, int C>
-void KMeansInitKMPP2(Field<D,C>*field, double* pycenters, int npatch, long long seed)
+template <int C>
+void KMeansInitKMPP2(BaseField<C>*field, double* pycenters, int npatch, long long seed)
 {
     dbg<<"Start KMeansInitKMPP for "<<npatch<<" patches\n";
     const std::vector<BaseCell<C>*> cells = field->getCells();
@@ -769,8 +769,8 @@ void KMeansInitKMPP2(Field<D,C>*field, double* pycenters, int npatch, long long 
     WriteCenters(centers, pycenters, npatch);
 }
 
-template <int D, int C>
-void KMeansRun2(Field<D,C>*field, double* pycenters, int npatch, int max_iter, double tol,
+template <int C>
+void KMeansRun2(BaseField<C>*field, double* pycenters, int npatch, int max_iter, double tol,
                 bool alt)
 {
     dbg<<"Start KMeansRun for "<<npatch<<" patches\n";
@@ -831,8 +831,8 @@ void KMeansRun2(Field<D,C>*field, double* pycenters, int npatch, int max_iter, d
     WriteCenters(centers, pycenters, npatch);
 }
 
-template <int D, int C>
-void KMeansAssign2(Field<D,C>*field, const double* pycenters, int npatch, long* patches, long n)
+template <int C>
+void KMeansAssign2(BaseField<C>*field, const double* pycenters, int npatch, long* patches, long n)
 {
     dbg<<"Start KMeansAssign for "<<npatch<<" patches\n";
     const std::vector<BaseCell<C>*> cells = field->getCells();
@@ -847,37 +847,38 @@ void KMeansAssign2(Field<D,C>*field, const double* pycenters, int npatch, long* 
     xdbg<<"After AssignPatches\n";
 }
 
-template <int D, int C>
-void KMeansInitTree(Field<D,C>* field, py::array_t<double>& cenp, int npatch, long long seed)
+template <int C>
+void KMeansInitTree(BaseField<C>* field, py::array_t<double>& cenp, int npatch, long long seed)
 {
     double* centers = static_cast<double*>(cenp.mutable_data());
     KMeansInitTree2(field, centers, npatch, seed);
 }
 
-template <int D, int C>
-void KMeansInitRand(Field<D,C>* field, py::array_t<double>& cenp, int npatch, long long seed)
+template <int C>
+void KMeansInitRand(BaseField<C>* field, py::array_t<double>& cenp, int npatch, long long seed)
 {
     double* centers = static_cast<double*>(cenp.mutable_data());
     KMeansInitRand2(field, centers, npatch, seed);
 }
 
-template <int D, int C>
-void KMeansInitKMPP(Field<D,C>* field, py::array_t<double>& cenp, int npatch, long long seed)
+template <int C>
+void KMeansInitKMPP(BaseField<C>* field, py::array_t<double>& cenp, int npatch, long long seed)
 {
     double* centers = static_cast<double*>(cenp.mutable_data());
     KMeansInitKMPP2(field, centers, npatch, seed);
 }
 
-template <int D, int C>
-void KMeansRun(Field<D,C>* field, py::array_t<double>& cenp, int npatch,
+template <int C>
+void KMeansRun(BaseField<C>* field, py::array_t<double>& cenp, int npatch,
                int max_iter, double tol, bool alt)
 {
     double* centers = static_cast<double*>(cenp.mutable_data());
     KMeansRun2(field, centers, npatch, max_iter, tol, alt);
 }
 
-template <int D, int C>
-void KMeansAssign(Field<D,C>* field, py::array_t<double>& cenp, int npatch, py::array_t<long>& pp)
+template <int C>
+void KMeansAssign(BaseField<C>* field, py::array_t<double>& cenp, int npatch,
+                  py::array_t<long>& pp)
 {
     long n = pp.size();
     const double* centers = static_cast<const double*>(cenp.data());
@@ -1053,24 +1054,18 @@ void GenerateXYZ(
 
 // Instantiate versions that are wrapped in Field.cpp
 
-#define Inst(D,C)\
-    template void KMeansInitTree(Field<D,C>* field, py::array_t<double>& cenp, int npatch, \
+#define Inst(C)\
+    template void KMeansInitTree(BaseField<C>* field, py::array_t<double>& cenp, int npatch, \
                                  long long seed); \
-    template void KMeansInitRand(Field<D,C>* field, py::array_t<double>& cenp, int npatch, \
+    template void KMeansInitRand(BaseField<C>* field, py::array_t<double>& cenp, int npatch, \
                                  long long seed); \
-    template void KMeansInitKMPP(Field<D,C>* field, py::array_t<double>& cenp, int npatch, \
+    template void KMeansInitKMPP(BaseField<C>* field, py::array_t<double>& cenp, int npatch, \
                                  long long seed); \
-    template void KMeansRun(Field<D,C>* field, py::array_t<double>& cenp, int npatch, \
+    template void KMeansRun(BaseField<C>* field, py::array_t<double>& cenp, int npatch, \
                             int max_iter, double tol, bool alt); \
-    template void KMeansAssign(Field<D,C>* field, py::array_t<double>& cenp, int npatch, \
+    template void KMeansAssign(BaseField<C>* field, py::array_t<double>& cenp, int npatch, \
                                py::array_t<long>& pp); \
 
-Inst(NData,Flat);
-Inst(NData,Sphere);
-Inst(NData,ThreeD);
-Inst(KData,Flat);
-Inst(KData,Sphere);
-Inst(KData,ThreeD);
-Inst(GData,Flat);
-Inst(GData,Sphere);
-Inst(GData,ThreeD);
+Inst(Flat);
+Inst(Sphere);
+Inst(ThreeD);

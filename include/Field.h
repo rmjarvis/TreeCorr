@@ -64,7 +64,7 @@ public:
     Position<C> getCenter() const { return _center; }
     double getSize() const { return std::sqrt(_sizesq); }
     long getNTopLevel() const { BuildCells(); return long(_cells.size()); }
-    const std::vector<Cell<D,C>*>& getCells() const { BuildCells(); return _cells; }
+    const std::vector<BaseCell<C>*>& getCells() const { BuildCells(); return _cells; }
     long countNear(double x, double y, double z, double sep) const;
     void getNear(double x, double y, double z, double sep, long* indices, long n) const;
 
@@ -79,10 +79,10 @@ private:
     int _maxtop;
     Position<C> _center;
     double _sizesq;
-    mutable std::vector<Cell<D,C>*> _cells;
+    mutable std::vector<BaseCell<C>*> _cells;
 
     // This is set at the start, but once we finish making all the cells, we don't need it anymore.
-    mutable std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> > _celldata;
+    mutable std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> > _celldata;
 
     // This finishes the work of the Field constructor.
     void BuildCells() const;

@@ -28,7 +28,7 @@ template <int D, int C, int SM>
 double SetupTopLevelCells(
     std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >& celldata,
     double maxsizesq, size_t start, size_t end, int mintop, int maxtop,
-    std::vector<CellData<D,C>*>& top_data,
+    std::vector<BaseCellData<C>*>& top_data,
     std::vector<double>& top_sizesq,
     std::vector<size_t>& top_start, std::vector<size_t>& top_end)
 {
@@ -167,14 +167,22 @@ double at(const double* x, int i) { return x[i]; }
 template <>
 double at<false>(const double* x, int i) { return 0.; }
 
+template <int C>
+BaseField<C>::BaseField(long nobj, double minsize, double maxsize,
+                        SplitMethod sm, long long seed, bool brute, int mintop, int maxtop) :
+    _nobj(nobj), _minsize(minsize), _maxsize(maxsize), _sm(sm),
+    _brute(brute), _mintop(mintop), _maxtop(maxtop)
+{
+    if (seed != 0) { urand(seed); }
+}
+
 template <int D, int C>
 Field<D,C>::Field(const double* x, const double* y, const double* z,
                   const double* g1, const double* g2, const double* k,
                   const double* w, const double* wpos, long nobj,
                   double minsize, double maxsize,
                   SplitMethod sm, long long seed, bool brute, int mintop, int maxtop) :
-    _nobj(nobj), _minsize(minsize), _maxsize(maxsize), _sm(sm),
-    _brute(brute), _mintop(mintop), _maxtop(maxtop)
+    BaseField<C>(nobj, minsize, maxsize, sm, seed, brute, mintop, maxtop)
 {
     //set_verbose(2);
     dbg<<"Starting to Build Field with "<<nobj<<" objects\n";
@@ -186,12 +194,11 @@ Field<D,C>::Field(const double* x, const double* y, const double* z,
             (wpos?wpos[i]:0)<<std::endl;
     }
 
-    if (seed != 0) { urand(seed); }
-    _celldata.reserve(nobj);
+    this->_celldata.reserve(nobj);
     if (z) {
         for(long i=0;i<nobj;++i) {
             WPosLeafInfo wp = get_wpos(wpos,w,i);
-            _celldata.push_back(std::make_pair(
+            this->_celldata.push_back(std::make_pair(
                     CellDataHelper<D,C>::build(
                         x[i], y[i], z[i], at<D==GData>(g1,i), at<D==GData>(g2,i),
                         at<D==KData>(k,i), w[i]), wp));
@@ -200,28 +207,28 @@ Field<D,C>::Field(const double* x, const double* y, const double* z,
         Assert(C == Flat);
         for(long i=0;i<nobj;++i) {
             WPosLeafInfo wp = get_wpos(wpos,w,i);
-            _celldata.push_back(std::make_pair(
+            this->_celldata.push_back(std::make_pair(
                     CellDataHelper<D,C>::build(
                         x[i], y[i], 0., at<D==GData>(g1,i), at<D==GData>(g2,i),
                         at<D==KData>(k,i), w[i]), wp));
         }
     }
-    dbg<<"Built celldata with "<<_celldata.size()<<" entries\n";
+    dbg<<"Built celldata with "<<this->_celldata.size()<<" entries\n";
 
     // Calculate the overall center and size
-    CellData<D,C> ave(_celldata, 0, _celldata.size());
-    ave.finishAverages(_celldata, 0, _celldata.size());
-    _center = ave.getPos();
-    _sizesq = CalculateSizeSq(_center, _celldata, 0, _celldata.size());
+    CellData<D,C> ave(this->_celldata, 0, this->_celldata.size());
+    ave.finishAverages(this->_celldata, 0, this->_celldata.size());
+    this->_center = ave.getPos();
+    this->_sizesq = CalculateSizeSq(this->_center, this->_celldata, 0, this->_celldata.size());
 }
 
 template <int D, int C>
 void Field<D,C>::BuildCells() const
 {
     // Signal that we already built the cells.
-    if (_celldata.size() == 0) return;
+    if (this->_celldata.size() == 0) return;
 
-    switch (_sm) {
+    switch (this->_sm) {
       case Middle:
            DoBuildCells<Middle>();
            break;
@@ -244,10 +251,10 @@ void Field<D,C>::DoBuildCells() const
 {
     // We don't build Cells that are too big or too small based on the min/max separation:
 
-    double minsizesq = _minsize * _minsize;
+    double minsizesq = this->_minsize * this->_minsize;
     xdbg<<"minsizesq = "<<minsizesq<<std::endl;
 
-    double maxsizesq = _maxsize * _maxsize;
+    double maxsizesq = this->_maxsize * this->_maxsize;
     xdbg<<"maxsizesq = "<<maxsizesq<<std::endl;
 
     // This is done in two parts so that we can do the (time-consuming) second part in
@@ -256,37 +263,40 @@ void Field<D,C>::DoBuildCells() const
     // Then we build them and their sub-nodes.
 
     // Setup the top level cells:
-    std::vector<CellData<D,C>*> top_data;
+    std::vector<BaseCellData<C>*> top_data;
     std::vector<double> top_sizesq;
     std::vector<size_t> top_start;
     std::vector<size_t> top_end;
 
-    SetupTopLevelCells<D,C,SM>(_celldata, maxsizesq, 0, _celldata.size(), _mintop, _maxtop,
+    SetupTopLevelCells<D,C,SM>(this->_celldata, maxsizesq, 0, this->_celldata.size(),
+                               this->_mintop, this->_maxtop,
                                top_data, top_sizesq, top_start, top_end);
     const ptrdiff_t n = top_data.size();
 
     // Now build the lower cells in parallel
     dbg<<"Field has "<<n<<" top-level nodes.  Building lower nodes...\n";
-    _cells.resize(n);
+    this->_cells.resize(n);
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
     for(ptrdiff_t i=0;i<n;++i) {
-        _cells[i] = BuildCell<D,C,SM>(_celldata, minsizesq, _brute,
-                                      top_start[i], top_end[i],
-                                      top_data[i], top_sizesq[i]);
-        xdbg<<i<<": "<<_cells[i]->getN()<<"  "<<_cells[i]->getW()<<"  "<<
-            _cells[i]->getPos()<<"  "<<_cells[i]->getSize()<<std::endl;
+        CellData<D,C>* top_data_i = static_cast<CellData<D,C>*>(top_data[i]);
+        this->_cells[i] = BuildCell<D,C,SM>(this->_celldata, minsizesq, this->_brute,
+                                            top_start[i], top_end[i],
+                                            top_data_i, top_sizesq[i]);
+        xdbg<<i<<": "<<this->_cells[i]->getN()<<"  "<<this->_cells[i]->getW()<<"  "<<
+            this->_cells[i]->getPos()<<"  "<<this->_cells[i]->getSize()<<std::endl;
     }
 
     // delete any CellData elements that didn't get kept in the _cells object.
-    for (size_t i=0;i<_celldata.size();++i) if (_celldata[i].first) delete _celldata[i].first;
+    for (size_t i=0;i<this->_celldata.size();++i) if (this->_celldata[i].first)
+        delete this->_celldata[i].first;
     //set_verbose(1);
-    _celldata.clear();
+    this->_celldata.clear();
 }
 
-template <int D, int C>
-Field<D,C>::~Field()
+template <int C>
+BaseField<C>::~BaseField()
 {
     for (size_t i=0; i<_cells.size(); ++i) delete _cells[i];
     // If this is still around, need to delete those too.
@@ -336,8 +346,8 @@ long CountNear(const BaseCell<C>* cell, const Position<C>& pos, double sep, doub
     }
 }
 
-template <int D, int C>
-long Field<D,C>::countNear(double x, double y, double z, double sep) const
+template <int C>
+long BaseField<C>::countNear(double x, double y, double z, double sep) const
 {
     BuildCells();  // Make sure this is done.
     Position<C> pos(x,y,z);
@@ -401,8 +411,8 @@ void GetNear(const BaseCell<C>* cell, const Position<C>& pos, double sep, double
     }
 }
 
-template <int D, int C>
-void Field<D,C>::getNear(double x, double y, double z, double sep, long* indices, long n) const
+template <int C>
+void BaseField<C>::getNear(double x, double y, double z, double sep, long* indices, long n) const
 {
     BuildCells();  // Make sure this is done.
     Position<C> pos(x,y,z);
@@ -515,8 +525,8 @@ Field<NData,C>* BuildNField(
                                brute, mintop, maxtop);
 }
 
-template <int D, int C>
-void FieldGetNear(Field<D,C>* field, double x, double y, double z, double sep,
+template <int C>
+void FieldGetNear(BaseField<C>* field, double x, double y, double z, double sep,
                   py::array_t<long>& inp)
 {
     long n = inp.size();
@@ -527,17 +537,17 @@ void FieldGetNear(Field<D,C>* field, double x, double y, double z, double sep,
 // Export the above functions using pybind11
 
 // Also wrap some functions that live in KMeans.cpp
-template <int D, int C>
-void KMeansInitTree(Field<D,C>* field, py::array_t<double>& cenp, int npatch, long long seed);
-template <int D, int C>
-void KMeansInitRand(Field<D,C>* field, py::array_t<double>& cenp, int npatch, long long seed);
-template <int D, int C>
-void KMeansInitKMPP(Field<D,C>* field, py::array_t<double>& cenp, int npatch, long long seed);
-template <int D, int C>
-void KMeansRun(Field<D,C>* field, py::array_t<double>& cenp, int npatch,
+template <int C>
+void KMeansInitTree(BaseField<C>* field, py::array_t<double>& cenp, int npatch, long long seed);
+template <int C>
+void KMeansInitRand(BaseField<C>* field, py::array_t<double>& cenp, int npatch, long long seed);
+template <int C>
+void KMeansInitKMPP(BaseField<C>* field, py::array_t<double>& cenp, int npatch, long long seed);
+template <int C>
+void KMeansRun(BaseField<C>* field, py::array_t<double>& cenp, int npatch,
                int max_iter, double tol, bool alt);
-template <int D, int C>
-void KMeansAssign(Field<D,C>* field, py::array_t<double>& cenp, int npatch, py::array_t<long>& pp);
+template <int C>
+void KMeansAssign(BaseField<C>* field, py::array_t<double>& cenp, int npatch, py::array_t<long>& pp);
 
 void QuickAssign(py::array_t<double>& cenp, int npatch,
                  py::array_t<double>& xp, py::array_t<double>& yp,
@@ -550,35 +560,36 @@ void GenerateXYZ(
     py::array_t<double>& rap, py::array_t<double>& decp, py::array_t<double>& rp);
 
 
-template <int D, int C, typename F>
-void WrapField(F& field)
+template <int C>
+void WrapField(py::module& _treecorr, std::string Cstr)
 {
-    typedef void (*getnear_type)(Field<D,C>* field, double x, double y, double z,
+    typedef void (*getnear_type)(BaseField<C>* field, double x, double y, double z,
                                  double sep, py::array_t<long>& inp);
-
-    typedef void (*init_type)(Field<D,C>* field, py::array_t<double>& cenp, int npatch,
+    typedef void (*init_type)(BaseField<C>* field, py::array_t<double>& cenp, int npatch,
                               long long seed);
-    typedef void (*run_type)(Field<D,C>* field, py::array_t<double>& cenp, int npatch,
+    typedef void (*run_type)(BaseField<C>* field, py::array_t<double>& cenp, int npatch,
                             int max_iter, double tol, bool alt);
-    typedef void (*assign_type)(Field<D,C>* field, py::array_t<double>& cenp, int npatch,
+    typedef void (*assign_type)(BaseField<C>* field, py::array_t<double>& cenp, int npatch,
                                 py::array_t<long>& pp);
 
-    field.def("getNObj", &Field<D,C>::getNObj);
-    field.def("getSize", &Field<D,C>::getSize);
-    field.def("countNear", &Field<D,C>::countNear);
+    py::class_<BaseField<C> > field(_treecorr, ("Field" + Cstr).c_str());
+
+    field.def("getNObj", &BaseField<C>::getNObj);
+    field.def("getSize", &BaseField<C>::getSize);
+    field.def("countNear", &BaseField<C>::countNear);
     field.def("getNear", getnear_type(&FieldGetNear));
-    field.def("getNTopLevel", &Field<D,C>::getNTopLevel);
+    field.def("getNTopLevel", &BaseField<C>::getNTopLevel);
 
     field.def("KMeansInitTree", init_type(&KMeansInitTree));
     field.def("KMeansInitRand", init_type(&KMeansInitRand));
     field.def("KMeansInitKMPP", init_type(&KMeansInitKMPP));
     field.def("KMeansRun", run_type(&KMeansRun));
     field.def("KMeansAssign", assign_type(&KMeansAssign));
-}
 
-template <int C>
-void WrapCoord(py::module& _treecorr, std::string Cstr)
-{
+    py::class_<Field<NData,C>, BaseField<C> > nfield(_treecorr, ("NField" + Cstr).c_str());
+    py::class_<Field<KData,C>, BaseField<C> > kfield(_treecorr, ("KField" + Cstr).c_str());
+    py::class_<Field<GData,C>, BaseField<C> > gfield(_treecorr, ("GField" + Cstr).c_str());
+
     typedef Field<NData,C>* (*nfield_type)(
         py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
         py::array_t<double>& wp, py::array_t<double>& wposp,
@@ -596,26 +607,16 @@ void WrapCoord(py::module& _treecorr, std::string Cstr)
         double minsize, double maxsize,
         SplitMethod sm, long long seed, bool brute, int mintop, int maxtop);
 
-    py::class_<Field<NData,C> > nfield(_treecorr, ("NField" + Cstr).c_str());
-    py::class_<Field<KData,C> > kfield(_treecorr, ("KField" + Cstr).c_str());
-    py::class_<Field<GData,C> > gfield(_treecorr, ("GField" + Cstr).c_str());
-
-    // These aren't included in the WrapField template, since the function signatures
-    // aren't the same.
     nfield.def(py::init(nfield_type(&BuildNField)));
     kfield.def(py::init(kfield_type(&BuildKField)));
     gfield.def(py::init(gfield_type(&BuildGField)));
-
-    WrapField<NData, C>(nfield);
-    WrapField<KData, C>(kfield);
-    WrapField<GData, C>(gfield);
 }
 
 void pyExportField(py::module& _treecorr)
 {
-    WrapCoord<Flat>(_treecorr, "Flat");
-    WrapCoord<Sphere>(_treecorr, "Sphere");
-    WrapCoord<ThreeD>(_treecorr, "ThreeD");
+    WrapField<Flat>(_treecorr, "Flat");
+    WrapField<Sphere>(_treecorr, "Sphere");
+    WrapField<ThreeD>(_treecorr, "ThreeD");
 
     _treecorr.def("QuickAssign", &QuickAssign);
     _treecorr.def("SelectPatch", &SelectPatch);

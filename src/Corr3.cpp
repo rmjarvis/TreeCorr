@@ -1432,7 +1432,7 @@ struct WrapAuto<D,D,D,C>
 };
 
 template <int D1, int D2, int D3, int C, typename W1, typename W2>
-void WrapCoord(py::module& _treecorr, W1& corr3, W2& base_corr3)
+void WrapCross(py::module& _treecorr, W1& corr3, W2& base_corr3)
 {
     typedef void (*cross_type)(Corr3<D1,D2,D3>* corr123, Corr3<D1,D3,D2>* corr132,
                                Corr3<D2,D1,D3>* corr213, Corr3<D2,D3,D1>* corr231,
@@ -1443,7 +1443,6 @@ void WrapCoord(py::module& _treecorr, W1& corr3, W2& base_corr3)
     corr3.def("processCross", cross_type(&ProcessCross));
     WrapAuto<D1,D2,D3,C>::run(corr3);
 }
-
 
 template <int D1, int D2, int D3, typename W>
 void WrapCorr3(py::module& _treecorr, std::string prefix, W& base_corr3)
@@ -1466,9 +1465,9 @@ void WrapCorr3(py::module& _treecorr, std::string prefix, W& base_corr3)
     py::class_<Corr3<D1,D2,D3>, BaseCorr3> corr3(_treecorr, (prefix + "Corr").c_str());
     corr3.def(py::init(init_type(&BuildCorr3)));
 
-    WrapCoord<D1,D2,D3,Flat>(_treecorr, corr3, base_corr3);
-    WrapCoord<D1,D2,D3,Sphere>(_treecorr, corr3, base_corr3);
-    WrapCoord<D1,D2,D3,ThreeD>(_treecorr, corr3, base_corr3);
+    WrapCross<D1,D2,D3,Flat>(_treecorr, corr3, base_corr3);
+    WrapCross<D1,D2,D3,Sphere>(_treecorr, corr3, base_corr3);
+    WrapCross<D1,D2,D3,ThreeD>(_treecorr, corr3, base_corr3);
 }
 
 void pyExportCorr3(py::module& _treecorr)

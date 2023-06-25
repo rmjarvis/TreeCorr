@@ -37,8 +37,8 @@ public:
     ~BaseCorr2() {}
 
     // Sample a random subset of pairs in a given range
-    template <int B, int M, int P, int D1, int D2, int C>
-    long samplePairs(const Field<D1, C>& field1, const Field<D2, C>& field2,
+    template <int B, int M, int P, int C>
+    long samplePairs(const BaseField<C>& field1, const BaseField<C>& field2,
                      double min_sep, double max_sep, long* i1, long* i2, double* sep, int n);
     template <int B, int M, int P, int C>
     void samplePairs(const BaseCell<C>& c1, const BaseCell<C>& c2, const MetricHelper<M,P>& m,

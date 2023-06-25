@@ -153,36 +153,36 @@ void Corr3<D1,D2,D3>::clear()
 template <int D1, int D2, int D3, int B, int M, int C>
 struct ProcessHelper
 {
-    static void process3(Corr3<D1,D2,D3>& , const Cell<D1,C>*, const MetricHelper<M,0>&) {}
-    static void process12(Corr3<D1,D2,D3>& , const Cell<D1,C>*, const Cell<D2,C>*,
+    static void process3(Corr3<D1,D2,D3>& , const BaseCell<C>*, const MetricHelper<M,0>&) {}
+    static void process12(Corr3<D1,D2,D3>& , const BaseCell<C>*, const BaseCell<C>*,
                           const MetricHelper<M,0>&) {}
-    static void process111(Corr3<D1,D2,D3>& , const Cell<D1,C>*, const Cell<D2,C>*,
-                           const Cell<D3,C>*, const MetricHelper<M,0>&) {}
+    static void process111(Corr3<D1,D2,D3>& , const BaseCell<C>*, const BaseCell<C>*,
+                           const BaseCell<C>*, const MetricHelper<M,0>&) {}
     static void process12(Corr3<D1,D2,D2>& , Corr3<D2,D1,D2>& , Corr3<D2,D2,D1>& ,
-                          const Cell<D1,C>* , const Cell<D2,C>* ,
+                          const BaseCell<C>* , const BaseCell<C>* ,
                           const MetricHelper<M,0>& ) {}
     static void process111(Corr3<D1,D2,D2>& , Corr3<D2,D1,D2>& , Corr3<D2,D2,D1>& ,
-                           const Cell<D1,C>* , const Cell<D2,C>* , const Cell<D2,C>*,
+                           const BaseCell<C>* , const BaseCell<C>* , const BaseCell<C>*,
                            const MetricHelper<M,0>& ) {}
 };
 
 template <int D1, int D2, int B, int M, int C>
 struct ProcessHelper<D1,D2,D2,B,M,C>
 {
-    static void process3(Corr3<D1,D2,D2>& b, const Cell<D1,C>*, const MetricHelper<M,0>&) {}
+    static void process3(Corr3<D1,D2,D2>& b, const BaseCell<C>*, const MetricHelper<M,0>&) {}
     static void process12(Corr3<D1,D2,D2>& b,
-                          const Cell<D1,C>* , const Cell<D2,C>*,
+                          const BaseCell<C>* , const BaseCell<C>*,
                           const MetricHelper<M,0>&) {}
     static void process111(Corr3<D1,D2,D2>& b,
-                           const Cell<D1,C>* , const Cell<D2,C>*, const Cell<D2,C>*,
+                           const BaseCell<C>* , const BaseCell<C>*, const BaseCell<C>*,
                            const MetricHelper<M,0>&) {}
     static void process12(Corr3<D1,D2,D2>& b122, Corr3<D2,D1,D2>& b212, Corr3<D2,D2,D1>& b221,
-                          const Cell<D1,C>* c1, const Cell<D2,C>* c2,
+                          const BaseCell<C>* c1, const BaseCell<C>* c2,
                           const MetricHelper<M,0>& metric)
     { b122.template process12<B>(b212,b221,c1,c2, metric); }
     static void process111(Corr3<D1,D2,D2>& b122, Corr3<D2,D1,D2>& b212,
                            Corr3<D2,D2,D1>& b221,
-                           const Cell<D1,C>* c1, const Cell<D2,C>* c2, const Cell<D2,C>* c3,
+                           const BaseCell<C>* c1, const BaseCell<C>* c2, const BaseCell<C>* c3,
                            const MetricHelper<M,0>& metric)
     { b122.template process111<B>(b122,b212,b221,b212,b221,c1,c2,c3, metric); }
 };
@@ -190,23 +190,23 @@ struct ProcessHelper<D1,D2,D2,B,M,C>
 template <int D, int B, int M, int C>
 struct ProcessHelper<D,D,D,B,M,C>
 {
-    static void process3(Corr3<D,D,D>& b, const Cell<D,C>* c1,
+    static void process3(Corr3<D,D,D>& b, const BaseCell<C>* c1,
                          const MetricHelper<M,0>& metric)
     { b.template process3<B>(c1, metric); }
     static void process12(Corr3<D,D,D>& b,
-                          const Cell<D,C>* c1, const Cell<D,C>* c2,
+                          const BaseCell<C>* c1, const BaseCell<C>* c2,
                           const MetricHelper<M,0>& metric)
     { b.template process12<B>(b,b,c1,c2, metric); }
     static void process111(Corr3<D,D,D>& b,
-                           const Cell<D,C>* c1, const Cell<D,C>* c2, const Cell<D,C>* c3,
+                           const BaseCell<C>* c1, const BaseCell<C>* c2, const BaseCell<C>* c3,
                            const MetricHelper<M,0>& metric)
     { b.template process111<B>(b,b,b,b,b,c1,c2,c3, metric); }
     static void process12(Corr3<D,D,D>& b122, Corr3<D,D,D>& b212, Corr3<D,D,D>& b221,
-                          const Cell<D,C>* c1, const Cell<D,C>* c2,
+                          const BaseCell<C>* c1, const BaseCell<C>* c2,
                           const MetricHelper<M,0>& metric)
     { b122.template process12<B>(b212,b221,c1,c2, metric); }
     static void process111(Corr3<D,D,D>& b122, Corr3<D,D,D>& b212, Corr3<D,D,D>& b221,
-                           const Cell<D,C>* c1, const Cell<D,C>* c2, const Cell<D,C>* c3,
+                           const BaseCell<C>* c1, const BaseCell<C>* c2, const BaseCell<C>* c3,
                            const MetricHelper<M,0>& metric)
     { b122.template process111<B>(b122,b212,b221,b212,b221,c1,c2,c3, metric); }
 };
@@ -238,7 +238,7 @@ void Corr3<D1,D2,D3>::process(const Field<D1,C>& field, bool dots)
 #pragma omp for schedule(dynamic)
 #endif
         for (long i=0;i<n1;++i) {
-            const Cell<D1,C>* c1 = field.getCells()[i];
+            const BaseCell<C>* c1 = field.getCells()[i];
 #ifdef _OPENMP
 #pragma omp critical
 #endif
@@ -254,11 +254,11 @@ void Corr3<D1,D2,D3>::process(const Field<D1,C>& field, bool dots)
             }
             ProcessHelper<D1,D2,D3,B,M,C>::process3(bc3,c1, metric);
             for (long j=i+1;j<n1;++j) {
-                const Cell<D1,C>* c2 = field.getCells()[j];
+                const BaseCell<C>* c2 = field.getCells()[j];
                 ProcessHelper<D1,D2,D3,B,M,C>::process12(bc3,c1,c2, metric);
                 ProcessHelper<D1,D2,D3,B,M,C>::process12(bc3,c2,c1, metric);
                 for (long k=j+1;k<n1;++k) {
-                    const Cell<D1,C>* c3 = field.getCells()[k];
+                    const BaseCell<C>* c3 = field.getCells()[k];
                     ProcessHelper<D1,D2,D3,B,M,C>::process111(bc3,c1,c2,c3, metric);
                 }
             }
@@ -297,13 +297,13 @@ void Corr3<D1,D2,D3>::process(Corr3<D2,D1,D2>* corr212, Corr3<D2,D2,D1>* corr221
         xdbg<<"field1: \n";
         for (long i=0;i<n1;++i) {
             xdbg<<"node "<<i<<std::endl;
-            const Cell<D1,C>* c1 = field1.getCells()[i];
+            const BaseCell<C>* c1 = field1.getCells()[i];
             c1->WriteTree(get_dbgout());
         }
         xdbg<<"field2: \n";
         for (long i=0;i<n2;++i) {
             xdbg<<"node "<<i<<std::endl;
-            const Cell<D2,C>* c2 = field2.getCells()[i];
+            const BaseCell<C>* c2 = field2.getCells()[i];
             c2->WriteTree(get_dbgout());
         }
     }
@@ -335,12 +335,12 @@ void Corr3<D1,D2,D3>::process(Corr3<D2,D1,D2>* corr212, Corr3<D2,D2,D1>* corr221
                 dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
 #endif
             }
-            const Cell<D1,C>* c1 = field1.getCells()[i];
+            const BaseCell<C>* c1 = field1.getCells()[i];
             for (long j=0;j<n2;++j) {
-                const Cell<D2,C>* c2 = field2.getCells()[j];
+                const BaseCell<C>* c2 = field2.getCells()[j];
                 ProcessHelper<D1,D2,D3,B,M,C>::process12(bc122,bc212,bc221, c1,c2, metric);
                 for (long k=j+1;k<n2;++k) {
-                    const Cell<D2,C>* c3 = field2.getCells()[k];
+                    const BaseCell<C>* c3 = field2.getCells()[k];
                     ProcessHelper<D1,D2,D3,B,M,C>::process111(bc122,bc212,bc221, c1,c2,c3, metric);
                 }
             }
@@ -386,19 +386,19 @@ void Corr3<D1,D2,D3>::process(Corr3<D1,D3,D2>* corr132,
         xdbg<<"field1: \n";
         for (long i=0;i<n1;++i) {
             xdbg<<"node "<<i<<std::endl;
-            const Cell<D1,C>* c1 = field1.getCells()[i];
+            const BaseCell<C>* c1 = field1.getCells()[i];
             c1->WriteTree(get_dbgout());
         }
         xdbg<<"field2: \n";
         for (long i=0;i<n2;++i) {
             xdbg<<"node "<<i<<std::endl;
-            const Cell<D2,C>* c2 = field2.getCells()[i];
+            const BaseCell<C>* c2 = field2.getCells()[i];
             c2->WriteTree(get_dbgout());
         }
         xdbg<<"field3: \n";
         for (long i=0;i<n3;++i) {
             xdbg<<"node "<<i<<std::endl;
-            const Cell<D3,C>* c3 = field3.getCells()[i];
+            const BaseCell<C>* c3 = field3.getCells()[i];
             c3->WriteTree(get_dbgout());
         }
     }
@@ -436,11 +436,11 @@ void Corr3<D1,D2,D3>::process(Corr3<D1,D3,D2>* corr132,
                 dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
 #endif
             }
-            const Cell<D1,C>* c1 = field1.getCells()[i];
+            const BaseCell<C>* c1 = field1.getCells()[i];
             for (long j=0;j<n2;++j) {
-                const Cell<D2,C>* c2 = field2.getCells()[j];
+                const BaseCell<C>* c2 = field2.getCells()[j];
                 for (long k=0;k<n3;++k) {
-                    const Cell<D3,C>* c3 = field3.getCells()[k];
+                    const BaseCell<C>* c3 = field3.getCells()[k];
                     bc123.template process111<B>(
                         bc132, bc213, bc231, bc312, bc321,
                         c1, c2, c3, metric);
@@ -464,7 +464,7 @@ void Corr3<D1,D2,D3>::process(Corr3<D1,D3,D2>* corr132,
 }
 
 template <int D1, int D2, int D3> template <int B, int M, int C>
-void Corr3<D1,D2,D3>::process3(const Cell<D1,C>* c1, const MetricHelper<M,0>& metric)
+void Corr3<D1,D2,D3>::process3(const BaseCell<C>* c1, const MetricHelper<M,0>& metric)
 {
     // Does all triangles with 3 points in c1
     xdbg<<"Process3: c1 = "<<c1->getData().getPos()<<"  "<<"  "<<c1->getSize()<<"  "<<c1->getData().getN()<<std::endl;
@@ -487,7 +487,7 @@ void Corr3<D1,D2,D3>::process3(const Cell<D1,C>* c1, const MetricHelper<M,0>& me
 
 template <int D1, int D2, int D3> template <int B, int M, int C>
 void Corr3<D1,D2,D3>::process12(Corr3<D2,D1,D2>& bc212, Corr3<D2,D2,D1>& bc221,
-                                const Cell<D1,C>* c1, const Cell<D2,C>* c2,
+                                const BaseCell<C>* c1, const BaseCell<C>* c2,
                                 const MetricHelper<M,0>& metric)
 {
     // Does all triangles with one point in c1 and the other two points in c2
@@ -661,7 +661,7 @@ void Corr3<D1,D2,D3>::process111(
     Corr3<D1,D3,D2>& bc132,
     Corr3<D2,D1,D3>& bc213, Corr3<D2,D3,D1>& bc231,
     Corr3<D3,D1,D2>& bc312, Corr3<D3,D2,D1>& bc321,
-    const Cell<D1,C>* c1, const Cell<D2,C>* c2, const Cell<D3,C>* c3,
+    const BaseCell<C>* c1, const BaseCell<C>* c2, const BaseCell<C>* c3,
     const MetricHelper<M,0>& metric, double d1sq, double d2sq, double d3sq)
 {
     // Does all triangles with 1 point each in c1, c2, c3
@@ -734,7 +734,7 @@ void Corr3<D1,D2,D3>::process111Sorted(
     Corr3<D1,D3,D2>& bc132,
     Corr3<D2,D1,D3>& bc213, Corr3<D2,D3,D1>& bc231,
     Corr3<D3,D1,D2>& bc312, Corr3<D3,D2,D1>& bc321,
-    const Cell<D1,C>* c1, const Cell<D2,C>* c2, const Cell<D3,C>* c3,
+    const BaseCell<C>* c1, const BaseCell<C>* c2, const BaseCell<C>* c3,
     const MetricHelper<M,0>& metric, double d1sq, double d2sq, double d3sq)
 {
     const double s1 = c1->getSize();
@@ -1153,7 +1153,7 @@ struct DirectHelper<GData,GData,GData>
 
 template <int D1, int D2, int D3> template <int B, int C>
 void Corr3<D1,D2,D3>::directProcess111(
-    const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
+    const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
     const double d1, const double d2, const double d3,
     const double logr, const double u, const double v, const int index)
 {
@@ -1174,7 +1174,11 @@ void Corr3<D1,D2,D3>::directProcess111(
     _meanv[index] += www * v;
     _weight[index] += www;
 
-    DirectHelper<D1,D2,D3>::template ProcessZeta<C>(c1,c2,c3,d1,d2,d3,_zeta,index);
+    DirectHelper<D1,D2,D3>::template ProcessZeta<C>(
+        static_cast<const Cell<D1,C>&>(c1),
+        static_cast<const Cell<D2,C>&>(c2),
+        static_cast<const Cell<D3,C>&>(c3),
+        d1,d2,d3,_zeta,index);
 }
 
 template <int D1, int D2, int D3>

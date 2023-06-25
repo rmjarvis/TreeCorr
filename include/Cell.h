@@ -69,35 +69,53 @@ template <int D, int C>
 class CellData;
 
 template <int C>
-class CellData<NData,C>
+class BaseCellData
 {
 public:
-    CellData() {}
+    BaseCellData() {}
 
-    CellData(const Position<C>& pos, double w) :
-        _pos(pos), _w(w), _n(1) {}
+    virtual ~BaseCellData() {}
 
-    template <int C2>
-    CellData(const Position<C2>& pos, double w) :
-        _pos(pos), _w(w), _n(1) {}
+    BaseCellData(const Position<C>& pos, double w) :
+        _pos(pos), _w(w), _n(1)
+    {}
 
-    CellData(const std::vector<std::pair<CellData<NData,C>*,WPosLeafInfo> >& vdata,
-             size_t start, size_t end);
-
-    // This doesn't do anything, but is provided for consistency with the other
-    // kinds of CellData.
-    void finishAverages(const std::vector<std::pair<CellData<NData,C>*,WPosLeafInfo> >&,
-                        size_t , size_t ) {}
+    BaseCellData(const std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >& vdata,
+                 size_t start, size_t end);
 
     const Position<C>& getPos() const { return _pos; }
     double getW() const { return _w; }
     long getN() const { return _n; }
 
-private:
+protected:
 
     Position<C> _pos;
     float _w;
     long _n;
+};
+
+
+template <int C>
+class CellData<NData,C> : public BaseCellData<C>
+{
+public:
+    CellData() {}
+
+    CellData(const Position<C>& pos, double w) :
+        BaseCellData<C>(pos, w) {}
+
+    template <int C2>
+    CellData(const Position<C2>& pos, double w) :
+        BaseCellData<C>(pos, w) {}
+
+    CellData(const std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >& vdata,
+             size_t start, size_t end) :
+        BaseCellData<C>(vdata, start, end) {}
+
+    // This doesn't do anything, but is provided for consistency with the other
+    // kinds of CellData.
+    void finishAverages(const std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >&,
+                        size_t , size_t ) {}
 };
 
 template <int C>
@@ -105,39 +123,34 @@ std::ostream& operator<<(std::ostream& os, const CellData<NData,C>& c)
 { return os << c.getPos() << " " << c.getN(); }
 
 template <int C>
-class CellData<KData,C>
+class CellData<KData,C> : public BaseCellData<C>
 {
 public:
     CellData() {}
 
     CellData(const Position<C>& pos, double k, double w) :
-        _pos(pos), _wk(w*k), _w(w), _n(1)
+        BaseCellData<C>(pos, w), _wk(w*k)
     {}
 
     template <int C2>
     CellData(const Position<C2>& pos, double k, double w) :
-        _pos(pos), _wk(w*k), _w(w), _n(1)
+        BaseCellData<C>(pos, w), _wk(w*k)
     {}
 
-    CellData(const std::vector<std::pair<CellData<KData,C>*,WPosLeafInfo> >& vdata,
-             size_t start, size_t end);
+    CellData(const std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >& vdata,
+             size_t start, size_t end) :
+        BaseCellData<C>(vdata, start, end) {}
 
     // The above constructor just computes the mean pos, since sometimes that's all we
     // need.  So this function will finish the rest of the construction when desired.
-    void finishAverages(const std::vector<std::pair<CellData<KData,C>*,WPosLeafInfo> >&,
+    void finishAverages(const std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >&,
                         size_t start, size_t end);
 
-    const Position<C>& getPos() const { return _pos; }
     double getWK() const { return _wk; }
-    double getW() const { return _w; }
-    long getN() const { return _n; }
 
-private:
+protected:
 
-    Position<C> _pos;
     float _wk;
-    float _w;
-    long _n;
 };
 
 template <int C>
@@ -145,69 +158,55 @@ std::ostream& operator<<(std::ostream& os, const CellData<KData,C>& c)
 { return os << c.getPos() << " " << c.getWK() << " " << c.getW() << " " << c.getN(); }
 
 template <int C>
-class CellData<GData,C>
+class CellData<GData,C> : public BaseCellData<C>
 {
 public:
     CellData() {}
 
     CellData(const Position<C>& pos, const std::complex<double>& g, double w) :
-        _pos(pos), _wg(w*g), _w(w), _n(1)
+        BaseCellData<C>(pos, w), _wg(w*g)
     {}
 
     template <int C2>
     CellData(const Position<C2>& pos, const std::complex<double>& g, double w) :
-        _pos(pos), _wg(w*g), _w(w), _n(1)
+        BaseCellData<C>(pos, w), _wg(w*g)
     {}
 
-    CellData(const std::vector<std::pair<CellData<GData,C>*,WPosLeafInfo> >& vdata,
-             size_t start, size_t end);
+    CellData(const std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >& vdata,
+             size_t start, size_t end) :
+        BaseCellData<C>(vdata, start, end) {}
 
     // The above constructor just computes the mean pos, since sometimes that's all we
     // need.  So this function will finish the rest of the construction when desired.
-    void finishAverages(const std::vector<std::pair<CellData<GData,C>*,WPosLeafInfo> >&,
+    void finishAverages(const std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >&,
                         size_t start, size_t end);
 
-    const Position<C>& getPos() const { return _pos; }
     std::complex<double> getWG() const { return _wg; }
-    double getW() const { return _w; }
-    long getN() const { return _n; }
 
-private:
+protected:
 
-    Position<C> _pos;
     std::complex<float> _wg;
-    float _w;
-    long _n;
 };
 
 template <int C>
 std::ostream& operator<<(std::ostream& os, const CellData<GData,C>& c)
 { return os << c.getPos() << " " << c.getWG() << " " << c.getW() << " " << c.getN(); }
 
-template <int D, int C>
-class Cell
+template <int C>
+class BaseCell
 {
 public:
 
-    // A Cell contains the accumulated data for a bunch of galaxies.
-    // It is characterized primarily by a centroid and a size.
-    // The centroid is simply the weighted centroid of all the galaxy positions.
-    // The size is the maximum deviation of any one of these galaxies
-    // from the centroid.  That is, all galaxies fall within a radius
-    // size from the centroid.
-    // The structure also keeps track of some averages and sums about
-    // the galaxies which are used in the correlation function calculations.
-
-    Cell(CellData<D,C>* data, const LeafInfo& info) :
+    BaseCell(BaseCellData<C>* data, const LeafInfo& info) :
         _data(data), _size(0.), _left(0), _info(info) {}
 
-    Cell(CellData<D,C>* data, const ListLeafInfo& listinfo) :
+    BaseCell(BaseCellData<C>* data, const ListLeafInfo& listinfo) :
         _data(data), _size(0.), _left(0), _listinfo(listinfo) {}
 
-    Cell(CellData<D,C>* data, double size, Cell<D,C>* l, Cell<D,C>* r) :
+    BaseCell(BaseCellData<C>* data, double size, BaseCell<C>* l, BaseCell<C>* r) :
         _data(data), _size(size), _left(l), _right(r) {}
 
-    ~Cell()
+    virtual ~BaseCell()
     {
         if (_left) {
             Assert(_right);
@@ -221,7 +220,7 @@ public:
         }
     }
 
-    const CellData<D,C>& getData() const { return *_data; }
+    const BaseCellData<C>& getData() const { return *_data; }
     const Position<C>& getPos() const { return _data->getPos(); }
     double getW() const { return _data->getW(); }
     long getN() const { return _data->getN(); }
@@ -229,51 +228,84 @@ public:
     double getSize() const { return _size; }
     double calculateInertia() const;
 
-    const Cell<D,C>* getLeft() const { return _left; }
-    const Cell<D,C>* getRight() const { return _left ? _right : 0; }
+    const BaseCell<C>* getLeft() const { return _left; }
+    const BaseCell<C>* getRight() const { return _left ? _right : 0; }
     const LeafInfo& getInfo() const { Assert(!_left && getN()==1); return _info; }
     const ListLeafInfo& getListInfo() const { Assert(!_left && getN()!=1); return _listinfo; }
 
     // These are mostly used for debugging purposes.
     long countLeaves() const;
-    std::vector<const Cell<D,C>*> getAllLeaves() const;
+    std::vector<const BaseCell<C>*> getAllLeaves() const;
     bool includesIndex(long index) const;
     std::vector<long> getAllIndices() const;
-    const Cell<D,C>* getLeafNumber(long i) const;
+    const BaseCell<C>* getLeafNumber(long i) const;
 
     void Write(std::ostream& os) const;
     void WriteTree(std::ostream& os, int indent=0) const;
 
 protected:
 
-    CellData<D,C>* _data;
+    BaseCellData<C>* _data;
     float _size;
 
-    Cell<D,C>* _left;
+    BaseCell<C>* _left;
     union {
-        Cell<D,C>* _right;      // Use this when _left != 0
+        BaseCell<C>* _right;    // Use this when _left != 0
         LeafInfo _info;         // Use this when _left == 0 and N == 1
         ListLeafInfo _listinfo; // Use this when _left == 0 and N > 1
     };
 };
 
 template <int D, int C>
+class Cell : public BaseCell<C>
+{
+public:
+
+    // A Cell contains the accumulated data for a bunch of galaxies.
+    // It is characterized primarily by a centroid and a size.
+    // The centroid is simply the weighted centroid of all the galaxy positions.
+    // The size is the maximum deviation of any one of these galaxies
+    // from the centroid.  That is, all galaxies fall within a radius
+    // size from the centroid.
+    // The structure also keeps track of some averages and sums about
+    // the galaxies which are used in the correlation function calculations.
+
+    Cell(CellData<D,C>* data, const LeafInfo& info) :
+        BaseCell<C>(data, info) {}
+
+    Cell(CellData<D,C>* data, const ListLeafInfo& listinfo) :
+        BaseCell<C>(data, listinfo) {}
+
+    Cell(CellData<D,C>* data, double size, Cell<D,C>* l, Cell<D,C>* r) :
+        BaseCell<C>(data, size, l, r) {}
+
+    const CellData<D,C>& getData() const
+    { return static_cast<const CellData<D,C>&>(BaseCell<C>::getData()); }
+
+    const Cell<D,C>* getLeft() const
+    { return static_cast<const Cell<D,C>*>(BaseCell<C>::getLeft()); }
+
+    const Cell<D,C>* getRight() const
+    { return static_cast<const Cell<D,C>*>(BaseCell<C>::getRight()); }
+};
+
+template <int C>
 double CalculateSizeSq(
-    const Position<C>& cen, const std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
+    const Position<C>& cen, const std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end);
 
-template <int D, int C, int SM>
+template <int C, int SM>
 size_t SplitData(
-    std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
+    std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end, const Position<C>& meanpos);
 
 template <int D, int C, int SM>
-Cell<D,C>* BuildCell(std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& vdata,
+Cell<D,C>* BuildCell(std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >& vdata,
                      double minsizesq, bool brute, size_t start, size_t end,
                      CellData<D,C>* ave=0, double sizesq=0.);
 
-template <int D, int C>
-inline std::ostream& operator<<(std::ostream& os, const Cell<D,C>& c)
+template <int C>
+inline std::ostream& operator<<(std::ostream& os, const BaseCell<C>& c)
 { c.Write(os); return os; }
 
 #endif

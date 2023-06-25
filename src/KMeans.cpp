@@ -25,8 +25,8 @@
 // In Corr2.cpp
 extern void SelectRandomFrom(long m, std::vector<long>& selection);
 
-template <int D, int C>
-void InitializeCentersTree(std::vector<Position<C> >& centers, const Cell<D,C>* cell,
+template <int C>
+void InitializeCentersTree(std::vector<Position<C> >& centers, const BaseCell<C>* cell,
                            long first, int ncenters)
 {
     xdbg<<"Recursive InitializeCentersTree: "<<first<<"  "<<ncenters<<std::endl;
@@ -58,9 +58,9 @@ void InitializeCentersTree(std::vector<Position<C> >& centers, const Cell<D,C>* 
     xdbg<<"End of Recursive InitializeCentersTree\n";
 }
 
-template <int D, int C>
-void InitializeCentersTree(std::vector<Position<C> >& centers, const std::vector<Cell<D,C>*>& cells,
-                           long long seed)
+template <int C>
+void InitializeCentersTree(std::vector<Position<C> >& centers,
+                           const std::vector<BaseCell<C>*>& cells, long long seed)
 {
     dbg<<"Initialize centers: "<<centers.size()<<"  "<<cells.size()<<std::endl;
     long ncenters = centers.size();
@@ -108,9 +108,9 @@ void InitializeCentersTree(std::vector<Position<C> >& centers, const std::vector
     xdbg<<"Done initializing centers\n";
 }
 
-template <int D, int C>
-void InitializeCentersRand(std::vector<Position<C> >& centers, const std::vector<Cell<D,C>*>& cells,
-                           long long seed)
+template <int C>
+void InitializeCentersRand(std::vector<Position<C> >& centers,
+                           const std::vector<BaseCell<C>*>& cells, long long seed)
 {
     dbg<<"Initialize centers (random): "<<centers.size()<<"  "<<cells.size()<<std::endl;
     // Pick npatch random numbers from the total number of objecst.
@@ -133,7 +133,7 @@ void InitializeCentersRand(std::vector<Position<C> >& centers, const std::vector
         long m = index[i];
         for (long k=0; k<ncells; ++k) {
             if (m < cells[k]->getN()) {
-                const Cell<D,C>* c = cells[k]->getLeafNumber(m);
+                const BaseCell<C>* c = cells[k]->getLeafNumber(m);
                 centers[i] = c->getPos();
                 xdbg<<"  k = "<<k<<", m = "<<m<<" cen = "<<centers[i]<<std::endl;
                 break;
@@ -156,8 +156,8 @@ void InitializeCentersRand(std::vector<Position<C> >& centers, const std::vector
     }
 }
 
-template <int D, int C>
-Position<C> InitializeCentersKMPP(const Cell<D,C>* cell,
+template <int C>
+Position<C> InitializeCentersKMPP(const BaseCell<C>* cell,
                                   const std::vector<Position<C> >& centers, long ncen)
 {
     struct LeafAlreadyUsed {};
@@ -179,8 +179,8 @@ Position<C> InitializeCentersKMPP(const Cell<D,C>* cell,
     // If not, then we choose which subcell to recurse to based on the relative dsq values
     // to each daughter's closest center.
 
-    const Cell<D,C>* left = cell->getLeft();
-    const Cell<D,C>* right = cell->getRight();
+    const BaseCell<C>* left = cell->getLeft();
+    const BaseCell<C>* right = cell->getRight();
     double dsq1 = (left->getPos() - centers[0]).normSq();
     double dsq2 = (right->getPos() - centers[0]).normSq();
 
@@ -217,9 +217,9 @@ Position<C> InitializeCentersKMPP(const Cell<D,C>* cell,
     }
 }
 
-template <int D, int C>
-void InitializeCentersKMPP(std::vector<Position<C> >& centers, const std::vector<Cell<D,C>*>& cells,
-                           long long seed)
+template <int C>
+void InitializeCentersKMPP(std::vector<Position<C> >& centers,
+                           const std::vector<BaseCell<C>*>& cells, long long seed)
 {
     // cf. https://en.wikipedia.org/wiki/K-means%2B%2B
     // The basic KMeans++ algorithm is as follows:
@@ -314,20 +314,20 @@ void InitializeCentersKMPP(std::vector<Position<C> >& centers, const std::vector
     }
 }
 
-template <int D, int C>
+template <int C>
 struct StoreCells
 {
     int npatch;
-    std::vector<std::vector<const Cell<D,C>*> > cells_by_patch;
+    std::vector<std::vector<const BaseCell<C>*> > cells_by_patch;
 
     StoreCells(int _npatch) : npatch(_npatch), cells_by_patch(npatch) {}
 
-    void run(int patch_num, const Cell<D,C>* cell)
+    void run(int patch_num, const BaseCell<C>* cell)
     {
         cells_by_patch[patch_num].push_back(cell);
     }
 
-    void combineWith(const StoreCells<D,C>& rhs)
+    void combineWith(const StoreCells<C>& rhs)
     {
         for (int i=0; i<npatch; ++i)
             cells_by_patch[i].insert(cells_by_patch[i].end(),
@@ -343,7 +343,7 @@ struct StoreCells
     }
 };
 
-template <int D, int C>
+template <int C>
 struct UpdateCenters
 {
     int npatch;
@@ -352,13 +352,13 @@ struct UpdateCenters
 
     UpdateCenters(int _npatch) : npatch(_npatch), new_centers(npatch), w(npatch) {}
 
-    void run(int patch_num, const Cell<D,C>* cell)
+    void run(int patch_num, const BaseCell<C>* cell)
     {
         new_centers[patch_num] += cell->getPos() * cell->getW();
         w[patch_num] += cell->getW();
     }
 
-    void combineWith(const UpdateCenters<D,C>& rhs)
+    void combineWith(const UpdateCenters<C>& rhs)
     {
         for (int i=0; i<npatch; ++i) {
             new_centers[i] += rhs.new_centers[i];
@@ -384,7 +384,7 @@ struct UpdateCenters
     }
 };
 
-template <int D, int C>
+template <int C>
 struct CalculateInertia
 {
     int npatch;
@@ -395,7 +395,7 @@ struct CalculateInertia
     CalculateInertia(int _npatch, const std::vector<Position<C> >& _centers) :
         npatch(_npatch), inertia(npatch,0.), sumw(0.), centers(_centers) {}
 
-    void run(int patch_num, const Cell<D,C>* cell)
+    void run(int patch_num, const BaseCell<C>* cell)
     {
         double ssq = SQR(cell->getSize());
         double w = cell->getW();
@@ -416,7 +416,7 @@ struct CalculateInertia
         sumw += w;
     }
 
-    void combineWith(const CalculateInertia<D,C>& rhs)
+    void combineWith(const CalculateInertia<C>& rhs)
     {
         for (int i=0; i<npatch; ++i) {
             inertia[i] += rhs.inertia[i];
@@ -462,7 +462,7 @@ struct CalculateInertia
     }
 };
 
-template <int D, int C>
+template <int C>
 struct AssignPatches
 {
     long* patches;
@@ -479,7 +479,7 @@ struct AssignPatches
 #endif
     {}
 
-    void run(int patch_num, const Cell<D,C>* cell)
+    void run(int patch_num, const BaseCell<C>* cell)
     {
         xdbg<<"Start AssignPatches "<<cell<<" "<<patch_num<<std::endl;
         if (cell->getLeft()) {
@@ -509,7 +509,7 @@ struct AssignPatches
         }
     }
 
-    void combineWith(const AssignPatches<D,C>& rhs)
+    void combineWith(const AssignPatches<C>& rhs)
     {
 #ifdef DEBUGLOGGING
         int npatch = centers.size();
@@ -540,9 +540,9 @@ struct AssignPatches
     void reset() {}
 };
 
-template <int D, int C, typename F>
+template <int C, typename F>
 void FindCellsInPatches(const std::vector<Position<C> >& centers,
-                        const Cell<D,C>* cell, std::vector<long>& patches, long ncand,
+                        const BaseCell<C>* cell, std::vector<long>& patches, long ncand,
                         std::vector<double>& saved_dsq, F& f,
                         const std::vector<double>* inertia)
 {
@@ -644,9 +644,9 @@ void FindCellsInPatches(const std::vector<Position<C> >& centers,
 
 // This recurses the tree until if finds a cell that completely belongs in only a single
 // patch and then runs f, which can be any of the above function classes.
-template <int D, int C, typename F>
+template <int C, typename F>
 void FindCellsInPatches(const std::vector<Position<C> >& centers,
-                        const std::vector<Cell<D,C>*>& cells, F& f,
+                        const std::vector<BaseCell<C>*>& cells, F& f,
                         const std::vector<double>* inertia=0)
 {
 #ifdef _OPENMP
@@ -743,7 +743,7 @@ template <int D, int C>
 void KMeansInitTree2(Field<D,C>*field, double* pycenters, int npatch, long long seed)
 {
     dbg<<"Start KMeansInitTree for "<<npatch<<" patches\n";
-    const std::vector<Cell<D,C>*> cells = field->getCells();
+    const std::vector<BaseCell<C>*> cells = field->getCells();
     std::vector<Position<C> > centers(npatch);
     InitializeCentersTree(centers, cells, seed);
     WriteCenters(centers, pycenters, npatch);
@@ -753,7 +753,7 @@ template <int D, int C>
 void KMeansInitRand2(Field<D,C>*field, double* pycenters, int npatch, long long seed)
 {
     dbg<<"Start KMeansInitRand for "<<npatch<<" patches\n";
-    const std::vector<Cell<D,C>*> cells = field->getCells();
+    const std::vector<BaseCell<C>*> cells = field->getCells();
     std::vector<Position<C> > centers(npatch);
     InitializeCentersRand(centers, cells, seed);
     WriteCenters(centers, pycenters, npatch);
@@ -763,7 +763,7 @@ template <int D, int C>
 void KMeansInitKMPP2(Field<D,C>*field, double* pycenters, int npatch, long long seed)
 {
     dbg<<"Start KMeansInitKMPP for "<<npatch<<" patches\n";
-    const std::vector<Cell<D,C>*> cells = field->getCells();
+    const std::vector<BaseCell<C>*> cells = field->getCells();
     std::vector<Position<C> > centers(npatch);
     InitializeCentersKMPP(centers, cells, seed);
     WriteCenters(centers, pycenters, npatch);
@@ -774,7 +774,7 @@ void KMeansRun2(Field<D,C>*field, double* pycenters, int npatch, int max_iter, d
                 bool alt)
 {
     dbg<<"Start KMeansRun for "<<npatch<<" patches\n";
-    const std::vector<Cell<D,C>*> cells = field->getCells();
+    const std::vector<BaseCell<C>*> cells = field->getCells();
 
     // Initialize the centers of the patches smartly according to the tree structure.
     std::vector<Position<C> > centers(npatch);
@@ -788,12 +788,12 @@ void KMeansRun2(Field<D,C>*field, double* pycenters, int npatch, int max_iter, d
     xdbg<<"tolsq = "<<tolsq<<std::endl;
 
     // The alt version needs to keep track of the inertia of each patch.
-    CalculateInertia<D,C> calculate_inertia(alt ? npatch : 0, centers);
+    CalculateInertia<C> calculate_inertia(alt ? npatch : 0, centers);
     std::vector<double>* pinertia = 0;
     xdbg<<"Made calculate_inertia\n";
 
     // Keep track of which cells belong to which patch.
-    UpdateCenters<D,C> update_centers(npatch);
+    UpdateCenters<C> update_centers(npatch);
     xdbg<<"Made update_centers\n";
 
     for(int iter=0; iter<max_iter; ++iter) {
@@ -835,13 +835,13 @@ template <int D, int C>
 void KMeansAssign2(Field<D,C>*field, const double* pycenters, int npatch, long* patches, long n)
 {
     dbg<<"Start KMeansAssign for "<<npatch<<" patches\n";
-    const std::vector<Cell<D,C>*> cells = field->getCells();
+    const std::vector<BaseCell<C>*> cells = field->getCells();
 
     std::vector<Position<C> > centers(npatch);
     ReadCenters(centers, pycenters, npatch);
 
     xdbg<<"Start AssignPatches\n";
-    AssignPatches<D,C> assign_patches(patches, n, centers);
+    AssignPatches<C> assign_patches(patches, n, centers);
     FindCellsInPatches(centers, cells, assign_patches);
     assign_patches.finalize();
     xdbg<<"After AssignPatches\n";

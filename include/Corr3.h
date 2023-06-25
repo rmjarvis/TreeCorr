@@ -112,17 +112,17 @@ public:
 
     // Main worker functions for calculating the result
     template <int B, int M, int C>
-    void process3(const Cell<D1,C>* c1, const MetricHelper<M,0>& metric);
+    void process3(const BaseCell<C>* c1, const MetricHelper<M,0>& metric);
 
     template <int B, int M, int C>
     void process12(Corr3<D2,D1,D2>& bc212, Corr3<D2,D2,D1>& bc221,
-                   const Cell<D1,C>* c1, const Cell<D2,C>* c2, const MetricHelper<M,0>& metric);
+                   const BaseCell<C>* c1, const BaseCell<C>* c2, const MetricHelper<M,0>& metric);
 
     template <int B, int M, int C>
     void process111(Corr3<D1,D3,D2>& bc132,
                     Corr3<D2,D1,D3>& bc213, Corr3<D2,D3,D1>& bc231,
                     Corr3<D3,D1,D2>& bc312, Corr3<D3,D2,D1>& bc321,
-                    const Cell<D1,C>* c1, const Cell<D2,C>* c2, const Cell<D3,C>* c3,
+                    const BaseCell<C>* c1, const BaseCell<C>* c2, const BaseCell<C>* c3,
                     const MetricHelper<M,0>& metric,
                     double d1sq=0., double d2sq=0., double d3sq=0.);
 
@@ -130,12 +130,12 @@ public:
     void process111Sorted(Corr3<D1,D3,D2>& bc132,
                           Corr3<D2,D1,D3>& bc213, Corr3<D2,D3,D1>& bc231,
                           Corr3<D3,D1,D2>& bc312, Corr3<D3,D2,D1>& bc321,
-                          const Cell<D1,C>* c1, const Cell<D2,C>* c2, const Cell<D3,C>* c3,
+                          const BaseCell<C>* c1, const BaseCell<C>* c2, const BaseCell<C>* c3,
                           const MetricHelper<M,0>& metric,
                           double d1sq=0., double d2sq=0., double d3sq=0.);
 
     template <int B, int C>
-    void directProcess111(const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
+    void directProcess111(const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
                           const double d1, const double d2, const double d3,
                           const double logr, const double u, const double v, const int index);
 

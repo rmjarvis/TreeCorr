@@ -26,7 +26,7 @@
 // to build the actual Cells.
 template <int D, int C, int SM>
 double SetupTopLevelCells(
-    std::vector<std::pair<CellData<D,C>*,WPosLeafInfo> >& celldata,
+    std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >& celldata,
     double maxsizesq, size_t start, size_t end, int mintop, int maxtop,
     std::vector<CellData<D,C>*>& top_data,
     std::vector<double>& top_sizesq,
@@ -43,7 +43,7 @@ double SetupTopLevelCells(
     double sizesq;
     if (end-start == 1) {
         xdbg<<"Only 1 CellData entry: size = 0\n";
-        ave = celldata[start].first;
+        ave = static_cast<CellData<D,C>*>(celldata[start].first);
         celldata[start].first = 0; // Make sure the calling function doesn't delete this!
         sizesq = 0.;
     } else {
@@ -70,7 +70,7 @@ double SetupTopLevelCells(
         top_start.push_back(start);
         top_end.push_back(end);
     } else {
-        size_t mid = SplitData<D,C,SM>(celldata,start,end,ave->getPos());
+        size_t mid = SplitData<C,SM>(celldata,start,end,ave->getPos());
         xdbg<<"Too big.  Recurse with mid = "<<mid<<std::endl;
         SetupTopLevelCells<D,C,SM>(celldata, maxsizesq, start, mid, mintop-1, maxtop-1,
                                    top_data, top_sizesq, top_start, top_end);
@@ -293,8 +293,8 @@ Field<D,C>::~Field()
     for (size_t i=0; i<_celldata.size(); ++i) if (_celldata[i].first) delete _celldata[i].first;
 }
 
-template <int D, int C>
-long CountNear(const Cell<D,C>* cell, const Position<C>& pos, double sep, double sepsq)
+template <int C>
+long CountNear(const BaseCell<C>* cell, const Position<C>& pos, double sep, double sepsq)
 {
     double s = cell->getSize();
     const double dsq = (cell->getPos() - pos).normSq();
@@ -352,8 +352,8 @@ long Field<D,C>::countNear(double x, double y, double z, double sep) const
     return ntot;
 }
 
-template <int D, int C>
-void GetNear(const Cell<D,C>* cell, const Position<C>& pos, double sep, double sepsq,
+template <int C>
+void GetNear(const BaseCell<C>* cell, const Position<C>& pos, double sep, double sepsq,
              long* indices, long& k, long n)
 {
     double s = cell->getSize();

@@ -40,12 +40,12 @@ public:
     template <int B, int M, int P, int D1, int D2, int C>
     long samplePairs(const Field<D1, C>& field1, const Field<D2, C>& field2,
                      double min_sep, double max_sep, long* i1, long* i2, double* sep, int n);
-    template <int B, int M, int P, int D1, int D2, int C>
-    void samplePairs(const Cell<D1, C>& c1, const Cell<D2, C>& c2, const MetricHelper<M,P>& m,
+    template <int B, int M, int P, int C>
+    void samplePairs(const BaseCell<C>& c1, const BaseCell<C>& c2, const MetricHelper<M,P>& m,
                      double min_sep, double min_sepsq, double max_sep, double max_sepsq,
                      long* i1, long* i2, double* sep, int n, long& k);
-    template <int B, int D1, int D2, int C>
-    void sampleFrom(const Cell<D1,C>& c1, const Cell<D2,C>& c2, double rsq, double r,
+    template <int B, int C>
+    void sampleFrom(const BaseCell<C>& c1, const BaseCell<C>& c2, double rsq, double r,
                     long* i1, long* i2, double* sep, int n, long& k);
 
     bool nontrivialRPar() const
@@ -99,14 +99,14 @@ public:
 
     // Main worker functions for calculating the result
     template <int B, int M, int P, int C>
-    void process2(const Cell<D1,C>& c12, const MetricHelper<M,P>& m);
+    void process2(const BaseCell<C>& c12, const MetricHelper<M,P>& m);
 
     template <int B, int M, int P, int C>
-    void process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2, const MetricHelper<M,P>& m,
+    void process11(const BaseCell<C>& c1, const BaseCell<C>& c2, const MetricHelper<M,P>& m,
                    bool do_reverse);
 
     template <int B, int C>
-    void directProcess11(const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double dsq,
+    void directProcess11(const BaseCell<C>& c1, const BaseCell<C>& c2, const double dsq,
                          bool do_reverse, int k=-1, double r=0., double logr=0.);
 
     // Note: op= only copies _data.  Not all the params.

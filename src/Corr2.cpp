@@ -131,13 +131,13 @@ Corr2<D1,D2>::~Corr2()
 template <int D1, int D2, int B, int M, int P, int C>
 struct ProcessHelper
 {
-    static void process2(Corr2<D1,D2>& , const Cell<D1,C>&, const MetricHelper<M,P>& ) {}
+    static void process2(Corr2<D1,D2>& , const BaseCell<C>&, const MetricHelper<M,P>& ) {}
 };
 
 template <int D, int B, int M, int P, int C>
 struct ProcessHelper<D,D,B,M,P,C>
 {
-    static void process2(Corr2<D,D>& b, const Cell<D,C>& c12, const MetricHelper<M,P>& m)
+    static void process2(Corr2<D,D>& b, const BaseCell<C>& c12, const MetricHelper<M,P>& m)
     { b.template process2<B,M,P>(c12, m); }
 };
 
@@ -188,10 +188,10 @@ void Corr2<D1,D2>::process(const Field<D1,C>& field, bool dots)
 #endif
                 if (dots) std::cout<<'.'<<std::flush;
             }
-            const Cell<D1,C>& c1 = *field.getCells()[i];
+            const BaseCell<C>& c1 = *field.getCells()[i];
             ProcessHelper<D1,D2,B,M,P,C>::process2(bc2, c1, metric);
             for (long j=i+1;j<n1;++j) {
-                const Cell<D1,C>& c2 = *field.getCells()[j];
+                const BaseCell<C>& c2 = *field.getCells()[j];
                 bc2.process11<B,M,P>(c1, c2, metric, BinTypeHelper<B>::doReverse());
             }
         }
@@ -262,9 +262,9 @@ void Corr2<D1,D2>::process(const Field<D1,C>& field1, const Field<D2,C>& field2,
 #endif
                 if (dots) std::cout<<'.'<<std::flush;
             }
-            const Cell<D1,C>& c1 = *field1.getCells()[i];
+            const BaseCell<C>& c1 = *field1.getCells()[i];
             for (long j=0;j<n2;++j) {
-                const Cell<D2,C>& c2 = *field2.getCells()[j];
+                const BaseCell<C>& c2 = *field2.getCells()[j];
                 bc2.process11<B,M,P>(c1, c2, metric, false);
             }
         }
@@ -280,7 +280,7 @@ void Corr2<D1,D2>::process(const Field<D1,C>& field1, const Field<D2,C>& field2,
 }
 
 template <int D1, int D2> template <int B, int M, int P, int C>
-void Corr2<D1,D2>::process2(const Cell<D1,C>& c12, const MetricHelper<M,P>& metric)
+void Corr2<D1,D2>::process2(const BaseCell<C>& c12, const MetricHelper<M,P>& metric)
 {
     if (c12.getW() == 0.) return;
     if (c12.getSize() <= _halfminsep) return;
@@ -293,7 +293,7 @@ void Corr2<D1,D2>::process2(const Cell<D1,C>& c12, const MetricHelper<M,P>& metr
 }
 
 template <int D1, int D2> template <int B, int M, int P, int C>
-void Corr2<D1,D2>::process11(const Cell<D1,C>& c1, const Cell<D2,C>& c2,
+void Corr2<D1,D2>::process11(const BaseCell<C>& c1, const BaseCell<C>& c2,
                              const MetricHelper<M,P>& metric, bool do_reverse)
 {
     //set_verbose(2);
@@ -484,7 +484,7 @@ struct DirectHelper<GData,GData>
 
 template <int D1, int D2> template <int B, int C>
 void Corr2<D1,D2>::directProcess11(
-    const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double rsq, bool do_reverse,
+    const BaseCell<C>& c1, const BaseCell<C>& c2, const double rsq, bool do_reverse,
     int k, double r, double logr)
 {
     xdbg<<"DirectProcess11: rsq = "<<rsq<<std::endl;
@@ -544,7 +544,10 @@ void Corr2<D1,D2>::directProcess11(
         _weight[k2] += ww;
     }
 
-    DirectHelper<D1,D2>::template ProcessXi<C>(c1,c2,rsq,_xi,k,k2);
+    DirectHelper<D1,D2>::template ProcessXi<C>(
+        static_cast<const Cell<D1,C>&>(c1),
+        static_cast<const Cell<D2,C>&>(c2),
+        rsq,_xi,k,k2);
 }
 
 template <int D1, int D2>
@@ -604,18 +607,18 @@ long BaseCorr2::samplePairs(
 
     long k=0;
     for (long i=0;i<n1;++i) {
-        const Cell<D1,C>& c1 = *field1.getCells()[i];
+        const BaseCell<C>& c1 = *field1.getCells()[i];
         for (long j=0;j<n2;++j) {
-            const Cell<D2,C>& c2 = *field2.getCells()[j];
+            const BaseCell<C>& c2 = *field2.getCells()[j];
             samplePairs<B>(c1, c2, metric, minsep, minsepsq, maxsep, maxsepsq, i1, i2, sep, n, k);
         }
     }
     return k;
 }
 
-template <int B, int M, int P, int D1, int D2, int C>
+template <int B, int M, int P, int C>
 void BaseCorr2::samplePairs(
-    const Cell<D1, C>& c1, const Cell<D2, C>& c2, const MetricHelper<M,P>& metric,
+    const BaseCell<C>& c1, const BaseCell<C>& c2, const MetricHelper<M,P>& metric,
     double minsep, double minsepsq, double maxsep, double maxsepsq,
     long* i1, long* i2, double* sep, int n, long& k)
 {
@@ -750,9 +753,9 @@ void SelectRandomFrom(long m, std::vector<long>& selection)
     }
 }
 
-template <int B, int D1, int D2, int C>
+template <int B, int C>
 void BaseCorr2::sampleFrom(
-    const Cell<D1, C>& c1, const Cell<D2, C>& c2, double rsq, double r,
+    const BaseCell<C>& c1, const BaseCell<C>& c2, double rsq, double r,
     long* i1, long* i2, double* sep, int n, long& k)
 {
     // At the start, k pairs will already have been considered for selection.
@@ -791,8 +794,8 @@ void BaseCorr2::sampleFrom(
     long n2 = c2.getN();
     long m = n1 * n2;
 
-    std::vector<const Cell<D1,C>*> leaf1 = c1.getAllLeaves();
-    std::vector<const Cell<D2,C>*> leaf2 = c2.getAllLeaves();
+    std::vector<const BaseCell<C>*> leaf1 = c1.getAllLeaves();
+    std::vector<const BaseCell<C>*> leaf2 = c2.getAllLeaves();
 
     if (r == 0.) {
         r = sqrt(rsq);

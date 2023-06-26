@@ -463,8 +463,8 @@ void Corr3<D1,D2,D3>::process(Corr3<D1,D3,D2>* corr132,
     if (dots) std::cout<<std::endl;
 }
 
-template <int D1, int D2, int D3> template <int B, int M, int C>
-void Corr3<D1,D2,D3>::process3(const BaseCell<C>* c1, const MetricHelper<M,0>& metric)
+template <int B, int M, int C>
+void BaseCorr3::process3(const BaseCell<C>* c1, const MetricHelper<M,0>& metric)
 {
     // Does all triangles with 3 points in c1
     xdbg<<"Process3: c1 = "<<c1->getData().getPos()<<"  "<<"  "<<c1->getSize()<<"  "<<c1->getData().getN()<<std::endl;
@@ -485,10 +485,10 @@ void Corr3<D1,D2,D3>::process3(const BaseCell<C>* c1, const MetricHelper<M,0>& m
     process12<B>(*this, *this, c1->getRight(),c1->getLeft(), metric);
 }
 
-template <int D1, int D2, int D3> template <int B, int M, int C>
-void Corr3<D1,D2,D3>::process12(Corr3<D2,D1,D2>& bc212, Corr3<D2,D2,D1>& bc221,
-                                const BaseCell<C>* c1, const BaseCell<C>* c2,
-                                const MetricHelper<M,0>& metric)
+template <int B, int M, int C>
+void BaseCorr3::process12(BaseCorr3& bc212, BaseCorr3& bc221,
+                          const BaseCell<C>* c1, const BaseCell<C>* c2,
+                          const MetricHelper<M,0>& metric)
 {
     // Does all triangles with one point in c1 and the other two points in c2
     xdbg<<"Process12: c1 = "<<c1->getData().getPos()<<"  "<<"  "<<c1->getSize()<<"  "<<c1->getData().getN()<<std::endl;
@@ -656,11 +656,9 @@ static bool stop111(
     return false;
 }
 
-template <int D1, int D2, int D3> template <int B, int M, int C>
-void Corr3<D1,D2,D3>::process111(
-    Corr3<D1,D3,D2>& bc132,
-    Corr3<D2,D1,D3>& bc213, Corr3<D2,D3,D1>& bc231,
-    Corr3<D3,D1,D2>& bc312, Corr3<D3,D2,D1>& bc321,
+template <int B, int M, int C>
+void BaseCorr3::process111(
+    BaseCorr3& bc132, BaseCorr3& bc213, BaseCorr3& bc231, BaseCorr3& bc312, BaseCorr3& bc321,
     const BaseCell<C>* c1, const BaseCell<C>* c2, const BaseCell<C>* c3,
     const MetricHelper<M,0>& metric, double d1sq, double d2sq, double d3sq)
 {
@@ -689,7 +687,7 @@ void Corr3<D1,D2,D3>::process111(
 
     xdbg<<"Before sort: d123 = "<<sqrt(d1sq)<<"  "<<sqrt(d2sq)<<"  "<<sqrt(d3sq)<<std::endl;
 
-    Corr3<D1,D2,D3>& bc123 = *this;  // alias for clarity.
+    BaseCorr3& bc123 = *this;  // alias for clarity.
 
     // Need to end up with d1 > d2 > d3
     if (d1sq > d2sq) {
@@ -729,11 +727,9 @@ void Corr3<D1,D2,D3>::process111(
     }
 }
 
-template <int D1, int D2, int D3> template <int B, int M, int C>
-void Corr3<D1,D2,D3>::process111Sorted(
-    Corr3<D1,D3,D2>& bc132,
-    Corr3<D2,D1,D3>& bc213, Corr3<D2,D3,D1>& bc231,
-    Corr3<D3,D1,D2>& bc312, Corr3<D3,D2,D1>& bc321,
+template <int B, int M, int C>
+void BaseCorr3::process111Sorted(
+    BaseCorr3& bc132, BaseCorr3& bc213, BaseCorr3& bc231, BaseCorr3& bc312, BaseCorr3& bc321,
     const BaseCell<C>* c1, const BaseCell<C>* c2, const BaseCell<C>* c3,
     const MetricHelper<M,0>& metric, double d1sq, double d2sq, double d3sq)
 {
@@ -1151,8 +1147,17 @@ struct DirectHelper<GData,GData,GData>
 };
 
 
-template <int D1, int D2, int D3> template <int B, int C>
-void Corr3<D1,D2,D3>::directProcess111(
+template <int B, int C>
+void BaseCorr3::directProcess111(
+    const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
+    const double d1, const double d2, const double d3,
+    const double logr, const double u, const double v, const int index)
+{
+    finishProcess(c1, c2, c3, d1, d2, d3, logr, u, v, index);
+}
+
+template <int D1, int D2, int D3> template <int C>
+void Corr3<D1,D2,D3>::finishProcess(
     const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
     const double d1, const double d2, const double d3,
     const double logr, const double u, const double v, const int index)

@@ -38,7 +38,57 @@ public:
               double minv, double maxv, int nvbins, double vbinsize, double bv,
               double xp, double yp, double zp);
     BaseCorr3(const BaseCorr3& rhs);
-    ~BaseCorr3() {}
+    virtual ~BaseCorr3() {}
+
+    // Main worker functions for calculating the result
+    template <int B, int M, int C>
+    void process3(const BaseCell<C>* c1, const MetricHelper<M,0>& metric);
+
+    template <int B, int M, int C>
+    void process12(BaseCorr3& bc212, BaseCorr3& bc221,
+                   const BaseCell<C>* c1, const BaseCell<C>* c2, const MetricHelper<M,0>& metric);
+
+    template <int B, int M, int C>
+    void process111(BaseCorr3& bc132, BaseCorr3& bc213, BaseCorr3& bc231,
+                    BaseCorr3& bc312, BaseCorr3& bc321,
+                    const BaseCell<C>* c1, const BaseCell<C>* c2, const BaseCell<C>* c3,
+                    const MetricHelper<M,0>& metric,
+                    double d1sq=0., double d2sq=0., double d3sq=0.);
+
+    template <int B, int M, int C>
+    void process111Sorted(BaseCorr3& bc132, BaseCorr3& bc213, BaseCorr3& bc231,
+                          BaseCorr3& bc312, BaseCorr3& bc321,
+                          const BaseCell<C>* c1, const BaseCell<C>* c2, const BaseCell<C>* c3,
+                          const MetricHelper<M,0>& metric,
+                          double d1sq=0., double d2sq=0., double d3sq=0.);
+
+    template <int B, int C>
+    void directProcess111(const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
+                          const double d1, const double d2, const double d3,
+                          const double logr, const double u, const double v, const int index);
+
+    template <int C>
+    void finishProcess(const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
+                       const double d1, const double d2, const double d3,
+                       const double logr, const double u, const double v, const int index)
+    { doFinishProcess(c1, c2, c3, d1, d2, d3, logr, u, v, index); }
+
+protected:
+
+    // This bit is a workaround for the the fact that virtual functions cannot be templates.
+    virtual void doFinishProcess(
+        const BaseCell<Flat>& c1, const BaseCell<Flat>& c2, const BaseCell<Flat>& c3,
+        const double d1, const double d2, const double d3,
+        const double logr, const double u, const double v, const int index) =0;
+    virtual void doFinishProcess(
+        const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2, const BaseCell<Sphere>& c3,
+        const double d1, const double d2, const double d3,
+        const double logr, const double u, const double v, const int index) =0;
+    virtual void doFinishProcess(
+        const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2, const BaseCell<ThreeD>& c3,
+        const double d1, const double d2, const double d3,
+        const double logr, const double u, const double v, const int index) =0;
+
 
 protected:
 
@@ -110,40 +160,34 @@ public:
                  const Field<D1,C>& field1, const Field<D2,C>& field2,
                  const Field<D3,C>& field3, bool dots);
 
-    // Main worker functions for calculating the result
-    template <int B, int M, int C>
-    void process3(const BaseCell<C>* c1, const MetricHelper<M,0>& metric);
 
-    template <int B, int M, int C>
-    void process12(Corr3<D2,D1,D2>& bc212, Corr3<D2,D2,D1>& bc221,
-                   const BaseCell<C>* c1, const BaseCell<C>* c2, const MetricHelper<M,0>& metric);
-
-    template <int B, int M, int C>
-    void process111(Corr3<D1,D3,D2>& bc132,
-                    Corr3<D2,D1,D3>& bc213, Corr3<D2,D3,D1>& bc231,
-                    Corr3<D3,D1,D2>& bc312, Corr3<D3,D2,D1>& bc321,
-                    const BaseCell<C>* c1, const BaseCell<C>* c2, const BaseCell<C>* c3,
-                    const MetricHelper<M,0>& metric,
-                    double d1sq=0., double d2sq=0., double d3sq=0.);
-
-    template <int B, int M, int C>
-    void process111Sorted(Corr3<D1,D3,D2>& bc132,
-                          Corr3<D2,D1,D3>& bc213, Corr3<D2,D3,D1>& bc231,
-                          Corr3<D3,D1,D2>& bc312, Corr3<D3,D2,D1>& bc321,
-                          const BaseCell<C>* c1, const BaseCell<C>* c2, const BaseCell<C>* c3,
-                          const MetricHelper<M,0>& metric,
-                          double d1sq=0., double d2sq=0., double d3sq=0.);
-
-    template <int B, int C>
-    void directProcess111(const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
-                          const double d1, const double d2, const double d3,
-                          const double logr, const double u, const double v, const int index);
+    template <int C>
+    void finishProcess(
+        const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
+        const double d1, const double d2, const double d3,
+        const double logr, const double u, const double v, const int index);
 
     // Note: op= only copies _data.  Not all the params.
     void operator=(const Corr3<D1,D2,D3>& rhs);
     void operator+=(const Corr3<D1,D2,D3>& rhs);
 
 protected:
+
+    void doFinishProcess(
+        const BaseCell<Flat>& c1, const BaseCell<Flat>& c2, const BaseCell<Flat>& c3,
+        const double d1, const double d2, const double d3,
+        const double logr, const double u, const double v, const int index)
+    { finishProcess(c1, c2, c3, d1, d2, d3, logr, u, v, index); }
+    void doFinishProcess(
+        const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2, const BaseCell<Sphere>& c3,
+        const double d1, const double d2, const double d3,
+        const double logr, const double u, const double v, const int index)
+    { finishProcess(c1, c2, c3, d1, d2, d3, logr, u, v, index); }
+    void doFinishProcess(
+        const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2, const BaseCell<ThreeD>& c3,
+        const double d1, const double d2, const double d3,
+        const double logr, const double u, const double v, const int index)
+    { finishProcess(c1, c2, c3, d1, d2, d3, logr, u, v, index); }
 
     // These are usually allocated in the python layer and just built up here.
     // So all we have here is a bare pointer for each of them.

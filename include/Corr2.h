@@ -101,13 +101,12 @@ public:
     template <int B, int M, int P, int C>
     void process2(const BaseCell<C>& c12, const MetricHelper<M,P>& m);
 
-    template <int B, int M, int P, int C>
-    void process11(const BaseCell<C>& c1, const BaseCell<C>& c2, const MetricHelper<M,P>& m,
-                   bool do_reverse);
+    template <int B, int M, int P, int R, int C>
+    void process11(const BaseCell<C>& c1, const BaseCell<C>& c2, const MetricHelper<M,P>& m);
 
-    template <int B, int C>
+    template <int B, int R, int C>
     void directProcess11(const BaseCell<C>& c1, const BaseCell<C>& c2, const double dsq,
-                         bool do_reverse, int k=-1, double r=0., double logr=0.);
+                         int k=-1, double r=0., double logr=0.);
 
     // Note: op= only copies _data.  Not all the params.
     void operator=(const Corr2<D1,D2>& rhs);

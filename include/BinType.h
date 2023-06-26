@@ -31,7 +31,7 @@ struct BinTypeHelper;
 template <>
 struct BinTypeHelper<Log>
 {
-    static bool doReverse() { return false; }
+    enum { do_reverse = false };
 
     // For Log binning, the test for when to stop splitting is s1+s2 < b*d.
     // This b*d is the "effective" b used by CalcSplit.
@@ -143,7 +143,7 @@ struct BinTypeHelper<Log>
 template <>
 struct BinTypeHelper<Linear>
 {
-    static bool doReverse() { return false; }
+    enum { do_reverse = false };
 
     // For Linear binning, the test for when to stop splitting is s1+s2 < b.
     // So the effective b is just b itself.
@@ -232,7 +232,7 @@ struct BinTypeHelper<Linear>
 template <>
 struct BinTypeHelper<TwoD>
 {
-    static bool doReverse() { return true; }
+    enum { do_reverse = true };
 
     // Like Linear binning, the effective b is just b itself.
     static double getEffectiveB(double r, double b)

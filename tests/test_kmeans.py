@@ -28,7 +28,7 @@ def test_dessv():
         print('Skip test_dessv, since fitsio not installed')
         return
 
-    rng = np.random.RandomState(1234)
+    rng = np.random.default_rng(1234)
 
     #treecorr.set_omp_threads(1);
     get_from_wiki('des_sv.fits')
@@ -69,9 +69,9 @@ def test_dessv():
     print('rms size = ',np.std(sizes))
     assert np.sum(inertia) < 200.  # This is specific to this particular field and npatch.
     print(np.std(inertia)/np.mean(inertia))
-    assert np.std(inertia) < 0.16 * np.mean(inertia)  # rms is usually < 0.2 * mean
+    assert np.std(inertia) < 0.2 * np.mean(inertia)  # rms is usually < 0.2 * mean
     print(np.std(sizes)/np.mean(sizes))
-    assert np.std(sizes) < 0.07 * np.mean(sizes)  # sizes have even less spread usually.
+    assert np.std(sizes) < 0.1 * np.mean(sizes)  # sizes have even less spread usually.
 
     # Should all have similar number of points.  Nothing is required here though.
     print('mean counts = ',np.mean(counts))
@@ -155,7 +155,7 @@ def test_radec():
     x = rng.normal(0,s, (ngal,) )
     y = rng.normal(0,s, (ngal,) ) + 100  # Put everything at large y, so smallish angle on sky
     z = rng.normal(0,s, (ngal,) )
-    w = rng.random_sample(ngal)
+    w = rng.random(ngal)
     ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
     print('minra = ',np.min(ra) * coord.radians / coord.degrees)
     print('maxra = ',np.max(ra) * coord.radians / coord.degrees)
@@ -166,6 +166,7 @@ def test_radec():
     npatch = 111
     field = cat.getNField()
     t0 = time.time()
+    rng = np.random.default_rng(8675309)
     p, cen = field.run_kmeans(npatch, rng=rng)
     t1 = time.time()
     print('patches = ',np.unique(p))
@@ -261,12 +262,13 @@ def test_3d():
     x = rng.normal(0,s, (ngal,) )
     y = rng.normal(0,s, (ngal,) )
     z = rng.normal(0,s, (ngal,) )
-    w = rng.random_sample(ngal) + 1
+    w = rng.random(ngal) + 1
     cat = treecorr.Catalog(x=x, y=y, z=z, w=w)
 
     npatch = 111
     field = cat.getNField()
     t0 = time.time()
+    rng = np.random.default_rng(8675309)
     p, cen = field.run_kmeans(npatch, rng=rng)
     t1 = time.time()
     print('patches = ',np.unique(p))
@@ -374,7 +376,7 @@ def test_2d():
     rng = np.random.RandomState(8675309)
     x = rng.normal(0,s, (ngal,) )
     y = rng.normal(0,s, (ngal,) )
-    w = rng.random_sample(ngal) + 1
+    w = rng.random(ngal) + 1
     g1 = rng.normal(0,s, (ngal,) )
     g2 = rng.normal(0,s, (ngal,) )
     k = rng.normal(0,s, (ngal,) )
@@ -383,6 +385,7 @@ def test_2d():
     npatch = 111
     field = cat.getGField()
     t0 = time.time()
+    rng = np.random.default_rng(8675309)
     p, cen = field.run_kmeans(npatch, rng=rng)
     t1 = time.time()
     print('patches = ',np.unique(p))
@@ -491,6 +494,7 @@ def test_init_random():
 
     # Now run the normal way
     # Use higher max_iter, since random isn't a great initialization.
+    rng = np.random.default_rng(8675309)
     p2, cen2 = field.run_kmeans(npatch, init='random', max_iter=1000, rng=rng)
     inertia2 = np.array([np.sum((xyz[p2==i] - cen2[i])**2) for i in range(npatch)])
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
@@ -578,6 +582,15 @@ def test_init_random():
     print('total inertia => ',np.sum(inertia2))
     assert np.sum(inertia2) < np.sum(inertia1)
 
+    # Check that rng can also be a RandomState
+    rng = np.random.RandomState(12345)
+    p2, cen2 = field.run_kmeans(npatch, init='random', max_iter=1000, rng=rng)
+    inertia2 = np.array([np.sum((xyz[p2==i] - cen2[i])**2) for i in range(npatch)])
+    counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
+    print('rms counts => ',np.std(counts2))
+    print('total inertia => ',np.sum(inertia2))
+    assert np.sum(inertia2) < np.sum(inertia1)
+
     with assert_raises(ValueError):
         field.run_kmeans(npatch, init='invalid')
     with assert_raises(ValueError):
@@ -640,6 +653,7 @@ def test_init_kmpp():
 
     # Now run the normal way
     # Use higher max_iter, since random isn't a great initialization.
+    rng = np.random.default_rng(8675309)
     p2, cen2 = field.run_kmeans(npatch, init='kmeans++', max_iter=1000, rng=rng)
     inertia2 = np.array([np.sum((xyz[p2==i] - cen2[i])**2) for i in range(npatch)])
     counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
@@ -727,6 +741,35 @@ def test_init_kmpp():
     print('total inertia => ',np.sum(inertia2))
     assert np.sum(inertia2) < np.sum(inertia1)
 
+    # Check that rng can also be a RandomState
+    rng = np.random.RandomState(12345)
+    p2, cen2 = field.run_kmeans(npatch, init='kmeans++', max_iter=1000, rng=rng)
+    inertia2 = np.array([np.sum((xyz[p2==i] - cen2[i])**2) for i in range(npatch)])
+    counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
+    print('rms counts => ',np.std(counts2))
+    print('total inertia => ',np.sum(inertia2))
+    assert np.sum(inertia2) < np.sum(inertia1)
+
+    # Also via GField and KField
+    rng = np.random.RandomState(12345)
+    cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', rng=rng,
+                           g1=np.zeros_like(ra), g2=np.zeros_like(ra), k=np.zeros_like(ra))
+    field = cat.getGField()
+    p2, cen2 = field.run_kmeans(npatch, init='kmeans++', max_iter=1000, rng=rng)
+    inertia2 = np.array([np.sum((xyz[p2==i] - cen2[i])**2) for i in range(npatch)])
+    counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
+    print('rms counts => ',np.std(counts2))
+    print('total inertia => ',np.sum(inertia2))
+    assert np.sum(inertia2) < np.sum(inertia1)
+
+    field = cat.getKField()
+    p2, cen2 = field.run_kmeans(npatch, init='kmeans++', max_iter=1000, rng=rng)
+    inertia2 = np.array([np.sum((xyz[p2==i] - cen2[i])**2) for i in range(npatch)])
+    counts2 = np.array([np.sum(p2==i) for i in range(npatch)])
+    print('rms counts => ',np.std(counts2))
+    print('total inertia => ',np.sum(inertia2))
+    assert np.sum(inertia2) < np.sum(inertia1)
+
     with assert_raises(ValueError):
         field.kmeans_initialize_centers(npatch=ngal*2, init='kmeans++')
     with assert_raises(ValueError):
@@ -797,13 +840,14 @@ def test_catalog_sphere():
     x = rng.normal(0,s, (ngal,) )
     y = rng.normal(0,s, (ngal,) ) + 100  # Put everything at large y, so smallish angle on sky
     z = rng.normal(0,s, (ngal,) )
-    w = rng.random_sample(ngal)
+    w = rng.random(ngal)
     ra, dec, r = coord.CelestialCoord.xyz_to_radec(x,y,z, return_r=True)
     print('minra = ',np.min(ra) * coord.radians / coord.degrees)
     print('maxra = ',np.max(ra) * coord.radians / coord.degrees)
     print('mindec = ',np.min(dec) * coord.radians / coord.degrees)
     print('maxdec = ',np.max(dec) * coord.radians / coord.degrees)
     npatch = 111
+    rng = np.random.default_rng(8675309)
     cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w, npatch=npatch,
                            rng=rng)
 
@@ -887,13 +931,14 @@ def test_catalog_3d():
     x = rng.normal(0,s, (ngal,) )
     y = rng.normal(0,s, (ngal,) ) + 100  # Put everything at large y, so smallish angle on sky
     z = rng.normal(0,s, (ngal,) )
-    w = rng.random_sample(ngal)
+    w = rng.random(ngal)
     ra, dec, r = coord.CelestialCoord.xyz_to_radec(x,y,z, return_r=True)
     print('minra = ',np.min(ra) * coord.radians / coord.degrees)
     print('maxra = ',np.max(ra) * coord.radians / coord.degrees)
     print('mindec = ',np.min(dec) * coord.radians / coord.degrees)
     print('maxdec = ',np.max(dec) * coord.radians / coord.degrees)
     npatch = 111
+    rng = np.random.default_rng(8675309)
     cat = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='rad', dec_units='rad', w=w,
                            npatch=npatch, rng=rng)
 

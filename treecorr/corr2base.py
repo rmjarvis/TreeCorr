@@ -475,7 +475,7 @@ class Corr2(object):
     @property
     def rng(self):
         if self._rng is None:
-            self._rng = np.random.RandomState()
+            self._rng = np.random.default_rng()
         return self._rng
 
     # Properties for all the read-only attributes ("ro" stands for "read-only")
@@ -1628,7 +1628,9 @@ def _design_marked(corrs, func, comm=None):
     plist = []
     for k in range(nboot):
         # Select a random set of indices to use.  (Will have repeats.)
-        index = corrs[0].rng.randint(npatch, size=npatch)
+        # Note use choice rather than integers, so it is backwards compatible with the old
+        # np.random.RandomState (which used randint rather than integers for that functionality).
+        index = corrs[0].rng.choice(np.arange(npatch), size=npatch, replace=True)
         vpairs = [c._marked_pairs(index) for c in corrs]
         plist.append(vpairs)
 
@@ -1664,7 +1666,7 @@ def _design_bootstrap(corrs, func, comm=None):
 
     plist = []
     for k in range(nboot):
-        index = corrs[0].rng.randint(npatch, size=npatch)
+        index = corrs[0].rng.choice(np.arange(npatch), size=npatch, replace=True)
         vpairs = [c._bootstrap_pairs(index) for c in corrs]
         plist.append(vpairs)
 

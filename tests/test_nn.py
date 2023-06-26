@@ -1764,10 +1764,10 @@ def test_split():
     # If cat has an rng though, they should be identical.
     # (Also need single thread, else the random values come in a different order still.)
     cat.nfields.clear()
-    cat._rng = np.random.RandomState(1234)
+    cat._rng = np.random.default_rng(1234)
     dd_random1.process(cat, num_threads=1)
     cat.nfields.clear()
-    cat._rng = np.random.RandomState(1234)
+    cat._rng = np.random.default_rng(1234)
     dd_random2.process(cat, num_threads=1)
     np.testing.assert_array_equal(dd_random1.npairs, dd_random2.npairs)
 

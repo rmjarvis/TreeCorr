@@ -420,7 +420,7 @@ class Field(object):
             centers = np.empty((npatch, 2))
         else:
             centers = np.empty((npatch, 3))
-        seed = 0 if rng is None else int(rng.random_sample() * 2**63)
+        seed = 0 if rng is None else int(rng.random() * 2**63)
         if init == 'tree':
             self.data.KMeansInitTree(centers, int(npatch), seed)
         elif init == 'random':
@@ -545,7 +545,7 @@ class NField(Field):
         self.min_top, self.max_top = self._determine_top(min_top, max_top)
         self.coords = coords if coords is not None else cat.coords
         self._coords = coord_enum(self.coords)  # These are the C++-layer enums
-        seed = 0 if rng is None else int(rng.random_sample() * 2**63)
+        seed = 0 if rng is None else int(rng.random() * 2**63)
 
         zx = cat.z if cat.z is not None else np.array([])
         wpx = cat.wpos if cat.wpos is not None else np.array([])
@@ -609,7 +609,7 @@ class KField(Field):
         self.min_top, self.max_top = self._determine_top(min_top, max_top)
         self.coords = coords if coords is not None else cat.coords
         self._coords = coord_enum(self.coords)  # These are the C++-layer enums
-        seed = 0 if rng is None else int(rng.random_sample() * 2**63)
+        seed = 0 if rng is None else int(rng.random() * 2**63)
 
         zx = cat.z if cat.z is not None else np.array([])
         wpx = cat.wpos if cat.wpos is not None else np.array([])
@@ -673,7 +673,7 @@ class GField(Field):
         self.min_top, self.max_top = self._determine_top(min_top, max_top)
         self.coords = coords if coords is not None else cat.coords
         self._coords = coord_enum(self.coords)  # These are the C++-layer enums
-        seed = 0 if rng is None else int(rng.random_sample() * 2**63)
+        seed = 0 if rng is None else int(rng.random() * 2**63)
 
         zx = cat.z if cat.z is not None else np.array([])
         wpx = cat.wpos if cat.wpos is not None else np.array([])

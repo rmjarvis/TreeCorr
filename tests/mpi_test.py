@@ -219,7 +219,7 @@ def do_mpi_cov(comm, method, output=True):
     ran_cat = treecorr.Catalog(x=x, y=y, npatch=npatch)
 
     # Generate the three sets of correlations we will use
-    rng = np.random.RandomState(31415)
+    rng = np.random.default_rng(31415)
     gg = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng)
     ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng)
     nn = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng)
@@ -286,7 +286,7 @@ def do_mpi_cov(comm, method, output=True):
     if output:
         print("\nCOV 1 \n", cov1[0:3,0:3], " for rank ", comm.rank, " of ", comm.size)
 
-    rng = np.random.RandomState(31415)
+    rng = np.random.default_rng(31415)
     gg = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng)
     ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng)
     nn = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng)
@@ -337,7 +337,7 @@ def do_mpi_cov(comm, method, output=True):
     np.testing.assert_allclose(w1b, w2b, atol=tol)
 
     # Finally, read back in from the save file and redo the covariance.
-    rng = np.random.RandomState(31415)
+    rng = np.random.default_rng(31415)
     gg = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng)
     ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng)
     nn = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng)

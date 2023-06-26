@@ -279,8 +279,8 @@ void Corr2<D1,D2>::process(const Field<D1,C>& field1, const Field<D2,C>& field2,
     if (dots) std::cout<<std::endl;
 }
 
-template <int D1, int D2> template <int B, int M, int P, int C>
-void Corr2<D1,D2>::process2(const BaseCell<C>& c12, const MetricHelper<M,P>& metric)
+template <int B, int M, int P, int C>
+void BaseCorr2::process2(const BaseCell<C>& c12, const MetricHelper<M,P>& metric)
 {
     if (c12.getW() == 0.) return;
     if (c12.getSize() <= _halfminsep) return;
@@ -292,8 +292,8 @@ void Corr2<D1,D2>::process2(const BaseCell<C>& c12, const MetricHelper<M,P>& met
     process11<B,M,P,BinTypeHelper<B>::do_reverse>(*c12.getLeft(), *c12.getRight(), metric);
 }
 
-template <int D1, int D2> template <int B, int M, int P, int R, int C>
-void Corr2<D1,D2>::process11(const BaseCell<C>& c1, const BaseCell<C>& c2,
+template <int B, int M, int P, int R, int C>
+void BaseCorr2::process11(const BaseCell<C>& c1, const BaseCell<C>& c2,
                              const MetricHelper<M,P>& metric)
 {
     //set_verbose(2);
@@ -484,8 +484,8 @@ struct DirectHelper<GData,GData>
     }
 };
 
-template <int D1, int D2> template <int B, int R, int C>
-void Corr2<D1,D2>::directProcess11(
+template <int B, int R, int C>
+void BaseCorr2::directProcess11(
     const BaseCell<C>& c1, const BaseCell<C>& c2, const double rsq,
     int k, double r, double logr)
 {
@@ -524,6 +524,20 @@ void Corr2<D1,D2>::directProcess11(
     Assert(k < _nbins);
     xdbg<<"r,logr,k = "<<r<<','<<logr<<','<<k<<std::endl;
 
+    int k2 = -1;
+    if (R) {
+        k2 = BinTypeHelper<B>::calculateBinK(p2, p1, r, logr, _binsize,
+                                             _minsep, _maxsep, _logminsep);
+        if (k2 == _nbins) --k2;  // As before, this can (rarely) happen.
+    }
+
+    finishProcess<R>(c1, c2, rsq, r, logr, k, k2);
+}
+
+template <int D1, int D2> template <int R, int C>
+void Corr2<D1,D2>::finishProcess(const BaseCell<C>& c1, const BaseCell<C>& c2,
+                                 double rsq, double r, double logr, int k, int k2)
+{
     double nn = double(c1.getN()) * double(c2.getN());
     _npairs[k] += nn;
 
@@ -533,11 +547,7 @@ void Corr2<D1,D2>::directProcess11(
     _weight[k] += ww;
     xdbg<<"n,w = "<<nn<<','<<ww<<" ==>  "<<_npairs[k]<<','<<_weight[k]<<std::endl;
 
-    int k2 = -1;
     if (R) {
-        k2 = BinTypeHelper<B>::calculateBinK(p2, p1, r, logr, _binsize,
-                                             _minsep, _maxsep, _logminsep);
-        if (k2 == _nbins) --k2;  // As before, this can (rarely) happen.
         Assert(k2 >= 0);
         Assert(k2 < _nbins);
         _npairs[k2] += nn;
@@ -546,7 +556,9 @@ void Corr2<D1,D2>::directProcess11(
         _weight[k2] += ww;
     }
 
-    DirectHelper<D1,D2>::template ProcessXi<R,C>(
+    // Note: R=1 is only possible if D1 == D2, so multiply by (D1==D2)
+    // to force the others to only instantiate R=0.
+    DirectHelper<D1,D2>::template ProcessXi<R*(D1==D2),C>(
         static_cast<const Cell<D1,C>&>(c1),
         static_cast<const Cell<D2,C>&>(c2),
         rsq,_xi,k,k2);

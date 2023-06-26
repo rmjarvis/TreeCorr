@@ -34,7 +34,7 @@ public:
     BaseCorr2(BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
               double minrpar, double maxrpar, double xp, double yp, double zp);
     BaseCorr2(const BaseCorr2& rhs);
-    ~BaseCorr2() {}
+    virtual ~BaseCorr2() {}
 
     // Sample a random subset of pairs in a given range
     template <int B, int M, int P, int C>
@@ -57,7 +57,39 @@ public:
     template <int B, int M, int C>
     bool triviallyZero(Position<C> p1, Position<C> p2, double s1, double s2);
 
+    // Main worker functions for calculating the result
+    template <int B, int M, int P, int C>
+    void process2(const BaseCell<C>& c12, const MetricHelper<M,P>& m);
+
+    template <int B, int M, int P, int R, int C>
+    void process11(const BaseCell<C>& c1, const BaseCell<C>& c2, const MetricHelper<M,P>& m);
+
+    template <int B, int R, int C>
+    void directProcess11(const BaseCell<C>& c1, const BaseCell<C>& c2, const double rsq,
+                         int k=-1, double r=0., double logr=0.);
+
+    template <int R, int C>
+    void finishProcess(const BaseCell<C>& c1, const BaseCell<C>& c2,
+                       double rsq, double r, double logr, int k, int k2)
+    { doFinishProcess(c1, c2, rsq, r, logr, k, k2, R1<R>()); }
+
 protected:
+    template <int R>
+    struct R1 {};
+
+    // This bit is a workaround for the the fact that virtual functions cannot be templates.
+    virtual void doFinishProcess(const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
+                                 double rsq, double r, double logr, int k, int k2, R1<1>)=0;
+    virtual void doFinishProcess(const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
+                                 double rsq, double r, double logr, int k, int k2, R1<1>)=0;
+    virtual void doFinishProcess(const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
+                                 double rsq, double r, double logr, int k, int k2, R1<1>)=0;
+    virtual void doFinishProcess(const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
+                                 double rsq, double r, double logr, int k, int k2, R1<0>)=0;
+    virtual void doFinishProcess(const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
+                                 double rsq, double r, double logr, int k, int k2, R1<0>)=0;
+    virtual void doFinishProcess(const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
+                                 double rsq, double r, double logr, int k, int k2, R1<0>)=0;
 
     double _minsep;
     double _maxsep;
@@ -93,26 +125,39 @@ public:
     void clear();  // Set all data to 0.
 
     template <int B, int M, int P, int C>
-    void process(const Field<D1, C>& field, bool dots);
+    void process(const Field<D1,C>& field, bool dots);
+
     template <int B, int M, int P, int C>
-    void process(const Field<D1, C>& field1, const Field<D2, C>& field2, bool dots);
+    void process(const Field<D1,C>& field1, const Field<D2,C>& field2, bool dots);
 
-    // Main worker functions for calculating the result
-    template <int B, int M, int P, int C>
-    void process2(const BaseCell<C>& c12, const MetricHelper<M,P>& m);
-
-    template <int B, int M, int P, int R, int C>
-    void process11(const BaseCell<C>& c1, const BaseCell<C>& c2, const MetricHelper<M,P>& m);
-
-    template <int B, int R, int C>
-    void directProcess11(const BaseCell<C>& c1, const BaseCell<C>& c2, const double dsq,
-                         int k=-1, double r=0., double logr=0.);
+    template <int R, int C>
+    void finishProcess(const BaseCell<C>& c1, const BaseCell<C>& c2,
+                       double rsq, double r, double logr, int k, int k2);
 
     // Note: op= only copies _data.  Not all the params.
     void operator=(const Corr2<D1,D2>& rhs);
     void operator+=(const Corr2<D1,D2>& rhs);
 
 protected:
+
+    void doFinishProcess(const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
+                         double rsq, double r, double logr, int k, int k2, R1<1>)
+    { finishProcess<1>(c1, c2, rsq, r, logr, k, k2); }
+    void doFinishProcess(const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
+                         double rsq, double r, double logr, int k, int k2, R1<1>)
+    { finishProcess<1>(c1, c2, rsq, r, logr, k, k2); }
+    void doFinishProcess(const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
+                         double rsq, double r, double logr, int k, int k2, R1<1>)
+    { finishProcess<1>(c1, c2, rsq, r, logr, k, k2); }
+    void doFinishProcess(const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
+                         double rsq, double r, double logr, int k, int k2, R1<0>)
+    { finishProcess<0>(c1, c2, rsq, r, logr, k, k2); }
+    void doFinishProcess(const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
+                         double rsq, double r, double logr, int k, int k2, R1<0>)
+    { finishProcess<0>(c1, c2, rsq, r, logr, k, k2); }
+    void doFinishProcess(const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
+                         double rsq, double r, double logr, int k, int k2, R1<0>)
+    { finishProcess<0>(c1, c2, rsq, r, logr, k, k2); }
 
     // These are usually allocated in the python layer and just built up here.
     // So all we have here is a bare pointer for each of them.

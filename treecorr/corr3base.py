@@ -501,7 +501,7 @@ class Corr3(object):
     @property
     def rng(self):
         if self._rng is None:
-            self._rng = np.random.RandomState()
+            self._rng = np.random.default_rng()
         return self._rng
 
     # Properties for all the read-only attributes ("ro" stands for "read-only")

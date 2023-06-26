@@ -372,8 +372,9 @@ class Catalog(object):
                             should be an integer, which specifies how many digits to write.
                             (default: 16)
 
-        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for any random
-                            number generation (e.g. kmeans patches). (default: None)
+        rng (np.Generator): If desired, a numpy.random.Generator or numpy.random.RandomState
+                            instance to use for any random number generation (e.g. kmeans patches).
+                            (default: None)
 
         num_threads (int):  How many OpenMP threads to use during the catalog load steps.
                             (default: use the number of cpu cores)

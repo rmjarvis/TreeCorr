@@ -650,7 +650,8 @@ def test_gg_jk():
     np.testing.assert_array_less(gg1.varxim, var_xim)
 
     # Now run with patches, but still with shot variance.  Should be basically the same answer.
-    cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, npatch=npatch)
+    rng = np.random.default_rng(8675309)
+    cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, npatch=npatch, rng=rng)
     gg2 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='shot',
                                  rng=rng)
     t0 = time.time()
@@ -778,7 +779,6 @@ def test_gg_jk():
     np.testing.assert_allclose(covxip, gg3.cov[:n,:n])
 
     # Check sample covariance estimate
-    treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='sample')
     t0 = time.time()
     cov_sample = gg3.estimate_cov('sample')
     t1 = time.time()
@@ -801,9 +801,8 @@ def test_gg_jk():
     np.testing.assert_allclose(C, cov_sample)
 
     # Check marked-point bootstrap covariance estimate
-    treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='marked_bootstrap')
     t0 = time.time()
-    rng_state = gg3.rng.get_state()
+    rng_state = gg3.rng.bit_generator.state
     cov_boot = gg3.estimate_cov('marked_bootstrap')
     t1 = time.time()
     print('Time to calculate marked_bootstrap covariance = ',t1-t0)
@@ -816,17 +815,25 @@ def test_gg_jk():
     np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
 
     # Test design matrix
-    gg2.rng.set_state(rng_state)
+    gg3.rng.bit_generator.state = rng_state
     A, w = gg2.build_cov_design_matrix('marked_bootstrap')
     nboot = A.shape[0]
     A -= np.mean(A, axis=0)
     C = 1./(nboot-1) * A.conj().T.dot(A)
     np.testing.assert_allclose(C, cov_boot)
 
+    # Make sure using rng=RandomState works as well.
+    rng4 = np.random.RandomState(12345)
+    cat4 = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, npatch=npatch, rng=rng4)
+    gg4 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng4)
+    gg4.process(cat4)
+    cov_boot = gg4.estimate_cov('marked_bootstrap')
+    np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
+
     # Check bootstrap covariance estimate.
-    treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='bootstrap')
     t0 = time.time()
-    rng_state = gg3.rng.get_state()
+    rng_state = gg3.rng.bit_generator.state
     cov_boot = gg3.estimate_cov('bootstrap')
     t1 = time.time()
     print('Time to calculate bootstrap covariance = ',t1-t0)
@@ -838,12 +845,17 @@ def test_gg_jk():
     np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
 
     # Test design matrix
-    gg2.rng.set_state(rng_state)
+    gg3.rng.bit_generator.state = rng_state
     A, w = gg2.build_cov_design_matrix('bootstrap')
     nboot = A.shape[0]
     A -= np.mean(A, axis=0)
     C = 1./(nboot-1) * A.conj().T.dot(A)
     np.testing.assert_allclose(C, cov_boot)
+
+    # Make sure using rng=RandomState works as well.
+    cov_boot = gg4.estimate_cov('bootstrap')
+    np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
 
     # Check that these still work after roundtripping through a file.
     file_name = os.path.join('output','test_write_results_gg.pkl')
@@ -1054,6 +1066,7 @@ def test_ng_jk():
     np.testing.assert_allclose(ng1.estimate_cov('shot'), np.diag(ng1.varxi))
 
     # Now run with jackknife variance estimate.  Should be much better.
+    rng = np.random.default_rng(1234)
     ng3 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife',
                                  rng=rng)
     t0 = time.time()
@@ -2266,6 +2279,7 @@ def test_clusters():
     np.testing.assert_allclose(ng2.varxi, ng1.varxi, rtol=3.e-2*tol_factor)
 
     # Now run with jackknife variance estimate.  Should be much better.
+    rng = np.random.default_rng(1234)
     ng3 = treecorr.NGCorrelation(bin_size=0.4, min_sep=1., max_sep=20., var_method='jackknife',
                                  rng=rng)
     t0 = time.time()
@@ -3124,6 +3138,7 @@ def test_empty_patches():
     cat1 = treecorr.Catalog(x=lens_x, y=lens_y, g1=lens_e1, g2=lens_e2, k=lens_mass)
     cat2 = treecorr.Catalog(x=source_x, y=source_y, g1=source_g1, g2=source_g2, k=source_k)
     # Note: use cat2 to make the patches, since that's the one with a larger area.
+    rng = np.random.default_rng(1234)
     cat2p = treecorr.Catalog(x=source_x, y=source_y, g1=source_g1, g2=source_g2, k=source_k,
                              npatch=npatch, rng=rng)
     cat1p = treecorr.Catalog(x=lens_x, y=lens_y, g1=lens_e1, g2=lens_e2, k=lens_mass,

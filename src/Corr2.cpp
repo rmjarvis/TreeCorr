@@ -192,7 +192,7 @@ void Corr2<D1,D2>::process(const Field<D1,C>& field, bool dots)
             ProcessHelper<D1,D2,B,M,P,C>::process2(bc2, c1, metric);
             for (long j=i+1;j<n1;++j) {
                 const BaseCell<C>& c2 = *field.getCells()[j];
-                bc2.process11<B,M,P>(c1, c2, metric, BinTypeHelper<B>::doReverse());
+                bc2.process11<B,M,P,BinTypeHelper<B>::do_reverse>(c1, c2, metric);
             }
         }
 #ifdef _OPENMP
@@ -265,7 +265,7 @@ void Corr2<D1,D2>::process(const Field<D1,C>& field1, const Field<D2,C>& field2,
             const BaseCell<C>& c1 = *field1.getCells()[i];
             for (long j=0;j<n2;++j) {
                 const BaseCell<C>& c2 = *field2.getCells()[j];
-                bc2.process11<B,M,P>(c1, c2, metric, false);
+                bc2.process11<B,M,P,false>(c1, c2, metric);
             }
         }
 #ifdef _OPENMP
@@ -289,12 +289,12 @@ void Corr2<D1,D2>::process2(const BaseCell<C>& c12, const MetricHelper<M,P>& met
     Assert(c12.getRight());
     process2<B,M,P>(*c12.getLeft(), metric);
     process2<B,M,P>(*c12.getRight(), metric);
-    process11<B,M,P>(*c12.getLeft(), *c12.getRight(), metric, BinTypeHelper<B>::doReverse());
+    process11<B,M,P,BinTypeHelper<B>::do_reverse>(*c12.getLeft(), *c12.getRight(), metric);
 }
 
-template <int D1, int D2> template <int B, int M, int P, int C>
+template <int D1, int D2> template <int B, int M, int P, int R, int C>
 void Corr2<D1,D2>::process11(const BaseCell<C>& c1, const BaseCell<C>& c2,
-                             const MetricHelper<M,P>& metric, bool do_reverse)
+                             const MetricHelper<M,P>& metric)
 {
     //set_verbose(2);
     xdbg<<"Start process11 for "<<c1.getPos()<<",  "<<c2.getPos()<<"   ";
@@ -339,7 +339,7 @@ void Corr2<D1,D2>::process11(const BaseCell<C>& c1, const BaseCell<C>& c2,
     {
         xdbg<<"Drop into single bin.\n";
         if (BinTypeHelper<B>::isRSqInRange(rsq, p1, p2, _minsep, _minsepsq, _maxsep, _maxsepsq)) {
-            directProcess11<B>(c1,c2,rsq,do_reverse,k,r,logr);
+            directProcess11<B,R>(c1,c2,rsq,k,r,logr);
         }
     } else {
         xdbg<<"Need to split.\n";
@@ -356,21 +356,21 @@ void Corr2<D1,D2>::process11(const BaseCell<C>& c1, const BaseCell<C>& c2,
             Assert(c1.getRight());
             Assert(c2.getLeft());
             Assert(c2.getRight());
-            process11<B,M,P>(*c1.getLeft(),*c2.getLeft(),metric,do_reverse);
-            process11<B,M,P>(*c1.getLeft(),*c2.getRight(),metric,do_reverse);
-            process11<B,M,P>(*c1.getRight(),*c2.getLeft(),metric,do_reverse);
-            process11<B,M,P>(*c1.getRight(),*c2.getRight(),metric,do_reverse);
+            process11<B,M,P,R>(*c1.getLeft(),*c2.getLeft(),metric);
+            process11<B,M,P,R>(*c1.getLeft(),*c2.getRight(),metric);
+            process11<B,M,P,R>(*c1.getRight(),*c2.getLeft(),metric);
+            process11<B,M,P,R>(*c1.getRight(),*c2.getRight(),metric);
         } else if (split1) {
             Assert(c1.getLeft());
             Assert(c1.getRight());
-            process11<B,M,P>(*c1.getLeft(),c2,metric,do_reverse);
-            process11<B,M,P>(*c1.getRight(),c2,metric,do_reverse);
+            process11<B,M,P,R>(*c1.getLeft(),c2,metric);
+            process11<B,M,P,R>(*c1.getRight(),c2,metric);
         } else {
             Assert(split2);
             Assert(c2.getLeft());
             Assert(c2.getRight());
-            process11<B,M,P>(c1,*c2.getLeft(),metric,do_reverse);
-            process11<B,M,P>(c1,*c2.getRight(),metric,do_reverse);
+            process11<B,M,P,R>(c1,*c2.getLeft(),metric);
+            process11<B,M,P,R>(c1,*c2.getRight(),metric);
         }
     }
 }
@@ -383,7 +383,7 @@ struct DirectHelper;
 template <>
 struct DirectHelper<NData,NData>
 {
-    template <int C>
+    template <int R, int C>
     static void ProcessXi(
         const Cell<NData,C>& , const Cell<NData,C>& , const double ,
         XiData<NData,NData>& , int, int )
@@ -393,7 +393,7 @@ struct DirectHelper<NData,NData>
 template <>
 struct DirectHelper<NData,KData>
 {
-    template <int C>
+    template <int R, int C>
     static void ProcessXi(
         const Cell<NData,C>& c1, const Cell<KData,C>& c2, const double ,
         XiData<NData,KData>& xi, int k, int )
@@ -403,7 +403,7 @@ struct DirectHelper<NData,KData>
 template <>
 struct DirectHelper<NData,GData>
 {
-    template <int C>
+    template <int R, int C>
     static void ProcessXi(
         const Cell<NData,C>& c1, const Cell<GData,C>& c2, const double rsq,
         XiData<NData,GData>& xi, int k, int )
@@ -421,21 +421,23 @@ struct DirectHelper<NData,GData>
 template <>
 struct DirectHelper<KData,KData>
 {
-    template <int C>
+    template <int R, int C>
     static void ProcessXi(
         const Cell<KData,C>& c1, const Cell<KData,C>& c2, const double ,
         XiData<KData,KData>& xi, int k, int k2)
     {
         double wkk = c1.getData().getWK() * c2.getData().getWK();
         xi.xi[k] += wkk;
-        if (k2 != -1) xi.xi[k2] += wkk;
+        if (R) {
+            xi.xi[k2] += wkk;
+        }
     }
 };
 
 template <>
 struct DirectHelper<KData,GData>
 {
-    template <int C>
+    template <int R, int C>
     static void ProcessXi(
         const Cell<KData,C>& c1, const Cell<GData,C>& c2, const double rsq,
         XiData<KData,GData>& xi, int k, int )
@@ -453,7 +455,7 @@ struct DirectHelper<KData,GData>
 template <>
 struct DirectHelper<GData,GData>
 {
-    template <int C>
+    template <int R, int C>
     static void ProcessXi(
         const Cell<GData,C>& c1, const Cell<GData,C>& c2, const double rsq,
         XiData<GData,GData>& xi, int k, int k2)
@@ -473,7 +475,7 @@ struct DirectHelper<GData,GData>
         xi.xim[k] += g1rg2r - g1ig2i;       // g1 * g2
         xi.xim_im[k] += g1ig2r + g1rg2i;
 
-        if (k2 != -1) {
+        if (R) {
             xi.xip[k2] += g1rg2r + g1ig2i;       // g1 * conj(g2)
             xi.xip_im[k2] += g1ig2r - g1rg2i;
             xi.xim[k2] += g1rg2r - g1ig2i;       // g1 * g2
@@ -482,9 +484,9 @@ struct DirectHelper<GData,GData>
     }
 };
 
-template <int D1, int D2> template <int B, int C>
+template <int D1, int D2> template <int B, int R, int C>
 void Corr2<D1,D2>::directProcess11(
-    const BaseCell<C>& c1, const BaseCell<C>& c2, const double rsq, bool do_reverse,
+    const BaseCell<C>& c1, const BaseCell<C>& c2, const double rsq,
     int k, double r, double logr)
 {
     xdbg<<"DirectProcess11: rsq = "<<rsq<<std::endl;
@@ -532,7 +534,7 @@ void Corr2<D1,D2>::directProcess11(
     xdbg<<"n,w = "<<nn<<','<<ww<<" ==>  "<<_npairs[k]<<','<<_weight[k]<<std::endl;
 
     int k2 = -1;
-    if (do_reverse) {
+    if (R) {
         k2 = BinTypeHelper<B>::calculateBinK(p2, p1, r, logr, _binsize,
                                              _minsep, _maxsep, _logminsep);
         if (k2 == _nbins) --k2;  // As before, this can (rarely) happen.
@@ -544,7 +546,7 @@ void Corr2<D1,D2>::directProcess11(
         _weight[k2] += ww;
     }
 
-    DirectHelper<D1,D2>::template ProcessXi<C>(
+    DirectHelper<D1,D2>::template ProcessXi<R,C>(
         static_cast<const Cell<D1,C>&>(c1),
         static_cast<const Cell<D2,C>&>(c2),
         rsq,_xi,k,k2);

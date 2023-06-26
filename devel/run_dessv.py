@@ -52,7 +52,8 @@ def download():
         print('number to use = ',np.sum(use))
         cols = [col[use] for col in cols]
         print('writing merged file: ',source_file)
-        treecorr.util.gen_write(source_file, col_names, cols, file_type='FITS')
+        with treecorr.util.make_writer(source_file) as writer:
+            writer.write(col_names, cols)
 
     return source_file, lens_file
 
@@ -65,6 +66,7 @@ def run_dessv(source_file, lens_file, use_patches):
         # source catalog to run KMeans.
         print('Read 1/10 of source catalog for kmeans patches')
         npatch = 128
+        t0 = time.time()
         small_cat = treecorr.Catalog(source_file, ra_col='RA', dec_col='DEC', file_type='FITS',
                                      ra_units='deg', dec_units='deg', every_nth=10, npatch=npatch,
                                      verbose=2)
@@ -72,7 +74,9 @@ def run_dessv(source_file, lens_file, use_patches):
         # Write the patch centers
         patch_file = os.path.join('output','test_dessv_patches.fits')
         small_cat.write_patch_centers(patch_file)
+        t1 = time.time()
         print('wrote patch centers file ',patch_file)
+        print('Time to make patches = ',t1-t0)
         #print('centers = ',small_cat.patch_centers)
 
         patch_kwargs = dict(patch_centers=patch_file, save_patch_dir='output')
@@ -155,8 +159,8 @@ if __name__ == '__main__':
     run_dessv(source_file, lens_file, use_patches=False)
     t1 = time.time()
     print('Run with patches:')
-    with profile():
-        run_dessv(source_file, lens_file, use_patches=True)
+    #with profile():
+    run_dessv(source_file, lens_file, use_patches=True)
     t2 = time.time()
     print('Time for normal non-patch run = ',t1-t0)
     print('Time for patch run with jackknife covariance = ',t2-t1)

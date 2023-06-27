@@ -126,21 +126,6 @@ Corr2<D1,D2>::~Corr2()
     }
 }
 
-// Corr2::process2 is invalid if D1 != D2, so this helper struct lets us only call
-// process2 when D1 == D2.
-template <int D1, int D2, int B, int M, int P, int C>
-struct ProcessHelper
-{
-    static void process2(Corr2<D1,D2>& , const BaseCell<C>&, const MetricHelper<M,P>& ) {}
-};
-
-template <int D, int B, int M, int P, int C>
-struct ProcessHelper<D,D,B,M,P,C>
-{
-    static void process2(Corr2<D,D>& b, const BaseCell<C>& c12, const MetricHelper<M,P>& m)
-    { b.template process2<B,M,P>(c12, m); }
-};
-
 template <int D1, int D2>
 void Corr2<D1,D2>::clear()
 {
@@ -152,11 +137,10 @@ void Corr2<D1,D2>::clear()
     _coords = -1;
 }
 
-template <int D1, int D2> template <int B, int M, int P, int C>
-void Corr2<D1,D2>::process(const Field<D1,C>& field, bool dots)
+template <int B, int M, int P, int C>
+void BaseCorr2::process(const BaseField<C>& field, bool dots)
 {
     xdbg<<"Start process (auto): M,P,C = "<<M<<"  "<<P<<"  "<<C<<std::endl;
-    Assert(D1 == D2);
     Assert(_coords == -1 || _coords == C);
     _coords = C;
     const long n1 = field.getNTopLevel();
@@ -167,9 +151,10 @@ void Corr2<D1,D2>::process(const Field<D1,C>& field, bool dots)
 #pragma omp parallel
     {
         // Give each thread their own copy of the data vector to fill in.
-        Corr2<D1,D2> bc2(*this,false);
+        std::shared_ptr<BaseCorr2> bc2p = duplicate();
+        BaseCorr2& bc2 = *bc2p;
 #else
-        Corr2<D1,D2>& bc2 = *this;
+        BaseCorr2& bc2 = *this;
 #endif
 
         // Inside the omp parallel, so each thread has its own MetricHelper.
@@ -189,7 +174,7 @@ void Corr2<D1,D2>::process(const Field<D1,C>& field, bool dots)
                 if (dots) std::cout<<'.'<<std::flush;
             }
             const BaseCell<C>& c1 = *field.getCells()[i];
-            ProcessHelper<D1,D2,B,M,P,C>::process2(bc2, c1, metric);
+            bc2.template process2<B,M,P>(c1, metric);
             for (long j=i+1;j<n1;++j) {
                 const BaseCell<C>& c2 = *field.getCells()[j];
                 bc2.process11<B,M,P,BinTypeHelper<B>::do_reverse>(c1, c2, metric);
@@ -199,15 +184,15 @@ void Corr2<D1,D2>::process(const Field<D1,C>& field, bool dots)
         // Accumulate the results
 #pragma omp critical
         {
-            *this += bc2;
+            addData(bc2);
         }
     }
 #endif
     if (dots) std::cout<<std::endl;
 }
 
-template <int D1, int D2> template <int B, int M, int P, int C>
-void Corr2<D1,D2>::process(const Field<D1,C>& field1, const Field<D2,C>& field2, bool dots)
+template <int B, int M, int P, int C>
+void BaseCorr2::process(const BaseField<C>& field1, const BaseField<C>& field2, bool dots)
 {
     xdbg<<"Start process (cross): M,P,C = "<<M<<"  "<<P<<"  "<<C<<std::endl;
     Assert(_coords == -1 || _coords == C);
@@ -242,9 +227,10 @@ void Corr2<D1,D2>::process(const Field<D1,C>& field1, const Field<D2,C>& field2,
 #pragma omp parallel
     {
         // Give each thread their own copy of the data vector to fill in.
-        Corr2<D1,D2> bc2(*this,false);
+        std::shared_ptr<BaseCorr2> bc2p = duplicate();
+        BaseCorr2& bc2 = *bc2p;
 #else
-        Corr2<D1,D2>& bc2 = *this;
+        BaseCorr2& bc2 = *this;
 #endif
 
         MetricHelper<M,P> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
@@ -272,7 +258,7 @@ void Corr2<D1,D2>::process(const Field<D1,C>& field1, const Field<D2,C>& field2,
         // Accumulate the results
 #pragma omp critical
         {
-            *this += bc2;
+            addData(bc2);
         }
     }
 #endif
@@ -968,8 +954,8 @@ Corr2<D1,D2>* BuildCorr2(
             xi0, xi1, xi2, xi3, meanr, meanlogr, weight, npairs);
 }
 
-template <int B, int M, int D, int C>
-void ProcessAuto2d(Corr2<D,D>* corr, Field<D,C>* field, bool dots)
+template <int B, int M, int C>
+void ProcessAuto2d(BaseCorr2* corr, BaseField<C>* field, bool dots)
 {
     const bool P = corr->nontrivialRPar();
     dbg<<"ProcessAuto: coords = "<<C<<", metric = "<<M<<", P = "<<P<<std::endl;
@@ -988,8 +974,8 @@ void ProcessAuto2d(Corr2<D,D>* corr, Field<D,C>* field, bool dots)
     }
 }
 
-template <int B, int D, int C>
-void ProcessAuto2c(Corr2<D,D>* corr, Field<D,C>* field, bool dots, Metric metric)
+template <int B, int C>
+void ProcessAuto2c(BaseCorr2* corr, BaseField<C>* field, bool dots, Metric metric)
 {
     switch(metric) {
       case Euclidean:
@@ -1015,8 +1001,8 @@ void ProcessAuto2c(Corr2<D,D>* corr, Field<D,C>* field, bool dots, Metric metric
     }
 }
 
-template <int D, int C>
-void ProcessAuto(Corr2<D,D>* corr, Field<D,C>* field, bool dots, BinType bin_type, Metric metric)
+template <int C>
+void ProcessAuto(BaseCorr2* corr, BaseField<C>* field, bool dots, BinType bin_type, Metric metric)
 {
     switch(bin_type) {
       case Log:
@@ -1033,8 +1019,8 @@ void ProcessAuto(Corr2<D,D>* corr, Field<D,C>* field, bool dots, BinType bin_typ
     }
 }
 
-template <int B, int M, int D1, int D2, int C>
-void ProcessCross2d(Corr2<D1,D2>* corr, Field<D1,C>* field1, Field<D2,C>* field2, bool dots)
+template <int B, int M, int C>
+void ProcessCross2d(BaseCorr2* corr, BaseField<C>* field1, BaseField<C>* field2, bool dots)
 {
     const bool P = corr->nontrivialRPar();
     dbg<<"ProcessCross: coords = "<<C<<", metric = "<<M<<", P = "<<P<<std::endl;
@@ -1048,8 +1034,8 @@ void ProcessCross2d(Corr2<D1,D2>* corr, Field<D1,C>* field1, Field<D2,C>* field2
     }
 }
 
-template <int B, int D1, int D2, int C>
-void ProcessCross2c(Corr2<D1,D2>* corr, Field<D1,C>* field1, Field<D2,C>* field2,
+template <int B, int C>
+void ProcessCross2c(BaseCorr2* corr, BaseField<C>* field1, BaseField<C>* field2,
                     bool dots, Metric metric)
 {
     switch(metric) {
@@ -1076,11 +1062,11 @@ void ProcessCross2c(Corr2<D1,D2>* corr, Field<D1,C>* field1, Field<D2,C>* field2
     }
 }
 
-template <int D1, int D2, int C>
-void ProcessCross(Corr2<D1,D2>* corr, Field<D1,C>* field1, Field<D2,C>* field2,
+template <int C>
+void ProcessCross(BaseCorr2* corr, BaseField<C>* field1, BaseField<C>* field2,
                   bool dots, BinType bin_type, Metric metric)
 {
-    dbg<<"Start ProcessCross: "<<D1<<" "<<D2<<" "<<bin_type<<" "<<metric<<std::endl;
+    dbg<<"Start ProcessCross: "<<bin_type<<" "<<metric<<std::endl;
     switch(bin_type) {
       case Log:
            ProcessCross2c<Log>(corr, field1, field2, dots, metric);
@@ -1288,38 +1274,8 @@ int TriviallyZero(BaseCorr2* corr, BinType bin_type, Metric metric, Coord coords
 
 // Export the above functions using pybind11
 
-template <int D1, int D2, int C>
-struct WrapAuto
-{
-    template <typename W>
-    static void run(W& corr2) {}
-};
-
-template <int D, int C>
-struct WrapAuto<D,D,C>
-{
-    template <typename W>
-    static void run(W& corr2)
-    {
-        typedef void (*auto_type)(Corr2<D,D>* corr, Field<D,C>* field,
-                                  bool dots, BinType bin_type, Metric metric);
-        corr2.def("processAuto", auto_type(&ProcessAuto));
-    }
-};
-
-template <int D1, int D2, int C, typename W1, typename W2>
-void WrapCross(py::module& _treecorr, W1& corr2, W2& base_corr2)
-{
-    typedef void (*cross_type)(Corr2<D1,D2>* corr,
-                               Field<D1,C>* field1, Field<D2,C>* field2,
-                               bool dots, BinType bin_type, Metric metric);
-
-    corr2.def("processCross", cross_type(&ProcessCross));
-    WrapAuto<D1,D2,C>::run(corr2);
-}
-
-template <int D1, int D2, typename W>
-void WrapCorr2(py::module& _treecorr, std::string prefix, W& base_corr2)
+template <int D1, int D2>
+void WrapCorr2(py::module& _treecorr, std::string prefix)
 {
     typedef Corr2<D1,D2>* (*init_type)(
         BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
@@ -1331,22 +1287,25 @@ void WrapCorr2(py::module& _treecorr, std::string prefix, W& base_corr2)
 
     py::class_<Corr2<D1,D2>, BaseCorr2> corr2(_treecorr, (prefix + "Corr").c_str());
     corr2.def(py::init(init_type(&BuildCorr2)));
-
-    WrapCross<D1,D2,Flat>(_treecorr, corr2, base_corr2);
-    WrapCross<D1,D2,Sphere>(_treecorr, corr2, base_corr2);
-    WrapCross<D1,D2,ThreeD>(_treecorr, corr2, base_corr2);
 }
 
 template <int C, typename W>
-void WrapSample(py::module& _treecorr, W& base_corr2)
+void WrapProcess(py::module& _treecorr, W& base_corr2)
 {
+    typedef void (*auto_type)(BaseCorr2* corr, BaseField<C>* field,
+                              bool dots, BinType bin_type, Metric metric);
+    base_corr2.def("processAuto", auto_type(&ProcessAuto));
+
+    typedef void (*cross_type)(BaseCorr2* corr, BaseField<C>* field1, BaseField<C>* field2,
+                               bool dots, BinType bin_type, Metric metric);
+    base_corr2.def("processCross", cross_type(&ProcessCross));
+
     typedef long (*sample_type)(BaseCorr2* corr,
                                 BaseField<C>* field1, BaseField<C>* field2,
                                 double minsep, double maxsep,
                                 BinType bin_type, Metric metric,
                                 py::array_t<long>& i1p, py::array_t<long>& i2p,
                                 py::array_t<double>& sepp);
-
     base_corr2.def("samplePairs", sample_type(&SamplePairs));
 }
 
@@ -1355,16 +1314,16 @@ void pyExportCorr2(py::module& _treecorr)
     py::class_<BaseCorr2> base_corr2(_treecorr, "BaseCorr2");
     base_corr2.def("triviallyZero", &TriviallyZero);
 
-    WrapSample<Flat>(_treecorr, base_corr2);
-    WrapSample<Sphere>(_treecorr, base_corr2);
-    WrapSample<ThreeD>(_treecorr, base_corr2);
+    WrapProcess<Flat>(_treecorr, base_corr2);
+    WrapProcess<Sphere>(_treecorr, base_corr2);
+    WrapProcess<ThreeD>(_treecorr, base_corr2);
 
-    WrapCorr2<NData,NData>(_treecorr, "NN", base_corr2);
-    WrapCorr2<NData,KData>(_treecorr, "NK", base_corr2);
-    WrapCorr2<NData,GData>(_treecorr, "NG", base_corr2);
-    WrapCorr2<KData,KData>(_treecorr, "KK", base_corr2);
-    WrapCorr2<KData,GData>(_treecorr, "KG", base_corr2);
-    WrapCorr2<GData,GData>(_treecorr, "GG", base_corr2);
+    WrapCorr2<NData,NData>(_treecorr, "NN");
+    WrapCorr2<NData,KData>(_treecorr, "NK");
+    WrapCorr2<NData,GData>(_treecorr, "NG");
+    WrapCorr2<KData,KData>(_treecorr, "KK");
+    WrapCorr2<KData,GData>(_treecorr, "KG");
+    WrapCorr2<GData,GData>(_treecorr, "GG");
 
     _treecorr.def("SetOMPThreads", &SetOMPThreads);
     _treecorr.def("GetOMPThreads", &GetOMPThreads);

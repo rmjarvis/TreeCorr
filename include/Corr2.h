@@ -36,6 +36,10 @@ public:
     BaseCorr2(const BaseCorr2& rhs);
     virtual ~BaseCorr2() {}
 
+    virtual std::shared_ptr<BaseCorr2> duplicate() =0;
+
+    virtual void addData(const BaseCorr2& rhs) =0;
+
     // Sample a random subset of pairs in a given range
     template <int B, int M, int P, int C>
     long samplePairs(const BaseField<C>& field1, const BaseField<C>& field2,
@@ -56,6 +60,12 @@ public:
 
     template <int B, int M, int C>
     bool triviallyZero(Position<C> p1, Position<C> p2, double s1, double s2);
+
+    template <int B, int M, int P, int C>
+    void process(const BaseField<C>& field, bool dots);
+
+    template <int B, int M, int P, int C>
+    void process(const BaseField<C>& field1, const BaseField<C>& field2, bool dots);
 
     // Main worker functions for calculating the result
     template <int B, int M, int P, int C>
@@ -122,13 +132,13 @@ public:
     Corr2(const Corr2& rhs, bool copy_data=true);
     ~Corr2();
 
+    std::shared_ptr<BaseCorr2> duplicate()
+    { return std::make_shared<Corr2<D1,D2> >(*this, false); }
+
+    void addData(const BaseCorr2& rhs)
+    { *this += static_cast<const Corr2<D1,D2>&>(rhs); }
+
     void clear();  // Set all data to 0.
-
-    template <int B, int M, int P, int C>
-    void process(const Field<D1,C>& field, bool dots);
-
-    template <int B, int M, int P, int C>
-    void process(const Field<D1,C>& field1, const Field<D2,C>& field2, bool dots);
 
     template <int R, int C>
     void finishProcess(const BaseCell<C>& c1, const BaseCell<C>& c2,

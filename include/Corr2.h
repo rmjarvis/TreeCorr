@@ -101,6 +101,7 @@ protected:
     virtual void doFinishProcess(const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
                                  double rsq, double r, double logr, int k, int k2, R1<0>)=0;
 
+    BinType _bin_type;
     double _minsep;
     double _maxsep;
     int _nbins;
@@ -306,5 +307,56 @@ struct XiData<NData, NData>
     void write(std::ostream& os) const {}
 };
 
+
+class Sampler : public BaseCorr2
+{
+
+public:
+
+    Sampler(const BaseCorr2& base_corr2, double minsep, double maxsep,
+            long* i1, long* i2, double* sep, int n);
+    // Use default copy/destr/op=
+
+    std::shared_ptr<BaseCorr2> duplicate()
+    { return std::make_shared<Sampler>(*this); }
+
+    // We only use this with a single sampler, so addData just needs to
+    // copy things back to the original sampler.
+    void addData(const BaseCorr2& rhs)
+    { *this = static_cast<const Sampler&>(rhs); }
+
+    template <int R, int C>
+    void finishProcess(const BaseCell<C>& c1, const BaseCell<C>& c2,
+                       double rsq, double r, double logr, int k, int k2);
+
+    long getK() const { return _k; }
+
+protected:
+
+    void doFinishProcess(const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
+                         double rsq, double r, double logr, int k, int k2, R1<1>)
+    { finishProcess<1>(c1, c2, rsq, r, logr, k, k2); }
+    void doFinishProcess(const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
+                         double rsq, double r, double logr, int k, int k2, R1<1>)
+    { finishProcess<1>(c1, c2, rsq, r, logr, k, k2); }
+    void doFinishProcess(const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
+                         double rsq, double r, double logr, int k, int k2, R1<1>)
+    { finishProcess<1>(c1, c2, rsq, r, logr, k, k2); }
+    void doFinishProcess(const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
+                         double rsq, double r, double logr, int k, int k2, R1<0>)
+    { finishProcess<0>(c1, c2, rsq, r, logr, k, k2); }
+    void doFinishProcess(const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
+                         double rsq, double r, double logr, int k, int k2, R1<0>)
+    { finishProcess<0>(c1, c2, rsq, r, logr, k, k2); }
+    void doFinishProcess(const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
+                         double rsq, double r, double logr, int k, int k2, R1<0>)
+    { finishProcess<0>(c1, c2, rsq, r, logr, k, k2); }
+
+    long* _i1;
+    long* _i2;
+    double* _sep;
+    int _n;
+    long _k;
+};
 
 #endif

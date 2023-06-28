@@ -604,7 +604,7 @@ def test_mapsq():
 
     mapsq_file = 'output/gg_m2.txt'
     gg.writeMapSq(mapsq_file, precision=16)
-    data = np.genfromtxt(os.path.join('output','gg_m2.txt'), names=True)
+    data = np.genfromtxt(mapsq_file, names=True)
     np.testing.assert_allclose(data['Mapsq'], mapsq)
     np.testing.assert_allclose(data['Mxsq'], mxsq)
 
@@ -623,6 +623,12 @@ def test_mapsq():
     print('mxsq = ',mxsq)
     print('max = ',max(abs(mxsq)))
     np.testing.assert_allclose(mxsq, 0., atol=3.e-8)
+
+    mapsq_file = 'output/gg_m2_R.txt'
+    gg.writeMapSq(mapsq_file, R=R, precision=16)
+    data = np.genfromtxt(mapsq_file, names=True)
+    np.testing.assert_allclose(data['Mapsq'], mapsq)
+    np.testing.assert_allclose(data['Mxsq'], mxsq)
 
     # Also check the Schneider version.  The math isn't quite as nice here, but it is tractable
     # using a different formula than I used above:

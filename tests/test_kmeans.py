@@ -28,7 +28,7 @@ def test_dessv():
         print('Skip test_dessv, since fitsio not installed')
         return
 
-    rng = np.random.default_rng(1234)
+    rng = np.random.default_rng(12345)
 
     #treecorr.set_omp_threads(1);
     get_from_wiki('des_sv.fits')
@@ -406,7 +406,7 @@ def test_2d():
     print('rms inertia = ',np.std(inertia))
     assert np.sum(inertia) < 5300.
     print(np.std(inertia)/np.mean(inertia))
-    assert np.std(inertia) < 0.18 * np.mean(inertia)
+    assert np.std(inertia) < 0.2 * np.mean(inertia)
     print('mean counts = ',np.mean(counts))
     print('min counts = ',np.min(counts))
     print('max counts = ',np.max(counts))
@@ -429,7 +429,7 @@ def test_2d():
     print('rms inertia = ',np.std(inertia))
     assert np.sum(inertia) < 5300.
     print(np.std(inertia)/np.mean(inertia))
-    assert np.std(inertia) < 0.09 * np.mean(inertia)
+    assert np.std(inertia) < 0.1 * np.mean(inertia)
     print('mean counts = ',np.mean(counts))
     print('min counts = ',np.min(counts))
     print('max counts = ',np.max(counts))

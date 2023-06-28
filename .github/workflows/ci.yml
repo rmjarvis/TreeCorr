@@ -95,7 +95,7 @@ jobs:
               continue-on-error: true
               run: |
                 echo ${{ matrix.os }}
-                brew update
+                brew update-reset
                 brew install openmpi
 
             - name: Install basic dependencies

@@ -429,13 +429,14 @@ def test_sample_pairs():
     cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g12, g2=g22, k=k2, keep_zero_weight=True)
 
     # Note: extend range low enough that some bins have < 100 pairs.
-    nn = treecorr.NNCorrelation(min_sep=0.001, max_sep=0.01, bin_size=0.1, max_top=0)
+    rng = np.random.default_rng(12345)
+    nn = treecorr.NNCorrelation(min_sep=0.001, max_sep=0.01, bin_size=0.1, max_top=0, rng=rng)
     nn.process(cat1, cat2)
     print('rnom = ',nn.rnom)
     print('npairs = ',nn.npairs.astype(int))
 
     # Start with a bin near the bottom with < 100 pairs
-    # This only exercises case 1 in the sampleFrom function.
+    # This only exercises case 1 in the sampler finishProcess function.
     b = 1
     i1, i2, sep = nn.sample_pairs(100, cat1, cat2,
                                   min_sep=nn.left_edges[b], max_sep=nn.right_edges[b])
@@ -453,7 +454,7 @@ def test_sample_pairs():
     np.testing.assert_array_less(nn.left_edges[b], sep)
 
     # Next one that still isn't too many pairs, but more than 100
-    # This exercises cases 1,2 in the sampleFrom function.
+    # This exercises cases 1,2 in the sampler finishProcess function.
     b = 10
     i1, i2, sep = nn.sample_pairs(100, cat1, cat2,
                                   min_sep=nn.left_edges[b], max_sep=nn.right_edges[b])
@@ -541,7 +542,8 @@ def test_sample_pairs():
     cat1 = treecorr.Catalog(ra=ra1, dec=dec1, ra_units='rad', dec_units='rad')
     cat2 = treecorr.Catalog(ra=ra2, dec=dec2, ra_units='rad', dec_units='rad')
 
-    nn = treecorr.NNCorrelation(min_sep=1., max_sep=60., nbins=50, sep_units='deg', metric='Arc')
+    nn = treecorr.NNCorrelation(min_sep=1., max_sep=60., nbins=50, sep_units='deg', metric='Arc',
+                                rng=rng)
     nn.process(cat1, cat2)
     print('rnom = ',nn.rnom)
     print('npairs = ',nn.npairs.astype(int))
@@ -567,6 +569,16 @@ def test_sample_pairs():
     np.testing.assert_array_less(sep, nn.right_edges[b])
     np.testing.assert_array_less(nn.left_edges[b], sep)
 
+    # Note that some of the actual separations are outside the range, due to bin_slop.
+    print('n below min = ',np.sum(actual_sep < nn.left_edges[b]))
+    print('n above max = ',np.sum(actual_sep > nn.right_edges[b]))
+    print(np.min(actual_sep), nn.left_edges[b], nn.right_edges[b], np.max(actual_sep))
+    print('bin_slop = ',nn.bin_slop)  # = 1
+    assert np.sum(actual_sep < nn.left_edges[b]) > 0
+    assert np.sum(actual_sep > nn.right_edges[b]) > 0
+    assert nn.bin_slop == 1.0
+    assert np.sum(actual_sep < nn.left_edges[b-1]) == 0     # No more than 1 bin away, since
+    assert np.sum(actual_sep > nn.right_edges[b+1]) == 0    # bin_slop = 1
 
 
 if __name__ == '__main__':

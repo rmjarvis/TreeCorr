@@ -852,7 +852,7 @@ Corr2<D1,D2>* BuildCorr2(
 }
 
 template <int B, int M, int C>
-void ProcessAuto2d(BaseCorr2* corr, BaseField<C>* field, bool dots)
+void ProcessAuto2(BaseCorr2* corr, BaseField<C>* field, bool dots)
 {
     const bool P = corr->nontrivialRPar();
     dbg<<"ProcessAuto: coords = "<<C<<", metric = "<<M<<", P = "<<P<<std::endl;
@@ -872,26 +872,26 @@ void ProcessAuto2d(BaseCorr2* corr, BaseField<C>* field, bool dots)
 }
 
 template <int B, int C>
-void ProcessAuto2c(BaseCorr2* corr, BaseField<C>* field, bool dots, Metric metric)
+void ProcessAuto1(BaseCorr2* corr, BaseField<C>* field, bool dots, Metric metric)
 {
     switch(metric) {
       case Euclidean:
-           ProcessAuto2d<B,Euclidean>(corr, field, dots);
+           ProcessAuto2<B,Euclidean>(corr, field, dots);
            break;
       case Rperp:
-           ProcessAuto2d<B,Rperp>(corr, field, dots);
+           ProcessAuto2<B,Rperp>(corr, field, dots);
            break;
       case OldRperp:
-           ProcessAuto2d<B,OldRperp>(corr, field, dots);
+           ProcessAuto2<B,OldRperp>(corr, field, dots);
            break;
       case Rlens:
-           ProcessAuto2d<B,Rlens>(corr, field, dots);
+           ProcessAuto2<B,Rlens>(corr, field, dots);
            break;
       case Arc:
-           ProcessAuto2d<B,Arc>(corr, field, dots);
+           ProcessAuto2<B,Arc>(corr, field, dots);
            break;
       case Periodic:
-           ProcessAuto2d<B,Periodic>(corr, field, dots);
+           ProcessAuto2<B,Periodic>(corr, field, dots);
            break;
       default:
            Assert(false);
@@ -903,13 +903,13 @@ void ProcessAuto(BaseCorr2* corr, BaseField<C>* field, bool dots, BinType bin_ty
 {
     switch(bin_type) {
       case Log:
-           ProcessAuto2c<Log>(corr, field, dots, metric);
+           ProcessAuto1<Log>(corr, field, dots, metric);
            break;
       case Linear:
-           ProcessAuto2c<Linear>(corr, field, dots, metric);
+           ProcessAuto1<Linear>(corr, field, dots, metric);
            break;
       case TwoD:
-           ProcessAuto2c<TwoD>(corr, field, dots, metric);
+           ProcessAuto1<TwoD>(corr, field, dots, metric);
            break;
       default:
            Assert(false);
@@ -917,7 +917,7 @@ void ProcessAuto(BaseCorr2* corr, BaseField<C>* field, bool dots, BinType bin_ty
 }
 
 template <int B, int M, int C>
-void ProcessCross2d(BaseCorr2* corr, BaseField<C>* field1, BaseField<C>* field2, bool dots)
+void ProcessCross2(BaseCorr2* corr, BaseField<C>* field1, BaseField<C>* field2, bool dots)
 {
     const bool P = corr->nontrivialRPar();
     dbg<<"ProcessCross: coords = "<<C<<", metric = "<<M<<", P = "<<P<<std::endl;
@@ -932,27 +932,27 @@ void ProcessCross2d(BaseCorr2* corr, BaseField<C>* field1, BaseField<C>* field2,
 }
 
 template <int B, int C>
-void ProcessCross2c(BaseCorr2* corr, BaseField<C>* field1, BaseField<C>* field2,
-                    bool dots, Metric metric)
+void ProcessCross1(BaseCorr2* corr, BaseField<C>* field1, BaseField<C>* field2,
+                   bool dots, Metric metric)
 {
     switch(metric) {
       case Euclidean:
-           ProcessCross2d<B,Euclidean>(corr, field1, field2, dots);
+           ProcessCross2<B,Euclidean>(corr, field1, field2, dots);
            break;
       case Rperp:
-           ProcessCross2d<B,Rperp>(corr, field1, field2, dots);
+           ProcessCross2<B,Rperp>(corr, field1, field2, dots);
            break;
       case OldRperp:
-           ProcessCross2d<B,OldRperp>(corr, field1, field2, dots);
+           ProcessCross2<B,OldRperp>(corr, field1, field2, dots);
            break;
       case Rlens:
-           ProcessCross2d<B,Rlens>(corr, field1, field2, dots);
+           ProcessCross2<B,Rlens>(corr, field1, field2, dots);
            break;
       case Arc:
-           ProcessCross2d<B,Arc>(corr, field1, field2, dots);
+           ProcessCross2<B,Arc>(corr, field1, field2, dots);
            break;
       case Periodic:
-           ProcessCross2d<B,Periodic>(corr, field1, field2, dots);
+           ProcessCross2<B,Periodic>(corr, field1, field2, dots);
            break;
       default:
            Assert(false);
@@ -966,13 +966,13 @@ void ProcessCross(BaseCorr2* corr, BaseField<C>* field1, BaseField<C>* field2,
     dbg<<"Start ProcessCross: "<<bin_type<<" "<<metric<<std::endl;
     switch(bin_type) {
       case Log:
-           ProcessCross2c<Log>(corr, field1, field2, dots, metric);
+           ProcessCross1<Log>(corr, field1, field2, dots, metric);
            break;
       case Linear:
-           ProcessCross2c<Linear>(corr, field1, field2, dots, metric);
+           ProcessCross1<Linear>(corr, field1, field2, dots, metric);
            break;
       case TwoD:
-           ProcessCross2c<TwoD>(corr, field1, field2, dots, metric);
+           ProcessCross1<TwoD>(corr, field1, field2, dots, metric);
            break;
       default:
            Assert(false);
@@ -1026,9 +1026,9 @@ long SamplePairs(BaseCorr2* corr, BaseField<C>* field1, BaseField<C>* field2,
 }
 
 template <int B, int M, int C>
-int TriviallyZero2e(BaseCorr2* corr,
-                    double x1, double y1, double z1, double s1,
-                    double x2, double y2, double z2, double s2)
+int TriviallyZero3(BaseCorr2* corr,
+                   double x1, double y1, double z1, double s1,
+                   double x2, double y2, double z2, double s2)
 {
     Position<C> p1(x1,y1,z1);
     Position<C> p2(x2,y2,z2);
@@ -1036,24 +1036,24 @@ int TriviallyZero2e(BaseCorr2* corr,
 }
 
 template <int B, int M>
-int TriviallyZero2d(BaseCorr2* corr, Coord coords,
-                    double x1, double y1, double z1, double s1,
-                    double x2, double y2, double z2, double s2)
+int TriviallyZero2(BaseCorr2* corr, Coord coords,
+                   double x1, double y1, double z1, double s1,
+                   double x2, double y2, double z2, double s2)
 {
     switch(coords) {
       case Flat:
            Assert((MetricHelper<M,0>::_Flat == int(Flat)));
-           return TriviallyZero2e<B,M,MetricHelper<M,0>::_Flat>(
+           return TriviallyZero3<B,M,MetricHelper<M,0>::_Flat>(
                corr, x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       case Sphere:
            Assert((MetricHelper<M,0>::_Sphere == int(Sphere)));
-           return TriviallyZero2e<B,M,MetricHelper<M,0>::_Sphere>(
+           return TriviallyZero3<B,M,MetricHelper<M,0>::_Sphere>(
                corr, x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       case ThreeD:
            Assert((MetricHelper<M,0>::_ThreeD == int(ThreeD)));
-           return TriviallyZero2e<B,M,MetricHelper<M,0>::_ThreeD>(
+           return TriviallyZero3<B,M,MetricHelper<M,0>::_ThreeD>(
                corr, x1, y1, z1, s1, x2, y2, z2, s2);
       default:
            Assert(false);
@@ -1062,28 +1062,28 @@ int TriviallyZero2d(BaseCorr2* corr, Coord coords,
 }
 
 template <int B>
-int TriviallyZero2c(BaseCorr2* corr, Metric metric, Coord coords,
-                    double x1, double y1, double z1, double s1,
-                    double x2, double y2, double z2, double s2)
+int TriviallyZero1(BaseCorr2* corr, Metric metric, Coord coords,
+                   double x1, double y1, double z1, double s1,
+                   double x2, double y2, double z2, double s2)
 {
     switch(metric) {
       case Euclidean:
-           return TriviallyZero2d<B,Euclidean>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
+           return TriviallyZero2<B,Euclidean>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       case Rperp:
-           return TriviallyZero2d<B,Rperp>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
+           return TriviallyZero2<B,Rperp>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       case OldRperp:
-           return TriviallyZero2d<B,OldRperp>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
+           return TriviallyZero2<B,OldRperp>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       case Rlens:
-           return TriviallyZero2d<B,Rlens>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
+           return TriviallyZero2<B,Rlens>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       case Arc:
-           return TriviallyZero2d<B,Arc>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
+           return TriviallyZero2<B,Arc>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       case Periodic:
-           return TriviallyZero2d<B,Periodic>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
+           return TriviallyZero2<B,Periodic>(corr, coords, x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       default:
            Assert(false);
@@ -1097,16 +1097,16 @@ int TriviallyZero(BaseCorr2* corr, BinType bin_type, Metric metric, Coord coords
 {
     switch(bin_type) {
       case Log:
-           return TriviallyZero2c<Log>(corr, metric, coords,
-                                       x1, y1, z1, s1, x2, y2, z2, s2);
+           return TriviallyZero1<Log>(corr, metric, coords,
+                                      x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       case Linear:
-           return TriviallyZero2c<Linear>(corr, metric, coords,
-                                          x1, y1, z1, s1, x2, y2, z2, s2);
+           return TriviallyZero1<Linear>(corr, metric, coords,
+                                         x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       case TwoD:
-           return TriviallyZero2c<TwoD>(corr, metric, coords,
-                                        x1, y1, z1, s1, x2, y2, z2, s2);
+           return TriviallyZero1<TwoD>(corr, metric, coords,
+                                       x1, y1, z1, s1, x2, y2, z2, s2);
            break;
       default:
            Assert(false);

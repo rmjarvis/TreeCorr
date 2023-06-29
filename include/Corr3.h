@@ -40,6 +40,21 @@ public:
     BaseCorr3(const BaseCorr3& rhs);
     virtual ~BaseCorr3() {}
 
+    virtual std::shared_ptr<BaseCorr3> duplicate() =0;
+
+    virtual void addData(const BaseCorr3& rhs) =0;
+
+    template <int B, int M, int C>
+    void process(const BaseField<C>& field, bool dots);
+    template <int B, int M, int C>
+    void process(BaseCorr3* corr212, BaseCorr3* corr221,
+                 const BaseField<C>& field1, const BaseField<C>& field2, bool dots);
+    template <int B, int M, int C>
+    void process(BaseCorr3* corr132, BaseCorr3* corr213, BaseCorr3* corr231,
+                 BaseCorr3* corr312, BaseCorr3* corr321,
+                 const BaseField<C>& field1, const BaseField<C>& field2,
+                 const BaseField<C>& field3, bool dots);
+
     // Main worker functions for calculating the result
     template <int B, int M, int C>
     void process3(const BaseCell<C>* c1, const MetricHelper<M,0>& metric);
@@ -146,20 +161,13 @@ public:
     Corr3(const Corr3& rhs, bool copy_data=true);
     ~Corr3();
 
+    std::shared_ptr<BaseCorr3> duplicate()
+    { return std::make_shared<Corr3<D1,D2,D3> >(*this, false); }
+
+    void addData(const BaseCorr3& rhs)
+    { *this += static_cast<const Corr3<D1,D2,D3>&>(rhs); }
+
     void clear();  // Set all data to 0.
-
-    template <int B, int M, int C>
-    void process(const Field<D1,C>& field, bool dots);
-    template <int B, int M, int C>
-    void process(Corr3<D2,D1,D2>* corr212, Corr3<D2,D2,D1>* corr221,
-                 const Field<D1,C>& field1, const Field<D2,C>& field2, bool dots);
-    template <int B, int M, int C>
-    void process(Corr3<D1,D3,D2>* corr132,
-                 Corr3<D2,D1,D3>* corr213, Corr3<D2,D3,D1>* corr231,
-                 Corr3<D3,D1,D2>* corr312, Corr3<D3,D2,D1>* corr321,
-                 const Field<D1,C>& field1, const Field<D2,C>& field2,
-                 const Field<D3,C>& field3, bool dots);
-
 
     template <int C>
     void finishProcess(

@@ -70,7 +70,7 @@ Corr3<D1,D2,D3>::Corr3(
               minv, maxv, nvbins, vbinsize, bv,
               xp, yp, zp),
     _owns_data(false),
-    _zeta(zeta0,zeta1,zeta2,zeta3,zeta4,zeta5,zeta6,zeta7),
+    _zeta(zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7),
     _meand1(meand1), _meanlogd1(meanlogd1), _meand2(meand2), _meanlogd2(meanlogd2),
     _meand3(meand3), _meanlogd3(meanlogd3), _meanu(meanu), _meanv(meanv),
     _weight(weight), _ntri(ntri)
@@ -183,17 +183,17 @@ void BaseCorr3::process(const BaseField<C>& field, bool dots)
                 dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
 #endif
                 xdbg<<"field = \n";
-                if (verbose_level >= 2) c1->WriteTree(get_dbgout());
+                if (verbose_level >= 2) c1.WriteTree(get_dbgout());
 #endif
             }
-            const BaseCell<C>* c1 = field.getCells()[i];
+            const BaseCell<C>& c1 = *field.getCells()[i];
             bc3.template process3<B>(c1, metric);
             for (long j=i+1;j<n1;++j) {
-                const BaseCell<C>* c2 = field.getCells()[j];
+                const BaseCell<C>& c2 = *field.getCells()[j];
                 bc3.template process12<B>(bc3, bc3, c1, c2, metric);
                 bc3.template process12<B>(bc3, bc3, c2, c1, metric);
                 for (long k=j+1;k<n1;++k) {
-                    const BaseCell<C>* c3 = field.getCells()[k];
+                    const BaseCell<C>& c3 = *field.getCells()[k];
                     bc3.template process111<B>(bc3, bc3, bc3, bc3, bc3, c1, c2, c3, metric);
                 }
             }
@@ -210,7 +210,7 @@ void BaseCorr3::process(const BaseField<C>& field, bool dots)
 }
 
 template <int B, int M, int C>
-void BaseCorr3::process(BaseCorr3* corr212, BaseCorr3* corr221,
+void BaseCorr3::process(BaseCorr3& corr212, BaseCorr3& corr221,
                         const BaseField<C>& field1, const BaseField<C>& field2, bool dots)
 {
     xdbg<<"_coords = "<<_coords<<std::endl;
@@ -231,14 +231,14 @@ void BaseCorr3::process(BaseCorr3* corr212, BaseCorr3* corr221,
         xdbg<<"field1: \n";
         for (long i=0;i<n1;++i) {
             xdbg<<"node "<<i<<std::endl;
-            const BaseCell<C>* c1 = field1.getCells()[i];
-            c1->WriteTree(get_dbgout());
+            const BaseCell<C>& c1 = *field1.getCells()[i];
+            c1.WriteTree(get_dbgout());
         }
         xdbg<<"field2: \n";
         for (long i=0;i<n2;++i) {
             xdbg<<"node "<<i<<std::endl;
-            const BaseCell<C>* c2 = field2.getCells()[i];
-            c2->WriteTree(get_dbgout());
+            const BaseCell<C>& c2 = *field2.getCells()[i];
+            c2.WriteTree(get_dbgout());
         }
     }
 #endif
@@ -248,15 +248,15 @@ void BaseCorr3::process(BaseCorr3* corr212, BaseCorr3* corr221,
     {
         // Give each thread their own copy of the data vector to fill in.
         std::shared_ptr<BaseCorr3> bc122p = duplicate();
-        std::shared_ptr<BaseCorr3> bc212p = corr212->duplicate();
-        std::shared_ptr<BaseCorr3> bc221p = corr221->duplicate();
+        std::shared_ptr<BaseCorr3> bc212p = corr212.duplicate();
+        std::shared_ptr<BaseCorr3> bc221p = corr221.duplicate();
         BaseCorr3& bc122 = *bc122p;
         BaseCorr3& bc212 = *bc212p;
         BaseCorr3& bc221 = *bc221p;
 #else
         BaseCorr3& bc122 = *this;
-        BaseCorr3& bc212 = *corr212;
-        BaseCorr3& bc221 = *corr221;
+        BaseCorr3& bc212 = corr212;
+        BaseCorr3& bc221 = corr221;
 #endif
 
 #ifdef _OPENMP
@@ -272,12 +272,12 @@ void BaseCorr3::process(BaseCorr3* corr212, BaseCorr3* corr221,
                 dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
 #endif
             }
-            const BaseCell<C>* c1 = field1.getCells()[i];
+            const BaseCell<C>& c1 = *field1.getCells()[i];
             for (long j=0;j<n2;++j) {
-                const BaseCell<C>* c2 = field2.getCells()[j];
+                const BaseCell<C>& c2 = *field2.getCells()[j];
                 bc122.template process12<B>(bc212, bc221, c1, c2, metric);
                 for (long k=j+1;k<n2;++k) {
-                    const BaseCell<C>* c3 = field2.getCells()[k];
+                    const BaseCell<C>& c3 = *field2.getCells()[k];
                     bc122.template process111<B>(bc122, bc212, bc221, bc212, bc221,
                                                  c1, c2, c3, metric);
                 }
@@ -288,8 +288,8 @@ void BaseCorr3::process(BaseCorr3* corr212, BaseCorr3* corr221,
 #pragma omp critical
         {
             addData(bc122);
-            corr212->addData(bc212);
-            corr221->addData(bc221);
+            corr212.addData(bc212);
+            corr221.addData(bc221);
         }
     }
 #endif
@@ -297,9 +297,9 @@ void BaseCorr3::process(BaseCorr3* corr212, BaseCorr3* corr221,
 }
 
 template <int B, int M, int C>
-void BaseCorr3::process(BaseCorr3* corr132,
-                        BaseCorr3* corr213, BaseCorr3* corr231,
-                        BaseCorr3* corr312, BaseCorr3* corr321,
+void BaseCorr3::process(BaseCorr3& corr132,
+                        BaseCorr3& corr213, BaseCorr3& corr231,
+                        BaseCorr3& corr312, BaseCorr3& corr321,
                         const BaseField<C>& field1, const BaseField<C>& field2,
                         const BaseField<C>& field3, bool dots)
 {
@@ -324,20 +324,20 @@ void BaseCorr3::process(BaseCorr3* corr132,
         xdbg<<"field1: \n";
         for (long i=0;i<n1;++i) {
             xdbg<<"node "<<i<<std::endl;
-            const BaseCell<C>* c1 = field1.getCells()[i];
-            c1->WriteTree(get_dbgout());
+            const BaseCell<C>& c1 = *field1.getCells()[i];
+            c1.WriteTree(get_dbgout());
         }
         xdbg<<"field2: \n";
         for (long i=0;i<n2;++i) {
             xdbg<<"node "<<i<<std::endl;
-            const BaseCell<C>* c2 = field2.getCells()[i];
-            c2->WriteTree(get_dbgout());
+            const BaseCell<C>& c2 = *field2.getCells()[i];
+            c2.WriteTree(get_dbgout());
         }
         xdbg<<"field3: \n";
         for (long i=0;i<n3;++i) {
             xdbg<<"node "<<i<<std::endl;
-            const BaseCell<C>* c3 = field3.getCells()[i];
-            c3->WriteTree(get_dbgout());
+            const BaseCell<C>& c3 = *field3.getCells()[i];
+            c3.WriteTree(get_dbgout());
         }
     }
 #endif
@@ -347,11 +347,11 @@ void BaseCorr3::process(BaseCorr3* corr132,
     {
         // Give each thread their own copy of the data vector to fill in.
         std::shared_ptr<BaseCorr3> bc123p = duplicate();
-        std::shared_ptr<BaseCorr3> bc132p = corr132->duplicate();
-        std::shared_ptr<BaseCorr3> bc213p = corr213->duplicate();
-        std::shared_ptr<BaseCorr3> bc231p = corr231->duplicate();
-        std::shared_ptr<BaseCorr3> bc312p = corr312->duplicate();
-        std::shared_ptr<BaseCorr3> bc321p = corr321->duplicate();
+        std::shared_ptr<BaseCorr3> bc132p = corr132.duplicate();
+        std::shared_ptr<BaseCorr3> bc213p = corr213.duplicate();
+        std::shared_ptr<BaseCorr3> bc231p = corr231.duplicate();
+        std::shared_ptr<BaseCorr3> bc312p = corr312.duplicate();
+        std::shared_ptr<BaseCorr3> bc321p = corr321.duplicate();
         BaseCorr3& bc123 = *bc123p;
         BaseCorr3& bc132 = *bc132p;
         BaseCorr3& bc213 = *bc213p;
@@ -360,11 +360,11 @@ void BaseCorr3::process(BaseCorr3* corr132,
         BaseCorr3& bc321 = *bc321p;
 #else
         BaseCorr3& bc123 = *this;
-        BaseCorr3& bc132 = *corr132;
-        BaseCorr3& bc213 = *corr213;
-        BaseCorr3& bc231 = *corr231;
-        BaseCorr3& bc312 = *corr312;
-        BaseCorr3& bc321 = *corr321;
+        BaseCorr3& bc132 = corr132;
+        BaseCorr3& bc213 = corr213;
+        BaseCorr3& bc231 = corr231;
+        BaseCorr3& bc312 = corr312;
+        BaseCorr3& bc321 = corr321;
 #endif
 
 #ifdef _OPENMP
@@ -380,11 +380,11 @@ void BaseCorr3::process(BaseCorr3* corr132,
                 dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
 #endif
             }
-            const BaseCell<C>* c1 = field1.getCells()[i];
+            const BaseCell<C>& c1 = *field1.getCells()[i];
             for (long j=0;j<n2;++j) {
-                const BaseCell<C>* c2 = field2.getCells()[j];
+                const BaseCell<C>& c2 = *field2.getCells()[j];
                 for (long k=0;k<n3;++k) {
-                    const BaseCell<C>* c3 = field3.getCells()[k];
+                    const BaseCell<C>& c3 = *field3.getCells()[k];
                     bc123.template process111<B>(
                         bc132, bc213, bc231, bc312, bc321,
                         c1, c2, c3, metric);
@@ -396,11 +396,11 @@ void BaseCorr3::process(BaseCorr3* corr132,
 #pragma omp critical
         {
             addData(bc123);
-            corr132->addData(bc132);
-            corr213->addData(bc213);
-            corr231->addData(bc231);
-            corr312->addData(bc312);
-            corr321->addData(bc321);
+            corr132.addData(bc132);
+            corr213.addData(bc213);
+            corr231.addData(bc231);
+            corr312.addData(bc312);
+            corr321.addData(bc321);
         }
     }
 #endif
@@ -408,46 +408,46 @@ void BaseCorr3::process(BaseCorr3* corr132,
 }
 
 template <int B, int M, int C>
-void BaseCorr3::process3(const BaseCell<C>* c1, const MetricHelper<M,0>& metric)
+void BaseCorr3::process3(const BaseCell<C>& c1, const MetricHelper<M,0>& metric)
 {
     // Does all triangles with 3 points in c1
-    xdbg<<"Process3: c1 = "<<c1->getData().getPos()<<"  "<<"  "<<c1->getSize()<<"  "<<c1->getData().getN()<<std::endl;
-    if (c1->getW() == 0) {
+    xdbg<<"Process3: c1 = "<<c1.getData().getPos()<<"  "<<"  "<<c1.getSize()<<"  "<<c1.getData().getN()<<std::endl;
+    if (c1.getW() == 0) {
         xdbg<<"    w == 0.  return\n";
         return;
     }
-    if (c1->getSize() < _halfminsep) {
+    if (c1.getSize() < _halfminsep) {
         xdbg<<"    size < halfminsep.  return\n";
         return;
     }
 
-    Assert(c1->getLeft());
-    Assert(c1->getRight());
-    process3<B>(c1->getLeft(), metric);
-    process3<B>(c1->getRight(), metric);
-    process12<B>(*this, *this, c1->getLeft(),c1->getRight(), metric);
-    process12<B>(*this, *this, c1->getRight(),c1->getLeft(), metric);
+    Assert(c1.getLeft());
+    Assert(c1.getRight());
+    process3<B>(*c1.getLeft(), metric);
+    process3<B>(*c1.getRight(), metric);
+    process12<B>(*this, *this, *c1.getLeft(), *c1.getRight(), metric);
+    process12<B>(*this, *this, *c1.getRight(), *c1.getLeft(), metric);
 }
 
 template <int B, int M, int C>
 void BaseCorr3::process12(BaseCorr3& bc212, BaseCorr3& bc221,
-                          const BaseCell<C>* c1, const BaseCell<C>* c2,
+                          const BaseCell<C>& c1, const BaseCell<C>& c2,
                           const MetricHelper<M,0>& metric)
 {
     // Does all triangles with one point in c1 and the other two points in c2
-    xdbg<<"Process12: c1 = "<<c1->getData().getPos()<<"  "<<"  "<<c1->getSize()<<"  "<<c1->getData().getN()<<std::endl;
-    xdbg<<"           c2  = "<<c2->getData().getPos()<<"  "<<"  "<<c2->getSize()<<"  "<<c2->getData().getN()<<std::endl;
+    xdbg<<"Process12: c1 = "<<c1.getData().getPos()<<"  "<<"  "<<c1.getSize()<<"  "<<c1.getData().getN()<<std::endl;
+    xdbg<<"           c2  = "<<c2.getData().getPos()<<"  "<<"  "<<c2.getSize()<<"  "<<c2.getData().getN()<<std::endl;
 
     // Some trivial stoppers:
-    if (c1->getW() == 0) {
+    if (c1.getW() == 0) {
         xdbg<<"    w1 == 0.  return\n";
         return;
     }
-    if (c2->getW() == 0) {
+    if (c2.getW() == 0) {
         xdbg<<"    w2 == 0.  return\n";
         return;
     }
-    double s2 = c2->getSize();
+    double s2 = c2.getSize();
     if (s2 == 0.) {
         xdbg<<"    size2 == 0.  return\n";
         return;
@@ -457,8 +457,8 @@ void BaseCorr3::process12(BaseCorr3& bc212, BaseCorr3& bc221,
         return;
     }
 
-    double s1 = c1->getSize();
-    double dsq = metric.DistSq(c1->getData().getPos(), c2->getData().getPos(), s1, s2);
+    double s1 = c1.getSize();
+    double dsq = metric.DistSq(c1.getData().getPos(), c2.getData().getPos(), s1, s2);
     double s1ps2 = s1 + s2;
 
     // If all possible triangles will have d2 < minsep, then abort the recursion here.
@@ -485,12 +485,13 @@ void BaseCorr3::process12(BaseCorr3& bc212, BaseCorr3& bc221,
         return;
     }
 
-    Assert(c2->getLeft());
-    Assert(c2->getRight());
-    process12<B>(bc212, bc221, c1, c2->getLeft(), metric);
-    process12<B>(bc212, bc221, c1, c2->getRight(), metric);
+    Assert(c2.getLeft());
+    Assert(c2.getRight());
+    process12<B>(bc212, bc221, c1, *c2.getLeft(), metric);
+    process12<B>(bc212, bc221, c1, *c2.getRight(), metric);
     // 111 order is 123, 132, 213, 231, 312, 321   Here 3->2.
-    process111<B>(*this,bc212,bc221,bc212,bc221, c1, c2->getLeft(), c2->getRight(), metric);
+    process111<B>(*this, bc212, bc221, bc212, bc221, 
+                  c1, *c2.getLeft(), *c2.getRight(), metric);
 }
 
 static bool stop111(
@@ -603,19 +604,19 @@ static bool stop111(
 template <int B, int M, int C>
 void BaseCorr3::process111(
     BaseCorr3& bc132, BaseCorr3& bc213, BaseCorr3& bc231, BaseCorr3& bc312, BaseCorr3& bc321,
-    const BaseCell<C>* c1, const BaseCell<C>* c2, const BaseCell<C>* c3,
+    const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
     const MetricHelper<M,0>& metric, double d1sq, double d2sq, double d3sq)
 {
     // Does all triangles with 1 point each in c1, c2, c3
-    if (c1->getW() == 0) {
+    if (c1.getW() == 0) {
         xdbg<<"    w1 == 0.  return\n";
         return;
     }
-    if (c2->getW() == 0) {
+    if (c2.getW() == 0) {
         xdbg<<"    w2 == 0.  return\n";
         return;
     }
-    if (c3->getW() == 0) {
+    if (c3.getW() == 0) {
         xdbg<<"    w3 == 0.  return\n";
         return;
     }
@@ -623,11 +624,11 @@ void BaseCorr3::process111(
     // Calculate the distances if they aren't known yet
     double s=0.;
     if (d1sq == 0.)
-        d1sq = metric.DistSq(c2->getData().getPos(), c3->getData().getPos(), s,s);
+        d1sq = metric.DistSq(c2.getData().getPos(), c3.getData().getPos(), s, s);
     if (d2sq == 0.)
-        d2sq = metric.DistSq(c1->getData().getPos(), c3->getData().getPos(), s,s);
+        d2sq = metric.DistSq(c1.getData().getPos(), c3.getData().getPos(), s, s);
     if (d3sq == 0.)
-        d3sq = metric.DistSq(c1->getData().getPos(), c2->getData().getPos(), s,s);
+        d3sq = metric.DistSq(c1.getData().getPos(), c2.getData().getPos(), s, s);
 
     xdbg<<"Before sort: d123 = "<<sqrt(d1sq)<<"  "<<sqrt(d2sq)<<"  "<<sqrt(d3sq)<<std::endl;
 
@@ -638,35 +639,35 @@ void BaseCorr3::process111(
         if (d2sq > d3sq) {
             xdbg<<"123\n";
             // 123 -> 123
-            bc123.template process111Sorted<B>(bc132,bc213,bc231,bc312,bc321,
-                                               c1,c2,c3, metric, d1sq,d2sq,d3sq);
+            bc123.template process111Sorted<B>(bc132, bc213, bc231, bc312, bc321,
+                                               c1, c2, c3, metric, d1sq, d2sq, d3sq);
         } else if (d1sq > d3sq) {
             xdbg<<"132\n";
             // 132 -> 123
-            bc132.template process111Sorted<B>(bc123,bc312,bc321,bc213,bc231,
-                                               c1,c3,c2, metric, d1sq,d3sq,d2sq);
+            bc132.template process111Sorted<B>(bc123, bc312, bc321, bc213, bc231,
+                                               c1, c3, c2, metric, d1sq, d3sq, d2sq);
         } else {
             xdbg<<"312\n";
             // 312 -> 123
-            bc312.template process111Sorted<B>(bc321,bc132,bc123,bc231,bc213,
-                                               c3,c1,c2, metric, d3sq,d1sq,d2sq);
+            bc312.template process111Sorted<B>(bc321, bc132, bc123, bc231, bc213,
+                                               c3, c1, c2, metric, d3sq, d1sq, d2sq);
         }
     } else {
         if (d1sq > d3sq) {
             xdbg<<"213\n";
             // 213 -> 123
-            bc213.template process111Sorted<B>(bc231,bc123,bc132,bc321,bc312,
-                                               c2,c1,c3, metric, d2sq,d1sq,d3sq);
+            bc213.template process111Sorted<B>(bc231, bc123, bc132, bc321, bc312,
+                                               c2, c1, c3, metric, d2sq, d1sq, d3sq);
         } else if (d2sq > d3sq) {
             xdbg<<"231\n";
             // 231 -> 123
-            bc231.template process111Sorted<B>(bc213,bc321,bc312,bc123,bc132,
-                                               c2,c3,c1, metric, d2sq,d3sq,d1sq);
+            bc231.template process111Sorted<B>(bc213, bc321, bc312, bc123, bc132,
+                                               c2, c3, c1, metric, d2sq, d3sq, d1sq);
         } else {
             xdbg<<"321\n";
             // 321 -> 123
-            bc321.template process111Sorted<B>(bc312,bc231,bc213,bc132,bc123,
-                                               c3,c2,c1, metric, d3sq,d2sq,d1sq);
+            bc321.template process111Sorted<B>(bc312, bc231, bc213, bc132, bc123,
+                                               c3, c2, c1, metric, d3sq, d2sq, d1sq);
         }
     }
 }
@@ -674,25 +675,25 @@ void BaseCorr3::process111(
 template <int B, int M, int C>
 void BaseCorr3::process111Sorted(
     BaseCorr3& bc132, BaseCorr3& bc213, BaseCorr3& bc231, BaseCorr3& bc312, BaseCorr3& bc321,
-    const BaseCell<C>* c1, const BaseCell<C>* c2, const BaseCell<C>* c3,
+    const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
     const MetricHelper<M,0>& metric, double d1sq, double d2sq, double d3sq)
 {
-    const double s1 = c1->getSize();
-    const double s2 = c2->getSize();
-    const double s3 = c3->getSize();
+    const double s1 = c1.getSize();
+    const double s2 = c2.getSize();
+    const double s3 = c3.getSize();
 
-    xdbg<<"Process111Sorted: c1 = "<<c1->getData().getPos()<<"  "<<"  "<<c1->getSize()<<"  "<<c1->getData().getN()<<std::endl;
-    xdbg<<"                  c2 = "<<c2->getData().getPos()<<"  "<<"  "<<c2->getSize()<<"  "<<c2->getData().getN()<<std::endl;
-    xdbg<<"                  c3 = "<<c3->getData().getPos()<<"  "<<"  "<<c3->getSize()<<"  "<<c3->getData().getN()<<std::endl;
+    xdbg<<"Process111Sorted: c1 = "<<c1.getData().getPos()<<"  "<<"  "<<c1.getSize()<<"  "<<c1.getData().getN()<<std::endl;
+    xdbg<<"                  c2 = "<<c2.getData().getPos()<<"  "<<"  "<<c2.getSize()<<"  "<<c2.getData().getN()<<std::endl;
+    xdbg<<"                  c3 = "<<c3.getData().getPos()<<"  "<<"  "<<c3.getSize()<<"  "<<c3.getData().getN()<<std::endl;
     xdbg<<"                  d123 = "<<sqrt(d1sq)<<"  "<<sqrt(d2sq)<<"  "<<sqrt(d3sq)<<std::endl;
     Assert(d1sq >= d2sq);
     Assert(d2sq >= d3sq);
 
     double d2 = 0.;  // If not stop111, then d2 will be set.
-    if (stop111(d1sq,d2sq,d3sq,d2,s1,s2,s3,
-                _minsep,_minsepsq,_maxsep,_maxsepsq,
-                _minu,_minusq,_maxu,_maxusq,
-                _minv,_minvsq,_maxv,_maxvsq)) {
+    if (stop111(d1sq, d2sq, d3sq, d2, s1, s2, s3,
+                _minsep, _minsepsq, _maxsep, _maxsepsq,
+                _minu, _minusq, _maxu, _maxusq,
+                _minv, _minvsq, _maxv, _maxvsq)) {
         return;
     }
 
@@ -829,101 +830,101 @@ void BaseCorr3::process111Sorted(
             if (split2) {
                 if (split1) {
                     // split 1,2,3
-                    Assert(c1->getLeft());
-                    Assert(c1->getRight());
-                    Assert(c2->getLeft());
-                    Assert(c2->getRight());
-                    Assert(c3->getLeft());
-                    Assert(c3->getRight());
-                    process111<B>(bc132,bc213,bc231,bc312,bc321,
-                                  c1->getLeft(),c2->getLeft(),c3->getLeft(),metric);
-                    process111<B>(bc132,bc213,bc231,bc312,bc321,
-                                  c1->getLeft(),c2->getLeft(),c3->getRight(),metric);
-                    process111<B>(bc132,bc213,bc231,bc312,bc321,
-                                  c1->getLeft(),c2->getRight(),c3->getLeft(),metric);
-                    process111<B>(bc132,bc213,bc231,bc312,bc321,
-                                  c1->getLeft(),c2->getRight(),c3->getRight(),metric);
-                    process111<B>(bc132,bc213,bc231,bc312,bc321,
-                                  c1->getRight(),c2->getLeft(),c3->getLeft(),metric);
-                    process111<B>(bc132,bc213,bc231,bc312,bc321,
-                                  c1->getRight(),c2->getLeft(),c3->getRight(),metric);
-                    process111<B>(bc132,bc213,bc231,bc312,bc321,
-                                  c1->getRight(),c2->getRight(),c3->getLeft(),metric);
-                    process111<B>(bc132,bc213,bc231,bc312,bc321,
-                                  c1->getRight(),c2->getRight(),c3->getRight(),metric);
+                    Assert(c1.getLeft());
+                    Assert(c1.getRight());
+                    Assert(c2.getLeft());
+                    Assert(c2.getRight());
+                    Assert(c3.getLeft());
+                    Assert(c3.getRight());
+                    process111<B>(bc132, bc213, bc231, bc312, bc321,
+                                  *c1.getLeft(), *c2.getLeft(), *c3.getLeft(), metric);
+                    process111<B>(bc132, bc213, bc231, bc312, bc321,
+                                  *c1.getLeft(), *c2.getLeft(), *c3.getRight(), metric);
+                    process111<B>(bc132, bc213, bc231, bc312, bc321,
+                                  *c1.getLeft(), *c2.getRight(), *c3.getLeft(), metric);
+                    process111<B>(bc132, bc213, bc231, bc312, bc321,
+                                  *c1.getLeft(), *c2.getRight(), *c3.getRight(), metric);
+                    process111<B>(bc132, bc213, bc231, bc312, bc321,
+                                  *c1.getRight(), *c2.getLeft(), *c3.getLeft(), metric);
+                    process111<B>(bc132, bc213, bc231, bc312, bc321,
+                                  *c1.getRight(), *c2.getLeft(), *c3.getRight(), metric);
+                    process111<B>(bc132, bc213, bc231, bc312, bc321,
+                                  *c1.getRight(), *c2.getRight(), *c3.getLeft(), metric);
+                    process111<B>(bc132, bc213, bc231, bc312, bc321,
+                                  *c1.getRight(), *c2.getRight(), *c3.getRight(), metric);
                 } else {
                     // split 2,3
-                    Assert(c2->getLeft());
-                    Assert(c2->getRight());
-                    Assert(c3->getLeft());
-                    Assert(c3->getRight());
-                    process111<B>(bc132,bc213,bc231,bc312,bc321,
-                                  c1,c2->getLeft(),c3->getLeft(),metric);
-                    process111<B>(bc132,bc213,bc231,bc312,bc321,
-                                  c1,c2->getLeft(),c3->getRight(),metric);
-                    process111<B>(bc132,bc213,bc231,bc312,bc321,
-                                  c1,c2->getRight(),c3->getLeft(),metric);
-                    process111<B>(bc132,bc213,bc231,bc312,bc321,
-                                  c1,c2->getRight(),c3->getRight(),metric);
+                    Assert(c2.getLeft());
+                    Assert(c2.getRight());
+                    Assert(c3.getLeft());
+                    Assert(c3.getRight());
+                    process111<B>(bc132, bc213, bc231, bc312, bc321,
+                                  c1, *c2.getLeft(), *c3.getLeft(), metric);
+                    process111<B>(bc132, bc213, bc231, bc312, bc321,
+                                  c1, *c2.getLeft(), *c3.getRight(), metric);
+                    process111<B>(bc132, bc213, bc231, bc312, bc321,
+                                  c1, *c2.getRight(), *c3.getLeft(), metric);
+                    process111<B>(bc132, bc213, bc231, bc312, bc321,
+                                  c1, *c2.getRight(), *c3.getRight(), metric);
                 }
             } else {
                 if (split1) {
                     // split 1,3
-                    Assert(c1->getLeft());
-                    Assert(c1->getRight());
-                    Assert(c3->getLeft());
-                    Assert(c3->getRight());
-                    process111<B>(bc132,bc213,bc231,bc312,bc321,
-                                  c1->getLeft(),c2,c3->getLeft(),metric);
-                    process111<B>(bc132,bc213,bc231,bc312,bc321,
-                                  c1->getLeft(),c2,c3->getRight(),metric);
-                    process111<B>(bc132,bc213,bc231,bc312,bc321,
-                                  c1->getRight(),c2,c3->getLeft(),metric);
-                    process111<B>(bc132,bc213,bc231,bc312,bc321,
-                                  c1->getRight(),c2,c3->getRight(),metric);
+                    Assert(c1.getLeft());
+                    Assert(c1.getRight());
+                    Assert(c3.getLeft());
+                    Assert(c3.getRight());
+                    process111<B>(bc132, bc213, bc231, bc312, bc321,
+                                  *c1.getLeft(), c2, *c3.getLeft(), metric);
+                    process111<B>(bc132, bc213, bc231, bc312, bc321,
+                                  *c1.getLeft(), c2, *c3.getRight(), metric);
+                    process111<B>(bc132, bc213, bc231, bc312, bc321,
+                                  *c1.getRight(), c2, *c3.getLeft(), metric);
+                    process111<B>(bc132, bc213, bc231, bc312, bc321,
+                                  *c1.getRight(), c2, *c3.getRight(), metric);
                 } else {
                     // split 3 only
-                    Assert(c3->getLeft());
-                    Assert(c3->getRight());
-                    process111<B>(bc132,bc213,bc231,bc312,bc321,
-                                  c1,c2,c3->getLeft(),metric,0.,0.,d3sq);
-                    process111<B>(bc132,bc213,bc231,bc312,bc321,
-                                  c1,c2,c3->getRight(),metric,0.,0.,d3sq);
+                    Assert(c3.getLeft());
+                    Assert(c3.getRight());
+                    process111<B>(bc132, bc213, bc231, bc312, bc321,
+                                  c1, c2, *c3.getLeft(), metric, 0., 0., d3sq);
+                    process111<B>(bc132, bc213, bc231, bc312, bc321,
+                                  c1, c2, *c3.getRight(), metric, 0., 0., d3sq);
                 }
             }
         } else {
             if (split2) {
                 if (split1) {
                     // split 1,2
-                    Assert(c1->getLeft());
-                    Assert(c1->getRight());
-                    Assert(c2->getLeft());
-                    Assert(c2->getRight());
-                    process111<B>(bc132,bc213,bc231,bc312,bc321,
-                                  c1->getLeft(),c2->getLeft(),c3,metric);
-                    process111<B>(bc132,bc213,bc231,bc312,bc321,
-                                  c1->getLeft(),c2->getRight(),c3,metric);
-                    process111<B>(bc132,bc213,bc231,bc312,bc321,
-                                  c1->getRight(),c2->getLeft(),c3,metric);
-                    process111<B>(bc132,bc213,bc231,bc312,bc321,
-                                  c1->getRight(),c2->getRight(),c3,metric);
+                    Assert(c1.getLeft());
+                    Assert(c1.getRight());
+                    Assert(c2.getLeft());
+                    Assert(c2.getRight());
+                    process111<B>(bc132, bc213, bc231, bc312, bc321,
+                                  *c1.getLeft(), *c2.getLeft(), c3, metric);
+                    process111<B>(bc132, bc213, bc231, bc312, bc321,
+                                  *c1.getLeft(), *c2.getRight(), c3, metric);
+                    process111<B>(bc132, bc213, bc231, bc312, bc321,
+                                  *c1.getRight(), *c2.getLeft(), c3, metric);
+                    process111<B>(bc132, bc213, bc231, bc312, bc321,
+                                  *c1.getRight(), *c2.getRight(), c3, metric);
                 } else {
                     // split 2 only
-                    Assert(c2->getLeft());
-                    Assert(c2->getRight());
-                    process111<B>(bc132,bc213,bc231,bc312,bc321,
-                                  c1,c2->getLeft(),c3,metric,0.,d2sq);
-                    process111<B>(bc132,bc213,bc231,bc312,bc321,
-                                  c1,c2->getRight(),c3,metric,0.,d2sq);
+                    Assert(c2.getLeft());
+                    Assert(c2.getRight());
+                    process111<B>(bc132, bc213, bc231, bc312, bc321,
+                                  c1, *c2.getLeft(), c3, metric, 0., d2sq);
+                    process111<B>(bc132, bc213, bc231, bc312, bc321,
+                                  c1, *c2.getRight(), c3, metric, 0., d2sq);
                 }
             } else {
                 // split 1 only
-                Assert(c1->getLeft());
-                Assert(c1->getRight());
-                process111<B>(bc132,bc213,bc231,bc312,bc321,
-                              c1->getLeft(),c2,c3,metric,d1sq);
-                process111<B>(bc132,bc213,bc231,bc312,bc321,
-                              c1->getRight(),c2,c3,metric,d1sq);
+                Assert(c1.getLeft());
+                Assert(c1.getRight());
+                process111<B>(bc132, bc213, bc231, bc312, bc321,
+                              *c1.getLeft(), c2, c3, metric, d1sq);
+                process111<B>(bc132, bc213, bc231, bc312, bc321,
+                              *c1.getRight(), c2, c3, metric, d1sq);
             }
         }
     } else {
@@ -984,8 +985,8 @@ void BaseCorr3::process111Sorted(
         Assert(kv < _nvbins);
 
         // Now account for negative v
-        if (!metric.CCW(c1->getData().getPos(), c2->getData().getPos(),
-                        c3->getData().getPos())) {
+        if (!metric.CCW(c1.getData().getPos(), c2.getData().getPos(),
+                        c3.getData().getPos())) {
             v = -v;
             kv = _nvbins - kv - 1;
         } else {
@@ -1007,7 +1008,7 @@ void BaseCorr3::process111Sorted(
         if (index < 0 || index >= _ntot) {
             return;
         }
-        directProcess111<B>(*c1,*c2,*c3,d1,d2,d3,logr,u,v,index);
+        directProcess111<B>(c1, c2, c3, d1, d2, d3, logr, u, v, index);
     }
 }
 
@@ -1049,7 +1050,7 @@ struct DirectHelper<GData,GData,GData>
         ZetaData<GData,GData,GData>& zeta, int index)
     {
         std::complex<double> g1, g2, g3;
-        ProjectHelper<C>::ProjectShears(c1,c2,c3,g1,g2,g3);
+        ProjectHelper<C>::ProjectShears(c1, c2, c3, g1, g2, g3);
 
         //std::complex<double> gam0 = g1 * g2 * g3;
         //std::complex<double> gam1 = std::conj(g1) * g2 * g3;
@@ -1127,14 +1128,14 @@ void Corr3<D1,D2,D3>::finishProcess(
         static_cast<const Cell<D1,C>&>(c1),
         static_cast<const Cell<D2,C>&>(c2),
         static_cast<const Cell<D3,C>&>(c3),
-        d1,d2,d3,_zeta,index);
+        d1, d2, d3, _zeta,index);
 }
 
 template <int D1, int D2, int D3>
 void Corr3<D1,D2,D3>::operator=(const Corr3<D1,D2,D3>& rhs)
 {
     Assert(rhs._ntot == _ntot);
-    _zeta.copy(rhs._zeta,_ntot);
+    _zeta.copy(rhs._zeta, _ntot);
     for (int i=0; i<_ntot; ++i) _meand1[i] = rhs._meand1[i];
     for (int i=0; i<_ntot; ++i) _meanlogd1[i] = rhs._meanlogd1[i];
     for (int i=0; i<_ntot; ++i) _meand2[i] = rhs._meand2[i];
@@ -1151,7 +1152,7 @@ template <int D1, int D2, int D3>
 void Corr3<D1,D2,D3>::operator+=(const Corr3<D1,D2,D3>& rhs)
 {
     Assert(rhs._ntot == _ntot);
-    _zeta.add(rhs._zeta,_ntot);
+    _zeta.add(rhs._zeta, _ntot);
     for (int i=0; i<_ntot; ++i) _meand1[i] += rhs._meand1[i];
     for (int i=0; i<_ntot; ++i) _meanlogd1[i] += rhs._meanlogd1[i];
     for (int i=0; i<_ntot; ++i) _meand2[i] += rhs._meand2[i];
@@ -1218,14 +1219,14 @@ Corr3<D1,D2,D3>* BuildCorr3(
 }
 
 template <int B, int M, int C>
-void ProcessAuto1(BaseCorr3* corr, BaseField<C>* field, bool dots)
+void ProcessAuto1(BaseCorr3& corr, BaseField<C>& field, bool dots)
 {
     Assert((ValidMC<M,C>::_M == M));
-    corr->template process<B,ValidMC<M,C>::_M>(*field, dots);
+    corr.template process<B,ValidMC<M,C>::_M>(field, dots);
 }
 
 template <int C>
-void ProcessAuto(BaseCorr3* corr, BaseField<C>* field,
+void ProcessAuto(BaseCorr3& corr, BaseField<C>& field,
                  bool dots, BinType bin_type, Metric metric)
 {
     dbg<<"Start ProcessAuto "<<bin_type<<" "<<metric<<std::endl;
@@ -1247,16 +1248,16 @@ void ProcessAuto(BaseCorr3* corr, BaseField<C>* field,
 }
 
 template <int B, int M, int C>
-void ProcessCross12a(BaseCorr3* corr122, BaseCorr3* corr212, BaseCorr3* corr221,
-                     BaseField<C>* field1, BaseField<C>* field2, bool dots)
+void ProcessCross12a(BaseCorr3& corr122, BaseCorr3& corr212, BaseCorr3& corr221,
+                     BaseField<C>& field1, BaseField<C>& field2, bool dots)
 {
     Assert((ValidMC<M,C>::_M == M));
-    corr122->template process<B,ValidMC<M,C>::_M>(corr212, corr221, *field1, *field2, dots);
+    corr122.template process<B,ValidMC<M,C>::_M>(corr212, corr221, field1, field2, dots);
 }
 
 template <int C>
-void ProcessCross12(BaseCorr3* corr122, BaseCorr3* corr212, BaseCorr3* corr221,
-                    BaseField<C>* field1, BaseField<C>* field2,
+void ProcessCross12(BaseCorr3& corr122, BaseCorr3& corr212, BaseCorr3& corr221,
+                    BaseField<C>& field1, BaseField<C>& field2,
                     bool dots, BinType bin_type, Metric metric)
 {
     Assert(bin_type == Log);
@@ -1279,21 +1280,21 @@ void ProcessCross12(BaseCorr3* corr122, BaseCorr3* corr212, BaseCorr3* corr221,
 }
 
 template <int B, int M, int C>
-void ProcessCross1(BaseCorr3* corr123, BaseCorr3* corr132, BaseCorr3* corr213,
-                   BaseCorr3* corr231, BaseCorr3* corr312, BaseCorr3* corr321,
-                   BaseField<C>* field1, BaseField<C>* field2, BaseField<C>* field3,
+void ProcessCross1(BaseCorr3& corr123, BaseCorr3& corr132, BaseCorr3& corr213,
+                   BaseCorr3& corr231, BaseCorr3& corr312, BaseCorr3& corr321,
+                   BaseField<C>& field1, BaseField<C>& field2, BaseField<C>& field3,
                    bool dots)
 {
     Assert((ValidMC<M,C>::_M == M));
-    corr123->template process<B,ValidMC<M,C>::_M>(
+    corr123.template process<B,ValidMC<M,C>::_M>(
                corr132, corr213, corr231, corr312, corr321,
-               *field1, *field2, *field3, dots);
+               field1, field2, field3, dots);
 }
 
 template <int C>
-void ProcessCross(BaseCorr3* corr123, BaseCorr3* corr132, BaseCorr3* corr213,
-                  BaseCorr3* corr231, BaseCorr3* corr312, BaseCorr3* corr321,
-                  BaseField<C>* field1, BaseField<C>* field2, BaseField<C>* field3,
+void ProcessCross(BaseCorr3& corr123, BaseCorr3& corr132, BaseCorr3& corr213,
+                  BaseCorr3& corr231, BaseCorr3& corr312, BaseCorr3& corr321,
+                  BaseField<C>& field1, BaseField<C>& field2, BaseField<C>& field3,
                   bool dots, BinType bin_type, Metric metric)
 {
     dbg<<"Start ProcessCross3 "<<bin_type<<" "<<metric<<std::endl;
@@ -1323,16 +1324,16 @@ void ProcessCross(BaseCorr3* corr123, BaseCorr3* corr132, BaseCorr3* corr213,
 template <int C, typename W>
 void WrapProcess(py::module& _treecorr, W& base_corr3)
 {
-    typedef void (*auto_type)(BaseCorr3* corr, BaseField<C>* field,
+    typedef void (*auto_type)(BaseCorr3& corr, BaseField<C>& field,
                               bool dots, BinType bin_type, Metric metric);
-    typedef void (*cross12_type)(BaseCorr3* corr122, BaseCorr3* corr212,
-                                 BaseCorr3* corr221,
-                                 BaseField<C>* field1, BaseField<C>* field2,
+    typedef void (*cross12_type)(BaseCorr3& corr122, BaseCorr3& corr212,
+                                 BaseCorr3& corr221,
+                                 BaseField<C>& field1, BaseField<C>& field2,
                                  bool dots, BinType bin_type, Metric metric);
-    typedef void (*cross_type)(BaseCorr3* corr123, BaseCorr3* corr132,
-                               BaseCorr3* corr213, BaseCorr3* corr231,
-                               BaseCorr3* corr312, BaseCorr3* corr321,
-                               BaseField<C>* field1, BaseField<C>* field2, BaseField<C>* field3,
+    typedef void (*cross_type)(BaseCorr3& corr123, BaseCorr3& corr132,
+                               BaseCorr3& corr213, BaseCorr3& corr231,
+                               BaseCorr3& corr312, BaseCorr3& corr321,
+                               BaseField<C>& field1, BaseField<C>& field2, BaseField<C>& field3,
                                bool dots, BinType bin_type, Metric metric);
 
     base_corr3.def("processAuto", auto_type(&ProcessAuto));

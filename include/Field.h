@@ -75,7 +75,7 @@ class Field : public BaseField<C>
 {
 public:
     Field(const double* x, const double* y, const double* z,
-          const double* g1, const double* g2, const double* k,
+          const double* d1, const double* d2,
           const double* w, const double* wpos, long nobj,
           double minsize, double maxsize,
           SplitMethod sm, long long seed, bool brute, int mintop, int maxtop);

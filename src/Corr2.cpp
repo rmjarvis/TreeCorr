@@ -852,9 +852,9 @@ Corr2<D1,D2>* BuildCorr2(
 }
 
 template <int B, int M, int C>
-void ProcessAuto2(BaseCorr2* corr, BaseField<C>* field, bool dots)
+void ProcessAuto2(BaseCorr2& corr, BaseField<C>& field, bool dots)
 {
-    const bool P = corr->nontrivialRPar();
+    const bool P = corr.nontrivialRPar();
     dbg<<"ProcessAuto: coords = "<<C<<", metric = "<<M<<", P = "<<P<<std::endl;
 
     // Only call the actual function if the M/C combination is valid.
@@ -865,14 +865,14 @@ void ProcessAuto2(BaseCorr2* corr, BaseField<C>* field, bool dots)
     Assert((ValidMC<M,C>::_M == M));
     if (P) {
         Assert(C == ThreeD);
-        corr->template process<B, ValidMC<M,C>::_M, (C==ThreeD)>(*field, dots);
+        corr.template process<B, ValidMC<M,C>::_M, (C==ThreeD)>(field, dots);
     } else {
-        corr->template process<B, ValidMC<M,C>::_M, false>(*field, dots);
+        corr.template process<B, ValidMC<M,C>::_M, false>(field, dots);
     }
 }
 
 template <int B, int C>
-void ProcessAuto1(BaseCorr2* corr, BaseField<C>* field, bool dots, Metric metric)
+void ProcessAuto1(BaseCorr2& corr, BaseField<C>& field, bool dots, Metric metric)
 {
     switch(metric) {
       case Euclidean:
@@ -899,7 +899,7 @@ void ProcessAuto1(BaseCorr2* corr, BaseField<C>* field, bool dots, Metric metric
 }
 
 template <int C>
-void ProcessAuto(BaseCorr2* corr, BaseField<C>* field, bool dots, BinType bin_type, Metric metric)
+void ProcessAuto(BaseCorr2& corr, BaseField<C>& field, bool dots, BinType bin_type, Metric metric)
 {
     switch(bin_type) {
       case Log:
@@ -917,22 +917,22 @@ void ProcessAuto(BaseCorr2* corr, BaseField<C>* field, bool dots, BinType bin_ty
 }
 
 template <int B, int M, int C>
-void ProcessCross2(BaseCorr2* corr, BaseField<C>* field1, BaseField<C>* field2, bool dots)
+void ProcessCross2(BaseCorr2& corr, BaseField<C>& field1, BaseField<C>& field2, bool dots)
 {
-    const bool P = corr->nontrivialRPar();
+    const bool P = corr.nontrivialRPar();
     dbg<<"ProcessCross: coords = "<<C<<", metric = "<<M<<", P = "<<P<<std::endl;
 
     Assert((ValidMC<M,C>::_M == M));
     if (P) {
         Assert(C == ThreeD);
-        corr->template process<B, ValidMC<M,C>::_M, C==ThreeD>(*field1, *field2, dots);
+        corr.template process<B, ValidMC<M,C>::_M, C==ThreeD>(field1, field2, dots);
     } else {
-        corr->template process<B, ValidMC<M,C>::_M, false>(*field1, *field2, dots);
+        corr.template process<B, ValidMC<M,C>::_M, false>(field1, field2, dots);
     }
 }
 
 template <int B, int C>
-void ProcessCross1(BaseCorr2* corr, BaseField<C>* field1, BaseField<C>* field2,
+void ProcessCross1(BaseCorr2& corr, BaseField<C>& field1, BaseField<C>& field2,
                    bool dots, Metric metric)
 {
     switch(metric) {
@@ -960,7 +960,7 @@ void ProcessCross1(BaseCorr2* corr, BaseField<C>* field1, BaseField<C>* field2,
 }
 
 template <int C>
-void ProcessCross(BaseCorr2* corr, BaseField<C>* field1, BaseField<C>* field2,
+void ProcessCross(BaseCorr2& corr, BaseField<C>& field1, BaseField<C>& field2,
                   bool dots, BinType bin_type, Metric metric)
 {
     dbg<<"Start ProcessCross: "<<bin_type<<" "<<metric<<std::endl;
@@ -999,7 +999,7 @@ int GetOMPThreads()
 }
 
 template <int C>
-long SamplePairs(BaseCorr2* corr, BaseField<C>* field1, BaseField<C>* field2,
+long SamplePairs(BaseCorr2& corr, BaseField<C>& field1, BaseField<C>& field2,
                  double minsep, double maxsep, BinType bin_type, Metric metric, long long seed,
                  py::array_t<long>& i1p, py::array_t<long>& i2p, py::array_t<double>& sepp)
 {
@@ -1015,28 +1015,28 @@ long SamplePairs(BaseCorr2* corr, BaseField<C>* field1, BaseField<C>* field2,
 
     dbg<<"Start SamplePairs: "<<bin_type<<" "<<metric<<std::endl;
 
-    Sampler sampler(*corr, minsep, maxsep, i1, i2, sep, n);
+    Sampler sampler(corr, minsep, maxsep, i1, i2, sep, n);
 
     // I don't know how to do the sampling safely in parallel, so temporarily set num_threads=1.
     int old_num_threads = SetOMPThreads(1);
-    ProcessCross(&sampler, field1, field2, false, bin_type, metric);
+    ProcessCross(sampler, field1, field2, false, bin_type, metric);
     SetOMPThreads(old_num_threads);
 
     return sampler.getK();
 }
 
 template <int B, int M, int C>
-int TriviallyZero3(BaseCorr2* corr,
+int TriviallyZero3(BaseCorr2& corr,
                    double x1, double y1, double z1, double s1,
                    double x2, double y2, double z2, double s2)
 {
     Position<C> p1(x1,y1,z1);
     Position<C> p2(x2,y2,z2);
-    return corr->template triviallyZero<B,M>(p1, p2, s1, s2);
+    return corr.template triviallyZero<B,M>(p1, p2, s1, s2);
 }
 
 template <int B, int M>
-int TriviallyZero2(BaseCorr2* corr, Coord coords,
+int TriviallyZero2(BaseCorr2& corr, Coord coords,
                    double x1, double y1, double z1, double s1,
                    double x2, double y2, double z2, double s2)
 {
@@ -1062,7 +1062,7 @@ int TriviallyZero2(BaseCorr2* corr, Coord coords,
 }
 
 template <int B>
-int TriviallyZero1(BaseCorr2* corr, Metric metric, Coord coords,
+int TriviallyZero1(BaseCorr2& corr, Metric metric, Coord coords,
                    double x1, double y1, double z1, double s1,
                    double x2, double y2, double z2, double s2)
 {
@@ -1091,7 +1091,7 @@ int TriviallyZero1(BaseCorr2* corr, Metric metric, Coord coords,
     return 0;
 }
 
-int TriviallyZero(BaseCorr2* corr, BinType bin_type, Metric metric, Coord coords,
+int TriviallyZero(BaseCorr2& corr, BinType bin_type, Metric metric, Coord coords,
                   double x1, double y1, double z1, double s1,
                   double x2, double y2, double z2, double s2)
 {
@@ -1134,16 +1134,16 @@ void WrapCorr2(py::module& _treecorr, std::string prefix)
 template <int C, typename W>
 void WrapProcess(py::module& _treecorr, W& base_corr2)
 {
-    typedef void (*auto_type)(BaseCorr2* corr, BaseField<C>* field,
+    typedef void (*auto_type)(BaseCorr2& corr, BaseField<C>& field,
                               bool dots, BinType bin_type, Metric metric);
     base_corr2.def("processAuto", auto_type(&ProcessAuto));
 
-    typedef void (*cross_type)(BaseCorr2* corr, BaseField<C>* field1, BaseField<C>* field2,
+    typedef void (*cross_type)(BaseCorr2& corr, BaseField<C>& field1, BaseField<C>& field2,
                                bool dots, BinType bin_type, Metric metric);
     base_corr2.def("processCross", cross_type(&ProcessCross));
 
-    typedef long (*sample_type)(BaseCorr2* corr,
-                                BaseField<C>* field1, BaseField<C>* field2,
+    typedef long (*sample_type)(BaseCorr2& corr,
+                                BaseField<C>& field1, BaseField<C>& field2,
                                 double minsep, double maxsep,
                                 BinType bin_type, Metric metric, long long seed,
                                 py::array_t<long>& i1p, py::array_t<long>& i2p,

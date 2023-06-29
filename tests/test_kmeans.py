@@ -28,7 +28,7 @@ def test_dessv():
         print('Skip test_dessv, since fitsio not installed')
         return
 
-    rng = np.random.default_rng(12345)
+    rng = np.random.default_rng(123)
 
     #treecorr.set_omp_threads(1);
     get_from_wiki('des_sv.fits')

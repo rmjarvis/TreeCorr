@@ -88,22 +88,19 @@ struct CellDataHelper;
 template <>
 struct CellDataHelper<NData,Flat>
 {
-    static CellData<NData,Flat>* build(double x, double y, double,
-                                       double , double , double, double w)
+    static CellData<NData,Flat>* build(double x, double y, double , double , double, double w)
     { return new CellData<NData,Flat>(Position<Flat>(x,y), w); }
 };
 template <>
 struct CellDataHelper<KData,Flat>
 {
-    static CellData<KData,Flat>* build(double x, double y, double,
-                                       double , double , double k, double w)
+    static CellData<KData,Flat>* build(double x, double y, double , double k, double , double w)
     { return new CellData<KData,Flat>(Position<Flat>(x,y), k, w); }
 };
 template <>
 struct CellDataHelper<GData,Flat>
 {
-    static CellData<GData,Flat>* build(double x, double y,  double,
-                                       double g1, double g2, double, double w)
+    static CellData<GData,Flat>* build(double x, double y,  double, double g1, double g2, double w)
     { return new CellData<GData,Flat>(Position<Flat>(x,y), std::complex<double>(g1,g2), w); }
 };
 
@@ -111,22 +108,20 @@ struct CellDataHelper<GData,Flat>
 template <>
 struct CellDataHelper<NData,ThreeD>
 {
-    static CellData<NData,ThreeD>* build(double x, double y, double z,
-                                         double , double , double, double w)
+    static CellData<NData,ThreeD>* build(double x, double y, double z, double , double, double w)
     { return new CellData<NData,ThreeD>(Position<ThreeD>(x,y,z), w); }
 };
 template <>
 struct CellDataHelper<KData,ThreeD>
 {
-    static CellData<KData,ThreeD>* build(double x, double y, double z,
-                                         double , double , double k, double w)
+    static CellData<KData,ThreeD>* build(double x, double y, double z, double k, double , double w)
     { return new CellData<KData,ThreeD>(Position<ThreeD>(x,y,z), k, w); }
 };
 template <>
 struct CellDataHelper<GData,ThreeD>
 {
     static CellData<GData,ThreeD>* build(double x, double y, double z,
-                                         double g1, double g2, double, double w)
+                                         double g1, double g2, double w)
     { return new CellData<GData,ThreeD>(Position<ThreeD>(x,y,z), std::complex<double>(g1,g2), w); }
 };
 
@@ -135,22 +130,20 @@ struct CellDataHelper<GData,ThreeD>
 template <>
 struct CellDataHelper<NData,Sphere>
 {
-    static CellData<NData,Sphere>* build(double x, double y, double z,
-                                         double , double , double, double w)
+    static CellData<NData,Sphere>* build(double x, double y, double z, double , double, double w)
     { return new CellData<NData,Sphere>(Position<Sphere>(x,y,z), w); }
 };
 template <>
 struct CellDataHelper<KData,Sphere>
 {
-    static CellData<KData,Sphere>* build(double x, double y, double z,
-                                         double , double , double k, double w)
+    static CellData<KData,Sphere>* build(double x, double y, double z, double k, double , double w)
     { return new CellData<KData,Sphere>(Position<Sphere>(x,y,z), k, w); }
 };
 template <>
 struct CellDataHelper<GData,Sphere>
 {
     static CellData<GData,Sphere>* build(double x, double y, double z,
-                                         double g1, double g2, double, double w)
+                                         double g1, double g2, double w)
     { return new CellData<GData,Sphere>(Position<Sphere>(x,y,z), std::complex<double>(g1,g2), w); }
 };
 
@@ -161,11 +154,6 @@ inline WPosLeafInfo get_wpos(const double* wpos, const double* w, long i)
     wp.index = i;
     return wp;
 }
-
-template <bool B>
-double at(const double* x, int i) { return x[i]; }
-template <>
-double at<false>(const double* x, int i) { return 0.; }
 
 template <int C>
 BaseField<C>::BaseField(long nobj, double minsize, double maxsize,
@@ -178,7 +166,7 @@ BaseField<C>::BaseField(long nobj, double minsize, double maxsize,
 
 template <int D, int C>
 Field<D,C>::Field(const double* x, const double* y, const double* z,
-                  const double* g1, const double* g2, const double* k,
+                  const double* d1, const double* d2,
                   const double* w, const double* wpos, long nobj,
                   double minsize, double maxsize,
                   SplitMethod sm, long long seed, bool brute, int mintop, int maxtop) :
@@ -189,9 +177,8 @@ Field<D,C>::Field(const double* x, const double* y, const double* z,
     xdbg<<"D,C = "<<D<<','<<C<<std::endl;
     xdbg<<"First few values are:\n";
     for(int i=0;i<5;++i) {
-        xdbg<<x[i]<<"  "<<y[i]<<"  "<<(z?z[i]:0)<<"  "<<at<D==GData>(g1,i)<<"  "<<
-            at<D==GData>(g2,i)<<"  "<<at<D==KData>(k,i)<<"  "<<w[i]<<"  "<<
-            (wpos?wpos[i]:0)<<std::endl;
+        xdbg<<x[i]<<"  "<<y[i]<<"  "<<(z?z[i]:0)<<"  "<<(d1?d1[i]:0)<<"  "<<
+            (d2?d2[i]:0)<<"  "<<w[i]<<"  "<<(wpos?wpos[i]:0)<<std::endl;
     }
 
     this->_celldata.reserve(nobj);
@@ -200,8 +187,7 @@ Field<D,C>::Field(const double* x, const double* y, const double* z,
             WPosLeafInfo wp = get_wpos(wpos, w, i);
             this->_celldata.push_back(std::make_pair(
                     CellDataHelper<D,C>::build(
-                        x[i], y[i], z[i], at<D==GData>(g1,i), at<D==GData>(g2,i),
-                        at<D==KData>(k,i), w[i]), wp));
+                        x[i], y[i], z[i], d1?d1[i]:0., d2?d2[i]:0., w[i]), wp));
         }
     } else {
         Assert(C == Flat);
@@ -209,8 +195,7 @@ Field<D,C>::Field(const double* x, const double* y, const double* z,
             WPosLeafInfo wp = get_wpos(wpos, w, i);
             this->_celldata.push_back(std::make_pair(
                     CellDataHelper<D,C>::build(
-                        x[i], y[i], 0., at<D==GData>(g1,i), at<D==GData>(g2,i),
-                        at<D==KData>(k,i), w[i]), wp));
+                        x[i], y[i], 0., d1?d1[i]:0., d2?d2[i]:0., w[i]), wp));
         }
     }
     dbg<<"Built celldata with "<<this->_celldata.size()<<" entries\n";
@@ -434,14 +419,14 @@ void BaseField<C>::getNear(double x, double y, double z, double sep, long* indic
 
 template <int D, int C>
 Field<D,C>* BuildField(const double* x, const double* y, const double* z,
-                       const double* g1, const double* g2, const double* k,
+                       const double* d1, const double* d2,
                        const double* w, const double* wpos, long nobj,
                        double minsize, double maxsize,
                        SplitMethod sm, long long seed, bool brute,
                        int mintop, int maxtop)
 {
     dbg<<"Start BuildField "<<D<<"  "<<C<<std::endl;
-    return new Field<D,C>(x, y, z, g1, g2, k,
+    return new Field<D,C>(x, y, z, d1, d2,
                           w, wpos, nobj, minsize, maxsize,
                           sm, seed, brute, mintop, maxtop);
 }
@@ -470,7 +455,7 @@ Field<GData,C>* BuildGField(
     const double* w = static_cast<const double*>(wp.data());
     const double* wpos = wposp.size() == 0 ? 0 : static_cast<const double*>(wposp.data());
 
-    return BuildField<GData,C>(x, y, z, g1, g2, 0, w, wpos,
+    return BuildField<GData,C>(x, y, z, g1, g2, w, wpos,
                                nobj, minsize, maxsize, sm, seed,
                                brute, mintop, maxtop);
 }
@@ -496,7 +481,7 @@ Field<KData,C>* BuildKField(
     const double* w = static_cast<const double*>(wp.data());
     const double* wpos = wposp.size() == 0 ? 0 : static_cast<const double*>(wposp.data());
 
-    return BuildField<KData,C>(x, y, z, 0, 0, k, w, wpos,
+    return BuildField<KData,C>(x, y, z, k, 0, w, wpos,
                                nobj, minsize, maxsize, sm, seed,
                                brute, mintop, maxtop);
 }
@@ -520,7 +505,7 @@ Field<NData,C>* BuildNField(
     const double* w = static_cast<const double*>(wp.data());
     const double* wpos = wposp.size() == 0 ? 0 : static_cast<const double*>(wposp.data());
 
-    return BuildField<NData,C>(x, y, z, 0, 0, 0, w, wpos,
+    return BuildField<NData,C>(x, y, z, 0, 0, w, wpos,
                                nobj, minsize, maxsize, sm, seed,
                                brute, mintop, maxtop);
 }

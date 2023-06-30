@@ -278,7 +278,11 @@ struct ProjectHelper<Sphere>
     {
         const Position<Sphere>& p1 = c1.getData().getPos();
         const Position<Sphere>& p2 = c2.getData().getPos();
-        v1 = c1.getData().getWV();
+        // Note the minus sign here.  This is so both points are projected onto the
+        // coordinate system with p1 and p2 arranged horizontally with p1 on the left.
+        // The normal project function for v1 is 180 degrees rotated from this, so
+        // need an extra minus sign.
+        v1 = -c1.getData().getWV();
         v2 = c2.getData().getWV();
         ProjectVector2(p2, p1, v1);
         ProjectVector2(p1, p2, v2);

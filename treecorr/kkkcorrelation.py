@@ -24,7 +24,7 @@ from .util import make_writer, make_reader
 
 
 class KKKCorrelation(Corr3):
-    r"""This class handles the calculation and storage of a 3-point kappa-kappa-kappa correlation
+    r"""This class handles the calculation and storage of a 3-point scalar-scalar-scalar correlation
     function.
 
     .. note::
@@ -366,9 +366,9 @@ class KKKCorrelation(Corr3):
         finishes the calculation by dividing by the total weight.
 
         Parameters:
-            vark1 (float):  The kappa variance for the first field.
-            vark2 (float):  The kappa variance for the second field.
-            vark3 (float):  The kappa variance for the third field.
+            vark1 (float):  The variance of the first scalar field.
+            vark2 (float):  The variance of the second scalar field.
+            vark3 (float):  The variance of the third scalar field.
         """
         self._finalize()
         self._var_num = vark1 * vark2 * vark3
@@ -650,7 +650,7 @@ class KKKCorrelation(Corr3):
 
 
 class KKKCrossCorrelation(Corr3):
-    r"""This class handles the calculation a 3-point kappa-kappa-kappa cross-correlation
+    r"""This class handles the calculation a 3-point scalar-scalar-scalar cross-correlation
     function.
 
     For 3-point cross correlations, it matters which of the two or three fields falls on
@@ -905,9 +905,9 @@ class KKKCrossCorrelation(Corr3):
         by dividing by the total weight.
 
         Parameters:
-            vark1 (float):  The kappa variance for the first field that was correlated.
-            vark2 (float):  The kappa variance for the second field that was correlated.
-            vark3 (float):  The kappa variance for the third field that was correlated.
+            vark1 (float):  The variance of the first scalar field that was correlated.
+            vark2 (float):  The variance of the second scalar field that was correlated.
+            vark3 (float):  The variance of the third scalar field that was correlated.
         """
         self.k1k2k3.finalize(vark1,vark2,vark3)
         self.k1k3k2.finalize(vark1,vark3,vark2)

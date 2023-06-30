@@ -1,0 +1,21 @@
+
+file_name: data/nv_lens.fits
+file_name2: data/nv_source.fits
+rand_file_name: data/nv_rand.fits
+
+x_col: x
+y_col: y
+x_units: arcmin
+y_units: arcmin
+
+v1_col: v1
+v2_col: v2
+
+verbose: 1
+
+min_sep: 1.
+max_sep: 20.
+bin_size: 0.10
+sep_units: arcmin
+
+nv_file_name: output/nv.out

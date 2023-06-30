@@ -244,7 +244,7 @@ class NGCorrelation(Corr2):
         by dividing each column by the total weight.
 
         Parameters:
-            varg (float):   The shear variance per component for the second field.
+            varg (float):   The variance per component of the shear field.
         """
         self._finalize()
         self._var_num = varg

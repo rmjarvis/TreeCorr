@@ -25,7 +25,7 @@ from . import _treecorr
 from .reader import FitsReader, HdfReader, AsciiReader, PandasReader, ParquetReader
 from .config import merge_config, setup_logger, get, get_from_list
 from .util import parse_file_type, LRU_Cache, make_writer, make_reader, set_omp_threads
-from .field import NField, KField, GField
+from .field import NField, KField, GField, VField
 
 class Catalog(object):
     """A set of input data (positions and other quantities) to be correlated.
@@ -33,7 +33,7 @@ class Catalog(object):
     A Catalog object keeps track of the relevant information for a number of objects to
     be correlated.  The objects each have some kind of position (for instance (x,y), (ra,dec),
     (x,y,z), etc.), and possibly some extra information such as weights (w), shear values (g1,g2),
-    or kappa values (k).
+    scalar values (k), or vector values (v1,v2).
 
     .. note::
 
@@ -115,14 +115,17 @@ class Catalog(object):
                 which means that implicitly wpos = w.)
         g1:     The g1 component of the shear, if defined, as a numpy array. (None otherwise)
         g2:     The g2 component of the shear, if defined, as a numpy array. (None otherwise)
-        k:      The convergence, kappa, if defined, as a numpy array. (None otherwise)
+        k:      The scalar field, kappa, if defined, as a numpy array. (None otherwise)
+        v1:     The v1 component of the vector, if defined, as a numpy array. (None otherwise)
+        v2:     The v2 component of the vector, if defined, as a numpy array. (None otherwise)
         patch:  The patch number of each object, if patches are being used. (None otherwise)
                 If the entire catalog is a single patch, then ``patch`` may be an int.
         ntot:   The total number of objects (including those with zero weight if
                 ``keep_zero_weight`` is set to True)
         nobj:   The number of objects with non-zero weight
         sumw:   The sum of the weights
-        varg:   The shear variance (aka shape noise) (0 if g1,g2 are not defined)
+        varg:   The variance per component of the shear field (aka shape noise)
+                (0 if g1,g2 are not defined)
 
                 .. note::
 
@@ -132,13 +135,23 @@ class Catalog(object):
                     value divided by the total weight per bin, so this is the right quantity
                     to use for that.
 
-        vark:   The kappa variance (0 if k is not defined)
+        vark:   The variance of the scalar field (0 if k is not defined)
 
                 .. note::
 
                     If there are weights, this is really :math:`\\sum(w^2 \\kappa^2)/\\sum(w)`.
                     As for ``varg``, this is the right quantity to use for the ``'shot'``
                     noise estimate.
+
+        varv:   The variance per component of the vector field (0 if v1,v2 are not defined)
+
+                .. note::
+
+                    If there are weights, this is really :math:`\\sum(w^2 |v|^2)/\\sum(w)`,
+                    which is more like :math:`\\langle w \\rangle \\mathrm{Var}(v)`.
+                    It is only used for ``var_method='shot'``, where the noise estimate is this
+                    value divided by the total weight per bin, so this is the right quantity
+                    to use for that.
 
         name:   When constructed from a file, this will be the file_name.  It is only used as
                 a reference name in logging output  after construction, so if you construct it
@@ -207,6 +220,8 @@ class Catalog(object):
                             spinor field.) (default: None)
         k (array):          The kappa values to use for scalar correlations. (This may represent
                             any scalar field.) (default: None)
+        v1 (array):         The v1 values to use for vector correlations. (default: None)
+        v2 (array):         The v2 values to use for vector correlations. (default: None)
         patch (array or int): Optionally, patch numbers to use for each object. (default: None)
 
                             .. note::
@@ -298,6 +313,10 @@ class Catalog(object):
                             ASCII files. (default: '0', which means not to read in this column.)
         k_col (str or int): The column to use for the kappa values. An integer is only allowed for
                             ASCII files. (default: '0', which means not to read in this column.)
+        v1_col (str or int): The column to use for the v1 values. An integer is only allowed for
+                            ASCII files. (default: '0', which means not to read in this column.)
+        v2_col (str or int): The column to use for the v2 values. An integer is only allowed for
+                            ASCII files. (default: '0', which means not to read in this column.)
         patch_col (str or int): The column to use for the patch numbers. An integer is only allowed
                             for ASCII files. (default: '0', which means not to read in this column.)
         w_col (str or int): The column to use for the weight values. An integer is only allowed for
@@ -321,6 +340,8 @@ class Catalog(object):
 
         flip_g1 (bool):     Whether to flip the sign of the input g1 values. (default: False)
         flip_g2 (bool):     Whether to flip the sign of the input g2 values. (default: False)
+        flip_v1 (bool):     Whether to flip the sign of the input v1 values. (default: False)
+        flip_v2 (bool):     Whether to flip the sign of the input v2 values. (default: False)
         keep_zero_weight (bool): Whether to keep objects with wpos=0 in the catalog (including
                             any objects that indirectly get wpos=0 due to NaN or flags), so they
                             would be included in ntot and also in npairs calculations that use
@@ -341,6 +362,8 @@ class Catalog(object):
         g1_ext (int/str):   Which extension to use for the g1 values. (default: ext)
         g2_ext (int/str):   Which extension to use for the g2 values. (default: ext)
         k_ext (int/str):    Which extension to use for the k values. (default: ext)
+        v1_ext (int/str):   Which extension to use for the v1 values. (default: ext)
+        v2_ext (int/str):   Which extension to use for the v2 values. (default: ext)
         patch_ext (int/str): Which extension to use for the patch numbers. (default: ext)
         w_ext (int/str):    Which extension to use for the w values. (default: ext)
         wpos_ext (int/str): Which extension to use for the wpos values. (default: ext)
@@ -431,6 +454,10 @@ class Catalog(object):
                 'Which column to use for g2. Should be an integer for ASCII catalogs.'),
         'k_col' : (str, True, '0', None,
                 'Which column to use for kappa. Should be an integer for ASCII catalogs. '),
+        'v1_col' : (str, True, '0', None,
+                'Which column to use for v1. Should be an integer for ASCII catalogs.'),
+        'v2_col' : (str, True, '0', None,
+                'Which column to use for v2. Should be an integer for ASCII catalogs.'),
         'patch_col' : (str, True, '0', None,
                 'Which column to use for patch numbers. Should be an integer for ASCII catalogs. '),
         'w_col' : (str, True, '0', None,
@@ -466,6 +493,10 @@ class Catalog(object):
                 'Which extension to use for the g2_col. default is the global ext value.'),
         'k_ext': (str, True, None, None,
                 'Which extension to use for the k_col. default is the global ext value.'),
+        'v1_ext': (str, True, None, None,
+                'Which extension to use for the v1_col. default is the global ext value.'),
+        'v2_ext': (str, True, None, None,
+                'Which extension to use for the v2_col. default is the global ext value.'),
         'patch_ext': (str, True, None, None,
                 'Which extension to use for the patch_col. default is the global ext value.'),
         'w_ext': (str, True, None, None,
@@ -478,6 +509,10 @@ class Catalog(object):
                 'Whether to flip the sign of g1'),
         'flip_g2' : (bool, True, False, None,
                 'Whether to flip the sign of g2'),
+        'flip_v1' : (bool, True, False, None,
+                'Whether to flip the sign of v1'),
+        'flip_v2' : (bool, True, False, None,
+                'Whether to flip the sign of v2'),
 
         'keep_zero_weight' : (bool, False, False, None,
                 'Whether to keep objects with zero weight in the catalog'),
@@ -507,7 +542,8 @@ class Catalog(object):
 
     def __init__(self, file_name=None, config=None, *, num=0, logger=None, is_rand=False,
                  x=None, y=None, z=None, ra=None, dec=None, r=None, w=None, wpos=None, flag=None,
-                 g1=None, g2=None, k=None, patch=None, patch_centers=None, rng=None, **kwargs):
+                 g1=None, g2=None, k=None, v1=None, v2=None,
+                 patch=None, patch_centers=None, rng=None, **kwargs):
 
         self.config = merge_config(config, kwargs, Catalog._valid_params, Catalog._aliases)
         self.orig_config = config.copy() if config is not None else {}
@@ -535,6 +571,8 @@ class Catalog(object):
         self._g1 = None
         self._g2 = None
         self._k = None
+        self._v1 = None
+        self._v2 = None
         self._patch = None
         self._field = lambda : None
 
@@ -545,6 +583,7 @@ class Catalog(object):
         self._sumw2 = None
         self._varg = None
         self._vark = None
+        self._varv = None
         self._patches = None
         self._centers = None
         self._rng = rng
@@ -605,7 +644,7 @@ class Catalog(object):
 
         # First style -- read from a file
         if file_name is not None:
-            if any([v is not None for v in [x,y,z,ra,dec,r,g1,g2,k,patch,w,wpos,flag]]):
+            if any([v is not None for v in [x,y,z,ra,dec,r,g1,g2,k,v1,v2,patch,w,wpos,flag]]):
                 raise TypeError("Vectors may not be provided when file_name is provided.")
             self.file_name = file_name
             self.name = file_name
@@ -652,6 +691,9 @@ class Catalog(object):
             if g1 is not None or g2 is not None:
                 if g1 is None or g2 is None:
                     raise TypeError("g1 and g2 must both be provided")
+            if v1 is not None or v2 is not None:
+                if v1 is None or v2 is None:
+                    raise TypeError("v1 and v2 must both be provided")
             self.file_name = None
             self.name = ''
             if self._single_patch is not None:
@@ -668,6 +710,8 @@ class Catalog(object):
             self._g1 = self.makeArray(g1,'g1')
             self._g2 = self.makeArray(g2,'g2')
             self._k = self.makeArray(k,'k')
+            self._v1 = self.makeArray(v1,'v1')
+            self._v2 = self.makeArray(v2,'v2')
             self._patch = self.makeArray(patch,'patch',int)
             if self._patch is not None:
                 self._set_npatch()
@@ -699,6 +743,10 @@ class Catalog(object):
                 raise ValueError("g2 has the wrong numbers of elements")
             if self._k is not None and len(self._k) != ntot:
                 raise ValueError("k has the wrong numbers of elements")
+            if self._v1 is not None and len(self._v1) != ntot:
+                raise ValueError("v1 has the wrong numbers of elements")
+            if self._v2 is not None and len(self._v2) != ntot:
+                raise ValueError("v2 has the wrong numbers of elements")
             if self._patch is not None and len(self._patch) != ntot:
                 raise ValueError("patch has the wrong numbers of elements")
             if ntot == 0:
@@ -793,6 +841,16 @@ class Catalog(object):
         return self._k
 
     @property
+    def v1(self):
+        self.load()
+        return self._v1
+
+    @property
+    def v2(self):
+        self.load()
+        return self._v2
+
+    @property
     def npatch(self):
         if self._npatch is None:
             self.load()
@@ -832,26 +890,33 @@ class Catalog(object):
                     self._varg = 0.
         return self._varg
 
+    def _calculate_weighted_var(self, k):
+        if k is not None:
+            if self.nontrivial_w:
+                use = self.w != 0
+                meank = np.sum(self.w[use] * k[use]) / self.sumw
+                meank2 = np.sum(self.w[use]**2 * k[use]) / self.sumw2
+                vark = np.sum(self.w[use]**2 * (k[use]-meank)**2) / self.sumw
+            else:
+                meank = meank2 = np.mean(k)
+                vark = np.sum((k-meank)**2) / self.nobj
+        else:
+            meank = meank2 = vark = 0.
+        return meank, meank2, vark
+
     @property
     def vark(self):
         if self._vark is None:
-            if self.nontrivial_w:
-                if self.k is not None:
-                    use = self.w != 0
-                    self._meank = np.sum(self.w[use] * self.k[use]) / self.sumw
-                    self._meank2 = np.sum(self.w[use]**2 * self.k[use]) / self.sumw2
-                    self._vark = np.sum(self.w[use]**2 * (self.k[use]-self._meank)**2) / self.sumw
-                else:
-                    self._meank = self._meank2 = 0.
-                    self._vark = 0.
-            else:
-                if self.k is not None:
-                    self._meank = self._meank2 = np.mean(self.k)
-                    self._vark = np.sum((self.k-self._meank)**2) / self.nobj
-                else:
-                    self._meank = self._meank2 = 0.
-                    self._vark = 0.
+            self._meank, self._meank2, self._vark = self._calculate_weighted_var(self.k)
         return self._vark
+
+    @property
+    def varv(self):
+        if self._varv is None:
+            self._meanv1, self._meanv12, self._varv1 = self._calculate_weighted_var(self.v1)
+            self._meanv2, self._meanv22, self._varv2 = self._calculate_weighted_var(self.v2)
+            self._varv = (self._varv1 + self._varv2)/2
+        return self._varv
 
     @property
     def nontrivial_w(self):
@@ -925,6 +990,15 @@ class Catalog(object):
             self.logger.info("   Flipping sign of g2.")
             self._g2 = -self._g2
 
+        flip_v1 = get_from_list(self.config,'flip_v1',self._num,bool,False)
+        flip_v2 = get_from_list(self.config,'flip_v2',self._num,bool,False)
+        if flip_v1:
+            self.logger.info("   Flipping sign of v1.")
+            self._v1 = -self._v1
+        if flip_v2:
+            self.logger.info("   Flipping sign of v2.")
+            self._v2 = -self._v2
+
         # Convert the flag to a weight
         if self._flag is not None:
             if 'ignore_flag' in self.config:
@@ -950,6 +1024,8 @@ class Catalog(object):
         self.checkForNaN(self._g1,'g1')
         self.checkForNaN(self._g2,'g2')
         self.checkForNaN(self._k,'k')
+        self.checkForNaN(self._v1,'v1')
+        self.checkForNaN(self._v2,'v2')
         self.checkForNaN(self._w,'w')
         self.checkForNaN(self._wpos,'wpos')
 
@@ -1110,6 +1186,8 @@ class Catalog(object):
         self._g1 = self._g1[indx] if self._g1 is not None else None
         self._g2 = self._g2[indx] if self._g2 is not None else None
         self._k = self._k[indx] if self._k is not None else None
+        self._v1 = self._v1[indx] if self._v1 is not None else None
+        self._v2 = self._v2[indx] if self._v2 is not None else None
         self._patch = self._patch[indx] if self._patch is not None else None
 
     def makeArray(self, col, col_str, dtype=float):
@@ -1171,6 +1249,8 @@ class Catalog(object):
         g1_col = get_from_list(self.config,'g1_col',num,str,'0')
         g2_col = get_from_list(self.config,'g2_col',num,str,'0')
         k_col = get_from_list(self.config,'k_col',num,str,'0')
+        v1_col = get_from_list(self.config,'v1_col',num,str,'0')
+        v2_col = get_from_list(self.config,'v2_col',num,str,'0')
         patch_col = get_from_list(self.config,'patch_col',num,str,'0')
         allow_xyz = self.config.get('allow_xyz', False)
 
@@ -1206,6 +1286,9 @@ class Catalog(object):
         if (g1_col == '0') != (g2_col == '0'):
             raise ValueError("g1_col, g2_col=(%s, %s) are invalid for file %s"%(
                         g1_col,g2_col,file_name))
+        if (v1_col == '0') != (v2_col == '0'):
+            raise ValueError("v1_col, v2_col=(%s, %s) are invalid for file %s"%(
+                        v1_col,v2_col,file_name))
 
         # This opens the file enough to read things inside.  The full read doesn't happen here.
         with reader:
@@ -1289,6 +1372,13 @@ class Catalog(object):
                                 k_col, file_name, num) +
                             "because it is invalid, but unneeded.")
 
+            if v1_col != '0':
+                # Note: we don't bother with the isRequired bit for vectors.
+                # If someone wants this feature, please request it, but it doesn't seem
+                # like something people will need.
+                v1_ext = get_from_list(self.config, 'v1_ext', num, str, ext)
+                v2_ext = get_from_list(self.config, 'v2_ext', num, str, ext)
+
     def _pandas_warning(self):
         if Catalog._emitted_pandas_warning:
             return
@@ -1339,6 +1429,8 @@ class Catalog(object):
         g1_col = get_from_list(self.config,'g1_col',num,str,'0')
         g2_col = get_from_list(self.config,'g2_col',num,str,'0')
         k_col = get_from_list(self.config,'k_col',num,str,'0')
+        v1_col = get_from_list(self.config,'v1_col',num,str,'0')
+        v2_col = get_from_list(self.config,'v2_col',num,str,'0')
         patch_col = get_from_list(self.config,'patch_col',num,str,'0')
 
         with reader:
@@ -1371,7 +1463,7 @@ class Catalog(object):
                         ra_col, dec_col, r_col,
                         patch_col,
                         w_col, wpos_col, flag_col,
-                        g1_col, g2_col, k_col]
+                        g1_col, g2_col, k_col, v1_col, v2_col]
 
             # It's faster in FITS to read in all the columns in one read, rather than individually.
             # Typically (very close to always!), all the columns are in the same extension.
@@ -1393,11 +1485,13 @@ class Catalog(object):
             g1_ext = get_from_list(self.config, 'g1_ext', num, str, ext)
             g2_ext = get_from_list(self.config, 'g2_ext', num, str, ext)
             k_ext = get_from_list(self.config, 'k_ext', num, str, ext)
+            v1_ext = get_from_list(self.config, 'v1_ext', num, str, ext)
+            v2_ext = get_from_list(self.config, 'v2_ext', num, str, ext)
             all_exts = [x_ext, y_ext, z_ext,
                         ra_ext, dec_ext, r_ext,
                         patch_ext,
                         w_ext, wpos_ext, flag_ext,
-                        g1_ext, g2_ext, k_ext]
+                        g1_ext, g2_ext, k_ext, v1_ext, v2_ext]
             col_by_ext = dict(zip(all_cols,all_exts))
             all_exts = set(all_exts + [ext])
             all_cols = [c for c in all_cols if c != '0']
@@ -1469,7 +1563,7 @@ class Catalog(object):
                 self._flag = data[flag_col].astype(int)
                 self.logger.debug('read flag')
 
-            # Skip g1,g2,k if this file is a random catalog
+            # Skip g1,g2,k,v1,v2 if this file is a random catalog
             if not is_rand:
                 # Set g1,g2
                 if g1_col in reader.names(g1_ext):
@@ -1482,6 +1576,14 @@ class Catalog(object):
                 if k_col in reader.names(k_ext):
                     self._k = data[k_col].astype(float)
                     self.logger.debug('read k')
+
+                # Set v1,v2
+                if v1_col in reader.names(v1_ext):
+                    self._v1 = data[v1_col].astype(float)
+                    self.logger.debug('read v1')
+                    self._v2 = data[v2_col].astype(float)
+                    self.logger.debug('read v2')
+
 
     @property
     def nfields(self):
@@ -1522,6 +1624,18 @@ class Catalog(object):
                               rng=rng, logger=logger)
             self._gfields = LRU_Cache(get_gfield, 1)
         return self._gfields
+
+    @property
+    def vfields(self):
+        if not hasattr(self, '_vfields'):
+            def get_vfield(min_size, max_size, split_method, brute, min_top, max_top, coords,
+                           rng, logger=None):
+                return VField(self, min_size=min_size, max_size=max_size,
+                              split_method=split_method, brute=brute,
+                              min_top=min_top, max_top=max_top, coords=coords,
+                              rng=rng, logger=logger)
+            self._vfields = LRU_Cache(get_vfield, 1)
+        return self._vfields
 
     def resize_cache(self, maxsize):
         """Resize all field caches.
@@ -1714,6 +1828,41 @@ class Catalog(object):
         self._field = weakref.ref(field)
         return field
 
+    def getVField(self, *, min_size=0, max_size=None, split_method=None, brute=False,
+                  min_top=None, max_top=10, coords=None, logger=None):
+        """Return a `VField` based on the v1,v2 values in this catalog.
+
+        The `VField` object is cached, so this is efficient to call multiple times.
+        cf. `resize_cache` and `clear_cache`.
+
+        Parameters:
+            min_size (float):   The minimum radius cell required (usually min_sep). (default: 0)
+            max_size (float):   The maximum radius cell required (usually max_sep). (default: None)
+            split_method (str): Which split method to use ('mean', 'median', 'middle', or 'random')
+                                (default: 'mean'; this value can also be given in the Catalog
+                                constructor in the config dict.)
+            brute (bool):       Whether to force traversal to the leaves. (default: False)
+            min_top (int):      The minimum number of top layers to use when setting up the
+                                field. (default: :math:`\\max(3, \\log_2(N_{\\rm cpu}))`)
+            max_top (int):      The maximum number of top layers to use when setting up the
+                                field. (default: 10)
+            coords (str):       The kind of coordinate system to use. (default self.coords)
+            logger:             A Logger object if desired (default: self.logger)
+
+        Returns:
+            A `VField` object
+        """
+        if split_method is None:
+            split_method = get(self.config,'split_method',str,'mean')
+        if self.v1 is None or self.v2 is None:
+            raise TypeError("v1,v2 are not defined.")
+        if logger is None:
+            logger = self.logger
+        field = self.vfields(min_size, max_size, split_method, brute, min_top, max_top, coords,
+                             rng=self._rng, logger=logger)
+        self._field = weakref.ref(field)
+        return field
+
     def _weighted_mean(self, x, idx=None):
         # Find the weighted mean of some column.
         # If weights are set, then return sum(w * x) / sum(w)
@@ -1868,6 +2017,8 @@ class Catalog(object):
             self._g1 = None
             self._g2 = None
             self._k = None
+            self._v1 = None
+            self._v2 = None
             self._patch = None
             if self._patches is not None:
                 for p in self._patches:
@@ -1964,6 +2115,10 @@ class Catalog(object):
             kwargs['g2_col'] = 'g2'
         if self._k is not None or self.config.get('k_col','0') != '0':
             kwargs['k_col'] = 'k'
+        if self._v1 is not None or self.config.get('v1_col','0') != '0':
+            kwargs['v1_col'] = 'v1'
+        if self._v2 is not None or self.config.get('v2_col','0') != '0':
+            kwargs['v2_col'] = 'v2'
 
         file_names = self.get_patch_file_names(save_patch_dir)
         self._patches = []
@@ -2040,6 +2195,8 @@ class Catalog(object):
                 g1=self.g1[indx] if self.g1 is not None else None
                 g2=self.g2[indx] if self.g2 is not None else None
                 k=self.k[indx] if self.k is not None else None
+                v1=self.v1[indx] if self.v1 is not None else None
+                v2=self.v2[indx] if self.v2 is not None else None
                 check_wpos = self._wpos if self._wpos is not None else self._w
                 kwargs = dict(keep_zero_weight=np.any(check_wpos==0))
                 if self.ra is not None:
@@ -2047,7 +2204,7 @@ class Catalog(object):
                     kwargs['dec_units'] = 'rad'
                     kwargs['allow_xyz'] = True
                 p = Catalog(x=x, y=y, z=z, ra=ra, dec=dec, r=r, w=w, wpos=wpos,
-                            g1=g1, g2=g2, k=k, patch=i, npatch=self.npatch, **kwargs)
+                            g1=g1, g2=g2, k=k, v1=v1, v2=v2, patch=i, npatch=self.npatch, **kwargs)
                 self._patches.append(p)
 
         # Write the patches to files if requested.
@@ -2089,6 +2246,8 @@ class Catalog(object):
         g1            self.g1 if not None
         g2            self.g2 if not None
         k             self.k if not None
+        v1            self.v1 if not None
+        v2            self.v2 if not None
         patch         self.patch if not None
         ========      =======================================================
 
@@ -2137,6 +2296,12 @@ class Catalog(object):
         if self.k is not None:
             col_names.append('k')
             columns.append(self.k)
+        if self.v1 is not None:
+            col_names.append('v1')
+            columns.append(self.v1)
+        if self.v2 is not None:
+            col_names.append('v2')
+            columns.append(self.v2)
         if self._patch is not None:
             col_names.append('patch')
             columns.append(self.patch)
@@ -2183,6 +2348,8 @@ class Catalog(object):
             if self.g1 is not None: s += 'g1='+repr(self.g1)+','
             if self.g2 is not None: s += 'g2='+repr(self.g2)+','
             if self.k is not None: s += 'k='+repr(self.k)+','
+            if self.v1 is not None: s += 'v1='+repr(self.v1)+','
+            if self.v2 is not None: s += 'v2='+repr(self.v2)+','
             if self.patch is not None: s += 'patch='+repr(self.patch)+','
             wpos = self._wpos if self._wpos is not None else self._w
             if np.any(wpos == 0): s += 'keep_zero_weight=True,'
@@ -2208,6 +2375,8 @@ class Catalog(object):
                 np.array_equal(self.g1, other.g1) and
                 np.array_equal(self.g2, other.g2) and
                 np.array_equal(self.k, other.k) and
+                np.array_equal(self.v1, other.v1) and
+                np.array_equal(self.v2, other.v2) and
                 np.array_equal(self.patch, other.patch))
 
 
@@ -2271,7 +2440,7 @@ def read_catalogs(config, key=None, list_key=None, *, num=0, logger=None, is_ran
 
 
 def calculateVarG(cat_list, *, low_mem=False):
-    """Calculate the overall shear variance from a list of catalogs.
+    """Calculate the overall variance of the shear field from a list of catalogs.
 
     The catalogs are assumed to be equivalent, so this is just the average shear
     variance (per component) weighted by the number of objects in each catalog.
@@ -2282,7 +2451,7 @@ def calculateVarG(cat_list, *, low_mem=False):
                     catalog after getting its individual varg. [default: False]
 
     Returns:
-        The shear variance per component, aka shape noise.
+        The variance per component of the shear field (aka shape noise).
     """
     if isinstance(cat_list, Catalog):
         return cat_list.varg
@@ -2299,18 +2468,18 @@ def calculateVarG(cat_list, *, low_mem=False):
         return varg / sumw
 
 def calculateVarK(cat_list, *, low_mem=False):
-    """Calculate the overall kappa variance from a list of catalogs.
+    """Calculate the overall variance of the scalar field from a list of catalogs.
 
-    The catalogs are assumed to be equivalent, so this is just the average kappa
+    The catalogs are assumed to be equivalent, so this is just the average
     variance weighted by the number of objects in each catalog.
 
     Parameters:
-        cat_list:   A Catalog or a list of Catalogs for which to calculate the kappa variance.
+        cat_list:   A Catalog or a list of Catalogs for which to calculate the variance.
         low_mem:    Whether to try to conserve memory when cat is a list by unloading each
                     catalog after getting its individual vark. [default: False]
 
     Returns:
-        The kappa variance
+        The variance of the scalar field.
     """
     if isinstance(cat_list, Catalog):
         return cat_list.vark
@@ -2339,6 +2508,59 @@ def calculateVarK(cat_list, *, low_mem=False):
         meank2 /= sumw2
         vark = (vark - meank * sumw2 * (2*meank2 - meank)) / sumw
         return vark
+
+def calculateVarV(cat_list, *, low_mem=False):
+    """Calculate the overall variance of the vector field from a list of catalogs.
+
+    The catalogs are assumed to be equivalent, so this is just the average vector
+    variance (per component) weighted by the number of objects in each catalog.
+
+    Parameters:
+        cat_list:   A Catalog or a list of Catalogs for which to calculate the vector variance.
+        low_mem:    Whether to try to conserve memory when cat is a list by unloading each
+                    catalog after getting its individual varv. [default: False]
+
+    Returns:
+        The variance per component of the vector field.
+    """
+    print('CalculateVarV')
+    if isinstance(cat_list, Catalog):
+        print('Catalog: ',cat_list.varv)
+        return cat_list.varv
+    elif len(cat_list) == 1:
+        print('single: ',cat_list[0].varv)
+        return cat_list[0].varv
+    else:
+        print('multi:')
+        varv1 = 0
+        varv2 = 0
+        meanv1 = 0
+        meanv12 = 0
+        meanv2 = 0
+        meanv22 = 0
+        sumw = 0
+        sumw2 = 0
+        for cat in cat_list:
+            cat.varv
+            varv1 += cat._varv1 * cat.sumw + cat._meanv1 * cat.sumw2 * (2*cat._meanv12 - cat._meanv1)
+            varv2 += cat._varv2 * cat.sumw + cat._meanv2 * cat.sumw2 * (2*cat._meanv22 - cat._meanv2)
+            meanv1 += cat._meanv1 * cat.sumw
+            meanv12 += cat._meanv12 * cat.sumw2
+            meanv2 += cat._meanv2 * cat.sumw
+            meanv22 += cat._meanv22 * cat.sumw2
+            sumw += cat.sumw
+            sumw2 += cat.sumw2
+            if low_mem:
+                cat.unload()
+        meanv1 /= sumw
+        meanv12 /= sumw2
+        meanv2 /= sumw
+        meanv22 /= sumw2
+        varv1 = (varv1 - meanv1 * sumw2 * (2*meanv12 - meanv1)) / sumw
+        varv2 = (varv2 - meanv2 * sumw2 * (2*meanv22 - meanv2)) / sumw
+        varv = (varv1 + varv2)/2
+        return varv
+
 
 def isGColRequired(config, num):
     """A quick helper function that checks whether we need to bother reading the g1,g2 columns.

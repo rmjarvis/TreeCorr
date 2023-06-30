@@ -442,9 +442,9 @@ class GGGCorrelation(Corr3):
         finishes the calculation by dividing by the total weight.
 
         Parameters:
-            varg1 (float):  The shear variance for the first field.
-            varg2 (float):  The shear variance for the second field.
-            varg3 (float):  The shear variance for the third field.
+            varg1 (float):  The variance per component of the first shear field.
+            varg2 (float):  The variance per component of the second shear field.
+            varg3 (float):  The variance per component of the third shear field.
         """
         self._finalize()
         mask1 = self.weight != 0
@@ -1424,9 +1424,9 @@ class GGGCrossCorrelation(Corr3):
         by dividing by the total weight.
 
         Parameters:
-            varg1 (float):  The shear variance for the first field that was correlated.
-            varg2 (float):  The shear variance for the second field that was correlated.
-            varg3 (float):  The shear variance for the third field that was correlated.
+            varg1 (float):  The variance of the first shear field that was correlated.
+            varg2 (float):  The variance of the second shear field that was correlated.
+            varg3 (float):  The variance of the third shear field that was correlated.
         """
         self.g1g2g3.finalize(varg1,varg2,varg3)
         self.g1g3g2.finalize(varg1,varg3,varg2)

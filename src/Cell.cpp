@@ -114,7 +114,7 @@ double BaseCell<C>::calculateInertia() const
         const Position<C> cen = getPos();
         double inertia = i1 + i2 + (p1-cen).normSq() * w1 + (p2-cen).normSq() * w2;
 #ifdef DEBUGLOGGING
-        std::vector<const Cell<C>*> leaves = getAllLeaves();
+        std::vector<const BaseCell<C>*> leaves = getAllLeaves();
         double inertia2 = 0.;
         for (size_t k=0; k<leaves.size(); ++k) {
             const Position<C>& p = leaves[k]->getPos();
@@ -201,9 +201,24 @@ void CellData<GData,Flat>::finishAverages(
     _wg = dwg;
 }
 
+template <>
+void CellData<VData,Flat>::finishAverages(
+    const std::vector<std::pair<BaseCellData<Flat>*,WPosLeafInfo> >& vdata,
+    size_t start, size_t end)
+{
+    // Accumulate in double precision for better accuracy.
+    std::complex<double> dwv(0.);
+    for(size_t i=start;i<end;++i) {
+        const CellData<VData,Flat>* vdata_v =
+            static_cast<const CellData<VData,Flat>*>(vdata[i].first);
+        dwv += vdata_v->getWV();
+    }
+    _wv = dwv;
+}
+
 // C here is either ThreeD or Sphere
 template <int C>
-std::complex<double> ParallelTransportShift(
+std::complex<double> ParallelTransportShiftG(
     const std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >& vdata,
     const Position<C>& center, size_t start, size_t end)
 {
@@ -258,7 +273,7 @@ void CellData<GData,ThreeD>::finishAverages(
     const std::vector<std::pair<BaseCellData<ThreeD>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end)
 {
-    _wg = ParallelTransportShift(vdata,_pos,start,end);
+    _wg = ParallelTransportShiftG(vdata,_pos,start,end);
 }
 
 template <>
@@ -266,7 +281,61 @@ void CellData<GData,Sphere>::finishAverages(
     const std::vector<std::pair<BaseCellData<Sphere>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end)
 {
-    _wg = ParallelTransportShift(vdata,_pos,start,end);
+    _wg = ParallelTransportShiftG(vdata,_pos,start,end);
+}
+
+// Similar thing for Vectors, except use expibeta, not exp2ibeta.
+template <int C>
+std::complex<double> ParallelTransportShiftV(
+    const std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >& vdata,
+    const Position<C>& center, size_t start, size_t end)
+{
+    xdbg<<"Finish Averages for Center = "<<center<<std::endl;
+    std::complex<double> dwv=0.;
+    Position<Sphere> cen(center);
+    for(size_t i=start;i<end;++i) {
+        const CellData<VData,C>* vdata_v = static_cast<const CellData<VData,C>*>(vdata[i].first);
+        Position<Sphere> pi(vdata_v->getPos());
+        double z1 = center.getZ();
+        double z2 = pi.getZ();
+        double dsq = (cen - pi).normSq();
+        double cosA = (z1 - z2) + 0.5 * z2 * dsq;
+        double sinA = cen.getY()*pi.getX() - cen.getX()*pi.getY();
+        double normAsq = sinA*sinA + cosA*cosA;
+        double cosB = (z2 - z1) + 0.5 * z1 * dsq;
+        double sinB = sinA;
+        double normBsq = sinB*sinB + cosB*cosB;
+        if (normAsq < 1.e-12 && normBsq < 1.e-12) {
+            // Then this point is at the center, no need to project.
+            dwv += vdata_v->getWV();
+        } else {
+            // The angle we need to rotate the shear by is (Pi-A-B)
+            // cos(beta) = -cos(A+B)
+            // sin(beta) = sin(A+B)
+            double cosbeta = -cosA * cosB + sinA * sinB;
+            double sinbeta = sinA * cosB + cosA * sinB;
+            std::complex<double> expibeta(cosbeta,-sinbeta);
+            expibeta /= sqrt(normAsq*normBsq);
+            dwv += vdata_v->getWV() * expibeta;
+        }
+    }
+    return dwv;
+}
+
+template <>
+void CellData<VData,ThreeD>::finishAverages(
+    const std::vector<std::pair<BaseCellData<ThreeD>*,WPosLeafInfo> >& vdata,
+    size_t start, size_t end)
+{
+    _wv = ParallelTransportShiftV(vdata,_pos,start,end);
+}
+
+template <>
+void CellData<VData,Sphere>::finishAverages(
+    const std::vector<std::pair<BaseCellData<Sphere>*,WPosLeafInfo> >& vdata,
+    size_t start, size_t end)
+{
+    _wv = ParallelTransportShiftV(vdata,_pos,start,end);
 }
 
 
@@ -610,6 +679,7 @@ void BaseCell<C>::WriteTree(std::ostream& os, int indent) const
     InstD(NData,C); \
     InstD(KData,C); \
     InstD(GData,C); \
+    InstD(VData,C); \
 
 Inst(Flat);
 Inst(ThreeD);

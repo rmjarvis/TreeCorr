@@ -12,27 +12,20 @@
 #    and/or other materials provided with the distribution.
 
 """
-.. module:: kkcorrelation
+.. module:: ngcorrelation
 """
 
 import numpy as np
 
 from . import _treecorr
-from .catalog import calculateVarK
+from .catalog import calculateVarV
 from .corr2base import Corr2
 from .util import make_writer, make_reader
 
 
-class KKCorrelation(Corr2):
-    r"""This class handles the calculation and storage of a 2-point scalar-scalar correlation
+class NVCorrelation(Corr2):
+    r"""This class handles the calculation and storage of a 2-point count-vector correlation
     function.
-
-    .. note::
-
-        While we use the term kappa (:math:`\kappa`) here and the letter K in various places,
-        in fact any scalar field will work here.  For example, you can use this to compute
-        correlations of the CMB temperature fluctuations, where "kappa" would really be
-        :math:`\Delta T`.
 
     Ojects of this class holds the following attributes:
 
@@ -52,37 +45,41 @@ class KKCorrelation(Corr2):
                     If there are no pairs in a bin, then exp(logr) will be used instead.
         meanlogr:   The (weighted) mean value of log(r) for the pairs in each bin.
                     If there are no pairs in a bin, then logr will be used instead.
-        xi:         The correlation function, :math:`\xi(r)`
+        xi:         The correlation function, :math:`\xi(r) = \langle v_R\rangle`.
+        xi_im:      The imaginary part of :math:`\xi(r)`.
         varxi:      An estimate of the variance of :math:`\xi`
         weight:     The total weight in each bin.
         npairs:     The number of pairs going into each bin (including pairs where one or
                     both objects have w=0).
         cov:        An estimate of the full covariance matrix.
+        raw_xi:     The raw value of xi, uncorrected by an RV calculation. cf. `calculateXi`
+        raw_xi_im:  The raw value of xi_im, uncorrected by an RV calculation. cf. `calculateXi`
+        raw_varxi:  The raw value of varxi, uncorrected by an RV calculation. cf. `calculateXi`
 
     .. note::
 
         The default method for estimating the variance and covariance attributes (``varxi``,
-        and ``cov``) is 'shot', which only includes the shot noise propagated into the final
-        correlation.  This does not include sample variance, so it is always an underestimate of
-        the actual variance.  To get better estimates, you need to set ``var_method`` to something
-        else and use patches in the input catalog(s).  cf. `Covariance Estimates`.
+        and ``cov``) is 'shot', which only includes the shape noise propagated into
+        the final correlation.  This does not include sample variance, so it is always an
+        underestimate of the actual variance.  To get better estimates, you need to set
+        ``var_method`` to something else and use patches in the input catalog(s).
+        cf. `Covariance Estimates`.
 
-    If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances
+    If ``sep_units`` are given (either in the config dict or as a named kwarv) then the distances
     will all be in these units.
 
     .. note::
 
-        If you separate out the steps of the `process` command and use `process_auto` and/or
-        `process_cross`, then the units will not be applied to ``meanr`` or ``meanlogr`` until
-        the `finalize` function is called.
+        If you separate out the steps of the `process` command and use `process_cross`,
+        then the units will not be applied to ``meanr`` or ``meanlogr`` until the `finalize`
+        function is called.
 
     The typical usage pattern is as follows:
 
-        >>> kk = treecorr.KKCorrelation(config)
-        >>> kk.process(cat)         # For auto-correlation.
-        >>> kk.process(cat1,cat2)   # For cross-correlation.
-        >>> kk.write(file_name)     # Write out to a file.
-        >>> xi = kk.xi              # Or access the correlation function directly.
+        >>> ng = treecorr.NVCorrelation(config)
+        >>> ng.process(cat1,cat2)   # Compute the cross-correlation.
+        >>> ng.write(file_name)     # Write out to a file.
+        >>> xi = gg.xi              # Or access the correlation function directly.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
@@ -96,34 +93,39 @@ class KKCorrelation(Corr2):
                         arguments, which may be passed either directly or in the config dict.
     """
     def __init__(self, config=None, *, logger=None, **kwargs):
-        """Initialize `KKCorrelation`.  See class doc for details.
+        """Initialize `NVCorrelation`.  See class doc for details.
         """
         Corr2.__init__(self, config, logger=logger, **kwargs)
 
         self.xi = np.zeros_like(self.rnom, dtype=float)
+        self.xi_im = np.zeros_like(self.rnom, dtype=float)
         self.meanr = np.zeros_like(self.rnom, dtype=float)
         self.meanlogr = np.zeros_like(self.rnom, dtype=float)
         self.weight = np.zeros_like(self.rnom, dtype=float)
         self.npairs = np.zeros_like(self.rnom, dtype=float)
+        self.raw_xi = self.xi
+        self.raw_xi_im = self.xi_im
+        self._rv = None
+        self._raw_varxi = None
         self._varxi = None
         self._cov = None
         self._var_num = 0
-        self.logger.debug('Finished building KKCorr')
+        self.logger.debug('Finished building NVCorr')
 
     @property
     def corr(self):
         if self._corr is None:
             x = np.array([])
-            self._corr = _treecorr.KKCorr(self._bintype, self._min_sep, self._max_sep, self._nbins,
+            self._corr = _treecorr.NVCorr(self._bintype, self._min_sep, self._max_sep, self._nbins,
                                           self._bin_size, self.b, self.min_rpar, self.max_rpar,
                                           self.xperiod, self.yperiod, self.zperiod,
-                                          self.xi, x, x, x,
+                                          self.raw_xi, self.raw_xi_im, x, x,
                                           self.meanr, self.meanlogr, self.weight, self.npairs)
         return self._corr
 
     def __eq__(self, other):
-        """Return whether two `KKCorrelation` instances are equal"""
-        return (isinstance(other, KKCorrelation) and
+        """Return whether two `NVCorrelation` instances are equal"""
+        return (isinstance(other, NVCorrelation) and
                 self.nbins == other.nbins and
                 self.bin_size == other.bin_size and
                 self.min_sep == other.min_sep and
@@ -140,13 +142,14 @@ class KKCorrelation(Corr2):
                 np.array_equal(self.meanr, other.meanr) and
                 np.array_equal(self.meanlogr, other.meanlogr) and
                 np.array_equal(self.xi, other.xi) and
+                np.array_equal(self.xi_im, other.xi_im) and
                 np.array_equal(self.varxi, other.varxi) and
                 np.array_equal(self.weight, other.weight) and
                 np.array_equal(self.npairs, other.npairs))
 
     def copy(self):
         """Make a copy"""
-        ret = KKCorrelation.__new__(KKCorrelation)
+        ret = NVCorrelation.__new__(NVCorrelation)
         for key, item in self.__dict__.items():
             if isinstance(item, np.ndarray):
                 # Only items that might change need to by deep copied.
@@ -160,45 +163,18 @@ class KKCorrelation(Corr2):
                 # never add more to it after the copy, so shallow copy is fine.
                 ret.__dict__[key] = item
         ret._corr = None # We'll want to make a new one of these if we need it.
+        if self.xi is self.raw_xi:
+            ret.raw_xi = ret.xi
+            ret.raw_xi_im = ret.xi_im
+        else:
+            ret.raw_xi = self.raw_xi.copy()
+            ret.raw_xi_im = self.raw_xi_im.copy()
+        if self._rv is not None:
+            ret._rv = self._rv.copy()
         return ret
 
     def __repr__(self):
-        return 'KKCorrelation(config=%r)'%self.config
-
-    def process_auto(self, cat, *, metric=None, num_threads=None):
-        """Process a single catalog, accumulating the auto-correlation.
-
-        This accumulates the weighted sums into the bins, but does not finalize
-        the calculation by dividing by the total weight at the end.  After
-        calling this function as often as desired, the `finalize` command will
-        finish the calculation.
-
-        Parameters:
-            cat (Catalog):      The catalog to process
-            metric (str):       Which metric to use.  See `Metrics` for details.
-                                (default: 'Euclidean'; this value can also be given in the
-                                constructor in the config dict.)
-            num_threads (int):  How many OpenMP threads to use during the calculation.
-                                (default: use the number of cpu cores; this value can also be given
-                                in the constructor in the config dict.)
-        """
-        if cat.name == '':
-            self.logger.info('Starting process KK auto-correlations')
-        else:
-            self.logger.info('Starting process KK auto-correlations for cat %s.', cat.name)
-
-        self._set_metric(metric, cat.coords)
-        self._set_num_threads(num_threads)
-        min_size, max_size = self._get_minmax_size()
-
-        field = cat.getKField(min_size=min_size, max_size=max_size,
-                              split_method=self.split_method, brute=bool(self.brute),
-                              min_top=self.min_top, max_top=self.max_top,
-                              coords=self.coords)
-
-        self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        self.corr.processAuto(field.data, self.output_dots,
-                              self._bintype, self._metric)
+        return 'NVCorrelation(config=%r)'%self.config
 
     def process_cross(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation.
@@ -219,23 +195,23 @@ class KKCorrelation(Corr2):
                                 in the constructor in the config dict.)
         """
         if cat1.name == '' and cat2.name == '':
-            self.logger.info('Starting process KK cross-correlations')
+            self.logger.info('Starting process NV cross-correlations')
         else:
-            self.logger.info('Starting process KK cross-correlations for cats %s, %s.',
+            self.logger.info('Starting process NV cross-correlations for cats %s, %s.',
                              cat1.name, cat2.name)
 
         self._set_metric(metric, cat1.coords, cat2.coords)
         self._set_num_threads(num_threads)
         min_size, max_size = self._get_minmax_size()
 
-        f1 = cat1.getKField(min_size=min_size, max_size=max_size,
+        f1 = cat1.getNField(min_size=min_size, max_size=max_size,
                             split_method=self.split_method,
                             brute=self.brute is True or self.brute == 1,
                             min_top=self.min_top, max_top=self.max_top,
                             coords=self.coords)
-        f2 = cat2.getKField(min_size=min_size, max_size=max_size,
+        f2 = cat2.getVField(min_size=min_size, max_size=max_size,
                             split_method=self.split_method,
-                            brute=self.brute is True or self.brute == 1,
+                            brute=self.brute is True or self.brute == 2,
                             min_top=self.min_top, max_top=self.max_top,
                             coords=self.coords)
 
@@ -247,67 +223,82 @@ class KKCorrelation(Corr2):
         mask1 = self.weight != 0
         mask2 = self.weight == 0
 
-        self.xi[mask1] /= self.weight[mask1]
+        self.raw_xi[mask1] /= self.weight[mask1]
+        self.raw_xi_im[mask1] /= self.weight[mask1]
         self.meanr[mask1] /= self.weight[mask1]
         self.meanlogr[mask1] /= self.weight[mask1]
 
-        # Update the units of meanlogr
+        # Update the units of meanr, meanlogr
         self._apply_units(mask1)
 
-        # Use meanlogr when available, but set to nominal when no pairs in bin.
+        # Use meanr, meanlogr when available, but set to nominal when no pairs in bin.
         self.meanr[mask2] = self.rnom[mask2]
         self.meanlogr[mask2] = self.logr[mask2]
 
-    def finalize(self, vark1, vark2):
+    def finalize(self, varv):
         """Finalize the calculation of the correlation function.
 
-        The `process_auto` and `process_cross` commands accumulate values in each bin,
-        so they can be called multiple times if appropriate.  Afterwards, this command
-        finishes the calculation by dividing each column by the total weight.
+        The `process_cross` command accumulates values in each bin, so it can be called
+        multiple times if appropriate.  Afterwards, this command finishes the calculation
+        by dividing each column by the total weight.
 
         Parameters:
-            vark1 (float):  The variance of the first scalar field.
-            vark2 (float):  The variance of the second scalar field.
+            varv (float):   The variance per component of the vector field.
         """
         self._finalize()
-        self._var_num = vark1 * vark2
+        self._var_num = varv
+        print('Finalize: varv = ',varv)
+
+        self.xi = self.raw_xi
+        self.xi_im = self.raw_xi_im
+
+    @property
+    def raw_varxi(self):
+        if self._raw_varxi is None:
+            self._raw_varxi = np.zeros_like(self.rnom, dtype=float)
+            if self._var_num != 0:
+                self._raw_varxi.ravel()[:] = self.cov.diagonal()
+        return self._raw_varxi
 
     @property
     def varxi(self):
         if self._varxi is None:
-            self._varxi = np.zeros_like(self.rnom, dtype=float)
-            if self._var_num != 0:
-                self._varxi.ravel()[:] = self.cov.diagonal()
+            self._varxi = self.raw_varxi
         return self._varxi
 
     def _clear(self):
         """Clear the data vectors
         """
-        self.xi.ravel()[:] = 0
+        self.raw_xi.ravel()[:] = 0
+        self.raw_xi_im.ravel()[:] = 0
         self.meanr.ravel()[:] = 0
         self.meanlogr.ravel()[:] = 0
         self.weight.ravel()[:] = 0
         self.npairs.ravel()[:] = 0
+        self.xi = self.raw_xi
+        self.xi_im = self.raw_xi_im
+        self._raw_varxi = None
         self._varxi = None
         self._cov = None
 
     def __iadd__(self, other):
-        """Add a second `KKCorrelation`'s data to this one.
+        """Add a second `NVCorrelation`'s data to this one.
 
         .. note::
 
-            For this to make sense, both `KKCorrelation` objects should not have had `finalize`
+            For this to make sense, both `NVCorrelation` objects should not have had `finalize`
             called yet.  Then, after adding them together, you should call `finalize` on the sum.
         """
-        if not isinstance(other, KKCorrelation):
-            raise TypeError("Can only add another KKCorrelation object")
+        if not isinstance(other, NVCorrelation):
+            raise TypeError("Can only add another NVCorrelation object")
         if not (self._nbins == other._nbins and
                 self.min_sep == other.min_sep and
                 self.max_sep == other.max_sep):
-            raise ValueError("KKCorrelation to be added is not compatible with this one.")
+            raise ValueError("NVCorrelation to be added is not compatible with this one.")
 
         self._set_metric(other.metric, other.coords, other.coords)
-        self.xi.ravel()[:] += other.xi.ravel()[:]
+        self.raw_xi.ravel()[:] += other.raw_xi.ravel()[:]
+        self.raw_xi_im.ravel()[:] += other.raw_xi_im.ravel()[:]
         self.meanr.ravel()[:] += other.meanr.ravel()[:]
         self.meanlogr.ravel()[:] += other.meanlogr.ravel()[:]
         self.weight.ravel()[:] += other.weight.ravel()[:]
@@ -320,26 +311,28 @@ class KKCorrelation(Corr2):
         #     for other in others:
         #         self += other
         # but no sanity checks and use numpy.sum for faster calculation.
-        np.sum([c.xi for c in others], axis=0, out=self.xi)
+        np.sum([c.raw_xi for c in others], axis=0, out=self.raw_xi)
+        np.sum([c.raw_xi_im for c in others], axis=0, out=self.raw_xi_im)
         np.sum([c.meanr for c in others], axis=0, out=self.meanr)
         np.sum([c.meanlogr for c in others], axis=0, out=self.meanlogr)
         np.sum([c.weight for c in others], axis=0, out=self.weight)
         np.sum([c.npairs for c in others], axis=0, out=self.npairs)
+        self.xi = self.raw_xi
+        self.xi_im = self.raw_xi_im
+        self._raw_varxi = None
+        self._varxi = None
+        self._cov = None
 
-    def process(self, cat1, cat2=None, *, metric=None, num_threads=None, comm=None, low_mem=False,
+    def process(self, cat1, cat2, *, metric=None, num_threads=None, comm=None, low_mem=False,
                 initialize=True, finalize=True):
         """Compute the correlation function.
-
-        - If only 1 argument is given, then compute an auto-correlation function.
-        - If 2 arguments are given, then compute a cross-correlation function.
 
         Both arguments may be lists, in which case all items in the list are used
         for that element of the correlation.
 
         Parameters:
-            cat1 (Catalog):     A catalog or list of catalogs for the first K field.
-            cat2 (Catalog):     A catalog or list of catalogs for the second K field, if any.
-                                (default: None)
+            cat1 (Catalog):     A catalog or list of catalogs for the N field.
+            cat2 (Catalog):     A catalog or list of catalogs for the V field.
             metric (str):       Which metric to use.  See `Metrics` for details.
                                 (default: 'Euclidean'; this value can also be given in the
                                 constructor in the config dict.)
@@ -359,47 +352,116 @@ class KKCorrelation(Corr2):
         import math
         if initialize:
             self.clear()
+            self._rv = None
 
         if not isinstance(cat1,list):
             cat1 = cat1.get_patches(low_mem=low_mem)
-        if cat2 is not None and not isinstance(cat2,list):
+        if not isinstance(cat2,list):
             cat2 = cat2.get_patches(low_mem=low_mem)
 
-        if cat2 is None:
-            self._process_all_auto(cat1, metric, num_threads, comm, low_mem)
-        else:
-            self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem)
+        self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem)
 
         if finalize:
-            if cat2 is None:
-                vark1 = calculateVarK(cat1, low_mem=low_mem)
-                vark2 = vark1
-                self.logger.info("vark = %f: sig_k = %f",vark1,math.sqrt(vark1))
-            else:
-                vark1 = calculateVarK(cat1, low_mem=low_mem)
-                vark2 = calculateVarK(cat2, low_mem=low_mem)
-                self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
-                self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
-            self.finalize(vark1,vark2)
+            varv = calculateVarV(cat2, low_mem=low_mem)
+            self.logger.info("varv = %f: sig_sn (per component) = %f",varv,math.sqrt(varv))
+            self.finalize(varv)
 
-    def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False):
+    def calculateXi(self, *, rv=None):
+        r"""Calculate the correlation function possibly given another correlation function
+        that uses random points for the foreground objects.
+
+        - If rv is None, the simple correlation function :math:`\langle v_R\rangle` is
+          returned.
+        - If rv is not None, then a compensated calculation is done:
+          :math:`\langle v_R\rangle = (DV - RV)`, where DV represents the mean radial vector
+          around the data points and RV represents the mean radial vector around random points.
+
+        After calling this function, the attributes ``xi``, ``xi_im``, ``varxi``, and ``cov`` will
+        correspond to the compensated values (if rv is provided).  The raw, uncompensated values
+        are available as ``rawxi``, ``raw_xi_im``, and ``raw_varxi``.
+
+        Parameters:
+            rv (NVCorrelation): The cross-correlation using random locations as the lenses
+                                (RV), if desired.  (default: None)
+
+        Returns:
+            Tuple containing
+
+                - xi = array of the real part of :math:`\xi(R)`
+                - xi_im = array of the imaginary part of :math:`\xi(R)`
+                - varxi = array of the variance estimates of the above values
+        """
+        if rv is not None:
+            self.xi = self.raw_xi - rv.xi
+            self.xi_im = self.raw_xi_im - rv.xi_im
+            self._rv = rv
+
+            if rv.npatch1 not in (1,self.npatch1) or rv.npatch2 != self.npatch2:
+                raise RuntimeError("RV must be run with the same patches as DV")
+
+            if len(self.results) > 0:
+                # If there are any rv patch pairs that aren't in results (e.g. due to different
+                # edge effects among the various pairs in consideration), then we need to add
+                # some dummy results to make sure all the right pairs are computed when we make
+                # the vectors for the covariance matrix.
+                template = next(iter(self.results.values()))  # Just need something to copy.
+                for ij in rv.results:
+                    if ij in self.results: continue
+                    new_cij = template.copy()
+                    new_cij.xi.ravel()[:] = 0
+                    new_cij.weight.ravel()[:] = 0
+                    self.results[ij] = new_cij
+
+                self._cov = self.estimate_cov(self.var_method)
+                self._varxi = np.zeros_like(self.rnom, dtype=float)
+                self._varxi.ravel()[:] = self.cov.diagonal()
+            else:
+                self._varxi = self.raw_varxi + rv.varxi
+        else:
+            self.xi = self.raw_xi
+            self.xi_im = self.raw_xi_im
+            self._varxi = self.raw_varxi
+
+        return self.xi, self.xi_im, self.varxi
+
+    def _calculate_xi_from_pairs(self, pairs):
+        self._sum([self.results[ij] for ij in pairs])
+        self._finalize()
+        if self._rv is not None:
+            # If rv has npatch1 = 1, adjust pairs appropriately
+            if self._rv.npatch1 == 1:
+                pairs = [(0,ij[1]) for ij in pairs if ij[0] == ij[1]]
+            # Make sure all ij are in the rv results (some might be missing, which is ok)
+            pairs = [ij for ij in pairs if self._rv._ok[ij[0],ij[1]]]
+            self._rv._calculate_xi_from_pairs(pairs)
+            self.xi -= self._rv.xi
+
+    def write(self, file_name, *, rv=None, file_type=None, precision=None,
+              write_patch_results=False):
         r"""Write the correlation function to the file, file_name.
+
+        - If rv is None, the simple correlation function :math:`\langle v_R\rangle` is used.
+        - If rv is not None, then a compensated calculation is done:
+          :math:`\langle v_R\rangle = (DV - RV)`, where DV represents the mean vector
+          around the data points and RV represents the mean vector around random points.
 
         The output file will include the following columns:
 
-        ==========      ========================================================
+        ==========      =============================================================
         Column          Description
-        ==========      ========================================================
+        ==========      =============================================================
         r_nom           The nominal center of the bin in r
-        meanr           The mean value :math:`\langle r \rangle` of pairs that
+        meanr           The mean value :math:`\langle r \rangle` of pairs that fell
+                        into each bin
+        meanlogr        The mean value :math:`\langle \log(r) \rangle` of pairs that
                         fell into each bin
-        meanlogr        The mean value :math:`\langle \log(r) \rangle` of pairs
-                        that fell into each bin
-        xi              The estimate of the correlation function xi(r)
-        sigma_xi        The sqrt of the variance estimate of xi(r)
+        vR              The mean radial vector, :math:`\langle v_R \rangle(r)`
+        vT              The mean counter-clockwise tangential vector,
+                        :math:`\langle v_T \rangle(r)`.
+        sigma           The sqrt of the variance estimate of either of these
         weight          The total weight contributing to each bin
         npairs          The total number of pairs in each bin
-        ==========      ========================================================
+        ==========      =============================================================
 
         If ``sep_units`` was given at construction, then the distances will all be in these units.
         Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
@@ -407,6 +469,8 @@ class KKCorrelation(Corr2):
 
         Parameters:
             file_name (str):    The name of the file to write to.
+            rv (NVCorrelation): The cross-correlation using random locations as the lenses
+                                (RV), if desired.  (default: None)
             file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
                                 the type automatically from the extension of file_name.)
             precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
@@ -414,7 +478,8 @@ class KKCorrelation(Corr2):
             write_patch_results (bool): Whether to write the patch-based results as well.
                                         (default: False)
         """
-        self.logger.info('Writing KK correlations to %s',file_name)
+        self.logger.info('Writing NV correlations to %s',file_name)
+        self.calculateXi(rv=rv)
         precision = self.config.get('precision', 4) if precision is None else precision
         name = 'main' if write_patch_results else None
         with make_writer(file_name, precision, file_type, self.logger) as writer:
@@ -422,12 +487,12 @@ class KKCorrelation(Corr2):
 
     @property
     def _write_col_names(self):
-        return ['r_nom','meanr','meanlogr','xi','sigma_xi','weight','npairs']
+        return ['r_nom','meanr','meanlogr','vR','vT','sigma','weight','npairs']
 
     @property
     def _write_data(self):
         data = [ self.rnom, self.meanr, self.meanlogr,
-                 self.xi, np.sqrt(self.varxi), self.weight, self.npairs ]
+                 self.xi, self.xi_im, np.sqrt(self.varxi), self.weight, self.npairs ]
         data = [ col.flatten() for col in data ]
         return data
 
@@ -444,7 +509,7 @@ class KKCorrelation(Corr2):
 
         .. warning::
 
-            The `KKCorrelation` object should be constructed with the same configuration
+            The `NVCorrelation` object should be constructed with the same configuration
             parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
             checked by the read function.
 
@@ -453,7 +518,7 @@ class KKCorrelation(Corr2):
             file_type (str):    The type of file ('ASCII' or 'FITS').  (default: determine the type
                                 automatically from the extension of file_name.)
         """
-        self.logger.info('Reading KK correlations from %s',file_name)
+        self.logger.info('Reading NV correlations from %s',file_name)
         with make_reader(file_name, file_type, self.logger) as reader:
             self._read(reader)
 
@@ -467,13 +532,17 @@ class KKCorrelation(Corr2):
             self._ro.rnom = data['r_nom'].reshape(s)
             self.meanr = data['meanr'].reshape(s)
             self.meanlogr = data['meanlogr'].reshape(s)
-        self.xi = data['xi'].reshape(s)
-        self._varxi = data['sigma_xi'].reshape(s)**2
+        self.xi = data['vR'].reshape(s)
+        self.xi_im = data['vT'].reshape(s)
+        self._varxi = data['sigma'].reshape(s)**2
         self.weight = data['weight'].reshape(s)
         self.npairs = data['npairs'].reshape(s)
         self.coords = params['coords'].strip()
         self.metric = params['metric'].strip()
         self._ro.sep_units = params['sep_units'].strip()
         self._ro.bin_type = params['bin_type'].strip()
+        self.raw_xi = self.xi
+        self.raw_xi_im = self.xi_im
+        self._raw_varxi = self._varxi
         self.npatch1 = params.get('npatch1', 1)
         self.npatch2 = params.get('npatch2', 1)

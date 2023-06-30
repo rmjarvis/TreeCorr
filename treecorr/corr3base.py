@@ -38,8 +38,8 @@ class Corr3(object):
     the derived classes for more details:
 
     - `NNNCorrelation` handles count-count-count correlation functions
-    - `KKKCorrelation` handles kappa-kappa-kappa correlation functions
-    - `GGGCorrelation` handles gamma-gamma-gamma correlation functions
+    - `KKKCorrelation` handles scalar-scalar-scalar correlation functions
+    - `GGGCorrelation` handles shear-shear-shear correlation functions
 
     Three-point correlations are a bit more complicated than two-point, since the data need
     to be binned in triangles, not just the separation between two points.  We characterize the

@@ -408,6 +408,22 @@ struct DirectHelper<NData,GData>
 };
 
 template <>
+struct DirectHelper<NData,VData>
+{
+    template <int R, int C>
+    static void ProcessXi(
+        const Cell<NData,C>& c1, const Cell<VData,C>& c2, const double rsq,
+        XiData<NData,VData>& xi, int k, int )
+    {
+        std::complex<double> v2;
+        ProjectHelper<C>::ProjectVector(c1,c2,v2);
+        v2 *= c1.getW();
+        xi.xi[k] += real(v2);
+        xi.xi_im[k] += imag(v2);
+    }
+};
+
+template <>
 struct DirectHelper<KData,KData>
 {
     template <int R, int C>
@@ -442,6 +458,22 @@ struct DirectHelper<KData,GData>
 };
 
 template <>
+struct DirectHelper<KData,VData>
+{
+    template <int R, int C>
+    static void ProcessXi(
+        const Cell<KData,C>& c1, const Cell<VData,C>& c2, const double rsq,
+        XiData<KData,VData>& xi, int k, int )
+    {
+        std::complex<double> v2;
+        ProjectHelper<C>::ProjectVector(c1,c2,v2);
+        v2 *= c1.getData().getWK();
+        xi.xi[k] += real(v2);
+        xi.xi_im[k] += imag(v2);
+    }
+};
+
+template <>
 struct DirectHelper<GData,GData>
 {
     template <int R, int C>
@@ -459,16 +491,58 @@ struct DirectHelper<GData,GData>
         double g1ig2r = g1.imag() * g2.real();
         double g1ig2i = g1.imag() * g2.imag();
 
-        xi.xip[k] += g1rg2r + g1ig2i;       // g1 * conj(g2)
-        xi.xip_im[k] += g1ig2r - g1rg2i;
-        xi.xim[k] += g1rg2r - g1ig2i;       // g1 * g2
-        xi.xim_im[k] += g1ig2r + g1rg2i;
+        double g1g2cr = g1rg2r + g1ig2i;  // g1 * conj(g2)
+        double g1g2ci = g1ig2r - g1rg2i;
+        double g1g2r = g1rg2r - g1ig2i;   // g1 * g2
+        double g1g2i = g1ig2r + g1rg2i;
+
+        xi.xip[k] += g1g2cr;
+        xi.xip_im[k] += g1g2ci;
+        xi.xim[k] += g1g2r;
+        xi.xim_im[k] += g1g2i;
 
         if (R) {
-            xi.xip[k2] += g1rg2r + g1ig2i;       // g1 * conj(g2)
-            xi.xip_im[k2] += g1ig2r - g1rg2i;
-            xi.xim[k2] += g1rg2r - g1ig2i;       // g1 * g2
-            xi.xim_im[k2] += g1ig2r + g1rg2i;
+            xi.xip[k2] += g1g2cr;
+            xi.xip_im[k2] += g1g2ci;
+            xi.xim[k2] += g1g2r;
+            xi.xim_im[k2] += g1g2i;
+        }
+    }
+};
+
+template <>
+struct DirectHelper<VData,VData>
+{
+    template <int R, int C>
+    static void ProcessXi(
+        const Cell<VData,C>& c1, const Cell<VData,C>& c2, const double rsq,
+        XiData<VData,VData>& xi, int k, int k2)
+    {
+        std::complex<double> v1, v2;
+        ProjectHelper<C>::ProjectVectors(c1,c2,v1,v2);
+
+        // The complex products v1 v2 and v1 v2* share most of the calculations,
+        // so faster to do this manually.
+        double v1rv2r = v1.real() * v2.real();
+        double v1rv2i = v1.real() * v2.imag();
+        double v1iv2r = v1.imag() * v2.real();
+        double v1iv2i = v1.imag() * v2.imag();
+
+        double v1v2cr = v1rv2r + v1iv2i;  // v1 * conj(v2)
+        double v1v2ci = v1iv2r - v1rv2i;
+        double v1v2r = v1rv2r - v1iv2i;   // v1 * v2
+        double v1v2i = v1iv2r + v1rv2i;
+
+        xi.xip[k] += v1v2cr;
+        xi.xip_im[k] += v1v2ci;
+        xi.xim[k] += v1v2r;
+        xi.xim_im[k] += v1v2i;
+
+        if (R) {
+            xi.xip[k2] += v1v2cr;
+            xi.xip_im[k2] += v1v2ci;
+            xi.xim[k2] += v1v2r;
+            xi.xim_im[k2] += v1v2i;
         }
     }
 };
@@ -531,8 +605,10 @@ void Corr2<D1,D2>::finishProcess(const BaseCell<C>& c1, const BaseCell<C>& c2,
     _npairs[k] += nn;
 
     double ww = double(c1.getW()) * double(c2.getW());
-    _meanr[k] += ww * r;
-    _meanlogr[k] += ww * logr;
+    double wwr = ww * r;
+    double wwlogr = ww * logr;
+    _meanr[k] += wwr;
+    _meanlogr[k] += wwlogr;
     _weight[k] += ww;
     xdbg<<"n,w = "<<nn<<','<<ww<<" ==>  "<<_npairs[k]<<','<<_weight[k]<<std::endl;
 
@@ -540,8 +616,8 @@ void Corr2<D1,D2>::finishProcess(const BaseCell<C>& c1, const BaseCell<C>& c2,
         Assert(k2 >= 0);
         Assert(k2 < _nbins);
         _npairs[k2] += nn;
-        _meanr[k2] += ww * r;
-        _meanlogr[k2] += ww * logr;
+        _meanr[k2] += wwr;
+        _meanlogr[k2] += wwlogr;
         _weight[k2] += ww;
     }
 
@@ -1162,10 +1238,13 @@ void pyExportCorr2(py::module& _treecorr)
 
     WrapCorr2<NData,NData>(_treecorr, "NN");
     WrapCorr2<NData,KData>(_treecorr, "NK");
-    WrapCorr2<NData,GData>(_treecorr, "NG");
     WrapCorr2<KData,KData>(_treecorr, "KK");
+    WrapCorr2<NData,GData>(_treecorr, "NG");
     WrapCorr2<KData,GData>(_treecorr, "KG");
     WrapCorr2<GData,GData>(_treecorr, "GG");
+    WrapCorr2<NData,VData>(_treecorr, "NV");
+    WrapCorr2<KData,VData>(_treecorr, "KV");
+    WrapCorr2<VData,VData>(_treecorr, "VV");
 
     _treecorr.def("SetOMPThreads", &SetOMPThreads);
     _treecorr.def("GetOMPThreads", &GetOMPThreads);

@@ -24,7 +24,7 @@ from .util import make_writer, make_reader
 
 
 class NKCorrelation(Corr2):
-    r"""This class handles the calculation and storage of a 2-point count-kappa correlation
+    r"""This class handles the calculation and storage of a 2-point count-scalar correlation
     function.
 
     .. note::
@@ -242,7 +242,7 @@ class NKCorrelation(Corr2):
         by dividing each column by the total weight.
 
         Parameters:
-            vark:    The kappa variance for the second field.
+            vark:    The variance of the scalar field.
         """
         self._finalize()
         self._var_num = vark

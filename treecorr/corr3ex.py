@@ -51,9 +51,9 @@ corr3_valid_params = {
     'nnn_statistic' : (str, False, 'compensated', ['compensated','simple'],
             'Which statistic to use for omega as the estimator fo the NN correlation function. '),
     'kkk_file_name' : (str, False, None, None,
-            'The output filename for kappa-kappa-kappa correlation function.'),
+            'The output filename for scalar-scalar-scalar correlation function.'),
     'ggg_file_name' : (str, False, None, None,
-            'The output filename for gamma-gamma-gamma correlation function.'),
+            'The output filename for shear-shear-shear correlation function.'),
 
     # Derived output quantities
 

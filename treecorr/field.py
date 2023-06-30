@@ -75,10 +75,12 @@ class Field(object):
         - `NField` describes a field of objects to be counted only.
         - `KField` describes a field of points sampling a scalar field (e.g. kappa in the
           weak lensing context).  In addition to the above values, cells keep track of
-          the mean kappa value in the given region.
-        - `GField` describes a field of points sampling a spinor field (e.g. gamma in the
+          the mean value in the given region.
+        - `GField` describes a field of points sampling a spinor (spin-2) field (e.g. gamma in the
           weak lensing context).  In addition to the above values, cells keep track of
           the mean (complex) gamma value in the given region.
+        - `VField` describes a field of points sampling a vector (spin-1) field.  In addition
+          to the above values, cells keep track of the mean (complex) vector in the given region.
     """
     def __init__(self):
         raise NotImplementedError("Field is an abstract base class.  It cannot be instantiated.")
@@ -566,8 +568,8 @@ class NField(Field):
 
 
 class KField(Field):
-    r"""This class stores the values of a scalar field (kappa in the weak lensing context) in a
-    tree structure from which it is efficient to compute correlation functions.
+    r"""This class stores the values of a scalar field (e.g. kappa in the weak lensing context)
+    in a tree structure from which it is efficient to compute correlation functions.
 
     A KField is typically created from a Catalog object using
 
@@ -691,3 +693,67 @@ class GField(Field):
                                                self.brute, self.min_top, self.max_top)
         if logger:
             logger.debug('Finished building GField (%s)',self.coords)
+
+
+class VField(Field):
+    r"""This class stores the values of a vector field in a tree structure from which it is
+    efficient to compute correlation functions.
+
+    A VField is typically created from a Catalog object using
+
+        >>> vfield = cat.getVField(min_size, max_size, b)
+
+    Parameters:
+        cat (Catalog):      The catalog from which to make the field.
+        min_size (float):   The minimum radius cell required (usually min_sep). (default: 0)
+        max_size (float):   The maximum radius cell required (usually max_sep). (default: None)
+        split_method (str): Which split method to use ('mean', 'median', 'middle', or 'random').
+                            (default: 'mean')
+        brute (bool):       Whether to force traversal to the leaves for this field.
+                            (default: False)
+        min_top (int):      The minimum number of top layers to use when setting up the field.
+                            (default: :math:`\max(3, \log_2(N_{\rm cpu}))`)
+        max_top (int):      The maximum number of top layers to use when setting up the field.
+                            (default: 10)
+        coords (str):       The kind of coordinate system to use. (default: cat.coords)
+        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random
+                            number generation. (default: None)
+        logger (Logger):    A logger file if desired. (default: None)
+    """
+    def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
+                 min_top=None, max_top=10, coords=None, rng=None, logger=None):
+        if logger:
+            if cat.name != '':
+                logger.info('Building VField from cat %s',cat.name)
+            else:
+                logger.info('Building VField')
+
+        self._cat = weakref.ref(cat)
+        self.ntot = cat.ntot
+        self.min_size = float(min_size) if not brute else 0.
+        self.max_size = float(max_size) if max_size is not None else np.inf
+        self.split_method = split_method
+        self._sm = _parse_split_method(split_method)
+        self._d = 4  # VData
+        self.brute = bool(brute)
+        self.min_top, self.max_top = self._determine_top(min_top, max_top)
+        self.coords = coords if coords is not None else cat.coords
+        self._coords = coord_enum(self.coords)  # These are the C++-layer enums
+        seed = 0 if rng is None else int(rng.random_sample() * 2**63)
+
+        zx = cat.z if cat.z is not None else np.array([])
+        wpx = cat.wpos if cat.wpos is not None else np.array([])
+        if self._coords == _treecorr.Flat:
+            self.data = _treecorr.VFieldFlat(cat.x, cat.y, zx, cat.v1, cat.v2, cat.w, wpx,
+                                             self.min_size, self.max_size, self._sm, seed,
+                                             self.brute, self.min_top, self.max_top)
+        elif self._coords == _treecorr.Sphere:
+            self.data = _treecorr.VFieldSphere(cat.x, cat.y, zx, cat.v1, cat.v2, cat.w, wpx,
+                                               self.min_size, self.max_size, self._sm, seed,
+                                               self.brute, self.min_top, self.max_top)
+        else:
+            self.data = _treecorr.VFieldThreeD(cat.x, cat.y, zx, cat.v1, cat.v2, cat.w, wpx,
+                                               self.min_size, self.max_size, self._sm, seed,
+                                               self.brute, self.min_top, self.max_top)
+        if logger:
+            logger.debug('Finished building VField (%s)',self.coords)

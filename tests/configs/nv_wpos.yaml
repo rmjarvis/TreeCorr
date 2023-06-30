@@ -1,0 +1,25 @@
+
+file_name: data/nv_wpos_lens.fits
+file_name2:
+    - data/nv_wpos_source0.fits
+    - data/nv_wpos_source1.fits
+    - data/nv_wpos_source2.fits
+
+x_col: x
+y_col: y
+x_units: arcmin
+y_units: arcmin
+
+v1_col: v1
+v2_col: v2
+w_col: [0, w]
+wpos_col: [0, wpos]
+
+verbose: 1
+
+min_sep: 1.
+max_sep: 25.
+bin_size: 0.10
+sep_units: arcmin
+
+nv_file_name: output/nv_wpos.fits

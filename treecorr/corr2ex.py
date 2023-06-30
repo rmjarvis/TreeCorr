@@ -26,7 +26,7 @@ from .ngcorrelation import NGCorrelation
 from .kgcorrelation import KGCorrelation
 from .ggcorrelation import GGCorrelation
 from .nvcorrelation import NVCorrelation
-#from .kvcorrelation import KVCorrelation
+from .kvcorrelation import KVCorrelation
 #from .vvcorrelation import VVCorrelation
 
 # Dict describing the valid parameters, what types they are, and a description:

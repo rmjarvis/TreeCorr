@@ -46,6 +46,7 @@ from .kgcorrelation import KGCorrelation
 from .ggcorrelation import GGCorrelation
 
 from .nvcorrelation import NVCorrelation
+from .kvcorrelation import KVCorrelation
 
 from .nnncorrelation import NNNCorrelation, NNNCrossCorrelation
 from .kkkcorrelation import KKKCorrelation, KKKCrossCorrelation

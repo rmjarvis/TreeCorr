@@ -242,14 +242,14 @@ def test_direct_spherical():
 
             # Rotate vectors to coordinates where line connecting is horizontal.
             # Original orientation is where north is up.
-            theta2 = 90*coord.degrees - c2[j].angleBetween(c1[i], north_pole)
+            theta2 = -90*coord.degrees - c2[j].angleBetween(c1[i], north_pole)
             expmtheta2 = np.cos(theta2) - 1j * np.sin(theta2)
 
             v2 = v12[j] + 1j * v22[j]
             v2 *= expmtheta2
 
             ww = w1[i] * w2[j]
-            xi = -w1[i] * w2[j] * v2
+            xi = w1[i] * w2[j] * v2
 
             true_npairs[index] += 1
             true_weight[index] += ww

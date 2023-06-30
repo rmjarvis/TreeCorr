@@ -2523,15 +2523,11 @@ def calculateVarV(cat_list, *, low_mem=False):
     Returns:
         The variance per component of the vector field.
     """
-    print('CalculateVarV')
     if isinstance(cat_list, Catalog):
-        print('Catalog: ',cat_list.varv)
         return cat_list.varv
     elif len(cat_list) == 1:
-        print('single: ',cat_list[0].varv)
         return cat_list[0].varv
     else:
-        print('multi:')
         varv1 = 0
         varv2 = 0
         meanv1 = 0

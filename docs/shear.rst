@@ -71,3 +71,17 @@ Because of this variation in conventions, TreeCorr provides two input parameters
 flip the sign of either component to match the standard convention.
 Setting ``flip_g1=True`` when making a `Catalog` will cause it to flip the sign of all
 the g1 values.  Similarly, ``flip_g2=True`` will flip the sign of all the g2 values.
+
+Vectors
+-------
+
+All of the above discussion applies equally to vector field.
+A vector field is a spin-1 complex field:
+
+.. math::
+
+    v = v_1 + i v_2 = |v| e^{i \phi}
+
+In flat geometries, the real and imaginary axes are +x and +y.
+In spherical geometries, they are West and North, respectively,
+as explained in more detail above.

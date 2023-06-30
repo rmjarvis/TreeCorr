@@ -1,6 +1,6 @@
 
-KGCorrelation: Kappa-shear correlations
----------------------------------------
+KGCorrelation: Scalar-shear correlations
+----------------------------------------
 
 .. autoclass:: treecorr.KGCorrelation
     :members:

@@ -1,6 +1,6 @@
 
-KKKCorrelation: Kappa-kappa-kappa correlations
-----------------------------------------------
+KKKCorrelation: Scalar-scalar-scalar correlations
+-------------------------------------------------
 
 .. autoclass:: treecorr.KKKCorrelation
     :members:

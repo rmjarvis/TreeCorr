@@ -13,12 +13,14 @@ Other utilities related to catalogs
 .. autofunction::
     treecorr.read_catalogs
 .. autofunction::
+    treecorr.calculateVarK
+.. autofunction::
     treecorr.calculateVarG
 .. autofunction::
-    treecorr.calculateVarK
+    treecorr.calculateVarV
 .. automodule:: treecorr.catalog
     :members:
-    :exclude-members: Catalog, read_catalogs, calculateVarG, calculateVarK
+    :exclude-members: Catalog, read_catalogs, calculateVarG, calculateVarK, calculateVarV
 
 File Readers
 ------------

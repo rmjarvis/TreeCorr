@@ -51,14 +51,18 @@ Other Two-point Correlation Classes
 The other kinds of correlations each have their own class:
 
     - `NNCorrelation` = count-count  (normal LSS correlation)
-    - `GGCorrelation` = shear-shear  (e.g. cosmic shear)
-    - `KKCorrelation` = kappa-kappa  (or any other scalar field)
+    - `NKCorrelation` = count-scalar (i.e. <kappa>(R), where kappa is any scalar field)
+    - `KKCorrelation` = scalar-scalar
     - `NGCorrelation` = count-shear  (i.e. <gamma_t>(R))
-    - `NKCorrelation` = count-kappa  (i.e. <kappa>(R))
-    - `KGCorrelation` = kappa-shear
+    - `KGCorrelation` = scalar-shear
+    - `GGCorrelation` = shear-shear  (e.g. cosmic shear)
+    - `NVCorrelation` = count-vector
+    - `KVCorrelation` = scalar-vector
+    - `VVCorrelation` = vector-vector
 
 You should see their doc strings for details, but they all work similarly.
-For the last three, there is no auto-correlation option, of course, just the cross-correlation.
+For the cross-type classes (e.g. NK, KG, etc.), there is no auto-correlation option,
+of course, just the cross-correlation.
 
 The other main difference between these other correlation classes from GG is that there is only a
 single correlation function, so it is called ``xi`` rather than ``xip`` and ``xim``.
@@ -180,7 +184,7 @@ So far, we have only implemented the auto-correlation three-point functions:
 
     - `NNNCorrelation`  # count-count-count
     - `GGGCorrelation`  # shear-shear-shear
-    - `KKKCorrelation`  # kappa-kappa-kappa
+    - `KKKCorrelation`  # scalar-scalar-scalar
 
 These classes are significantly more complicated than the two-point ones,
 since they have to deal with the geometry of the triangles being binned.
@@ -242,7 +246,7 @@ Manually accumulating the correlation function
 For even more control over the calculation, you can break up the steps in the
 `process <GGCorrelation.process>` functions.  There are typically three steps:
 
-1. Calculate the shear variance or kappa variance as needed (i.e. for anything but NN correlations).
+1. Calculate the variance of the field as needed (i.e. for anything but NN correlations).
 2. Accumulate the correlations into the bins for each auto-correlation and cross-correlation desired.
 3. Finalize the calculation.
 

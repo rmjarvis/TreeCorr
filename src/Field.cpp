@@ -85,6 +85,7 @@ template <int D, int C>
 struct CellDataHelper;
 
 // Specialize for each D,C
+// Flat
 template <>
 struct CellDataHelper<NData,Flat>
 {
@@ -103,8 +104,14 @@ struct CellDataHelper<GData,Flat>
     static CellData<GData,Flat>* build(double x, double y,  double, double g1, double g2, double w)
     { return new CellData<GData,Flat>(Position<Flat>(x,y), std::complex<double>(g1,g2), w); }
 };
+template <>
+struct CellDataHelper<VData,Flat>
+{
+    static CellData<VData,Flat>* build(double x, double y,  double, double v1, double v2, double w)
+    { return new CellData<VData,Flat>(Position<Flat>(x,y), std::complex<double>(v1,v2), w); }
+};
 
-
+// ThreeD
 template <>
 struct CellDataHelper<NData,ThreeD>
 {
@@ -124,7 +131,13 @@ struct CellDataHelper<GData,ThreeD>
                                          double g1, double g2, double w)
     { return new CellData<GData,ThreeD>(Position<ThreeD>(x,y,z), std::complex<double>(g1,g2), w); }
 };
-
+template <>
+struct CellDataHelper<VData,ThreeD>
+{
+    static CellData<VData,ThreeD>* build(double x, double y, double z,
+                                         double v1, double v2, double w)
+    { return new CellData<VData,ThreeD>(Position<ThreeD>(x,y,z), std::complex<double>(v1,v2), w); }
+};
 
 // Sphere
 template <>
@@ -145,6 +158,13 @@ struct CellDataHelper<GData,Sphere>
     static CellData<GData,Sphere>* build(double x, double y, double z,
                                          double g1, double g2, double w)
     { return new CellData<GData,Sphere>(Position<Sphere>(x,y,z), std::complex<double>(g1,g2), w); }
+};
+template <>
+struct CellDataHelper<VData,Sphere>
+{
+    static CellData<VData,Sphere>* build(double x, double y, double z,
+                                         double v1, double v2, double w)
+    { return new CellData<VData,Sphere>(Position<Sphere>(x,y,z), std::complex<double>(v1,v2), w); }
 };
 
 inline WPosLeafInfo get_wpos(const double* wpos, const double* w, long i)
@@ -511,6 +531,35 @@ Field<NData,C>* BuildNField(
 }
 
 template <int C>
+Field<VData,C>* BuildVField(
+    py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
+    py::array_t<double>& v1p, py::array_t<double>& v2p,
+    py::array_t<double>& wp, py::array_t<double>& wposp,
+    double minsize, double maxsize,
+    SplitMethod sm, long long seed, bool brute, int mintop, int maxtop)
+{
+    long nobj = xp.size();
+    Assert(yp.size() == nobj);
+    Assert(zp.size() == nobj || zp.size() == 0);
+    Assert(v1p.size() == nobj);
+    Assert(v2p.size() == nobj);
+    Assert(wp.size() == nobj);
+    Assert(wposp.size() == nobj || wposp.size() == 0);
+
+    const double* x = static_cast<const double*>(xp.data());
+    const double* y = static_cast<const double*>(yp.data());
+    const double* z = zp.size() == 0 ? 0 : static_cast<const double*>(zp.data());
+    const double* v1 = static_cast<const double*>(v1p.data());
+    const double* v2 = static_cast<const double*>(v2p.data());
+    const double* w = static_cast<const double*>(wp.data());
+    const double* wpos = wposp.size() == 0 ? 0 : static_cast<const double*>(wposp.data());
+
+    return BuildField<VData,C>(x, y, z, v1, v2, w, wpos,
+                               nobj, minsize, maxsize, sm, seed,
+                               brute, mintop, maxtop);
+}
+
+template <int C>
 void FieldGetNear(BaseField<C>& field, double x, double y, double z, double sep,
                   py::array_t<long>& inp)
 {
@@ -575,6 +624,7 @@ void WrapField(py::module& _treecorr, std::string Cstr)
     py::class_<Field<NData,C>, BaseField<C> > nfield(_treecorr, ("NField" + Cstr).c_str());
     py::class_<Field<KData,C>, BaseField<C> > kfield(_treecorr, ("KField" + Cstr).c_str());
     py::class_<Field<GData,C>, BaseField<C> > gfield(_treecorr, ("GField" + Cstr).c_str());
+    py::class_<Field<VData,C>, BaseField<C> > vfield(_treecorr, ("VField" + Cstr).c_str());
 
     typedef Field<NData,C>* (*nfield_type)(
         py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
@@ -592,10 +642,17 @@ void WrapField(py::module& _treecorr, std::string Cstr)
         py::array_t<double>& wp, py::array_t<double>& wposp,
         double minsize, double maxsize,
         SplitMethod sm, long long seed, bool brute, int mintop, int maxtop);
+    typedef Field<VData,C>* (*vfield_type)(
+        py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
+        py::array_t<double>& v1p, py::array_t<double>& v2p,
+        py::array_t<double>& wp, py::array_t<double>& wposp,
+        double minsize, double maxsize,
+        SplitMethod sm, long long seed, bool brute, int mintop, int maxtop);
 
     nfield.def(py::init(nfield_type(&BuildNField)));
     kfield.def(py::init(kfield_type(&BuildKField)));
     gfield.def(py::init(gfield_type(&BuildGField)));
+    vfield.def(py::init(vfield_type(&BuildVField)));
 }
 
 void pyExportField(py::module& _treecorr)

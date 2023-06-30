@@ -293,8 +293,8 @@ class GGCorrelation(Corr2):
         finishes the calculation by dividing each column by the total weight.
 
         Parameters:
-            varg1 (float):  The shear variance per component for the first field.
-            varg2 (float):  The shear variance per component for the second field.
+            varg1 (float):  The variance per component of the first shear field.
+            varg2 (float):  The variance per component of the second shear field.
         """
         self._finalize()
         self._var_num = 2. * varg1 * varg2

@@ -24,7 +24,7 @@ from .util import make_writer, make_reader
 
 
 class KGCorrelation(Corr2):
-    r"""This class handles the calculation and storage of a 2-point kappa-shear correlation
+    r"""This class handles the calculation and storage of a 2-point scalar-shear correlation
     function.
 
     .. note::
@@ -234,8 +234,8 @@ class KGCorrelation(Corr2):
         by dividing each column by the total weight.
 
         Parameters:
-            vark (float):   The kappa variance for the first field.
-            varg (float):   The shear variance per component for the second field.
+            vark (float):   The variance of the scaler field.
+            varg (float):   The variance per component of the shear field.
         """
         self._finalize()
         self._var_num = vark * varg

@@ -34,7 +34,7 @@ const double IOTA = 1.e-10;
 // NData means just count the point.
 // KData means use a scalar.  Nominally kappa, but works with any scalar (e.g. temperature).
 // GData means use a shear.
-enum DataType { NData=1 , KData=2 , GData=3 };
+enum DataType { NData=1 , KData=2 , GData=3, VData=4 };
 
 // Return a random number between 0 and 1.
 double urand(long long seed=0);
@@ -191,6 +191,41 @@ protected:
 template <int C>
 std::ostream& operator<<(std::ostream& os, const CellData<GData,C>& c)
 { return os << c.getPos() << " " << c.getWG() << " " << c.getW() << " " << c.getN(); }
+
+template <int C>
+class CellData<VData,C> : public BaseCellData<C>
+{
+public:
+    CellData() {}
+
+    CellData(const Position<C>& pos, const std::complex<double>& v, double w) :
+        BaseCellData<C>(pos, w), _wv(w*v)
+    {}
+
+    template <int C2>
+    CellData(const Position<C2>& pos, const std::complex<double>& v, double w) :
+        BaseCellData<C>(pos, w), _wv(w*v)
+    {}
+
+    CellData(const std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >& vdata,
+             size_t start, size_t end) :
+        BaseCellData<C>(vdata, start, end) {}
+
+    // The above constructor just computes the mean pos, since sometimes that's all we
+    // need.  So this function will finish the rest of the construction when desired.
+    void finishAverages(const std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >&,
+                        size_t start, size_t end);
+
+    std::complex<double> getWV() const { return _wv; }
+
+protected:
+
+    std::complex<float> _wv;
+};
+
+template <int C>
+std::ostream& operator<<(std::ostream& os, const CellData<VData,C>& c)
+{ return os << c.getPos() << " " << c.getWV() << " " << c.getW() << " " << c.getN(); }
 
 template <int C>
 class BaseCell

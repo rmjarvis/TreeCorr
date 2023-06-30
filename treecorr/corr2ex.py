@@ -27,7 +27,7 @@ from .kgcorrelation import KGCorrelation
 from .ggcorrelation import GGCorrelation
 from .nvcorrelation import NVCorrelation
 from .kvcorrelation import KVCorrelation
-#from .vvcorrelation import VVCorrelation
+from .vvcorrelation import VVCorrelation
 
 # Dict describing the valid parameters, what types they are, and a description:
 # Each value is a tuple with the following elements:
@@ -340,8 +340,8 @@ def corr2(config, logger=None):
         vv = VVCorrelation(config, logger=logger)
         vv.process(cat1,cat2)
         logger.info("Done VV calculations.")
-        gg.write(config['gg_file_name'])
-        logger.warning("Wrote VV correlation to %s",config['gg_file_name'])
+        vv.write(config['vv_file_name'])
+        logger.warning("Wrote VV correlation to %s",config['vv_file_name'])
 
 
 def print_corr2_params():

@@ -1,0 +1,21 @@
+file_name: data/vv_direct_sph_cat1.fits
+file_name2: data/vv_direct_sph_cat2.fits
+
+ra_col: ra
+dec_col: dec
+ra_units: radians
+dec_units: radians
+
+v1_col: v1
+v2_col: v2
+w_col: w
+
+verbose: 1
+
+min_sep: 1.
+max_sep: 10.
+nbins: 50
+sep_units: degrees
+bin_slop: 0
+
+vv_file_name: output/vv_direct_sph.fits

@@ -1,0 +1,19 @@
+
+file_name: data/vv_spherical.dat
+
+ra_col: 1
+dec_col: 2
+ra_units: rad
+dec_units: rad
+
+v1_col: 3
+v2_col: 4
+
+verbose: 1
+
+min_sep: 1.
+max_sep: 100.
+bin_size: 0.10
+sep_units: arcmin
+
+vv_file_name: output/vv_spherical.out

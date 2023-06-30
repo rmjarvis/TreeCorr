@@ -8,11 +8,14 @@ functions:
 .. toctree::
 
     nn
-    gg
-    ng
-    kk
     nk
+    kk
+    ng
     kg
+    gg
+    nv
+    kv
+    vv
 
 Each of the above classes is a sub-class of the base class Corr2, so they have a number of
 features in common about how they are constructed.  The common features are documented here.

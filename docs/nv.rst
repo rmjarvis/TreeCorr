@@ -1,8 +1,8 @@
 
-NKCorrelation: Count-scalar correlations
+NVCorrelation: Count-vector correlations
 ----------------------------------------
 
-.. autoclass:: treecorr.NKCorrelation
+.. autoclass:: treecorr.NVCorrelation
     :members:
     :special-members:
     :show-inheritance:

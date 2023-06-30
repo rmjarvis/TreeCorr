@@ -1,8 +1,8 @@
 
-KKCorrelation: Scalar-scalar correlations
+VVCorrelation: Vector-vector correlations
 -----------------------------------------
 
-.. autoclass:: treecorr.KKCorrelation
+.. autoclass:: treecorr.VVCorrelation
     :members:
     :special-members:
     :show-inheritance:

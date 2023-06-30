@@ -164,8 +164,15 @@ Parameters about the input file(s)
 
     ``z_col`` is invalid in conjunction with ``ra_col``, ``dec_col``.
 
-:g1_col: (int/str) Which column to use for g1.
-:g2_col: (int/str) Which column to use for g2.
+:k_col: (int/str) Which column to use for kappa (the scalar field values).
+
+    If you are doing one of the scalar correlation functions (i.e. NK, KG, KK),
+    then you need to specify the column to use for kappa.  While kappa was originally
+    named for lensing convergence, it could really be any scalar quantity,
+    like temperature, size, etc.
+
+:g1_col: (int/str) Which column to use for g1 (the real component of the shear).
+:g2_col: (int/str) Which column to use for g2 (the imaginary component of the shear).
 
     If you are doing one of the shear correlation functions (i.e. NG, KG, GG),
     then you need to specify the shear estimates of the corresponding galaxies.
@@ -173,12 +180,8 @@ Parameters about the input file(s)
     unbiases estimators of g1,g2, so they are allowed to exceed :math:`|g| = 1`.
     (This is required for some methods to produce unbiased estimates.
 
-:k_col: (int/str) Which column to use for kappa.
-
-    If you are doing one of the kappa correlation functions (i.e. NK, KG, KK),
-    then you need to specify the column to use for kappa.  While kappa is
-    nominally the lensing convergence, it could really be any scalar quantity,
-    like temperature, size, etc.
+:v1_col: (int/str) Which column to use for v1 (the real component of the vectors).
+:v2_col: (int/str) Which column to use for v2 (the imaginary component of the vectors).
 
 :patch_col: (int/str) Which column to use for patch.
 
@@ -207,9 +210,11 @@ Parameters about the input file(s)
 :ra_ext: (int/str) Which HDU (fits) or group (HDF) to use for the ``ra_col``.
 :dec_ext: (int/str) Which HDU (fits) or group (HDF) to use for the ``dec_col``.
 :r_ext: (int/str) Which HDU (fits) or group (HDF) to use for the ``r_col``.
+:k_ext: (int/str) Which HDU (fits) or group (HDF) to use for the ``k_col``.
 :g1_ext: (int/str) Which HDU (fits) or group (HDF) to use for the ``g1_col``.
 :g2_ext: (int/str) Which HDU (fits) or group (HDF) to use for the ``g2_col``.
-:k_ext: (int/str) Which HDU (fits) or group (HDF) to use for the ``k_col``.
+:v1_ext: (int/str) Which HDU (fits) or group (HDF) to use for the ``v1_col``.
+:v2_ext: (int/str) Which HDU (fits) or group (HDF) to use for the ``v2_col``.
 :patch_ext: (int/str) Which HDU (fits) or group (HDF) to use for the ``patch_col``.
 :w_ext: (int/str) Which HDU (fits) or group (HDF) to use for the ``w_col``.
 :wpos_ext: (int/str) Which HDU (fits) or group (HDF) to use for the ``wpos_col``.
@@ -230,6 +235,13 @@ Parameters about the input file(s)
 
     Sometimes there are issues with the sign conventions of gamma.  If you
     need to flip the sign of g1 or g2, you may do that with ``flip_g1`` or ``flip_g2``
+    (or both).
+
+:flip_v1: (bool, default=False) Whether to flip the sign of v1.
+:flip_v2: (bool, default=False) Whether to flip the sign of v2.
+
+    Sometimes there are issues with the sign conventions of gamma.  If you
+    need to flip the sign of v1 or v2, you may do that with ``flip_v1`` or ``flip_v2``
     (or both).
 
 :keep_zero_weight: (bool, default=False)
@@ -256,7 +268,7 @@ Parameters about the input file(s)
       any format of input catalog.
 
     - Also, if the given column only applies to one of the two input files
-      (e.g. k_col for an n-kappa cross-correlation) then you may specify just
+      (e.g. k_col for an count-scalar cross-correlation) then you may specify just
       the column name or number for the file to which it does apply.
 
 
@@ -370,6 +382,47 @@ about the output columns.
     - 'compensated' is the now-normal Landy-Szalay statistic:  xi = (DD-2DR+RR)/RR, or for cross-correlations, xi = (DD-DR-RD+RR)/RR
     - 'simple' is the older version: xi = (DD/RR - 1)
 
+:nk_file_name: (str) The output filename for count-scalar correlation function.
+
+    This is nominally the kappa version of the ng calculation.  However, k is
+    really any scalar quantity, so it can be used for temperature, size, etc.
+
+    The output columns are:
+
+    - ``R_nom`` = The center of the bin
+    - ``meanR`` = The mean separation of the points that went into the bin.
+    - ``meanlogR`` = The mean log(R) of the points that went into the bin.
+    - ``kappa`` = The mean <kappa>(R) this distance from the foreground points.
+    - ``sigma`` = The 1-sigma error bar for <kappa>.
+    - ``weight`` = The total weight of the pairs in each bin.
+    - ``npairs`` = The total number of pairs in each bin.
+
+:nk_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which statistic to use for the mean shear as the estimator of the NK correlation function.
+
+    Options are:
+
+    - 'compensated' is simiar to the Landy-Szalay statistic:
+      Define:
+
+      - NK = Sum(kappa around data points)
+      - RK = Sum(kappa around random points), scaled to be equivalent in effective number as the number of pairs in NK.
+      - npairs = number of pairs in NK.
+
+      Then this statistic is ``<kappa>`` = (NK-RK)/npairs
+    - 'simple' is the normal version: ``<kappa>`` = NK/npairs
+
+:kk_file_name: (str) The output filename for scalar-scalar correlation function.
+
+    The output columns are:
+
+    - ``R_nom`` = The center of the bin
+    - ``meanR`` = The mean separation of the points that went into the bin.
+    - ``meanlogR`` = The mean log(R) of the points that went into the bin.
+    - ``xi`` = The correlation function <k k>
+    - ``sigma_xi`` = The 1-sigma error bar for xi.
+    - ``weight`` = The total weight of the pairs in each bin.
+    - ``npairs`` = The total number of pairs in each bin.
+
 :ng_file_name: (str) The output filename for count-shear correlation function.
 
     This is the count-shear correlation function, often called galaxy-galaxy
@@ -400,6 +453,23 @@ about the output columns.
       Then this statistic is gamT = (NG-RG)/npairs
     - 'simple' is the normal version: gamT = NG/npairs
 
+:kg_file_name: (str) The output filename for scalar-shear correlation function.
+
+    This is the scalar-shear correlation function.  Essentially, this is just
+    galaxy-galaxy lensing, scaling the tangential shears by the foreground
+    kappa values.
+
+    The output columns are:
+
+    - ``R_nom`` = The center of the bin
+    - ``meanR`` = The mean separation of the points that went into the bin.
+    - ``meanlogR`` = The mean log(R) of the points that went into the bin.
+    - ``kgamT`` = The kappa-scaled mean tangential shear.
+    - ``kgamX`` = The kappa-scaled shear component 45 degrees from the tangential direction.
+    - ``sigma`` = The 1-sigma error bar for ``kgamT`` and ``kgamX``.
+    - ``weight`` = The total weight of the pairs in each bin.
+    - ``npairs`` = The total number of pairs in each bin.
+
 :gg_file_name: (str) The output filename for shear-shear correlation function.
 
     This is the shear-shear correlation function, used for cosmic shear.
@@ -421,73 +491,78 @@ about the output columns.
 
     - ``xim_im`` = <g2 g1 + g1 g2>.
 
-        In the formulation of xi- using complex
-        numbers, this is the imaginary component.
-        It should be consistent with zero for parity invariant shear
-        fields.
+        In the formulation of xi- using complex numbers, this is the imaginary component.
+        It should be consistent with zero for parity invariant shear fields.
 
-    - ``sigma_xi`` = The 1-sigma error bar for xi+ and xi-.
+    - ``sigma_xip`` = The 1-sigma error bar for xi+.
+    - ``sigma_xim`` = The 1-sigma error bar for xi-.
     - ``weight`` = The total weight of the pairs in each bin.
     - ``npairs`` = The total number of pairs in each bin.
 
-:nk_file_name: (str) The output filename for count-kappa correlation function.
-
-    This is nominally the kappa version of the ne calculation.  However, k is
-    really any scalar quantity, so it can be used for temperature, size, etc.
+:nv_file_name: (str) The output filename for count-vector correlation function.
 
     The output columns are:
 
     - ``R_nom`` = The center of the bin
     - ``meanR`` = The mean separation of the points that went into the bin.
     - ``meanlogR`` = The mean log(R) of the points that went into the bin.
-    - ``kappa`` = The mean kappa this distance from the foreground points.
-    - ``sigma`` = The 1-sigma error bar for <kappa>.
+    - ``vR`` = The mean radial vector with respect to the point in question.
+    - ``vT`` = The mean counter-clockwise tangential vector with respect to the point in questin.
+    - ``sigma`` = The 1-sigma error bar for ``vR`` and ``vT``.
     - ``weight`` = The total weight of the pairs in each bin.
     - ``npairs`` = The total number of pairs in each bin.
 
-:nk_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which statistic to use for the mean shear as the estimator of the NK correlation function.
+:nv_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which statistic to use for the mean vector as the estimator of the NV correlation function.
 
     Options are:
 
     - 'compensated' is simiar to the Landy-Szalay statistic:
       Define:
 
-      - NK = Sum(kappa around data points)
-      - RK = Sum(kappa around random points), scaled to be equivalent in effective number as the number of pairs in NK.
-      - npairs = number of pairs in NK.
+      - NV = Sum(gamma around data points)
+      - RV = Sum(gamma around random points), scaled to be equivalent in effective number as the number of pairs in NG.
+      - npairs = number of pairs in NV.
 
-      Then this statistic is ``<kappa>`` = (NK-RK)/npairs
-    - 'simple' is the normal version: ``<kappa>`` = NK/npairs
+      Then this statistic is vR = (NV-RV)/npairs
+    - 'simple' is the normal version: vR = NV/npairs
 
-:kk_file_name: (str) The output filename for kappa-kappa correlation function.
-
-    This is the kappa-kappa correlation function.  However, k is really any
-    scalar quantity, so it can be used for temperature, size, etc.
+:kv_file_name: (str) The output filename for scalar-vector correlation function.
 
     The output columns are:
 
     - ``R_nom`` = The center of the bin
     - ``meanR`` = The mean separation of the points that went into the bin.
     - ``meanlogR`` = The mean log(R) of the points that went into the bin.
-    - ``xi`` = The correlation function <k k>
-    - ``sigma_xi`` = The 1-sigma error bar for xi.
+    - ``kvR`` = The kappa-scaled mean radial vector.
+    - ``kvT`` = The kappa-scaled mean counter-clockwise tangential vector.
+    - ``sigma`` = The 1-sigma error bar for ``kvR`` and ``kvT``.
     - ``weight`` = The total weight of the pairs in each bin.
     - ``npairs`` = The total number of pairs in each bin.
 
-:kg_file_name: (str) The output filename for kappa-shear correlation function.
-
-    This is the kappa-shear correlation function.  Essentially, this is just
-    galaxy-galaxy lensing, weighting the tangential shears by the foreground
-    kappa values.
+:vv_file_name: (str) The output filename for vector-vector correlation function.
 
     The output columns are:
 
     - ``R_nom`` = The center of the bin
     - ``meanR`` = The mean separation of the points that went into the bin.
     - ``meanlogR`` = The mean log(R) of the points that went into the bin.
-    - ``kgamT`` = The kappa-weighted mean tangential shear.
-    - ``kgamX`` = The kappa-weighted shear component 45 degrees from the tangential direction.
-    - ``sigma`` = The 1-sigma error bar for ``kgamT`` and ``kgamX``.
+    - ``xip`` = <v1 v1 + v2 v2> where v1 and v2 are measured with respect to the line joining the two points, where p1 is on the left and p2 is on the right.
+    - ``xim`` = <v1 v1 - v2 v2> where v1 and v2 are measured with respect to the line joining the two points, where p1 is on the left and p2 is on the right.
+    - ``xip_im`` = <v2 v1 - v1 v2>.
+
+        In the formulation of xi+ using complex numbers, this is the imaginary component.
+        It should normally be consistent with zero, especially for an
+        auto-correlation, because if every pair were counted twice to
+        get each galaxy in both positions, then this would come out
+        exactly zero.
+
+    - ``xim_im`` = <v2 v1 + v1 v2>.
+
+        In the formulation of xi- using complex numbers, this is the imaginary component.
+        It should be consistent with zero for parity invariant vector fields.
+
+    - ``sigma_xip`` = The 1-sigma error bar for xi+.
+    - ``sigma_xim`` = The 1-sigma error bar for xi-.
     - ``weight`` = The total weight of the pairs in each bin.
     - ``npairs`` = The total number of pairs in each bin.
 
@@ -550,7 +625,7 @@ about the output columns.
     - ``weight`` = The total weight of the triangles in each bin.
     - ``ntri`` = The total number of triangles in each bin.
 
-:kkk_file_name: (str) The output filename for kappa-kappa-kappa correlation function.
+:kkk_file_name: (str) The output filename for scalar-scalar-scalar correlation function.
 
     This is the three-point correlation function of a scalar field.
 

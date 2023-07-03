@@ -12,9 +12,10 @@
 #    and/or other materials provided with the distribution.
 
 import numpy as np
-import treecorr
+import time
 import os
 import coord
+import treecorr
 
 from test_helper import do_pickle, CaptureLog
 from test_helper import assert_raises, timer, assert_warns
@@ -538,6 +539,195 @@ def test_varxi():
     print('max relerr for xi = ',np.max(np.abs((kv.varxi - var_xi)/var_xi)))
     np.testing.assert_allclose(kv.varxi, var_xi, rtol=0.3)
 
+@timer
+def test_jk():
+
+    # Same multi-lens field we used for NV patch test
+    v0 = 0.05
+    r0 = 30.
+    L = 30 * r0
+    rng = np.random.RandomState(8675309)
+
+    nsource = 100000
+    nrand = 1000
+    nlens = 300
+    nruns = 1000
+    npatch = 64
+
+    corr_params = dict(bin_size=0.3, min_sep=10, max_sep=50, bin_slop=0.1)
+
+    def make_velocity_field(rng):
+        x1 = (rng.random(nlens)-0.5) * L
+        y1 = (rng.random(nlens)-0.5) * L
+        k = rng.random(nlens)*3 + 10
+        x2 = (rng.random(nsource)-0.5) * L
+        y2 = (rng.random(nsource)-0.5) * L
+
+        # Start with just the noise
+        v1 = rng.normal(0, 0.1, size=nsource)
+        v2 = rng.normal(0, 0.1, size=nsource)
+
+        # Also a non-zero background constant velocity
+        v1 += 2*v0
+        v2 -= 3*v0
+
+        # Add in the signal from all lenses
+        for i in range(nlens):
+            x2i = x2 - x1[i]
+            y2i = y2 - y1[i]
+            r2 = (x2i**2 + y2i**2)/r0**2
+            v1 += v0 * np.exp(-r2/2.) * x2i/r0
+            v2 += v0 * np.exp(-r2/2.) * y2i/r0
+        return x1, y1, k, x2, y2, v1, v2
+
+    file_name = 'data/test_kv_jk_{}.npz'.format(nruns)
+    print(file_name)
+    if not os.path.isfile(file_name):
+        all_kvs = []
+        for run in range(nruns):
+            rng = np.random.default_rng()
+            x1, y1, k, x2, y2, v1, v2 = make_velocity_field(rng)
+            print(run,': ',np.mean(v1),np.std(v1),np.min(v1),np.max(v1))
+            cat1 = treecorr.Catalog(x=x1, y=y1, k=k)
+            cat2 = treecorr.Catalog(x=x2, y=y2, v1=v1, v2=v2)
+            kv = treecorr.KVCorrelation(corr_params)
+            kv.process(cat1, cat2)
+            all_kvs.append(kv)
+
+        mean_xi = np.mean([kv.xi for kv in all_kvs], axis=0)
+        var_xi = np.var([kv.xi for kv in all_kvs], axis=0)
+        mean_varxi = np.mean([kv.varxi for kv in all_kvs], axis=0)
+
+        np.savez(file_name,
+                 mean_xi=mean_xi, var_xi=var_xi, mean_varxi=mean_varxi)
+
+    data = np.load(file_name)
+    mean_xi = data['mean_xi']
+    mean_varxi = data['mean_varxi']
+    var_xi = data['var_xi']
+
+    print('mean_xi = ',mean_xi)
+    print('mean_varxi = ',mean_varxi)
+    print('var_xi = ',var_xi)
+    print('ratio = ',var_xi / mean_varxi)
+
+    rng = np.random.default_rng(1234)
+    x1, y1, k, x2, y2, v1, v2 = make_velocity_field(rng)
+
+    cat1 = treecorr.Catalog(x=x1, y=y1, k=k)
+    cat2 = treecorr.Catalog(x=x2, y=y2, v1=v1, v2=v2)
+    kv1 = treecorr.KVCorrelation(corr_params)
+    t0 = time.time()
+    kv1.process(cat1, cat2)
+    t1 = time.time()
+    print('Time for non-patch processing = ',t1-t0)
+
+    print('weight = ',kv1.weight)
+    print('xi = ',kv1.xi)
+    print('varxi = ',kv1.varxi)
+    print('pullsq for xi = ',(kv1.xi-mean_xi)**2/var_xi)
+    print('max pull for xi = ',np.sqrt(np.max((kv1.xi-mean_xi)**2/var_xi)))
+    np.testing.assert_array_less((kv1.xi-mean_xi)**2, 9*var_xi)  # < 3 sigma pull
+    np.testing.assert_allclose(kv1.varxi, mean_varxi, rtol=0.1)
+
+    # Now run with patches, but still with shot variance.  Should be basically the same answer.
+    cat2p = treecorr.Catalog(x=x2, y=y2, v1=v1, v2=v2, npatch=npatch)
+    cat1p = treecorr.Catalog(x=x1, y=y1, k=k, patch_centers=cat2p.patch_centers)
+    kv2 = treecorr.KVCorrelation(corr_params)
+    t0 = time.time()
+    kv2.process(cat1p, cat2p)
+    t1 = time.time()
+    print('Time for patch processing = ',t1-t0)
+    print('weight = ',kv2.weight)
+    print('xi = ',kv2.xi)
+    print('xi1 = ',kv1.xi)
+    print('varxi = ',kv2.varxi)
+    np.testing.assert_allclose(kv2.weight, kv1.weight, rtol=1.e-2)
+    np.testing.assert_allclose(kv2.xi, kv1.xi, rtol=2.e-2)
+    np.testing.assert_allclose(kv2.varxi, kv1.varxi, rtol=1.e-2)
+
+    # Can get this as a (diagonal) covariance matrix using estimate_cov
+    np.testing.assert_allclose(kv2.estimate_cov('shot'), np.diag(kv2.varxi))
+    np.testing.assert_allclose(kv1.estimate_cov('shot'), np.diag(kv1.varxi))
+
+    # Now try jackknife variance estimate.
+    t0 = time.time()
+    cov2 = kv2.estimate_cov('jackknife')
+    t1 = time.time()
+    print('Time to calculate jackknife covariance = ',t1-t0)
+    print('varxi = ',np.diagonal(cov2))
+    print('cf var_xi = ',var_xi)
+    np.testing.assert_allclose(np.diagonal(cov2), var_xi, rtol=0.6)
+
+    # Check only using patches for one of the two catalogs.
+    kv3 = treecorr.KVCorrelation(corr_params, var_method='jackknife')
+    t0 = time.time()
+    kv3.process(cat1p, cat2)
+    t1 = time.time()
+    print('Time for only patches for cat1 processing = ',t1-t0)
+    print('varxi = ',kv3.varxi)
+    np.testing.assert_allclose(kv3.weight, kv1.weight, rtol=1.e-2)
+    np.testing.assert_allclose(kv3.xi, kv1.xi, rtol=1.e-2)
+    np.testing.assert_allclose(kv3.varxi, var_xi, rtol=0.5)
+
+    kv4 = treecorr.KVCorrelation(corr_params, var_method='jackknife', rng=rng)
+    t0 = time.time()
+    kv4.process(cat1, cat2p)
+    t1 = time.time()
+    print('Time for only patches for cat2 processing = ',t1-t0)
+    print('varxi = ',kv4.varxi)
+    np.testing.assert_allclose(kv4.weight, kv1.weight, rtol=1.e-2)
+    np.testing.assert_allclose(kv4.xi, kv1.xi, rtol=2.e-2)
+    np.testing.assert_allclose(kv4.varxi, var_xi, rtol=0.9)
+
+    # Use initialize/finalize
+    kv5 = treecorr.KVCorrelation(corr_params)
+    for k1, p1 in enumerate(cat1p.get_patches()):
+        for k2, p2 in enumerate(cat2p.get_patches()):
+            kv5.process(p1, p2, initialize=(k1==k2==0), finalize=(k1==k2==npatch-1))
+    np.testing.assert_allclose(kv5.xi, kv2.xi)
+    np.testing.assert_allclose(kv5.weight, kv2.weight)
+    np.testing.assert_allclose(kv5.varxi, kv2.varxi)
+
+    # Check that these still work after roundtripping through a file.
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        file_name = os.path.join('output','test_write_results_kv.fits')
+        kv2.write(file_name, write_patch_results=True)
+        kv5 = treecorr.KVCorrelation(corr_params)
+        kv5.read(file_name)
+        cov5 = kv5.estimate_cov('jackknife')
+        np.testing.assert_allclose(cov5, cov2)
+
+    # Check some invalid actions
+    # Bad var_method
+    with assert_raises(ValueError):
+        kv2.estimate_cov('invalid')
+    # Not run on patches, but need patches
+    with assert_raises(ValueError):
+        kv1.estimate_cov('jackknife')
+    with assert_raises(ValueError):
+        kv1.estimate_cov('sample')
+    with assert_raises(ValueError):
+        kv1.estimate_cov('marked_bootstrap')
+    with assert_raises(ValueError):
+        kv1.estimate_cov('bootstrap')
+
+    cat1a = treecorr.Catalog(x=x1[:100], y=y1[:100], npatch=10)
+    cat2a = treecorr.Catalog(x=x2[:100], y=y2[:100], v1=v1[:100], v2=v2[:100], npatch=10)
+    cat1b = treecorr.Catalog(x=x1[:100], y=y1[:100], npatch=2)
+    cat2b = treecorr.Catalog(x=x2[:100], y=y2[:100], v1=v1[:100], v2=v2[:100], npatch=2)
+    kv6 = treecorr.KVCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife')
+    kv7 = treecorr.KVCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife')
+    # All catalogs need to have the same number of patches
+    with assert_raises(RuntimeError):
+        kv6.process(cat1a,cat2b)
+    with assert_raises(RuntimeError):
+        kv7.process(cat1b,cat2a)
+
 
 if __name__ == '__main__':
     test_direct()
@@ -545,3 +735,4 @@ if __name__ == '__main__':
     test_single()
     test_kv()
     test_varxi()
+    test_jk()

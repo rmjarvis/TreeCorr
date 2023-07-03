@@ -2058,6 +2058,11 @@ class Catalog(object):
             raise ValueError("save_patch_dir is required here, since not given in constructor.")
 
         file_names = self.get_patch_file_names(save_patch_dir)
+        # This next bit looks gratuitous, but without it, it's possible for self.patches to
+        # end up reading the existing files rather than build the patches and overwrite them.
+        for file_name in file_names:
+            if os.path.exists(file_name):
+                os.remove(file_name)
         for i, p, file_name in zip(range(self.npatch), self.patches, file_names):
             self.logger.info('Writing patch %d to %s',i,file_name)
             if p.ra is not None:

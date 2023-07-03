@@ -102,6 +102,8 @@ class KVCorrelation(Corr2):
         self._varxi = None
         self._cov = None
         self._var_num = 0
+        self._processed_cats1 = []
+        self._processed_cats2 = []
         self.logger.debug('Finished building KVCorr')
 
     @property
@@ -319,6 +321,8 @@ class KVCorrelation(Corr2):
         import math
         if initialize:
             self.clear()
+            self._processed_cats1.clear()
+            self._processed_cats2.clear()
 
         if not isinstance(cat1,list):
             cat1 = cat1.get_patches(low_mem=low_mem)
@@ -327,12 +331,16 @@ class KVCorrelation(Corr2):
 
         self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem)
 
+        self._processed_cats1.extend(cat1)
+        self._processed_cats2.extend(cat2)
         if finalize:
-            vark = calculateVarK(cat1, low_mem=low_mem)
-            varv = calculateVarV(cat2, low_mem=low_mem)
+            vark = calculateVarK(self._processed_cats1, low_mem=low_mem)
+            varv = calculateVarV(self._processed_cats2, low_mem=low_mem)
             self.logger.info("vark = %f: sig_k = %f",vark,math.sqrt(vark))
             self.logger.info("varv = %f: sig_sn (per component) = %f",varv,math.sqrt(varv))
             self.finalize(vark,varv)
+            self._processed_cats1.clear()
+            self._processed_cats2.clear()
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False):
         r"""Write the correlation function to the file, file_name.

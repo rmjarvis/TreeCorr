@@ -112,6 +112,8 @@ class VVCorrelation(Corr2):
         self._varxim = None
         self._cov = None
         self._var_num = 0
+        self._processed_cats1 = []
+        self._processed_cats2 = []
         self.logger.debug('Finished building VVCorr')
 
     @property
@@ -404,6 +406,8 @@ class VVCorrelation(Corr2):
         import math
         if initialize:
             self.clear()
+            self._processed_cats1.clear()
+            self._processed_cats2.clear()
 
         if not isinstance(cat1,list):
             cat1 = cat1.get_patches(low_mem=low_mem)
@@ -415,18 +419,22 @@ class VVCorrelation(Corr2):
         else:
             self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem)
 
+        self._processed_cats1.extend(cat1)
+        if cat2 is not None:
+            self._processed_cats2.extend(cat2)
         if finalize:
             if cat2 is None:
-                varv1 = calculateVarV(cat1, low_mem=low_mem)
+                varv1 = calculateVarV(self._processed_cats1, low_mem=low_mem)
                 varv2 = varv1
                 self.logger.info("varv = %f: sig_sn (per component) = %f",varv1,math.sqrt(varv1))
             else:
-                varv1 = calculateVarV(cat1, low_mem=low_mem)
-                varv2 = calculateVarV(cat2, low_mem=low_mem)
+                varv1 = calculateVarV(self._processed_cats1, low_mem=low_mem)
+                varv2 = calculateVarV(self._processed_cats2, low_mem=low_mem)
                 self.logger.info("varv1 = %f: sig_sn (per component) = %f",varv1,math.sqrt(varv1))
                 self.logger.info("varv2 = %f: sig_sn (per component) = %f",varv2,math.sqrt(varv2))
             self.finalize(varv1,varv2)
-
+            self._processed_cats1.clear()
+            self._processed_cats2.clear()
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False):
         r"""Write the correlation function to the file, file_name.

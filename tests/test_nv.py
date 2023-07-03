@@ -795,6 +795,21 @@ def test_pieces():
     np.testing.assert_allclose(pieces_nv2.xi_im, full_nv.xi_im, atol=1.e-10)
     np.testing.assert_allclose(pieces_nv2.varxi, full_nv.varxi, rtol=1.e-7)
 
+    # Can also do this with initialize/finalize options
+    pieces_nv3 = full_nv.copy()
+    t3 = time.time()
+    for k in range(ncats):
+        pieces_nv3.process(lens_cat, source_cats2[k], initialize=(k==0), finalize=(k==ncats-1))
+    t4 = time.time()
+    print('time for initialize/finalize processing = ',t4-t3)
+
+    np.testing.assert_allclose(pieces_nv3.meanr, full_nv.meanr, rtol=1.e-7)
+    np.testing.assert_allclose(pieces_nv3.meanlogr, full_nv.meanlogr, rtol=1.e-7)
+    np.testing.assert_allclose(pieces_nv3.weight, full_nv.weight, rtol=1.e-7)
+    np.testing.assert_allclose(pieces_nv3.xi, full_nv.xi, rtol=1.e-7)
+    np.testing.assert_allclose(pieces_nv3.xi_im, full_nv.xi_im, atol=1.e-10)
+    np.testing.assert_allclose(pieces_nv3.varxi, full_nv.varxi, rtol=1.e-7)
+
     # Try this with corr2
     lens_cat.write(os.path.join('data','nv_wpos_lens.fits'))
     for i, sc in enumerate(source_cats2):
@@ -822,13 +837,6 @@ def test_varxi():
     L = 10 * r0
     rng = np.random.RandomState(8675309)
 
-    # Note: to get a good estimate of var(xi), you need a lot of runs.  The number of
-    # runs matters much more than the number of galaxies for getting this to pass.
-    # In addition, I found that the variance was significantly underestimated when there
-    # were lots of lenses.  I guess because there were multiple lenses that paired with the
-    # same sources in a given bin, which increased the variance of the mean <g>.
-    # So there might be some adjustment that would help improve the estimate of varxi,
-    # but at least this unit test shows that it's fairly accurate for *some* scenario.
     nsource = 1000
     nrand = 10
     nruns = 50000
@@ -909,7 +917,6 @@ def test_varxi():
     r2 = (x2**2 + y2**2)/r0**2
     v1 = v0 * np.exp(-r2/2.) * x2/r0
     v2 = v0 * np.exp(-r2/2.) * y2/r0
-    # This time, add some shape noise (different each run).
     v1 += rng.normal(0, 0.1, size=nsource)
     v2 += rng.normal(0, 0.1, size=nsource)
     # Varied weights are hard, but at least check that non-unit weights work correctly.

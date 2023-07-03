@@ -108,6 +108,8 @@ class KKCorrelation(Corr2):
         self._varxi = None
         self._cov = None
         self._var_num = 0
+        self._processed_cats1 = []
+        self._processed_cats2 = []
         self.logger.debug('Finished building KKCorr')
 
     @property
@@ -359,6 +361,8 @@ class KKCorrelation(Corr2):
         import math
         if initialize:
             self.clear()
+            self._processed_cats1.clear()
+            self._processed_cats2.clear()
 
         if not isinstance(cat1,list):
             cat1 = cat1.get_patches(low_mem=low_mem)
@@ -370,17 +374,22 @@ class KKCorrelation(Corr2):
         else:
             self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem)
 
+        self._processed_cats1.extend(cat1)
+        if cat2 is not None:
+            self._processed_cats2.extend(cat2)
         if finalize:
             if cat2 is None:
-                vark1 = calculateVarK(cat1, low_mem=low_mem)
+                vark1 = calculateVarK(self._processed_cats1, low_mem=low_mem)
                 vark2 = vark1
                 self.logger.info("vark = %f: sig_k = %f",vark1,math.sqrt(vark1))
             else:
-                vark1 = calculateVarK(cat1, low_mem=low_mem)
-                vark2 = calculateVarK(cat2, low_mem=low_mem)
+                vark1 = calculateVarK(self._processed_cats1, low_mem=low_mem)
+                vark2 = calculateVarK(self._processed_cats2, low_mem=low_mem)
                 self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
                 self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
             self.finalize(vark1,vark2)
+            self._processed_cats1.clear()
+            self._processed_cats2.clear()
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False):
         r"""Write the correlation function to the file, file_name.

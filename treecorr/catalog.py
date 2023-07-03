@@ -1275,12 +1275,16 @@ class Catalog(object):
         else:
             raise ValueError("No valid position columns specified for file %s"%file_name)
 
+        if k_col == '0' and isKColRequired(self.orig_config,num):
+            raise ValueError("k_col is missing for file %s"%file_name)
         if g1_col == '0' and isGColRequired(self.orig_config,num):
             raise ValueError("g1_col is missing for file %s"%file_name)
         if g2_col == '0' and isGColRequired(self.orig_config,num):
             raise ValueError("g2_col is missing for file %s"%file_name)
-        if k_col == '0' and isKColRequired(self.orig_config,num):
-            raise ValueError("k_col is missing for file %s"%file_name)
+        if v1_col == '0' and isVColRequired(self.orig_config,num):
+            raise ValueError("v1_col is missing for file %s"%file_name)
+        if v2_col == '0' and isVColRequired(self.orig_config,num):
+            raise ValueError("v2_col is missing for file %s"%file_name)
 
         # Either both shoudl be 0 or both != 0.
         if (g1_col == '0') != (g2_col == '0'):
@@ -1292,7 +1296,6 @@ class Catalog(object):
 
         # This opens the file enough to read things inside.  The full read doesn't happen here.
         with reader:
-
             # get the vanilla "ext" parameter
             ext = get_from_list(self.config, 'ext', num, str, reader.default_ext)
 
@@ -1373,11 +1376,20 @@ class Catalog(object):
                             "because it is invalid, but unneeded.")
 
             if v1_col != '0':
-                # Note: we don't bother with the isRequired bit for vectors.
-                # If someone wants this feature, please request it, but it doesn't seem
-                # like something people will need.
                 v1_ext = get_from_list(self.config, 'v1_ext', num, str, ext)
                 v2_ext = get_from_list(self.config, 'v2_ext', num, str, ext)
+                if (v1_col not in reader.names(v1_ext) or
+                    v2_col not in reader.names(v2_ext)):
+                    if isVColRequired(self.orig_config,num):
+                        raise ValueError(
+                            "v1_col, v2_col=(%s, %s) are invalid for file %s"%(
+                                v1_col, v2_col, file_name))
+                    else:
+                        self.logger.warning(
+                            "Warning: skipping v1_col, v2_col=(%s, %s) for %s, num=%d "%(
+                                v1_col, v2_col, file_name, num) +
+                            "because they are invalid, but unneeded.")
+
 
     def _pandas_warning(self):
         if Catalog._emitted_pandas_warning:
@@ -1677,6 +1689,7 @@ class Catalog(object):
             >>> cat.nfields.resize(maxsize)
             >>> cat.kfields.resize(maxsize)
             >>> cat.gfields.resize(maxsize)
+            >>> cat.vfields.resize(maxsize)
 
         Parameters:
             maxsize (float):    The new maximum number of fields of each type to cache.
@@ -1684,6 +1697,7 @@ class Catalog(object):
         if hasattr(self, '_nfields'): self.nfields.resize(maxsize)
         if hasattr(self, '_kfields'): self.kfields.resize(maxsize)
         if hasattr(self, '_gfields'): self.gfields.resize(maxsize)
+        if hasattr(self, '_vfields'): self.vfields.resize(maxsize)
 
     def clear_cache(self):
         """Clear all field caches.
@@ -1710,10 +1724,12 @@ class Catalog(object):
             >>> cat.nfields.clear()
             >>> cat.kfields.clear()
             >>> cat.gfields.clear()
+            >>> cat.vfields.clear()
         """
         if hasattr(self, '_nfields'): self.nfields.clear()
         if hasattr(self, '_kfields'): self.kfields.clear()
         if hasattr(self, '_gfields'): self.gfields.clear()
+        if hasattr(self, '_vfields'): self.vfields.clear()
         self._field = lambda : None  # Acts like a dead weakref
 
     @property
@@ -2331,6 +2347,7 @@ class Catalog(object):
         d.pop('_nfields',None)
         d.pop('_kfields',None)
         d.pop('_gfields',None)
+        d.pop('_vfields',None)
         return d
 
     def __setstate__(self, d):
@@ -2594,7 +2611,6 @@ def isGColRequired(config, num):
                         or (num==1 and 'nm_file_name' in config)
                         or (num==1 and 'kg_file_name' in config) )
 
-
 def isKColRequired(config, num):
     """A quick helper function that checks whether we need to bother reading the k column.
 
@@ -2612,4 +2628,33 @@ def isKColRequired(config, num):
     """
     return config and ( 'kk_file_name' in config
                         or (num==0 and 'kg_file_name' in config)
+                        or (num==0 and 'kv_file_name' in config)
                         or (num==1 and 'nk_file_name' in config) )
+
+def isVColRequired(config, num):
+    """A quick helper function that checks whether we need to bother reading the v1,v2 columns.
+
+    It checks the config dict for the output file names vv_file_name, nv_file_name (only if
+    num == 1), etc.  If the output files indicate that we don't need the v1/v2 columns, then
+    we don't need to raise an error if the v1_col or v2_col is invalid.
+
+    This makes it easier to specify columns. e.g. for an NV correlation function, the
+    first catalog does not need to have the v1,v2 columns, and typically wouldn't.  So
+    if you specify v1_col=5, v2_col=6, say, and the first catalog does not have these columns,
+    you would normally get an error.
+
+    But instead, we check that the calculation is going to be NV from the presence of an
+    nv_file_name parameter, and we let the would-be error pass.
+
+    Parameters:
+        config (dict):  The configuration file to check.
+        num (int):      Which number catalog are we working on.
+
+    Returns:
+        True if some output file requires this catalog to have valid v1/v2 columns,
+        False if not.
+
+    """
+    return config and ( 'vv_file_name' in config
+                        or (num==1 and 'nv_file_name' in config)
+                        or (num==1 and 'kv_file_name' in config) )

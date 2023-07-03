@@ -89,7 +89,9 @@ def test_direct():
     else:
         cat1.write(config['file_name'])
         cat2.write(config['file_name2'])
-        treecorr.corr2(config)
+        with CaptureLog() as cl:
+            treecorr.corr2(config, cl.logger)
+        assert "skipping k_col" in cl.output
         data = fitsio.read(config['nk_file_name'])
         np.testing.assert_allclose(data['r_nom'], nk.rnom)
         np.testing.assert_allclose(data['npairs'], nk.npairs)

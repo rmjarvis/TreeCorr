@@ -113,6 +113,7 @@ class NKCorrelation(Corr2):
         self._raw_varxi = None
         self._cov = None
         self._var_num = 0
+        self._processed_cats = []
         self.logger.debug('Finished building NKCorr')
 
     @property
@@ -343,6 +344,7 @@ class NKCorrelation(Corr2):
         if initialize:
             self.clear()
             self._rk = None
+            self._processed_cats.clear()
 
         if not isinstance(cat1,list):
             cat1 = cat1.get_patches(low_mem=low_mem)
@@ -351,10 +353,12 @@ class NKCorrelation(Corr2):
 
         self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem)
 
+        self._processed_cats.extend(cat2)
         if finalize:
-            vark = calculateVarK(cat2, low_mem=low_mem)
+            vark = calculateVarK(self._processed_cats, low_mem=low_mem)
             self.logger.info("vark = %f: sig_k = %f",vark,math.sqrt(vark))
             self.finalize(vark)
+            self._processed_cats.clear()
 
     def calculateXi(self, *, rk=None):
         r"""Calculate the correlation function possibly given another correlation function

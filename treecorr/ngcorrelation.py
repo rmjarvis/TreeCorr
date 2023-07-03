@@ -111,6 +111,7 @@ class NGCorrelation(Corr2):
         self._varxi = None
         self._cov = None
         self._var_num = 0
+        self._processed_cats = []
         self.logger.debug('Finished building NGCorr')
 
     @property
@@ -353,6 +354,7 @@ class NGCorrelation(Corr2):
         if initialize:
             self.clear()
             self._rg = None
+            self._processed_cats.clear()
 
         if not isinstance(cat1,list):
             cat1 = cat1.get_patches(low_mem=low_mem)
@@ -361,10 +363,12 @@ class NGCorrelation(Corr2):
 
         self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem)
 
+        self._processed_cats.extend(cat2)
         if finalize:
-            varg = calculateVarG(cat2, low_mem=low_mem)
+            varg = calculateVarG(self._processed_cats, low_mem=low_mem)
             self.logger.info("varg = %f: sig_sn (per component) = %f",varg,math.sqrt(varg))
             self.finalize(varg)
+            self._processed_cats.clear()
 
     def calculateXi(self, *, rg=None):
         r"""Calculate the correlation function possibly given another correlation function

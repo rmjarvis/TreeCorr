@@ -110,6 +110,7 @@ class NVCorrelation(Corr2):
         self._varxi = None
         self._cov = None
         self._var_num = 0
+        self._processed_cats = []
         self.logger.debug('Finished building NVCorr')
 
     @property
@@ -247,7 +248,6 @@ class NVCorrelation(Corr2):
         """
         self._finalize()
         self._var_num = varv
-        print('Finalize: varv = ',varv)
 
         self.xi = self.raw_xi
         self.xi_im = self.raw_xi_im
@@ -353,6 +353,7 @@ class NVCorrelation(Corr2):
         if initialize:
             self.clear()
             self._rv = None
+            self._processed_cats.clear()
 
         if not isinstance(cat1,list):
             cat1 = cat1.get_patches(low_mem=low_mem)
@@ -361,10 +362,12 @@ class NVCorrelation(Corr2):
 
         self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem)
 
+        self._processed_cats.extend(cat2)
         if finalize:
-            varv = calculateVarV(cat2, low_mem=low_mem)
+            varv = calculateVarV(self._processed_cats, low_mem=low_mem)
             self.logger.info("varv = %f: sig_sn (per component) = %f",varv,math.sqrt(varv))
             self.finalize(varv)
+            self._processed_cats.clear()
 
     def calculateXi(self, *, rv=None):
         r"""Calculate the correlation function possibly given another correlation function

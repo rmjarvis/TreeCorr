@@ -112,6 +112,8 @@ class GGCorrelation(Corr2):
         self._varxim = None
         self._cov = None
         self._var_num = 0
+        self._processed_cats1 = []
+        self._processed_cats2 = []
         self.logger.debug('Finished building GGCorr')
 
     @property
@@ -404,6 +406,8 @@ class GGCorrelation(Corr2):
         import math
         if initialize:
             self.clear()
+            self._processed_cats1.clear()
+            self._processed_cats2.clear()
 
         if not isinstance(cat1,list):
             cat1 = cat1.get_patches(low_mem=low_mem)
@@ -415,17 +419,22 @@ class GGCorrelation(Corr2):
         else:
             self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem)
 
+        self._processed_cats1.extend(cat1)
+        if cat2 is not None:
+            self._processed_cats2.extend(cat2)
         if finalize:
             if cat2 is None:
-                varg1 = calculateVarG(cat1, low_mem=low_mem)
+                varg1 = calculateVarG(self._processed_cats1, low_mem=low_mem)
                 varg2 = varg1
                 self.logger.info("varg = %f: sig_sn (per component) = %f",varg1,math.sqrt(varg1))
             else:
-                varg1 = calculateVarG(cat1, low_mem=low_mem)
-                varg2 = calculateVarG(cat2, low_mem=low_mem)
+                varg1 = calculateVarG(self._processed_cats1, low_mem=low_mem)
+                varg2 = calculateVarG(self._processed_cats2, low_mem=low_mem)
                 self.logger.info("varg1 = %f: sig_sn (per component) = %f",varg1,math.sqrt(varg1))
                 self.logger.info("varg2 = %f: sig_sn (per component) = %f",varg2,math.sqrt(varg2))
             self.finalize(varg1,varg2)
+            self._processed_cats1.clear()
+            self._processed_cats2.clear()
 
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False):

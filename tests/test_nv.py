@@ -1050,8 +1050,17 @@ def test_jk():
     np.testing.assert_allclose(nv1.varxi, mean_varxi, rtol=0.1)
 
     # Now run with patches, but still with shot variance.  Should be basically the same answer.
-    cat2p = treecorr.Catalog(x=x2, y=y2, v1=v1, v2=v2, npatch=npatch, save_patch_dir='output')
-    cat2p.write_patches()  # Force rewrite of any existing saved patches.
+    try:
+        import fitsio
+        patch_dir = 'output'
+        low_mem = True
+    except:
+        # If we cannot write to a fits file, skip the save_patch_dir tests.
+        patch_dir = None
+        low_mem = False
+    cat2p = treecorr.Catalog(x=x2, y=y2, v1=v1, v2=v2, npatch=npatch, save_patch_dir=patch_dir)
+    if low_mem:
+        cat2p.write_patches()  # Force rewrite of any existing saved patches.
     cat1p = treecorr.Catalog(x=x1, y=y1, w=w, patch_centers=cat2p.patch_centers)
     print('tot w = ',np.sum(w))
     print('Patch\tNlens\tNsource')
@@ -1154,7 +1163,7 @@ def test_jk():
     # Repeat with patches
     cat3p = treecorr.Catalog(x=x3, y=y3, patch_centers=cat2p.patch_centers)
     rv6 = treecorr.NVCorrelation(corr_params)
-    rv6.process(cat3p, cat2p, low_mem=True)
+    rv6.process(cat3p, cat2p, low_mem=low_mem)
     nv6 = nv2.copy()
     nv6.calculateXi(rv=rv6)
     cov6 = nv6.estimate_cov('jackknife')

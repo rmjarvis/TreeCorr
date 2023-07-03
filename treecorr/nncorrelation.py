@@ -632,7 +632,7 @@ class NNCorrelation(Corr2):
             dr = self._dr.weight
             drf = dd_tot / self._dr.tot
         if self._rd is not None:
-            if self._rd.npatch1 == 1:
+            if self._rd.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
                 # If r doesn't have patches, then convert all (i,i) pairs to (0,i).
                 pairs3 = [(0,ij[1]) for ij in pairs if ij[0] == ij[1]]
             else:

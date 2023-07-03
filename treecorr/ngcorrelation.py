@@ -429,7 +429,7 @@ class NGCorrelation(Corr2):
         self._finalize()
         if self._rg is not None:
             # If rg has npatch1 = 1, adjust pairs appropriately
-            if self._rg.npatch1 == 1:
+            if self._rg.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
                 pairs = [(0,ij[1]) for ij in pairs if ij[0] == ij[1]]
             # Make sure all ij are in the rg results (some might be missing, which is ok)
             pairs = [ij for ij in pairs if self._rg._ok[ij[0],ij[1]]]

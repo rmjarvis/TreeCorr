@@ -13,6 +13,7 @@
 
 import numpy as np
 import os
+import time
 import coord
 import treecorr
 
@@ -736,9 +737,197 @@ def test_varxi():
     np.testing.assert_allclose(vv.varxip, var_xip, rtol=0.2)
     np.testing.assert_allclose(vv.varxim, var_xim, rtol=0.2)
 
+@timer
+def test_jk():
+
+    # Same multi-lens field we used for NV patch test
+    v0 = 0.05
+    r0 = 30.
+    L = 30 * r0
+    rng = np.random.RandomState(8675309)
+
+    nsource = 100000
+    nrand = 1000
+    nlens = 300
+    nruns = 1000
+    npatch = 64
+
+    corr_params = dict(bin_size=0.3, min_sep=10, max_sep=50, bin_slop=0.1)
+
+    def make_velocity_field(rng):
+        x1 = (rng.random(nlens)-0.5) * L
+        y1 = (rng.random(nlens)-0.5) * L
+        w = rng.random(nlens) + 10
+        x2 = (rng.random(nsource)-0.5) * L
+        y2 = (rng.random(nsource)-0.5) * L
+
+        # Start with just the noise
+        v1 = rng.normal(0, 0.1, size=nsource)
+        v2 = rng.normal(0, 0.1, size=nsource)
+
+        # Also a non-zero background constant velocity
+        v1 += 2*v0
+        v2 -= 3*v0
+
+        # Add in the signal from all lenses
+        for i in range(nlens):
+            x2i = x2 - x1[i]
+            y2i = y2 - y1[i]
+            r2 = (x2i**2 + y2i**2)/r0**2
+            v1 += w[i] * v0 * np.exp(-r2/2.) * x2i/r0
+            v2 += w[i] * v0 * np.exp(-r2/2.) * y2i/r0
+        return x1, y1, w, x2, y2, v1, v2
+
+    file_name = 'data/test_vv_jk_{}.npz'.format(nruns)
+    print(file_name)
+    if not os.path.isfile(file_name):
+        all_vvs = []
+        for run in range(nruns):
+            rng = np.random.default_rng()
+            x1, y1, w, x2, y2, v1, v2 = make_velocity_field(rng)
+            print(run,': ',np.mean(v1),np.std(v1),np.min(v1),np.max(v1))
+            cat = treecorr.Catalog(x=x2, y=y2, v1=v1, v2=v2)
+            vv = treecorr.VVCorrelation(corr_params)
+            vv.process(cat)
+            all_vvs.append(vv)
+
+        mean_xip = np.mean([vv.xip for vv in all_vvs], axis=0)
+        mean_xim = np.mean([vv.xim for vv in all_vvs], axis=0)
+        var_xip = np.var([vv.xip for vv in all_vvs], axis=0)
+        var_xim = np.var([vv.xim for vv in all_vvs], axis=0)
+        mean_varxip = np.mean([vv.varxip for vv in all_vvs], axis=0)
+        mean_varxim = np.mean([vv.varxim for vv in all_vvs], axis=0)
+
+        np.savez(file_name,
+                 mean_xip=mean_xip, var_xip=var_xip, mean_varxip=mean_varxip,
+                 mean_xim=mean_xim, var_xim=var_xim, mean_varxim=mean_varxim)
+
+    data = np.load(file_name)
+    mean_xip = data['mean_xip']
+    mean_xim = data['mean_xim']
+    mean_varxip = data['mean_varxip']
+    mean_varxim = data['mean_varxim']
+    var_xip = data['var_xip']
+    var_xim = data['var_xim']
+
+    print('mean_xip = ',mean_xip)
+    print('mean_varxip = ',mean_varxip)
+    print('var_xip = ',var_xip)
+    print('ratio = ',var_xip / mean_varxip)
+    print('mean_xim = ',mean_xim)
+    print('mean_varxim = ',mean_varxim)
+    print('var_xim = ',var_xim)
+    print('ratio = ',var_xim / mean_varxim)
+
+    rng = np.random.default_rng(1234)
+    x1, y1, w, x2, y2, v1, v2 = make_velocity_field(rng)
+
+    cat = treecorr.Catalog(x=x2, y=y2, v1=v1, v2=v2)
+    vv1 = treecorr.VVCorrelation(corr_params)
+    t0 = time.time()
+    vv1.process(cat)
+    t1 = time.time()
+    print('Time for non-patch processing = ',t1-t0)
+
+    print('weight = ',vv1.weight)
+    print('xip = ',vv1.xip)
+    print('varxip = ',vv1.varxip)
+    print('pullsq for xip = ',(vv1.xip-mean_xip)**2/var_xip)
+    print('max pull for xip = ',np.sqrt(np.max((vv1.xip-mean_xip)**2/var_xip)))
+    print('max pull for xim = ',np.sqrt(np.max((vv1.xim-mean_xim)**2/var_xim)))
+    np.testing.assert_array_less((vv1.xip-mean_xip)**2, 9*var_xip)  # < 3 sigma pull
+    np.testing.assert_array_less((vv1.xim-mean_xim)**2, 9*var_xim)  # < 3 sigma pull
+    np.testing.assert_allclose(vv1.varxip, mean_varxip, rtol=0.1)
+    np.testing.assert_allclose(vv1.varxim, mean_varxim, rtol=0.1)
+
+    # Now run with patches, but still with shot variance.  Should be basically the same answer.
+    catp = treecorr.Catalog(x=x2, y=y2, v1=v1, v2=v2, npatch=npatch)
+    print('tot w = ',np.sum(w))
+    print('Patch\tNsource')
+    for i in range(npatch):
+        print('%d\t%d'%(i,np.sum(catp.w[catp.patch==i])))
+    vv2 = treecorr.VVCorrelation(corr_params)
+    t0 = time.time()
+    vv2.process(catp)
+    t1 = time.time()
+    print('Time for patch processing = ',t1-t0)
+    print('weight = ',vv2.weight)
+    print('xip = ',vv2.xip)
+    print('xip1 = ',vv1.xip)
+    print('varxip = ',vv2.varxip)
+    print('xim = ',vv2.xim)
+    print('xim1 = ',vv1.xim)
+    print('varxim = ',vv2.varxim)
+    np.testing.assert_allclose(vv2.weight, vv1.weight, rtol=1.e-2)
+    np.testing.assert_allclose(vv2.xip, vv1.xip, rtol=1.e-2)
+    np.testing.assert_allclose(vv2.xim, vv1.xim, rtol=1.e-2)
+    np.testing.assert_allclose(vv2.varxip, vv1.varxip, rtol=1.e-2)
+    np.testing.assert_allclose(vv2.varxim, vv1.varxim, rtol=1.e-2)
+
+    # Now try jackknife variance estimate.
+    t0 = time.time()
+    cov2 = vv2.estimate_cov('jackknife')
+    t1 = time.time()
+    print('Time to calculate jackknife covariance = ',t1-t0)
+    print('cov.diag = ',np.diagonal(cov2))
+    print('cf var_xip = ',var_xip)
+    print('cf var_xim = ',var_xim)
+    np.testing.assert_allclose(np.diagonal(cov2)[:6], var_xip, rtol=0.4)
+    np.testing.assert_allclose(np.diagonal(cov2)[6:], var_xim, rtol=0.5)
+
+    # Use initialize/finalize
+    vv3 = treecorr.VVCorrelation(corr_params)
+    for k1, p1 in enumerate(catp.get_patches()):
+        vv3.process(p1, initialize=(k1==0), finalize=(k1==npatch-1))
+        for k2, p2 in enumerate(catp.get_patches()):
+            if k2 <= k1: continue
+            vv3.process(p1, p2, initialize=False, finalize=False)
+    np.testing.assert_allclose(vv3.xip, vv2.xip)
+    np.testing.assert_allclose(vv3.xim, vv2.xim)
+    np.testing.assert_allclose(vv3.weight, vv2.weight)
+
+    # Check that these still work after roundtripping through a file.
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        file_name = os.path.join('output','test_write_results_vv.fits')
+        vv2.write(file_name, write_patch_results=True)
+        vv3 = treecorr.VVCorrelation(corr_params)
+        vv3.read(file_name)
+        cov3 = vv3.estimate_cov('jackknife')
+        np.testing.assert_allclose(cov3, cov2)
+
+    # Check some invalid actions
+    # Bad var_method
+    with assert_raises(ValueError):
+        vv2.estimate_cov('invalid')
+    # Not run on patches, but need patches
+    with assert_raises(ValueError):
+        vv1.estimate_cov('jackknife')
+    with assert_raises(ValueError):
+        vv1.estimate_cov('sample')
+    with assert_raises(ValueError):
+        vv1.estimate_cov('marked_bootstrap')
+    with assert_raises(ValueError):
+        vv1.estimate_cov('bootstrap')
+
+    cata = treecorr.Catalog(x=x2[:100], y=y2[:100], v1=v1[:100], v2=v2[:100], npatch=10)
+    catb = treecorr.Catalog(x=x2[:100], y=y2[:100], v1=v1[:100], v2=v2[:100], npatch=2)
+    vv4 = treecorr.VVCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife')
+    vv5 = treecorr.VVCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife')
+    # All catalogs need to have the same number of patches
+    with assert_raises(RuntimeError):
+        vv4.process(cata,catb)
+    with assert_raises(RuntimeError):
+        vv5.process(catb,cata)
+
+
 if __name__ == '__main__':
     test_direct()
     test_direct_spherical()
     test_vv()
     test_spherical()
     test_varxi()
+    test_jk()

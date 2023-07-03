@@ -38,9 +38,11 @@ def test_ascii():
     dec = rng.random_sample(nobj)
     r = rng.random_sample(nobj)
     wpos = rng.random_sample(nobj)
+    k = rng.random_sample(nobj)
     g1 = rng.random_sample(nobj)
     g2 = rng.random_sample(nobj)
-    k = rng.random_sample(nobj)
+    v1 = rng.random_sample(nobj)
+    v2 = rng.random_sample(nobj)
 
     # Some elements have both w and wpos = 0.
     w = wpos.copy()
@@ -60,10 +62,11 @@ def test_ascii():
     file_name = os.path.join('data','test.dat')
     with open(file_name, 'w') as fid:
         # These are intentionally in a different order from the order we parse them.
-        fid.write('# ra, dec, x, y, k, g1, g2, w, z, r, wpos, flag\n')
+        fid.write('# ra, dec, x, y, k, g1, g2, w, z, v1, v2, r, wpos, flag\n')
         for i in range(nobj):
-            fid.write((('%.8f '*11)+'%d\n')%(
-                ra[i],dec[i],x[i],y[i],k[i],g1[i],g2[i],w[i],z[i],r[i],wpos[i],flags[i]))
+            fid.write((('%.8f '*13)+'%d\n')%(
+                ra[i],dec[i],x[i],y[i],k[i],g1[i],g2[i],w[i],z[i],
+                v1[i],v2[i],r[i],wpos[i],flags[i]))
 
     # Check basic input
     config = {
@@ -73,12 +76,15 @@ def test_ascii():
         'x_units' : 'rad',
         'y_units' : 'rad',
         'w_col' : 8,
-        'wpos_col' : 11,
+        'wpos_col' : 13,
         'k_col' : 5,
         'g1_col' : 6,
         'g2_col' : 7,
+        'v1_col' : 10,
+        'v2_col' : 11,
         'kk_file_name' : 'kk.out',  # These make sure k and g are required.
         'gg_file_name' : 'gg.out',
+        'vv_file_name' : 'vv.out',
         'keep_zero_weight' : True,
     }
     cat1 = treecorr.Catalog(file_name, config)
@@ -86,9 +92,11 @@ def test_ascii():
     np.testing.assert_almost_equal(cat1.y, y)
     np.testing.assert_almost_equal(cat1.z, z)
     np.testing.assert_almost_equal(cat1.w, w)
+    np.testing.assert_almost_equal(cat1.k, k)
     np.testing.assert_almost_equal(cat1.g1, g1)
     np.testing.assert_almost_equal(cat1.g2, g2)
-    np.testing.assert_almost_equal(cat1.k, k)
+    np.testing.assert_almost_equal(cat1.v1, v1)
+    np.testing.assert_almost_equal(cat1.v2, v2)
     np.testing.assert_almost_equal(cat1.wpos, wpos)
 
     # Check using names
@@ -103,6 +111,8 @@ def test_ascii():
         'k_col' : 'k',
         'g1_col' : 'g1',
         'g2_col' : 'g2',
+        'v1_col' : 'v1',
+        'v2_col' : 'v2',
         'keep_zero_weight' : True,
     }
     cat1b = treecorr.Catalog(file_name, config_names)
@@ -110,9 +120,11 @@ def test_ascii():
     np.testing.assert_almost_equal(cat1b.y, y)
     np.testing.assert_almost_equal(cat1b.z, z)
     np.testing.assert_almost_equal(cat1b.w, w)
+    np.testing.assert_almost_equal(cat1b.k, k)
     np.testing.assert_almost_equal(cat1b.g1, g1)
     np.testing.assert_almost_equal(cat1b.g2, g2)
-    np.testing.assert_almost_equal(cat1b.k, k)
+    np.testing.assert_almost_equal(cat1b.v1, v1)
+    np.testing.assert_almost_equal(cat1b.v2, v2)
     np.testing.assert_almost_equal(cat1b.wpos, wpos)
 
     assert_raises(ValueError, treecorr.Catalog, file_name)
@@ -123,6 +135,7 @@ def test_ascii():
     assert_raises(TypeError, treecorr.Catalog, file_name, config, dec=dec)
     assert_raises(TypeError, treecorr.Catalog, file_name, config, r=r)
     assert_raises(TypeError, treecorr.Catalog, file_name, config, g2=g2)
+    assert_raises(TypeError, treecorr.Catalog, file_name, config, v1=v1)
     assert_raises(TypeError, treecorr.Catalog, file_name, config, k=k)
     assert_raises(TypeError, treecorr.Catalog, file_name, config, w=w)
     assert_raises(TypeError, treecorr.Catalog, file_name, config, wpos=wpos)
@@ -153,6 +166,12 @@ def test_ascii():
     assert_raises(ValueError, treecorr.Catalog, file_name, config, g2_col=-1)
     assert_raises(ValueError, treecorr.Catalog, file_name, config, g2_col=100)
     assert_raises(ValueError, treecorr.Catalog, file_name, config, g2_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, v1_col=-1)
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, v1_col=100)
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, v1_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, v2_col=-1)
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, v2_col=100)
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, v2_col='invalid')
     assert_raises(ValueError, treecorr.Catalog, file_name, config, flag_col=-1)
     assert_raises(ValueError, treecorr.Catalog, file_name, config, flag_col=100)
     assert_raises(ValueError, treecorr.Catalog, file_name, config, flag_col='invalid')
@@ -164,7 +183,7 @@ def test_ascii():
     assert_raises(ValueError, treecorr.Catalog, file_name, config, x_col=0, y_col=0, z_col=0)
 
     # Check flags
-    config['flag_col'] = 12
+    config['flag_col'] = 14
     print('config = ',config)
     cat2 = treecorr.Catalog(file_name, config, file_type='ASCII')
     np.testing.assert_almost_equal(cat2.w[flags==0], w[flags==0])
@@ -191,7 +210,7 @@ def test_ascii():
     np.testing.assert_almost_equal(cat4.w[flags < 16], 1.)
     np.testing.assert_almost_equal(cat4.w[flags >= 16], 0.)
     config['w_col'] = 8  # Put them back for later.
-    config['wpos_col'] = 11
+    config['wpos_col'] = 13
 
     # Check different units for x,y
     config['x_units'] = 'arcsec'
@@ -230,7 +249,7 @@ def test_ascii():
     del config['y_col']
     config['ra_col'] = 1
     config['dec_col'] = 2
-    config['r_col'] = 10
+    config['r_col'] = 12
     config['ra_units'] = 'rad'
     config['dec_units'] = 'rad'
     cat6 = treecorr.Catalog(file_name, config)
@@ -284,10 +303,11 @@ def test_ascii():
         fid.write('% And more than one header line.')
         fid.write('% Plus some extra comment lines every so often.')
         fid.write('% And we use a weird comment marker to boot.')
-        fid.write('% ra,dec,x,y,k,g1,g2,w,flag\n')
+        fid.write('% ra,dec,x,y,k,g1,g2,v1,v2,w,flag\n')
         for i in range(nobj):
-            fid.write((('%.8f,'*11)+'%d\n')%(
-                ra[i],dec[i],x[i],y[i],k[i],g1[i],g2[i],w[i],z[i],r[i],wpos[i],flags[i]))
+            fid.write((('%.8f,'*13)+'%d\n')%(
+                ra[i],dec[i],x[i],y[i],k[i],g1[i],g2[i],w[i],z[i],
+                v1[i],v2[i],r[i],wpos[i],flags[i]))
             if i%100 == 0:
                 fid.write('%%%% Line %d\n'%i)
     config['delimiter'] = ','
@@ -298,6 +318,8 @@ def test_ascii():
     np.testing.assert_almost_equal(cat7.r, r)
     np.testing.assert_almost_equal(cat7.g1, g1)
     np.testing.assert_almost_equal(cat7.g2, g2)
+    np.testing.assert_almost_equal(cat7.v1, v1)
+    np.testing.assert_almost_equal(cat7.v2, v2)
     np.testing.assert_almost_equal(cat7.w[flags < 16], w[flags < 16])
     np.testing.assert_almost_equal(cat7.w[flags >= 16], 0.)
 
@@ -325,6 +347,27 @@ def test_ascii():
     np.testing.assert_almost_equal(cat8.g1, -g1)
     np.testing.assert_almost_equal(cat8.g2, g2)
 
+    # Check flip_v1, flip_v2
+    config['flip_v1'] = True
+    cat8 = treecorr.Catalog(file_name, config)
+    np.testing.assert_almost_equal(cat8.v1, -v1)
+    np.testing.assert_almost_equal(cat8.v2, v2)
+
+    config['flip_v2'] = 'true'
+    cat8 = treecorr.Catalog(file_name, config)
+    np.testing.assert_almost_equal(cat8.v1, -v1)
+    np.testing.assert_almost_equal(cat8.v2, -v2)
+
+    config['flip_v1'] = 'n'
+    config['flip_v2'] = 'yes'
+    cat8 = treecorr.Catalog(file_name, config)
+    np.testing.assert_almost_equal(cat8.v1, v1)
+    np.testing.assert_almost_equal(cat8.v2, -v2)
+
+    cat8 = treecorr.Catalog(file_name, config, flip_v1=True, flip_v2=False)
+    np.testing.assert_almost_equal(cat8.v1, -v1)
+    np.testing.assert_almost_equal(cat8.v2, v2)
+
     # Check copy command
     cat9 = cat8.copy()
     np.testing.assert_almost_equal(cat9.ra, cat8.ra)
@@ -332,16 +375,18 @@ def test_ascii():
     np.testing.assert_almost_equal(cat9.r, cat8.r)
     np.testing.assert_almost_equal(cat9.g1, cat8.g1)
     np.testing.assert_almost_equal(cat9.g2, cat8.g2)
+    np.testing.assert_almost_equal(cat9.v1, cat8.v1)
+    np.testing.assert_almost_equal(cat9.v2, cat8.v2)
     np.testing.assert_almost_equal(cat9.w, cat8.w)
 
     # Swapping w and wpos leads to zeros being copied from wpos to w
-    cat10 = treecorr.Catalog(file_name, config, w_col=11, wpos_col=8, flag_col=0)
+    cat10 = treecorr.Catalog(file_name, config, w_col=13, wpos_col=8, flag_col=0)
     np.testing.assert_almost_equal(cat10.wpos, w)
     np.testing.assert_almost_equal(cat10.w, w)
 
     # And if there is wpos, but no w, copy over the zeros, but not the other values
     with CaptureLog() as cl:
-        cat10 = treecorr.Catalog(file_name, config, w_col=0, wpos_col=11, flag_col=0,
+        cat10 = treecorr.Catalog(file_name, config, w_col=0, wpos_col=13, flag_col=0,
                                  logger=cl.logger)
         cat10.x  # Force the read to happen.
     np.testing.assert_almost_equal(cat10.wpos, wpos)
@@ -352,6 +397,8 @@ def test_ascii():
     # Test using a limited set of rows
     del config['flip_g1']
     del config['flip_g2']
+    del config['flip_v1']
+    del config['flip_v2']
     config['first_row'] = 1010
     config['last_row'] = 3456
     cat11 = treecorr.Catalog(file_name, config)
@@ -360,9 +407,11 @@ def test_ascii():
     np.testing.assert_equal(cat11.nobj, np.sum(cat11.w != 0))
     np.testing.assert_equal(cat11.sumw, np.sum(cat11.w))
     np.testing.assert_equal(cat11.sumw, np.sum(cat6.w[1009:3456]))
+    np.testing.assert_almost_equal(cat11.k[1111], k[2120])
     np.testing.assert_almost_equal(cat11.g1[1111], g1[2120])
     np.testing.assert_almost_equal(cat11.g2[1111], g2[2120])
-    np.testing.assert_almost_equal(cat11.k[1111], k[2120])
+    np.testing.assert_almost_equal(cat11.v1[1111], v1[2120])
+    np.testing.assert_almost_equal(cat11.v2[1111], v2[2120])
 
     config['file_name'] = file_name
     cat12 = treecorr.read_catalogs(config, key='file_name', is_rand=True)[0]
@@ -371,9 +420,11 @@ def test_ascii():
     np.testing.assert_equal(cat12.nobj, np.sum(cat12.w != 0))
     np.testing.assert_equal(cat12.sumw, np.sum(cat12.w))
     np.testing.assert_equal(cat12.sumw, np.sum(cat6.w[1009:3456]))
+    assert cat12.k is None
     assert cat12.g1 is None
     assert cat12.g2 is None
-    assert cat12.k is None
+    assert cat12.v1 is None
+    assert cat12.v2 is None
 
     # Check every_nth
     config['every_nth'] = 10
@@ -394,9 +445,11 @@ def test_ascii():
     print('cat6.w[3456] = ',cat6.w[3456])
     print('cat6.w[3459] = ',cat6.w[3459])
     np.testing.assert_equal(cat13.sumw, np.sum(cat6.w[1009:3456:10]))
+    np.testing.assert_almost_equal(cat13.k[100], k[2009])
     np.testing.assert_almost_equal(cat13.g1[100], g1[2009])
     np.testing.assert_almost_equal(cat13.g2[100], g2[2009])
-    np.testing.assert_almost_equal(cat13.k[100], k[2009])
+    np.testing.assert_almost_equal(cat13.v1[100], v1[2009])
+    np.testing.assert_almost_equal(cat13.v2[100], v2[2009])
 
     # Check every_nth with no first/last
     del config['first_row']
@@ -407,9 +460,11 @@ def test_ascii():
     np.testing.assert_equal(cat13a.nobj, np.sum(cat13a.w != 0))
     np.testing.assert_equal(cat13a.sumw, np.sum(cat13a.w))
     np.testing.assert_equal(cat13a.sumw, np.sum(cat6.w[::10]))
+    np.testing.assert_almost_equal(cat13a.k[100], k[1000])
     np.testing.assert_almost_equal(cat13a.g1[100], g1[1000])
     np.testing.assert_almost_equal(cat13a.g2[100], g2[1000])
-    np.testing.assert_almost_equal(cat13a.k[100], k[1000])
+    np.testing.assert_almost_equal(cat13a.v1[100], v1[1000])
+    np.testing.assert_almost_equal(cat13a.v2[100], v2[1000])
 
     do_pickle(cat1)
     do_pickle(cat2)
@@ -467,9 +522,11 @@ def test_ascii():
     assert cat14a._r is None
     assert cat14a._w is None
     assert cat14a._wpos is None
+    assert cat14a._k is None
     assert cat14a._g1 is None
     assert cat14a._g2 is None
-    assert cat14a._k is None
+    assert cat14a._v1 is None
+    assert cat14a._v2 is None
     assert cat14a == cat14    # When needed, it will reload, e.g. here to check equality.
 
 @timer
@@ -517,9 +574,9 @@ def _test_aardvark(filename, file_type, ext):
     np.testing.assert_almost_equal(cat1.ra[0], 56.4195 * (pi/180.))
     np.testing.assert_almost_equal(cat1.ra[390934], 78.4782 * (pi/180.))
     np.testing.assert_almost_equal(cat1.dec[290333], 83.1579 * (pi/180.))
+    np.testing.assert_almost_equal(cat1.k[46392], -0.0008628797)
     np.testing.assert_almost_equal(cat1.g1[46392], 0.0005066675)
     np.testing.assert_almost_equal(cat1.g2[46392], -0.0001006742)
-    np.testing.assert_almost_equal(cat1.k[46392], -0.0008628797)
 
     cat1b = treecorr.Catalog(file_name, config, every_nth=10)
     np.testing.assert_equal(len(cat1b.ra), 39094)
@@ -533,18 +590,20 @@ def _test_aardvark(filename, file_type, ext):
     assert_raises(ValueError, treecorr.Catalog, file_name, config, w_col='invalid')
     assert_raises(ValueError, treecorr.Catalog, file_name, config, wpos_col='invalid')
     assert_raises(ValueError, treecorr.Catalog, file_name, config, flag_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, k_col='invalid')
     assert_raises(ValueError, treecorr.Catalog, file_name, config, g1_col='invalid')
     assert_raises(ValueError, treecorr.Catalog, file_name, config, g2_col='invalid')
-    assert_raises(ValueError, treecorr.Catalog, file_name, config, k_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, v1_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, v2_col='invalid')
     assert_raises(ValueError, treecorr.Catalog, file_name, config, ra_col='0')
     assert_raises(ValueError, treecorr.Catalog, file_name, config, dec_col='0')
     assert_raises(ValueError, treecorr.Catalog, file_name, config, x_col='x')
     assert_raises(ValueError, treecorr.Catalog, file_name, config, y_col='y')
     assert_raises(ValueError, treecorr.Catalog, file_name, config, z_col='z')
     assert_raises(ValueError, treecorr.Catalog, file_name, config, ra_col='0', dec_col='0')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, k_col='0')
     assert_raises(ValueError, treecorr.Catalog, file_name, config, g1_col='0')
     assert_raises(ValueError, treecorr.Catalog, file_name, config, g2_col='0')
-    assert_raises(ValueError, treecorr.Catalog, file_name, config, k_col='0')
     assert_raises(TypeError, treecorr.Catalog, file_name, config, x_units='arcmin')
     assert_raises(TypeError, treecorr.Catalog, file_name, config, y_units='arcmin')
     del config['ra_units']
@@ -576,9 +635,11 @@ def _test_aardvark(filename, file_type, ext):
     assert_raises(ValueError, treecorr.Catalog, file_name, config, w_col='invalid')
     assert_raises(ValueError, treecorr.Catalog, file_name, config, wpos_col='invalid')
     assert_raises(ValueError, treecorr.Catalog, file_name, config, flag_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, k_col='invalid')
     assert_raises(ValueError, treecorr.Catalog, file_name, config, g1_col='invalid')
     assert_raises(ValueError, treecorr.Catalog, file_name, config, g2_col='invalid')
-    assert_raises(ValueError, treecorr.Catalog, file_name, config, k_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, v1_col='invalid')
+    assert_raises(ValueError, treecorr.Catalog, file_name, config, v2_col='invalid')
 
     # Test using a limited set of rows
     # Also explicit file_type
@@ -591,9 +652,9 @@ def _test_aardvark(filename, file_type, ext):
     np.testing.assert_equal(cat3.nobj, np.sum(cat3.w != 0))
     np.testing.assert_equal(cat3.sumw, np.sum(cat3.w))
     np.testing.assert_equal(cat3.sumw, np.sum(cat2.w[100:50000]))
+    np.testing.assert_almost_equal(cat3.k[46292], cat2.k[46392])
     np.testing.assert_almost_equal(cat3.g1[46292], cat2.g1[46392])
     np.testing.assert_almost_equal(cat3.g2[46292], cat2.g2[46392])
-    np.testing.assert_almost_equal(cat3.k[46292], cat2.k[46392])
 
     cat4 = treecorr.read_catalogs(config, key='file_name', is_rand=True)[0]
     np.testing.assert_equal(len(cat4.x), 49900)
@@ -601,9 +662,11 @@ def _test_aardvark(filename, file_type, ext):
     np.testing.assert_equal(cat4.nobj, np.sum(cat4.w != 0))
     np.testing.assert_equal(cat4.sumw, np.sum(cat4.w))
     np.testing.assert_equal(cat4.sumw, np.sum(cat2.w[100:50000]))
+    assert cat4.k is None
     assert cat4.g1 is None
     assert cat4.g2 is None
-    assert cat4.k is None
+    assert cat4.v1 is None
+    assert cat4.v2 is None
 
     # Check all rows with every_nth first.  This used to not work right due to a bug in fitsio.
     # cf. https://github.com/esheldon/fitsio/pull/286
@@ -616,9 +679,9 @@ def _test_aardvark(filename, file_type, ext):
     np.testing.assert_equal(cat5a.nobj, np.sum(cat5a.w != 0))
     np.testing.assert_equal(cat5a.sumw, np.sum(cat5a.w))
     np.testing.assert_equal(cat5a.sumw, np.sum(cat2.w[::100]))
+    np.testing.assert_almost_equal(cat5a.k[123], cat2.k[12300])
     np.testing.assert_almost_equal(cat5a.g1[123], cat2.g1[12300])
     np.testing.assert_almost_equal(cat5a.g2[123], cat2.g2[12300])
-    np.testing.assert_almost_equal(cat5a.k[123], cat2.k[12300])
 
     # Now with first, last, and every_nth
     config['first_row'] = 101
@@ -629,9 +692,9 @@ def _test_aardvark(filename, file_type, ext):
     np.testing.assert_equal(cat5.nobj, np.sum(cat5.w != 0))
     np.testing.assert_equal(cat5.sumw, np.sum(cat5.w))
     np.testing.assert_equal(cat5.sumw, np.sum(cat2.w[100:50000:100]))
+    np.testing.assert_almost_equal(cat5.k[123], cat2.k[12400])
     np.testing.assert_almost_equal(cat5.g1[123], cat2.g1[12400])
     np.testing.assert_almost_equal(cat5.g2[123], cat2.g2[12400])
-    np.testing.assert_almost_equal(cat5.k[123], cat2.k[12400])
 
     do_pickle(cat1)
     do_pickle(cat2)
@@ -683,9 +746,11 @@ def _test_aardvark(filename, file_type, ext):
     assert cat6a._r is None
     assert cat6a._w is None
     assert cat6a._wpos is None
+    assert cat6a._k is None
     assert cat6a._g1 is None
     assert cat6a._g2 is None
-    assert cat6a._k is None
+    assert cat6a._v1 is None
+    assert cat6a._v2 is None
     assert cat6a == cat6    # When needed, it will reload, e.g. here to check equality.
 
     assert_raises(ValueError, treecorr.Catalog, file_name, config, first_row=-10)
@@ -725,10 +790,12 @@ def test_ext():
     k = rng.normal(0,3, (ngal,) )
     g1 = rng.normal(0,0.1, (ngal,) )
     g2 = rng.normal(0,0.1, (ngal,) )
+    v1 = rng.normal(0,0.1, (ngal,) )
+    v2 = rng.normal(0,0.1, (ngal,) )
     patch = np.arange(ngal) % 5
 
-    data = [x,y,z,ra,dec,r,w,wpos,flag,k,g1,g2]
-    names = ['x','y','z','ra','dec','r','w','wpos','flag','k','g1','g2']
+    data = [x,y,z,ra,dec,r,flag,w,wpos,k,g1,g2,v1,v2]
+    names = ['x','y','z','ra','dec','r','flag','w','wpos','k','g1','g2','v1','v2']
 
     fname = os.path.join('data','test_ext.fits')
     with fitsio.FITS(fname, 'rw', clobber=True) as f:
@@ -746,14 +813,14 @@ def test_ext():
                             ra_col='ra', dec_col='dec', r_col='r',
                             ra_units='rad', dec_units='rad',
                             w_col='w', wpos_col='wpos', flag_col='flag',
-                            k_col='k', g1_col='g1', g2_col='g2',
+                            k_col='k', g1_col='g1', g2_col='g2', v1_col='v1', v2_col='v2',
                             ext=1)
     cat2 = treecorr.Catalog(fname, allow_xyz=True,
                             x_col='x', y_col='y', z_col='z',
                             ra_col='ra', dec_col='dec', r_col='r',
                             ra_units='rad', dec_units='rad',
                             w_col='w', wpos_col='wpos', flag_col='flag',
-                            k_col='k', g1_col='g1', g2_col='g2',
+                            k_col='k', g1_col='g1', g2_col='g2', v1_col='v1', v2_col='v2',
                             ext=2)
     assert cat2 == cat1
 
@@ -790,7 +857,7 @@ def test_ext():
 
     cat6 = treecorr.Catalog(fname,
                             x_col='x', y_col='y', z_col='z',
-                            k_col='k', g1_col='g1', g2_col='g2',
+                            k_col='k', g1_col='g1', g2_col='g2', v1_col='v1', v2_col='v2',
                             ext=6)
     np.testing.assert_array_equal(cat6.x[use], cat1.x)
     np.testing.assert_array_equal(cat6.y[use], cat1.y)
@@ -798,13 +865,15 @@ def test_ext():
     np.testing.assert_array_equal(cat6.k[use], cat1.k)
     np.testing.assert_array_equal(cat6.g1[use], cat1.g1)
     np.testing.assert_array_equal(cat6.g2[use], cat1.g2)
+    np.testing.assert_array_equal(cat6.v1[use], cat1.v1)
+    np.testing.assert_array_equal(cat6.v2[use], cat1.v2)
 
     cat7 = treecorr.Catalog(fname, allow_xyz=True,
                             x_col='x', y_col='y', z_col='z',
                             ra_col='ra', dec_col='dec', r_col='r',
                             ra_units='rad', dec_units='rad',
                             w_col='w', wpos_col='wpos', flag_col='flag',
-                            k_col='k', g1_col='g1', g2_col='g2',
+                            k_col='k', g1_col='g1', g2_col='g2', v1_col='v1', v2_col='v2',
                             ext=8)
     assert cat7 != cat1  # This one has all the column names wrong.
 
@@ -813,7 +882,7 @@ def test_ext():
                             ra_col='ra', dec_col='dec', r_col='r',
                             ra_units='rad', dec_units='rad',
                             w_col='w', wpos_col='wpos', flag_col='flag',
-                            k_col='k', g1_col='g1', g2_col='g2',
+                            k_col='k', g1_col='g1', g2_col='g2', v1_col='v1', v2_col='v2',
                             ext=-1)
     assert cat8 == cat7  # -1 is allowed and means the last one.
 
@@ -822,11 +891,11 @@ def test_ext():
                             ra_col='ra', dec_col='dec', r_col='r',
                             ra_units='rad', dec_units='rad',
                             w_col='w', wpos_col='wpos', flag_col='flag',
-                            k_col='k', g1_col='g1', g2_col='g2',
+                            k_col='k', g1_col='g1', g2_col='g2', v1_col='v1', v2_col='v2',
                             x_ext=1, y_ext=1, z_ext=1,
                             ra_ext=2, dec_ext=1, r_ext=2,
                             w_ext=1, wpos_ext=2, flag_ext=1,
-                            k_ext=1, g1_ext=1, g2_ext=2)
+                            k_ext=1, g1_ext=1, g2_ext=2, v1_ext=1, v2_ext=2)
     assert cat9 == cat1
 
     cat10 = treecorr.Catalog(fname, allow_xyz=True,
@@ -834,11 +903,11 @@ def test_ext():
                              ra_col='ra', dec_col='dec', r_col='r',
                              ra_units='rad', dec_units='rad',
                              w_col='w', wpos_col='wpos', flag_col='flag',
-                             k_col='k', g1_col='g1', g2_col='g2',
+                             k_col='k', g1_col='g1', g2_col='g2', v1_col='v1', v2_col='v2',
                              x_ext=3, y_ext=3, z_ext=3,
                              ra_ext=4, dec_ext=4, r_ext=4,
                              w_ext=5, wpos_ext=5, flag_ext=5,
-                             k_ext=6, g1_ext=6, g2_ext=6)
+                             k_ext=6, g1_ext=6, g2_ext=6, v1_ext=6, v2_ext=6)
     assert cat10 == cat1
 
     # Not all columns in given ext
@@ -848,7 +917,7 @@ def test_ext():
                          ra_col='ra', dec_col='dec', r_col='r',
                          ra_units='rad', dec_units='rad',
                          w_col='w', wpos_col='wpos', flag_col='flag',
-                         k_col='k', g1_col='g1', g2_col='g2',
+                         k_col='k', g1_col='g1', g2_col='g2', v1_col='v1', v2_col='v2',
                          ext=3)
 
     # Invalid ext
@@ -858,7 +927,7 @@ def test_ext():
                          ra_col='ra', dec_col='dec', r_col='r',
                          ra_units='rad', dec_units='rad',
                          w_col='w', wpos_col='wpos', flag_col='flag',
-                         k_col='k', g1_col='g1', g2_col='g2',
+                         k_col='k', g1_col='g1', g2_col='g2', v1_col='v1', v2_col='v2',
                          ext=9)
     with assert_raises(ValueError):
         treecorr.Catalog(fname, allow_xyz=True,
@@ -866,7 +935,7 @@ def test_ext():
                          ra_col='ra', dec_col='dec', r_col='r',
                          ra_units='rad', dec_units='rad',
                          w_col='w', wpos_col='wpos', flag_col='flag',
-                         k_col='k', g1_col='g1', g2_col='g2',
+                         k_col='k', g1_col='g1', g2_col='g2', v1_col='v1', v2_col='v2',
                          ext=0)
     with assert_raises(ValueError):
         treecorr.Catalog(fname, allow_xyz=True,
@@ -874,7 +943,7 @@ def test_ext():
                          ra_col='ra', dec_col='dec', r_col='r',
                          ra_units='rad', dec_units='rad',
                          w_col='w', wpos_col='wpos', flag_col='flag',
-                         k_col='k', g1_col='g1', g2_col='g2',
+                         k_col='k', g1_col='g1', g2_col='g2', v1_col='v1', v2_col='v2',
                          ext=-20)
 
     # Not all columns in given ext
@@ -882,13 +951,13 @@ def test_ext():
         treecorr.Catalog(fname,
                          ra_col='ra', dec_col='dec',
                          ra_units='rad', dec_units='rad',
-                         k_col='k', g1_col='g1', g2_col='g2',
+                         k_col='k', g1_col='g1', g2_col='g2', v1_col='v1', v2_col='v2',
                          ext=6)
 
     # Position columns required
     with assert_raises(ValueError):
         treecorr.Catalog(fname,
-                         k_col='k', g1_col='g1', g2_col='g2',
+                         k_col='k', g1_col='g1', g2_col='g2', v1_col='v1', v2_col='v2',
                          ext=6)
 
     # Missing units
@@ -897,7 +966,7 @@ def test_ext():
                          x_col='x', y_col='y', z_col='z',
                          ra_col='ra', dec_col='dec', r_col='r',
                          w_col='w', wpos_col='wpos', flag_col='flag',
-                         k_col='k', g1_col='g1', g2_col='g2',
+                         k_col='k', g1_col='g1', g2_col='g2', v1_col='v1', v2_col='v2',
                          ext=1)
     with assert_raises(TypeError):
         treecorr.Catalog(fname, allow_xyz=True,
@@ -905,7 +974,7 @@ def test_ext():
                          ra_col='ra', dec_col='dec', r_col='r',
                          ra_units='rad',
                          w_col='w', wpos_col='wpos', flag_col='flag',
-                         k_col='k', g1_col='g1', g2_col='g2',
+                         k_col='k', g1_col='g1', g2_col='g2', v1_col='v1', v2_col='v2',
                          ext=1)
     with assert_raises(TypeError):
         treecorr.Catalog(fname, allow_xyz=True,
@@ -913,7 +982,7 @@ def test_ext():
                          ra_col='ra', dec_col='dec', r_col='r',
                          dec_units='rad',
                          w_col='w', wpos_col='wpos', flag_col='flag',
-                         k_col='k', g1_col='g1', g2_col='g2',
+                         k_col='k', g1_col='g1', g2_col='g2', v1_col='v1', v2_col='v2',
                          ext=1)
 
     # test that the case where we can't slice works
@@ -925,11 +994,11 @@ def test_ext():
                                  ra_col='ra', dec_col='dec', r_col='r',
                                  ra_units='rad', dec_units='rad',
                                  w_col='w', wpos_col='wpos', flag_col='flag',
-                                 k_col='k', g1_col='g1', g2_col='g2',
+                                 k_col='k', g1_col='g1', g2_col='g2', v1_col='v1', v2_col='v2',
                                  x_ext=3, y_ext=3, z_ext=3,
                                  ra_ext=4, dec_ext=4, r_ext=4,
                                  w_ext=5, wpos_ext=5, flag_ext=5,
-                                 k_ext=6, g1_ext=6, g2_ext=6)
+                                 k_ext=6, g1_ext=6, g2_ext=6, v1_ext=6, v2_ext=6)
         assert cat11 == cat1
         # and equiv for RA
         cat12 = treecorr.Catalog(fname,
@@ -973,26 +1042,32 @@ def test_direct():
     ra = rng.random_sample(nobj)
     dec = rng.random_sample(nobj)
     w = rng.random_sample(nobj)
+    k = rng.random_sample(nobj)
     g1 = rng.random_sample(nobj)
     g2 = rng.random_sample(nobj)
-    k = rng.random_sample(nobj)
+    v1 = rng.random_sample(nobj)
+    v2 = rng.random_sample(nobj)
 
-    cat1 = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, k=k)
+    cat1 = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, k=k, v1=v1, v2=v2)
     np.testing.assert_almost_equal(cat1.x, x)
     np.testing.assert_almost_equal(cat1.y, y)
     np.testing.assert_almost_equal(cat1.w, w)
+    np.testing.assert_almost_equal(cat1.k, k)
     np.testing.assert_almost_equal(cat1.g1, g1)
     np.testing.assert_almost_equal(cat1.g2, g2)
-    np.testing.assert_almost_equal(cat1.k, k)
+    np.testing.assert_almost_equal(cat1.v1, v1)
+    np.testing.assert_almost_equal(cat1.v2, v2)
 
-    cat2 = treecorr.Catalog(ra=ra, dec=dec, w=w, g1=g1, g2=g2, k=k,
+    cat2 = treecorr.Catalog(ra=ra, dec=dec, w=w, g1=g1, g2=g2, k=k, v1=v1, v2=v2,
                             ra_units='hours', dec_units='degrees')
     np.testing.assert_almost_equal(cat2.ra, ra * coord.hours / coord.radians)
     np.testing.assert_almost_equal(cat2.dec, dec * coord.degrees / coord.radians)
     np.testing.assert_almost_equal(cat2.w, w)
+    np.testing.assert_almost_equal(cat2.k, k)
     np.testing.assert_almost_equal(cat2.g1, g1)
     np.testing.assert_almost_equal(cat2.g2, g2)
-    np.testing.assert_almost_equal(cat2.k, k)
+    np.testing.assert_almost_equal(cat2.v1, v1)
+    np.testing.assert_almost_equal(cat2.v2, v2)
 
     do_pickle(cat1)
     do_pickle(cat2)
@@ -1015,6 +1090,8 @@ def test_direct():
     assert_raises(TypeError, treecorr.Catalog, dec=dec, dec_units='degrees')
     assert_raises(TypeError, treecorr.Catalog, x=x, y=y, g1=g1)
     assert_raises(TypeError, treecorr.Catalog, x=x, y=y, g2=g2)
+    assert_raises(TypeError, treecorr.Catalog, x=x, y=y, v1=v1)
+    assert_raises(TypeError, treecorr.Catalog, x=x, y=y, v2=v2)
     assert_raises(TypeError, treecorr.Catalog, ra=ra, dec=dec)
     assert_raises(TypeError, treecorr.Catalog, ra=ra, dec=dec, ra_unit='deg')
     assert_raises(TypeError, treecorr.Catalog, ra=ra, dec=dec, dec_unit='deg')
@@ -1030,10 +1107,13 @@ def test_direct():
     assert_raises(ValueError, treecorr.Catalog, x=x, y=y, z=x[4:])
     assert_raises(ValueError, treecorr.Catalog, x=x, y=y, w=w[4:])
     assert_raises(ValueError, treecorr.Catalog, x=x, y=y, w=w, wpos=w[4:])
+    assert_raises(ValueError, treecorr.Catalog, x=x, y=y, w=w, k=k[4:])
     assert_raises(ValueError, treecorr.Catalog, x=x, y=y, w=w, g1=g1[4:], g2=g2[4:])
     assert_raises(ValueError, treecorr.Catalog, x=x, y=y, w=w, g1=g1[4:], g2=g2)
     assert_raises(ValueError, treecorr.Catalog, x=x, y=y, w=w, g1=g1, g2=g2[4:])
-    assert_raises(ValueError, treecorr.Catalog, x=x, y=y, w=w, k=k[4:])
+    assert_raises(ValueError, treecorr.Catalog, x=x, y=y, w=w, v1=v1[4:], v2=v2[4:])
+    assert_raises(ValueError, treecorr.Catalog, x=x, y=y, w=w, v1=v1[4:], v2=v2)
+    assert_raises(ValueError, treecorr.Catalog, x=x, y=y, w=w, v1=v1, v2=v2[4:])
     assert_raises(ValueError, treecorr.Catalog, ra=ra, dec=dec[4:], w=w, g1=g1, g2=g2, k=k,
                   ra_units='hours', dec_units='degrees')
     assert_raises(ValueError, treecorr.Catalog, ra=ra[4:], dec=dec, w=w, g1=g1, g2=g2, k=k,
@@ -1050,83 +1130,117 @@ def test_var():
 
     # First without weights
     cats = []
+    allk = []
     allg1 = []
     allg2 = []
-    allk = []
+    allv1 = []
+    allv2 = []
     for i in range(10):
         x = rng.random_sample(nobj)
         y = rng.random_sample(nobj)
+        k = rng.random_sample(nobj) - 0.5
         g1 = rng.random_sample(nobj) - 0.5
         g2 = rng.random_sample(nobj) - 0.5
-        k = rng.random_sample(nobj) - 0.5
-        cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=k)
-        varg = (np.sum(g1**2) + np.sum(g2**2)) / (2.*len(g1))
+        v1 = rng.random_sample(nobj) - 0.5
+        v2 = rng.random_sample(nobj) - 0.5
+        cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=k, v1=v1, v2=v2)
         vark = np.var(k, ddof=0)
+        varg = (np.sum(g1**2) + np.sum(g2**2)) / (2.*len(g1))
+        varv = (np.var(v1, ddof=0) + np.var(v2, ddof=0))/2
         assert np.isclose(cat.vark, vark)
         assert np.isclose(cat.varg, varg)
+        assert np.isclose(cat.varv, varv)
         assert np.isclose(treecorr.calculateVarK(cat), vark)
         assert np.isclose(treecorr.calculateVarK([cat]), vark)
         assert np.isclose(treecorr.calculateVarG(cat), varg)
         assert np.isclose(treecorr.calculateVarG([cat]), varg)
+        assert np.isclose(treecorr.calculateVarV(cat), varv)
+        assert np.isclose(treecorr.calculateVarV([cat]), varv)
         cats.append(cat)
+        allk.extend(k)
         allg1.extend(g1)
         allg2.extend(g2)
-        allk.extend(k)
+        allv1.extend(v1)
+        allv2.extend(v2)
 
+    allk = np.array(allk)
     allg1 = np.array(allg1)
     allg2 = np.array(allg2)
-    allk = np.array(allk)
+    allv1 = np.array(allv1)
+    allv2 = np.array(allv2)
+    vark = np.var(allk, ddof=0)
     varg = (np.sum(allg1**2) + np.sum(allg2**2)) / (2. * len(allg1))
-    vark = np.sum((allk-np.mean(allk))**2) / len(allk)
-    assert np.isclose(treecorr.calculateVarG(cats), varg)
+    varv = (np.var(allv1, ddof=0) + np.var(allv2, ddof=0))/2
     assert np.isclose(treecorr.calculateVarK(cats), vark)
+    assert np.isclose(treecorr.calculateVarG(cats), varg)
+    assert np.isclose(treecorr.calculateVarV(cats), varv)
 
     # Now with weights
     cats = []
+    allk = []
     allg1 = []
     allg2 = []
-    allk = []
+    allv1 = []
+    allv2 = []
     allw = []
     for i in range(10):
         x = rng.random_sample(nobj)
         y = rng.random_sample(nobj)
         w = rng.random_sample(nobj)
+        k = rng.random_sample(nobj)
         g1 = rng.random_sample(nobj)
         g2 = rng.random_sample(nobj)
-        k = rng.random_sample(nobj)
-        cat = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, k=k)
-        varg = np.sum(w**2 * (g1**2 + g2**2)) / np.sum(w) / 2.
+        v1 = rng.random_sample(nobj)
+        v2 = rng.random_sample(nobj)
+        cat = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, k=k, v1=v1, v2=v2)
         meank = np.sum(w*k)/np.sum(w)
         vark = np.sum(w**2 * (k-meank)**2) / np.sum(w)
-        assert np.isclose(cat.varg, varg)
+        varg = np.sum(w**2 * (g1**2 + g2**2)) / np.sum(w) / 2.
+        meanv1 = np.sum(w*v1)/np.sum(w)
+        meanv2 = np.sum(w*v2)/np.sum(w)
+        varv = np.sum(w**2 * ((v1-meanv1)**2 + (v2-meanv2)**2)) / (2*np.sum(w))
         assert np.isclose(cat.vark, vark)
-        assert np.isclose(treecorr.calculateVarG(cat), varg)
-        assert np.isclose(treecorr.calculateVarG([cat]), varg)
+        assert np.isclose(cat.varg, varg)
+        assert np.isclose(cat.varv, varv)
         assert np.isclose(treecorr.calculateVarK(cat), vark)
         assert np.isclose(treecorr.calculateVarK([cat]), vark)
+        assert np.isclose(treecorr.calculateVarG(cat), varg)
+        assert np.isclose(treecorr.calculateVarG([cat]), varg)
+        assert np.isclose(treecorr.calculateVarV(cat), varv)
+        assert np.isclose(treecorr.calculateVarV([cat]), varv)
         cats.append(cat)
+        allk.extend(k)
         allg1.extend(g1)
         allg2.extend(g2)
-        allk.extend(k)
+        allv1.extend(v1)
+        allv2.extend(v2)
         allw.extend(w)
 
+    allk = np.array(allk)
     allg1 = np.array(allg1)
     allg2 = np.array(allg2)
-    allk = np.array(allk)
+    allv1 = np.array(allv1)
+    allv2 = np.array(allv2)
     allw = np.array(allw)
-    varg = np.sum(allw**2 * (allg1**2 + allg2**2)) / np.sum(allw) / 2.
     meank = np.sum(allw*allk)/np.sum(allw)
     vark = np.sum(allw**2 * (allk-meank)**2) / np.sum(allw)
-    assert np.isclose(treecorr.calculateVarG(cats), varg)
+    varg = np.sum(allw**2 * (allg1**2 + allg2**2)) / np.sum(allw) / 2.
+    meanv1 = np.sum(allw*allv1)/np.sum(allw)
+    meanv2 = np.sum(allw*allv2)/np.sum(allw)
+    varv = np.sum(allw**2 * ((allv1-meanv1)**2 + (allv2-meanv2)**2)) / (2*np.sum(allw))
     assert np.isclose(treecorr.calculateVarK(cats), vark)
+    assert np.isclose(treecorr.calculateVarG(cats), varg)
+    assert np.isclose(treecorr.calculateVarV(cats), varv)
 
     # With no g1,g2,k, varg=vark=0
     cat = treecorr.Catalog(x=x, y=y)
-    assert cat.varg == 0
     assert cat.vark == 0
+    assert cat.varg == 0
+    assert cat.varv == 0
     cat = treecorr.Catalog(x=x, y=y, w=w)
-    assert cat.varg == 0
     assert cat.vark == 0
+    assert cat.varg == 0
+    assert cat.varv == 0
 
 
 @timer
@@ -1143,9 +1257,11 @@ def test_nan():
     r = rng.random_sample(nobj)
     w = rng.random_sample(nobj)
     wpos = rng.random_sample(nobj)
+    k = rng.random_sample(nobj)
     g1 = rng.random_sample(nobj)
     g2 = rng.random_sample(nobj)
-    k = rng.random_sample(nobj)
+    v1 = rng.random_sample(nobj)
+    v2 = rng.random_sample(nobj)
 
     # Turn 1% of these values into NaN
     x[rng.choice(nobj, nobj//100)] = np.nan
@@ -1156,9 +1272,11 @@ def test_nan():
     r[rng.choice(nobj, nobj//100)] = np.nan
     w[rng.choice(nobj, nobj//100)] = np.nan
     wpos[rng.choice(nobj, nobj//100)] = np.nan
+    k[rng.choice(nobj, nobj//100)] = np.nan
     g1[rng.choice(nobj, nobj//100)] = np.nan
     g2[rng.choice(nobj, nobj//100)] = np.nan
-    k[rng.choice(nobj, nobj//100)] = np.nan
+    v1[rng.choice(nobj, nobj//100)] = np.nan
+    v2[rng.choice(nobj, nobj//100)] = np.nan
     print('x is nan at ',np.where(np.isnan(x)))
     print('y is nan at ',np.where(np.isnan(y)))
     print('z is nan at ',np.where(np.isnan(z)))
@@ -1166,9 +1284,11 @@ def test_nan():
     print('dec is nan at ',np.where(np.isnan(dec)))
     print('w is nan at ',np.where(np.isnan(w)))
     print('wpos is nan at ',np.where(np.isnan(wpos)))
+    print('k is nan at ',np.where(np.isnan(k)))
     print('g1 is nan at ',np.where(np.isnan(g1)))
     print('g2 is nan at ',np.where(np.isnan(g2)))
-    print('k is nan at ',np.where(np.isnan(k)))
+    print('v1 is nan at ',np.where(np.isnan(v1)))
+    print('v2 is nan at ',np.where(np.isnan(v2)))
 
     with CaptureLog() as cl:
         cat1 = treecorr.Catalog(x=x, y=y, z=z, w=w, k=k, logger=cl.logger, keep_zero_weight=True)
@@ -1189,7 +1309,7 @@ def test_nan():
     np.testing.assert_almost_equal(cat1.w[mask], 0)
 
     with CaptureLog() as cl:
-        cat2 = treecorr.Catalog(ra=ra, dec=dec, r=r, w=w, wpos=wpos, g1=g1, g2=g2,
+        cat2 = treecorr.Catalog(ra=ra, dec=dec, r=r, w=w, wpos=wpos, g1=g1, g2=g2, v1=v1, v2=v2,
                                 ra_units='hours', dec_units='degrees', logger=cl.logger,
                                 keep_zero_weight=True)
     assert "NaNs found in ra column." in cl.output
@@ -1197,10 +1317,13 @@ def test_nan():
     assert "NaNs found in r column." in cl.output
     assert "NaNs found in g1 column." in cl.output
     assert "NaNs found in g2 column." in cl.output
+    assert "NaNs found in v1 column." in cl.output
+    assert "NaNs found in v2 column." in cl.output
     assert "NaNs found in w column." in cl.output
     assert "NaNs found in wpos column." in cl.output
     mask = (np.isnan(ra) | np.isnan(dec) | np.isnan(r) |
-            np.isnan(g1) | np.isnan(g2) | np.isnan(wpos) | np.isnan(w))
+            np.isnan(g1) | np.isnan(g2) | np.isnan(v1) | np.isnan(v2) |
+            np.isnan(wpos) | np.isnan(w))
     good = ~mask
     assert cat2.ntot == nobj
     assert cat2.nobj == np.sum(good)
@@ -1211,12 +1334,15 @@ def test_nan():
     np.testing.assert_almost_equal(cat2.wpos[good], wpos[good])
     np.testing.assert_almost_equal(cat2.g1[good], g1[good])
     np.testing.assert_almost_equal(cat2.g2[good], g2[good])
+    np.testing.assert_almost_equal(cat2.v1[good], v1[good])
+    np.testing.assert_almost_equal(cat2.v2[good], v2[good])
     np.testing.assert_almost_equal(cat2.w[mask], 0)
 
     # If no weight column, it is make automatically to deal with Nans.
     with CaptureLog() as cl:
-        cat3 = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, logger=cl.logger, keep_zero_weight=True)
-    mask = np.isnan(x) | np.isnan(y) | np.isnan(g1) | np.isnan(g2)
+        cat3 = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, v1=v1, v2=v2,
+                                logger=cl.logger, keep_zero_weight=True)
+    mask = np.isnan(x) | np.isnan(y) | np.isnan(g1) | np.isnan(g2) | np.isnan(v1) | np.isnan(v2)
     good = ~mask
     assert cat3.ntot == nobj
     assert cat3.nobj == np.sum(good)
@@ -1225,6 +1351,8 @@ def test_nan():
     np.testing.assert_almost_equal(cat3.w[good], 1.)
     np.testing.assert_almost_equal(cat3.g1[good], g1[good])
     np.testing.assert_almost_equal(cat3.g2[good], g2[good])
+    np.testing.assert_almost_equal(cat3.v1[good], v1[good])
+    np.testing.assert_almost_equal(cat3.v2[good], v2[good])
     np.testing.assert_almost_equal(cat3.w[mask], 0)
 
 @timer
@@ -1605,12 +1733,14 @@ def test_field():
     k = rng.normal(0,s, (ngal,) )
     g1 = rng.normal(0,s, (ngal,) )
     g2 = rng.normal(0,s, (ngal,) )
+    v1 = rng.normal(0,s, (ngal,) )
+    v2 = rng.normal(0,s, (ngal,) )
 
-    cat1 = treecorr.Catalog(x=x, y=y, z=z, g1=g1, g2=g2, k=k)
+    cat1 = treecorr.Catalog(x=x, y=y, z=z, g1=g1, g2=g2, k=k, v1=v1, v2=v2)
     cat2 = treecorr.Catalog(ra=ra, dec=dec, ra_units='hour', dec_units='deg',
-                            w=w, g1=g1, g2=g2, k=k)
+                            w=w, g1=g1, g2=g2, k=k, v1=v1, v2=v2)
     cat2.logger = None
-    cat3 = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=k, w=w)
+    cat3 = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=k, w=w, v1=v1, v2=v2)
     cat3 = cat3.copy()  # This tests that post-pickled catalog still works correctly.
     cat4 = treecorr.Catalog(x=x, y=y, w=w)
     logger = treecorr.config.setup_logger(1)
@@ -1688,6 +1818,29 @@ def test_field():
     if platform.python_implementation() != 'PyPy':
         assert t2-t1 <= t1-t0
 
+    t0 = time.time()
+    vfield1 = cat1.getVField()
+    vfield2 = cat2.getVField(min_size=0.01, max_size=1)
+    vfield3 = cat3.getVField(min_size=1, max_size=300, logger=logger)
+    t1 = time.time()
+    vfield1b = cat1.getVField()
+    vfield2b = cat2.getVField(min_size=0.01, max_size=1)
+    vfield3b = cat3.getVField(min_size=1, max_size=300, logger=logger)
+    t2 = time.time()
+    assert_raises(TypeError, cat4.getVField)
+    assert cat1.vfields.count == 1
+    assert cat2.vfields.count == 1
+    assert cat3.vfields.count == 1
+    assert cat1.field is vfield1
+    assert cat2.field is vfield2
+    assert cat3.field is vfield3
+    assert vfield1b is vfield1
+    assert vfield2b is vfield2
+    assert vfield3b is vfield3
+    print('vfield: ',t1-t0,t2-t1)
+    if platform.python_implementation() != 'PyPy':
+        assert t2-t1 <= t1-t0
+
     # By default, only one is saved.  Check resize_cache option.
     cat1.resize_cache(3)
     assert cat1.nfields.size == 3
@@ -1696,7 +1849,7 @@ def test_field():
     assert cat1.nfields.count == 1
     assert cat1.kfields.count == 1
     assert cat1.gfields.count == 1
-    assert cat1.field is kfield1
+    assert cat1.field is vfield1
 
     t0 = time.time()
     nfield1 = cat1.getNField()
@@ -1855,7 +2008,6 @@ if __name__ == '__main__':
     test_hdf5()
     test_parquet()
     test_ext()
-    test_hdu()
     test_direct()
     test_var()
     test_nan()

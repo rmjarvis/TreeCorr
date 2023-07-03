@@ -416,7 +416,7 @@ class NKCorrelation(Corr2):
         self._finalize()
         if self._rk is not None:
             # If rk has npatch1 = 1, adjust pairs appropriately
-            if self._rk.npatch1 == 1:
+            if self._rk.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
                 pairs = [(0,ij[1]) for ij in pairs if ij[0] == ij[1]]
             # Make sure all ij are in the rk results (some might be missing, which is ok)
             pairs = [ij for ij in pairs if self._rk._ok[ij[0],ij[1]]]

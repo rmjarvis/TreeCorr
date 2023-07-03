@@ -429,7 +429,7 @@ class NVCorrelation(Corr2):
         self._finalize()
         if self._rv is not None:
             # If rv has npatch1 = 1, adjust pairs appropriately
-            if self._rv.npatch1 == 1:
+            if self._rv.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
                 pairs = [(0,ij[1]) for ij in pairs if ij[0] == ij[1]]
             # Make sure all ij are in the rv results (some might be missing, which is ok)
             pairs = [ij for ij in pairs if self._rv._ok[ij[0],ij[1]]]

@@ -564,6 +564,11 @@ def _test_aardvark(filename, file_type, ext):
     config['verbose'] = 1
     config['kk_file_name'] = 'kk.out'
     config['gg_file_name'] = 'gg.out'
+    include_v = (file_type != 'Parquet')  # Parquet cannot handle duplicated names.
+    if include_v:
+        config['vv_file_name'] = 'vv.out'
+        config['v1_col'] = config['g1_col']
+        config['v2_col'] = config['g2_col']
     config['file_name'] = file_name
     config['ext'] = ext
 
@@ -577,6 +582,9 @@ def _test_aardvark(filename, file_type, ext):
     np.testing.assert_almost_equal(cat1.k[46392], -0.0008628797)
     np.testing.assert_almost_equal(cat1.g1[46392], 0.0005066675)
     np.testing.assert_almost_equal(cat1.g2[46392], -0.0001006742)
+    if include_v:
+        np.testing.assert_almost_equal(cat1.v1[46392], 0.0005066675)
+        np.testing.assert_almost_equal(cat1.v2[46392], -0.0001006742)
 
     cat1b = treecorr.Catalog(file_name, config, every_nth=10)
     np.testing.assert_equal(len(cat1b.ra), 39094)
@@ -604,6 +612,9 @@ def _test_aardvark(filename, file_type, ext):
     assert_raises(ValueError, treecorr.Catalog, file_name, config, k_col='0')
     assert_raises(ValueError, treecorr.Catalog, file_name, config, g1_col='0')
     assert_raises(ValueError, treecorr.Catalog, file_name, config, g2_col='0')
+    if include_v:
+        assert_raises(ValueError, treecorr.Catalog, file_name, config, v1_col='0')
+        assert_raises(ValueError, treecorr.Catalog, file_name, config, v2_col='0')
     assert_raises(TypeError, treecorr.Catalog, file_name, config, x_units='arcmin')
     assert_raises(TypeError, treecorr.Catalog, file_name, config, y_units='arcmin')
     del config['ra_units']
@@ -655,6 +666,9 @@ def _test_aardvark(filename, file_type, ext):
     np.testing.assert_almost_equal(cat3.k[46292], cat2.k[46392])
     np.testing.assert_almost_equal(cat3.g1[46292], cat2.g1[46392])
     np.testing.assert_almost_equal(cat3.g2[46292], cat2.g2[46392])
+    if include_v:
+        np.testing.assert_almost_equal(cat3.v1[46292], cat2.v1[46392])
+        np.testing.assert_almost_equal(cat3.v2[46292], cat2.v2[46392])
 
     cat4 = treecorr.read_catalogs(config, key='file_name', is_rand=True)[0]
     np.testing.assert_equal(len(cat4.x), 49900)
@@ -682,6 +696,9 @@ def _test_aardvark(filename, file_type, ext):
     np.testing.assert_almost_equal(cat5a.k[123], cat2.k[12300])
     np.testing.assert_almost_equal(cat5a.g1[123], cat2.g1[12300])
     np.testing.assert_almost_equal(cat5a.g2[123], cat2.g2[12300])
+    if include_v:
+        np.testing.assert_almost_equal(cat5a.v1[123], cat2.v1[12300])
+        np.testing.assert_almost_equal(cat5a.v2[123], cat2.v2[12300])
 
     # Now with first, last, and every_nth
     config['first_row'] = 101
@@ -695,6 +712,9 @@ def _test_aardvark(filename, file_type, ext):
     np.testing.assert_almost_equal(cat5.k[123], cat2.k[12400])
     np.testing.assert_almost_equal(cat5.g1[123], cat2.g1[12400])
     np.testing.assert_almost_equal(cat5.g2[123], cat2.g2[12400])
+    if include_v:
+        np.testing.assert_almost_equal(cat5.v1[123], cat2.v1[12400])
+        np.testing.assert_almost_equal(cat5.v2[123], cat2.v2[12400])
 
     do_pickle(cat1)
     do_pickle(cat2)
@@ -720,7 +740,7 @@ def _test_aardvark(filename, file_type, ext):
     cat6c = copy.deepcopy(cat6)
     assert cat6._x is None  # Or deepcopy
     assert cat6c._x is None
-    print('cat6 = ',repr(cat6))
+    #print('cat6 = ',repr(cat6))
     cat6d = eval(repr(cat6))
     assert cat6._x is None  # Or repr
     assert cat6d._x is None
@@ -765,6 +785,11 @@ def _test_aardvark(filename, file_type, ext):
     del config['gg_file_name']
     assert_raises(ValueError, treecorr.Catalog, file_name, config, g1_col='0')
     assert_raises(ValueError, treecorr.Catalog, file_name, config, g2_col='0')
+
+    if include_v:
+        del config['vv_file_name']
+        assert_raises(ValueError, treecorr.Catalog, file_name, config, v1_col='0')
+        assert_raises(ValueError, treecorr.Catalog, file_name, config, v2_col='0')
 
     assert_raises(ValueError, treecorr.Catalog, file_name, config, every_nth=0)
     assert_raises(ValueError, treecorr.Catalog, file_name, config, every_nth=-10)

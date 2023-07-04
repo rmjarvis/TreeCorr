@@ -21,22 +21,35 @@ API Changes
   there were some use cases where a user could get away with not providing ``npatch`` and things
   would nonetheless still work.  But now we explicitly check for it, so those use cases do
   require passing ``npatch`` now.  (#150)
-- Renamed the base classes BinnedCorr2 -> Corr2 and BinnedCorr3 -> Corr3.  These are not normally
-  used directly by users, so it shouldn't be noticeable in user code. (#155)
+- Renamed the base classes BinnedCorr2 -> `Corr2` and BinnedCorr3 -> `Corr3`.  These are not
+  normally used directly by users, so it shouldn't be noticeable in user code. (#155)
 - Removed all deprecations from the 4.x series. (#156)
 
 
 Performance improvements
 ------------------------
 
+- Reduced the compiled library size, and refactored things so the new correlation types would not
+  add nearly as much to the compiled size as they would have previously. (#157)
+- Made a small (~5-10%) improvment in speed of most 2pt correlation runs. (#157)
 
 
 New features
 ------------
 
 - Give a better error message when patch is given as an integer, but npatch is not provided. (#150)
+- Allow numpy.random.Generator for rng arguments (in addition to legacy RandomState). (#157)
+- Added spin-1 correlations using the letter V (for Velocity), including `NVCorrelation`,
+  `KVCorrelation` and `VVCorrelation`. (#158)
 
 
 Bug fixes
 ---------
 
+- Fixed a rare potential bug in TwoD binning. (#157)
+- Allowed both lens and random catalogs to have only 1 patch when source catalog has patches
+  for NG, NK correlations. (#158)
+- Fixed slight error in the variance calculation when using initialize/finalize options of
+  process functions. (#158)
+- Fixed bug that could cause `Catalog.write_patches` to not work correctly if patch files were
+  already written in the ``save_patch_dir``. (#158)

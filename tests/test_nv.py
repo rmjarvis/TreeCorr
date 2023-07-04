@@ -1177,6 +1177,11 @@ def test_jk():
     cov7 = nv7.estimate_cov('jackknife')
     np.testing.assert_allclose(np.diagonal(cov7), var_xi_r, rtol=0.7)
 
+    nv8 = nv2.copy()
+    nv8.calculateXi(rv=rv7)
+    cov8 = nv8.estimate_cov('jackknife')
+    np.testing.assert_allclose(np.diagonal(cov8), var_xi_r, rtol=0.4)
+
     # Check some invalid actions
     # Bad var_method
     with assert_raises(ValueError):

@@ -923,6 +923,90 @@ def test_jk():
     with assert_raises(RuntimeError):
         vv5.process(catb,cata)
 
+@timer
+def test_twod():
+    from test_twod import corr2d
+    try:
+        from scipy.spatial.distance import pdist, squareform
+    except ImportError:
+        print('Skipping test_twod, since uses scipy, and scipy is not installed.')
+        return
+
+    # N random points in 2 dimensions
+    rng = np.random.RandomState(8675309)
+    N = 200
+    x = rng.uniform(-20, 20, N)
+    y = rng.uniform(-20, 20, N)
+
+    # Give the points a multivariate Gaussian random field for v
+    L1 = [[0.33, 0.09], [-0.01, 0.26]]  # Some arbitrary correlation matrix
+    invL1 = np.linalg.inv(L1)
+    dists = pdist(np.array([x,y]).T, metric='mahalanobis', VI=invL1)
+    K = np.exp(-0.5 * dists**2)
+    K = squareform(K)
+    np.fill_diagonal(K, 1.)
+
+    A = 2.3
+    sigma = A/10.
+
+    # Make v
+    v1 = rng.multivariate_normal(np.zeros(N), K*(A**2))
+    v1 += rng.normal(scale=sigma, size=N)
+    v2 = rng.multivariate_normal(np.zeros(N), K*(A**2))
+    v2 += rng.normal(scale=sigma, size=N)
+    v = v1 + 1j * v2
+
+    # Calculate the 2D correlation using brute force
+    max_sep = 21.
+    nbins = 21
+    xi_brut = corr2d(x, y, v, np.conj(v), rmax=max_sep, bins=nbins)
+
+    # And using TreeCorr
+    cat = treecorr.Catalog(x=x, y=y, v1=v1, v2=v2)
+    vv = treecorr.VVCorrelation(max_sep=max_sep, bin_size=2., bin_type='TwoD', brute=True)
+    vv.process(cat)
+    print('max abs diff = ',np.max(np.abs(vv.xip - xi_brut)))
+    print('max rel diff = ',np.max(np.abs(vv.xip - xi_brut)/np.abs(vv.xip)))
+    np.testing.assert_allclose(vv.xip, xi_brut, atol=2.e-7)
+
+    vv = treecorr.VVCorrelation(max_sep=max_sep, bin_size=2., bin_type='TwoD', bin_slop=0.05)
+    vv.process(cat)
+    print('max abs diff = ',np.max(np.abs(vv.xip - xi_brut)))
+    print('max rel diff = ',np.max(np.abs(vv.xip - xi_brut)/np.abs(vv.xip)))
+    np.testing.assert_allclose(vv.xip, xi_brut, atol=2.e-7)
+
+    # Check I/O
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        fits_name = 'output/vv_twod.fits'
+        vv.write(fits_name)
+        vv2 = treecorr.VVCorrelation(bin_size=2, nbins=nbins, bin_type='TwoD')
+        vv2.read(fits_name)
+        np.testing.assert_allclose(vv2.npairs, vv.npairs)
+        np.testing.assert_allclose(vv2.weight, vv.weight)
+        np.testing.assert_allclose(vv2.meanr, vv.meanr)
+        np.testing.assert_allclose(vv2.meanlogr, vv.meanlogr)
+        np.testing.assert_allclose(vv2.xip, vv.xip)
+        np.testing.assert_allclose(vv2.xip_im, vv.xip_im)
+        np.testing.assert_allclose(vv2.xim, vv.xim)
+        np.testing.assert_allclose(vv2.xim_im, vv.xim_im)
+
+    ascii_name = 'output/vv_twod.txt'
+    vv.write(ascii_name, precision=16)
+    vv3 = treecorr.VVCorrelation(bin_size=2, nbins=nbins, bin_type='TwoD')
+    vv3.read(ascii_name)
+    np.testing.assert_allclose(vv3.npairs, vv.npairs)
+    np.testing.assert_allclose(vv3.weight, vv.weight)
+    np.testing.assert_allclose(vv3.meanr, vv.meanr)
+    np.testing.assert_allclose(vv3.meanlogr, vv.meanlogr)
+    np.testing.assert_allclose(vv3.xip, vv.xip)
+    np.testing.assert_allclose(vv3.xip_im, vv.xip_im)
+    np.testing.assert_allclose(vv3.xim, vv.xim)
+    np.testing.assert_allclose(vv3.xim_im, vv.xim_im)
+
 
 if __name__ == '__main__':
     test_direct()
@@ -931,3 +1015,4 @@ if __name__ == '__main__':
     test_spherical()
     test_varxi()
     test_jk()
+    test_twod()

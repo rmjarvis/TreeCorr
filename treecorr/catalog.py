@@ -516,6 +516,12 @@ class Catalog(object):
                 'Whether to flip the sign of v1'),
         'flip_v2' : (bool, True, False, None,
                 'Whether to flip the sign of v2'),
+        'vark': (float, True, None, None,
+                'Variance of k values to use, rather than calculate directly'),
+        'varg': (float, True, None, None,
+                'Variance of g values to use, rather than calculate directly'),
+        'varv': (float, True, None, None,
+                'Variance of v values to use, rather than calculate directly'),
 
         'keep_zero_weight' : (bool, False, False, None,
                 'Whether to keep objects with zero weight in the catalog'),
@@ -775,6 +781,19 @@ class Catalog(object):
                 raise TypeError("ra_units is invalid without ra")
             if 'dec_units' in self.config:
                 raise TypeError("dec_units is invalid without dec")
+
+        if self.config.get('vark', None) is not None:
+            self._vark = self.config['vark']
+            self._meank = 0.
+            self._altmeank = 0.
+        if self.config.get('varg', None) is not None:
+            self._varg = self._varg1 = self._varg2 = self.config['varg']
+            self._meang1 = self._meang2 = 0.
+            self._altmeang1 = self._altmeang2 = 0.
+        if self.config.get('varv', None) is not None:
+            self._varv = self._varv1 = self._varv2 = self.config['varv']
+            self._meanv1 = self._meanv2 = 0.
+            self._altmeanv1 = self._altmeanv2 = 0.
 
         if file_name is None:
             # For vector input option, can finish up now.

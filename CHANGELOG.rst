@@ -38,6 +38,8 @@ New features
 ------------
 
 - Give a better error message when patch is given as an integer, but npatch is not provided. (#150)
+- Allow vark, varg, varv for a Catalog be specifiable on input, rather than calculated directly
+  from the corresponding values. (#154)
 - Allow numpy.random.Generator for rng arguments (in addition to legacy RandomState). (#157)
 - Added spin-1 correlations using the letter V (for Velocity), including `NVCorrelation`,
   `KVCorrelation` and `VVCorrelation`. (#158)

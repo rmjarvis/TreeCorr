@@ -53,3 +53,5 @@ Bug fixes
   process functions. (#158)
 - Fixed bug that could cause `Catalog.write_patches` to not work correctly if patch files were
   already written in the ``save_patch_dir``. (#158)
+- Fixed slight error in the shot-noise variance for G correlations.  It used to assume that the
+  mean shear is 0, which is often very close to true.  Now it uses the actual mean. (#159)

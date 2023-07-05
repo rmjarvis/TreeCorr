@@ -28,7 +28,7 @@ from .util import parse_file_type, LRU_Cache, make_writer, make_reader, set_omp_
 from .field import NField, KField, GField, VField
 
 class Catalog(object):
-    """A set of input data (positions and other quantities) to be correlated.
+    r"""A set of input data (positions and other quantities) to be correlated.
 
     A Catalog object keeps track of the relevant information for a number of objects to
     be correlated.  The objects each have some kind of position (for instance (x,y), (ra,dec),
@@ -124,34 +124,37 @@ class Catalog(object):
                 ``keep_zero_weight`` is set to True)
         nobj:   The number of objects with non-zero weight
         sumw:   The sum of the weights
+        vark:   The variance of the scalar field (0 if k is not defined)
+
+                .. note::
+
+                    If there are weights, this is really
+                    :math:`\sum(w^2 (\kappa-\langle \kappa \rangle)^2)/\sum(w)`.
+                    which is more like :math:`\langle w \rangle \mathrm{Var}(\kappa)`.
+                    It is only used for ``var_method='shot'``, where the noise estimate is this
+                    value divided by the total weight per bin, so this is the right quantity
+                    to use for that.
+
         varg:   The variance per component of the shear field (aka shape noise)
                 (0 if g1,g2 are not defined)
 
                 .. note::
 
-                    If there are weights, this is really :math:`\\sum(w^2 |g|^2)/\\sum(w)`,
-                    which is more like :math:`\\langle w \\rangle \\mathrm{Var}(g)`.
-                    It is only used for ``var_method='shot'``, where the noise estimate is this
-                    value divided by the total weight per bin, so this is the right quantity
-                    to use for that.
-
-        vark:   The variance of the scalar field (0 if k is not defined)
-
-                .. note::
-
-                    If there are weights, this is really :math:`\\sum(w^2 \\kappa^2)/\\sum(w)`.
-                    As for ``varg``, this is the right quantity to use for the ``'shot'``
+                    If there are weights, this is really
+                    :math:`\sum(w^2 |g-\langle g \rangle|^2)/\sum(w)`,
+                    which is more like :math:`\langle w \rangle \mathrm{Var}(g)`.
+                    As for ``vark``, this is the right quantity to use for the ``'shot'``
                     noise estimate.
 
         varv:   The variance per component of the vector field (0 if v1,v2 are not defined)
 
                 .. note::
 
-                    If there are weights, this is really :math:`\\sum(w^2 |v|^2)/\\sum(w)`,
-                    which is more like :math:`\\langle w \\rangle \\mathrm{Var}(v)`.
-                    It is only used for ``var_method='shot'``, where the noise estimate is this
-                    value divided by the total weight per bin, so this is the right quantity
-                    to use for that.
+                    If there are weights, this is really
+                    :math:`\sum(w^2 |v - \langle v \rangle|^2)/\sum(w)`,
+                    which is more like :math:`\langle w \rangle \mathrm{Var}(v)`.
+                    As for ``vark``, this is the right quantity to use for the ``'shot'``
+                    noise estimate.
 
         name:   When constructed from a file, this will be the file_name.  It is only used as
                 a reference name in logging output  after construction, so if you construct it
@@ -581,8 +584,8 @@ class Catalog(object):
         self._nobj = None
         self._sumw = None
         self._sumw2 = None
-        self._varg = None
         self._vark = None
+        self._varg = None
         self._varv = None
         self._patches = None
         self._centers = None
@@ -872,49 +875,41 @@ class Catalog(object):
     def patch_centers(self):
         return self.get_patch_centers()
 
-    @property
-    def varg(self):
-        if self._varg is None:
-            if self.nontrivial_w:
-                if self.g1 is not None:
-                    use = self.w != 0
-                    self._varg = np.sum(self.w[use]**2 * (self.g1[use]**2 + self.g2[use]**2))
-                    # The 2 is because we need the variance _per componenet_.
-                    self._varg /= 2.*self.sumw
-                else:
-                    self._varg = 0.
-            else:
-                if self.g1 is not None:
-                    self._varg = np.sum(self.g1**2 + self.g2**2) / (2.*self.nobj)
-                else:
-                    self._varg = 0.
-        return self._varg
-
     def _calculate_weighted_var(self, k):
         if k is not None:
             if self.nontrivial_w:
                 use = self.w != 0
                 meank = np.sum(self.w[use] * k[use]) / self.sumw
-                meank2 = np.sum(self.w[use]**2 * k[use]) / self.sumw2
+                # "alt" means weighted by w^2, rather than w, which we also need
+                # when building this back up from multiple catalogs.
+                altmeank = np.sum(self.w[use]**2 * k[use]) / self.sumw2
                 vark = np.sum(self.w[use]**2 * (k[use]-meank)**2) / self.sumw
             else:
-                meank = meank2 = np.mean(k)
+                meank = altmeank = np.mean(k)
                 vark = np.sum((k-meank)**2) / self.nobj
         else:
-            meank = meank2 = vark = 0.
-        return meank, meank2, vark
+            meank = altmeank = vark = 0.
+        return meank, altmeank, vark
 
     @property
     def vark(self):
         if self._vark is None:
-            self._meank, self._meank2, self._vark = self._calculate_weighted_var(self.k)
+            self._meank, self._altmeank, self._vark = self._calculate_weighted_var(self.k)
         return self._vark
+
+    @property
+    def varg(self):
+        if self._varg is None:
+            self._meang1, self._altmeang1, self._varg1 = self._calculate_weighted_var(self.g1)
+            self._meang2, self._altmeang2, self._varg2 = self._calculate_weighted_var(self.g2)
+            self._varg = (self._varg1 + self._varg2)/2
+        return self._varg
 
     @property
     def varv(self):
         if self._varv is None:
-            self._meanv1, self._meanv12, self._varv1 = self._calculate_weighted_var(self.v1)
-            self._meanv2, self._meanv22, self._varv2 = self._calculate_weighted_var(self.v2)
+            self._meanv1, self._altmeanv1, self._varv1 = self._calculate_weighted_var(self.v1)
+            self._meanv2, self._altmeanv2, self._varv2 = self._calculate_weighted_var(self.v2)
             self._varv = (self._varv1 + self._varv2)/2
         return self._varv
 
@@ -2460,34 +2455,30 @@ def read_catalogs(config, key=None, list_key=None, *, num=0, logger=None, is_ran
         ret += Catalog(file_name, config, num=num, logger=logger, is_rand=is_rand).get_patches()
     return ret
 
-
-def calculateVarG(cat_list, *, low_mem=False):
-    """Calculate the overall variance of the shear field from a list of catalogs.
-
-    The catalogs are assumed to be equivalent, so this is just the average shear
-    variance (per component) weighted by the number of objects in each catalog.
-
-    Parameters:
-        cat_list:   A Catalog or a list of Catalogs for which to calculate the shear variance.
-        low_mem:    Whether to try to conserve memory when cat is a list by unloading each
-                    catalog after getting its individual varg. [default: False]
-
-    Returns:
-        The variance per component of the shear field (aka shape noise).
-    """
-    if isinstance(cat_list, Catalog):
-        return cat_list.varg
-    elif len(cat_list) == 1:
-        return cat_list[0].varg
-    else:
-        varg = 0
-        sumw = 0
-        for cat in cat_list:
-            varg += cat.varg * cat.sumw
-            sumw += cat.sumw
-            if low_mem:
-                cat.unload()
-        return varg / sumw
+def _compute_var_multi_cat(cat_list, k, low_mem):
+    # k is name of the quantity to get from each catalog:
+    # e.g. vark, _meank, _altmeank.
+    vark = 0
+    meank = 0
+    altmeank = 0
+    sumw = 0
+    sumw2 = 0
+    for cat in cat_list:
+        getattr(cat, 'var' + k[0])  # Make sure _ quantities are computed.
+        cat_vark = getattr(cat, '_var' + k)
+        cat_meank = getattr(cat, '_mean' + k)
+        cat_altmeank = getattr(cat, '_altmean' + k)
+        vark += cat_vark * cat.sumw + cat_meank * cat.sumw2 * (2*cat_altmeank - cat_meank)
+        meank += cat_meank * cat.sumw
+        altmeank += cat_altmeank * cat.sumw2
+        sumw += cat.sumw
+        sumw2 += cat.sumw2
+        if low_mem:
+            cat.unload()
+    meank /= sumw
+    altmeank /= sumw2
+    vark = (vark - meank * sumw2 * (2*altmeank - meank)) / sumw
+    return vark
 
 def calculateVarK(cat_list, *, low_mem=False):
     """Calculate the overall variance of the scalar field from a list of catalogs.
@@ -2508,28 +2499,34 @@ def calculateVarK(cat_list, *, low_mem=False):
     elif len(cat_list) == 1:
         return cat_list[0].vark
     else:
-        # Unlike for g, we allow k to have a non-zero mean around which we take the
-        # variance.  When building up from multiple catalogs, we need to calculate the
-        # overall mean and get the variance around that.  So this is a little more complicated.
+        # When building up from multiple catalogs, we need to calculate the
+        # overall mean and get the variance around that.  So this is a little complicated.
         # In practice, it probably doesn't matter at all for real data sets, but some of the
         # unit tests have small enough N that this matters.
-        vark = 0
-        meank = 0
-        meank2 = 0
-        sumw = 0
-        sumw2 = 0
-        for cat in cat_list:
-            vark += cat.vark * cat.sumw + cat._meank * cat.sumw2 * (2*cat._meank2 - cat._meank)
-            meank += cat._meank * cat.sumw
-            meank2 += cat._meank2 * cat.sumw2
-            sumw += cat.sumw
-            sumw2 += cat.sumw2
-            if low_mem:
-                cat.unload()
-        meank /= sumw
-        meank2 /= sumw2
-        vark = (vark - meank * sumw2 * (2*meank2 - meank)) / sumw
-        return vark
+        return _compute_var_multi_cat(cat_list, 'k', low_mem)
+
+def calculateVarG(cat_list, *, low_mem=False):
+    """Calculate the overall variance of the shear field from a list of catalogs.
+
+    The catalogs are assumed to be equivalent, so this is just the average shear
+    variance (per component) weighted by the number of objects in each catalog.
+
+    Parameters:
+        cat_list:   A Catalog or a list of Catalogs for which to calculate the shear variance.
+        low_mem:    Whether to try to conserve memory when cat is a list by unloading each
+                    catalog after getting its individual varg. [default: False]
+
+    Returns:
+        The variance per component of the shear field (aka shape noise).
+    """
+    if isinstance(cat_list, Catalog):
+        return cat_list.varg
+    elif len(cat_list) == 1:
+        return cat_list[0].varg
+    else:
+        varg1 = _compute_var_multi_cat(cat_list, 'g1', low_mem)
+        varg2 = _compute_var_multi_cat(cat_list, 'g2', low_mem)
+        return (varg1 + varg2)/2.
 
 def calculateVarV(cat_list, *, low_mem=False):
     """Calculate the overall variance of the vector field from a list of catalogs.
@@ -2550,35 +2547,9 @@ def calculateVarV(cat_list, *, low_mem=False):
     elif len(cat_list) == 1:
         return cat_list[0].varv
     else:
-        varv1 = 0
-        varv2 = 0
-        meanv1 = 0
-        meanv12 = 0
-        meanv2 = 0
-        meanv22 = 0
-        sumw = 0
-        sumw2 = 0
-        for cat in cat_list:
-            cat.varv
-            varv1 += cat._varv1 * cat.sumw + cat._meanv1 * cat.sumw2 * (2*cat._meanv12 - cat._meanv1)
-            varv2 += cat._varv2 * cat.sumw + cat._meanv2 * cat.sumw2 * (2*cat._meanv22 - cat._meanv2)
-            meanv1 += cat._meanv1 * cat.sumw
-            meanv12 += cat._meanv12 * cat.sumw2
-            meanv2 += cat._meanv2 * cat.sumw
-            meanv22 += cat._meanv22 * cat.sumw2
-            sumw += cat.sumw
-            sumw2 += cat.sumw2
-            if low_mem:
-                cat.unload()
-        meanv1 /= sumw
-        meanv12 /= sumw2
-        meanv2 /= sumw
-        meanv22 /= sumw2
-        varv1 = (varv1 - meanv1 * sumw2 * (2*meanv12 - meanv1)) / sumw
-        varv2 = (varv2 - meanv2 * sumw2 * (2*meanv22 - meanv2)) / sumw
-        varv = (varv1 + varv2)/2
-        return varv
-
+        varv1 = _compute_var_multi_cat(cat_list, 'v1', low_mem)
+        varv2 = _compute_var_multi_cat(cat_list, 'v2', low_mem)
+        return (varv1 + varv2)/2.
 
 def isGColRequired(config, num):
     """A quick helper function that checks whether we need to bother reading the g1,g2 columns.

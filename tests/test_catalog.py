@@ -1170,7 +1170,7 @@ def test_var():
         v2 = rng.random_sample(nobj) - 0.5
         cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=k, v1=v1, v2=v2)
         vark = np.var(k, ddof=0)
-        varg = (np.sum(g1**2) + np.sum(g2**2)) / (2.*len(g1))
+        varg = (np.var(g1, ddof=0) + np.var(g2, ddof=0))/2
         varv = (np.var(v1, ddof=0) + np.var(v2, ddof=0))/2
         assert np.isclose(cat.vark, vark)
         assert np.isclose(cat.varg, varg)
@@ -1194,7 +1194,7 @@ def test_var():
     allv1 = np.array(allv1)
     allv2 = np.array(allv2)
     vark = np.var(allk, ddof=0)
-    varg = (np.sum(allg1**2) + np.sum(allg2**2)) / (2. * len(allg1))
+    varg = (np.var(allg1, ddof=0) + np.var(allg2, ddof=0))/2
     varv = (np.var(allv1, ddof=0) + np.var(allv2, ddof=0))/2
     assert np.isclose(treecorr.calculateVarK(cats), vark)
     assert np.isclose(treecorr.calculateVarG(cats), varg)
@@ -1220,7 +1220,9 @@ def test_var():
         cat = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, k=k, v1=v1, v2=v2)
         meank = np.sum(w*k)/np.sum(w)
         vark = np.sum(w**2 * (k-meank)**2) / np.sum(w)
-        varg = np.sum(w**2 * (g1**2 + g2**2)) / np.sum(w) / 2.
+        meang1 = np.sum(w*g1)/np.sum(w)
+        meang2 = np.sum(w*g2)/np.sum(w)
+        varg = np.sum(w**2 * ((g1-meang1)**2 + (g2-meang2)**2)) / (2*np.sum(w))
         meanv1 = np.sum(w*v1)/np.sum(w)
         meanv2 = np.sum(w*v2)/np.sum(w)
         varv = np.sum(w**2 * ((v1-meanv1)**2 + (v2-meanv2)**2)) / (2*np.sum(w))
@@ -1249,7 +1251,9 @@ def test_var():
     allw = np.array(allw)
     meank = np.sum(allw*allk)/np.sum(allw)
     vark = np.sum(allw**2 * (allk-meank)**2) / np.sum(allw)
-    varg = np.sum(allw**2 * (allg1**2 + allg2**2)) / np.sum(allw) / 2.
+    meang1 = np.sum(allw*allg1)/np.sum(allw)
+    meang2 = np.sum(allw*allg2)/np.sum(allw)
+    varg = np.sum(allw**2 * ((allg1-meang1)**2 + (allg2-meang2)**2)) / (2*np.sum(allw))
     meanv1 = np.sum(allw*allv1)/np.sum(allw)
     meanv2 = np.sum(allw*allv2)/np.sum(allw)
     varv = np.sum(allw**2 * ((allv1-meanv1)**2 + (allv2-meanv2)**2)) / (2*np.sum(allw))

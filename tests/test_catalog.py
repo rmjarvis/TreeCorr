@@ -1271,6 +1271,56 @@ def test_var():
     assert cat.varg == 0
     assert cat.varv == 0
 
+    # If variances are specified on input, use them.
+    cats = []
+    allk = []
+    allg1 = []
+    allg2 = []
+    allv1 = []
+    allv2 = []
+    for i in range(10):
+        x = rng.random_sample(nobj)
+        y = rng.random_sample(nobj)
+        k = rng.random_sample(nobj) - 0.5
+        g1 = rng.random_sample(nobj) - 0.5
+        g2 = rng.random_sample(nobj) - 0.5
+        v1 = rng.random_sample(nobj) - 0.5
+        v2 = rng.random_sample(nobj) - 0.5
+        vark = np.var(k, ddof=0)
+        varg = (np.var(g1, ddof=0) + np.var(g2, ddof=0))/2
+        varv = (np.var(v1, ddof=0) + np.var(v2, ddof=0))/2
+        cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=k, v1=v1, v2=v2,
+                               vark=3*vark, varg=5*varg, varv=7*varv)
+        print(i,3*vark,cat.vark)
+        assert np.isclose(cat.vark, 3*vark)
+        assert np.isclose(cat.varg, 5*varg)
+        assert np.isclose(cat.varv, 7*varv)
+        assert np.isclose(treecorr.calculateVarK(cat), 3*vark)
+        assert np.isclose(treecorr.calculateVarK([cat]), 3*vark)
+        assert np.isclose(treecorr.calculateVarG(cat), 5*varg)
+        assert np.isclose(treecorr.calculateVarG([cat]), 5*varg)
+        assert np.isclose(treecorr.calculateVarV(cat), 7*varv)
+        assert np.isclose(treecorr.calculateVarV([cat]), 7*varv)
+        cats.append(cat)
+        allk.extend(k)
+        allg1.extend(g1)
+        allg2.extend(g2)
+        allv1.extend(v1)
+        allv2.extend(v2)
+
+    allk = np.array(allk)
+    allg1 = np.array(allg1)
+    allg2 = np.array(allg2)
+    allv1 = np.array(allv1)
+    allv2 = np.array(allv2)
+    vark = np.var(allk, ddof=0)
+    varg = (np.var(allg1, ddof=0) + np.var(allg2, ddof=0))/2
+    varv = (np.var(allv1, ddof=0) + np.var(allv2, ddof=0))/2
+    # These aren't exactly the same because the means in each catalog are slightly different.
+    # But it's pretty close.
+    assert np.isclose(treecorr.calculateVarK(cats), 3*vark, rtol=1.e-3)
+    assert np.isclose(treecorr.calculateVarG(cats), 5*varg, rtol=1.e-3)
+    assert np.isclose(treecorr.calculateVarV(cats), 7*varv, rtol=1.e-3)
 
 @timer
 def test_nan():

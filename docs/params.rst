@@ -244,6 +244,10 @@ Parameters about the input file(s)
     need to flip the sign of v1 or v2, you may do that with ``flip_v1`` or ``flip_v2``
     (or both).
 
+:vark: (float) Variance of the scalar field to use. (Default is to calculate it directly.)
+:varg: (float) Variance of the shear field to use. (Default is to calculate it directly.)
+:varv: (float) Variance of the velocity field to use. (Default is to calculate it directly.)
+
 :keep_zero_weight: (bool, default=False)
 
     Whether to keep objects with wpos=0 in the catalog (including

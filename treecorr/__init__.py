@@ -31,23 +31,24 @@ Rperp_alias = 'FisherRperp'
 from .config import read_config
 from .util import set_omp_threads, get_omp_threads, set_max_omp_threads
 
-from .catalog import Catalog, read_catalogs, calculateVarG, calculateVarK, calculateVarV
+from .catalog import Catalog, read_catalogs
+from .catalog import calculateVarK, calculateVarG, calculateVarV, calculateVarT, calculateVarQ
 
 from .corr2base import Corr2, estimate_multi_cov, build_multi_cov_design_matrix
 from .corr3base import Corr3
-from .field import Field, NField, KField, GField, VField
+from .field import Field, NField, KField, VField, GField
 
 from .nncorrelation import NNCorrelation
 from .nkcorrelation import NKCorrelation
 from .kkcorrelation import KKCorrelation
 
-from .ngcorrelation import NGCorrelation
-from .kgcorrelation import KGCorrelation
-from .ggcorrelation import GGCorrelation
-
 from .nvcorrelation import NVCorrelation
 from .kvcorrelation import KVCorrelation
 from .vvcorrelation import VVCorrelation
+
+from .ngcorrelation import NGCorrelation
+from .kgcorrelation import KGCorrelation
+from .ggcorrelation import GGCorrelation
 
 from .nnncorrelation import NNNCorrelation, NNNCrossCorrelation
 from .kkkcorrelation import KKKCorrelation, KKKCrossCorrelation

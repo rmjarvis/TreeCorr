@@ -29,91 +29,87 @@ inline double safe_norm(const std::complex<double>& z)
     return n > 0. ? n : 1.;
 }
 
+template <int s>
+std::complex<double> calculate_expmsialpha(const std::complex<double>& r);
+
+template <>
+inline std::complex<double> calculate_expmsialpha<1>(const std::complex<double>& r)
+{ return conj(r) / sqrt(safe_norm(r)); }
+
+template <>
+inline std::complex<double> calculate_expmsialpha<2>(const std::complex<double>& r)
+{ return conj(r*r) / safe_norm(r); }
+
+template <>
+inline std::complex<double> calculate_expmsialpha<3>(const std::complex<double>& r)
+{
+    std::complex<double> r3 = r*r*r;
+    return conj(r3) / sqrt(safe_norm(r3));
+}
+
+template <>
+inline std::complex<double> calculate_expmsialpha<4>(const std::complex<double>& r)
+{
+    std::complex<double> r2 = r*r;
+    return conj(r2*r2) / safe_norm(r2);
+}
+
+template <int D>
+inline std::complex<double> _expmsialpha(const std::complex<double>& r)
+{
+    const int s = (D==VData ? 1 :
+                   D==GData ? 2 : 0);
+    return calculate_expmsialpha<s>(r);
+}
+
 template <>
 struct ProjectHelper<Flat>
 {
-    template <int D1>
-    static void ProjectShear(
-        const Cell<D1,Flat>& c1, const Cell<GData,Flat>& c2, std::complex<double>& g2)
+    template <int D1, int D>
+    static void Project(
+        const Cell<D1,Flat>& c1, const Cell<D,Flat>& c2, std::complex<double>& z2)
     {
-        // Project given shear to the line connecting them.
-        std::complex<double> cr(c2.getData().getPos() - c1.getData().getPos());
-        std::complex<double> expm2iarg = conj(cr*cr)/safe_norm(cr);
-        g2 = c2.getData().getWG() * expm2iarg;
+        // Project given spin-s quantity to the line connecting them.
+        std::complex<double> r(c2.getData().getPos() - c1.getData().getPos());
+        z2 *= _expmsialpha<D>(r);
     }
 
-    static void ProjectShears(
-        const Cell<GData,Flat>& c1, const Cell<GData,Flat>& c2,
-        std::complex<double>& g1, std::complex<double>& g2)
+    template <int D>
+    static void Project(
+        const Cell<D,Flat>& c1, const Cell<D,Flat>& c2,
+        std::complex<double>& z1, std::complex<double>& z2)
     {
-        // Project given shears to the line connecting them.
-        std::complex<double> cr(c2.getData().getPos() - c1.getData().getPos());
-        std::complex<double> expm2iarg = conj(cr*cr)/safe_norm(cr);
-        g1 = c1.getData().getWG() * expm2iarg;
-        g2 = c2.getData().getWG() * expm2iarg;
+        // Project given spin-s quantities to the line connecting them.
+        std::complex<double> r(c2.getData().getPos() - c1.getData().getPos());
+        std::complex<double> expmsialpha = _expmsialpha<D>(r);
+        z1 *= expmsialpha;
+        z2 *= expmsialpha;
     }
 
-    static void ProjectShears(
-        const Cell<GData,Flat>& c1, const Cell<GData,Flat>& c2, const Cell<GData,Flat>& c3,
-        std::complex<double>& g1, std::complex<double>& g2, std::complex<double>& g3)
+    template <int D>
+    static void Project(
+        const Cell<D,Flat>& c1, const Cell<D,Flat>& c2, const Cell<D,Flat>& c3,
+        std::complex<double>& z1, std::complex<double>& z2, std::complex<double>& z3)
     {
-        // Project given shears to the line connecting each to the centroid.
+        // Project given spin-s quantities to the line connecting each to the centroid.
         const Position<Flat>& p1 = c1.getData().getPos();
         const Position<Flat>& p2 = c2.getData().getPos();
         const Position<Flat>& p3 = c3.getData().getPos();
         Position<Flat> cen = (p1 + p2 + p3)/3.;
-        std::complex<double> cr1(cen - p1);
-        std::complex<double> cr2(cen - p2);
-        std::complex<double> cr3(cen - p3);
-        g1 = c1.getData().getWG() * conj(cr1*cr1)/safe_norm(cr1);
-        g2 = c2.getData().getWG() * conj(cr2*cr2)/safe_norm(cr2);
-        g3 = c3.getData().getWG() * conj(cr3*cr3)/safe_norm(cr3);
-    }
-
-    template <int D1>
-    static void ProjectVector(
-        const Cell<D1,Flat>& c1, const Cell<VData,Flat>& c2, std::complex<double>& v2)
-    {
-        // Project given vector to the line connecting them.
-        std::complex<double> cr(c2.getData().getPos() - c1.getData().getPos());
-        std::complex<double> expmiarg = conj(cr)/sqrt(safe_norm(cr));
-        v2 = c2.getData().getWV() * expmiarg;
-    }
-
-    static void ProjectVectors(
-        const Cell<VData,Flat>& c1, const Cell<VData,Flat>& c2,
-        std::complex<double>& v1, std::complex<double>& v2)
-    {
-        // Project given shears to the line connecting them.
-        std::complex<double> cr(c2.getData().getPos() - c1.getData().getPos());
-        std::complex<double> expmiarg = conj(cr)/sqrt(safe_norm(cr));
-        v1 = c1.getData().getWV() * expmiarg;
-        v2 = c2.getData().getWV() * expmiarg;
-    }
-
-    static void ProjectVectors(
-        const Cell<VData,Flat>& c1, const Cell<VData,Flat>& c2, const Cell<VData,Flat>& c3,
-        std::complex<double>& v1, std::complex<double>& v2, std::complex<double>& v3)
-    {
-        // Project given shears to the line connecting each to the centroid.
-        const Position<Flat>& p1 = c1.getData().getPos();
-        const Position<Flat>& p2 = c2.getData().getPos();
-        const Position<Flat>& p3 = c3.getData().getPos();
-        Position<Flat> cen = (p1 + p2 + p3)/3.;
-        std::complex<double> cr1(cen - p1);
-        std::complex<double> cr2(cen - p2);
-        std::complex<double> cr3(cen - p3);
-        v1 = c1.getData().getWV() * conj(cr1)/sqrt(safe_norm(cr1));
-        v2 = c2.getData().getWV() * conj(cr2)/sqrt(safe_norm(cr2));
-        v3 = c3.getData().getWV() * conj(cr3)/sqrt(safe_norm(cr3));
+        std::complex<double> r1(cen - p1);
+        std::complex<double> r2(cen - p2);
+        std::complex<double> r3(cen - p3);
+        z1 *= _expmsialpha<D>(r1);
+        z2 *= _expmsialpha<D>(r2);
+        z3 *= _expmsialpha<D>(r3);
     }
 };
 
 template <>
 struct ProjectHelper<Sphere>
 {
-    static void ProjectShear2(
-        const Position<Sphere>& p1, const Position<Sphere>& p2, std::complex<double>& g2)
+    static std::complex<double> calculate_direction(
+        const Position<Sphere>& p1, const Position<Sphere>& p2)
     {
         // For spherical triangles, it's a bit trickier, since the angles aren't equal.
         // In this function we just project the shear at p2.
@@ -174,134 +170,61 @@ struct ProjectHelper<Sphere>
         double dsq = (p1-p2).normSq();
         double cosA = (z1-z2) + 0.5*z2*dsq;  // These are unnormalized.
         double sinA = p1.getY()*p2.getX() - p1.getX()*p2.getY();
-        double cosAsq = cosA*cosA;
-        double sinAsq = sinA*sinA;
-        double normAsq = cosAsq + sinAsq;
-        if (normAsq == 0.) normAsq = 1.;  // This happens if p1==p2, which is possible for 3pt.
-        Assert(normAsq > 0.);
-        double cos2A = (cosAsq - sinAsq) / normAsq; // These are now correct.
-        double sin2A = 2.*sinA*cosA / normAsq;
 
         // In fact, A is not really the angles by which we want to rotate the shear.
         // We really want to rotate by the angle between due _east_ and c, not _north_.
         //
-        // exp(-2ialpha) = exp(-2i (A - Pi/2) )
-        //               = exp(iPi) * exp(-2iA)
-        //               = - exp(-2iA)
+        // exp(ialpha) = exp(i (A - Pi/2) )
+        //             = exp(iA) * exp(-iPi/2)
+        //             = -i (cosA + isinA)
+        //             = sinA - icosA
 
-        std::complex<double> expm2ialpha(-cos2A, sin2A);
-        g2 *= expm2ialpha;
+        // Note: the final normalization is done by the calling routine now.
+        return std::complex<double>(sinA, -cosA);
     }
 
-    template <int D1>
-    static void ProjectShear(
-        const Cell<D1,Sphere>& c1, const Cell<GData,Sphere>& c2, std::complex<double>& g2)
+    template <int D1, int D>
+    static void Project(
+        const Cell<D1,Sphere>& c1, const Cell<D,Sphere>& c2, std::complex<double>& z2)
     {
         const Position<Sphere>& p1 = c1.getData().getPos();
         const Position<Sphere>& p2 = c2.getData().getPos();
-        g2 = c2.getData().getWG();
-        ProjectShear2(p1, p2, g2);
+        std::complex<double> r = calculate_direction(p1,p2);
+        z2 *= _expmsialpha<D>(r);
     }
 
-    static void ProjectShears(
-        const Cell<GData,Sphere>& c1, const Cell<GData,Sphere>& c2,
-        std::complex<double>& g1, std::complex<double>& g2)
+    template <int D>
+    static void Project(
+        const Cell<D,Sphere>& c1, const Cell<D,Sphere>& c2,
+        std::complex<double>& z1, std::complex<double>& z2)
     {
         const Position<Sphere>& p1 = c1.getData().getPos();
         const Position<Sphere>& p2 = c2.getData().getPos();
-        g1 = c1.getData().getWG();
-        g2 = c2.getData().getWG();
-        ProjectShear2(p2, p1, g1);
-        ProjectShear2(p1, p2, g2);
-    }
-    static void ProjectShears(
-        const Cell<GData,Sphere>& c1, const Cell<GData,Sphere>& c2, const Cell<GData,Sphere>& c3,
-        std::complex<double>& g1, std::complex<double>& g2, std::complex<double>& g3)
-    {
-        const Position<Sphere>& p1 = c1.getData().getPos();
-        const Position<Sphere>& p2 = c2.getData().getPos();
-        const Position<Sphere>& p3 = c3.getData().getPos();
-        Position<Sphere> cen((p1 + p2 + p3)/3.);
-        g1 = c1.getData().getWG();
-        g2 = c2.getData().getWG();
-        g3 = c3.getData().getWG();
-
-        ProjectShear2(cen, p1, g1);
-        ProjectShear2(cen, p2, g2);
-        ProjectShear2(cen, p3, g3);
+        std::complex<double> r12 = calculate_direction(p1,p2);
+        std::complex<double> expmsialpha = _expmsialpha<D>(r12);
+        z2 *= expmsialpha;
+        std::complex<double> r21 = calculate_direction(p2,p1);
+        std::complex<double> expmsibeta = _expmsialpha<D>(r21);
+        z1 *= expmsibeta;
+        // Note there should be a minus sign here on z1 if s is odd.
+        // This is so both points are projected onto the coordinate system with p1 and p2
+        // arranged horizontally with p1 on the left. The normal project function for z1 is
+        // 180 degrees rotated from this, so need an extra minus sign.
+        if (D == VData) z1 = -z1;
     }
 
-    static void ProjectVector2(
-        const Position<Sphere>& p1, const Position<Sphere>& p2, std::complex<double>& v2)
-    {
-        // This is the same idea as the math in ProjectShear.
-        // We just stop at cosA, sinA and normalize that rather than continue to cos2A, sin2A.
-        double z1 = p1.getZ();
-        double z2 = p2.getZ();
-        double dsq = (p1-p2).normSq();
-        double cosA = (z1-z2) + 0.5*z2*dsq;  // These are unnormalized.
-        double sinA = p1.getY()*p2.getX() - p1.getX()*p2.getY();
-        double cosAsq = cosA*cosA;
-        double sinAsq = sinA*sinA;
-        double normAsq = cosAsq + sinAsq;
-        if (normAsq == 0.) normAsq = 1.;  // This happens if p1==p2, which is possible for 3pt.
-        Assert(normAsq > 0.);
-        double normA = sqrt(normAsq);
-        cosA /= normA;  // These are now correct.
-        sinA /= normA;
-
-        // Again, A is not actually the angle we want.
-        // We really want to rotate by the angle between due _east_ and c, not _north_.
-        //
-        // exp(-ialpha) = exp(-i (A - Pi/2) )
-        //               = exp(iPi/2) * exp(-iA)
-        //               = i exp(-iA) = i (cosA - isinA)
-        //               = sinA + icosA
-
-        std::complex<double> expmialpha(sinA, cosA);
-        v2 *= expmialpha;
-    }
-
-    template <int D1>
-    static void ProjectVector(
-        const Cell<D1,Sphere>& c1, const Cell<VData,Sphere>& c2, std::complex<double>& v2)
-    {
-        const Position<Sphere>& p1 = c1.getData().getPos();
-        const Position<Sphere>& p2 = c2.getData().getPos();
-        v2 = c2.getData().getWV();
-        ProjectVector2(p1, p2, v2);
-    }
-
-    static void ProjectVectors(
-        const Cell<VData,Sphere>& c1, const Cell<VData,Sphere>& c2,
-        std::complex<double>& v1, std::complex<double>& v2)
-    {
-        const Position<Sphere>& p1 = c1.getData().getPos();
-        const Position<Sphere>& p2 = c2.getData().getPos();
-        // Note the minus sign here.  This is so both points are projected onto the
-        // coordinate system with p1 and p2 arranged horizontally with p1 on the left.
-        // The normal project function for v1 is 180 degrees rotated from this, so
-        // need an extra minus sign.
-        v1 = -c1.getData().getWV();
-        v2 = c2.getData().getWV();
-        ProjectVector2(p2, p1, v1);
-        ProjectVector2(p1, p2, v2);
-    }
-    static void ProjectVectors(
-        const Cell<VData,Sphere>& c1, const Cell<VData,Sphere>& c2, const Cell<VData,Sphere>& c3,
-        std::complex<double>& v1, std::complex<double>& v2, std::complex<double>& v3)
+    template <int D>
+    static void Project(
+        const Cell<D,Sphere>& c1, const Cell<D,Sphere>& c2, const Cell<D,Sphere>& c3,
+        std::complex<double>& z1, std::complex<double>& z2, std::complex<double>& z3)
     {
         const Position<Sphere>& p1 = c1.getData().getPos();
         const Position<Sphere>& p2 = c2.getData().getPos();
         const Position<Sphere>& p3 = c3.getData().getPos();
         Position<Sphere> cen((p1 + p2 + p3)/3.);
-        v1 = c1.getData().getWV();
-        v2 = c2.getData().getWV();
-        v3 = c3.getData().getWV();
-
-        ProjectVector2(cen, p1, v1);
-        ProjectVector2(cen, p2, v2);
-        ProjectVector2(cen, p3, v3);
+        z1 *= _expmsialpha<D>(calculate_direction(cen,p1));
+        z2 *= _expmsialpha<D>(calculate_direction(cen,p2));
+        z3 *= _expmsialpha<D>(calculate_direction(cen,p3));
     }
 };
 
@@ -311,35 +234,40 @@ struct ProjectHelper<Sphere>
 template <>
 struct ProjectHelper<ThreeD>
 {
-    template <int D1>
-    static void ProjectShear(
-        const Cell<D1,ThreeD>& c1, const Cell<GData,ThreeD>& c2, std::complex<double>& g2)
+    template <int D1, int D>
+    static void Project(
+        const Cell<D1,ThreeD>& c1, const Cell<D,ThreeD>& c2, std::complex<double>& z2)
     {
         const Position<ThreeD>& p1 = c1.getData().getPos();
         const Position<ThreeD>& p2 = c2.getData().getPos();
         Position<Sphere> sp1(p1);
         Position<Sphere> sp2(p2);
-        g2 = c2.getData().getWG();
-        ProjectHelper<Sphere>::ProjectShear2(sp1, sp2, g2);
+        std::complex<double> r = ProjectHelper<Sphere>::calculate_direction(sp1,sp2);
+        z2 *= _expmsialpha<D>(r);
     }
 
-    static void ProjectShears(
-        const Cell<GData,ThreeD>& c1, const Cell<GData,ThreeD>& c2,
-        std::complex<double>& g1, std::complex<double>& g2)
+    template <int D>
+    static void Project(
+        const Cell<D,ThreeD>& c1, const Cell<D,ThreeD>& c2,
+        std::complex<double>& z1, std::complex<double>& z2)
     {
         const Position<ThreeD>& p1 = c1.getData().getPos();
         const Position<ThreeD>& p2 = c2.getData().getPos();
         Position<Sphere> sp1(p1);
         Position<Sphere> sp2(p2);
-        g1 = c1.getData().getWG();
-        g2 = c2.getData().getWG();
-        ProjectHelper<Sphere>::ProjectShear2(sp2, sp1, g1);
-        ProjectHelper<Sphere>::ProjectShear2(sp1, sp2, g2);
+        std::complex<double> r12 = ProjectHelper<Sphere>::calculate_direction(sp1,sp2);
+        std::complex<double> expmsialpha = _expmsialpha<D>(r12);
+        z2 *= expmsialpha;
+        std::complex<double> r21 = ProjectHelper<Sphere>::calculate_direction(sp2,sp1);
+        std::complex<double> expmsibeta = _expmsialpha<D>(r21);
+        z1 *= expmsibeta;
+        if (D == VData) z1 = -z1;
     }
 
-    static void ProjectShears(
-        const Cell<GData,ThreeD>& c1, const Cell<GData,ThreeD>& c2, const Cell<GData,ThreeD>& c3,
-        std::complex<double>& g1, std::complex<double>& g2, std::complex<double>& g3)
+    template <int D>
+    static void Project(
+        const Cell<D,ThreeD>& c1, const Cell<D,ThreeD>& c2, const Cell<D,ThreeD>& c3,
+        std::complex<double>& z1, std::complex<double>& z2, std::complex<double>& z3)
     {
         const Position<ThreeD>& p1 = c1.getData().getPos();
         const Position<ThreeD>& p2 = c2.getData().getPos();
@@ -349,60 +277,9 @@ struct ProjectHelper<ThreeD>
         Position<Sphere> sp3(p3);
         Position<Sphere> cen((sp1 + sp2 + sp3)/3.);
         cen.normalize();
-        g1 = c1.getData().getWG();
-        g2 = c2.getData().getWG();
-        g3 = c3.getData().getWG();
-
-        ProjectHelper<Sphere>::ProjectShear2(cen, sp1, g1);
-        ProjectHelper<Sphere>::ProjectShear2(cen, sp2, g2);
-        ProjectHelper<Sphere>::ProjectShear2(cen, sp3, g3);
-    }
-
-    template <int D1>
-    static void ProjectVector(
-        const Cell<D1,ThreeD>& c1, const Cell<VData,ThreeD>& c2, std::complex<double>& v2)
-    {
-        const Position<ThreeD>& p1 = c1.getData().getPos();
-        const Position<ThreeD>& p2 = c2.getData().getPos();
-        Position<Sphere> sp1(p1);
-        Position<Sphere> sp2(p2);
-        v2 = c2.getData().getWV();
-        ProjectHelper<Sphere>::ProjectVector2(sp1, sp2, v2);
-    }
-
-    static void ProjectVectors(
-        const Cell<VData,ThreeD>& c1, const Cell<VData,ThreeD>& c2,
-        std::complex<double>& v1, std::complex<double>& v2)
-    {
-        const Position<ThreeD>& p1 = c1.getData().getPos();
-        const Position<ThreeD>& p2 = c2.getData().getPos();
-        Position<Sphere> sp1(p1);
-        Position<Sphere> sp2(p2);
-        v1 = c1.getData().getWV();
-        v2 = c2.getData().getWV();
-        ProjectHelper<Sphere>::ProjectVector2(sp2, sp1, v1);
-        ProjectHelper<Sphere>::ProjectVector2(sp1, sp2, v2);
-    }
-
-    static void ProjectVectors(
-        const Cell<VData,ThreeD>& c1, const Cell<VData,ThreeD>& c2, const Cell<VData,ThreeD>& c3,
-        std::complex<double>& v1, std::complex<double>& v2, std::complex<double>& v3)
-    {
-        const Position<ThreeD>& p1 = c1.getData().getPos();
-        const Position<ThreeD>& p2 = c2.getData().getPos();
-        const Position<ThreeD>& p3 = c3.getData().getPos();
-        Position<Sphere> sp1(p1);
-        Position<Sphere> sp2(p2);
-        Position<Sphere> sp3(p3);
-        Position<Sphere> cen((sp1 + sp2 + sp3)/3.);
-        cen.normalize();
-        v1 = c1.getData().getWV();
-        v2 = c2.getData().getWV();
-        v3 = c3.getData().getWV();
-
-        ProjectHelper<Sphere>::ProjectVector2(cen, sp1, v1);
-        ProjectHelper<Sphere>::ProjectVector2(cen, sp2, v2);
-        ProjectHelper<Sphere>::ProjectVector2(cen, sp3, v3);
+        z1 *= _expmsialpha<D>(ProjectHelper<Sphere>::calculate_direction(cen,sp1));
+        z2 *= _expmsialpha<D>(ProjectHelper<Sphere>::calculate_direction(cen,sp2));
+        z3 *= _expmsialpha<D>(ProjectHelper<Sphere>::calculate_direction(cen,sp3));
     }
 };
 

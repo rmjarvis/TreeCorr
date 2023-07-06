@@ -1049,8 +1049,10 @@ struct DirectHelper<GData,GData,GData>
         const double d1, const double d2, const double d3,
         ZetaData<GData,GData,GData>& zeta, int index)
     {
-        std::complex<double> g1, g2, g3;
-        ProjectHelper<C>::ProjectShears(c1, c2, c3, g1, g2, g3);
+        std::complex<double> g1 = c1.getData().getWG();
+        std::complex<double> g2 = c2.getData().getWG();
+        std::complex<double> g3 = c3.getData().getWG();
+        ProjectHelper<C>::Project(c1, c2, c3, g1, g2, g3);
 
         //std::complex<double> gam0 = g1 * g2 * g3;
         //std::complex<double> gam1 = std::conj(g1) * g2 * g3;

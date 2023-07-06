@@ -397,10 +397,10 @@ struct DirectHelper<NData,GData>
         const Cell<NData,C>& c1, const Cell<GData,C>& c2, const double rsq,
         XiData<NData,GData>& xi, int k, int )
     {
-        std::complex<double> g2;
-        ProjectHelper<C>::ProjectShear(c1,c2,g2);
+        std::complex<double> g2 = c2.getData().getWG();
+        ProjectHelper<C>::Project(c1,c2,g2);
         // The minus sign here is to make it accumulate tangential shear, rather than radial.
-        // g2 from the above ProjectShear is measured along the connecting line, not tangent.
+        // g2 from the above Project is measured along the connecting line, not tangent.
         g2 *= -c1.getW();
         xi.xi[k] += real(g2);
         xi.xi_im[k] += imag(g2);
@@ -415,8 +415,8 @@ struct DirectHelper<NData,VData>
         const Cell<NData,C>& c1, const Cell<VData,C>& c2, const double rsq,
         XiData<NData,VData>& xi, int k, int )
     {
-        std::complex<double> v2;
-        ProjectHelper<C>::ProjectVector(c1,c2,v2);
+        std::complex<double> v2 = c2.getData().getWV();
+        ProjectHelper<C>::Project(c1,c2,v2);
         v2 *= c1.getW();
         xi.xi[k] += real(v2);
         xi.xi_im[k] += imag(v2);
@@ -447,10 +447,10 @@ struct DirectHelper<KData,GData>
         const Cell<KData,C>& c1, const Cell<GData,C>& c2, const double rsq,
         XiData<KData,GData>& xi, int k, int )
     {
-        std::complex<double> g2;
-        ProjectHelper<C>::ProjectShear(c1,c2,g2);
+        std::complex<double> g2 = c2.getData().getWG();
+        ProjectHelper<C>::Project(c1,c2,g2);
         // The minus sign here is to make it accumulate tangential shear, rather than radial.
-        // g2 from the above ProjectShear is measured along the connecting line, not tangent.
+        // g2 from the above Project is measured along the connecting line, not tangent.
         g2 *= -c1.getData().getWK();
         xi.xi[k] += real(g2);
         xi.xi_im[k] += imag(g2);
@@ -465,8 +465,8 @@ struct DirectHelper<KData,VData>
         const Cell<KData,C>& c1, const Cell<VData,C>& c2, const double rsq,
         XiData<KData,VData>& xi, int k, int )
     {
-        std::complex<double> v2;
-        ProjectHelper<C>::ProjectVector(c1,c2,v2);
+        std::complex<double> v2 = c2.getData().getWV();
+        ProjectHelper<C>::Project(c1,c2,v2);
         v2 *= c1.getData().getWK();
         xi.xi[k] += real(v2);
         xi.xi_im[k] += imag(v2);
@@ -481,8 +481,9 @@ struct DirectHelper<GData,GData>
         const Cell<GData,C>& c1, const Cell<GData,C>& c2, const double rsq,
         XiData<GData,GData>& xi, int k, int k2)
     {
-        std::complex<double> g1, g2;
-        ProjectHelper<C>::ProjectShears(c1,c2,g1,g2);
+        std::complex<double> g1 = c1.getData().getWG();
+        std::complex<double> g2 = c2.getData().getWG();
+        ProjectHelper<C>::Project(c1,c2,g1,g2);
 
         // The complex products g1 g2 and g1 g2* share most of the calculations,
         // so faster to do this manually.
@@ -518,8 +519,9 @@ struct DirectHelper<VData,VData>
         const Cell<VData,C>& c1, const Cell<VData,C>& c2, const double rsq,
         XiData<VData,VData>& xi, int k, int k2)
     {
-        std::complex<double> v1, v2;
-        ProjectHelper<C>::ProjectVectors(c1,c2,v1,v2);
+        std::complex<double> v1 = c1.getData().getWV();
+        std::complex<double> v2 = c2.getData().getWV();
+        ProjectHelper<C>::Project(c1,c2,v1,v2);
 
         // The complex products v1 v2 and v1 v2* share most of the calculations,
         // so faster to do this manually.

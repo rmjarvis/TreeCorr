@@ -58,7 +58,9 @@ template <int D>
 inline std::complex<double> _expmsialpha(const std::complex<double>& r)
 {
     const int s = (D==VData ? 1 :
-                   D==GData ? 2 : 0);
+                   D==GData ? 2 :
+                   D==TData ? 3 :
+                   D==QData ? 4 : 0);
     return calculate_expmsialpha<s>(r);
 }
 
@@ -210,7 +212,7 @@ struct ProjectHelper<Sphere>
         // This is so both points are projected onto the coordinate system with p1 and p2
         // arranged horizontally with p1 on the left. The normal project function for z1 is
         // 180 degrees rotated from this, so need an extra minus sign.
-        if (D == VData) z1 = -z1;
+        if (D == VData || D == TData) z1 = -z1;
     }
 
     template <int D>
@@ -261,7 +263,7 @@ struct ProjectHelper<ThreeD>
         std::complex<double> r21 = ProjectHelper<Sphere>::calculate_direction(sp2,sp1);
         std::complex<double> expmsibeta = _expmsialpha<D>(r21);
         z1 *= expmsibeta;
-        if (D == VData) z1 = -z1;
+        if (D == VData || D == TData) z1 = -z1;
     }
 
     template <int D>

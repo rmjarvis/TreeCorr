@@ -25,7 +25,7 @@ from . import _treecorr
 from .reader import FitsReader, HdfReader, AsciiReader, PandasReader, ParquetReader
 from .config import merge_config, setup_logger, get, get_from_list
 from .util import parse_file_type, LRU_Cache, make_writer, make_reader, set_omp_threads
-from .field import NField, KField, GField, VField
+from .field import NField, KField, VField, GField, TField, QField
 
 class Catalog(object):
     r"""A set of input data (positions and other quantities) to be correlated.

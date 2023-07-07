@@ -365,12 +365,14 @@ void BaseCorr2::process11(const BaseCell<C>& c1, const BaseCell<C>& c2,
 }
 
 
-// We also set up a helper class for doing the direct processing
-template <int D1, int D2>
-struct DirectHelper;
+// There are a smallish number of algorithms, each of which still may use D1 and/or D2
+// for projections, but are otherwise the same for mutliple D combinations.
+// So separate them out into a separate structure.
+template <int algo, int D1, int D2>
+struct DirectHelper2;
 
 template <>
-struct DirectHelper<NData,NData>
+struct DirectHelper2<0,NData,NData>
 {
     template <int R, int C>
     static void ProcessXi(
@@ -380,7 +382,7 @@ struct DirectHelper<NData,NData>
 };
 
 template <>
-struct DirectHelper<NData,KData>
+struct DirectHelper2<1,NData,KData>
 {
     template <int R, int C>
     static void ProcessXi(
@@ -389,42 +391,28 @@ struct DirectHelper<NData,KData>
     { xi.xi[k] += c1.getW() * c2.getData().getWK(); }
 };
 
-template <>
-struct DirectHelper<NData,GData>
+template <int D2>
+struct DirectHelper2<2,NData,D2>
 {
     template <int R, int C>
     static void ProcessXi(
-        const Cell<NData,C>& c1, const Cell<GData,C>& c2, const double rsq,
-        XiData<NData,GData>& xi, int k, int )
+        const Cell<NData,C>& c1, const Cell<D2,C>& c2, const double rsq,
+        XiData<NData,D2>& xi, int k, int )
     {
         std::complex<double> g2 = c2.getData().getWG();
         ProjectHelper<C>::Project(c1,c2,g2);
-        // The minus sign here is to make it accumulate tangential shear, rather than radial.
-        // g2 from the above Project is measured along the connecting line, not tangent.
-        g2 *= -c1.getW();
+        // For GData only, we multiply by -1, because the standard thing to accumulate is
+        // the tangential shear, rather than radial.  Everyone else accumulates the radial
+        // value (which is what Project returns).
+        if (D2 == GData) g2 *= -c1.getW();
+        else g2 *= c1.getW();
         xi.xi[k] += real(g2);
         xi.xi_im[k] += imag(g2);
     }
 };
 
 template <>
-struct DirectHelper<NData,VData>
-{
-    template <int R, int C>
-    static void ProcessXi(
-        const Cell<NData,C>& c1, const Cell<VData,C>& c2, const double rsq,
-        XiData<NData,VData>& xi, int k, int )
-    {
-        std::complex<double> v2 = c2.getData().getWV();
-        ProjectHelper<C>::Project(c1,c2,v2);
-        v2 *= c1.getW();
-        xi.xi[k] += real(v2);
-        xi.xi_im[k] += imag(v2);
-    }
-};
-
-template <>
-struct DirectHelper<KData,KData>
+struct DirectHelper2<3,KData,KData>
 {
     template <int R, int C>
     static void ProcessXi(
@@ -439,47 +427,30 @@ struct DirectHelper<KData,KData>
     }
 };
 
-template <>
-struct DirectHelper<KData,GData>
+template <int D2>
+struct DirectHelper2<4,KData,D2>
 {
     template <int R, int C>
     static void ProcessXi(
-        const Cell<KData,C>& c1, const Cell<GData,C>& c2, const double rsq,
-        XiData<KData,GData>& xi, int k, int )
+        const Cell<KData,C>& c1, const Cell<D2,C>& c2, const double rsq,
+        XiData<KData,D2>& xi, int k, int )
     {
         std::complex<double> g2 = c2.getData().getWG();
         ProjectHelper<C>::Project(c1,c2,g2);
-        // The minus sign here is to make it accumulate tangential shear, rather than radial.
-        // g2 from the above Project is measured along the connecting line, not tangent.
-        g2 *= -c1.getData().getWK();
+        if (D2 == GData) g2 *= -c1.getData().getWK();
+        else g2 *= c1.getData().getWK();
         xi.xi[k] += real(g2);
         xi.xi_im[k] += imag(g2);
     }
 };
 
-template <>
-struct DirectHelper<KData,VData>
+template <int D1, int D2>
+struct DirectHelper2<5,D1,D2>
 {
     template <int R, int C>
     static void ProcessXi(
-        const Cell<KData,C>& c1, const Cell<VData,C>& c2, const double rsq,
-        XiData<KData,VData>& xi, int k, int )
-    {
-        std::complex<double> v2 = c2.getData().getWV();
-        ProjectHelper<C>::Project(c1,c2,v2);
-        v2 *= c1.getData().getWK();
-        xi.xi[k] += real(v2);
-        xi.xi_im[k] += imag(v2);
-    }
-};
-
-template <>
-struct DirectHelper<GData,GData>
-{
-    template <int R, int C>
-    static void ProcessXi(
-        const Cell<GData,C>& c1, const Cell<GData,C>& c2, const double rsq,
-        XiData<GData,GData>& xi, int k, int k2)
+        const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double rsq,
+        XiData<D1,D2>& xi, int k, int k2)
     {
         std::complex<double> g1 = c1.getData().getWG();
         std::complex<double> g2 = c2.getData().getWG();
@@ -511,41 +482,23 @@ struct DirectHelper<GData,GData>
     }
 };
 
-template <>
-struct DirectHelper<VData,VData>
+template <int D1, int D2>
+struct DirectHelper
 {
     template <int R, int C>
     static void ProcessXi(
-        const Cell<VData,C>& c1, const Cell<VData,C>& c2, const double rsq,
-        XiData<VData,VData>& xi, int k, int k2)
+        const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double rsq,
+        XiData<D1,D2>& xi, int k, int k2)
     {
-        std::complex<double> v1 = c1.getData().getWV();
-        std::complex<double> v2 = c2.getData().getWV();
-        ProjectHelper<C>::Project(c1,c2,v1,v2);
+        const int algo =
+            (D1 == NData && D2 == NData) ? 0 :
+            (D1 == NData && D2 == KData) ? 1 :
+            (D1 == NData && D2 >= GData) ? 2 :
+            (D1 == KData && D2 == KData) ? 3 :
+            (D1 == KData && D2 >= GData) ? 4 :
+            (D1 >= GData && D2 >= GData) ? 5 : -1;
 
-        // The complex products v1 v2 and v1 v2* share most of the calculations,
-        // so faster to do this manually.
-        double v1rv2r = v1.real() * v2.real();
-        double v1rv2i = v1.real() * v2.imag();
-        double v1iv2r = v1.imag() * v2.real();
-        double v1iv2i = v1.imag() * v2.imag();
-
-        double v1v2cr = v1rv2r + v1iv2i;  // v1 * conj(v2)
-        double v1v2ci = v1iv2r - v1rv2i;
-        double v1v2r = v1rv2r - v1iv2i;   // v1 * v2
-        double v1v2i = v1iv2r + v1rv2i;
-
-        xi.xip[k] += v1v2cr;
-        xi.xip_im[k] += v1v2ci;
-        xi.xim[k] += v1v2r;
-        xi.xim_im[k] += v1v2i;
-
-        if (R) {
-            xi.xip[k2] += v1v2cr;
-            xi.xip_im[k2] += v1v2ci;
-            xi.xim[k2] += v1v2r;
-            xi.xim_im[k2] += v1v2i;
-        }
+        DirectHelper2<algo,D1,D2>::template ProcessXi<R>(c1,c2,rsq,xi,k,k2);
     }
 };
 
@@ -1241,12 +1194,22 @@ void pyExportCorr2(py::module& _treecorr)
     WrapCorr2<NData,NData>(_treecorr, "NN");
     WrapCorr2<NData,KData>(_treecorr, "NK");
     WrapCorr2<KData,KData>(_treecorr, "KK");
+
     WrapCorr2<NData,GData>(_treecorr, "NG");
     WrapCorr2<KData,GData>(_treecorr, "KG");
     WrapCorr2<GData,GData>(_treecorr, "GG");
+
     WrapCorr2<NData,VData>(_treecorr, "NV");
     WrapCorr2<KData,VData>(_treecorr, "KV");
     WrapCorr2<VData,VData>(_treecorr, "VV");
+
+    WrapCorr2<NData,TData>(_treecorr, "NT");
+    WrapCorr2<KData,TData>(_treecorr, "KT");
+    WrapCorr2<TData,TData>(_treecorr, "TT");
+
+    WrapCorr2<NData,QData>(_treecorr, "NQ");
+    WrapCorr2<KData,QData>(_treecorr, "KQ");
+    WrapCorr2<QData,QData>(_treecorr, "QQ");
 
     _treecorr.def("SetOMPThreads", &SetOMPThreads);
     _treecorr.def("GetOMPThreads", &GetOMPThreads);

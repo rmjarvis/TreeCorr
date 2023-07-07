@@ -81,90 +81,66 @@ double SetupTopLevelCells(
 }
 
 // A helper struct to build the right kind of CellData object
-template <int D, int C>
-struct CellDataHelper;
+template <int algo, int D, int C>
+struct CellDataHelper2;
 
 // Specialize for each D,C
 // Flat
 template <>
-struct CellDataHelper<NData,Flat>
+struct CellDataHelper2<0,NData,Flat>
 {
     static CellData<NData,Flat>* build(double x, double y, double , double , double, double w)
     { return new CellData<NData,Flat>(Position<Flat>(x,y), w); }
 };
 template <>
-struct CellDataHelper<KData,Flat>
+struct CellDataHelper2<1,KData,Flat>
 {
     static CellData<KData,Flat>* build(double x, double y, double , double k, double , double w)
     { return new CellData<KData,Flat>(Position<Flat>(x,y), k, w); }
 };
-template <>
-struct CellDataHelper<GData,Flat>
+template <int D>
+struct CellDataHelper2<2,D,Flat>
 {
-    static CellData<GData,Flat>* build(double x, double y,  double, double g1, double g2, double w)
-    { return new CellData<GData,Flat>(Position<Flat>(x,y), std::complex<double>(g1,g2), w); }
-};
-template <>
-struct CellDataHelper<VData,Flat>
-{
-    static CellData<VData,Flat>* build(double x, double y,  double, double v1, double v2, double w)
-    { return new CellData<VData,Flat>(Position<Flat>(x,y), std::complex<double>(v1,v2), w); }
+    static CellData<D,Flat>* build(double x, double y,  double, double g1, double g2, double w)
+    { return new CellData<D,Flat>(Position<Flat>(x,y), std::complex<double>(g1,g2), w); }
 };
 
-// ThreeD
-template <>
-struct CellDataHelper<NData,ThreeD>
+// ThreeD, Sphere
+template <int C>
+struct CellDataHelper2<3,NData,C>
 {
-    static CellData<NData,ThreeD>* build(double x, double y, double z, double , double, double w)
-    { return new CellData<NData,ThreeD>(Position<ThreeD>(x,y,z), w); }
+    static CellData<NData,C>* build(double x, double y, double z, double , double, double w)
+    { return new CellData<NData,C>(Position<C>(x,y,z), w); }
 };
-template <>
-struct CellDataHelper<KData,ThreeD>
+template <int C>
+struct CellDataHelper2<4,KData,C>
 {
-    static CellData<KData,ThreeD>* build(double x, double y, double z, double k, double , double w)
-    { return new CellData<KData,ThreeD>(Position<ThreeD>(x,y,z), k, w); }
+    static CellData<KData,C>* build(double x, double y, double z, double d1, double , double w)
+    { return new CellData<KData,C>(Position<C>(x,y,z), d1, w); }
 };
-template <>
-struct CellDataHelper<GData,ThreeD>
+template <int D, int C>
+struct CellDataHelper2<5,D,C>
 {
-    static CellData<GData,ThreeD>* build(double x, double y, double z,
-                                         double g1, double g2, double w)
-    { return new CellData<GData,ThreeD>(Position<ThreeD>(x,y,z), std::complex<double>(g1,g2), w); }
-};
-template <>
-struct CellDataHelper<VData,ThreeD>
-{
-    static CellData<VData,ThreeD>* build(double x, double y, double z,
-                                         double v1, double v2, double w)
-    { return new CellData<VData,ThreeD>(Position<ThreeD>(x,y,z), std::complex<double>(v1,v2), w); }
+    static CellData<D,C>* build(double x, double y, double z, double d1, double d2, double w)
+    { return new CellData<D,C>(Position<C>(x,y,z), std::complex<double>(d1,d2), w); }
 };
 
-// Sphere
-template <>
-struct CellDataHelper<NData,Sphere>
+template <int D, int C>
+struct CellDataHelper
 {
-    static CellData<NData,Sphere>* build(double x, double y, double z, double , double, double w)
-    { return new CellData<NData,Sphere>(Position<Sphere>(x,y,z), w); }
-};
-template <>
-struct CellDataHelper<KData,Sphere>
-{
-    static CellData<KData,Sphere>* build(double x, double y, double z, double k, double , double w)
-    { return new CellData<KData,Sphere>(Position<Sphere>(x,y,z), k, w); }
-};
-template <>
-struct CellDataHelper<GData,Sphere>
-{
-    static CellData<GData,Sphere>* build(double x, double y, double z,
-                                         double g1, double g2, double w)
-    { return new CellData<GData,Sphere>(Position<Sphere>(x,y,z), std::complex<double>(g1,g2), w); }
-};
-template <>
-struct CellDataHelper<VData,Sphere>
-{
-    static CellData<VData,Sphere>* build(double x, double y, double z,
-                                         double v1, double v2, double w)
-    { return new CellData<VData,Sphere>(Position<Sphere>(x,y,z), std::complex<double>(v1,v2), w); }
+    static CellData<D,C>* build(double x, double y, double z, double d1, double d2, double w)
+    {
+        const int algo =
+            C==Flat ? (
+                D == NData ? 0 :
+                D == KData ? 1 :
+                D >= GData ? 2 : -1 )
+            : (
+                D == NData ? 3 :
+                D == KData ? 4 :
+                D >= GData ? 5 : -1 );
+        return CellDataHelper2<algo,D,C>::build(x,y,z,d1,d2,w);
+    }
 };
 
 inline WPosLeafInfo get_wpos(const double* wpos, const double* w, long i)
@@ -452,9 +428,8 @@ Field<D,C>* BuildField(const double* x, const double* y, const double* z,
 }
 
 template <int C>
-Field<GData,C>* BuildGField(
+Field<NData,C>* BuildNField(
     py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
-    py::array_t<double>& g1p, py::array_t<double>& g2p,
     py::array_t<double>& wp, py::array_t<double>& wposp,
     double minsize, double maxsize,
     SplitMethod sm, long long seed, bool brute, int mintop, int maxtop)
@@ -462,20 +437,16 @@ Field<GData,C>* BuildGField(
     long nobj = xp.size();
     Assert(yp.size() == nobj);
     Assert(zp.size() == nobj || zp.size() == 0);
-    Assert(g1p.size() == nobj);
-    Assert(g2p.size() == nobj);
     Assert(wp.size() == nobj);
     Assert(wposp.size() == nobj || wposp.size() == 0);
 
     const double* x = static_cast<const double*>(xp.data());
     const double* y = static_cast<const double*>(yp.data());
     const double* z = zp.size() == 0 ? 0 : static_cast<const double*>(zp.data());
-    const double* g1 = static_cast<const double*>(g1p.data());
-    const double* g2 = static_cast<const double*>(g2p.data());
     const double* w = static_cast<const double*>(wp.data());
     const double* wpos = wposp.size() == 0 ? 0 : static_cast<const double*>(wposp.data());
 
-    return BuildField<GData,C>(x, y, z, g1, g2, w, wpos,
+    return BuildField<NData,C>(x, y, z, 0, 0, w, wpos,
                                nobj, minsize, maxsize, sm, seed,
                                brute, mintop, maxtop);
 }
@@ -506,9 +477,10 @@ Field<KData,C>* BuildKField(
                                brute, mintop, maxtop);
 }
 
-template <int C>
-Field<NData,C>* BuildNField(
+template <int D, int C>
+Field<D,C>* BuildZField(
     py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
+    py::array_t<double>& d1p, py::array_t<double>& d2p,
     py::array_t<double>& wp, py::array_t<double>& wposp,
     double minsize, double maxsize,
     SplitMethod sm, long long seed, bool brute, int mintop, int maxtop)
@@ -516,47 +488,74 @@ Field<NData,C>* BuildNField(
     long nobj = xp.size();
     Assert(yp.size() == nobj);
     Assert(zp.size() == nobj || zp.size() == 0);
+    Assert(d1p.size() == nobj);
+    Assert(d2p.size() == nobj);
     Assert(wp.size() == nobj);
     Assert(wposp.size() == nobj || wposp.size() == 0);
 
     const double* x = static_cast<const double*>(xp.data());
     const double* y = static_cast<const double*>(yp.data());
     const double* z = zp.size() == 0 ? 0 : static_cast<const double*>(zp.data());
+    const double* d1 = static_cast<const double*>(d1p.data());
+    const double* d2 = static_cast<const double*>(d2p.data());
     const double* w = static_cast<const double*>(wp.data());
     const double* wpos = wposp.size() == 0 ? 0 : static_cast<const double*>(wposp.data());
 
-    return BuildField<NData,C>(x, y, z, 0, 0, w, wpos,
-                               nobj, minsize, maxsize, sm, seed,
-                               brute, mintop, maxtop);
+    return BuildField<D,C>(x, y, z, d1, d2, w, wpos,
+                           nobj, minsize, maxsize, sm, seed,
+                           brute, mintop, maxtop);
+}
+
+template <int C>
+Field<GData,C>* BuildGField(
+    py::array_t<double>& x, py::array_t<double>& y, py::array_t<double>& z,
+    py::array_t<double>& g1, py::array_t<double>& g2,
+    py::array_t<double>& w, py::array_t<double>& wpos,
+    double minsize, double maxsize,
+    SplitMethod sm, long long seed, bool brute, int mintop, int maxtop)
+{
+    return BuildZField<GData,C>(x, y, z, g1, g2, w, wpos,
+                                minsize, maxsize, sm, seed,
+                                brute, mintop, maxtop);
 }
 
 template <int C>
 Field<VData,C>* BuildVField(
-    py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
-    py::array_t<double>& v1p, py::array_t<double>& v2p,
-    py::array_t<double>& wp, py::array_t<double>& wposp,
+    py::array_t<double>& x, py::array_t<double>& y, py::array_t<double>& z,
+    py::array_t<double>& v1, py::array_t<double>& v2,
+    py::array_t<double>& w, py::array_t<double>& wpos,
     double minsize, double maxsize,
     SplitMethod sm, long long seed, bool brute, int mintop, int maxtop)
 {
-    long nobj = xp.size();
-    Assert(yp.size() == nobj);
-    Assert(zp.size() == nobj || zp.size() == 0);
-    Assert(v1p.size() == nobj);
-    Assert(v2p.size() == nobj);
-    Assert(wp.size() == nobj);
-    Assert(wposp.size() == nobj || wposp.size() == 0);
+    return BuildZField<VData,C>(x, y, z, v1, v2, w, wpos,
+                                minsize, maxsize, sm, seed,
+                                brute, mintop, maxtop);
+}
 
-    const double* x = static_cast<const double*>(xp.data());
-    const double* y = static_cast<const double*>(yp.data());
-    const double* z = zp.size() == 0 ? 0 : static_cast<const double*>(zp.data());
-    const double* v1 = static_cast<const double*>(v1p.data());
-    const double* v2 = static_cast<const double*>(v2p.data());
-    const double* w = static_cast<const double*>(wp.data());
-    const double* wpos = wposp.size() == 0 ? 0 : static_cast<const double*>(wposp.data());
+template <int C>
+Field<TData,C>* BuildTField(
+    py::array_t<double>& x, py::array_t<double>& y, py::array_t<double>& z,
+    py::array_t<double>& t1, py::array_t<double>& t2,
+    py::array_t<double>& w, py::array_t<double>& wpos,
+    double minsize, double maxsize,
+    SplitMethod sm, long long seed, bool brute, int mintop, int maxtop)
+{
+    return BuildZField<TData,C>(x, y, z, t1, t2, w, wpos,
+                                minsize, maxsize, sm, seed,
+                                brute, mintop, maxtop);
+}
 
-    return BuildField<VData,C>(x, y, z, v1, v2, w, wpos,
-                               nobj, minsize, maxsize, sm, seed,
-                               brute, mintop, maxtop);
+template <int C>
+Field<QData,C>* BuildQField(
+    py::array_t<double>& x, py::array_t<double>& y, py::array_t<double>& z,
+    py::array_t<double>& q1, py::array_t<double>& q2,
+    py::array_t<double>& w, py::array_t<double>& wpos,
+    double minsize, double maxsize,
+    SplitMethod sm, long long seed, bool brute, int mintop, int maxtop)
+{
+    return BuildZField<QData,C>(x, y, z, q1, q2, w, wpos,
+                                minsize, maxsize, sm, seed,
+                                brute, mintop, maxtop);
 }
 
 template <int C>
@@ -572,27 +571,27 @@ void FieldGetNear(BaseField<C>& field, double x, double y, double z, double sep,
 
 // Also wrap some functions that live in KMeans.cpp
 template <int C>
-void KMeansInitTree(BaseField<C>& field, py::array_t<double>& cenp, int npatch, long long seed);
+void KMeansInitTree(BaseField<C>& field, py::array_t<double>& cen, int npatch, long long seed);
 template <int C>
-void KMeansInitRand(BaseField<C>& field, py::array_t<double>& cenp, int npatch, long long seed);
+void KMeansInitRand(BaseField<C>& field, py::array_t<double>& cen, int npatch, long long seed);
 template <int C>
-void KMeansInitKMPP(BaseField<C>& field, py::array_t<double>& cenp, int npatch, long long seed);
+void KMeansInitKMPP(BaseField<C>& field, py::array_t<double>& cen, int npatch, long long seed);
 template <int C>
-void KMeansRun(BaseField<C>& field, py::array_t<double>& cenp, int npatch,
+void KMeansRun(BaseField<C>& field, py::array_t<double>& cen, int npatch,
                int max_iter, double tol, bool alt);
 template <int C>
-void KMeansAssign(BaseField<C>& field, py::array_t<double>& cenp, int npatch,
-                  py::array_t<long>& pp);
+void KMeansAssign(BaseField<C>& field, py::array_t<double>& cen, int npatch,
+                  py::array_t<long>& p);
 
-void QuickAssign(py::array_t<double>& cenp, int npatch,
-                 py::array_t<double>& xp, py::array_t<double>& yp,
-                 py::array_t<double>& zp, py::array_t<long>& pp);
+void QuickAssign(py::array_t<double>& cen, int npatch,
+                 py::array_t<double>& x, py::array_t<double>& y,
+                 py::array_t<double>& z, py::array_t<long>& p);
 void SelectPatch(int patch, py::array_t<double>& cenp, int npatch,
-                 py::array_t<double>& xp, py::array_t<double>& yp,
-                 py::array_t<double>& zp, py::array_t<long>& usep);
+                 py::array_t<double>& x, py::array_t<double>& y,
+                 py::array_t<double>& z, py::array_t<long>& use);
 void GenerateXYZ(
-    py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
-    py::array_t<double>& rap, py::array_t<double>& decp, py::array_t<double>& rp);
+    py::array_t<double>& x, py::array_t<double>& y, py::array_t<double>& z,
+    py::array_t<double>& ra, py::array_t<double>& dec, py::array_t<double>& r);
 
 
 template <int C>
@@ -625,27 +624,41 @@ void WrapField(py::module& _treecorr, std::string Cstr)
     py::class_<Field<KData,C>, BaseField<C> > kfield(_treecorr, ("KField" + Cstr).c_str());
     py::class_<Field<GData,C>, BaseField<C> > gfield(_treecorr, ("GField" + Cstr).c_str());
     py::class_<Field<VData,C>, BaseField<C> > vfield(_treecorr, ("VField" + Cstr).c_str());
+    py::class_<Field<TData,C>, BaseField<C> > tfield(_treecorr, ("TField" + Cstr).c_str());
+    py::class_<Field<QData,C>, BaseField<C> > qfield(_treecorr, ("QField" + Cstr).c_str());
 
     typedef Field<NData,C>* (*nfield_type)(
-        py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
-        py::array_t<double>& wp, py::array_t<double>& wposp,
+        py::array_t<double>& x, py::array_t<double>& y, py::array_t<double>& z,
+        py::array_t<double>& w, py::array_t<double>& wpos,
         double minsize, double maxsize,
         SplitMethod sm, long long seed, bool brute, int mintop, int maxtop);
     typedef Field<KData,C>* (*kfield_type)(
-        py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
-        py::array_t<double>& kp, py::array_t<double>& wp, py::array_t<double>& wposp,
+        py::array_t<double>& x, py::array_t<double>& y, py::array_t<double>& z,
+        py::array_t<double>& k, py::array_t<double>& w, py::array_t<double>& wpos,
         double minsize, double maxsize,
         SplitMethod sm, long long seed, bool brute, int mintop, int maxtop);
     typedef Field<GData,C>* (*gfield_type)(
-        py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
-        py::array_t<double>& g1p, py::array_t<double>& g2p,
-        py::array_t<double>& wp, py::array_t<double>& wposp,
+        py::array_t<double>& x, py::array_t<double>& y, py::array_t<double>& z,
+        py::array_t<double>& g1, py::array_t<double>& g2,
+        py::array_t<double>& w, py::array_t<double>& wpos,
         double minsize, double maxsize,
         SplitMethod sm, long long seed, bool brute, int mintop, int maxtop);
     typedef Field<VData,C>* (*vfield_type)(
-        py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
-        py::array_t<double>& v1p, py::array_t<double>& v2p,
-        py::array_t<double>& wp, py::array_t<double>& wposp,
+        py::array_t<double>& x, py::array_t<double>& y, py::array_t<double>& z,
+        py::array_t<double>& v1, py::array_t<double>& v2,
+        py::array_t<double>& w, py::array_t<double>& wpos,
+        double minsize, double maxsize,
+        SplitMethod sm, long long seed, bool brute, int mintop, int maxtop);
+    typedef Field<TData,C>* (*tfield_type)(
+        py::array_t<double>& x, py::array_t<double>& y, py::array_t<double>& z,
+        py::array_t<double>& t1, py::array_t<double>& t2,
+        py::array_t<double>& w, py::array_t<double>& wpos,
+        double minsize, double maxsize,
+        SplitMethod sm, long long seed, bool brute, int mintop, int maxtop);
+    typedef Field<QData,C>* (*qfield_type)(
+        py::array_t<double>& x, py::array_t<double>& y, py::array_t<double>& z,
+        py::array_t<double>& q1, py::array_t<double>& q2,
+        py::array_t<double>& w, py::array_t<double>& wpos,
         double minsize, double maxsize,
         SplitMethod sm, long long seed, bool brute, int mintop, int maxtop);
 
@@ -653,6 +666,8 @@ void WrapField(py::module& _treecorr, std::string Cstr)
     kfield.def(py::init(kfield_type(&BuildKField)));
     gfield.def(py::init(gfield_type(&BuildGField)));
     vfield.def(py::init(vfield_type(&BuildVField)));
+    tfield.def(py::init(tfield_type(&BuildTField)));
+    qfield.def(py::init(qfield_type(&BuildQField)));
 }
 
 void pyExportField(py::module& _treecorr)

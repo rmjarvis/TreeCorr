@@ -322,6 +322,32 @@ struct XiData<VData, VData> : public XiData<GData, GData>
         XiData<GData,GData>(xi0,xi1,xi2,xi3) {}
 };
 
+template <int D1>
+struct XiData<D1, TData> : public XiData<D1, GData>
+{
+    XiData(double* xi0, double* xi1, double*, double*) :
+        XiData<D1,GData>(xi0,xi1,0,0) {}
+};
+template <>
+struct XiData<TData, TData> : public XiData<GData, GData>
+{
+    XiData(double* xi0, double* xi1, double* xi2, double* xi3) :
+        XiData<GData,GData>(xi0,xi1,xi2,xi3) {}
+};
+
+template <int D1>
+struct XiData<D1, QData> : public XiData<D1, GData>
+{
+    XiData(double* xi0, double* xi1, double*, double*) :
+        XiData<D1,GData>(xi0,xi1,0,0) {}
+};
+template <>
+struct XiData<QData, QData> : public XiData<GData, GData>
+{
+    XiData(double* xi0, double* xi1, double* xi2, double* xi3) :
+        XiData<GData,GData>(xi0,xi1,xi2,xi3) {}
+};
+
 
 class Sampler : public BaseCorr2
 {

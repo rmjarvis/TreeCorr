@@ -80,7 +80,7 @@ class NGCorrelation(Corr2):
         >>> ng = treecorr.NGCorrelation(config)
         >>> ng.process(cat1,cat2)   # Compute the cross-correlation.
         >>> ng.write(file_name)     # Write out to a file.
-        >>> xi = gg.xi              # Or access the correlation function directly.
+        >>> xi = ng.xi              # Or access the correlation function directly.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.

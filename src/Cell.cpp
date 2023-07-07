@@ -28,7 +28,7 @@
 #include "dbg.h"
 #include "Cell.h"
 #include "Bounds.h"
-
+#include "ProjectHelper.h"
 
 // Helper functions to setup random numbers properly
 inline void seed_urandom()
@@ -178,12 +178,27 @@ void CellData<KData,C>::finishAverages(
     const std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >& vdata, size_t start, size_t end)
 {
     // Accumulate in double precision for better accuracy.
-    double dwk = 0.;
+    double sum_wk = 0.;
     for(size_t i=start;i<end;++i) {
         const CellData<KData,C>* vdata_k = static_cast<const CellData<KData,C>*>(vdata[i].first);
-        dwk += vdata_k->getWK();
+        sum_wk += vdata_k->getWK();
     }
-    _wk = dwk;
+    setWK(sum_wk);
+}
+
+template <int D, int C>
+std::complex<double> SimpleSum(
+    const std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >& vdata,
+    size_t start, size_t end)
+{
+    // Accumulate in double precision for better accuracy.
+    std::complex<double> sum_wg(0.);
+    for(size_t i=start;i<end;++i) {
+        const CellData<D,Flat>* vdata_g =
+            static_cast<const CellData<D,Flat>*>(vdata[i].first);
+        sum_wg += vdata_g->getWG();
+    }
+    return sum_wg;
 }
 
 template <>
@@ -191,14 +206,7 @@ void CellData<GData,Flat>::finishAverages(
     const std::vector<std::pair<BaseCellData<Flat>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end)
 {
-    // Accumulate in double precision for better accuracy.
-    std::complex<double> dwg(0.);
-    for(size_t i=start;i<end;++i) {
-        const CellData<GData,Flat>* vdata_g =
-            static_cast<const CellData<GData,Flat>*>(vdata[i].first);
-        dwg += vdata_g->getWG();
-    }
-    _wg = dwg;
+    setWG(SimpleSum<GData>(vdata, start, end));
 }
 
 template <>
@@ -206,35 +214,29 @@ void CellData<VData,Flat>::finishAverages(
     const std::vector<std::pair<BaseCellData<Flat>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end)
 {
-    // Accumulate in double precision for better accuracy.
-    std::complex<double> dwv(0.);
-    for(size_t i=start;i<end;++i) {
-        const CellData<VData,Flat>* vdata_v =
-            static_cast<const CellData<VData,Flat>*>(vdata[i].first);
-        dwv += vdata_v->getWV();
-    }
-    _wv = dwv;
+    setWG(SimpleSum<VData>(vdata, start, end));
 }
 
 // C here is either ThreeD or Sphere
-template <int C>
-std::complex<double> ParallelTransportShiftG(
+template <int D, int C>
+std::complex<double> ParallelTransportSum(
     const std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >& vdata,
     const Position<C>& center, size_t start, size_t end)
 {
     // For the average shear, we need to parallel transport each one to the center
     // to account for the different coordinate systems for each measurement.
     xdbg<<"Finish Averages for Center = "<<center<<std::endl;
-    std::complex<double> dwg=0.;
+    std::complex<double> sum_wg=0.;
     Position<Sphere> cen(center);
     for(size_t i=start;i<end;++i) {
         const CellData<GData,C>* vdata_g = static_cast<const CellData<GData,C>*>(vdata[i].first);
         xxdbg<<"Project shear "<<(vdata_g->getWG()/vdata_g->getW())<<
             " at point "<<vdata_g->getPos()<<std::endl;
-        // This is a lot like the ProjectShear function in BinCorr2.cpp
+        // This is a lot like the ProjectHelper<Sphere>::calculate_direction function.
         // The difference is that here, we just rotate the single shear by
         // (Pi-A-B).  See the comments in ProjectShear2 for understanding
-        // the initial bit where we calculate A,B.
+        // the initial bit where we calculate A,B.  (We don't call that function directly,
+        // because there is a slight efficiency gain that sinA = sinB, which we use here.)
         Position<Sphere> pi(vdata_g->getPos());
         double z1 = center.getZ();
         double z2 = pi.getZ();
@@ -242,29 +244,24 @@ std::complex<double> ParallelTransportShiftG(
         if (dsq < 1.e-12) {
             // i.e. d < 1.e-6 radians = 0.2 arcsec
             // Then this point is at the center, no need to project.
-            dwg += vdata_g->getWG();
+            sum_wg += vdata_g->getWG();
         } else {
             double cosA = (z1 - z2) + 0.5 * z2 * dsq;
             double sinA = cen.getY()*pi.getX() - cen.getX()*pi.getY();
-            double normAsq = sinA*sinA + cosA*cosA;
             double cosB = (z2 - z1) + 0.5 * z1 * dsq;
             double sinB = sinA;
-            double normBsq = sinB*sinB + cosB*cosB;
 
             // The angle we need to rotate the shear by is (Pi-A-B)
             // cos(beta) = -cos(A+B)
             // sin(beta) = sin(A+B)
             double cosbeta = -cosA * cosB + sinA * sinB;
             double sinbeta = sinA * cosB + cosA * sinB;
-            xxdbg<<"beta = "<<atan2(sinbeta,cosbeta)*180/M_PI<<std::endl;
-            std::complex<double> expibeta(cosbeta,-sinbeta);
-            xxdbg<<"expibeta = "<<expibeta/sqrt(normAsq*normBsq)<<std::endl;
-            std::complex<double> exp2ibeta = (expibeta * expibeta) / (normAsq*normBsq);
-            xxdbg<<"exp2ibeta = "<<exp2ibeta<<std::endl;
-            dwg += vdata_g->getWG() * exp2ibeta;
+            std::complex<double> expibeta(cosbeta, sinbeta);
+            std::complex<double> expmsibeta = _expmsialpha<D>(expibeta);
+            sum_wg += vdata_g->getWG() * expmsibeta;
         }
     }
-    return dwg;
+    return sum_wg;
 }
 
 // These two need to do the same thing, so pull it out into the above function.
@@ -273,7 +270,7 @@ void CellData<GData,ThreeD>::finishAverages(
     const std::vector<std::pair<BaseCellData<ThreeD>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end)
 {
-    _wg = ParallelTransportShiftG(vdata,_pos,start,end);
+    setWG(ParallelTransportSum<GData>(vdata,_pos,start,end));
 }
 
 template <>
@@ -281,45 +278,7 @@ void CellData<GData,Sphere>::finishAverages(
     const std::vector<std::pair<BaseCellData<Sphere>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end)
 {
-    _wg = ParallelTransportShiftG(vdata,_pos,start,end);
-}
-
-// Similar thing for Vectors, except use expibeta, not exp2ibeta.
-template <int C>
-std::complex<double> ParallelTransportShiftV(
-    const std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >& vdata,
-    const Position<C>& center, size_t start, size_t end)
-{
-    xdbg<<"Finish Averages for Center = "<<center<<std::endl;
-    std::complex<double> dwv=0.;
-    Position<Sphere> cen(center);
-    for(size_t i=start;i<end;++i) {
-        const CellData<VData,C>* vdata_v = static_cast<const CellData<VData,C>*>(vdata[i].first);
-        Position<Sphere> pi(vdata_v->getPos());
-        double z1 = center.getZ();
-        double z2 = pi.getZ();
-        double dsq = (cen - pi).normSq();
-        double cosA = (z1 - z2) + 0.5 * z2 * dsq;
-        double sinA = cen.getY()*pi.getX() - cen.getX()*pi.getY();
-        double normAsq = sinA*sinA + cosA*cosA;
-        double cosB = (z2 - z1) + 0.5 * z1 * dsq;
-        double sinB = sinA;
-        double normBsq = sinB*sinB + cosB*cosB;
-        if (normAsq < 1.e-12 && normBsq < 1.e-12) {
-            // Then this point is at the center, no need to project.
-            dwv += vdata_v->getWV();
-        } else {
-            // The angle we need to rotate the shear by is (Pi-A-B)
-            // cos(beta) = -cos(A+B)
-            // sin(beta) = sin(A+B)
-            double cosbeta = -cosA * cosB + sinA * sinB;
-            double sinbeta = sinA * cosB + cosA * sinB;
-            std::complex<double> expibeta(cosbeta,-sinbeta);
-            expibeta /= sqrt(normAsq*normBsq);
-            dwv += vdata_v->getWV() * expibeta;
-        }
-    }
-    return dwv;
+    setWG(ParallelTransportSum<GData>(vdata,_pos,start,end));
 }
 
 template <>
@@ -327,7 +286,7 @@ void CellData<VData,ThreeD>::finishAverages(
     const std::vector<std::pair<BaseCellData<ThreeD>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end)
 {
-    _wv = ParallelTransportShiftV(vdata,_pos,start,end);
+    setWV(ParallelTransportSum<VData>(vdata,_pos,start,end));
 }
 
 template <>
@@ -335,7 +294,7 @@ void CellData<VData,Sphere>::finishAverages(
     const std::vector<std::pair<BaseCellData<Sphere>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end)
 {
-    _wv = ParallelTransportShiftV(vdata,_pos,start,end);
+    setWV(ParallelTransportSum<VData>(vdata,_pos,start,end));
 }
 
 

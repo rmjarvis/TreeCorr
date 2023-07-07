@@ -147,6 +147,7 @@ public:
                         size_t start, size_t end);
 
     double getWK() const { return _wk; }
+    void setWK(double wk) { _wk = wk; }
 
 protected:
 
@@ -182,6 +183,7 @@ public:
                         size_t start, size_t end);
 
     std::complex<double> getWG() const { return _wg; }
+    void setWG(const std::complex<double>& wg) { _wg = wg; }
 
 protected:
 
@@ -193,39 +195,30 @@ std::ostream& operator<<(std::ostream& os, const CellData<GData,C>& c)
 { return os << c.getPos() << " " << c.getWG() << " " << c.getW() << " " << c.getN(); }
 
 template <int C>
-class CellData<VData,C> : public BaseCellData<C>
+class CellData<VData,C> : public CellData<GData, C>
 {
 public:
     CellData() {}
 
     CellData(const Position<C>& pos, const std::complex<double>& v, double w) :
-        BaseCellData<C>(pos, w), _wv(w*v)
-    {}
+        CellData<GData,C>(pos, v, w) {}
 
     template <int C2>
     CellData(const Position<C2>& pos, const std::complex<double>& v, double w) :
-        BaseCellData<C>(pos, w), _wv(w*v)
-    {}
+        CellData<GData,C>(pos, v, w) {}
 
     CellData(const std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >& vdata,
              size_t start, size_t end) :
-        BaseCellData<C>(vdata, start, end) {}
+        CellData<GData,C>(vdata, start, end) {}
 
     // The above constructor just computes the mean pos, since sometimes that's all we
     // need.  So this function will finish the rest of the construction when desired.
     void finishAverages(const std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >&,
                         size_t start, size_t end);
 
-    std::complex<double> getWV() const { return _wv; }
-
-protected:
-
-    std::complex<float> _wv;
+    std::complex<double> getWV() const { return this->getWG(); }
+    void setWV(const std::complex<double>& wv) { this->setWG(wv); }
 };
-
-template <int C>
-std::ostream& operator<<(std::ostream& os, const CellData<VData,C>& c)
-{ return os << c.getPos() << " " << c.getWV() << " " << c.getW() << " " << c.getN(); }
 
 template <int C>
 class BaseCell

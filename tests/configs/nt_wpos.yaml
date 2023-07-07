@@ -1,0 +1,25 @@
+
+file_name: data/nt_wpos_lens.fits
+file_name2:
+    - data/nt_wpos_source0.fits
+    - data/nt_wpos_source1.fits
+    - data/nt_wpos_source2.fits
+
+x_col: x
+y_col: y
+x_units: arcmin
+y_units: arcmin
+
+t1_col: t1
+t2_col: t2
+w_col: [0, w]
+wpos_col: [0, wpos]
+
+verbose: 1
+
+min_sep: 1.
+max_sep: 25.
+bin_size: 0.10
+sep_units: arcmin
+
+nt_file_name: output/nt_wpos.fits

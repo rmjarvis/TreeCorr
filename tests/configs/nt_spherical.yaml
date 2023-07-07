@@ -1,0 +1,21 @@
+
+file_name: data/nt_spherical_lens.dat
+file_name2: data/nt_spherical_source.dat
+
+ra_col: 1
+dec_col: 2
+ra_units: rad
+dec_units: rad
+
+t1_col: 3
+t2_col: 4
+
+verbose: 1
+
+min_sep: 1.
+max_sep: 20.
+bin_size: 0.10
+sep_units: deg
+
+nt_file_name: output/nt_spherical.out
+precision: 8

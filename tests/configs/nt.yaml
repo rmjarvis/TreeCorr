@@ -1,0 +1,21 @@
+
+file_name: data/nt_lens.fits
+file_name2: data/nt_source.fits
+rand_file_name: data/nt_rand.fits
+
+x_col: x
+y_col: y
+x_units: arcmin
+y_units: arcmin
+
+t1_col: t1
+t2_col: t2
+
+verbose: 1
+
+min_sep: 1.
+max_sep: 20.
+bin_size: 0.10
+sep_units: arcmin
+
+nt_file_name: output/nt.out

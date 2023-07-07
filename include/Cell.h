@@ -34,7 +34,7 @@ const double IOTA = 1.e-10;
 // NData means just count the point.
 // KData means use a scalar.  Nominally kappa, but works with any scalar (e.g. temperature).
 // GData means use a shear.
-enum DataType { NData=1 , KData=2 , GData=3, VData=4 };
+enum DataType { NData=1 , KData=2 , GData=3, VData=4, TData=5, QData=6 };
 
 // Return a random number between 0 and 1.
 double urand(long long seed=0);
@@ -218,6 +218,58 @@ public:
 
     std::complex<double> getWV() const { return this->getWG(); }
     void setWV(const std::complex<double>& wv) { this->setWG(wv); }
+};
+
+template <int C>
+class CellData<TData,C> : public CellData<GData, C>
+{
+public:
+    CellData() {}
+
+    CellData(const Position<C>& pos, const std::complex<double>& t, double w) :
+        CellData<GData,C>(pos, t, w) {}
+
+    template <int C2>
+    CellData(const Position<C2>& pos, const std::complex<double>& t, double w) :
+        CellData<GData,C>(pos, t, w) {}
+
+    CellData(const std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >& vdata,
+             size_t start, size_t end) :
+        CellData<GData,C>(vdata, start, end) {}
+
+    // The above constructor just computes the mean pos, since sometimes that's all we
+    // need.  So this function will finish the rest of the construction when desired.
+    void finishAverages(const std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >&,
+                        size_t start, size_t end);
+
+    std::complex<double> getWT() const { return this->getWG(); }
+    void setWT(const std::complex<double>& wt) { this->setWG(wt); }
+};
+
+template <int C>
+class CellData<QData,C> : public CellData<GData, C>
+{
+public:
+    CellData() {}
+
+    CellData(const Position<C>& pos, const std::complex<double>& q, double w) :
+        CellData<GData,C>(pos, q, w) {}
+
+    template <int C2>
+    CellData(const Position<C2>& pos, const std::complex<double>& q, double w) :
+        CellData<GData,C>(pos, q, w) {}
+
+    CellData(const std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >& vdata,
+             size_t start, size_t end) :
+        CellData<GData,C>(vdata, start, end) {}
+
+    // The above constructor just computes the mean pos, since sometimes that's all we
+    // need.  So this function will finish the rest of the construction when desired.
+    void finishAverages(const std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >&,
+                        size_t start, size_t end);
+
+    std::complex<double> getWQ() const { return this->getWG(); }
+    void setWQ(const std::complex<double>& wq) { this->setWG(wq); }
 };
 
 template <int C>

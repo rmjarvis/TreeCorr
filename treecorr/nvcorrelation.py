@@ -65,7 +65,7 @@ class NVCorrelation(Corr2):
         ``var_method`` to something else and use patches in the input catalog(s).
         cf. `Covariance Estimates`.
 
-    If ``sep_units`` are given (either in the config dict or as a named kwarv) then the distances
+    If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances
     will all be in these units.
 
     .. note::

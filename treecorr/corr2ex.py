@@ -22,12 +22,18 @@ from .util import set_omp_threads
 from .nncorrelation import NNCorrelation
 from .nkcorrelation import NKCorrelation
 from .kkcorrelation import KKCorrelation
-from .ngcorrelation import NGCorrelation
-from .kgcorrelation import KGCorrelation
-from .ggcorrelation import GGCorrelation
 from .nvcorrelation import NVCorrelation
 from .kvcorrelation import KVCorrelation
 from .vvcorrelation import VVCorrelation
+from .ngcorrelation import NGCorrelation
+from .kgcorrelation import KGCorrelation
+from .ggcorrelation import GGCorrelation
+#from .ntcorrelation import NTCorrelation
+#from .ktcorrelation import KTCorrelation
+#from .ttcorrelation import TTCorrelation
+#from .nqcorrelation import NQCorrelation
+#from .kqcorrelation import KQCorrelation
+#from .qqcorrelation import QQCorrelation
 
 # Dict describing the valid parameters, what types they are, and a description:
 # Each value is a tuple with the following elements:
@@ -71,6 +77,16 @@ corr2_valid_params = {
     'kk_file_name' : (str, False, None, None,
             'The output filename for scalar-scalar correlation function.'),
 
+    'nv_file_name' : (str, False, None, None,
+            'The output filename for point-vector correlation function.'),
+    'nv_statistic' : (str, False, None, ['compensated', 'simple'],
+            'Which statistic to use for the mean vector estimator of the NV correlation function. ',
+            'The default is compensated if rand_files is given, otherwise simple'),
+    'kv_file_name' : (str, False, None, None,
+            'The output filename for scalar-vector correlation function.'),
+    'vv_file_name' : (str, False, None, None,
+            'The output filename for vector-vector correlation function.'),
+
     'ng_file_name' : (str, False, None, None,
             'The output filename for point-shear correlation function.'),
     'ng_statistic' : (str, False, None, ['compensated', 'simple'],
@@ -81,15 +97,25 @@ corr2_valid_params = {
     'gg_file_name' : (str, False, None, None,
             'The output filename for shear-shear correlation function.'),
 
-    'nv_file_name' : (str, False, None, None,
-            'The output filename for point-vector correlation function.'),
-    'nv_statistic' : (str, False, None, ['compensated', 'simple'],
-            'Which statistic to use for the mean vector estimator of the NV correlation function. ',
+    'nt_file_name' : (str, False, None, None,
+            'The output filename for point-shear correlation function.'),
+    'nt_statistic' : (str, False, None, ['compensated', 'simple'],
+            'Which statistic to use for the mean shear estimator of the NG correlation function. ',
             'The default is compensated if rand_files is given, otherwise simple'),
-    'kv_file_name' : (str, False, None, None,
-            'The output filename for scalar-vector correlation function.'),
-    'vv_file_name' : (str, False, None, None,
-            'The output filename for vector-vector correlation function.'),
+    'kt_file_name' : (str, False, None, None,
+            'The output filename for scalar-shear correlation function.'),
+    'tt_file_name' : (str, False, None, None,
+            'The output filename for shear-shear correlation function.'),
+
+    'nq_file_name' : (str, False, None, None,
+            'The output filename for point-shear correlation function.'),
+    'nq_statistic' : (str, False, None, ['compensated', 'simple'],
+            'Which statistic to use for the mean shear estimator of the NG correlation function. ',
+            'The default is compensated if rand_files is given, otherwise simple'),
+    'kq_file_name' : (str, False, None, None,
+            'The output filename for scalar-shear correlation function.'),
+    'qq_file_name' : (str, False, None, None,
+            'The output filename for shear-shear correlation function.'),
 
     # Derived output quantities
 
@@ -342,6 +368,90 @@ def corr2(config, logger=None):
         logger.info("Done VV calculations.")
         vv.write(config['vv_file_name'])
         logger.warning("Wrote VV correlation to %s",config['vv_file_name'])
+
+    # Do NT correlation function if necessary
+    if 'nt_file_name' in config:
+        if cat2 is None:
+            raise TypeError("file_name2 is required for nt correlation")
+        logger.warning("Performing NT calculations...")
+        nt = NTCorrelation(config, logger=logger)
+        nt.process(cat1,cat2)
+        logger.info("Done NT calculation.")
+
+        # The default nt_statistic is compensated _iff_ rand files are given.
+        rt = None
+        if rand1 is None:
+            if config.get('nt_statistic',None) == 'compensated':
+                raise TypeError("rand_files is required for nt_statistic = compensated")
+        elif config.get('nt_statistic','compensated') == 'compensated':
+            rt = NTCorrelation(config, logger=logger)
+            rt.process(rand1,cat2)
+            logger.info("Done RT calculation.")
+
+        nt.write(config['nt_file_name'], rt=rt)
+        logger.warning("Wrote NT correlation to %s",config['nt_file_name'])
+
+    # Do KT correlation function if necessary
+    if 'kt_file_name' in config:
+        if cat2 is None:
+            raise TypeError("file_name2 is required for kt correlation")
+        logger.warning("Performing KT calculations...")
+        kt = KTCorrelation(config, logger=logger)
+        kt.process(cat1,cat2)
+        logger.info("Done KT calculation.")
+        kt.write(config['kt_file_name'])
+        logger.warning("Wrote KT correlation to %s",config['kt_file_name'])
+
+    # Do TT correlation function if necessary
+    if 'tt_file_name' in config:
+        logger.warning("Performing TT calculations...")
+        tt = TTCorrelation(config, logger=logger)
+        tt.process(cat1,cat2)
+        logger.info("Done TT calculations.")
+        tt.write(config['tt_file_name'])
+        logger.warning("Wrote TT correlation to %s",config['tt_file_name'])
+
+    # Do NQ correlation function if necessary
+    if 'nq_file_name' in config:
+        if cat2 is None:
+            raise TypeError("file_name2 is required for nq correlation")
+        logger.warning("Performing NQ calculations...")
+        nq = NQCorrelation(config, logger=logger)
+        nq.process(cat1,cat2)
+        logger.info("Done NQ calculation.")
+
+        # The default nq_statistic is compensated _iff_ rand files are given.
+        rq = None
+        if rand1 is None:
+            if config.get('nq_statistic',None) == 'compensated':
+                raise TypeError("rand_files is required for nq_statistic = compensated")
+        elif config.get('nq_statistic','compensated') == 'compensated':
+            rq = NQCorrelation(config, logger=logger)
+            rq.process(rand1,cat2)
+            logger.info("Done RQ calculation.")
+
+        nq.write(config['nq_file_name'], rq=rq)
+        logger.warning("Wrote NQ correlation to %s",config['nq_file_name'])
+
+    # Do KQ correlation function if necessary
+    if 'kq_file_name' in config:
+        if cat2 is None:
+            raise TypeError("file_name2 is required for kq correlation")
+        logger.warning("Performing KQ calculations...")
+        kq = KQCorrelation(config, logger=logger)
+        kq.process(cat1,cat2)
+        logger.info("Done KQ calculation.")
+        kq.write(config['kq_file_name'])
+        logger.warning("Wrote KQ correlation to %s",config['kq_file_name'])
+
+    # Do QQ correlation function if necessary
+    if 'qq_file_name' in config:
+        logger.warning("Performing QQ calculations...")
+        qq = QQCorrelation(config, logger=logger)
+        qq.process(cat1,cat2)
+        logger.info("Done QQ calculations.")
+        qq.write(config['qq_file_name'])
+        logger.warning("Wrote QQ correlation to %s",config['qq_file_name'])
 
 
 def print_corr2_params():

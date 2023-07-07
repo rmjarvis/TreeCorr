@@ -2263,6 +2263,40 @@ def test_field():
     if platform.python_implementation() != 'PyPy':
         assert t2-t1 <= t1-t0
 
+    tfield1 = cat1.getTField()
+    tfield2 = cat2.getTField(min_size=0.01, max_size=1)
+    tfield3 = cat3.getTField(min_size=1, max_size=300, logger=logger)
+    tfield1b = cat1.getTField()
+    tfield2b = cat2.getTField(min_size=0.01, max_size=1)
+    tfield3b = cat3.getTField(min_size=1, max_size=300, logger=logger)
+    assert_raises(TypeError, cat4.getTField)
+    assert cat1.tfields.count == 1
+    assert cat2.tfields.count == 1
+    assert cat3.tfields.count == 1
+    assert cat1.field is tfield1
+    assert cat2.field is tfield2
+    assert cat3.field is tfield3
+    assert tfield1b is tfield1
+    assert tfield2b is tfield2
+    assert tfield3b is tfield3
+
+    qfield1 = cat1.getQField()
+    qfield2 = cat2.getQField(min_size=0.01, max_size=1)
+    qfield3 = cat3.getQField(min_size=1, max_size=300, logger=logger)
+    qfield1b = cat1.getQField()
+    qfield2b = cat2.getQField(min_size=0.01, max_size=1)
+    qfield3b = cat3.getQField(min_size=1, max_size=300, logger=logger)
+    assert_raises(TypeError, cat4.getQField)
+    assert cat1.qfields.count == 1
+    assert cat2.qfields.count == 1
+    assert cat3.qfields.count == 1
+    assert cat1.field is qfield1
+    assert cat2.field is qfield2
+    assert cat3.field is qfield3
+    assert qfield1b is qfield1
+    assert qfield2b is qfield2
+    assert qfield3b is qfield3
+
     # By default, only one is saved.  Check resize_cache option.
     cat1.resize_cache(3)
     assert cat1.nfields.size == 3
@@ -2271,7 +2305,7 @@ def test_field():
     assert cat1.nfields.count == 1
     assert cat1.kfields.count == 1
     assert cat1.gfields.count == 1
-    assert cat1.field is vfield1
+    assert cat1.field is qfield1
 
     t0 = time.time()
     nfield1 = cat1.getNField()

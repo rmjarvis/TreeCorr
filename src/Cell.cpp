@@ -214,7 +214,23 @@ void CellData<VData,Flat>::finishAverages(
     const std::vector<std::pair<BaseCellData<Flat>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end)
 {
-    setWG(SimpleSum<VData>(vdata, start, end));
+    setWV(SimpleSum<VData>(vdata, start, end));
+}
+
+template <>
+void CellData<TData,Flat>::finishAverages(
+    const std::vector<std::pair<BaseCellData<Flat>*,WPosLeafInfo> >& vdata,
+    size_t start, size_t end)
+{
+    setWT(SimpleSum<TData>(vdata, start, end));
+}
+
+template <>
+void CellData<QData,Flat>::finishAverages(
+    const std::vector<std::pair<BaseCellData<Flat>*,WPosLeafInfo> >& vdata,
+    size_t start, size_t end)
+{
+    setWQ(SimpleSum<QData>(vdata, start, end));
 }
 
 // C here is either ThreeD or Sphere
@@ -295,6 +311,38 @@ void CellData<VData,Sphere>::finishAverages(
     size_t start, size_t end)
 {
     setWV(ParallelTransportSum<VData>(vdata,_pos,start,end));
+}
+
+template <>
+void CellData<TData,ThreeD>::finishAverages(
+    const std::vector<std::pair<BaseCellData<ThreeD>*,WPosLeafInfo> >& vdata,
+    size_t start, size_t end)
+{
+    setWT(ParallelTransportSum<TData>(vdata,_pos,start,end));
+}
+
+template <>
+void CellData<TData,Sphere>::finishAverages(
+    const std::vector<std::pair<BaseCellData<Sphere>*,WPosLeafInfo> >& vdata,
+    size_t start, size_t end)
+{
+    setWT(ParallelTransportSum<TData>(vdata,_pos,start,end));
+}
+
+template <>
+void CellData<QData,ThreeD>::finishAverages(
+    const std::vector<std::pair<BaseCellData<ThreeD>*,WPosLeafInfo> >& vdata,
+    size_t start, size_t end)
+{
+    setWQ(ParallelTransportSum<QData>(vdata,_pos,start,end));
+}
+
+template <>
+void CellData<QData,Sphere>::finishAverages(
+    const std::vector<std::pair<BaseCellData<Sphere>*,WPosLeafInfo> >& vdata,
+    size_t start, size_t end)
+{
+    setWQ(ParallelTransportSum<QData>(vdata,_pos,start,end));
 }
 
 
@@ -639,6 +687,8 @@ void BaseCell<C>::WriteTree(std::ostream& os, int indent) const
     InstD(KData,C); \
     InstD(GData,C); \
     InstD(VData,C); \
+    InstD(TData,C); \
+    InstD(QData,C); \
 
 Inst(Flat);
 Inst(ThreeD);

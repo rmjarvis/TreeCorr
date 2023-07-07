@@ -40,12 +40,18 @@ class Corr2(object):
     - `NNCorrelation` handles count-count correlation functions
     - `NKCorrelation` handles count-scalar correlation functions
     - `KKCorrelation` handles scalar-scalar correlation functions
-    - `NGCorrelation` handles count-shear correlation functions
-    - `KGCorrelation` handles scalar-shear correlation functions
-    - `GGCorrelation` handles shear-shear correlation functions
     - `NVCorrelation` handles count-vector correlation functions
     - `KVCorrelation` handles scalar-vector correlation functions
     - `VVCorrelation` handles count-vector correlation functions
+    - `NGCorrelation` handles count-shear correlation functions
+    - `KGCorrelation` handles scalar-shear correlation functions
+    - `GGCorrelation` handles shear-shear correlation functions
+    - `NTCorrelation` handles count-spin-3 correlation functions
+    - `KTCorrelation` handles scalar-spin-3 correlation functions
+    - `TTCorrelation` handles spin-3-spin-3 correlation functions
+    - `NQCorrelation` handles count-spin-4 correlation functions
+    - `KQCorrelation` handles scalar-spin-4 correlation functions
+    - `QQCorrelation` handles spin-4-spin-4 correlation functions
 
     .. note::
 
@@ -53,6 +59,11 @@ class Corr2(object):
         scalar quantities nominally refers to the weak lesing kappa field.
         But in fact any scalar quantity may be used here.
         (CMB temperature fluctuations for example.)
+
+        The spin-3 and spin-4 correlations use T and Q for those fields.  Nominally these
+        stand for trefoil and quatrefoil, since these have the right spin properties.
+        But as usual, any field with the appropriate transformation properties can be
+        used for these.
 
     The constructor for all derived classes take a config dict as the first argument,
     since this is often how we keep track of parameters, but if you don't want to
@@ -798,7 +809,7 @@ class Corr2(object):
         """The standard statistic for the current correlation object as a 1-d array.
 
         Usually, this is just self.xi.  But if the metric is TwoD, this becomes self.xi.ravel().
-        And for `GGCorrelation` and `VVCorrelation`, it is the concatenation of
+        And for `GGCorrelation` (and other complex auto-correlations), it is the concatenation of
         self.xip and self.xim.
         """
         return self.xi.ravel()
@@ -807,7 +818,7 @@ class Corr2(object):
         """The weight array for the current correlation object as a 1-d array.
 
         This is the weight array corresponding to `getStat`. Usually just self.weight, but
-        raveled for TwoD and duplicated for `GGCorrelation` and `VVCorrelation` to match what
+        raveled for TwoD and duplicated for `GGCorrelation`, etc. to match what
         `getStat` does in those cases.
         """
         return self.weight.ravel()
@@ -843,10 +854,11 @@ class Corr2(object):
         .. note::
 
             For most classes, there is only a single statistic, so this calculates a covariance
-            matrix for that vector.  `GGCorrelation` and `VVCorrelation` have two: ``xip`` and
-            ``xim``, so in this case the full data vector is ``xip`` followed by ``xim``, and this
-            calculates the covariance matrix for that full vector including both statistics.
-            The helper function `getStat` returns the relevant statistic in all cases.
+            matrix for that vector.  `GGCorrelation` other complex auto-correaltions have two:
+            ``xip`` and ``xim``, so in this case the full data vector is ``xip`` followed by
+            ``xim``, and this calculates the covariance matrix for that full vector including
+            both statistics.  The helper function `getStat` returns the relevant statistic in all
+            cases.
 
         In all cases, the relevant processing needs to already have been completed and finalized.
         And for all methods other than 'shot', the processing should have involved an appropriate

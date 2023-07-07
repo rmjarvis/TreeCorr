@@ -24,7 +24,10 @@
 //
 // D = NData for counts
 //     KData for kappa
+//     VData for vector
 //     GData for shear
+//     TData for spin-3
+//     QData for spin-4
 //
 // C = Flat for (x,y) coordinates
 //     ThreeD for (x,y,z) coordinates

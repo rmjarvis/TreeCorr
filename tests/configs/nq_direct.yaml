@@ -1,0 +1,22 @@
+file_name: data/nq_direct_cat1.fits
+file_name2: data/nq_direct_cat2.fits
+
+x_col: x
+y_col: y
+x_units: arcmin
+y_units: arcmin
+
+q1_col: q1
+q2_col: q2
+w_col: w
+
+verbose: 1
+
+min_sep: 1.
+max_sep: 50.
+nbins: 50
+sep_units: arcmin
+bin_slop: 0
+brute: true
+
+nq_file_name: output/nq_direct.fits

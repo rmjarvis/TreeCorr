@@ -12,7 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 """
-.. module:: kgcorrelation
+.. module:: kvcorrelation
 """
 
 import numpy as np
@@ -72,10 +72,10 @@ class KVCorrelation(Corr2):
 
     The typical usage pattern is as follows:
 
-        >>> kg = treecorr.KVCorrelation(config)
-        >>> kg.process(cat1,cat2)   # Calculate the cross-correlation
-        >>> kg.write(file_name)     # Write out to a file.
-        >>> xi = kg.xi              # Or access the correlation function directly.
+        >>> kv = treecorr.KVCorrelation(config)
+        >>> kv.process(cat1,cat2)   # Calculate the cross-correlation
+        >>> kv.write(file_name)     # Write out to a file.
+        >>> xi = kv.xi              # Or access the correlation function directly.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
@@ -355,10 +355,9 @@ class KVCorrelation(Corr2):
                         fell into each bin
         meanlogr        The mean value :math:`\langle \log(r)\rangle` of pairs
                         that fell into each bin
-        kvR             The real part of correlation function,
-                        :math:`\langle \kappa\, \v_R\rangle`
-        kvT             The imag part of correlation function,
-                        :math:`\langle \kappa\, \v_T\rangle`
+        xi              The real part of correlation function,
+                        :math:`xi(r) = \langle \kappa\, \v_R\rangle`
+        xi_im           The imaginary part of correlation function.
         sigma           The sqrt of the variance estimate of both of these
         weight          The total weight contributing to each bin
         npairs          The total number of pairs in each bin
@@ -385,7 +384,7 @@ class KVCorrelation(Corr2):
 
     @property
     def _write_col_names(self):
-        return ['r_nom','meanr','meanlogr','kvR','kvT','sigma','weight','npairs']
+        return ['r_nom','meanr','meanlogr','xi','xi_im','sigma','weight','npairs']
 
     @property
     def _write_data(self):
@@ -431,8 +430,8 @@ class KVCorrelation(Corr2):
             self._ro.rnom = data['r_nom'].reshape(s)
             self.meanr = data['meanr'].reshape(s)
             self.meanlogr = data['meanlogr'].reshape(s)
-        self.xi = data['kvR'].reshape(s)
-        self.xi_im = data['kvT'].reshape(s)
+        self.xi = data['xi'].reshape(s)
+        self.xi_im = data['xi_im'].reshape(s)
         self._varxi = data['sigma'].reshape(s)**2
         self.weight = data['weight'].reshape(s)
         self.npairs = data['npairs'].reshape(s)

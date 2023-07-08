@@ -98,8 +98,8 @@ def test_direct():
         np.testing.assert_allclose(data['r_nom'], kv.rnom)
         np.testing.assert_allclose(data['npairs'], kv.npairs)
         np.testing.assert_allclose(data['weight'], kv.weight)
-        np.testing.assert_allclose(data['kvR'], kv.xi)
-        np.testing.assert_allclose(data['kvT'], kv.xi_im)
+        np.testing.assert_allclose(data['xi'], kv.xi)
+        np.testing.assert_allclose(data['xi_im'], kv.xi_im)
 
         # Invalid with only one file_name
         del config['file_name2']
@@ -277,8 +277,8 @@ def test_direct_spherical():
         np.testing.assert_allclose(data['r_nom'], kv.rnom)
         np.testing.assert_allclose(data['npairs'], kv.npairs)
         np.testing.assert_allclose(data['weight'], kv.weight)
-        np.testing.assert_allclose(data['kvR'], kv.xi)
-        np.testing.assert_allclose(data['kvT'], kv.xi_im)
+        np.testing.assert_allclose(data['xi'], kv.xi)
+        np.testing.assert_allclose(data['xi_im'], kv.xi_im)
 
     # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
@@ -341,13 +341,13 @@ def test_single():
     corr2_output = np.genfromtxt(os.path.join('output','kv_single.out'), names=True,
                                  skip_header=1)
     print('kv.xi = ',kv.xi)
-    print('from corr2 output = ',corr2_output['kvR'])
-    print('ratio = ',corr2_output['kvR']/kv.xi)
-    print('diff = ',corr2_output['kvR']-kv.xi)
-    np.testing.assert_allclose(corr2_output['kvR'], kv.xi, rtol=1.e-3)
+    print('from corr2 output = ',corr2_output['xi'])
+    print('ratio = ',corr2_output['xi']/kv.xi)
+    print('diff = ',corr2_output['xi']-kv.xi)
+    np.testing.assert_allclose(corr2_output['xi'], kv.xi, rtol=1.e-3)
 
-    print('xi_im from corr2 output = ',corr2_output['kvT'])
-    np.testing.assert_allclose(corr2_output['kvT'], 0., atol=1.e-4)
+    print('xi_im from corr2 output = ',corr2_output['xi_im'])
+    np.testing.assert_allclose(corr2_output['xi_im'], 0., atol=1.e-4)
 
 
 @timer
@@ -413,13 +413,13 @@ def test_kv():
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','kv.out'), names=True, skip_header=1)
     print('kv.xi = ',kv.xi)
-    print('from corr2 output = ',corr2_output['kvR'])
-    print('ratio = ',corr2_output['kvR']/kv.xi)
-    print('diff = ',corr2_output['kvR']-kv.xi)
-    np.testing.assert_allclose(corr2_output['kvR'], kv.xi, rtol=1.e-3)
+    print('from corr2 output = ',corr2_output['xi'])
+    print('ratio = ',corr2_output['xi']/kv.xi)
+    print('diff = ',corr2_output['xi']-kv.xi)
+    np.testing.assert_allclose(corr2_output['xi'], kv.xi, rtol=1.e-3)
 
-    print('xi_im from corr2 output = ',corr2_output['kvT'])
-    np.testing.assert_allclose(corr2_output['kvT'], 0., atol=1.e-2)
+    print('xi_im from corr2 output = ',corr2_output['xi_im'])
+    np.testing.assert_allclose(corr2_output['xi_im'], 0., atol=1.e-2)
 
     # Check the fits write option
     try:
@@ -433,8 +433,8 @@ def test_kv():
         np.testing.assert_almost_equal(data['r_nom'], np.exp(kv.logr))
         np.testing.assert_almost_equal(data['meanr'], kv.meanr)
         np.testing.assert_almost_equal(data['meanlogr'], kv.meanlogr)
-        np.testing.assert_almost_equal(data['kvR'], kv.xi)
-        np.testing.assert_almost_equal(data['kvT'], kv.xi_im)
+        np.testing.assert_almost_equal(data['xi'], kv.xi)
+        np.testing.assert_almost_equal(data['xi_im'], kv.xi_im)
         np.testing.assert_almost_equal(data['sigma'], np.sqrt(kv.varxi))
         np.testing.assert_almost_equal(data['weight'], kv.weight)
         np.testing.assert_almost_equal(data['npairs'], kv.npairs)

@@ -362,10 +362,9 @@ class KGCorrelation(Corr2):
                         fell into each bin
         meanlogr        The mean value :math:`\langle \log(r)\rangle` of pairs
                         that fell into each bin
-        kgamT           The real part of correlation function,
+        kgamT           The real part of the correlation function,
                         :math:`\langle \kappa\, \gamma_T\rangle`
-        kgamX           The imag part of correlation function,
-                        :math:`\langle \kappa\, \gamma_\times\rangle`
+        kgamX           The imaginary part of the correlation function.
         sigma           The sqrt of the variance estimate of both of these
         weight          The total weight contributing to each bin
         npairs          The total number of pairs in each bin

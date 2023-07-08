@@ -32,7 +32,7 @@ from .ntcorrelation import NTCorrelation
 from .ktcorrelation import KTCorrelation
 #from .ttcorrelation import TTCorrelation
 from .nqcorrelation import NQCorrelation
-#from .kqcorrelation import KQCorrelation
+from .kqcorrelation import KQCorrelation
 #from .qqcorrelation import QQCorrelation
 
 # Dict describing the valid parameters, what types they are, and a description:

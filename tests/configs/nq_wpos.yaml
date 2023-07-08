@@ -1,0 +1,25 @@
+
+file_name: data/nq_wpos_lens.fits
+file_name2:
+    - data/nq_wpos_source0.fits
+    - data/nq_wpos_source1.fits
+    - data/nq_wpos_source2.fits
+
+x_col: x
+y_col: y
+x_units: arcmin
+y_units: arcmin
+
+q1_col: q1
+q2_col: q2
+w_col: [0, w]
+wpos_col: [0, wpos]
+
+verbose: 1
+
+min_sep: 1.
+max_sep: 25.
+bin_size: 0.10
+sep_units: arcmin
+
+nq_file_name: output/nq_wpos.fits

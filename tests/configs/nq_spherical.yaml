@@ -1,0 +1,21 @@
+
+file_name: data/nq_spherical_lens.dat
+file_name2: data/nq_spherical_source.dat
+
+ra_col: 1
+dec_col: 2
+ra_units: rad
+dec_units: rad
+
+q1_col: 3
+q2_col: 4
+
+verbose: 1
+
+min_sep: 1.
+max_sep: 20.
+bin_size: 0.10
+sep_units: deg
+
+nq_file_name: output/nq_spherical.out
+precision: 8

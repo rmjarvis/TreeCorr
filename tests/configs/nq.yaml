@@ -1,0 +1,21 @@
+
+file_name: data/nq_lens.fits
+file_name2: data/nq_source.fits
+rand_file_name: data/nq_rand.fits
+
+x_col: x
+y_col: y
+x_units: arcmin
+y_units: arcmin
+
+q1_col: q1
+q2_col: q2
+
+verbose: 1
+
+min_sep: 1.
+max_sep: 20.
+bin_size: 0.10
+sep_units: arcmin
+
+nq_file_name: output/nq.out

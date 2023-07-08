@@ -1917,7 +1917,7 @@ class Catalog(object):
         if not hasattr(self, '_qfields'):
             def get_qfield(min_size, max_size, split_method, brute, min_top, max_top, coords,
                            rng, logger=None):
-                return GField(self, min_size=min_size, max_size=max_size,
+                return QField(self, min_size=min_size, max_size=max_size,
                               split_method=split_method, brute=brute,
                               min_top=min_top, max_top=max_top, coords=coords,
                               rng=rng, logger=logger)

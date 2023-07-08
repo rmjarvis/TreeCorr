@@ -51,7 +51,7 @@ from .kgcorrelation import KGCorrelation
 from .ggcorrelation import GGCorrelation
 
 from .ntcorrelation import NTCorrelation
-#from .ktcorrelation import KTCorrelation
+from .ktcorrelation import KTCorrelation
 #from .ttcorrelation import TTCorrelation
 
 from .nqcorrelation import NQCorrelation

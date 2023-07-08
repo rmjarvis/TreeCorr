@@ -584,8 +584,8 @@ def test_jk():
     print(file_name)
     if not os.path.isfile(file_name):
         all_kvs = []
+        rng = np.random.default_rng()
         for run in range(nruns):
-            rng = np.random.default_rng()
             x1, y1, k, x2, y2, v1, v2 = make_velocity_field(rng)
             print(run,': ',np.mean(v1),np.std(v1),np.min(v1),np.max(v1))
             cat1 = treecorr.Catalog(x=x1, y=y1, k=k)
@@ -720,8 +720,8 @@ def test_jk():
     cat2a = treecorr.Catalog(x=x2[:100], y=y2[:100], v1=v1[:100], v2=v2[:100], npatch=10)
     cat1b = treecorr.Catalog(x=x1[:100], y=y1[:100], npatch=2)
     cat2b = treecorr.Catalog(x=x2[:100], y=y2[:100], v1=v1[:100], v2=v2[:100], npatch=2)
-    kv6 = treecorr.KVCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife')
-    kv7 = treecorr.KVCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife')
+    kv6 = treecorr.KVCorrelation(corr_params)
+    kv7 = treecorr.KVCorrelation(corr_params)
     # All catalogs need to have the same number of patches
     with assert_raises(RuntimeError):
         kv6.process(cat1a,cat2b)

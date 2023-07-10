@@ -1,0 +1,19 @@
+
+file_name: data/tt.dat
+
+x_col: 1
+y_col: 2
+x_units: arcmin
+y_units: arcmin
+
+t1_col: 3
+t2_col: 4
+
+verbose: 1
+
+min_sep: 10.
+max_sep: 100.
+bin_size: 0.10
+sep_units: arcmin
+
+tt_file_name: output/tt.out

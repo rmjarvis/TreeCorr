@@ -346,8 +346,12 @@ def test_vv():
     # P(k) = (1/2pi) <|v~(k)|^2> = 2 pi v0^2 r0^6 k^2 / L^4 exp(-r0^2 k^2)
     # xi+(r) = (1/2pi) int( dk k P(k) J0(kr) )
     #        = pi/4 v0^2 (r0/L)^2 exp(-r^2/4r0^2) (4r0^2 - r^2)/r0^2
-    # xi-(r) = (1/2pi) int( dk k P(k) J2(kr) )
-    #        = pi/4 v0^2 (r0/L)^2 exp(-r^2/4r0^2) r^2/r0^2
+    # Note: The - sign in the next line is somewhat empirical.  I'm not quite sure where it
+    #       comes from, and rederiving Peter's formula for spin-1 confuses me.  I see why J4
+    #       changed to J2, but I'm not sure about the extra - sign.  My best guess is that it
+    #       comes from v~(k) being imaginary, so v~(k)^2 = -P(k), not P(k).
+    # xi-(r) = -(1/2pi) int( dk k P(k) J2(kr) )
+    #        = -pi/4 v0^2 (r0/L)^2 exp(-r^2/4r0^2) r^2/r0^2
 
     v0 = 0.05
     r0 = 10.
@@ -385,7 +389,6 @@ def test_vv():
     r = vv.meanr
     temp = np.pi/4. * v0**2 * (r0/L)**2 * np.exp(-0.25*r**2/r0**2)
     true_xip = temp * (4*r0**2 - r**2)/r0**2
-    # Note: My derivation didn't have this minus sign.  Not sure what I did wrong...
     true_xim = -temp * r**2/r0**2
 
     print('vv.xip = ',vv.xip)
@@ -549,7 +552,7 @@ def test_spherical():
         ra = ra0 - C
         dec = np.pi/2. - b
 
-        # Rotate shear relative to local west
+        # Rotate field relative to local west
         # v_sph = exp(i beta) * v
         # where beta = pi - (A+B) is the angle between north and "up" in the tangent plane.
         beta = np.pi - (A+B)
@@ -571,10 +574,6 @@ def test_spherical():
         print('ratio = ',vv.xip / true_xip)
         print('diff = ',vv.xip - true_xip)
         print('max diff = ',max(abs(vv.xip - true_xip)))
-        # The 3rd and 4th centers are somewhat less accurate.  Not sure why.
-        # The math seems to be right, since the last one that gets all the way to the pole
-        # works, so I'm not sure what is going on.  It's just a few bins that get a bit less
-        # accurate.  Possibly worth investigating further at some point...
         assert max(abs(vv.xip - true_xip)) < 3.e-7 * tol_factor
 
         print('vv.xim = ',vv.xim)
@@ -585,12 +584,11 @@ def test_spherical():
         assert max(abs(vv.xim - true_xim)) < 2.e-7 * tol_factor
 
     # One more center that can be done very easily.  If the center is the north pole, then all
-    # the tangential shears are pure (positive) v1.
+    # the radial vectors are pure negative v2.
     ra0 = 0
     dec0 = np.pi/2.
     ra = theta
     dec = np.pi/2. - 2.*np.arcsin(r/2.)
-    r = np.sqrt(r2)
     vrad = v0 * np.exp(-r2/2./r0**2) * r/r0
 
     cat = treecorr.Catalog(ra=ra, dec=dec, v1=np.zeros_like(vrad), v2=-vrad, ra_units='rad',
@@ -747,7 +745,6 @@ def test_jk():
     rng = np.random.RandomState(8675309)
 
     nsource = 100000
-    nrand = 1000
     nlens = 300
     nruns = 1000
     npatch = 64
@@ -782,8 +779,8 @@ def test_jk():
     print(file_name)
     if not os.path.isfile(file_name):
         all_vvs = []
+        rng = np.random.default_rng()
         for run in range(nruns):
-            rng = np.random.default_rng()
             x1, y1, w, x2, y2, v1, v2 = make_velocity_field(rng)
             print(run,': ',np.mean(v1),np.std(v1),np.min(v1),np.max(v1))
             cat = treecorr.Catalog(x=x2, y=y2, v1=v1, v2=v2)
@@ -915,8 +912,8 @@ def test_jk():
 
     cata = treecorr.Catalog(x=x2[:100], y=y2[:100], v1=v1[:100], v2=v2[:100], npatch=10)
     catb = treecorr.Catalog(x=x2[:100], y=y2[:100], v1=v1[:100], v2=v2[:100], npatch=2)
-    vv4 = treecorr.VVCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife')
-    vv5 = treecorr.VVCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife')
+    vv4 = treecorr.VVCorrelation(corr_params)
+    vv5 = treecorr.VVCorrelation(corr_params)
     # All catalogs need to have the same number of patches
     with assert_raises(RuntimeError):
         vv4.process(cata,catb)

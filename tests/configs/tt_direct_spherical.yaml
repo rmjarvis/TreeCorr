@@ -1,0 +1,22 @@
+file_name: data/tt_direct_sph_cat1.fits
+file_name2: data/tt_direct_sph_cat2.fits
+
+ra_col: ra
+dec_col: dec
+ra_units: radians
+dec_units: radians
+
+t1_col: t1
+t2_col: t2
+w_col: w
+
+verbose: 1
+
+min_sep: 1.
+max_sep: 10.
+nbins: 50
+sep_units: degrees
+bin_slop: 0
+brute: true
+
+tt_file_name: output/tt_direct_sph.fits

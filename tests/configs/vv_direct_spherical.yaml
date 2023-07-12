@@ -17,5 +17,6 @@ max_sep: 10.
 nbins: 50
 sep_units: degrees
 bin_slop: 0
+brute: true
 
 vv_file_name: output/vv_direct_sph.fits

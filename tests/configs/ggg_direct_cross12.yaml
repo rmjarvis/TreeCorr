@@ -21,5 +21,6 @@ max_v: 0.59
 nvbins: 5
 
 bin_slop: 0
+brute: true
 
 ggg_file_name: output/ggg_direct_cross12.fits

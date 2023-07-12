@@ -18,6 +18,7 @@ max_v: 0.59
 nvbins: 10
 
 bin_slop: 0
+brute: true
 
 nnn_statistic: simple
 nnn_file_name: output/nnn_direct.out

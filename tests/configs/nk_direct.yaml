@@ -16,5 +16,6 @@ max_sep: 50.
 nbins: 50
 sep_units: arcmin
 bin_slop: 0
+brute: true
 
 nk_file_name: output/nk_direct.fits

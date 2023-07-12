@@ -18,5 +18,6 @@ sep_units: degrees
 nubins: 5
 nvbins: 5
 bin_slop: 0
+brute: true
 
 ggg_file_name: output/ggg_direct_sph.fits

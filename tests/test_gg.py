@@ -108,10 +108,10 @@ def test_direct():
         np.testing.assert_allclose(data['r_nom'], gg.rnom)
         np.testing.assert_allclose(data['npairs'], gg.npairs)
         np.testing.assert_allclose(data['weight'], gg.weight)
-        np.testing.assert_allclose(data['xip'], gg.xip, rtol=1.e-3)
-        np.testing.assert_allclose(data['xip_im'], gg.xip_im, rtol=1.e-3)
-        np.testing.assert_allclose(data['xim'], gg.xim, rtol=1.e-3)
-        np.testing.assert_allclose(data['xim_im'], gg.xim_im, rtol=1.e-3)
+        np.testing.assert_allclose(data['xip'], gg.xip)
+        np.testing.assert_allclose(data['xip_im'], gg.xip_im)
+        np.testing.assert_allclose(data['xim'], gg.xim)
+        np.testing.assert_allclose(data['xim_im'], gg.xim_im)
 
     # Repeat with binslop = 0.
     # And don't do any top-level recursion so we actually test not going to the leaves.
@@ -317,10 +317,10 @@ def test_direct_spherical():
         np.testing.assert_allclose(data['r_nom'], gg.rnom)
         np.testing.assert_allclose(data['npairs'], gg.npairs)
         np.testing.assert_allclose(data['weight'], gg.weight)
-        np.testing.assert_allclose(data['xip'], gg.xip, rtol=1.e-3)
-        np.testing.assert_allclose(data['xip_im'], gg.xip_im, rtol=1.e-3)
-        np.testing.assert_allclose(data['xim'], gg.xim, rtol=1.e-3)
-        np.testing.assert_allclose(data['xim_im'], gg.xim_im, rtol=1.e-3)
+        np.testing.assert_allclose(data['xip'], gg.xip)
+        np.testing.assert_allclose(data['xip_im'], gg.xip_im)
+        np.testing.assert_allclose(data['xim'], gg.xim)
+        np.testing.assert_allclose(data['xim_im'], gg.xim_im)
 
     # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.

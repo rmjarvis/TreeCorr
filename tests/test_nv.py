@@ -101,8 +101,8 @@ def test_direct():
         np.testing.assert_allclose(data['r_nom'], nv.rnom)
         np.testing.assert_allclose(data['npairs'], nv.npairs)
         np.testing.assert_allclose(data['weight'], nv.weight)
-        np.testing.assert_allclose(data['vR'], nv.xi, rtol=1.e-3)
-        np.testing.assert_allclose(data['vT'], nv.xi_im, rtol=1.e-3)
+        np.testing.assert_allclose(data['vR'], nv.xi)
+        np.testing.assert_allclose(data['vT'], nv.xi_im)
 
         # Invalid with only one file_name
         del config['file_name2']
@@ -287,8 +287,8 @@ def test_direct_spherical():
         np.testing.assert_allclose(data['r_nom'], nv.rnom)
         np.testing.assert_allclose(data['npairs'], nv.npairs)
         np.testing.assert_allclose(data['weight'], nv.weight)
-        np.testing.assert_allclose(data['vR'], nv.xi, rtol=1.e-3)
-        np.testing.assert_allclose(data['vT'], nv.xi_im, rtol=1.e-3)
+        np.testing.assert_allclose(data['vR'], nv.xi)
+        np.testing.assert_allclose(data['vT'], nv.xi_im)
 
     # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
@@ -604,9 +604,9 @@ def test_nv():
         print('from corr2 output = ',corr2_output['vR'])
         print('ratio = ',corr2_output['vR']/xi)
         print('diff = ',corr2_output['vR']-xi)
-        np.testing.assert_allclose(corr2_output['vR'], xi, rtol=1.e-3)
+        np.testing.assert_allclose(corr2_output['vR'], xi)
         print('xi_im from corr2 output = ',corr2_output['vT'])
-        np.testing.assert_allclose(corr2_output['vT'], 0., atol=4.e-3)
+        np.testing.assert_allclose(corr2_output['vT'], xi_im)
 
         # In the corr2 context, you can turn off the compensated bit, even if there are randoms
         # (e.g. maybe you only want randoms for some nn calculation, but not nv.)
@@ -615,7 +615,7 @@ def test_nv():
         corr2_output = np.genfromtxt(os.path.join('output','nv.out'), names=True, skip_header=1)
         xi_simple, _, _ = nv.calculateXi()
         np.testing.assert_equal(xi_simple, nv.xi)
-        np.testing.assert_allclose(corr2_output['vR'], xi_simple, rtol=1.e-3)
+        np.testing.assert_allclose(corr2_output['vR'], xi_simple)
 
     # Check the fits write option
     try:
@@ -821,12 +821,12 @@ def test_pieces():
     treecorr.corr2(config)
     data = fitsio.read(config['nv_file_name'])
     print('data.dtype = ',data.dtype)
-    np.testing.assert_allclose(data['meanr'], full_nv.meanr, rtol=1.e-7)
-    np.testing.assert_allclose(data['meanlogr'], full_nv.meanlogr, rtol=1.e-7)
-    np.testing.assert_allclose(data['weight'], full_nv.weight, rtol=1.e-7)
-    np.testing.assert_allclose(data['vR'], full_nv.xi, rtol=1.e-7)
-    np.testing.assert_allclose(data['vT'], full_nv.xi_im, atol=1.e-10)
-    np.testing.assert_allclose(data['sigma']**2, full_nv.varxi, rtol=1.e-7)
+    np.testing.assert_allclose(data['meanr'], pieces_nv3.meanr)
+    np.testing.assert_allclose(data['meanlogr'], pieces_nv3.meanlogr)
+    np.testing.assert_allclose(data['weight'], pieces_nv3.weight)
+    np.testing.assert_allclose(data['vR'], pieces_nv3.xi)
+    np.testing.assert_allclose(data['vT'], pieces_nv3.xi_im)
+    np.testing.assert_allclose(data['sigma']**2, pieces_nv3.varxi)
 
 
 @timer

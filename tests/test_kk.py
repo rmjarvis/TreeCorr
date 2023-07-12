@@ -93,7 +93,7 @@ def test_direct():
         np.testing.assert_allclose(data['r_nom'], kk.rnom)
         np.testing.assert_allclose(data['npairs'], kk.npairs)
         np.testing.assert_allclose(data['weight'], kk.weight)
-        np.testing.assert_allclose(data['xi'], kk.xi, rtol=1.e-3)
+        np.testing.assert_allclose(data['xi'], kk.xi)
 
     # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
@@ -248,7 +248,7 @@ def test_direct_spherical():
         np.testing.assert_allclose(data['r_nom'], kk.rnom)
         np.testing.assert_allclose(data['npairs'], kk.npairs)
         np.testing.assert_allclose(data['weight'], kk.weight)
-        np.testing.assert_allclose(data['xi'], kk.xi, rtol=1.e-3)
+        np.testing.assert_allclose(data['xi'], kk.xi)
 
     # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.

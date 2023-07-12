@@ -17,5 +17,6 @@ sep_units: arcmin
 nubins: 5
 nvbins: 5
 bin_slop: 0
+brute: true
 
 kkk_file_name: output/kkk_direct.fits

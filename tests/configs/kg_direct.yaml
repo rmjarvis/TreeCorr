@@ -18,5 +18,6 @@ max_sep: 50.
 nbins: 50
 sep_units: arcmin
 bin_slop: 0
+brute: true
 
 kg_file_name: output/kg_direct.fits

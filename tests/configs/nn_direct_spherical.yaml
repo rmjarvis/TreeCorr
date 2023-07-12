@@ -15,5 +15,6 @@ max_sep: 10.
 nbins: 50
 sep_units: degrees
 bin_slop: 0
+brute: true
 
 nn_file_name: output/nn_direct_sph.fits

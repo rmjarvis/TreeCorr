@@ -97,8 +97,8 @@ def test_direct():
         np.testing.assert_allclose(data['r_nom'], kg.rnom)
         np.testing.assert_allclose(data['npairs'], kg.npairs)
         np.testing.assert_allclose(data['weight'], kg.weight)
-        np.testing.assert_allclose(data['kgamT'], kg.xi, rtol=1.e-3)
-        np.testing.assert_allclose(data['kgamX'], kg.xi_im, rtol=1.e-3)
+        np.testing.assert_allclose(data['kgamT'], kg.xi)
+        np.testing.assert_allclose(data['kgamX'], kg.xi_im)
 
         # Invalid with only one file_name
         del config['file_name2']
@@ -276,8 +276,8 @@ def test_direct_spherical():
         np.testing.assert_allclose(data['r_nom'], kg.rnom)
         np.testing.assert_allclose(data['npairs'], kg.npairs)
         np.testing.assert_allclose(data['weight'], kg.weight)
-        np.testing.assert_allclose(data['kgamT'], kg.xi, rtol=1.e-3)
-        np.testing.assert_allclose(data['kgamX'], kg.xi_im, rtol=1.e-3)
+        np.testing.assert_allclose(data['kgamT'], kg.xi)
+        np.testing.assert_allclose(data['kgamX'], kg.xi_im)
 
     # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.

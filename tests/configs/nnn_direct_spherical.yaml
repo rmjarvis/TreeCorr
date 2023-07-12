@@ -16,5 +16,6 @@ sep_units: degrees
 nubins: 5
 nvbins: 5
 bin_slop: 0
+brute: true
 
 nnn_file_name: output/nnn_direct_sph.fits

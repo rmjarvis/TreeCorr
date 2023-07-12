@@ -17,3 +17,4 @@ bin_size: 0.10
 sep_units: arcmin
 
 vv_file_name: output/vv_spherical.out
+precision: 8

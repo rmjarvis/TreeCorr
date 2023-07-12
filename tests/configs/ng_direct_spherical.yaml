@@ -17,5 +17,6 @@ max_sep: 10.
 nbins: 50
 sep_units: degrees
 bin_slop: 0
+brute: true
 
 ng_file_name: output/ng_direct_sph.fits

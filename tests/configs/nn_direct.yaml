@@ -14,6 +14,7 @@ max_sep: 50.
 nbins: 50
 
 bin_slop: 0
+brute: true
 
 nn_statistic: simple
 nn_file_name: output/nn_direct.out

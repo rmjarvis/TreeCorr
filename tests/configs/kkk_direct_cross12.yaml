@@ -20,5 +20,6 @@ max_v: 0.59
 nvbins: 5
 
 bin_slop: 0
+brute: true
 
 kkk_file_name: output/kkk_direct_cross12.fits

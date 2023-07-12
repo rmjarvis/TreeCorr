@@ -96,7 +96,7 @@ def test_direct():
         np.testing.assert_allclose(data['r_nom'], nk.rnom)
         np.testing.assert_allclose(data['npairs'], nk.npairs)
         np.testing.assert_allclose(data['weight'], nk.weight)
-        np.testing.assert_allclose(data['kappa'], nk.xi, rtol=1.e-3)
+        np.testing.assert_allclose(data['kappa'], nk.xi)
 
         # Invalid with only one file_name
         del config['file_name2']
@@ -260,7 +260,7 @@ def test_direct_spherical():
         np.testing.assert_allclose(data['r_nom'], nk.rnom)
         np.testing.assert_allclose(data['npairs'], nk.npairs)
         np.testing.assert_allclose(data['weight'], nk.weight)
-        np.testing.assert_allclose(data['kappa'], nk.xi, rtol=1.e-3)
+        np.testing.assert_allclose(data['kappa'], nk.xi)
 
     # Repeat with binslop = 0, since the code flow is different from brute=True.
     # And don't do any top-level recursion so we actually test not going to the leaves.
@@ -413,7 +413,7 @@ def test_nk():
         print('from corr2 output = ',corr2_output['kappa'])
         print('ratio = ',corr2_output['kappa']/xi)
         print('diff = ',corr2_output['kappa']-xi)
-        np.testing.assert_allclose(corr2_output['kappa'], xi, rtol=1.e-3)
+        np.testing.assert_allclose(corr2_output['kappa'], xi)
 
         # In the corr2 context, you can turn off the compensated bit, even if there are randoms
         # (e.g. maybe you only want randoms for some nn calculation, but not nk.)
@@ -422,7 +422,7 @@ def test_nk():
         corr2_output = np.genfromtxt(os.path.join('output','nk.out'), names=True, skip_header=1)
         xi_simple, _ = nk.calculateXi()
         np.testing.assert_equal(xi_simple, nk.xi)
-        np.testing.assert_allclose(corr2_output['kappa'], xi_simple, rtol=1.e-3)
+        np.testing.assert_allclose(corr2_output['kappa'], xi_simple)
 
         # Check the fits write option
         out_file_name1 = os.path.join('output','nk_out1.fits')

@@ -18,6 +18,7 @@ ubin_size: 0.2
 nvbins: 5
 vbin_size: 0.2
 bin_slop: 0
+brute: true
 
 metric: Arc
 

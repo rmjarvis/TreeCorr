@@ -56,7 +56,7 @@ from .ttcorrelation import TTCorrelation
 
 from .nqcorrelation import NQCorrelation
 from .kqcorrelation import KQCorrelation
-#from .qqcorrelation import QQCorrelation
+from .qqcorrelation import QQCorrelation
 
 from .nnncorrelation import NNNCorrelation, NNNCrossCorrelation
 from .kkkcorrelation import KKKCorrelation, KKKCrossCorrelation

@@ -43,6 +43,9 @@ New features
 - Allow numpy.random.Generator for rng arguments (in addition to legacy RandomState). (#157)
 - Added spin-1 correlations using the letter V (for Velocity), including `NVCorrelation`,
   `KVCorrelation` and `VVCorrelation`. (#158)
+- Added spin-3 and spin-4 correlations using the letters T (for Trefoil) and Q (for Quatrefoil)
+  respectively, including `NTCorrelation`, `KTCorrelation`, `TTCorrelation`, `NQCorrelation`,
+  `KQCorrelation` and `QQCorrelation`. (#160)
 
 
 Bug fixes

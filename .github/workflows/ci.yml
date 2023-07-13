@@ -135,24 +135,19 @@ jobs:
               run: |
                 cd tests
                 coverage run -m pytest -v
+                coverage combine
+                coverage xml
                 cd ..  # N.B. This seems to happen automatically if omitted.
                        # Less confusing to include it explicitly.
 
             - name: Upload coverage to codecov
               if: matrix.os != 'windows-latest'
-              #uses: codecov/codecov-action@v1  # This didn't work for me.
-              # TODO: Supposedly there is a v2 now that might work better.
-              run: |
-                cd tests
-                pwd -P
-                ls -la
-                coverage combine || true  # (Not necessary I think, but just in case.)
-                coverage report
-                ls -la
-                # cf. https://community.codecov.io/t/github-not-getting-codecov-report-after-switching-from-travis-to-github-actions-for-ci/
-                # The solution was to switch to the bash uploader line instead.
-                bash <(curl -s https://codecov.io/bash)
-                cd ..
+              uses: codecov/codecov-action@v3
+              with:
+                token: ${{ secrets.CODECOV_TOKEN }}
+                files: tests/coverage.xml
+                fail_ci_if_error: false
+                verbose: true
 
             - name: Test MPI
               # The code is already mostly checked in the main tests with mock_mpi.

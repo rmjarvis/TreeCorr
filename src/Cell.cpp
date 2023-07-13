@@ -239,18 +239,18 @@ std::complex<double> ParallelTransportShiftG(
         double z1 = center.getZ();
         double z2 = pi.getZ();
         double dsq = (cen - pi).normSq();
-        double cosA = (z1 - z2) + 0.5 * z2 * dsq;
-        double sinA = cen.getY()*pi.getX() - cen.getX()*pi.getY();
-        double normAsq = sinA*sinA + cosA*cosA;
-        double cosB = (z2 - z1) + 0.5 * z1 * dsq;
-        double sinB = sinA;
-        double normBsq = sinB*sinB + cosB*cosB;
-        xxdbg<<"A = atan("<<sinA<<"/"<<cosA<<") = "<<atan2(sinA,cosA)*180./M_PI<<std::endl;
-        xxdbg<<"B = atan("<<sinB<<"/"<<cosB<<") = "<<atan2(sinB,cosB)*180./M_PI<<std::endl;
-        if (normAsq < 1.e-12 && normBsq < 1.e-12) {
+        if (dsq < 1.e-12) {
+            // i.e. d < 1.e-6 radians = 0.2 arcsec
             // Then this point is at the center, no need to project.
             dwg += vdata_g->getWG();
         } else {
+            double cosA = (z1 - z2) + 0.5 * z2 * dsq;
+            double sinA = cen.getY()*pi.getX() - cen.getX()*pi.getY();
+            double normAsq = sinA*sinA + cosA*cosA;
+            double cosB = (z2 - z1) + 0.5 * z1 * dsq;
+            double sinB = sinA;
+            double normBsq = sinB*sinB + cosB*cosB;
+
             // The angle we need to rotate the shear by is (Pi-A-B)
             // cos(beta) = -cos(A+B)
             // sin(beta) = sin(A+B)

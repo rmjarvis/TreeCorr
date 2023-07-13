@@ -57,3 +57,5 @@ Bug fixes
   already written in the ``save_patch_dir``. (#158)
 - Fixed slight error in the shot-noise variance for G correlations.  It used to assume that the
   mean shear is 0, which is often very close to true.  Now it uses the actual mean. (#159)
+- Fixed a very slight error in the parallel transport code, which is probably only noticeable
+  for fields extremely close to a pole. (#160)

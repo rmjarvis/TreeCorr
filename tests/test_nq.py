@@ -1317,12 +1317,12 @@ def test_matrix_r():
     x = rng.normal(0,s, (nsource,) )
     y = rng.normal(0,s, (nsource,) )
     w = rng.random(nlens)
-    g1 = rng.normal(0,0.2, (nsource,) )
-    g2 = rng.normal(0,0.2, (nsource,) )
-    r11 = rng.random(nsource) + 1
-    r22 = rng.random(nsource) + 1
-    r12 = rng.random(nsource)
-    r21 = rng.random(nsource)  # Again, BFD has r12=r21, but for this test we ignore that.
+    Q1 = rng.normal(0,0.2, (nsource,) )
+    Q2 = rng.normal(0,0.2, (nsource,) )
+    R11 = rng.random(nsource) + 1
+    R22 = rng.random(nsource) + 1
+    R12 = rng.random(nsource)
+    R21 = rng.random(nsource)  # Again, BFD has R12=R21, but for this test we ignore that.
 
     min_sep = 1.
     max_sep = 50.
@@ -1348,14 +1348,14 @@ def test_matrix_r():
 
         rot = np.array([[c, -s], [s, c]])
 
-        Q = np.array([g1, g2])
-        R = np.array([[r11, r12], [r21, r22]])
+        Q = np.array([Q1, Q2])
+        R = np.array([[R11, R12], [R21, R22]])
 
         # In 1-d, this is:
         #   Qt, Qx = np.dot(rot.T, Q)
         #   (Rtt,Rtx), (Rxt,Rxx) = np.dot(rot.T, np.dot(R, rot))
         # With Q and R holding many values, this is easiest to do using einsum:
-        Qt, Qx = np.einsum('jik,jk->ik', rot, [g1,g2])
+        Qt, Qx = np.einsum('jik,jk->ik', rot, [Q1,Q2])
         (Rtt, Rtx), (Rxt, Rxx) = np.einsum('jik,jlk->ilk', rot, np.einsum('ijk,jlk->ilk', R, rot))
 
         # Times -1 so Qt is tangential rather than radial.  Convention is to do the same to Qx.
@@ -1374,7 +1374,8 @@ def test_matrix_r():
         np.add.at(true_Rxt, index[mask], ww[mask] * Rxt[mask])
         np.add.at(true_Rxx, index[mask], ww[mask] * Rxx[mask])
 
-    # Compute the mean in each bin for both numerator and denominator
+    # Dividing by weight isn't required for BFD, since it will cancel in the eventual division.
+    # Vut TreeCorr will do it, so we do too to make the comparisons easier.
     true_Qt /= true_weight
     true_Qx /= true_weight
     true_Rtt /= true_weight
@@ -1395,25 +1396,30 @@ def test_matrix_r():
         true_gx[k] = g[1]
 
     # Now use TreeCorr
+    # cat1 = lenses
     cat1 = treecorr.Catalog(x=xlens, y=ylens, w=wlens)
-    cat2 = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2)
 
-    r = (r11 + r22)/2 + 1j * (r12 - r21)/2
-    q = (r11 - r22)/2 + 1j * (r12 + r21)/2
+    # Convert R matrix into r,q complex numbers.
+    r = (R11 + R22)/2 + 1j * (R12 - R21)/2
+    q = (R11 - R22)/2 + 1j * (R12 + R21)/2
 
-    cat3a = treecorr.Catalog(x=x, y=y, w=w, k=np.real(r))
-    cat3b = treecorr.Catalog(x=x, y=y, w=w, k=np.imag(r))
-    cat3c = treecorr.Catalog(x=x, y=y, w=w, q1=np.real(q), q2=np.imag(q))
+    # cat2 = sources for everything but imag(r), which we need to do separately.
+    # Of course, BFD doesn't need that, so for BFD, would just have cat2 for the sources.
+    # TODO: Might be nice to allow k to be complex and include it in cat2...
+    cat2 = treecorr.Catalog(x=x, y=y, w=w, g1=Q1, g2=Q2,
+                            k=np.real(r), q1=np.real(q), q2=np.imag(q))
+    cat2b = treecorr.Catalog(x=x, y=y, w=w, k=np.imag(r))
 
+    # Perform all the correlations
     ng = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
     ng.process(cat1, cat2)
     nk = treecorr.NKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
-    nk.process(cat1, cat3a)
+    nk.process(cat1, cat2)
     # Note: BFD can skip nki, since r is real in that use case.
     nki = treecorr.NKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
-    nki.process(cat1, cat3b)
+    nki.process(cat1, cat2b)
     nq = treecorr.NQCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
-    nq.process(cat1, cat3c)
+    nq.process(cat1, cat2)
 
     # First check that the raw outputs match the matrix calculation.
     print('true_npairs = ',true_npairs)

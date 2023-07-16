@@ -1213,6 +1213,265 @@ def test_jk():
     with assert_raises(RuntimeError):
         nq7.process(cat1b,cat2a)
 
+@timer
+def test_matrix_r():
+    """Test using Q to model a 2x2 matrix for R, a la BFD shear estimation.
+    """
+    # The Bayesian Fourier Domain method for shear estimation involves expanding out
+    # the first few terms of a Taylor approximation of the likelihoood.
+    # The net result is that the expectation for the mean shear of an ensemble of galaxies is:
+    #
+    # <g> = (Sum_k R_k)^-1 Sum_k Q_k
+    #
+    # where Q_k is a 2x1 vector, and R_k is a 2x2 matrix.  (N.B. Q here is a spin-2 quantity,
+    # not spin-4 like the TreeCorr Q notation.)
+    #
+    # The tricky thing about this is when doing projections for e.g. galaxy-galaxy lensing.
+    # Then Q_k rotates as normal for a spin-2 field.  And R_k also needs to rotate correspondingly.
+    #
+    # For any particular galaxy with terms Q_k and R_k, when rotating the coordinate system by
+    # an angle theta, we need
+    #
+    # [ g_1' ] = [ cos(2theta)  -sin(2theta) ] [ g_1 ]
+    # [ g_2' ]   [ sin(2theta)   cos(2theta) ] [ g_2 ]
+    #
+    # For compactness of notation in what folows, use C = cos(2theta) and S = sin(2theta).
+    #
+    # [ g_1' ] = [ C -S ] [ g_1 ]
+    # [ g_2' ] = [ S  C ] [ g_2 ]
+    #          = [ C -S ] [ R_11 R_12 ]^-1 [ Q_1 ]
+    #            [ S  C ] [ R_21 R_22 ]    [ Q_2 ]
+    #          = [ C -S ] [ R_11 R_12 ]^-1 [  C S ] [ C -S ] [ Q_1 ]
+    #            [ S  C ] [ R_21 R_22 ]    [ -S C ] [ S  C ] [ Q_2 ]
+    #          = ( [ C -S ] [ R_11 R_12 ] [  C S ] )^-1 ( [ C -S ] [ Q_1 ] )
+    #            ( [ S  C ] [ R_21 R_22 ] [ -S C ] )    ( [ S  C ] [ Q_2 ] )
+    #
+    # In other words, the Q values transform in the normal way that we normally transform the
+    # shear values.  And R transforms with a rotation matrix on both sides.
+    # Also, in the BFD context, R is symmetric, so R_12 = R_21, but we'll ignore that fact
+    # and continue with the general case of any 2x2 R matrix, in case there are related
+    # applications where it is not true.
+    #
+    # Let's try to turn all this matrix math into complex numbers.
+    # To this end, we redefine the R matrix as:
+    # R = [  r1+q1  r2+q2 ]
+    #     [ -r2+q2  r1-q1 ]
+    #
+    # And we'll consider the complex numbers r = r1 + i r2 and q = q1 + i q2.
+    #
+    # This implies r1 = (R_11 + R_22)/2
+    #              r2 = (R_12 - R_21)/2
+    #              q1 = (R_11 - R_22)/2
+    #              q2 = (R_12 + R_21)/2
+    # R^-1 = (|r|^2-|q|^2)^-1 [ r1-q1  -r2-q2 ]
+    #                         [ r2-q2   r1+q1 ]
+    #
+    # g = R^-1 Q = (|r|^2-|q|^2)^-1 [ r1-q1  -r2-q2 ] [ Q1 ]
+    #                               [ r2-q2   r1+q1 ] [ Q2 ]
+    #   = (|r|^2-|q|^2)^-1 [ r1Q1 - q1Q1 - r2Q2 - q2Q2 ]
+    #                      [ r2Q1 - q2Q1 + r1Q2 + q1Q2 ]
+    #
+    # If we treat [Q1 Q2] as a complex number Q = Q1 + i Q2, then this becomes:
+    #
+    # g = (|r|^2-|q|^2)^-1 [ Re( rQ - qQ* ) ]
+    #                      [ Im( rQ - qQ* ) ]
+    #
+    # which implies that the complex value g can be written as
+    #
+    # g = (rQ - qQ*) / (|r|^2-|q|^2)
+    #
+    # Now we just need to figure out how r and q transform under coordinate rotations.
+    #
+    # R' = [ C -S ] [  r1+q1  r2+q2 ] [  C S ]
+    #      [ S  C ] [ -r2+q2  r1-q1 ] [ -S C ]
+    #    = [ C -S ] [  (r1+q1)C - (r2+q2)S    (r1+q1)S + (r2+q2) C ]
+    #      [ S  C ] [ -(r2-q2)C - (r1-q1)S   -(r2-q2)S + (r1-q1) C ]
+    #    = [ (r1+q1)C^2 - (r2+q2)CS + (r2-q2)CS + (r1-q1)S^2
+    #                                       (r1+q1)CS + (r2+q2)C^2 + (r2-q2) S^2 - (r1-q1) CS ]
+    #      [ (r1+q1)CS - (r2+q2)S^2 - (r2-q2)C^2 - (r1-q1)CS
+    #                                       (r1+q1)S^2 + (r2+q2)CS - (r2-q2) CS + (r1-q1) C^2 ]
+    #    = [  r1 + q1 (C^2-S^2) - q2 (2CS)      r2 + q1 (2CS) + q2 (C^2-S^2) ]
+    #    = [ -r2 + q1 (2CS) + q2 (C^2-S^2)      r1 - q1 (C^2-S^2) + q2 (2CS) ]
+    #
+    # This implies that r and q transform as
+    #
+    # r' = r
+    # q' = q (cos(4 theta) + i sin(4 theta)) = q exp(4 i theta)
+    #
+    # I.e. r is a spin-0 quantity, and q is a spin-4 quantity.
+    # So we can compute the properly rotated Sum_k R_k by converting the R matrices into
+    # r and q complex numbers and computing NK and NQ correlation functions of those.
+    # This realization was in fact the impetus to add spin-4 correlations to TreeCorr.
+    #
+    # The following test confirms that this calculation is equivalent to doing the direct
+    # transformations of the R matrix.
+
+    nlens = 200
+    nsource = 200
+    s = 10.
+    rng = np.random.default_rng(8675309)
+    xlens = rng.normal(0,s, (nlens,) )
+    ylens = rng.normal(0,s, (nlens,) )
+    wlens = rng.random(nlens)
+
+    x = rng.normal(0,s, (nsource,) )
+    y = rng.normal(0,s, (nsource,) )
+    w = rng.random(nlens)
+    g1 = rng.normal(0,0.2, (nsource,) )
+    g2 = rng.normal(0,0.2, (nsource,) )
+    r11 = rng.random(nsource) + 1
+    r22 = rng.random(nsource) + 1
+    r12 = rng.random(nsource)
+    r21 = rng.random(nsource)  # Again, BFD has r12=r21, but for this test we ignore that.
+
+    min_sep = 1.
+    max_sep = 50.
+    nbins = 50
+    bin_size = np.log(max_sep/min_sep) / nbins
+
+    # First the more direct calculation using matrix R and vector Q.
+    true_npairs = np.zeros(nbins, dtype=int)
+    true_weight = np.zeros(nbins, dtype=float)
+    true_Qt = np.zeros(nbins, dtype=float)
+    true_Qx = np.zeros(nbins, dtype=float)
+    true_Rtt = np.zeros(nbins, dtype=float)
+    true_Rxx = np.zeros(nbins, dtype=float)
+    true_Rtx = np.zeros(nbins, dtype=float)
+    true_Rxt = np.zeros(nbins, dtype=float)
+
+    for i in range(nlens):
+        rsq = (x-xlens[i])**2 + (y-ylens[i])**2
+        r = np.sqrt(rsq)
+        theta = np.arctan2(y-ylens[i], x-xlens[i])
+        c = np.cos(2*theta)
+        s = np.sin(2*theta)
+
+        rot = np.array([[c, -s], [s, c]])
+
+        Q = np.array([g1, g2])
+        R = np.array([[r11, r12], [r21, r22]])
+
+        # In 1-d, this is:
+        #   Qt, Qx = np.dot(rot.T, Q)
+        #   (Rtt,Rtx), (Rxt,Rxx) = np.dot(rot.T, np.dot(R, rot))
+        # With Q and R holding many values, this is easiest to do using einsum:
+        Qt, Qx = np.einsum('jik,jk->ik', rot, [g1,g2])
+        (Rtt, Rtx), (Rxt, Rxx) = np.einsum('jik,jlk->ilk', rot, np.einsum('ijk,jlk->ilk', R, rot))
+
+        # Times -1 so Qt is tangential rather than radial.  Convention is to do the same to Qx.
+        Qt *= -1
+        Qx *= -1
+
+        ww = wlens[i] * w
+        index = np.floor(np.log(r/min_sep) / bin_size).astype(int)
+        mask = (index >= 0) & (index < nbins)
+        np.add.at(true_npairs, index[mask], 1)
+        np.add.at(true_weight, index[mask], ww[mask])
+        np.add.at(true_Qt, index[mask], ww[mask] * Qt[mask])
+        np.add.at(true_Qx, index[mask], ww[mask] * Qx[mask])
+        np.add.at(true_Rtt, index[mask], ww[mask] * Rtt[mask])
+        np.add.at(true_Rtx, index[mask], ww[mask] * Rtx[mask])
+        np.add.at(true_Rxt, index[mask], ww[mask] * Rxt[mask])
+        np.add.at(true_Rxx, index[mask], ww[mask] * Rxx[mask])
+
+    # Compute the mean in each bin for both numerator and denominator
+    true_Qt /= true_weight
+    true_Qx /= true_weight
+    true_Rtt /= true_weight
+    true_Rxx /= true_weight
+    true_Rtx /= true_weight
+    true_Rxt /= true_weight
+
+    # Now finish the calculation by calculating g = R^-1 Q
+    true_gt = np.zeros(nbins, dtype=float)
+    true_gx = np.zeros(nbins, dtype=float)
+    for k in range(nbins):
+        R = np.array([[true_Rtt[k], true_Rtx[k]],
+                      [true_Rxt[k], true_Rxx[k]]])
+        Rinv = np.linalg.inv(R)
+        Q = np.array([true_Qt[k], true_Qx[k]])
+        g = Rinv.dot(Q)
+        true_gt[k] = g[0]
+        true_gx[k] = g[1]
+
+    # Now use TreeCorr
+    cat1 = treecorr.Catalog(x=xlens, y=ylens, w=wlens)
+    cat2 = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2)
+
+    r = (r11 + r22)/2 + 1j * (r12 - r21)/2
+    q = (r11 - r22)/2 + 1j * (r12 + r21)/2
+
+    cat3a = treecorr.Catalog(x=x, y=y, w=w, k=np.real(r))
+    cat3b = treecorr.Catalog(x=x, y=y, w=w, k=np.imag(r))
+    cat3c = treecorr.Catalog(x=x, y=y, w=w, q1=np.real(q), q2=np.imag(q))
+
+    ng = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
+    ng.process(cat1, cat2)
+    nk = treecorr.NKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
+    nk.process(cat1, cat3a)
+    # Note: BFD can skip nki, since r is real in that use case.
+    nki = treecorr.NKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
+    nki.process(cat1, cat3b)
+    nq = treecorr.NQCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
+    nq.process(cat1, cat3c)
+
+    # First check that the raw outputs match the matrix calculation.
+    print('true_npairs = ',true_npairs)
+    print('diff ng = ',ng.npairs - true_npairs)
+    print('diff nk = ',nk.npairs - true_npairs)
+    print('diff nki = ',nki.npairs - true_npairs)
+    print('diff nq = ',nq.npairs - true_npairs)
+    np.testing.assert_array_equal(ng.npairs, true_npairs)
+    np.testing.assert_array_equal(nk.npairs, true_npairs)
+    np.testing.assert_array_equal(nki.npairs, true_npairs)
+    np.testing.assert_array_equal(nq.npairs, true_npairs)
+
+    print('true_weight = ',true_weight)
+    print('diff ng = ',ng.weight - true_weight)
+    print('diff nk = ',nk.weight - true_weight)
+    print('diff nki = ',nki.weight - true_weight)
+    print('diff nq = ',nq.weight - true_weight)
+    np.testing.assert_allclose(ng.weight, true_weight)
+    np.testing.assert_allclose(nk.weight, true_weight)
+    np.testing.assert_allclose(nki.weight, true_weight)
+    np.testing.assert_allclose(nq.weight, true_weight)
+
+    print('true_Qt = ',true_Qt)
+    print('ng.xi = ',ng.xi)
+    np.testing.assert_allclose(ng.xi, true_Qt, atol=1.e-8)
+    print('true_Qx = ',true_Qx)
+    print('ng.xi_im = ',ng.xi_im)
+    np.testing.assert_allclose(ng.xi_im, true_Qx, atol=1.e-8)
+
+    print('true_Rtt = ',true_Rtt)
+    print('nk.xi + nq.xi = ',nk.xi + nq.xi)
+    np.testing.assert_allclose(nk.xi + nq.xi, true_Rtt, atol=1.e-8)
+    print('true_Rtx = ',true_Rtx)
+    print('nki.xi + nq.xi_im = ',nki.xi + nq.xi_im)
+    np.testing.assert_allclose(nki.xi + nq.xi_im, true_Rtx, atol=1.e-8)
+    print('true_Rxt = ',true_Rxt)
+    print('-nki.xi + nq.xi_im = ',-nki.xi + nq.xi_im)
+    np.testing.assert_allclose(-nki.xi + nq.xi_im, true_Rxt, atol=1.e-8)
+    print('true_Rxx = ',true_Rxx)
+    print('nk.xi - nq.xi = ',nk.xi - nq.xi)
+    np.testing.assert_allclose(nk.xi - nq.xi, true_Rxx, atol=1.e-8)
+
+    # Now finish the calculation using r,q.
+    # g = (rQ - qQ*) / (|r|^2-|q|^2)
+    r = nk.xi + 1j * nki.xi    # Again, for BFD, r = nk.xi, since nki is 0.
+    q = nq.xi + 1j * nq.xi_im
+    Q = ng.xi + 1j * ng.xi_im
+    g = (r * Q - q * np.conj(Q)) / (np.abs(r)**2 - np.abs(q)**2)
+
+    print('true_gt = ',true_gt)
+    print('gt = ',np.real(g))
+    print('diff = ',np.real(g) - true_gt)
+    print('true_gx = ',true_gx)
+    print('gx = ',np.imag(g))
+    print('diff = ',np.imag(g) - true_gx)
+    np.testing.assert_allclose(np.real(g), true_gt, atol=1.e-8)
+    np.testing.assert_allclose(np.imag(g), true_gx, atol=1.e-8)
+
 
 if __name__ == '__main__':
     test_direct()
@@ -1223,3 +1482,4 @@ if __name__ == '__main__':
     test_pieces()
     test_varxi()
     test_jk()
+    test_matrix_r()

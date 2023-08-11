@@ -100,11 +100,12 @@ def parse_file_type(file_type, file_name, output=False, logger=None):
     if file_type is None:
         import os
         name, ext = os.path.splitext(file_name)
-        if ext.lower().startswith('.fit'):
+        ext = ext.lower()
+        if ext.startswith('.fit'):
             file_type = 'FITS'
-        elif ext.lower().startswith('.hdf'):
+        elif ext.startswith('.hdf') or ext.startswith('.h5'):
             file_type = 'HDF'
-        elif not output and ext.lower().startswith('.par'):
+        elif not output and ext.startswith('.par'):
             file_type = 'Parquet'
         else:
             file_type = 'ASCII'

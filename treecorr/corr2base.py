@@ -939,7 +939,7 @@ class Corr2(object):
             comm (mpi comm)     If not None, run under MPI
 
         Returns:
-            A, w: numpy arrays with the design matrix and weights respectively.
+            (A, w), numpy arrays with the design matrix and weights respectively.
         """
         if func is not None:
             # Need to convert it to a function of the first item in the list.
@@ -1466,7 +1466,7 @@ def build_multi_cov_design_matrix(corrs, method, *, func=None, comm=None):
         comm (mpi comm)     If not None, run under MPI
 
     Returns:
-        A, w: numpy arrays with the design matrix and weights respectively.
+        (A, w), numpy arrays with the design matrix and weights respectively.
     """
     if method == 'shot':
         raise ValueError("There is no design matrix for method='shot'")

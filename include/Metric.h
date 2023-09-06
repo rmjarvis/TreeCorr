@@ -790,15 +790,15 @@ struct ValidMC;
 
 template <int M>
 struct ValidMC<M,Flat>
-{ enum { _M = MetricHelper<M,0>::_Flat == Flat ? M : Euclidean }; };
+{ enum { _M = MetricHelper<M,0>::_Flat == int(Flat) ? M : Euclidean }; };
 
 template <int M>
 struct ValidMC<M,Sphere>
-{ enum { _M = MetricHelper<M,0>::_Sphere == Sphere ? M : Euclidean }; };
+{ enum { _M = MetricHelper<M,0>::_Sphere == int(Sphere) ? M : Euclidean }; };
 
 template <int M>
 struct ValidMC<M,ThreeD>
-{ enum { _M = MetricHelper<M,0>::_ThreeD == ThreeD ? M : Euclidean }; };
+{ enum { _M = MetricHelper<M,0>::_ThreeD == int(ThreeD) ? M : Euclidean }; };
 
 #endif
 

@@ -62,5 +62,5 @@ from .nnncorrelation import NNNCorrelation, NNNCrossCorrelation
 from .kkkcorrelation import KKKCorrelation, KKKCrossCorrelation
 from .gggcorrelation import GGGCorrelation, GGGCrossCorrelation
 
-from .corr2ex import corr2, print_corr2_params, corr2_valid_params, corr2_aliases
-from .corr3ex import corr3, print_corr3_params, corr3_valid_params, corr3_aliases
+from .exec_corr2 import corr2, print_corr2_params, corr2_valid_params, corr2_aliases
+from .exec_corr3 import corr3, print_corr3_params, corr3_valid_params, corr3_aliases

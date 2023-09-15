@@ -968,10 +968,6 @@ class NNNCorrelation(Corr3):
 
     def _read_from_data(self, data, params):
         s = self.logr.shape
-        if 'R_nom' in data.dtype.names:  # pragma: no cover
-            self._ro.rnom = data['R_nom'].reshape(s)
-        else:
-            self._ro.rnom = data['r_nom'].reshape(s)
         self.meand1 = data['meand1'].reshape(s)
         self.meanlogd1 = data['meanlogd1'].reshape(s)
         self.meand2 = data['meand2'].reshape(s)
@@ -988,8 +984,6 @@ class NNNCorrelation(Corr3):
         self.tot = params['tot']
         self.coords = params['coords'].strip()
         self.metric = params['metric'].strip()
-        self._ro.sep_units = params['sep_units'].strip()
-        self._ro.bin_type = params['bin_type'].strip()
         self.npatch1 = params.get('npatch1', 1)
         self.npatch2 = params.get('npatch2', 1)
         self.npatch3 = params.get('npatch3', 1)

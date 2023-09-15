@@ -529,14 +529,8 @@ class NTCorrelation(Corr2):
 
     def _read_from_data(self, data, params):
         s = self.logr.shape
-        if 'R_nom' in data.dtype.names:  # pragma: no cover
-            self._ro.rnom = data['R_nom'].reshape(s)
-            self.meanr = data['meanR'].reshape(s)
-            self.meanlogr = data['meanlogR'].reshape(s)
-        else:
-            self._ro.rnom = data['r_nom'].reshape(s)
-            self.meanr = data['meanr'].reshape(s)
-            self.meanlogr = data['meanlogr'].reshape(s)
+        self.meanr = data['meanr'].reshape(s)
+        self.meanlogr = data['meanlogr'].reshape(s)
         self.xi = data['tR'].reshape(s)
         self.xi_im = data['tR_im'].reshape(s)
         self._varxi = data['sigma'].reshape(s)**2
@@ -544,8 +538,6 @@ class NTCorrelation(Corr2):
         self.npairs = data['npairs'].reshape(s)
         self.coords = params['coords'].strip()
         self.metric = params['metric'].strip()
-        self._ro.sep_units = params['sep_units'].strip()
-        self._ro.bin_type = params['bin_type'].strip()
         self.raw_xi = self.xi
         self.raw_xi_im = self.xi_im
         self._raw_varxi = self._varxi

@@ -24,6 +24,7 @@ API Changes
 - Renamed the base classes BinnedCorr2 -> `Corr2` and BinnedCorr3 -> `Corr3`.  These are not
   normally used directly by users, so it shouldn't be noticeable in user code. (#155)
 - Removed all deprecations from the 4.x series. (#156)
+- Removed support for reading back in output files from the 3.x series.
 
 
 Performance improvements

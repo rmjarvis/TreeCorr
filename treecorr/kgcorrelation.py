@@ -429,14 +429,8 @@ class KGCorrelation(Corr2):
 
     def _read_from_data(self, data, params):
         s = self.logr.shape
-        if 'R_nom' in data.dtype.names:  # pragma: no cover
-            self._ro.rnom = data['R_nom'].reshape(s)
-            self.meanr = data['meanR'].reshape(s)
-            self.meanlogr = data['meanlogR'].reshape(s)
-        else:
-            self._ro.rnom = data['r_nom'].reshape(s)
-            self.meanr = data['meanr'].reshape(s)
-            self.meanlogr = data['meanlogr'].reshape(s)
+        self.meanr = data['meanr'].reshape(s)
+        self.meanlogr = data['meanlogr'].reshape(s)
         self.xi = data['kgamT'].reshape(s)
         self.xi_im = data['kgamX'].reshape(s)
         self._varxi = data['sigma'].reshape(s)**2
@@ -444,7 +438,5 @@ class KGCorrelation(Corr2):
         self.npairs = data['npairs'].reshape(s)
         self.coords = params['coords'].strip()
         self.metric = params['metric'].strip()
-        self._ro.sep_units = params['sep_units'].strip()
-        self._ro.bin_type = params['bin_type'].strip()
         self.npatch1 = params.get('npatch1', 1)
         self.npatch2 = params.get('npatch2', 1)

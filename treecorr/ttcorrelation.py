@@ -521,30 +521,18 @@ class TTCorrelation(Corr2):
     # Helper function used by _read
     def _read_from_data(self, data, params):
         s = self.logr.shape
-        if 'R_nom' in data.dtype.names:  # pragma: no cover
-            self._ro.rnom = data['R_nom'].reshape(s)
-            self.meanr = data['meanR'].reshape(s)
-            self.meanlogr = data['meanlogR'].reshape(s)
-        else:
-            self._ro.rnom = data['r_nom'].reshape(s)
-            self.meanr = data['meanr'].reshape(s)
-            self.meanlogr = data['meanlogr'].reshape(s)
+        self.meanr = data['meanr'].reshape(s)
+        self.meanlogr = data['meanlogr'].reshape(s)
         self.xip = data['xip'].reshape(s)
         self.xim = data['xim'].reshape(s)
         self.xip_im = data['xip_im'].reshape(s)
         self.xim_im = data['xim_im'].reshape(s)
         # Read old output files without error.
-        if 'sigma_xi' in data.dtype.names:  # pragma: no cover
-            self._varxip = data['sigma_xi'].reshape(s)**2
-            self._varxim = data['sigma_xi'].reshape(s)**2
-        else:
-            self._varxip = data['sigma_xip'].reshape(s)**2
-            self._varxim = data['sigma_xim'].reshape(s)**2
+        self._varxip = data['sigma_xip'].reshape(s)**2
+        self._varxim = data['sigma_xim'].reshape(s)**2
         self.weight = data['weight'].reshape(s)
         self.npairs = data['npairs'].reshape(s)
         self.coords = params['coords'].strip()
         self.metric = params['metric'].strip()
-        self._ro.sep_units = params['sep_units'].strip()
-        self._ro.bin_type = params['bin_type'].strip()
         self.npatch1 = params.get('npatch1', 1)
         self.npatch2 = params.get('npatch2', 1)

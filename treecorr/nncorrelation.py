@@ -793,21 +793,13 @@ class NNCorrelation(Corr2):
 
     def _read_from_data(self, data, params):
         s = self.logr.shape
-        if 'R_nom' in data.dtype.names:  # pragma: no cover
-            self._ro.rnom = data['R_nom'].reshape(s)
-            self.meanr = data['meanR'].reshape(s)
-            self.meanlogr = data['meanlogR'].reshape(s)
-        else:
-            self._ro.rnom = data['r_nom'].reshape(s)
-            self.meanr = data['meanr'].reshape(s)
-            self.meanlogr = data['meanlogr'].reshape(s)
+        self.meanr = data['meanr'].reshape(s)
+        self.meanlogr = data['meanlogr'].reshape(s)
         self.weight = data['DD'].reshape(s)
         self.npairs = data['npairs'].reshape(s)
         self.tot = params['tot']
         self.coords = params['coords'].strip()
         self.metric = params['metric'].strip()
-        self._ro.sep_units = params['sep_units'].strip()
-        self._ro.bin_type = params['bin_type'].strip()
         if 'xi' in data.dtype.names:
             self.xi = data['xi'].reshape(s)
             self.varxi = data['sigma_xi'].reshape(s)**2

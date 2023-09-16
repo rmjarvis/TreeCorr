@@ -80,33 +80,38 @@ public:
     template <int B, int C>
     void directProcess111(const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
                           const double d1, const double d2, const double d3,
-                          const double logr, const double u, const double v, const int index);
+                          const double u, const double v,
+                          const double logd1, const double logd2, const double logd3,
+                          const int index);
 
     template <int C>
     void finishProcess(const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
                        const double d1, const double d2, const double d3,
-                       const double logr, const double u, const double v, const int index)
-    { doFinishProcess(c1, c2, c3, d1, d2, d3, logr, u, v, index); }
+                       const double u, const double v,
+                       const double logd1, const double logd2, const double logd3,
+                       const int index)
+    { doFinishProcess(c1, c2, c3, d1, d2, d3, u, v, logd1, logd2, logd3, index); }
 
 protected:
 
     // This bit is a workaround for the the fact that virtual functions cannot be templates.
     virtual void doFinishProcess(
         const BaseCell<Flat>& c1, const BaseCell<Flat>& c2, const BaseCell<Flat>& c3,
-        const double d1, const double d2, const double d3,
-        const double logr, const double u, const double v, const int index) =0;
+        const double d1, const double d2, const double d3, const double u, const double v,
+        const double logd1, const double logd2, const double logd3, const int index) =0;
     virtual void doFinishProcess(
         const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2, const BaseCell<Sphere>& c3,
-        const double d1, const double d2, const double d3,
-        const double logr, const double u, const double v, const int index) =0;
+        const double d1, const double d2, const double d3, const double u, const double v,
+        const double logd1, const double logd2, const double logd3, const int index) =0;
     virtual void doFinishProcess(
         const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2, const BaseCell<ThreeD>& c3,
-        const double d1, const double d2, const double d3,
-        const double logr, const double u, const double v, const int index) =0;
+        const double d1, const double d2, const double d3, const double u, const double v,
+        const double logd1, const double logd2, const double logd3, const int index) =0;
 
 
 protected:
 
+    BinType _bin_type;
     double _minsep;
     double _maxsep;
     int _nbins;
@@ -125,7 +130,6 @@ protected:
     double _xp, _yp, _zp;
     double _logminsep;
     double _halfminsep;
-    double _halfmind3;
     double _minsepsq;
     double _maxsepsq;
     double _minusq;
@@ -135,10 +139,7 @@ protected:
     double _bsq;
     double _busq;
     double _bvsq;
-    double _sqrttwobv;
-    int _nvbins2; // = nvbins * 2
-    int _nuv; // = nubins * nvbins2
-    int _ntot; // = nbins * nubins2 * nvbins
+    int _ntot; // Total number of bins (e.g. nbins * nubins * nvbins * 2 for LogRUV)
     int _coords; // Stores the kind of coordinates being used for the analysis.
 
 };
@@ -172,8 +173,8 @@ public:
     template <int C>
     void finishProcess(
         const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
-        const double d1, const double d2, const double d3,
-        const double logr, const double u, const double v, const int index);
+        const double d1, const double d2, const double d3, const double u, const double v,
+        const double logd1, const double logd2, const double logd3, const int index);
 
     // Note: op= only copies _data.  Not all the params.
     void operator=(const Corr3<D1,D2,D3>& rhs);
@@ -183,19 +184,19 @@ protected:
 
     void doFinishProcess(
         const BaseCell<Flat>& c1, const BaseCell<Flat>& c2, const BaseCell<Flat>& c3,
-        const double d1, const double d2, const double d3,
-        const double logr, const double u, const double v, const int index)
-    { finishProcess(c1, c2, c3, d1, d2, d3, logr, u, v, index); }
+        const double d1, const double d2, const double d3, const double u, const double v,
+        const double logd1, const double logd2, const double logd3, const int index)
+    { finishProcess(c1, c2, c3, d1, d2, d3, u, v, logd1, logd2, logd3, index); }
     void doFinishProcess(
         const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2, const BaseCell<Sphere>& c3,
-        const double d1, const double d2, const double d3,
-        const double logr, const double u, const double v, const int index)
-    { finishProcess(c1, c2, c3, d1, d2, d3, logr, u, v, index); }
+        const double d1, const double d2, const double d3, const double u, const double v,
+        const double logd1, const double logd2, const double logd3, const int index)
+    { finishProcess(c1, c2, c3, d1, d2, d3, u, v, logd1, logd2, logd3, index); }
     void doFinishProcess(
         const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2, const BaseCell<ThreeD>& c3,
-        const double d1, const double d2, const double d3,
-        const double logr, const double u, const double v, const int index)
-    { finishProcess(c1, c2, c3, d1, d2, d3, logr, u, v, index); }
+        const double d1, const double d2, const double d3, const double u, const double v,
+        const double logd1, const double logd2, const double logd3, const int index)
+    { finishProcess(c1, c2, c3, d1, d2, d3, u, v, logd1, logd2, logd3, index); }
 
     // These are usually allocated in the python layer and just built up here.
     // So all we have here is a bare pointer for each of them.

@@ -347,7 +347,6 @@ class Corr3(object):
             self._ro.output_dots = get(self.config,'verbose',int,1) >= 2
 
         self._ro.bin_type = self.config.get('bin_type', 'LogRUV')
-        self._ro._bintype = _treecorr.Log
 
         self._ro.sep_units = self.config.get('sep_units','')
         self._ro._sep_units = get(self.config,'sep_units',str,'radians')
@@ -409,6 +408,7 @@ class Corr3(object):
                                             # units to _bin_size in that case as well.
 
         if self.bin_type == 'LogRUV':
+            self._ro._bintype = _treecorr.LogRUV
             self._ro.min_u = float(self.config.get('min_u', 0.))
             self._ro.max_u = float(self.config.get('max_u', 1.))
             if self.min_u < 0. or self.max_u > 1.:
@@ -457,6 +457,7 @@ class Corr3(object):
             self.logger.info("v: nbins = %d, min,max = %g..%g, bin_size = %g",
                              self.nvbins,self.min_v,self.max_v,self.vbin_size)
         elif self.bin_type == 'LogSAS':
+            self._ro._bintype = _treecorr.LogSAS
             self._ro.min_phi = float(self.config.get('min_phi', 0.))
             self._ro.max_phi = float(self.config.get('max_phi', np.pi))
             if self.min_phi < 0 or self.max_phi > 2*np.pi:

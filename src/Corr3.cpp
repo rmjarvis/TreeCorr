@@ -25,11 +25,24 @@
 #include "omp.h"
 #endif
 
+int CalculateNTot(BinType bin_type, int nbins, int nubins, int nvbins)
+{
+    switch(bin_type) {
+      case LogRUV:
+           return BinTypeHelper<LogRUV>::calculateNTot(nbins, nubins, nvbins);
+      default:
+           Assert(false);
+    }
+    return 0;
+}
+
+
 BaseCorr3::BaseCorr3(
     BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
     double minu, double maxu, int nubins, double ubinsize, double bu,
     double minv, double maxv, int nvbins, double vbinsize, double bv,
     double xp, double yp, double zp):
+    _bin_type(bin_type),
     _minsep(minsep), _maxsep(maxsep), _nbins(nbins), _binsize(binsize), _b(b),
     _minu(minu), _maxu(maxu), _nubins(nubins), _ubinsize(ubinsize), _bu(bu),
     _minv(minv), _maxv(maxv), _nvbins(nvbins), _vbinsize(vbinsize), _bv(bv),
@@ -38,7 +51,6 @@ BaseCorr3::BaseCorr3(
     // Some helpful variables we can calculate once here.
     _logminsep = log(_minsep);
     _halfminsep = 0.5*_minsep;
-    _halfmind3 = 0.5*_minsep*_minu;
     _minsepsq = _minsep*_minsep;
     _maxsepsq = _maxsep*_maxsep;
     _minusq = _minu*_minu;
@@ -48,10 +60,7 @@ BaseCorr3::BaseCorr3(
     _bsq = _b * _b;
     _busq = _bu * _bu;
     _bvsq = _bv * _bv;
-    _sqrttwobv = sqrt(2. * _bv);
-    _nvbins2 = _nvbins * 2;
-    _nuv = _nubins * _nvbins2;
-    _ntot = _nbins * _nuv;
+    _ntot = CalculateNTot(bin_type, nbins, nubins, nvbins);
 }
 
 template <int D1, int D2, int D3>
@@ -77,18 +86,19 @@ Corr3<D1,D2,D3>::Corr3(
 {}
 
 BaseCorr3::BaseCorr3(const BaseCorr3& rhs):
+    _bin_type(rhs._bin_type),
     _minsep(rhs._minsep), _maxsep(rhs._maxsep), _nbins(rhs._nbins),
     _binsize(rhs._binsize), _b(rhs._b),
     _minu(rhs._minu), _maxu(rhs._maxu), _nubins(rhs._nubins),
     _ubinsize(rhs._ubinsize), _bu(rhs._bu),
     _minv(rhs._minv), _maxv(rhs._maxv), _nvbins(rhs._nvbins),
     _vbinsize(rhs._vbinsize), _bv(rhs._bv),
-    _logminsep(rhs._logminsep), _halfminsep(rhs._halfminsep), _halfmind3(rhs._halfmind3),
+    _logminsep(rhs._logminsep), _halfminsep(rhs._halfminsep),
     _minsepsq(rhs._minsepsq), _maxsepsq(rhs._maxsepsq),
     _minusq(rhs._minusq), _maxusq(rhs._maxusq),
     _minvsq(rhs._minvsq), _maxvsq(rhs._maxvsq),
-    _bsq(rhs._bsq), _busq(rhs._busq), _bvsq(rhs._bvsq), _sqrttwobv(rhs._sqrttwobv),
-    _nvbins2(rhs._nvbins2), _nuv(rhs._nuv), _ntot(rhs._ntot), _coords(rhs._coords)
+    _bsq(rhs._bsq), _busq(rhs._busq), _bvsq(rhs._bvsq),
+    _ntot(rhs._ntot), _coords(rhs._coords)
 {}
 
 
@@ -448,40 +458,35 @@ void BaseCorr3::process12(BaseCorr3& bc212, BaseCorr3& bc221,
         return;
     }
     double s2 = c2.getSize();
-    if (s2 == 0.) {
-        xdbg<<"    size2 == 0.  return\n";
-        return;
-    }
-    if (s2 < _halfmind3) {
-        xdbg<<"    size2 < halfminsep * umin.  return\n";
+    if (BinTypeHelper<B>::tooSmallS2(s2, _halfminsep, _minu, _minv))
+    {
+        xdbg<<"    s2 smaller than minimum triangle side.  return\n";
         return;
     }
 
     double s1 = c1.getSize();
-    double dsq = metric.DistSq(c1.getData().getPos(), c2.getData().getPos(), s1, s2);
+    double rsq = metric.DistSq(c1.getData().getPos(), c2.getData().getPos(), s1, s2);
     double s1ps2 = s1 + s2;
 
     // If all possible triangles will have d2 < minsep, then abort the recursion here.
     // i.e. if d + s1 + s2 < minsep
-    if (dsq < _minsepsq && s1ps2 < _minsep && dsq < SQR(_minsep - s1ps2)) {
+    if (BinTypeHelper<B>::tooSmallDist(rsq, s1ps2, _minsep, _minsepsq)) {
         xdbg<<"    d2 cannot be as large as minsep\n";
         return;
     }
 
     // Similarly, we can abort if all possible triangles will have d > maxsep.
-    // i.e. if  d - s1 - s3 >= maxsep
-    if (dsq >= _maxsepsq && dsq >= SQR(_maxsep + s1ps2)) {
+    // i.e. if  d - s1 - s2 >= maxsep
+    if (BinTypeHelper<B>::tooLargeDist(rsq, s1ps2, _maxsep, _maxsepsq)) {
         xdbg<<"    d cannot be as small as maxsep\n";
         return;
     }
 
-    // If the user has set a minu > 0, then we may be able to stop here for that.
-    // The maximum possible u value at this point is 2s2 / (d - s1 - s2)
-    // If this is less than minu, we can stop.
-    // 2s2 < minu * (d - s1 - s2)
-    // minu * d > 2s2 + minu * (s1 + s2)
-    if (dsq > SQR(s1 + s2) && _minusq * dsq > SQR(2.*s2 + _minu * (s1 + s2))) {
-        xdbg<<"    u cannot be as large as minu\n";
+    // Depending on the binning, we may be able to stop due to allowed angles.
+    if (BinTypeHelper<B>::noAllowedAngles(rsq, s1ps2, s1, s2,
+                                         _minu, _minusq, _maxu, _maxusq,
+                                         _minv, _maxv)) {
+        xdbg<<"    No possible triangles with allowed angles\n";
         return;
     }
 
@@ -492,113 +497,6 @@ void BaseCorr3::process12(BaseCorr3& bc212, BaseCorr3& bc221,
     // 111 order is 123, 132, 213, 231, 312, 321   Here 3->2.
     process111<B>(*this, bc212, bc221, bc212, bc221, 
                   c1, *c2.getLeft(), *c2.getRight(), metric);
-}
-
-static bool stop111(
-    double d1sq, double d2sq, double d3sq, double& d2,
-    double s1, double s2, double s3,
-    double minsep, double minsepsq, double maxsep, double maxsepsq,
-    double minu, double minusq, double maxu, double maxusq,
-    double minv, double minvsq, double maxv, double maxvsq)
-{
-    // If all possible triangles will have d2 < minsep, then abort the recursion here.
-    // This means at least two sides must have d + (s+s) < minsep.
-    // Probably if d2 + s1+s3 < minsep, we can stop, but also check d3.
-    // If one of these don't pass, then it's pretty unlikely that d1 will, so don't bother
-    // checking that one.
-    if (d2sq < minsepsq && s1+s3 < minsep && s1+s2 < minsep &&
-        (s1+s3 == 0. || d2sq < SQR(minsep - s1-s3)) &&
-        (s1+s2 == 0. || d3sq < SQR(minsep - s1-s2)) ) {
-        xdbg<<"d2 cannot be as large as minsep\n";
-        return true;
-    }
-
-    // Similarly, we can abort if all possible triangles will have d2 > maxsep.
-    // This means at least two sides must have d - (s+s) > maxsep.
-    // Again, d2 - s1 - s3 >= maxsep is not sufficient.  Also check d1.
-    // And again, it's pretty unlikely that d3 needs to be checked if one of the first
-    // two don't pass.
-    if (d2sq >= maxsepsq &&
-        (s1+s3 == 0. || d2sq >= SQR(maxsep + s1+s3)) &&
-        (s2+s3 == 0. || d1sq >= SQR(maxsep + s2+s3))) {
-        xdbg<<"d2 cannot be as small as maxsep\n";
-        return true;
-    }
-
-    // If the user sets minu > 0, then we can abort if no possible triangle can have
-    // u = d3/d2 as large as this.
-    // The maximum possible u from our triangle is (d3+s1+s2) / (d2-s1-s3).
-    // Abort if (d3+s1+s2) / (d2-s1-s3) < minu
-    // (d3+s1+s2) < minu * (d2-s1-s3)
-    // d3 < minu * (d2-s1-s3) - (s1+s2)
-    d2 = sqrt(d2sq);
-    if (minu > 0. && d3sq < minusq*d2sq && d2 > s1+s3) {
-        double temp = minu * (d2-s1-s3);
-        if (temp > s1+s2 && d3sq < SQR(temp - s1-s2)) {
-            // However, d2 might not really be the middle leg.  So check d1 as well.
-            double minusq_d1sq = minusq * d1sq;
-            if (d3sq < minusq_d1sq && d1sq > 2.*SQR(s2+s3) &&
-                minusq_d1sq > 2.*d3sq + 2.*SQR(s1+s2 + minu * (s2+s3))) {
-                xdbg<<"u cannot be as large as minu\n";
-                return true;
-            }
-        }
-    }
-
-    // If the user sets a maxu < 1, then we can abort if no possible triangle can have
-    // u as small as this.
-    // The minimum possible u from our triangle is (d3-s1-s2) / (d2+s1+s3).
-    // Abort if (d3-s1-s2) / (d2+s1+s3) > maxu
-    // (d3-s1-s2) > maxu * (d2+s1+s3)
-    // d3 > maxu * (d2+s1+s3) + (s1+s2)
-    if (maxu < 1. && d3sq >= maxusq*d2sq && d3sq >= SQR(maxu * (d2+s1+s3) + s1+s2)) {
-        // This time, just make sure no other side could become the smallest side.
-        // d3 - s1-s2 < d2 - s1-s3
-        // d3 - s1-s2 < d1 - s2-s3
-        if ( d2sq > SQR(s1+s3) && d1sq > SQR(s2+s3) &&
-             (s2 > s3 || d3sq <= SQR(d2 - s3 + s2)) &&
-             (s1 > s3 || d1sq >= 2.*d3sq + 2.*SQR(s3 - s1)) ) {
-            xdbg<<"u cannot be as small as maxu\n";
-            return true;
-        }
-    }
-
-    // If the user sets minv, maxv to be near 0, then we can abort if no possible triangle
-    // can have v = (d1-d2)/d3 as small in absolute value as either of these.
-    // d1 > maxv d3 + d2+s1+s2+s3 + maxv*(s1+s2)
-    // As before, use the fact that d3 < d2, so check
-    // d1 > maxv d2 + d2+s1+s2+s3 + maxv*(s1+s2)
-    double sums = s1+s2+s3;
-    if (maxv < 1. && d1sq > SQR((1.+maxv)*d2 + sums + maxv * (s1+s2))) {
-        // We don't need any extra checks here related to the possibility of the sides
-        // switching roles, since if this condition is true, than d1 has to be the largest
-        // side no matter what.  d1-s2 > d2+s1
-        xdbg<<"v cannot be as small as maxv\n";
-        return true;
-    }
-
-    // It will unusual, but if minv > 0, then we can also potentially stop if no triangle
-    // can have |v| as large as minv.
-    // d1-d2 < minv d3 - (s1+s2+s3) - minv*(s1+s2)
-    // d1^2-d2^2 < (minv d3 - (s1+s2+s3) - minv*(s1+s2)) (d1+d2)
-    // This is most relevant when d1 ~= d2, so make this more restrictive with d1->d2 on rhs.
-    // d1^2-d2^2 < (minv d3 - (s1+s2+s3) - minv*(s1+s2)) 2d2
-    // minv d3 > (d1^2-d2^2)/(2d2) + (s1+s2+s3) + minv*(s1+s2)
-    if (minv > 0. && d3sq > SQR(s1+s2) &&
-        minvsq*d3sq > SQR((d1sq-d2sq)/(2.*d2) + sums + minv*(s1+s2))) {
-        // And again, we don't need anything else here, since it's fine if d1,d2 swap or
-        // even if d2,d3 swap.
-        xdbg<<"|v| cannot be as large as minv\n";
-        return true;
-    }
-
-    // Stop if any side is exactly 0 and elements are leaves
-    // (This is unusual, but we want to make sure to stop if it happens.)
-    if (s2==0 && s3==0 && d1sq == 0) return true;
-    if (s1==0 && s3==0 && d2sq == 0) return true;
-    if (s1==0 && s2==0 && d3sq == 0) return true;
-
-    return false;
 }
 
 template <int B, int M, int C>
@@ -634,41 +532,47 @@ void BaseCorr3::process111(
 
     BaseCorr3& bc123 = *this;  // alias for clarity.
 
-    // Need to end up with d1 > d2 > d3
-    if (d1sq > d2sq) {
-        if (d2sq > d3sq) {
-            xdbg<<"123\n";
-            // 123 -> 123
-            bc123.template process111Sorted<B>(bc132, bc213, bc231, bc312, bc321,
-                                               c1, c2, c3, metric, d1sq, d2sq, d3sq);
-        } else if (d1sq > d3sq) {
-            xdbg<<"132\n";
-            // 132 -> 123
-            bc132.template process111Sorted<B>(bc123, bc312, bc321, bc213, bc231,
-                                               c1, c3, c2, metric, d1sq, d3sq, d2sq);
+    if (BinTypeHelper<B>::sort_d123) {
+
+        // Need to end up with d1 > d2 > d3
+        if (d1sq > d2sq) {
+            if (d2sq > d3sq) {
+                xdbg<<"123\n";
+                // 123 -> 123
+                bc123.template process111Sorted<B>(bc132, bc213, bc231, bc312, bc321,
+                                                   c1, c2, c3, metric, d1sq, d2sq, d3sq);
+            } else if (d1sq > d3sq) {
+                xdbg<<"132\n";
+                // 132 -> 123
+                bc132.template process111Sorted<B>(bc123, bc312, bc321, bc213, bc231,
+                                                   c1, c3, c2, metric, d1sq, d3sq, d2sq);
+            } else {
+                xdbg<<"312\n";
+                // 312 -> 123
+                bc312.template process111Sorted<B>(bc321, bc132, bc123, bc231, bc213,
+                                                   c3, c1, c2, metric, d3sq, d1sq, d2sq);
+            }
         } else {
-            xdbg<<"312\n";
-            // 312 -> 123
-            bc312.template process111Sorted<B>(bc321, bc132, bc123, bc231, bc213,
-                                               c3, c1, c2, metric, d3sq, d1sq, d2sq);
+            if (d1sq > d3sq) {
+                xdbg<<"213\n";
+                // 213 -> 123
+                bc213.template process111Sorted<B>(bc231, bc123, bc132, bc321, bc312,
+                                                   c2, c1, c3, metric, d2sq, d1sq, d3sq);
+            } else if (d2sq > d3sq) {
+                xdbg<<"231\n";
+                // 231 -> 123
+                bc231.template process111Sorted<B>(bc213, bc321, bc312, bc123, bc132,
+                                                   c2, c3, c1, metric, d2sq, d3sq, d1sq);
+            } else {
+                xdbg<<"321\n";
+                // 321 -> 123
+                bc321.template process111Sorted<B>(bc312, bc231, bc213, bc132, bc123,
+                                                   c3, c2, c1, metric, d3sq, d2sq, d1sq);
+            }
         }
     } else {
-        if (d1sq > d3sq) {
-            xdbg<<"213\n";
-            // 213 -> 123
-            bc213.template process111Sorted<B>(bc231, bc123, bc132, bc321, bc312,
-                                               c2, c1, c3, metric, d2sq, d1sq, d3sq);
-        } else if (d2sq > d3sq) {
-            xdbg<<"231\n";
-            // 231 -> 123
-            bc231.template process111Sorted<B>(bc213, bc321, bc312, bc123, bc132,
-                                               c2, c3, c1, metric, d2sq, d3sq, d1sq);
-        } else {
-            xdbg<<"321\n";
-            // 321 -> 123
-            bc321.template process111Sorted<B>(bc312, bc231, bc213, bc132, bc123,
-                                               c3, c2, c1, metric, d3sq, d2sq, d1sq);
-        }
+        bc123.template process111Sorted<B>(bc132, bc213, bc231, bc312, bc321,
+                                           c1, c2, c3, metric, d1sq, d2sq, d3sq);
     }
 }
 
@@ -689,139 +593,43 @@ void BaseCorr3::process111Sorted(
     Assert(d1sq >= d2sq);
     Assert(d2sq >= d3sq);
 
-    double d2 = 0.;  // If not stop111, then d2 will be set.
-    if (stop111(d1sq, d2sq, d3sq, d2, s1, s2, s3,
-                _minsep, _minsepsq, _maxsep, _maxsepsq,
-                _minu, _minusq, _maxu, _maxusq,
-                _minv, _minvsq, _maxv, _maxvsq)) {
+    // Various quanities that we'll set along the way if we need them.
+    // At the end, if singleBin is true, then all these will be set correctly.
+    double d1=-1., d2=-1., d3=-1., u=-1., v=-1.;
+    if (BinTypeHelper<B>::stop111(d1sq, d2sq, d3sq, s1, s2, s3, d1, d2, d3,
+                                  _minsep, _minsepsq, _maxsep, _maxsepsq,
+                                  _minu, _minusq, _maxu, _maxusq,
+                                  _minv, _minvsq, _maxv, _maxvsq))
+    {
+        xdbg<<"Stopping early -- no possible triangles in range\n";
         return;
     }
 
-    // Figure out whether we need to split any of the cells.
+    // Now check if these cells are small enough that it is ok to drop into a single bin.
+    bool split1=false, split2=false, split3=false;
+    if (BinTypeHelper<B>::singleBin(d1sq, d2sq, d3sq, s1, s2, s3,
+                                    _b, _bu, _bv, _bsq, _busq, _bvsq,
+                                    split1, split2, split3,
+                                    d1, d2, d3, u, v))
+    {
+        xdbg<<"Drop into single bin.\n";
 
-    // Various quanities that we'll set along the way if we need them.
-    // At the end, if split is false, then all these will be set correctly.
-    double d1=-1., d3=-1., u=-1., v=-1.;
-
-    bool split=false, split1=false, split2=false, split3=false;
-
-    // First decide whether to split c3
-
-    // There are a few places we do a calculation akin to the splitfactor thing for 2pt.
-    // That one was determined empirically to optimize the running time for a particular
-    // (albeit intended to be fairly typical) use case.  Similarly, these are all found
-    // empirically on a particular (GGG) use case with a reasonable choice of separations
-    // and binning.
-    // Note: Since f1=f3=1 seem to be the best choices, I edited the code to not multply by them.
-    //const double factor1 = 0.99;
-    const double factor2 = 0.7;
-    //const double factor3 = 0.99;
-
-    // These are set correctly before they are used.
-    double s1ps2=0., s1ps3=0.;
-    bool d2split=false;
-
-    split3 = s3 > 0 && (
-        // Check if d2 solution needs a split
-        // This is the same as the normal 2pt splitting check.
-        (s3 > d2 * _b) ||
-        //((s1ps3=s1+s3) > 0. && (s1ps3 > d2 * _b) && (d2split=true, s3 > factor1*s1)) ||
-        ((s1ps3=s1+s3) > 0. && (s1ps3 > d2 * _b) && (d2split=true, s3 >= s1)) ||
-
-        // Check if u solution needs a split
-        // u = d3/d2
-        // max u = d3 / (d2-s3) ~= d3/d2 * (1+s3/d2)
-        // delta u = d3 s3 / d2^2
-        // Split if delta u > b
-        //          d3 s3 > b d2^2
-        // Note: if bu >= b, then this is degenerate with above d2 check (since d3 < d2).
-        (_bu < _b && (SQR(s3) * d3sq > SQR(_bu*d2sq))) ||
-
-        // For the v check, it turns out that the triangle where s3 has the maximum effect
-        // on v is when the triangle is nearly equilateral.  Both larger d1 and smaller d3
-        // reduce the potential impact of s3 on v.
-        // Furthermore, for an equilateral triangle, the maximum change in v is very close
-        // to s3/d.  So this is the same check as we already did for d2 above, but using
-        // _bv rather than _b.
-        // Since bv is usually not much smaller than b, don't bother being more careful
-        // than this.
-        (_bv < _b && s3 > d2 * _bv));
-
-    if (split3) {
-        split = true;
-        // If splitting c3, then usually also split c1 and c2.
-        // The s3 checks are less calculation-intensive than the later s1,s2 checks.  So it
-        // turns out (empirically) that unless s1 or s2 is a lot smaller than s3, we pretty much
-        // always want to split them.  This is especially true if d3 << d2.
-        // Thus, the decision is split if s > f (d3/d2) s3, where f is an empirical factor.
-        const double temp = factor2 * SQR(s3) * d3sq;
-        split1 = SQR(s1) * d2sq > temp;
-        split2 = SQR(s2) * d2sq > temp;
-
-    } else if (s1 > 0 || s2 > 0) {
-        // Now figure out if c1 or c2 needs to be split.
-
-        split1 = (s1 > 0.) && (
-            // Apply the d2split that we saved from above.  If we didn't split c3, split c1.
-            // Note: if s3 was 0, then still need to check here.
-            d2split ||
-            (s3==0. && s3 > d2 * _b) ||
-
-            // Also, definitely split if s1 > d3
-            (SQR(s1) > d3sq));
-
-        split2 = (s2 > 0.) && (
-            // Likewise split c2 if s2 > d3
-            (SQR(s2) > d3sq) ||
-
-            // Split c2 if it's possible for d3 to become larger than the largest possible d2
-            // or if d1 could become smaller than the current smallest possible d2.
-            // i.e. if d3 + s1 + s2 > d2 + s1 + s3 => d3 > d2 - s2 + s3
-            //      or d1 - s2 - s3 < d2 - s1 - s3 => d1 < d2 + s2 - s1
-            (s2>s3 && (d3sq > SQR(d2 - s2 + s3))) ||
-            (s2>s1 && (d1sq < SQR(d2 + s2 - s1))));
-
-        // All other checks mean split at least one of c1 or c2.
-        // Done with ||, so it will stop checking if anything is true.
-        split =
-            // Don't bother doing further calculations if already splitting something.
-            split1 || split2 ||
-
-            // Check splitting c1,c2 for u calculation.
-            // u = d3 / d2
-            // u_max = (d3 + s1ps2) / (d2 - s1+s3) ~= u + s1ps2/d2 + s1ps3 u/d2
-            // du < bu
-            // (s1ps2 + u s1ps3) < bu * d2
-            (d3=sqrt(d3sq), u=d3/d2, SQR((s1ps2=s1+s2) + s1ps3*u) > d2sq * _busq) ||
-
-            // Check how v changes for different pairs of points within c1,c2?
-            //
-            // d1-d2 can change by s1+s2, and also d3 can change by s1+s2 the other way.
-            // minv = (d1-d2-s1-s2) / (d3+s1+s2) ~= v - (s1+s2)/d3 - (s1+s2)v/d3
-            // maxv = (d1-d2+s1+s2) / (d3-s1-s2) ~= v + (s1+s2)/d3 + (s1+s2)v/d3
-            // So require (s1+s2)(1+v) < bv d3
-            (d1=sqrt(d1sq), v=(d1-d2)/d3, SQR(s1ps2 * (1.+v)) > d3sq * _bvsq);
-
-        if (split) {
-            // If splitting either one, also do the other if it's close.
-            // Because we were so aggressive in splitting c1,c2 above during the c3 splits,
-            // it turns out that here we usually only want to split one, not both.
-            // So f3 ~= 1 seems to be the best choice.
-            //split1 = split1 || s1 > factor3 * s2;
-            //split2 = split2 || s2 > factor3 * s1;
-            split1 = split1 || s1 >= s2;
-            split2 = split2 || s2 >= s1;
+        // These get set if triangle is in range.
+        double logd1, logd2, logd3;
+        int index;
+        if (BinTypeHelper<B>::isTriangleInRange(c1, c2, c3, metric,
+                                                d1, d2, d3, u, v,
+                                                _logminsep, _minsep, _maxsep, _binsize, _nbins,
+                                                _minu, _maxu, _ubinsize, _nubins,
+                                                _minv, _maxv, _vbinsize, _nvbins,
+                                                logd1, logd2, logd3,
+                                                _ntot, index))
+        {
+            directProcess111<B>(c1, c2, c3, d1, d2, d3, u, v, logd1, logd2, logd3, index);
         }
     } else {
-        // s1==s2==0 and not splitting s3.
-        // Just need to calculate the terms we need below.
-        d1 = sqrt(d1sq);
-        d3 = sqrt(d3sq);
-        u = d3/d2;
-        v = (d1-d2)/d3;
-    }
+        xdbg<<"Need to split.\n";
 
-    if (split) {
         Assert(split1 == false || s1 > 0);
         Assert(split2 == false || s2 > 0);
         Assert(split3 == false || s3 > 0);
@@ -927,88 +735,6 @@ void BaseCorr3::process111Sorted(
                               *c1.getRight(), c2, c3, metric, d1sq);
             }
         }
-    } else {
-        // Make sure all the quantities we thought should be set have been.
-        Assert(d1 > 0.);
-        Assert(d3 > 0.);
-        Assert(u > 0.);
-        Assert(v >= 0.);  // v can potentially == 0.
-
-        // No splits required.
-        // Now we can check to make sure the final d2, u, v are in the right ranges.
-        if (d2 < _minsep || d2 >= _maxsep) {
-            xdbg<<"d2 not in minsep .. maxsep\n";
-            return;
-        }
-
-        if (u < _minu || u >= _maxu) {
-            xdbg<<"u not in minu .. maxu\n";
-            return;
-        }
-
-        if (v < _minv || v >= _maxv) {
-            xdbg<<"v not in minv .. maxv\n";
-            return;
-        }
-
-        double logr = log(d2);
-        xdbg<<"            logr = "<<logr<<std::endl;
-        xdbg<<"            u = "<<u<<std::endl;
-        xdbg<<"            v = "<<v<<std::endl;
-
-        int kr = int(floor((logr-_logminsep)/_binsize));
-        Assert(kr >= 0);
-        Assert(kr <= _nbins);
-        if (kr == _nbins) --kr;  // This is rare, but can happen with numerical differences
-                                 // between the math for log and for non-log checks.
-        Assert(kr < _nbins);
-
-        int ku = int(floor((u-_minu)/_ubinsize));
-        if (ku >= _nubins) {
-            // Rounding error can allow this.
-            XAssert((u-_minu)/_ubinsize - ku < 1.e-10);
-            Assert(ku==_nubins);
-            --ku;
-        }
-        Assert(ku >= 0);
-        Assert(ku < _nubins);
-
-        int kv = int(floor((v-_minv)/_vbinsize));
-
-        if (kv >= _nvbins) {
-            // Rounding error can allow this.
-            XAssert((v-_minv)/_vbinsize - kv < 1.e-10);
-            Assert(kv==_nvbins);
-            --kv;
-        }
-        Assert(kv >= 0);
-        Assert(kv < _nvbins);
-
-        // Now account for negative v
-        if (!metric.CCW(c1.getData().getPos(), c2.getData().getPos(),
-                        c3.getData().getPos())) {
-            v = -v;
-            kv = _nvbins - kv - 1;
-        } else {
-            kv += _nvbins;
-        }
-
-        Assert(kv >= 0);
-        Assert(kv < _nvbins2);
-
-        xdbg<<"d1,d2,d3 = "<<d1<<", "<<d2<<", "<<d3<<std::endl;
-        xdbg<<"r,u,v = "<<d2<<", "<<u<<", "<<v<<std::endl;
-        xdbg<<"kr,ku,kv = "<<kr<<", "<<ku<<", "<<kv<<std::endl;
-        int index = kr * _nuv + ku * _nvbins2 + kv;
-        Assert(index >= 0);
-        Assert(index < _ntot);
-        // Just to make extra sure we don't get seg faults (since the above
-        // asserts aren't active in normal operations), do a real check that
-        // index is in the allowed range.
-        if (index < 0 || index >= _ntot) {
-            return;
-        }
-        directProcess111<B>(c1, c2, c3, d1, d2, d3, logr, u, v, index);
     }
 }
 
@@ -1097,17 +823,17 @@ struct DirectHelper<GData,GData,GData>
 template <int B, int C>
 void BaseCorr3::directProcess111(
     const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
-    const double d1, const double d2, const double d3,
-    const double logr, const double u, const double v, const int index)
+    const double d1, const double d2, const double d3, const double u, const double v,
+    const double logd1, const double logd2, const double logd3, const int index)
 {
-    finishProcess(c1, c2, c3, d1, d2, d3, logr, u, v, index);
+    finishProcess(c1, c2, c3, d1, d2, d3, u, v, logd1, logd2, logd3, index);
 }
 
 template <int D1, int D2, int D3> template <int C>
 void Corr3<D1,D2,D3>::finishProcess(
     const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
-    const double d1, const double d2, const double d3,
-    const double logr, const double u, const double v, const int index)
+    const double d1, const double d2, const double d3, const double u, const double v,
+    const double logd1, const double logd2, const double logd3, const int index)
 {
     double nnn = double(c1.getData().getN()) * c2.getData().getN() * c3.getData().getN();
     _ntri[index] += nnn;
@@ -1117,11 +843,11 @@ void Corr3<D1,D2,D3>::finishProcess(
 
     double www = c1.getData().getW() * c2.getData().getW() * c3.getData().getW();
     _meand1[index] += www * d1;
-    _meanlogd1[index] += www * log(d1);
+    _meanlogd1[index] += www * logd1;
     _meand2[index] += www * d2;
-    _meanlogd2[index] += www * logr;
+    _meanlogd2[index] += www * logd2;
     _meand3[index] += www * d3;
-    _meanlogd3[index] += www * log(d3);
+    _meanlogd3[index] += www * logd3;
     _meanu[index] += www * u;
     _meanv[index] += www * v;
     _weight[index] += www;
@@ -1130,7 +856,7 @@ void Corr3<D1,D2,D3>::finishProcess(
         static_cast<const Cell<D1,C>&>(c1),
         static_cast<const Cell<D2,C>&>(c2),
         static_cast<const Cell<D3,C>&>(c3),
-        d1, d2, d3, _zeta,index);
+        d1, d2, d3, _zeta, index);
 }
 
 template <int D1, int D2, int D3>
@@ -1232,17 +958,17 @@ void ProcessAuto(BaseCorr3& corr, BaseField<C>& field,
                  bool dots, BinType bin_type, Metric metric)
 {
     dbg<<"Start ProcessAuto "<<bin_type<<" "<<metric<<std::endl;
-    Assert(bin_type == Log);
+    Assert(bin_type == LogRUV);
 
     switch(metric) {
       case Euclidean:
-           ProcessAuto1<Log,Euclidean>(corr, field, dots);
+           ProcessAuto1<LogRUV,Euclidean>(corr, field, dots);
            break;
       case Arc:
-           ProcessAuto1<Log,Arc>(corr, field, dots);
+           ProcessAuto1<LogRUV,Arc>(corr, field, dots);
            break;
       case Periodic:
-           ProcessAuto1<Log,Periodic>(corr, field, dots);
+           ProcessAuto1<LogRUV,Periodic>(corr, field, dots);
            break;
       default:
            Assert(false);
@@ -1262,19 +988,19 @@ void ProcessCross12(BaseCorr3& corr122, BaseCorr3& corr212, BaseCorr3& corr221,
                     BaseField<C>& field1, BaseField<C>& field2,
                     bool dots, BinType bin_type, Metric metric)
 {
-    Assert(bin_type == Log);
+    Assert(bin_type == LogRUV);
     switch(metric) {
       case Euclidean:
-           ProcessCross12a<Log,Euclidean>(corr122, corr212, corr221,
-                                          field1, field2, dots);
+           ProcessCross12a<LogRUV,Euclidean>(corr122, corr212, corr221,
+                                             field1, field2, dots);
            break;
       case Arc:
-           ProcessCross12a<Log,Arc>(corr122, corr212, corr221,
-                                    field1, field2, dots);
+           ProcessCross12a<LogRUV,Arc>(corr122, corr212, corr221,
+                                       field1, field2, dots);
            break;
       case Periodic:
-           ProcessCross12a<Log,Periodic>(corr122, corr212, corr221,
-                                         field1, field2, dots);
+           ProcessCross12a<LogRUV,Periodic>(corr122, corr212, corr221,
+                                            field1, field2, dots);
            break;
       default:
            Assert(false);
@@ -1301,20 +1027,20 @@ void ProcessCross(BaseCorr3& corr123, BaseCorr3& corr132, BaseCorr3& corr213,
 {
     dbg<<"Start ProcessCross3 "<<bin_type<<" "<<metric<<std::endl;
 
-    Assert(bin_type == Log);
+    Assert(bin_type == LogRUV);
 
     switch(metric) {
       case Euclidean:
-           ProcessCross1<Log,Euclidean>(corr123, corr132, corr213, corr231, corr312, corr321,
-                                        field1, field2, field3, dots);
+           ProcessCross1<LogRUV,Euclidean>(corr123, corr132, corr213, corr231, corr312, corr321,
+                                           field1, field2, field3, dots);
            break;
       case Arc:
-           ProcessCross1<Log,Arc>(corr123, corr132, corr213, corr231, corr312, corr321,
-                                  field1, field2, field3, dots);
+           ProcessCross1<LogRUV,Arc>(corr123, corr132, corr213, corr231, corr312, corr321,
+                                     field1, field2, field3, dots);
            break;
       case Periodic:
-           ProcessCross1<Log,Periodic>(corr123, corr132, corr213, corr231, corr312, corr321,
-                                       field1, field2, field3, dots);
+           ProcessCross1<LogRUV,Periodic>(corr123, corr132, corr213, corr231, corr312, corr321,
+                                          field1, field2, field3, dots);
            break;
       default:
            Assert(false);

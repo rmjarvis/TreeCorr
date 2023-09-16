@@ -17,13 +17,16 @@
 
 #include <limits>
 #include <cmath>
+#include "Metric.h"
 
 // We use a code for the type of binning to use:
 // Log is logarithmic spacing in r
 // Linear is linear spacing in r
 // TwoD is linear spacing in x,y
+// LogRUV is logarithmic spacing in r=d2, linear in u=d3/d2 and v=(d1-d2)/d3
+// LogSAS is logarithmic spacing in r1, r2, linear in phi
 
-enum BinType { Log=1, Linear=2, TwoD=3 };
+enum BinType { Log, Linear, TwoD, LogRUV, LogSAS };
 
 template <int M>
 struct BinTypeHelper;
@@ -349,6 +352,383 @@ struct BinTypeHelper<TwoD>
         xdbg<<"Single bin returning true: "<<dx<<','<<dy<<','<<s1ps2<<','<<binsize<<std::endl;
         return true;
     }
+};
+
+
+template <>
+struct BinTypeHelper<LogRUV>
+{
+    enum { sort_d123 = true };
+
+    static int calculateNTot(int nbins, int nubins, int nvbins)
+    { return nbins * nubins * nvbins * 2; }
+
+    static bool tooSmallS2(double s2, double halfminsep, double minu, double minv)
+    {
+        // When still doing process12, if the s2 cell is smaller than the minimum
+        // possible triangle side length, then we can stop early.
+        return (s2 == 0. || s2 < halfminsep * minu);
+    }
+
+    // Check if all posisble pairs for a two cells (given s1 + s2) necessarily have too small
+    // or too large a distance to be accumulated, so we can stop considering these cells.
+    static bool tooSmallDist(double rsq, double s1ps2, double minsep, double minsepsq)
+    {
+        // r + s1ps2 < minsep
+        // r < minsep - s1ps2
+        // rsq < (minsep - s1ps2)^2  and  s1ps2 < minsep
+        return rsq < minsepsq && s1ps2 < minsep && rsq < SQR(minsep - s1ps2);
+    }
+    static bool tooLargeDist(double rsq, double s1ps2, double maxsep, double maxsepsq)
+    {
+        // r - s1ps2 > maxsep
+        // rsq > (maxsep + s1ps2)^2
+        return rsq >= maxsepsq && rsq >= SQR(maxsep + s1ps2);
+    }
+
+    // If the user has set a minu > 0, then we may be able to stop for that.
+    static bool noAllowedAngles(double rsq, double s1ps2, double s1, double s2,
+                                double _minu, double _minusq, double _maxu, double _maxusq,
+                                double _minv, double _maxv)
+    {
+        // The maximum possible u value at this point is 2s2 / (r - s1 - s2)
+        // If this is less than minu, we can stop.
+        // 2s2 < minu * (r - s1 - s2)
+        // minu * r > 2s2 + minu * (s1 + s2)
+        return rsq > SQR(s1ps2) && _minusq * rsq > SQR(2.*s2 + _minu * (s1ps2));
+    }
+
+    // Once we have all the distances, see if it's possible to stop
+    // For this BinType, if return value is false, d2 is set on output.
+    static bool stop111(
+        double d1sq, double d2sq, double d3sq,
+        double s1, double s2, double s3,
+        double& d1, double& d2, double& d3,
+        double minsep, double minsepsq, double maxsep, double maxsepsq,
+        double minu, double minusq, double maxu, double maxusq,
+        double minv, double minvsq, double maxv, double maxvsq)
+    {
+        // If all possible triangles will have d2 < minsep, then abort the recursion here.
+        // This means at least two sides must have d + (s+s) < minsep.
+        // Probably if d2 + s1+s3 < minsep, we can stop, but also check d3.
+        // If one of these don't pass, then it's pretty unlikely that d1 will, so don't bother
+        // checking that one.
+        if (d2sq < minsepsq && s1+s3 < minsep && s1+s2 < minsep &&
+            (s1+s3 == 0. || d2sq < SQR(minsep - s1-s3)) &&
+            (s1+s2 == 0. || d3sq < SQR(minsep - s1-s2)) ) {
+            xdbg<<"d2 cannot be as large as minsep\n";
+            return true;
+        }
+
+        // Similarly, we can abort if all possible triangles will have d2 > maxsep.
+        // This means at least two sides must have d - (s+s) > maxsep.
+        // Again, d2 - s1 - s3 >= maxsep is not sufficient.  Also check d1.
+        // And again, it's pretty unlikely that d3 needs to be checked if one of the first
+        // two don't pass.
+        if (d2sq >= maxsepsq &&
+            (s1+s3 == 0. || d2sq >= SQR(maxsep + s1+s3)) &&
+            (s2+s3 == 0. || d1sq >= SQR(maxsep + s2+s3))) {
+            xdbg<<"d2 cannot be as small as maxsep\n";
+            return true;
+        }
+
+        // If the user sets minu > 0, then we can abort if no possible triangle can have
+        // u = d3/d2 as large as this.
+        // The maximum possible u from our triangle is (d3+s1+s2) / (d2-s1-s3).
+        // Abort if (d3+s1+s2) / (d2-s1-s3) < minu
+        // (d3+s1+s2) < minu * (d2-s1-s3)
+        // d3 < minu * (d2-s1-s3) - (s1+s2)
+        d2 = sqrt(d2sq);
+        if (minu > 0. && d3sq < minusq*d2sq && d2 > s1+s3) {
+            double temp = minu * (d2-s1-s3);
+            if (temp > s1+s2 && d3sq < SQR(temp - s1-s2)) {
+                // However, d2 might not really be the middle leg.  So check d1 as well.
+                double minusq_d1sq = minusq * d1sq;
+                if (d3sq < minusq_d1sq && d1sq > 2.*SQR(s2+s3) &&
+                    minusq_d1sq > 2.*d3sq + 2.*SQR(s1+s2 + minu * (s2+s3))) {
+                    xdbg<<"u cannot be as large as minu\n";
+                    return true;
+                }
+            }
+        }
+
+        // If the user sets a maxu < 1, then we can abort if no possible triangle can have
+        // u as small as this.
+        // The minimum possible u from our triangle is (d3-s1-s2) / (d2+s1+s3).
+        // Abort if (d3-s1-s2) / (d2+s1+s3) > maxu
+        // (d3-s1-s2) > maxu * (d2+s1+s3)
+        // d3 > maxu * (d2+s1+s3) + (s1+s2)
+        if (maxu < 1. && d3sq >= maxusq*d2sq && d3sq >= SQR(maxu * (d2+s1+s3) + s1+s2)) {
+            // This time, just make sure no other side could become the smallest side.
+            // d3 - s1-s2 < d2 - s1-s3
+            // d3 - s1-s2 < d1 - s2-s3
+            if ( d2sq > SQR(s1+s3) && d1sq > SQR(s2+s3) &&
+                 (s2 > s3 || d3sq <= SQR(d2 - s3 + s2)) &&
+                 (s1 > s3 || d1sq >= 2.*d3sq + 2.*SQR(s3 - s1)) ) {
+                xdbg<<"u cannot be as small as maxu\n";
+                return true;
+            }
+        }
+
+        // If the user sets minv, maxv to be near 0, then we can abort if no possible triangle
+        // can have v = (d1-d2)/d3 as small in absolute value as either of these.
+        // d1 > maxv d3 + d2+s1+s2+s3 + maxv*(s1+s2)
+        // As before, use the fact that d3 < d2, so check
+        // d1 > maxv d2 + d2+s1+s2+s3 + maxv*(s1+s2)
+        double sums = s1+s2+s3;
+        if (maxv < 1. && d1sq > SQR((1.+maxv)*d2 + sums + maxv * (s1+s2))) {
+            // We don't need any extra checks here related to the possibility of the sides
+            // switching roles, since if this condition is true, than d1 has to be the largest
+            // side no matter what.  d1-s2 > d2+s1
+            xdbg<<"v cannot be as small as maxv\n";
+            return true;
+        }
+
+        // It will unusual, but if minv > 0, then we can also potentially stop if no triangle
+        // can have |v| as large as minv.
+        // d1-d2 < minv d3 - (s1+s2+s3) - minv*(s1+s2)
+        // d1^2-d2^2 < (minv d3 - (s1+s2+s3) - minv*(s1+s2)) (d1+d2)
+        // This is most relevant when d1 ~= d2, so make this more restrictive with d1->d2 on rhs.
+        // d1^2-d2^2 < (minv d3 - (s1+s2+s3) - minv*(s1+s2)) 2d2
+        // minv d3 > (d1^2-d2^2)/(2d2) + (s1+s2+s3) + minv*(s1+s2)
+        if (minv > 0. && d3sq > SQR(s1+s2) &&
+            minvsq*d3sq > SQR((d1sq-d2sq)/(2.*d2) + sums + minv*(s1+s2))) {
+            // And again, we don't need anything else here, since it's fine if d1,d2 swap or
+            // even if d2,d3 swap.
+            xdbg<<"|v| cannot be as large as minv\n";
+            return true;
+        }
+
+        // Stop if any side is exactly 0 and elements are leaves
+        // (This is unusual, but we want to make sure to stop if it happens.)
+        if (s2==0 && s3==0 && d1sq == 0) return true;
+        if (s1==0 && s3==0 && d2sq == 0) return true;
+        if (s1==0 && s2==0 && d3sq == 0) return true;
+
+        return false;
+    }
+
+    // If return value is true, split1, split2, split3 will be set on output.
+    // If return value is false, d1, d2, d3, u, v will be set on output.
+    // (For this BinType, d2 is already set coming in.)
+    static bool singleBin(double d1sq, double d2sq, double d3sq,
+                          double s1, double s2, double s3,
+                          double b, double bu, double bv,
+                          double bsq, double busq, double bvsq,
+                          bool& split1, bool& split2, bool& split3,
+                          double& d1, double& d2, double& d3,
+                          double& u, double& v)
+    {
+        // First decide whether to split c3
+
+        // There are a few places we do a calculation akin to the splitfactor thing for 2pt.
+        // That one was determined empirically to optimize the running time for a particular
+        // (albeit intended to be fairly typical) use case.  Similarly, this factor was found
+        // empirically on a particular (GGG) use case with a reasonable choice of separations
+        // and binning.
+        const double splitfactor = 0.7;
+
+        // These are set correctly before they are used.
+        double s1ps2=0., s1ps3=0.;
+        bool d2split=false;
+
+        split3 = s3 > 0 && (
+            // Check if d2 solution needs a split
+            // This is the same as the normal 2pt splitting check.
+            (s3 > d2 * b) ||
+            ((s1ps3=s1+s3) > 0. && (s1ps3 > d2 * b) && (d2split=true, s3 >= s1)) ||
+
+            // Check if u solution needs a split
+            // u = d3/d2
+            // max u = d3 / (d2-s3) ~= d3/d2 * (1+s3/d2)
+            // delta u = d3 s3 / d2^2
+            // Split if delta u > b
+            //          d3 s3 > b d2^2
+            // Note: if bu >= b, then this is degenerate with above d2 check (since d3 < d2).
+            (bu < b && (SQR(s3) * d3sq > SQR(bu*d2sq))) ||
+
+            // For the v check, it turns out that the triangle where s3 has the maximum effect
+            // on v is when the triangle is nearly equilateral.  Both larger d1 and smaller d3
+            // reduce the potential impact of s3 on v.
+            // Furthermore, for an equilateral triangle, the maximum change in v is very close
+            // to s3/d.  So this is the same check as we already did for d2 above, but using
+            // bv rather than b.
+            // Since bv is usually not much smaller than b, don't bother being more careful
+            // than this.
+            (bv < b && s3 > d2 * bv));
+
+        if (split3) {
+            // If splitting c3, then usually also split c1 and c2.
+            // The s3 checks are less calculation-intensive than the later s1,s2 checks.  So it
+            // turns out (empirically) that unless s1 or s2 is a lot smaller than s3, we pretty much
+            // always want to split them.  This is especially true if d3 << d2.
+            // Thus, the decision is split if s > f (d3/d2) s3, where f is an empirical factor.
+            const double temp = splitfactor * SQR(s3) * d3sq;
+            split1 = SQR(s1) * d2sq > temp;
+            split2 = SQR(s2) * d2sq > temp;
+            return false;
+
+        } else if (s1 > 0 || s2 > 0) {
+            // Now figure out if c1 or c2 needs to be split.
+
+            split1 = (s1 > 0.) && (
+                // Apply the d2split that we saved from above.  If we didn't split c3, split c1.
+                // Note: if s3 was 0, then still need to check here.
+                d2split ||
+                (s3==0. && s3 > d2 * b) ||
+
+                // Also, definitely split if s1 > d3
+                (SQR(s1) > d3sq));
+
+            split2 = (s2 > 0.) && (
+                // Likewise split c2 if s2 > d3
+                (SQR(s2) > d3sq) ||
+
+                // Split c2 if it's possible for d3 to become larger than the largest possible d2
+                // or if d1 could become smaller than the current smallest possible d2.
+                // i.e. if d3 + s1 + s2 > d2 + s1 + s3 => d3 > d2 - s2 + s3
+                //      or d1 - s2 - s3 < d2 - s1 - s3 => d1 < d2 + s2 - s1
+                (s2>s3 && (d3sq > SQR(d2 - s2 + s3))) ||
+                (s2>s1 && (d1sq < SQR(d2 + s2 - s1))));
+
+            // All other checks mean split at least one of c1 or c2.
+            // Done with ||, so it will stop checking if anything is true.
+            bool split =
+                // Don't bother doing further calculations if already splitting something.
+                split1 || split2 ||
+
+                // Check splitting c1,c2 for u calculation.
+                // u = d3 / d2
+                // u_max = (d3 + s1ps2) / (d2 - s1+s3) ~= u + s1ps2/d2 + s1ps3 u/d2
+                // du < bu
+                // (s1ps2 + u s1ps3) < bu * d2
+                (d3=sqrt(d3sq), u=d3/d2, SQR((s1ps2=s1+s2) + s1ps3*u) > d2sq * busq) ||
+
+                // Check how v changes for different pairs of points within c1,c2?
+                //
+                // d1-d2 can change by s1+s2, and also d3 can change by s1+s2 the other way.
+                // minv = (d1-d2-s1-s2) / (d3+s1+s2) ~= v - (s1+s2)/d3 - (s1+s2)v/d3
+                // maxv = (d1-d2+s1+s2) / (d3-s1-s2) ~= v + (s1+s2)/d3 + (s1+s2)v/d3
+                // So require (s1+s2)(1+v) < bv d3
+                (d1=sqrt(d1sq), v=(d1-d2)/d3, SQR(s1ps2 * (1.+v)) > d3sq * bvsq);
+
+            if (split) {
+                // If splitting either one, also do the other if it's close.
+                // Because we were so aggressive in splitting c1,c2 above during the c3 splits,
+                // it turns out that here we usually only want to split one, not both.
+                // The above only entails a split if it's the larger one of s1,s2.
+                split1 = split1 || s1 >= s2;
+                split2 = split2 || s2 >= s1;
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            // s1==s2==0 and not splitting s3.
+            // Just need to calculate the terms we guarantee to be set when split=false
+            d1 = sqrt(d1sq);
+            d3 = sqrt(d3sq);
+            u = d3/d2;
+            v = (d1-d2)/d3;
+            return true;
+        }
+    }
+
+    template <int M, int C>
+    static bool isTriangleInRange(const BaseCell<C>& c1, const BaseCell<C>& c2,
+                                  const BaseCell<C>& c3, const MetricHelper<M,0>& metric,
+                                  double d1, double d2, double d3, double u, double& v,
+                                  double logminsep,
+                                  double minsep, double maxsep, double binsize, double nbins,
+                                  double minu, double maxu, double ubinsize, double nubins,
+                                  double minv, double maxv, double vbinsize, double nvbins,
+                                  double& logd1, double& logd2, double& logd3,
+                                  int ntot, int& index)
+    {
+        // Make sure all the quantities we thought should be set have been.
+        Assert(d1 > 0.);
+        Assert(d3 > 0.);
+        Assert(u > 0.);
+        Assert(v >= 0.);  // v can potentially == 0.
+
+        if (d2 < minsep || d2 >= maxsep) {
+            xdbg<<"d2 not in minsep .. maxsep\n";
+            return false;
+        }
+
+        if (u < minu || u >= maxu) {
+            xdbg<<"u not in minu .. maxu\n";
+            return false;
+        }
+
+        if (v < minv || v >= maxv) {
+            xdbg<<"v not in minv .. maxv\n";
+            return false;
+        }
+
+        logd2 = log(d2);
+        xdbg<<"            logr = "<<logd2<<std::endl;
+        xdbg<<"            u = "<<u<<std::endl;
+        xdbg<<"            v = "<<v<<std::endl;
+
+        int kr = int(floor((logd2-logminsep)/binsize));
+        Assert(kr >= 0);
+        Assert(kr <= nbins);
+        if (kr == nbins) --kr;  // This is rare, but can happen with numerical differences
+                                 // between the math for log and for non-log checks.
+        Assert(kr < nbins);
+
+        int ku = int(floor((u-minu)/ubinsize));
+        if (ku >= nubins) {
+            // Rounding error can allow this.
+            XAssert((u-minu)/ubinsize - ku < 1.e-10);
+            Assert(ku==nubins);
+            --ku;
+        }
+        Assert(ku >= 0);
+        Assert(ku < nubins);
+
+        int kv = int(floor((v-minv)/vbinsize));
+
+        if (kv >= nvbins) {
+            // Rounding error can allow this.
+            XAssert((v-minv)/vbinsize - kv < 1.e-10);
+            Assert(kv==nvbins);
+            --kv;
+        }
+        Assert(kv >= 0);
+        Assert(kv < nvbins);
+
+        // Now account for negative v
+        if (!metric.CCW(c1.getData().getPos(), c2.getData().getPos(),
+                        c3.getData().getPos())) {
+            v = -v;
+            kv = nvbins - kv - 1;
+        } else {
+            kv += nvbins;
+        }
+
+        Assert(kv >= 0);
+        Assert(kv < nvbins * 2);
+
+        xdbg<<"d1,d2,d3 = "<<d1<<", "<<d2<<", "<<d3<<std::endl;
+        xdbg<<"r,u,v = "<<d2<<", "<<u<<", "<<v<<std::endl;
+        xdbg<<"kr,ku,kv = "<<kr<<", "<<ku<<", "<<kv<<std::endl;
+        index = (kr * nubins + ku) * nvbins * 2 + kv;
+        Assert(index >= 0);
+        Assert(index < ntot);
+        // Just to make extra sure we don't get seg faults (since the above
+        // asserts aren't active in normal operations), do a real check that
+        // index is in the allowed range.
+        if (index < 0 || index >= ntot) {
+            return false;
+        }
+        // Finish the other log(d) values.
+        logd1 = log(d1);
+        logd3 = log(d3);
+        return true;
+    }
+
 };
 
 

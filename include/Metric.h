@@ -241,8 +241,7 @@ struct MetricHelper<Euclidean, P>
 //
 //
 
-// For now, this is still Rperp in the python layer, and the next one is FisherRperp.
-// At version 4, Rperp will become an alias for FisherRperp, and this will be OldRperp.
+// This is the version 3.x RPerp metric, now called OldRPerp.
 template <int P>
 struct MetricHelper<OldRperp, P>
 {
@@ -362,6 +361,7 @@ struct MetricHelper<OldRperp, P>
 
 };
 
+// This one is AKA FisherRPerp
 template <int P>
 struct MetricHelper<Rperp, P>
 {

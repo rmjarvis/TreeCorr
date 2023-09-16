@@ -67,6 +67,20 @@ class GGGCorrelation(Corr3):
         bin_size:   The size of the bins in logr
         min_sep:    The minimum separation being considered
         max_sep:    The maximum separation being considered
+        logr1d:     The nominal centers of the nbins bins in log(r).
+
+    If the bin_type is LogSAS, then it will have these attributes:
+
+    Attributes:
+        nphi_bins:  The number of bins in v where v = +-(d1-d2)/d3
+        phi_bin_size: The size of the bins in v
+        min_phi:    The minimum v being considered
+        max_phi:    The maximum v being considered
+        phi1d:      The nominal centers of the nvbins bins in v.
+
+    If the bin_type is LogRUV, then it will have these attributes:
+
+    Attributes:
         nubins:     The number of bins in u where u = d3/d2
         ubin_size:  The size of the bins in u
         min_u:      The minimum u being considered
@@ -75,15 +89,36 @@ class GGGCorrelation(Corr3):
         vbin_size:  The size of the bins in v
         min_v:      The minimum v being considered
         max_v:      The maximum v being considered
-        logr1d:     The nominal centers of the nbins bins in log(r).
         u1d:        The nominal centers of the nubins bins in u.
         v1d:        The nominal centers of the nvbins bins in v.
 
-    In addition, the following attributes are numpy arrays whose shape is (nbins, nubins, nvbins):
+    In addition, the following attributes are numpy arrays whose shape is (nbins, nphi_bins, nbins)
+    if bin_type is LogSAS or (nbins, nubins, nvbins) if bin_type is LogRUV:
+
+    If bin_type is LogSAS:
+
+    Attributes:
+        logr1:      The nominal center of each r1 side bin in log(r1).
+        r1nom:      The nominal center of each r1 side bin converted to regular distance.
+                    i.e. r1 = exp(logr1).
+        logr2:      The nominal center of each r2 side bin in log(r2).
+        r2nom:      The nominal center of each r2 side bin converted to regular distance.
+                    i.e. r2 = exp(logr2).
+        phi:        The nominal center of each angular bin.
+        meanr1:     The (weighted) mean value of r1 for the triangles in each bin.
+        meanlogr1:  The mean value of log(r1) for the triangles in each bin.
+        meanr2:     The (weighted) mean value of r2 for the triangles in each bin.
+        meanlogr2:  The mean value of log(r2) for the triangles in each bin.
+        meanphi:    The (weighted) mean value of phi for the triangles in each bin.
+        weight:     The total weight in each bin.
+        ntri:       The number of triangles going into each bin (including those where one or
+                    more objects have w=0).
+
+    If bin_type is LogRUV:
 
     Attributes:
         logr:       The nominal center of each bin in log(r).
-        rnom:       The nominal center of the bin converted to regular distance.
+        rnom:       The nominal center of each bin converted to regular distance.
                     i.e. r = exp(logr).
         u:          The nominal center of each bin in u.
         v:          The nominal center of each bin in v.
@@ -91,10 +126,14 @@ class GGGCorrelation(Corr3):
         meanlogd1:  The mean value of log(d1) for the triangles in each bin.
         meand2:     The (weighted) mean value of d2 (aka r) for the triangles in each bin.
         meanlogd2:  The mean value of log(d2) for the triangles in each bin.
-        meand2:     The (weighted) mean value of d3 for the triangles in each bin.
-        meanlogd2:  The mean value of log(d3) for the triangles in each bin.
+        meand3:     The (weighted) mean value of d3 for the triangles in each bin.
+        meanlogd3:  The mean value of log(d3) for the triangles in each bin.
         meanu:      The mean value of u for the triangles in each bin.
         meanv:      The mean value of v for the triangles in each bin.
+
+    For any bin_type:
+
+    Attributes:
         gam0:       The 0th "natural" correlation function, :math:`\Gamma_0(r,u,v)`.
         gam1:       The 1st "natural" correlation function, :math:`\Gamma_1(r,u,v)`.
         gam2:       The 2nd "natural" correlation function, :math:`\Gamma_2(r,u,v)`.
@@ -145,7 +184,7 @@ class GGGCorrelation(Corr3):
         """
         Corr3.__init__(self, config, logger=logger, **kwargs)
 
-        shape = self.logr.shape
+        shape = self.data_shape
         self.gam0r = np.zeros(shape, dtype=float)
         self.gam1r = np.zeros(shape, dtype=float)
         self.gam2r = np.zeros(shape, dtype=float)
@@ -158,14 +197,6 @@ class GGGCorrelation(Corr3):
         self.vargam1 = np.zeros(shape, dtype=float)
         self.vargam2 = np.zeros(shape, dtype=float)
         self.vargam3 = np.zeros(shape, dtype=float)
-        self.meand1 = np.zeros(shape, dtype=float)
-        self.meanlogd1 = np.zeros(shape, dtype=float)
-        self.meand2 = np.zeros(shape, dtype=float)
-        self.meanlogd2 = np.zeros(shape, dtype=float)
-        self.meand3 = np.zeros(shape, dtype=float)
-        self.meanlogd3 = np.zeros(shape, dtype=float)
-        self.meanu = np.zeros(shape, dtype=float)
-        self.meanv = np.zeros(shape, dtype=float)
         self.weight = np.zeros(shape, dtype=float)
         self.ntri = np.zeros(shape, dtype=float)
         self.logger.debug('Finished building GGGCorr')
@@ -205,33 +236,8 @@ class GGGCorrelation(Corr3):
     def __eq__(self, other):
         """Return whether two `GGGCorrelation` instances are equal"""
         return (isinstance(other, GGGCorrelation) and
-                self.nbins == other.nbins and
-                self.bin_size == other.bin_size and
-                self.min_sep == other.min_sep and
-                self.max_sep == other.max_sep and
-                self.sep_units == other.sep_units and
-                self.min_u == other.min_u and
-                self.max_u == other.max_u and
-                self.nubins == other.nubins and
-                self.ubin_size == other.ubin_size and
-                self.min_v == other.min_v and
-                self.max_v == other.max_v and
-                self.nvbins == other.nvbins and
-                self.vbin_size == other.vbin_size and
-                self.coords == other.coords and
-                self.bin_type == other.bin_type and
-                self.bin_slop == other.bin_slop and
-                self.xperiod == other.xperiod and
-                self.yperiod == other.yperiod and
-                self.zperiod == other.zperiod and
-                np.array_equal(self.meand1, other.meand1) and
-                np.array_equal(self.meanlogd1, other.meanlogd1) and
-                np.array_equal(self.meand2, other.meand2) and
-                np.array_equal(self.meanlogd2, other.meanlogd2) and
-                np.array_equal(self.meand3, other.meand3) and
-                np.array_equal(self.meanlogd3, other.meanlogd3) and
-                np.array_equal(self.meanu, other.meanu) and
-                np.array_equal(self.meanv, other.meanv) and
+                self._equal_binning(other) and
+                self._equal_bin_data(other) and
                 np.array_equal(self.gam0r, other.gam0r) and
                 np.array_equal(self.gam0i, other.gam0i) and
                 np.array_equal(self.gam1r, other.gam1r) and
@@ -416,23 +422,31 @@ class GGGCorrelation(Corr3):
         self.meanlogd1[mask1] /= self.weight[mask1]
         self.meand2[mask1] /= self.weight[mask1]
         self.meanlogd2[mask1] /= self.weight[mask1]
-        self.meand3[mask1] /= self.weight[mask1]
-        self.meanlogd3[mask1] /= self.weight[mask1]
         self.meanu[mask1] /= self.weight[mask1]
-        self.meanv[mask1] /= self.weight[mask1]
+        if self.bin_type == 'LogRUV':
+            self.meand3[mask1] /= self.weight[mask1]
+            self.meanlogd3[mask1] /= self.weight[mask1]
+            self.meanv[mask1] /= self.weight[mask1]
 
         # Update the units
         self._apply_units(mask1)
 
-        # Use meanlogr when available, but set to nominal when no triangles in bin.
-        self.meand2[mask2] = self.rnom[mask2]
-        self.meanlogd2[mask2] = self.logr[mask2]
-        self.meanu[mask2] = self.u[mask2]
-        self.meanv[mask2] = self.v[mask2]
-        self.meand3[mask2] = self.u[mask2] * self.meand2[mask2]
-        self.meanlogd3[mask2] = np.log(self.meand3[mask2])
-        self.meand1[mask2] = np.abs(self.v[mask2]) * self.meand3[mask2] + self.meand2[mask2]
-        self.meanlogd1[mask2] = np.log(self.meand1[mask2])
+        # Set to nominal when no triangles in bin.
+        if self.bin_type == 'LogRUV':
+            self.meand2[mask2] = self.rnom[mask2]
+            self.meanlogd2[mask2] = self.logr[mask2]
+            self.meanu[mask2] = self.u[mask2]
+            self.meanv[mask2] = self.v[mask2]
+            self.meand3[mask2] = self.u[mask2] * self.meand2[mask2]
+            self.meanlogd3[mask2] = np.log(self.meand3[mask2])
+            self.meand1[mask2] = np.abs(self.v[mask2]) * self.meand3[mask2] + self.meand2[mask2]
+            self.meanlogd1[mask2] = np.log(self.meand1[mask2])
+        else:
+            self.meand1[mask2] = self.r1nom[mask2]
+            self.meanlogd1[mask2] = self.logr1[mask2]
+            self.meand2[mask2] = self.r2nom[mask2]
+            self.meanlogd2[mask2] = self.logr2[mask2]
+            self.meanu[mask2] = self.phi[mask2]
 
     def finalize(self, varg1, varg2, varg3):
         """Finalize the calculation of the correlation function.
@@ -480,10 +494,11 @@ class GGGCorrelation(Corr3):
         self.meanlogd1[:,:,:] = 0.
         self.meand2[:,:,:] = 0.
         self.meanlogd2[:,:,:] = 0.
-        self.meand3[:,:,:] = 0.
-        self.meanlogd3[:,:,:] = 0.
         self.meanu[:,:,:] = 0.
-        self.meanv[:,:,:] = 0.
+        if self.bin_type == 'LogRUV':
+            self.meand3[:,:,:] = 0.
+            self.meanlogd3[:,:,:] = 0.
+            self.meanv[:,:,:] = 0.
         self.weight[:,:,:] = 0.
         self.ntri[:,:,:] = 0.
 
@@ -497,15 +512,7 @@ class GGGCorrelation(Corr3):
         """
         if not isinstance(other, GGGCorrelation):
             raise TypeError("Can only add another GGGCorrelation object")
-        if not (self.nbins == other.nbins and
-                self.min_sep == other.min_sep and
-                self.max_sep == other.max_sep and
-                self.nubins == other.nubins and
-                self.min_u == other.min_u and
-                self.max_u == other.max_u and
-                self.nvbins == other.nvbins and
-                self.min_v == other.min_v and
-                self.max_v == other.max_v):
+        if not self._equal_binning(other, brief=True):
             raise ValueError("GGGCorrelation to be added is not compatible with this one.")
 
         if not other.nonzero: return self
@@ -522,10 +529,11 @@ class GGGCorrelation(Corr3):
         self.meanlogd1[:] += other.meanlogd1[:]
         self.meand2[:] += other.meand2[:]
         self.meanlogd2[:] += other.meanlogd2[:]
-        self.meand3[:] += other.meand3[:]
-        self.meanlogd3[:] += other.meanlogd3[:]
         self.meanu[:] += other.meanu[:]
-        self.meanv[:] += other.meanv[:]
+        if self.bin_type == 'LogRUV':
+            self.meand3[:] += other.meand3[:]
+            self.meanlogd3[:] += other.meanlogd3[:]
+            self.meanv[:] += other.meanv[:]
         self.weight[:] += other.weight[:]
         self.ntri[:] += other.ntri[:]
         return self
@@ -548,10 +556,11 @@ class GGGCorrelation(Corr3):
         np.sum([c.meanlogd1 for c in others], axis=0, out=self.meanlogd1)
         np.sum([c.meand2 for c in others], axis=0, out=self.meand2)
         np.sum([c.meanlogd2 for c in others], axis=0, out=self.meanlogd2)
-        np.sum([c.meand3 for c in others], axis=0, out=self.meand3)
-        np.sum([c.meanlogd3 for c in others], axis=0, out=self.meanlogd3)
         np.sum([c.meanu for c in others], axis=0, out=self.meanu)
-        np.sum([c.meanv for c in others], axis=0, out=self.meanv)
+        if self.bin_type == 'LogRUV':
+            np.sum([c.meand3 for c in others], axis=0, out=self.meand3)
+            np.sum([c.meanlogd3 for c in others], axis=0, out=self.meanlogd3)
+            np.sum([c.meanv for c in others], axis=0, out=self.meanv)
         np.sum([c.weight for c in others], axis=0, out=self.weight)
         np.sum([c.ntri for c in others], axis=0, out=self.ntri)
 
@@ -728,20 +737,29 @@ class GGGCorrelation(Corr3):
 
     @property
     def _write_col_names(self):
-        return [ 'r_nom', 'u_nom', 'v_nom', 'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
-                 'meand3', 'meanlogd3', 'meanu', 'meanv',
-                 'gam0r', 'gam0i', 'gam1r', 'gam1i', 'gam2r', 'gam2i', 'gam3r', 'gam3i',
-                 'sigma_gam0', 'sigma_gam1', 'sigma_gam2', 'sigma_gam3', 'weight', 'ntri' ]
+        if self.bin_type == 'LogRUV':
+            col_names = ['r_nom', 'u_nom', 'v_nom', 'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
+                         'meand3', 'meanlogd3', 'meanu', 'meanv']
+        else:
+            col_names = ['r1_nom', 'r2_nom', 'phi_nom', 'meanr1', 'meanlogr1',
+                         'meanr2', 'meanlogr2', 'meanphi']
+        col_names += ['gam0r', 'gam0i', 'gam1r', 'gam1i', 'gam2r', 'gam2i', 'gam3r', 'gam3i',
+                      'sigma_gam0', 'sigma_gam1', 'sigma_gam2', 'sigma_gam3', 'weight', 'ntri']
+        return col_names
 
     @property
     def _write_data(self):
-        data = [ self.rnom, self.u, self.v,
-                 self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
-                 self.meand3, self.meanlogd3, self.meanu, self.meanv,
-                 self.gam0r, self.gam0i, self.gam1r, self.gam1i,
-                 self.gam2r, self.gam2i, self.gam3r, self.gam3i,
-                 np.sqrt(self.vargam0), np.sqrt(self.vargam1), np.sqrt(self.vargam2),
-                 np.sqrt(self.vargam3), self.weight, self.ntri ]
+        if self.bin_type == 'LogRUV':
+            data = [ self.rnom, self.u, self.v,
+                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
+                     self.meand3, self.meanlogd3, self.meanu, self.meanv ]
+        else:
+            data = [ self.r1nom, self.r2nom, self.phi,
+                     self.meanr1, self.meanlogr1, self.meanr2, self.meanlogr2, self.meanphi ]
+        data += [ self.gam0r, self.gam0i, self.gam1r, self.gam1i,
+                  self.gam2r, self.gam2i, self.gam3r, self.gam3i,
+                  np.sqrt(self.vargam0), np.sqrt(self.vargam1), np.sqrt(self.vargam2),
+                  np.sqrt(self.vargam3), self.weight, self.ntri ]
         data = [ col.flatten() for col in data ]
         return data
 
@@ -772,15 +790,22 @@ class GGGCorrelation(Corr3):
             self._read(reader)
 
     def _read_from_data(self, data, params):
-        s = self.logr.shape
-        self.meand1 = data['meand1'].reshape(s)
-        self.meanlogd1 = data['meanlogd1'].reshape(s)
-        self.meand2 = data['meand2'].reshape(s)
-        self.meanlogd2 = data['meanlogd2'].reshape(s)
-        self.meand3 = data['meand3'].reshape(s)
-        self.meanlogd3 = data['meanlogd3'].reshape(s)
-        self.meanu = data['meanu'].reshape(s)
-        self.meanv = data['meanv'].reshape(s)
+        s = self.data_shape
+        if self.bin_type == 'LogRUV':
+            self.meand1 = data['meand1'].reshape(s)
+            self.meanlogd1 = data['meanlogd1'].reshape(s)
+            self.meand2 = data['meand2'].reshape(s)
+            self.meanlogd2 = data['meanlogd2'].reshape(s)
+            self.meand3 = data['meand3'].reshape(s)
+            self.meanlogd3 = data['meanlogd3'].reshape(s)
+            self.meanu = data['meanu'].reshape(s)
+            self.meanv = data['meanv'].reshape(s)
+        else:
+            self.meand1 = data['meanr1'].reshape(s)
+            self.meanlogd1 = data['meanlogr1'].reshape(s)
+            self.meand2 = data['meanr2'].reshape(s)
+            self.meanlogd2 = data['meanlogr2'].reshape(s)
+            self.meanu = data['meanphi'].reshape(s)
         self.gam0r = data['gam0r'].reshape(s)
         self.gam0i = data['gam0i'].reshape(s)
         self.gam1r = data['gam1r'].reshape(s)
@@ -961,6 +986,7 @@ class GGGCorrelation(Corr3):
             - mx3 = array of :math:`\langle M_\times(R) M_\times(k_2 R) M_\times(k_3 R)\rangle`
             - varmap3 = array of variance estimates of the above values
         """
+        # TODO: This is currently hard-coded for LogRUV
         # As in the calculateMapSq function, we Make s and t matrices, so we can eventually do the
         # integral by doing a matrix product.
         if R is None:
@@ -1197,6 +1223,20 @@ class GGGCrossCorrelation(Corr3):
         bin_size:   The size of the bins in logr
         min_sep:    The minimum separation being considered
         max_sep:    The maximum separation being considered
+        logr1d:     The nominal centers of the nbins bins in log(r).
+
+    If the bin_type is LogSAS, then it will have these attributes:
+
+    Attributes:
+        nphi_bins:  The number of bins in v where v = +-(d1-d2)/d3
+        phi_bin_size: The size of the bins in v
+        min_phi:    The minimum v being considered
+        max_phi:    The maximum v being considered
+        phi1d:      The nominal centers of the nvbins bins in v.
+
+    If the bin_type is LogRUV, then it will have these attributes:
+
+    Attributes:
         nubins:     The number of bins in u where u = d3/d2
         ubin_size:  The size of the bins in u
         min_u:      The minimum u being considered
@@ -1205,7 +1245,6 @@ class GGGCrossCorrelation(Corr3):
         vbin_size:  The size of the bins in v
         min_v:      The minimum v being considered
         max_v:      The maximum v being considered
-        logr1d:     The nominal centers of the nbins bins in log(r).
         u1d:        The nominal centers of the nubins bins in u.
         v1d:        The nominal centers of the nvbins bins in v.
 
@@ -1247,25 +1286,7 @@ class GGGCrossCorrelation(Corr3):
     def __eq__(self, other):
         """Return whether two `GGGCrossCorrelation` instances are equal"""
         return (isinstance(other, GGGCrossCorrelation) and
-                self.nbins == other.nbins and
-                self.bin_size == other.bin_size and
-                self.min_sep == other.min_sep and
-                self.max_sep == other.max_sep and
-                self.sep_units == other.sep_units and
-                self.min_u == other.min_u and
-                self.max_u == other.max_u and
-                self.nubins == other.nubins and
-                self.ubin_size == other.ubin_size and
-                self.min_v == other.min_v and
-                self.max_v == other.max_v and
-                self.nvbins == other.nvbins and
-                self.vbin_size == other.vbin_size and
-                self.coords == other.coords and
-                self.bin_type == other.bin_type and
-                self.bin_slop == other.bin_slop and
-                self.xperiod == other.xperiod and
-                self.yperiod == other.yperiod and
-                self.zperiod == other.zperiod and
+                self._equal_binning(other) and
                 self.g1g2g3 == other.g1g2g3 and
                 self.g1g3g2 == other.g1g3g2 and
                 self.g2g1g3 == other.g2g1g3 and

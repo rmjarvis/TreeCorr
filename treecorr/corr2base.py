@@ -306,7 +306,7 @@ class Corr2(object):
         else:
             self._ro.output_dots = get(self.config,'verbose',int,1) >= 2
 
-        self._ro.bin_type = self.config.get('bin_type', None)
+        self._ro.bin_type = self.config.get('bin_type', 'Log')
 
         self._ro.sep_units = self.config.get('sep_units','')
         self._ro._sep_units = get(self.config,'sep_units',str,'radians')

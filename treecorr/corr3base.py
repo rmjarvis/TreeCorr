@@ -282,6 +282,14 @@ class Corr3(object):
                 'The minimum |v| to include in the output.'),
         'max_v' : (float, False, None, None,
                 'The maximum |v| to include in the output.'),
+        'nphi_bins' : (int, False, None, None,
+                'The number of output bins to use for phi dimension.'),
+        'phi_bin_size' : (float, False, None, None,
+                'The size of the output bins in phi.'),
+        'min_phi' : (float, False, None, None,
+                'The minimum phi to include in the output.'),
+        'max_phi' : (float, False, None, None,
+                'The maximum phi to include in the output.'),
         'brute' : (bool, False, False, [False, True],
                 'Whether to use brute-force algorithm'),
         'verbose' : (int, False, 1, [0, 1, 2, 3],
@@ -303,7 +311,7 @@ class Corr3(object):
                 'The number of digits after the decimal in the output.'),
         'metric': (str, False, 'Euclidean', ['Euclidean', 'Arc', 'Periodic'],
                 'Which metric to use for the distance measurements'),
-        'bin_type': (str, False, 'LogRUV', ['LogRUV'],
+        'bin_type': (str, False, 'LogRUV', ['LogRUV', 'LogSAS'],
                 'Which type of binning should be used'),
         'period': (float, False, None, None,
                 'The period to use for all directions for the Periodic metric'),
@@ -458,32 +466,39 @@ class Corr3(object):
                              self.nvbins,self.min_v,self.max_v,self.vbin_size)
         elif self.bin_type == 'LogSAS':
             self._ro._bintype = _treecorr.LogSAS
-            self._ro.min_phi = float(self.config.get('min_phi', 0.))
-            self._ro.max_phi = float(self.config.get('max_phi', np.pi))
+            # Note: we refer to phi as u in the _ro namespace to make function calls easier.
+            self._ro.min_u = float(self.config.get('min_phi', 0.))
+            self._ro.max_u = float(self.config.get('max_phi', np.pi))
             if self.min_phi < 0 or self.max_phi > 2*np.pi:
                 raise ValueError("Invalid range for phi: %f - %f"%(self.min_phi, self.max_phi))
             if self.min_phi >= self.max_phi:
                 raise ValueError("max_phi must be larger than min_phi")
-            self._ro.phi_bin_size = float(self.config.get('phi_bin_size', bin_size))
+            self._ro.ubin_size = float(self.config.get('phi_bin_size', bin_size))
             if 'nphi_bins' not in self.config:
-                self._ro.nphi_bins = (self.max_phi-self.min_phi-1.e-10)/self.phi_bin_size
-                self._ro.nphi_bins = int(math.ceil(self._ro.nphi_bins))
+                self._ro.nubins = (self.max_phi-self.min_phi-1.e-10)/self.phi_bin_size
+                self._ro.nubins = int(math.ceil(self._ro.nubins))
             elif ('max_phi' in self.config and 'min_phi' in self.config
                     and 'phi_bin_size' in self.config):
                 raise TypeError("Only 3 of min_phi, max_phi, phi_bin_size, and nphi_bins are "
                                 "allowed.")
             else:
-                self._ro.nphi_bins = self.config['nphi_bins']
+                self._ro.nubins = self.config['nphi_bins']
                 # Allow min or max phi to be implicit from nphi_bins and phi_bin_size
                 if 'phi_bin_size' in self.config:
                     if 'max_phi' not in self.config:
-                        self._ro.max_phi = self.min_phi + self.nphi_bins * self.phi_bin_size
-                        self._ro.max_phi = min(self._ro.max_phi, 2*np.pi)
+                        self._ro.maxu = self.min_phi + self.nphi_bins * self.phi_bin_size
+                        self._ro.maxu = min(self._ro.maxu, 2*np.pi)
                     else:  # min_phi not in config
-                        self._ro.min_phi = self.max_phi - self.nphi_bins * self.phi_bin_size
-                        self._ro.min_phi = max(self._ro.min_phi, 0.)
+                        self._ro.minu = self.max_phi - self.nphi_bins * self.phi_bin_size
+                        self._ro.minu = max(self._ro.minu, 0.)
             # Adjust phi_bin_size given the other values
-            self._ro.phi_bin_size = (self.max_phi-self.min_phi)/self.nphi_bins
+            self._ro.ubin_size = (self.max_phi-self.min_phi)/self.nphi_bins
+            self._ro.min_v = self._ro.max_v = self._ro.nvbins = self._ro.vbin_size = 0
+            # XXX Temporary
+            self._ro.min_v = 0.13
+            self._ro.max_v = 0.59
+            self._ro.nvbins = 10
+            self._ro.vbin_size = (self.max_v-self.min_v)/self.nvbins
         else:
             raise ValueError("Invalid bin_type %s"%self.bin_type)
 
@@ -513,9 +528,12 @@ class Corr3(object):
             else:
                 # LogSAS
                 if self.phi_bin_size <= 0.1:
-                    self._ro.bphi = self.phi_bin_size
+                    self._ro.bu = self.phi_bin_size
                 else:
-                    self._ro.bphi = 0.1
+                    self._ro.bu = 0.1
+                self._ro.bv = 0
+                # XXX
+                self._ro.bv = self.vbin_size
         else:
             self._ro.b = self.bin_size * self.bin_slop
             if self.bin_type == 'LogRUV':
@@ -523,7 +541,8 @@ class Corr3(object):
                 self._ro.bv = self.vbin_size * self.bin_slop
             else:
                 # LogSAS
-                self._ro.bphi = self.phi_bin_size * self.bin_slop
+                self._ro.bu = self.phi_bin_size * self.bin_slop
+                self._ro.bv = 0
 
         if self.b > 0.100001:  # Add some numerical slop
             self.logger.warning(
@@ -582,7 +601,7 @@ class Corr3(object):
             self._ro.phi = np.tile(self.phi1d[np.newaxis, :, np.newaxis],
                                    (self.nbins, 1, self.nbins))
             self._ro.logr2 = np.tile(self.logr1d[np.newaxis, np.newaxis, :],
-                                     (self.nphi_bins, self.nbins, 1))
+                                     (self.nbins, self.nphi_bins, 1))
             self._ro.r1nom = np.exp(self.logr1)
             self._ro.r2nom = np.exp(self.logr2)
             self._ro._nbins = len(self._ro.logr1.ravel())
@@ -599,7 +618,7 @@ class Corr3(object):
             self.meanu = np.zeros(self.data_shape, dtype=float)
             # Similarly, make read-only versions of the other names, so we have something
             # to pass to _corr, even though we won't use them for anything.
-            self.meand3 = self.meanlogd3 = self.meanv = self._zero_array()
+            self.meand3 = self.meanlogd3 = self.meanv = self._zero_array
 
         self._ro.brute = get(self.config,'brute',bool,False)
         if self.brute:
@@ -649,6 +668,8 @@ class Corr3(object):
 
     # LogRUV:
     @property
+    def rnom(self): return self._ro.rnom
+    @property
     def logr(self): return self._ro.logr
     @property
     def min_u(self): return self._ro.min_u
@@ -681,23 +702,25 @@ class Corr3(object):
 
     # LogSAS
     @property
+    def r1nom(self): return self._ro.r1nom
+    @property
+    def r2nom(self): return self._ro.r2nom
+    @property
     def logr1(self): return self._ro.logr1
     @property
     def logr2(self): return self._ro.logr2
     @property
-    def min_phi(self): return self._ro.min_phi
+    def min_phi(self): return self._ro.min_u
     @property
-    def max_phi(self): return self._ro.max_phi
+    def max_phi(self): return self._ro.max_u
     @property
-    def phi_bin_size(self): return self._ro.phi_bin_size
+    def phi_bin_size(self): return self._ro.ubin_size
     @property
-    def nphi_bins(self): return self._ro.nphi_bins
+    def nphi_bins(self): return self._ro.nubins
     @property
     def phi1d(self): return self._ro.phi1d
     @property
     def phi(self): return self._ro.phi
-    @property
-    def bphi(self): return self._ro.bphi
 
     def _equal_binning(self, other, brief=False):
         # A helper function to test if two Corr3 objects have the same binning parameters
@@ -753,8 +776,6 @@ class Corr3(object):
                     np.array_equal(self.meanphi, other.meanphi))
 
     @property
-    def rnom(self): return self._ro.rnom
-    @property
     def _bintype(self): return self._ro._bintype
     @property
     def _nbins(self): return self._ro._nbins
@@ -807,7 +828,7 @@ class Corr3(object):
     @property
     def meanphi(self):
         assert self.bin_type == 'LogSAS'
-        return self.meanphi
+        return self.meanu
 
     def __getstate__(self):
         d = self.__dict__.copy()
@@ -1402,7 +1423,8 @@ class Corr3(object):
     def _zero_array(self):
         # An array of all zeros with the same shape as the data arrays
         z = np.zeros(self.data_shape)
-        z.flags.writeable=False  # Just to make sure we get an error if we try to change it.
+        # XXX
+        #z.flags.writeable=False  # Just to make sure we get an error if we try to change it.
         return z
 
     def _apply_units(self, mask):
@@ -1426,6 +1448,7 @@ class Corr3(object):
             self.meanlogd3[mask] -= self._log_sep_units
 
     def _get_minmax_size(self):
+        # TODO: LogSAS?
         if self.metric == 'Euclidean':
             # The minimum separation we care about is that of the smallest size, which is
             # min_sep * min_u.  Do the same calculation as for 2pt to get to min_size.

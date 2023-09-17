@@ -9,7 +9,7 @@ verbose: 0
 
 min_sep: 1.
 max_sep: 50.
-nbins: 50
+nbins: 20
 min_u: 0.13
 max_u: 0.89
 nubins: 10

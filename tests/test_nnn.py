@@ -20,7 +20,7 @@ from test_helper import get_script_name, do_pickle, assert_raises, CaptureLog, t
 from test_helper import is_ccw, is_ccw_3d
 
 @timer
-def test_log_binning():
+def test_logruv_binning():
     import math
     # Test some basic properties of the base class
 
@@ -529,7 +529,7 @@ def test_direct_count_auto():
 
     min_sep = 1.
     max_sep = 50.
-    nbins = 50
+    nbins = 20
     min_u = 0.13
     max_u = 0.89
     nubins = 10
@@ -611,6 +611,19 @@ def test_direct_count_auto():
     print('true_ntri = ',true_ntri[nz])
     print('diff = ',ddd.ntri[nz] - true_ntri[nz])
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
+
+    # XXX: For now LogSAS is the same thing.  Just check plumbing.
+    ddd_sas = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_phi=min_u, max_phi=max_u, nphi_bins=nubins,
+                                  brute=True, verbose=1, bin_type='LogSAS')
+    ddd_sas.process(cat)
+    mask = ddd.ntri > 0
+    np.testing.assert_array_equal(ddd_sas.ntri, ddd.ntri)
+    np.testing.assert_allclose(ddd_sas.meand1[mask], ddd.meand1[mask])
+    np.testing.assert_allclose(ddd_sas.meand2[mask], ddd.meand2[mask])
+    np.testing.assert_allclose(ddd_sas.meanlogd1[mask], ddd.meanlogd1[mask])
+    np.testing.assert_allclose(ddd_sas.meanlogd2[mask], ddd.meanlogd2[mask])
+    np.testing.assert_allclose(ddd_sas.meanu[mask], ddd.meanu[mask])
 
     # Check that running via the corr3 script works correctly.
     file_name = os.path.join('data','nnn_direct_data.dat')
@@ -946,7 +959,7 @@ def test_direct_count_cross():
 
     min_sep = 1.
     max_sep = 50.
-    nbins = 50
+    nbins = 20
     min_u = 0.13
     max_u = 0.89
     nubins = 10
@@ -1033,6 +1046,19 @@ def test_direct_count_cross():
     #print('true_ntri = ',true_ntri_sum)
     #print('diff = ',ddd.ntri - true_ntri_sum)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
+
+    # XXX: For now LogSAS is the same thing.  Just check plumbing.
+    ddd_sas = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_phi=min_u, max_phi=max_u, nphi_bins=nubins,
+                                  brute=True, verbose=1, bin_type='LogSAS')
+    ddd_sas.process(cat1, cat2, cat3)
+    mask = ddd.ntri > 0
+    np.testing.assert_array_equal(ddd_sas.ntri, ddd.ntri)
+    np.testing.assert_allclose(ddd_sas.meand1[mask], ddd.meand1[mask])
+    np.testing.assert_allclose(ddd_sas.meand2[mask], ddd.meand2[mask])
+    np.testing.assert_allclose(ddd_sas.meanlogd1[mask], ddd.meanlogd1[mask])
+    np.testing.assert_allclose(ddd_sas.meanlogd2[mask], ddd.meanlogd2[mask])
+    np.testing.assert_allclose(ddd_sas.meanu[mask], ddd.meanu[mask])
 
     # Now repeat with the full CrossCorrelation class, which distinguishes the permutations.
     dddc = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
@@ -1227,7 +1253,7 @@ def test_direct_count_cross12():
 
     min_sep = 1.
     max_sep = 50.
-    nbins = 50
+    nbins = 20
     min_u = 0.13
     max_u = 0.89
     nubins = 10
@@ -1310,6 +1336,19 @@ def test_direct_count_cross12():
     #print('true_ntri = ',true_ntri_sum)
     #print('diff = ',ddd.ntri - true_ntri_sum)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
+
+    # XXX: For now LogSAS is the same thing.  Just check plumbing.
+    ddd_sas = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_phi=min_u, max_phi=max_u, nphi_bins=nubins,
+                                  brute=True, verbose=1, bin_type='LogSAS')
+    ddd_sas.process(cat1, cat2)
+    mask = ddd.ntri > 0
+    np.testing.assert_array_equal(ddd_sas.ntri, ddd.ntri)
+    np.testing.assert_allclose(ddd_sas.meanr1[mask], ddd.meand1[mask])
+    np.testing.assert_allclose(ddd_sas.meanr2[mask], ddd.meand2[mask])
+    np.testing.assert_allclose(ddd_sas.meanlogr1[mask], ddd.meanlogd1[mask])
+    np.testing.assert_allclose(ddd_sas.meanlogr2[mask], ddd.meanlogd2[mask])
+    np.testing.assert_allclose(ddd_sas.meanphi[mask], ddd.meanu[mask])
 
     # Now repeat with the full CrossCorrelation class, which distinguishes the permutations.
     dddc = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
@@ -2741,7 +2780,7 @@ def test_list():
 
 
 if __name__ == '__main__':
-    test_log_binning()
+    test_logruv_binning()
     test_direct_count_auto()
     test_direct_count_cross()
     test_direct_count_cross12()

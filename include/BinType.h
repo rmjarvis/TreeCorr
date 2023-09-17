@@ -731,6 +731,11 @@ struct BinTypeHelper<LogRUV>
 
 };
 
+template <>
+struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
+{
+};
+
 
 #endif
 

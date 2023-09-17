@@ -30,6 +30,8 @@ int CalculateNTot(BinType bin_type, int nbins, int nubins, int nvbins)
     switch(bin_type) {
       case LogRUV:
            return BinTypeHelper<LogRUV>::calculateNTot(nbins, nubins, nvbins);
+      case LogSAS:
+           return BinTypeHelper<LogSAS>::calculateNTot(nbins, nubins, nvbins);
       default:
            Assert(false);
     }
@@ -183,6 +185,7 @@ void BaseCorr3::process(const BaseField<C>& field, bool dots)
 #pragma omp for schedule(dynamic)
 #endif
         for (long i=0;i<n1;++i) {
+            const BaseCell<C>& c1 = *field.getCells()[i];
 #ifdef _OPENMP
 #pragma omp critical
 #endif
@@ -196,7 +199,6 @@ void BaseCorr3::process(const BaseField<C>& field, bool dots)
                 if (verbose_level >= 2) c1.WriteTree(get_dbgout());
 #endif
             }
-            const BaseCell<C>& c1 = *field.getCells()[i];
             bc3.template process3<B>(c1, metric);
             for (long j=i+1;j<n1;++j) {
                 const BaseCell<C>& c2 = *field.getCells()[j];
@@ -495,7 +497,7 @@ void BaseCorr3::process12(BaseCorr3& bc212, BaseCorr3& bc221,
     process12<B>(bc212, bc221, c1, *c2.getLeft(), metric);
     process12<B>(bc212, bc221, c1, *c2.getRight(), metric);
     // 111 order is 123, 132, 213, 231, 312, 321   Here 3->2.
-    process111<B>(*this, bc212, bc221, bc212, bc221, 
+    process111<B>(*this, bc212, bc221, bc212, bc221,
                   c1, *c2.getLeft(), *c2.getRight(), metric);
 }
 
@@ -947,10 +949,28 @@ Corr3<D1,D2,D3>* BuildCorr3(
 }
 
 template <int B, int M, int C>
-void ProcessAuto1(BaseCorr3& corr, BaseField<C>& field, bool dots)
+void ProcessAutob(BaseCorr3& corr, BaseField<C>& field, bool dots)
 {
     Assert((ValidMC<M,C>::_M == M));
     corr.template process<B,ValidMC<M,C>::_M>(field, dots);
+}
+
+template <int B, int C>
+void ProcessAutoa(BaseCorr3& corr, BaseField<C>& field, bool dots, Metric metric)
+{
+    switch(metric) {
+      case Euclidean:
+           ProcessAutob<B,Euclidean>(corr, field, dots);
+           break;
+      case Arc:
+           ProcessAutob<B,Arc>(corr, field, dots);
+           break;
+      case Periodic:
+           ProcessAutob<B,Periodic>(corr, field, dots);
+           break;
+      default:
+           Assert(false);
+    }
 }
 
 template <int C>
@@ -958,17 +978,12 @@ void ProcessAuto(BaseCorr3& corr, BaseField<C>& field,
                  bool dots, BinType bin_type, Metric metric)
 {
     dbg<<"Start ProcessAuto "<<bin_type<<" "<<metric<<std::endl;
-    Assert(bin_type == LogRUV);
-
-    switch(metric) {
-      case Euclidean:
-           ProcessAuto1<LogRUV,Euclidean>(corr, field, dots);
+    switch(bin_type) {
+      case LogRUV:
+           ProcessAutoa<LogRUV>(corr, field, dots, metric);
            break;
-      case Arc:
-           ProcessAuto1<LogRUV,Arc>(corr, field, dots);
-           break;
-      case Periodic:
-           ProcessAuto1<LogRUV,Periodic>(corr, field, dots);
+      case LogSAS:
+           ProcessAutoa<LogSAS>(corr, field, dots, metric);
            break;
       default:
            Assert(false);
@@ -976,11 +991,31 @@ void ProcessAuto(BaseCorr3& corr, BaseField<C>& field,
 }
 
 template <int B, int M, int C>
-void ProcessCross12a(BaseCorr3& corr122, BaseCorr3& corr212, BaseCorr3& corr221,
+void ProcessCross12b(BaseCorr3& corr122, BaseCorr3& corr212, BaseCorr3& corr221,
                      BaseField<C>& field1, BaseField<C>& field2, bool dots)
 {
     Assert((ValidMC<M,C>::_M == M));
     corr122.template process<B,ValidMC<M,C>::_M>(corr212, corr221, field1, field2, dots);
+}
+
+template <int B, int C>
+void ProcessCross12a(BaseCorr3& corr122, BaseCorr3& corr212, BaseCorr3& corr221,
+                     BaseField<C>& field1, BaseField<C>& field2,
+                     bool dots, Metric metric)
+{
+    switch(metric) {
+      case Euclidean:
+           ProcessCross12b<B,Euclidean>(corr122, corr212, corr221, field1, field2, dots);
+           break;
+      case Arc:
+           ProcessCross12b<B,Arc>(corr122, corr212, corr221, field1, field2, dots);
+           break;
+      case Periodic:
+           ProcessCross12b<B,Periodic>(corr122, corr212, corr221, field1, field2, dots);
+           break;
+      default:
+           Assert(false);
+    }
 }
 
 template <int C>
@@ -988,19 +1023,12 @@ void ProcessCross12(BaseCorr3& corr122, BaseCorr3& corr212, BaseCorr3& corr221,
                     BaseField<C>& field1, BaseField<C>& field2,
                     bool dots, BinType bin_type, Metric metric)
 {
-    Assert(bin_type == LogRUV);
-    switch(metric) {
-      case Euclidean:
-           ProcessCross12a<LogRUV,Euclidean>(corr122, corr212, corr221,
-                                             field1, field2, dots);
+    switch(bin_type) {
+      case LogRUV:
+           ProcessCross12a<LogRUV>(corr122, corr212, corr221, field1, field2, dots, metric);
            break;
-      case Arc:
-           ProcessCross12a<LogRUV,Arc>(corr122, corr212, corr221,
-                                       field1, field2, dots);
-           break;
-      case Periodic:
-           ProcessCross12a<LogRUV,Periodic>(corr122, corr212, corr221,
-                                            field1, field2, dots);
+      case LogSAS:
+           ProcessCross12a<LogSAS>(corr122, corr212, corr221, field1, field2, dots, metric);
            break;
       default:
            Assert(false);
@@ -1008,7 +1036,7 @@ void ProcessCross12(BaseCorr3& corr122, BaseCorr3& corr212, BaseCorr3& corr221,
 }
 
 template <int B, int M, int C>
-void ProcessCross1(BaseCorr3& corr123, BaseCorr3& corr132, BaseCorr3& corr213,
+void ProcessCrossb(BaseCorr3& corr123, BaseCorr3& corr132, BaseCorr3& corr213,
                    BaseCorr3& corr231, BaseCorr3& corr312, BaseCorr3& corr321,
                    BaseField<C>& field1, BaseField<C>& field2, BaseField<C>& field3,
                    bool dots)
@@ -1019,6 +1047,30 @@ void ProcessCross1(BaseCorr3& corr123, BaseCorr3& corr132, BaseCorr3& corr213,
                field1, field2, field3, dots);
 }
 
+template <int B, int C>
+void ProcessCrossa(BaseCorr3& corr123, BaseCorr3& corr132, BaseCorr3& corr213,
+                   BaseCorr3& corr231, BaseCorr3& corr312, BaseCorr3& corr321,
+                   BaseField<C>& field1, BaseField<C>& field2, BaseField<C>& field3,
+                   bool dots, Metric metric)
+{
+    switch(metric) {
+      case Euclidean:
+           ProcessCrossb<B,Euclidean>(corr123, corr132, corr213, corr231, corr312, corr321,
+                                      field1, field2, field3, dots);
+           break;
+      case Arc:
+           ProcessCrossb<B,Arc>(corr123, corr132, corr213, corr231, corr312, corr321,
+                                field1, field2, field3, dots);
+           break;
+      case Periodic:
+           ProcessCrossb<B,Periodic>(corr123, corr132, corr213, corr231, corr312, corr321,
+                                     field1, field2, field3, dots);
+           break;
+      default:
+           Assert(false);
+    }
+}
+
 template <int C>
 void ProcessCross(BaseCorr3& corr123, BaseCorr3& corr132, BaseCorr3& corr213,
                   BaseCorr3& corr231, BaseCorr3& corr312, BaseCorr3& corr321,
@@ -1026,21 +1078,14 @@ void ProcessCross(BaseCorr3& corr123, BaseCorr3& corr132, BaseCorr3& corr213,
                   bool dots, BinType bin_type, Metric metric)
 {
     dbg<<"Start ProcessCross3 "<<bin_type<<" "<<metric<<std::endl;
-
-    Assert(bin_type == LogRUV);
-
-    switch(metric) {
-      case Euclidean:
-           ProcessCross1<LogRUV,Euclidean>(corr123, corr132, corr213, corr231, corr312, corr321,
-                                           field1, field2, field3, dots);
+    switch(bin_type) {
+      case LogRUV:
+           ProcessCrossa<LogRUV>(corr123, corr132, corr213, corr231, corr312, corr321,
+                                 field1, field2, field3, dots, metric);
            break;
-      case Arc:
-           ProcessCross1<LogRUV,Arc>(corr123, corr132, corr213, corr231, corr312, corr321,
-                                     field1, field2, field3, dots);
-           break;
-      case Periodic:
-           ProcessCross1<LogRUV,Periodic>(corr123, corr132, corr213, corr231, corr312, corr321,
-                                          field1, field2, field3, dots);
+      case LogSAS:
+           ProcessCrossa<LogSAS>(corr123, corr132, corr213, corr231, corr312, corr321,
+                                 field1, field2, field3, dots, metric);
            break;
       default:
            Assert(false);

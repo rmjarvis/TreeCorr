@@ -15,15 +15,14 @@ import numpy as np
 import treecorr
 import os
 import coord
+import math
 
 from test_helper import get_script_name, do_pickle, assert_raises, CaptureLog, timer, assert_warns
 from test_helper import is_ccw, is_ccw_3d
 
 @timer
 def test_logruv_binning():
-    import math
     # Test some basic properties of the base class
-
     def check_arrays(nnn):
         np.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
         np.testing.assert_almost_equal(nnn.ubin_size * nnn.nubins, nnn.max_u-nnn.min_u)
@@ -516,6 +515,419 @@ def test_logruv_binning():
     np.testing.assert_almost_equal(nnn.bin_slop, 1.0) # The stored bin_slop is just for lnr
 
 @timer
+def test_logsas_binning():
+    # Test some basic properties of the base class
+    def check_arrays(nnn):
+        np.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
+        np.testing.assert_almost_equal(nnn.phi_bin_size * nnn.nphi_bins, nnn.max_phi-nnn.min_phi)
+        #print('logr = ',nnn.logr1d)
+        np.testing.assert_equal(nnn.logr1d.shape, (nnn.nbins,) )
+        np.testing.assert_almost_equal(nnn.logr1d[0], math.log(nnn.min_sep) + 0.5*nnn.bin_size)
+        np.testing.assert_almost_equal(nnn.logr1d[-1], math.log(nnn.max_sep) - 0.5*nnn.bin_size)
+        np.testing.assert_equal(nnn.logr2.shape, (nnn.nbins, nnn.nphi_bins, nnn.nbins))
+        print('logr2[0,0] = ',nnn.logr2[:,0,0])
+        np.testing.assert_almost_equal(nnn.logr2[:,0,0], nnn.logr1d)
+        np.testing.assert_almost_equal(nnn.logr2[:,-1,-1], nnn.logr1d)
+        np.testing.assert_equal(nnn.logr3.shape, (nnn.nbins, nnn.nphi_bins, nnn.nbins))
+        np.testing.assert_almost_equal(nnn.logr3[0,0,:], nnn.logr1d)
+        np.testing.assert_almost_equal(nnn.logr3[-1,-1,:], nnn.logr1d)
+        assert len(nnn.logr2) == nnn.nbins
+        assert len(nnn.logr3) == nnn.nbins
+        #print('phi = ',nnn.phi1d)
+        np.testing.assert_equal(nnn.phi1d.shape, (nnn.nphi_bins,) )
+        np.testing.assert_almost_equal(nnn.phi1d[0], nnn.min_phi + 0.5*nnn.phi_bin_size)
+        np.testing.assert_almost_equal(nnn.phi1d[-1], nnn.max_phi - 0.5*nnn.phi_bin_size)
+        np.testing.assert_equal(nnn.phi.shape, (nnn.nbins, nnn.nphi_bins, nnn.nbins))
+        np.testing.assert_almost_equal(nnn.phi[0,:,0], nnn.phi1d)
+        np.testing.assert_almost_equal(nnn.phi[-1,:,-1], nnn.phi1d)
+
+    def check_default_phi(nnn):
+        assert nnn.min_phi == 0.
+        assert nnn.max_phi == np.pi
+        assert nnn.nphi_bins == np.ceil(np.pi/nnn.phi_bin_size)
+
+    # Check the different ways to set up the binning:
+    # Omit bin_size
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, bin_type='LogSAS')
+    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
+    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
+    assert nnn.min_sep == 5.
+    assert nnn.max_sep == 20.
+    assert nnn.nbins == 20
+    check_default_phi(nnn)
+    check_arrays(nnn)
+
+    # Specify min, max, n for phi too.
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20,
+                                  min_phi=0.2, max_phi=0.9, nphi_bins=12,
+                                  bin_type='LogSAS')
+    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
+    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
+    assert nnn.min_sep == 5.
+    assert nnn.max_sep == 20.
+    assert nnn.nbins == 20
+    assert nnn.min_phi == 0.2
+    assert nnn.max_phi == 0.9
+    assert nnn.nphi_bins == 12
+    check_arrays(nnn)
+
+    # Omit min_sep
+    nnn = treecorr.NNNCorrelation(max_sep=20, nbins=20, bin_size=0.1, bin_type='LogSAS')
+    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
+    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
+    assert nnn.bin_size == 0.1
+    assert nnn.max_sep == 20.
+    assert nnn.nbins == 20
+    check_default_phi(nnn)
+    check_arrays(nnn)
+
+    # Specify max, n, bs for phi too.
+    nnn = treecorr.NNNCorrelation(max_sep=20, nbins=20, bin_size=0.1,
+                                  max_phi=0.9, nphi_bins=3, phi_bin_size=0.05,
+                                  bin_type='LogSAS')
+    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
+    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
+    assert nnn.bin_size == 0.1
+    assert nnn.max_sep == 20.
+    assert nnn.nbins == 20
+    print(nnn.phi_bin_size)
+    assert np.isclose(nnn.phi_bin_size, 0.05)
+    assert np.isclose(nnn.min_phi, 0.75)
+    assert nnn.max_phi == 0.9
+    assert nnn.nphi_bins == 3
+    check_arrays(nnn)
+
+    # Omit max_sep
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=20, bin_size=0.1, bin_type='LogSAS')
+    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
+    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
+    assert nnn.bin_size == 0.1
+    assert nnn.min_sep == 5.
+    assert nnn.nbins == 20
+    check_default_phi(nnn)
+    check_arrays(nnn)
+    # Specify min, n, bs for phi too.
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=20, bin_size=0.1,
+                                  min_phi=0.7, nphi_bins=4, phi_bin_size=0.05,
+                                  bin_type='LogSAS')
+    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
+    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
+    assert nnn.min_sep == 5.
+    assert nnn.bin_size == 0.1
+    assert nnn.nbins == 20
+    assert nnn.min_phi == 0.7
+    assert np.isclose(nnn.phi_bin_size, 0.05)
+    assert nnn.nphi_bins == 4
+    check_arrays(nnn)
+
+    # Omit nbins
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_type='LogSAS')
+    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
+    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
+    assert nnn.bin_size <= 0.1
+    assert nnn.min_sep == 5.
+    assert nnn.max_sep == 20.
+    check_default_phi(nnn)
+    check_arrays(nnn)
+    # Specify min, max, bs for phi too.
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
+                                  min_phi=0.2, max_phi=0.9, phi_bin_size=0.03,
+                                  bin_type='LogSAS')
+    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
+    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
+    assert nnn.min_sep == 5.
+    assert nnn.max_sep == 20.
+    assert nnn.bin_size <= 0.1
+    assert nnn.min_phi == 0.2
+    assert nnn.max_phi == 0.9
+    assert nnn.nphi_bins == 24
+    assert np.isclose(nnn.phi_bin_size, 0.7/24)
+    check_arrays(nnn)
+
+    # If only one of min/max phi are set, respect that
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
+                                  min_phi=0.2, phi_bin_size=0.03,
+                                  bin_type='LogSAS')
+    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
+    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
+    assert nnn.min_phi == 0.2
+    assert nnn.max_phi == np.pi
+    assert nnn.nphi_bins == 99
+    assert np.isclose(nnn.phi_bin_size, (np.pi-0.2)/99)
+    check_arrays(nnn)
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
+                                  max_phi=0.2, phi_bin_size=0.03,
+                                  bin_type='LogSAS')
+    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
+    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
+    assert nnn.min_phi == 0.
+    assert nnn.max_phi == 0.2
+    assert nnn.nphi_bins == 7
+    assert np.isclose(nnn.phi_bin_size, 0.2/7)
+    check_arrays(nnn)
+
+    # If only phi_bin_size is set for phi, automatically figure out others.
+    # (And if necessary adjust the bin_size down a bit.)
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
+                                  phi_bin_size=0.3, bin_type='LogSAS')
+    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
+    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
+    assert nnn.bin_size <= 0.1
+    assert nnn.min_sep == 5.
+    assert nnn.max_sep == 20.
+    assert nnn.min_phi == 0.
+    assert nnn.max_phi == np.pi
+    assert nnn.nphi_bins == 11
+    assert np.isclose(nnn.phi_bin_size, np.pi/11)
+    check_arrays(nnn)
+
+    # If only nphi_bins is set for phi, automatically figure out others.
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
+                                  nphi_bins=5, bin_type='LogSAS')
+    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
+    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
+    assert nnn.bin_size <= 0.1
+    assert nnn.min_sep == 5.
+    assert nnn.max_sep == 20.
+    assert nnn.min_phi == 0.
+    assert nnn.max_phi == np.pi
+    assert nnn.nphi_bins == 5
+    assert np.isclose(nnn.phi_bin_size, np.pi/5)
+    check_arrays(nnn)
+
+    # If both nphi_bins and phi_bin_size are set, set min/max automatically
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
+                                  phi_bin_size=0.1, nphi_bins=5,
+                                  bin_type='LogSAS')
+    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
+    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
+    assert nnn.bin_size <= 0.1
+    assert nnn.min_sep == 5.
+    assert nnn.max_sep == 20.
+    assert nnn.phi_bin_size == 0.1
+    assert nnn.nphi_bins == 5
+    assert nnn.min_phi == 0.
+    assert np.isclose(nnn.max_phi,0.5)
+    check_arrays(nnn)
+
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, bin_type='LogSAS')
+    assert_raises(TypeError, treecorr.NNNCorrelation, max_sep=20, bin_type='LogSAS')
+    assert_raises(TypeError, treecorr.NNNCorrelation, bin_size=0.1, bin_type='LogSAS')
+    assert_raises(TypeError, treecorr.NNNCorrelation, nbins=20, bin_type='LogSAS')
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_type='LogSAS')
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, bin_size=0.1, bin_type='LogSAS')
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, nbins=20, bin_type='LogSAS')
+    assert_raises(TypeError, treecorr.NNNCorrelation, max_sep=20, bin_size=0.1, bin_type='LogSAS')
+    assert_raises(TypeError, treecorr.NNNCorrelation, max_sep=20, nbins=20, bin_type='LogSAS')
+    assert_raises(TypeError, treecorr.NNNCorrelation, bin_size=0.1, nbins=20, bin_type='LogSAS')
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  nbins=20, bin_type='LogSAS')
+    assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=20, max_sep=5, bin_size=0.1,
+                  bin_type='LogSAS')
+    assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=20, max_sep=5, nbins=20,
+                  bin_type='LogSAS')
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  min_phi=0.3, max_phi=0.9, phi_bin_size=0.1, nphi_bins=6, bin_type='LogSAS')
+    assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  min_phi=0.9, max_phi=0.3, bin_type='LogSAS')
+    assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  min_phi=-0.1, max_phi=0.3, bin_type='LogSAS')
+    assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  min_phi=0.1, max_phi=7.3, bin_type='LogSAS')
+    assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=20, max_sep=5, nbins=20,
+                  split_method='invalid', bin_type='LogSAS')
+
+    # Check the use of sep_units
+    # radians
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='radians',
+                                  bin_type='LogSAS')
+    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
+    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
+    np.testing.assert_almost_equal(nnn.min_sep, 5.)
+    np.testing.assert_almost_equal(nnn.max_sep, 20.)
+    np.testing.assert_almost_equal(nnn._min_sep, 5.)
+    np.testing.assert_almost_equal(nnn._max_sep, 20.)
+    assert nnn.min_sep == 5.
+    assert nnn.max_sep == 20.
+    assert nnn.nbins == 20
+    check_default_phi(nnn)
+    check_arrays(nnn)
+
+    # arcsec
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='arcsec',
+                                  bin_type='LogSAS')
+    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
+    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
+    np.testing.assert_almost_equal(nnn.min_sep, 5.)
+    np.testing.assert_almost_equal(nnn.max_sep, 20.)
+    np.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/180/3600)
+    np.testing.assert_almost_equal(nnn._max_sep, 20. * math.pi/180/3600)
+    assert nnn.nbins == 20
+    np.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
+    # Note that logr2 is in the separation units, not radians.
+    np.testing.assert_almost_equal(nnn.logr2[0], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logr2[-1], math.log(20) - 0.5*nnn.bin_size)
+    assert len(nnn.logr2) == nnn.nbins
+    np.testing.assert_almost_equal(nnn.logr3[:,:,0], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logr3[:,:,-1], math.log(20) - 0.5*nnn.bin_size)
+    assert len(nnn.logr3) == nnn.nbins
+    check_default_phi(nnn)
+
+    # arcmin
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='arcmin',
+                                  bin_type='LogSAS')
+    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
+    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
+    np.testing.assert_almost_equal(nnn.min_sep, 5.)
+    np.testing.assert_almost_equal(nnn.max_sep, 20.)
+    np.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/180/60)
+    np.testing.assert_almost_equal(nnn._max_sep, 20. * math.pi/180/60)
+    assert nnn.nbins == 20
+    np.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
+    np.testing.assert_almost_equal(nnn.logr2[0], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logr2[-1], math.log(20) - 0.5*nnn.bin_size)
+    assert len(nnn.logr2) == nnn.nbins
+    np.testing.assert_almost_equal(nnn.logr3[:,:,0], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logr3[:,:,-1], math.log(20) - 0.5*nnn.bin_size)
+    assert len(nnn.logr3) == nnn.nbins
+    check_default_phi(nnn)
+
+    # degrees
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='degrees',
+                                  bin_type='LogSAS')
+    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
+    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
+    np.testing.assert_almost_equal(nnn.min_sep, 5.)
+    np.testing.assert_almost_equal(nnn.max_sep, 20.)
+    np.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/180)
+    np.testing.assert_almost_equal(nnn._max_sep, 20. * math.pi/180)
+    assert nnn.nbins == 20
+    np.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
+    np.testing.assert_almost_equal(nnn.logr2[0], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logr2[-1], math.log(20) - 0.5*nnn.bin_size)
+    assert len(nnn.logr2) == nnn.nbins
+    np.testing.assert_almost_equal(nnn.logr3[:,:,0], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logr3[:,:,-1], math.log(20) - 0.5*nnn.bin_size)
+    assert len(nnn.logr3) == nnn.nbins
+    check_default_phi(nnn)
+
+    # hours
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='hours',
+                                  bin_type='LogSAS')
+    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
+    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
+    np.testing.assert_almost_equal(nnn.min_sep, 5.)
+    np.testing.assert_almost_equal(nnn.max_sep, 20.)
+    np.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/12)
+    np.testing.assert_almost_equal(nnn._max_sep, 20. * math.pi/12)
+    assert nnn.nbins == 20
+    np.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
+    np.testing.assert_almost_equal(nnn.logr2[0], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logr2[-1], math.log(20) - 0.5*nnn.bin_size)
+    assert len(nnn.logr2) == nnn.nbins
+    np.testing.assert_almost_equal(nnn.logr3[:,:,0], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logr3[:,:,-1], math.log(20) - 0.5*nnn.bin_size)
+    assert len(nnn.logr3) == nnn.nbins
+    check_default_phi(nnn)
+
+    # Check bin_slop
+    # Start with default behavior
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1,
+                                  min_phi=0., max_phi=0.9, phi_bin_size=0.03,
+                                  bin_type='LogSAS')
+    #print(nnn.bin_size,nnn.bin_slop,nnn.b)
+    #print(nnn.phi_bin_size,nnn.bu)
+    assert nnn.bin_slop == 1.0
+    assert nnn.bin_size == 0.1
+    assert np.isclose(nnn.phi_bin_size, 0.03)
+    np.testing.assert_almost_equal(nnn.b, 0.1)
+    np.testing.assert_almost_equal(nnn.bu, 0.03)
+
+    # Explicitly set bin_slop=1.0 does the same thing.
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=1.0,
+                                  min_phi=0., max_phi=0.9, phi_bin_size=0.03,
+                                  bin_type='LogSAS')
+    #print(nnn.bin_size,nnn.bin_slop,nnn.b)
+    #print(nnn.phi_bin_size,nnn.bu)
+    assert nnn.bin_slop == 1.0
+    assert nnn.bin_size == 0.1
+    assert np.isclose(nnn.phi_bin_size, 0.03)
+    np.testing.assert_almost_equal(nnn.b, 0.1)
+    np.testing.assert_almost_equal(nnn.bu, 0.03)
+
+    # Use a smaller bin_slop
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=0.2,
+                                  min_phi=0., max_phi=0.9, phi_bin_size=0.03,
+                                  bin_type='LogSAS')
+    #print(nnn.bin_size,nnn.bin_slop,nnn.b)
+    #print(nnn.phi_bin_size,nnn.bu)
+    assert nnn.bin_slop == 0.2
+    assert nnn.bin_size == 0.1
+    assert np.isclose(nnn.phi_bin_size, 0.03)
+    np.testing.assert_almost_equal(nnn.b, 0.02)
+    np.testing.assert_almost_equal(nnn.bu, 0.006)
+
+    # Use bin_slop == 0
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=0.0,
+                                  min_phi=0., max_phi=0.9, phi_bin_size=0.03,
+                                  bin_type='LogSAS')
+    #print(nnn.bin_size,nnn.bin_slop,nnn.b)
+    #print(nnn.phi_bin_size,nnn.bu)
+    assert nnn.bin_slop == 0.0
+    assert nnn.bin_size == 0.1
+    assert np.isclose(nnn.phi_bin_size, 0.03)
+    np.testing.assert_almost_equal(nnn.b, 0.0)
+    np.testing.assert_almost_equal(nnn.bu, 0.0)
+
+    # Bigger bin_slop
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=2.0,
+                                  min_phi=0., max_phi=0.9, phi_bin_size=0.03,
+                                  bin_type='LogSAS')
+    #print(nnn.bin_size,nnn.bin_slop,nnn.b)
+    #print(nnn.phi_bin_size,nnn.bu)
+    assert nnn.bin_slop == 2.0
+    assert nnn.bin_size == 0.1
+    assert np.isclose(nnn.phi_bin_size, 0.03)
+    np.testing.assert_almost_equal(nnn.b, 0.2)
+    np.testing.assert_almost_equal(nnn.bu, 0.06)
+
+    # With bin_size > 0.1, explicit bin_slop=1.0 is accepted.
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.4, bin_slop=1.0,
+                                  min_phi=0., max_phi=0.9, phi_bin_size=0.03,
+                                  bin_type='LogSAS')
+    #print(nnn.bin_size,nnn.bin_slop,nnn.b)
+    #print(nnn.phi_bin_size,nnn.bu)
+    assert nnn.bin_slop == 1.0
+    assert nnn.bin_size == 0.4
+    assert np.isclose(nnn.phi_bin_size, 0.03)
+    np.testing.assert_almost_equal(nnn.b, 0.4)
+    np.testing.assert_almost_equal(nnn.bu, 0.03)
+
+    # But implicit bin_slop is reduced so that b = 0.1
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.4,
+                                  min_phi=0., max_phi=0.9, phi_bin_size=0.03,
+                                  bin_type='LogSAS')
+    #print(nnn.bin_size,nnn.bin_slop,nnn.b)
+    #print(nnn.phi_bin_size,nnn.bu)
+    assert nnn.bin_size == 0.4
+    assert np.isclose(nnn.phi_bin_size, 0.03)
+    np.testing.assert_almost_equal(nnn.b, 0.1)
+    np.testing.assert_almost_equal(nnn.bu, 0.03)
+    np.testing.assert_almost_equal(nnn.bin_slop, 0.25)
+
+    # Separately for each of the three parameters
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.05,
+                                  min_phi=0., max_phi=0.9, phi_bin_size=0.3,
+                                  bin_type='LogSAS')
+    #print(nnn.bin_size,nnn.bin_slop,nnn.b)
+    #print(nnn.phi_bin_size,nnn.bu)
+    assert nnn.bin_size == 0.05
+    assert np.isclose(nnn.phi_bin_size, 0.3)
+    np.testing.assert_almost_equal(nnn.b, 0.05)
+    np.testing.assert_almost_equal(nnn.bu, 0.1)
+    np.testing.assert_almost_equal(nnn.bin_slop, 1.0) # The stored bin_slop is just for lnr
+
+@timer
 def test_direct_count_auto():
     # If the catalogs are small enough, we can do a direct count of the number of triangles
     # to see if comes out right.  This should exactly match the treecorr code if bin_slop=0.
@@ -611,19 +1023,6 @@ def test_direct_count_auto():
     print('true_ntri = ',true_ntri[nz])
     print('diff = ',ddd.ntri[nz] - true_ntri[nz])
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
-
-    # XXX: For now LogSAS is the same thing.  Just check plumbing.
-    ddd_sas = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                  min_phi=min_u, max_phi=max_u, nphi_bins=nubins,
-                                  brute=True, verbose=1, bin_type='LogSAS')
-    ddd_sas.process(cat)
-    mask = ddd.ntri > 0
-    np.testing.assert_array_equal(ddd_sas.ntri, ddd.ntri)
-    np.testing.assert_allclose(ddd_sas.meand1[mask], ddd.meand1[mask])
-    np.testing.assert_allclose(ddd_sas.meand2[mask], ddd.meand2[mask])
-    np.testing.assert_allclose(ddd_sas.meanlogd1[mask], ddd.meanlogd1[mask])
-    np.testing.assert_allclose(ddd_sas.meanlogd2[mask], ddd.meanlogd2[mask])
-    np.testing.assert_allclose(ddd_sas.meanu[mask], ddd.meanu[mask])
 
     # Check that running via the corr3 script works correctly.
     file_name = os.path.join('data','nnn_direct_data.dat')
@@ -730,7 +1129,7 @@ def test_direct_count_auto():
     np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
     np.testing.assert_allclose(corr3_output['sigma_zeta'], np.sqrt(varzeta).flatten(), rtol=1.e-3)
 
-    # Repeat with binslop = 0, since the code flow is different from bture=True
+    # Repeat with binslop = 0, since the code flow is different from brute=True
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
@@ -770,9 +1169,9 @@ def test_direct_count_auto():
     dddc.process(cat,cat,cat, num_threads=2)
     # All 6 correlations are equal.
     for d in [dddc.n1n2n3, dddc.n1n3n2, dddc.n2n1n3, dddc.n2n3n1, dddc.n3n1n2, dddc.n3n2n1]:
-        #print('ddd.ntri = ',ddd.ntri)
+        #print('d.ntri = ',d.ntri)
         #print('true_ntri => ',true_ntri)
-        #print('diff = ',ddd.ntri - true_ntri)
+        #print('diff = ',d.ntri - true_ntri)
         np.testing.assert_array_equal(d.ntri, true_ntri)
 
     # Or with 2 argument version, finds each triangle 3 times.
@@ -1046,19 +1445,6 @@ def test_direct_count_cross():
     #print('true_ntri = ',true_ntri_sum)
     #print('diff = ',ddd.ntri - true_ntri_sum)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
-
-    # XXX: For now LogSAS is the same thing.  Just check plumbing.
-    ddd_sas = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                  min_phi=min_u, max_phi=max_u, nphi_bins=nubins,
-                                  brute=True, verbose=1, bin_type='LogSAS')
-    ddd_sas.process(cat1, cat2, cat3)
-    mask = ddd.ntri > 0
-    np.testing.assert_array_equal(ddd_sas.ntri, ddd.ntri)
-    np.testing.assert_allclose(ddd_sas.meand1[mask], ddd.meand1[mask])
-    np.testing.assert_allclose(ddd_sas.meand2[mask], ddd.meand2[mask])
-    np.testing.assert_allclose(ddd_sas.meanlogd1[mask], ddd.meanlogd1[mask])
-    np.testing.assert_allclose(ddd_sas.meanlogd2[mask], ddd.meanlogd2[mask])
-    np.testing.assert_allclose(ddd_sas.meanu[mask], ddd.meanu[mask])
 
     # Now repeat with the full CrossCorrelation class, which distinguishes the permutations.
     dddc = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
@@ -1336,19 +1722,6 @@ def test_direct_count_cross12():
     #print('true_ntri = ',true_ntri_sum)
     #print('diff = ',ddd.ntri - true_ntri_sum)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
-
-    # XXX: For now LogSAS is the same thing.  Just check plumbing.
-    ddd_sas = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                  min_phi=min_u, max_phi=max_u, nphi_bins=nubins,
-                                  brute=True, verbose=1, bin_type='LogSAS')
-    ddd_sas.process(cat1, cat2)
-    mask = ddd.ntri > 0
-    np.testing.assert_array_equal(ddd_sas.ntri, ddd.ntri)
-    np.testing.assert_allclose(ddd_sas.meanr1[mask], ddd.meand1[mask])
-    np.testing.assert_allclose(ddd_sas.meanr2[mask], ddd.meand2[mask])
-    np.testing.assert_allclose(ddd_sas.meanlogr1[mask], ddd.meanlogd1[mask])
-    np.testing.assert_allclose(ddd_sas.meanlogr2[mask], ddd.meanlogd2[mask])
-    np.testing.assert_allclose(ddd_sas.meanphi[mask], ddd.meanu[mask])
 
     # Now repeat with the full CrossCorrelation class, which distinguishes the permutations.
     dddc = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
@@ -2781,6 +3154,7 @@ def test_list():
 
 if __name__ == '__main__':
     test_logruv_binning()
+    test_logsas_binning()
     test_direct_count_auto()
     test_direct_count_cross()
     test_direct_count_cross12()

@@ -165,8 +165,8 @@ class KKKCorrelation(Corr3):
             self._corr = _treecorr.KKKCorr(
                     self._bintype,
                     self._min_sep, self._max_sep, self.nbins, self._bin_size, self.b,
-                    self.min_u, self.max_u, self.nubins, self.ubin_size, self.bu,
-                    self.min_v, self.max_v, self.nvbins, self.vbin_size, self.bv,
+                    self._ro.min_u,self._ro.max_u,self._ro.nubins,self._ro.ubin_size,self.bu,
+                    self._ro.min_v,self._ro.max_v,self._ro.nvbins,self._ro.vbin_size,self.bv,
                     self.xperiod, self.yperiod, self.zperiod,
                     self.zeta, x, x, x, x, x, x, x,
                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
@@ -847,8 +847,6 @@ class KKKCrossCorrelation(Corr3):
                             coords=self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        # Note: all 3 correlation objects are the same.  Thus, all triangles will be placed
-        # into self.corr, whichever way the three catalogs are permuted for each triangle.
         self.k1k2k3.corr.processCross12(self.k2k1k3.corr, self.k2k3k1.corr,
                                         f1.data, f2.data, self.output_dots,
                                         self._bintype, self._metric)

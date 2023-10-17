@@ -223,8 +223,8 @@ class GGGCorrelation(Corr3):
             self._corr = _treecorr.GGGCorr(
                     self._bintype,
                     self._min_sep, self._max_sep, self.nbins, self._bin_size, self.b,
-                    self.min_u, self.max_u, self.nubins, self.ubin_size, self.bu,
-                    self.min_v, self.max_v, self.nvbins, self.vbin_size, self.bv,
+                    self._ro.min_u,self._ro.max_u,self._ro.nubins,self._ro.ubin_size,self.bu,
+                    self._ro.min_v,self._ro.max_v,self._ro.nvbins,self._ro.vbin_size,self.bv,
                     self.xperiod, self.yperiod, self.zperiod,
                     self.gam0r, self.gam0i, self.gam1r, self.gam1i,
                     self.gam2r, self.gam2i, self.gam3r, self.gam3i,
@@ -1360,8 +1360,6 @@ class GGGCrossCorrelation(Corr3):
                             coords=self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        # Note: all 3 correlation objects are the same.  Thus, all triangles will be placed
-        # into self.corr, whichever way the three catalogs are permuted for each triangle.
         self.g1g2g3.corr.processCross12(self.g2g1g3.corr, self.g2g3g1.corr,
                                         f1.data, f2.data, self.output_dots,
                                         self._bintype, self._metric)

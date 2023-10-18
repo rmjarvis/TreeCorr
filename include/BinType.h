@@ -388,14 +388,14 @@ struct BinTypeHelper<LogRUV>
 
     // If the user has set a minu > 0, then we may be able to stop for that.
     static bool noAllowedAngles(double rsq, double s1ps2, double s1, double s2,
-                                double _minu, double _minusq, double _maxu, double _maxusq,
-                                double _minv, double _maxv)
+                                double minu, double minusq, double maxu, double maxusq,
+                                double minv, double maxv, double minvsq, double maxvsq)
     {
         // The maximum possible u value at this point is 2s2 / (r - s1 - s2)
         // If this is less than minu, we can stop.
         // 2s2 < minu * (r - s1 - s2)
         // minu * r > 2s2 + minu * (s1 + s2)
-        return rsq > SQR(s1ps2) && _minusq * rsq > SQR(2.*s2 + _minu * (s1ps2));
+        return rsq > SQR(s1ps2) && minusq * rsq > SQR(2.*s2 + minu * (s1ps2));
     }
 
     // Once we have all the distances, see if it's possible to stop
@@ -508,8 +508,8 @@ struct BinTypeHelper<LogRUV>
         return false;
     }
 
-    // If return value is true, split1, split2, split3 will be set on output.
-    // If return value is false, d1, d2, d3, u, v will be set on output.
+    // If return value is false, split1, split2, split3 will be set on output.
+    // If return value is true, d1, d2, d3, u, v will be set on output.
     // (For this BinType, d2 is already set coming in.)
     static bool singleBin(double d1sq, double d2sq, double d3sq,
                           double s1, double s2, double s3,
@@ -734,6 +734,362 @@ struct BinTypeHelper<LogRUV>
 template <>
 struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
 {
+    enum { sort_d123 = false };
+
+    static int calculateNTot(int nbins, int nphibins, int nvbins)
+    { return nbins * nbins * nphibins; }
+
+    static bool tooSmallS2(double s2, double halfminsep, double minphi, double )
+    {
+        // When still doing process12, if the s2 cell is smaller than the minimum
+        // possible triangle side length, then we can stop early.
+        // 2s < sin(min_phi) * minsep < min_phi * minsep
+        return (s2 == 0. || s2 < halfminsep * minphi);
+    }
+
+    // Check if all posisble pairs for a two cells (given s1 + s2) necessarily have too small
+    // or too large a distance to be accumulated, so we can stop considering these cells.
+    static bool tooSmallDist(double rsq, double s1ps2, double minsep, double minsepsq)
+    {
+        // r + s1ps2 < minsep
+        // r < minsep - s1ps2
+        // rsq < (minsep - s1ps2)^2  and  s1ps2 < minsep
+        return rsq < minsepsq && s1ps2 < minsep && rsq < SQR(minsep - s1ps2);
+    }
+    static bool tooLargeDist(double rsq, double s1ps2, double maxsep, double maxsepsq)
+    {
+        // r - s1ps2 > maxsep
+        // rsq > (maxsep + s1ps2)^2
+        return rsq >= maxsepsq && rsq >= SQR(maxsep + s1ps2);
+    }
+
+    // If the user has set a minphi > 0, then we may be able to stop for that.
+    static bool noAllowedAngles(double rsq, double s1ps2, double s1, double s2,
+                                double minphi, double minphisq, double maxphi, double maxphisq,
+                                double , double , double , double )
+    {
+        xdbg<<"Check noAllowedAngles\n";
+        // The maximum possible sin(phi/2) value at this point is s2 / (r - s1 - s2)
+        double d2min = sqrt(rsq)-s1ps2;
+        if (d2min > 0) {
+            double d1max = 2*s2;
+            double phi_max = calculate_phi(d1max, d2min, d2min);
+            if (!(phi_max >= minphi)) {
+                dbg<<"noAllowedAngles: "<<sqrt(rsq)<<"  "<<s1ps2<<"  "<<s1<<"  "<<s2<<std::endl;
+                dbg<<"d2min = "<<d2min<<", d1max = "<<d1max<<std::endl;
+                dbg<<"phi_max = "<<phi_max<<std::endl;
+                dbg<<"minphi = "<<minphi<<std::endl;
+                return true;
+            } else {
+                return false;
+            }
+        }
+        else return false;
+    }
+
+    static double calculate_phi(double d1, double d2, double d3)
+    {
+        // For now, just do the trig here.  We'll work on finding efficient algorithms
+        // for all this later.
+        double cosphi = (SQR(d2) + SQR(d3) - SQR(d1)) / (2*d2*d3);
+        if (cosphi >= -1 && cosphi <= 1) {
+            return std::acos(cosphi);
+        } else {
+            xdbg<<"d1,d2,d3 = "<<d1<<"  "<<d2<<"  "<<d3<<std::endl;
+            xdbg<<"cosphi = "<<cosphi<<std::endl;
+            if (d1 < std::numeric_limits<double>::infinity() &&
+                (d2 == std::numeric_limits<double>::infinity() ||
+                 d3 == std::numeric_limits<double>::infinity()))
+                return 0;
+            else if (d1 == std::numeric_limits<double>::infinity() &&
+                     (d2 < std::numeric_limits<double>::infinity() ||
+                      d3 < std::numeric_limits<double>::infinity()))
+                return M_PI;
+            else if (cosphi < -1)
+                return M_PI;
+            else if (cosphi > 1)
+                return 0;
+            else
+                throw std::runtime_error("Bad cosphi!");
+        }
+    }
+
+    // Once we have all the distances, see if it's possible to stop
+    // For this BinType, if return value is false, d1,d2,d3 are set on output.
+    static bool stop111(
+        double d1sq, double d2sq, double d3sq,
+        double s1, double s2, double s3,
+        double& d1, double& d2, double& d3,
+        double minsep, double minsepsq, double maxsep, double maxsepsq,
+        double minphi, double minphisq, double maxphi, double maxphisq,
+        double , double , double , double )
+    {
+        xdbg<<"Stop111: "<<std::sqrt(d1sq)<<"  "<<std::sqrt(d2sq)<<"  "<<std::sqrt(d3sq)<<std::endl;
+        xdbg<<"sizes = "<<s1<<"  "<<s2<<"  "<<s3<<std::endl;
+        xdbg<<"sep range = "<<minsep<<"  "<<maxsep<<std::endl;
+        xdbg<<"phi range = "<<minphi<<"  "<<maxphi<<std::endl;
+        // If all possible triangles will have d2,d3 < minsep, then abort the recursion here.
+        if (d2sq < minsepsq && d3sq < minsepsq && s1+s3 < minsep && s1+s2 < minsep &&
+            (s1+s3 == 0. || d2sq < SQR(minsep - s1-s3)) &&
+            (s1+s2 == 0. || d3sq < SQR(minsep - s1-s2)) ) {
+            dbg<<"d2,d3 cannot be as large as minsep\n";
+            return true;
+        }
+
+        // Similarly, we can abort if all possible triangles will have d2,d3 > maxsep.
+        if (d2sq >= maxsepsq && d3sq >= maxsepsq &&
+            (s1+s3 == 0. || d2sq >= SQR(maxsep + s1+s3)) &&
+            (s1+s2 == 0. || d3sq >= SQR(maxsep + s1+s2))) {
+            dbg<<"d2 cannot be as small as maxsep\n";
+            return true;
+        }
+
+        // If the user sets minphi > 0, then we can abort if no possible triangle can have
+        // phi as large as this.
+        // The most phi can increase from the current phi is
+        // (s1+s2)/d3 + (s1+s3)/d2
+        double phi=0, dphi=0;
+        if (minphi > 0 || maxphi < M_PI) {
+            d1 = sqrt(d1sq);
+            d2 = sqrt(d2sq);
+            d3 = sqrt(d3sq);
+            phi = calculate_phi(d1, d2, d3);
+            if (phi < minphi || phi > maxphi) {
+                if (s1 + s3 > 0) {
+                    if (s1 + s3 < d2)
+                        dphi += std::asin((s1+s3)/d2);
+                    else
+                        dphi += 2*M_PI;
+                }
+                if (s1 + s2 > 0) {
+                    if (s1 + s2 < d3)
+                        dphi += std::asin((s1+s2)/d3);
+                    else
+                        dphi += 2*M_PI;
+                }
+            }
+        }
+        if (minphi > 0 && phi < minphi && phi + dphi < minphi) {
+            dbg<<"phi_max = "<<phi+dphi<<std::endl;
+            dbg<<"phi cannot be as large as minphi\n";
+            return true;
+        }
+
+        // If the user sets maxphi < pi, then we can abort if no possible triangle can have
+        // phi as small as this.
+        if (maxphi < M_PI && phi > maxphi && phi - dphi > maxphi) {
+            dbg<<"phi_min = "<<phi-dphi<<std::endl;
+            dbg<<"phi cannot be as small as maxphi\n";
+            return true;
+        }
+
+        // Stop if any side is exactly 0 and elements are leaves
+        // (This is unusual, but we want to make sure to stop if it happens.)
+        if (s2==0 && s3==0 && d1sq == 0) return true;
+        if (s1==0 && s3==0 && d2sq == 0) return true;
+        if (s1==0 && s2==0 && d3sq == 0) return true;
+
+        return false;
+    }
+
+    // If return value is false, split1, split2, split3 will be set on output.
+    // If return value is true, d1, d2, d3, phi will be set on output.
+    // (For this BinType, d1,d2,d3 are already set coming in.)
+    static bool singleBin(double d1sq, double d2sq, double d3sq,
+                          double s1, double s2, double s3,
+                          double b, double bphi, double ,
+                          double bsq, double bphisq, double ,
+                          bool& split1, bool& split2, bool& split3,
+                          double& d1, double& d2, double& d3,
+                          double& phi, double& )
+    {
+        xdbg<<"singleBin: "<<d1<<"  "<<d2<<"  "<<d3<<std::endl;
+        // First decide whether to split c3
+
+        // There are a few places we do a calculation akin to the splitfactor thing for 2pt.
+        // That one was determined empirically to optimize the running time for a particular
+        // (albeit intended to be fairly typical) use case.  Similarly, this factor was found
+        // empirically on a particular (GGG) use case with a reasonable choice of separations
+        // and binning.
+        const double splitfactor = 0.7;
+
+        // These are set correctly before they are used.
+        double s1ps2=0., s1ps3=0.;
+        bool d2split=false, d3split=false;
+
+        if (s1 > 0) {
+            split1 = (
+                // Check if either d2 or d3 needs a split
+                // This is the same as the normal 2pt splitting check.
+                (s1 > d2 * b) ||
+                (s1 > d3 * b) ||
+                ((s1ps2=s1+s2) > 0. && (s1ps2 > d3 * b) && (d2split=true, s1 >= s2)) ||
+                ((s1ps3=s1+s3) > 0. && (s1ps3 > d2 * b) && (d3split=true, s1 >= s3)) ||
+
+                // Check if phi binning needs a split
+                // phi_min when d2 -> d2+s1, d3 -> d3+s1
+                // phi_max when d2 -> d2-s1, d3 -> d3-s1
+                // Use phi_max here, since it causes the larger change.
+                (std::abs(calculate_phi(d1, d2-s1, d3-s1) - (phi=calculate_phi(d1,d2,d3))) < bphi));
+        } else {
+            // If s1 == 0, we can't split it, but we do need to ensure that phi is calculated.
+            split1 = false;
+            phi = calculate_phi(d1,d2,d3);
+        }
+        xdbg<<"split1 = "<<split1<<std::endl;
+
+        if (split1) {
+            // If splitting c1, then usually also split c2 and c3.
+            split2 = s2 > splitfactor * s1;
+            split3 = s3 > splitfactor * s1;
+            xdbg<<"split12 = "<<split1<<"  "<<split2<<std::endl;
+            return false;
+        } else if (s2 > 0 || s3 > 0) {
+            xdbg<<"Don't split 1\n";
+            xdbg<<"phi = "<<phi<<std::endl;
+            // Now figure out if c1 or c2 needs to be split.
+
+            split2 = (s2 > 0.) && (
+                // Apply the d2split that we saved from above.  If we didn't split c1, split c2.
+                // Note: if s1 was 0, then still need to check here.
+                d2split ||
+                (s1==0. && s2 > d3 * b) ||
+
+                // Also, definitely split if s2 > d1
+                (SQR(s2) > d1sq));
+            xdbg<<"split1 = "<<split1<<std::endl;
+
+            split3 = (s3 > 0.) && (
+                // Likewise for c3
+                d3split ||
+                (s1==0. && s3 > d2 * b) ||
+                (SQR(s3) > d1sq));
+            xdbg<<"split2 = "<<split2<<std::endl;
+
+            if (!split1 && !split2) {
+                xdbg<<"max phi = "<<calculate_phi(d1+s2+s3, d2-s1-s3, d3-s1-s2)<<std::endl;
+                xdbg<<"min phi = "<<calculate_phi(d1-s2-s3, d2+s1+s3, d3+s1+s2)<<std::endl;
+                xdbg<<"bphi = "<<bphi<<std::endl;
+            }
+
+            // All other checks mean split at least one of c2 or c3.
+            // Done with ||, so it will stop checking if anything is true.
+            bool split =
+                // Don't bother doing further calculations if already splitting something.
+                split2 || split3 ||
+
+                // Check splitting c2,c3 for phi calculation.
+                (std::abs(calculate_phi(d1+s2+s3, d2-s1-s3, d3-s1-s2) - phi) > bphi) ||
+                (std::abs(calculate_phi(d1-s2-s3, d2+s1+s3, d3+s1+s2) - phi) > bphi);
+
+            if (split) {
+                // If splitting either one, also do the other if it's close.
+                // Because we were so aggressive in splitting c2,c3 above during the c1 splits,
+                // it turns out that here we usually only want to split one, not both.
+                // The above only entails a split if it's the larger one of s2,s3.
+                split2 = split2 || s2 >= s3;
+                split3 = split3 || s3 >= s2;
+                return false;
+            } else {
+                xdbg<<"Don't split 1 or 2\n";
+                return true;
+            }
+        } else {
+            // s1==s2==0 and not splitting s3.
+            // Just need to calculate the terms we guarantee to be set when split=false
+            xdbg<<"Don't split\n";
+            xdbg<<"phi = "<<phi<<std::endl;
+            return true;
+        }
+    }
+
+    template <int M, int C>
+    static bool isTriangleInRange(const BaseCell<C>& c1, const BaseCell<C>& c2,
+                                  const BaseCell<C>& c3, const MetricHelper<M,0>& metric,
+                                  double d1, double d2, double d3, double phi, double& ,
+                                  double logminsep,
+                                  double minsep, double maxsep, double binsize, double nbins,
+                                  double minphi, double maxphi, double phibinsize, double nphibins,
+                                  double , double , double , double ,
+                                  double& logd1, double& logd2, double& logd3,
+                                  int ntot, int& index)
+    {
+        // Make sure all the quantities we thought should be set have been.
+        xdbg<<"isTriangleInRange: "<<d1<<" "<<d1<<" "<<d2<<" "<<phi<<std::endl;
+        Assert(d1 > 0.);
+        Assert(d2 > 0.);
+        Assert(d3 > 0.);
+        Assert(phi >= 0.);
+
+        if (d2 < minsep || d2 >= maxsep) {
+            xdbg<<"d2 not in minsep .. maxsep\n";
+            return false;
+        }
+
+        if (d3 < minsep || d3 >= maxsep) {
+            xdbg<<"d3 not in minsep .. maxsep\n";
+            return false;
+        }
+
+        // c1 is the vertex with phi
+        // c3-c1 is r2
+        // c2-c1 is r3
+        // So flip phi if c1 - c3 - c2 is clockwise.
+        if (!metric.CCW(c1.getData().getPos(), c3.getData().getPos(),
+                        c2.getData().getPos())) {
+            phi = 2*M_PI - phi;
+            xdbg<<"CW: phi = 2pi - phi = "<<phi<<"\n";
+        }
+
+        if (phi < minphi || phi >= maxphi) {
+            xdbg<<"phi not in minphi .. maxphi\n";
+            return false;
+        }
+
+        logd2 = log(d2);
+        logd3 = log(d3);
+        xdbg<<"            logr2 = "<<logd2<<std::endl;
+        xdbg<<"            logr3 = "<<logd3<<std::endl;
+        xdbg<<"            phi = "<<phi<<std::endl;
+
+        int kr2 = int(floor((logd2-logminsep)/binsize));
+        int kr3 = int(floor((logd3-logminsep)/binsize));
+        Assert(kr2 >= 0);
+        Assert(kr3 <= nbins);
+        if (kr2 == nbins) --kr2;  // This is rare, but can happen with numerical differences
+                                  // between the math for log and for non-log checks.
+        Assert(kr2 < nbins);
+
+        Assert(kr3 >= 0);
+        Assert(kr3 <= nbins);
+        if (kr3 == nbins) --kr3;
+        Assert(kr3 < nbins);
+
+        int kphi = int(floor((phi-minphi)/phibinsize));
+        if (kphi >= nphibins) {
+            // Rounding error can allow this.
+            XAssert((phi-minphi)/phibinsize - kphi < 1.e-10);
+            Assert(kphi==nphibins);
+            --kphi;
+        }
+        Assert(kphi >= 0);
+        Assert(kphi < nphibins);
+
+        xdbg<<"d1,d2,d3 = "<<d1<<", "<<d2<<", "<<d3<<std::endl;
+        xdbg<<"r2,r3,phi = "<<d2<<", "<<d3<<", "<<phi<<std::endl;
+        index = (kr2 * nphibins + kphi) * nbins + kr3;
+        xdbg<<"kr2,kr3,kphi = "<<kr2<<", "<<kr3<<", "<<kphi<<":  "<<index<<std::endl;
+        Assert(index >= 0);
+        Assert(index < ntot);
+        // Just to make extra sure we don't get seg faults (since the above
+        // asserts aren't active in normal operations), do a real check that
+        // index is in the allowed range.
+        if (index < 0 || index >= ntot) {
+            return false;
+        }
+        return true;
+    }
+
 };
 
 

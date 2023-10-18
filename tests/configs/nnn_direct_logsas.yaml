@@ -1,0 +1,22 @@
+
+file_name: data/nnn_direct_data_logsas.dat
+rand_file_name: data/nnn_direct_rand_logsas.dat
+
+x_col: 1
+y_col: 2
+
+verbose: 0
+
+bin_type: LogSAS
+
+min_sep: 1.
+max_sep: 50.
+nbins: 20
+min_phi: 0.33
+max_phi: 2.89
+nphi_bins: 10
+
+brute: true
+
+nnn_statistic: simple
+nnn_file_name: output/nnn_direct_logsas.out

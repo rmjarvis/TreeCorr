@@ -25,18 +25,25 @@
 #include "omp.h"
 #endif
 
-int CalculateNTot(BinType bin_type, int nbins, int nubins, int nvbins)
+// Some white space helper functions to make dbg output a little nicer.
+#ifdef DEBUGLOGGING
+int ws_count=0;
+std::string ws()
 {
-    switch(bin_type) {
-      case LogRUV:
-           return BinTypeHelper<LogRUV>::calculateNTot(nbins, nubins, nvbins);
-      case LogSAS:
-           return BinTypeHelper<LogSAS>::calculateNTot(nbins, nubins, nvbins);
-      default:
-           Assert(false);
-    }
-    return 0;
+    // With multiple threads, this can race and end up with ws_count < 0.
+    // Output is garbage then anyway, so just ignore that.
+    if (ws_count < 0) return "";
+    else return std::string(ws_count, ' ');
 }
+void inc_ws() { ++ws_count; }
+void dec_ws() { --ws_count; }
+void reset_ws() { ws_count = 0; }
+#else
+std::string ws() { return ""; }
+void inc_ws() {}
+void dec_ws() {}
+void reset_ws() {}
+#endif
 
 
 BaseCorr3::BaseCorr3(
@@ -50,19 +57,37 @@ BaseCorr3::BaseCorr3(
     _minv(minv), _maxv(maxv), _nvbins(nvbins), _vbinsize(vbinsize), _bv(bv),
     _xp(xp), _yp(yp), _zp(zp), _coords(-1)
 {
+    // Do a few things that are specific to different bin_types.
+    switch(bin_type) {
+      case LogRUV:
+           _ntot = BinTypeHelper<LogRUV>::calculateNTot(nbins, nubins, nvbins);
+           break;
+      case LogSAS:
+           _ntot = BinTypeHelper<LogSAS>::calculateNTot(nbins, nubins, nvbins);
+           // For LogSAS, we don't have v, and min/maxu is really min/maxphi.
+           // So we calculate a different definition of min/maxv, for use in some
+           // of the decision points.
+           //   v = sin(phi/2)
+           _minv = std::sin(_minu/2.);
+           _maxv = std::sin(_maxu/2.);
+           break;
+      default:
+           dbg<<"bin_type = "<<bin_type<<std::endl;
+           Assert(false);
+    }
+
     // Some helpful variables we can calculate once here.
     _logminsep = log(_minsep);
     _halfminsep = 0.5*_minsep;
+    _bsq = _b * _b;
+    _busq = _bu * _bu;
+    _bvsq = _bv * _bv;
     _minsepsq = _minsep*_minsep;
     _maxsepsq = _maxsep*_maxsep;
     _minusq = _minu*_minu;
     _maxusq = _maxu*_maxu;
-    _minvsq = _minv*_minv;
-    _maxvsq = _maxv*_maxv;
-    _bsq = _b * _b;
-    _busq = _bu * _bu;
-    _bvsq = _bv * _bv;
-    _ntot = CalculateNTot(bin_type, nbins, nubins, nvbins);
+    _minvsq = _minv * _minv;
+    _maxvsq = _maxv * _maxv;
 }
 
 template <int D1, int D2, int D3>
@@ -163,10 +188,11 @@ void Corr3<D1,D2,D3>::clear()
 template <int B, int M, int C>
 void BaseCorr3::process(const BaseField<C>& field, bool dots)
 {
+    reset_ws();
     Assert(_coords == -1 || _coords == C);
     _coords = C;
     const long n1 = field.getNTopLevel();
-    xdbg<<"field has "<<n1<<" top level nodes\n";
+    dbg<<"field has "<<n1<<" top level nodes\n";
     Assert(n1 > 0);
 
 #ifdef _OPENMP
@@ -204,9 +230,27 @@ void BaseCorr3::process(const BaseField<C>& field, bool dots)
                 const BaseCell<C>& c2 = *field.getCells()[j];
                 bc3.template process12<B>(bc3, bc3, c1, c2, metric);
                 bc3.template process12<B>(bc3, bc3, c2, c1, metric);
+                if (!BinTypeHelper<B>::sort_d123) {
+                    bc3.process111<B>(bc3, bc3, bc3, bc3, bc3,
+                                      c1, c1, c2, metric);
+                    bc3.process111<B>(bc3, bc3,bc3, bc3, bc3,
+                                      c1, c2, c1, metric);
+                    bc3.process111<B>(bc3, bc3,bc3, bc3, bc3,
+                                      c2, c2, c1, metric);
+                    bc3.process111<B>(bc3, bc3, bc3, bc3, bc3,
+                                      c2, c1, c2, metric);
+                }
                 for (long k=j+1;k<n1;++k) {
                     const BaseCell<C>& c3 = *field.getCells()[k];
                     bc3.template process111<B>(bc3, bc3, bc3, bc3, bc3, c1, c2, c3, metric);
+                    if (!BinTypeHelper<B>::sort_d123) {
+                        // If not sorting later, then here we need to include all triples
+                        bc3.template process111<B>(bc3, bc3, bc3, bc3, bc3, c1, c3, c2, metric);
+                        bc3.template process111<B>(bc3, bc3, bc3, bc3, bc3, c2, c1, c3, metric);
+                        bc3.template process111<B>(bc3, bc3, bc3, bc3, bc3, c2, c3, c1, metric);
+                        bc3.template process111<B>(bc3, bc3, bc3, bc3, bc3, c3, c1, c2, metric);
+                        bc3.template process111<B>(bc3, bc3, bc3, bc3, bc3, c3, c2, c1, metric);
+                    }
                 }
             }
         }
@@ -225,6 +269,7 @@ template <int B, int M, int C>
 void BaseCorr3::process(BaseCorr3& corr212, BaseCorr3& corr221,
                         const BaseField<C>& field1, const BaseField<C>& field2, bool dots)
 {
+    reset_ws();
     xdbg<<"_coords = "<<_coords<<std::endl;
     xdbg<<"C = "<<C<<std::endl;
     Assert(_coords == -1 || _coords == C);
@@ -288,13 +333,40 @@ void BaseCorr3::process(BaseCorr3& corr212, BaseCorr3& corr221,
             for (long j=0;j<n2;++j) {
                 const BaseCell<C>& c2 = *field2.getCells()[j];
                 bc122.template process12<B>(bc212, bc221, c1, c2, metric);
+                if (!BinTypeHelper<B>::sort_d123) {
+                    if (&corr212 != this) {
+                        bc212.process111<B>(bc221, bc122, bc122, bc221, bc212,
+                                            c2, c1, c2, metric);
+                    }
+                    if (&corr221 != this) {
+                        bc221.process111<B>(bc212, bc221, bc212, bc122, bc122,
+                                            c2, c2, c1, metric);
+                    }
+                }
                 for (long k=j+1;k<n2;++k) {
                     const BaseCell<C>& c3 = *field2.getCells()[k];
                     bc122.template process111<B>(bc122, bc212, bc221, bc212, bc221,
                                                  c1, c2, c3, metric);
+                    if (!BinTypeHelper<B>::sort_d123) {
+                        // If not sorting later, then here we need to include all triples
+                        bc122.template process111<B>(bc122, bc212, bc221, bc212, bc221,
+                                                     c1, c3, c2, metric);
+                        if (&corr212 != this) {
+                            bc212.process111<B>(bc221, bc122, bc122, bc221, bc212,
+                                                c2, c1, c3, metric);
+                            bc212.process111<B>(bc221, bc122, bc122, bc221, bc212,
+                                                c3, c1, c2, metric);
+                        }
+                        if (&corr221 != this) {
+                            bc221.process111<B>(bc212, bc221, bc212, bc122, bc122,
+                                                c2, c3, c1, metric);
+                            bc221.process111<B>(bc212, bc221, bc212, bc122, bc122,
+                                                c3, c2, c1, metric);
+                        }
+                    }
                 }
             }
-         }
+        }
 #ifdef _OPENMP
         // Accumulate the results
 #pragma omp critical
@@ -315,6 +387,7 @@ void BaseCorr3::process(BaseCorr3& corr132,
                         const BaseField<C>& field1, const BaseField<C>& field2,
                         const BaseField<C>& field3, bool dots)
 {
+    reset_ws();
     xdbg<<"_coords = "<<_coords<<std::endl;
     xdbg<<"C = "<<C<<std::endl;
     Assert(_coords == -1 || _coords == C);
@@ -400,6 +473,24 @@ void BaseCorr3::process(BaseCorr3& corr132,
                     bc123.template process111<B>(
                         bc132, bc213, bc231, bc312, bc321,
                         c1, c2, c3, metric);
+                    if (!BinTypeHelper<B>::sort_d123) {
+                        // If not sorting later, then here we need to include all triples
+                        if (&corr132 != this)
+                            bc132.process111<B>(bc123, bc312, bc321, bc213, bc231,
+                                                c1, c3, c2, metric);
+                        if (&corr213 != this)
+                            bc213.process111<B>(bc231, bc123, bc132, bc321, bc312,
+                                                c2, c1, c3, metric);
+                        if (&corr312 != this)
+                            bc312.process111<B>(bc321, bc132, bc123, bc231, bc213,
+                                                c2, c1, c3, metric);
+                        if (&corr231 != this)
+                            bc231.process111<B>(bc213, bc321, bc312, bc123, bc132,
+                                                c2, c1, c3, metric);
+                        if (&corr321 != this)
+                            bc321.process111<B>(bc312, bc231, bc213, bc132, bc123,
+                                                c3, c2, c1, metric);
+                    }
                 }
             }
         }
@@ -424,21 +515,39 @@ void BaseCorr3::process3(const BaseCell<C>& c1, const MetricHelper<M,0>& metric)
 {
     // Does all triangles with 3 points in c1
     xdbg<<"Process3: c1 = "<<c1.getData().getPos()<<"  "<<"  "<<c1.getSize()<<"  "<<c1.getData().getN()<<std::endl;
+#ifdef DEBUGLOGGING
+    dbg<<ws()<<"Process3: c1 = [";
+    for (int k : c1.getAllIndices()) dbg<<k<<" ";
+    dbg<<"]\n";
+#endif
+
     if (c1.getW() == 0) {
-        xdbg<<"    w == 0.  return\n";
+        dbg<<ws()<<"    w == 0.  return\n";
         return;
     }
     if (c1.getSize() < _halfminsep) {
-        xdbg<<"    size < halfminsep.  return\n";
+        dbg<<ws()<<"    size < halfminsep.  return\n";
         return;
     }
 
+    inc_ws();
     Assert(c1.getLeft());
     Assert(c1.getRight());
     process3<B>(*c1.getLeft(), metric);
     process3<B>(*c1.getRight(), metric);
     process12<B>(*this, *this, *c1.getLeft(), *c1.getRight(), metric);
     process12<B>(*this, *this, *c1.getRight(), *c1.getLeft(), metric);
+    if (!BinTypeHelper<B>::sort_d123) {
+        process111<B>(*this, *this, *this, *this, *this,
+                      *c1.getLeft(), *c1.getLeft(), *c1.getRight(), metric);
+        process111<B>(*this, *this, *this, *this, *this,
+                      *c1.getLeft(), *c1.getRight(), *c1.getLeft(), metric);
+        process111<B>(*this, *this, *this, *this, *this,
+                      *c1.getRight(), *c1.getLeft(), *c1.getRight(), metric);
+        process111<B>(*this, *this, *this, *this, *this,
+                      *c1.getRight(), *c1.getRight(), *c1.getLeft(), metric);
+    }
+    dec_ws();
 }
 
 template <int B, int M, int C>
@@ -449,20 +558,27 @@ void BaseCorr3::process12(BaseCorr3& bc212, BaseCorr3& bc221,
     // Does all triangles with one point in c1 and the other two points in c2
     xdbg<<"Process12: c1 = "<<c1.getData().getPos()<<"  "<<"  "<<c1.getSize()<<"  "<<c1.getData().getN()<<std::endl;
     xdbg<<"           c2  = "<<c2.getData().getPos()<<"  "<<"  "<<c2.getSize()<<"  "<<c2.getData().getN()<<std::endl;
+#ifdef DEBUGLOGGING
+    dbg<<ws()<<"Process12: c1 = [";
+    for (int k : c1.getAllIndices()) dbg<<k<<" ";
+    dbg<<"]  c2 = [";
+    for (int k : c2.getAllIndices()) dbg<<k<<" ";
+    dbg<<"]\n";
+#endif
 
     // Some trivial stoppers:
     if (c1.getW() == 0) {
-        xdbg<<"    w1 == 0.  return\n";
+        dbg<<ws()<<"    w1 == 0.  return\n";
         return;
     }
     if (c2.getW() == 0) {
-        xdbg<<"    w2 == 0.  return\n";
+        dbg<<ws()<<"    w2 == 0.  return\n";
         return;
     }
     double s2 = c2.getSize();
     if (BinTypeHelper<B>::tooSmallS2(s2, _halfminsep, _minu, _minv))
     {
-        xdbg<<"    s2 smaller than minimum triangle side.  return\n";
+        dbg<<ws()<<"    s2 smaller than minimum triangle side.  return\n";
         return;
     }
 
@@ -473,32 +589,39 @@ void BaseCorr3::process12(BaseCorr3& bc212, BaseCorr3& bc221,
     // If all possible triangles will have d2 < minsep, then abort the recursion here.
     // i.e. if d + s1 + s2 < minsep
     if (BinTypeHelper<B>::tooSmallDist(rsq, s1ps2, _minsep, _minsepsq)) {
-        xdbg<<"    d2 cannot be as large as minsep\n";
+        dbg<<ws()<<"    d2 cannot be as large as minsep\n";
         return;
     }
 
     // Similarly, we can abort if all possible triangles will have d > maxsep.
     // i.e. if  d - s1 - s2 >= maxsep
     if (BinTypeHelper<B>::tooLargeDist(rsq, s1ps2, _maxsep, _maxsepsq)) {
-        xdbg<<"    d cannot be as small as maxsep\n";
+        dbg<<ws()<<"    d cannot be as small as maxsep\n";
         return;
     }
 
     // Depending on the binning, we may be able to stop due to allowed angles.
     if (BinTypeHelper<B>::noAllowedAngles(rsq, s1ps2, s1, s2,
                                          _minu, _minusq, _maxu, _maxusq,
-                                         _minv, _maxv)) {
-        xdbg<<"    No possible triangles with allowed angles\n";
+                                         _minv, _maxv, _minvsq, _maxvsq)) {
+        dbg<<ws()<<"    No possible triangles with allowed angles\n";
         return;
     }
 
+    inc_ws();
     Assert(c2.getLeft());
     Assert(c2.getRight());
     process12<B>(bc212, bc221, c1, *c2.getLeft(), metric);
     process12<B>(bc212, bc221, c1, *c2.getRight(), metric);
     // 111 order is 123, 132, 213, 231, 312, 321   Here 3->2.
-    process111<B>(*this, bc212, bc221, bc212, bc221,
-                  c1, *c2.getLeft(), *c2.getRight(), metric);
+    BaseCorr3& bc122 = *this;  // alias for clarity.
+    bc122.process111<B>(bc122, bc212, bc221, bc212, bc221,
+                        c1, *c2.getLeft(), *c2.getRight(), metric);
+    if (!BinTypeHelper<B>::sort_d123) {
+        bc122.process111<B>(bc122, bc212, bc221, bc212, bc221,
+                            c1, *c2.getRight(), *c2.getLeft(), metric);
+    }
+    dec_ws();
 }
 
 template <int B, int M, int C>
@@ -507,17 +630,26 @@ void BaseCorr3::process111(
     const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
     const MetricHelper<M,0>& metric, double d1sq, double d2sq, double d3sq)
 {
+#ifdef DEBUGLOGGING
+    dbg<<ws()<<"Process111: c1 = [";
+    for (int k : c1.getAllIndices()) dbg<<k<<" ";
+    dbg<<"]  c2 = [";
+    for (int k : c2.getAllIndices()) dbg<<k<<" ";
+    dbg<<"]  c3 = [";
+    for (int k : c3.getAllIndices()) dbg<<k<<" ";
+    dbg<<"]\n";
+#endif
     // Does all triangles with 1 point each in c1, c2, c3
     if (c1.getW() == 0) {
-        xdbg<<"    w1 == 0.  return\n";
+        dbg<<ws()<<"    w1 == 0.  return\n";
         return;
     }
     if (c2.getW() == 0) {
-        xdbg<<"    w2 == 0.  return\n";
+        dbg<<ws()<<"    w2 == 0.  return\n";
         return;
     }
     if (c3.getW() == 0) {
-        xdbg<<"    w3 == 0.  return\n";
+        dbg<<ws()<<"    w3 == 0.  return\n";
         return;
     }
 
@@ -530,11 +662,11 @@ void BaseCorr3::process111(
     if (d3sq == 0.)
         d3sq = metric.DistSq(c1.getData().getPos(), c2.getData().getPos(), s, s);
 
-    xdbg<<"Before sort: d123 = "<<sqrt(d1sq)<<"  "<<sqrt(d2sq)<<"  "<<sqrt(d3sq)<<std::endl;
-
     BaseCorr3& bc123 = *this;  // alias for clarity.
 
+    inc_ws();
     if (BinTypeHelper<B>::sort_d123) {
+        xdbg<<"Before sort: d123 = "<<sqrt(d1sq)<<"  "<<sqrt(d2sq)<<"  "<<sqrt(d3sq)<<std::endl;
 
         // Need to end up with d1 > d2 > d3
         if (d1sq > d2sq) {
@@ -576,6 +708,7 @@ void BaseCorr3::process111(
         bc123.template process111Sorted<B>(bc132, bc213, bc231, bc312, bc321,
                                            c1, c2, c3, metric, d1sq, d2sq, d3sq);
     }
+    dec_ws();
 }
 
 template <int B, int M, int C>
@@ -592,8 +725,19 @@ void BaseCorr3::process111Sorted(
     xdbg<<"                  c2 = "<<c2.getData().getPos()<<"  "<<"  "<<c2.getSize()<<"  "<<c2.getData().getN()<<std::endl;
     xdbg<<"                  c3 = "<<c3.getData().getPos()<<"  "<<"  "<<c3.getSize()<<"  "<<c3.getData().getN()<<std::endl;
     xdbg<<"                  d123 = "<<sqrt(d1sq)<<"  "<<sqrt(d2sq)<<"  "<<sqrt(d3sq)<<std::endl;
-    Assert(d1sq >= d2sq);
-    Assert(d2sq >= d3sq);
+    if (BinTypeHelper<B>::sort_d123) {
+        Assert(d1sq >= d2sq);
+        Assert(d2sq >= d3sq);
+    }
+
+    if ((s1 == 0. && (&c1 == &c2 || &c1 == &c3)) ||
+        (s2 == 0. && (&c2 == &c1 || &c2 == &c3)) ||
+        (s3 == 0. && (&c3 == &c1 || &c3 == &c2))) {
+        dbg<<ws()<<"Stopping early -- two identical leaf cells in triangle\n";
+        xdbg<<"s = "<<s1<<" "<<s2<<" "<<s3<<std::endl;
+        xdbg<<"dsq = "<<d1sq<<" "<<d2sq<<" "<<d3sq<<std::endl;
+        return;
+    }
 
     // Various quanities that we'll set along the way if we need them.
     // At the end, if singleBin is true, then all these will be set correctly.
@@ -603,7 +747,7 @@ void BaseCorr3::process111Sorted(
                                   _minu, _minusq, _maxu, _maxusq,
                                   _minv, _minvsq, _maxv, _maxvsq))
     {
-        xdbg<<"Stopping early -- no possible triangles in range\n";
+        dbg<<ws()<<"Stopping early -- no possible triangles in range\n";
         return;
     }
 
@@ -628,6 +772,8 @@ void BaseCorr3::process111Sorted(
                                                 _ntot, index))
         {
             directProcess111<B>(c1, c2, c3, d1, d2, d3, u, v, logd1, logd2, logd3, index);
+        } else {
+            dbg<<ws()<<"Triangle not in range\n";
         }
     } else {
         xdbg<<"Need to split.\n";
@@ -839,9 +985,7 @@ void Corr3<D1,D2,D3>::finishProcess(
 {
     double nnn = double(c1.getData().getN()) * c2.getData().getN() * c3.getData().getN();
     _ntri[index] += nnn;
-    xdbg<<"            index = "<<index<<std::endl;
-    xdbg<<"            nnn = "<<nnn<<std::endl;
-    xdbg<<"            ntri = "<<_ntri[index]<<std::endl;
+    dbg<<ws()<<"Index = "<<index<<", nnn = "<<nnn<<" => "<<_ntri[index]<<std::endl;
 
     double www = c1.getData().getW() * c2.getData().getW() * c3.getData().getW();
     _meand1[index] += www * d1;

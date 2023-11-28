@@ -169,8 +169,15 @@ implicitly defined a resolution below which you don't care about the exact separ
 values.  
 
 The approximation TreeCorr makes is to allow some *additional* imprecision that is a
-fraction of this level.  Namely ``bin_slop``.  Specifically, ``bin_slop`` specifies the
-maximum possible error any pair can have, given as a fraction of the bin size.
+fraction of this level, which is quantified by the parameter ``bin_slop``.
+Specifically, ``bin_slop`` specifies the
+maximum possible error that any pair can have, given as a fraction of the bin size.
+
+.. note::
+    For logarithmic binning, this refers to the size of the bin in logarithmic units,
+    so it specifies the maximum error allowed for ``log(r)`` relative to the size of the
+    bin in logarithmic units, ``log(R) - log(L)``, where ``L`` and ``R`` are the left and right
+    edges of the bin.
 
 You can think of it as turning all of your rectangular bins into overlapping trapezoids,
 where ``bin_slop`` defines the ratio of the angled portion to the flat mean width.
@@ -195,7 +202,8 @@ where each pair of points is always placed into the correct bin.
 
 But if ``bin_slop`` > 0, then any given pair is allowed to be placed in the wrong bin
 so long as the true separation is within this fraction of a bin from the edge.
-For example, if a bin nominally goes from 10 to 20 arcmin, then with ``bin_slop`` = 0.05,
+For example, if a bin nominally goes from 10 to 20 arcmin (with linear binning),
+then with ``bin_slop`` = 0.05,
 TreeCorr will accumulate pairs with separations ranging from 9.5 to 20.5 arcmin into this
 bin.  (I.e. the slop is 0.05 of the bin width on each side.)
 Note that some of the pairs with separations from 9.5 to 10.5 would possibly fall into the

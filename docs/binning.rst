@@ -173,7 +173,7 @@ fraction of this level.  Namely ``bin_slop``.  Specifically, ``bin_slop`` specif
 maximum possible error any pair can have, given as a fraction of the bin size. By bin size,
 we mean the size in logarithmic units for log binning (i.e., ``log(H) - log(L)``
 and linear units for linear binning (i.e., ``H-L``) where ``H`` and ``L`` are the upper
-anf lower bounds of the bin.
+and lower bounds of the bin.
 
 You can think of it as turning all of your rectangular bins into overlapping trapezoids,
 where ``bin_slop`` defines the ratio of the angled portion to the flat mean width.

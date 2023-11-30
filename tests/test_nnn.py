@@ -932,7 +932,10 @@ def test_direct_count_auto():
     # If the catalogs are small enough, we can do a direct count of the number of triangles
     # to see if comes out right.  This should exactly match the treecorr code if bin_slop=0.
 
-    ngal = 50
+    if __name__ == '__main__':
+        ngal = 200
+    else:
+        ngal = 50
     s = 10.
     rng = np.random.RandomState(8675309)
     x = rng.normal(0,s, (ngal,) )
@@ -1343,7 +1346,10 @@ def test_direct_count_cross():
     # If the catalogs are small enough, we can do a direct count of the number of triangles
     # to see if comes out right.  This should exactly match the treecorr code if brute=True
 
-    ngal = 50
+    if __name__ == '__main__':
+        ngal = 200
+    else:
+        ngal = 50
     s = 10.
     rng = np.random.RandomState(8675309)
     x1 = rng.normal(0,s, (ngal,) )
@@ -1627,7 +1633,10 @@ def test_direct_count_cross():
 def test_direct_count_cross12():
     # Check the 1-2 cross correlation
 
-    ngal = 50
+    if __name__ == '__main__':
+        ngal = 200
+    else:
+        ngal = 50
     s = 10.
     rng = np.random.RandomState(8675309)
     x1 = rng.normal(0,s, (ngal,) )
@@ -1780,7 +1789,10 @@ def test_direct_count_cross12():
 def test_direct_spherical():
     # Repeat in spherical coords
 
-    ngal = 50
+    if __name__ == '__main__':
+        ngal = 200
+    else:
+        ngal = 50
     s = 10.
     rng = np.random.RandomState(8675309)
     x = rng.normal(0,s, (ngal,) )
@@ -1877,7 +1889,10 @@ def test_direct_spherical():
 def test_direct_arc():
     # Repeat the spherical test with metric='Arc'
 
-    ngal = 5
+    if __name__ == '__main__':
+        ngal = 200
+    else:
+        ngal = 50
     s = 10.
     rng = np.random.RandomState(8675309)
     x = rng.normal(0,s, (ngal,) )
@@ -1891,7 +1906,7 @@ def test_direct_arc():
 
     min_sep = 1.
     max_sep = 180.
-    nrbins = 50
+    nrbins = 10
     nubins = 5
     nvbins = 5
     bin_size = np.log((max_sep / min_sep)) / nrbins
@@ -1972,7 +1987,7 @@ def test_direct_arc():
                                   nubins=nubins, ubin_size=ubin_size,
                                   nvbins=nvbins, vbin_size=vbin_size,
                                   sep_units='deg', bin_slop=0, max_top=0)
-    ddd.process(cat)
+    ddd.process(cat, metric='Arc')
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
     np.testing.assert_allclose(ddd.weight, true_weight, rtol=1.e-5, atol=1.e-8)
 
@@ -1981,7 +1996,10 @@ def test_direct_arc():
 def test_direct_partial():
     # Test the two ways to only use parts of a catalog:
 
-    ngal = 100
+    if __name__ == '__main__':
+        ngal = 200
+    else:
+        ngal = 100
     s = 10.
     rng = np.random.RandomState(8675309)
     x1 = rng.normal(0,s, (ngal,) )
@@ -2145,7 +2163,10 @@ def test_direct_partial():
 def test_direct_3d_auto():
     # This is the same as test_direct_count_auto, but using the 3d correlations
 
-    ngal = 50
+    if __name__ == '__main__':
+        ngal = 200
+    else:
+        ngal = 50
     s = 10.
     rng = np.random.RandomState(8675309)
     x = rng.normal(312, s, (ngal,) )
@@ -2286,7 +2307,10 @@ def test_direct_3d_auto():
 def test_direct_3d_cross():
     # This is the same as test_direct_count_cross, but using the 3d correlations
 
-    ngal = 50
+    if __name__ == '__main__':
+        ngal = 200
+    else:
+        ngal = 50
     s = 10.
     rng = np.random.RandomState(8675309)
     x1 = rng.normal(312, s, (ngal,) )
@@ -3156,7 +3180,10 @@ def test_direct_count_auto_logsas():
     # If the catalogs are small enough, we can do a direct count of the number of triangles
     # to see if comes out right.  This should exactly match the treecorr code if bin_slop=0.
 
-    ngal = 50
+    if __name__ == '__main__':
+        ngal = 200
+    else:
+        ngal = 50
     s = 10.
     rng = np.random.RandomState(8675309)
     x = rng.normal(0,s, (ngal,) )
@@ -3348,7 +3375,10 @@ def test_direct_count_cross_logsas():
     # If the catalogs are small enough, we can do a direct count of the number of triangles
     # to see if comes out right.  This should exactly match the treecorr code if brute=True
 
-    ngal = 50
+    if __name__ == '__main__':
+        ngal = 200
+    else:
+        ngal = 50
     s = 10.
     rng = np.random.RandomState(8675309)
     x1 = rng.normal(0,s, (ngal,) )
@@ -3645,7 +3675,10 @@ def test_direct_count_cross_logsas():
 def test_direct_count_cross12_logsas():
     # Check the 1-2 cross correlation
 
-    ngal = 50
+    if __name__ == '__main__':
+        ngal = 200
+    else:
+        ngal = 50
     s = 10.
     rng = np.random.RandomState(8675309)
     x1 = rng.normal(0,s, (ngal,) )

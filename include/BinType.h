@@ -775,10 +775,10 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
             double d1max = 2*s2;
             double phi_max = calculate_phi(d1max, d2min, d2min);
             if (!(phi_max >= minphi)) {
-                dbg<<"noAllowedAngles: "<<sqrt(rsq)<<"  "<<s1ps2<<"  "<<s1<<"  "<<s2<<std::endl;
-                dbg<<"d2min = "<<d2min<<", d1max = "<<d1max<<std::endl;
-                dbg<<"phi_max = "<<phi_max<<std::endl;
-                dbg<<"minphi = "<<minphi<<std::endl;
+                xdbg<<"noAllowedAngles: "<<sqrt(rsq)<<"  "<<s1ps2<<"  "<<s1<<"  "<<s2<<std::endl;
+                xdbg<<"d2min = "<<d2min<<", d1max = "<<d1max<<std::endl;
+                xdbg<<"phi_max = "<<phi_max<<std::endl;
+                xdbg<<"minphi = "<<minphi<<std::endl;
                 return true;
             } else {
                 return false;
@@ -832,7 +832,7 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
         if (d2sq < minsepsq && d3sq < minsepsq && s1+s3 < minsep && s1+s2 < minsep &&
             (s1+s3 == 0. || d2sq < SQR(minsep - s1-s3)) &&
             (s1+s2 == 0. || d3sq < SQR(minsep - s1-s2)) ) {
-            dbg<<"d2,d3 cannot be as large as minsep\n";
+            xdbg<<"d2,d3 cannot be as large as minsep\n";
             return true;
         }
 
@@ -840,7 +840,7 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
         if (d2sq >= maxsepsq && d3sq >= maxsepsq &&
             (s1+s3 == 0. || d2sq >= SQR(maxsep + s1+s3)) &&
             (s1+s2 == 0. || d3sq >= SQR(maxsep + s1+s2))) {
-            dbg<<"d2 cannot be as small as maxsep\n";
+            xdbg<<"d2 cannot be as small as maxsep\n";
             return true;
         }
 
@@ -870,16 +870,16 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
             }
         }
         if (minphi > 0 && phi < minphi && phi + dphi < minphi) {
-            dbg<<"phi_max = "<<phi+dphi<<std::endl;
-            dbg<<"phi cannot be as large as minphi\n";
+            xdbg<<"phi_max = "<<phi+dphi<<std::endl;
+            xdbg<<"phi cannot be as large as minphi\n";
             return true;
         }
 
         // If the user sets maxphi < pi, then we can abort if no possible triangle can have
         // phi as small as this.
         if (maxphi < M_PI && phi > maxphi && phi - dphi > maxphi) {
-            dbg<<"phi_min = "<<phi-dphi<<std::endl;
-            dbg<<"phi cannot be as small as maxphi\n";
+            xdbg<<"phi_min = "<<phi-dphi<<std::endl;
+            xdbg<<"phi cannot be as small as maxphi\n";
             return true;
         }
 

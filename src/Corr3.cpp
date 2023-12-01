@@ -27,6 +27,7 @@
 
 // Some white space helper functions to make dbg output a little nicer.
 #ifdef DEBUGLOGGING
+#include <sstream>
 int ws_count=0;
 std::string ws()
 {
@@ -38,11 +39,20 @@ std::string ws()
 void inc_ws() { ++ws_count; }
 void dec_ws() { --ws_count; }
 void reset_ws() { ws_count = 0; }
+template <int C>
+std::string indices(const BaseCell<C>& c) {
+    std::stringstream ss;
+    ss<<"[";
+    for (int k : c.getAllIndices()) ss<<k<<" ";
+    ss<<"]";
+    return ss.str();
+}
 #else
 std::string ws() { return ""; }
 void inc_ws() {}
 void dec_ws() {}
 void reset_ws() {}
+template <int C> std::string indices(const BaseCell<C>& c) { return ""; }
 #endif
 
 
@@ -515,11 +525,7 @@ void BaseCorr3::process3(const BaseCell<C>& c1, const MetricHelper<M,0>& metric)
 {
     // Does all triangles with 3 points in c1
     xdbg<<"Process3: c1 = "<<c1.getData().getPos()<<"  "<<"  "<<c1.getSize()<<"  "<<c1.getData().getN()<<std::endl;
-#ifdef DEBUGLOGGING
-    dbg<<ws()<<"Process3: c1 = [";
-    for (int k : c1.getAllIndices()) dbg<<k<<" ";
-    dbg<<"]\n";
-#endif
+    dbg<<ws()<<"Process3: c1 = "<<indices(c1)<<"\n";
 
     if (c1.getW() == 0) {
         dbg<<ws()<<"    w == 0.  return\n";
@@ -558,13 +564,7 @@ void BaseCorr3::process12(BaseCorr3& bc212, BaseCorr3& bc221,
     // Does all triangles with one point in c1 and the other two points in c2
     xdbg<<"Process12: c1 = "<<c1.getData().getPos()<<"  "<<"  "<<c1.getSize()<<"  "<<c1.getData().getN()<<std::endl;
     xdbg<<"           c2  = "<<c2.getData().getPos()<<"  "<<"  "<<c2.getSize()<<"  "<<c2.getData().getN()<<std::endl;
-#ifdef DEBUGLOGGING
-    dbg<<ws()<<"Process12: c1 = [";
-    for (int k : c1.getAllIndices()) dbg<<k<<" ";
-    dbg<<"]  c2 = [";
-    for (int k : c2.getAllIndices()) dbg<<k<<" ";
-    dbg<<"]\n";
-#endif
+    dbg<<ws()<<"Process12: c1 = "<<indices(c1)<<"  c2 = "<<indices(c2)<<"\n";
 
     // Some trivial stoppers:
     if (c1.getW() == 0) {
@@ -630,15 +630,7 @@ void BaseCorr3::process111(
     const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
     const MetricHelper<M,0>& metric, double d1sq, double d2sq, double d3sq)
 {
-#ifdef DEBUGLOGGING
-    dbg<<ws()<<"Process111: c1 = [";
-    for (int k : c1.getAllIndices()) dbg<<k<<" ";
-    dbg<<"]  c2 = [";
-    for (int k : c2.getAllIndices()) dbg<<k<<" ";
-    dbg<<"]  c3 = [";
-    for (int k : c3.getAllIndices()) dbg<<k<<" ";
-    dbg<<"]\n";
-#endif
+    dbg<<ws()<<"Process111: c1 = "<<indices(c1)<<"  c2 = "<<indices(c2)<<"  c3 = "<<indices(c3)<<"\n";
     // Does all triangles with 1 point each in c1, c2, c3
     if (c1.getW() == 0) {
         dbg<<ws()<<"    w1 == 0.  return\n";

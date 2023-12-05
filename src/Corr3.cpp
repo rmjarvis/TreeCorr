@@ -491,13 +491,13 @@ void BaseCorr3::process(BaseCorr3& corr132,
                         if (&corr213 != this)
                             bc213.process111<B>(bc231, bc123, bc132, bc321, bc312,
                                                 c2, c1, c3, metric);
-                        if (&corr312 != this)
+                        if (&corr312 != this && &corr312 != &corr213)
                             bc312.process111<B>(bc321, bc132, bc123, bc231, bc213,
                                                 c3, c1, c2, metric);
                         if (&corr231 != this)
                             bc231.process111<B>(bc213, bc321, bc312, bc123, bc132,
                                                 c2, c3, c1, metric);
-                        if (&corr321 != this)
+                        if (&corr321 != this && &corr321 != &corr231)
                             bc321.process111<B>(bc312, bc231, bc213, bc132, bc123,
                                                 c3, c2, c1, metric);
                     }

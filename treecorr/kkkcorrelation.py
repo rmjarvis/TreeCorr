@@ -375,9 +375,9 @@ class KKKCorrelation(Corr3):
     def finalize(self, vark1, vark2, vark3):
         """Finalize the calculation of the correlation function.
 
-        The `process_auto` and `process_cross` commands accumulate values in each bin,
-        so they can be called multiple times if appropriate.  Afterwards, this command
-        finishes the calculation by dividing by the total weight.
+        The `process_auto`, `process_cross12` and `process_cross` commands accumulate values in
+        each bin, so they can be called multiple times if appropriate.  Afterwards, this command
+        finishes the calculation of meanlogr, meanu, meanv by dividing by the total weight.
 
         Parameters:
             vark1 (float):  The variance of the first scalar field.
@@ -911,9 +911,9 @@ class KKKCrossCorrelation(Corr3):
     def finalize(self, vark1, vark2, vark3):
         """Finalize the calculation of the correlation function.
 
-        The `process_cross` command accumulate values in each bin, so they can be called
-        multiple times if appropriate.  Afterwards, this command finishes the calculation
-        by dividing by the total weight.
+        The `process_cross12` and `process_cross` commands accumulate values in each bin, so
+        they can be called multiple times if appropriate.  Afterwards, this command finishes the
+        calculation by dividing by the total weight.
 
         Parameters:
             vark1 (float):  The variance of the first scalar field that was correlated.

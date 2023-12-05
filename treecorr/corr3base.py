@@ -907,7 +907,7 @@ class Corr3(object):
         """
         return np.any(self.ntri)
 
-    def _add_tot(self, i, j, k, c1, c2, c3):
+    def _add_tot(self, ijk, c1, c2, c3):
         # No op for all but NNCorrelation, which needs to add the tot value
         pass
 
@@ -921,6 +921,46 @@ class Corr3(object):
         d2 = ((x3-x1)**2 + (y3-y1)**2 + (z3-z1)**2)**0.5
         d3, d2, d1 = sorted([d1,d2,d3])
         return (d2 > s1 + s2 + s3 + 2*self._max_sep)  # The 2* is where we are being conservative.
+
+    def _single_process12(self, c1, c2, ijj, metric, num_threads, temp):
+        # Helper function for _process_all_auto, etc. for doing 12 cross pairs
+        temp.clear()
+
+        if not self._trivially_zero(c1,c2,c2,metric):
+            self.logger.info('Process patches %s cross12',ijj)
+            temp.process_cross12(c1, c2, metric=metric, num_threads=num_threads)
+        else:
+            self.logger.info('Skipping %s pair, which are too far apart ' +
+                             'for this set of separations',ijj)
+        if temp.nonzero:
+            if ijj in self.results and self.results[ijj].nonzero:
+                self.results[ijj] += temp
+            else:
+                self.results[ijj] = temp.copy()
+            self += temp
+        else:
+            # NNNCorrelation needs to add the tot value
+            self._add_tot(ijj, c1, c2, c2)
+
+    def _single_process123(self, c1, c2, c3, ijk, metric, num_threads, temp):
+        # Helper function for _process_all_auto, etc. for doing 123 cross triples
+        temp.clear()
+
+        if not self._trivially_zero(c1,c2,c3,metric):
+            self.logger.info('Process patches %s cross',ijk)
+            temp.process_cross(c1, c2, c3, metric=metric, num_threads=num_threads)
+        else:
+            self.logger.info('Skipping %s, which are too far apart ' +
+                             'for this set of separations',ijk)
+        if temp.nonzero:
+            if ijk in self.results and self.results[ijk].nonzero:
+                self.results[ijk] += temp
+            else:
+                self.results[ijk] = temp.copy()
+            self += temp
+        else:
+            # NNNCorrelation needs to add the tot value
+            self._add_tot(ijk, c1, c2, c3)
 
     def _process_all_auto(self, cat1, metric, num_threads, comm=None, low_mem=False):
 
@@ -993,61 +1033,29 @@ class Corr3(object):
                     j = c2.patch if c2.patch is not None else jj
                     if i < j:
                         if is_my_job(my_indices, i, j, j, n):
-                            temp.clear()
                             # One point in c1, 2 in c2.
-                            if not self._trivially_zero(c1,c2,c2,metric):
-                                self.logger.info('Process patches %d,%d cross12',i,j)
-                                temp.process_cross12(c1, c2, metric=metric, num_threads=num_threads)
-                            else:
-                                self.logger.info('Skipping %d,%d pair, which are too far apart ' +
-                                                 'for this set of separations',i,j)
-                            if temp.nonzero:
-                                if (i,j,j) in self.results and self.results[(i,j,j)].nonzero:
-                                    self.results[(i,j,j)] += temp
-                                else:
-                                    self.results[(i,j,j)] = temp.copy()
-                                self += temp
-                            else:
-                                # NNNCorrelation needs to add the tot value
-                                self._add_tot(i, j, j, c1, c2, c2)
-
-                            temp.clear()
+                            self._single_process12(c1,c2,(i,j,j),metric,num_threads,temp)
                             # One point in c2, 2 in c1.
-                            if not self._trivially_zero(c1,c1,c2,metric):
-                                self.logger.info('Process patches %d,%d cross12',j,i)
-                                temp.process_cross12(c2, c1, metric=metric, num_threads=num_threads)
-                            if temp.nonzero:
-                                if (i,i,j) in self.results and self.results[(i,i,j)].nonzero:
-                                    self.results[(i,i,j)] += temp
-                                else:
-                                    self.results[(i,i,j)] = temp.copy()
-                                self += temp
-                            else:
-                                # NNNCorrelation needs to add the tot value
-                                self._add_tot(i, i, j, c2, c1, c1)
+                            self._single_process12(c2,c1,(i,i,j),metric,num_threads,temp)
+
+                            if self.bin_type == 'LogSAS':
+                                self._single_process123(c1,c1,c2,i,i,j,metric,num_threads,temp)
+                                self._single_process123(c1,c2,c1,i,j,i,metric,num_threads,temp)
+                                self._single_process123(c2,c1,c2,j,i,j,metric,num_threads,temp)
+                                self._single_process123(c2,c2,c1,j,j,i,metric,num_threads,temp)
 
                         # One point in each of c1, c2, c3
                         for kk,c3 in enumerate(cat1):
                             k = c3.patch if c3.patch is not None else kk
                             if j < k and is_my_job(my_indices, i, j, k, n):
-                                temp.clear()
+                                self._single_process123(c1,c2,c3,(i,j,k),metric,num_threads,temp)
+                                if self.bin_type == 'LogSAS':
+                                    self._single_process123(c1,c3,c2,i,k,j,metric,num_threads,temp)
+                                    self._single_process123(c2,c1,c3,j,i,k,metric,num_threads,temp)
+                                    self._single_process123(c2,c3,c1,j,k,i,metric,num_threads,temp)
+                                    self._single_process123(c3,c1,c2,k,i,j,metric,num_threads,temp)
+                                    self._single_process123(c3,c2,c1,k,j,i,metric,num_threads,temp)
 
-                                if not self._trivially_zero(c1,c2,c3,metric):
-                                    self.logger.info('Process patches %d,%d,%d cross',i,j,k)
-                                    temp.process_cross(c1, c2, c3, metric=metric,
-                                                       num_threads=num_threads)
-                                else:
-                                    self.logger.info('Skipping %d,%d,%d, which are too far apart ' +
-                                                     'for this set of separations',i,j,k)
-                                if temp.nonzero:
-                                    if (i,j,k) in self.results and self.results[(i,j,k)].nonzero:
-                                        self.results[(i,j,k)] += temp
-                                    else:
-                                        self.results[(i,j,k)] = temp.copy()
-                                    self += temp
-                                else:
-                                    # NNNCorrelation needs to add the tot value
-                                    self._add_tot(i, j, k, c1, c2, c3)
                                 if low_mem:
                                     c3.unload()
 
@@ -1133,52 +1141,23 @@ class Corr3(object):
                 i = c1.patch if c1.patch is not None else ii
                 for jj,c2 in enumerate(cat2):
                     j = c2.patch if c2.patch is not None else jj
-                    if is_my_job(my_indices, i, i, j, n1, n2):
-                        temp.clear()
-                        # One point in c1, 2 in c2.
-                        if not self._trivially_zero(c1,c2,c2,metric):
-                            self.logger.info('Process patches %d,%d cross12',i,j)
-                            temp.process_cross12(c1, c2, metric=metric, num_threads=num_threads)
-                        else:
-                            self.logger.info('Skipping %d,%d pair, which are too far apart ' +
-                                             'for this set of separations',i,j)
-                        if temp.nonzero or i==j or n1==1 or n2==1:
-                            if (i,j,j) in self.results and self.results[(i,j,j)].nonzero:
-                                self.results[(i,j,j)] += temp
-                            else:
-                                self.results[(i,j,j)] = temp.copy()
-                            self += temp
-                        else:
-                            # NNNCorrelation needs to add the tot value
-                            self._add_tot(i, j, j, c1, c2, c2)
+                    if is_my_job(my_indices, i, j, j, n1, n2):
+                        self._single_process12(c1,c2,(i,j,j),metric,num_threads,temp)
 
                     # One point in each of c1, c2, c3
                     for kk,c3 in list(enumerate(cat2))[::-1]:
                         k = c3.patch if c3.patch is not None else kk
                         if j < k and is_my_job(my_indices, i, j, k, n1, n2):
-                            temp.clear()
+                            self._single_process123(c1,c2,c3,(i,j,k),metric,num_threads,temp)
 
-                            if not self._trivially_zero(c1,c2,c3,metric):
-                                self.logger.info('Process patches %d,%d,%d cross',i,j,k)
-                                temp.process_cross(c1, c2, c3, metric=metric,
-                                                   num_threads=num_threads)
-                            else:
-                                self.logger.info('Skipping %d,%d,%d, which are too far apart ' +
-                                                 'for this set of separations',i,j,k)
-                            if temp.nonzero:
-                                if (i,j,k) in self.results and self.results[(i,j,k)].nonzero:
-                                    self.results[(i,j,k)] += temp
-                                else:
-                                    self.results[(i,j,k)] = temp.copy()
-                                self += temp
-                            else:
-                                # NNNCorrelation needs to add the tot value
-                                self._add_tot(i, j, k, c1, c2, c3)
-                            if low_mem:
+                            if self.bin_type == 'LogSAS':
+                                self._single_process123(c1,c3,c2,(i,k,j),metric,num_threads,temp)
+
+                            if low_mem and kk != jj+1:
+                                # Don't unload j+1, since that's the next one we'll need.
                                 c3.unload()
 
-                    if low_mem and jj != ii+1:
-                        # Don't unload i+1, since that's the next one we'll need.
+                    if low_mem:
                         c2.unload()
                 if low_mem:
                     c1.unload()
@@ -1256,25 +1235,7 @@ class Corr3(object):
                     for kk,c3 in enumerate(cat3):
                         k = c3.patch if c3.patch is not None else kk
                         if is_my_job(my_indices, i, j, k, n1, n2, n3):
-                            temp.clear()
-                            if not self._trivially_zero(c1,c2,c3,metric):
-                                self.logger.info('Process patches %d,%d,%d cross',i,j,k)
-                                temp.process_cross(c1, c2, c3, metric=metric,
-                                                   num_threads=num_threads)
-                            else:
-                                self.logger.info('Skipping %d,%d,%d, which are too far apart ' +
-                                                 'for this set of separations',i,j,k)
-                            if (temp.nonzero or (i==j==k)
-                                    or (i==j and n3==1) or (i==k and n2==1) or (j==k and n1==1)
-                                    or (n1==n2==1) or (n1==n3==1) or (n2==n3==1)):
-                                if (i,j,k) in self.results and self.results[(i,j,k)].nonzero:
-                                    self.results[(i,j,k)] += temp
-                                else:
-                                    self.results[(i,j,k)] = temp.copy()
-                                self += temp
-                            else:
-                                # NNNCorrelation needs to add the tot value
-                                self._add_tot(i, j, k, c1, c2, c3)
+                            self._single_process123(c1,c2,c3,(i,j,k),metric,num_threads,temp)
                             if low_mem:
                                 c3.unload()
                     if low_mem and jj != ii+1:

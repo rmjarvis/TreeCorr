@@ -451,9 +451,9 @@ class GGGCorrelation(Corr3):
     def finalize(self, varg1, varg2, varg3):
         """Finalize the calculation of the correlation function.
 
-        The `process_auto` and `process_cross` commands accumulate values in each bin,
-        so they can be called multiple times if appropriate.  Afterwards, this command
-        finishes the calculation by dividing by the total weight.
+        The `process_auto`, `process_cross12` and `process_cross` commands accumulate values in
+        each bin, so they can be called multiple times if appropriate.  Afterwards, this command
+        finishes the calculation of meanlogr, meanu, meanv by dividing by the total weight.
 
         Parameters:
             varg1 (float):  The variance per component of the first shear field.
@@ -1424,9 +1424,9 @@ class GGGCrossCorrelation(Corr3):
     def finalize(self, varg1, varg2, varg3):
         """Finalize the calculation of the correlation function.
 
-        The `process_cross` command accumulate values in each bin, so they can be called
-        multiple times if appropriate.  Afterwards, this command finishes the calculation
-        by dividing by the total weight.
+        The `process_cross12` and `process_cross` commands accumulate values in each bin, so
+        they can be called multiple times if appropriate.  Afterwards, this command finishes the
+        calculation by dividing by the total weight.
 
         Parameters:
             varg1 (float):  The variance of the first shear field that was correlated.

@@ -404,8 +404,8 @@ class NNNCorrelation(Corr3):
     def finalize(self):
         """Finalize the calculation of meand1, meanlogd1, etc.
 
-        The `process_auto` and `process_cross` commands accumulate values in each bin,
-        so they can be called multiple times if appropriate.  Afterwards, this command
+        The `process_auto`, `process_cross12` and `process_cross` commands accumulate values in
+        each bin, so they can be called multiple times if appropriate.  Afterwards, this command
         finishes the calculation of meanlogr, meanu, meanv by dividing by the total weight.
         """
         self._finalize()
@@ -456,7 +456,7 @@ class NNNCorrelation(Corr3):
             np.sum([c.ntri for c in others], axis=0, out=self.ntri)
         self.tot = tot
 
-    def _add_tot(self, i, j, k, c1, c2, c3):
+    def _add_tot(self, ijk, c1, c2, c3):
         # When storing results from a patch-based run, tot needs to be accumulated even if
         # the total weight being accumulated comes out to be zero.
         # This only applies to NNNCorrelation.  For the other ones, this is a no op.
@@ -468,7 +468,7 @@ class NNNCorrelation(Corr3):
         # We also have to keep all pairs in the results dict, otherwise the tot calculation
         # gets messed up.  We need to accumulate the tot value of all pairs, even if
         # the resulting weight is zero.
-        self.results[(i,j,k)] = self._zero_copy(tot)
+        self.results[ijk] = self._zero_copy(tot)
 
     def __iadd__(self, other):
         """Add a second `NNNCorrelation`'s data to this one.
@@ -1131,6 +1131,7 @@ class NNNCrossCorrelation(Corr3):
         self.n3n2n1 = NNNCorrelation(config, logger=logger, **kwargs)
         self._all = [self.n1n2n3, self.n1n3n2, self.n2n1n3, self.n2n3n1, self.n3n1n2, self.n3n2n1]
 
+        self._process12 = False
         self.tot = 0.
         self.logger.debug('Finished building NNNCrossCorr')
 
@@ -1282,11 +1283,18 @@ class NNNCrossCorrelation(Corr3):
                             coords=self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        self.n1n2n3.corr.processCross(self.n1n3n2.corr,
-                                      self.n2n1n3.corr, self.n2n3n1.corr,
-                                      self.n3n1n2.corr, self.n3n2n1.corr,
-                                      f1.data, f2.data, f3.data, self.output_dots,
-                                      self._bintype, self._metric)
+        if self._process12:
+            self.n1n2n3.corr.processCross(self.n1n2n3.corr,
+                                          self.n3n1n2.corr, self.n2n3n1.corr,
+                                          self.n3n1n2.corr, self.n2n3n1.corr,
+                                          f1.data, f2.data, f3.data, self.output_dots,
+                                          self._bintype, self._metric)
+        else:
+            self.n1n2n3.corr.processCross(self.n1n3n2.corr,
+                                          self.n2n1n3.corr, self.n2n3n1.corr,
+                                          self.n3n1n2.corr, self.n3n2n1.corr,
+                                          f1.data, f2.data, f3.data, self.output_dots,
+                                          self._bintype, self._metric)
         tot = cat1.sumw * cat2.sumw * cat3.sumw
         for nnn in self._all:
             nnn.tot += tot
@@ -1299,9 +1307,9 @@ class NNNCrossCorrelation(Corr3):
     def finalize(self):
         """Finalize the calculation of the correlation function.
 
-        The `process_cross` command accumulate values in each bin, so they can be called
-        multiple times if appropriate.  Afterwards, this command finishes the calculation
-        by dividing by the total weight.
+        The `process_cross12` and `process_cross` commands accumulate values in each bin, so
+        they can be called multiple times if appropriate.  Afterwards, this command finishes the
+        calculation by dividing by the total weight.
         """
         for nnn in self._all:
             nnn.finalize()
@@ -1337,12 +1345,12 @@ class NNNCrossCorrelation(Corr3):
         for nnn,o_nnn in zip(self._all, other_all):
             nnn._sum(o_nnn)
 
-    def _add_tot(self, i, j, k, c1, c2, c3):
+    def _add_tot(self, ijk, c1, c2, c3):
         tot = c1.sumw * c2.sumw * c3.sumw
         self.tot += tot
         for c in self._all:
             c.tot += tot
-        self.results[(i,j,k)] = self._zero_copy(tot)
+        self.results[ijk] = self._zero_copy(tot)
 
     def __iadd__(self, other):
         """Add a second `NNNCrossCorrelation`'s data to this one.

@@ -3344,6 +3344,16 @@ def test_direct_count_auto_logsas():
 
     do_pickle(ddd)
 
+    # Split into patches to test the list-based version of the code.
+    cat = treecorr.Catalog(x=x, y=y, npatch=10)
+
+    ddd.process(cat)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri)
+
+    dddc.process(cat, cat)
+    for d in [dddc.n1n2n3, dddc.n1n3n2, dddc.n2n1n3, dddc.n2n3n1, dddc.n3n1n2, dddc.n3n2n1]:
+        np.testing.assert_array_equal(d.ntri, true_ntri)
+
 
 @timer
 def test_direct_count_cross_logsas():
@@ -3369,7 +3379,7 @@ def test_direct_count_cross_logsas():
     min_sep = 1.
     max_sep = 50.
     nbins = 20
-    min_phi = 0.13
+    min_phi = 0.33
     max_phi = 2.89
     nphi_bins = 10
 
@@ -3591,107 +3601,80 @@ def test_direct_count_cross12_logsas():
     min_sep = 1.
     max_sep = 50.
     nbins = 20
-    min_u = 0.13
-    max_u = 0.89
-    nubins = 10
-    min_v = 0.13
-    max_v = 0.59
-    nvbins = 10
+    min_phi = 0.33
+    max_phi = 2.89
+    nphi_bins = 10
 
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                  min_u=min_u, max_u=max_u, nubins=nubins,
-                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  brute=True, verbose=1)
+                                  min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                  brute=True, verbose=1, bin_type='LogSAS')
     ddd.process(cat1, cat2)
 
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
-    true_ntri_122 = np.zeros( (nbins, nubins, 2*nvbins) )
-    true_ntri_212 = np.zeros( (nbins, nubins, 2*nvbins) )
-    true_ntri_221 = np.zeros( (nbins, nubins, 2*nvbins) )
+    true_ntri_122 = np.zeros( (nbins, nphi_bins, nbins) )
+    true_ntri_212 = np.zeros( (nbins, nphi_bins, nbins) )
+    true_ntri_221 = np.zeros( (nbins, nphi_bins, nbins) )
     bin_size = (log_max_sep - log_min_sep) / nbins
-    ubin_size = (max_u-min_u) / nubins
-    vbin_size = (max_v-min_v) / nvbins
+    phi_bin_size = (max_phi-min_phi) / nphi_bins
     for i in range(ngal):
         for j in range(ngal):
-            for k in range(j+1,ngal):
-                dij = np.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2)
-                dik = np.sqrt((x1[i]-x2[k])**2 + (y1[i]-y2[k])**2)
-                djk = np.sqrt((x2[j]-x2[k])**2 + (y2[j]-y2[k])**2)
-                if dij == 0.: continue
-                if dik == 0.: continue
-                if djk == 0.: continue
-                if dij < dik:
-                    if dik < djk:
-                        d3 = dij; d2 = dik; d1 = djk
-                        ccw = is_ccw(x1[i],y1[i],x2[j],y2[j],x2[k],y2[k])
-                        true_ntri = true_ntri_122
-                    elif dij < djk:
-                        d3 = dij; d2 = djk; d1 = dik
-                        ccw = is_ccw(x2[j],y2[j],x1[i],y1[i],x2[k],y2[k])
-                        true_ntri = true_ntri_212
-                    else:
-                        d3 = djk; d2 = dij; d1 = dik
-                        ccw = is_ccw(x2[j],y2[j],x2[k],y2[k],x1[i],y1[i])
-                        true_ntri = true_ntri_221
-                else:
-                    if dij < djk:
-                        d3 = dik; d2 = dij; d1 = djk
-                        ccw = is_ccw(x1[i],y1[i],x2[k],y2[k],x2[j],y2[j])
-                        true_ntri = true_ntri_122
-                    elif dik < djk:
-                        d3 = dik; d2 = djk; d1 = dij
-                        ccw = is_ccw(x2[k],y2[k],x1[i],y1[i],x2[j],y2[j])
-                        true_ntri = true_ntri_212
-                    else:
-                        d3 = djk; d2 = dik; d1 = dij
-                        ccw = is_ccw(x2[k],y2[k],x2[j],y2[j],x1[i],y1[i])
-                        true_ntri = true_ntri_221
+            for k in range(ngal):
+                if j == k: continue
+                r1 = np.sqrt((x2[j]-x2[k])**2 + (y2[j]-y2[k])**2)
+                r2 = np.sqrt((x1[i]-x2[k])**2 + (y1[i]-y2[k])**2)
+                r3 = np.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2)
+                if r1 == 0.: continue
+                if r2 == 0.: continue
+                if r3 == 0.: continue
 
-                r = d2
-                u = d3/d2
-                v = (d1-d2)/d3
-                if r < min_sep or r >= max_sep: continue
-                if u < min_u or u >= max_u: continue
-                if v < min_v or v >= max_v: continue
-                if not ccw:
-                    v = -v
-                kr = int(np.floor( (np.log(r)-log_min_sep) / bin_size ))
-                ku = int(np.floor( (u-min_u) / ubin_size ))
-                if v > 0:
-                    kv = int(np.floor( (v-min_v) / vbin_size )) + nvbins
-                else:
-                    kv = int(np.floor( (v-(-max_v)) / vbin_size ))
-                assert 0 <= kr < nbins
-                assert 0 <= ku < nubins
-                assert 0 <= kv < 2*nvbins
-                true_ntri[kr,ku,kv] += 1
+                kr1 = int(np.floor( (np.log(r1)-log_min_sep) / bin_size ))
+                kr2 = int(np.floor( (np.log(r2)-log_min_sep) / bin_size ))
+                kr3 = int(np.floor( (np.log(r3)-log_min_sep) / bin_size ))
 
-    # With the regular NNNCorrelation class, we end up with the sum of all permutations.
-    true_ntri_sum = true_ntri_122 + true_ntri_212 + true_ntri_221
-    #print('ddd.ntri = ',ddd.ntri)
-    #print('true_ntri = ',true_ntri_sum)
-    #print('diff = ',ddd.ntri - true_ntri_sum)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
+                # 123
+                if r2 >= min_sep and r2 < max_sep and r3 >= min_sep and r3 < max_sep:
+                    assert 0 <= kr2 < nbins
+                    assert 0 <= kr3 < nbins
+                    phi = np.arccos((r2**2 + r3**2 - r1**2)/(2*r2*r3))
+                    if not is_ccw(x1[i],y1[i],x2[k],y2[k],x2[j],y2[j]):
+                        phi = 2*np.pi - phi
+                    if phi >= min_phi and phi < max_phi:
+                        kphi = int(np.floor( (phi-min_phi) / phi_bin_size ))
+                        assert 0 <= kphi < nphi_bins
+                        true_ntri_122[kr2,kphi,kr3] += 1
 
-    # XXX: For now LogSAS is the same thing.  Just check plumbing.
-    ddd_sas = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                  min_phi=min_u, max_phi=max_u, nphi_bins=nubins,
-                                  brute=True, verbose=1, bin_type='LogSAS')
-    ddd_sas.process(cat1, cat2)
-    mask = ddd.ntri > 0
-    np.testing.assert_array_equal(ddd_sas.ntri, ddd.ntri)
-    np.testing.assert_allclose(ddd_sas.meanr1[mask], ddd.meand1[mask])
-    np.testing.assert_allclose(ddd_sas.meanr2[mask], ddd.meand2[mask])
-    np.testing.assert_allclose(ddd_sas.meanlogr1[mask], ddd.meanlogd1[mask])
-    np.testing.assert_allclose(ddd_sas.meanlogr2[mask], ddd.meanlogd2[mask])
-    np.testing.assert_allclose(ddd_sas.meanphi[mask], ddd.meanu[mask])
+                # 231
+                if r1 >= min_sep and r1 < max_sep and r3 >= min_sep and r3 < max_sep:
+                    assert 0 <= kr1 < nbins
+                    assert 0 <= kr3 < nbins
+                    phi = np.arccos((r1**2 + r3**2 - r2**2)/(2*r1*r3))
+                    if not is_ccw(x1[i],y1[i],x2[k],y2[k],x2[j],y2[j]):
+                        phi = 2*np.pi - phi
+                    if phi >= min_phi and phi < max_phi:
+                        kphi = int(np.floor( (phi-min_phi) / phi_bin_size ))
+                        assert 0 <= kphi < nphi_bins
+                        true_ntri_221[kr3,kphi,kr1] += 1
+
+                # 312
+                if r1 >= min_sep and r1 < max_sep and r2 >= min_sep and r2 < max_sep:
+                    assert 0 <= kr1 < nbins
+                    assert 0 <= kr2 < nbins
+                    phi = np.arccos((r1**2 + r2**2 - r3**2)/(2*r1*r2))
+                    if not is_ccw(x1[i],y1[i],x2[k],y2[k],x2[j],y2[j]):
+                        phi = 2*np.pi - phi
+                    if phi >= min_phi and phi < max_phi:
+                        kphi = int(np.floor( (phi-min_phi) / phi_bin_size ))
+                        assert 0 <= kphi < nphi_bins
+                        true_ntri_212[kr1,kphi,kr2] += 1
+
+    # With LogSAS, the normal sum respects the ordering, so 122 is the relevant one.
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
 
     # Now repeat with the full CrossCorrelation class, which distinguishes the permutations.
     dddc = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                        min_u=min_u, max_u=max_u, nubins=nubins,
-                                        min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                        brute=True, verbose=1)
+                                        min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                        brute=True, verbose=1, bin_type='LogSAS')
     dddc.process(cat1, cat2)
 
     #print('true_ntri_122 = ',true_ntri_122)
@@ -3705,31 +3688,29 @@ def test_direct_count_cross12_logsas():
 
     # Repeat with binslop = 0
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                  min_u=min_u, max_u=max_u, nubins=nubins,
-                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=1)
+                                  min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                  bin_slop=0, verbose=1, bin_type='LogSAS')
     ddd.process(cat1, cat2)
     #print('binslop > 0: ddd.ntri = ',ddd.ntri)
-    #print('diff = ',ddd.ntri - true_ntri_sum)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
+    #print('diff = ',ddd.ntri - true_ntri_122)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
 
     # And again with no top-level recursion
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                  min_u=min_u, max_u=max_u, nubins=nubins,
-                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=1, max_top=0)
+                                  min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                  bin_slop=0, verbose=1, max_top=0, bin_type='LogSAS')
     ddd.process(cat1, cat2)
     #print('max_top = 0: ddd.ntri = ',ddd.ntri)
-    #print('true_ntri = ',true_ntri_sum)
-    #print('diff = ',ddd.ntri - true_ntri_sum)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
+    #print('true_ntri = ',true_ntri_122)
+    #print('diff = ',ddd.ntri - true_ntri_122)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
 
     # Split into patches to test the list-based version of the code.
     cat1 = treecorr.Catalog(x=x1, y=y1, npatch=10)
     cat2 = treecorr.Catalog(x=x2, y=y2, npatch=10)
 
     ddd.process(cat1, cat2)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
 
     dddc.process(cat1, cat2)
     np.testing.assert_array_equal(dddc.n1n2n3.ntri, true_ntri_122)

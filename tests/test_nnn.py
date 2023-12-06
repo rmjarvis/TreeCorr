@@ -3720,6 +3720,362 @@ def test_direct_count_cross12_logsas():
     np.testing.assert_array_equal(dddc.n3n1n2.ntri, true_ntri_212)
     np.testing.assert_array_equal(dddc.n3n2n1.ntri, true_ntri_221)
 
+@timer
+def test_nnn_logsas():
+    # Use a simple probability distribution for the galaxies:
+    #
+    # n(r) = (2pi s^2)^-1 exp(-r^2/2s^2)
+    #
+    # The Fourier transform is: n~(k) = exp(-s^2 k^2/2)
+    # B(k1,k2) = <n~(k1) n~(k2) n~(-k1-k2)>
+    #          = exp(-s^2 (|k1|^2 + |k2|^2 - k1.k2))
+    #          = exp(-s^2 (|k1|^2 + |k2|^2 + |k3|^2)/2)
+    #
+    # zeta(r1,r2) = (1/2pi)^4 int(d^2k1 int(d^2k2 exp(ik1.x1) exp(ik2.x2) B(k1,k2) ))
+    #             = exp(-(x1^2 + y1^2 + x2^2 + y2^2 - x1x2 - y1y2)/3s^2) / 12 pi^2 s^4
+    #             = exp(-(d1^2 + d2^2 + d3^2)/6s^2) / 12 pi^2 s^4
+    #
+    # This is also derivable as:
+    # zeta(r1,r2) = int(dx int(dy n(x,y) n(x+x1,y+y1) n(x+x2,y+y2)))
+    # which is also analytically integrable and gives the same answer.
+    #
+    # However, we need to correct for the uniform density background, so the real result
+    # is this minus 1/L^4 divided by 1/L^4.  So:
+    #
+    # zeta(r1,r2) = 1/(12 pi^2) (L/s)^4 exp(-(d1^2+d2^2+d3^2)/6s^2) - 1
+
+    # Doing the full correlation function takes a long time.  Here, we just test a small range
+    # of separations and a moderate range for u, v, which gives us a variety of triangle lengths.
+    s = 10.
+    if __name__ == "__main__":
+        ngal = 5000
+        nrand = 2 * ngal
+        L = 50. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
+        tol_factor = 3
+
+        #ngal = 2000
+        #nrand = ngal
+        #L = 20. * s
+        #tol_factor = 5
+    else:
+        ngal = 2000
+        nrand = ngal
+        L = 20. * s
+        tol_factor = 5
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(0,s, (ngal,) )
+    y = rng.normal(0,s, (ngal,) )
+    min_sep = 10.
+    max_sep = 13.
+    nbins = 2
+    min_phi = np.pi/4
+    max_phi = np.pi/2
+    nphi_bins = 4
+
+    cat = treecorr.Catalog(x=x, y=y, x_units='arcmin', y_units='arcmin')
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                  sep_units='arcmin', verbose=1, bin_type='LogSAS')
+    ddd.process(cat)
+    #print('ddd.ntri = ',ddd.ntri)
+
+    # log(<d>) != <logd>, but it should be close:
+    print('meanlogr2 - log(meanr2) = ',ddd.meanlogd2 - np.log(ddd.meand2))
+    print('meanlogr3 - log(meanr3) = ',ddd.meanlogd3 - np.log(ddd.meand3))
+    np.testing.assert_allclose(ddd.meanlogr2, np.log(ddd.meanr2), rtol=1.e-3)
+    np.testing.assert_allclose(ddd.meanlogr3, np.log(ddd.meanr3), rtol=1.e-3)
+
+    rx = (rng.random_sample(nrand)-0.5) * L
+    ry = (rng.random_sample(nrand)-0.5) * L
+    rand = treecorr.Catalog(x=rx,y=ry, x_units='arcmin', y_units='arcmin')
+    rrr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                  sep_units='arcmin', verbose=1, bin_type='LogSAS')
+    rrr.process(rand)
+
+    d2 = ddd.meanr2
+    d3 = ddd.meanr3
+    phi = ddd.meanphi
+    d1sq = d2**2 + d3**2 - 2*d2*d3*np.cos(phi)
+    true_zeta = (1./(12.*np.pi**2)) * (L/s)**4 * np.exp(-(d1sq+d2**2+d3**2)/(6.*s**2)) - 1.
+
+    zeta, varzeta = ddd.calculateZeta(rrr=rrr)
+    print('zeta = ',zeta)
+    print('true_zeta = ',true_zeta)
+    print('ratio = ',zeta / true_zeta)
+    print('diff = ',zeta - true_zeta)
+    print('max rel diff = ',np.max(np.abs((zeta - true_zeta)/true_zeta)))
+    np.testing.assert_allclose(zeta, true_zeta, rtol=0.1*tol_factor)
+    np.testing.assert_allclose(np.log(np.abs(zeta)), np.log(np.abs(true_zeta)),
+                                  atol=0.1*tol_factor)
+
+    # Check that we get the same result using the corr3 function
+    cat.write(os.path.join('data','nnn_data_logsas.dat'))
+    rand.write(os.path.join('data','nnn_rand_logsas.dat'))
+    config = treecorr.config.read_config('configs/nnn_logsas.yaml')
+    config['verbose'] = 3
+    treecorr.corr3(config)
+    corr3_output = np.genfromtxt(os.path.join('output','nnn_logsas.out'), names=True, skip_header=1)
+    print('zeta = ',zeta)
+    print('from corr3 output = ',corr3_output['zeta'])
+    print('ratio = ',corr3_output['zeta']/zeta.flatten())
+    print('diff = ',corr3_output['zeta']-zeta.flatten())
+    np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
+
+    # Check the fits write option
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        out_file_name1 = os.path.join('output','nnn_out1_logsas.fits')
+        ddd.write(out_file_name1)
+        data = fitsio.read(out_file_name1)
+        np.testing.assert_almost_equal(data['r2_nom'], np.exp(ddd.logr2).flatten())
+        np.testing.assert_almost_equal(data['r3_nom'], np.exp(ddd.logr3).flatten())
+        np.testing.assert_almost_equal(data['phi_nom'], ddd.phi.flatten())
+        np.testing.assert_almost_equal(data['meanr2'], ddd.meanr2.flatten())
+        np.testing.assert_almost_equal(data['meanlogr2'], ddd.meanlogr2.flatten())
+        np.testing.assert_almost_equal(data['meanr3'], ddd.meanr3.flatten())
+        np.testing.assert_almost_equal(data['meanlogr3'], ddd.meanlogr3.flatten())
+        np.testing.assert_almost_equal(data['meanphi'], ddd.meanphi.flatten())
+        np.testing.assert_almost_equal(data['ntri'], ddd.ntri.flatten())
+        header = fitsio.read_header(out_file_name1, 1)
+        np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
+
+        out_file_name2 = os.path.join('output','nnn_out2_logsas.fits')
+        ddd.write(out_file_name2, rrr=rrr)
+        data = fitsio.read(out_file_name2)
+        np.testing.assert_almost_equal(data['r2_nom'], np.exp(ddd.logr2).flatten())
+        np.testing.assert_almost_equal(data['r3_nom'], np.exp(ddd.logr3).flatten())
+        np.testing.assert_almost_equal(data['phi_nom'], ddd.phi.flatten())
+        np.testing.assert_almost_equal(data['meanr2'], ddd.meanr2.flatten())
+        np.testing.assert_almost_equal(data['meanlogr2'], ddd.meanlogr2.flatten())
+        np.testing.assert_almost_equal(data['meanr3'], ddd.meanr3.flatten())
+        np.testing.assert_almost_equal(data['meanlogr3'], ddd.meanlogr3.flatten())
+        np.testing.assert_almost_equal(data['meanphi'], ddd.meanphi.flatten())
+        np.testing.assert_almost_equal(data['zeta'], zeta.flatten())
+        np.testing.assert_almost_equal(data['sigma_zeta'], np.sqrt(varzeta).flatten())
+        np.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
+        np.testing.assert_almost_equal(data['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
+        header = fitsio.read_header(out_file_name2, 1)
+        np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
+
+        # Check the read function
+        # Note: These don't need the flatten.
+        # The read function should reshape them to the right shape.
+        ddd2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                       min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                       sep_units='arcmin', verbose=1, bin_type='LogSAS')
+        ddd2.read(out_file_name1)
+        np.testing.assert_almost_equal(ddd2.logr2, ddd.logr2)
+        np.testing.assert_almost_equal(ddd2.logr3, ddd.logr3)
+        np.testing.assert_almost_equal(ddd2.phi, ddd.phi)
+        np.testing.assert_almost_equal(ddd2.meanr2, ddd.meanr2)
+        np.testing.assert_almost_equal(ddd2.meanlogr2, ddd.meanlogr2)
+        np.testing.assert_almost_equal(ddd2.meanr3, ddd.meanr3)
+        np.testing.assert_almost_equal(ddd2.meanlogr3, ddd.meanlogr3)
+        np.testing.assert_almost_equal(ddd2.meanphi, ddd.meanphi)
+        np.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
+        np.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
+        assert ddd2.coords == ddd.coords
+        assert ddd2.metric == ddd.metric
+        assert ddd2.sep_units == ddd.sep_units
+        assert ddd2.bin_type == ddd.bin_type
+
+        ddd2.read(out_file_name2)
+        np.testing.assert_almost_equal(ddd2.logr2, ddd.logr2)
+        np.testing.assert_almost_equal(ddd2.logr3, ddd.logr3)
+        np.testing.assert_almost_equal(ddd2.phi, ddd.phi)
+        np.testing.assert_almost_equal(ddd2.meanr2, ddd.meanr2)
+        np.testing.assert_almost_equal(ddd2.meanlogr2, ddd.meanlogr2)
+        np.testing.assert_almost_equal(ddd2.meanr3, ddd.meanr3)
+        np.testing.assert_almost_equal(ddd2.meanlogr3, ddd.meanlogr3)
+        np.testing.assert_almost_equal(ddd2.meanphi, ddd.meanphi)
+        np.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
+        np.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
+        assert ddd2.coords == ddd.coords
+        assert ddd2.metric == ddd.metric
+        assert ddd2.sep_units == ddd.sep_units
+        assert ddd2.bin_type == ddd.bin_type
+
+    # Check the hdf5 write option
+    try:
+        import h5py  # noqa: F401
+    except ImportError:
+        pass
+    else:
+        out_file_name3 = os.path.join('output','nnn_out3_logsas.hdf5')
+        ddd.write(out_file_name3, rrr=rrr)
+        with h5py.File(out_file_name3, 'r') as hdf:
+            data = hdf['/']
+            np.testing.assert_almost_equal(data['r2_nom'], np.exp(ddd.logr2).flatten())
+            np.testing.assert_almost_equal(data['r2_nom'], np.exp(ddd.logr3).flatten())
+            np.testing.assert_almost_equal(data['phi_nom'], ddd.phi.flatten())
+            np.testing.assert_almost_equal(data['meanr2'], ddd.meanr2.flatten())
+            np.testing.assert_almost_equal(data['meanlogr2'], ddd.meanlogr2.flatten())
+            np.testing.assert_almost_equal(data['meanr3'], ddd.meanr3.flatten())
+            np.testing.assert_almost_equal(data['meanlogr3'], ddd.meanlogr3.flatten())
+            np.testing.assert_almost_equal(data['meanphi'], ddd.meanphi.flatten())
+            np.testing.assert_almost_equal(data['ntri'], ddd.ntri.flatten())
+            np.testing.assert_almost_equal(data['zeta'], zeta.flatten())
+            np.testing.assert_almost_equal(data['sigma_zeta'], np.sqrt(varzeta).flatten())
+            np.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
+            np.testing.assert_almost_equal(data['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
+            attrs = data.attrs
+            np.testing.assert_almost_equal(attrs['tot']/ddd.tot, 1.)
+
+        ddd3 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                       min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                       sep_units='arcmin', verbose=1, bin_type='LogSAS')
+        ddd3.read(out_file_name3)
+        np.testing.assert_almost_equal(ddd3.logr2, ddd.logr2)
+        np.testing.assert_almost_equal(ddd3.logr3, ddd.logr3)
+        np.testing.assert_almost_equal(ddd3.phi, ddd.phi)
+        np.testing.assert_almost_equal(ddd3.meanr2, ddd.meanr2)
+        np.testing.assert_almost_equal(ddd3.meanlogr2, ddd.meanlogr2)
+        np.testing.assert_almost_equal(ddd3.meanr3, ddd.meanr3)
+        np.testing.assert_almost_equal(ddd3.meanlogr3, ddd.meanlogr3)
+        np.testing.assert_almost_equal(ddd3.meanphi, ddd.meanphi)
+        np.testing.assert_almost_equal(ddd3.ntri, ddd.ntri)
+        np.testing.assert_almost_equal(ddd3.tot/ddd.tot, 1.)
+        assert ddd3.coords == ddd.coords
+        assert ddd3.metric == ddd.metric
+        assert ddd3.sep_units == ddd.sep_units
+        assert ddd3.bin_type == ddd.bin_type
+
+    # Test compensated zeta
+    # First just check the mechanics.
+    # If we don't actually do all the cross terms, then compensated is the same as simple.
+    zeta2, varzeta2 = ddd.calculateZeta(rrr=rrr, drr=rrr, rdd=rrr)
+    print('fake compensated zeta = ',zeta2)
+    np.testing.assert_allclose(zeta2, zeta)
+
+    # Error to not have one of rrr, drr, rdd.
+    with assert_raises(TypeError):
+        ddd.calculateZeta(drr=rrr, rdd=rrr)
+    with assert_raises(TypeError):
+        ddd.calculateZeta(rrr=rrr, rdd=rrr)
+    with assert_raises(TypeError):
+        ddd.calculateZeta(rrr=rrr, drr=rrr)
+    rrr2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                   sep_units='arcmin', bin_type='LogSAS')
+    # Error if any of them haven't been run yet.
+    with assert_raises(ValueError):
+        ddd.calculateZeta(rrr=rrr2, drr=rrr, rdd=rrr)
+    with assert_raises(ValueError):
+        ddd.calculateZeta(rrr=rrr, drr=rrr2, rdd=rrr)
+    with assert_raises(ValueError):
+        ddd.calculateZeta(rrr=rrr, drr=rrr, rdd=rrr2)
+
+    out_file_name3 = os.path.join('output','nnn_out3_logsas.dat')
+    with assert_raises(TypeError):
+        ddd.write(out_file_name3, drr=rrr, rdd=rrr)
+    with assert_raises(TypeError):
+        ddd.write(out_file_name3, rrr=rrr, rdd=rrr)
+    with assert_raises(TypeError):
+        ddd.write(out_file_name3, rrr=rrr, drr=rrr)
+
+    # It's too slow to test the real calculation in nosetests runs, so we stop here if not main.
+    if __name__ != '__main__':
+        return
+
+    # This version computes the three-point function after subtracting off the appropriate
+    # two-point functions xi(d1) + xi(d2) + xi(d3), where [cf. test_nn() in test_nn.py]
+    # xi(r) = 1/4pi (L/s)^2 exp(-r^2/4s^2) - 1
+    drr = ddd.copy()
+    rdd = ddd.copy()
+
+    drr.process(cat,rand)
+    rdd.process(rand,cat)
+
+    zeta, varzeta = ddd.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)
+    print('compensated zeta = ',zeta)
+
+    xi1 = (1./(4.*np.pi)) * (L/s)**2 * np.exp(-d1sq/(4.*s**2)) - 1.
+    xi2 = (1./(4.*np.pi)) * (L/s)**2 * np.exp(-d2**2/(4.*s**2)) - 1.
+    xi3 = (1./(4.*np.pi)) * (L/s)**2 * np.exp(-d3**2/(4.*s**2)) - 1.
+    print('xi1 = ',xi1)
+    print('xi2 = ',xi2)
+    print('xi3 = ',xi3)
+    print('true_zeta + xi1 + xi2 + xi3 = ',true_zeta)
+    true_zeta -= xi1 + xi2 + xi3
+    print('true_zeta => ',true_zeta)
+    print('ratio = ',zeta / true_zeta)
+    print('diff = ',zeta - true_zeta)
+    print('max rel diff = ',np.max(np.abs((zeta - true_zeta)/true_zeta)))
+    np.testing.assert_allclose(zeta, true_zeta, rtol=0.1*tol_factor)
+    np.testing.assert_allclose(np.log(np.abs(zeta)), np.log(np.abs(true_zeta)), atol=0.1*tol_factor)
+
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        out_file_name3 = os.path.join('output','nnn_out3_logsas.fits')
+        ddd.write(out_file_name3, rrr=rrr, drr=drr, rdd=rdd)
+        data = fitsio.read(out_file_name3)
+        np.testing.assert_almost_equal(data['r2_nom'], np.exp(ddd.logr2).flatten())
+        np.testing.assert_almost_equal(data['r3_nom'], np.exp(ddd.logr3).flatten())
+        np.testing.assert_almost_equal(data['phi_nom'], ddd.phi.flatten())
+        np.testing.assert_almost_equal(data['meanr2'], ddd.meanr2.flatten())
+        np.testing.assert_almost_equal(data['meanlogr2'], ddd.meanlogr2.flatten())
+        np.testing.assert_almost_equal(data['meanr3'], ddd.meanr3.flatten())
+        np.testing.assert_almost_equal(data['meanlogr3'], ddd.meanlogr3.flatten())
+        np.testing.assert_almost_equal(data['meanphi'], ddd.meanphi.flatten())
+        np.testing.assert_almost_equal(data['zeta'], zeta.flatten())
+        np.testing.assert_almost_equal(data['sigma_zeta'], np.sqrt(varzeta).flatten())
+        np.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
+        np.testing.assert_almost_equal(data['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
+        np.testing.assert_almost_equal(data['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
+        np.testing.assert_almost_equal(data['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
+        header = fitsio.read_header(out_file_name3, 1)
+        np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
+
+        ddd2.read(out_file_name3)
+        np.testing.assert_almost_equal(ddd2.logr2, ddd.logr2)
+        np.testing.assert_almost_equal(ddd2.logr3, ddd.logr3)
+        np.testing.assert_almost_equal(ddd2.phi, ddd.phi)
+        np.testing.assert_almost_equal(ddd2.meanr2, ddd.meanr2)
+        np.testing.assert_almost_equal(ddd2.meanlogr2, ddd.meanlogr2)
+        np.testing.assert_almost_equal(ddd2.meanr3, ddd.meanr3)
+        np.testing.assert_almost_equal(ddd2.meanlogr3, ddd.meanlogr3)
+        np.testing.assert_almost_equal(ddd2.meanphi, ddd.meanphi)
+        np.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
+        np.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
+        assert ddd2.coords == ddd.coords
+        assert ddd2.metric == ddd.metric
+        assert ddd2.sep_units == ddd.sep_units
+        assert ddd2.bin_type == ddd.bin_type
+
+        config = treecorr.config.read_config('configs/nnn_compensated_logsas.yaml')
+        config['verbose'] = 0
+        treecorr.corr3(config)
+        corr3_outfile = os.path.join('output','nnn_compensated_logsas.fits')
+        corr3_output = fitsio.read(corr3_outfile)
+        print('zeta = ',zeta)
+        print('from corr3 output = ',corr3_output['zeta'])
+        print('ratio = ',corr3_output['zeta']/zeta.flatten())
+        print('diff = ',corr3_output['zeta']-zeta.flatten())
+
+        np.testing.assert_almost_equal(corr3_output['r2_nom'], np.exp(ddd.logr2).flatten())
+        np.testing.assert_almost_equal(corr3_output['r3_nom'], np.exp(ddd.logr3).flatten())
+        np.testing.assert_almost_equal(corr3_output['phi_nom'], ddd.phi.flatten())
+        np.testing.assert_almost_equal(corr3_output['meanr2'], ddd.meanr2.flatten())
+        np.testing.assert_almost_equal(corr3_output['meanlogr2'], ddd.meanlogr2.flatten())
+        np.testing.assert_almost_equal(corr3_output['meanr3'], ddd.meanr3.flatten())
+        np.testing.assert_almost_equal(corr3_output['meanlogr3'], ddd.meanlogr3.flatten())
+        np.testing.assert_almost_equal(corr3_output['meanphi'], ddd.meanphi.flatten())
+        np.testing.assert_almost_equal(corr3_output['zeta'], zeta.flatten())
+        np.testing.assert_almost_equal(corr3_output['sigma_zeta'], np.sqrt(varzeta).flatten())
+        np.testing.assert_almost_equal(corr3_output['DDD'], ddd.ntri.flatten())
+        np.testing.assert_almost_equal(corr3_output['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
+        np.testing.assert_almost_equal(corr3_output['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
+        np.testing.assert_almost_equal(corr3_output['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
+        header = fitsio.read_header(corr3_outfile, 1)
+        np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
+
 
 
 if __name__ == '__main__':
@@ -3739,3 +4095,4 @@ if __name__ == '__main__':
     test_direct_count_auto_logsas()
     test_direct_count_cross_logsas()
     test_direct_count_cross12_logsas()
+    test_nnn_logsas()

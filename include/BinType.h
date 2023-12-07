@@ -389,7 +389,7 @@ struct BinTypeHelper<LogRUV>
     // If the user has set a minu > 0, then we may be able to stop for that.
     static bool noAllowedAngles(double rsq, double s1ps2, double s1, double s2,
                                 double minu, double minusq, double maxu, double maxusq,
-                                double minv, double maxv, double minvsq, double maxvsq)
+                                double minv, double minvsq, double maxv, double maxvsq)
     {
         // The maximum possible u value at this point is 2s2 / (r - s1 - s2)
         // If this is less than minu, we can stop.
@@ -769,22 +769,25 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
                                 double mincosphi, double , double maxcosphi, double )
     {
         xdbg<<"Check noAllowedAngles\n";
-        // The maximum possible sin(phi/2) value at this point is s2 / (r - s1 - s2)
-        double d2min = sqrt(rsq)-s1ps2;
-        if (d2min > 0) {
-            double d1max = 2*s2;
-            double phi_max = calculate_phi(d1max, d2min, d2min);
-            if (!(phi_max >= minphi)) {
+        // Maximum phi/2 is for right triangle with legs d and s2, and hypotenuse r-s1.
+        // d^2 = (r-s1)^2 + s2^2
+        //     = r^2 - 2 r s1 + s2^2
+        // Let alpha be the opening angle for this triangle, so phi = 2 alpha
+        // cos(alpha) = d / r-s1
+        // sin(alpha) = s2 / r-s1
+        // cos(phi) = cos(alpha)^2 - sin(alpha)^2
+        //          = ((r-s1)^2 - 2s2^2) / (r-s1)^2
+        if (SQR(s1) < rsq) {
+            double h = sqrt(rsq) - s1;  // h = r-s1
+            double cosphi = 1. - 2*SQR(s2/h);
+            if (cosphi > maxcosphi) {
                 xdbg<<"noAllowedAngles: "<<sqrt(rsq)<<"  "<<s1ps2<<"  "<<s1<<"  "<<s2<<std::endl;
-                xdbg<<"d2min = "<<d2min<<", d1max = "<<d1max<<std::endl;
-                xdbg<<"phi_max = "<<phi_max<<std::endl;
-                xdbg<<"minphi = "<<minphi<<std::endl;
+                xdbg<<"cosphi = "<<cosphi<<std::endl;
+                xdbg<<"maxcosphi = "<<maxcosphi<<std::endl;
                 return true;
-            } else {
-                return false;
             }
         }
-        else return false;
+        return false;
     }
 
     static double calculate_cosphi(double d1, double d2, double d3)

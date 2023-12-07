@@ -823,7 +823,7 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
         double& d1, double& d2, double& d3, double& phi, double& cosphi,
         double minsep, double minsepsq, double maxsep, double maxsepsq,
         double minphi, double , double maxphi, double ,
-        double mincosphi, double , double maxcosphi, double )
+        double mincosphi, double mincosphisq, double maxcosphi, double maxcosphisq)
     {
         xdbg<<"Stop111: "<<std::sqrt(d1sq)<<"  "<<std::sqrt(d2sq)<<"  "<<std::sqrt(d3sq)<<std::endl;
         xdbg<<"sizes = "<<s1<<"  "<<s2<<"  "<<s3<<std::endl;
@@ -871,20 +871,39 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
         // sin(dphi2) = (s1+s2)/d3
         // sin(dphi3) = (s1+s3)/d2
         if (minphi > 0 && cosphi > maxcosphi) {
-            double sindphi2 = (s1+s2 > 0) ? (s1+s2)/d3 : 0.;
-            double cosdphi2 = (s1+s2 > 0) ? sqrt(1-sindphi2*sindphi2) : 1.;
-            if (cosdphi2 < maxcosphi) return false;
-            double sindphi3 = (s1+s3 > 0) ? (s1+s3)/d2 : 0.;
-            double cosdphi3 = (s1+s3 > 0) ? sqrt(1-sindphi3*sindphi3) : 1.;
-            if (cosdphi3 < maxcosphi) return false;
-            double cosdphi = cosdphi2 * cosdphi3 - sindphi3 * sindphi2;
-            if (cosdphi < maxcosphi) return false;
-            double sindphi = sindphi2 * cosdphi3 + sindphi3 * cosdphi2;
-            double sinphi = sqrt(1-cosphi*cosphi);
+            double cosphimax = cosphi; // Update this is possible based on s1,s2,s3
+            if (s1+s2 > 0) {
+                double sindphi2 = (s1+s2)/d3;
+                double cosdphi2sq = 1-SQR(sindphi2);
+                if (cosdphi2sq < maxcosphisq) return false;
+                double cosdphi2 = sqrt(cosdphi2sq);
+                if (s1+s3 > 0) {
+                    double sindphi3 = (s1+s3)/d2;
+                    double cosdphi3sq = 1-SQR(sindphi3);
+                    if (cosdphi3sq < maxcosphisq) return false;
+                    double cosdphi3 = sqrt(cosdphi3sq);
+
+                    double cosdphi = cosdphi2 * cosdphi3 - sindphi3 * sindphi2;
+                    if (cosdphi < maxcosphi) return false;
+                    double sindphi = sindphi2 * cosdphi3 + sindphi3 * cosdphi2;
+                    double sinphi = sqrt(1-cosphi*cosphi);
+                    cosphimax = cosphi * cosdphi - sinphi * sindphi;
+                } else {
+                    double sinphi = sqrt(1-cosphi*cosphi);
+                    cosphimax = cosphi * cosdphi2 - sinphi * sindphi2;
+                }
+            } else if (s1+s3 > 0) {
+                double sindphi3 = (s1+s3)/d2;
+                double cosdphi3sq = 1-SQR(sindphi3);
+                if (cosdphi3sq < maxcosphisq) return false;
+                double cosdphi3 = sqrt(cosdphi3sq);
+                double sinphi = sqrt(1-cosphi*cosphi);
+                cosphimax = cosphi * cosdphi3 - sinphi * sindphi3;
+            }
+
             // phimax is the largest possible phi we can possibly get.
             // If it's still less than minphi then stop.
             // i.e. cos(phimax) > cos(minphi) = maxcosphi
-            double cosphimax = cosphi * cosdphi - sinphi * sindphi;
             if (cosphimax > maxcosphi) {
                 dbg<<"phi_max = "<<std::acos(cosphimax)<<std::endl;
                 dbg<<"phi cannot be as large as minphi\n";
@@ -895,20 +914,42 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
         // If the user sets maxphi < pi, then we can abort if no possible triangle can have
         // phi as small as this.
         if (maxphi < M_PI && cosphi < mincosphi) {
-            double sindphi2 = (s1+s2 > 0) ? (s1+s2)/d3 : 0.;
-            double cosdphi2 = (s1+s2 > 0) ? sqrt(1-sindphi2*sindphi2) : 1.;
-            if (cosdphi2 < -mincosphi) return false;
-            double sindphi3 = (s1+s3 > 0) ? (s1+s3)/d2 : 0.;
-            double cosdphi3 = (s1+s3 > 0) ? sqrt(1-sindphi3*sindphi3) : 1.;
-            if (cosdphi3 < -mincosphi) return false;
-            double cosdphi = cosdphi2 * cosdphi3 - sindphi3 * sindphi2;
-            if (cosdphi < -mincosphi) return false;
-            double sindphi = sindphi2 * cosdphi3 + sindphi3 * cosdphi2;
-            double sinphi = sqrt(1-cosphi*cosphi);
+            double cosphimin = cosphi; // Update this is possible based on s1,s2,s3
+            if (s1+s2 > 0) {
+                double sindphi2 = (s1+s2)/d3;
+                double cosdphi2sq = 1-SQR(sindphi2);
+                // Note mincosphisq is really sgn(mincosphi) mincosphi^2
+                // So this test will only pass if dphi2 > Pi-phi_max.
+                // i.e. when dphi2 is large enough on its own to get phi < phi_max.
+                if (cosdphi2sq < -mincosphisq) return false;
+                double cosdphi2 = sqrt(cosdphi2sq);
+                if (s1+s3 > 0) {
+                    double sindphi3 = (s1+s3)/d2;
+                    double cosdphi3sq = 1-SQR(sindphi3);
+                    if (cosdphi3sq < -mincosphisq) return false;
+                    double cosdphi3 = sqrt(cosdphi3sq);
+
+                    double cosdphi = cosdphi2 * cosdphi3 - sindphi3 * sindphi2;
+                    if (cosdphi < -mincosphi) return false;
+                    double sindphi = sindphi2 * cosdphi3 + sindphi3 * cosdphi2;
+                    double sinphi = sqrt(1-cosphi*cosphi);
+                    cosphimin = cosphi * cosdphi + sinphi * sindphi;
+                } else {
+                    double sinphi = sqrt(1-cosphi*cosphi);
+                    cosphimin = cosphi * cosdphi2 + sinphi * sindphi2;
+                }
+            } else if (s1+s3 > 0) {
+                double sindphi3 = (s1+s3)/d2;
+                double cosdphi3sq = 1-SQR(sindphi3);
+                if (cosdphi3sq < maxcosphisq) return false;
+                double cosdphi3 = sqrt(cosdphi3sq);
+                double sinphi = sqrt(1-cosphi*cosphi);
+                cosphimin = cosphi * cosdphi3 + sinphi * sindphi3;
+            }
+
             // phimin is the smallest possible phi we can possibly get.
             // If it's still more than maxphi, then stop.
             // i.e. cos(phimin) < cos(maxphi) = mincosphi
-            double cosphimin = cosphi * cosdphi + sinphi * sindphi;
             if (cosphimin < mincosphi) {
                 dbg<<"phi_min = "<<std::acos(cosphimin)<<std::endl;
                 dbg<<"phi cannot be as small as maxphi\n";

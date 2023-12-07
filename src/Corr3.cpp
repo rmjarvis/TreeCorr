@@ -99,6 +99,12 @@ BaseCorr3::BaseCorr3(
     _maxusq = _maxu*_maxu;
     _minvsq = _minv * _minv;
     _maxvsq = _maxv * _maxv;
+    if (bin_type == LogSAS) {
+        // For LogSAS it is more useful for mincosphisq, maxcosphisq to preserve the
+        // negative sign if there is one on the unsquared version.
+        _minvsq = _minv < 0 ? -_minvsq : _minvsq;
+        _maxvsq = _maxv < 0 ? -_maxvsq : _maxvsq;
+    }
 }
 
 template <int D1, int D2, int D3>

@@ -908,7 +908,7 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
             // If it's still less than minphi then stop.
             // i.e. cos(phimax) > cos(minphi) = maxcosphi
             if (cosphimax > maxcosphi) {
-                dbg<<"phi_max = "<<std::acos(cosphimax)<<std::endl;
+                //dbg<<"phi_max = "<<std::acos(cosphimax)<<std::endl;
                 dbg<<"phi cannot be as large as minphi\n";
                 return true;
             }
@@ -954,7 +954,7 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
             // If it's still more than maxphi, then stop.
             // i.e. cos(phimin) < cos(maxphi) = mincosphi
             if (cosphimin < mincosphi) {
-                dbg<<"phi_min = "<<std::acos(cosphimin)<<std::endl;
+                //dbg<<"phi_min = "<<std::acos(cosphimin)<<std::endl;
                 dbg<<"phi cannot be as small as maxphi\n";
                 return true;
             }
@@ -964,8 +964,8 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
     }
 
     // If return value is false, split1, split2, split3 will be set on output.
-    // If return value is true, d1, d2, d3, phi will be set on output.
-    // (For this BinType, d1,d2,d3 are already set coming in.)
+    // If return value is true, d1, d2, d3, cosphi will be set on output.
+    // (For this BinType, d1,d2,d3,cosphi are already set coming in.)
     static bool singleBin(double d1sq, double d2sq, double d3sq,
                           double s1, double s2, double s3,
                           double b, double bphi, double ,
@@ -982,6 +982,7 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
         // (albeit intended to be fairly typical) use case.  Similarly, this factor was found
         // empirically on a particular (GGG) use case with a reasonable choice of separations
         // and binning.
+        // TODO: Recalculate this for BinSAS.
         const double splitfactor = 0.7;
 
         // These are set correctly before they are used.
@@ -998,14 +999,14 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
                 ((s1ps3=s1+s3) > 0. && (s1ps3 > d2 * b) && (d3split=true, s1 >= s3)) ||
 
                 // Check if phi binning needs a split
-                // phi_min when d2 -> d2+s1, d3 -> d3+s1
                 // phi_max when d2 -> d2-s1, d3 -> d3-s1
-                // Use phi_max here, since it causes the larger change.
-                (std::abs(calculate_phi(d1, d2-s1, d3-s1) - (phi=calculate_phi(d1,d2,d3))) < bphi));
+                // phi_max - phi ~= (1/sinphi) d(cosphi/ds1) s1
+                // d(cosphi/ds1) = (1+cosphi) (d2+d3)/d2d3
+                // So the threshold for splitting is
+                // (1+cosphi)/sinphi (d2+d3)/d2d3 s1 > bphi
+                ((1.+cosphi) * (d2+d3)/(sqrt(1-SQR(cosphi))*d2*d3) * s1 > bphi));
         } else {
-            // If s1 == 0, we can't split it, but we do need to ensure that phi is calculated.
             split1 = false;
-            phi = calculate_phi(d1,d2,d3);
         }
         xdbg<<"split1 = "<<split1<<std::endl;
 
@@ -1017,7 +1018,6 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
             return false;
         } else if (s2 > 0 || s3 > 0) {
             xdbg<<"Don't split 1\n";
-            xdbg<<"phi = "<<phi<<std::endl;
             // Now figure out if c1 or c2 needs to be split.
 
             split2 = (s2 > 0.) && (
@@ -1027,33 +1027,22 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
                 (s1==0. && s2 > d3 * b) ||
 
                 // Also, definitely split if s2 > d1
-                (SQR(s2) > d1sq));
+                (s2 > d1) ||
+
+                // Split c2 if the maximum dphi from pivoting d3 is > bphi
+                // (s1+s2)/d3 > bphi
+                (s1+s2 > bphi * d3));
             xdbg<<"split1 = "<<split1<<std::endl;
 
             split3 = (s3 > 0.) && (
                 // Likewise for c3
                 d3split ||
                 (s1==0. && s3 > d2 * b) ||
-                (SQR(s3) > d1sq));
+                (s3 > d1) ||
+                (s1+s3 > bphi * d2));
             xdbg<<"split2 = "<<split2<<std::endl;
 
-            if (!split1 && !split2) {
-                xdbg<<"max phi = "<<calculate_phi(d1+s2+s3, d2-s1-s3, d3-s1-s2)<<std::endl;
-                xdbg<<"min phi = "<<calculate_phi(d1-s2-s3, d2+s1+s3, d3+s1+s2)<<std::endl;
-                xdbg<<"bphi = "<<bphi<<std::endl;
-            }
-
-            // All other checks mean split at least one of c2 or c3.
-            // Done with ||, so it will stop checking if anything is true.
-            bool split =
-                // Don't bother doing further calculations if already splitting something.
-                split2 || split3 ||
-
-                // Check splitting c2,c3 for phi calculation.
-                (std::abs(calculate_phi(d1+s2+s3, d2-s1-s3, d3-s1-s2) - phi) > bphi) ||
-                (std::abs(calculate_phi(d1-s2-s3, d2+s1+s3, d3+s1+s2) - phi) > bphi);
-
-            if (split) {
+            if (split2 || split3) {
                 // If splitting either one, also do the other if it's close.
                 // Because we were so aggressive in splitting c2,c3 above during the c1 splits,
                 // it turns out that here we usually only want to split one, not both.
@@ -1067,9 +1056,7 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
             }
         } else {
             // s1==s2==0 and not splitting s3.
-            // Just need to calculate the terms we guarantee to be set when split=false
             xdbg<<"Don't split\n";
-            xdbg<<"phi = "<<phi<<std::endl;
             return true;
         }
     }
@@ -1077,7 +1064,7 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
     template <int M, int C>
     static bool isTriangleInRange(const BaseCell<C>& c1, const BaseCell<C>& c2,
                                   const BaseCell<C>& c3, const MetricHelper<M,0>& metric,
-                                  double d1, double d2, double d3, double phi, double& ,
+                                  double d1, double d2, double d3, double phi, double& cosphi,
                                   double logminsep,
                                   double minsep, double maxsep, double binsize, double nbins,
                                   double minphi, double maxphi, double phibinsize, double nphibins,
@@ -1090,6 +1077,11 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
         Assert(d1 > 0.);
         Assert(d2 > 0.);
         Assert(d3 > 0.);
+
+        if (cosphi > -1 && cosphi < 1) phi = std::acos(cosphi);
+        else if (cosphi <= -1) phi = M_PI;
+        else if (cosphi >= 1) phi = 0.;
+        xdbg<<"phi = "<<phi<<std::endl;
         Assert(phi >= 0.);
 
         if (d2 < minsep || d2 >= maxsep) {

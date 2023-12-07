@@ -75,11 +75,12 @@ BaseCorr3::BaseCorr3(
       case LogSAS:
            _ntot = BinTypeHelper<LogSAS>::calculateNTot(nbins, nubins, nvbins);
            // For LogSAS, we don't have v, and min/maxu is really min/maxphi.
-           // So we calculate a different definition of min/maxv, for use in some
-           // of the decision points.
-           //   v = sin(phi/2)
-           _minv = std::sin(_minu/2.);
-           _maxv = std::sin(_maxu/2.);
+           // Most of the checks can be done on cosphi instead, which is faster, so use
+           // the v values to store mincosphi, maxcosphi
+           if (_minu < 0 && _maxu > 0) _maxv = 1;
+           else _maxv = std::max(std::cos(_minu), std::cos(_maxu));
+           if (_minu < M_PI && _maxu > M_PI) _minv = -1;
+           else _minv = std::min(std::cos(_minu), std::cos(_maxu));
            break;
       default:
            dbg<<"bin_type = "<<bin_type<<std::endl;
@@ -734,7 +735,7 @@ void BaseCorr3::process111Sorted(
     // Various quanities that we'll set along the way if we need them.
     // At the end, if singleBin is true, then all these will be set correctly.
     double d1=-1., d2=-1., d3=-1., u=-1., v=-1.;
-    if (BinTypeHelper<B>::stop111(d1sq, d2sq, d3sq, s1, s2, s3, d1, d2, d3,
+    if (BinTypeHelper<B>::stop111(d1sq, d2sq, d3sq, s1, s2, s3, d1, d2, d3, u, v,
                                   _minsep, _minsepsq, _maxsep, _maxsepsq,
                                   _minu, _minusq, _maxu, _maxusq,
                                   _minv, _minvsq, _maxv, _maxvsq))

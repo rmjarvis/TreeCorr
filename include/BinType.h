@@ -403,7 +403,7 @@ struct BinTypeHelper<LogRUV>
     static bool stop111(
         double d1sq, double d2sq, double d3sq,
         double s1, double s2, double s3,
-        double& d1, double& d2, double& d3,
+        double& d1, double& d2, double& d3, double& u, double& v,
         double minsep, double minsepsq, double maxsep, double maxsepsq,
         double minu, double minusq, double maxu, double maxusq,
         double minv, double minvsq, double maxv, double maxvsq)
@@ -765,8 +765,8 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
 
     // If the user has set a minphi > 0, then we may be able to stop for that.
     static bool noAllowedAngles(double rsq, double s1ps2, double s1, double s2,
-                                double minphi, double minphisq, double maxphi, double maxphisq,
-                                double , double , double , double )
+                                double minphi, double , double maxphi, double ,
+                                double mincosphi, double , double maxcosphi, double )
     {
         xdbg<<"Check noAllowedAngles\n";
         // The maximum possible sin(phi/2) value at this point is s2 / (r - s1 - s2)
@@ -787,42 +787,43 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
         else return false;
     }
 
-    static double calculate_phi(double d1, double d2, double d3)
+    static double calculate_cosphi(double d1, double d2, double d3)
     {
-        // For now, just do the trig here.  We'll work on finding efficient algorithms
-        // for all this later.
-        double cosphi = (SQR(d2) + SQR(d3) - SQR(d1)) / (2*d2*d3);
-        if (cosphi >= -1 && cosphi <= 1) {
-            return std::acos(cosphi);
-        } else {
-            xdbg<<"d1,d2,d3 = "<<d1<<"  "<<d2<<"  "<<d3<<std::endl;
-            xdbg<<"cosphi = "<<cosphi<<std::endl;
-            if (d1 < std::numeric_limits<double>::infinity() &&
-                (d2 == std::numeric_limits<double>::infinity() ||
-                 d3 == std::numeric_limits<double>::infinity()))
-                return 0;
-            else if (d1 == std::numeric_limits<double>::infinity() &&
-                     (d2 < std::numeric_limits<double>::infinity() ||
-                      d3 < std::numeric_limits<double>::infinity()))
-                return M_PI;
-            else if (cosphi < -1)
-                return M_PI;
-            else if (cosphi > 1)
-                return 0;
-            else
-                throw std::runtime_error("Bad cosphi!");
+        if (d1 < std::numeric_limits<double>::infinity() &&
+            (d2 == std::numeric_limits<double>::infinity() ||
+             d3 == std::numeric_limits<double>::infinity()))
+            return 1.;
+        else if (d1 == std::numeric_limits<double>::infinity() &&
+                 (d2 < std::numeric_limits<double>::infinity() ||
+                  d3 < std::numeric_limits<double>::infinity()))
+            return -1.;
+        else {
+            double cosphi = (SQR(d2) + SQR(d3) - SQR(d1)) / (2*d2*d3);
+            if (cosphi > 1.) cosphi = 1.;
+            if (cosphi < -1.) cosphi = -1.;
+            return cosphi;
         }
     }
 
+    static double calculate_phi(double d1, double d2, double d3)
+    {
+        double cosphi = calculate_cosphi(d1,d2,d3);
+        if (cosphi > -1 && cosphi < 1) return std::acos(cosphi);
+        else if (cosphi <= -1) return M_PI;
+        else if (cosphi >= 1) return 0;
+        else // nan
+            throw std::runtime_error("Bad cosphi!");
+    }
+
     // Once we have all the distances, see if it's possible to stop
-    // For this BinType, if return value is false, d1,d2,d3 are set on output.
+    // For this BinType, if return value is false, d1,d2,d3,cosphi are set on output.
     static bool stop111(
         double d1sq, double d2sq, double d3sq,
         double s1, double s2, double s3,
-        double& d1, double& d2, double& d3,
+        double& d1, double& d2, double& d3, double& phi, double& cosphi,
         double minsep, double minsepsq, double maxsep, double maxsepsq,
-        double minphi, double minphisq, double maxphi, double maxphisq,
-        double , double , double , double )
+        double minphi, double , double maxphi, double ,
+        double mincosphi, double , double maxcosphi, double )
     {
         xdbg<<"Stop111: "<<std::sqrt(d1sq)<<"  "<<std::sqrt(d2sq)<<"  "<<std::sqrt(d3sq)<<std::endl;
         xdbg<<"sizes = "<<s1<<"  "<<s2<<"  "<<s3<<std::endl;
@@ -844,50 +845,76 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
             return true;
         }
 
-        // If the user sets minphi > 0, then we can abort if no possible triangle can have
-        // phi as large as this.
-        // The most phi can increase from the current phi is
-        // (s1+s2)/d3 + (s1+s3)/d2
-        double phi=0, dphi=0;
-        if (minphi > 0 || maxphi < M_PI) {
-            d1 = sqrt(d1sq);
-            d2 = sqrt(d2sq);
-            d3 = sqrt(d3sq);
-            phi = calculate_phi(d1, d2, d3);
-            if (phi < minphi || phi > maxphi) {
-                if (s1 + s3 > 0) {
-                    if (s1 + s3 < d2)
-                        dphi += std::asin((s1+s3)/d2);
-                    else
-                        dphi += 2*M_PI;
-                }
-                if (s1 + s2 > 0) {
-                    if (s1 + s2 < d3)
-                        dphi += std::asin((s1+s2)/d3);
-                    else
-                        dphi += 2*M_PI;
-                }
-            }
-        }
-        if (minphi > 0 && phi < minphi && phi + dphi < minphi) {
-            xdbg<<"phi_max = "<<phi+dphi<<std::endl;
-            xdbg<<"phi cannot be as large as minphi\n";
-            return true;
-        }
-
-        // If the user sets maxphi < pi, then we can abort if no possible triangle can have
-        // phi as small as this.
-        if (maxphi < M_PI && phi > maxphi && phi - dphi > maxphi) {
-            xdbg<<"phi_min = "<<phi-dphi<<std::endl;
-            xdbg<<"phi cannot be as small as maxphi\n";
-            return true;
-        }
-
         // Stop if any side is exactly 0 and elements are leaves
         // (This is unusual, but we want to make sure to stop if it happens.)
         if (s2==0 && s3==0 && d1sq == 0) return true;
         if (s1==0 && s3==0 && d2sq == 0) return true;
         if (s1==0 && s2==0 && d3sq == 0) return true;
+
+        d1 = sqrt(d1sq);
+        d2 = sqrt(d2sq);
+        d3 = sqrt(d3sq);
+        cosphi = calculate_cosphi(d1, d2, d3);
+
+        if (s1 + s2 >= d3) {
+            xdbg<<"s1,s2 are bigger than d3, continue splitting.";
+            return false;
+        }
+        if (s1 + s3 >= d2) {
+            xdbg<<"s1,s3 are bigger than d2, continue splitting.";
+            return false;
+        }
+
+        // If the user sets minphi > 0, then we can abort if no possible triangle can have
+        // phi as large as this.
+        // The most phi can increase from the current phi is dphi2 + dphi3, where
+        // sin(dphi2) = (s1+s2)/d3
+        // sin(dphi3) = (s1+s3)/d2
+        if (minphi > 0 && cosphi > maxcosphi) {
+            double sindphi2 = (s1+s2 > 0) ? (s1+s2)/d3 : 0.;
+            double cosdphi2 = (s1+s2 > 0) ? sqrt(1-sindphi2*sindphi2) : 1.;
+            if (cosdphi2 < maxcosphi) return false;
+            double sindphi3 = (s1+s3 > 0) ? (s1+s3)/d2 : 0.;
+            double cosdphi3 = (s1+s3 > 0) ? sqrt(1-sindphi3*sindphi3) : 1.;
+            if (cosdphi3 < maxcosphi) return false;
+            double cosdphi = cosdphi2 * cosdphi3 - sindphi3 * sindphi2;
+            if (cosdphi < maxcosphi) return false;
+            double sindphi = sindphi2 * cosdphi3 + sindphi3 * cosdphi2;
+            double sinphi = sqrt(1-cosphi*cosphi);
+            // phimax is the largest possible phi we can possibly get.
+            // If it's still less than minphi then stop.
+            // i.e. cos(phimax) > cos(minphi) = maxcosphi
+            double cosphimax = cosphi * cosdphi - sinphi * sindphi;
+            if (cosphimax > maxcosphi) {
+                dbg<<"phi_max = "<<std::acos(cosphimax)<<std::endl;
+                dbg<<"phi cannot be as large as minphi\n";
+                return true;
+            }
+        }
+
+        // If the user sets maxphi < pi, then we can abort if no possible triangle can have
+        // phi as small as this.
+        if (maxphi < M_PI && cosphi < mincosphi) {
+            double sindphi2 = (s1+s2 > 0) ? (s1+s2)/d3 : 0.;
+            double cosdphi2 = (s1+s2 > 0) ? sqrt(1-sindphi2*sindphi2) : 1.;
+            if (cosdphi2 < -mincosphi) return false;
+            double sindphi3 = (s1+s3 > 0) ? (s1+s3)/d2 : 0.;
+            double cosdphi3 = (s1+s3 > 0) ? sqrt(1-sindphi3*sindphi3) : 1.;
+            if (cosdphi3 < -mincosphi) return false;
+            double cosdphi = cosdphi2 * cosdphi3 - sindphi3 * sindphi2;
+            if (cosdphi < -mincosphi) return false;
+            double sindphi = sindphi2 * cosdphi3 + sindphi3 * cosdphi2;
+            double sinphi = sqrt(1-cosphi*cosphi);
+            // phimin is the smallest possible phi we can possibly get.
+            // If it's still more than maxphi, then stop.
+            // i.e. cos(phimin) < cos(maxphi) = mincosphi
+            double cosphimin = cosphi * cosdphi + sinphi * sindphi;
+            if (cosphimin < mincosphi) {
+                dbg<<"phi_min = "<<std::acos(cosphimin)<<std::endl;
+                dbg<<"phi cannot be as small as maxphi\n";
+                return true;
+            }
+        }
 
         return false;
     }
@@ -901,7 +928,7 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
                           double bsq, double bphisq, double ,
                           bool& split1, bool& split2, bool& split3,
                           double& d1, double& d2, double& d3,
-                          double& phi, double& )
+                          double& phi, double& cosphi)
     {
         xdbg<<"singleBin: "<<d1<<"  "<<d2<<"  "<<d3<<std::endl;
         // First decide whether to split c3

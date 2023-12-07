@@ -610,7 +610,7 @@ void BaseCorr3::process12(BaseCorr3& bc212, BaseCorr3& bc221,
     // Depending on the binning, we may be able to stop due to allowed angles.
     if (BinTypeHelper<B>::noAllowedAngles(rsq, s1ps2, s1, s2,
                                          _minu, _minusq, _maxu, _maxusq,
-                                         _minv, _maxv, _minvsq, _maxvsq)) {
+                                         _minv, _minvsq, _maxv, _maxvsq)) {
         dbg<<ws()<<"    No possible triangles with allowed angles\n";
         return;
     }

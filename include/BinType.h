@@ -637,7 +637,7 @@ struct BinTypeHelper<LogRUV>
     template <int M, int C>
     static bool isTriangleInRange(const BaseCell<C>& c1, const BaseCell<C>& c2,
                                   const BaseCell<C>& c3, const MetricHelper<M,0>& metric,
-                                  double d1, double d2, double d3, double u, double& v,
+                                  double d1, double d2, double d3, double& u, double& v,
                                   double logminsep,
                                   double minsep, double maxsep, double binsize, double nbins,
                                   double minu, double maxu, double ubinsize, double nubins,
@@ -909,7 +909,7 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
             // i.e. cos(phimax) > cos(minphi) = maxcosphi
             if (cosphimax > maxcosphi) {
                 //dbg<<"phi_max = "<<std::acos(cosphimax)<<std::endl;
-                dbg<<"phi cannot be as large as minphi\n";
+                xdbg<<"phi cannot be as large as minphi\n";
                 return true;
             }
         }
@@ -956,7 +956,7 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
             // i.e. cos(phimin) < cos(maxphi) = mincosphi
             if (cosphimin < mincosphi) {
                 //dbg<<"phi_min = "<<std::acos(cosphimin)<<std::endl;
-                dbg<<"phi cannot be as small as maxphi\n";
+                xdbg<<"phi cannot be as small as maxphi\n";
                 return true;
             }
         }
@@ -1065,10 +1065,11 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
         }
     }
 
+    // This BinType finally sets phi here.
     template <int M, int C>
     static bool isTriangleInRange(const BaseCell<C>& c1, const BaseCell<C>& c2,
                                   const BaseCell<C>& c3, const MetricHelper<M,0>& metric,
-                                  double d1, double d2, double d3, double phi, double& cosphi,
+                                  double d1, double d2, double d3, double& phi, double& cosphi,
                                   double logminsep,
                                   double minsep, double maxsep, double binsize, double nbins,
                                   double minphi, double maxphi, double phibinsize, double nphibins,

@@ -2497,6 +2497,7 @@ def test_nnn():
         nrand = ngal
         L = 20. * s
         tol_factor = 5
+
     rng = np.random.RandomState(8675309)
     x = rng.normal(0,s, (ngal,) )
     y = rng.normal(0,s, (ngal,) )
@@ -3749,27 +3750,22 @@ def test_nnn_logsas():
     s = 10.
     if __name__ == "__main__":
         ngal = 5000
-        nrand = 2 * ngal
+        nrand = 3 * ngal
         L = 50. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
-        tol_factor = 3
-
-        #ngal = 2000
-        #nrand = ngal
-        #L = 20. * s
-        #tol_factor = 5
+        tol_factor = 1
     else:
         ngal = 2000
         nrand = ngal
         L = 20. * s
-        tol_factor = 5
+        tol_factor = 3
     rng = np.random.RandomState(8675309)
     x = rng.normal(0,s, (ngal,) )
     y = rng.normal(0,s, (ngal,) )
     min_sep = 10.
     max_sep = 13.
     nbins = 2
-    min_phi = np.pi/4
-    max_phi = np.pi/2
+    min_phi = 0.8
+    max_phi = 1.3
     nphi_bins = 4
 
     cat = treecorr.Catalog(x=x, y=y, x_units='arcmin', y_units='arcmin')
@@ -4049,31 +4045,30 @@ def test_nnn_logsas():
         assert ddd2.sep_units == ddd.sep_units
         assert ddd2.bin_type == ddd.bin_type
 
-        config = treecorr.config.read_config('configs/nnn_compensated_logsas.yaml')
+        config['nnn_statistic'] = 'compensated'
         config['verbose'] = 0
         treecorr.corr3(config)
-        corr3_outfile = os.path.join('output','nnn_compensated_logsas.fits')
-        corr3_output = fitsio.read(corr3_outfile)
+        data = fitsio.read(out_file_name3)
         print('zeta = ',zeta)
-        print('from corr3 output = ',corr3_output['zeta'])
-        print('ratio = ',corr3_output['zeta']/zeta.flatten())
-        print('diff = ',corr3_output['zeta']-zeta.flatten())
+        print('from corr3 output = ',data['zeta'])
+        print('ratio = ',data['zeta']/zeta.flatten())
+        print('diff = ',data['zeta']-zeta.flatten())
 
-        np.testing.assert_almost_equal(corr3_output['r2_nom'], np.exp(ddd.logr2).flatten())
-        np.testing.assert_almost_equal(corr3_output['r3_nom'], np.exp(ddd.logr3).flatten())
-        np.testing.assert_almost_equal(corr3_output['phi_nom'], ddd.phi.flatten())
-        np.testing.assert_almost_equal(corr3_output['meanr2'], ddd.meanr2.flatten())
-        np.testing.assert_almost_equal(corr3_output['meanlogr2'], ddd.meanlogr2.flatten())
-        np.testing.assert_almost_equal(corr3_output['meanr3'], ddd.meanr3.flatten())
-        np.testing.assert_almost_equal(corr3_output['meanlogr3'], ddd.meanlogr3.flatten())
-        np.testing.assert_almost_equal(corr3_output['meanphi'], ddd.meanphi.flatten())
-        np.testing.assert_almost_equal(corr3_output['zeta'], zeta.flatten())
-        np.testing.assert_almost_equal(corr3_output['sigma_zeta'], np.sqrt(varzeta).flatten())
-        np.testing.assert_almost_equal(corr3_output['DDD'], ddd.ntri.flatten())
-        np.testing.assert_almost_equal(corr3_output['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
-        np.testing.assert_almost_equal(corr3_output['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
-        np.testing.assert_almost_equal(corr3_output['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
-        header = fitsio.read_header(corr3_outfile, 1)
+        np.testing.assert_almost_equal(data['r2_nom'], np.exp(ddd.logr2).flatten())
+        np.testing.assert_almost_equal(data['r3_nom'], np.exp(ddd.logr3).flatten())
+        np.testing.assert_almost_equal(data['phi_nom'], ddd.phi.flatten())
+        np.testing.assert_almost_equal(data['meanr2'], ddd.meanr2.flatten())
+        np.testing.assert_almost_equal(data['meanlogr2'], ddd.meanlogr2.flatten())
+        np.testing.assert_almost_equal(data['meanr3'], ddd.meanr3.flatten())
+        np.testing.assert_almost_equal(data['meanlogr3'], ddd.meanlogr3.flatten())
+        np.testing.assert_almost_equal(data['meanphi'], ddd.meanphi.flatten())
+        np.testing.assert_almost_equal(data['zeta'], zeta.flatten())
+        np.testing.assert_almost_equal(data['sigma_zeta'], np.sqrt(varzeta).flatten())
+        np.testing.assert_almost_equal(data['DDD'], ddd.ntri.flatten())
+        np.testing.assert_almost_equal(data['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
+        np.testing.assert_almost_equal(data['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
+        np.testing.assert_almost_equal(data['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
+        header = fitsio.read_header(out_file_name3, 1)
         np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
 
 

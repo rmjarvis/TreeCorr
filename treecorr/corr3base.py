@@ -71,25 +71,16 @@ class Corr3(object):
        congruence).  The two sides are called r2 and r3, and the angle between them is called
        phi.
 
-       The orientation is defined such that 0 <= phi <= 2 pi is the angle sweeping from r2 to r3
+       The orientation is defined such that 0 <= phi <= pi is the angle sweeping from r2 to r3
        counter-clockwise.
 
        Unlike the SSS definition where every triangle is uniquely placed in a single bin, this
        definition forms a triangle with each object at the central vertex, so for auto-correlations,
        each triangle is placed in bins three times.  For cross-correlations, the order of the
        points is such that objects in the first catalog are at the central vertex, objects in
-       the second catalog are at r3, and objects in the third catalog are at r2 (using the
-       normal notation that side number 2 is opposite vertex 2 in the triangle, likewise for
-       side 3 and vertex 3).
-
-        .. note::
-
-            The default range for phi is [0, pi], which is appropriate for auto-correlations,
-            where the objects at r2 and r3 can be selected arbitrarily such that 0 <= phi <= pi.
-            If you will be doing cross-correlations, you probably want to let phi range over
-            [0, 2 pi) instead to accumulate all possible triangles.  You may also use negative
-            values to define a range around 0 such as [-pi/4, pi/4] if you want to restrict to
-            small opening angles, but keep track of the orientation of r2 and r3. (TODO!)
+       the second catalog are at the end of line segment r3, and objects in the third catalog
+       are at the end of r2 (using the normal notation that side number 2 is opposite vertex 2
+       in the triangle, likewise for side 3 and vertex 3).
 
     The constructor for all derived classes take a config dict as the first argument,
     since this is often how we keep track of parameters, but if you don't want to
@@ -476,7 +467,7 @@ class Corr3(object):
             # Note: we refer to phi as u in the _ro namespace to make function calls easier.
             self._ro.min_u = float(self.config.get('min_phi', 0.))
             self._ro.max_u = float(self.config.get('max_phi', np.pi))
-            if self.min_phi < 0 or self.max_phi > 2*np.pi:
+            if self.min_phi < 0 or self.max_phi > np.pi:
                 raise ValueError("Invalid range for phi: %f - %f"%(self.min_phi, self.max_phi))
             if self.min_phi >= self.max_phi:
                 raise ValueError("max_phi must be larger than min_phi")
@@ -494,7 +485,7 @@ class Corr3(object):
                 if 'phi_bin_size' in self.config:
                     if 'max_phi' not in self.config:
                         self._ro.max_u = self.min_phi + self.nphi_bins * self.phi_bin_size
-                        self._ro.max_u = min(self._ro.max_u, 2*np.pi)
+                        self._ro.max_u = min(self._ro.max_u, np.pi)
                     else:  # min_phi not in config
                         self._ro.min_u = self.max_phi - self.nphi_bins * self.phi_bin_size
                         self._ro.min_u = max(self._ro.min_u, 0.)

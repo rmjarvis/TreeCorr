@@ -1031,8 +1031,6 @@ class Corr3(object):
 
                             if self.bin_type == 'LogSAS':
                                 self._single_process123(c1,c1,c2,i,i,j,metric,num_threads,temp)
-                                self._single_process123(c1,c2,c1,i,j,i,metric,num_threads,temp)
-                                self._single_process123(c2,c1,c2,j,i,j,metric,num_threads,temp)
                                 self._single_process123(c2,c2,c1,j,j,i,metric,num_threads,temp)
 
                         # One point in each of c1, c2, c3
@@ -1041,11 +1039,8 @@ class Corr3(object):
                             if j < k and is_my_job(my_indices, i, j, k, n):
                                 self._single_process123(c1,c2,c3,(i,j,k),metric,num_threads,temp)
                                 if self.bin_type == 'LogSAS':
-                                    self._single_process123(c1,c3,c2,i,k,j,metric,num_threads,temp)
-                                    self._single_process123(c2,c1,c3,j,i,k,metric,num_threads,temp)
                                     self._single_process123(c2,c3,c1,j,k,i,metric,num_threads,temp)
                                     self._single_process123(c3,c1,c2,k,i,j,metric,num_threads,temp)
-                                    self._single_process123(c3,c2,c1,k,j,i,metric,num_threads,temp)
 
                                 if low_mem:
                                     c3.unload()
@@ -1140,9 +1135,6 @@ class Corr3(object):
                         k = c3.patch if c3.patch is not None else kk
                         if j < k and is_my_job(my_indices, i, j, k, n1, n2):
                             self._single_process123(c1,c2,c3,(i,j,k),metric,num_threads,temp)
-
-                            if self.bin_type == 'LogSAS':
-                                self._single_process123(c1,c3,c2,(i,k,j),metric,num_threads,temp)
 
                             if low_mem and kk != jj+1:
                                 # Don't unload j+1, since that's the next one we'll need.

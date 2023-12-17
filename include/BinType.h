@@ -1099,15 +1099,8 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
             return false;
         }
 
-        // c1 is the vertex with phi
-        // c3-c1 is r2
-        // c2-c1 is r3
-        // So flip phi if c1 - c3 - c2 is clockwise.
-        if (!metric.CCW(c1.getData().getPos(), c3.getData().getPos(),
-                        c2.getData().getPos())) {
-            phi = 2*M_PI - phi;
-            xdbg<<"CW: phi = 2pi - phi = "<<phi<<"\n";
-        }
+        Assert(phi <= M_PI);
+        Assert(metric.CCW(c1.getData().getPos(), c3.getData().getPos(), c2.getData().getPos()));
 
         if (phi < minphi || phi >= maxphi) {
             xdbg<<"phi not in minphi .. maxphi\n";

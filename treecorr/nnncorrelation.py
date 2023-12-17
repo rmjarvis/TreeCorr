@@ -1230,6 +1230,13 @@ class NNNCrossCorrelation(Corr3):
         self.n1n2n3.corr.processCross12(self.n2n1n3.corr, self.n2n3n1.corr,
                                         f1.data, f2.data, self.output_dots,
                                         self._bintype, self._metric)
+        if self.bin_type == 'LogSAS':
+            self.n2n1n3.corr.processCross(self.n2n3n1.corr,
+                                          self.n1n2n3.corr, self.n1n3n2.corr,
+                                          self.n3n2n1.corr, self.n3n1n2.corr,
+                                          f2.data, f1.data, f2.data, self.output_dots,
+                                          self._bintype, self._metric)
+
         tot = cat1.sumw * cat2.sumw**2 / 2.
         self.n1n2n3.tot += tot
         self.n2n1n3.tot += tot
@@ -1283,17 +1290,21 @@ class NNNCrossCorrelation(Corr3):
                             coords=self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        if self._process12:
-            self.n1n2n3.corr.processCross(self.n1n2n3.corr,
-                                          self.n3n1n2.corr, self.n2n3n1.corr,
-                                          self.n3n1n2.corr, self.n2n3n1.corr,
-                                          f1.data, f2.data, f3.data, self.output_dots,
+        self.n1n2n3.corr.processCross(self.n1n3n2.corr,
+                                      self.n2n1n3.corr, self.n2n3n1.corr,
+                                      self.n3n1n2.corr, self.n3n2n1.corr,
+                                      f1.data, f2.data, f3.data, self.output_dots,
+                                      self._bintype, self._metric)
+        if self.bin_type == 'LogSAS':
+            self.n2n1n3.corr.processCross(self.n2n3n1.corr,
+                                          self.n1n2n3.corr, self.n1n3n2.corr,
+                                          self.n3n2n1.corr, self.n3n1n2.corr,
+                                          f2.data, f1.data, f3.data, self.output_dots,
                                           self._bintype, self._metric)
-        else:
-            self.n1n2n3.corr.processCross(self.n1n3n2.corr,
-                                          self.n2n1n3.corr, self.n2n3n1.corr,
-                                          self.n3n1n2.corr, self.n3n2n1.corr,
-                                          f1.data, f2.data, f3.data, self.output_dots,
+            self.n3n1n2.corr.processCross(self.n3n2n1.corr,
+                                          self.n1n3n2.corr, self.n1n2n3.corr,
+                                          self.n2n3n1.corr, self.n2n1n3.corr,
+                                          f3.data, f1.data, f2.data, self.output_dots,
                                           self._bintype, self._metric)
         tot = cat1.sumw * cat2.sumw * cat3.sumw
         for nnn in self._all:

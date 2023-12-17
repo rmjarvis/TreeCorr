@@ -250,10 +250,6 @@ void BaseCorr3::process(const BaseField<C>& field, bool dots)
                 if (!BinTypeHelper<B>::sort_d123) {
                     bc3.process111<B>(bc3, bc3, bc3, bc3, bc3,
                                       c1, c1, c2, metric);
-                    bc3.process111<B>(bc3, bc3,bc3, bc3, bc3,
-                                      c1, c2, c1, metric);
-                    bc3.process111<B>(bc3, bc3,bc3, bc3, bc3,
-                                      c2, c2, c1, metric);
                     bc3.process111<B>(bc3, bc3, bc3, bc3, bc3,
                                       c2, c1, c2, metric);
                 }
@@ -262,11 +258,8 @@ void BaseCorr3::process(const BaseField<C>& field, bool dots)
                     bc3.template process111<B>(bc3, bc3, bc3, bc3, bc3, c1, c2, c3, metric);
                     if (!BinTypeHelper<B>::sort_d123) {
                         // If not sorting later, then here we need to include all triples
-                        bc3.template process111<B>(bc3, bc3, bc3, bc3, bc3, c1, c3, c2, metric);
                         bc3.template process111<B>(bc3, bc3, bc3, bc3, bc3, c2, c1, c3, metric);
-                        bc3.template process111<B>(bc3, bc3, bc3, bc3, bc3, c2, c3, c1, metric);
                         bc3.template process111<B>(bc3, bc3, bc3, bc3, bc3, c3, c1, c2, metric);
-                        bc3.template process111<B>(bc3, bc3, bc3, bc3, bc3, c3, c2, c1, metric);
                     }
                 }
             }
@@ -350,37 +343,10 @@ void BaseCorr3::process(BaseCorr3& corr212, BaseCorr3& corr221,
             for (long j=0;j<n2;++j) {
                 const BaseCell<C>& c2 = *field2.getCells()[j];
                 bc122.template process12<B>(bc212, bc221, c1, c2, metric);
-                if (!BinTypeHelper<B>::sort_d123) {
-                    if (&corr212 != this) {
-                        bc212.process111<B>(bc221, bc122, bc122, bc221, bc212,
-                                            c2, c1, c2, metric);
-                    }
-                    if (&corr221 != this) {
-                        bc221.process111<B>(bc212, bc221, bc212, bc122, bc122,
-                                            c2, c2, c1, metric);
-                    }
-                }
                 for (long k=j+1;k<n2;++k) {
                     const BaseCell<C>& c3 = *field2.getCells()[k];
                     bc122.template process111<B>(bc122, bc212, bc221, bc212, bc221,
                                                  c1, c2, c3, metric);
-                    if (!BinTypeHelper<B>::sort_d123) {
-                        // If not sorting later, then here we need to include all triples
-                        bc122.template process111<B>(bc122, bc212, bc221, bc212, bc221,
-                                                     c1, c3, c2, metric);
-                        if (&corr212 != this) {
-                            bc212.process111<B>(bc221, bc122, bc122, bc221, bc212,
-                                                c2, c1, c3, metric);
-                            bc212.process111<B>(bc221, bc122, bc122, bc221, bc212,
-                                                c3, c1, c2, metric);
-                        }
-                        if (&corr221 != this) {
-                            bc221.process111<B>(bc212, bc221, bc212, bc122, bc122,
-                                                c2, c3, c1, metric);
-                            bc221.process111<B>(bc212, bc221, bc212, bc122, bc122,
-                                                c3, c2, c1, metric);
-                        }
-                    }
                 }
             }
         }
@@ -490,24 +456,6 @@ void BaseCorr3::process(BaseCorr3& corr132,
                     bc123.template process111<B>(
                         bc132, bc213, bc231, bc312, bc321,
                         c1, c2, c3, metric);
-                    if (!BinTypeHelper<B>::sort_d123) {
-                        // If not sorting later, then here we need to include all triples
-                        if (&corr132 != this)
-                            bc132.process111<B>(bc123, bc312, bc321, bc213, bc231,
-                                                c1, c3, c2, metric);
-                        if (&corr213 != this)
-                            bc213.process111<B>(bc231, bc123, bc132, bc321, bc312,
-                                                c2, c1, c3, metric);
-                        if (&corr312 != this && &corr312 != &corr213)
-                            bc312.process111<B>(bc321, bc132, bc123, bc231, bc213,
-                                                c3, c1, c2, metric);
-                        if (&corr231 != this)
-                            bc231.process111<B>(bc213, bc321, bc312, bc123, bc132,
-                                                c2, c3, c1, metric);
-                        if (&corr321 != this && &corr321 != &corr231)
-                            bc321.process111<B>(bc312, bc231, bc213, bc132, bc123,
-                                                c3, c2, c1, metric);
-                    }
                 }
             }
         }
@@ -554,11 +502,7 @@ void BaseCorr3::process3(const BaseCell<C>& c1, const MetricHelper<M,0>& metric)
         process111<B>(*this, *this, *this, *this, *this,
                       *c1.getLeft(), *c1.getLeft(), *c1.getRight(), metric);
         process111<B>(*this, *this, *this, *this, *this,
-                      *c1.getLeft(), *c1.getRight(), *c1.getLeft(), metric);
-        process111<B>(*this, *this, *this, *this, *this,
                       *c1.getRight(), *c1.getLeft(), *c1.getRight(), metric);
-        process111<B>(*this, *this, *this, *this, *this,
-                      *c1.getRight(), *c1.getRight(), *c1.getLeft(), metric);
     }
     dec_ws();
 }
@@ -624,10 +568,6 @@ void BaseCorr3::process12(BaseCorr3& bc212, BaseCorr3& bc221,
     BaseCorr3& bc122 = *this;  // alias for clarity.
     bc122.process111<B>(bc122, bc212, bc221, bc212, bc221,
                         c1, *c2.getLeft(), *c2.getRight(), metric);
-    if (!BinTypeHelper<B>::sort_d123) {
-        bc122.process111<B>(bc122, bc212, bc221, bc212, bc221,
-                            c1, *c2.getRight(), *c2.getLeft(), metric);
-    }
     dec_ws();
 }
 
@@ -704,8 +644,17 @@ void BaseCorr3::process111(
             }
         }
     } else {
-        bc123.template process111Sorted<B>(bc132, bc213, bc231, bc312, bc321,
-                                           c1, c2, c3, metric, d1sq, d2sq, d3sq);
+        // For the non-sorting BinTypes (i.e. LogSAS so far), we just need to make sure
+        // 1-3-2 is counter-clockwise
+        if (!metric.CCW(c1.getData().getPos(), c3.getData().getPos(),
+                        c2.getData().getPos())) {
+            // Swap 2,3
+            bc132.template process111Sorted<B>(bc123, bc312, bc321, bc213, bc231,
+                                               c1, c3, c2, metric, d1sq, d3sq, d2sq);
+        } else {
+            bc123.template process111Sorted<B>(bc132, bc213, bc231, bc312, bc321,
+                                               c1, c2, c3, metric, d1sq, d2sq, d3sq);
+        }
     }
     dec_ws();
 }

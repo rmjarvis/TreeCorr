@@ -398,40 +398,6 @@ struct BinTypeHelper<LogRUV>
         return rsq > SQR(s1ps2) && minusq * rsq > SQR(2.*s2 + minu * (s1ps2));
     }
 
-    static bool quickstop111(
-        double d1sq, double d2sq, double d3sq,
-        double s1, double s2, double s3,
-        double minsep, double minsepsq, double maxsep, double maxsepsq)
-    {
-        xdbg<<"QuickStop111: "<<std::sqrt(d1sq)<<"  "<<std::sqrt(d2sq)<<"  "<<std::sqrt(d3sq)<<std::endl;
-        xdbg<<"sizes = "<<s1<<"  "<<s2<<"  "<<s3<<std::endl;
-        xdbg<<"sep range = "<<minsep<<"  "<<maxsep<<std::endl;
-
-        // If all possible triangles will have d2,d3 < minsep, then abort the recursion here.
-        if (d2sq < minsepsq && d3sq < minsepsq && s1+s3 < minsep && s1+s2 < minsep &&
-            (s1+s3 == 0. || d2sq < SQR(minsep - s1-s3)) &&
-            (s1+s2 == 0. || d3sq < SQR(minsep - s1-s2)) ) {
-            xdbg<<"d2,d3 cannot be as large as minsep\n";
-            return true;
-        }
-
-        // Similarly, we can abort if all possible triangles will have d2,d3 > maxsep.
-        if (d2sq >= maxsepsq && d3sq >= maxsepsq &&
-            (s1+s3 == 0. || d2sq >= SQR(maxsep + s1+s3)) &&
-            (s1+s2 == 0. || d3sq >= SQR(maxsep + s1+s2))) {
-            xdbg<<"d2 cannot be as small as maxsep\n";
-            return true;
-        }
-
-        // Stop if any side is exactly 0 and elements are leaves
-        // (This is unusual, but we want to make sure to stop if it happens.)
-        if (s2==0 && s3==0 && d1sq == 0) return true;
-        if (s1==0 && s3==0 && d2sq == 0) return true;
-        if (s1==0 && s2==0 && d3sq == 0) return true;
-
-        return false;
-    }
-
     // Once we have all the distances, see if it's possible to stop
     // For this BinType, if return value is false, d2 is set on output.
     static bool stop111(
@@ -824,68 +790,6 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
         return false;
     }
 
-    static double calculate_cosphi(double d1, double d2, double d3)
-    {
-        if (d1 < std::numeric_limits<double>::infinity() &&
-            (d2 == std::numeric_limits<double>::infinity() ||
-             d3 == std::numeric_limits<double>::infinity()))
-            return 1.;
-        else if (d1 == std::numeric_limits<double>::infinity() &&
-                 (d2 < std::numeric_limits<double>::infinity() ||
-                  d3 < std::numeric_limits<double>::infinity()))
-            return -1.;
-        else {
-            double cosphi = (SQR(d2) + SQR(d3) - SQR(d1)) / (2*d2*d3);
-            if (cosphi > 1.) cosphi = 1.;
-            if (cosphi < -1.) cosphi = -1.;
-            return cosphi;
-        }
-    }
-
-    static double calculate_phi(double d1, double d2, double d3)
-    {
-        double cosphi = calculate_cosphi(d1,d2,d3);
-        if (cosphi > -1 && cosphi < 1) return std::acos(cosphi);
-        else if (cosphi <= -1) return M_PI;
-        else if (cosphi >= 1) return 0;
-        else // nan
-            throw std::runtime_error("Bad cosphi!");
-    }
-
-    static bool quickstop111(
-        double d1sq, double d2sq, double d3sq,
-        double s1, double s2, double s3,
-        double minsep, double minsepsq, double maxsep, double maxsepsq)
-    {
-        xdbg<<"QuickStop111: "<<std::sqrt(d1sq)<<"  "<<std::sqrt(d2sq)<<"  "<<std::sqrt(d3sq)<<std::endl;
-        xdbg<<"sizes = "<<s1<<"  "<<s2<<"  "<<s3<<std::endl;
-        xdbg<<"sep range = "<<minsep<<"  "<<maxsep<<std::endl;
-
-        // If all possible triangles will have d2,d3 < minsep, then abort the recursion here.
-        if (d2sq < minsepsq && d3sq < minsepsq && s1+s3 < minsep && s1+s2 < minsep &&
-            (s1+s3 == 0. || d2sq < SQR(minsep - s1-s3)) &&
-            (s1+s2 == 0. || d3sq < SQR(minsep - s1-s2)) ) {
-            xdbg<<"d2,d3 cannot be as large as minsep\n";
-            return true;
-        }
-
-        // Similarly, we can abort if all possible triangles will have d2,d3 > maxsep.
-        if (d2sq >= maxsepsq && d3sq >= maxsepsq &&
-            (s1+s3 == 0. || d2sq >= SQR(maxsep + s1+s3)) &&
-            (s1+s2 == 0. || d3sq >= SQR(maxsep + s1+s2))) {
-            xdbg<<"d2 cannot be as small as maxsep\n";
-            return true;
-        }
-
-        // Stop if any side is exactly 0 and elements are leaves
-        // (This is unusual, but we want to make sure to stop if it happens.)
-        if (s2==0 && s3==0 && d1sq == 0) return true;
-        if (s1==0 && s3==0 && d2sq == 0) return true;
-        if (s1==0 && s2==0 && d3sq == 0) return true;
-
-        return false;
-    }
-
     // Once we have all the distances, see if it's possible to stop
     // For this BinType, if return value is false, d1,d2,d3,cosphi are set on output.
     static bool stop111(
@@ -900,19 +804,24 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
         xdbg<<"sizes = "<<s1<<"  "<<s2<<"  "<<s3<<std::endl;
         xdbg<<"sep range = "<<minsep<<"  "<<maxsep<<std::endl;
         xdbg<<"phi range = "<<minphi<<"  "<<maxphi<<std::endl;
-        // If all possible triangles will have d2,d3 < minsep, then abort the recursion here.
-        if (d2sq < minsepsq && d3sq < minsepsq && s1+s3 < minsep && s1+s2 < minsep &&
-            (s1+s3 == 0. || d2sq < SQR(minsep - s1-s3)) &&
-            (s1+s2 == 0. || d3sq < SQR(minsep - s1-s2)) ) {
-            xdbg<<"d2,d3 cannot be as large as minsep\n";
+
+        // If all possible triangles will have either d2 or d3 < minsep, then abort the recursion.
+        if (d2sq < minsepsq && s1+s3 < minsep && (s1+s3 == 0. || d2sq < SQR(minsep - s1-s3))) {
+            xdbg<<"d2 cannot be as large as minsep\n";
+            return true;
+        }
+        if (d3sq < minsepsq && s1+s2 < minsep && (s1+s2 == 0. || d3sq < SQR(minsep - s1-s2))) {
+            xdbg<<"d3 cannot be as large as minsep\n";
             return true;
         }
 
-        // Similarly, we can abort if all possible triangles will have d2,d3 > maxsep.
-        if (d2sq >= maxsepsq && d3sq >= maxsepsq &&
-            (s1+s3 == 0. || d2sq >= SQR(maxsep + s1+s3)) &&
-            (s1+s2 == 0. || d3sq >= SQR(maxsep + s1+s2))) {
+        // Similarly, we can abort if all possible triangles will have d2 or d3 > maxsep.
+        if (d2sq >= maxsepsq && (s1+s3 == 0. || d2sq >= SQR(maxsep + s1+s3))) {
             xdbg<<"d2 cannot be as small as maxsep\n";
+            return true;
+        }
+        if (d3sq >= maxsepsq && (s1+s2 == 0. || d3sq >= SQR(maxsep + s1+s2))) {
+            xdbg<<"d3 cannot be as small as maxsep\n";
             return true;
         }
 

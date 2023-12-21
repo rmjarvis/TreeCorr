@@ -3304,17 +3304,16 @@ def test_direct_count_auto_logsas():
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # And compare to the cross correlation
-    # Since the first catalog is fixed at the pivot point, we now only get 2x the total
-    # since only points 2 and 3 get double counted.
+    # As before, this will count each triangle 6 times.
     ddd.clear()
     ddd.process(cat,cat,cat, num_threads=2)
     #print('ddd.ntri = ',ddd.ntri)
     #print('true_ntri => ',true_ntri)
     #print('diff = ',ddd.ntri - true_ntri)
-    np.testing.assert_array_equal(ddd.ntri, 2*true_ntri)
+    np.testing.assert_array_equal(ddd.ntri, 6*true_ntri)
 
     # With the real CrossCorrelation class, each of the 6 correlations should end up being
-    # the correct total, not double.
+    # the correct total, not 6x.
     logger = treecorr.config.setup_logger(3)
     dddc = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                         min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
@@ -3328,14 +3327,14 @@ def test_direct_count_auto_logsas():
         #print('diff = ',d.ntri - true_ntri)
         np.testing.assert_array_equal(d.ntri, true_ntri)
 
-    # Also with 2 argument version, finds each triangle once.
+    # Or with 2 argument version, finds each triangle 3 times.
     ddd.process(cat,cat, num_threads=2)
     #print('ddd.ntri = ',ddd.ntri)
     #print('true_ntri => ',true_ntri)
     #print('diff = ',ddd.ntri - true_ntri)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri)
+    np.testing.assert_array_equal(ddd.ntri, 3*true_ntri)
 
-    # Again, NNNCrossCorrelation gets the same thing in each permutation.
+    # Again, NNNCrossCorrelation gets it right in each permutation.
     dddc.process(cat,cat, num_threads=2)
     for d in [dddc.n1n2n3, dddc.n1n3n2, dddc.n2n1n3, dddc.n2n3n1, dddc.n3n1n2, dddc.n3n2n1]:
         #print('d.ntri = ',d.ntri)
@@ -3469,8 +3468,10 @@ def test_direct_count_cross_logsas():
                         assert 0 <= kphi < nphi_bins
                         true_ntri_321[kr2,kphi,kr1] += 1
 
-    # With LogSAS, 2 and 3 are allowed to swap, so ddd.ntri is the sum of these.
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_123 + true_ntri_132)
+    # With the regular NNNCorrelation class, we end up with the sum of all permutations.
+    true_ntri_sum = true_ntri_123 + true_ntri_132 + true_ntri_213 + true_ntri_231 +\
+            true_ntri_312 + true_ntri_321
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     # Now repeat with the full CrossCorrelation class, which finds all the permutations.
     dddc = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
@@ -3494,7 +3495,7 @@ def test_direct_count_cross_logsas():
     ddd.process(cat1, cat2, cat3)
     #print('binslop > 0: ddd.ntri = ',ddd.ntri)
     #print('diff = ',ddd.ntri - true_ntri_123)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_123 + true_ntri_132)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     # And again with no top-level recursion
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
@@ -3504,7 +3505,7 @@ def test_direct_count_cross_logsas():
     #print('max_top = 0: ddd.ntri = ',ddd.ntri)
     #print('true_ntri = ',true_ntri_123)
     #print('diff = ',ddd.ntri - true_ntri_123)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_123 + true_ntri_132)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     # Test I/O
     ascii_name = 'output/nnnc_logsas_ascii.txt'
@@ -3571,7 +3572,7 @@ def test_direct_count_cross_logsas():
     cat3 = treecorr.Catalog(x=x3, y=y3, npatch=10)
 
     ddd.process(cat1, cat2, cat3)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_123 + true_ntri_132)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     dddc.process(cat1, cat2, cat3)
     np.testing.assert_array_equal(dddc.n1n2n3.ntri, true_ntri_123)
@@ -3669,8 +3670,9 @@ def test_direct_count_cross12_logsas():
                         assert 0 <= kphi < nphi_bins
                         true_ntri_212[kr1,kphi,kr2] += 1
 
-    # With LogSAS, the normal sum respects the ordering, so 122 is the relevant one.
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
+    # With the regular NNNCorrelation class, we end up with the sum of all permutations.
+    true_ntri_sum = true_ntri_122 + true_ntri_212 + true_ntri_221
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     # Now repeat with the full CrossCorrelation class, which distinguishes the permutations.
     dddc = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
@@ -3694,7 +3696,7 @@ def test_direct_count_cross12_logsas():
     ddd.process(cat1, cat2)
     #print('binslop > 0: ddd.ntri = ',ddd.ntri)
     #print('diff = ',ddd.ntri - true_ntri_122)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     # And again with no top-level recursion
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
@@ -3704,14 +3706,14 @@ def test_direct_count_cross12_logsas():
     #print('max_top = 0: ddd.ntri = ',ddd.ntri)
     #print('true_ntri = ',true_ntri_122)
     #print('diff = ',ddd.ntri - true_ntri_122)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     # Split into patches to test the list-based version of the code.
     cat1 = treecorr.Catalog(x=x1, y=y1, npatch=10)
     cat2 = treecorr.Catalog(x=x2, y=y2, npatch=10)
 
     ddd.process(cat1, cat2)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     dddc.process(cat1, cat2)
     np.testing.assert_array_equal(dddc.n1n2n3.ntri, true_ntri_122)

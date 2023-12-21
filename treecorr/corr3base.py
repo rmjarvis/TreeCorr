@@ -1029,19 +1029,11 @@ class Corr3(object):
                             # One point in c2, 2 in c1.
                             self._single_process12(c2,c1,(i,i,j),metric,num_threads,temp)
 
-                            if self.bin_type == 'LogSAS':
-                                self._single_process123(c1,c1,c2,i,i,j,metric,num_threads,temp)
-                                self._single_process123(c2,c2,c1,j,j,i,metric,num_threads,temp)
-
                         # One point in each of c1, c2, c3
                         for kk,c3 in enumerate(cat1):
                             k = c3.patch if c3.patch is not None else kk
                             if j < k and is_my_job(my_indices, i, j, k, n):
                                 self._single_process123(c1,c2,c3,(i,j,k),metric,num_threads,temp)
-                                if self.bin_type == 'LogSAS':
-                                    self._single_process123(c2,c3,c1,j,k,i,metric,num_threads,temp)
-                                    self._single_process123(c3,c1,c2,k,i,j,metric,num_threads,temp)
-
                                 if low_mem:
                                     c3.unload()
 

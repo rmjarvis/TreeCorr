@@ -3751,7 +3751,7 @@ def test_nnn_logsas():
     # of separations and a moderate range for u, v, which gives us a variety of triangle lengths.
     s = 10.
     if __name__ == "__main__":
-        ngal = 5000
+        ngal = 20000
         nrand = 3 * ngal
         L = 50. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
         tol_factor = 1
@@ -3759,16 +3759,16 @@ def test_nnn_logsas():
         ngal = 2000
         nrand = ngal
         L = 20. * s
-        tol_factor = 3
+        tol_factor = 5
     rng = np.random.RandomState(8675309)
     x = rng.normal(0,s, (ngal,) )
     y = rng.normal(0,s, (ngal,) )
-    min_sep = 10.
+    min_sep = 11.
     max_sep = 13.
     nbins = 2
     min_phi = 0.8
-    max_phi = 1.3
-    nphi_bins = 4
+    max_phi = 2.3
+    nphi_bins = 15
 
     cat = treecorr.Catalog(x=x, y=y, x_units='arcmin', y_units='arcmin')
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,

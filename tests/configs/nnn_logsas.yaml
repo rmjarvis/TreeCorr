@@ -9,13 +9,13 @@ y_units: arcmin
 
 verbose: 1
 
-min_sep: 10.
+min_sep: 11.
 max_sep: 13.
 nbins: 2
 sep_units: arcmin
 min_phi: 0.8
-max_phi: 1.3
-nphi_bins: 4
+max_phi: 2.3
+nphi_bins: 15
 bin_type: LogSAS
 
 nnn_statistic: simple

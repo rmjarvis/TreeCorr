@@ -606,15 +606,6 @@ void BaseCorr3::process111(
     if (d3sq == 0.)
         d3sq = metric.DistSq(c1.getData().getPos(), c2.getData().getPos(), s, s);
 
-    // If we can already tell from just the distances (without calculating u, v, etc.)
-    // that we should stop, do so.
-    if (BinTypeHelper<B>::quickstop111(d1sq, d2sq, d3sq, s1, s2, s3,
-                                       _minsep, _minsepsq, _maxsep, _maxsepsq))
-    {
-        dbg<<ws()<<"Stopping early from just the distances\n";
-        return;
-    }
-
     BaseCorr3& bc123 = *this;  // alias for clarity.
 
     inc_ws();

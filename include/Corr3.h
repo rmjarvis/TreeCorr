@@ -61,20 +61,21 @@ public:
 
     template <int B, int M, int C>
     void process12(BaseCorr3& bc212, BaseCorr3& bc221,
-                   const BaseCell<C>& c1, const BaseCell<C>& c2, const MetricHelper<M,0>& metric);
+                   const BaseCell<C>& c1, const BaseCell<C>& c2, const MetricHelper<M,0>& metric,
+                   int ordered);
 
     template <int B, int M, int C>
     void process111(BaseCorr3& bc132, BaseCorr3& bc213, BaseCorr3& bc231,
                     BaseCorr3& bc312, BaseCorr3& bc321,
                     const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
-                    const MetricHelper<M,0>& metric,
+                    const MetricHelper<M,0>& metric, int ordered,
                     double d1sq=0., double d2sq=0., double d3sq=0.);
 
     template <int B, int M, int C>
     void process111Sorted(BaseCorr3& bc132, BaseCorr3& bc213, BaseCorr3& bc231,
                           BaseCorr3& bc312, BaseCorr3& bc321,
                           const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
-                          const MetricHelper<M,0>& metric,
+                          const MetricHelper<M,0>& metric, int ordered,
                           double d1sq=0., double d2sq=0., double d3sq=0.);
 
     template <int B, int C>

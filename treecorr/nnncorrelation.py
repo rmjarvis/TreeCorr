@@ -555,7 +555,7 @@ class NNNCorrelation(Corr3):
         if cat2 is None:
             if cat3 is not None:
                 raise ValueError("For two catalog case, use cat1,cat2, not cat1,cat3")
-            self._process_all_auto(cat1, metric, num_threads)
+            self._process_all_auto(cat1, metric, num_threads, comm, low_mem)
         elif cat3 is None:
             self._process_all_cross12(cat1, cat2, metric, num_threads, comm, low_mem)
         else:

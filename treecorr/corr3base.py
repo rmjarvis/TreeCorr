@@ -953,7 +953,7 @@ class Corr3(object):
             # NNNCorrelation needs to add the tot value
             self._add_tot(ijk, c1, c2, c3)
 
-    def _process_all_auto(self, cat1, metric, num_threads, comm=None, low_mem=False):
+    def _process_all_auto(self, cat1, metric, num_threads, comm, low_mem):
 
         def is_my_job(my_indices, i, j, k, n):
             # Helper function to figure out if a given (i,j,k) job should be done on the
@@ -1055,7 +1055,7 @@ class Corr3(object):
                         self += temp
                         self.results.update(temp.results)
 
-    def _process_all_cross12(self, cat1, cat2, metric, num_threads, comm=None, low_mem=False):
+    def _process_all_cross12(self, cat1, cat2, metric, num_threads, comm, low_mem):
 
         def is_my_job(my_indices, i, j, k, n1, n2):
             # Helper function to figure out if a given (i,j,k) job should be done on the
@@ -1149,7 +1149,7 @@ class Corr3(object):
                         self += temp
                         self.results.update(temp.results)
 
-    def _process_all_cross(self, cat1, cat2, cat3, metric, num_threads, comm=None, low_mem=False):
+    def _process_all_cross(self, cat1, cat2, cat3, metric, num_threads, comm, low_mem):
 
         def is_my_job(my_indices, i, j, k, n1, n2, n3):
             # Helper function to figure out if a given (i,j,k) job should be done on the

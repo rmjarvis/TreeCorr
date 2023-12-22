@@ -1530,7 +1530,7 @@ def _make_cov_design_matrix_core(corrs, plist, func, name, rank=0, size=1):
         w[row] = np.sum([np.sum(c.getWeight()) for c in corrs])
     return v,w
 
-def _make_cov_design_matrix(corrs, plist, func, name, comm=None):
+def _make_cov_design_matrix(corrs, plist, func, name, comm):
     if comm is not None:
         try:
             from mpi4py.MPI import IN_PLACE
@@ -1583,7 +1583,7 @@ def _check_patch_nums(corrs, name):
             raise RuntimeError("All correlations must use the same number of patches")
     return npatch
 
-def _design_jackknife(corrs, func, comm=None):
+def _design_jackknife(corrs, func, comm):
     npatch = _check_patch_nums(corrs, 'jackknife')
     plist = [c._jackknife_pairs() for c in corrs]
     # Swap order of plist.  Right now it's a list for each corr of a list for each row.
@@ -1592,7 +1592,7 @@ def _design_jackknife(corrs, func, comm=None):
 
     return _make_cov_design_matrix(corrs, plist, func, 'jackknife', comm=comm)
 
-def _cov_jackknife(corrs, func, comm=None):
+def _cov_jackknife(corrs, func, comm):
     # Calculate the jackknife covariance for the given statistics
 
     # The basic jackknife formula is:
@@ -1607,7 +1607,7 @@ def _cov_jackknife(corrs, func, comm=None):
     C = (1.-1./npatch) * v.conj().T.dot(v)
     return C
 
-def _design_sample(corrs, func, comm=None):
+def _design_sample(corrs, func, comm):
     npatch = _check_patch_nums(corrs, 'sample')
     plist = [c._sample_pairs() for c in corrs]
     # Swap order of plist.  Right now it's a list for each corr of a list for each row.
@@ -1616,7 +1616,7 @@ def _design_sample(corrs, func, comm=None):
 
     return _make_cov_design_matrix(corrs, plist, func, 'sample', comm=comm)
 
-def _cov_sample(corrs, func, comm=None):
+def _cov_sample(corrs, func, comm):
     # Calculate the sample covariance.
 
     # This is kind of the converse of the jackknife.  We take each patch and use any
@@ -1640,7 +1640,7 @@ def _cov_sample(corrs, func, comm=None):
     C = 1./(npatch-1) * (w * v.conj().T).dot(v)
     return C
 
-def _design_marked(corrs, func, comm=None):
+def _design_marked(corrs, func, comm):
     npatch = _check_patch_nums(corrs, 'marked_bootstrap')
     nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
 
@@ -1655,7 +1655,7 @@ def _design_marked(corrs, func, comm=None):
 
     return _make_cov_design_matrix(corrs, plist, func, 'marked_bootstrap', comm=comm)
 
-def _cov_marked(corrs, func, comm=None):
+def _cov_marked(corrs, func, comm):
     # Calculate the marked-point bootstrap covariance
 
     # This is based on the article A Valid and Fast Spatial Bootstrap for Correlation Functions
@@ -1679,7 +1679,7 @@ def _cov_marked(corrs, func, comm=None):
     C = 1./(nboot-1) * v.conj().T.dot(v)
     return C
 
-def _design_bootstrap(corrs, func, comm=None):
+def _design_bootstrap(corrs, func, comm):
     npatch = _check_patch_nums(corrs, 'bootstrap')
     nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
 
@@ -1691,7 +1691,7 @@ def _design_bootstrap(corrs, func, comm=None):
 
     return _make_cov_design_matrix(corrs, plist, func, 'bootstrap', comm=comm)
 
-def _cov_bootstrap(corrs, func, comm=None):
+def _cov_bootstrap(corrs, func, comm):
     # Calculate the 2-patch bootstrap covariance estimate.
 
     # This is a different version of the bootstrap idea.  It selects patches at random with

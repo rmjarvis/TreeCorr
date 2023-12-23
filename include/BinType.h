@@ -400,9 +400,12 @@ struct BinTypeHelper<LogRUV>
 
     // Once we have all the distances, see if it's possible to stop
     // For this BinType, if return value is false, d2 is set on output.
+    template <int M, int C>
     static bool stop111(
         double d1sq, double d2sq, double d3sq,
         double s1, double s2, double s3,
+        const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
+        const MetricHelper<M,0>& metric, int ordered,
         double& d1, double& d2, double& d3, double& u, double& v,
         double minsep, double minsepsq, double maxsep, double maxsepsq,
         double minu, double minusq, double maxu, double maxusq,
@@ -636,7 +639,8 @@ struct BinTypeHelper<LogRUV>
 
     template <int M, int C>
     static bool isTriangleInRange(const BaseCell<C>& c1, const BaseCell<C>& c2,
-                                  const BaseCell<C>& c3, const MetricHelper<M,0>& metric,
+                                  const BaseCell<C>& c3,
+                                  const MetricHelper<M,0>& metric, int ordered,
                                   double d1, double d2, double d3, double& u, double& v,
                                   double logminsep,
                                   double minsep, double maxsep, double binsize, double nbins,
@@ -792,9 +796,12 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
 
     // Once we have all the distances, see if it's possible to stop
     // For this BinType, if return value is false, d1,d2,d3,cosphi are set on output.
+    template <int M, int C>
     static bool stop111(
         double d1sq, double d2sq, double d3sq,
         double s1, double s2, double s3,
+        const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
+        const MetricHelper<M,0>& metric, int ordered,
         double& d1, double& d2, double& d3, double& phi, double& cosphi,
         double minsep, double minsepsq, double maxsep, double maxsepsq,
         double minphi, double , double maxphi, double ,
@@ -831,25 +838,70 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
         if (s1==0 && s3==0 && d2sq == 0) return true;
         if (s1==0 && s2==0 && d3sq == 0) return true;
 
-        d2 = sqrt(d2sq);
         d3 = sqrt(d3sq);
         if (s1 + s2 >= d3) {
-            xdbg<<"s1,s2 are bigger than d3, continue splitting.";
+            xdbg<<"s1,s2 are bigger than d3, continue splitting.\n";
             return false;
         }
+        d2 = sqrt(d2sq);
         if (s1 + s3 >= d2) {
-            xdbg<<"s1,s3 are bigger than d2, continue splitting.";
+            xdbg<<"s1,s3 are bigger than d2, continue splitting.\n";
             return false;
         }
 
         cosphi = (d2sq + d3sq - d1sq) / (2*d2*d3);
+
+        // If we are not swapping 2,3, stop if orientation cannot be counter-clockwise.
+        if (ordered > 1 &&
+            !metric.CCW(c1.getData().getPos(), c3.getData().getPos(), c2.getData().getPos())) {
+            // For skinny triangles, be careful that the points can't flip to the other side.
+            // This is similar to the calculation below.  We effecively check that cosphi can't
+            // increase to 1.
+            // First check if either side on its own can cause a flip of orientation.
+            double sindphi2=0., sindphi3=0.;
+            double cosdphi2sq=0., cosdphi3sq=0.;
+            if (s1+s2 > 0) {
+                sindphi2 = (s1+s2)/d3;
+                cosdphi2sq = 1-SQR(sindphi2);
+                if (cosdphi2sq < SQR(cosphi)) {
+                    xdbg<<"CW but dphi2 could be larger than phi\n";
+                    return false;
+                }
+            }
+            if (s1+s3 > 0) {
+                sindphi3 = (s1+s3)/d2;
+                cosdphi3sq = 1-SQR(sindphi3);
+                if (cosdphi3sq < SQR(cosphi)) {
+                    xdbg<<"CW but dphi3 could be larger than phi\n";
+                    return false;
+                }
+            }
+            if (sindphi2 > 0 && sindphi3 > 0) {
+                // Add them together.
+                double cosdphi2 = sqrt(cosdphi2sq);
+                double cosdphi3 = sqrt(cosdphi3sq);
+                double cosdphi = cosdphi2 * cosdphi3 - sindphi3 * sindphi2;
+                if (cosdphi < abs(cosphi)) {
+                    xdbg<<"CW but dphi could be larger than phi\n";
+                    return false;
+                }
+            }
+            xdbg<<"triangle is wrong orientation\n";
+            return true;
+        }
 
         // If the user sets minphi > 0, then we can abort if no possible triangle can have
         // phi as large as this.
         // The most phi can increase from the current phi is dphi2 + dphi3, where
         // sin(dphi2) = (s1+s2)/d3
         // sin(dphi3) = (s1+s3)/d2
+        double s23sq = SQR(s2+s3);
         if (minphi > 0 && cosphi > maxcosphi) {
+            // First a quick check for when s1+s3 is rather large.
+            if (s23sq >= d1sq && (d2sq + d3sq - s23sq) > (2*d2*d3) * maxcosphi) {
+                xdbg<<"s2+s3 > d1 on their own imply small enough phi, continue splitting.\n";
+                return false;
+            }
             // Start with the current value of cosphi, and adjust by dphi2, dphi3
             double cosphimax = cosphi;
             if (s1+s2 > 0) {
@@ -885,15 +937,20 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
             // If it's still less than minphi then stop.
             // i.e. cos(phimax) > cos(minphi) = maxcosphi
             if (cosphimax > maxcosphi) {
-                //dbg<<"phi_max = "<<std::acos(cosphimax)<<std::endl;
+                //xdbg<<"phi_max = "<<std::acos(cosphimax)<<std::endl;
                 xdbg<<"phi cannot be as large as minphi\n";
                 return true;
             }
         }
 
+        if (s23sq >= d1sq) {
+            xdbg<<"s2,s3 are bigger than d1, continue splitting.\n";
+            return false;
+        }
+
         // If the user sets maxphi < pi, then we can abort if no possible triangle can have
         // phi as small as this.
-        else if (maxphi < M_PI && cosphi < mincosphi) {
+        if (maxphi < M_PI && cosphi < mincosphi) {
             // Start with the current value of cosphi, and adjust by dphi2, dphi3
             double cosphimin = cosphi;
             if (s1+s2 > 0) {
@@ -932,7 +989,6 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
             // If it's still more than maxphi, then stop.
             // i.e. cos(phimin) < cos(maxphi) = mincosphi
             if (cosphimin < mincosphi) {
-                //dbg<<"phi_min = "<<std::acos(cosphimin)<<std::endl;
                 xdbg<<"phi cannot be as small as maxphi\n";
                 return true;
             }
@@ -1045,7 +1101,8 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
     // This BinType finally sets phi here.
     template <int M, int C>
     static bool isTriangleInRange(const BaseCell<C>& c1, const BaseCell<C>& c2,
-                                  const BaseCell<C>& c3, const MetricHelper<M,0>& metric,
+                                  const BaseCell<C>& c3,
+                                  const MetricHelper<M,0>& metric, int ordered,
                                   double d1, double d2, double d3, double& phi, double& cosphi,
                                   double logminsep,
                                   double minsep, double maxsep, double binsize, double nbins,
@@ -1065,6 +1122,7 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
         else if (cosphi >= 1) phi = 0.;
         xdbg<<"phi = "<<phi<<std::endl;
         Assert(phi >= 0.);
+        Assert(phi <= M_PI);
 
         if (d2 < minsep || d2 >= maxsep) {
             xdbg<<"d2 not in minsep .. maxsep\n";
@@ -1076,8 +1134,13 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
             return false;
         }
 
-        Assert(phi <= M_PI);
-        Assert(metric.CCW(c1.getData().getPos(), c3.getData().getPos(), c2.getData().getPos()));
+        if (ordered > 1 &&
+            !metric.CCW(c1.getData().getPos(), c3.getData().getPos(), c2.getData().getPos())) {
+            xdbg<<"Triangle is not CCW.\n";
+            return false;
+        }
+
+        XAssert(metric.CCW(c1.getData().getPos(), c3.getData().getPos(), c2.getData().getPos()));
 
         if (phi < minphi || phi >= maxphi) {
             xdbg<<"phi not in minphi .. maxphi\n";

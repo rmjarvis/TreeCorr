@@ -913,13 +913,13 @@ class Corr3(object):
         d3, d2, d1 = sorted([d1,d2,d3])
         return (d2 > s1 + s2 + s3 + 2*self._max_sep)  # The 2* is where we are being conservative.
 
-    def _single_process12(self, c1, c2, ijj, metric, num_threads, temp):
+    def _single_process12(self, c1, c2, ijj, metric, ordered, num_threads, temp):
         # Helper function for _process_all_auto, etc. for doing 12 cross pairs
         temp.clear()
 
         if not self._trivially_zero(c1,c2,c2,metric):
             self.logger.info('Process patches %s cross12',ijj)
-            temp.process_cross12(c1, c2, metric=metric, num_threads=num_threads)
+            temp.process_cross12(c1, c2, metric=metric, ordered=ordered, num_threads=num_threads)
         else:
             self.logger.info('Skipping %s pair, which are too far apart ' +
                              'for this set of separations',ijj)
@@ -933,13 +933,13 @@ class Corr3(object):
             # NNNCorrelation needs to add the tot value
             self._add_tot(ijj, c1, c2, c2)
 
-    def _single_process123(self, c1, c2, c3, ijk, metric, num_threads, temp):
+    def _single_process123(self, c1, c2, c3, ijk, metric, ordered, num_threads, temp):
         # Helper function for _process_all_auto, etc. for doing 123 cross triples
         temp.clear()
 
         if not self._trivially_zero(c1,c2,c3,metric):
             self.logger.info('Process patches %s cross',ijk)
-            temp.process_cross(c1, c2, c3, metric=metric, num_threads=num_threads)
+            temp.process_cross(c1, c2, c3, metric=metric, ordered=ordered, num_threads=num_threads)
         else:
             self.logger.info('Skipping %s, which are too far apart ' +
                              'for this set of separations',ijk)
@@ -1025,15 +1025,16 @@ class Corr3(object):
                     if i < j:
                         if is_my_job(my_indices, i, j, j, n):
                             # One point in c1, 2 in c2.
-                            self._single_process12(c1,c2,(i,j,j),metric,num_threads,temp)
+                            self._single_process12(c1,c2,(i,j,j),metric,0,num_threads,temp)
                             # One point in c2, 2 in c1.
-                            self._single_process12(c2,c1,(i,i,j),metric,num_threads,temp)
+                            self._single_process12(c2,c1,(i,i,j),metric,0,num_threads,temp)
 
                         # One point in each of c1, c2, c3
                         for kk,c3 in enumerate(cat1):
                             k = c3.patch if c3.patch is not None else kk
                             if j < k and is_my_job(my_indices, i, j, k, n):
-                                self._single_process123(c1,c2,c3,(i,j,k),metric,num_threads,temp)
+                                self._single_process123(c1,c2,c3,(i,j,k),metric,0,
+                                                        num_threads,temp)
                                 if low_mem:
                                     c3.unload()
 
@@ -1055,7 +1056,7 @@ class Corr3(object):
                         self += temp
                         self.results.update(temp.results)
 
-    def _process_all_cross12(self, cat1, cat2, metric, num_threads, comm, low_mem):
+    def _process_all_cross12(self, cat1, cat2, metric, ordered, num_threads, comm, low_mem):
 
         def is_my_job(my_indices, i, j, k, n1, n2):
             # Helper function to figure out if a given (i,j,k) job should be done on the
@@ -1091,7 +1092,8 @@ class Corr3(object):
             return ret
 
         if len(cat1) == 1 and len(cat2) == 1 and cat1[0].npatch == 1 and cat2[0].npatch == 1:
-            self.process_cross12(cat1[0], cat2[0], metric=metric, num_threads=num_threads)
+            self.process_cross12(cat1[0], cat2[0], metric=metric, ordered=ordered,
+                                 num_threads=num_threads)
         else:
             # When patch processing, keep track of the pair-wise results.
             if self.npatch1 == 1:
@@ -1115,18 +1117,19 @@ class Corr3(object):
                 my_indices = None
 
             temp = self.copy()
+            ordered1 = 1 if ordered else 0
             for ii,c1 in enumerate(cat1):
                 i = c1.patch if c1.patch is not None else ii
                 for jj,c2 in enumerate(cat2):
                     j = c2.patch if c2.patch is not None else jj
                     if is_my_job(my_indices, i, j, j, n1, n2):
-                        self._single_process12(c1,c2,(i,j,j),metric,num_threads,temp)
+                        self._single_process12(c1,c2,(i,j,j),metric,ordered,num_threads,temp)
 
                     # One point in each of c1, c2, c3
                     for kk,c3 in list(enumerate(cat2))[::-1]:
                         k = c3.patch if c3.patch is not None else kk
                         if j < k and is_my_job(my_indices, i, j, k, n1, n2):
-                            self._single_process123(c1,c2,c3,(i,j,k),metric,num_threads,temp)
+                            self._single_process123(c1,c2,c3,(i,j,k),metric,ordered1,num_threads,temp)
 
                             if low_mem and kk != jj+1:
                                 # Don't unload j+1, since that's the next one we'll need.
@@ -1149,7 +1152,7 @@ class Corr3(object):
                         self += temp
                         self.results.update(temp.results)
 
-    def _process_all_cross(self, cat1, cat2, cat3, metric, num_threads, comm, low_mem):
+    def _process_all_cross(self, cat1, cat2, cat3, metric, ordered, num_threads, comm, low_mem):
 
         def is_my_job(my_indices, i, j, k, n1, n2, n3):
             # Helper function to figure out if a given (i,j,k) job should be done on the
@@ -1175,7 +1178,8 @@ class Corr3(object):
 
         if (len(cat1) == 1 and len(cat2) == 1 and len(cat3) == 1 and
                 cat1[0].npatch == 1 and cat2[0].npatch == 1 and cat3[0].npatch == 1):
-            self.process_cross(cat1[0], cat2[0], cat3[0], metric=metric, num_threads=num_threads)
+            self.process_cross(cat1[0], cat2[0], cat3[0], metric=metric, ordered=ordered,
+                               num_threads=num_threads)
         else:
             # When patch processing, keep track of the pair-wise results.
             if self.npatch1 == 1:
@@ -1210,7 +1214,7 @@ class Corr3(object):
                     for kk,c3 in enumerate(cat3):
                         k = c3.patch if c3.patch is not None else kk
                         if is_my_job(my_indices, i, j, k, n1, n2, n3):
-                            self._single_process123(c1,c2,c3,(i,j,k),metric,num_threads,temp)
+                            self._single_process123(c1,c2,c3,(i,j,k),metric,ordered,num_threads,temp)
                             if low_mem:
                                 c3.unload()
                     if low_mem and jj != ii+1:

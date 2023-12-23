@@ -48,12 +48,12 @@ public:
     void process(const BaseField<C>& field, bool dots);
     template <int B, int M, int C>
     void process(BaseCorr3& corr212, BaseCorr3& corr221,
-                 const BaseField<C>& field1, const BaseField<C>& field2, bool dots);
+                 const BaseField<C>& field1, const BaseField<C>& field2, int ordered, bool dots);
     template <int B, int M, int C>
     void process(BaseCorr3& corr132, BaseCorr3& corr213, BaseCorr3& corr231,
                  BaseCorr3& corr312, BaseCorr3& corr321,
                  const BaseField<C>& field1, const BaseField<C>& field2,
-                 const BaseField<C>& field3, bool dots);
+                 const BaseField<C>& field3, int ordered, bool dots);
 
     // Main worker functions for calculating the result
     template <int B, int M, int C>

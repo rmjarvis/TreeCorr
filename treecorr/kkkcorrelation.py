@@ -236,7 +236,7 @@ class KKKCorrelation(Corr3):
         self.corr.processAuto(field.data, self.output_dots,
                               self._bintype, self._metric)
 
-    def process_cross12(self, cat1, cat2, *, metric=None, num_threads=None):
+    def process_cross12(self, cat1, cat2, *, metric=None, ordered=False, num_threads=None):
         """Process two catalogs, accumulating the 3pt cross-correlation, where one of the
         points in each triangle come from the first catalog, and two come from the second.
 
@@ -253,6 +253,8 @@ class KKKCorrelation(Corr3):
             metric (str):       Which metric to use.  See `Metrics` for details.
                                 (default: 'Euclidean'; this value can also be given in the
                                 constructor in the config dict.)
+            ordered (bool):     Whether to fix the order of the triangle vertices to match the
+                                catalogs. (default: False)
             num_threads (int):  How many OpenMP threads to use during the calculation.
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
@@ -282,10 +284,10 @@ class KKKCorrelation(Corr3):
         # Note: all 3 correlation objects are the same.  Thus, all triangles will be placed
         # into self.corr, whichever way the three catalogs are permuted for each triangle.
         self.corr.processCross12(self.corr, self.corr,
-                                 f1.data, f2.data, self.output_dots,
-                                 self._bintype, self._metric)
+                                 f1.data, f2.data, (1 if ordered else 0),
+                                 self.output_dots, self._bintype, self._metric)
 
-    def process_cross(self, cat1, cat2, cat3, *, metric=None, num_threads=None):
+    def process_cross(self, cat1, cat2, cat3, *, metric=None, ordered=False, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
 
         This accumulates the cross-correlation for the given catalogs as part of a larger
@@ -300,6 +302,8 @@ class KKKCorrelation(Corr3):
             metric (str):       Which metric to use.  See `Metrics` for details.
                                 (default: 'Euclidean'; this value can also be given in the
                                 constructor in the config dict.)
+            ordered (bool):     Whether to fix the order of the triangle vertices to match the
+                                catalogs. (default: False)
             num_threads (int):  How many OpenMP threads to use during the calculation.
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
@@ -334,8 +338,9 @@ class KKKCorrelation(Corr3):
         # Note: all 6 correlation objects are the same.  Thus, all triangles will be placed
         # into self.corr, whichever way the three catalogs are permuted for each triangle.
         self.corr.processCross(self.corr, self.corr, self.corr, self.corr, self.corr,
-                               f1.data, f2.data, f3.data, self.output_dots,
-                               self._bintype, self._metric)
+                               f1.data, f2.data, f3.data,
+                               (3 if ordered is True else 1 if ordered == 1 else 0),
+                               self.output_dots, self._bintype, self._metric)
 
     def _finalize(self):
         mask1 = self.weight != 0
@@ -454,7 +459,7 @@ class KKKCorrelation(Corr3):
         np.sum([c.weight for c in others], axis=0, out=self.weight)
         np.sum([c.ntri for c in others], axis=0, out=self.ntri)
 
-    def process(self, cat1, cat2=None, cat3=None, *, metric=None, num_threads=None,
+    def process(self, cat1, cat2=None, cat3=None, *, metric=None, ordered=False, num_threads=None,
                 comm=None, low_mem=False, initialize=True, finalize=True):
         """Compute the 3pt correlation function.
 
@@ -462,6 +467,12 @@ class KKKCorrelation(Corr3):
         - If 2 arguments are given, then compute a cross-correlation function with the
           first catalog taking one corner of the triangles, and the second taking two corners.
         - If 3 arguments are given, then compute a three-way cross-correlation function.
+
+        For cross correlations, the default behavior is to allow the three triangle vertices
+        (v1, v2, v3) to come from any of the three (or two) catalogs.  However, if you want to
+        keep track of the order of the catalogs, you can set ``ordered=True``, which will fix
+        v1 to come from ``cat1``, v2 from ``cat2`` and v3 from ``cat3``.  The sides d1, d2, d3
+        are taken to be opposite v1, v2, v3 respectively.
 
         All arguments may be lists, in which case all items in the list are used
         for that element of the correlation.
@@ -483,6 +494,8 @@ class KKKCorrelation(Corr3):
             metric (str):       Which metric to use.  See `Metrics` for details.
                                 (default: 'Euclidean'; this value can also be given in the
                                 constructor in the config dict.)
+            ordered (bool):     Whether to fix the order of the triangle vertices to match the
+                                catalogs. (see above; default: False)
             num_threads (int):  How many OpenMP threads to use during the calculation.
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
@@ -512,9 +525,9 @@ class KKKCorrelation(Corr3):
                 raise ValueError("For two catalog case, use cat1,cat2, not cat1,cat3")
             self._process_all_auto(cat1, metric, num_threads, comm, low_mem)
         elif cat3 is None:
-            self._process_all_cross12(cat1, cat2, metric, num_threads, comm, low_mem)
+            self._process_all_cross12(cat1, cat2, metric, ordered, num_threads, comm, low_mem)
         else:
-            self._process_all_cross(cat1, cat2, cat3, metric, num_threads, comm, low_mem)
+            self._process_all_cross(cat1, cat2, cat3, metric, ordered, num_threads, comm, low_mem)
 
         if finalize:
             if cat2 is None:
@@ -796,7 +809,7 @@ class KKKCrossCorrelation(Corr3):
     def __repr__(self):
         return 'KKKCrossCorrelation(config=%r)'%self.config
 
-    def process_cross12(self, cat1, cat2, *, metric=None, num_threads=None):
+    def process_cross12(self, cat1, cat2, *, metric=None, ordered=False, num_threads=None):
         """Process two catalogs, accumulating the 3pt cross-correlation, where one of the
         points in each triangle come from the first catalog, and two come from the second.
 
@@ -848,10 +861,10 @@ class KKKCrossCorrelation(Corr3):
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         self.k1k2k3.corr.processCross12(self.k2k1k3.corr, self.k2k3k1.corr,
-                                        f1.data, f2.data, self.output_dots,
-                                        self._bintype, self._metric)
+                                        f1.data, f2.data, (1 if ordered else 0),
+                                        self.output_dots, self._bintype, self._metric)
 
-    def process_cross(self, cat1, cat2, cat3, *, metric=None, num_threads=None):
+    def process_cross(self, cat1, cat2, cat3, *, metric=None, ordered=False, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
 
         This accumulates the cross-correlation for the given catalogs.  After
@@ -901,8 +914,9 @@ class KKKCrossCorrelation(Corr3):
         self.k1k2k3.corr.processCross(self.k1k3k2.corr,
                                       self.k2k1k3.corr, self.k2k3k1.corr,
                                       self.k3k1k2.corr, self.k3k2k1.corr,
-                                      f1.data, f2.data, f3.data, self.output_dots,
-                                      self._bintype, self._metric)
+                                      f1.data, f2.data, f3.data,
+                                      (3 if ordered is True else 1 if ordered == 1 else 0),
+                                      self.output_dots, self._bintype, self._metric)
 
     def _finalize(self):
         for kkk in self._all:
@@ -967,7 +981,7 @@ class KKKCrossCorrelation(Corr3):
         for i, kkk in enumerate(self._all):
             kkk._sum([c._all[i] for c in others])
 
-    def process(self, cat1, cat2, cat3=None, *, metric=None, num_threads=None,
+    def process(self, cat1, cat2, cat3=None, *, metric=None, ordered=False, num_threads=None,
                 comm=None, low_mem=False, initialize=True, finalize=True):
         """Accumulate the cross-correlation of the points in the given Catalogs: cat1, cat2, cat3.
 
@@ -1010,9 +1024,9 @@ class KKKCrossCorrelation(Corr3):
 
         if cat3 is None:
             self._process12 = True
-            self._process_all_cross12(cat1, cat2, metric, num_threads, comm, low_mem)
+            self._process_all_cross12(cat1, cat2, metric, ordered, num_threads, comm, low_mem)
         else:
-            self._process_all_cross(cat1, cat2, cat3, metric, num_threads, comm, low_mem)
+            self._process_all_cross(cat1, cat2, cat3, metric, ordered, num_threads, comm, low_mem)
 
         if finalize:
             if self._process12:

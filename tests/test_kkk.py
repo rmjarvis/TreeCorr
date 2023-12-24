@@ -115,35 +115,38 @@ def test_direct():
     np.testing.assert_allclose(kkk.weight, 6*true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
 
-    # Using the KKKCrossCorrelation class instead finds each triangle 6 times, but puts
-    # them into 6 different accumualtions, so they all end up with the same answer.
-    kkkc = treecorr.KKKCrossCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                        brute=True)
-    kkkc.process(cat, cat, cat, num_threads=2)
-    # All six correlation functions are equivalent to the auto results:
-    for k in [kkkc.k1k2k3, kkkc.k1k3k2, kkkc.k2k1k3, kkkc.k2k3k1, kkkc.k3k1k2, kkkc.k3k2k1]:
-        np.testing.assert_array_equal(k.ntri, true_ntri)
-        np.testing.assert_allclose(k.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-        np.testing.assert_allclose(k.zeta, true_zeta.real, rtol=1.e-5, atol=1.e-8)
+    # But with ordered=True, it only counts each triangle once.
+    kkk.process(cat,cat,cat, ordered=True, num_threads=2)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri)
+    np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
 
     # Or with 2 argument version, finds each triangle 3 times.
-    kkk.process(cat, cat, num_threads=2)
+    kkk.process(cat,cat)
     np.testing.assert_array_equal(kkk.ntri, 3*true_ntri)
     np.testing.assert_allclose(kkk.weight, 3*true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
 
-    # Again, KKKCrossCorrelation gets it right in each permutation.
-    kkkc.process(cat, cat, num_threads=2)
-    for k in [kkkc.k1k2k3, kkkc.k1k3k2, kkkc.k2k1k3, kkkc.k2k3k1, kkkc.k3k1k2, kkkc.k3k2k1]:
-        np.testing.assert_array_equal(k.ntri, true_ntri)
-        np.testing.assert_allclose(k.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-        np.testing.assert_allclose(k.zeta, true_zeta.real, rtol=1.e-5, atol=1.e-8)
+    kkk.process(cat,cat, ordered=True)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri)
+    np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
 
     # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
                                   bin_slop=0, max_top=0)
     kkk.process(cat)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri)
+    np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
+
+    kkk.process(cat,cat,cat, ordered=True)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri)
+    np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
+
+    kkk.process(cat,cat, ordered=True)
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
@@ -401,7 +404,6 @@ def test_direct_cross():
     kkk.process(cat1, cat2, cat3, num_threads=2)
 
     # Figure out the correct answer for each permutation
-    # (We'll need them separately below when we use KKKCrossCorrelation.)
     true_ntri_123 = np.zeros( (nrbins, nubins, 2*nvbins) )
     true_ntri_132 = np.zeros( (nrbins, nubins, 2*nvbins) )
     true_ntri_213 = np.zeros( (nrbins, nubins, 2*nvbins) )
@@ -502,7 +504,7 @@ def test_direct_cross():
     z_list = [true_zeta_123, true_zeta_132, true_zeta_213, true_zeta_231,
               true_zeta_312, true_zeta_321]
 
-    # With the regular KKKCorrelation class, we end up with the sum of all permutations.
+    # With the default ordered=False, we end up with the sum of all permutations.
     true_ntri_sum = sum(n_list)
     true_weight_sum = sum(w_list)
     true_zeta_sum = sum(z_list)
@@ -518,6 +520,32 @@ def test_direct_cross():
     for w,z in zip(w_list, z_list):
         pos = w > 0
         z[pos] /= w[pos]
+
+    # With ordered=True we get just the ones in the given order.
+    kkk.process(cat1, cat2, cat3, ordered=True)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
+    np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-5)
+    kkk.process(cat1, cat3, cat2, ordered=True)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_132)
+    np.testing.assert_allclose(kkk.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_132, rtol=1.e-5)
+    kkk.process(cat2, cat1, cat3, ordered=True)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_213)
+    np.testing.assert_allclose(kkk.weight, true_weight_213, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_213, rtol=1.e-5)
+    kkk.process(cat2, cat3, cat1, ordered=True)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_231)
+    np.testing.assert_allclose(kkk.weight, true_weight_231, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_231, rtol=1.e-5)
+    kkk.process(cat3, cat1, cat2, ordered=True)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_312)
+    np.testing.assert_allclose(kkk.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_312, rtol=1.e-5)
+    kkk.process(cat3, cat2, cat1, ordered=True)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_321)
+    np.testing.assert_allclose(kkk.weight, true_weight_321, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_321, rtol=1.e-5)
 
     # Repeat with the full CrossCorrelation class, which distinguishes the permutations.
     kkkc = treecorr.KKKCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
@@ -557,6 +585,11 @@ def test_direct_cross():
     #print('diff = ',kkk.ntri - true_ntri_sum)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
 
+    kkk.process(cat1, cat2, cat3, ordered=True)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
+    np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-5)
+
     # And again with no top-level recursion
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
@@ -567,6 +600,11 @@ def test_direct_cross():
     #print('true_ntri = ',true_ntri_sum)
     #print('diff = ',kkk.ntri - true_ntri_sum)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+
+    kkk.process(cat1, cat2, cat3, ordered=True)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
+    np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-5)
 
     # Error to have cat3, but not cat2
     with assert_raises(ValueError):
@@ -788,7 +826,7 @@ def test_direct_cross12():
     w_list = [true_weight_122, true_weight_212, true_weight_221]
     z_list = [true_zeta_122, true_zeta_212, true_zeta_221]
 
-    # With the regular KKKCorrelation class, we end up with the sum of all permutations.
+    # With the default ordered=True, we end up with the sum of all permutations.
     true_ntri_sum = sum(n_list)
     true_weight_sum = sum(w_list)
     true_zeta_sum = sum(z_list)
@@ -804,6 +842,20 @@ def test_direct_cross12():
     for w,z in zip(w_list, z_list):
         pos = w > 0
         z[pos] /= w[pos]
+
+    # With ordered=True we get just the ones in the given order.
+    kkk.process(cat1, cat2, ordered=True)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_122)
+    np.testing.assert_allclose(kkk.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_122, rtol=1.e-5)
+    kkk.process(cat2, cat1, cat2, ordered=True)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_212)
+    np.testing.assert_allclose(kkk.weight, true_weight_212, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_212, rtol=1.e-5)
+    kkk.process(cat2, cat2, cat1, ordered=True)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_221)
+    np.testing.assert_allclose(kkk.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_221, rtol=1.e-5)
 
     # Repeat with the full CrossCorrelation class, which distinguishes the permutations.
     kkkc = treecorr.KKKCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
@@ -841,6 +893,19 @@ def test_direct_cross12():
     np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
     np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-5)
+
+    kkk.process(cat1, cat2, ordered=True)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_122)
+    np.testing.assert_allclose(kkk.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_122, rtol=1.e-5)
+    kkk.process(cat2, cat1, cat2, ordered=True)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_212)
+    np.testing.assert_allclose(kkk.weight, true_weight_212, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_212, rtol=1.e-5)
+    kkk.process(cat2, cat2, cat1, ordered=True)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_221)
+    np.testing.assert_allclose(kkk.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_221, rtol=1.e-5)
 
     kkkc.process(cat1, cat2)
     np.testing.assert_array_equal(kkkc.k1k2k3.ntri, true_ntri_122)
@@ -1008,7 +1073,7 @@ def test_direct_cross_3d():
     z_list = [true_zeta_123, true_zeta_132, true_zeta_213, true_zeta_231,
               true_zeta_312, true_zeta_321]
 
-    # With the regular KKKCorrelation class, we end up with the sum of all permutations.
+    # With the default ordered=False, we end up with the sum of all permutations.
     true_ntri_sum = sum(n_list)
     true_weight_sum = sum(w_list)
     true_zeta_sum = sum(z_list)
@@ -1025,6 +1090,12 @@ def test_direct_cross_3d():
     for w,z in zip(w_list, z_list):
         pos = w > 0
         z[pos] /= w[pos]
+
+    # With ordered=True, we get just the ones in this order.
+    kkk.process(cat1, cat2, cat3, ordered=True, num_threads=2)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
+    np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-5)
 
     # Repeat with the full CrossCorrelation class, which distinguishes the permutations.
     kkkc = treecorr.KKKCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
@@ -1064,6 +1135,11 @@ def test_direct_cross_3d():
     #print('diff = ',kkk.ntri - true_ntri_sum)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
 
+    kkk.process(cat1, cat2, cat3, ordered=True, num_threads=2)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
+    np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-5)
+
     # And again with no top-level recursion
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
@@ -1074,6 +1150,11 @@ def test_direct_cross_3d():
     #print('true_ntri = ',true_ntri_sum)
     #print('diff = ',kkk.ntri - true_ntri_sum)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+
+    kkk.process(cat1, cat2, cat3, ordered=True, num_threads=2)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
+    np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-5)
 
 
 @timer
@@ -1109,6 +1190,10 @@ def test_constant():
 
     # Should also work as a cross-correlation
     kkk.process(cat, cat, cat)
+    print('as cross-correlation: kkk.zeta = ',kkk.zeta.flatten())
+    np.testing.assert_allclose(kkk.zeta, A**3, rtol=1.e-5)
+
+    kkk.process(cat, cat, cat, ordered=True)
     print('as cross-correlation: kkk.zeta = ',kkk.zeta.flatten())
     np.testing.assert_allclose(kkk.zeta, A**3, rtol=1.e-5)
 

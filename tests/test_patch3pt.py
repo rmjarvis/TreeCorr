@@ -1849,6 +1849,20 @@ def test_finalize_false():
     np.testing.assert_allclose(kkk1.meand3, kkk2.meand3)
     np.testing.assert_allclose(kkk1.zeta, kkk2.zeta)
 
+    # KKK cross12 ordered
+    kkk1.process(cat1, cat23, ordered=True)
+    kkk2.process(cat1, cat2, ordered=True, initialize=True, finalize=False)
+    kkk2.process(cat1, cat3, ordered=True, initialize=False, finalize=False)
+    kkk2.process(cat1, cat2, cat3, ordered=True, initialize=False, finalize=False)
+    kkk2.process(cat1, cat3, cat2, ordered=True, initialize=False, finalize=True)
+
+    np.testing.assert_allclose(kkk1.ntri, kkk2.ntri)
+    np.testing.assert_allclose(kkk1.weight, kkk2.weight)
+    np.testing.assert_allclose(kkk1.meand1, kkk2.meand1)
+    np.testing.assert_allclose(kkk1.meand2, kkk2.meand2)
+    np.testing.assert_allclose(kkk1.meand3, kkk2.meand3)
+    np.testing.assert_allclose(kkk1.zeta, kkk2.zeta)
+
     # KKKCross cross12
     kkkc1 = treecorr.KKKCrossCorrelation(nbins=3, min_sep=30., max_sep=100., brute=True,
                                          min_u=0.8, max_u=1.0, nubins=1,
@@ -1877,6 +1891,19 @@ def test_finalize_false():
     kkk2.process(cat1, cat2, cat3, initialize=True, finalize=False)
     kkk2.process(cat2, cat2, cat3, initialize=False, finalize=False)
     kkk2.process(cat3, cat2, cat3, initialize=False, finalize=True)
+
+    np.testing.assert_allclose(kkk1.ntri, kkk2.ntri)
+    np.testing.assert_allclose(kkk1.weight, kkk2.weight)
+    np.testing.assert_allclose(kkk1.meand1, kkk2.meand1)
+    np.testing.assert_allclose(kkk1.meand2, kkk2.meand2)
+    np.testing.assert_allclose(kkk1.meand3, kkk2.meand3)
+    np.testing.assert_allclose(kkk1.zeta, kkk2.zeta)
+
+    # KKK cross ordered
+    kkk1.process(cat, cat2, cat3, ordered=True)
+    kkk2.process(cat1, cat2, cat3, ordered=True, initialize=True, finalize=False)
+    kkk2.process(cat2, cat2, cat3, ordered=True, initialize=False, finalize=False)
+    kkk2.process(cat3, cat2, cat3, ordered=True, initialize=False, finalize=True)
 
     np.testing.assert_allclose(kkk1.ntri, kkk2.ntri)
     np.testing.assert_allclose(kkk1.weight, kkk2.weight)
@@ -1947,6 +1974,23 @@ def test_finalize_false():
     np.testing.assert_allclose(ggg1.gam2, ggg2.gam2)
     np.testing.assert_allclose(ggg1.gam3, ggg2.gam3)
 
+    # GGG cross12 ordered
+    ggg1.process(cat1, cat23, ordered=True)
+    ggg2.process(cat1, cat2, ordered=True, initialize=True, finalize=False)
+    ggg2.process(cat1, cat3, ordered=True, initialize=False, finalize=False)
+    ggg2.process(cat1, cat2, cat3, ordered=True, initialize=False, finalize=False)
+    ggg2.process(cat1, cat3, cat2, ordered=True, initialize=False, finalize=True)
+
+    np.testing.assert_allclose(ggg1.ntri, ggg2.ntri)
+    np.testing.assert_allclose(ggg1.weight, ggg2.weight)
+    np.testing.assert_allclose(ggg1.meand1, ggg2.meand1)
+    np.testing.assert_allclose(ggg1.meand2, ggg2.meand2)
+    np.testing.assert_allclose(ggg1.meand3, ggg2.meand3)
+    np.testing.assert_allclose(ggg1.gam0, ggg2.gam0)
+    np.testing.assert_allclose(ggg1.gam1, ggg2.gam1)
+    np.testing.assert_allclose(ggg1.gam2, ggg2.gam2)
+    np.testing.assert_allclose(ggg1.gam3, ggg2.gam3)
+
     # GGGCross cross12
     gggc1 = treecorr.GGGCrossCorrelation(nbins=3, min_sep=30., max_sep=100., brute=True,
                                          min_u=0.8, max_u=1.0, nubins=1,
@@ -1978,6 +2022,22 @@ def test_finalize_false():
     ggg2.process(cat1, cat2, cat3, initialize=True, finalize=False)
     ggg2.process(cat2, cat2, cat3, initialize=False, finalize=False)
     ggg2.process(cat3, cat2, cat3, initialize=False, finalize=True)
+
+    np.testing.assert_allclose(ggg1.ntri, ggg2.ntri)
+    np.testing.assert_allclose(ggg1.weight, ggg2.weight)
+    np.testing.assert_allclose(ggg1.meand1, ggg2.meand1)
+    np.testing.assert_allclose(ggg1.meand2, ggg2.meand2)
+    np.testing.assert_allclose(ggg1.meand3, ggg2.meand3)
+    np.testing.assert_allclose(ggg1.gam0, ggg2.gam0)
+    np.testing.assert_allclose(ggg1.gam1, ggg2.gam1)
+    np.testing.assert_allclose(ggg1.gam2, ggg2.gam2)
+    np.testing.assert_allclose(ggg1.gam3, ggg2.gam3)
+
+    # GGG cross ordered
+    ggg1.process(cat, cat2, cat3, ordered=True)
+    ggg2.process(cat1, cat2, cat3, ordered=True, initialize=True, finalize=False)
+    ggg2.process(cat2, cat2, cat3, ordered=True, initialize=False, finalize=False)
+    ggg2.process(cat3, cat2, cat3, ordered=True, initialize=False, finalize=True)
 
     np.testing.assert_allclose(ggg1.ntri, ggg2.ntri)
     np.testing.assert_allclose(ggg1.weight, ggg2.weight)
@@ -2046,6 +2106,19 @@ def test_finalize_false():
     np.testing.assert_allclose(nnn1.meand2, nnn2.meand2)
     np.testing.assert_allclose(nnn1.meand3, nnn2.meand3)
 
+    # NNN cross12 ordered
+    nnn1.process(cat1, cat23, ordered=True)
+    nnn2.process(cat1, cat2, ordered=True, initialize=True, finalize=False)
+    nnn2.process(cat1, cat3, ordered=True, initialize=False, finalize=False)
+    nnn2.process(cat1, cat3, cat2, ordered=True, initialize=False, finalize=False)
+    nnn2.process(cat1, cat2, cat3, ordered=True, initialize=False, finalize=True)
+
+    np.testing.assert_allclose(nnn1.ntri, nnn2.ntri)
+    np.testing.assert_allclose(nnn1.weight, nnn2.weight)
+    np.testing.assert_allclose(nnn1.meand1, nnn2.meand1)
+    np.testing.assert_allclose(nnn1.meand2, nnn2.meand2)
+    np.testing.assert_allclose(nnn1.meand3, nnn2.meand3)
+
     # NNNCross cross12
     nnnc1 = treecorr.NNNCrossCorrelation(nbins=3, min_sep=10., max_sep=200., bin_slop=0,
                                          min_u=0.8, max_u=1.0, nubins=1,
@@ -2073,6 +2146,18 @@ def test_finalize_false():
     nnn2.process(cat1, cat2, cat3, initialize=True, finalize=False)
     nnn2.process(cat2, cat2, cat3, initialize=False, finalize=False)
     nnn2.process(cat3, cat2, cat3, initialize=False, finalize=True)
+
+    np.testing.assert_allclose(nnn1.ntri, nnn2.ntri)
+    np.testing.assert_allclose(nnn1.weight, nnn2.weight)
+    np.testing.assert_allclose(nnn1.meand1, nnn2.meand1)
+    np.testing.assert_allclose(nnn1.meand2, nnn2.meand2)
+    np.testing.assert_allclose(nnn1.meand3, nnn2.meand3)
+
+    # NNN cross ordered
+    nnn1.process(cat, cat2, cat3, ordered=True)
+    nnn2.process(cat1, cat2, cat3, ordered=True, initialize=True, finalize=False)
+    nnn2.process(cat2, cat2, cat3, ordered=True, initialize=False, finalize=False)
+    nnn2.process(cat3, cat2, cat3, ordered=True, initialize=False, finalize=True)
 
     np.testing.assert_allclose(nnn1.ntri, nnn2.ntri)
     np.testing.assert_allclose(nnn1.weight, nnn2.weight)

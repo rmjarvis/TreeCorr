@@ -412,6 +412,10 @@ struct BinTypeHelper<LogRUV>
         double minu, double minusq, double maxu, double maxusq,
         double minv, double minvsq, double maxv, double maxvsq)
     {
+        dbg<<"Stop111: "<<std::sqrt(d1sq)<<"  "<<std::sqrt(d2sq)<<"  "<<std::sqrt(d3sq)<<std::endl;
+        dbg<<"sizes = "<<s1<<"  "<<s2<<"  "<<s3<<std::endl;
+        dbg<<"sep range = "<<minsep<<"  "<<maxsep<<std::endl;
+
         if (!ordered) {
             Assert(d1sq >= d2sq);
             Assert(d2sq >= d3sq);
@@ -441,13 +445,36 @@ struct BinTypeHelper<LogRUV>
             return true;
         }
 
+        d2 = sqrt(d2sq);
+        if (ordered) {
+            // If not sorting, then we need to check if we have a configuration where
+            // d1 cannot be the largest or d3 cannot be the smallest.
+
+            // (d2 + s1+s3) < (d3 - s1-s2)
+            if (ordered == 3 && d3sq > SQR(d2 + 2*s1+s2+s3)) {
+                dbg<<"d2 cannot be larger than d3\n";
+                return true;
+            }
+            // (d1 + s2+s3) < (d2 - s1-s3)
+            double ss = s1+s2+2*s3;
+            if (ss < d2 && d1sq < SQR(d2 - ss)) {
+                dbg<<"d1 cannot be larger than d2\n";
+                return true;
+            }
+            d1 = sqrt(d1sq);
+            // (d1 + s2+s3) < (d3 - s1-s2)
+            if (d3sq > SQR(d1 + s1+2*s2+s3)) {
+                dbg<<"d1 cannot be larger than d3\n";
+                return true;
+            }
+        }
+
         // If the user sets minu > 0, then we can abort if no possible triangle can have
         // u = d3/d2 as large as this.
         // The maximum possible u from our triangle is (d3+s1+s2) / (d2-s1-s3).
         // Abort if (d3+s1+s2) / (d2-s1-s3) < minu
         // (d3+s1+s2) < minu * (d2-s1-s3)
         // d3 < minu * (d2-s1-s3) - (s1+s2)
-        d2 = sqrt(d2sq);
         if (minu > 0. && d3sq < minusq*d2sq && d2 > s1+s3) {
             double temp = minu * (d2-s1-s3);
             if (temp > s1+s2 && d3sq < SQR(temp - s1-s2)) {
@@ -660,6 +687,11 @@ struct BinTypeHelper<LogRUV>
         Assert(d3 > 0.);
         Assert(u > 0.);
         Assert(v >= 0.);  // v can potentially == 0.
+
+        if (ordered && !(d1 >= d2 && d2 >= d3)) {
+            xdbg<<"Sides are not in correct size ordering d1 >= d2 >= d3\n";
+            return false;
+        }
 
         if (d2 < minsep || d2 >= maxsep) {
             xdbg<<"d2 not in minsep .. maxsep\n";

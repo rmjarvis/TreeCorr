@@ -170,26 +170,18 @@ def test_direct():
     np.testing.assert_allclose(ggg.gam3r, true_gam3.real, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-5, atol=1.e-8)
 
-    # Using the GGGCrossCorrelation class instead finds each triangle 6 times, but puts
-    # them into 6 different accumualtions, so they all end up with the same answer.
-    gggc = treecorr.GGGCrossCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                        brute=True)
-    t1 = time.time()
-    gggc.process(cat, cat, cat, num_threads=2)
-    t2 = time.time()
-    print('Time for cross correlation = ',t2-t1)
-    # All six correlation functions are equivalent to the auto results:
-    for g in [gggc.g1g2g3, gggc.g1g3g2, gggc.g2g1g3, gggc.g2g3g1, gggc.g3g1g2, gggc.g3g2g1]:
-        np.testing.assert_array_equal(g.ntri, true_ntri)
-        np.testing.assert_allclose(g.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-        np.testing.assert_allclose(g.gam0r, true_gam0.real, rtol=1.e-5, atol=1.e-8)
-        np.testing.assert_allclose(g.gam0i, true_gam0.imag, rtol=1.e-5, atol=1.e-8)
-        np.testing.assert_allclose(g.gam1r, true_gam1.real, rtol=1.e-5, atol=1.e-8)
-        np.testing.assert_allclose(g.gam1i, true_gam1.imag, rtol=1.e-5, atol=1.e-8)
-        np.testing.assert_allclose(g.gam2r, true_gam2.real, rtol=1.e-5, atol=1.e-8)
-        np.testing.assert_allclose(g.gam2i, true_gam2.imag, rtol=1.e-5, atol=1.e-8)
-        np.testing.assert_allclose(g.gam3r, true_gam3.real, rtol=1.e-5, atol=1.e-8)
-        np.testing.assert_allclose(g.gam3i, true_gam3.imag, rtol=1.e-5, atol=1.e-8)
+    # But with ordered=True we get just the ones in the given order.
+    ggg.process(cat, cat, cat, ordered=True)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri)
+    np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam0r, true_gam0.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam0i, true_gam0.imag, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam1r, true_gam1.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam1i, true_gam1.imag, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam2r, true_gam2.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam2i, true_gam2.imag, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam3r, true_gam3.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-5, atol=1.e-8)
 
     # Or with 2 argument version, finds each triangle 3 times.
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, brute=True)
@@ -208,28 +200,50 @@ def test_direct():
     np.testing.assert_allclose(ggg.gam3r, true_gam3.real, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-5, atol=1.e-8)
 
-    # Again, GGGCrossCorrelation gets it right in each permutation.
     t1 = time.time()
-    gggc.process(cat, cat, num_threads=2)
+    ggg.process(cat, cat, ordered=True, num_threads=2)
     t2 = time.time()
-    print('Time for 1-2 cross correlation = ',t2-t1)
-    for g in [gggc.g1g2g3, gggc.g1g3g2, gggc.g2g1g3, gggc.g2g3g1, gggc.g3g1g2, gggc.g3g2g1]:
-        np.testing.assert_array_equal(g.ntri, true_ntri)
-        np.testing.assert_allclose(g.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-        np.testing.assert_allclose(g.gam0r, true_gam0.real, rtol=1.e-5, atol=1.e-8)
-        np.testing.assert_allclose(g.gam0i, true_gam0.imag, rtol=1.e-5, atol=1.e-8)
-        np.testing.assert_allclose(g.gam1r, true_gam1.real, rtol=1.e-5, atol=1.e-8)
-        np.testing.assert_allclose(g.gam1i, true_gam1.imag, rtol=1.e-5, atol=1.e-8)
-        np.testing.assert_allclose(g.gam2r, true_gam2.real, rtol=1.e-5, atol=1.e-8)
-        np.testing.assert_allclose(g.gam2i, true_gam2.imag, rtol=1.e-5, atol=1.e-8)
-        np.testing.assert_allclose(g.gam3r, true_gam3.real, rtol=1.e-5, atol=1.e-8)
-        np.testing.assert_allclose(g.gam3i, true_gam3.imag, rtol=1.e-5, atol=1.e-8)
+    print('Time for 1-2 cross correlation, ordered = ',t2-t1)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri)
+    np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam0r, true_gam0.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam0i, true_gam0.imag, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam1r, true_gam1.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam1i, true_gam1.imag, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam2r, true_gam2.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam2i, true_gam2.imag, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam3r, true_gam3.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-5, atol=1.e-8)
 
     # Repeat with binslop = 0, since the code flow is different from brute=True.
     # And don't do any top-level recursion so we actually test not going to the leaves.
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
                                   bin_slop=0, max_top=0)
     ggg.process(cat)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri)
+    np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam0r, true_gam0.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam0i, true_gam0.imag, rtol=1.e-5, atol=1.e-4)
+    np.testing.assert_allclose(ggg.gam1r, true_gam1.real, rtol=1.e-3, atol=1.e-4)
+    np.testing.assert_allclose(ggg.gam1i, true_gam1.imag, rtol=1.e-3, atol=1.e-4)
+    np.testing.assert_allclose(ggg.gam2r, true_gam2.real, rtol=1.e-3, atol=1.e-4)
+    np.testing.assert_allclose(ggg.gam2i, true_gam2.imag, rtol=1.e-3, atol=1.e-4)
+    np.testing.assert_allclose(ggg.gam3r, true_gam3.real, rtol=1.e-3, atol=1.e-4)
+    np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-3, atol=1.e-4)
+
+    ggg.process(cat, cat, cat, ordered=True)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri)
+    np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam0r, true_gam0.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam0i, true_gam0.imag, rtol=1.e-5, atol=1.e-4)
+    np.testing.assert_allclose(ggg.gam1r, true_gam1.real, rtol=1.e-3, atol=1.e-4)
+    np.testing.assert_allclose(ggg.gam1i, true_gam1.imag, rtol=1.e-3, atol=1.e-4)
+    np.testing.assert_allclose(ggg.gam2r, true_gam2.real, rtol=1.e-3, atol=1.e-4)
+    np.testing.assert_allclose(ggg.gam2i, true_gam2.imag, rtol=1.e-3, atol=1.e-4)
+    np.testing.assert_allclose(ggg.gam3r, true_gam3.real, rtol=1.e-3, atol=1.e-4)
+    np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-3, atol=1.e-4)
+
+    ggg.process(cat, cat, ordered=True)
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
     np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam0r, true_gam0.real, rtol=1.e-5, atol=1.e-8)
@@ -580,7 +594,6 @@ def test_direct_cross():
     ggg.process(cat1, cat2, cat3, num_threads=2)
 
     # Figure out the correct answer for each permutation
-    # (We'll need them separately below when we use GGGCrossCorrelation.)
     true_ntri_123 = np.zeros( (nrbins, nubins, 2*nvbins) )
     true_ntri_132 = np.zeros( (nrbins, nubins, 2*nvbins) )
     true_ntri_213 = np.zeros( (nrbins, nubins, 2*nvbins) )
@@ -751,7 +764,7 @@ def test_direct_cross():
     g3_list = [true_gam3_123, true_gam3_132, true_gam3_213, true_gam3_231,
                true_gam3_312, true_gam3_321]
 
-    # With the regular GGGCorrelation class, we end up with the sum of all permutations.
+    # With the default ordered=False, we end up with the sum of all permutations.
     true_ntri_sum = sum(n_list)
     true_weight_sum = sum(w_list)
     true_gam0_sum = sum(g0_list)
@@ -779,6 +792,50 @@ def test_direct_cross():
         g1[pos] /= w[pos]
         g2[pos] /= w[pos]
         g3[pos] /= w[pos]
+
+    # With ordered=True we get just the ones in the given order.
+    ggg.process(cat1, cat2, cat3, ordered=True)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_123)
+    np.testing.assert_allclose(ggg.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_123, rtol=1.e-5)
+    ggg.process(cat1, cat3, cat2, ordered=True)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_132)
+    np.testing.assert_allclose(ggg.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_132, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_132, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_132, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_132, rtol=1.e-5)
+    ggg.process(cat2, cat1, cat3, ordered=True)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_213)
+    np.testing.assert_allclose(ggg.weight, true_weight_213, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_213, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_213, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_213, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_213, rtol=1.e-5)
+    ggg.process(cat2, cat3, cat1, ordered=True)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_231)
+    np.testing.assert_allclose(ggg.weight, true_weight_231, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_231, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_231, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_231, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_231, rtol=1.e-5)
+    ggg.process(cat3, cat1, cat2, ordered=True)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_312)
+    np.testing.assert_allclose(ggg.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_312, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_312, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_312, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_312, rtol=1.e-5)
+    ggg.process(cat3, cat2, cat1, ordered=True)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_321)
+    np.testing.assert_allclose(ggg.weight, true_weight_321, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_321, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_321, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_321, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_321, rtol=1.e-5)
 
     # Repeat with the full CrossCorrelation class, which distinguishes the permutations.
     gggc = treecorr.GGGCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
@@ -835,6 +892,21 @@ def test_direct_cross():
     #print('binslop > 0: ggg.ntri = ',ggg.ntri)
     #print('diff = ',ggg.ntri - true_ntri_sum)
     np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
+    np.testing.assert_allclose(ggg.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_sum, rtol=1.e-5)
+
+    ggg.process(cat1, cat2, cat3, ordered=True)
+    #print('binslop > 0: ggg.ntri = ',ggg.ntri)
+    #print('diff = ',ggg.ntri - true_ntri_sum)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_123)
+    np.testing.assert_allclose(ggg.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_123, rtol=1.e-5)
 
     # And again with no top-level recursion
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
@@ -846,6 +918,22 @@ def test_direct_cross():
     #print('true_ntri = ',true_ntri_sum)
     #print('diff = ',ggg.ntri - true_ntri_sum)
     np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
+    np.testing.assert_allclose(ggg.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_sum, rtol=1.e-5)
+
+    ggg.process(cat1, cat2, cat3, ordered=True)
+    #print('max_top = 0: ggg.ntri = ',ggg.ntri)
+    #print('true_ntri = ',true_ntri_sum)
+    #print('diff = ',ggg.ntri - true_ntri_sum)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_123)
+    np.testing.assert_allclose(ggg.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_123, rtol=1.e-5)
 
     # Error to have cat3, but not cat2
     with assert_raises(ValueError):
@@ -1140,7 +1228,7 @@ def test_direct_cross12():
     g2_list = [true_gam2_122, true_gam2_212, true_gam2_221]
     g3_list = [true_gam3_122, true_gam3_212, true_gam3_221]
 
-    # With the regular GGGCorrelation class, we end up with the sum of all permutations.
+    # With the default ordered=True, we end up with the sum of all permutations.
     true_ntri_sum = sum(n_list)
     true_weight_sum = sum(w_list)
     true_gam0_sum = sum(g0_list)
@@ -1168,6 +1256,29 @@ def test_direct_cross12():
         g1[pos] /= w[pos]
         g2[pos] /= w[pos]
         g3[pos] /= w[pos]
+
+    # With ordered=True we get just the ones in the given order.
+    ggg.process(cat1, cat2, ordered=True)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_122)
+    np.testing.assert_allclose(ggg.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_122, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_122, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_122, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_122, rtol=1.e-5)
+    ggg.process(cat2, cat1, cat2, ordered=True)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_212)
+    np.testing.assert_allclose(ggg.weight, true_weight_212, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_212, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_212, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_212, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_212, rtol=1.e-5)
+    ggg.process(cat2, cat2, cat1, ordered=True)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_221)
+    np.testing.assert_allclose(ggg.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_221, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_221, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_221, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_221, rtol=1.e-5)
 
     # Repeat with the full CrossCorrelation class, which distinguishes the permutations.
     gggc = treecorr.GGGCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
@@ -1224,6 +1335,21 @@ def test_direct_cross12():
     #print('binslop > 0: ggg.ntri = ',ggg.ntri)
     #print('diff = ',ggg.ntri - true_ntri_sum)
     np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
+    np.testing.assert_allclose(ggg.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_sum, rtol=1.e-5)
+
+    ggg.process(cat1, cat2, ordered=True)
+    #print('binslop > 0: ggg.ntri = ',ggg.ntri)
+    #print('diff = ',ggg.ntri - true_ntri_sum)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_122)
+    np.testing.assert_allclose(ggg.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_122, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_122, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_122, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_122, rtol=1.e-5)
 
     # And again with no top-level recursion
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
@@ -1235,6 +1361,20 @@ def test_direct_cross12():
     #print('true_ntri = ',true_ntri_sum)
     #print('diff = ',ggg.ntri - true_ntri_sum)
     np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
+    np.testing.assert_allclose(ggg.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_sum, rtol=1.e-5)
+
+    ggg.process(cat1, cat2, ordered=True)
+    #print('binslop > 0: ggg.ntri = ',ggg.ntri)
+    #print('diff = ',ggg.ntri - true_ntri_sum)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_122)
+    np.testing.assert_allclose(ggg.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_122, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_122, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_122, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_122, rtol=1.e-5)
 
     # Split into patches to test the list-based version of the code.
     cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=3)
@@ -1248,6 +1388,15 @@ def test_direct_cross12():
     np.testing.assert_allclose(ggg.gam1, true_gam1_sum, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam2, true_gam2_sum, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam3, true_gam3_sum, rtol=1.e-5)
+
+    ggg.process(cat1, cat2, ordered=True, num_threads=2)
+
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_122)
+    np.testing.assert_allclose(ggg.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_122, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_122, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_122, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_122, rtol=1.e-5)
 
     gggc = treecorr.GGGCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
                                         min_u=min_u, max_u=max_u, nubins=nubins,

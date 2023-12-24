@@ -145,7 +145,6 @@ def test_kkk_jk():
     rng = np.random.RandomState(12345)
     x, y, _, _, k = generate_shear_field(nsource, nhalo, rng)
     cat = treecorr.Catalog(x=x, y=y, k=k)
-    rng = np.random.default_rng(1234)
     kkk = treecorr.KKKCorrelation(nbins=3, min_sep=30., max_sep=100.,
                                   min_u=0.9, max_u=1.0, nubins=1,
                                   min_v=0.0, max_v=0.1, nvbins=1, rng=rng)
@@ -201,7 +200,7 @@ def test_kkk_jk():
     np.testing.assert_allclose(C, cov)
 
     print('marked:')
-    rng_state = kkkp.rng.bit_generator.state
+    rng_state = kkkp.rng.get_state()
     cov = kkkp.estimate_cov('marked_bootstrap')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
@@ -209,7 +208,7 @@ def test_kkk_jk():
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.7*tol_factor)
 
     # Test design matrix
-    kkkp.rng.bit_generator.state = rng_state
+    kkkp.rng.set_state(rng_state)
     A, w = kkkp.build_cov_design_matrix('marked_bootstrap')
     nboot = A.shape[0]
     A -= np.mean(A, axis=0)
@@ -217,7 +216,7 @@ def test_kkk_jk():
     np.testing.assert_allclose(C, cov)
 
     print('bootstrap:')
-    rng_state = kkkp.rng.bit_generator.state
+    rng_state = kkkp.rng.get_state()
     cov = kkkp.estimate_cov('bootstrap')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
@@ -225,7 +224,7 @@ def test_kkk_jk():
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.3*tol_factor)
 
     # Test design matrix
-    kkkp.rng.bit_generator.state = rng_state
+    kkkp.rng.set_state(rng_state)
     A, w = kkkp.build_cov_design_matrix('bootstrap')
     nboot = A.shape[0]
     A -= np.mean(A, axis=0)
@@ -633,7 +632,6 @@ def test_ggg_jk():
     rng = np.random.RandomState(12345)
     x, y, g1, g2, _ = generate_shear_field(nsource, nhalo, rng)
     cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
-    rng = np.random.default_rng(12345)
     ggg = treecorr.GGGCorrelation(nbins=1, min_sep=20., max_sep=40.,
                                   min_u=0.6, max_u=1.0, nubins=1,
                                   min_v=0.0, max_v=0.6, nvbins=1, rng=rng)
@@ -1157,7 +1155,6 @@ def test_nnn_jk():
     # Make the patches with a large random catalog to make sure the patches are uniform area.
     big_rx = rng.uniform(0,1000, 100*nsource)
     big_ry = rng.uniform(0,1000, 100*nsource)
-    rng = np.random.default_rng(1234)
     big_catp = treecorr.Catalog(x=big_rx, y=big_ry, npatch=npatch, rng=rng)
     patch_centers = big_catp.patch_centers
 
@@ -1573,7 +1570,6 @@ def test_brute_jk():
     rx = rng.uniform(0,1000, rand_factor*ngal)
     ry = rng.uniform(0,1000, rand_factor*ngal)
     rand_cat_nopatch = treecorr.Catalog(x=rx, y=ry)
-    rng = np.random.default_rng(8675309)
     rand_cat = treecorr.Catalog(x=rx, y=ry, npatch=npatch, rng=rng)
     patch_centers = rand_cat.patch_centers
 

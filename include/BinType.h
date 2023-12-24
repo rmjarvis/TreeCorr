@@ -387,7 +387,8 @@ struct BinTypeHelper<LogRUV>
     }
 
     // If the user has set a minu > 0, then we may be able to stop for that.
-    static bool noAllowedAngles(double rsq, double s1ps2, double s1, double s2, int ordered,
+    static bool noAllowedAngles(double rsq, double s1ps2, double s1, double s2,
+                                int ordered, double halfminsep,
                                 double minu, double minusq, double maxu, double maxusq,
                                 double minv, double minvsq, double maxv, double maxvsq)
     {
@@ -411,6 +412,11 @@ struct BinTypeHelper<LogRUV>
         double minu, double minusq, double maxu, double maxusq,
         double minv, double minvsq, double maxv, double maxvsq)
     {
+        if (!ordered) {
+            Assert(d1sq >= d2sq);
+            Assert(d2sq >= d3sq);
+        }
+
         // If all possible triangles will have d2 < minsep, then abort the recursion here.
         // This means at least two sides must have d + (s+s) < minsep.
         // Probably if d2 + s1+s3 < minsep, we can stop, but also check d3.
@@ -768,7 +774,8 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
     }
 
     // If the user has set a minphi > 0, then we may be able to stop for that.
-    static bool noAllowedAngles(double rsq, double s1ps2, double s1, double s2, int ordered,
+    static bool noAllowedAngles(double rsq, double s1ps2, double s1, double s2,
+                                int ordered, double halfminsep,
                                 double minphi, double , double maxphi, double ,
                                 double mincosphi, double , double maxcosphi, double )
     {
@@ -780,8 +787,10 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
         // cos(alpha) = d / r-s1
         // sin(alpha) = s2 / r-s1
         // cos(phi) = cos(alpha)^2 - sin(alpha)^2
-        //          = ((r-s1)^2 - 2s2^2) / (r-s1)^2
-        if (ordered >= 1 && SQR(s1) < rsq) {
+        //          = 1 - 2 (s2/(r-s1))^2
+        // Note: if not ordered, we still might be able to do this check if 2*s2 < minsep,
+        // since then the only allowed orientation will be with d1 fully in c2.
+        if (maxcosphi < 1 && (ordered || s2 < halfminsep) && (SQR(s1) < rsq)) {
             double h = sqrt(rsq) - s1;  // h = r-s1
             double cosphi = 1. - 2*SQR(s2/h);
             if (cosphi > maxcosphi) {

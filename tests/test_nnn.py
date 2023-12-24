@@ -3306,24 +3306,24 @@ def test_direct_count_auto_logsas():
 
     # And compare to the cross correlation
     # As before, this will count each triangle 6 times.
-    ddd.process(cat,cat,cat, num_threads=2)
+    ddd.process(cat,cat,cat)
     #print('ddd.ntri = ',ddd.ntri)
     #print('true_ntri => ',true_ntri)
     #print('diff = ',ddd.ntri - true_ntri)
     np.testing.assert_array_equal(ddd.ntri, 6*true_ntri)
 
     # But with ordered=True, it only counts each triangle once.
-    ddd.process(cat,cat,cat, ordered=True, num_threads=2)
+    ddd.process(cat,cat,cat, ordered=True)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # Or with 2 argument version, finds each triangle 3 times.
-    ddd.process(cat,cat, num_threads=2)
+    ddd.process(cat,cat)
     #print('ddd.ntri = ',ddd.ntri)
     #print('true_ntri => ',true_ntri)
     #print('diff = ',ddd.ntri - true_ntri)
     np.testing.assert_array_equal(ddd.ntri, 3*true_ntri)
 
-    ddd.process(cat,cat, ordered=True, num_threads=2)
+    ddd.process(cat,cat, ordered=True)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     do_pickle(ddd)
@@ -3518,6 +3518,20 @@ def test_direct_count_cross_logsas():
     print('bin_slop=0 ordered: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
 
+    dddc = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                        min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                        bin_slop=0, verbose=1, bin_type='LogSAS')
+    t0 = time.time()
+    dddc.process(cat1,cat2,cat3)
+    t1 = time.time()
+    print('NNNCross: ',t1-t0)
+    np.testing.assert_array_equal(dddc.n1n2n3.ntri, true_ntri_123)
+    np.testing.assert_array_equal(dddc.n1n3n2.ntri, true_ntri_132)
+    np.testing.assert_array_equal(dddc.n2n1n3.ntri, true_ntri_213)
+    np.testing.assert_array_equal(dddc.n2n3n1.ntri, true_ntri_231)
+    np.testing.assert_array_equal(dddc.n3n1n2.ntri, true_ntri_312)
+    np.testing.assert_array_equal(dddc.n3n2n1.ntri, true_ntri_321)
+
     # And again with no top-level recursion
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
@@ -3541,6 +3555,10 @@ def test_direct_count_cross_logsas():
     cat2 = treecorr.Catalog(x=x2, y=y2, npatch=10)
     cat3 = treecorr.Catalog(x=x3, y=y3, npatch=10)
 
+    # back to default top levels
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                  bin_slop=0, verbose=1, bin_type='LogSAS')
     t0 = time.time()
     ddd.process(cat1, cat2, cat3)
     t1 = time.time()
@@ -3576,6 +3594,21 @@ def test_direct_count_cross_logsas():
     t1 = time.time()
     print('patch ordered 321: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_321)
+
+    dddc = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                        min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                        bin_slop=0, verbose=1, bin_type='LogSAS')
+    t0 = time.time()
+    dddc.process(cat1,cat2,cat3)
+    t1 = time.time()
+    print('NNNCross: ',t1-t0)
+    np.testing.assert_array_equal(dddc.n1n2n3.ntri, true_ntri_123)
+    np.testing.assert_array_equal(dddc.n1n3n2.ntri, true_ntri_132)
+    np.testing.assert_array_equal(dddc.n2n1n3.ntri, true_ntri_213)
+    np.testing.assert_array_equal(dddc.n2n3n1.ntri, true_ntri_231)
+    np.testing.assert_array_equal(dddc.n3n1n2.ntri, true_ntri_312)
+    np.testing.assert_array_equal(dddc.n3n2n1.ntri, true_ntri_321)
+
 
 
 @timer
@@ -3824,8 +3857,55 @@ def test_nnn_logsas():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                   sep_units='arcmin', verbose=1, bin_type='LogSAS')
+    t0 = time.time()
     ddd.process(cat)
+    t1 = time.time()
+    print('auto process time = ',t1-t0)
     #print('ddd.ntri = ',ddd.ntri)
+
+    # Doing 3 catalogs ordered, should be equivelent.  Not numerically identical, but
+    # basically the same answer.
+    dddc = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                   sep_units='arcmin', verbose=1, bin_type='LogSAS')
+    t0 = time.time()
+    dddc.process(cat,cat,cat, ordered=True)
+    t1 = time.time()
+    print('cross process time = ',t1-t0)
+    np.testing.assert_allclose(dddc.ntri, ddd.ntri)
+    np.testing.assert_allclose(dddc.meanlogr2, ddd.meanlogr2)
+    np.testing.assert_allclose(dddc.meanlogr3, ddd.meanlogr3)
+    np.testing.assert_allclose(dddc.meanphi, ddd.meanphi)
+
+    t0 = time.time()
+    dddc.process(cat,cat, ordered=True)
+    t1 = time.time()
+    print('cross12 process time = ',t1-t0)
+    np.testing.assert_allclose(dddc.ntri, ddd.ntri)
+    np.testing.assert_allclose(dddc.meanlogr2, ddd.meanlogr2)
+    np.testing.assert_allclose(dddc.meanlogr3, ddd.meanlogr3)
+    np.testing.assert_allclose(dddc.meanphi, ddd.meanphi)
+
+    dddc = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                        min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                        sep_units='arcmin', verbose=1, bin_type='LogSAS')
+    t0 = time.time()
+    dddc.process(cat,cat,cat)
+    t1 = time.time()
+    print('NNNCRoss cross process time = ',t1-t0)
+    np.testing.assert_allclose(dddc.n1n2n3.ntri, ddd.ntri)
+    np.testing.assert_allclose(dddc.n1n2n3.meanlogr2, ddd.meanlogr2)
+    np.testing.assert_allclose(dddc.n1n2n3.meanlogr3, ddd.meanlogr3)
+    np.testing.assert_allclose(dddc.n1n2n3.meanphi, ddd.meanphi)
+
+    t0 = time.time()
+    dddc.process(cat,cat)
+    t1 = time.time()
+    print('NNNCRoss cross12 process time = ',t1-t0)
+    np.testing.assert_allclose(dddc.n1n2n3.ntri, ddd.ntri)
+    np.testing.assert_allclose(dddc.n1n2n3.meanlogr2, ddd.meanlogr2)
+    np.testing.assert_allclose(dddc.n1n2n3.meanlogr3, ddd.meanlogr3)
+    np.testing.assert_allclose(dddc.n1n2n3.meanphi, ddd.meanphi)
 
     # log(<d>) != <logd>, but it should be close:
     print('meanlogr2 - log(meanr2) = ',ddd.meanlogd2 - np.log(ddd.meand2))

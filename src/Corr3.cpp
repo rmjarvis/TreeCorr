@@ -539,9 +539,9 @@ void BaseCorr3::process12(BaseCorr3& bc212, BaseCorr3& bc221,
     }
 
     // Depending on the binning, we may be able to stop due to allowed angles.
-    if (BinTypeHelper<B>::noAllowedAngles(rsq, s1ps2, s1, s2, ordered,
-                                         _minu, _minusq, _maxu, _maxusq,
-                                         _minv, _minvsq, _maxv, _maxvsq)) {
+    if (BinTypeHelper<B>::noAllowedAngles(rsq, s1ps2, s1, s2, ordered, _halfminsep,
+                                          _minu, _minusq, _maxu, _maxusq,
+                                          _minv, _minvsq, _maxv, _maxvsq)) {
         dbg<<ws()<<"    No possible triangles with allowed angles\n";
         return;
     }
@@ -585,10 +585,6 @@ void BaseCorr3::process111(
         return;
     }
 
-    const double s1 = c1.getSize();
-    const double s2 = c2.getSize();
-    const double s3 = c3.getSize();
-
     // Calculate the distances if they aren't known yet
     double s=0.;
     if (d1sq == 0.)
@@ -601,85 +597,102 @@ void BaseCorr3::process111(
     BaseCorr3& bc123 = *this;  // alias for clarity.
 
     inc_ws();
-    if (ordered == 0 && BinTypeHelper<B>::sort_d123) {
-        xdbg<<":sort123\n";
-        xdbg<<"Before sort: d123 = "<<sqrt(d1sq)<<"  "<<sqrt(d2sq)<<"  "<<sqrt(d3sq)<<std::endl;
+    if (ordered == 0) {
+        if (BinTypeHelper<B>::sort_d123) {
+            xdbg<<":sort123\n";
+            xdbg<<"Before sort: d123 = "<<sqrt(d1sq)<<"  "<<sqrt(d2sq)<<"  "<<sqrt(d3sq)<<std::endl;
 
-        // Need to end up with d1 > d2 > d3
-        if (d1sq > d2sq) {
+            // Need to end up with d1 > d2 > d3
+            if (d1sq > d2sq) {
+                if (d2sq > d3sq) {
+                    xdbg<<"123\n";
+                    // 123 -> 123
+                    bc123.template process111Sorted<B>(bc132, bc213, bc231, bc312, bc321,
+                                                       c1, c2, c3, metric, ordered, d1sq, d2sq, d3sq);
+                } else if (d1sq > d3sq) {
+                    xdbg<<"132\n";
+                    // 132 -> 123
+                    bc132.template process111Sorted<B>(bc123, bc312, bc321, bc213, bc231,
+                                                       c1, c3, c2, metric, ordered, d1sq, d3sq, d2sq);
+                } else {
+                    xdbg<<"312\n";
+                    // 312 -> 123
+                    bc312.template process111Sorted<B>(bc321, bc132, bc123, bc231, bc213,
+                                                       c3, c1, c2, metric, ordered, d3sq, d1sq, d2sq);
+                }
+            } else {
+                if (d1sq > d3sq) {
+                    xdbg<<"213\n";
+                    // 213 -> 123
+                    bc213.template process111Sorted<B>(bc231, bc123, bc132, bc321, bc312,
+                                                       c2, c1, c3, metric, ordered, d2sq, d1sq, d3sq);
+                } else if (d2sq > d3sq) {
+                    xdbg<<"231\n";
+                    // 231 -> 123
+                    bc231.template process111Sorted<B>(bc213, bc321, bc312, bc123, bc132,
+                                                       c2, c3, c1, metric, ordered, d2sq, d3sq, d1sq);
+                } else {
+                    xdbg<<"321\n";
+                    // 321 -> 123
+                    bc321.template process111Sorted<B>(bc312, bc231, bc213, bc132, bc123,
+                                                       c3, c2, c1, metric, ordered, d3sq, d2sq, d1sq);
+                }
+            }
+        } else {
+            xdbg<<":set1\n";
+            // If the BinType doesn't want sorting, then make sure we get all the cells
+            // into the first location, and switch to ordered = 1.
+            if (!metric.CCW(c1.getData().getPos(), c3.getData().getPos(),
+                            c2.getData().getPos())) {
+                xdbg<<"132\n";
+                bc132.template process111Sorted<B>(bc123, bc312, bc321, bc213, bc231,
+                                                   c1, c3, c2, metric, 1, d1sq, d3sq, d2sq);
+                xdbg<<"213\n";
+                bc213.template process111Sorted<B>(bc231, bc123, bc132, bc321, bc312,
+                                                   c2, c1, c3, metric, 1, d2sq, d1sq, d3sq);
+                xdbg<<"321\n";
+                bc321.template process111Sorted<B>(bc312, bc231, bc213, bc132, bc123,
+                                                   c3, c2, c1, metric, 1, d3sq, d2sq, d1sq);
+            } else {
+                xdbg<<"123\n";
+                bc123.template process111Sorted<B>(bc132, bc213, bc231, bc312, bc321,
+                                                   c1, c2, c3, metric, 1, d1sq, d2sq, d3sq);
+                xdbg<<"312\n";
+                bc312.template process111Sorted<B>(bc321, bc132, bc123, bc231, bc213,
+                                                   c3, c1, c2, metric, 1, d3sq, d1sq, d2sq);
+                xdbg<<"231\n";
+                bc231.template process111Sorted<B>(bc213, bc321, bc312, bc123, bc132,
+                                                   c2, c3, c1, metric, 1, d2sq, d3sq, d1sq);
+            }
+        }
+    } else if (ordered == 1) {
+        if (BinTypeHelper<B>::sort_d123) {
+            // If the BinType allows sorting, but we have c1 fixed, then just check d2,d3.
             if (d2sq > d3sq) {
                 xdbg<<"123\n";
                 // 123 -> 123
                 bc123.template process111Sorted<B>(bc132, bc213, bc231, bc312, bc321,
                                                    c1, c2, c3, metric, ordered, d1sq, d2sq, d3sq);
-            } else if (d1sq > d3sq) {
+            } else {
                 xdbg<<"132\n";
                 // 132 -> 123
                 bc132.template process111Sorted<B>(bc123, bc312, bc321, bc213, bc231,
                                                    c1, c3, c2, metric, ordered, d1sq, d3sq, d2sq);
-            } else {
-                xdbg<<"312\n";
-                // 312 -> 123
-                bc312.template process111Sorted<B>(bc321, bc132, bc123, bc231, bc213,
-                                                   c3, c1, c2, metric, ordered, d3sq, d1sq, d2sq);
             }
         } else {
-            if (d1sq > d3sq) {
-                xdbg<<"213\n";
-                // 213 -> 123
-                bc213.template process111Sorted<B>(bc231, bc123, bc132, bc321, bc312,
-                                                   c2, c1, c3, metric, ordered, d2sq, d1sq, d3sq);
-            } else if (d2sq > d3sq) {
-                xdbg<<"231\n";
-                // 231 -> 123
-                bc231.template process111Sorted<B>(bc213, bc321, bc312, bc123, bc132,
-                                                   c2, c3, c1, metric, ordered, d2sq, d3sq, d1sq);
+            // For the non-sorting BinTypes (i.e. LogSAS so far), we just need to make sure
+            // 1-3-2 is counter-clockwise
+            if (!metric.CCW(c1.getData().getPos(), c3.getData().getPos(),
+                            c2.getData().getPos())) {
+                xdbg<<":swap23\n";
+                // Swap 2,3
+                bc132.template process111Sorted<B>(bc123, bc312, bc321, bc213, bc231,
+                                                   c1, c3, c2, metric, ordered, d1sq, d3sq, d2sq);
             } else {
-                xdbg<<"321\n";
-                // 321 -> 123
-                bc321.template process111Sorted<B>(bc312, bc231, bc213, bc132, bc123,
-                                                   c3, c2, c1, metric, ordered, d3sq, d2sq, d1sq);
+                xdbg<<":noswap\n";
+                bc123.template process111Sorted<B>(bc132, bc213, bc231, bc312, bc321,
+                                                   c1, c2, c3, metric, ordered, d1sq, d2sq, d3sq);
             }
-        }
-    } else if (ordered == 0) {
-        xdbg<<":set1\n";
-        // If the BinType doesn't want sorting, then make sure we get all the cells
-        // into the first location, and switch to ordered = 1.
-        if (!metric.CCW(c1.getData().getPos(), c3.getData().getPos(),
-                        c2.getData().getPos())) {
-            xdbg<<"132\n";
-            bc132.template process111Sorted<B>(bc123, bc312, bc321, bc213, bc231,
-                                               c1, c3, c2, metric, 1, d1sq, d3sq, d2sq);
-            xdbg<<"213\n";
-            bc213.template process111Sorted<B>(bc231, bc123, bc132, bc321, bc312,
-                                               c2, c1, c3, metric, 1, d2sq, d1sq, d3sq);
-            xdbg<<"321\n";
-            bc321.template process111Sorted<B>(bc312, bc231, bc213, bc132, bc123,
-                                               c3, c2, c1, metric, 1, d3sq, d2sq, d1sq);
-        } else {
-            xdbg<<"123\n";
-            bc123.template process111Sorted<B>(bc132, bc213, bc231, bc312, bc321,
-                                               c1, c2, c3, metric, 1, d1sq, d2sq, d3sq);
-            xdbg<<"312\n";
-            bc312.template process111Sorted<B>(bc321, bc132, bc123, bc231, bc213,
-                                               c3, c1, c2, metric, 1, d3sq, d1sq, d2sq);
-            xdbg<<"231\n";
-            bc231.template process111Sorted<B>(bc213, bc321, bc312, bc123, bc132,
-                                               c2, c3, c1, metric, 1, d2sq, d3sq, d1sq);
-        }
-    } else if (ordered == 1) {
-        // For the non-sorting BinTypes (i.e. LogSAS so far), we just need to make sure
-        // 1-3-2 is counter-clockwise
-        if (!metric.CCW(c1.getData().getPos(), c3.getData().getPos(),
-                        c2.getData().getPos())) {
-            xdbg<<":swap23\n";
-            // Swap 2,3
-            bc132.template process111Sorted<B>(bc123, bc312, bc321, bc213, bc231,
-                                               c1, c3, c2, metric, ordered, d1sq, d3sq, d2sq);
-        } else {
-            xdbg<<":noswap\n";
-            bc123.template process111Sorted<B>(bc132, bc213, bc231, bc312, bc321,
-                                               c1, c2, c3, metric, ordered, d1sq, d2sq, d3sq);
         }
     } else {
         xdbg<<":nosort\n";
@@ -704,10 +717,6 @@ void BaseCorr3::process111Sorted(
     xdbg<<"                  c3 = "<<c3.getData().getPos()<<"  "<<"  "<<c3.getSize()<<"  "<<c3.getData().getN()<<std::endl;
     xdbg<<"                  d123 = "<<sqrt(d1sq)<<"  "<<sqrt(d2sq)<<"  "<<sqrt(d3sq)<<std::endl;
     xdbg<<ws()<<"ProcessSorted111: c1 = "<<indices(c1)<<"  c2 = "<<indices(c2)<<"  c3 = "<<indices(c3)<<"  ordered="<<ordered<<"\n";
-    if (BinTypeHelper<B>::sort_d123) {
-        Assert(d1sq >= d2sq);
-        Assert(d2sq >= d3sq);
-    }
 
     if ((s1 == 0. && (&c1 == &c2 || &c1 == &c3)) ||
         (s2 == 0. && (&c2 == &c1 || &c2 == &c3)) ||

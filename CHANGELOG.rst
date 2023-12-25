@@ -25,6 +25,10 @@ API Changes
   normally used directly by users, so it shouldn't be noticeable in user code. (#155)
 - Removed all deprecations from the 4.x series. (#156)
 - Removed support for reading back in output files from the 3.x series.
+- Removed the 3pt CrossCorrelation classes.  Use the new ``ordered=True`` option to ``process``
+  instead to get correlations where the order of the three catalogs is fixed.  This is much
+  more efficient when you don't want all 6 combinations, and it is much simpler and more
+  intuitive.
 
 
 Performance improvements

@@ -500,53 +500,6 @@ def test_kkk_jk():
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.3*tol_factor)
 
-    # Finally a set (with all patches) using the KKKCrossCorrelation class.
-    kkkc = treecorr.KKKCrossCorrelation(nbins=3, min_sep=30., max_sep=100.,
-                                        min_u=0.9, max_u=1.0, nubins=1,
-                                        min_v=0.0, max_v=0.1, nvbins=1, rng=rng)
-    print('CrossCorrelation:')
-    kkkc.process(catp, catp, catp)
-    for k1 in kkkc._all:
-        print(k1.ntri.ravel())
-        print(k1.zeta.ravel())
-        print(k1.varzeta.ravel())
-
-        np.testing.assert_allclose(k1.ntri, kkk.ntri, rtol=0.05 * tol_factor)
-        np.testing.assert_allclose(k1.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
-        np.testing.assert_allclose(k1.varzeta, kkk.varzeta, rtol=0.05 * tol_factor, atol=3.e-6)
-
-    print('jackknife:')
-    cov = kkkc.estimate_cov('jackknife')
-    print(np.diagonal(cov))
-    for i in range(6):
-        v = np.diagonal(cov)[i*6:(i+1)*6]
-        print('max log(ratio) = ',np.max(np.abs(np.log(v)-np.log(var_kkk))))
-        np.testing.assert_allclose(np.log(v), np.log(var_kkk), atol=0.5*tol_factor)
-
-    print('sample:')
-    cov = kkkc.estimate_cov('sample')
-    print(np.diagonal(cov))
-    for i in range(6):
-        v = np.diagonal(cov)[i*6:(i+1)*6]
-        print('max log(ratio) = ',np.max(np.abs(np.log(v)-np.log(var_kkk))))
-        np.testing.assert_allclose(np.log(v), np.log(var_kkk), atol=0.8*tol_factor)
-
-    print('marked:')
-    cov = kkkc.estimate_cov('marked_bootstrap')
-    print(np.diagonal(cov))
-    for i in range(6):
-        v = np.diagonal(cov)[i*6:(i+1)*6]
-        print('max log(ratio) = ',np.max(np.abs(np.log(v)-np.log(var_kkk))))
-        np.testing.assert_allclose(np.log(v), np.log(var_kkk), atol=0.8*tol_factor)
-
-    print('bootstrap:')
-    cov = kkkc.estimate_cov('bootstrap')
-    print(np.diagonal(cov))
-    for i in range(6):
-        v = np.diagonal(cov)[i*6:(i+1)*6]
-        print('max log(ratio) = ',np.max(np.abs(np.log(v)-np.log(var_kkk))))
-        np.testing.assert_allclose(np.log(v), np.log(var_kkk), atol=0.5*tol_factor)
-
     # All catalogs need to have the same number of patches
     catq = treecorr.Catalog(x=x, y=y, k=k, npatch=2*npatch)
     with assert_raises(RuntimeError):
@@ -958,66 +911,6 @@ def test_ggg_jk():
         print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
         np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.5*tol_factor)
 
-    # Finally a set (with all patches) using the GGGCrossCorrelation class.
-    gggc = treecorr.GGGCrossCorrelation(nbins=1, min_sep=20., max_sep=40.,
-                                        min_u=0.6, max_u=1.0, nubins=1,
-                                        min_v=0.0, max_v=0.6, nvbins=1, rng=rng)
-    print('CrossCorrelation:')
-    gggc.process(catp, catp, catp)
-    for g in gggc._all:
-        print(g.ntri.ravel())
-        print(g.gam0.ravel())
-        print(g.vargam0.ravel())
-
-        np.testing.assert_allclose(g.ntri, ggg.ntri, rtol=0.05 * tol_factor)
-        np.testing.assert_allclose(g.gam0, ggg.gam0, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
-        np.testing.assert_allclose(g.vargam0, ggg.vargam0, rtol=0.05 * tol_factor)
-        np.testing.assert_allclose(g.gam1, ggg.gam1, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
-        np.testing.assert_allclose(g.vargam1, ggg.vargam1, rtol=0.05 * tol_factor)
-        np.testing.assert_allclose(g.gam2, ggg.gam2, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
-        np.testing.assert_allclose(g.vargam2, ggg.vargam2, rtol=0.05 * tol_factor)
-        np.testing.assert_allclose(g.gam3, ggg.gam3, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
-        np.testing.assert_allclose(g.vargam3, ggg.vargam3, rtol=0.05 * tol_factor)
-
-    fc = lambda gggc: np.concatenate([
-            [np.mean(g.gam0), np.mean(g.gam1), np.mean(g.gam2), np.mean(g.gam3)]
-            for g in gggc._all])
-
-    print('jackknife:')
-    cov = gggc.estimate_cov('jackknife', func=fc)
-    print(np.diagonal(cov).real)
-    for i in range(6):
-        v = np.diagonal(cov)[i*4:(i+1)*4]
-        print('max log(ratio) = ',np.max(np.abs(np.log(v)-np.log(var_ggg))))
-        np.testing.assert_allclose(np.log(v), np.log(var_ggg), atol=0.4*tol_factor)
-
-    print('sample:')
-    cov = gggc.estimate_cov('sample', func=fc)
-    print(np.diagonal(cov).real)
-    for i in range(6):
-        v = np.diagonal(cov)[i*4:(i+1)*4]
-        print('max log(ratio) = ',np.max(np.abs(np.log(v)-np.log(var_ggg))))
-        np.testing.assert_allclose(np.log(v), np.log(var_ggg), atol=0.6*tol_factor)
-
-    print('marked:')
-    cov = gggc.estimate_cov('marked_bootstrap', func=fc)
-    print(np.diagonal(cov).real)
-    for i in range(6):
-        v = np.diagonal(cov)[i*4:(i+1)*4]
-        print('max log(ratio) = ',np.max(np.abs(np.log(v)-np.log(var_ggg))))
-        np.testing.assert_allclose(np.log(v), np.log(var_ggg), atol=0.8*tol_factor)
-
-    print('bootstrap:')
-    cov = gggc.estimate_cov('bootstrap', func=fc)
-    print(np.diagonal(cov).real)
-    for i in range(6):
-        v = np.diagonal(cov)[i*4:(i+1)*4]
-        print('max log(ratio) = ',np.max(np.abs(np.log(v)-np.log(var_ggg))))
-        np.testing.assert_allclose(np.log(v), np.log(var_ggg), atol=0.3*tol_factor)
-
-    # Without func, don't check the accuracy, but make sure it returns something the right shape.
-    cov = gggc.estimate_cov('jackknife')
-    assert cov.shape == (48, 48)
 
 @timer
 def test_nnn_jk():
@@ -1451,102 +1344,6 @@ def test_nnn_jk():
         cov5 = ddd5.estimate_cov('jackknife')
         np.testing.assert_allclose(cov5, cov1)
 
-    # I haven't implemented calculateZeta for the NNNCrossCorrelation class, because I'm not
-    # actually sure what the right thing to do here is for calculating a single zeta vectors.
-    # Do we do a different one for each of the 6 permutations?  Or one overall one?
-    # So rather than just do something, I'll wait until someone has a coherent use case where
-    # they want this and can explain exactly what the right thing to compute is.
-    # So to just exercise the machinery with NNNCrossCorrelation, I'm using a func parameter
-    # to compute something equivalent to the simple zeta calculation.
-
-    dddc = treecorr.NNNCrossCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
-                                        min_u=0.8, max_u=1.0, nubins=1,
-                                        min_v=0.0, max_v=0.2, nvbins=1, rng=rng)
-    rrrc = treecorr.NNNCrossCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
-                                        min_u=0.8, max_u=1.0, nubins=1,
-                                        min_v=0.0, max_v=0.2, nvbins=1)
-    print('CrossCorrelation:')
-    dddc.process(catp, catp, catp)
-    rrrc.process(rand_catp, rand_catp, rand_catp)
-
-    def cc_zeta(corrs):
-        d, r = corrs
-        d1 = d.n1n2n3.copy()
-        d1._sum(d._all)
-        r1 = r.n1n2n3.copy()
-        r1._sum(r._all)
-        zeta, _ = d1.calculateZeta(rrr=r1)
-        return zeta.ravel()
-
-    print('simple: ')
-    zeta_s3 = cc_zeta([dddc, rrrc])
-    print(zeta_s3)
-    np.testing.assert_allclose(zeta_s3, zeta_s1.ravel(), rtol=0.05 * tol_factor)
-
-    print('jackknife:')
-    cov = treecorr.estimate_multi_cov([dddc,rrrc], 'jackknife', func=cc_zeta)
-    print(np.diagonal(cov))
-    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.9*tol_factor)
-
-    # Test design matrix
-    A, w = treecorr.build_multi_cov_design_matrix([dddc,rrrc], method='jackknife', func=cc_zeta)
-    A -= np.mean(A, axis=0)
-    C = (1-1/npatch) * A.conj().T.dot(A)
-    np.testing.assert_allclose(C, cov)
-
-    print('sample:')
-    cov = treecorr.estimate_multi_cov([dddc,rrrc], 'sample', func=cc_zeta)
-    print(np.diagonal(cov))
-    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=1.2*tol_factor)
-
-    print('marked:')
-    cov = treecorr.estimate_multi_cov([dddc,rrrc], 'marked_bootstrap', func=cc_zeta)
-    print(np.diagonal(cov))
-    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=1.5*tol_factor)
-
-    print('bootstrap:')
-    cov = treecorr.estimate_multi_cov([dddc,rrrc], 'bootstrap', func=cc_zeta)
-    print(np.diagonal(cov))
-    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.6*tol_factor)
-
-    # Repeat with a 1-2 cross-correlation
-    print('CrossCorrelation 1-2:')
-    dddc.process(catp, catp)
-    rrrc.process(rand_catp, rand_catp)
-
-    print('simple: ')
-    zeta_s3 = cc_zeta([dddc, rrrc])
-    print(zeta_s3)
-    np.testing.assert_allclose(zeta_s3, zeta_s1.ravel(), rtol=0.05 * tol_factor)
-
-    print('jackknife:')
-    cov = treecorr.estimate_multi_cov([dddc,rrrc], 'jackknife', func=cc_zeta)
-    print(np.diagonal(cov))
-    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.9*tol_factor)
-
-    print('sample:')
-    cov = treecorr.estimate_multi_cov([dddc,rrrc], 'sample', func=cc_zeta)
-    print(np.diagonal(cov))
-    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=1.1*tol_factor)
-
-    print('marked:')
-    cov = treecorr.estimate_multi_cov([dddc,rrrc], 'marked_bootstrap', func=cc_zeta)
-    print(np.diagonal(cov))
-    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=1.5*tol_factor)
-
-    print('bootstrap:')
-    cov = treecorr.estimate_multi_cov([dddc,rrrc], 'bootstrap', func=cc_zeta)
-    print(np.diagonal(cov))
-    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.6*tol_factor)
-
 
 @timer
 def test_brute_jk():
@@ -1863,29 +1660,6 @@ def test_finalize_false():
     np.testing.assert_allclose(kkk1.meand3, kkk2.meand3)
     np.testing.assert_allclose(kkk1.zeta, kkk2.zeta)
 
-    # KKKCross cross12
-    kkkc1 = treecorr.KKKCrossCorrelation(nbins=3, min_sep=30., max_sep=100., brute=True,
-                                         min_u=0.8, max_u=1.0, nubins=1,
-                                         min_v=0., max_v=0.2, nvbins=1)
-    kkkc1.process(cat1, cat23)
-
-    kkkc2 = treecorr.KKKCrossCorrelation(nbins=3, min_sep=30., max_sep=100., brute=True,
-                                         min_u=0.8, max_u=1.0, nubins=1,
-                                         min_v=0., max_v=0.2, nvbins=1)
-    kkkc2.process(cat1, cat2, initialize=True, finalize=False)
-    kkkc2.process(cat1, cat3, initialize=False, finalize=False)
-    kkkc2.process(cat1, cat2, cat3, initialize=False, finalize=True)
-
-    for perm in ['k1k2k3', 'k1k3k2', 'k2k1k3', 'k2k3k1', 'k3k1k2', 'k3k2k1']:
-        kkk1 = getattr(kkkc1, perm)
-        kkk2 = getattr(kkkc2, perm)
-        np.testing.assert_allclose(kkk1.ntri, kkk2.ntri)
-        np.testing.assert_allclose(kkk1.weight, kkk2.weight)
-        np.testing.assert_allclose(kkk1.meand1, kkk2.meand1)
-        np.testing.assert_allclose(kkk1.meand2, kkk2.meand2)
-        np.testing.assert_allclose(kkk1.meand3, kkk2.meand3)
-        np.testing.assert_allclose(kkk1.zeta, kkk2.zeta)
-
     # KKK cross
     kkk1.process(cat, cat2, cat3)
     kkk2.process(cat1, cat2, cat3, initialize=True, finalize=False)
@@ -1911,22 +1685,6 @@ def test_finalize_false():
     np.testing.assert_allclose(kkk1.meand2, kkk2.meand2)
     np.testing.assert_allclose(kkk1.meand3, kkk2.meand3)
     np.testing.assert_allclose(kkk1.zeta, kkk2.zeta)
-
-    # KKKCross cross
-    kkkc1.process(cat, cat2, cat3)
-    kkkc2.process(cat1, cat2, cat3, initialize=True, finalize=False)
-    kkkc2.process(cat2, cat2, cat3, initialize=False, finalize=False)
-    kkkc2.process(cat3, cat2, cat3, initialize=False, finalize=True)
-
-    for perm in ['k1k2k3', 'k1k3k2', 'k2k1k3', 'k2k3k1', 'k3k1k2', 'k3k2k1']:
-        kkk1 = getattr(kkkc1, perm)
-        kkk2 = getattr(kkkc2, perm)
-        np.testing.assert_allclose(kkk1.ntri, kkk2.ntri)
-        np.testing.assert_allclose(kkk1.weight, kkk2.weight)
-        np.testing.assert_allclose(kkk1.meand1, kkk2.meand1)
-        np.testing.assert_allclose(kkk1.meand2, kkk2.meand2)
-        np.testing.assert_allclose(kkk1.meand3, kkk2.meand3)
-        np.testing.assert_allclose(kkk1.zeta, kkk2.zeta)
 
     # GGG auto
     ggg1 = treecorr.GGGCorrelation(nbins=3, min_sep=30., max_sep=100., brute=True,
@@ -1991,32 +1749,6 @@ def test_finalize_false():
     np.testing.assert_allclose(ggg1.gam2, ggg2.gam2)
     np.testing.assert_allclose(ggg1.gam3, ggg2.gam3)
 
-    # GGGCross cross12
-    gggc1 = treecorr.GGGCrossCorrelation(nbins=3, min_sep=30., max_sep=100., brute=True,
-                                         min_u=0.8, max_u=1.0, nubins=1,
-                                         min_v=0., max_v=0.2, nvbins=1)
-    gggc1.process(cat1, cat23)
-
-    gggc2 = treecorr.GGGCrossCorrelation(nbins=3, min_sep=30., max_sep=100., brute=True,
-                                         min_u=0.8, max_u=1.0, nubins=1,
-                                         min_v=0., max_v=0.2, nvbins=1)
-    gggc2.process(cat1, cat2, initialize=True, finalize=False)
-    gggc2.process(cat1, cat3, initialize=False, finalize=False)
-    gggc2.process(cat1, cat2, cat3, initialize=False, finalize=True)
-
-    for perm in ['g1g2g3', 'g1g3g2', 'g2g1g3', 'g2g3g1', 'g3g1g2', 'g3g2g1']:
-        ggg1 = getattr(gggc1, perm)
-        ggg2 = getattr(gggc2, perm)
-        np.testing.assert_allclose(ggg1.ntri, ggg2.ntri)
-        np.testing.assert_allclose(ggg1.weight, ggg2.weight)
-        np.testing.assert_allclose(ggg1.meand1, ggg2.meand1)
-        np.testing.assert_allclose(ggg1.meand2, ggg2.meand2)
-        np.testing.assert_allclose(ggg1.meand3, ggg2.meand3)
-        np.testing.assert_allclose(ggg1.gam0, ggg2.gam0)
-        np.testing.assert_allclose(ggg1.gam1, ggg2.gam1)
-        np.testing.assert_allclose(ggg1.gam2, ggg2.gam2)
-        np.testing.assert_allclose(ggg1.gam3, ggg2.gam3)
-
     # GGG cross
     ggg1.process(cat, cat2, cat3)
     ggg2.process(cat1, cat2, cat3, initialize=True, finalize=False)
@@ -2048,25 +1780,6 @@ def test_finalize_false():
     np.testing.assert_allclose(ggg1.gam1, ggg2.gam1)
     np.testing.assert_allclose(ggg1.gam2, ggg2.gam2)
     np.testing.assert_allclose(ggg1.gam3, ggg2.gam3)
-
-    # GGGCross cross
-    gggc1.process(cat, cat2, cat3)
-    gggc2.process(cat1, cat2, cat3, initialize=True, finalize=False)
-    gggc2.process(cat2, cat2, cat3, initialize=False, finalize=False)
-    gggc2.process(cat3, cat2, cat3, initialize=False, finalize=True)
-
-    for perm in ['g1g2g3', 'g1g3g2', 'g2g1g3', 'g2g3g1', 'g3g1g2', 'g3g2g1']:
-        ggg1 = getattr(gggc1, perm)
-        ggg2 = getattr(gggc2, perm)
-        np.testing.assert_allclose(ggg1.ntri, ggg2.ntri)
-        np.testing.assert_allclose(ggg1.weight, ggg2.weight)
-        np.testing.assert_allclose(ggg1.meand1, ggg2.meand1)
-        np.testing.assert_allclose(ggg1.meand2, ggg2.meand2)
-        np.testing.assert_allclose(ggg1.meand3, ggg2.meand3)
-        np.testing.assert_allclose(ggg1.gam0, ggg2.gam0)
-        np.testing.assert_allclose(ggg1.gam1, ggg2.gam1)
-        np.testing.assert_allclose(ggg1.gam2, ggg2.gam2)
-        np.testing.assert_allclose(ggg1.gam3, ggg2.gam3)
 
     # NNN auto
     nnn1 = treecorr.NNNCorrelation(nbins=3, min_sep=10., max_sep=200., bin_slop=0,
@@ -2119,28 +1832,6 @@ def test_finalize_false():
     np.testing.assert_allclose(nnn1.meand2, nnn2.meand2)
     np.testing.assert_allclose(nnn1.meand3, nnn2.meand3)
 
-    # NNNCross cross12
-    nnnc1 = treecorr.NNNCrossCorrelation(nbins=3, min_sep=10., max_sep=200., bin_slop=0,
-                                         min_u=0.8, max_u=1.0, nubins=1,
-                                         min_v=0., max_v=0.2, nvbins=1)
-    nnnc1.process(cat1, cat23)
-
-    nnnc2 = treecorr.NNNCrossCorrelation(nbins=3, min_sep=10., max_sep=200., bin_slop=0,
-                                         min_u=0.8, max_u=1.0, nubins=1,
-                                         min_v=0., max_v=0.2, nvbins=1)
-    nnnc2.process(cat1, cat2, initialize=True, finalize=False)
-    nnnc2.process(cat1, cat3, initialize=False, finalize=False)
-    nnnc2.process(cat1, cat2, cat3, initialize=False, finalize=True)
-
-    for perm in ['n1n2n3', 'n1n3n2', 'n2n1n3', 'n2n3n1', 'n3n1n2', 'n3n2n1']:
-        nnn1 = getattr(nnnc1, perm)
-        nnn2 = getattr(nnnc2, perm)
-        np.testing.assert_allclose(nnn1.ntri, nnn2.ntri)
-        np.testing.assert_allclose(nnn1.weight, nnn2.weight)
-        np.testing.assert_allclose(nnn1.meand1, nnn2.meand1)
-        np.testing.assert_allclose(nnn1.meand2, nnn2.meand2)
-        np.testing.assert_allclose(nnn1.meand3, nnn2.meand3)
-
     # NNN cross
     nnn1.process(cat, cat2, cat3)
     nnn2.process(cat1, cat2, cat3, initialize=True, finalize=False)
@@ -2165,20 +1856,6 @@ def test_finalize_false():
     np.testing.assert_allclose(nnn1.meand2, nnn2.meand2)
     np.testing.assert_allclose(nnn1.meand3, nnn2.meand3)
 
-    # NNNCross cross
-    nnnc1.process(cat, cat2, cat3)
-    nnnc2.process(cat1, cat2, cat3, initialize=True, finalize=False)
-    nnnc2.process(cat2, cat2, cat3, initialize=False, finalize=False)
-    nnnc2.process(cat3, cat2, cat3, initialize=False, finalize=True)
-
-    for perm in ['n1n2n3', 'n1n3n2', 'n2n1n3', 'n2n3n1', 'n3n1n2', 'n3n2n1']:
-        nnn1 = getattr(nnnc1, perm)
-        nnn2 = getattr(nnnc2, perm)
-        np.testing.assert_allclose(nnn1.ntri, nnn2.ntri)
-        np.testing.assert_allclose(nnn1.weight, nnn2.weight)
-        np.testing.assert_allclose(nnn1.meand1, nnn2.meand1)
-        np.testing.assert_allclose(nnn1.meand2, nnn2.meand2)
-        np.testing.assert_allclose(nnn1.meand3, nnn2.meand3)
 
 @timer
 def test_lowmem():

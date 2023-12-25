@@ -1496,25 +1496,6 @@ def test_direct_count_cross():
     print('brute ordered 321: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_321)
 
-    # Now repeat with the full CrossCorrelation class, which distinguishes the permutations.
-    dddc = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                        min_u=min_u, max_u=max_u, nubins=nubins,
-                                        min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                        brute=True, verbose=1)
-    t0 = time.time()
-    dddc.process(cat1, cat2, cat3)
-    t1 = time.time()
-    print('NNNCross brute: ',t1-t0)
-
-    #print('true_ntri_123 = ',true_ntri_123)
-    #print('diff = ',dddc.n1n2n3.ntri - true_ntri_123)
-    np.testing.assert_array_equal(dddc.n1n2n3.ntri, true_ntri_123)
-    np.testing.assert_array_equal(dddc.n1n3n2.ntri, true_ntri_132)
-    np.testing.assert_array_equal(dddc.n2n1n3.ntri, true_ntri_213)
-    np.testing.assert_array_equal(dddc.n2n3n1.ntri, true_ntri_231)
-    np.testing.assert_array_equal(dddc.n3n1n2.ntri, true_ntri_312)
-    np.testing.assert_array_equal(dddc.n3n2n1.ntri, true_ntri_321)
-
     # Repeat with binslop = 0
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
@@ -1559,15 +1540,6 @@ def test_direct_count_cross():
     print('bin_slop=0 ordered 321: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_321)
 
-    dddc = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                        min_u=min_u, max_u=max_u, nubins=nubins,
-                                        min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                        bin_slop=0, verbose=1)
-    t0 = time.time()
-    dddc.process(cat1, cat2, cat3)
-    t1 = time.time()
-    print('NNNCross bin_slop=0: ',t1-t0)
-
     # And again with no top-level recursion
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
@@ -1586,116 +1558,6 @@ def test_direct_count_cross():
     with assert_raises(ValueError):
         ddd.process(cat1, cat3=cat3)
 
-    # Check a few basic operations with a NNCrossCorrelation object.
-    do_pickle(dddc)
-
-    dddc2 = dddc.copy()
-    dddc2 += dddc
-    for perm in ['n1n2n3', 'n1n3n2', 'n2n1n3', 'n2n3n1', 'n3n1n2', 'n3n2n1']:
-        d2 = getattr(dddc2, perm)
-        d1 = getattr(dddc, perm)
-        np.testing.assert_allclose(d2.ntri, 2*d1.ntri)
-        np.testing.assert_allclose(d2.meand1, 2*d1.meand1)
-        np.testing.assert_allclose(d2.meand2, 2*d1.meand2)
-        np.testing.assert_allclose(d2.meand3, 2*d1.meand3)
-        np.testing.assert_allclose(d2.meanlogd1, 2*d1.meanlogd1)
-        np.testing.assert_allclose(d2.meanlogd2, 2*d1.meanlogd2)
-        np.testing.assert_allclose(d2.meanlogd3, 2*d1.meanlogd3)
-        np.testing.assert_allclose(d2.meanu, 2*d1.meanu)
-        np.testing.assert_allclose(d2.meanv, 2*d1.meanv)
-
-    dddc2.clear()
-    dddc2 += dddc
-    for perm in ['n1n2n3', 'n1n3n2', 'n2n1n3', 'n2n3n1', 'n3n1n2', 'n3n2n1']:
-        d2 = getattr(dddc2, perm)
-        d1 = getattr(dddc, perm)
-        np.testing.assert_allclose(d2.ntri, d1.ntri)
-        np.testing.assert_allclose(d2.meand1, d1.meand1)
-        np.testing.assert_allclose(d2.meand2, d1.meand2)
-        np.testing.assert_allclose(d2.meand3, d1.meand3)
-        np.testing.assert_allclose(d2.meanlogd1, d1.meanlogd1)
-        np.testing.assert_allclose(d2.meanlogd2, d1.meanlogd2)
-        np.testing.assert_allclose(d2.meanlogd3, d1.meanlogd3)
-        np.testing.assert_allclose(d2.meanu, d1.meanu)
-        np.testing.assert_allclose(d2.meanv, d1.meanv)
-
-    with assert_raises(TypeError):
-        dddc2 += {}      # not an NNNCrossCorrelation
-    with assert_raises(TypeError):
-        dddc2 += ddd     # not an NNNCrossCorrelation
-    dddc4 = treecorr.NNNCrossCorrelation(min_sep=min_sep/2, max_sep=max_sep, nbins=nbins,
-                                         min_u=min_u, max_u=max_u, nubins=nubins,
-                                         min_v=min_v, max_v=max_v, nvbins=nvbins)
-    with assert_raises(ValueError):
-        dddc2 += dddc4  # binning doesn't match
-
-    # Test I/O
-    ascii_name = 'output/nnnc_ascii.txt'
-    dddc.write(ascii_name, precision=16)
-    dddc3 = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                         min_u=min_u, max_u=max_u, nubins=nubins,
-                                         min_v=min_v, max_v=max_v, nvbins=nvbins)
-    dddc3.read(ascii_name)
-    for perm in ['n1n2n3', 'n1n3n2', 'n2n1n3', 'n2n3n1', 'n3n1n2', 'n3n2n1']:
-        d2 = getattr(dddc3, perm)
-        d1 = getattr(dddc, perm)
-        np.testing.assert_allclose(d2.ntri, d1.ntri)
-        np.testing.assert_allclose(d2.meand1, d1.meand1)
-        np.testing.assert_allclose(d2.meand2, d1.meand2)
-        np.testing.assert_allclose(d2.meand3, d1.meand3)
-        np.testing.assert_allclose(d2.meanlogd1, d1.meanlogd1)
-        np.testing.assert_allclose(d2.meanlogd2, d1.meanlogd2)
-        np.testing.assert_allclose(d2.meanlogd3, d1.meanlogd3)
-        np.testing.assert_allclose(d2.meanu, d1.meanu)
-        np.testing.assert_allclose(d2.meanv, d1.meanv)
-
-    try:
-        import fitsio
-    except ImportError:
-        pass
-    else:
-        fits_name = 'output/nnnc_fits.fits'
-        dddc.write(fits_name)
-        dddc4 = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                             min_u=min_u, max_u=max_u, nubins=nubins,
-                                             min_v=min_v, max_v=max_v, nvbins=nvbins)
-        dddc4.read(fits_name)
-        for perm in ['n1n2n3', 'n1n3n2', 'n2n1n3', 'n2n3n1', 'n3n1n2', 'n3n2n1']:
-            d2 = getattr(dddc4, perm)
-            d1 = getattr(dddc, perm)
-            np.testing.assert_allclose(d2.ntri, d1.ntri)
-            np.testing.assert_allclose(d2.meand1, d1.meand1)
-            np.testing.assert_allclose(d2.meand2, d1.meand2)
-            np.testing.assert_allclose(d2.meand3, d1.meand3)
-            np.testing.assert_allclose(d2.meanlogd1, d1.meanlogd1)
-            np.testing.assert_allclose(d2.meanlogd2, d1.meanlogd2)
-            np.testing.assert_allclose(d2.meanlogd3, d1.meanlogd3)
-            np.testing.assert_allclose(d2.meanu, d1.meanu)
-            np.testing.assert_allclose(d2.meanv, d1.meanv)
-
-    try:
-        import h5py
-    except ImportError:
-        pass
-    else:
-        hdf5_name = 'output/nnnc_hdf5.hdf5'
-        dddc.write(hdf5_name)
-        dddc5 = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                             min_u=min_u, max_u=max_u, nubins=nubins,
-                                             min_v=min_v, max_v=max_v, nvbins=nvbins)
-        dddc5.read(hdf5_name)
-        for perm in ['n1n2n3', 'n1n3n2', 'n2n1n3', 'n2n3n1', 'n3n1n2', 'n3n2n1']:
-            d2 = getattr(dddc5, perm)
-            d1 = getattr(dddc, perm)
-            np.testing.assert_allclose(d2.ntri, d1.ntri)
-            np.testing.assert_allclose(d2.meand1, d1.meand1)
-            np.testing.assert_allclose(d2.meand2, d1.meand2)
-            np.testing.assert_allclose(d2.meand3, d1.meand3)
-            np.testing.assert_allclose(d2.meanlogd1, d1.meanlogd1)
-            np.testing.assert_allclose(d2.meanlogd2, d1.meanlogd2)
-            np.testing.assert_allclose(d2.meanlogd3, d1.meanlogd3)
-            np.testing.assert_allclose(d2.meanu, d1.meanu)
-            np.testing.assert_allclose(d2.meanv, d1.meanv)
 
 @timer
 def test_direct_count_cross12():
@@ -1820,25 +1682,6 @@ def test_direct_count_cross12():
     print('brute ordered 221: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_221)
 
-    # Now repeat with the full CrossCorrelation class, which distinguishes the permutations.
-    dddc = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                        min_u=min_u, max_u=max_u, nubins=nubins,
-                                        min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                        brute=True, verbose=1)
-    t0 = time.time()
-    dddc.process(cat1, cat2)
-    t1 = time.time()
-    print('NNNCross brute: ',t1-t0)
-
-    #print('true_ntri_122 = ',true_ntri_122)
-    #print('diff = ',dddc.n1n2n3.ntri - true_ntri_122)
-    np.testing.assert_array_equal(dddc.n1n2n3.ntri, true_ntri_122)
-    np.testing.assert_array_equal(dddc.n1n3n2.ntri, true_ntri_122)
-    np.testing.assert_array_equal(dddc.n2n1n3.ntri, true_ntri_212)
-    np.testing.assert_array_equal(dddc.n2n3n1.ntri, true_ntri_221)
-    np.testing.assert_array_equal(dddc.n3n1n2.ntri, true_ntri_212)
-    np.testing.assert_array_equal(dddc.n3n2n1.ntri, true_ntri_221)
-
     # Repeat with binslop = 0
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
@@ -1866,24 +1709,6 @@ def test_direct_count_cross12():
     t1 = time.time()
     print('bin_slop=0 ordered 221: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_221)
-
-    dddc = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                        min_u=min_u, max_u=max_u, nubins=nubins,
-                                        min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                        bin_slop=0, verbose=1)
-    t0 = time.time()
-    dddc.process(cat1, cat2)
-    t1 = time.time()
-    print('NNNCross bin_slop=0: ',t1-t0)
-
-    #print('true_ntri_122 = ',true_ntri_122)
-    #print('diff = ',dddc.n1n2n3.ntri - true_ntri_122)
-    np.testing.assert_array_equal(dddc.n1n2n3.ntri, true_ntri_122)
-    np.testing.assert_array_equal(dddc.n1n3n2.ntri, true_ntri_122)
-    np.testing.assert_array_equal(dddc.n2n1n3.ntri, true_ntri_212)
-    np.testing.assert_array_equal(dddc.n2n3n1.ntri, true_ntri_221)
-    np.testing.assert_array_equal(dddc.n3n1n2.ntri, true_ntri_212)
-    np.testing.assert_array_equal(dddc.n3n2n1.ntri, true_ntri_221)
 
     # And again with no top-level recursion
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
@@ -1917,17 +1742,6 @@ def test_direct_count_cross12():
     t1 = time.time()
     print('patch ordered 122: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
-
-    t0 = time.time()
-    dddc.process(cat1, cat2)
-    t1 = time.time()
-    print('NNNCross patch: ',t1-t0)
-    np.testing.assert_array_equal(dddc.n1n2n3.ntri, true_ntri_122)
-    np.testing.assert_array_equal(dddc.n1n3n2.ntri, true_ntri_122)
-    np.testing.assert_array_equal(dddc.n2n1n3.ntri, true_ntri_212)
-    np.testing.assert_array_equal(dddc.n2n3n1.ntri, true_ntri_221)
-    np.testing.assert_array_equal(dddc.n3n1n2.ntri, true_ntri_212)
-    np.testing.assert_array_equal(dddc.n3n2n1.ntri, true_ntri_221)
 
 
 @timer
@@ -2250,29 +2064,6 @@ def test_direct_partial():
     ddda.process(cat1a, cat2a, cat3a, ordered=True)
     np.testing.assert_array_equal(ddda.ntri, true_ntri_123)
 
-    # Now with real CrossCorrelation
-    ddda = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                        min_u=min_u, max_u=max_u, nubins=nubins,
-                                        min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                        brute=True)
-    ddda.process(cat1a, cat2a, cat3a)
-    #print('132 = ',ddda.n1n3n2.ntri)
-    #print('true 132 = ',true_ntri_132)
-    #print('213 = ',ddda.n2n1n3.ntri)
-    #print('true 213 = ',true_ntri_213)
-    #print('231 = ',ddda.n2n3n1.ntri)
-    #print('true 231 = ',true_ntri_231)
-    #print('311 = ',ddda.n3n1n2.ntri)
-    #print('true 312 = ',true_ntri_312)
-    #print('321 = ',ddda.n3n2n1.ntri)
-    #print('true 321 = ',true_ntri_321)
-    np.testing.assert_array_equal(ddda.n1n2n3.ntri, true_ntri_123)
-    np.testing.assert_array_equal(ddda.n1n3n2.ntri, true_ntri_132)
-    np.testing.assert_array_equal(ddda.n2n1n3.ntri, true_ntri_213)
-    np.testing.assert_array_equal(ddda.n2n3n1.ntri, true_ntri_231)
-    np.testing.assert_array_equal(ddda.n3n1n2.ntri, true_ntri_312)
-    np.testing.assert_array_equal(ddda.n3n2n1.ntri, true_ntri_321)
-
     # Now check that we get the same thing with all the points, but with w=0 for the ones
     # we don't want.
     w1 = np.zeros(ngal)
@@ -2296,19 +2087,6 @@ def test_direct_partial():
     dddb.process(cat1b, cat2b, cat3b, ordered=True)
     np.testing.assert_array_equal(dddb.ntri, true_ntri_123)
 
-    dddb = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                        min_u=min_u, max_u=max_u, nubins=nubins,
-                                        min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                        brute=True)
-    dddb.process(cat1b, cat2b, cat3b)
-    #print('dddb.n1n2n3.ntri = ',dddb.n1n2n3.ntri)
-    #print('diff = ',dddb.n1n2n3.ntri - true_ntri)
-    np.testing.assert_array_equal(dddb.n1n2n3.ntri, true_ntri_123)
-    np.testing.assert_array_equal(dddb.n1n3n2.ntri, true_ntri_132)
-    np.testing.assert_array_equal(dddb.n2n1n3.ntri, true_ntri_213)
-    np.testing.assert_array_equal(dddb.n2n3n1.ntri, true_ntri_231)
-    np.testing.assert_array_equal(dddb.n3n1n2.ntri, true_ntri_312)
-    np.testing.assert_array_equal(dddb.n3n2n1.ntri, true_ntri_321)
 
 @timer
 def test_direct_3d_auto():
@@ -2434,21 +2212,6 @@ def test_direct_3d_auto():
 
     ddd.process(cat,cat,cat, ordered=True)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
-
-    dddc = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                       min_u=min_u, max_u=max_u, nubins=nubins,
-                                       min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                       bin_slop=0, verbose=1, max_top=0)
-    dddc.process(cat,cat,cat)
-    #print('ddd.ntri = ',ddd.ntri)
-    #print('true_ntri => ',true_ntri)
-    #print('diff = ',ddd.ntri - true_ntri)
-    np.testing.assert_array_equal(dddc.n1n2n3.ntri, true_ntri)
-    np.testing.assert_array_equal(dddc.n1n3n2.ntri, true_ntri)
-    np.testing.assert_array_equal(dddc.n2n1n3.ntri, true_ntri)
-    np.testing.assert_array_equal(dddc.n2n3n1.ntri, true_ntri)
-    np.testing.assert_array_equal(dddc.n3n1n2.ntri, true_ntri)
-    np.testing.assert_array_equal(dddc.n3n2n1.ntri, true_ntri)
 
     # Also compare to using x,y,z rather than ra,dec,r
     cat = treecorr.Catalog(x=x, y=y, z=z)
@@ -2609,64 +2372,6 @@ def test_direct_3d_cross():
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
     ddd.process(cat1, cat2, cat3, ordered=True)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
-
-    # Now repeat with the full CrossCorrelation class, which distinguishes the permutations.
-    dddc = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                       min_u=min_u, max_u=max_u, nubins=nubins,
-                                       min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                       brute=True, verbose=1)
-    dddc.process(cat1, cat2, cat3)
-    #print('true_ntri = ',true_ntri_123)
-    #print('diff = ',dddc.n1n2n3.ntri - true_ntri_123)
-    np.testing.assert_array_equal(dddc.n1n2n3.ntri, true_ntri_123)
-    np.testing.assert_array_equal(dddc.n1n3n2.ntri, true_ntri_132)
-    np.testing.assert_array_equal(dddc.n2n1n3.ntri, true_ntri_213)
-    np.testing.assert_array_equal(dddc.n2n3n1.ntri, true_ntri_231)
-    np.testing.assert_array_equal(dddc.n3n1n2.ntri, true_ntri_312)
-    np.testing.assert_array_equal(dddc.n3n2n1.ntri, true_ntri_321)
-
-    # Repeat with binslop = 0
-    dddc = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                       min_u=min_u, max_u=max_u, nubins=nubins,
-                                       min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                       bin_slop=0, verbose=1)
-    dddc.process(cat1, cat2, cat3)
-    #print('binslop = 0: dddc.n1n2n3.ntri = ',dddc.n1n2n3.ntri)
-    #print('diff = ',dddc.n1n2n3.ntri - true_ntri_123)
-    np.testing.assert_array_equal(dddc.n1n2n3.ntri, true_ntri_123)
-    np.testing.assert_array_equal(dddc.n1n3n2.ntri, true_ntri_132)
-    np.testing.assert_array_equal(dddc.n2n1n3.ntri, true_ntri_213)
-    np.testing.assert_array_equal(dddc.n2n3n1.ntri, true_ntri_231)
-    np.testing.assert_array_equal(dddc.n3n1n2.ntri, true_ntri_312)
-    np.testing.assert_array_equal(dddc.n3n2n1.ntri, true_ntri_321)
-
-    # And again with no top-level recursion
-    dddc = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                       min_u=min_u, max_u=max_u, nubins=nubins,
-                                       min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                       bin_slop=0, verbose=1, max_top=0)
-    dddc.process(cat1, cat2, cat3)
-    #print('max_top = 0: dddc.n1n2n3.ntri = ',dddc.n1n2n3n.ntri)
-    #print('true_ntri = ',true_ntri_123)
-    #print('diff = ',dddc.n1n2n3.ntri - true_ntri_123)
-    np.testing.assert_array_equal(dddc.n1n2n3.ntri, true_ntri_123)
-    np.testing.assert_array_equal(dddc.n1n3n2.ntri, true_ntri_132)
-    np.testing.assert_array_equal(dddc.n2n1n3.ntri, true_ntri_213)
-    np.testing.assert_array_equal(dddc.n2n3n1.ntri, true_ntri_231)
-    np.testing.assert_array_equal(dddc.n3n1n2.ntri, true_ntri_312)
-    np.testing.assert_array_equal(dddc.n3n2n1.ntri, true_ntri_321)
-
-    # Also compare to using x,y,z rather than ra,dec,r
-    cat1 = treecorr.Catalog(x=x1, y=y1, z=z1)
-    cat2 = treecorr.Catalog(x=x2, y=y2, z=z2)
-    cat3 = treecorr.Catalog(x=x3, y=y3, z=z3)
-    dddc.process(cat1, cat2, cat3)
-    np.testing.assert_array_equal(dddc.n1n2n3.ntri, true_ntri_123)
-    np.testing.assert_array_equal(dddc.n1n3n2.ntri, true_ntri_132)
-    np.testing.assert_array_equal(dddc.n2n1n3.ntri, true_ntri_213)
-    np.testing.assert_array_equal(dddc.n2n3n1.ntri, true_ntri_231)
-    np.testing.assert_array_equal(dddc.n3n1n2.ntri, true_ntri_312)
-    np.testing.assert_array_equal(dddc.n3n2n1.ntri, true_ntri_321)
 
 
 @timer
@@ -3726,20 +3431,6 @@ def test_direct_count_cross_logsas():
     print('bin_slop=0 ordered: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
 
-    dddc = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                        min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
-                                        bin_slop=0, verbose=1, bin_type='LogSAS')
-    t0 = time.time()
-    dddc.process(cat1,cat2,cat3)
-    t1 = time.time()
-    print('NNNCross: ',t1-t0)
-    np.testing.assert_array_equal(dddc.n1n2n3.ntri, true_ntri_123)
-    np.testing.assert_array_equal(dddc.n1n3n2.ntri, true_ntri_132)
-    np.testing.assert_array_equal(dddc.n2n1n3.ntri, true_ntri_213)
-    np.testing.assert_array_equal(dddc.n2n3n1.ntri, true_ntri_231)
-    np.testing.assert_array_equal(dddc.n3n1n2.ntri, true_ntri_312)
-    np.testing.assert_array_equal(dddc.n3n2n1.ntri, true_ntri_321)
-
     # And again with no top-level recursion
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
@@ -3802,21 +3493,6 @@ def test_direct_count_cross_logsas():
     t1 = time.time()
     print('patch ordered 321: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_321)
-
-    dddc = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                        min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
-                                        bin_slop=0, verbose=1, bin_type='LogSAS')
-    t0 = time.time()
-    dddc.process(cat1,cat2,cat3)
-    t1 = time.time()
-    print('NNNCross: ',t1-t0)
-    np.testing.assert_array_equal(dddc.n1n2n3.ntri, true_ntri_123)
-    np.testing.assert_array_equal(dddc.n1n3n2.ntri, true_ntri_132)
-    np.testing.assert_array_equal(dddc.n2n1n3.ntri, true_ntri_213)
-    np.testing.assert_array_equal(dddc.n2n3n1.ntri, true_ntri_231)
-    np.testing.assert_array_equal(dddc.n3n1n2.ntri, true_ntri_312)
-    np.testing.assert_array_equal(dddc.n3n2n1.ntri, true_ntri_321)
-
 
 
 @timer
@@ -4092,27 +3768,6 @@ def test_nnn_logsas():
     np.testing.assert_allclose(dddc.meanlogr2, ddd.meanlogr2)
     np.testing.assert_allclose(dddc.meanlogr3, ddd.meanlogr3)
     np.testing.assert_allclose(dddc.meanphi, ddd.meanphi)
-
-    dddc = treecorr.NNNCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                        min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
-                                        sep_units='arcmin', verbose=1, bin_type='LogSAS')
-    t0 = time.time()
-    dddc.process(cat,cat,cat)
-    t1 = time.time()
-    print('NNNCross cross process time = ',t1-t0)
-    np.testing.assert_allclose(dddc.n1n2n3.ntri, ddd.ntri)
-    np.testing.assert_allclose(dddc.n1n2n3.meanlogr2, ddd.meanlogr2)
-    np.testing.assert_allclose(dddc.n1n2n3.meanlogr3, ddd.meanlogr3)
-    np.testing.assert_allclose(dddc.n1n2n3.meanphi, ddd.meanphi)
-
-    t0 = time.time()
-    dddc.process(cat,cat)
-    t1 = time.time()
-    print('NNNCross cross12 process time = ',t1-t0)
-    np.testing.assert_allclose(dddc.n1n2n3.ntri, ddd.ntri)
-    np.testing.assert_allclose(dddc.n1n2n3.meanlogr2, ddd.meanlogr2)
-    np.testing.assert_allclose(dddc.n1n2n3.meanlogr3, ddd.meanlogr3)
-    np.testing.assert_allclose(dddc.n1n2n3.meanphi, ddd.meanphi)
 
     # log(<d>) != <logd>, but it should be close:
     print('meanlogr2 - log(meanr2) = ',ddd.meanlogd2 - np.log(ddd.meand2))

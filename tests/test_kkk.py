@@ -547,34 +547,6 @@ def test_direct_cross():
     np.testing.assert_allclose(kkk.weight, true_weight_321, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_321, rtol=1.e-5)
 
-    # Repeat with the full CrossCorrelation class, which distinguishes the permutations.
-    kkkc = treecorr.KKKCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
-                                        min_u=min_u, max_u=max_u, nubins=nubins,
-                                        min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                        brute=True, verbose=1)
-    kkkc.process(cat1, cat2, cat3)
-
-    #print('true_ntri_123 = ',true_ntri_123)
-    #print('diff = ',kkkc.k1k2k3.ntri - true_ntri_123)
-    np.testing.assert_array_equal(kkkc.k1k2k3.ntri, true_ntri_123)
-    np.testing.assert_array_equal(kkkc.k1k3k2.ntri, true_ntri_132)
-    np.testing.assert_array_equal(kkkc.k2k1k3.ntri, true_ntri_213)
-    np.testing.assert_array_equal(kkkc.k2k3k1.ntri, true_ntri_231)
-    np.testing.assert_array_equal(kkkc.k3k1k2.ntri, true_ntri_312)
-    np.testing.assert_array_equal(kkkc.k3k2k1.ntri, true_ntri_321)
-    np.testing.assert_allclose(kkkc.k1k2k3.weight, true_weight_123, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k1k3k2.weight, true_weight_132, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k2k1k3.weight, true_weight_213, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k2k3k1.weight, true_weight_231, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k3k1k2.weight, true_weight_312, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k3k2k1.weight, true_weight_321, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k1k2k3.zeta, true_zeta_123, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k1k3k2.zeta, true_zeta_132, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k2k1k3.zeta, true_zeta_213, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k2k3k1.zeta, true_zeta_231, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k3k1k2.zeta, true_zeta_312, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k3k2k1.zeta, true_zeta_321, rtol=1.e-5)
-
     # Repeat with binslop = 0
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
@@ -610,96 +582,6 @@ def test_direct_cross():
     with assert_raises(ValueError):
         kkk.process(cat1, cat3=cat3)
 
-    # Check a few basic operations with a KKKCrossCorrelation object.
-    do_pickle(kkkc)
-
-    kkkc2 = kkkc.copy()
-    kkkc2 += kkkc
-    for perm in ['k1k2k3', 'k1k3k2', 'k2k1k3', 'k2k3k1', 'k3k1k2', 'k3k2k1']:
-        k2 = getattr(kkkc2, perm)
-        k1 = getattr(kkkc, perm)
-        np.testing.assert_allclose(k2.ntri, 2*k1.ntri)
-        np.testing.assert_allclose(k2.weight, 2*k1.weight)
-        np.testing.assert_allclose(k2.meand1, 2*k1.meand1)
-        np.testing.assert_allclose(k2.meand2, 2*k1.meand2)
-        np.testing.assert_allclose(k2.meand3, 2*k1.meand3)
-        np.testing.assert_allclose(k2.meanlogd1, 2*k1.meanlogd1)
-        np.testing.assert_allclose(k2.meanlogd2, 2*k1.meanlogd2)
-        np.testing.assert_allclose(k2.meanlogd3, 2*k1.meanlogd3)
-        np.testing.assert_allclose(k2.meanu, 2*k1.meanu)
-        np.testing.assert_allclose(k2.meanv, 2*k1.meanv)
-        np.testing.assert_allclose(k2.zeta, 2*k1.zeta)
-
-    kkkc2.clear()
-    kkkc2 += kkkc
-    for perm in ['k1k2k3', 'k1k3k2', 'k2k1k3', 'k2k3k1', 'k3k1k2', 'k3k2k1']:
-        k2 = getattr(kkkc2, perm)
-        k1 = getattr(kkkc, perm)
-        np.testing.assert_allclose(k2.ntri, k1.ntri)
-        np.testing.assert_allclose(k2.weight, k1.weight)
-        np.testing.assert_allclose(k2.meand1, k1.meand1)
-        np.testing.assert_allclose(k2.meand2, k1.meand2)
-        np.testing.assert_allclose(k2.meand3, k1.meand3)
-        np.testing.assert_allclose(k2.meanlogd1, k1.meanlogd1)
-        np.testing.assert_allclose(k2.meanlogd2, k1.meanlogd2)
-        np.testing.assert_allclose(k2.meanlogd3, k1.meanlogd3)
-        np.testing.assert_allclose(k2.meanu, k1.meanu)
-        np.testing.assert_allclose(k2.meanv, k1.meanv)
-        np.testing.assert_allclose(k2.zeta, k1.zeta)
-
-    with assert_raises(TypeError):
-        kkkc2 += {}
-    with assert_raises(TypeError):
-        kkkc2 += kkk
-
-    # Can't add with different config specs
-    kkkc3 = treecorr.KKKCrossCorrelation(min_sep=min_sep/2, bin_size=bin_size, nbins=nrbins)
-    with assert_raises(ValueError):
-        kkkc2 += kkkc3
-
-    # Test I/O
-    ascii_name = 'output/kkkc_ascii.txt'
-    kkkc.write(ascii_name, precision=16)
-    kkkc3 = treecorr.KKKCrossCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins)
-    kkkc3.read(ascii_name)
-    for perm in ['k1k2k3', 'k1k3k2', 'k2k1k3', 'k2k3k1', 'k3k1k2', 'k3k2k1']:
-        k2 = getattr(kkkc3, perm)
-        k1 = getattr(kkkc, perm)
-        np.testing.assert_allclose(k2.ntri, k1.ntri)
-        np.testing.assert_allclose(k2.weight, k1.weight)
-        np.testing.assert_allclose(k2.meand1, k1.meand1)
-        np.testing.assert_allclose(k2.meand2, k1.meand2)
-        np.testing.assert_allclose(k2.meand3, k1.meand3)
-        np.testing.assert_allclose(k2.meanlogd1, k1.meanlogd1)
-        np.testing.assert_allclose(k2.meanlogd2, k1.meanlogd2)
-        np.testing.assert_allclose(k2.meanlogd3, k1.meanlogd3)
-        np.testing.assert_allclose(k2.meanu, k1.meanu)
-        np.testing.assert_allclose(k2.meanv, k1.meanv)
-        np.testing.assert_allclose(k2.zeta, k1.zeta)
-
-    try:
-        import fitsio
-    except ImportError:
-        pass
-    else:
-        fits_name = 'output/kkkc_fits.fits'
-        kkkc.write(fits_name)
-        kkkc4 = treecorr.KKKCrossCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins)
-        kkkc4.read(fits_name)
-        for perm in ['k1k2k3', 'k1k3k2', 'k2k1k3', 'k2k3k1', 'k3k1k2', 'k3k2k1']:
-            k2 = getattr(kkkc4, perm)
-            k1 = getattr(kkkc, perm)
-            np.testing.assert_allclose(k2.ntri, k1.ntri)
-            np.testing.assert_allclose(k2.weight, k1.weight)
-            np.testing.assert_allclose(k2.meand1, k1.meand1)
-            np.testing.assert_allclose(k2.meand2, k1.meand2)
-            np.testing.assert_allclose(k2.meand3, k1.meand3)
-            np.testing.assert_allclose(k2.meanlogd1, k1.meanlogd1)
-            np.testing.assert_allclose(k2.meanlogd2, k1.meanlogd2)
-            np.testing.assert_allclose(k2.meanlogd3, k1.meanlogd3)
-            np.testing.assert_allclose(k2.meanu, k1.meanu)
-            np.testing.assert_allclose(k2.meanv, k1.meanv)
-            np.testing.assert_allclose(k2.zeta, k1.zeta)
 
 @timer
 def test_direct_cross12():
@@ -737,7 +619,6 @@ def test_direct_cross12():
     kkk.process(cat1, cat2, num_threads=2)
 
     # Figure out the correct answer for each permutation
-    # (We'll need them separately below when we use KKKCrossCorrelation.)
     true_ntri_122 = np.zeros( (nrbins, nubins, 2*nvbins) )
     true_ntri_212 = np.zeros( (nrbins, nubins, 2*nvbins) )
     true_ntri_221 = np.zeros( (nrbins, nubins, 2*nvbins) )
@@ -857,34 +738,6 @@ def test_direct_cross12():
     np.testing.assert_allclose(kkk.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_221, rtol=1.e-5)
 
-    # Repeat with the full CrossCorrelation class, which distinguishes the permutations.
-    kkkc = treecorr.KKKCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
-                                        min_u=min_u, max_u=max_u, nubins=nubins,
-                                        min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                        brute=True, verbose=1)
-    kkkc.process(cat1, cat2)
-
-    #print('true_ntri_122 = ',true_ntri_122)
-    #print('diff = ',kkkc.k1k2k3.ntri - true_ntri_122)
-    np.testing.assert_array_equal(kkkc.k1k2k3.ntri, true_ntri_122)
-    np.testing.assert_array_equal(kkkc.k1k3k2.ntri, true_ntri_122)
-    np.testing.assert_array_equal(kkkc.k2k1k3.ntri, true_ntri_212)
-    np.testing.assert_array_equal(kkkc.k2k3k1.ntri, true_ntri_221)
-    np.testing.assert_array_equal(kkkc.k3k1k2.ntri, true_ntri_212)
-    np.testing.assert_array_equal(kkkc.k3k2k1.ntri, true_ntri_221)
-    np.testing.assert_allclose(kkkc.k1k2k3.weight, true_weight_122, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k1k3k2.weight, true_weight_122, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k2k1k3.weight, true_weight_212, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k2k3k1.weight, true_weight_221, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k3k1k2.weight, true_weight_212, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k3k2k1.weight, true_weight_221, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k1k2k3.zeta, true_zeta_122, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k1k3k2.zeta, true_zeta_122, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k2k1k3.zeta, true_zeta_212, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k2k3k1.zeta, true_zeta_221, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k3k1k2.zeta, true_zeta_212, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k3k2k1.zeta, true_zeta_221, rtol=1.e-5)
-
     # Split into patches to test the list-based version of the code.
     cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=4)
     cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2, npatch=4)
@@ -906,26 +759,6 @@ def test_direct_cross12():
     np.testing.assert_array_equal(kkk.ntri, true_ntri_221)
     np.testing.assert_allclose(kkk.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_221, rtol=1.e-5)
-
-    kkkc.process(cat1, cat2)
-    np.testing.assert_array_equal(kkkc.k1k2k3.ntri, true_ntri_122)
-    np.testing.assert_array_equal(kkkc.k1k3k2.ntri, true_ntri_122)
-    np.testing.assert_array_equal(kkkc.k2k1k3.ntri, true_ntri_212)
-    np.testing.assert_array_equal(kkkc.k2k3k1.ntri, true_ntri_221)
-    np.testing.assert_array_equal(kkkc.k3k1k2.ntri, true_ntri_212)
-    np.testing.assert_array_equal(kkkc.k3k2k1.ntri, true_ntri_221)
-    np.testing.assert_allclose(kkkc.k1k2k3.weight, true_weight_122, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k1k3k2.weight, true_weight_122, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k2k1k3.weight, true_weight_212, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k2k3k1.weight, true_weight_221, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k3k1k2.weight, true_weight_212, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k3k2k1.weight, true_weight_221, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k1k2k3.zeta, true_zeta_122, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k1k3k2.zeta, true_zeta_122, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k2k1k3.zeta, true_zeta_212, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k2k3k1.zeta, true_zeta_221, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k3k1k2.zeta, true_zeta_212, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k3k2k1.zeta, true_zeta_221, rtol=1.e-5)
 
 
 @timer
@@ -972,7 +805,6 @@ def test_direct_cross_3d():
     kkk.process(cat1, cat2, cat3, num_threads=2)
 
     # Figure out the correct answer for each permutation
-    # (We'll need them separately below when we use KKKCrossCorrelation.)
     true_ntri_123 = np.zeros( (nrbins, nubins, 2*nvbins) )
     true_ntri_132 = np.zeros( (nrbins, nubins, 2*nvbins) )
     true_ntri_213 = np.zeros( (nrbins, nubins, 2*nvbins) )
@@ -1096,34 +928,6 @@ def test_direct_cross_3d():
     np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
     np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-5)
-
-    # Repeat with the full CrossCorrelation class, which distinguishes the permutations.
-    kkkc = treecorr.KKKCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
-                                        min_u=min_u, max_u=max_u, nubins=nubins,
-                                        min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                        brute=True, verbose=1)
-    kkkc.process(cat1, cat2, cat3)
-
-    #print('true_ntri_123 = ',true_ntri_123)
-    #print('diff = ',kkkc.k1k2k3.ntri - true_ntri_123)
-    np.testing.assert_array_equal(kkkc.k1k2k3.ntri, true_ntri_123)
-    np.testing.assert_array_equal(kkkc.k1k3k2.ntri, true_ntri_132)
-    np.testing.assert_array_equal(kkkc.k2k1k3.ntri, true_ntri_213)
-    np.testing.assert_array_equal(kkkc.k2k3k1.ntri, true_ntri_231)
-    np.testing.assert_array_equal(kkkc.k3k1k2.ntri, true_ntri_312)
-    np.testing.assert_array_equal(kkkc.k3k2k1.ntri, true_ntri_321)
-    np.testing.assert_allclose(kkkc.k1k2k3.weight, true_weight_123, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k1k3k2.weight, true_weight_132, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k2k1k3.weight, true_weight_213, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k2k3k1.weight, true_weight_231, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k3k1k2.weight, true_weight_312, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k3k2k1.weight, true_weight_321, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k1k2k3.zeta, true_zeta_123, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k1k3k2.zeta, true_zeta_132, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k2k1k3.zeta, true_zeta_213, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k2k3k1.zeta, true_zeta_231, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k3k1k2.zeta, true_zeta_312, rtol=1.e-5)
-    np.testing.assert_allclose(kkkc.k3k2k1.zeta, true_zeta_321, rtol=1.e-5)
 
     # Repeat with binslop = 0
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,

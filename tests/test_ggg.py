@@ -837,57 +837,6 @@ def test_direct_cross():
     np.testing.assert_allclose(ggg.gam2, true_gam2_321, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam3, true_gam3_321, rtol=1.e-5)
 
-    # Repeat with the full CrossCorrelation class, which distinguishes the permutations.
-    gggc = treecorr.GGGCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
-                                        min_u=min_u, max_u=max_u, nubins=nubins,
-                                        min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                        brute=True, verbose=1)
-    gggc.process(cat1, cat2, cat3)
-
-    #print('true_ntri_123 = ',true_ntri_123)
-    #print('diff = ',gggc.g1g2g3.ntri - true_ntri_123)
-    np.testing.assert_array_equal(gggc.g1g2g3.ntri, true_ntri_123)
-    np.testing.assert_array_equal(gggc.g1g3g2.ntri, true_ntri_132)
-    np.testing.assert_array_equal(gggc.g2g1g3.ntri, true_ntri_213)
-    np.testing.assert_array_equal(gggc.g2g3g1.ntri, true_ntri_231)
-    np.testing.assert_array_equal(gggc.g3g1g2.ntri, true_ntri_312)
-    np.testing.assert_array_equal(gggc.g3g2g1.ntri, true_ntri_321)
-    np.testing.assert_allclose(gggc.g1g2g3.weight, true_weight_123, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g3g2.weight, true_weight_132, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g1g3.weight, true_weight_213, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g3g1.weight, true_weight_231, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g1g2.weight, true_weight_312, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g2g1.weight, true_weight_321, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g2g3.gam0, true_gam0_123, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g3g2.gam0, true_gam0_132, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g1g3.gam0, true_gam0_213, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g3g1.gam0, true_gam0_231, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g1g2.gam0, true_gam0_312, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g2g1.gam0, true_gam0_321, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g2g3.gam1, true_gam1_123, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g3g2.gam1, true_gam1_132, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g1g3.gam1, true_gam1_213, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g3g1.gam1, true_gam1_231, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g1g2.gam1, true_gam1_312, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g2g1.gam1, true_gam1_321, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g2g3.gam2, true_gam2_123, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g3g2.gam2, true_gam2_132, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g1g3.gam2, true_gam2_213, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g3g1.gam2, true_gam2_231, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g1g2.gam2, true_gam2_312, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g2g1.gam2, true_gam2_321, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g2g3.gam3, true_gam3_123, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g3g2.gam3, true_gam3_132, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g1g3.gam3, true_gam3_213, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g3g1.gam3, true_gam3_231, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g1g2.gam3, true_gam3_312, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g2g1.gam3, true_gam3_321, rtol=1.e-5)
-
-    # Repeat with binslop = 0
-    ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
-                                  min_u=min_u, max_u=max_u, nubins=nubins,
-                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=1)
     ggg.process(cat1, cat2, cat3)
     #print('binslop > 0: ggg.ntri = ',ggg.ntri)
     #print('diff = ',ggg.ntri - true_ntri_sum)
@@ -939,109 +888,6 @@ def test_direct_cross():
     with assert_raises(ValueError):
         ggg.process(cat1, cat3=cat3)
 
-    # Check a few basic operations with a GGGCrossCorrelation object.
-    do_pickle(gggc)
-
-    gggc2 = gggc.copy()
-    gggc2 += gggc
-    for perm in ['g1g2g3', 'g1g3g2', 'g2g1g3', 'g2g3g1', 'g3g1g2', 'g3g2g1']:
-        g2 = getattr(gggc2, perm)
-        g1 = getattr(gggc, perm)
-        np.testing.assert_allclose(g2.ntri, 2*g1.ntri)
-        np.testing.assert_allclose(g2.weight, 2*g1.weight)
-        np.testing.assert_allclose(g2.meand1, 2*g1.meand1)
-        np.testing.assert_allclose(g2.meand2, 2*g1.meand2)
-        np.testing.assert_allclose(g2.meand3, 2*g1.meand3)
-        np.testing.assert_allclose(g2.meanlogd1, 2*g1.meanlogd1)
-        np.testing.assert_allclose(g2.meanlogd2, 2*g1.meanlogd2)
-        np.testing.assert_allclose(g2.meanlogd3, 2*g1.meanlogd3)
-        np.testing.assert_allclose(g2.meanu, 2*g1.meanu)
-        np.testing.assert_allclose(g2.meanv, 2*g1.meanv)
-        np.testing.assert_allclose(g2.gam0, 2*g1.gam0)
-        np.testing.assert_allclose(g2.gam1, 2*g1.gam1)
-        np.testing.assert_allclose(g2.gam2, 2*g1.gam2)
-        np.testing.assert_allclose(g2.gam3, 2*g1.gam3)
-
-    gggc2.clear()
-    gggc2 += gggc
-    for perm in ['g1g2g3', 'g1g3g2', 'g2g1g3', 'g2g3g1', 'g3g1g2', 'g3g2g1']:
-        g2 = getattr(gggc2, perm)
-        g1 = getattr(gggc, perm)
-        np.testing.assert_allclose(g2.ntri, g1.ntri)
-        np.testing.assert_allclose(g2.weight, g1.weight)
-        np.testing.assert_allclose(g2.meand1, g1.meand1)
-        np.testing.assert_allclose(g2.meand2, g1.meand2)
-        np.testing.assert_allclose(g2.meand3, g1.meand3)
-        np.testing.assert_allclose(g2.meanlogd1, g1.meanlogd1)
-        np.testing.assert_allclose(g2.meanlogd2, g1.meanlogd2)
-        np.testing.assert_allclose(g2.meanlogd3, g1.meanlogd3)
-        np.testing.assert_allclose(g2.meanu, g1.meanu)
-        np.testing.assert_allclose(g2.meanv, g1.meanv)
-        np.testing.assert_allclose(g2.gam0, g1.gam0)
-        np.testing.assert_allclose(g2.gam1, g1.gam1)
-        np.testing.assert_allclose(g2.gam2, g1.gam2)
-        np.testing.assert_allclose(g2.gam3, g1.gam3)
-
-    with assert_raises(TypeError):
-        gggc2 += {}
-    with assert_raises(TypeError):
-        gggc2 += ggg
-
-    # Can't add with different config specs
-    gggc3 = treecorr.GGGCrossCorrelation(min_sep=min_sep/2, bin_size=bin_size, nbins=nrbins)
-    with assert_raises(ValueError):
-        gggc2 += gggc3
-
-    # Test I/O
-    ascii_name = 'output/gggc_ascii.txt'
-    gggc.write(ascii_name, precision=16)
-    gggc3 = treecorr.GGGCrossCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins)
-    gggc3.read(ascii_name)
-    for perm in ['g1g2g3', 'g1g3g2', 'g2g1g3', 'g2g3g1', 'g3g1g2', 'g3g2g1']:
-        g2 = getattr(gggc3, perm)
-        g1 = getattr(gggc, perm)
-        np.testing.assert_allclose(g2.ntri, g1.ntri)
-        np.testing.assert_allclose(g2.weight, g1.weight)
-        np.testing.assert_allclose(g2.meand1, g1.meand1)
-        np.testing.assert_allclose(g2.meand2, g1.meand2)
-        np.testing.assert_allclose(g2.meand3, g1.meand3)
-        np.testing.assert_allclose(g2.meanlogd1, g1.meanlogd1)
-        np.testing.assert_allclose(g2.meanlogd2, g1.meanlogd2)
-        np.testing.assert_allclose(g2.meanlogd3, g1.meanlogd3)
-        np.testing.assert_allclose(g2.meanu, g1.meanu)
-        np.testing.assert_allclose(g2.meanv, g1.meanv)
-        np.testing.assert_allclose(g2.gam0, g1.gam0)
-        np.testing.assert_allclose(g2.gam1, g1.gam1)
-        np.testing.assert_allclose(g2.gam2, g1.gam2)
-        np.testing.assert_allclose(g2.gam3, g1.gam3)
-
-    try:
-        import fitsio
-    except ImportError:
-        pass
-    else:
-        fits_name = 'output/gggc_fits.fits'
-        gggc.write(fits_name)
-        gggc4 = treecorr.GGGCrossCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins)
-        gggc4.read(fits_name)
-        for perm in ['g1g2g3', 'g1g3g2', 'g2g1g3', 'g2g3g1', 'g3g1g2', 'g3g2g1']:
-            g2 = getattr(gggc4, perm)
-            g1 = getattr(gggc, perm)
-            np.testing.assert_allclose(g2.ntri, g1.ntri)
-            np.testing.assert_allclose(g2.weight, g1.weight)
-            np.testing.assert_allclose(g2.meand1, g1.meand1)
-            np.testing.assert_allclose(g2.meand2, g1.meand2)
-            np.testing.assert_allclose(g2.meand3, g1.meand3)
-            np.testing.assert_allclose(g2.meanlogd1, g1.meanlogd1)
-            np.testing.assert_allclose(g2.meanlogd2, g1.meanlogd2)
-            np.testing.assert_allclose(g2.meanlogd3, g1.meanlogd3)
-            np.testing.assert_allclose(g2.meanu, g1.meanu)
-            np.testing.assert_allclose(g2.meanv, g1.meanv)
-            np.testing.assert_allclose(g2.gam0, g1.gam0)
-            np.testing.assert_allclose(g2.gam1, g1.gam1)
-            np.testing.assert_allclose(g2.gam2, g1.gam2)
-            np.testing.assert_allclose(g2.gam3, g1.gam3)
-
 
 @timer
 def test_direct_cross12():
@@ -1081,7 +927,6 @@ def test_direct_cross12():
     ggg.process(cat1, cat2, num_threads=2)
 
     # Figure out the correct answer for each permutation
-    # (We'll need them separately below when we use GGGCrossCorrelation.)
     true_ntri_122 = np.zeros( (nrbins, nubins, 2*nvbins) )
     true_ntri_212 = np.zeros( (nrbins, nubins, 2*nvbins) )
     true_ntri_221 = np.zeros( (nrbins, nubins, 2*nvbins) )
@@ -1280,52 +1125,6 @@ def test_direct_cross12():
     np.testing.assert_allclose(ggg.gam2, true_gam2_221, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam3, true_gam3_221, rtol=1.e-5)
 
-    # Repeat with the full CrossCorrelation class, which distinguishes the permutations.
-    gggc = treecorr.GGGCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
-                                        min_u=min_u, max_u=max_u, nubins=nubins,
-                                        min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                        brute=True, verbose=1)
-    gggc.process(cat1, cat2)
-
-    #print('true_ntri_122 = ',true_ntri_122)
-    #print('diff = ',gggc.g1g2g3.ntri - true_ntri_122)
-    np.testing.assert_array_equal(gggc.g1g2g3.ntri, true_ntri_122)
-    np.testing.assert_array_equal(gggc.g1g3g2.ntri, true_ntri_122)
-    np.testing.assert_array_equal(gggc.g2g1g3.ntri, true_ntri_212)
-    np.testing.assert_array_equal(gggc.g2g3g1.ntri, true_ntri_221)
-    np.testing.assert_array_equal(gggc.g3g1g2.ntri, true_ntri_212)
-    np.testing.assert_array_equal(gggc.g3g2g1.ntri, true_ntri_221)
-    np.testing.assert_allclose(gggc.g1g2g3.weight, true_weight_122, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g3g2.weight, true_weight_122, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g1g3.weight, true_weight_212, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g3g1.weight, true_weight_221, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g1g2.weight, true_weight_212, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g2g1.weight, true_weight_221, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g2g3.gam0, true_gam0_122, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g3g2.gam0, true_gam0_122, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g1g3.gam0, true_gam0_212, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g3g1.gam0, true_gam0_221, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g1g2.gam0, true_gam0_212, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g2g1.gam0, true_gam0_221, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g2g3.gam1, true_gam1_122, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g3g2.gam1, true_gam1_122, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g1g3.gam1, true_gam1_212, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g3g1.gam1, true_gam1_221, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g1g2.gam1, true_gam1_212, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g2g1.gam1, true_gam1_221, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g2g3.gam2, true_gam2_122, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g3g2.gam2, true_gam2_122, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g1g3.gam2, true_gam2_212, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g3g1.gam2, true_gam2_221, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g1g2.gam2, true_gam2_212, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g2g1.gam2, true_gam2_221, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g2g3.gam3, true_gam3_122, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g3g2.gam3, true_gam3_122, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g1g3.gam3, true_gam3_212, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g3g1.gam3, true_gam3_221, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g1g2.gam3, true_gam3_212, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g2g1.gam3, true_gam3_221, rtol=1.e-5)
-
     # Repeat with binslop = 0
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
@@ -1397,49 +1196,6 @@ def test_direct_cross12():
     np.testing.assert_allclose(ggg.gam1, true_gam1_122, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam2, true_gam2_122, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam3, true_gam3_122, rtol=1.e-5)
-
-    gggc = treecorr.GGGCrossCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
-                                        min_u=min_u, max_u=max_u, nubins=nubins,
-                                        min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                        bin_slop=0, verbose=1)
-    gggc.process(cat1, cat2)
-
-    np.testing.assert_array_equal(gggc.g1g2g3.ntri, true_ntri_122)
-    np.testing.assert_array_equal(gggc.g1g3g2.ntri, true_ntri_122)
-    np.testing.assert_array_equal(gggc.g2g1g3.ntri, true_ntri_212)
-    np.testing.assert_array_equal(gggc.g2g3g1.ntri, true_ntri_221)
-    np.testing.assert_array_equal(gggc.g3g1g2.ntri, true_ntri_212)
-    np.testing.assert_array_equal(gggc.g3g2g1.ntri, true_ntri_221)
-    np.testing.assert_allclose(gggc.g1g2g3.weight, true_weight_122, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g3g2.weight, true_weight_122, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g1g3.weight, true_weight_212, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g3g1.weight, true_weight_221, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g1g2.weight, true_weight_212, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g2g1.weight, true_weight_221, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g2g3.gam0, true_gam0_122, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g3g2.gam0, true_gam0_122, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g1g3.gam0, true_gam0_212, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g3g1.gam0, true_gam0_221, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g1g2.gam0, true_gam0_212, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g2g1.gam0, true_gam0_221, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g2g3.gam1, true_gam1_122, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g3g2.gam1, true_gam1_122, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g1g3.gam1, true_gam1_212, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g3g1.gam1, true_gam1_221, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g1g2.gam1, true_gam1_212, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g2g1.gam1, true_gam1_221, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g2g3.gam2, true_gam2_122, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g3g2.gam2, true_gam2_122, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g1g3.gam2, true_gam2_212, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g3g1.gam2, true_gam2_221, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g1g2.gam2, true_gam2_212, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g2g1.gam2, true_gam2_221, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g2g3.gam3, true_gam3_122, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g1g3g2.gam3, true_gam3_122, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g1g3.gam3, true_gam3_212, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g2g3g1.gam3, true_gam3_221, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g1g2.gam3, true_gam3_212, rtol=1.e-5)
-    np.testing.assert_allclose(gggc.g3g2g1.gam3, true_gam3_221, rtol=1.e-5)
 
 
 @timer

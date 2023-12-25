@@ -51,6 +51,9 @@ New features
 - Added spin-3 and spin-4 correlations using the letters T (for Trefoil) and Q (for Quatrefoil)
   respectively, including `NTCorrelation`, `KTCorrelation`, `TTCorrelation`, `NQCorrelation`,
   `KQCorrelation` and `QQCorrelation`. (#160)
+- Added ``ordered=True`` option to the 3pt ``process`` methods for keeping the order of the
+  catalogs fixed in the triangle orientation.
+- Added ``bin_type='LogSAS'`` for 3pt correlations.
 
 
 Bug fixes

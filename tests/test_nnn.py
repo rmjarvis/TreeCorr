@@ -929,7 +929,7 @@ def test_logsas_binning():
     np.testing.assert_almost_equal(nnn.bin_slop, 1.0) # The stored bin_slop is just for lnr
 
 @timer
-def test_direct_count_auto():
+def test_direct_logruv_auto():
     # If the catalogs are small enough, we can do a direct count of the number of triangles
     # to see if comes out right.  This should exactly match the treecorr code if bin_slop=0.
 
@@ -1354,7 +1354,7 @@ def test_direct_count_auto():
         np.testing.assert_allclose(ddd15.meanv, ddd.meanv)
 
 @timer
-def test_direct_count_cross():
+def test_direct_logruv_cross():
     # If the catalogs are small enough, we can do a direct count of the number of triangles
     # to see if comes out right.  This should exactly match the treecorr code if brute=True
 
@@ -1560,7 +1560,7 @@ def test_direct_count_cross():
 
 
 @timer
-def test_direct_count_cross12():
+def test_direct_logruv_cross12():
     # Check the 1-2 cross correlation
 
     if __name__ == '__main__':
@@ -1745,7 +1745,7 @@ def test_direct_count_cross12():
 
 
 @timer
-def test_direct_spherical():
+def test_direct_logruv_spherical():
     # Repeat in spherical coords
 
     if __name__ == '__main__':
@@ -1845,7 +1845,7 @@ def test_direct_spherical():
 
 
 @timer
-def test_direct_arc():
+def test_direct_logruv_arc():
     # Repeat the spherical test with metric='Arc'
 
     if __name__ == '__main__':
@@ -1952,7 +1952,7 @@ def test_direct_arc():
 
 
 @timer
-def test_direct_partial():
+def test_direct_logruv_partial():
     # Test the two ways to only use parts of a catalog:
 
     if __name__ == '__main__':
@@ -2089,7 +2089,7 @@ def test_direct_partial():
 
 
 @timer
-def test_direct_3d_auto():
+def test_direct_logruv_3d_auto():
     # This is the same as test_direct_count_auto, but using the 3d correlations
 
     if __name__ == '__main__':
@@ -2220,7 +2220,7 @@ def test_direct_3d_auto():
 
 
 @timer
-def test_direct_3d_cross():
+def test_direct_logruv_3d_cross():
     # This is the same as test_direct_count_cross, but using the 3d correlations
 
     if __name__ == '__main__':
@@ -2375,7 +2375,7 @@ def test_direct_3d_cross():
 
 
 @timer
-def test_nnn():
+def test_nnn_logruv():
     # Use a simple probability distribution for the galaxies:
     #
     # n(r) = (2pi s^2)^-1 exp(-r^2/2s^2)
@@ -2796,7 +2796,7 @@ def test_nnn():
 
 
 @timer
-def test_3d():
+def test_3d_logruv():
     # For this one, build a Gaussian cloud around some random point in 3D space and do the
     # correlation function in 3D.
     #
@@ -2922,7 +2922,7 @@ def test_3d():
 
 
 @timer
-def test_list():
+def test_list_logruv():
     # Test that we can use a list of files for either data or rand or both.
     data_cats = []
     rand_cats = []
@@ -3066,7 +3066,7 @@ def test_list():
     np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
 
 @timer
-def test_direct_count_auto_logsas():
+def test_direct_logsas_auto():
     # If the catalogs are small enough, we can do a direct count of the number of triangles
     # to see if comes out right.  This should exactly match the treecorr code if bin_slop=0.
 
@@ -3259,7 +3259,7 @@ def test_direct_count_auto_logsas():
 
 
 @timer
-def test_direct_count_cross_logsas():
+def test_direct_logsas_cross():
     # If the catalogs are small enough, we can do a direct count of the number of triangles
     # to see if comes out right.  This should exactly match the treecorr code if brute=True
 
@@ -3496,7 +3496,7 @@ def test_direct_count_cross_logsas():
 
 
 @timer
-def test_direct_count_cross12_logsas():
+def test_direct_logsas_cross12():
     # Check the 1-2 cross correlation
 
     if __name__ == '__main__':
@@ -4070,18 +4070,18 @@ def test_nnn_logsas():
 if __name__ == '__main__':
     test_logruv_binning()
     test_logsas_binning()
-    test_direct_count_auto()
-    test_direct_count_cross()
-    test_direct_count_cross12()
-    test_direct_spherical()
-    test_direct_arc()
-    test_direct_partial()
-    test_direct_3d_auto()
-    test_direct_3d_cross()
-    test_nnn()
-    test_3d()
-    test_list()
-    test_direct_count_auto_logsas()
-    test_direct_count_cross_logsas()
-    test_direct_count_cross12_logsas()
+    test_direct_logruv_auto()
+    test_direct_logruv_cross()
+    test_direct_logruv_cross12()
+    test_direct_logruv_spherical()
+    test_direct_logruv_arc()
+    test_direct_logruv_partial()
+    test_direct_logruv_3d_auto()
+    test_direct_logruv_3d_cross()
+    test_nnn_logruv()
+    test_3d_logruv()
+    test_list_logruv()
+    test_direct_logsas_auto()
+    test_direct_logsas_cross()
+    test_direct_logsas_cross12()
     test_nnn_logsas()

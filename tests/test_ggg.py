@@ -20,7 +20,7 @@ import time
 from test_helper import do_pickle, assert_raises, timer, is_ccw, is_ccw_3d
 
 @timer
-def test_direct():
+def test_direct_logruv():
     # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
     # This should exactly match the treecorr result if brute=True.
 
@@ -390,7 +390,7 @@ def test_direct():
         ggg2 += ggg13
 
 @timer
-def test_direct_spherical():
+def test_direct_logruv_spherical():
     # Repeat in spherical coords
 
     ngal = 50
@@ -550,7 +550,7 @@ def test_direct_spherical():
 
 
 @timer
-def test_direct_cross():
+def test_direct_logruv_cross():
     # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
     # This should exactly match the treecorr result if brute=True.
 
@@ -890,7 +890,7 @@ def test_direct_cross():
 
 
 @timer
-def test_direct_cross12():
+def test_direct_logruv_cross12():
     # Check the 1-2 cross correlation
 
     ngal = 50
@@ -1199,7 +1199,7 @@ def test_direct_cross12():
 
 
 @timer
-def test_ggg():
+def test_ggg_logruv():
     # Use gamma_t(r) = gamma0 r^2/r0^2 exp(-r^2/2r0^2)
     # i.e. gamma(r) = -gamma0 exp(-r^2/2r0^2) (x+iy)^2 / r0^2
     #
@@ -1528,7 +1528,7 @@ def test_ggg():
 
 
 @timer
-def test_map3():
+def test_map3_logruv():
     # Use the same gamma(r) as in test_gg.
     # This time, rather than use a smaller catalog in the nosetests run, we skip the run
     # in that case and just read in the output file.  This way we can test the Map^2 formulae
@@ -1886,8 +1886,9 @@ def test_map3():
 
 
 @timer
-def test_grid():
-    # Same as test_ggg, but the input is on a grid, where Sven Heydenreich reported getting nans.
+def test_grid_logruv():
+    # Same as test_ggg_logruv, but the input is on a grid, where Sven Heydenreich reported
+    # getting nans.
 
     gamma0 = 0.05
     r0 = 10.
@@ -2007,7 +2008,7 @@ def test_grid():
 
 
 @timer
-def test_vargam():
+def test_vargam_logruv():
     # Test that the shot noise estimate of vargam is close based on actual variance of many runs
     # when there is no real signal.  So should be just shot noise.
 
@@ -2231,11 +2232,11 @@ def test_vargam():
 
 
 if __name__ == '__main__':
-    test_direct()
-    test_direct_spherical()
-    test_direct_cross()
-    test_direct_cross12()
-    test_ggg()
-    test_map3()
-    test_grid()
-    test_vargam()
+    test_direct_logruv()
+    test_direct_logruv_spherical()
+    test_direct_logruv_cross()
+    test_direct_logruv_cross12()
+    test_ggg_logruv()
+    test_map3_logruv()
+    test_grid_logruv()
+    test_vargam_logruv()

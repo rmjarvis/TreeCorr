@@ -19,7 +19,7 @@ import coord
 from test_helper import do_pickle, assert_raises, timer, is_ccw, is_ccw_3d
 
 @timer
-def test_direct():
+def test_direct_logruv():
     # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
     # This should exactly match the treecorr result if brute=True.
 
@@ -257,7 +257,7 @@ def test_direct():
 
 
 @timer
-def test_direct_spherical():
+def test_direct_logruv_spherical():
     # Repeat in spherical coords
 
     ngal = 50
@@ -363,7 +363,7 @@ def test_direct_spherical():
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-4, atol=1.e-6)
 
 @timer
-def test_direct_cross():
+def test_direct_logruv_cross():
     # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
     # This should exactly match the treecorr result if brute=True.
 
@@ -584,7 +584,7 @@ def test_direct_cross():
 
 
 @timer
-def test_direct_cross12():
+def test_direct_logruv_cross12():
     # Check the 1-2 cross correlation
 
     ngal = 50
@@ -762,7 +762,7 @@ def test_direct_cross12():
 
 
 @timer
-def test_direct_cross_3d():
+def test_direct_logruv_cross_3d():
     # Now in 3d
 
     ngal = 50
@@ -1010,7 +1010,7 @@ def test_constant():
 
 
 @timer
-def test_kkk():
+def test_kkk_logruv():
     # Use kappa(r) = A exp(-r^2/2s^2)
     #
     # The Fourier transform is: kappa~(k) = 2 pi A s^2 exp(-s^2 k^2/2) / L^2
@@ -1178,10 +1178,10 @@ def test_kkk():
         assert kkk2.bin_type == kkk.bin_type
 
 if __name__ == '__main__':
-    test_direct()
-    test_direct_spherical()
-    test_direct_cross()
-    test_direct_cross12()
-    test_direct_cross_3d()
+    test_direct_logruv()
+    test_direct_logruv_spherical()
+    test_direct_logruv_cross()
+    test_direct_logruv_cross12()
+    test_direct_logruv_cross_3d()
     test_constant()
-    test_kkk()
+    test_kkk_logruv()

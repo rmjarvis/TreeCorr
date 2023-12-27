@@ -1229,6 +1229,8 @@ struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
         if (index < 0 || index >= ntot) {
             return false;
         }
+        // Also calculate logd1 for the meanlogd1 output.
+        logd1 = log(d1);
         return true;
     }
 

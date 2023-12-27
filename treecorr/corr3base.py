@@ -68,18 +68,18 @@ class Corr3(object):
             -0.6 < v < -0.2 in addition to those with 0.2 < v < 0.6.
 
     2. The triangle can be defined by two of the sides and the angle between them (i.e. SAS
-       congruence).  The two sides are called r2 and r3, and the angle between them is called
+       congruence).  The two sides are called d2 and d3, and the angle between them is called
        phi.
 
-       The orientation is defined such that 0 <= phi <= pi is the angle sweeping from r2 to r3
+       The orientation is defined such that 0 <= phi <= pi is the angle sweeping from d2 to d3
        counter-clockwise.
 
        Unlike the SSS definition where every triangle is uniquely placed in a single bin, this
        definition forms a triangle with each object at the central vertex, so for auto-correlations,
        each triangle is placed in bins three times.  For cross-correlations, the order of the
        points is such that objects in the first catalog are at the central vertex, objects in
-       the second catalog are at the end of line segment r3, and objects in the third catalog
-       are at the end of r2 (using the normal notation that side number 2 is opposite vertex 2
+       the second catalog are at the end of line segment d3, and objects in the third catalog
+       are at the end of d2 (using the normal notation that side number 2 is opposite vertex 2
        in the triangle, likewise for side 3 and vertex 3).
 
     The constructor for all derived classes take a config dict as the first argument,
@@ -108,8 +108,8 @@ class Corr3(object):
         - 'LogRUV' uses the SSS description given above converted to r,u,v. The bin steps will be
           uniform in log(r) from log(min_sep) .. log(max_sep).  The u and v values are binned
           linearly from min_u .. max_u and min_v .. max_v.
-        - 'LogSAS' uses the SAS description given above. The bin steps will be uniform in log(r)
-          for both r2 and r3 from log(min_sep) .. log(max_sep).  The phi values are binned
+        - 'LogSAS' uses the SAS description given above. The bin steps will be uniform in log(d)
+          for both d2 and d3 from log(min_sep) .. log(max_sep).  The phi values are binned
           linearly from min_phi .. max_phi.
 
     Parameters:
@@ -573,12 +573,6 @@ class Corr3(object):
             self._ro._nbins = len(self._ro.logr.ravel())
 
             self.data_shape = self._ro.logr.shape
-            self.meand1 = np.zeros(self.data_shape, dtype=float)
-            self.meanlogd1 = np.zeros(self.data_shape, dtype=float)
-            self.meand2 = np.zeros(self.data_shape, dtype=float)
-            self.meanlogd2 = np.zeros(self.data_shape, dtype=float)
-            self.meand3 = np.zeros(self.data_shape, dtype=float)
-            self.meanlogd3 = np.zeros(self.data_shape, dtype=float)
             self.meanu = np.zeros(self.data_shape, dtype=float)
             self.meanv = np.zeros(self.data_shape, dtype=float)
 
@@ -587,31 +581,29 @@ class Corr3(object):
             self._ro.phi1d = np.linspace(start=0, stop=self.nphi_bins*self.phi_bin_size,
                                          num=self.nphi_bins, endpoint=False)
             self._ro.phi1d += self.min_phi + 0.5*self.phi_bin_size
-            self._ro.logr2 = np.tile(self.logr1d[:, np.newaxis, np.newaxis],
+            self._ro.logd2 = np.tile(self.logr1d[:, np.newaxis, np.newaxis],
                                      (1, self.nphi_bins, self.nbins))
             self._ro.phi = np.tile(self.phi1d[np.newaxis, :, np.newaxis],
                                    (self.nbins, 1, self.nbins))
-            self._ro.logr3 = np.tile(self.logr1d[np.newaxis, np.newaxis, :],
+            self._ro.logd3 = np.tile(self.logr1d[np.newaxis, np.newaxis, :],
                                      (self.nbins, self.nphi_bins, 1))
-            self._ro.r2nom = np.exp(self.logr2)
-            self._ro.r3nom = np.exp(self.logr3)
-            self._ro._nbins = len(self._ro.logr2.ravel())
+            self._ro.d2nom = np.exp(self.logd2)
+            self._ro.d3nom = np.exp(self.logd3)
+            self._ro._nbins = len(self._ro.logd2.ravel())
 
-            self.data_shape = self._ro.logr2.shape
+            self.data_shape = self._ro.logd2.shape
             # Also name these with the same names as above to make them easier to use.
-            # We have properties to alias these arrays to let them be called:
-            # meanr2, meanlogr2, meanr3, meanlogr3, meanphi, respectively.
-            # But whenever writing to the arrays, use these names.
-            self.meand2 = np.zeros(self.data_shape, dtype=float)
-            self.meanlogd2 = np.zeros(self.data_shape, dtype=float)
-            self.meand3 = np.zeros(self.data_shape, dtype=float)
-            self.meanlogd3 = np.zeros(self.data_shape, dtype=float)
+            # We have properties to alias meanu as meanphi. meanv will remain all 0.
             self.meanu = np.zeros(self.data_shape, dtype=float)
-            # Also keep these.  d1 is potentially useful.  meanv will remain all 0.
-            # Easier than only conditionally writing them in the C++ layer. (TODO?)
-            self.meand1 = np.zeros(self.data_shape, dtype=float)
-            self.meanlogd1 = np.zeros(self.data_shape, dtype=float)
             self.meanv = np.zeros(self.data_shape, dtype=float)
+
+        # We always keep track of these.
+        self.meand1 = np.zeros(self.data_shape, dtype=float)
+        self.meanlogd1 = np.zeros(self.data_shape, dtype=float)
+        self.meand2 = np.zeros(self.data_shape, dtype=float)
+        self.meanlogd2 = np.zeros(self.data_shape, dtype=float)
+        self.meand3 = np.zeros(self.data_shape, dtype=float)
+        self.meanlogd3 = np.zeros(self.data_shape, dtype=float)
 
         self._ro.brute = get(self.config,'brute',bool,False)
         if self.brute:
@@ -723,21 +715,21 @@ class Corr3(object):
 
     # LogSAS
     @property
-    def r2nom(self):
+    def d2nom(self):
         assert self.bin_type == 'LogSAS'
-        return self._ro.r2nom
+        return self._ro.d2nom
     @property
-    def r3nom(self):
+    def d3nom(self):
         assert self.bin_type == 'LogSAS'
-        return self._ro.r3nom
+        return self._ro.d3nom
     @property
-    def logr2(self):
+    def logd2(self):
         assert self.bin_type == 'LogSAS'
-        return self._ro.logr2
+        return self._ro.logd2
     @property
-    def logr3(self):
+    def logd3(self):
         assert self.bin_type == 'LogSAS'
-        return self._ro.logr3
+        return self._ro.logd3
     @property
     def min_phi(self):
         assert self.bin_type == 'LogSAS'
@@ -810,10 +802,12 @@ class Corr3(object):
         else:
             # LogSAS
             return (other.bin_type == 'LogSAS' and
-                    np.array_equal(self.meanr2, other.meanr2) and
-                    np.array_equal(self.meanlogr2, other.meanlogr2) and
-                    np.array_equal(self.meanr3, other.meanr3) and
-                    np.array_equal(self.meanlogr3, other.meanlogr3) and
+                    np.array_equal(self.meand1, other.meand1) and
+                    np.array_equal(self.meanlogd1, other.meanlogd1) and
+                    np.array_equal(self.meand2, other.meand2) and
+                    np.array_equal(self.meanlogd2, other.meanlogd2) and
+                    np.array_equal(self.meand3, other.meand3) and
+                    np.array_equal(self.meanlogd3, other.meanlogd3) and
                     np.array_equal(self.meanphi, other.meanphi))
 
     @property
@@ -850,22 +844,6 @@ class Corr3(object):
     def num_bootstrap(self): return self._ro.num_bootstrap
 
     # Alias names for some of the LogSAS arrays, which use the LogRUV names internally.
-    @property
-    def meanr2(self):
-        assert self.bin_type == 'LogSAS'
-        return self.meand2
-    @property
-    def meanlogr2(self):
-        assert self.bin_type == 'LogSAS'
-        return self.meanlogd2
-    @property
-    def meanr3(self):
-        assert self.bin_type == 'LogSAS'
-        return self.meand3
-    @property
-    def meanlogr3(self):
-        assert self.bin_type == 'LogSAS'
-        return self.meanlogd3
     @property
     def meanphi(self):
         assert self.bin_type == 'LogSAS'
@@ -1421,21 +1399,19 @@ class Corr3(object):
         if self.coords == 'spherical' and self.metric == 'Euclidean':
             # Then our distances are all angles.  Convert from the chord distance to a real angle.
             # L = 2 sin(theta/2)
+            self.meand1[mask] = 2. * np.arcsin(self.meand1[mask]/2.)
+            self.meanlogd1[mask] = np.log(2.*np.arcsin(np.exp(self.meanlogd1[mask])/2.))
             self.meand2[mask] = 2. * np.arcsin(self.meand2[mask]/2.)
             self.meanlogd2[mask] = np.log(2.*np.arcsin(np.exp(self.meanlogd2[mask])/2.))
             self.meand3[mask] = 2. * np.arcsin(self.meand3[mask]/2.)
             self.meanlogd3[mask] = np.log(2.*np.arcsin(np.exp(self.meanlogd3[mask])/2.))
-            if self.bin_type == 'LogRUV':
-                self.meand1[mask] = 2. * np.arcsin(self.meand1[mask]/2.)
-                self.meanlogd1[mask] = np.log(2.*np.arcsin(np.exp(self.meanlogd1[mask])/2.))
 
+        self.meand1[mask] /= self._sep_units
+        self.meanlogd1[mask] -= self._log_sep_units
         self.meand2[mask] /= self._sep_units
         self.meanlogd2[mask] -= self._log_sep_units
         self.meand3[mask] /= self._sep_units
         self.meanlogd3[mask] -= self._log_sep_units
-        if self.bin_type == 'LogRUV':
-            self.meand1[mask] /= self._sep_units
-            self.meanlogd1[mask] -= self._log_sep_units
 
     def _get_minmax_size(self):
         if self.metric == 'Euclidean':

@@ -91,21 +91,14 @@ class GGGCorrelation(Corr3):
     If bin_type is LogSAS:
 
     Attributes:
-        logr1:      The nominal center of each r1 side bin in log(r1).
-        r1nom:      The nominal center of each r1 side bin converted to regular distance.
-                    i.e. r1 = exp(logr1).
-        logr2:      The nominal center of each r2 side bin in log(r2).
-        r2nom:      The nominal center of each r2 side bin converted to regular distance.
-                    i.e. r2 = exp(logr2).
+        logd2:      The nominal center of each d2 side bin in log(d2).
+        d2nom:      The nominal center of each d2 side bin converted to regular distance.
+                    i.e. d2 = exp(logd2).
+        logd3:      The nominal center of each d3 side bin in log(d3).
+        d3nom:      The nominal center of each d3 side bin converted to regular distance.
+                    i.e. d3 = exp(logd3).
         phi:        The nominal center of each angular bin.
-        meanr1:     The (weighted) mean value of r1 for the triangles in each bin.
-        meanlogr1:  The mean value of log(r1) for the triangles in each bin.
-        meanr2:     The (weighted) mean value of r2 for the triangles in each bin.
-        meanlogr2:  The mean value of log(r2) for the triangles in each bin.
         meanphi:    The (weighted) mean value of phi for the triangles in each bin.
-        weight:     The total weight in each bin.
-        ntri:       The number of triangles going into each bin (including those where one or
-                    more objects have w=0).
 
     If bin_type is LogRUV:
 
@@ -115,14 +108,8 @@ class GGGCorrelation(Corr3):
                     i.e. r = exp(logr).
         u:          The nominal center of each bin in u.
         v:          The nominal center of each bin in v.
-        meand1:     The (weighted) mean value of d1 for the triangles in each bin.
-        meanlogd1:  The mean value of log(d1) for the triangles in each bin.
-        meand2:     The (weighted) mean value of d2 (aka r) for the triangles in each bin.
-        meanlogd2:  The mean value of log(d2) for the triangles in each bin.
-        meand3:     The (weighted) mean value of d3 for the triangles in each bin.
-        meanlogd3:  The mean value of log(d3) for the triangles in each bin.
-        meanu:      The mean value of u for the triangles in each bin.
-        meanv:      The mean value of v for the triangles in each bin.
+        meanu:      The (weighted) mean value of u for the triangles in each bin.
+        meanv:      The (weighted) mean value of v for the triangles in each bin.
 
     For any bin_type:
 
@@ -138,6 +125,12 @@ class GGGCorrelation(Corr3):
         vargam1:    The variance of :math:`\Gamma_1`.
         vargam2:    The variance of :math:`\Gamma_2`.
         vargam3:    The variance of :math:`\Gamma_3`.
+        meand1:     The (weighted) mean value of d1 for the triangles in each bin.
+        meanlogd1:  The (weighted) mean value of log(d1) for the triangles in each bin.
+        meand2:     The (weighted) mean value of d2 for the triangles in each bin.
+        meanlogd2:  The (weighted) mean value of log(d2) for the triangles in each bin.
+        meand3:     The (weighted) mean value of d3 for the triangles in each bin.
+        meanlogd3:  The (weighted) mean value of log(d3) for the triangles in each bin.
         weight:     The total weight in each bin.
         ntri:       The number of triangles going into each bin (including those where one or
                     more objects have w=0).
@@ -420,10 +413,10 @@ class GGGCorrelation(Corr3):
         self.meanlogd1[mask1] /= self.weight[mask1]
         self.meand2[mask1] /= self.weight[mask1]
         self.meanlogd2[mask1] /= self.weight[mask1]
+        self.meand3[mask1] /= self.weight[mask1]
+        self.meanlogd3[mask1] /= self.weight[mask1]
         self.meanu[mask1] /= self.weight[mask1]
         if self.bin_type == 'LogRUV':
-            self.meand3[mask1] /= self.weight[mask1]
-            self.meanlogd3[mask1] /= self.weight[mask1]
             self.meanv[mask1] /= self.weight[mask1]
 
         # Update the units
@@ -440,11 +433,15 @@ class GGGCorrelation(Corr3):
             self.meand1[mask2] = np.abs(self.v[mask2]) * self.meand3[mask2] + self.meand2[mask2]
             self.meanlogd1[mask2] = np.log(self.meand1[mask2])
         else:
-            self.meand1[mask2] = self.r1nom[mask2]
-            self.meanlogd1[mask2] = self.logr1[mask2]
-            self.meand2[mask2] = self.r2nom[mask2]
-            self.meanlogd2[mask2] = self.logr2[mask2]
+            self.meand2[mask2] = self.d2nom[mask2]
+            self.meanlogd2[mask2] = self.logd2[mask2]
+            self.meand3[mask2] = self.d3nom[mask2]
+            self.meanlogd3[mask2] = self.logd3[mask2]
             self.meanu[mask2] = self.phi[mask2]
+            self.meand1[mask2] = np.sqrt(self.d2nom[mask2]**2 + self.d3nom[mask2]**2
+                                         - 2*self.d2nom[mask2]*self.d3nom[mask2]*
+                                         np.cos(self.phi[mask2]))
+            self.meanlogd1[mask2] = np.log(self.meand1[mask2])
 
     def finalize(self, varg1, varg2, varg3):
         """Finalize the calculation of the correlation function.
@@ -492,10 +489,10 @@ class GGGCorrelation(Corr3):
         self.meanlogd1[:,:,:] = 0.
         self.meand2[:,:,:] = 0.
         self.meanlogd2[:,:,:] = 0.
+        self.meand3[:,:,:] = 0.
+        self.meanlogd3[:,:,:] = 0.
         self.meanu[:,:,:] = 0.
         if self.bin_type == 'LogRUV':
-            self.meand3[:,:,:] = 0.
-            self.meanlogd3[:,:,:] = 0.
             self.meanv[:,:,:] = 0.
         self.weight[:,:,:] = 0.
         self.ntri[:,:,:] = 0.
@@ -527,10 +524,10 @@ class GGGCorrelation(Corr3):
         self.meanlogd1[:] += other.meanlogd1[:]
         self.meand2[:] += other.meand2[:]
         self.meanlogd2[:] += other.meanlogd2[:]
+        self.meand3[:] += other.meand3[:]
+        self.meanlogd3[:] += other.meanlogd3[:]
         self.meanu[:] += other.meanu[:]
         if self.bin_type == 'LogRUV':
-            self.meand3[:] += other.meand3[:]
-            self.meanlogd3[:] += other.meanlogd3[:]
             self.meanv[:] += other.meanv[:]
         self.weight[:] += other.weight[:]
         self.ntri[:] += other.ntri[:]
@@ -554,10 +551,10 @@ class GGGCorrelation(Corr3):
         np.sum([c.meanlogd1 for c in others], axis=0, out=self.meanlogd1)
         np.sum([c.meand2 for c in others], axis=0, out=self.meand2)
         np.sum([c.meanlogd2 for c in others], axis=0, out=self.meanlogd2)
+        np.sum([c.meand3 for c in others], axis=0, out=self.meand3)
+        np.sum([c.meanlogd3 for c in others], axis=0, out=self.meanlogd3)
         np.sum([c.meanu for c in others], axis=0, out=self.meanu)
         if self.bin_type == 'LogRUV':
-            np.sum([c.meand3 for c in others], axis=0, out=self.meand3)
-            np.sum([c.meanlogd3 for c in others], axis=0, out=self.meanlogd3)
             np.sum([c.meanv for c in others], axis=0, out=self.meanv)
         np.sum([c.weight for c in others], axis=0, out=self.weight)
         np.sum([c.ntri for c in others], axis=0, out=self.ntri)
@@ -736,13 +733,17 @@ class GGGCorrelation(Corr3):
     @property
     def _write_col_names(self):
         if self.bin_type == 'LogRUV':
-            col_names = ['r_nom', 'u_nom', 'v_nom', 'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
+            col_names = ['r_nom', 'u_nom', 'v_nom',
+                         'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
                          'meand3', 'meanlogd3', 'meanu', 'meanv']
         else:
-            col_names = ['r1_nom', 'r2_nom', 'phi_nom', 'meanr1', 'meanlogr1',
-                         'meanr2', 'meanlogr2', 'meanphi']
-        col_names += ['gam0r', 'gam0i', 'gam1r', 'gam1i', 'gam2r', 'gam2i', 'gam3r', 'gam3i',
-                      'sigma_gam0', 'sigma_gam1', 'sigma_gam2', 'sigma_gam3', 'weight', 'ntri']
+            col_names = ['d2_nom', 'd3_nom', 'phi_nom',
+                         'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
+                         'meand3', 'meanlogd3', 'meanphi']
+        col_names += ['gam0r', 'gam0i', 'gam1r', 'gam1i',
+                      'gam2r', 'gam2i', 'gam3r', 'gam3i',
+                      'sigma_gam0', 'sigma_gam1', 'sigma_gam2',
+                      'sigma_gam3', 'weight', 'ntri']
         return col_names
 
     @property
@@ -752,8 +753,9 @@ class GGGCorrelation(Corr3):
                      self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
                      self.meand3, self.meanlogd3, self.meanu, self.meanv ]
         else:
-            data = [ self.r1nom, self.r2nom, self.phi,
-                     self.meanr1, self.meanlogr1, self.meanr2, self.meanlogr2, self.meanphi ]
+            data = [ self.d2nom, self.d3nom, self.phi,
+                     self.meand1, self.meand2, self.meand2, self.meanlogd2,
+                     self.meand3, self.meanlogd3, self.meanphi ]
         data += [ self.gam0r, self.gam0i, self.gam1r, self.gam1i,
                   self.gam2r, self.gam2i, self.gam3r, self.gam3i,
                   np.sqrt(self.vargam0), np.sqrt(self.vargam1), np.sqrt(self.vargam2),
@@ -789,20 +791,16 @@ class GGGCorrelation(Corr3):
 
     def _read_from_data(self, data, params):
         s = self.data_shape
+        self.meand1 = data['meand1'].reshape(s)
+        self.meanlogd1 = data['meanlogd1'].reshape(s)
+        self.meand2 = data['meand2'].reshape(s)
+        self.meanlogd2 = data['meanlogd2'].reshape(s)
+        self.meand3 = data['meand3'].reshape(s)
+        self.meanlogd3 = data['meanlogd3'].reshape(s)
         if self.bin_type == 'LogRUV':
-            self.meand1 = data['meand1'].reshape(s)
-            self.meanlogd1 = data['meanlogd1'].reshape(s)
-            self.meand2 = data['meand2'].reshape(s)
-            self.meanlogd2 = data['meanlogd2'].reshape(s)
-            self.meand3 = data['meand3'].reshape(s)
-            self.meanlogd3 = data['meanlogd3'].reshape(s)
             self.meanu = data['meanu'].reshape(s)
             self.meanv = data['meanv'].reshape(s)
         else:
-            self.meand1 = data['meanr1'].reshape(s)
-            self.meanlogd1 = data['meanlogr1'].reshape(s)
-            self.meand2 = data['meanr2'].reshape(s)
-            self.meanlogd2 = data['meanlogr2'].reshape(s)
             self.meanu = data['meanphi'].reshape(s)
         self.gam0r = data['gam0r'].reshape(s)
         self.gam0i = data['gam0i'].reshape(s)

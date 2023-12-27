@@ -28,7 +28,6 @@ def test_logruv_binning():
         np.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
         np.testing.assert_almost_equal(nnn.ubin_size * nnn.nubins, nnn.max_u-nnn.min_u)
         np.testing.assert_almost_equal(nnn.vbin_size * nnn.nvbins, nnn.max_v-nnn.min_v)
-        #print('logr = ',nnn.logr1d)
         np.testing.assert_equal(nnn.logr1d.shape, (nnn.nbins,) )
         np.testing.assert_almost_equal(nnn.logr1d[0], math.log(nnn.min_sep) + 0.5*nnn.bin_size)
         np.testing.assert_almost_equal(nnn.logr1d[-1], math.log(nnn.max_sep) - 0.5*nnn.bin_size)
@@ -36,14 +35,12 @@ def test_logruv_binning():
         np.testing.assert_almost_equal(nnn.logr[:,0,0], nnn.logr1d)
         np.testing.assert_almost_equal(nnn.logr[:,-1,-1], nnn.logr1d)
         assert len(nnn.logr) == nnn.nbins
-        #print('u = ',nnn.u1d)
         np.testing.assert_equal(nnn.u1d.shape, (nnn.nubins,) )
         np.testing.assert_almost_equal(nnn.u1d[0], nnn.min_u + 0.5*nnn.ubin_size)
         np.testing.assert_almost_equal(nnn.u1d[-1], nnn.max_u - 0.5*nnn.ubin_size)
         np.testing.assert_equal(nnn.u.shape, (nnn.nbins, nnn.nubins, 2*nnn.nvbins) )
         np.testing.assert_almost_equal(nnn.u[0,:,0], nnn.u1d)
         np.testing.assert_almost_equal(nnn.u[-1,:,-1], nnn.u1d)
-        #print('v = ',nnn.v1d)
         np.testing.assert_equal(nnn.v1d.shape, (2*nnn.nvbins,) )
         np.testing.assert_almost_equal(nnn.v1d[0], -nnn.max_v + 0.5*nnn.vbin_size)
         np.testing.assert_almost_equal(nnn.v1d[-1], nnn.max_v - 0.5*nnn.vbin_size)
@@ -64,9 +61,6 @@ def test_logruv_binning():
     # Check the different ways to set up the binning:
     # Omit bin_size
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, bin_type='LogRUV')
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
-    #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
     assert nnn.nbins == 20
@@ -77,9 +71,6 @@ def test_logruv_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20,
                                   min_u=0.2, max_u=0.9, nubins=12,
                                   min_v=0., max_v=0.2, nvbins=2)
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
-    #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
     assert nnn.nbins == 20
@@ -93,9 +84,6 @@ def test_logruv_binning():
 
     # Omit min_sep
     nnn = treecorr.NNNCorrelation(max_sep=20, nbins=20, bin_size=0.1)
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
-    #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
     assert nnn.bin_size == 0.1
     assert nnn.max_sep == 20.
     assert nnn.nbins == 20
@@ -106,9 +94,6 @@ def test_logruv_binning():
     nnn = treecorr.NNNCorrelation(max_sep=20, nbins=20, bin_size=0.1,
                                   max_u=0.9, nubins=3, ubin_size=0.05,
                                   max_v=0.4, nvbins=4, vbin_size=0.05)
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
-    #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
     assert nnn.bin_size == 0.1
     assert nnn.max_sep == 20.
     assert nnn.nbins == 20
@@ -124,9 +109,6 @@ def test_logruv_binning():
 
     # Omit max_sep
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=20, bin_size=0.1)
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
-    #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
     assert nnn.bin_size == 0.1
     assert nnn.min_sep == 5.
     assert nnn.nbins == 20
@@ -136,9 +118,6 @@ def test_logruv_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=20, bin_size=0.1,
                                   min_u=0.7, nubins=4, ubin_size=0.05,
                                   min_v=0.2, nvbins=4, vbin_size=0.05)
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
-    #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
     assert nnn.min_sep == 5.
     assert nnn.bin_size == 0.1
     assert nnn.nbins == 20
@@ -153,9 +132,6 @@ def test_logruv_binning():
 
     # Omit nbins
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1)
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
-    #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
     assert nnn.bin_size <= 0.1
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
@@ -165,9 +141,6 @@ def test_logruv_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
                                   min_u=0.2, max_u=0.9, ubin_size=0.03,
                                   min_v=0.1, max_v=0.3, vbin_size=0.07)
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
-    #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
     assert nnn.bin_size <= 0.1
@@ -185,9 +158,6 @@ def test_logruv_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
                                   min_u=0.2, ubin_size=0.03,
                                   min_v=0.2, vbin_size=0.07)
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
-    #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
     assert nnn.min_u == 0.2
     assert nnn.max_u == 1.
     assert nnn.nubins == 27
@@ -200,9 +170,6 @@ def test_logruv_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
                                   max_u=0.2, ubin_size=0.03,
                                   max_v=0.2, vbin_size=0.07)
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
-    #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
     assert nnn.min_u == 0.
     assert nnn.max_u == 0.2
     assert nnn.nubins == 7
@@ -217,9 +184,6 @@ def test_logruv_binning():
     # (And if necessary adjust the bin_size down a bit.)
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
                                   ubin_size=0.3, vbin_size=0.3)
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
-    #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
     assert nnn.bin_size <= 0.1
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
@@ -236,9 +200,6 @@ def test_logruv_binning():
     # If only nvbins is set for v, automatically figure out others.
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
                                   nubins=5, nvbins=5)
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
-    #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
     assert nnn.bin_size <= 0.1
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
@@ -256,9 +217,6 @@ def test_logruv_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
                                   ubin_size=0.1, nubins=5,
                                   vbin_size=0.1, nvbins=5)
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
-    #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
     assert nnn.bin_size <= 0.1
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
@@ -316,9 +274,6 @@ def test_logruv_binning():
     # Check the use of sep_units
     # radians
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='radians')
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
-    #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
     np.testing.assert_almost_equal(nnn.min_sep, 5.)
     np.testing.assert_almost_equal(nnn.max_sep, 20.)
     np.testing.assert_almost_equal(nnn._min_sep, 5.)
@@ -331,9 +286,6 @@ def test_logruv_binning():
 
     # arcsec
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='arcsec')
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
-    #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
     np.testing.assert_almost_equal(nnn.min_sep, 5.)
     np.testing.assert_almost_equal(nnn.max_sep, 20.)
     np.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/180/3600)
@@ -348,9 +300,6 @@ def test_logruv_binning():
 
     # arcmin
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='arcmin')
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
-    #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
     np.testing.assert_almost_equal(nnn.min_sep, 5.)
     np.testing.assert_almost_equal(nnn.max_sep, 20.)
     np.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/180/60)
@@ -364,9 +313,6 @@ def test_logruv_binning():
 
     # degrees
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='degrees')
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
-    #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
     np.testing.assert_almost_equal(nnn.min_sep, 5.)
     np.testing.assert_almost_equal(nnn.max_sep, 20.)
     np.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/180)
@@ -380,9 +326,6 @@ def test_logruv_binning():
 
     # hours
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='hours')
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_u,nnn.max_u,nnn.ubin_size,nnn.nubins)
-    #print(nnn.min_v,nnn.max_v,nnn.vbin_size,nnn.nvbins)
     np.testing.assert_almost_equal(nnn.min_sep, 5.)
     np.testing.assert_almost_equal(nnn.max_sep, 20.)
     np.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/12)
@@ -399,9 +342,6 @@ def test_logruv_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1,
                                   min_u=0., max_u=0.9, ubin_size=0.03,
                                   min_v=0., max_v=0.21, vbin_size=0.07)
-    #print(nnn.bin_size,nnn.bin_slop,nnn.b)
-    #print(nnn.ubin_size,nnn.bu)
-    #print(nnn.vbin_size,nnn.bv)
     assert nnn.bin_slop == 1.0
     assert nnn.bin_size == 0.1
     assert np.isclose(nnn.ubin_size, 0.03)
@@ -414,9 +354,6 @@ def test_logruv_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=1.0,
                                   min_u=0., max_u=0.9, ubin_size=0.03,
                                   min_v=0., max_v=0.21, vbin_size=0.07)
-    #print(nnn.bin_size,nnn.bin_slop,nnn.b)
-    #print(nnn.ubin_size,nnn.bu)
-    #print(nnn.vbin_size,nnn.bv)
     assert nnn.bin_slop == 1.0
     assert nnn.bin_size == 0.1
     assert np.isclose(nnn.ubin_size, 0.03)
@@ -429,9 +366,6 @@ def test_logruv_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=0.2,
                                   min_u=0., max_u=0.9, ubin_size=0.03,
                                   min_v=0., max_v=0.21, vbin_size=0.07)
-    #print(nnn.bin_size,nnn.bin_slop,nnn.b)
-    #print(nnn.ubin_size,nnn.bu)
-    #print(nnn.vbin_size,nnn.bv)
     assert nnn.bin_slop == 0.2
     assert nnn.bin_size == 0.1
     assert np.isclose(nnn.ubin_size, 0.03)
@@ -444,9 +378,6 @@ def test_logruv_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=0.0,
                                   min_u=0., max_u=0.9, ubin_size=0.03,
                                   min_v=0., max_v=0.21, vbin_size=0.07)
-    #print(nnn.bin_size,nnn.bin_slop,nnn.b)
-    #print(nnn.ubin_size,nnn.bu)
-    #print(nnn.vbin_size,nnn.bv)
     assert nnn.bin_slop == 0.0
     assert nnn.bin_size == 0.1
     assert np.isclose(nnn.ubin_size, 0.03)
@@ -459,9 +390,6 @@ def test_logruv_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=2.0,
                                   min_u=0., max_u=0.9, ubin_size=0.03,
                                   min_v=0., max_v=0.21, vbin_size=0.07, verbose=0)
-    #print(nnn.bin_size,nnn.bin_slop,nnn.b)
-    #print(nnn.ubin_size,nnn.bu)
-    #print(nnn.vbin_size,nnn.bv)
     assert nnn.bin_slop == 2.0
     assert nnn.bin_size == 0.1
     assert np.isclose(nnn.ubin_size, 0.03)
@@ -474,9 +402,6 @@ def test_logruv_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.4, bin_slop=1.0,
                                   min_u=0., max_u=0.9, ubin_size=0.03,
                                   min_v=0., max_v=0.21, vbin_size=0.07, verbose=0)
-    #print(nnn.bin_size,nnn.bin_slop,nnn.b)
-    #print(nnn.ubin_size,nnn.bu)
-    #print(nnn.vbin_size,nnn.bv)
     assert nnn.bin_slop == 1.0
     assert nnn.bin_size == 0.4
     assert np.isclose(nnn.ubin_size, 0.03)
@@ -489,9 +414,6 @@ def test_logruv_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.4,
                                   min_u=0., max_u=0.9, ubin_size=0.03,
                                   min_v=0., max_v=0.21, vbin_size=0.07)
-    #print(nnn.bin_size,nnn.bin_slop,nnn.b)
-    #print(nnn.ubin_size,nnn.bu)
-    #print(nnn.vbin_size,nnn.bv)
     assert nnn.bin_size == 0.4
     assert np.isclose(nnn.ubin_size, 0.03)
     assert np.isclose(nnn.vbin_size, 0.07)
@@ -504,9 +426,6 @@ def test_logruv_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.05,
                                   min_u=0., max_u=0.9, ubin_size=0.3,
                                   min_v=0., max_v=0.17, vbin_size=0.17)
-    #print(nnn.bin_size,nnn.bin_slop,nnn.b)
-    #print(nnn.ubin_size,nnn.bu)
-    #print(nnn.vbin_size,nnn.bv)
     assert nnn.bin_size == 0.05
     assert np.isclose(nnn.ubin_size, 0.3)
     assert np.isclose(nnn.vbin_size, 0.17)
@@ -521,20 +440,17 @@ def test_logsas_binning():
     def check_arrays(nnn):
         np.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
         np.testing.assert_almost_equal(nnn.phi_bin_size * nnn.nphi_bins, nnn.max_phi-nnn.min_phi)
-        #print('logr = ',nnn.logr1d)
         np.testing.assert_equal(nnn.logr1d.shape, (nnn.nbins,) )
         np.testing.assert_almost_equal(nnn.logr1d[0], math.log(nnn.min_sep) + 0.5*nnn.bin_size)
         np.testing.assert_almost_equal(nnn.logr1d[-1], math.log(nnn.max_sep) - 0.5*nnn.bin_size)
-        np.testing.assert_equal(nnn.logr2.shape, (nnn.nbins, nnn.nphi_bins, nnn.nbins))
-        print('logr2[0,0] = ',nnn.logr2[:,0,0])
-        np.testing.assert_almost_equal(nnn.logr2[:,0,0], nnn.logr1d)
-        np.testing.assert_almost_equal(nnn.logr2[:,-1,-1], nnn.logr1d)
-        np.testing.assert_equal(nnn.logr3.shape, (nnn.nbins, nnn.nphi_bins, nnn.nbins))
-        np.testing.assert_almost_equal(nnn.logr3[0,0,:], nnn.logr1d)
-        np.testing.assert_almost_equal(nnn.logr3[-1,-1,:], nnn.logr1d)
-        assert len(nnn.logr2) == nnn.nbins
-        assert len(nnn.logr3) == nnn.nbins
-        #print('phi = ',nnn.phi1d)
+        np.testing.assert_equal(nnn.logd2.shape, (nnn.nbins, nnn.nphi_bins, nnn.nbins))
+        np.testing.assert_almost_equal(nnn.logd2[:,0,0], nnn.logr1d)
+        np.testing.assert_almost_equal(nnn.logd2[:,-1,-1], nnn.logr1d)
+        np.testing.assert_equal(nnn.logd3.shape, (nnn.nbins, nnn.nphi_bins, nnn.nbins))
+        np.testing.assert_almost_equal(nnn.logd3[0,0,:], nnn.logr1d)
+        np.testing.assert_almost_equal(nnn.logd3[-1,-1,:], nnn.logr1d)
+        assert len(nnn.logd2) == nnn.nbins
+        assert len(nnn.logd3) == nnn.nbins
         np.testing.assert_equal(nnn.phi1d.shape, (nnn.nphi_bins,) )
         np.testing.assert_almost_equal(nnn.phi1d[0], nnn.min_phi + 0.5*nnn.phi_bin_size)
         np.testing.assert_almost_equal(nnn.phi1d[-1], nnn.max_phi - 0.5*nnn.phi_bin_size)
@@ -550,8 +466,6 @@ def test_logsas_binning():
     # Check the different ways to set up the binning:
     # Omit bin_size
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, bin_type='LogSAS')
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
     assert nnn.nbins == 20
@@ -562,8 +476,6 @@ def test_logsas_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20,
                                   min_phi=0.2, max_phi=0.9, nphi_bins=12,
                                   bin_type='LogSAS')
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
     assert nnn.nbins == 20
@@ -574,8 +486,6 @@ def test_logsas_binning():
 
     # Omit min_sep
     nnn = treecorr.NNNCorrelation(max_sep=20, nbins=20, bin_size=0.1, bin_type='LogSAS')
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
     assert nnn.bin_size == 0.1
     assert nnn.max_sep == 20.
     assert nnn.nbins == 20
@@ -586,12 +496,9 @@ def test_logsas_binning():
     nnn = treecorr.NNNCorrelation(max_sep=20, nbins=20, bin_size=0.1,
                                   max_phi=0.9, nphi_bins=3, phi_bin_size=0.05,
                                   bin_type='LogSAS')
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
     assert nnn.bin_size == 0.1
     assert nnn.max_sep == 20.
     assert nnn.nbins == 20
-    print(nnn.phi_bin_size)
     assert np.isclose(nnn.phi_bin_size, 0.05)
     assert np.isclose(nnn.min_phi, 0.75)
     assert nnn.max_phi == 0.9
@@ -600,8 +507,6 @@ def test_logsas_binning():
 
     # Omit max_sep
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=20, bin_size=0.1, bin_type='LogSAS')
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
     assert nnn.bin_size == 0.1
     assert nnn.min_sep == 5.
     assert nnn.nbins == 20
@@ -611,8 +516,6 @@ def test_logsas_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=20, bin_size=0.1,
                                   min_phi=0.7, nphi_bins=4, phi_bin_size=0.05,
                                   bin_type='LogSAS')
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
     assert nnn.min_sep == 5.
     assert nnn.bin_size == 0.1
     assert nnn.nbins == 20
@@ -623,8 +526,6 @@ def test_logsas_binning():
 
     # Omit nbins
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_type='LogSAS')
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
     assert nnn.bin_size <= 0.1
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
@@ -634,8 +535,6 @@ def test_logsas_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
                                   min_phi=0.2, max_phi=0.9, phi_bin_size=0.03,
                                   bin_type='LogSAS')
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
     assert nnn.bin_size <= 0.1
@@ -649,8 +548,6 @@ def test_logsas_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
                                   min_phi=0.2, phi_bin_size=0.03,
                                   bin_type='LogSAS')
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
     assert nnn.min_phi == 0.2
     assert nnn.max_phi == np.pi
     assert nnn.nphi_bins == 99
@@ -659,8 +556,6 @@ def test_logsas_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
                                   max_phi=0.2, phi_bin_size=0.03,
                                   bin_type='LogSAS')
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
     assert nnn.min_phi == 0.
     assert nnn.max_phi == 0.2
     assert nnn.nphi_bins == 7
@@ -671,8 +566,6 @@ def test_logsas_binning():
     # (And if necessary adjust the bin_size down a bit.)
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
                                   phi_bin_size=0.3, bin_type='LogSAS')
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
     assert nnn.bin_size <= 0.1
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
@@ -685,8 +578,6 @@ def test_logsas_binning():
     # If only nphi_bins is set for phi, automatically figure out others.
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
                                   nphi_bins=5, bin_type='LogSAS')
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
     assert nnn.bin_size <= 0.1
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
@@ -700,8 +591,6 @@ def test_logsas_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
                                   phi_bin_size=0.1, nphi_bins=5,
                                   bin_type='LogSAS')
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
     assert nnn.bin_size <= 0.1
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
@@ -742,8 +631,6 @@ def test_logsas_binning():
     # radians
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='radians',
                                   bin_type='LogSAS')
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
     np.testing.assert_almost_equal(nnn.min_sep, 5.)
     np.testing.assert_almost_equal(nnn.max_sep, 20.)
     np.testing.assert_almost_equal(nnn._min_sep, 5.)
@@ -757,78 +644,70 @@ def test_logsas_binning():
     # arcsec
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='arcsec',
                                   bin_type='LogSAS')
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
     np.testing.assert_almost_equal(nnn.min_sep, 5.)
     np.testing.assert_almost_equal(nnn.max_sep, 20.)
     np.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/180/3600)
     np.testing.assert_almost_equal(nnn._max_sep, 20. * math.pi/180/3600)
     assert nnn.nbins == 20
     np.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
-    # Note that logr2 is in the separation units, not radians.
-    np.testing.assert_almost_equal(nnn.logr2[0], math.log(5) + 0.5*nnn.bin_size)
-    np.testing.assert_almost_equal(nnn.logr2[-1], math.log(20) - 0.5*nnn.bin_size)
-    assert len(nnn.logr2) == nnn.nbins
-    np.testing.assert_almost_equal(nnn.logr3[:,:,0], math.log(5) + 0.5*nnn.bin_size)
-    np.testing.assert_almost_equal(nnn.logr3[:,:,-1], math.log(20) - 0.5*nnn.bin_size)
-    assert len(nnn.logr3) == nnn.nbins
+    # Note that logd2 is in the separation units, not radians.
+    np.testing.assert_almost_equal(nnn.logd2[0], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logd2[-1], math.log(20) - 0.5*nnn.bin_size)
+    assert len(nnn.logd2) == nnn.nbins
+    np.testing.assert_almost_equal(nnn.logd3[:,:,0], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logd3[:,:,-1], math.log(20) - 0.5*nnn.bin_size)
+    assert len(nnn.logd3) == nnn.nbins
     check_default_phi(nnn)
 
     # arcmin
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='arcmin',
                                   bin_type='LogSAS')
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
     np.testing.assert_almost_equal(nnn.min_sep, 5.)
     np.testing.assert_almost_equal(nnn.max_sep, 20.)
     np.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/180/60)
     np.testing.assert_almost_equal(nnn._max_sep, 20. * math.pi/180/60)
     assert nnn.nbins == 20
     np.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
-    np.testing.assert_almost_equal(nnn.logr2[0], math.log(5) + 0.5*nnn.bin_size)
-    np.testing.assert_almost_equal(nnn.logr2[-1], math.log(20) - 0.5*nnn.bin_size)
-    assert len(nnn.logr2) == nnn.nbins
-    np.testing.assert_almost_equal(nnn.logr3[:,:,0], math.log(5) + 0.5*nnn.bin_size)
-    np.testing.assert_almost_equal(nnn.logr3[:,:,-1], math.log(20) - 0.5*nnn.bin_size)
-    assert len(nnn.logr3) == nnn.nbins
+    np.testing.assert_almost_equal(nnn.logd2[0], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logd2[-1], math.log(20) - 0.5*nnn.bin_size)
+    assert len(nnn.logd2) == nnn.nbins
+    np.testing.assert_almost_equal(nnn.logd3[:,:,0], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logd3[:,:,-1], math.log(20) - 0.5*nnn.bin_size)
+    assert len(nnn.logd3) == nnn.nbins
     check_default_phi(nnn)
 
     # degrees
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='degrees',
                                   bin_type='LogSAS')
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
     np.testing.assert_almost_equal(nnn.min_sep, 5.)
     np.testing.assert_almost_equal(nnn.max_sep, 20.)
     np.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/180)
     np.testing.assert_almost_equal(nnn._max_sep, 20. * math.pi/180)
     assert nnn.nbins == 20
     np.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
-    np.testing.assert_almost_equal(nnn.logr2[0], math.log(5) + 0.5*nnn.bin_size)
-    np.testing.assert_almost_equal(nnn.logr2[-1], math.log(20) - 0.5*nnn.bin_size)
-    assert len(nnn.logr2) == nnn.nbins
-    np.testing.assert_almost_equal(nnn.logr3[:,:,0], math.log(5) + 0.5*nnn.bin_size)
-    np.testing.assert_almost_equal(nnn.logr3[:,:,-1], math.log(20) - 0.5*nnn.bin_size)
-    assert len(nnn.logr3) == nnn.nbins
+    np.testing.assert_almost_equal(nnn.logd2[0], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logd2[-1], math.log(20) - 0.5*nnn.bin_size)
+    assert len(nnn.logd2) == nnn.nbins
+    np.testing.assert_almost_equal(nnn.logd3[:,:,0], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logd3[:,:,-1], math.log(20) - 0.5*nnn.bin_size)
+    assert len(nnn.logd3) == nnn.nbins
     check_default_phi(nnn)
 
     # hours
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='hours',
                                   bin_type='LogSAS')
-    #print(nnn.min_sep,nnn.max_sep,nnn.bin_size,nnn.nbins)
-    #print(nnn.min_phi,nnn.max_phi,nnn.phi_bin_size,nnn.nphi_bins)
     np.testing.assert_almost_equal(nnn.min_sep, 5.)
     np.testing.assert_almost_equal(nnn.max_sep, 20.)
     np.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/12)
     np.testing.assert_almost_equal(nnn._max_sep, 20. * math.pi/12)
     assert nnn.nbins == 20
     np.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
-    np.testing.assert_almost_equal(nnn.logr2[0], math.log(5) + 0.5*nnn.bin_size)
-    np.testing.assert_almost_equal(nnn.logr2[-1], math.log(20) - 0.5*nnn.bin_size)
-    assert len(nnn.logr2) == nnn.nbins
-    np.testing.assert_almost_equal(nnn.logr3[:,:,0], math.log(5) + 0.5*nnn.bin_size)
-    np.testing.assert_almost_equal(nnn.logr3[:,:,-1], math.log(20) - 0.5*nnn.bin_size)
-    assert len(nnn.logr3) == nnn.nbins
+    np.testing.assert_almost_equal(nnn.logd2[0], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logd2[-1], math.log(20) - 0.5*nnn.bin_size)
+    assert len(nnn.logd2) == nnn.nbins
+    np.testing.assert_almost_equal(nnn.logd3[:,:,0], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logd3[:,:,-1], math.log(20) - 0.5*nnn.bin_size)
+    assert len(nnn.logd3) == nnn.nbins
     check_default_phi(nnn)
 
     # Check bin_slop
@@ -836,8 +715,6 @@ def test_logsas_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1,
                                   min_phi=0., max_phi=0.9, phi_bin_size=0.03,
                                   bin_type='LogSAS')
-    #print(nnn.bin_size,nnn.bin_slop,nnn.b)
-    #print(nnn.phi_bin_size,nnn.bu)
     assert nnn.bin_slop == 1.0
     assert nnn.bin_size == 0.1
     assert np.isclose(nnn.phi_bin_size, 0.03)
@@ -848,8 +725,6 @@ def test_logsas_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=1.0,
                                   min_phi=0., max_phi=0.9, phi_bin_size=0.03,
                                   bin_type='LogSAS')
-    #print(nnn.bin_size,nnn.bin_slop,nnn.b)
-    #print(nnn.phi_bin_size,nnn.bu)
     assert nnn.bin_slop == 1.0
     assert nnn.bin_size == 0.1
     assert np.isclose(nnn.phi_bin_size, 0.03)
@@ -860,8 +735,6 @@ def test_logsas_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=0.2,
                                   min_phi=0., max_phi=0.9, phi_bin_size=0.03,
                                   bin_type='LogSAS')
-    #print(nnn.bin_size,nnn.bin_slop,nnn.b)
-    #print(nnn.phi_bin_size,nnn.bu)
     assert nnn.bin_slop == 0.2
     assert nnn.bin_size == 0.1
     assert np.isclose(nnn.phi_bin_size, 0.03)
@@ -872,8 +745,6 @@ def test_logsas_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=0.0,
                                   min_phi=0., max_phi=0.9, phi_bin_size=0.03,
                                   bin_type='LogSAS')
-    #print(nnn.bin_size,nnn.bin_slop,nnn.b)
-    #print(nnn.phi_bin_size,nnn.bu)
     assert nnn.bin_slop == 0.0
     assert nnn.bin_size == 0.1
     assert np.isclose(nnn.phi_bin_size, 0.03)
@@ -884,8 +755,6 @@ def test_logsas_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=2.0,
                                   min_phi=0., max_phi=0.9, phi_bin_size=0.03,
                                   bin_type='LogSAS')
-    #print(nnn.bin_size,nnn.bin_slop,nnn.b)
-    #print(nnn.phi_bin_size,nnn.bu)
     assert nnn.bin_slop == 2.0
     assert nnn.bin_size == 0.1
     assert np.isclose(nnn.phi_bin_size, 0.03)
@@ -896,8 +765,6 @@ def test_logsas_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.4, bin_slop=1.0,
                                   min_phi=0., max_phi=0.9, phi_bin_size=0.03,
                                   bin_type='LogSAS')
-    #print(nnn.bin_size,nnn.bin_slop,nnn.b)
-    #print(nnn.phi_bin_size,nnn.bu)
     assert nnn.bin_slop == 1.0
     assert nnn.bin_size == 0.4
     assert np.isclose(nnn.phi_bin_size, 0.03)
@@ -908,8 +775,6 @@ def test_logsas_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.4,
                                   min_phi=0., max_phi=0.9, phi_bin_size=0.03,
                                   bin_type='LogSAS')
-    #print(nnn.bin_size,nnn.bin_slop,nnn.b)
-    #print(nnn.phi_bin_size,nnn.bu)
     assert nnn.bin_size == 0.4
     assert np.isclose(nnn.phi_bin_size, 0.03)
     np.testing.assert_almost_equal(nnn.b, 0.1)
@@ -920,8 +785,6 @@ def test_logsas_binning():
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.05,
                                   min_phi=0., max_phi=0.9, phi_bin_size=0.3,
                                   bin_type='LogSAS')
-    #print(nnn.bin_size,nnn.bin_slop,nnn.b)
-    #print(nnn.phi_bin_size,nnn.bu)
     assert nnn.bin_size == 0.05
     assert np.isclose(nnn.phi_bin_size, 0.3)
     np.testing.assert_almost_equal(nnn.b, 0.05)
@@ -1014,18 +877,6 @@ def test_direct_logruv_auto():
                 assert 0 <= kv < 2*nvbins
                 true_ntri[kr,ku,kv] += 1
 
-    nz = np.where((ddd.ntri > 0) | (true_ntri > 0))
-    print('non-zero at:')
-    print(nz)
-    print('d1 = ',ddd.meand1[nz])
-    print('d2 = ',ddd.meand2[nz])
-    print('d3 = ',ddd.meand3[nz])
-    print('rnom = ',ddd.rnom[nz])
-    print('u = ',ddd.u[nz])
-    print('v = ',ddd.v[nz])
-    print('ddd.ntri = ',ddd.ntri[nz])
-    print('true_ntri = ',true_ntri[nz])
-    print('diff = ',ddd.ntri[nz] - true_ntri[nz])
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # Check that running via the corr3 script works correctly.
@@ -1059,32 +910,12 @@ def test_direct_logruv_auto():
     treecorr.corr3(config, logger)
     corr3_output = np.genfromtxt(os.path.join('output','nnn_direct.out'), names=True,
                                     skip_header=1)
-    print('corr3_output = ',corr3_output)
-    print('corr3_output.dtype = ',corr3_output.dtype)
-    print('rnom = ',ddd.rnom.flatten())
-    print('       ',corr3_output['r_nom'])
     np.testing.assert_allclose(corr3_output['r_nom'], ddd.rnom.flatten(), rtol=1.e-3)
-    print('unom = ',ddd.u.flatten())
-    print('       ',corr3_output['u_nom'])
     np.testing.assert_allclose(corr3_output['u_nom'], ddd.u.flatten(), rtol=1.e-3)
-    print('vnom = ',ddd.v.flatten())
-    print('       ',corr3_output['v_nom'])
     np.testing.assert_allclose(corr3_output['v_nom'], ddd.v.flatten(), rtol=1.e-3)
-    print('DDD = ',ddd.ntri.flatten())
-    print('      ',corr3_output['DDD'])
     np.testing.assert_allclose(corr3_output['DDD'], ddd.ntri.flatten(), rtol=1.e-3)
     np.testing.assert_allclose(corr3_output['ntri'], ddd.ntri.flatten(), rtol=1.e-3)
-    print('RRR = ',rrr.ntri.flatten())
-    print('      ',corr3_output['RRR'])
     np.testing.assert_allclose(corr3_output['RRR'], rrr.ntri.flatten(), rtol=1.e-3)
-    print('zeta = ',zeta.flatten())
-    print('from corr3 output = ',corr3_output['zeta'])
-    print('diff = ',corr3_output['zeta']-zeta.flatten())
-    diff_index = np.where(np.abs(corr3_output['zeta']-zeta.flatten()) > 1.e-5)[0]
-    print('different at ',diff_index)
-    print('zeta[diffs] = ',zeta.flatten()[diff_index])
-    print('corr3.zeta[diffs] = ',corr3_output['zeta'][diff_index])
-    print('diff[diffs] = ',zeta.flatten()[diff_index] - corr3_output['zeta'][diff_index])
     np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
     np.testing.assert_allclose(corr3_output['sigma_zeta'], np.sqrt(varzeta).flatten(), rtol=1.e-3)
 
@@ -1120,10 +951,6 @@ def test_direct_logruv_auto():
     np.testing.assert_allclose(corr3_output['v_nom'], ddd.v.flatten(), rtol=1.e-3)
     np.testing.assert_allclose(corr3_output['DDD'], ddd.ntri.flatten(), rtol=1.e-3)
     np.testing.assert_allclose(corr3_output['ntri'], ddd.ntri.flatten(), rtol=1.e-3)
-    print('rrr.tot = ',rrr.tot)
-    print('ddd.tot = ',ddd.tot)
-    print('drr.tot = ',drr.tot)
-    print('rdd.tot = ',rdd.tot)
     rrrf = ddd.tot / rrr.tot
     drrf = ddd.tot / drr.tot
     rddf = ddd.tot / rdd.tot
@@ -1139,9 +966,6 @@ def test_direct_logruv_auto():
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=0, verbose=1)
     ddd.process(cat)
-    #print('ddd.ntri = ',ddd.ntri)
-    #print('true_ntri => ',true_ntri)
-    #print('diff = ',ddd.ntri - true_ntri)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # And again with no top-level recursion
@@ -1150,9 +974,6 @@ def test_direct_logruv_auto():
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=0, verbose=1, max_top=0)
     ddd.process(cat)
-    #print('ddd.ntri = ',ddd.ntri)
-    #print('true_ntri => ',true_ntri)
-    #print('diff = ',ddd.ntri - true_ntri)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # And compare to the cross correlation
@@ -1162,22 +983,14 @@ def test_direct_logruv_auto():
     np.testing.assert_array_equal(ddd.ntri, 6*true_ntri)
 
     # But with ordered=True, it only counts each triangle once.
-    print('ordered=True')
     ddd.process(cat,cat,cat, ordered=True, num_threads=2)
-    #print('ddd.ntri = ',ddd.ntri)
-    #print('true_ntri => ',true_ntri)
-    #print('diff = ',ddd.ntri - true_ntri)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # Or with 2 argument version, finds each triangle 3 times.
     ddd.process(cat,cat)
     np.testing.assert_array_equal(ddd.ntri, 3*true_ntri)
 
-    print('ordered=True, 2 cats')
     ddd.process(cat,cat, ordered=True)
-    print('ddd.ntri = ',ddd.ntri)
-    print('true_ntri => ',true_ntri)
-    print('diff = ',ddd.ntri - true_ntri)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     do_pickle(ddd)
@@ -1319,7 +1132,6 @@ def test_direct_logruv_auto():
                                         logger=cl.logger)
         ddd13.process_auto(cat2)
         ddd13 += ddd2
-    print(cl.output)
     assert "Detected a change in catalog coordinate systems" in cl.output
 
     with CaptureLog() as cl:
@@ -1505,8 +1317,6 @@ def test_direct_logruv_cross():
     ddd.process(cat1, cat2, cat3)
     t1 = time.time()
     print('bin_slop=0 unordered: ',t1-t0)
-    #print('binslop > 0: ddd.ntri = ',ddd.ntri)
-    #print('diff = ',ddd.ntri - true_ntri_sum)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     t0 = time.time()
@@ -1549,9 +1359,6 @@ def test_direct_logruv_cross():
     ddd.process(cat1, cat2, cat3, ordered=True)
     t1 = time.time()
     print('no top bin_slop=0, ordered 123 ',t1-t0)
-    #print('max_top = 0: ddd.ntri = ',ddd.ntri)
-    #print('true_ntri = ',true_ntri_sum)
-    #print('diff = ',ddd.ntri - true_ntri_sum)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
 
     # Error to have cat3, but not cat2
@@ -1660,9 +1467,6 @@ def test_direct_logruv_cross12():
 
     # With the default ordered=False, we end up with the sum of all permutations.
     true_ntri_sum = true_ntri_122 + true_ntri_212 + true_ntri_221
-    #print('ddd.ntri = ',ddd.ntri)
-    #print('true_ntri = ',true_ntri_sum)
-    #print('diff = ',ddd.ntri - true_ntri_sum)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     # With ordered=True we get just the ones in the given order.
@@ -1691,8 +1495,6 @@ def test_direct_logruv_cross12():
     ddd.process(cat1, cat2)
     t1 = time.time()
     print('bin_slop=0 unordered: ',t1-t0)
-    #print('binslop > 0: ddd.ntri = ',ddd.ntri)
-    #print('diff = ',ddd.ntri - true_ntri_sum)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
     t0 = time.time()
     ddd.process(cat1, cat2, ordered=True)
@@ -1719,9 +1521,6 @@ def test_direct_logruv_cross12():
     ddd.process(cat1, cat2)
     t1 = time.time()
     print('no top bin_slop=0 unordered: ',t1-t0)
-    #print('max_top = 0: ddd.ntri = ',ddd.ntri)
-    #print('true_ntri = ',true_ntri_sum)
-    #print('diff = ',ddd.ntri - true_ntri_sum)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     # Split into patches to test the list-based version of the code.
@@ -1986,7 +1785,6 @@ def test_direct_logruv_partial():
                                    min_v=min_v, max_v=max_v, nvbins=nvbins,
                                    brute=True)
     ddda.process(cat1a, cat2a, cat3a)
-    #print('ddda.ntri = ',ddda.ntri)
 
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
@@ -2057,8 +1855,6 @@ def test_direct_logruv_partial():
 
     true_ntri_sum = true_ntri_123 + true_ntri_132 + true_ntri_213 + true_ntri_231 +\
             true_ntri_312 + true_ntri_321
-    print('true_ntri = ',true_ntri_sum)
-    print('diff = ',ddda.ntri - true_ntri_sum)
     np.testing.assert_array_equal(ddda.ntri, true_ntri_sum)
 
     ddda.process(cat1a, cat2a, cat3a, ordered=True)
@@ -2080,8 +1876,6 @@ def test_direct_logruv_partial():
                                    min_v=min_v, max_v=max_v, nvbins=nvbins,
                                    brute=True)
     dddb.process(cat1b, cat2b, cat3b)
-    #print('dddb.ntri = ',dddb.ntri)
-    #print('diff = ',dddb.ntri - true_ntri_sum)
     np.testing.assert_array_equal(dddb.ntri, true_ntri_sum)
 
     dddb.process(cat1b, cat2b, cat3b, ordered=True)
@@ -2120,7 +1914,6 @@ def test_direct_logruv_3d_auto():
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   brute=True, verbose=1)
     ddd.process(cat)
-    #print('ddd.ntri = ',ddd.ntri)
 
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
@@ -2177,8 +1970,6 @@ def test_direct_logruv_3d_auto():
                 assert 0 <= kv < 2*nvbins
                 true_ntri[kr,ku,kv] += 1
 
-    #print('true_ntri => ',true_ntri)
-    #print('diff = ',ddd.ntri - true_ntri)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # Repeat with binslop = 0
@@ -2187,8 +1978,6 @@ def test_direct_logruv_3d_auto():
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=0, verbose=1)
     ddd.process(cat)
-    #print('ddd.ntri = ',ddd.ntri)
-    #print('diff = ',ddd.ntri - true_ntri)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # And again with no top-level recursion
@@ -2197,17 +1986,11 @@ def test_direct_logruv_3d_auto():
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=0, verbose=1, max_top=0)
     ddd.process(cat)
-    #print('ddd.ntri = ',ddd.ntri)
-    #print('true_ntri => ',true_ntri)
-    #print('diff = ',ddd.ntri - true_ntri)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # And compare to the cross correlation
     # With ordered=False, we get 6x as much, since each triangle is discovered 6 times.
     ddd.process(cat,cat,cat)
-    #print('ddd.ntri = ',ddd.ntri)
-    #print('true_ntri => ',true_ntri)
-    #print('diff = ',ddd.ntri - true_ntri)
     np.testing.assert_array_equal(ddd.ntri, 6*true_ntri)
 
     ddd.process(cat,cat,cat, ordered=True)
@@ -2267,7 +2050,6 @@ def test_direct_logruv_3d_cross():
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   brute=True, verbose=1)
     ddd.process(cat1, cat2, cat3)
-    #print('ddd.ntri = ',ddd.ntri)
 
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
@@ -2338,8 +2120,6 @@ def test_direct_logruv_3d_cross():
     # With the default ordered=False, we end up with the sum of all permutations.
     true_ntri_sum = true_ntri_123 + true_ntri_132 + true_ntri_213 + true_ntri_231 +\
             true_ntri_312 + true_ntri_321
-    #print('true_ntri = ',true_ntri_sum)
-    #print('diff = ',ddd.ntri - true_ntri_sum)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     ddd.process(cat1, cat2, cat3, ordered=True)
@@ -2431,7 +2211,6 @@ def test_nnn_logruv():
                                   nubins=nubins, nvbins=nvbins,
                                   sep_units='arcmin', verbose=1)
     ddd.process(cat)
-    #print('ddd.ntri = ',ddd.ntri)
 
     # Using bin_size=None rather than omitting bin_size is equivalent.
     ddd2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_size=None,
@@ -2474,17 +2253,10 @@ def test_nnn_logruv():
                                   nubins=nubins, nvbins=nvbins,
                                   sep_units='arcmin', verbose=1)
     rrr.process(rand)
-    #print('rrr.ntri = ',rrr.ntri)
 
     d1 = ddd.meand1
     d2 = ddd.meand2
     d3 = ddd.meand3
-    #print('rnom = ',np.exp(ddd.logr))
-    #print('unom = ',ddd.u)
-    #print('vnom = ',ddd.v)
-    #print('d1 = ',d1)
-    #print('d2 = ',d2)
-    #print('d3 = ',d3)
     true_zeta = (1./(12.*np.pi**2)) * (L/s)**4 * np.exp(-(d1**2+d2**2+d3**2)/(6.*s**2)) - 1.
 
     zeta, varzeta = ddd.calculateZeta(rrr=rrr)
@@ -2859,7 +2631,6 @@ def test_3d_logruv():
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                   nubins=nubins, nvbins=nvbins, verbose=1)
     ddd.process(cat)
-    print('ddd.ntri = ',ddd.ntri.flatten())
 
     rx = (rng.random_sample(nrand)-0.5) * L + xcen
     ry = (rng.random_sample(nrand)-0.5) * L + ycen
@@ -2873,26 +2644,14 @@ def test_3d_logruv():
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                   nubins=nubins, nvbins=nvbins, verbose=1)
     rrr.process(rand)
-    print('rrr.ntri = ',rrr.ntri.flatten())
 
     d1 = ddd.meand1
     d2 = ddd.meand2
     d3 = ddd.meand3
-    print('rnom = ',np.exp(ddd.logr).flatten())
-    print('unom = ',ddd.u.flatten())
-    print('vnom = ',ddd.v.flatten())
-    print('d1 = ',d1.flatten())
-    print('d2 = ',d2.flatten())
-    print('d3 = ',d3.flatten())
     true_zeta = ((1./(24.*np.sqrt(3)*np.pi**3)) * (L/s)**6 *
                  np.exp(-(d1**2+d2**2+d3**2)/(6.*s**2)) - 1.)
 
     zeta, varzeta = ddd.calculateZeta(rrr=rrr)
-    print('zeta = ',zeta.flatten())
-    print('true_zeta = ',true_zeta.flatten())
-    print('ratio = ',(zeta / true_zeta).flatten())
-    print('diff = ',(zeta - true_zeta).flatten())
-    print('max rel diff = ',np.max(np.abs((zeta - true_zeta)/true_zeta)))
     np.testing.assert_allclose(zeta, true_zeta, rtol=0.1*tol_factor)
     np.testing.assert_allclose(np.log(np.abs(zeta)), np.log(np.abs(true_zeta)),
                                   atol=0.1*tol_factor)
@@ -2904,10 +2663,6 @@ def test_3d_logruv():
     config['verbose'] = 0
     treecorr.corr3(config)
     corr3_output = np.genfromtxt(os.path.join('output','nnn_3d.out'), names=True, skip_header=1)
-    print('zeta = ',zeta.flatten())
-    print('from corr3 output = ',corr3_output['zeta'])
-    print('ratio = ',corr3_output['zeta']/zeta.flatten())
-    print('diff = ',corr3_output['zeta']-zeta.flatten())
     np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
 
     # Check that we get the same thing when using x,y,z rather than ra,dec,r
@@ -2955,8 +2710,6 @@ def test_list_logruv():
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                   nubins=nubins, nvbins=nvbins, bin_slop=0.1, verbose=1)
     ddd.process(data_cats)
-    print('From multiple catalogs: ddd.ntri = ',ddd.ntri)
-    print('tot = ',ddd.tot)
 
     # Now do the same thing with one big catalog
     dddx = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
@@ -2964,8 +2717,6 @@ def test_list_logruv():
                                    nubins=nubins, nvbins=nvbins, bin_slop=0.1, verbose=1)
     data_catx = treecorr.Catalog(x=x.reshape( (ngal*ncats,) ), y=y.reshape( (ngal*ncats,) ))
     dddx.process(data_catx)
-    print('From single catalog: dddx.ntri = ',dddx.ntri)
-    print('tot = ',dddx.tot)
     # Only test to rtol=0.1, since there are now differences between the auto and cross related
     # to how they characterize triangles especially when d1 ~= d2 or d2 ~= d3.
     np.testing.assert_allclose(ddd.ntri, dddx.ntri, rtol=0.1)
@@ -2975,23 +2726,17 @@ def test_list_logruv():
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                   nubins=nubins, nvbins=nvbins, bin_slop=0.1, verbose=1)
     rrr.process(rand_cats)
-    print('rrr.ntri = ',rrr.ntri)
 
     rrrx = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                    nubins=nubins, nvbins=nvbins, bin_slop=0.1, verbose=1)
     rand_catx = treecorr.Catalog(x=rx.reshape( (nrand*ncats,) ), y=ry.reshape( (nrand*ncats,) ))
     rrrx.process(rand_catx)
-    print('rrrx.ntri = ',rrrx.ntri)
     np.testing.assert_allclose(rrr.ntri, rrrx.ntri, rtol=0.1)
     np.testing.assert_allclose(rrr.tot, rrrx.tot)
 
     zeta, varzeta = ddd.calculateZeta(rrr=rrr)
     zetax, varzetax = dddx.calculateZeta(rrr=rrrx)
-    print('zeta = ',zeta)
-    print('zetax = ',zetax)
-    #print('ratio = ',zeta/zetax)
-    #print('diff = ',zeta-zetax)
     np.testing.assert_allclose(zeta, zetax, rtol=0.1)
 
     # Check that we get the same result using the corr3 function:
@@ -3026,10 +2771,6 @@ def test_list_logruv():
     config['bin_slop'] = 0.1
     treecorr.corr3(config)
     corr3_output = np.genfromtxt(os.path.join('output','nnn_list1.out'), names=True, skip_header=1)
-    print('zeta = ',zeta)
-    print('from corr3 output = ',corr3_output['zeta'])
-    print('ratio = ',corr3_output['zeta']/zeta.flatten())
-    print('diff = ',corr3_output['zeta']-zeta.flatten())
     np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
 
     config = treecorr.config.read_config('configs/nnn_list2.json')
@@ -3037,10 +2778,6 @@ def test_list_logruv():
     config['bin_slop'] = 0.1
     treecorr.corr3(config)
     corr3_output = np.genfromtxt(os.path.join('output','nnn_list2.out'), names=True, skip_header=1)
-    print('zeta = ',zeta)
-    print('from corr3 output = ',corr3_output['zeta'])
-    print('ratio = ',corr3_output['zeta']/zeta.flatten())
-    print('diff = ',corr3_output['zeta']-zeta.flatten())
     np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=0.05)
 
     config = treecorr.config.read_config('configs/nnn_list3.params')
@@ -3048,10 +2785,6 @@ def test_list_logruv():
     config['bin_slop'] = 0.1
     treecorr.corr3(config)
     corr3_output = np.genfromtxt(os.path.join('output','nnn_list3.out'), names=True, skip_header=1)
-    print('zeta = ',zeta)
-    print('from corr3 output = ',corr3_output['zeta'])
-    print('ratio = ',corr3_output['zeta']/zeta.flatten())
-    print('diff = ',corr3_output['zeta']-zeta.flatten())
     np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=0.05)
 
     config = treecorr.config.read_config('configs/nnn_list4.config', file_type='params')
@@ -3059,10 +2792,6 @@ def test_list_logruv():
     config['bin_slop'] = 0.1
     treecorr.corr3(config)
     corr3_output = np.genfromtxt(os.path.join('output','nnn_list4.out'), names=True, skip_header=1)
-    print('zeta = ',zeta)
-    print('from corr3 output = ',corr3_output['zeta'])
-    print('ratio = ',corr3_output['zeta']/zeta.flatten())
-    print('diff = ',corr3_output['zeta']-zeta.flatten())
     np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
 
 @timer
@@ -3104,39 +2833,27 @@ def test_direct_logsas_auto():
                 if i == k: continue
                 if j == k: continue
                 # i is the vertex where phi is (aka c1)
-                # ik is r2, ij is r3.
-                r1 = np.sqrt((x[j]-x[k])**2 + (y[j]-y[k])**2)
-                r2 = np.sqrt((x[i]-x[k])**2 + (y[i]-y[k])**2)
-                r3 = np.sqrt((x[i]-x[j])**2 + (y[i]-y[j])**2)
-                if r1 == 0.: continue
-                if r2 == 0.: continue
-                if r3 == 0.: continue
-                phi = np.arccos((r2**2 + r3**2 - r1**2)/(2*r2*r3))
+                # ik is d2, ij is d3.
+                d1 = np.sqrt((x[j]-x[k])**2 + (y[j]-y[k])**2)
+                d2 = np.sqrt((x[i]-x[k])**2 + (y[i]-y[k])**2)
+                d3 = np.sqrt((x[i]-x[j])**2 + (y[i]-y[j])**2)
+                if d1 == 0.: continue
+                if d2 == 0.: continue
+                if d3 == 0.: continue
+                phi = np.arccos((d2**2 + d3**2 - d1**2)/(2*d2*d3))
                 if not is_ccw(x[i],y[i],x[k],y[k],x[j],y[j]):
                     phi = 2*np.pi - phi
-                if r2 < min_sep or r2 >= max_sep: continue
-                if r3 < min_sep or r3 >= max_sep: continue
+                if d2 < min_sep or d2 >= max_sep: continue
+                if d3 < min_sep or d3 >= max_sep: continue
                 if phi < min_phi or phi >= max_phi: continue
-                kr2 = int(np.floor( (np.log(r2)-log_min_sep) / bin_size ))
-                kr3 = int(np.floor( (np.log(r3)-log_min_sep) / bin_size ))
+                kr2 = int(np.floor( (np.log(d2)-log_min_sep) / bin_size ))
+                kr3 = int(np.floor( (np.log(d3)-log_min_sep) / bin_size ))
                 kphi = int(np.floor( (phi-min_phi) / phi_bin_size ))
                 assert 0 <= kr2 < nbins
                 assert 0 <= kphi < nphi_bins
                 assert 0 <= kr3 < nbins
                 true_ntri[kr2,kphi,kr3] += 1
 
-    nz = np.where((ddd.ntri > 0) | (true_ntri > 0))
-    print('non-zero at:')
-    print(nz)
-    print('d1 = ',ddd.meand1[nz])
-    print('d2 = ',ddd.meand2[nz])
-    print('d3 = ',ddd.meand3[nz])
-    print('r2nom = ',ddd.r2nom[nz])
-    print('r3nom = ',ddd.r3nom[nz])
-    print('phi = ',ddd.phi[nz])
-    print('ddd.ntri = ',ddd.ntri[nz])
-    print('true_ntri = ',true_ntri[nz])
-    print('diff = ',ddd.ntri[nz] - true_ntri[nz])
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # Check that running via the corr3 script works correctly.
@@ -3164,36 +2881,12 @@ def test_direct_logsas_auto():
     treecorr.corr3(config, logger)
     corr3_output = np.genfromtxt(os.path.join('output','nnn_direct_logsas.out'), names=True,
                                     skip_header=1)
-    print('corr3_output = ',corr3_output)
-    print('corr3_output.dtype = ',corr3_output.dtype)
-    print('r2nom = ',ddd.r2nom.flatten())
-    print('       ',corr3_output['r2_nom'])
-    np.testing.assert_allclose(corr3_output['r2_nom'], ddd.r2nom.flatten(), rtol=1.e-3)
-    print('r3nom = ',ddd.r3nom.flatten())
-    print('       ',corr3_output['r3_nom'])
-    np.testing.assert_allclose(corr3_output['r3_nom'], ddd.r3nom.flatten(), rtol=1.e-3)
-    print('phinom = ',ddd.phi.flatten())
-    print('       ',corr3_output['phi_nom'])
+    np.testing.assert_allclose(corr3_output['d2_nom'], ddd.d2nom.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['d3_nom'], ddd.d3nom.flatten(), rtol=1.e-3)
     np.testing.assert_allclose(corr3_output['phi_nom'], ddd.phi.flatten(), rtol=1.e-3)
-    print('DDD = ',ddd.ntri.flatten())
-    print('      ',corr3_output['DDD'])
-    print('      ',corr3_output['ntri'])
     np.testing.assert_allclose(corr3_output['DDD'], ddd.ntri.flatten(), rtol=1.e-3)
     np.testing.assert_allclose(corr3_output['ntri'], ddd.ntri.flatten(), rtol=1.e-3)
-    print('RRR = ',rrr.ntri.flatten())
-    print('      ',corr3_output['RRR'])
-    print('RRR = ',rrr.ntri.flatten()[-20:])
-    print('      ',corr3_output['RRR'][-20:])
-    print('ndiff = ',np.sum(rrr.ntri.flatten() != corr3_output['RRR']))
     np.testing.assert_allclose(corr3_output['RRR'], rrr.ntri.flatten(), rtol=1.e-3)
-    print('zeta = ',zeta.flatten())
-    print('from corr3 output = ',corr3_output['zeta'])
-    print('diff = ',corr3_output['zeta']-zeta.flatten())
-    diff_index = np.where(np.abs(corr3_output['zeta']-zeta.flatten()) > 1.e-3 * np.abs(zeta.flatten()))
-    print('different at ',diff_index)
-    print('zeta[diffs] = ',zeta.flatten()[diff_index])
-    print('corr3.zeta[diffs] = ',corr3_output['zeta'][diff_index])
-    print('diff[diffs] = ',zeta.flatten()[diff_index] - corr3_output['zeta'][diff_index])
     np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
     np.testing.assert_allclose(corr3_output['sigma_zeta'], np.sqrt(varzeta).flatten(), rtol=1.e-3)
 
@@ -3202,9 +2895,6 @@ def test_direct_logsas_auto():
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                   bin_slop=0, verbose=1, bin_type='LogSAS')
     ddd.process(cat)
-    #print('ddd.ntri = ',ddd.ntri)
-    #print('true_ntri => ',true_ntri)
-    #print('diff = ',ddd.ntri - true_ntri)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # And again with no top-level recursion
@@ -3212,17 +2902,11 @@ def test_direct_logsas_auto():
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                   bin_slop=0, verbose=1, max_top=0, bin_type='LogSAS')
     ddd.process(cat)
-    #print('ddd.ntri = ',ddd.ntri)
-    #print('true_ntri => ',true_ntri)
-    #print('diff = ',ddd.ntri - true_ntri)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # And compare to the cross correlation
     # As before, this will count each triangle 6 times.
     ddd.process(cat,cat,cat)
-    #print('ddd.ntri = ',ddd.ntri)
-    #print('true_ntri => ',true_ntri)
-    #print('diff = ',ddd.ntri - true_ntri)
     np.testing.assert_array_equal(ddd.ntri, 6*true_ntri)
 
     # But with ordered=True, it only counts each triangle once.
@@ -3231,9 +2915,6 @@ def test_direct_logsas_auto():
 
     # Or with 2 argument version, finds each triangle 3 times.
     ddd.process(cat,cat)
-    #print('ddd.ntri = ',ddd.ntri)
-    #print('true_ntri => ',true_ntri)
-    #print('diff = ',ddd.ntri - true_ntri)
     np.testing.assert_array_equal(ddd.ntri, 3*true_ntri)
 
     ddd.process(cat,cat, ordered=True)
@@ -3308,22 +2989,22 @@ def test_direct_logsas_cross():
     for i in range(ngal):
         for j in range(ngal):
             for k in range(ngal):
-                r1 = np.sqrt((x2[j]-x3[k])**2 + (y2[j]-y3[k])**2)
-                r2 = np.sqrt((x1[i]-x3[k])**2 + (y1[i]-y3[k])**2)
-                r3 = np.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2)
-                if r1 == 0.: continue
-                if r2 == 0.: continue
-                if r3 == 0.: continue
+                d1 = np.sqrt((x2[j]-x3[k])**2 + (y2[j]-y3[k])**2)
+                d2 = np.sqrt((x1[i]-x3[k])**2 + (y1[i]-y3[k])**2)
+                d3 = np.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2)
+                if d1 == 0.: continue
+                if d2 == 0.: continue
+                if d3 == 0.: continue
 
-                kr1 = int(np.floor( (np.log(r1)-log_min_sep) / bin_size ))
-                kr2 = int(np.floor( (np.log(r2)-log_min_sep) / bin_size ))
-                kr3 = int(np.floor( (np.log(r3)-log_min_sep) / bin_size ))
+                kr1 = int(np.floor( (np.log(d1)-log_min_sep) / bin_size ))
+                kr2 = int(np.floor( (np.log(d2)-log_min_sep) / bin_size ))
+                kr3 = int(np.floor( (np.log(d3)-log_min_sep) / bin_size ))
 
-                if r2 >= min_sep and r2 < max_sep and r3 >= min_sep and r3 < max_sep:
+                if d2 >= min_sep and d2 < max_sep and d3 >= min_sep and d3 < max_sep:
                     assert 0 <= kr2 < nbins
                     assert 0 <= kr3 < nbins
                     # 123
-                    phi = np.arccos((r2**2 + r3**2 - r1**2)/(2*r2*r3))
+                    phi = np.arccos((d2**2 + d3**2 - d1**2)/(2*d2*d3))
                     if not is_ccw(x1[i],y1[i],x3[k],y3[k],x2[j],y2[j]):
                         phi = 2*np.pi - phi
                     if phi >= min_phi and phi < max_phi:
@@ -3337,11 +3018,11 @@ def test_direct_logsas_cross():
                         assert 0 <= kphi < nphi_bins
                         true_ntri_132[kr3,kphi,kr2] += 1
 
-                if r1 >= min_sep and r1 < max_sep and r3 >= min_sep and r3 < max_sep:
+                if d1 >= min_sep and d1 < max_sep and d3 >= min_sep and d3 < max_sep:
                     assert 0 <= kr1 < nbins
                     assert 0 <= kr3 < nbins
                     # 231
-                    phi = np.arccos((r1**2 + r3**2 - r2**2)/(2*r1*r3))
+                    phi = np.arccos((d1**2 + d3**2 - d2**2)/(2*d1*d3))
                     if not is_ccw(x1[i],y1[i],x3[k],y3[k],x2[j],y2[j]):
                         phi = 2*np.pi - phi
                     if phi >= min_phi and phi < max_phi:
@@ -3356,11 +3037,11 @@ def test_direct_logsas_cross():
                         assert 0 <= kphi < nphi_bins
                         true_ntri_213[kr1,kphi,kr3] += 1
 
-                if r1 >= min_sep and r1 < max_sep and r2 >= min_sep and r2 < max_sep:
+                if d1 >= min_sep and d1 < max_sep and d2 >= min_sep and d2 < max_sep:
                     assert 0 <= kr1 < nbins
                     assert 0 <= kr2 < nbins
                     # 312
-                    phi = np.arccos((r1**2 + r2**2 - r3**2)/(2*r1*r2))
+                    phi = np.arccos((d1**2 + d2**2 - d3**2)/(2*d1*d2))
                     if not is_ccw(x1[i],y1[i],x3[k],y3[k],x2[j],y2[j]):
                         phi = 2*np.pi - phi
                     if phi >= min_phi and phi < max_phi:
@@ -3422,8 +3103,6 @@ def test_direct_logsas_cross():
     ddd.process(cat1, cat2, cat3)
     t1 = time.time()
     print('bin_slop=0 unordered: ',t1-t0)
-    #print('binslop > 0: ddd.ntri = ',ddd.ntri)
-    #print('diff = ',ddd.ntri - true_ntri_123)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
     t0 = time.time()
     ddd.process(cat1, cat2, cat3, ordered=True)
@@ -3439,9 +3118,6 @@ def test_direct_logsas_cross():
     ddd.process(cat1, cat2, cat3)
     t1 = time.time()
     print('no top unordered: ',t1-t0)
-    #print('max_top = 0: ddd.ntri = ',ddd.ntri)
-    #print('true_ntri = ',true_ntri_123)
-    #print('diff = ',ddd.ntri - true_ntri_123)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
     t0 = time.time()
     ddd.process(cat1, cat2, cat3, ordered=True)
@@ -3539,22 +3215,22 @@ def test_direct_logsas_cross12():
         for j in range(ngal):
             for k in range(ngal):
                 if j == k: continue
-                r1 = np.sqrt((x2[j]-x2[k])**2 + (y2[j]-y2[k])**2)
-                r2 = np.sqrt((x1[i]-x2[k])**2 + (y1[i]-y2[k])**2)
-                r3 = np.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2)
-                if r1 == 0.: continue
-                if r2 == 0.: continue
-                if r3 == 0.: continue
+                d1 = np.sqrt((x2[j]-x2[k])**2 + (y2[j]-y2[k])**2)
+                d2 = np.sqrt((x1[i]-x2[k])**2 + (y1[i]-y2[k])**2)
+                d3 = np.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2)
+                if d1 == 0.: continue
+                if d2 == 0.: continue
+                if d3 == 0.: continue
 
-                kr1 = int(np.floor( (np.log(r1)-log_min_sep) / bin_size ))
-                kr2 = int(np.floor( (np.log(r2)-log_min_sep) / bin_size ))
-                kr3 = int(np.floor( (np.log(r3)-log_min_sep) / bin_size ))
+                kr1 = int(np.floor( (np.log(d1)-log_min_sep) / bin_size ))
+                kr2 = int(np.floor( (np.log(d2)-log_min_sep) / bin_size ))
+                kr3 = int(np.floor( (np.log(d3)-log_min_sep) / bin_size ))
 
                 # 123
-                if r2 >= min_sep and r2 < max_sep and r3 >= min_sep and r3 < max_sep:
+                if d2 >= min_sep and d2 < max_sep and d3 >= min_sep and d3 < max_sep:
                     assert 0 <= kr2 < nbins
                     assert 0 <= kr3 < nbins
-                    phi = np.arccos((r2**2 + r3**2 - r1**2)/(2*r2*r3))
+                    phi = np.arccos((d2**2 + d3**2 - d1**2)/(2*d2*d3))
                     if not is_ccw(x1[i],y1[i],x2[k],y2[k],x2[j],y2[j]):
                         phi = 2*np.pi - phi
                     if phi >= min_phi and phi < max_phi:
@@ -3563,10 +3239,10 @@ def test_direct_logsas_cross12():
                         true_ntri_122[kr2,kphi,kr3] += 1
 
                 # 231
-                if r1 >= min_sep and r1 < max_sep and r3 >= min_sep and r3 < max_sep:
+                if d1 >= min_sep and d1 < max_sep and d3 >= min_sep and d3 < max_sep:
                     assert 0 <= kr1 < nbins
                     assert 0 <= kr3 < nbins
-                    phi = np.arccos((r1**2 + r3**2 - r2**2)/(2*r1*r3))
+                    phi = np.arccos((d1**2 + d3**2 - d2**2)/(2*d1*d3))
                     if not is_ccw(x1[i],y1[i],x2[k],y2[k],x2[j],y2[j]):
                         phi = 2*np.pi - phi
                     if phi >= min_phi and phi < max_phi:
@@ -3575,10 +3251,10 @@ def test_direct_logsas_cross12():
                         true_ntri_221[kr3,kphi,kr1] += 1
 
                 # 312
-                if r1 >= min_sep and r1 < max_sep and r2 >= min_sep and r2 < max_sep:
+                if d1 >= min_sep and d1 < max_sep and d2 >= min_sep and d2 < max_sep:
                     assert 0 <= kr1 < nbins
                     assert 0 <= kr2 < nbins
-                    phi = np.arccos((r1**2 + r2**2 - r3**2)/(2*r1*r2))
+                    phi = np.arccos((d1**2 + d2**2 - d3**2)/(2*d1*d2))
                     if not is_ccw(x1[i],y1[i],x2[k],y2[k],x2[j],y2[j]):
                         phi = 2*np.pi - phi
                     if phi >= min_phi and phi < max_phi:
@@ -3617,8 +3293,6 @@ def test_direct_logsas_cross12():
     ddd.process(cat1, cat2)
     t1 = time.time()
     print('bin_slop=0 unordered: ',t1-t0)
-    #print('binslop > 0: ddd.ntri = ',ddd.ntri)
-    #print('diff = ',ddd.ntri - true_ntri_123)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
     t0 = time.time()
     ddd.process(cat1, cat2, ordered=True)
@@ -3644,9 +3318,6 @@ def test_direct_logsas_cross12():
     ddd.process(cat1, cat2)
     t1 = time.time()
     print('no top unordered: ',t1-t0)
-    #print('max_top = 0: ddd.ntri = ',ddd.ntri)
-    #print('true_ntri = ',true_ntri_123)
-    #print('diff = ',ddd.ntri - true_ntri_123)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
     t0 = time.time()
     ddd.process(cat1, cat2, ordered=True)
@@ -3744,7 +3415,6 @@ def test_nnn_logsas():
     ddd.process(cat)
     t1 = time.time()
     print('auto process time = ',t1-t0)
-    #print('ddd.ntri = ',ddd.ntri)
 
     # Doing 3 catalogs ordered, should be equivelent.  Not numerically identical, but
     # basically the same answer.
@@ -3756,8 +3426,9 @@ def test_nnn_logsas():
     t1 = time.time()
     print('cross process time = ',t1-t0)
     np.testing.assert_allclose(dddc.ntri, ddd.ntri)
-    np.testing.assert_allclose(dddc.meanlogr2, ddd.meanlogr2)
-    np.testing.assert_allclose(dddc.meanlogr3, ddd.meanlogr3)
+    np.testing.assert_allclose(dddc.meanlogd1, ddd.meanlogd1)
+    np.testing.assert_allclose(dddc.meanlogd2, ddd.meanlogd2)
+    np.testing.assert_allclose(dddc.meanlogd3, ddd.meanlogd3)
     np.testing.assert_allclose(dddc.meanphi, ddd.meanphi)
 
     t0 = time.time()
@@ -3765,15 +3436,16 @@ def test_nnn_logsas():
     t1 = time.time()
     print('cross12 process time = ',t1-t0)
     np.testing.assert_allclose(dddc.ntri, ddd.ntri)
-    np.testing.assert_allclose(dddc.meanlogr2, ddd.meanlogr2)
-    np.testing.assert_allclose(dddc.meanlogr3, ddd.meanlogr3)
+    np.testing.assert_allclose(dddc.meanlogd1, ddd.meanlogd1)
+    np.testing.assert_allclose(dddc.meanlogd2, ddd.meanlogd2)
+    np.testing.assert_allclose(dddc.meanlogd3, ddd.meanlogd3)
     np.testing.assert_allclose(dddc.meanphi, ddd.meanphi)
 
     # log(<d>) != <logd>, but it should be close:
-    print('meanlogr2 - log(meanr2) = ',ddd.meanlogd2 - np.log(ddd.meand2))
-    print('meanlogr3 - log(meanr3) = ',ddd.meanlogd3 - np.log(ddd.meand3))
-    np.testing.assert_allclose(ddd.meanlogr2, np.log(ddd.meanr2), rtol=1.e-3)
-    np.testing.assert_allclose(ddd.meanlogr3, np.log(ddd.meanr3), rtol=1.e-3)
+    print('meanlogd2 - log(meand2) = ',ddd.meanlogd2 - np.log(ddd.meand2))
+    print('meanlogd3 - log(meand3) = ',ddd.meanlogd3 - np.log(ddd.meand3))
+    np.testing.assert_allclose(ddd.meanlogd2, np.log(ddd.meand2), rtol=1.e-3)
+    np.testing.assert_allclose(ddd.meanlogd3, np.log(ddd.meand3), rtol=1.e-3)
 
     rx = (rng.random_sample(nrand)-0.5) * L
     ry = (rng.random_sample(nrand)-0.5) * L
@@ -3783,11 +3455,11 @@ def test_nnn_logsas():
                                   sep_units='arcmin', verbose=1, bin_type='LogSAS')
     rrr.process(rand)
 
-    d2 = ddd.meanr2
-    d3 = ddd.meanr3
+    d1 = ddd.meand1
+    d2 = ddd.meand2
+    d3 = ddd.meand3
     phi = ddd.meanphi
-    d1sq = d2**2 + d3**2 - 2*d2*d3*np.cos(phi)
-    true_zeta = (1./(12.*np.pi**2)) * (L/s)**4 * np.exp(-(d1sq+d2**2+d3**2)/(6.*s**2)) - 1.
+    true_zeta = (1./(12.*np.pi**2)) * (L/s)**4 * np.exp(-(d1**2+d2**2+d3**2)/(6.*s**2)) - 1.
 
     zeta, varzeta = ddd.calculateZeta(rrr=rrr)
     print('zeta = ',zeta)
@@ -3821,13 +3493,15 @@ def test_nnn_logsas():
         out_file_name1 = os.path.join('output','nnn_out1_logsas.fits')
         ddd.write(out_file_name1)
         data = fitsio.read(out_file_name1)
-        np.testing.assert_almost_equal(data['r2_nom'], np.exp(ddd.logr2).flatten())
-        np.testing.assert_almost_equal(data['r3_nom'], np.exp(ddd.logr3).flatten())
+        np.testing.assert_almost_equal(data['d2_nom'], np.exp(ddd.logd2).flatten())
+        np.testing.assert_almost_equal(data['d3_nom'], np.exp(ddd.logd3).flatten())
         np.testing.assert_almost_equal(data['phi_nom'], ddd.phi.flatten())
-        np.testing.assert_almost_equal(data['meanr2'], ddd.meanr2.flatten())
-        np.testing.assert_almost_equal(data['meanlogr2'], ddd.meanlogr2.flatten())
-        np.testing.assert_almost_equal(data['meanr3'], ddd.meanr3.flatten())
-        np.testing.assert_almost_equal(data['meanlogr3'], ddd.meanlogr3.flatten())
+        np.testing.assert_almost_equal(data['meand1'], ddd.meand1.flatten())
+        np.testing.assert_almost_equal(data['meanlogd1'], ddd.meanlogd1.flatten())
+        np.testing.assert_almost_equal(data['meand2'], ddd.meand2.flatten())
+        np.testing.assert_almost_equal(data['meanlogd2'], ddd.meanlogd2.flatten())
+        np.testing.assert_almost_equal(data['meand3'], ddd.meand3.flatten())
+        np.testing.assert_almost_equal(data['meanlogd3'], ddd.meanlogd3.flatten())
         np.testing.assert_almost_equal(data['meanphi'], ddd.meanphi.flatten())
         np.testing.assert_almost_equal(data['ntri'], ddd.ntri.flatten())
         header = fitsio.read_header(out_file_name1, 1)
@@ -3836,13 +3510,15 @@ def test_nnn_logsas():
         out_file_name2 = os.path.join('output','nnn_out2_logsas.fits')
         ddd.write(out_file_name2, rrr=rrr)
         data = fitsio.read(out_file_name2)
-        np.testing.assert_almost_equal(data['r2_nom'], np.exp(ddd.logr2).flatten())
-        np.testing.assert_almost_equal(data['r3_nom'], np.exp(ddd.logr3).flatten())
+        np.testing.assert_almost_equal(data['d2_nom'], np.exp(ddd.logd2).flatten())
+        np.testing.assert_almost_equal(data['d3_nom'], np.exp(ddd.logd3).flatten())
         np.testing.assert_almost_equal(data['phi_nom'], ddd.phi.flatten())
-        np.testing.assert_almost_equal(data['meanr2'], ddd.meanr2.flatten())
-        np.testing.assert_almost_equal(data['meanlogr2'], ddd.meanlogr2.flatten())
-        np.testing.assert_almost_equal(data['meanr3'], ddd.meanr3.flatten())
-        np.testing.assert_almost_equal(data['meanlogr3'], ddd.meanlogr3.flatten())
+        np.testing.assert_almost_equal(data['meand1'], ddd.meand1.flatten())
+        np.testing.assert_almost_equal(data['meanlogd1'], ddd.meanlogd1.flatten())
+        np.testing.assert_almost_equal(data['meand2'], ddd.meand2.flatten())
+        np.testing.assert_almost_equal(data['meanlogd2'], ddd.meanlogd2.flatten())
+        np.testing.assert_almost_equal(data['meand3'], ddd.meand3.flatten())
+        np.testing.assert_almost_equal(data['meanlogd3'], ddd.meanlogd3.flatten())
         np.testing.assert_almost_equal(data['meanphi'], ddd.meanphi.flatten())
         np.testing.assert_almost_equal(data['zeta'], zeta.flatten())
         np.testing.assert_almost_equal(data['sigma_zeta'], np.sqrt(varzeta).flatten())
@@ -3858,13 +3534,15 @@ def test_nnn_logsas():
                                        min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                        sep_units='arcmin', verbose=1, bin_type='LogSAS')
         ddd2.read(out_file_name1)
-        np.testing.assert_almost_equal(ddd2.logr2, ddd.logr2)
-        np.testing.assert_almost_equal(ddd2.logr3, ddd.logr3)
+        np.testing.assert_almost_equal(ddd2.logd2, ddd.logd2)
+        np.testing.assert_almost_equal(ddd2.logd3, ddd.logd3)
         np.testing.assert_almost_equal(ddd2.phi, ddd.phi)
-        np.testing.assert_almost_equal(ddd2.meanr2, ddd.meanr2)
-        np.testing.assert_almost_equal(ddd2.meanlogr2, ddd.meanlogr2)
-        np.testing.assert_almost_equal(ddd2.meanr3, ddd.meanr3)
-        np.testing.assert_almost_equal(ddd2.meanlogr3, ddd.meanlogr3)
+        np.testing.assert_almost_equal(ddd2.meand1, ddd.meand1)
+        np.testing.assert_almost_equal(ddd2.meanlogd1, ddd.meanlogd1)
+        np.testing.assert_almost_equal(ddd2.meand2, ddd.meand2)
+        np.testing.assert_almost_equal(ddd2.meanlogd2, ddd.meanlogd2)
+        np.testing.assert_almost_equal(ddd2.meand3, ddd.meand3)
+        np.testing.assert_almost_equal(ddd2.meanlogd3, ddd.meanlogd3)
         np.testing.assert_almost_equal(ddd2.meanphi, ddd.meanphi)
         np.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
         np.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
@@ -3874,13 +3552,15 @@ def test_nnn_logsas():
         assert ddd2.bin_type == ddd.bin_type
 
         ddd2.read(out_file_name2)
-        np.testing.assert_almost_equal(ddd2.logr2, ddd.logr2)
-        np.testing.assert_almost_equal(ddd2.logr3, ddd.logr3)
+        np.testing.assert_almost_equal(ddd2.logd2, ddd.logd2)
+        np.testing.assert_almost_equal(ddd2.logd3, ddd.logd3)
         np.testing.assert_almost_equal(ddd2.phi, ddd.phi)
-        np.testing.assert_almost_equal(ddd2.meanr2, ddd.meanr2)
-        np.testing.assert_almost_equal(ddd2.meanlogr2, ddd.meanlogr2)
-        np.testing.assert_almost_equal(ddd2.meanr3, ddd.meanr3)
-        np.testing.assert_almost_equal(ddd2.meanlogr3, ddd.meanlogr3)
+        np.testing.assert_almost_equal(ddd2.meand1, ddd.meand1)
+        np.testing.assert_almost_equal(ddd2.meanlogd1, ddd.meanlogd1)
+        np.testing.assert_almost_equal(ddd2.meand2, ddd.meand2)
+        np.testing.assert_almost_equal(ddd2.meanlogd2, ddd.meanlogd2)
+        np.testing.assert_almost_equal(ddd2.meand3, ddd.meand3)
+        np.testing.assert_almost_equal(ddd2.meanlogd3, ddd.meanlogd3)
         np.testing.assert_almost_equal(ddd2.meanphi, ddd.meanphi)
         np.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
         np.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
@@ -3899,13 +3579,15 @@ def test_nnn_logsas():
         ddd.write(out_file_name3, rrr=rrr)
         with h5py.File(out_file_name3, 'r') as hdf:
             data = hdf['/']
-            np.testing.assert_almost_equal(data['r2_nom'], np.exp(ddd.logr2).flatten())
-            np.testing.assert_almost_equal(data['r2_nom'], np.exp(ddd.logr3).flatten())
+            np.testing.assert_almost_equal(data['d2_nom'], np.exp(ddd.logd2).flatten())
+            np.testing.assert_almost_equal(data['d3_nom'], np.exp(ddd.logd3).flatten())
             np.testing.assert_almost_equal(data['phi_nom'], ddd.phi.flatten())
-            np.testing.assert_almost_equal(data['meanr2'], ddd.meanr2.flatten())
-            np.testing.assert_almost_equal(data['meanlogr2'], ddd.meanlogr2.flatten())
-            np.testing.assert_almost_equal(data['meanr3'], ddd.meanr3.flatten())
-            np.testing.assert_almost_equal(data['meanlogr3'], ddd.meanlogr3.flatten())
+            np.testing.assert_almost_equal(data['meand1'], ddd.meand1.flatten())
+            np.testing.assert_almost_equal(data['meanlogd1'], ddd.meanlogd1.flatten())
+            np.testing.assert_almost_equal(data['meand2'], ddd.meand2.flatten())
+            np.testing.assert_almost_equal(data['meanlogd2'], ddd.meanlogd2.flatten())
+            np.testing.assert_almost_equal(data['meand3'], ddd.meand3.flatten())
+            np.testing.assert_almost_equal(data['meanlogd3'], ddd.meanlogd3.flatten())
             np.testing.assert_almost_equal(data['meanphi'], ddd.meanphi.flatten())
             np.testing.assert_almost_equal(data['ntri'], ddd.ntri.flatten())
             np.testing.assert_almost_equal(data['zeta'], zeta.flatten())
@@ -3919,13 +3601,15 @@ def test_nnn_logsas():
                                        min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                        sep_units='arcmin', verbose=1, bin_type='LogSAS')
         ddd3.read(out_file_name3)
-        np.testing.assert_almost_equal(ddd3.logr2, ddd.logr2)
-        np.testing.assert_almost_equal(ddd3.logr3, ddd.logr3)
+        np.testing.assert_almost_equal(ddd3.logd2, ddd.logd2)
+        np.testing.assert_almost_equal(ddd3.logd3, ddd.logd3)
         np.testing.assert_almost_equal(ddd3.phi, ddd.phi)
-        np.testing.assert_almost_equal(ddd3.meanr2, ddd.meanr2)
-        np.testing.assert_almost_equal(ddd3.meanlogr2, ddd.meanlogr2)
-        np.testing.assert_almost_equal(ddd3.meanr3, ddd.meanr3)
-        np.testing.assert_almost_equal(ddd3.meanlogr3, ddd.meanlogr3)
+        np.testing.assert_almost_equal(ddd3.meand1, ddd.meand1)
+        np.testing.assert_almost_equal(ddd3.meanlogd1, ddd.meanlogd1)
+        np.testing.assert_almost_equal(ddd3.meand2, ddd.meand2)
+        np.testing.assert_almost_equal(ddd3.meanlogd2, ddd.meanlogd2)
+        np.testing.assert_almost_equal(ddd3.meand3, ddd.meand3)
+        np.testing.assert_almost_equal(ddd3.meanlogd3, ddd.meanlogd3)
         np.testing.assert_almost_equal(ddd3.meanphi, ddd.meanphi)
         np.testing.assert_almost_equal(ddd3.ntri, ddd.ntri)
         np.testing.assert_almost_equal(ddd3.tot/ddd.tot, 1.)
@@ -3983,7 +3667,7 @@ def test_nnn_logsas():
     zeta, varzeta = ddd.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)
     print('compensated zeta = ',zeta)
 
-    xi1 = (1./(4.*np.pi)) * (L/s)**2 * np.exp(-d1sq/(4.*s**2)) - 1.
+    xi1 = (1./(4.*np.pi)) * (L/s)**2 * np.exp(-d1**2/(4.*s**2)) - 1.
     xi2 = (1./(4.*np.pi)) * (L/s)**2 * np.exp(-d2**2/(4.*s**2)) - 1.
     xi3 = (1./(4.*np.pi)) * (L/s)**2 * np.exp(-d3**2/(4.*s**2)) - 1.
     print('xi1 = ',xi1)
@@ -4006,13 +3690,15 @@ def test_nnn_logsas():
         out_file_name3 = os.path.join('output','nnn_out3_logsas.fits')
         ddd.write(out_file_name3, rrr=rrr, drr=drr, rdd=rdd)
         data = fitsio.read(out_file_name3)
-        np.testing.assert_almost_equal(data['r2_nom'], np.exp(ddd.logr2).flatten())
-        np.testing.assert_almost_equal(data['r3_nom'], np.exp(ddd.logr3).flatten())
+        np.testing.assert_almost_equal(data['d2_nom'], np.exp(ddd.logd2).flatten())
+        np.testing.assert_almost_equal(data['d3_nom'], np.exp(ddd.logd3).flatten())
         np.testing.assert_almost_equal(data['phi_nom'], ddd.phi.flatten())
-        np.testing.assert_almost_equal(data['meanr2'], ddd.meanr2.flatten())
-        np.testing.assert_almost_equal(data['meanlogr2'], ddd.meanlogr2.flatten())
-        np.testing.assert_almost_equal(data['meanr3'], ddd.meanr3.flatten())
-        np.testing.assert_almost_equal(data['meanlogr3'], ddd.meanlogr3.flatten())
+        np.testing.assert_almost_equal(data['meand1'], ddd.meand1.flatten())
+        np.testing.assert_almost_equal(data['meanlogd1'], ddd.meanlogd1.flatten())
+        np.testing.assert_almost_equal(data['meand2'], ddd.meand2.flatten())
+        np.testing.assert_almost_equal(data['meanlogd2'], ddd.meanlogd2.flatten())
+        np.testing.assert_almost_equal(data['meand3'], ddd.meand3.flatten())
+        np.testing.assert_almost_equal(data['meanlogd3'], ddd.meanlogd3.flatten())
         np.testing.assert_almost_equal(data['meanphi'], ddd.meanphi.flatten())
         np.testing.assert_almost_equal(data['zeta'], zeta.flatten())
         np.testing.assert_almost_equal(data['sigma_zeta'], np.sqrt(varzeta).flatten())
@@ -4024,13 +3710,15 @@ def test_nnn_logsas():
         np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
 
         ddd2.read(out_file_name3)
-        np.testing.assert_almost_equal(ddd2.logr2, ddd.logr2)
-        np.testing.assert_almost_equal(ddd2.logr3, ddd.logr3)
+        np.testing.assert_almost_equal(ddd2.logd2, ddd.logd2)
+        np.testing.assert_almost_equal(ddd2.logd3, ddd.logd3)
         np.testing.assert_almost_equal(ddd2.phi, ddd.phi)
-        np.testing.assert_almost_equal(ddd2.meanr2, ddd.meanr2)
-        np.testing.assert_almost_equal(ddd2.meanlogr2, ddd.meanlogr2)
-        np.testing.assert_almost_equal(ddd2.meanr3, ddd.meanr3)
-        np.testing.assert_almost_equal(ddd2.meanlogr3, ddd.meanlogr3)
+        np.testing.assert_almost_equal(ddd2.meand1, ddd.meand1)
+        np.testing.assert_almost_equal(ddd2.meanlogd1, ddd.meanlogd1)
+        np.testing.assert_almost_equal(ddd2.meand2, ddd.meand2)
+        np.testing.assert_almost_equal(ddd2.meanlogd2, ddd.meanlogd2)
+        np.testing.assert_almost_equal(ddd2.meand3, ddd.meand3)
+        np.testing.assert_almost_equal(ddd2.meanlogd3, ddd.meanlogd3)
         np.testing.assert_almost_equal(ddd2.meanphi, ddd.meanphi)
         np.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
         np.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
@@ -4048,13 +3736,15 @@ def test_nnn_logsas():
         print('ratio = ',data['zeta']/zeta.flatten())
         print('diff = ',data['zeta']-zeta.flatten())
 
-        np.testing.assert_almost_equal(data['r2_nom'], np.exp(ddd.logr2).flatten())
-        np.testing.assert_almost_equal(data['r3_nom'], np.exp(ddd.logr3).flatten())
+        np.testing.assert_almost_equal(data['d2_nom'], np.exp(ddd.logd2).flatten())
+        np.testing.assert_almost_equal(data['d3_nom'], np.exp(ddd.logd3).flatten())
         np.testing.assert_almost_equal(data['phi_nom'], ddd.phi.flatten())
-        np.testing.assert_almost_equal(data['meanr2'], ddd.meanr2.flatten())
-        np.testing.assert_almost_equal(data['meanlogr2'], ddd.meanlogr2.flatten())
-        np.testing.assert_almost_equal(data['meanr3'], ddd.meanr3.flatten())
-        np.testing.assert_almost_equal(data['meanlogr3'], ddd.meanlogr3.flatten())
+        np.testing.assert_almost_equal(data['meand1'], ddd.meand1.flatten())
+        np.testing.assert_almost_equal(data['meanlogd1'], ddd.meanlogd1.flatten())
+        np.testing.assert_almost_equal(data['meand2'], ddd.meand2.flatten())
+        np.testing.assert_almost_equal(data['meanlogd2'], ddd.meanlogd2.flatten())
+        np.testing.assert_almost_equal(data['meand3'], ddd.meand3.flatten())
+        np.testing.assert_almost_equal(data['meanlogd3'], ddd.meanlogd3.flatten())
         np.testing.assert_almost_equal(data['meanphi'], ddd.meanphi.flatten())
         np.testing.assert_almost_equal(data['zeta'], zeta.flatten())
         np.testing.assert_almost_equal(data['sigma_zeta'], np.sqrt(varzeta).flatten())

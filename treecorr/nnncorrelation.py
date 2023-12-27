@@ -68,17 +68,17 @@ class NNNCorrelation(Corr3):
     If bin_type is LogSAS:
 
     Attributes:
-        logr2:      The nominal center of each r1 side bin in log(r1).
-        r2nom:      The nominal center of each r1 side bin converted to regular distance.
-                    i.e. r1 = exp(logr1).
-        logr3:      The nominal center of each r2 side bin in log(r2).
-        r3nom:      The nominal center of each r2 side bin converted to regular distance.
-                    i.e. r2 = exp(logr2).
+        logd2:      The nominal center of each d2 side bin in log(d2).
+        d2nom:      The nominal center of each d2 side bin converted to regular distance.
+                    i.e. d2 = exp(logd2).
+        logd3:      The nominal center of each d3 side bin in log(d3).
+        d3nom:      The nominal center of each d3 side bin converted to regular distance.
+                    i.e. d3 = exp(logd3).
         phi:        The nominal center of each angular bin.
-        meanr2:     The (weighted) mean value of r1 for the triangles in each bin.
-        meanlogr2:  The mean value of log(r1) for the triangles in each bin.
-        meanr3:     The (weighted) mean value of r2 for the triangles in each bin.
-        meanlogr3:  The mean value of log(r2) for the triangles in each bin.
+        meand2:     The (weighted) mean value of d2 for the triangles in each bin.
+        meanlogd2:  The mean value of log(d2) for the triangles in each bin.
+        meand3:     The (weighted) mean value of d3 for the triangles in each bin.
+        meanlogd3:  The mean value of log(d3) for the triangles in each bin.
         meanphi:    The (weighted) mean value of phi for the triangles in each bin.
         weight:     The total weight in each bin.
         ntri:       The number of triangles going into each bin (including those where one or
@@ -376,14 +376,14 @@ class NNNCorrelation(Corr3):
         mask1 = self.weight != 0
         mask2 = self.weight == 0
 
+        self.meand1[mask1] /= self.weight[mask1]
+        self.meanlogd1[mask1] /= self.weight[mask1]
         self.meand2[mask1] /= self.weight[mask1]
         self.meanlogd2[mask1] /= self.weight[mask1]
-        self.meanu[mask1] /= self.weight[mask1]
         self.meand3[mask1] /= self.weight[mask1]
         self.meanlogd3[mask1] /= self.weight[mask1]
+        self.meanu[mask1] /= self.weight[mask1]
         if self.bin_type == 'LogRUV':
-            self.meand1[mask1] /= self.weight[mask1]
-            self.meanlogd1[mask1] /= self.weight[mask1]
             self.meanv[mask1] /= self.weight[mask1]
 
         # Update the units
@@ -400,11 +400,15 @@ class NNNCorrelation(Corr3):
             self.meand1[mask2] = np.abs(self.v[mask2]) * self.meand3[mask2] + self.meand2[mask2]
             self.meanlogd1[mask2] = np.log(self.meand1[mask2])
         else:
-            self.meand2[mask2] = self.r2nom[mask2]
-            self.meanlogd2[mask2] = self.logr2[mask2]
-            self.meand3[mask2] = self.r3nom[mask2]
-            self.meanlogd3[mask2] = self.logr3[mask2]
+            self.meand2[mask2] = self.d2nom[mask2]
+            self.meanlogd2[mask2] = self.logd2[mask2]
+            self.meand3[mask2] = self.d3nom[mask2]
+            self.meanlogd3[mask2] = self.logd3[mask2]
             self.meanu[mask2] = self.phi[mask2]
+            self.meand1[mask2] = np.sqrt(self.d2nom[mask2]**2 + self.d3nom[mask2]**2
+                                         - 2*self.d2nom[mask2]*self.d3nom[mask2]*
+                                         np.cos(self.phi[mask2]))
+            self.meanlogd1[mask2] = np.log(self.meand1[mask2])
 
     def finalize(self):
         """Finalize the calculation of meand1, meanlogd1, etc.
@@ -423,14 +427,14 @@ class NNNCorrelation(Corr3):
     def _clear(self):
         """Clear the data vectors
         """
+        self.meand1[:,:,:] = 0.
+        self.meanlogd1[:,:,:] = 0.
         self.meand2[:,:,:] = 0.
         self.meanlogd2[:,:,:] = 0.
         self.meand3[:,:,:] = 0.
         self.meanlogd3[:,:,:] = 0.
         self.meanu[:,:,:] = 0.
         if self.bin_type == 'LogRUV':
-            self.meand1[:,:,:] = 0.
-            self.meanlogd1[:,:,:] = 0.
             self.meanv[:,:,:] = 0.
         self.weight[:,:,:] = 0.
         self.ntri[:,:,:] = 0.
@@ -448,14 +452,14 @@ class NNNCorrelation(Corr3):
         if len(others) == 0:
             self._clear()
         else:
+            np.sum([c.meand1 for c in others], axis=0, out=self.meand1)
+            np.sum([c.meanlogd1 for c in others], axis=0, out=self.meanlogd1)
             np.sum([c.meand2 for c in others], axis=0, out=self.meand2)
             np.sum([c.meanlogd2 for c in others], axis=0, out=self.meanlogd2)
             np.sum([c.meand3 for c in others], axis=0, out=self.meand3)
             np.sum([c.meanlogd3 for c in others], axis=0, out=self.meanlogd3)
             np.sum([c.meanu for c in others], axis=0, out=self.meanu)
             if self.bin_type == 'LogRUV':
-                np.sum([c.meand1 for c in others], axis=0, out=self.meand1)
-                np.sum([c.meanlogd1 for c in others], axis=0, out=self.meanlogd1)
                 np.sum([c.meanv for c in others], axis=0, out=self.meanv)
             np.sum([c.weight for c in others], axis=0, out=self.weight)
             np.sum([c.ntri for c in others], axis=0, out=self.ntri)
@@ -495,14 +499,14 @@ class NNNCorrelation(Corr3):
         if not other.nonzero:
             return self
 
+        self.meand1[:] += other.meand1[:]
+        self.meanlogd1[:] += other.meanlogd1[:]
         self.meand2[:] += other.meand2[:]
         self.meanlogd2[:] += other.meanlogd2[:]
         self.meand3[:] += other.meand3[:]
         self.meanlogd3[:] += other.meanlogd3[:]
         self.meanu[:] += other.meanu[:]
         if self.bin_type == 'LogRUV':
-            self.meand1[:] += other.meand1[:]
-            self.meanlogd1[:] += other.meanlogd1[:]
             self.meanv[:] += other.meanv[:]
         self.weight[:] += other.weight[:]
         self.ntri[:] += other.ntri[:]
@@ -875,21 +879,21 @@ class NNNCorrelation(Corr3):
         ==========      ================================================================
         Column          Description
         ==========      ================================================================
-        r1_nom          The nominal center of the bin in r1
-        r2_nom          The nominal center of the bin in r2
+        d2_nom          The nominal center of the bin in d2
+        d3_nom          The nominal center of the bin in d3
         phi_nom         The nominal center of the bin in phi, the opening angle between
-                        r1 and r2 in the counter-clockwise direction
-        meanr1          The mean value :math:`\langle r1\rangle` of triangles that fell
+                        d2 and d3 in the counter-clockwise direction
+        meand2          The mean value :math:`\langle d2\rangle` of triangles that fell
                         into each bin
-        meanlogr1       The mean value :math:`\langle \log(r1)\rangle` of triangles that
+        meanlogd2       The mean value :math:`\langle \log(d2)\rangle` of triangles that
                         fell into each bin
-        meanr2          The mean value :math:`\langle r2\rangle` of triangles that fell
+        meand3          The mean value :math:`\langle d3\rangle` of triangles that fell
                         into each bin
-        meanlogr2       The mean value :math:`\langle \log(r2)\rangle` of triangles that
+        meanlogd3       The mean value :math:`\langle \log(d3)\rangle` of triangles that
                         fell into each bin
         meanphi         The mean value :math:`\langle phi\rangle` of triangles that fell
                         into each bin
-        zeta            The estimator :math:`\zeta(r1,r2,phi)` (if rrr is given)
+        zeta            The estimator :math:`\zeta(d2,phi,d3)` (if rrr is given)
         sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`
                         (if rrr is given)
         DDD             The total weight of DDD triangles in each bin
@@ -935,11 +939,13 @@ class NNNCorrelation(Corr3):
         drr = self._write_drr
         rdd = self._write_rdd
         if self.bin_type == 'LogRUV':
-            col_names = ['r_nom', 'u_nom', 'v_nom', 'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
+            col_names = ['r_nom', 'u_nom', 'v_nom',
+                         'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
                          'meand3', 'meanlogd3', 'meanu', 'meanv']
         else:
-            col_names = ['r2_nom', 'r3_nom', 'phi_nom', 'meanr2', 'meanlogr2',
-                         'meanr3', 'meanlogr3', 'meanphi']
+            col_names = ['d2_nom', 'd3_nom', 'phi_nom',
+                         'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
+                         'meand3', 'meanlogd3', 'meanphi']
         if rrr is None:
             col_names += [ 'DDD', 'ntri' ]
         else:
@@ -956,8 +962,9 @@ class NNNCorrelation(Corr3):
                      self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
                      self.meand3, self.meanlogd3, self.meanu, self.meanv ]
         else:
-            data = [ self.r2nom, self.r3nom, self.phi,
-                     self.meanr2, self.meanlogr2, self.meanr3, self.meanlogr3, self.meanphi ]
+            data = [ self.d2nom, self.d3nom, self.phi,
+                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
+                     self.meand3, self.meanlogd3, self.meanphi ]
         rrr = self._write_rrr
         drr = self._write_drr
         rdd = self._write_rdd
@@ -1007,20 +1014,16 @@ class NNNCorrelation(Corr3):
 
     def _read_from_data(self, data, params):
         s = self.data_shape
+        self.meand1 = data['meand1'].reshape(s)
+        self.meanlogd1 = data['meanlogd1'].reshape(s)
+        self.meand2 = data['meand2'].reshape(s)
+        self.meanlogd2 = data['meanlogd2'].reshape(s)
+        self.meand3 = data['meand3'].reshape(s)
+        self.meanlogd3 = data['meanlogd3'].reshape(s)
         if self.bin_type == 'LogRUV':
-            self.meand1 = data['meand1'].reshape(s)
-            self.meanlogd1 = data['meanlogd1'].reshape(s)
-            self.meand2 = data['meand2'].reshape(s)
-            self.meanlogd2 = data['meanlogd2'].reshape(s)
-            self.meand3 = data['meand3'].reshape(s)
-            self.meanlogd3 = data['meanlogd3'].reshape(s)
             self.meanu = data['meanu'].reshape(s)
             self.meanv = data['meanv'].reshape(s)
         else:
-            self.meand2 = data['meanr2'].reshape(s)
-            self.meanlogd2 =  data['meanlogr2'].reshape(s)
-            self.meand3 = data['meanr3'].reshape(s)
-            self.meanlogd3 = data['meanlogr3'].reshape(s)
             self.meanu = data['meanphi'].reshape(s)
         self.weight = data['DDD'].reshape(s)
         self.ntri = data['ntri'].reshape(s)

@@ -1,0 +1,21 @@
+
+file_name: data/kkk_data_logsas.dat
+
+x_col: 1
+y_col: 2
+x_units: arcmin
+y_units: arcmin
+k_col: 3
+
+verbose: 1
+
+min_sep: 10.
+max_sep: 13.
+nbins: 3
+sep_units: arcmin
+min_phi: 1.0
+max_phi: 1.5
+nphi_bins: 5
+bin_type: LogSAS
+
+kkk_file_name: output/kkk_logsas.out

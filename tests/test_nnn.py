@@ -2457,10 +2457,6 @@ def test_nnn_logruv():
     with assert_raises(TypeError):
         ddd.write(out_file_name3, rrr=rrr, drr=rrr)
 
-    # It's too slow to test the real calculation in nosetests runs, so we stop here if not main.
-    if __name__ != '__main__':
-        return
-
     # This version computes the three-point function after subtracting off the appropriate
     # two-point functions xi(d1) + xi(d2) + xi(d3), where [cf. test_nn() in test_nn.py]
     # xi(r) = 1/4pi (L/s)^2 exp(-r^2/4s^2) - 1
@@ -2937,6 +2933,43 @@ def test_direct_logsas_auto():
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
     ddd.process(cat,cat,cat, ordered=False)
     np.testing.assert_array_equal(ddd.ntri, 6*true_ntri)
+
+    # Test I/O
+    ascii_name = 'output/nnn_ascii_logsas.txt'
+    ddd.write(ascii_name, precision=16)
+    ddd3 = treecorr.NNNCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nbins,
+                                   nphi_bins=nphi_bins, bin_type='LogSAS')
+    ddd3.read(ascii_name)
+    np.testing.assert_allclose(ddd3.ntri, ddd.ntri)
+    np.testing.assert_allclose(ddd3.weight, ddd.weight)
+    np.testing.assert_allclose(ddd3.meand1, ddd.meand1)
+    np.testing.assert_allclose(ddd3.meand2, ddd.meand2)
+    np.testing.assert_allclose(ddd3.meand3, ddd.meand3)
+    np.testing.assert_allclose(ddd3.meanlogd1, ddd.meanlogd1)
+    np.testing.assert_allclose(ddd3.meanlogd2, ddd.meanlogd2)
+    np.testing.assert_allclose(ddd3.meanlogd3, ddd.meanlogd3)
+    np.testing.assert_allclose(ddd3.meanphi, ddd.meanphi)
+
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        fits_name = 'output/nnn_fits_logsas.fits'
+        ddd.write(fits_name)
+        ddd4 = treecorr.NNNCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nbins,
+                                       nphi_bins=nphi_bins, bin_type='LogSAS')
+        ddd4.read(fits_name)
+        np.testing.assert_allclose(ddd4.ntri, ddd.ntri)
+        np.testing.assert_allclose(ddd4.weight, ddd.weight)
+        np.testing.assert_allclose(ddd4.meand1, ddd.meand1)
+        np.testing.assert_allclose(ddd4.meand2, ddd.meand2)
+        np.testing.assert_allclose(ddd4.meand3, ddd.meand3)
+        np.testing.assert_allclose(ddd4.meanlogd1, ddd.meanlogd1)
+        np.testing.assert_allclose(ddd4.meanlogd2, ddd.meanlogd2)
+        np.testing.assert_allclose(ddd4.meanlogd3, ddd.meanlogd3)
+        np.testing.assert_allclose(ddd4.meanphi, ddd.meanphi)
+
 
 
 @timer
@@ -3416,7 +3449,7 @@ def test_nnn_logsas():
     t1 = time.time()
     print('auto process time = ',t1-t0)
 
-    # Doing 3 catalogs ordered, should be equivelent.  Not numerically identical, but
+    # Doing 3 catalogs ordered, should be equivalent.  Not numerically identical, but
     # basically the same answer.
     dddc = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
@@ -3442,8 +3475,10 @@ def test_nnn_logsas():
     np.testing.assert_allclose(dddc.meanphi, ddd.meanphi)
 
     # log(<d>) != <logd>, but it should be close:
+    print('meanlogd1 - log(meand1) = ',ddd.meanlogd1 - np.log(ddd.meand1))
     print('meanlogd2 - log(meand2) = ',ddd.meanlogd2 - np.log(ddd.meand2))
     print('meanlogd3 - log(meand3) = ',ddd.meanlogd3 - np.log(ddd.meand3))
+    np.testing.assert_allclose(ddd.meanlogd1, np.log(ddd.meand1), rtol=1.e-3)
     np.testing.assert_allclose(ddd.meanlogd2, np.log(ddd.meand2), rtol=1.e-3)
     np.testing.assert_allclose(ddd.meanlogd3, np.log(ddd.meand3), rtol=1.e-3)
 
@@ -3651,10 +3686,6 @@ def test_nnn_logsas():
     with assert_raises(TypeError):
         ddd.write(out_file_name3, rrr=rrr, drr=rrr)
 
-    # It's too slow to test the real calculation in nosetests runs, so we stop here if not main.
-    if __name__ != '__main__':
-        return
-
     # This version computes the three-point function after subtracting off the appropriate
     # two-point functions xi(d1) + xi(d2) + xi(d3), where [cf. test_nn() in test_nn.py]
     # xi(r) = 1/4pi (L/s)^2 exp(-r^2/4s^2) - 1
@@ -3731,10 +3762,6 @@ def test_nnn_logsas():
         config['verbose'] = 0
         treecorr.corr3(config)
         data = fitsio.read(out_file_name3)
-        print('zeta = ',zeta)
-        print('from corr3 output = ',data['zeta'])
-        print('ratio = ',data['zeta']/zeta.flatten())
-        print('diff = ',data['zeta']-zeta.flatten())
 
         np.testing.assert_almost_equal(data['d2_nom'], np.exp(ddd.logd2).flatten())
         np.testing.assert_almost_equal(data['d3_nom'], np.exp(ddd.logd3).flatten())
@@ -3758,6 +3785,8 @@ def test_nnn_logsas():
 
 
 if __name__ == '__main__':
+    test_nnn_logsas()
+    quit()
     test_logruv_binning()
     test_logsas_binning()
     test_direct_logruv_auto()

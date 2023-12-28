@@ -1,0 +1,23 @@
+
+file_name: data/ggg_data_logsas.dat
+
+x_col: 1
+y_col: 2
+x_units: arcmin
+y_units: arcmin
+g1_col: 3
+g2_col: 4
+
+verbose: 1
+
+min_sep: 11.
+max_sep: 15.
+nbins: 2
+sep_units: arcmin
+min_phi: 1.
+max_phi: 1.5
+nphi_bins: 10
+bin_type: LogSAS
+
+ggg_file_name: output/ggg_logsas.out
+m3_file_name: output/ggg_m3_logsas.out

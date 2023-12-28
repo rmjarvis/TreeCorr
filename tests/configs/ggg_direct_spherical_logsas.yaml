@@ -1,11 +1,12 @@
 
-file_name: data/kkk_direct_sph_cat_logsas.fits
+file_name: data/ggg_direct_sph_cat_logsas.fits
 
 ra_col: ra
 dec_col: dec
 ra_units: radians
 dec_units: radians
-k_col: k
+g1_col: g1
+g2_col: g2
 w_col: w
 
 verbose: 1
@@ -17,5 +18,6 @@ sep_units: degrees
 nphi_bins: 10
 bin_slop: 0
 bin_type: LogSAS
+bin_slop: 0
 
-kkk_file_name: output/kkk_direct_sph_logsas.fits
+ggg_file_name: output/ggg_direct_sph_logsas.fits

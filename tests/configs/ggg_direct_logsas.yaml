@@ -1,11 +1,12 @@
 
-file_name: data/kkk_direct_logsas.fits
+file_name: data/ggg_direct_logsas.fits
 
 x_col: x
 y_col: y
 x_units: arcmin
 y_units: arcmin
-k_col: k
+g1_col: g1
+g2_col: g2
 w_col: w
 
 verbose: 1
@@ -18,4 +19,4 @@ sep_units: arcmin
 bin_slop: 0
 bin_type: LogSAS
 
-kkk_file_name: output/kkk_direct_logsas.fits
+ggg_file_name: output/ggg_direct_logsas.fits

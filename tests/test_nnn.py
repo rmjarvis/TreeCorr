@@ -2971,7 +2971,6 @@ def test_direct_logsas_auto():
         np.testing.assert_allclose(ddd4.meanphi, ddd.meanphi)
 
 
-
 @timer
 def test_direct_logsas_cross():
     # If the catalogs are small enough, we can do a direct count of the number of triangles
@@ -3785,8 +3784,6 @@ def test_nnn_logsas():
 
 
 if __name__ == '__main__':
-    test_nnn_logsas()
-    quit()
     test_logruv_binning()
     test_logsas_binning()
     test_direct_logruv_auto()

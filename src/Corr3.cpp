@@ -14,8 +14,13 @@
 
 //#define DEBUGLOGGING
 
+#ifdef _WIN32
+#define _USE_MATH_DEFINES  // To get M_PI
+#endif
+
 #include "PyBind11Helper.h"
 
+#include <cmath>
 #include "dbg.h"
 #include "Corr3.h"
 #include "Split.h"

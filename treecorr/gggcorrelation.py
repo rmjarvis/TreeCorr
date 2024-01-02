@@ -1026,7 +1026,7 @@ class GGGCorrelation(Corr3):
             t = tx + 1j * ty
         else:
             d3 = np.outer(1./R, self.meand3.ravel())
-            t = d3 * np.exp(1j * self.meanphi.ravel()[None, :])
+            t = d3 * np.exp(1j * self.meanphi.ravel())
 
         # Next we need to construct the T values.
         T0, T1, T2, T3 = self._calculateT(s,t,1.,k2,k3)
@@ -1053,11 +1053,15 @@ class GGGCorrelation(Corr3):
             d2t = jac * self.ubin_size * self.vbin_size / (2.*np.pi)
         else:
             # In SAS binning, d2t is easier.
-            # We bin directly in d3 and phi, so
+            # We bin directly in ln(d3) and phi, so
             # tx = d3 cos(phi)
             # ty = d3 sin(phi)
-            # J(tx,ty; d3, phi) = d3
-            d2t = d3 * self.bin_size * self.phi_bin_size / (2*np.pi)
+            # dtx/dlnd3 = d3 dtx/dd3 = d3 cos(phi)
+            # dty/dlnd3 = d3 dty/dd3 = d3 sin(phi)
+            # dtx/dphi = -d3 sin(phi)
+            # dty/dphi = d3 cos(phi)
+            # J(tx,ty; lnd3, phi) = d3^2
+            d2t = d3**2 * self.bin_size * self.phi_bin_size / (2*np.pi)
 
         sds = s * s * self.bin_size  # Remember bin_size is dln(s)
         # Note: these are really d2t/2piR^2 and sds/R^2, which are what actually show up
@@ -1092,34 +1096,62 @@ class GGGCorrelation(Corr3):
         var2 = T2.copy()
         var3 = T3.copy()
 
-        if k2 == 1 and k3 == 1:
-            mmm *= 6
-            mcmm += mmcm
-            mcmm += mmmc
-            mcmm *= 2
-            mmcm = mmmc = mcmm
-            var0 *= 6
-            var1 *= 6
-            var2 *= 6
-            var3 *= 6
+        if self.bin_type == 'LogRUV':
+            if k2 == 1 and k3 == 1:
+                mmm *= 6
+                mcmm += mmcm
+                mcmm += mmmc
+                mcmm *= 2
+                mmcm = mmmc = mcmm
+                var0 *= 6
+                var1 *= 6
+                var2 *= 6
+                var3 *= 6
+            else:
+                # Repeat the above for the other permutations
+                for (_k1, _k2, _k3, _mcmm, _mmcm, _mmmc) in [
+                        (1,k3,k2,mcmm,mmmc,mmcm),
+                        (k2,1,k3,mmcm,mcmm,mmmc),
+                        (k2,k3,1,mmcm,mmmc,mcmm),
+                        (k3,1,k2,mmmc,mcmm,mmcm),
+                        (k3,k2,1,mmmc,mmcm,mcmm) ]:
+                    T0, T1, T2, T3 = self._calculateT(s,t,_k1,_k2,_k3)
+                    T0 *= sds * d2t
+                    T1 *= sds * d2t
+                    T2 *= sds * d2t
+                    T3 *= sds * d2t
+                    # Relies on numpy array overloading += to actually update in place.
+                    mmm += T0.dot(gam0)
+                    _mcmm += T1.dot(gam1)
+                    _mmcm += T2.dot(gam2)
+                    _mmmc += T3.dot(gam3)
+                    var0 += T0
+                    var1 += T1
+                    var2 += T2
+                    var3 += T3
         else:
-            # Repeat the above for the other permutations
-            for (_k1, _k2, _k3, _mcmm, _mmcm, _mmmc) in [
-                    (1,k3,k2,mcmm,mmmc,mmcm),
-                    (k2,1,k3,mmcm,mcmm,mmmc),
-                    (k2,k3,1,mmcm,mmmc,mcmm),
-                    (k3,1,k2,mmmc,mcmm,mmcm),
-                    (k3,k2,1,mmmc,mmcm,mcmm) ]:
-                T0, T1, T2, T3 = self._calculateT(s,t,_k1,_k2,_k3)
+            # SAS binning counts each triangle with each vertex in the c1 position.
+            # Just need to account for the cases where 1-2-3 are clockwise, rather than CCW.
+            if k2 == 1 and k3 == 1:
+                mmm *= 2
+                mcmm *= 2
+                mmcm += mmmc
+                mmmc = mmcm
+                var0 *= 2
+                var1 *= 2
+                var2 *= 2
+                var3 *= 2
+            else:
+                # Repeat the above with 2,3 swapped.
+                T0, T1, T2, T3 = self._calculateT(s,t,1,k3,k2)
                 T0 *= sds * d2t
                 T1 *= sds * d2t
                 T2 *= sds * d2t
                 T3 *= sds * d2t
-                # Relies on numpy array overloading += to actually update in place.
                 mmm += T0.dot(gam0)
-                _mcmm += T1.dot(gam1)
-                _mmcm += T2.dot(gam2)
-                _mmmc += T3.dot(gam3)
+                mcmm += T1.dot(gam1)
+                mmmc += T2.dot(gam2)
+                mmcm += T3.dot(gam3)
                 var0 += T0
                 var1 += T1
                 var2 += T2

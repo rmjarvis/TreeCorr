@@ -492,7 +492,7 @@ class Corr3(object):
             # Adjust phi_bin_size given the other values
             self._ro.ubin_size = (self.max_phi-self.min_phi)/self.nphi_bins
             self._ro.min_v = self._ro.max_v = self._ro.nvbins = self._ro.vbin_size = 0
-        else:
+        else:  # pragma: no cover  (Already checked by config layer)
             raise ValueError("Invalid bin_type %s"%self.bin_type)
 
         self._ro.split_method = self.config.get('split_method','mean')

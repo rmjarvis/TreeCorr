@@ -15,6 +15,10 @@
 #ifndef TreeCorr_BinType_H
 #define TreeCorr_BinType_H
 
+#ifdef _WIN32
+#define _USE_MATH_DEFINES  // To get M_PI
+#endif
+
 #include <limits>
 #include <cmath>
 #include "Metric.h"

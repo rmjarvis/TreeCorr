@@ -642,7 +642,7 @@ Sampler::Sampler(const BaseCorr2& base_corr2, double minsep, double maxsep,
 void SelectRandomFrom(long m, std::vector<long>& selection)
 {
     xdbg<<"SelectRandomFrom("<<m<<", "<<selection.size()<<")\n";
-    long n = selection.size();
+    long n = long(selection.size());
     // There are two algorithms here.
     // Floyd's algorithm is efficient for m >> n.
     // Fisher-Yates is efficient for m not much > n.
@@ -1034,7 +1034,7 @@ long SamplePairs(BaseCorr2& corr, BaseField<C>& field1, BaseField<C>& field2,
                  double minsep, double maxsep, BinType bin_type, Metric metric, long long seed,
                  py::array_t<long>& i1p, py::array_t<long>& i2p, py::array_t<double>& sepp)
 {
-    long n = i1p.size();
+    long n = long(i1p.size());
     Assert(i2p.size() == n);
     Assert(sepp.size() == n);
 

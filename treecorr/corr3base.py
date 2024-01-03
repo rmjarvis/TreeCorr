@@ -414,6 +414,9 @@ class Corr3(object):
                                             # units to _bin_size in that case as well.
 
         if self.bin_type == 'LogRUV':
+            for key in ['min_phi', 'max_phi', 'nphi_bins', 'phi_bin_size']:
+                if key in self.config:
+                    raise TypeError("%s is invalid for bin_type=LogRUV"%key)
             self._ro._bintype = _treecorr.LogRUV
             self._ro.min_u = float(self.config.get('min_u', 0.))
             self._ro.max_u = float(self.config.get('max_u', 1.))
@@ -463,6 +466,10 @@ class Corr3(object):
             self.logger.info("v: nbins = %d, min,max = %g..%g, bin_size = %g",
                              self.nvbins,self.min_v,self.max_v,self.vbin_size)
         elif self.bin_type == 'LogSAS':
+            for key in ['min_u', 'max_u', 'nubins', 'ubin_size',
+                        'min_v', 'max_v', 'nvbins', 'vbin_size']:
+                if key in self.config:
+                    raise TypeError("%s is invalid for bin_type=LogSAS"%key)
             self._ro._bintype = _treecorr.LogSAS
             # Note: we refer to phi as u in the _ro namespace to make function calls easier.
             self._ro.min_u = float(self.config.get('min_phi', 0.))

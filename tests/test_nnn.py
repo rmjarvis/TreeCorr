@@ -270,6 +270,14 @@ def test_logruv_binning():
                   min_v=0.1, max_v=1.3)
     assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=20, max_sep=5, nbins=20,
                   split_method='invalid')
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  phi_bin_size=0.3)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  nphi_bins=3)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  min_phi=0.3)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  max_phi=0.3)
 
     # Check the use of sep_units
     # radians
@@ -626,6 +634,22 @@ def test_logsas_binning():
                   min_phi=0.1, max_phi=7.3, bin_type='LogSAS')
     assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=20, max_sep=5, nbins=20,
                   split_method='invalid', bin_type='LogSAS')
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  bin_type='LogSAS', nubins=3)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  bin_type='LogSAS', ubin_size=0.2)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  bin_type='LogSAS', min_u=0.2)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  bin_type='LogSAS', max_u=0.2)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  bin_type='LogSAS', nvbins=3)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  bin_type='LogSAS', vbin_size=0.2)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  bin_type='LogSAS', min_v=0.2)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  bin_type='LogSAS', max_v=0.2)
 
     # Check the use of sep_units
     # radians

@@ -391,8 +391,9 @@ struct BinTypeHelper<LogRUV>
     }
 
     // If the user has set a minu > 0, then we may be able to stop for that.
+    template <int O>
     static bool noAllowedAngles(double rsq, double s1ps2, double s1, double s2,
-                                int ordered, double halfminsep,
+                                double halfminsep,
                                 double minu, double minusq, double maxu, double maxusq,
                                 double minv, double minvsq, double maxv, double maxvsq)
     {
@@ -405,12 +406,12 @@ struct BinTypeHelper<LogRUV>
 
     // Once we have all the distances, see if it's possible to stop
     // For this BinType, if return value is false, d2 is set on output.
-    template <int M, int C>
+    template <int O, int M, int C>
     static bool stop111(
         double d1sq, double d2sq, double d3sq,
         double s1, double s2, double s3,
         const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
-        const MetricHelper<M,0>& metric, int ordered,
+        const MetricHelper<M,0>& metric,
         double& d1, double& d2, double& d3, double& u, double& v,
         double minsep, double minsepsq, double maxsep, double maxsepsq,
         double minu, double minusq, double maxu, double maxusq,
@@ -420,7 +421,7 @@ struct BinTypeHelper<LogRUV>
         dbg<<"sizes = "<<s1<<"  "<<s2<<"  "<<s3<<std::endl;
         dbg<<"sep range = "<<minsep<<"  "<<maxsep<<std::endl;
 
-        if (!ordered) {
+        if (!O) {
             Assert(d1sq >= d2sq);
             Assert(d2sq >= d3sq);
         }
@@ -450,12 +451,12 @@ struct BinTypeHelper<LogRUV>
         }
 
         d2 = sqrt(d2sq);
-        if (ordered) {
+        if (O) {
             // If not sorting, then we need to check if we have a configuration where
             // d1 cannot be the largest or d3 cannot be the smallest.
 
             // (d2 + s1+s3) < (d3 - s1-s2)
-            if (ordered == 3 && d3sq > SQR(d2 + 2*s1+s2+s3)) {
+            if (O == 3 && d3sq > SQR(d2 + 2*s1+s2+s3)) {
                 dbg<<"d2 cannot be larger than d3\n";
                 return true;
             }
@@ -674,10 +675,10 @@ struct BinTypeHelper<LogRUV>
         }
     }
 
-    template <int M, int C>
+    template <int O, int M, int C>
     static bool isTriangleInRange(const BaseCell<C>& c1, const BaseCell<C>& c2,
                                   const BaseCell<C>& c3,
-                                  const MetricHelper<M,0>& metric, int ordered,
+                                  const MetricHelper<M,0>& metric,
                                   double d1, double d2, double d3, double& u, double& v,
                                   double logminsep,
                                   double minsep, double maxsep, double binsize, double nbins,
@@ -692,7 +693,7 @@ struct BinTypeHelper<LogRUV>
         Assert(u > 0.);
         Assert(v >= 0.);  // v can potentially == 0.
 
-        if (ordered && !(d1 >= d2 && d2 >= d3)) {
+        if (O && !(d1 >= d2 && d2 >= d3)) {
             xdbg<<"Sides are not in correct size ordering d1 >= d2 >= d3\n";
             return false;
         }
@@ -810,8 +811,9 @@ struct BinTypeHelper<LogSAS>
     }
 
     // If the user has set a minphi > 0, then we may be able to stop for that.
+    template <int O>
     static bool noAllowedAngles(double rsq, double s1ps2, double s1, double s2,
-                                int ordered, double halfminsep,
+                                double halfminsep,
                                 double minphi, double , double maxphi, double ,
                                 double mincosphi, double , double maxcosphi, double )
     {
@@ -826,7 +828,7 @@ struct BinTypeHelper<LogSAS>
         //          = 1 - 2 (s2/(r-s1))^2
         // Note: if not ordered, we still might be able to do this check if 2*s2 < minsep,
         // since then the only allowed orientation will be with d1 fully in c2.
-        if (maxcosphi < 1 && (ordered || s2 < halfminsep) && (SQR(s1) < rsq)) {
+        if (maxcosphi < 1 && (O || s2 < halfminsep) && (SQR(s1) < rsq)) {
             double h = sqrt(rsq) - s1;  // h = r-s1
             double cosphi = 1. - 2*SQR(s2/h);
             if (cosphi > maxcosphi) {
@@ -841,12 +843,12 @@ struct BinTypeHelper<LogSAS>
 
     // Once we have all the distances, see if it's possible to stop
     // For this BinType, if return value is false, d1,d2,d3,cosphi are set on output.
-    template <int M, int C>
+    template <int O, int M, int C>
     static bool stop111(
         double d1sq, double d2sq, double d3sq,
         double s1, double s2, double s3,
         const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
-        const MetricHelper<M,0>& metric, int ordered,
+        const MetricHelper<M,0>& metric,
         double& d1, double& d2, double& d3, double& phi, double& cosphi,
         double minsep, double minsepsq, double maxsep, double maxsepsq,
         double minphi, double , double maxphi, double ,
@@ -897,7 +899,7 @@ struct BinTypeHelper<LogSAS>
         cosphi = (d2sq + d3sq - d1sq) / (2*d2*d3);
 
         // If we are not swapping 2,3, stop if orientation cannot be counter-clockwise.
-        if (ordered > 1 &&
+        if (O > 1 &&
             !metric.CCW(c1.getData().getPos(), c3.getData().getPos(), c2.getData().getPos())) {
             // For skinny triangles, be careful that the points can't flip to the other side.
             // This is similar to the calculation below.  We effecively check that cosphi can't
@@ -1144,10 +1146,10 @@ struct BinTypeHelper<LogSAS>
     }
 
     // This BinType finally sets phi here.
-    template <int M, int C>
+    template <int O, int M, int C>
     static bool isTriangleInRange(const BaseCell<C>& c1, const BaseCell<C>& c2,
                                   const BaseCell<C>& c3,
-                                  const MetricHelper<M,0>& metric, int ordered,
+                                  const MetricHelper<M,0>& metric,
                                   double d1, double d2, double d3, double& phi, double& cosphi,
                                   double logminsep,
                                   double minsep, double maxsep, double binsize, double nbins,
@@ -1179,7 +1181,7 @@ struct BinTypeHelper<LogSAS>
             return false;
         }
 
-        if (ordered > 1 &&
+        if (O > 1 &&
             !metric.CCW(c1.getData().getPos(), c3.getData().getPos(), c2.getData().getPos())) {
             xdbg<<"Triangle is not CCW.\n";
             return false;

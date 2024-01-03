@@ -70,7 +70,7 @@ def set_omp_threads(num_threads, logger=None):
 
     # See comment about this in get_omp_threads.  Do it here too.
     var = "OMP_PROC_BIND"
-    if var not in os.environ:
+    if var not in os.environ:  # pragma: no cover
         os.environ[var] = "false"
     num_threads = _treecorr.SetOMPThreads(num_threads)
 
@@ -100,7 +100,7 @@ def get_omp_threads():
     # If this breaks someone valid use of this variable, let us know and we can try to
     # come up with another solution, but without this lots of multiprocessing breaks.
     var = "OMP_PROC_BIND"
-    if var not in os.environ:
+    if var not in os.environ:  # pragma: no cover
         os.environ[var] = "false"
     return _treecorr.GetOMPThreads()
 

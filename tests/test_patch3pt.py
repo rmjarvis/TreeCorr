@@ -511,6 +511,20 @@ def test_kkk_jk():
     with assert_raises(RuntimeError):
         kkkp.process(catq, catq, catp)
 
+    # Don't check LogSAS for accuracy.  Just make sure the code runs.
+    print('LogSAS')
+    kkkp2 = treecorr.KKKCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
+                                    min_phi=0.8, max_phi=2.0, nphi_bins=3,
+                                    rng=rng, bin_type='LogSAS')
+    kkkp2.process(catp)
+    cov = kkkp2.estimate_cov('jackknife', func=lambda c: c.weight.ravel())
+    A, w = kkkp2.build_cov_design_matrix('jackknife', func=lambda c: c.weight.ravel())
+    vmean = np.mean(A, axis=0)
+    A -= vmean
+    cov2 = (catp.npatch-1)/catp.npatch * A.conj().T.dot(A)
+    np.testing.assert_allclose(cov2, cov)
+
+
 @timer
 def test_ggg_jk():
     # Test jackknife and other covariance estimates for ggg correlations.
@@ -910,6 +924,19 @@ def test_ggg_jk():
         print(np.diagonal(cov).real)
         print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
         np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.5*tol_factor)
+
+    # Don't check LogSAS for accuracy.  Just make sure the code runs.
+    print('LogSAS')
+    gggp2 = treecorr.GGGCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
+                                    min_phi=0.8, max_phi=2.0, nphi_bins=3,
+                                    rng=rng, bin_type='LogSAS')
+    gggp2.process(catp)
+    cov = gggp2.estimate_cov('jackknife', func=lambda c: c.weight.ravel())
+    A, w = gggp2.build_cov_design_matrix('jackknife', func=lambda c: c.weight.ravel())
+    vmean = np.mean(A, axis=0)
+    A -= vmean
+    cov2 = (catp.npatch-1)/catp.npatch * A.conj().T.dot(A)
+    np.testing.assert_allclose(cov2, cov)
 
 
 @timer
@@ -1344,6 +1371,18 @@ def test_nnn_jk():
         cov5 = ddd5.estimate_cov('jackknife')
         np.testing.assert_allclose(cov5, cov1)
 
+    # Don't check LogSAS for accuracy.  Just make sure the code runs.
+    print('LogSAS')
+    dddp2 = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
+                                    min_phi=0.8, max_phi=2.0, nphi_bins=3,
+                                    rng=rng, bin_type='LogSAS')
+    dddp2.process(catp)
+    cov = dddp2.estimate_cov('jackknife', func=lambda c: c.weight.ravel())
+    A, w = dddp2.build_cov_design_matrix('jackknife', func=lambda c: c.weight.ravel())
+    vmean = np.mean(A, axis=0)
+    A -= vmean
+    cov2 = (catp.npatch-1)/catp.npatch * A.conj().T.dot(A)
+    np.testing.assert_allclose(cov2, cov)
 
 @timer
 def test_brute_jk():

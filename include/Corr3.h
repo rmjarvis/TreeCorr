@@ -47,12 +47,9 @@ public:
     template <int B, int M, int C>
     void process(const BaseField<C>& field, bool dots);
     template <int B, int M, int C>
-    void process(BaseCorr3& corr212, BaseCorr3& corr221,
-                 const BaseField<C>& field1, const BaseField<C>& field2, int ordered, bool dots);
+    void process(const BaseField<C>& field1, const BaseField<C>& field2, int ordered, bool dots);
     template <int B, int M, int C>
-    void process(BaseCorr3& corr132, BaseCorr3& corr213, BaseCorr3& corr231,
-                 BaseCorr3& corr312, BaseCorr3& corr321,
-                 const BaseField<C>& field1, const BaseField<C>& field2,
+    void process(const BaseField<C>& field1, const BaseField<C>& field2,
                  const BaseField<C>& field3, int ordered, bool dots);
 
     // Main worker functions for calculating the result
@@ -60,21 +57,16 @@ public:
     void process3(const BaseCell<C>& c1, const MetricHelper<M,0>& metric);
 
     template <int B, int M, int C>
-    void process12(BaseCorr3& bc212, BaseCorr3& bc221,
-                   const BaseCell<C>& c1, const BaseCell<C>& c2, const MetricHelper<M,0>& metric,
+    void process12(const BaseCell<C>& c1, const BaseCell<C>& c2, const MetricHelper<M,0>& metric,
                    int ordered);
 
     template <int B, int M, int C>
-    void process111(BaseCorr3& bc132, BaseCorr3& bc213, BaseCorr3& bc231,
-                    BaseCorr3& bc312, BaseCorr3& bc321,
-                    const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
+    void process111(const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
                     const MetricHelper<M,0>& metric, int ordered,
                     double d1sq=0., double d2sq=0., double d3sq=0.);
 
     template <int B, int M, int C>
-    void process111Sorted(BaseCorr3& bc132, BaseCorr3& bc213, BaseCorr3& bc231,
-                          BaseCorr3& bc312, BaseCorr3& bc321,
-                          const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
+    void process111Sorted(const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
                           const MetricHelper<M,0>& metric, int ordered,
                           double d1sq=0., double d2sq=0., double d3sq=0.);
 

@@ -24,11 +24,10 @@ API Changes
 - Renamed the base classes BinnedCorr2 -> `Corr2` and BinnedCorr3 -> `Corr3`.  These are not
   normally used directly by users, so it shouldn't be noticeable in user code. (#155)
 - Removed all deprecations from the 4.x series. (#156)
-- Removed support for reading back in output files from the 3.x series.
-- Removed the 3pt CrossCorrelation classes.  Use the new ``ordered=True`` option to ``process``
-  instead to get correlations where the order of the three catalogs is fixed.  This is much
-  more efficient when you don't want all 6 combinations, and it is much simpler and more
-  intuitive.
+- Removed support for reading back in output files from the 3.x series. (#165)
+- Removed the 3pt CrossCorrelation classes.  See the new ``ordered=True`` option to the 3pt
+  ``process`` method instead to get correlations where the order of the three catalogs is fixed.
+  This is simpler and more intuitive, and for many use cases it is more efficient. (#165)
 
 
 Performance improvements
@@ -52,8 +51,8 @@ New features
   respectively, including `NTCorrelation`, `KTCorrelation`, `TTCorrelation`, `NQCorrelation`,
   `KQCorrelation` and `QQCorrelation`. (#160)
 - Added ``ordered=True`` option to the 3pt ``process`` methods for keeping the order of the
-  catalogs fixed in the triangle orientation.
-- Added ``bin_type='LogSAS'`` for 3pt correlations.
+  catalogs fixed in the triangle orientation. (#165)
+- Added ``bin_type='LogSAS'`` for 3pt correlations. (#165)
 
 
 Bug fixes

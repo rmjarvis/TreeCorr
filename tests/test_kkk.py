@@ -701,7 +701,7 @@ def test_direct_logruv_cross12():
     w_list = [true_weight_122, true_weight_212, true_weight_221]
     z_list = [true_zeta_122, true_zeta_212, true_zeta_221]
 
-    # With the default ordered=True, we end up with the sum of all permutations.
+    # With the default ordered=False, we end up with the sum of all permutations.
     true_ntri_sum = sum(n_list)
     true_weight_sum = sum(w_list)
     true_zeta_sum = sum(z_list)
@@ -1785,7 +1785,7 @@ def test_direct_logsas_cross12():
     w_list = [true_weight_122, true_weight_212, true_weight_221]
     z_list = [true_zeta_122, true_zeta_212, true_zeta_221]
 
-    # With the default ordered=True, we end up with the sum of all permutations.
+    # With the default ordered=False, we end up with the sum of all permutations.
     true_ntri_sum = sum(n_list)
     true_weight_sum = sum(w_list)
     true_zeta_sum = sum(z_list)

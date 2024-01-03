@@ -1073,7 +1073,7 @@ def test_direct_logruv_cross12():
     g2_list = [true_gam2_122, true_gam2_212, true_gam2_221]
     g3_list = [true_gam3_122, true_gam3_212, true_gam3_221]
 
-    # With the default ordered=True, we end up with the sum of all permutations.
+    # With the default ordered=False, we end up with the sum of all permutations.
     true_ntri_sum = sum(n_list)
     true_weight_sum = sum(w_list)
     true_gam0_sum = sum(g0_list)
@@ -3079,7 +3079,7 @@ def test_direct_logsas_cross12():
     g2_list = [true_gam2_122, true_gam2_212, true_gam2_221]
     g3_list = [true_gam3_122, true_gam3_212, true_gam3_221]
 
-    # With the default ordered=True, we end up with the sum of all permutations.
+    # With the default ordered=False, we end up with the sum of all permutations.
     true_ntri_sum = sum(n_list)
     true_weight_sum = sum(w_list)
     true_gam0_sum = sum(g0_list)

@@ -46,28 +46,27 @@ public:
 
     template <int B, int M, int C>
     void process(const BaseField<C>& field, bool dots);
-    template <int B, int M, int C>
-    void process(const BaseField<C>& field1, const BaseField<C>& field2, int ordered, bool dots);
-    template <int B, int M, int C>
+    template <int B, int O, int M, int C>
+    void process(const BaseField<C>& field1, const BaseField<C>& field2, bool dots);
+    template <int B, int O, int M, int C>
     void process(const BaseField<C>& field1, const BaseField<C>& field2,
-                 const BaseField<C>& field3, int ordered, bool dots);
+                 const BaseField<C>& field3, bool dots);
 
     // Main worker functions for calculating the result
     template <int B, int M, int C>
     void process3(const BaseCell<C>& c1, const MetricHelper<M,0>& metric);
 
-    template <int B, int M, int C>
-    void process12(const BaseCell<C>& c1, const BaseCell<C>& c2, const MetricHelper<M,0>& metric,
-                   int ordered);
+    template <int B, int O, int M, int C>
+    void process12(const BaseCell<C>& c1, const BaseCell<C>& c2, const MetricHelper<M,0>& metric);
 
-    template <int B, int M, int C>
+    template <int B, int orderd, int M, int C>
     void process111(const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
-                    const MetricHelper<M,0>& metric, int ordered,
+                    const MetricHelper<M,0>& metric,
                     double d1sq=0., double d2sq=0., double d3sq=0.);
 
-    template <int B, int M, int C>
+    template <int B, int O, int M, int C>
     void process111Sorted(const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
-                          const MetricHelper<M,0>& metric, int ordered,
+                          const MetricHelper<M,0>& metric,
                           double d1sq=0., double d2sq=0., double d3sq=0.);
 
     template <int B, int C>

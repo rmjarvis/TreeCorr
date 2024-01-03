@@ -665,15 +665,6 @@ void BaseCorr3::process111Sorted(
     xdbg<<"                  d123 = "<<sqrt(d1sq)<<"  "<<sqrt(d2sq)<<"  "<<sqrt(d3sq)<<std::endl;
     xdbg<<ws()<<"ProcessSorted111: c1 = "<<indices(c1)<<"  c2 = "<<indices(c2)<<"  c3 = "<<indices(c3)<<"  ordered="<<O<<"\n";
 
-    if ((s1 == 0. && (&c1 == &c2 || &c1 == &c3)) ||
-        (s2 == 0. && (&c2 == &c1 || &c2 == &c3)) ||
-        (s3 == 0. && (&c3 == &c1 || &c3 == &c2))) {
-        dbg<<ws()<<"Stopping early -- two identical leaf cells in triangle\n";
-        xdbg<<"s = "<<s1<<" "<<s2<<" "<<s3<<std::endl;
-        xdbg<<"dsq = "<<d1sq<<" "<<d2sq<<" "<<d3sq<<std::endl;
-        return;
-    }
-
     // Various quanities that we'll set along the way if we need them.
     // At the end, if singleBin is true, then all these will be set correctly.
     double d1=-1., d2=-1., d3=-1., u=-1., v=-1.;

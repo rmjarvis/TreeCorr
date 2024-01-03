@@ -778,7 +778,7 @@ struct BinTypeHelper<LogRUV>
 };
 
 template <>
-struct BinTypeHelper<LogSAS>: public BinTypeHelper<LogRUV>
+struct BinTypeHelper<LogSAS>
 {
     enum { sort_d123 = false };
 

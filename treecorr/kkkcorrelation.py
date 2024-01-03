@@ -276,8 +276,7 @@ class KKKCorrelation(Corr3):
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         # Note: all 3 correlation objects are the same.  Thus, all triangles will be placed
         # into self.corr, whichever way the three catalogs are permuted for each triangle.
-        self.corr.processCross12(self.corr, self.corr,
-                                 f1.data, f2.data, (1 if ordered else 0),
+        self.corr.processCross12(f1.data, f2.data, (1 if ordered else 0),
                                  self.output_dots, self._bintype, self._metric)
 
     def process_cross(self, cat1, cat2, cat3, *, metric=None, ordered=False, num_threads=None):
@@ -330,8 +329,7 @@ class KKKCorrelation(Corr3):
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         # Note: all 6 correlation objects are the same.  Thus, all triangles will be placed
         # into self.corr, whichever way the three catalogs are permuted for each triangle.
-        self.corr.processCross(self.corr, self.corr, self.corr, self.corr, self.corr,
-                               f1.data, f2.data, f3.data,
+        self.corr.processCross(f1.data, f2.data, f3.data,
                                (3 if ordered is True else 1 if ordered == 1 else 0),
                                self.output_dots, self._bintype, self._metric)
 

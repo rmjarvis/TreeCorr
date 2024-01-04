@@ -539,8 +539,8 @@ class Corr3(object):
                     self._ro.bv = 0.1
             else:
                 # LogSAS
-                if self.phi_bin_size <= 0.1:
-                    self._ro.bu = self.phi_bin_size
+                if self._ro.ubin_size <= 0.1:
+                    self._ro.bu = self._ro.ubin_size
                 else:
                     self._ro.bu = 0.1
                 self._ro.bv = 0
@@ -551,7 +551,7 @@ class Corr3(object):
                 self._ro.bv = self.vbin_size * self.bin_slop
             else:
                 # LogSAS
-                self._ro.bu = self.phi_bin_size * self.bin_slop
+                self._ro.bu = self._ro.ubin_size * self.bin_slop
                 self._ro.bv = 0
 
         if self.b > 0.100001:  # Add some numerical slop
@@ -601,11 +601,11 @@ class Corr3(object):
                                          num=self.nphi_bins, endpoint=False)
             self._ro.phi1d += self.min_phi + 0.5*self.phi_bin_size
             self._ro.logd2 = np.tile(self.logr1d[:, np.newaxis, np.newaxis],
-                                     (1, self.nphi_bins, self.nbins))
-            self._ro.phi = np.tile(self.phi1d[np.newaxis, :, np.newaxis],
-                                   (self.nbins, 1, self.nbins))
-            self._ro.logd3 = np.tile(self.logr1d[np.newaxis, np.newaxis, :],
-                                     (self.nbins, self.nphi_bins, 1))
+                                     (1, self.nbins, self.nphi_bins))
+            self._ro.logd3 = np.tile(self.logr1d[np.newaxis, :, np.newaxis],
+                                     (self.nbins, 1, self.nphi_bins))
+            self._ro.phi = np.tile(self.phi1d[np.newaxis, np.newaxis, :],
+                                   (self.nbins, self.nbins, 1))
             self._ro.d2nom = np.exp(self.logd2)
             self._ro.d3nom = np.exp(self.logd3)
             self._ro._nbins = len(self._ro.logd2.ravel())
@@ -777,6 +777,10 @@ class Corr3(object):
     def phi_units(self): return self._ro.phi_units
     @property
     def _phi_units(self): return self._ro._phi_units
+    @property
+    def meanphi(self):
+        assert self.bin_type == 'LogSAS'
+        return self.meanu
 
     def _equal_binning(self, other, brief=False):
         # A helper function to test if two Corr3 objects have the same binning parameters
@@ -804,7 +808,7 @@ class Corr3(object):
             return eq
         else:
             return (self.sep_units == other.sep_units and
-                    (self.bin_type == 'LogRUV' or self.phi_units == other.phi_units) and
+                    (self.bin_type != 'LogSAS' or self.phi_units == other.phi_units) and
                     self.coords == other.coords and
                     self.bin_slop == other.bin_slop and
                     self.xperiod == other.xperiod and
@@ -813,25 +817,18 @@ class Corr3(object):
 
     def _equal_bin_data(self, other):
         # A helper function to test if two Corr3 objects have the same measured bin values
+        equal_d = (np.array_equal(self.meand1, other.meand1) and
+                   np.array_equal(self.meanlogd1, other.meanlogd1) and
+                   np.array_equal(self.meand2, other.meand2) and
+                   np.array_equal(self.meanlogd2, other.meanlogd2) and
+                   np.array_equal(self.meand3, other.meand3) and
+                   np.array_equal(self.meanlogd3, other.meanlogd3))
         if self.bin_type == 'LogRUV':
-            return (other.bin_type == 'LogRUV' and
-                    np.array_equal(self.meand1, other.meand1) and
-                    np.array_equal(self.meanlogd1, other.meanlogd1) and
-                    np.array_equal(self.meand2, other.meand2) and
-                    np.array_equal(self.meanlogd2, other.meanlogd2) and
-                    np.array_equal(self.meand3, other.meand3) and
-                    np.array_equal(self.meanlogd3, other.meanlogd3) and
+            return (other.bin_type == 'LogRUV' and equal_d and
                     np.array_equal(self.meanu, other.meanu) and
                     np.array_equal(self.meanv, other.meanv))
         else:
-            # LogSAS
-            return (other.bin_type == 'LogSAS' and
-                    np.array_equal(self.meand1, other.meand1) and
-                    np.array_equal(self.meanlogd1, other.meanlogd1) and
-                    np.array_equal(self.meand2, other.meand2) and
-                    np.array_equal(self.meanlogd2, other.meanlogd2) and
-                    np.array_equal(self.meand3, other.meand3) and
-                    np.array_equal(self.meanlogd3, other.meanlogd3) and
+            return (other.bin_type == 'LogSAS' and equal_d and
                     np.array_equal(self.meanphi, other.meanphi))
 
     @property
@@ -866,12 +863,6 @@ class Corr3(object):
     def var_method(self): return self._ro.var_method
     @property
     def num_bootstrap(self): return self._ro.num_bootstrap
-
-    # Alias names for some of the LogSAS arrays, which use the LogRUV names internally.
-    @property
-    def meanphi(self):
-        assert self.bin_type == 'LogSAS'
-        return self.meanu
 
     def __getstate__(self):
         d = self.__dict__.copy()

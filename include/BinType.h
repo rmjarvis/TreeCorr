@@ -1223,7 +1223,7 @@ struct BinTypeHelper<LogSAS>
         Assert(kphi < nphibins);
 
         xdbg<<"d1,d2,d3,phi = "<<d1<<", "<<d2<<", "<<d3<<",  "<<phi<<std::endl;
-        index = (kr2 * nphibins + kphi) * nbins + kr3;
+        index = (kr2 * nbins + kr3) * nphibins + kphi;
         xdbg<<"kr2,kr3,kphi = "<<kr2<<", "<<kr3<<", "<<kphi<<":  "<<index<<std::endl;
         Assert(index >= 0);
         Assert(index < ntot);

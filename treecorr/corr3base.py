@@ -68,19 +68,20 @@ class Corr3(object):
             -0.6 < v < -0.2 in addition to those with 0.2 < v < 0.6.
 
     2. The triangle can be defined by two of the sides and the angle between them (i.e. SAS
-       congruence).  The two sides are called d2 and d3, and the angle between them is called
-       phi.
+       congruence).  The vertex point between the two sides is considered point "1" (P1), so
+       the two sides (opposite points 2 and 3) are called d2 and d3.  The angle between them is
+       called phi, and it is measured in radians.
 
        The orientation is defined such that 0 <= phi <= pi is the angle sweeping from d2 to d3
        counter-clockwise.
 
        Unlike the SSS definition where every triangle is uniquely placed in a single bin, this
-       definition forms a triangle with each object at the central vertex, so for auto-correlations,
-       each triangle is placed in bins three times.  For cross-correlations, the order of the
-       points is such that objects in the first catalog are at the central vertex, objects in
-       the second catalog are at the end of line segment d3, and objects in the third catalog
-       are at the end of d2 (using the normal notation that side number 2 is opposite vertex 2
-       in the triangle, likewise for side 3 and vertex 3).
+       definition forms a triangle with each object at the central vertex, P1, so for
+       auto-correlations, each triangle is placed in bins three times.  For cross-correlations,
+       the order of the points is such that objects in the first catalog are at the central
+       vertex, P1, objects in the second catalog are at P2, which is opposite d2 (i.e.
+       at the end of line segment d3 from P1), and objects in the third catalog are at P3,
+       opposite d3 (i.e. at the end of d2 from P1).
 
     The constructor for all derived classes take a config dict as the first argument,
     since this is often how we keep track of parameters, but if you don't want to

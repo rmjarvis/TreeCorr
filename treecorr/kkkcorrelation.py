@@ -39,32 +39,32 @@ class KKKCorrelation(Corr3):
     Ojects of this class holds the following attributes:
 
     Attributes:
-        nbins:      The number of bins in logr where r = d2
-        bin_size:   The size of the bins in logr
-        min_sep:    The minimum separation being considered
-        max_sep:    The maximum separation being considered
+        nbins:      The number of bins in logr where r = d2.
+        bin_size:   The size of the bins in logr.
+        min_sep:    The minimum separation being considered.
+        max_sep:    The maximum separation being considered.
         logr1d:     The nominal centers of the nbins bins in log(r).
 
     If the bin_type is LogSAS, then it will have these attributes:
 
     Attributes:
-        nphi_bins:  The number of bins in v where v = +-(d1-d2)/d3
-        phi_bin_size: The size of the bins in v
-        min_phi:    The minimum v being considered
-        max_phi:    The maximum v being considered
-        phi1d:      The nominal centers of the nvbins bins in v.
+        nphi_bins:  The number of bins in phi.
+        phi_bin_size: The size of the bins in phi.
+        min_phi:    The minimum phi being considered.
+        max_phi:    The maximum phi being considered.
+        phi1d:      The nominal centers of the nphi_bins bins in phi.
 
     If the bin_type is LogRUV, then it will have these attributes:
 
     Attributes:
-        nubins:     The number of bins in u where u = d3/d2
-        ubin_size:  The size of the bins in u
-        min_u:      The minimum u being considered
-        max_u:      The maximum u being considered
-        nvbins:     The number of bins in v where v = +-(d1-d2)/d3
-        vbin_size:  The size of the bins in v
-        min_v:      The minimum v being considered
-        max_v:      The maximum v being considered
+        nubins:     The number of bins in u where u = d3/d2.
+        ubin_size:  The size of the bins in u.
+        min_u:      The minimum u being considered.
+        max_u:      The maximum u being considered.
+        nvbins:     The number of bins in v where v = +-(d1-d2)/d3.
+        vbin_size:  The size of the bins in v.
+        min_v:      The minimum v being considered.
+        max_v:      The maximum v being considered.
         u1d:        The nominal centers of the nubins bins in u.
         v1d:        The nominal centers of the nvbins bins in v.
 
@@ -377,7 +377,7 @@ class KKKCorrelation(Corr3):
 
         The `process_auto`, `process_cross12` and `process_cross` commands accumulate values in
         each bin, so they can be called multiple times if appropriate.  Afterwards, this command
-        finishes the calculation of meanlogr, meanu, meanv by dividing by the total weight.
+        finishes the calculation by dividing by the total weight.
 
         Parameters:
             vark1 (float):  The variance of the first scalar field.
@@ -464,10 +464,10 @@ class KKKCorrelation(Corr3):
         - If 3 arguments are given, then compute a three-way cross-correlation function.
 
         For cross correlations, the default behavior is to allow the three triangle vertices
-        (v1, v2, v3) to come from any of the three (or two) catalogs.  However, if you want to
+        (P1, P2, P3) to come from any of the three (or two) catalogs.  However, if you want to
         keep track of the order of the catalogs, you can set ``ordered=True``, which will fix
-        v1 to come from ``cat1``, v2 from ``cat2`` and v3 from ``cat3``.  The sides d1, d2, d3
-        are taken to be opposite v1, v2, v3 respectively.
+        P1 to come from ``cat1``, P2 from ``cat2`` and P3 from ``cat3``.  The sides d1, d2, d3
+        are taken to be opposite P1, P2, P3 respectively.
 
         All arguments may be lists, in which case all items in the list are used
         for that element of the correlation.
@@ -540,35 +540,61 @@ class KKKCorrelation(Corr3):
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False):
         r"""Write the correlation function to the file, file_name.
 
-        The output file will include the following columns:
+        For bin_type = LogRUV, the output file will include the following columns:
 
-        ==========      =============================================================
+        ==========      ================================================================
         Column          Description
-        ==========      =============================================================
+        ==========      ================================================================
         r_nom           The nominal center of the bin in r = d2 where d1 > d2 > d3
         u_nom           The nominal center of the bin in u = d3/d2
         v_nom           The nominal center of the bin in v = +-(d1-d2)/d3
-        meand1          The mean value :math:`\langle d1\rangle` of triangles that
+        meand1          The mean value :math:`\langle d1\rangle` of triangles that fell
+                        into each bin
+        meanlogd1       The mean value :math:`\langle \log(d1)\rangle` of triangles that
                         fell into each bin
-        meanlogd1       The mean value :math:`\langle \log(d1)\rangle` of triangles
-                        that fell into each bin
-        meand2          The mean value :math:`\langle d2\rangle` of triangles that
+        meand2          The mean value :math:`\langle d2\rangle` of triangles that fell
+                        into each bin
+        meanlogd2       The mean value :math:`\langle \log(d2)\rangle` of triangles that
                         fell into each bin
-        meanlogd2       The mean value :math:`\langle \log(d2)\rangle` of triangles
-                        that fell into each bin
-        meand3          The mean value :math:`\langle d3\rangle` of triangles that
+        meand3          The mean value :math:`\langle d3\rangle` of triangles that fell
+                        into each bin
+        meanlogd3       The mean value :math:`\langle \log(d3)\rangle` of triangles that
                         fell into each bin
-        meanlogd3       The mean value :math:`\langle \log(d3)\rangle` of triangles
-                        that fell into each bin
-        meanu           The mean value :math:`\langle u\rangle` of triangles that
+        meanu           The mean value :math:`\langle u\rangle` of triangles that fell
+                        into each bin
+        meanv           The mean value :math:`\langle v\rangle` of triangles that fell
+                        into each bin
+        zeta            The estimator of :math:`\zeta(r,u,v)`
+        sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`
+                        (if rrr is given)
+        weight          The total weight of triangles contributing to each bin
+        ntri            The number of triangles contributing to each bin
+        ==========      ================================================================
+
+        For bin_type = LogSAS, the output file will include the following columns:
+
+        ==========      ================================================================
+        Column          Description
+        ==========      ================================================================
+        d2_nom          The nominal center of the bin in d2
+        d3_nom          The nominal center of the bin in d3
+        phi_nom         The nominal center of the bin in phi, the opening angle between
+                        d2 and d3 in the counter-clockwise direction
+        meand2          The mean value :math:`\langle d2\rangle` of triangles that fell
+                        into each bin
+        meanlogd2       The mean value :math:`\langle \log(d2)\rangle` of triangles that
                         fell into each bin
-        meanv           The mean value :math:`\langle v\rangle` of triangles that
+        meand3          The mean value :math:`\langle d3\rangle` of triangles that fell
+                        into each bin
+        meanlogd3       The mean value :math:`\langle \log(d3)\rangle` of triangles that
                         fell into each bin
+        meanphi         The mean value :math:`\langle phi\rangle` of triangles that fell
+                        into each bin
         zeta            The estimator of :math:`\zeta(r,u,v)`
         sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`
         weight          The total weight of triangles contributing to each bin
         ntri            The number of triangles contributing to each bin
-        ==========      =============================================================
+        ==========      ================================================================
 
         If ``sep_units`` was given at construction, then the distances will all be in these units.
         Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or

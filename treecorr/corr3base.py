@@ -1404,7 +1404,23 @@ class Corr3(object):
 
     def _apply_units(self, mask):
         if self.coords == 'spherical' and self.metric == 'Euclidean':
-            # Then our distances are all angles.  Convert from the chord distance to a real angle.
+            # Then we need to convert from the chord triangles to great circle triangles.
+
+            # If SAS, then first fix phi.
+            # The real spherical trig formula is:
+            # cos(c) = cos(a) cos(b) + sin(a) sin(b) cos(phi)
+            # Using d1 = 2 sin(c/2), d2 = 2 sin(a/2), d3 = 2 sin(b/2), this becomes:
+            # d1^2 = d2^2 + d3^2 - 2 d2 d3 [ 1/4 d2 d3 + cos(a/2) cos(b/2) cos(phi) ]
+            # The thing in [] is what we currently have for cos(phi).
+            if self.bin_type == 'LogSAS':
+                cosphi = np.cos(self.meanphi[mask])
+                cosphi -= 0.25 * self.meand2[mask] * self.meand3[mask]
+                cosphi /= np.sqrt( (1 - self.meand2[mask]**2/4) * (1 - self.meand3[mask]**2/4) )
+                cosphi[cosphi < -1] = -1  # Just in case...
+                cosphi[cosphi > 1] = 1
+                self.meanphi[mask] = np.arccos(cosphi)
+
+            # Also convert the chord distance to a real angle.
             # L = 2 sin(theta/2)
             self.meand1[mask] = 2. * np.arcsin(self.meand1[mask]/2.)
             self.meanlogd1[mask] = np.log(2.*np.arcsin(np.exp(self.meanlogd1[mask])/2.))

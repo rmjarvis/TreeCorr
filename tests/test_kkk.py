@@ -269,7 +269,7 @@ def test_direct_logruv_spherical():
     z = rng.normal(0,s, (ngal,) )
     w = rng.random_sample(ngal)
     kap = rng.normal(0,3, (ngal,) )
-    w = np.ones_like(w)
+    #w = np.ones_like(w)
 
     ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
 
@@ -1359,20 +1359,20 @@ def test_direct_logsas_spherical():
     s = 10.
     rng = np.random.RandomState(8675309)
     x = rng.normal(0,s, (ngal,) )
-    y = rng.normal(0,s, (ngal,) ) + 200  # Put everything at large y, so small angle on sky
-    z = rng.normal(0,s, (ngal,) )
+    y = rng.normal(0,s, (ngal,) ) + 20  # Make sure covers a reasonalby large angle on the sky
+    z = rng.normal(0,s, (ngal,) )       # so the spherical geometry matters.
     w = rng.random_sample(ngal)
     kap = rng.normal(0,3, (ngal,) )
-    w = np.ones_like(w)
+    #w = np.ones_like(w)
 
     ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
 
     cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w, k=kap)
 
-    min_sep = 1.
-    max_sep = 10.
-    nbins = 10
-    nphi_bins = 10
+    min_sep = 5.
+    max_sep = 100.
+    nbins = 3
+    nphi_bins = 6
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, sep_units='deg',
                                   nbins=nbins, nphi_bins=nphi_bins, brute=True, bin_type='LogSAS')
     kkk.process(cat)
@@ -1383,6 +1383,17 @@ def test_direct_logsas_spherical():
     true_ntri = np.zeros((nbins, nphi_bins, nbins), dtype=int)
     true_weight = np.zeros((nbins, nphi_bins, nbins), dtype=float)
     true_zeta = np.zeros((nbins, nphi_bins, nbins), dtype=float)
+    true_meand1 = np.zeros((nbins, nphi_bins, nbins), dtype=float)
+    true_meand2 = np.zeros((nbins, nphi_bins, nbins), dtype=float)
+    true_meand3 = np.zeros((nbins, nphi_bins, nbins), dtype=float)
+    true_meanphi = np.zeros((nbins, nphi_bins, nbins), dtype=float)
+    true_ntri_arc = np.zeros((nbins, nphi_bins, nbins), dtype=int)
+    true_weight_arc = np.zeros((nbins, nphi_bins, nbins), dtype=float)
+    true_zeta_arc = np.zeros((nbins, nphi_bins, nbins), dtype=float)
+    true_meand1_arc = np.zeros((nbins, nphi_bins, nbins), dtype=float)
+    true_meand2_arc = np.zeros((nbins, nphi_bins, nbins), dtype=float)
+    true_meand3_arc = np.zeros((nbins, nphi_bins, nbins), dtype=float)
+    true_meanphi_arc = np.zeros((nbins, nphi_bins, nbins), dtype=float)
 
     rad_min_sep = min_sep * coord.degrees / coord.radians
     rad_max_sep = max_sep * coord.degrees / coord.radians
@@ -1402,32 +1413,94 @@ def test_direct_logsas_spherical():
                 if d1 == 0.: continue
                 if d2 == 0.: continue
                 if d3 == 0.: continue
-                phi = np.arccos((d2**2 + d3**2 - d1**2)/(2*d2*d3))
+                phi = np.arccos((d2**2 + d3**2 - d1**2) / (2*d2*d3))
                 if not is_ccw_3d(x[i],y[i],z[i],x[k],y[k],z[k],x[j],y[j],z[j]):
                     phi = 2*np.pi - phi
-                if d2 < rad_min_sep or d2 >= rad_max_sep: continue
-                if d3 < rad_min_sep or d3 >= rad_max_sep: continue
-                if phi < 0 or phi >= np.pi: continue
-                kr2 = int(np.floor(np.log(d2/rad_min_sep) / bin_size))
-                kr3 = int(np.floor(np.log(d3/rad_min_sep) / bin_size))
-                kphi = int(np.floor( phi / phi_bin_size ))
-                assert 0 <= kr2 < nbins
-                assert 0 <= kphi < nphi_bins
-                assert 0 <= kr3 < nbins
 
                 www = w[i] * w[j] * w[k]
                 zeta = www * kap[i] * kap[j] * kap[k]
 
-                true_ntri[kr2,kphi,kr3] += 1
-                true_weight[kr2,kphi,kr3] += www
-                true_zeta[kr2,kphi,kr3] += zeta
+                if ( (rad_min_sep <= d2 < rad_max_sep) and
+                     (rad_min_sep <= d3 < rad_max_sep) and
+                     0 <= phi < np.pi):
+                    kr2 = int(np.floor(np.log(d2/rad_min_sep) / bin_size))
+                    kr3 = int(np.floor(np.log(d3/rad_min_sep) / bin_size))
+                    kphi = int(np.floor( phi / phi_bin_size ))
+                    assert 0 <= kr2 < nbins
+                    assert 0 <= kphi < nphi_bins
+                    assert 0 <= kr3 < nbins
+
+                    true_ntri[kr2,kphi,kr3] += 1
+                    true_weight[kr2,kphi,kr3] += www
+                    true_zeta[kr2,kphi,kr3] += zeta
+                    true_meand1[kr2,kphi,kr3] += www * d1
+                    true_meand2[kr2,kphi,kr3] += www * d2
+                    true_meand3[kr2,kphi,kr3] += www * d3
+                    true_meanphi[kr2,kphi,kr3] += www * phi
+
+                # For Arc metric, use spherical geometry for phi definition.
+                # Law of cosines in spherical geom:
+                # cos(c) = cos(a) cos(b) + sin(a) sin(b) cos(phi)
+                # We need to convert the above chord distanes to great circle angles.
+                a = 2*np.arcsin(d2/2)
+                b = 2*np.arcsin(d3/2)
+                c = 2*np.arcsin(d1/2)
+                phi = np.arccos((np.cos(c) - np.cos(a)*np.cos(b)) / (np.sin(a)*np.sin(b)))
+
+                if not is_ccw_3d(x[i],y[i],z[i],x[k],y[k],z[k],x[j],y[j],z[j]):
+                    phi = 2*np.pi - phi
+
+                if ( (rad_min_sep <= a < rad_max_sep) and
+                     (rad_min_sep <= b < rad_max_sep) and
+                     0 <= phi < np.pi):
+                    kr2 = int(np.floor(np.log(a/rad_min_sep) / bin_size))
+                    kr3 = int(np.floor(np.log(b/rad_min_sep) / bin_size))
+                    kphi = int(np.floor( phi / phi_bin_size ))
+
+                    assert 0 <= kr2 < nbins
+                    assert 0 <= kphi < nphi_bins
+                    assert 0 <= kr3 < nbins
+
+                    true_ntri_arc[kr2,kphi,kr3] += 1
+                    true_weight_arc[kr2,kphi,kr3] += www
+                    true_zeta_arc[kr2,kphi,kr3] += zeta
+                    true_meand1_arc[kr2,kphi,kr3] += www * c
+                    true_meand2_arc[kr2,kphi,kr3] += www * a
+                    true_meand3_arc[kr2,kphi,kr3] += www * b
+                    true_meanphi_arc[kr2,kphi,kr3] += www * phi
 
     pos = true_weight > 0
     true_zeta[pos] /= true_weight[pos]
+    true_meand1[pos] /= true_weight[pos]
+    true_meand2[pos] /= true_weight[pos]
+    true_meand3[pos] /= true_weight[pos]
+    true_meanphi[pos] /= true_weight[pos]
+    posa = true_weight_arc > 0
+    true_zeta_arc[posa] /= true_weight_arc[posa]
+    true_meand1_arc[posa] /= true_weight_arc[posa]
+    true_meand2_arc[posa] /= true_weight_arc[posa]
+    true_meand3_arc[posa] /= true_weight_arc[posa]
+    true_meanphi_arc[posa] /= true_weight_arc[posa]
+
+    # Convert chord distances and angle to spherical values (in degrees for distances).
+    # cosphi = (d2^2 + d3^2 - d1^2 - 1/2 d2^2 d3^2) / (2 d2 d3 sqrt(1-d2^2) sqrt(1-d3^2))
+    # Fix this first, while the ds are still chord distances.
+    cosphi = np.cos(true_meanphi)
+    cosphi -= 0.25 * true_meand2 * true_meand3
+    cosphi /= np.sqrt(1-0.25*true_meand2**2) * np.sqrt(1-0.25*true_meand3**2)
+    true_meanphi[:] = np.arccos(cosphi)
+    for dd in [true_meand1, true_meand2, true_meand3]:
+        dd[:] = 2 * np.arcsin(dd/2) * 180/np.pi
+    for dd in [true_meand1_arc, true_meand2_arc, true_meand3_arc]:
+        dd *= 180. / np.pi
 
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(kkk.meand1[pos], true_meand1[pos], rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(kkk.meand2[pos], true_meand2[pos], rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(kkk.meand3[pos], true_meand3[pos], rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(kkk.meanphi[pos], true_meanphi[pos], rtol=1.e-4, atol=1.e-6)
 
     # Check that running via the corr3 script works correctly.
     config = treecorr.config.read_config('configs/kkk_direct_spherical_logsas.yaml')
@@ -1455,6 +1528,36 @@ def test_direct_logsas_spherical():
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(kkk.meand1[pos], true_meand1[pos], rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(kkk.meand2[pos], true_meand2[pos], rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(kkk.meand3[pos], true_meand3[pos], rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(kkk.meanphi[pos], true_meanphi[pos], rtol=1.e-4, atol=1.e-6)
+
+    # Now do Arc metric, where distances and angles use spherical geometry.
+    kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, sep_units='deg',
+                                  nbins=nbins, nphi_bins=nphi_bins,
+                                  bin_slop=0, bin_type='LogSAS', metric='Arc')
+    kkk.process(cat, num_threads=1)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_arc)
+    np.testing.assert_allclose(kkk.weight, true_weight_arc, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_arc, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(kkk.meand1[posa], true_meand1_arc[posa], rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(kkk.meand2[posa], true_meand2_arc[posa], rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(kkk.meand3[posa], true_meand3_arc[posa], rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(kkk.meanphi[posa], true_meanphi_arc[posa], rtol=1.e-4, atol=1.e-6)
+
+    kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, sep_units='deg',
+                                  nbins=nbins, nphi_bins=nphi_bins,
+                                  bin_slop=0, max_top=0, bin_type='LogSAS', metric='Arc')
+    kkk.process(cat)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_arc)
+    np.testing.assert_allclose(kkk.weight, true_weight_arc, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_arc, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(kkk.meand1[posa], true_meand1_arc[posa], rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(kkk.meand2[posa], true_meand2_arc[posa], rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(kkk.meand3[posa], true_meand3_arc[posa], rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(kkk.meanphi[posa], true_meanphi_arc[posa], rtol=1.e-4, atol=1.e-6)
+
 
 @timer
 def test_direct_logsas_cross():

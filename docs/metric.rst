@@ -44,6 +44,12 @@ will be in terms of great circle distances.  However, they will not necessarily 
 precisely uniformly in log(r), since the original bin spacing will have been set up in terms
 of the chord distances.
 
+Similarly, for three-point correlation functions with ``bin_type="LogSAS"``, the phi values
+will have been accumulated according to the regular Euclidean triangles made from the three
+chord distances.  The correction to true spherical-geometric angles between the great circles
+happens at the end, so the ``meanphi`` values are approximately correct, but the binning
+will have been done using the angles between the chords.
+
 "Arc"
 -----
 
@@ -62,6 +68,8 @@ chord calculations are in any way problematic for your particular use case.
 
 Also, unlike the "Euclidean" version, the bin spacing will be uniform in log(r) using the
 actual great circle distances, rather than being based on the chord distances.
+And for three-point correlation functions with ``bin_type="LogSAS"``, the phi values
+will be the true spherical-geometric angles between the great circles.
 
 
 .. _Rperp:

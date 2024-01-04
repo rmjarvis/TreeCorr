@@ -10,11 +10,11 @@ w_col: w
 
 verbose: 1
 
-min_sep: 1.
-max_sep: 10.
-nbins: 10
+min_sep: 5.
+max_sep: 100.
+nbins: 3
 sep_units: degrees
-nphi_bins: 10
+nphi_bins: 6
 bin_slop: 0
 bin_type: LogSAS
 

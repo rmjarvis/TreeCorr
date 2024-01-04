@@ -233,6 +233,16 @@ struct MetricHelper<Euclidean, P>
     bool tooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                       double rsq, double rpar, double s1ps2, double maxsep, double maxsepsq) const
     { return true; }
+
+    // Arc is the only metric with anything different from the normal law of cosines.
+    template <int C>
+    double calculateCosPhi(
+        const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
+        double d1sq, double d2sq, double d3sq,
+        double d1, double d2, double d3) const
+    { return (d2sq + d3sq - d1sq) / (2*d2*d3); }
+
+
 };
 
 //
@@ -359,6 +369,13 @@ struct MetricHelper<OldRperp, P>
         return rsq - 2.*(d3 + std::abs(rpar)) * s1ps2 > maxsepsq;
     }
 
+    template <int C>
+    double calculateCosPhi(
+        const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
+        double d1sq, double d2sq, double d3sq,
+        double d1, double d2, double d3) const
+    { return (d2sq + d3sq - d1sq) / (2*d2*d3); }
+
 };
 
 // This one is AKA FisherRPerp
@@ -482,6 +499,13 @@ struct MetricHelper<Rperp, P>
         return rsq > SQR(maxsep * (1 + s1ps2/twoL) + s1ps2);
     }
 
+    template <int C>
+    double calculateCosPhi(
+        const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
+        double d1sq, double d2sq, double d3sq,
+        double d1, double d2, double d3) const
+    { return (d2sq + d3sq - d1sq) / (2*d2*d3); }
+
 };
 
 
@@ -549,6 +573,14 @@ struct MetricHelper<Rlens, P>
     bool tooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                       double rsq, double rpar, double s1ps2, double maxsep, double maxsepsq) const
     { return true; }
+
+    template <int C>
+    double calculateCosPhi(
+        const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
+        double d1sq, double d2sq, double d3sq,
+        double d1, double d2, double d3) const
+    { return (d2sq + d3sq - d1sq) / (2*d2*d3); }
+
 };
 
 
@@ -655,6 +687,40 @@ struct MetricHelper<Arc, P>
     bool tooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                       double rsq, double rpar, double s1ps2, double maxsep, double maxsepsq) const
     { return true; }
+
+    template <int C>
+    double calculateCosPhi(
+        const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
+        double theta1sq, double theta2sq, double theta3sq,
+        double theta1, double theta2, double theta3) const
+    {
+        // The correct spherical geometry formula is
+        // cos(c) = cos(a) cos(b) + sin(a) sin(b) cos(phi)
+        //
+        // We can rephrase that in terms of the chord lengths (d1,d2,d3) using
+        // d1 = 2 sin(c/2)
+        // d2 = 2 sin(a/2)
+        // d3 = 2 sin(b/2)
+        //
+        // 1 - 2 sin^2(c/2) = (1 - 2 sin^2(a/2))(1 - 2 sin^2(b/2))
+        //                     + 4 sin(a/2) cos(a/2) sin(b/2) cos(b/2) cos(phi)
+        // 4 sin^2(c/2) = 4 sin^2(a/2) + 4 sin^2(b/2) - 8 sin^2(a/2) sin^2(b/2)
+        //                     - 8 sin(a/2) cos(a/2) sin(b/2) cos(b/2) cos(phi)
+        // d1^2 = d2^2 + d3^2 - 1/2 d2^2 d3^2  - 2 d2 d3 cos(a/2) cos(b/2) cos(phi)
+        //
+        // Unfortunately, we don't have the chord lengths here.  We have real angles.
+        // Rather than do trig though, recompute the chord lengths so we can compute
+        // cos(phi) with just regular arithmetic and a sqrt.
+        //
+        double d1sq = (c2.getData().getPos() - c3.getData().getPos()).normSq();
+        double d2sq = (c1.getData().getPos() - c3.getData().getPos()).normSq();
+        double d3sq = (c1.getData().getPos() - c2.getData().getPos()).normSq();
+
+        double cosphi = (d2sq + d3sq - 0.5*d2sq*d3sq - d1sq);
+        cosphi /= 2. * std::sqrt( d2sq * d3sq * (1.-0.25*d2sq) * (1.-0.25*d3sq) );
+        return cosphi;
+    }
+
 };
 
 //
@@ -781,6 +847,13 @@ struct MetricHelper<Periodic, P>
     bool tooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                       double rsq, double rpar, double s1ps2, double maxsep, double maxsepsq) const
     { return true; }
+
+    template <int C>
+    double calculateCosPhi(
+        const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
+        double d1sq, double d2sq, double d3sq,
+        double d1, double d2, double d3) const
+    { return (d2sq + d3sq - d1sq) / (2*d2*d3); }
 
 };
 

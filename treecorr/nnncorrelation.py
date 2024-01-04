@@ -42,11 +42,11 @@ class NNNCorrelation(Corr3):
     If the bin_type is LogSAS, then it will have these attributes:
 
     Attributes:
-        nphi_bins:  The number of bins in v where v = +-(d1-d2)/d3
-        phi_bin_size: The size of the bins in v
-        min_phi:    The minimum v being considered
-        max_phi:    The maximum v being considered
-        phi1d:      The nominal centers of the nvbins bins in v.
+        nphi_bins:  The number of bins in phi where v = +-(d1-d2)/d3.
+        phi_bin_size: The size of the bins in phi.
+        min_phi:    The minimum phi being considered.
+        max_phi:    The maximum phi being considered.
+        phi1d:      The nominal centers of the nphi_bins bins in phi.
 
     If the bin_type is LogRUV, then it will have these attributes:
 
@@ -413,7 +413,7 @@ class NNNCorrelation(Corr3):
 
         The `process_auto`, `process_cross12` and `process_cross` commands accumulate values in
         each bin, so they can be called multiple times if appropriate.  Afterwards, this command
-        finishes the calculation of meanlogr, meanu, meanv by dividing by the total weight.
+        finishes the calculation of meand1, meand2, etc. by dividing by the total weight.
         """
         self._finalize()
 
@@ -520,10 +520,10 @@ class NNNCorrelation(Corr3):
         - If 3 arguments are given, then compute a three-way cross-correlation.
 
         For cross correlations, the default behavior is to allow the three triangle vertices
-        (v1, v2, v3) to come from any of the three (or two) catalogs.  However, if you want to
+        (P1, P2, P3) to come from any of the three (or two) catalogs.  However, if you want to
         keep track of the order of the catalogs, you can set ``ordered=True``, which will fix
-        v1 to come from ``cat1``, v2 from ``cat2`` and v3 from ``cat3``.  The sides d1, d2, d3
-        are taken to be opposite v1, v2, v3 respectively.
+        P1 to come from ``cat1``, P2 from ``cat2`` and P3 from ``cat3``.  The sides d1, d2, d3
+        are taken to be opposite P1, P2, P3 respectively.
 
         All arguments may be lists, in which case all items in the list are used
         for that element of the correlation.

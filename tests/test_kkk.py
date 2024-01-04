@@ -1201,7 +1201,8 @@ def test_direct_logsas():
     nbins = 10
     nphi_bins = 10
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                  nphi_bins=nphi_bins, brute=True, bin_type='LogSAS')
+                                  nphi_bins=nphi_bins, phi_units='rad',
+                                  brute=True, bin_type='LogSAS')
     kkk.process(cat, num_threads=2)
 
     log_min_sep = np.log(min_sep)
@@ -1374,7 +1375,8 @@ def test_direct_logsas_spherical():
     nbins = 3
     nphi_bins = 6
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, sep_units='deg',
-                                  nbins=nbins, nphi_bins=nphi_bins, brute=True, bin_type='LogSAS')
+                                  nbins=nbins, nphi_bins=nphi_bins, phi_units='deg',
+                                  brute=True, bin_type='LogSAS')
     kkk.process(cat)
 
     r = np.sqrt(x**2 + y**2 + z**2)
@@ -1482,16 +1484,16 @@ def test_direct_logsas_spherical():
     true_meand3_arc[posa] /= true_weight_arc[posa]
     true_meanphi_arc[posa] /= true_weight_arc[posa]
 
-    # Convert chord distances and angle to spherical values (in degrees for distances).
+    # Convert chord distances and angle to spherical values (in degrees)
     # cosphi = (d2^2 + d3^2 - d1^2 - 1/2 d2^2 d3^2) / (2 d2 d3 sqrt(1-d2^2) sqrt(1-d3^2))
     # Fix this first, while the ds are still chord distances.
     cosphi = np.cos(true_meanphi)
     cosphi -= 0.25 * true_meand2 * true_meand3
     cosphi /= np.sqrt(1-0.25*true_meand2**2) * np.sqrt(1-0.25*true_meand3**2)
-    true_meanphi[:] = np.arccos(cosphi)
+    true_meanphi[:] = np.arccos(cosphi) * 180./np.pi
     for dd in [true_meand1, true_meand2, true_meand3]:
         dd[:] = 2 * np.arcsin(dd/2) * 180/np.pi
-    for dd in [true_meand1_arc, true_meand2_arc, true_meand3_arc]:
+    for dd in [true_meand1_arc, true_meand2_arc, true_meand3_arc, true_meanphi_arc]:
         dd *= 180. / np.pi
 
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
@@ -1522,7 +1524,7 @@ def test_direct_logsas_spherical():
     # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, sep_units='deg',
-                                  nbins=nbins, nphi_bins=nphi_bins,
+                                  nbins=nbins, nphi_bins=nphi_bins, phi_units='deg',
                                   bin_slop=0, max_top=0, bin_type='LogSAS')
     kkk.process(cat)
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
@@ -1535,7 +1537,7 @@ def test_direct_logsas_spherical():
 
     # Now do Arc metric, where distances and angles use spherical geometry.
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, sep_units='deg',
-                                  nbins=nbins, nphi_bins=nphi_bins,
+                                  nbins=nbins, nphi_bins=nphi_bins, phi_units='deg',
                                   bin_slop=0, bin_type='LogSAS', metric='Arc')
     kkk.process(cat, num_threads=1)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_arc)
@@ -1547,7 +1549,7 @@ def test_direct_logsas_spherical():
     np.testing.assert_allclose(kkk.meanphi[posa], true_meanphi_arc[posa], rtol=1.e-4, atol=1.e-6)
 
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, sep_units='deg',
-                                  nbins=nbins, nphi_bins=nphi_bins,
+                                  nbins=nbins, nphi_bins=nphi_bins, phi_units='deg',
                                   bin_slop=0, max_top=0, bin_type='LogSAS', metric='Arc')
     kkk.process(cat)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_arc)
@@ -1974,14 +1976,14 @@ def test_kkk_logsas():
     min_sep = 10.
     max_sep = 13.
     nbins = 3
-    min_phi = 1.
-    max_phi = 1.5
+    min_phi = 45.
+    max_phi = 90.
     nphi_bins = 5
 
     cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
-                                  sep_units='arcmin', bin_type='LogSAS')
+                                  sep_units='arcmin', phi_units='deg', bin_type='LogSAS')
     t0 = time.time()
     kkk.process(cat)
     print(kkk.ntri)
@@ -1992,7 +1994,7 @@ def test_kkk_logsas():
     # basically the same answer.
     kkkc = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
-                                   sep_units='arcmin', bin_type='LogSAS')
+                                   sep_units='arcmin', phi_units='deg', bin_type='LogSAS')
     t0 = time.time()
     kkkc.process(cat,cat,cat, ordered=True)
     t1 = time.time()
@@ -2072,7 +2074,7 @@ def test_kkk_logsas():
         # The read function should reshape them to the right shape.
         kkk2 = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                        min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
-                                       sep_units='arcmin', bin_type='LogSAS')
+                                       sep_units='arcmin', phi_units='deg', bin_type='LogSAS')
         kkk2.read(out_file_name)
         np.testing.assert_almost_equal(kkk2.logd2, kkk.logd2)
         np.testing.assert_almost_equal(kkk2.logd3, kkk.logd3)
@@ -2091,6 +2093,7 @@ def test_kkk_logsas():
         assert kkk2.coords == kkk.coords
         assert kkk2.metric == kkk.metric
         assert kkk2.sep_units == kkk.sep_units
+        assert kkk2.phi_units == kkk.phi_units
         assert kkk2.bin_type == kkk.bin_type
 
 if __name__ == '__main__':

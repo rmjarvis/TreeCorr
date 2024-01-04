@@ -15,6 +15,7 @@ max_sep: 100.
 nbins: 3
 sep_units: degrees
 nphi_bins: 6
+phi_units: degrees
 bin_slop: 0
 bin_type: LogSAS
 

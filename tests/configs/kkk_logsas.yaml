@@ -13,8 +13,9 @@ min_sep: 10.
 max_sep: 13.
 nbins: 3
 sep_units: arcmin
-min_phi: 1.0
-max_phi: 1.5
+min_phi: 45.
+max_phi: 90.
+phi_units: degree
 nphi_bins: 5
 bin_type: LogSAS
 

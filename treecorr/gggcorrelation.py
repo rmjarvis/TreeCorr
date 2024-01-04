@@ -1024,7 +1024,7 @@ class GGGCorrelation(Corr3):
             t = tx + 1j * ty
         else:
             d3 = np.outer(1./R, self.meand3.ravel())
-            t = d3 * np.exp(1j * self.meanphi.ravel())
+            t = d3 * np.exp(1j * self.meanphi.ravel() * self._phi_units)
 
         # Next we need to construct the T values.
         T0, T1, T2, T3 = self._calculateT(s,t,1.,k2,k3)

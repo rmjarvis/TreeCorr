@@ -157,6 +157,10 @@ class Corr3(object):
         phi_bin_size (float): Analogous to bin_size for the phi values. (default: bin_size)
         min_phi (float):    Analogous to min_sep for the phi values. (default: 0)
         max_phi (float):    Analogous to max_sep for the phi values. (default: np.pi)
+        phi_units (str):    The units to use for the phi values, given as a string.  This
+                            includes both min_phi and max_phi above, as well as the units of the
+                            output meanphi values.  Valid options are arcsec, arcmin, degrees,
+                            hours, radians.  (default: radians)
 
         nubins (int):       Analogous to nbins for the u values when bin_type=LogRUV.  (The default
                             is to calculate from ubin_size = bin_size, min_u = 0, max_u = 1, but
@@ -288,6 +292,8 @@ class Corr3(object):
                 'The minimum phi to include in the output.'),
         'max_phi' : (float, False, None, None,
                 'The maximum phi to include in the output.'),
+        'phi_units' : (str, False, None, coord.AngleUnit.valid_names,
+                'The units to use for min_phi and max_phi.'),
         'brute' : (bool, False, False, [False, True],
                 'Whether to use brute-force algorithm'),
         'verbose' : (int, False, 1, [0, 1, 2, 3],
@@ -472,10 +478,15 @@ class Corr3(object):
                     raise TypeError("%s is invalid for bin_type=LogSAS"%key)
             self._ro._bintype = _treecorr.LogSAS
             # Note: we refer to phi as u in the _ro namespace to make function calls easier.
+            self._ro.phi_units = self.config.get('phi_units','')
+            self._ro._phi_units = get(self.config,'phi_units',str,'radians')
             self._ro.min_u = float(self.config.get('min_phi', 0.))
-            self._ro.max_u = float(self.config.get('max_phi', np.pi))
+            self._ro.max_u = float(self.config.get('max_phi', np.pi / self._phi_units))
+            self._ro.min_u = self.min_phi * self._phi_units
+            self._ro.max_u = self.max_phi * self._phi_units
             if self.min_phi < 0 or self.max_phi > np.pi:
-                raise ValueError("Invalid range for phi: %f - %f"%(self.min_phi, self.max_phi))
+                raise ValueError("Invalid range for phi: %f - %f"%(
+                                 self.min_phi/self._phi_units, self.max_phi/self._phi_units))
             if self.min_phi >= self.max_phi:
                 raise ValueError("max_phi must be larger than min_phi")
             self._ro.ubin_size = float(self.config.get('phi_bin_size', bin_size))
@@ -761,6 +772,10 @@ class Corr3(object):
     def phi(self): 
         assert self.bin_type == 'LogSAS'
         return self._ro.phi
+    @property
+    def phi_units(self): return self._ro.phi_units
+    @property
+    def _phi_units(self): return self._ro._phi_units
 
     def _equal_binning(self, other, brief=False):
         # A helper function to test if two Corr3 objects have the same binning parameters
@@ -788,6 +803,7 @@ class Corr3(object):
             return eq
         else:
             return (self.sep_units == other.sep_units and
+                    (self.bin_type == 'LogRUV' or self.phi_units == other.phi_units) and
                     self.coords == other.coords and
                     self.bin_slop == other.bin_slop and
                     self.xperiod == other.xperiod and
@@ -1429,6 +1445,8 @@ class Corr3(object):
             self.meand3[mask] = 2. * np.arcsin(self.meand3[mask]/2.)
             self.meanlogd3[mask] = np.log(2.*np.arcsin(np.exp(self.meanlogd3[mask])/2.))
 
+        if self.bin_type == 'LogSAS':
+            self.meanphi[mask] /= self._phi_units
         self.meand1[mask] /= self._sep_units
         self.meanlogd1[mask] -= self._log_sep_units
         self.meand2[mask] /= self._sep_units

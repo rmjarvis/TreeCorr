@@ -14,6 +14,7 @@ min_sep: 1.
 max_sep: 10.
 nbins: 10
 nphi_bins: 10
+phi_units: 'radians'
 sep_units: arcmin
 bin_slop: 0
 bin_type: LogSAS

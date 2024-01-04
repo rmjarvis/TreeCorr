@@ -3216,14 +3216,14 @@ def test_ggg_logsas():
     min_sep = 11.
     max_sep = 15.
     nbins = 2
-    min_phi = 1.
-    max_phi = 1.5
+    min_phi = 45
+    max_phi = 90
     nphi_bins = 10
 
     cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
-                                  sep_units='arcmin', bin_type='LogSAS')
+                                  sep_units='arcmin', phi_units='degrees', bin_type='LogSAS')
     t0 = time.time()
     ggg.process(cat)
     t1 = time.time()
@@ -3233,13 +3233,11 @@ def test_ggg_logsas():
     # basically the same answer.
     gggc = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
-                                   sep_units='arcmin', bin_type='LogSAS')
+                                   sep_units='arcmin', phi_units='degrees', bin_type='LogSAS')
     t0 = time.time()
     gggc.process(cat,cat,cat, ordered=True)
     t1 = time.time()
     print('cross process time = ',t1-t0)
-    print(ggg.gam0)
-    print(gggc.gam0)
     np.testing.assert_allclose(gggc.ntri, ggg.ntri, rtol=1.e-3)
     np.testing.assert_allclose(gggc.meanlogd1, ggg.meanlogd1, rtol=1.e-3)
     np.testing.assert_allclose(gggc.meanlogd2, ggg.meanlogd2, rtol=1.e-3)
@@ -3279,7 +3277,7 @@ def test_ggg_logsas():
     s = d2
     # And let t be from c1 to c2. t = |t| e^Iphi
     # |t| = d3
-    t = d3 * np.exp(1j * ggg.meanphi)
+    t = d3 * np.exp(1j * ggg.meanphi * np.pi/180.)
 
     q1 = (s + t)/3.
     q2 = q1 - t
@@ -3455,7 +3453,7 @@ def test_ggg_logsas():
         # The read function should reshape them to the right shape.
         ggg2 = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                        min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
-                                       sep_units='arcmin', bin_type='LogSAS')
+                                       sep_units='arcmin', phi_units='degrees', bin_type='LogSAS')
         ggg2.read(out_file_name1)
         np.testing.assert_almost_equal(ggg2.logd2, ggg.logd2)
         np.testing.assert_almost_equal(ggg2.logd3, ggg.logd3)

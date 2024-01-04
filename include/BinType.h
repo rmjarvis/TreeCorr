@@ -896,7 +896,7 @@ struct BinTypeHelper<LogSAS>
             return false;
         }
 
-        cosphi = (d2sq + d3sq - d1sq) / (2*d2*d3);
+        cosphi = metric.calculateCosPhi(c1,c2,c3,d1sq,d2sq,d3sq,d1,d2,d3);
 
         // If we are not swapping 2,3, stop if orientation cannot be counter-clockwise.
         if (O > 1 &&
@@ -984,7 +984,6 @@ struct BinTypeHelper<LogSAS>
             // If it's still less than minphi then stop.
             // i.e. cos(phimax) > cos(minphi) = maxcosphi
             if (cosphimax > maxcosphi) {
-                //xdbg<<"phi_max = "<<std::acos(cosphimax)<<std::endl;
                 xdbg<<"phi cannot be as large as minphi\n";
                 return true;
             }
@@ -1159,7 +1158,7 @@ struct BinTypeHelper<LogSAS>
                                   int ntot, int& index)
     {
         // Make sure all the quantities we thought should be set have been.
-        xdbg<<"isTriangleInRange: "<<d1<<" "<<d1<<" "<<d2<<" "<<phi<<std::endl;
+        xdbg<<"isTriangleInRange: "<<d1<<" "<<d2<<" "<<d3<<" "<<cosphi<<std::endl;
         Assert(d1 > 0.);
         Assert(d2 > 0.);
         Assert(d3 > 0.);
@@ -1223,8 +1222,7 @@ struct BinTypeHelper<LogSAS>
         Assert(kphi >= 0);
         Assert(kphi < nphibins);
 
-        xdbg<<"d1,d2,d3 = "<<d1<<", "<<d2<<", "<<d3<<std::endl;
-        xdbg<<"r2,r3,phi = "<<d2<<", "<<d3<<", "<<phi<<std::endl;
+        xdbg<<"d1,d2,d3,phi = "<<d1<<", "<<d2<<", "<<d3<<",  "<<phi<<std::endl;
         index = (kr2 * nphibins + kphi) * nbins + kr3;
         xdbg<<"kr2,kr3,kphi = "<<kr2<<", "<<kr3<<", "<<kphi<<":  "<<index<<std::endl;
         Assert(index >= 0);

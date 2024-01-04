@@ -451,20 +451,20 @@ def test_logsas_binning():
         np.testing.assert_equal(nnn.logr1d.shape, (nnn.nbins,) )
         np.testing.assert_almost_equal(nnn.logr1d[0], math.log(nnn.min_sep) + 0.5*nnn.bin_size)
         np.testing.assert_almost_equal(nnn.logr1d[-1], math.log(nnn.max_sep) - 0.5*nnn.bin_size)
-        np.testing.assert_equal(nnn.logd2.shape, (nnn.nbins, nnn.nphi_bins, nnn.nbins))
+        np.testing.assert_equal(nnn.logd2.shape, (nnn.nbins, nnn.nbins, nnn.nphi_bins))
         np.testing.assert_almost_equal(nnn.logd2[:,0,0], nnn.logr1d)
         np.testing.assert_almost_equal(nnn.logd2[:,-1,-1], nnn.logr1d)
-        np.testing.assert_equal(nnn.logd3.shape, (nnn.nbins, nnn.nphi_bins, nnn.nbins))
-        np.testing.assert_almost_equal(nnn.logd3[0,0,:], nnn.logr1d)
-        np.testing.assert_almost_equal(nnn.logd3[-1,-1,:], nnn.logr1d)
+        np.testing.assert_equal(nnn.logd3.shape, (nnn.nbins, nnn.nbins, nnn.nphi_bins))
+        np.testing.assert_almost_equal(nnn.logd3[0,:,0], nnn.logr1d)
+        np.testing.assert_almost_equal(nnn.logd3[-1,:,-1], nnn.logr1d)
         assert len(nnn.logd2) == nnn.nbins
         assert len(nnn.logd3) == nnn.nbins
         np.testing.assert_equal(nnn.phi1d.shape, (nnn.nphi_bins,) )
         np.testing.assert_almost_equal(nnn.phi1d[0], nnn.min_phi + 0.5*nnn.phi_bin_size)
         np.testing.assert_almost_equal(nnn.phi1d[-1], nnn.max_phi - 0.5*nnn.phi_bin_size)
-        np.testing.assert_equal(nnn.phi.shape, (nnn.nbins, nnn.nphi_bins, nnn.nbins))
-        np.testing.assert_almost_equal(nnn.phi[0,:,0], nnn.phi1d)
-        np.testing.assert_almost_equal(nnn.phi[-1,:,-1], nnn.phi1d)
+        np.testing.assert_equal(nnn.phi.shape, (nnn.nbins, nnn.nbins, nnn.nphi_bins))
+        np.testing.assert_almost_equal(nnn.phi[0,0,:], nnn.phi1d)
+        np.testing.assert_almost_equal(nnn.phi[-1,-1,:], nnn.phi1d)
 
     def check_default_phi(nnn):
         assert nnn.min_phi == 0.
@@ -678,8 +678,8 @@ def test_logsas_binning():
     np.testing.assert_almost_equal(nnn.logd2[0], math.log(5) + 0.5*nnn.bin_size)
     np.testing.assert_almost_equal(nnn.logd2[-1], math.log(20) - 0.5*nnn.bin_size)
     assert len(nnn.logd2) == nnn.nbins
-    np.testing.assert_almost_equal(nnn.logd3[:,:,0], math.log(5) + 0.5*nnn.bin_size)
-    np.testing.assert_almost_equal(nnn.logd3[:,:,-1], math.log(20) - 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logd3[:,0,:], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logd3[:,-1,:], math.log(20) - 0.5*nnn.bin_size)
     assert len(nnn.logd3) == nnn.nbins
     check_default_phi(nnn)
 
@@ -695,8 +695,8 @@ def test_logsas_binning():
     np.testing.assert_almost_equal(nnn.logd2[0], math.log(5) + 0.5*nnn.bin_size)
     np.testing.assert_almost_equal(nnn.logd2[-1], math.log(20) - 0.5*nnn.bin_size)
     assert len(nnn.logd2) == nnn.nbins
-    np.testing.assert_almost_equal(nnn.logd3[:,:,0], math.log(5) + 0.5*nnn.bin_size)
-    np.testing.assert_almost_equal(nnn.logd3[:,:,-1], math.log(20) - 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logd3[:,0,:], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logd3[:,-1,:], math.log(20) - 0.5*nnn.bin_size)
     assert len(nnn.logd3) == nnn.nbins
     check_default_phi(nnn)
 
@@ -712,8 +712,8 @@ def test_logsas_binning():
     np.testing.assert_almost_equal(nnn.logd2[0], math.log(5) + 0.5*nnn.bin_size)
     np.testing.assert_almost_equal(nnn.logd2[-1], math.log(20) - 0.5*nnn.bin_size)
     assert len(nnn.logd2) == nnn.nbins
-    np.testing.assert_almost_equal(nnn.logd3[:,:,0], math.log(5) + 0.5*nnn.bin_size)
-    np.testing.assert_almost_equal(nnn.logd3[:,:,-1], math.log(20) - 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logd3[:,0,:], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logd3[:,-1,:], math.log(20) - 0.5*nnn.bin_size)
     assert len(nnn.logd3) == nnn.nbins
     check_default_phi(nnn)
 
@@ -729,8 +729,8 @@ def test_logsas_binning():
     np.testing.assert_almost_equal(nnn.logd2[0], math.log(5) + 0.5*nnn.bin_size)
     np.testing.assert_almost_equal(nnn.logd2[-1], math.log(20) - 0.5*nnn.bin_size)
     assert len(nnn.logd2) == nnn.nbins
-    np.testing.assert_almost_equal(nnn.logd3[:,:,0], math.log(5) + 0.5*nnn.bin_size)
-    np.testing.assert_almost_equal(nnn.logd3[:,:,-1], math.log(20) - 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logd3[:,0,:], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logd3[:,-1,:], math.log(20) - 0.5*nnn.bin_size)
     assert len(nnn.logd3) == nnn.nbins
     check_default_phi(nnn)
 
@@ -2843,7 +2843,7 @@ def test_direct_logsas_auto():
 
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
-    true_ntri = np.zeros( (nbins, nphi_bins, nbins) )
+    true_ntri = np.zeros( (nbins, nbins, nphi_bins) )
     bin_size = (log_max_sep - log_min_sep) / nbins
     phi_bin_size = (max_phi-min_phi) / nphi_bins
     for i in range(ngal):
@@ -2870,9 +2870,9 @@ def test_direct_logsas_auto():
                 kr3 = int(np.floor( (np.log(d3)-log_min_sep) / bin_size ))
                 kphi = int(np.floor( (phi-min_phi) / phi_bin_size ))
                 assert 0 <= kr2 < nbins
-                assert 0 <= kphi < nphi_bins
                 assert 0 <= kr3 < nbins
-                true_ntri[kr2,kphi,kr3] += 1
+                assert 0 <= kphi < nphi_bins
+                true_ntri[kr2,kr3,kphi] += 1
 
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
@@ -3033,12 +3033,12 @@ def test_direct_logsas_cross():
 
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
-    true_ntri_123 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_ntri_132 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_ntri_213 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_ntri_231 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_ntri_312 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_ntri_321 = np.zeros( (nbins, nphi_bins, nbins) )
+    true_ntri_123 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_ntri_132 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_ntri_213 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_ntri_231 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_ntri_312 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_ntri_321 = np.zeros( (nbins, nbins, nphi_bins) )
     bin_size = (log_max_sep - log_min_sep) / nbins
     phi_bin_size = (max_phi-min_phi) / nphi_bins
     t0 = time.time()
@@ -3066,13 +3066,13 @@ def test_direct_logsas_cross():
                     if phi >= min_phi and phi < max_phi:
                         kphi = int(np.floor( (phi-min_phi) / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_123[kr2,kphi,kr3] += 1
+                        true_ntri_123[kr2,kr3,kphi] += 1
 
                     phi = 2*np.pi - phi
                     if phi >= min_phi and phi < max_phi:
                         kphi = int(np.floor( (phi-min_phi) / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_132[kr3,kphi,kr2] += 1
+                        true_ntri_132[kr3,kr2,kphi] += 1
 
                 if d1 >= min_sep and d1 < max_sep and d3 >= min_sep and d3 < max_sep:
                     assert 0 <= kr1 < nbins
@@ -3084,14 +3084,14 @@ def test_direct_logsas_cross():
                     if phi >= min_phi and phi < max_phi:
                         kphi = int(np.floor( (phi-min_phi) / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_231[kr3,kphi,kr1] += 1
+                        true_ntri_231[kr3,kr1,kphi] += 1
 
                     # 213
                     phi = 2*np.pi - phi
                     if phi >= min_phi and phi < max_phi:
                         kphi = int(np.floor( (phi-min_phi) / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_213[kr1,kphi,kr3] += 1
+                        true_ntri_213[kr1,kr3,kphi] += 1
 
                 if d1 >= min_sep and d1 < max_sep and d2 >= min_sep and d2 < max_sep:
                     assert 0 <= kr1 < nbins
@@ -3103,14 +3103,14 @@ def test_direct_logsas_cross():
                     if phi >= min_phi and phi < max_phi:
                         kphi = int(np.floor( (phi-min_phi) / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_312[kr1,kphi,kr2] += 1
+                        true_ntri_312[kr1,kr2,kphi] += 1
 
                     # 321
                     phi = 2*np.pi - phi
                     if phi >= min_phi and phi < max_phi:
                         kphi = int(np.floor( (phi-min_phi) / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_321[kr2,kphi,kr1] += 1
+                        true_ntri_321[kr2,kr1,kphi] += 1
     t1 = time.time()
     print('Python brute: ',t1-t0)
 
@@ -3261,9 +3261,9 @@ def test_direct_logsas_cross12():
 
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
-    true_ntri_122 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_ntri_212 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_ntri_221 = np.zeros( (nbins, nphi_bins, nbins) )
+    true_ntri_122 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_ntri_212 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_ntri_221 = np.zeros( (nbins, nbins, nphi_bins) )
     bin_size = (log_max_sep - log_min_sep) / nbins
     phi_bin_size = (max_phi-min_phi) / nphi_bins
     t0 = time.time()
@@ -3292,7 +3292,7 @@ def test_direct_logsas_cross12():
                     if phi >= min_phi and phi < max_phi:
                         kphi = int(np.floor( (phi-min_phi) / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_122[kr2,kphi,kr3] += 1
+                        true_ntri_122[kr2,kr3,kphi] += 1
 
                 # 231
                 if d1 >= min_sep and d1 < max_sep and d3 >= min_sep and d3 < max_sep:
@@ -3304,7 +3304,7 @@ def test_direct_logsas_cross12():
                     if phi >= min_phi and phi < max_phi:
                         kphi = int(np.floor( (phi-min_phi) / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_221[kr3,kphi,kr1] += 1
+                        true_ntri_221[kr3,kr1,kphi] += 1
 
                 # 312
                 if d1 >= min_sep and d1 < max_sep and d2 >= min_sep and d2 < max_sep:
@@ -3316,7 +3316,7 @@ def test_direct_logsas_cross12():
                     if phi >= min_phi and phi < max_phi:
                         kphi = int(np.floor( (phi-min_phi) / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_212[kr1,kphi,kr2] += 1
+                        true_ntri_212[kr1,kr2,kphi] += 1
     t1 = time.time()
     print('Python brute: ',t1-t0)
 

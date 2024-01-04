@@ -1209,9 +1209,9 @@ def test_direct_logsas():
     log_max_sep = np.log(max_sep)
     bin_size = (log_max_sep - log_min_sep) / nbins
     phi_bin_size = np.pi/nphi_bins
-    true_ntri = np.zeros((nbins, nphi_bins, nbins), dtype=int)
-    true_weight = np.zeros((nbins, nphi_bins, nbins), dtype=float)
-    true_zeta = np.zeros((nbins, nphi_bins, nbins), dtype=float)
+    true_ntri = np.zeros((nbins, nbins, nphi_bins), dtype=int)
+    true_weight = np.zeros((nbins, nbins, nphi_bins), dtype=float)
+    true_zeta = np.zeros((nbins, nbins, nphi_bins), dtype=float)
     for i in range(ngal):
         for j in range(ngal):
             if i == j: continue
@@ -1236,15 +1236,15 @@ def test_direct_logsas():
                 kr3 = int(np.floor( (np.log(r3)-log_min_sep) / bin_size ))
                 kphi = int(np.floor( phi / phi_bin_size ))
                 assert 0 <= kr2 < nbins
-                assert 0 <= kphi < nphi_bins
                 assert 0 <= kr3 < nbins
+                assert 0 <= kphi < nphi_bins
 
                 www = w[i] * w[j] * w[k]
                 zeta = www * kap[i] * kap[j] * kap[k]
 
-                true_ntri[kr2,kphi,kr3] += 1
-                true_weight[kr2,kphi,kr3] += www
-                true_zeta[kr2,kphi,kr3] += zeta
+                true_ntri[kr2,kr3,kphi] += 1
+                true_weight[kr2,kr3,kphi] += www
+                true_zeta[kr2,kr3,kphi] += zeta
 
     pos = true_weight > 0
     true_zeta[pos] /= true_weight[pos]
@@ -1382,20 +1382,20 @@ def test_direct_logsas_spherical():
     r = np.sqrt(x**2 + y**2 + z**2)
     x /= r;  y /= r;  z /= r
 
-    true_ntri = np.zeros((nbins, nphi_bins, nbins), dtype=int)
-    true_weight = np.zeros((nbins, nphi_bins, nbins), dtype=float)
-    true_zeta = np.zeros((nbins, nphi_bins, nbins), dtype=float)
-    true_meand1 = np.zeros((nbins, nphi_bins, nbins), dtype=float)
-    true_meand2 = np.zeros((nbins, nphi_bins, nbins), dtype=float)
-    true_meand3 = np.zeros((nbins, nphi_bins, nbins), dtype=float)
-    true_meanphi = np.zeros((nbins, nphi_bins, nbins), dtype=float)
-    true_ntri_arc = np.zeros((nbins, nphi_bins, nbins), dtype=int)
-    true_weight_arc = np.zeros((nbins, nphi_bins, nbins), dtype=float)
-    true_zeta_arc = np.zeros((nbins, nphi_bins, nbins), dtype=float)
-    true_meand1_arc = np.zeros((nbins, nphi_bins, nbins), dtype=float)
-    true_meand2_arc = np.zeros((nbins, nphi_bins, nbins), dtype=float)
-    true_meand3_arc = np.zeros((nbins, nphi_bins, nbins), dtype=float)
-    true_meanphi_arc = np.zeros((nbins, nphi_bins, nbins), dtype=float)
+    true_ntri = np.zeros((nbins, nbins, nphi_bins), dtype=int)
+    true_weight = np.zeros((nbins, nbins, nphi_bins), dtype=float)
+    true_zeta = np.zeros((nbins, nbins, nphi_bins), dtype=float)
+    true_meand1 = np.zeros((nbins, nbins, nphi_bins), dtype=float)
+    true_meand2 = np.zeros((nbins, nbins, nphi_bins), dtype=float)
+    true_meand3 = np.zeros((nbins, nbins, nphi_bins), dtype=float)
+    true_meanphi = np.zeros((nbins, nbins, nphi_bins), dtype=float)
+    true_ntri_arc = np.zeros((nbins, nbins, nphi_bins), dtype=int)
+    true_weight_arc = np.zeros((nbins, nbins, nphi_bins), dtype=float)
+    true_zeta_arc = np.zeros((nbins, nbins, nphi_bins), dtype=float)
+    true_meand1_arc = np.zeros((nbins, nbins, nphi_bins), dtype=float)
+    true_meand2_arc = np.zeros((nbins, nbins, nphi_bins), dtype=float)
+    true_meand3_arc = np.zeros((nbins, nbins, nphi_bins), dtype=float)
+    true_meanphi_arc = np.zeros((nbins, nbins, nphi_bins), dtype=float)
 
     rad_min_sep = min_sep * coord.degrees / coord.radians
     rad_max_sep = max_sep * coord.degrees / coord.radians
@@ -1429,16 +1429,16 @@ def test_direct_logsas_spherical():
                     kr3 = int(np.floor(np.log(d3/rad_min_sep) / bin_size))
                     kphi = int(np.floor( phi / phi_bin_size ))
                     assert 0 <= kr2 < nbins
-                    assert 0 <= kphi < nphi_bins
                     assert 0 <= kr3 < nbins
+                    assert 0 <= kphi < nphi_bins
 
-                    true_ntri[kr2,kphi,kr3] += 1
-                    true_weight[kr2,kphi,kr3] += www
-                    true_zeta[kr2,kphi,kr3] += zeta
-                    true_meand1[kr2,kphi,kr3] += www * d1
-                    true_meand2[kr2,kphi,kr3] += www * d2
-                    true_meand3[kr2,kphi,kr3] += www * d3
-                    true_meanphi[kr2,kphi,kr3] += www * phi
+                    true_ntri[kr2,kr3,kphi] += 1
+                    true_weight[kr2,kr3,kphi] += www
+                    true_zeta[kr2,kr3,kphi] += zeta
+                    true_meand1[kr2,kr3,kphi] += www * d1
+                    true_meand2[kr2,kr3,kphi] += www * d2
+                    true_meand3[kr2,kr3,kphi] += www * d3
+                    true_meanphi[kr2,kr3,kphi] += www * phi
 
                 # For Arc metric, use spherical geometry for phi definition.
                 # Law of cosines in spherical geom:
@@ -1460,16 +1460,16 @@ def test_direct_logsas_spherical():
                     kphi = int(np.floor( phi / phi_bin_size ))
 
                     assert 0 <= kr2 < nbins
-                    assert 0 <= kphi < nphi_bins
                     assert 0 <= kr3 < nbins
+                    assert 0 <= kphi < nphi_bins
 
-                    true_ntri_arc[kr2,kphi,kr3] += 1
-                    true_weight_arc[kr2,kphi,kr3] += www
-                    true_zeta_arc[kr2,kphi,kr3] += zeta
-                    true_meand1_arc[kr2,kphi,kr3] += www * c
-                    true_meand2_arc[kr2,kphi,kr3] += www * a
-                    true_meand3_arc[kr2,kphi,kr3] += www * b
-                    true_meanphi_arc[kr2,kphi,kr3] += www * phi
+                    true_ntri_arc[kr2,kr3,kphi] += 1
+                    true_weight_arc[kr2,kr3,kphi] += www
+                    true_zeta_arc[kr2,kr3,kphi] += zeta
+                    true_meand1_arc[kr2,kr3,kphi] += www * c
+                    true_meand2_arc[kr2,kr3,kphi] += www * a
+                    true_meand3_arc[kr2,kr3,kphi] += www * b
+                    true_meanphi_arc[kr2,kr3,kphi] += www * phi
 
     pos = true_weight > 0
     true_zeta[pos] /= true_weight[pos]
@@ -1597,24 +1597,24 @@ def test_direct_logsas_cross():
     kkk.process(cat1, cat2, cat3, num_threads=2)
 
     # Figure out the correct answer for each permutation
-    true_ntri_123 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_ntri_132 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_ntri_213 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_ntri_231 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_ntri_312 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_ntri_321 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_zeta_123 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_zeta_132 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_zeta_213 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_zeta_231 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_zeta_312 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_zeta_321 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_weight_123 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_weight_132 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_weight_213 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_weight_231 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_weight_312 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_weight_321 = np.zeros( (nbins, nphi_bins, nbins) )
+    true_ntri_123 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_ntri_132 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_ntri_213 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_ntri_231 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_ntri_312 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_ntri_321 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_zeta_123 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_zeta_132 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_zeta_213 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_zeta_231 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_zeta_312 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_zeta_321 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_weight_123 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_weight_132 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_weight_213 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_weight_231 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_weight_312 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_weight_321 = np.zeros( (nbins, nbins, nphi_bins) )
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
     bin_size = (log_max_sep - log_min_sep) / nbins
@@ -1647,17 +1647,17 @@ def test_direct_logsas_cross():
                     if phi >= 0 and phi < np.pi:
                         kphi = int(np.floor( phi / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_123[kr2,kphi,kr3] += 1
-                        true_weight_123[kr2,kphi,kr3] += www
-                        true_zeta_123[kr2,kphi,kr3] += zeta
+                        true_ntri_123[kr2,kr3,kphi] += 1
+                        true_weight_123[kr2,kr3,kphi] += www
+                        true_zeta_123[kr2,kr3,kphi] += zeta
 
                     phi = 2*np.pi - phi
                     if phi >= 0 and phi < np.pi:
                         kphi = int(np.floor( phi / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_132[kr3,kphi,kr2] += 1
-                        true_weight_132[kr3,kphi,kr2] += www
-                        true_zeta_132[kr3,kphi,kr2] += zeta
+                        true_ntri_132[kr3,kr2,kphi] += 1
+                        true_weight_132[kr3,kr2,kphi] += www
+                        true_zeta_132[kr3,kr2,kphi] += zeta
 
                 if d1 >= min_sep and d1 < max_sep and d3 >= min_sep and d3 < max_sep:
                     assert 0 <= kr1 < nbins
@@ -1669,18 +1669,18 @@ def test_direct_logsas_cross():
                     if phi >= 0 and phi < np.pi:
                         kphi = int(np.floor( phi / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_231[kr3,kphi,kr1] += 1
-                        true_weight_231[kr3,kphi,kr1] += www
-                        true_zeta_231[kr3,kphi,kr1] += zeta
+                        true_ntri_231[kr3,kr1,kphi] += 1
+                        true_weight_231[kr3,kr1,kphi] += www
+                        true_zeta_231[kr3,kr1,kphi] += zeta
 
                     # 213
                     phi = 2*np.pi - phi
                     if phi >= 0 and phi < np.pi:
                         kphi = int(np.floor( phi / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_213[kr1,kphi,kr3] += 1
-                        true_weight_213[kr1,kphi,kr3] += www
-                        true_zeta_213[kr1,kphi,kr3] += zeta
+                        true_ntri_213[kr1,kr3,kphi] += 1
+                        true_weight_213[kr1,kr3,kphi] += www
+                        true_zeta_213[kr1,kr3,kphi] += zeta
 
                 if d1 >= min_sep and d1 < max_sep and d2 >= min_sep and d2 < max_sep:
                     assert 0 <= kr1 < nbins
@@ -1692,18 +1692,18 @@ def test_direct_logsas_cross():
                     if phi >= 0 and phi < np.pi:
                         kphi = int(np.floor( phi / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_312[kr1,kphi,kr2] += 1
-                        true_weight_312[kr1,kphi,kr2] += www
-                        true_zeta_312[kr1,kphi,kr2] += zeta
+                        true_ntri_312[kr1,kr2,kphi] += 1
+                        true_weight_312[kr1,kr2,kphi] += www
+                        true_zeta_312[kr1,kr2,kphi] += zeta
 
                     # 321
                     phi = 2*np.pi - phi
                     if phi >= 0 and phi < np.pi:
                         kphi = int(np.floor( phi / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_321[kr2,kphi,kr1] += 1
-                        true_weight_321[kr2,kphi,kr1] += www
-                        true_zeta_321[kr2,kphi,kr1] += zeta
+                        true_ntri_321[kr2,kr1,kphi] += 1
+                        true_weight_321[kr2,kr1,kphi] += www
+                        true_zeta_321[kr2,kr1,kphi] += zeta
 
     n_list = [true_ntri_123, true_ntri_132, true_ntri_213, true_ntri_231,
               true_ntri_312, true_ntri_321]
@@ -1812,15 +1812,15 @@ def test_direct_logsas_cross12():
     kkk.process(cat1, cat2, num_threads=2)
 
     # Figure out the correct answer for each permutation
-    true_ntri_122 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_ntri_212 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_ntri_221 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_zeta_122 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_zeta_212 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_zeta_221 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_weight_122 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_weight_212 = np.zeros( (nbins, nphi_bins, nbins) )
-    true_weight_221 = np.zeros( (nbins, nphi_bins, nbins) )
+    true_ntri_122 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_ntri_212 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_ntri_221 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_zeta_122 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_zeta_212 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_zeta_221 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_weight_122 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_weight_212 = np.zeros( (nbins, nbins, nphi_bins) )
+    true_weight_221 = np.zeros( (nbins, nbins, nphi_bins) )
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
     bin_size = (log_max_sep - log_min_sep) / nbins
@@ -1854,9 +1854,9 @@ def test_direct_logsas_cross12():
                     if phi >= 0 and phi < np.pi:
                         kphi = int(np.floor( phi / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_122[kr2,kphi,kr3] += 1
-                        true_weight_122[kr2,kphi,kr3] += www
-                        true_zeta_122[kr2,kphi,kr3] += zeta
+                        true_ntri_122[kr2,kr3,kphi] += 1
+                        true_weight_122[kr2,kr3,kphi] += www
+                        true_zeta_122[kr2,kr3,kphi] += zeta
 
                 # 231
                 if d1 >= min_sep and d1 < max_sep and d3 >= min_sep and d3 < max_sep:
@@ -1868,9 +1868,9 @@ def test_direct_logsas_cross12():
                     if phi >= 0 and phi < np.pi:
                         kphi = int(np.floor( phi / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_221[kr3,kphi,kr1] += 1
-                        true_weight_221[kr3,kphi,kr1] += www
-                        true_zeta_221[kr3,kphi,kr1] += zeta
+                        true_ntri_221[kr3,kr1,kphi] += 1
+                        true_weight_221[kr3,kr1,kphi] += www
+                        true_zeta_221[kr3,kr1,kphi] += zeta
 
                 # 312
                 if d1 >= min_sep and d1 < max_sep and d2 >= min_sep and d2 < max_sep:
@@ -1882,9 +1882,9 @@ def test_direct_logsas_cross12():
                     if phi >= 0 and phi < np.pi:
                         kphi = int(np.floor( phi / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_212[kr1,kphi,kr2] += 1
-                        true_weight_212[kr1,kphi,kr2] += www
-                        true_zeta_212[kr1,kphi,kr2] += zeta
+                        true_ntri_212[kr1,kr2,kphi] += 1
+                        true_weight_212[kr1,kr2,kphi] += www
+                        true_zeta_212[kr1,kr2,kphi] += zeta
 
     n_list = [true_ntri_122, true_ntri_212, true_ntri_221]
     w_list = [true_weight_122, true_weight_212, true_weight_221]

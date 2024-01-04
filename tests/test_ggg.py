@@ -2256,12 +2256,12 @@ def test_direct_logsas():
     log_max_sep = np.log(max_sep)
     bin_size = (log_max_sep - log_min_sep) / nbins
     phi_bin_size = np.pi/nphi_bins
-    true_ntri = np.zeros((nbins, nphi_bins, nbins), dtype=int)
-    true_weight = np.zeros((nbins, nphi_bins, nbins), dtype=float)
-    true_gam0 = np.zeros((nbins, nphi_bins, nbins), dtype=complex)
-    true_gam1 = np.zeros((nbins, nphi_bins, nbins), dtype=complex)
-    true_gam2 = np.zeros((nbins, nphi_bins, nbins), dtype=complex)
-    true_gam3 = np.zeros((nbins, nphi_bins, nbins), dtype=complex)
+    true_ntri = np.zeros((nbins, nbins, nphi_bins), dtype=int)
+    true_weight = np.zeros((nbins, nbins, nphi_bins), dtype=float)
+    true_gam0 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
+    true_gam1 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
+    true_gam2 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
+    true_gam3 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
     for i in range(ngal):
         for j in range(ngal):
             if i == j: continue
@@ -2286,8 +2286,8 @@ def test_direct_logsas():
                 kr3 = int(np.floor( (np.log(r3)-log_min_sep) / bin_size ))
                 kphi = int(np.floor( phi / phi_bin_size ))
                 assert 0 <= kr2 < nbins
-                assert 0 <= kphi < nphi_bins
                 assert 0 <= kr3 < nbins
+                assert 0 <= kphi < nphi_bins
 
                 # Rotate shears to coordinates where line connecting to center is horizontal.
                 cenx = (x[i] + x[j] + x[k])/3.
@@ -2309,12 +2309,12 @@ def test_direct_logsas():
                 gam2 = www * g1p * np.conjugate(g2p) * g3p
                 gam3 = www * g1p * g2p * np.conjugate(g3p)
 
-                true_ntri[kr2,kphi,kr3] += 1
-                true_weight[kr2,kphi,kr3] += www
-                true_gam0[kr2,kphi,kr3] += gam0
-                true_gam1[kr2,kphi,kr3] += gam1
-                true_gam2[kr2,kphi,kr3] += gam2
-                true_gam3[kr2,kphi,kr3] += gam3
+                true_ntri[kr2,kr3,kphi] += 1
+                true_weight[kr2,kr3,kphi] += www
+                true_gam0[kr2,kr3,kphi] += gam0
+                true_gam1[kr2,kr3,kphi] += gam1
+                true_gam2[kr2,kr3,kphi] += gam2
+                true_gam3[kr2,kr3,kphi] += gam3
 
     pos = true_weight > 0
     true_gam0[pos] /= true_weight[pos]
@@ -2493,12 +2493,12 @@ def test_direct_logsas_spherical():
     r = np.sqrt(x**2 + y**2 + z**2)
     x /= r;  y /= r;  z /= r
 
-    true_ntri = np.zeros((nbins, nphi_bins, nbins), dtype=int)
-    true_weight = np.zeros((nbins, nphi_bins, nbins), dtype=float)
-    true_gam0 = np.zeros((nbins, nphi_bins, nbins), dtype=complex)
-    true_gam1 = np.zeros((nbins, nphi_bins, nbins), dtype=complex)
-    true_gam2 = np.zeros((nbins, nphi_bins, nbins), dtype=complex)
-    true_gam3 = np.zeros((nbins, nphi_bins, nbins), dtype=complex)
+    true_ntri = np.zeros((nbins, nbins, nphi_bins), dtype=int)
+    true_weight = np.zeros((nbins, nbins, nphi_bins), dtype=float)
+    true_gam0 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
+    true_gam1 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
+    true_gam2 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
+    true_gam3 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
 
     rad_min_sep = min_sep * coord.degrees / coord.radians
     rad_max_sep = max_sep * coord.degrees / coord.radians
@@ -2529,8 +2529,8 @@ def test_direct_logsas_spherical():
                 kr3 = int(np.floor(np.log(d3/rad_min_sep) / bin_size))
                 kphi = int(np.floor( phi / phi_bin_size ))
                 assert 0 <= kr2 < nbins
-                assert 0 <= kphi < nphi_bins
                 assert 0 <= kr3 < nbins
+                assert 0 <= kphi < nphi_bins
 
                 # Rotate shears to coordinates where line connecting to center is horizontal.
                 # Original orientation is where north is up.
@@ -2555,12 +2555,12 @@ def test_direct_logsas_spherical():
                 gam2 = www * g1p * np.conjugate(g2p) * g3p
                 gam3 = www * g1p * g2p * np.conjugate(g3p)
 
-                true_ntri[kr2,kphi,kr3] += 1
-                true_weight[kr2,kphi,kr3] += www
-                true_gam0[kr2,kphi,kr3] += gam0
-                true_gam1[kr2,kphi,kr3] += gam1
-                true_gam2[kr2,kphi,kr3] += gam2
-                true_gam3[kr2,kphi,kr3] += gam3
+                true_ntri[kr2,kr3,kphi] += 1
+                true_weight[kr2,kr3,kphi] += www
+                true_gam0[kr2,kr3,kphi] += gam0
+                true_gam1[kr2,kr3,kphi] += gam1
+                true_gam2[kr2,kr3,kphi] += gam2
+                true_gam3[kr2,kr3,kphi] += gam3
 
     pos = true_weight > 0
     true_gam0[pos] /= true_weight[pos]
@@ -2651,42 +2651,42 @@ def test_direct_logsas_cross():
     ggg.process(cat1, cat2, cat3, num_threads=2)
 
     # Figure out the correct answer for each permutation
-    true_ntri_123 = np.zeros((nbins, nphi_bins, nbins))
-    true_ntri_132 = np.zeros((nbins, nphi_bins, nbins))
-    true_ntri_213 = np.zeros((nbins, nphi_bins, nbins))
-    true_ntri_231 = np.zeros((nbins, nphi_bins, nbins))
-    true_ntri_312 = np.zeros((nbins, nphi_bins, nbins))
-    true_ntri_321 = np.zeros((nbins, nphi_bins, nbins))
-    true_gam0_123 = np.zeros((nbins, nphi_bins, nbins), dtype=complex )
-    true_gam0_132 = np.zeros((nbins, nphi_bins, nbins), dtype=complex )
-    true_gam0_213 = np.zeros((nbins, nphi_bins, nbins), dtype=complex )
-    true_gam0_231 = np.zeros((nbins, nphi_bins, nbins), dtype=complex )
-    true_gam0_312 = np.zeros((nbins, nphi_bins, nbins), dtype=complex )
-    true_gam0_321 = np.zeros((nbins, nphi_bins, nbins), dtype=complex )
-    true_gam1_123 = np.zeros((nbins, nphi_bins, nbins), dtype=complex )
-    true_gam1_132 = np.zeros((nbins, nphi_bins, nbins), dtype=complex )
-    true_gam1_213 = np.zeros((nbins, nphi_bins, nbins), dtype=complex )
-    true_gam1_231 = np.zeros((nbins, nphi_bins, nbins), dtype=complex )
-    true_gam1_312 = np.zeros((nbins, nphi_bins, nbins), dtype=complex )
-    true_gam1_321 = np.zeros((nbins, nphi_bins, nbins), dtype=complex )
-    true_gam2_123 = np.zeros((nbins, nphi_bins, nbins), dtype=complex )
-    true_gam2_132 = np.zeros((nbins, nphi_bins, nbins), dtype=complex )
-    true_gam2_213 = np.zeros((nbins, nphi_bins, nbins), dtype=complex )
-    true_gam2_231 = np.zeros((nbins, nphi_bins, nbins), dtype=complex )
-    true_gam2_312 = np.zeros((nbins, nphi_bins, nbins), dtype=complex )
-    true_gam2_321 = np.zeros((nbins, nphi_bins, nbins), dtype=complex )
-    true_gam3_123 = np.zeros((nbins, nphi_bins, nbins), dtype=complex )
-    true_gam3_132 = np.zeros((nbins, nphi_bins, nbins), dtype=complex )
-    true_gam3_213 = np.zeros((nbins, nphi_bins, nbins), dtype=complex )
-    true_gam3_231 = np.zeros((nbins, nphi_bins, nbins), dtype=complex )
-    true_gam3_312 = np.zeros((nbins, nphi_bins, nbins), dtype=complex )
-    true_gam3_321 = np.zeros((nbins, nphi_bins, nbins), dtype=complex )
-    true_weight_123 = np.zeros((nbins, nphi_bins, nbins))
-    true_weight_132 = np.zeros((nbins, nphi_bins, nbins))
-    true_weight_213 = np.zeros((nbins, nphi_bins, nbins))
-    true_weight_231 = np.zeros((nbins, nphi_bins, nbins))
-    true_weight_312 = np.zeros((nbins, nphi_bins, nbins))
-    true_weight_321 = np.zeros((nbins, nphi_bins, nbins))
+    true_ntri_123 = np.zeros((nbins, nbins, nphi_bins))
+    true_ntri_132 = np.zeros((nbins, nbins, nphi_bins))
+    true_ntri_213 = np.zeros((nbins, nbins, nphi_bins))
+    true_ntri_231 = np.zeros((nbins, nbins, nphi_bins))
+    true_ntri_312 = np.zeros((nbins, nbins, nphi_bins))
+    true_ntri_321 = np.zeros((nbins, nbins, nphi_bins))
+    true_gam0_123 = np.zeros((nbins, nbins, nphi_bins), dtype=complex )
+    true_gam0_132 = np.zeros((nbins, nbins, nphi_bins), dtype=complex )
+    true_gam0_213 = np.zeros((nbins, nbins, nphi_bins), dtype=complex )
+    true_gam0_231 = np.zeros((nbins, nbins, nphi_bins), dtype=complex )
+    true_gam0_312 = np.zeros((nbins, nbins, nphi_bins), dtype=complex )
+    true_gam0_321 = np.zeros((nbins, nbins, nphi_bins), dtype=complex )
+    true_gam1_123 = np.zeros((nbins, nbins, nphi_bins), dtype=complex )
+    true_gam1_132 = np.zeros((nbins, nbins, nphi_bins), dtype=complex )
+    true_gam1_213 = np.zeros((nbins, nbins, nphi_bins), dtype=complex )
+    true_gam1_231 = np.zeros((nbins, nbins, nphi_bins), dtype=complex )
+    true_gam1_312 = np.zeros((nbins, nbins, nphi_bins), dtype=complex )
+    true_gam1_321 = np.zeros((nbins, nbins, nphi_bins), dtype=complex )
+    true_gam2_123 = np.zeros((nbins, nbins, nphi_bins), dtype=complex )
+    true_gam2_132 = np.zeros((nbins, nbins, nphi_bins), dtype=complex )
+    true_gam2_213 = np.zeros((nbins, nbins, nphi_bins), dtype=complex )
+    true_gam2_231 = np.zeros((nbins, nbins, nphi_bins), dtype=complex )
+    true_gam2_312 = np.zeros((nbins, nbins, nphi_bins), dtype=complex )
+    true_gam2_321 = np.zeros((nbins, nbins, nphi_bins), dtype=complex )
+    true_gam3_123 = np.zeros((nbins, nbins, nphi_bins), dtype=complex )
+    true_gam3_132 = np.zeros((nbins, nbins, nphi_bins), dtype=complex )
+    true_gam3_213 = np.zeros((nbins, nbins, nphi_bins), dtype=complex )
+    true_gam3_231 = np.zeros((nbins, nbins, nphi_bins), dtype=complex )
+    true_gam3_312 = np.zeros((nbins, nbins, nphi_bins), dtype=complex )
+    true_gam3_321 = np.zeros((nbins, nbins, nphi_bins), dtype=complex )
+    true_weight_123 = np.zeros((nbins, nbins, nphi_bins))
+    true_weight_132 = np.zeros((nbins, nbins, nphi_bins))
+    true_weight_213 = np.zeros((nbins, nbins, nphi_bins))
+    true_weight_231 = np.zeros((nbins, nbins, nphi_bins))
+    true_weight_312 = np.zeros((nbins, nbins, nphi_bins))
+    true_weight_321 = np.zeros((nbins, nbins, nphi_bins))
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
     bin_size = (log_max_sep - log_min_sep) / nbins
@@ -2736,23 +2736,23 @@ def test_direct_logsas_cross():
                     if phi >= 0 and phi < np.pi:
                         kphi = int(np.floor( phi / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_123[kr2,kphi,kr3] += 1
-                        true_weight_123[kr2,kphi,kr3] += www
-                        true_gam0_123[kr2,kphi,kr3] += gam0
-                        true_gam1_123[kr2,kphi,kr3] += gam1
-                        true_gam2_123[kr2,kphi,kr3] += gam2
-                        true_gam3_123[kr2,kphi,kr3] += gam3
+                        true_ntri_123[kr2,kr3,kphi] += 1
+                        true_weight_123[kr2,kr3,kphi] += www
+                        true_gam0_123[kr2,kr3,kphi] += gam0
+                        true_gam1_123[kr2,kr3,kphi] += gam1
+                        true_gam2_123[kr2,kr3,kphi] += gam2
+                        true_gam3_123[kr2,kr3,kphi] += gam3
 
                     phi = 2*np.pi - phi
                     if phi >= 0 and phi < np.pi:
                         kphi = int(np.floor( phi / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_132[kr3,kphi,kr2] += 1
-                        true_weight_132[kr3,kphi,kr2] += www
-                        true_gam0_132[kr3,kphi,kr2] += gam0
-                        true_gam1_132[kr3,kphi,kr2] += gam1
-                        true_gam2_132[kr3,kphi,kr2] += gam3
-                        true_gam3_132[kr3,kphi,kr2] += gam2
+                        true_ntri_132[kr3,kr2,kphi] += 1
+                        true_weight_132[kr3,kr2,kphi] += www
+                        true_gam0_132[kr3,kr2,kphi] += gam0
+                        true_gam1_132[kr3,kr2,kphi] += gam1
+                        true_gam2_132[kr3,kr2,kphi] += gam3
+                        true_gam3_132[kr3,kr2,kphi] += gam2
 
                 if d1 >= min_sep and d1 < max_sep and d3 >= min_sep and d3 < max_sep:
                     assert 0 <= kr1 < nbins
@@ -2764,24 +2764,24 @@ def test_direct_logsas_cross():
                     if phi >= 0 and phi < np.pi:
                         kphi = int(np.floor( phi / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_231[kr3,kphi,kr1] += 1
-                        true_weight_231[kr3,kphi,kr1] += www
-                        true_gam0_231[kr3,kphi,kr1] += gam0
-                        true_gam1_231[kr3,kphi,kr1] += gam2
-                        true_gam2_231[kr3,kphi,kr1] += gam3
-                        true_gam3_231[kr3,kphi,kr1] += gam1
+                        true_ntri_231[kr3,kr1,kphi] += 1
+                        true_weight_231[kr3,kr1,kphi] += www
+                        true_gam0_231[kr3,kr1,kphi] += gam0
+                        true_gam1_231[kr3,kr1,kphi] += gam2
+                        true_gam2_231[kr3,kr1,kphi] += gam3
+                        true_gam3_231[kr3,kr1,kphi] += gam1
 
                     # 213
                     phi = 2*np.pi - phi
                     if phi >= 0 and phi < np.pi:
                         kphi = int(np.floor( phi / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_213[kr1,kphi,kr3] += 1
-                        true_weight_213[kr1,kphi,kr3] += www
-                        true_gam0_213[kr1,kphi,kr3] += gam0
-                        true_gam1_213[kr1,kphi,kr3] += gam2
-                        true_gam2_213[kr1,kphi,kr3] += gam1
-                        true_gam3_213[kr1,kphi,kr3] += gam3
+                        true_ntri_213[kr1,kr3,kphi] += 1
+                        true_weight_213[kr1,kr3,kphi] += www
+                        true_gam0_213[kr1,kr3,kphi] += gam0
+                        true_gam1_213[kr1,kr3,kphi] += gam2
+                        true_gam2_213[kr1,kr3,kphi] += gam1
+                        true_gam3_213[kr1,kr3,kphi] += gam3
 
                 if d1 >= min_sep and d1 < max_sep and d2 >= min_sep and d2 < max_sep:
                     assert 0 <= kr1 < nbins
@@ -2793,24 +2793,24 @@ def test_direct_logsas_cross():
                     if phi >= 0 and phi < np.pi:
                         kphi = int(np.floor( phi / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_312[kr1,kphi,kr2] += 1
-                        true_weight_312[kr1,kphi,kr2] += www
-                        true_gam0_312[kr1,kphi,kr2] += gam0
-                        true_gam1_312[kr1,kphi,kr2] += gam3
-                        true_gam2_312[kr1,kphi,kr2] += gam1
-                        true_gam3_312[kr1,kphi,kr2] += gam2
+                        true_ntri_312[kr1,kr2,kphi] += 1
+                        true_weight_312[kr1,kr2,kphi] += www
+                        true_gam0_312[kr1,kr2,kphi] += gam0
+                        true_gam1_312[kr1,kr2,kphi] += gam3
+                        true_gam2_312[kr1,kr2,kphi] += gam1
+                        true_gam3_312[kr1,kr2,kphi] += gam2
 
                     # 321
                     phi = 2*np.pi - phi
                     if phi >= 0 and phi < np.pi:
                         kphi = int(np.floor( phi / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_321[kr2,kphi,kr1] += 1
-                        true_weight_321[kr2,kphi,kr1] += www
-                        true_gam0_321[kr2,kphi,kr1] += gam0
-                        true_gam1_321[kr2,kphi,kr1] += gam3
-                        true_gam2_321[kr2,kphi,kr1] += gam2
-                        true_gam3_321[kr2,kphi,kr1] += gam1
+                        true_ntri_321[kr2,kr1,kphi] += 1
+                        true_weight_321[kr2,kr1,kphi] += www
+                        true_gam0_321[kr2,kr1,kphi] += gam0
+                        true_gam1_321[kr2,kr1,kphi] += gam3
+                        true_gam2_321[kr2,kr1,kphi] += gam2
+                        true_gam3_321[kr2,kr1,kphi] += gam1
 
     n_list = [true_ntri_123, true_ntri_132, true_ntri_213, true_ntri_231,
               true_ntri_312, true_ntri_321]
@@ -2963,24 +2963,24 @@ def test_direct_logsas_cross12():
     ggg.process(cat1, cat2, num_threads=2)
 
     # Figure out the correct answer for each permutation
-    true_ntri_122 = np.zeros((nbins, nphi_bins, nbins))
-    true_ntri_212 = np.zeros((nbins, nphi_bins, nbins))
-    true_ntri_221 = np.zeros((nbins, nphi_bins, nbins))
-    true_gam0_122 = np.zeros((nbins, nphi_bins, nbins), dtype=complex)
-    true_gam0_212 = np.zeros((nbins, nphi_bins, nbins), dtype=complex)
-    true_gam0_221 = np.zeros((nbins, nphi_bins, nbins), dtype=complex)
-    true_gam1_122 = np.zeros((nbins, nphi_bins, nbins), dtype=complex)
-    true_gam1_212 = np.zeros((nbins, nphi_bins, nbins), dtype=complex)
-    true_gam1_221 = np.zeros((nbins, nphi_bins, nbins), dtype=complex)
-    true_gam2_122 = np.zeros((nbins, nphi_bins, nbins), dtype=complex)
-    true_gam2_212 = np.zeros((nbins, nphi_bins, nbins), dtype=complex)
-    true_gam2_221 = np.zeros((nbins, nphi_bins, nbins), dtype=complex)
-    true_gam3_122 = np.zeros((nbins, nphi_bins, nbins), dtype=complex)
-    true_gam3_212 = np.zeros((nbins, nphi_bins, nbins), dtype=complex)
-    true_gam3_221 = np.zeros((nbins, nphi_bins, nbins), dtype=complex)
-    true_weight_122 = np.zeros((nbins, nphi_bins, nbins))
-    true_weight_212 = np.zeros((nbins, nphi_bins, nbins))
-    true_weight_221 = np.zeros((nbins, nphi_bins, nbins))
+    true_ntri_122 = np.zeros((nbins, nbins, nphi_bins))
+    true_ntri_212 = np.zeros((nbins, nbins, nphi_bins))
+    true_ntri_221 = np.zeros((nbins, nbins, nphi_bins))
+    true_gam0_122 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
+    true_gam0_212 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
+    true_gam0_221 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
+    true_gam1_122 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
+    true_gam1_212 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
+    true_gam1_221 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
+    true_gam2_122 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
+    true_gam2_212 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
+    true_gam2_221 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
+    true_gam3_122 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
+    true_gam3_212 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
+    true_gam3_221 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
+    true_weight_122 = np.zeros((nbins, nbins, nphi_bins))
+    true_weight_212 = np.zeros((nbins, nbins, nphi_bins))
+    true_weight_221 = np.zeros((nbins, nbins, nphi_bins))
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
     bin_size = (log_max_sep - log_min_sep) / nbins
@@ -3031,12 +3031,12 @@ def test_direct_logsas_cross12():
                     if phi >= 0 and phi < np.pi:
                         kphi = int(np.floor( phi / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_122[kr2,kphi,kr3] += 1
-                        true_weight_122[kr2,kphi,kr3] += www
-                        true_gam0_122[kr2,kphi,kr3] += gam0
-                        true_gam1_122[kr2,kphi,kr3] += gam1
-                        true_gam2_122[kr2,kphi,kr3] += gam2
-                        true_gam3_122[kr2,kphi,kr3] += gam3
+                        true_ntri_122[kr2,kr3,kphi] += 1
+                        true_weight_122[kr2,kr3,kphi] += www
+                        true_gam0_122[kr2,kr3,kphi] += gam0
+                        true_gam1_122[kr2,kr3,kphi] += gam1
+                        true_gam2_122[kr2,kr3,kphi] += gam2
+                        true_gam3_122[kr2,kr3,kphi] += gam3
 
                 # 231
                 if d1 >= min_sep and d1 < max_sep and d3 >= min_sep and d3 < max_sep:
@@ -3048,12 +3048,12 @@ def test_direct_logsas_cross12():
                     if phi >= 0 and phi < np.pi:
                         kphi = int(np.floor( phi / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_221[kr3,kphi,kr1] += 1
-                        true_weight_221[kr3,kphi,kr1] += www
-                        true_gam0_221[kr3,kphi,kr1] += gam0
-                        true_gam1_221[kr3,kphi,kr1] += gam2
-                        true_gam2_221[kr3,kphi,kr1] += gam3
-                        true_gam3_221[kr3,kphi,kr1] += gam1
+                        true_ntri_221[kr3,kr1,kphi] += 1
+                        true_weight_221[kr3,kr1,kphi] += www
+                        true_gam0_221[kr3,kr1,kphi] += gam0
+                        true_gam1_221[kr3,kr1,kphi] += gam2
+                        true_gam2_221[kr3,kr1,kphi] += gam3
+                        true_gam3_221[kr3,kr1,kphi] += gam1
 
                 # 312
                 if d1 >= min_sep and d1 < max_sep and d2 >= min_sep and d2 < max_sep:
@@ -3065,12 +3065,12 @@ def test_direct_logsas_cross12():
                     if phi >= 0 and phi < np.pi:
                         kphi = int(np.floor( phi / phi_bin_size ))
                         assert 0 <= kphi < nphi_bins
-                        true_ntri_212[kr1,kphi,kr2] += 1
-                        true_weight_212[kr1,kphi,kr2] += www
-                        true_gam0_212[kr1,kphi,kr2] += gam0
-                        true_gam1_212[kr1,kphi,kr2] += gam3
-                        true_gam2_212[kr1,kphi,kr2] += gam1
-                        true_gam3_212[kr1,kphi,kr2] += gam2
+                        true_ntri_212[kr1,kr2,kphi] += 1
+                        true_weight_212[kr1,kr2,kphi] += www
+                        true_gam0_212[kr1,kr2,kphi] += gam0
+                        true_gam1_212[kr1,kr2,kphi] += gam3
+                        true_gam2_212[kr1,kr2,kphi] += gam1
+                        true_gam3_212[kr1,kr2,kphi] += gam2
 
     n_list = [true_ntri_122, true_ntri_212, true_ntri_221]
     w_list = [true_weight_122, true_weight_212, true_weight_221]

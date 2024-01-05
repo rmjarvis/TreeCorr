@@ -1226,6 +1226,7 @@ void pyExportCorr2(py::module& _treecorr)
         .value("TwoD", TwoD)
         .value("LogRUV", LogRUV)
         .value("LogSAS", LogSAS)
+        .value("LogMultipole", LogMultipole)
         .export_values();
 
     py::enum_<Coord>(_treecorr, "Coord")

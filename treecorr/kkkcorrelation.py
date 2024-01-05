@@ -68,10 +68,17 @@ class KKKCorrelation(Corr3):
         max_phi:    The maximum phi being considered.
         phi1d:      The nominal centers of the nphi_bins bins in phi.
 
+    If the bin_type is LogMultipole, then it will have these attributes:
+
+    Attributes:
+        max_n:      The maximum multipole index n being stored.
+        n1d:        The multipole index n in the 2*max_n+1 bins of the third bin direction.
+
     In addition, the following attributes are numpy arrays whose shape is:
 
         * (nbins, nubins, nvbins) if bin_type is LogRUV
         * (nbins, nbins, nphi_bins) if bin_type is LogSAS
+        * (nbins, nbins, 2*max_n+1) if bin_type is LogMultipole
 
     If bin_type is LogRUV:
 
@@ -95,6 +102,17 @@ class KKKCorrelation(Corr3):
                     i.e. d3 = exp(logd3).
         phi:        The nominal center of each angular bin.
         meanphi:    The (weighted) mean value of phi for the triangles in each bin.
+
+    If bin_type is LogMultipole:
+
+    Attributes:
+        logd2:      The nominal center of each bin in log(d2).
+        d2nom:      The nominal center of each bin converted to regular d2 distance.
+                    i.e. d2 = exp(logd2).
+        logd3:      The nominal center of each bin in log(d3).
+        d3nom:      The nominal center of each bin converted to regular d3 distance.
+                    i.e. d3 = exp(logd3).
+        n:          The multipole index n for each bin.
 
     For any bin_type:
 
@@ -580,6 +598,16 @@ class KKKCorrelation(Corr3):
                         d2 and d3 in the counter-clockwise direction
         meanphi         The mean value :math:`\langle phi\rangle` of triangles that fell
                         into each bin
+        ==========      ================================================================
+
+        For bin_type = LogMultipole, the output file will include the following columns:
+
+        ==========      ================================================================
+        Column          Description
+        ==========      ================================================================
+        d2_nom          The nominal center of the bin in d2
+        d3_nom          The nominal center of the bin in d3
+        n               The multipole index n (from -max_n .. max_n)
         ==========      ================================================================
 
         In addition, all bin types include the following columns:

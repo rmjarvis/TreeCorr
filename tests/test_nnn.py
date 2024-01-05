@@ -832,6 +832,254 @@ def test_logsas_binning():
     np.testing.assert_almost_equal(nnn.bin_slop, 1.0) # The stored bin_slop is just for lnr
 
 @timer
+def test_logmultipole_binning():
+    # Test some basic properties of the base class
+    def check_arrays(nnn):
+        np.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
+        np.testing.assert_equal(nnn.logr1d.shape, (nnn.nbins,) )
+        np.testing.assert_almost_equal(nnn.logr1d[0], math.log(nnn.min_sep) + 0.5*nnn.bin_size)
+        np.testing.assert_almost_equal(nnn.logr1d[-1], math.log(nnn.max_sep) - 0.5*nnn.bin_size)
+        np.testing.assert_equal(nnn.logd2.shape, (nnn.nbins, nnn.nbins, 2*nnn.max_n+1))
+        np.testing.assert_almost_equal(nnn.logd2[:,0,0], nnn.logr1d)
+        np.testing.assert_almost_equal(nnn.logd2[:,-1,-1], nnn.logr1d)
+        np.testing.assert_equal(nnn.logd3.shape, (nnn.nbins, nnn.nbins, 2*nnn.max_n+1))
+        np.testing.assert_almost_equal(nnn.logd3[0,:,0], nnn.logr1d)
+        np.testing.assert_almost_equal(nnn.logd3[-1,:,-1], nnn.logr1d)
+        np.testing.assert_equal(nnn.n1d.shape, (2*nnn.max_n+1,) )
+        np.testing.assert_equal(nnn.n1d, np.arange(-nnn.max_n, nnn.max_n+1))
+        np.testing.assert_equal(nnn.n.shape, (nnn.nbins, nnn.nbins, 2*nnn.max_n+1))
+        np.testing.assert_equal(nnn.n[0,0,:], nnn.n1d)
+        np.testing.assert_equal(nnn.n[-1,-1,:], nnn.n1d)
+        assert len(nnn.logd2) == nnn.nbins
+        assert len(nnn.logd3) == nnn.nbins
+
+    # Check the different ways to set up the binning:
+    # Omit bin_size
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20,
+                                  max_n=10, bin_type='LogMultipole')
+    assert nnn.min_sep == 5.
+    assert nnn.max_sep == 20.
+    assert nnn.nbins == 20
+    assert nnn.max_n == 10
+    check_arrays(nnn)
+
+    # Omit min_sep
+    nnn = treecorr.NNNCorrelation(max_sep=20, nbins=20, bin_size=0.1,
+                                  max_n=10, bin_type='LogMultipole')
+    assert nnn.bin_size == 0.1
+    assert nnn.max_sep == 20.
+    assert nnn.nbins == 20
+    assert nnn.max_n == 10
+    check_arrays(nnn)
+
+    # Omit max_sep
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=20, bin_size=0.1,
+                                  max_n=10, bin_type='LogMultipole')
+    assert nnn.bin_size == 0.1
+    assert nnn.min_sep == 5.
+    assert nnn.nbins == 20
+    assert nnn.max_n == 10
+    check_arrays(nnn)
+
+    # Omit nbins
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
+                                  max_n=10, bin_type='LogMultipole')
+    assert nnn.bin_size <= 0.1
+    assert nnn.min_sep == 5.
+    assert nnn.max_sep == 20.
+    assert nnn.max_n == 10
+    check_arrays(nnn)
+
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_n=20, bin_type='LogMultipole')
+    assert_raises(TypeError, treecorr.NNNCorrelation, max_sep=20, max_n=10, bin_type='LogMultipole')
+    assert_raises(TypeError, treecorr.NNNCorrelation, bin_size=0.1, max_n=20,
+                  bin_type='LogMultipole')
+    assert_raises(TypeError, treecorr.NNNCorrelation, nbins=20, max_n=10, bin_type='LogMultipole')
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, max_n=20,
+                  bin_type='LogMultipole')
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, bin_size=0.1, max_n=20,
+                  bin_type='LogMultipole')
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, nbins=20, max_n=20,
+                  bin_type='LogMultipole')
+    assert_raises(TypeError, treecorr.NNNCorrelation, max_sep=20, bin_size=0.1, max_n=20,
+                  bin_type='LogMultipole')
+    assert_raises(TypeError, treecorr.NNNCorrelation, max_sep=20, nbins=20, max_n=20,
+                  bin_type='LogMultipole')
+    assert_raises(TypeError, treecorr.NNNCorrelation, bin_size=0.1, nbins=20, max_n=20,
+                  bin_type='LogMultipole')
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  nbins=20, max_n=10, bin_type='LogMultipole')
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  bin_type='LogMultipole')
+    assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  max_n=-1, bin_type='LogMultipole')
+    assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  max_n=-10, bin_type='LogMultipole')
+    assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=20, max_sep=5, bin_size=0.1,
+                  max_n=10, bin_type='LogMultipole')
+    assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=20, max_sep=5, nbins=20,
+                  max_n=10, bin_type='LogMultipole')
+    assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=20, max_sep=5, nbins=20,
+                  split_method='invalid', max_n=10, bin_type='LogMultipole')
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  max_n=10, bin_type='LogMultipole', nubins=3)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  max_n=10, bin_type='LogMultipole', ubin_size=0.2)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  max_n=10, bin_type='LogMultipole', min_u=0.2)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  max_n=10, bin_type='LogMultipole', max_u=0.2)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  max_n=10, bin_type='LogMultipole', nvbins=3)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  max_n=10, bin_type='LogMultipole', vbin_size=0.2)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  max_n=10, bin_type='LogMultipole', min_v=0.2)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  max_n=10, bin_type='LogMultipole', max_v=0.2)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  max_n=10, bin_type='LogMultipole', max_phi=0.2)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  max_n=10, bin_type='LogMultipole', min_phi=0.2)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  max_n=10, bin_type='LogMultipole', phi_bin_size=0.2)
+    assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
+                  max_n=10, bin_type='LogMultipole', nphi_bins=10)
+
+    # Check the use of sep_units
+    # radians
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='radians',
+                                  max_n=10, bin_type='LogMultipole')
+    np.testing.assert_almost_equal(nnn.min_sep, 5.)
+    np.testing.assert_almost_equal(nnn.max_sep, 20.)
+    np.testing.assert_almost_equal(nnn._min_sep, 5.)
+    np.testing.assert_almost_equal(nnn._max_sep, 20.)
+    assert nnn.min_sep == 5.
+    assert nnn.max_sep == 20.
+    assert nnn.nbins == 20
+    assert nnn.max_n == 10
+    check_arrays(nnn)
+
+    # arcsec
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='arcsec',
+                                  max_n=10, bin_type='LogMultipole')
+    np.testing.assert_almost_equal(nnn.min_sep, 5.)
+    np.testing.assert_almost_equal(nnn.max_sep, 20.)
+    np.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/180/3600)
+    np.testing.assert_almost_equal(nnn._max_sep, 20. * math.pi/180/3600)
+    assert nnn.nbins == 20
+    np.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
+    # Note that logd2 is in the separation units, not radians.
+    np.testing.assert_almost_equal(nnn.logd2[0], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logd2[-1], math.log(20) - 0.5*nnn.bin_size)
+    assert len(nnn.logd2) == nnn.nbins
+    np.testing.assert_almost_equal(nnn.logd3[:,0,:], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logd3[:,-1,:], math.log(20) - 0.5*nnn.bin_size)
+    assert len(nnn.logd3) == nnn.nbins
+    check_arrays(nnn)
+
+    # arcmin
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='arcmin',
+                                  max_n=10, bin_type='LogMultipole')
+    np.testing.assert_almost_equal(nnn.min_sep, 5.)
+    np.testing.assert_almost_equal(nnn.max_sep, 20.)
+    np.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/180/60)
+    np.testing.assert_almost_equal(nnn._max_sep, 20. * math.pi/180/60)
+    assert nnn.nbins == 20
+    np.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
+    np.testing.assert_almost_equal(nnn.logd2[0], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logd2[-1], math.log(20) - 0.5*nnn.bin_size)
+    assert len(nnn.logd2) == nnn.nbins
+    np.testing.assert_almost_equal(nnn.logd3[:,0,:], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logd3[:,-1,:], math.log(20) - 0.5*nnn.bin_size)
+    assert len(nnn.logd3) == nnn.nbins
+    check_arrays(nnn)
+
+    # degrees
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='degrees',
+                                  max_n=10, bin_type='LogMultipole')
+    np.testing.assert_almost_equal(nnn.min_sep, 5.)
+    np.testing.assert_almost_equal(nnn.max_sep, 20.)
+    np.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/180)
+    np.testing.assert_almost_equal(nnn._max_sep, 20. * math.pi/180)
+    assert nnn.nbins == 20
+    np.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
+    np.testing.assert_almost_equal(nnn.logd2[0], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logd2[-1], math.log(20) - 0.5*nnn.bin_size)
+    assert len(nnn.logd2) == nnn.nbins
+    np.testing.assert_almost_equal(nnn.logd3[:,0,:], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logd3[:,-1,:], math.log(20) - 0.5*nnn.bin_size)
+    assert len(nnn.logd3) == nnn.nbins
+    check_arrays(nnn)
+
+    # hours
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='hours',
+                                  max_n=10, bin_type='LogMultipole')
+    np.testing.assert_almost_equal(nnn.min_sep, 5.)
+    np.testing.assert_almost_equal(nnn.max_sep, 20.)
+    np.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/12)
+    np.testing.assert_almost_equal(nnn._max_sep, 20. * math.pi/12)
+    assert nnn.nbins == 20
+    np.testing.assert_almost_equal(nnn.bin_size * nnn.nbins, math.log(nnn.max_sep/nnn.min_sep))
+    np.testing.assert_almost_equal(nnn.logd2[0], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logd2[-1], math.log(20) - 0.5*nnn.bin_size)
+    assert len(nnn.logd2) == nnn.nbins
+    np.testing.assert_almost_equal(nnn.logd3[:,0,:], math.log(5) + 0.5*nnn.bin_size)
+    np.testing.assert_almost_equal(nnn.logd3[:,-1,:], math.log(20) - 0.5*nnn.bin_size)
+    assert len(nnn.logd3) == nnn.nbins
+    check_arrays(nnn)
+
+    # Check bin_slop
+    # Start with default behavior
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1,
+                                  max_n=10, bin_type='LogMultipole')
+    assert nnn.bin_slop == 1.0
+    assert nnn.bin_size == 0.1
+    np.testing.assert_almost_equal(nnn.b, 0.1)
+
+    # Explicitly set bin_slop=1.0 does the same thing.
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=1.0,
+                                  max_n=10, bin_type='LogMultipole')
+    assert nnn.bin_slop == 1.0
+    assert nnn.bin_size == 0.1
+    np.testing.assert_almost_equal(nnn.b, 0.1)
+
+    # Use a smaller bin_slop
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=0.2,
+                                  max_n=10, bin_type='LogMultipole')
+    assert nnn.bin_slop == 0.2
+    assert nnn.bin_size == 0.1
+    np.testing.assert_almost_equal(nnn.b, 0.02)
+
+    # Use bin_slop == 0
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=0.0,
+                                  max_n=10, bin_type='LogMultipole')
+    assert nnn.bin_slop == 0.0
+    assert nnn.bin_size == 0.1
+    np.testing.assert_almost_equal(nnn.b, 0.0)
+
+    # Bigger bin_slop
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=2.0,
+                                  max_n=10, bin_type='LogMultipole')
+    assert nnn.bin_slop == 2.0
+    assert nnn.bin_size == 0.1
+    np.testing.assert_almost_equal(nnn.b, 0.2)
+
+    # With bin_size > 0.1, explicit bin_slop=1.0 is accepted.
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.4, bin_slop=1.0,
+                                  max_n=10, bin_type='LogMultipole')
+    assert nnn.bin_slop == 1.0
+    assert nnn.bin_size == 0.4
+    np.testing.assert_almost_equal(nnn.b, 0.4)
+
+    # But implicit bin_slop is reduced so that b = 0.1
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.4,
+                                  max_n=10, bin_type='LogMultipole')
+    assert nnn.bin_size == 0.4
+    np.testing.assert_almost_equal(nnn.b, 0.1)
+    np.testing.assert_almost_equal(nnn.bin_slop, 0.25)
+
+@timer
 def test_direct_logruv_auto():
     # If the catalogs are small enough, we can do a direct count of the number of triangles
     # to see if comes out right.  This should exactly match the treecorr code if bin_slop=0.
@@ -3863,6 +4111,7 @@ def test_nnn_logsas():
 if __name__ == '__main__':
     test_logruv_binning()
     test_logsas_binning()
+    test_logmultipole_binning()
     test_direct_logruv_auto()
     test_direct_logruv_cross()
     test_direct_logruv_cross12()

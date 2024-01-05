@@ -44,7 +44,7 @@ class Corr3(object):
     Three-point correlations are a bit more complicated than two-point, since the data need
     to be binned in triangles, not just the separation between two points.
 
-    There are currenlty two different ways to quantify the triangle shapes.
+    There are currenlty three different ways to quantify the triangle shapes.
 
     1. The triangle can be defined by its three side lengths (i.e. SSS congruence).
        In this case, we characterize the triangles according to the following three parameters
@@ -83,6 +83,28 @@ class Corr3(object):
        at the end of line segment d3 from P1), and objects in the third catalog are at P3,
        opposite d3 (i.e. at the end of d2 from P1).
 
+    3. The third option is a multipole expansion of the SAS description.  This idea was initially
+       developed by Chen & Szapudi (2005, ApJ, 635, 743) and then further refined by
+       Slepian & Eisenstein (2015, MNRAS, 454, 4142), Philcox et al (2022, MNRAS, 509, 2457),
+       and Porth et al (arXiv:2309.08601).  The latter in particular showed how to use this
+       method for non-spin-0 correlations (GGG in particular).
+
+       The basic idea is to do a Fourier transform of the phi binning to convert the phi
+       bins into n bins.
+
+       .. math::
+
+           \zeta(d_2, d_3, \phi) = \frac{1}{2\pi} \sum_n \mathcal{Z}_n(d_2,d_3) e^{i n \phi}
+
+       Formally, this is exact if the sum goes from :math:`-\infty .. \infty`.  Truncating this
+       sum at :math:`\pm n_\mathrm{max}` is similar to binning in theta with this many bins
+       for :math:`\phi` within the range :math:`0 <= \phi <= \pi`.
+
+       The above papers show that this multipole expansion allows for a much more efficient
+       calculation, since it can be done with a kind of 2-point calculation.
+       We provide methods to convert the multipole output into the SAS binning if desired, since
+       that is often more convenient in practice.
+
     The constructor for all derived classes take a config dict as the first argument,
     since this is often how we keep track of parameters, but if you don't want to
     use one or if you want to change some parameters from what are in a config dict,
@@ -104,7 +126,7 @@ class Corr3(object):
             (the maximum d2) should be less than period/4, and for SAS, max_sep should be less
             than period/2.  This is not enforced.
 
-    There are two allowed value for the ``bin_type`` for three-point correlations.
+    There are three allowed value for the ``bin_type`` for three-point correlations.
 
         - 'LogRUV' uses the SSS description given above converted to r,u,v. The bin steps will be
           uniform in log(r) from log(min_sep) .. log(max_sep).  The u and v values are binned
@@ -112,6 +134,9 @@ class Corr3(object):
         - 'LogSAS' uses the SAS description given above. The bin steps will be uniform in log(d)
           for both d2 and d3 from log(min_sep) .. log(max_sep).  The phi values are binned
           linearly from min_phi .. max_phi.  This is the default.
+        - 'LogMultipole' uses the multipole description given above. The bin steps will be uniform
+          in log(d) for both d2 and d3 from log(min_sep) .. log(max_sep), and there are values
+          for -max_n <= n <= max_n.
 
     Parameters:
         config (dict):      A configuration dict that can be used to pass in the below kwargs if
@@ -151,18 +176,6 @@ class Corr3(object):
                             means to use a bin_slop that gives a maximum error of 10% on any bin,
                             which has been found to yield good results for most application.
 
-        nphi_bins (int):    Analogous to nbins for the phi values when bin_type=LogSAS.  (The
-                            default is to calculate from phi_bin_size = bin_size, min_phi = 0,
-                            max_u = np.pi, but this can be overridden by specifying up to 3 of
-                            these four parametes.)
-        phi_bin_size (float): Analogous to bin_size for the phi values. (default: bin_size)
-        min_phi (float):    Analogous to min_sep for the phi values. (default: 0)
-        max_phi (float):    Analogous to max_sep for the phi values. (default: np.pi)
-        phi_units (str):    The units to use for the phi values, given as a string.  This
-                            includes both min_phi and max_phi above, as well as the units of the
-                            output meanphi values.  Valid options are arcsec, arcmin, degrees,
-                            hours, radians.  (default: radians)
-
         nubins (int):       Analogous to nbins for the u values when bin_type=LogRUV.  (The default
                             is to calculate from ubin_size = bin_size, min_u = 0, max_u = 1, but
                             this can be overridden by specifying up to 3 of these four parametes.)
@@ -177,6 +190,21 @@ class Corr3(object):
         vbin_size (float):  Analogous to bin_size for the v values. (default: bin_size)
         min_v (float):      Analogous to min_sep for the positive v values. (default: 0)
         max_v (float):      Analogous to max_sep for the positive v values. (default: 1)
+
+        nphi_bins (int):    Analogous to nbins for the phi values when bin_type=LogSAS.  (The
+                            default is to calculate from phi_bin_size = bin_size, min_phi = 0,
+                            max_u = np.pi, but this can be overridden by specifying up to 3 of
+                            these four parametes.)
+        phi_bin_size (float): Analogous to bin_size for the phi values. (default: bin_size)
+        min_phi (float):    Analogous to min_sep for the phi values. (default: 0)
+        max_phi (float):    Analogous to max_sep for the phi values. (default: np.pi)
+        phi_units (str):    The units to use for the phi values, given as a string.  This
+                            includes both min_phi and max_phi above, as well as the units of the
+                            output meanphi values.  Valid options are arcsec, arcmin, degrees,
+                            hours, radians.  (default: radians)
+
+        max_n (int):        The maximum value of n to store for the multipole binning.
+                            (required if bin_type=LogMultipole)
 
         brute (bool):       Whether to use the "brute force" algorithm.  (default: False) Options
                             are:
@@ -295,6 +323,8 @@ class Corr3(object):
                 'The maximum phi to include in the output.'),
         'phi_units' : (str, False, None, coord.AngleUnit.valid_names,
                 'The units to use for min_phi and max_phi.'),
+        'max_n' : (int, False, None, None,
+                'The maximum n to store for multipole binning.'),
         'brute' : (bool, False, False, [False, True],
                 'Whether to use brute-force algorithm'),
         'verbose' : (int, False, 1, [0, 1, 2, 3],
@@ -316,7 +346,7 @@ class Corr3(object):
                 'The number of digits after the decimal in the output.'),
         'metric': (str, False, 'Euclidean', ['Euclidean', 'Arc', 'Periodic'],
                 'Which metric to use for the distance measurements'),
-        'bin_type': (str, False, 'LogSAS', ['LogRUV', 'LogSAS'],
+        'bin_type': (str, False, 'LogSAS', ['LogRUV', 'LogSAS', 'LogMultipole'],
                 'Which type of binning should be used'),
         'period': (float, False, None, None,
                 'The period to use for all directions for the Periodic metric'),
@@ -423,7 +453,8 @@ class Corr3(object):
                                             # units to _bin_size in that case as well.
 
         if self.bin_type == 'LogRUV':
-            for key in ['min_phi', 'max_phi', 'nphi_bins', 'phi_bin_size']:
+            for key in ['min_phi', 'max_phi', 'nphi_bins', 'phi_bin_size',
+                        'max_n']:
                 if key in self.config:
                     raise TypeError("%s is invalid for bin_type=LogRUV"%key)
             self._ro._bintype = _treecorr.LogRUV
@@ -476,7 +507,8 @@ class Corr3(object):
                              self.nvbins,self.min_v,self.max_v,self.vbin_size)
         elif self.bin_type == 'LogSAS':
             for key in ['min_u', 'max_u', 'nubins', 'ubin_size',
-                        'min_v', 'max_v', 'nvbins', 'vbin_size']:
+                        'min_v', 'max_v', 'nvbins', 'vbin_size',
+                        'max_n']:
                 if key in self.config:
                     raise TypeError("%s is invalid for bin_type=LogSAS"%key)
             self._ro._bintype = _treecorr.LogSAS
@@ -513,6 +545,21 @@ class Corr3(object):
             # Adjust phi_bin_size given the other values
             self._ro.ubin_size = (self.max_phi-self.min_phi)/self.nphi_bins
             self._ro.min_v = self._ro.max_v = self._ro.nvbins = self._ro.vbin_size = 0
+        elif self.bin_type == 'LogMultipole':
+            for key in ['min_u', 'max_u', 'nubins', 'ubin_size',
+                        'min_v', 'max_v', 'nvbins', 'vbin_size',
+                        'min_phi', 'max_phi', 'nphi_bins', 'phi_bin_size']:
+                if key in self.config:
+                    raise TypeError("%s is invalid for bin_type=LogMultipole"%key)
+            self._ro._bintype = _treecorr.LogMultipole
+            # Note: we refer to phi as u in the _ro namespace to make function calls easier.
+            if self.config.get('max_n', None) is None:
+                raise TypeError("Missing required parameter max_n")
+            self._ro.nubins = int(self.config['max_n'])
+            if self.max_n < 0:
+                raise ValueError("max_n must be non-negative")
+            self._ro.min_u = self._ro.max_u = self._ro.ubin_size = 0
+            self._ro.min_v = self._ro.max_v = self._ro.nvbins = self._ro.vbin_size = 0
         else:  # pragma: no cover  (Already checked by config layer)
             raise ValueError("Invalid bin_type %s"%self.bin_type)
 
@@ -539,21 +586,25 @@ class Corr3(object):
                     self._ro.bv = self.vbin_size
                 else:
                     self._ro.bv = 0.1
-            else:
-                # LogSAS
+            elif self.bin_type == 'LogSAS':
                 if self._ro.ubin_size <= 0.1:
                     self._ro.bu = self._ro.ubin_size
                 else:
                     self._ro.bu = 0.1
+                self._ro.bv = 0
+            else:
+                self._ro.bu = 0
                 self._ro.bv = 0
         else:
             self._ro.b = self.bin_size * self.bin_slop
             if self.bin_type == 'LogRUV':
                 self._ro.bu = self.ubin_size * self.bin_slop
                 self._ro.bv = self.vbin_size * self.bin_slop
-            else:
-                # LogSAS
+            elif self.bin_type == 'LogSAS':
                 self._ro.bu = self._ro.ubin_size * self.bin_slop
+                self._ro.bv = 0
+            else:
+                self._ro.bu = 0
                 self._ro.bv = 0
 
         if self.b > 0.100001:  # Add some numerical slop
@@ -597,7 +648,7 @@ class Corr3(object):
             self.meanu = np.zeros(self.data_shape, dtype=float)
             self.meanv = np.zeros(self.data_shape, dtype=float)
 
-        else:
+        elif self.bin_type == 'LogSAS':
             # LogSAS
             self._ro.phi1d = np.linspace(start=0, stop=self.nphi_bins*self.phi_bin_size,
                                          num=self.nphi_bins, endpoint=False)
@@ -615,6 +666,25 @@ class Corr3(object):
             self.data_shape = self._ro.logd2.shape
             # Also name these with the same names as above to make them easier to use.
             # We have properties to alias meanu as meanphi. meanv will remain all 0.
+            self.meanu = np.zeros(self.data_shape, dtype=float)
+            self.meanv = np.zeros(self.data_shape, dtype=float)
+
+        else:
+            # LogMultipole
+            self._ro.logd2 = np.tile(self.logr1d[:, np.newaxis, np.newaxis],
+                                     (1, self.nbins, 2*self.max_n+1))
+            self._ro.logd3 = np.tile(self.logr1d[np.newaxis, :, np.newaxis],
+                                     (self.nbins, 1, 2*self.max_n+1))
+            self._ro.d2nom = np.exp(self.logd2)
+            self._ro.d3nom = np.exp(self.logd3)
+            self._ro._nbins = len(self._ro.logd2.ravel())
+            self._ro.n1d = np.arange(-self.max_n, self.max_n+1, dtype=int)
+            self._ro.n = np.tile(self.n1d[np.newaxis, np.newaxis, :],
+                                 (self.nbins, self.nbins, 1))
+
+            self.data_shape = self._ro.logd2.shape
+            # Also name these with the same names as above to make them easier to use.
+            # We won't use them for this bin type though.
             self.meanu = np.zeros(self.data_shape, dtype=float)
             self.meanv = np.zeros(self.data_shape, dtype=float)
 
@@ -737,19 +807,19 @@ class Corr3(object):
     # LogSAS
     @property
     def d2nom(self):
-        assert self.bin_type == 'LogSAS'
+        assert self.bin_type in ['LogSAS', 'LogMultipole']
         return self._ro.d2nom
     @property
     def d3nom(self):
-        assert self.bin_type == 'LogSAS'
+        assert self.bin_type in ['LogSAS', 'LogMultipole']
         return self._ro.d3nom
     @property
     def logd2(self):
-        assert self.bin_type == 'LogSAS'
+        assert self.bin_type in ['LogSAS', 'LogMultipole']
         return self._ro.logd2
     @property
     def logd3(self):
-        assert self.bin_type == 'LogSAS'
+        assert self.bin_type in ['LogSAS', 'LogMultipole']
         return self._ro.logd3
     @property
     def min_phi(self):
@@ -784,6 +854,20 @@ class Corr3(object):
         assert self.bin_type == 'LogSAS'
         return self.meanu
 
+    # LogMultipole:
+    @property
+    def max_n(self):
+        assert self.bin_type == 'LogMultipole'
+        return self._ro.nubins
+    @property
+    def n1d(self):
+        assert self.bin_type == 'LogMultipole'
+        return self._ro.n1d
+    @property
+    def n(self):
+        assert self.bin_type == 'LogMultipole'
+        return self._ro.n
+
     def _equal_binning(self, other, brief=False):
         # A helper function to test if two Corr3 objects have the same binning parameters
         if self.bin_type == 'LogRUV':
@@ -797,7 +881,7 @@ class Corr3(object):
                   self.min_v == other.min_v and
                   self.max_v == other.max_v and
                   self.nvbins == other.nvbins)
-        else:
+        elif self.bin_type == 'LogSAS':
             # LogSAS
             eq = (other.bin_type == 'LogSAS' and
                   self.min_sep == other.min_sep and
@@ -806,6 +890,13 @@ class Corr3(object):
                   self.min_phi == other.min_phi and
                   self.max_phi == other.max_phi and
                   self.nphi_bins == other.nphi_bins)
+        else:
+            # LogMultipole
+            eq = (other.bin_type == 'LogMultipole' and
+                  self.min_sep == other.min_sep and
+                  self.max_sep == other.max_sep and
+                  self.nbins == other.nbins and
+                  self.max_n == other.max_n)
         if brief or not eq:
             return eq
         else:
@@ -829,9 +920,12 @@ class Corr3(object):
             return (other.bin_type == 'LogRUV' and equal_d and
                     np.array_equal(self.meanu, other.meanu) and
                     np.array_equal(self.meanv, other.meanv))
-        else:
+        elif self.bin_type == 'LogSAS':
             return (other.bin_type == 'LogSAS' and equal_d and
                     np.array_equal(self.meanphi, other.meanphi))
+        else:
+            # LogMultipole
+            return (other.bin_type == 'LogMultipole' and equal_d)
 
     @property
     def _bintype(self): return self._ro._bintype
@@ -1486,9 +1580,13 @@ class Corr3(object):
                 # This time, the maximum size is d1 * b.  d1 can be as high as 2*max_sep.
                 b2 = max(self.b, self.bu, self.bv)
                 max_size = 2. * self._max_sep * b2
-            else:
+            elif self.bin_type == 'LogSAS':
                 # LogSAS
                 min_size = 2 * self._min_sep * np.tan(self.min_phi/2) * self.bu / (2+3*self.bu)
+                max_size = 2 * self._max_sep * self.b
+            else:
+                # LogMultipole
+                min_size = 2 * self._min_sep * self.b / self.max_n
                 max_size = 2 * self._max_sep * self.b
             return min_size, max_size
         else:

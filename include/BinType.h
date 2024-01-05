@@ -30,7 +30,7 @@
 // LogRUV is logarithmic spacing in r=d2, linear in u=d3/d2 and v=(d1-d2)/d3
 // LogSAS is logarithmic spacing in r1, r2, linear in phi
 
-enum BinType { Log, Linear, TwoD, LogRUV, LogSAS };
+enum BinType { Log, Linear, TwoD, LogRUV, LogSAS, LogMultipole };
 
 template <int M>
 struct BinTypeHelper;

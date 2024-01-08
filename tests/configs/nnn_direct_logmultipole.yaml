@@ -1,0 +1,18 @@
+
+file_name: data/nnn_direct_data_logmultipole.dat
+
+x_col: 1
+y_col: 2
+
+verbose: 0
+
+bin_type: LogMultipole
+
+min_sep: 10.
+max_sep: 30.
+nbins: 2
+max_n: 20
+
+bin_slop: 0
+
+nnn_file_name: output/nnn_direct_logmultipole.out

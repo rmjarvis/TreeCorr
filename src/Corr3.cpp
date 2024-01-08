@@ -87,6 +87,9 @@ BaseCorr3::BaseCorr3(
            if (_minu < M_PI && _maxu > M_PI) _minv = -1;
            else _minv = std::min(std::cos(_minu), std::cos(_maxu));
            break;
+      case LogMultipole:
+           _ntot = BinTypeHelper<LogMultipole>::calculateNTot(nbins, nubins, nvbins);
+           break;
       default:
            dbg<<"bin_type = "<<bin_type<<std::endl;
            Assert(false);
@@ -128,7 +131,7 @@ Corr3<D1,D2,D3>::Corr3(
               minv, maxv, nvbins, vbinsize, bv,
               xp, yp, zp),
     _owns_data(false),
-    _zeta(zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7),
+    _zeta(zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7, bin_type==LogMultipole),
     _meand1(meand1), _meanlogd1(meanlogd1), _meand2(meand2), _meanlogd2(meanlogd2),
     _meand3(meand3), _meanlogd3(meanlogd3), _meanu(meanu), _meanv(meanv),
     _weight(weight), _ntri(ntri)
@@ -154,7 +157,7 @@ BaseCorr3::BaseCorr3(const BaseCorr3& rhs):
 template <int D1, int D2, int D3>
 Corr3<D1,D2,D3>::Corr3(const Corr3<D1,D2,D3>& rhs, bool copy_data) :
     BaseCorr3(rhs), _owns_data(true),
-    _zeta(0,0,0,0,0,0,0,0), _weight(0)
+    _zeta(0,0,0,0,0,0,0,0, rhs._bin_type==LogMultipole), _weight(0)
 {
     _zeta.new_data(_ntot);
     _meand1 = new double[_ntot];
@@ -769,6 +772,26 @@ struct DirectHelper<NData,NData,NData>
         const Cell<NData,C>& , const Cell<NData,C>& , const Cell<NData,C>&,
         ZetaData<NData,NData,NData>& , int )
     {}
+    template <int C>
+    static void ProcessMultipole(
+        const Cell<NData,C>& c1, const Cell<NData,C>& c2, const Cell<NData,C>& c3,
+        const double sinphi, const double cosphi, const double www,
+        ZetaData<NData,NData,NData>& zeta, int index, int maxn)
+    {
+        // index is the index for n=0.
+        // Add www * exp(-inphi) to all -maxn <= n <= maxn
+
+        std::complex<double> z(cosphi, sinphi);
+        std::complex<double> wwwztothen = www * z;
+        zeta.zeta[index] += www;
+        for (int n=1; n <= maxn; ++n) {
+            zeta.zeta[index + n] += wwwztothen.real();
+            zeta.zeta_im[index + n] -= wwwztothen.imag();
+            zeta.zeta[index - n] += wwwztothen.real();
+            zeta.zeta_im[index - n] += wwwztothen.imag();
+            wwwztothen *= z;
+        }
+    }
 };
 
 template <>
@@ -780,6 +803,25 @@ struct DirectHelper<KData,KData,KData>
         ZetaData<KData,KData,KData>& zeta, int index)
     {
         zeta.zeta[index] += c1.getData().getWK() * c2.getData().getWK() * c3.getData().getWK();
+    }
+    template <int C>
+    static void ProcessMultipole(
+        const Cell<KData,C>& c1, const Cell<KData,C>& c2, const Cell<KData,C>& c3,
+        const double sinphi, const double cosphi, const double www,
+        ZetaData<KData,KData,KData>& zeta, int index, int maxn)
+    {
+        double wk = c1.getData().getWK() * c2.getData().getWK() * c3.getData().getWK();
+
+        std::complex<double> z(cosphi, sinphi);
+        std::complex<double> wkztothen = wk * z;
+        zeta.zeta[index] += wk;
+        for (int n=1; n <= maxn; ++n) {
+            zeta.zeta[index + n] += wkztothen.real();
+            zeta.zeta_im[index + n] -= wkztothen.imag();
+            zeta.zeta[index - n] += wkztothen.real();
+            zeta.zeta_im[index - n] += wkztothen.imag();
+            wkztothen *= z;
+        }
     }
 };
 
@@ -833,6 +875,14 @@ struct DirectHelper<GData,GData,GData>
         zeta.gam3r[index] += g1g2rg3r + g1g2ig3i;
         zeta.gam3i[index] += -g1g2rg3i + g1g2ig3r;
     }
+    template <int C>
+    static void ProcessMultipole(
+        const Cell<GData,C>& c1, const Cell<GData,C>& c2, const Cell<GData,C>& c3,
+        const double sinphi, const double cosphi, const double www,
+        ZetaData<GData,GData,GData>& zeta, int index, int maxn)
+    {
+        // TODO
+    }
 };
 
 
@@ -842,7 +892,11 @@ void BaseCorr3::directProcess111(
     const double d1, const double d2, const double d3, const double u, const double v,
     const double logd1, const double logd2, const double logd3, const int index)
 {
-    finishProcess(c1, c2, c3, d1, d2, d3, u, v, logd1, logd2, logd3, index);
+    if (B == LogMultipole) {
+        finishProcessMP(c1, c2, c3, d1, d2, d3, u, v, logd1, logd2, logd3, index);
+    } else {
+        finishProcess(c1, c2, c3, d1, d2, d3, u, v, logd1, logd2, logd3, index);
+    }
 }
 
 template <int D1, int D2, int D3> template <int C>
@@ -871,6 +925,37 @@ void Corr3<D1,D2,D3>::finishProcess(
         static_cast<const Cell<D2,C>&>(c2),
         static_cast<const Cell<D3,C>&>(c3),
         _zeta, index);
+}
+
+template <int D1, int D2, int D3> template <int C>
+void Corr3<D1,D2,D3>::finishProcessMP(
+    const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
+    const double d1, const double d2, const double d3, const double sinphi, const double cosphi,
+    const double logd1, const double logd2, const double logd3, const int index)
+{
+    // Note: For multipole process, we don't have a u,v so we use those spots to store
+    // sinphi, cosphi.
+    // Also, the index is just the index of the first two directions of the array.
+    // We will fill in all 2*maxn+1 values in the _zeta arrays that correpond to this
+    // d2, d3 combination.
+    double nnn = double(c1.getN()) * c2.getN() * c3.getN();
+    _ntri[index] += nnn;
+    dbg<<ws()<<"Index = "<<index<<", nnn = "<<nnn<<" => "<<_ntri[index]<<std::endl;
+
+    double www = c1.getW() * c2.getW() * c3.getW();
+    _meand1[index] += www * d1;
+    _meanlogd1[index] += www * logd1;
+    _meand2[index] += www * d2;
+    _meanlogd2[index] += www * logd2;
+    _meand3[index] += www * d3;
+    _meanlogd3[index] += www * logd3;
+    _weight[index] += www;
+
+    DirectHelper<D1,D2,D3>::template ProcessMultipole<C>(
+        static_cast<const Cell<D1,C>&>(c1),
+        static_cast<const Cell<D2,C>&>(c2),
+        static_cast<const Cell<D3,C>&>(c3),
+        sinphi, cosphi, www, _zeta, index, _nubins);
 }
 
 template <int D1, int D2, int D3>
@@ -998,6 +1083,9 @@ void ProcessAuto(BaseCorr3& corr, BaseField<C>& field,
       case LogSAS:
            ProcessAutoa<LogSAS>(corr, field, dots, metric);
            break;
+      case LogMultipole:
+           ProcessAutoa<LogMultipole>(corr, field, dots, metric);
+           break;
       default:
            Assert(false);
     }
@@ -1050,6 +1138,9 @@ void ProcessCross12(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2,
            break;
       case LogSAS:
            ProcessCross12a<LogSAS>(corr, field1, field2, ordered, dots, metric);
+           break;
+      case LogMultipole:
+           ProcessCross12a<LogMultipole>(corr, field1, field2, ordered, dots, metric);
            break;
       default:
            Assert(false);
@@ -1109,6 +1200,9 @@ void ProcessCross(BaseCorr3& corr,
            break;
       case LogSAS:
            ProcessCrossa<LogSAS>(corr, field1, field2, field3, ordered, dots, metric);
+           break;
+      case LogMultipole:
+           ProcessCrossa<LogMultipole>(corr, field1, field2, field3, ordered, dots, metric);
            break;
       default:
            Assert(false);

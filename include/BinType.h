@@ -29,6 +29,7 @@
 // TwoD is linear spacing in x,y
 // LogRUV is logarithmic spacing in r=d2, linear in u=d3/d2 and v=(d1-d2)/d3
 // LogSAS is logarithmic spacing in r1, r2, linear in phi
+// LogMultipole is logarithmic spacing in r1, r2, and stores multipole values.
 
 enum BinType { Log, Linear, TwoD, LogRUV, LogSAS, LogMultipole };
 
@@ -1227,6 +1228,222 @@ struct BinTypeHelper<LogSAS>
         xdbg<<"d1,d2,d3,phi = "<<d1<<", "<<d2<<", "<<d3<<",  "<<phi<<std::endl;
         index = (kr2 * nbins + kr3) * nphibins + kphi;
         xdbg<<"kr2,kr3,kphi = "<<kr2<<", "<<kr3<<", "<<kphi<<":  "<<index<<std::endl;
+        Assert(index >= 0);
+        Assert(index < ntot);
+        // Just to make extra sure we don't get seg faults (since the above
+        // asserts aren't active in normal operations), do a real check that
+        // index is in the allowed range.
+        if (index < 0 || index >= ntot) {
+            return false;
+        }
+        // Also calculate logd1 for the meanlogd1 output.
+        logd1 = log(d1);
+        return true;
+    }
+
+};
+
+template <>
+struct BinTypeHelper<LogMultipole>
+{
+    enum { sort_d123 = false };
+
+    static int calculateNTot(int nbins, int maxn, int )
+    { return nbins * nbins * (2*maxn+1); }
+
+    static bool tooSmallS2(double s2, double halfminsep, double , double )
+    { return (s2 == 0.); }
+
+    static bool tooSmallDist(double rsq, double s1ps2, double minsep, double minsepsq)
+    { return rsq < minsepsq && s1ps2 < minsep && rsq < SQR(minsep - s1ps2); }
+    static bool tooLargeDist(double rsq, double s1ps2, double maxsep, double maxsepsq)
+    { return rsq >= maxsepsq && rsq >= SQR(maxsep + s1ps2); }
+
+    template <int O>
+    static bool noAllowedAngles(double rsq, double s1ps2, double s1, double s2,
+                                double halfminsep,
+                                double , double , double , double ,
+                                double , double , double , double )
+    { return false; }
+
+    // Once we have all the distances, see if it's possible to stop
+    template <int O, int M, int C>
+    static bool stop111(
+        double d1sq, double d2sq, double d3sq,
+        double s1, double s2, double s3,
+        const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
+        const MetricHelper<M,0>& metric,
+        double& , double& , double& , double& , double& ,
+        double minsep, double minsepsq, double maxsep, double maxsepsq,
+        double , double , double , double ,
+        double , double , double , double )
+    {
+        xdbg<<"Stop111: "<<std::sqrt(d1sq)<<"  "<<std::sqrt(d2sq)<<"  "<<std::sqrt(d3sq)<<std::endl;
+        xdbg<<"sizes = "<<s1<<"  "<<s2<<"  "<<s3<<std::endl;
+        xdbg<<"sep range = "<<minsep<<"  "<<maxsep<<std::endl;
+
+        // If all possible triangles will have either d2 or d3 < minsep, then abort the recursion.
+        if (d2sq < minsepsq && s1+s3 < minsep && (s1+s3 == 0. || d2sq < SQR(minsep - s1-s3))) {
+            xdbg<<"d2 cannot be as large as minsep\n";
+            return true;
+        }
+        if (d3sq < minsepsq && s1+s2 < minsep && (s1+s2 == 0. || d3sq < SQR(minsep - s1-s2))) {
+            xdbg<<"d3 cannot be as large as minsep\n";
+            return true;
+        }
+
+        // Similarly, we can abort if all possible triangles will have d2 or d3 > maxsep.
+        if (d2sq >= maxsepsq && (s1+s3 == 0. || d2sq >= SQR(maxsep + s1+s3))) {
+            xdbg<<"d2 cannot be as small as maxsep\n";
+            return true;
+        }
+        if (d3sq >= maxsepsq && (s1+s2 == 0. || d3sq >= SQR(maxsep + s1+s2))) {
+            xdbg<<"d3 cannot be as small as maxsep\n";
+            return true;
+        }
+
+        // Stop if any side is exactly 0 and elements are leaves
+        // (This is unusual, but we want to make sure to stop if it happens.)
+        if (s2==0 && s3==0 && d1sq == 0) return true;
+        if (s1==0 && s3==0 && d2sq == 0) return true;
+        if (s1==0 && s2==0 && d3sq == 0) return true;
+
+        return false;
+    }
+
+    // If return value is false, split1, split2, split3 will be set on output.
+    static bool singleBin(double d1sq, double d2sq, double d3sq,
+                          double s1, double s2, double s3,
+                          double b, double , double ,
+                          double bsq, double , double ,
+                          bool& split1, bool& split2, bool& split3,
+                          double& d1, double& d2, double& d3,
+                          double& phi, double& cosphi)
+    {
+        xdbg<<"singleBin: "<<sqrt(d1sq)<<"  "<<d2<<"  "<<d3<<std::endl;
+        const double splitfactor = 0.7;
+
+        // These are set correctly before they are used.
+        double s1ps2=s2, s1ps3=s3;
+        bool d2split=false, d3split=false;
+
+        // First decide whether to split c3
+        if (s1 > 0) {
+            split1 = (
+                // Check if either d2 or d3 needs a split
+                // This is the same as the normal 2pt splitting check.
+                (SQR(s1) > d2sq * bsq) ||
+                (SQR(s1) > d3sq * bsq) ||
+                ((SQR(s1ps2=s1+s2) > d3sq * bsq) && (d2split=true, s1 >= s2)) ||
+                ((SQR(s1ps3=s1+s3) > d2sq * bsq) && (d3split=true, s1 >= s3)));
+        } else {
+            split1 = false;
+        }
+        xdbg<<"split1 = "<<split1<<std::endl;
+
+        if (split1) {
+            // If splitting c1, then usually also split c2 and c3.
+            split2 = s2 > splitfactor * s1;
+            split3 = s3 > splitfactor * s1;
+            xdbg<<"split12 = "<<split1<<"  "<<split2<<std::endl;
+            return false;
+        } else if (s2 > 0 || s3 > 0) {
+            xdbg<<"Don't split 1\n";
+            // Now figure out if c1 or c2 needs to be split.
+            double s2sq = SQR(s2);
+            split2 = (s2 > 0.) && (
+                // Apply the d2split that we saved from above.  If we didn't split c1, split c2.
+                // Note: if s1 was 0, then still need to check here.
+                d2split ||
+                (s1==0. && s2sq > d3sq * bsq) ||
+
+                // Also, definitely split if s2 > d1
+                (s2sq > d1sq));
+            xdbg<<"split1 = "<<split1<<std::endl;
+
+            double s3sq = SQR(s3);
+            split3 = (s3 > 0.) && (
+                d3split ||
+                (s1==0. && s3sq > d2sq * bsq) ||
+                (s3sq > d1sq));
+            xdbg<<"split2 = "<<split2<<std::endl;
+
+            if (split2 || split3) {
+                split2 = split2 || s2 >= s3;
+                split3 = split3 || s3 >= s2;
+                return false;
+            } else {
+                xdbg<<"Don't split 1 or 2\n";
+            }
+        } else {
+            // s1==s2==0 and not splitting s3.
+            xdbg<<"Don't split\n";
+        }
+        d1 = sqrt(d1sq);
+        d2 = sqrt(d2sq);
+        d3 = sqrt(d3sq);
+        return true;
+    }
+
+    template <int O, int M, int C>
+    static bool isTriangleInRange(const BaseCell<C>& c1, const BaseCell<C>& c2,
+                                  const BaseCell<C>& c3,
+                                  const MetricHelper<M,0>& metric,
+                                  double d1sq, double d2sq, double d3sq,
+                                  double d1, double d2, double d3,
+                                  double& sinphi, double& cosphi,
+                                  double logminsep,
+                                  double minsep, double maxsep, double binsize, int nbins,
+                                  double , double , double , int maxn,
+                                  double , double , double , int ,
+                                  double& logd1, double& logd2, double& logd3,
+                                  int ntot, int& index)
+    {
+        xdbg<<"isTriangleInRange: "<<d1<<" "<<d2<<" "<<d3<<std::endl;
+        Assert(d1 > 0.);
+        Assert(d2 > 0.);
+        Assert(d3 > 0.);
+
+        if (d2 < minsep || d2 >= maxsep) {
+            xdbg<<"d2 not in minsep .. maxsep\n";
+            return false;
+        }
+
+        if (d3 < minsep || d3 >= maxsep) {
+            xdbg<<"d3 not in minsep .. maxsep\n";
+            return false;
+        }
+
+        logd2 = log(d2);
+        logd3 = log(d3);
+        xdbg<<"            logr2 = "<<logd2<<std::endl;
+        xdbg<<"            logr3 = "<<logd3<<std::endl;
+
+        int kr2 = int(floor((logd2-logminsep)/binsize));
+        int kr3 = int(floor((logd3-logminsep)/binsize));
+        Assert(kr2 >= 0);
+        Assert(kr3 <= nbins);
+        if (kr2 == nbins) --kr2;  // This is rare, but can happen with numerical differences
+                                  // between the math for log and for non-log checks.
+        Assert(kr2 < nbins);
+
+        Assert(kr3 >= 0);
+        Assert(kr3 <= nbins);
+        if (kr3 == nbins) --kr3;
+        Assert(kr3 < nbins);
+
+        // Calculate cosphi, sinphi for this triangle.
+        // (We use the u variable for sinphi in this class.)
+        cosphi = metric.calculateCosPhi(c1,c2,c3,d1sq,d2sq,d3sq,d1,d2,d3);
+        sinphi = sqrt(1.-SQR(cosphi));
+        if (!metric.CCW(c1.getPos(), c3.getPos(), c2.getPos())) {
+            sinphi = -sinphi;
+        }
+
+        xdbg<<"d1,d2,d3 = "<<d1<<", "<<d2<<", "<<d3<<std::endl;
+        // index is the index for this d2,d3 at n=0.
+        index = (kr2 * nbins + kr3) * (2*maxn+1) + maxn;
+        xdbg<<"kr2,kr3 = "<<kr2<<", "<<kr3<<":  "<<index<<std::endl;
         Assert(index >= 0);
         Assert(index < ntot);
         // Just to make extra sure we don't get seg faults (since the above

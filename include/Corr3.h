@@ -85,6 +85,14 @@ public:
                        const int index)
     { doFinishProcess(c1, c2, c3, d1, d2, d3, u, v, logd1, logd2, logd3, index); }
 
+    template <int C>
+    void finishProcessMP(const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
+                         const double d1, const double d2, const double d3,
+                         const double sinphi, const double cosphi,
+                         const double logd1, const double logd2, const double logd3,
+                         const int index)
+    { doFinishProcessMP(c1, c2, c3, d1, d2, d3, sinphi, cosphi, logd1, logd2, logd3, index); }
+
 protected:
 
     // This bit is a workaround for the the fact that virtual functions cannot be templates.
@@ -99,6 +107,19 @@ protected:
     virtual void doFinishProcess(
         const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2, const BaseCell<ThreeD>& c3,
         const double d1, const double d2, const double d3, const double u, const double v,
+        const double logd1, const double logd2, const double logd3, const int index) =0;
+
+    virtual void doFinishProcessMP(
+        const BaseCell<Flat>& c1, const BaseCell<Flat>& c2, const BaseCell<Flat>& c3,
+        const double d1, const double d2, const double d3, const double sinphi, const double cosphi,
+        const double logd1, const double logd2, const double logd3, const int index) = 0;
+    virtual void doFinishProcessMP(
+        const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2, const BaseCell<Sphere>& c3,
+        const double d1, const double d2, const double d3, const double sinphi, const double cosphi,
+        const double logd1, const double logd2, const double logd3, const int index) =0;
+    virtual void doFinishProcessMP(
+        const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2, const BaseCell<ThreeD>& c3,
+        const double d1, const double d2, const double d3, const double sinphi, const double cosphi,
         const double logd1, const double logd2, const double logd3, const int index) =0;
 
 
@@ -172,6 +193,12 @@ public:
         const double d1, const double d2, const double d3, const double u, const double v,
         const double logd1, const double logd2, const double logd3, const int index);
 
+    template <int C>
+    void finishProcessMP(
+        const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
+        const double d1, const double d2, const double d3, const double sinphi, const double cosphi,
+        const double logd1, const double logd2, const double logd3, const int index);
+
     // Note: op= only copies _data.  Not all the params.
     void operator=(const Corr3<D1,D2,D3>& rhs);
     void operator+=(const Corr3<D1,D2,D3>& rhs);
@@ -193,6 +220,22 @@ protected:
         const double d1, const double d2, const double d3, const double u, const double v,
         const double logd1, const double logd2, const double logd3, const int index)
     { finishProcess(c1, c2, c3, d1, d2, d3, u, v, logd1, logd2, logd3, index); }
+
+    void doFinishProcessMP(
+        const BaseCell<Flat>& c1, const BaseCell<Flat>& c2, const BaseCell<Flat>& c3,
+        const double d1, const double d2, const double d3, const double sinphi, const double cosphi,
+        const double logd1, const double logd2, const double logd3, const int index)
+    { finishProcessMP(c1, c2, c3, d1, d2, d3, sinphi, cosphi, logd1, logd2, logd3, index); }
+    void doFinishProcessMP(
+        const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2, const BaseCell<Sphere>& c3,
+        const double d1, const double d2, const double d3, const double sinphi, const double cosphi,
+        const double logd1, const double logd2, const double logd3, const int index)
+    { finishProcessMP(c1, c2, c3, d1, d2, d3, sinphi, cosphi, logd1, logd2, logd3, index); }
+    void doFinishProcessMP(
+        const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2, const BaseCell<ThreeD>& c3,
+        const double d1, const double d2, const double d3, const double sinphi, const double cosphi,
+        const double logd1, const double logd2, const double logd3, const int index)
+    { finishProcessMP(c1, c2, c3, d1, d2, d3, sinphi, cosphi, logd1, logd2, logd3, index); }
 
     // These are usually allocated in the python layer and just built up here.
     // So all we have here is a bare pointer for each of them.
@@ -218,23 +261,52 @@ protected:
 template <int D1, int D2, int D3>
 struct ZetaData // This works for NNK, NKK, KKK
 {
-    ZetaData(double* zeta0, double*, double*, double*, double*, double*, double*, double*) :
-        zeta(zeta0) {}
+    ZetaData(double* z0, double* z1, double*, double*, double*, double*, double*, double*,
+             bool _min2) :
+        zeta(z0), zeta_im(z1), min2(_min2) {}
 
-    void new_data(int n) { zeta = new double[n]; }
-    void delete_data() { delete [] zeta; zeta = 0; }
+    void new_data(int n)
+    {
+        zeta = new double[n];
+        if (min2) zeta_im = new double[n];
+    }
+    void delete_data()
+    {
+        delete [] zeta; zeta = 0;
+        if (min2) { delete [] zeta_im; zeta_im = 0; }
+    }
     void copy(const ZetaData<D1,D2,D3>& rhs, int n)
-    { for (int i=0; i<n; ++i) zeta[i] = rhs.zeta[i]; }
+    {
+        for (int i=0; i<n; ++i) zeta[i] = rhs.zeta[i];
+        if (min2) {
+            for (int i=0; i<n; ++i) zeta_im[i] = rhs.zeta_im[i];
+        }
+    }
     void add(const ZetaData<D1,D2,D3>& rhs, int n)
-    { for (int i=0; i<n; ++i) zeta[i] += rhs.zeta[i]; }
+    {
+        for (int i=0; i<n; ++i) zeta[i] += rhs.zeta[i];
+        if (min2) {
+            for (int i=0; i<n; ++i) zeta_im[i] += rhs.zeta_im[i];
+        }
+    }
     void clear(int n)
-    { for (int i=0; i<n; ++i) zeta[i] = 0.; }
+    {
+        for (int i=0; i<n; ++i) zeta[i] = 0.;
+        if (min2) {
+            for (int i=0; i<n; ++i) zeta_im[i] = 0.;
+        }
+    }
     void write(std::ostream& os) const // Just used for debugging.  Print the first value.
-    { os << zeta[0]; }
+    {
+        os << zeta[0];
+        if (min2) { os << ','<<zeta_im[0]; }
+    }
     void write_full(std::ostream& os, int n) const
     { for(int i=0;i<n;++i) os << zeta[i] <<" "; }
 
     double* zeta;
+    double* zeta_im;
+    bool min2;
 };
 
 template <int D1, int D2, int D3>
@@ -244,7 +316,7 @@ inline std::ostream& operator<<(std::ostream& os, const ZetaData<D1,D2,D3>& zeta
 template <int D1, int D2>
 struct ZetaData<D1,D2,GData> // This works for NNG, NKG, KKG
 {
-    ZetaData(double* z0, double* z1, double*, double*, double*, double*, double*, double*) :
+    ZetaData(double* z0, double* z1, double*, double*, double*, double*, double*, double*, bool) :
         zeta(z0), zeta_im(z1) {}
 
     void new_data(int n)
@@ -284,7 +356,8 @@ struct ZetaData<D1,D2,GData> // This works for NNG, NKG, KKG
 template <int D1>
 struct ZetaData<D1,GData,GData> // This works for NGG, KGG
 {
-    ZetaData(double* z0, double* z1, double* z2, double* z3, double*, double*, double*, double*) :
+    ZetaData(double* z0, double* z1, double* z2, double* z3, double*, double*, double*, double*,
+             bool) :
         zetap(z0), zetap_im(z1), zetam(z2), zetam_im(z3) {}
 
     void new_data(int n)
@@ -333,12 +406,11 @@ struct ZetaData<D1,GData,GData> // This works for NGG, KGG
     double* zetam_im;
 };
 
-
 template <>
 struct ZetaData<GData, GData, GData>
 {
     ZetaData(double* z0, double* z1, double* z2, double* z3,
-             double* z4, double* z5, double* z6, double* z7) :
+             double* z4, double* z5, double* z6, double* z7, bool) :
         gam0r(z0), gam0i(z1), gam1r(z2), gam1i(z3),
         gam2r(z4), gam2i(z5), gam3r(z6), gam3i(z7) {}
 
@@ -418,15 +490,58 @@ struct ZetaData<GData, GData, GData>
 template <>
 struct ZetaData<NData, NData, NData>
 {
-    ZetaData(double* , double* , double* , double*, double*, double*, double*, double * ) {}
-    void new_data(int n) {}
-    void delete_data() {}
-    void copy(const ZetaData<NData,NData,NData>& rhs, int n) {}
-    void add(const ZetaData<NData,NData,NData>& rhs, int n) {}
-    void clear(int n) {}
-    void write(std::ostream& os) const {}
-    void write_full(std::ostream& os, int n) const {}
-};
+    ZetaData(double* z0, double* z1, double*, double*, double*, double*, double*, double*,
+             bool _min2) :
+        zeta(z0), zeta_im(z1), min2(_min2) {}
 
+    void new_data(int n)
+    {
+        if (min2) {
+            zeta = new double[n];
+            zeta_im = new double[n];
+        }
+    }
+    void delete_data()
+    {
+        if (min2) {
+            delete [] zeta; zeta = 0;
+            delete [] zeta_im; zeta_im = 0;
+        }
+    }
+    void copy(const ZetaData<NData, NData, NData>& rhs, int n)
+    {
+        if (min2) {
+            for (int i=0; i<n; ++i) zeta[i] = rhs.zeta[i];
+            for (int i=0; i<n; ++i) zeta_im[i] = rhs.zeta_im[i];
+        }
+    }
+    void add(const ZetaData<NData, NData, NData>& rhs, int n)
+    {
+        if (min2) {
+            for (int i=0; i<n; ++i) zeta[i] += rhs.zeta[i];
+            for (int i=0; i<n; ++i) zeta_im[i] += rhs.zeta_im[i];
+        }
+    }
+    void clear(int n)
+    {
+        if (min2) {
+            for (int i=0; i<n; ++i) zeta[i] = 0.;
+            for (int i=0; i<n; ++i) zeta_im[i] = 0.;
+        }
+    }
+    void write(std::ostream& os) const // Just used for debugging.  Print the first value.
+    {
+        if (min2) {
+            os << zeta[0];
+            os << ','<<zeta_im[0];
+        }
+    }
+    void write_full(std::ostream& os, int n) const
+    { for(int i=0;i<n;++i) os << zeta[i] <<" "; }
+
+    double* zeta;
+    double* zeta_im;
+    bool min2;
+};
 
 #endif

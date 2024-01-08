@@ -4107,8 +4107,151 @@ def test_nnn_logsas():
         header = fitsio.read_header(out_file_name3, 1)
         np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
 
+@timer
+def test_direct_logmultipole_auto():
+    # If the catalogs are small enough, we can do a direct count of the number of triangles
+    # to see if comes out right.  This should exactly match the treecorr code if bin_slop=0.
+
+    if __name__ == '__main__':
+        ngal = 100
+    else:
+        ngal = 50
+    s = 10.
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(0,s, (ngal,) )
+    y = rng.normal(0,s, (ngal,) )
+    cat = treecorr.Catalog(x=x, y=y)
+
+    min_sep = 10.
+    max_sep = 30.
+    nbins = 2
+    max_n = 20
+
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
+                                  brute=True, verbose=1, bin_type='LogMultipole')
+    t0 = time.time()
+    ddd.process(cat)
+    t1 = time.time()
+    print('time for multipole, brute=True: ',t1-t0)
+
+    log_min_sep = np.log(min_sep)
+    log_max_sep = np.log(max_sep)
+    true_zeta = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_ntri = np.zeros((nbins, nbins, 2*max_n+1))
+    true_ntri_sas = np.zeros((nbins, nbins, max_n))
+    bin_size = (log_max_sep - log_min_sep) / nbins
+    n1d = np.arange(-max_n, max_n+1)
+    for i in range(ngal):
+        for j in range(ngal):
+            if i == j: continue
+            for k in range(ngal):
+                if i == k: continue
+                if j == k: continue
+                d1 = np.sqrt((x[j]-x[k])**2 + (y[j]-y[k])**2)
+                d2 = np.sqrt((x[i]-x[k])**2 + (y[i]-y[k])**2)
+                d3 = np.sqrt((x[i]-x[j])**2 + (y[i]-y[j])**2)
+                if d1 == 0.: continue
+                if d2 == 0.: continue
+                if d3 == 0.: continue
+                phi = np.arccos((d2**2 + d3**2 - d1**2)/(2*d2*d3))
+                if not is_ccw(x[i],y[i],x[k],y[k],x[j],y[j]):
+                    continue
+                if d2 < min_sep or d2 >= max_sep: continue
+                if d3 < min_sep or d3 >= max_sep: continue
+                kr2 = int(np.floor( (np.log(d2)-log_min_sep) / bin_size ))
+                kr3 = int(np.floor( (np.log(d3)-log_min_sep) / bin_size ))
+                assert 0 <= kr2 < nbins
+                assert 0 <= kr3 < nbins
+                true_zeta[kr2,kr3,:] += np.exp(-1j * n1d * phi)
+                true_ntri[kr2,kr3,:] += 1.
+                # Also compute the SAS binning count
+                kphi = int(np.floor(phi / (max_n * np.pi)))
+                true_ntri_sas[kr2,kr3,kphi] += 1.
+
+    np.testing.assert_array_equal(ddd.ntri, true_ntri)
+    np.testing.assert_array_equal(ddd.weight, true_ntri)
+    np.testing.assert_allclose(ddd.zeta, true_zeta)
+
+    # Check that running via the corr3 script works correctly.
+    file_name = os.path.join('data','nnn_direct_data_logmultipole.dat')
+    with open(file_name, 'w') as fid:
+        for i in range(ngal):
+            fid.write(('%.20f %.20f\n')%(x[i],y[i]))
+
+    config = treecorr.config.read_config('configs/nnn_direct_logmultipole.yaml')
+    logger = treecorr.config.setup_logger(0)
+    treecorr.corr3(config, logger)
+    corr3_output = np.genfromtxt(os.path.join('output','nnn_direct_logmultipole.out'), names=True,
+                                    skip_header=1)
+    np.testing.assert_allclose(corr3_output['d2_nom'], ddd.d2nom.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['d3_nom'], ddd.d3nom.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['n'], ddd.n.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['ntri'], ddd.ntri.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['DDD'], ddd.weight.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['zeta'], np.real(ddd.zeta).flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['zeta_im'], np.imag(ddd.zeta).flatten(), rtol=1.e-3)
+
+    # Repeat with binslop = 0, since the code flow is different from brute=True
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
+                                  bin_slop=0, verbose=1, bin_type='LogMultipole')
+    t0 = time.time()
+    ddd.process(cat)
+    t1 = time.time()
+    print('time for multipole, bin_slop=0: ',t1-t0)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri)
+    np.testing.assert_array_equal(ddd.weight, true_ntri)
+    np.testing.assert_allclose(ddd.zeta, true_zeta)
+
+    # And again with no top-level recursion
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
+                                  bin_slop=0, verbose=1, max_top=0, bin_type='LogMultipole')
+    t0 = time.time()
+    ddd.process(cat)
+    t1 = time.time()
+    print('time for multipole, bin_slop=0, max_top=0: ',t1-t0)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri)
+    np.testing.assert_array_equal(ddd.weight, true_ntri)
+    np.testing.assert_allclose(ddd.zeta, true_zeta)
+
+    do_pickle(ddd)
+
+    # Test I/O
+    ascii_name = 'output/nnn_ascii_logmultipole.txt'
+    ddd.write(ascii_name, precision=16)
+    ddd3 = treecorr.NNNCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nbins, max_n=max_n,
+                                   bin_type='LogMultipole')
+    ddd3.read(ascii_name)
+    np.testing.assert_allclose(ddd3.ntri, ddd.ntri)
+    np.testing.assert_allclose(ddd3.weight, ddd.weight)
+    np.testing.assert_allclose(ddd3.meand1, ddd.meand1)
+    np.testing.assert_allclose(ddd3.meand2, ddd.meand2)
+    np.testing.assert_allclose(ddd3.meand3, ddd.meand3)
+    np.testing.assert_allclose(ddd3.meanlogd1, ddd.meanlogd1)
+    np.testing.assert_allclose(ddd3.meanlogd2, ddd.meanlogd2)
+    np.testing.assert_allclose(ddd3.meanlogd3, ddd.meanlogd3)
+
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        fits_name = 'output/nnn_fits_logmultipole.fits'
+        ddd.write(fits_name)
+        ddd4 = treecorr.NNNCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nbins, max_n=max_n,
+                                       bin_type='LogMultipole')
+        ddd4.read(fits_name)
+        np.testing.assert_allclose(ddd4.ntri, ddd.ntri)
+        np.testing.assert_allclose(ddd4.weight, ddd.weight)
+        np.testing.assert_allclose(ddd4.meand1, ddd.meand1)
+        np.testing.assert_allclose(ddd4.meand2, ddd.meand2)
+        np.testing.assert_allclose(ddd4.meand3, ddd.meand3)
+        np.testing.assert_allclose(ddd4.meanlogd1, ddd.meanlogd1)
+        np.testing.assert_allclose(ddd4.meanlogd2, ddd.meanlogd2)
+        np.testing.assert_allclose(ddd4.meanlogd3, ddd.meanlogd3)
 
 if __name__ == '__main__':
+    test_direct_logmultipole_auto()
+    quit()
     test_logruv_binning()
     test_logsas_binning()
     test_logmultipole_binning()

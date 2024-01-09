@@ -747,8 +747,7 @@ struct BinTypeHelper<LogRUV>
         Assert(kv < nvbins);
 
         // Now account for negative v
-        if (!metric.CCW(c1.getData().getPos(), c2.getData().getPos(),
-                        c3.getData().getPos())) {
+        if (!metric.CCW(c1.getPos(), c2.getPos(), c3.getPos())) {
             v = -v;
             kv = nvbins - kv - 1;
         } else {
@@ -900,7 +899,7 @@ struct BinTypeHelper<LogSAS>
 
         // If we are not swapping 2,3, stop if orientation cannot be counter-clockwise.
         if (O > 1 &&
-            !metric.CCW(c1.getData().getPos(), c3.getData().getPos(), c2.getData().getPos())) {
+            !metric.CCW(c1.getPos(), c3.getPos(), c2.getPos())) {
             // For skinny triangles, be careful that the points can't flip to the other side.
             // This is similar to the calculation below.  We effecively check that cosphi can't
             // increase to 1.
@@ -1181,12 +1180,12 @@ struct BinTypeHelper<LogSAS>
         }
 
         if (O > 1 &&
-            !metric.CCW(c1.getData().getPos(), c3.getData().getPos(), c2.getData().getPos())) {
+            !metric.CCW(c1.getPos(), c3.getPos(), c2.getPos())) {
             xdbg<<"Triangle is not CCW.\n";
             return false;
         }
 
-        XAssert(metric.CCW(c1.getData().getPos(), c3.getData().getPos(), c2.getData().getPos()));
+        XAssert(metric.CCW(c1.getPos(), c3.getPos(), c2.getPos()));
 
         if (phi < minphi || phi >= maxphi) {
             xdbg<<"phi not in minphi .. maxphi\n";
@@ -1239,7 +1238,6 @@ struct BinTypeHelper<LogSAS>
     }
 
 };
-
 
 #endif
 

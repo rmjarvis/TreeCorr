@@ -439,7 +439,7 @@ template <int B, int M, int C>
 void BaseCorr3::process3(const BaseCell<C>& c1, const MetricHelper<M,0>& metric)
 {
     // Does all triangles with 3 points in c1
-    xdbg<<"Process3: c1 = "<<c1.getData().getPos()<<"  "<<"  "<<c1.getSize()<<"  "<<c1.getData().getN()<<std::endl;
+    xdbg<<"Process3: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getN()<<std::endl;
     dbg<<ws()<<"Process3: c1 = "<<indices(c1)<<"\n";
 
     if (c1.getW() == 0) {
@@ -466,8 +466,8 @@ void BaseCorr3::process12(const BaseCell<C>& c1, const BaseCell<C>& c2,
                           const MetricHelper<M,0>& metric)
 {
     // Does all triangles with one point in c1 and the other two points in c2
-    xdbg<<"Process12: c1 = "<<c1.getData().getPos()<<"  "<<"  "<<c1.getSize()<<"  "<<c1.getData().getN()<<std::endl;
-    xdbg<<"           c2  = "<<c2.getData().getPos()<<"  "<<"  "<<c2.getSize()<<"  "<<c2.getData().getN()<<std::endl;
+    xdbg<<"Process12: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getN()<<std::endl;
+    xdbg<<"           c2 = "<<c2.getPos()<<"  "<<c2.getSize()<<"  "<<c2.getN()<<std::endl;
     dbg<<ws()<<"Process12: c1 = "<<indices(c1)<<"  c2 = "<<indices(c2)<<"  ordered="<<O<<"\n";
 
     // ordered=0 means that we don't care which point is called c1, c2, or c3 at the end.
@@ -491,7 +491,7 @@ void BaseCorr3::process12(const BaseCell<C>& c1, const BaseCell<C>& c2,
     }
 
     double s1 = c1.getSize();
-    double rsq = metric.DistSq(c1.getData().getPos(), c2.getData().getPos(), s1, s2);
+    double rsq = metric.DistSq(c1.getPos(), c2.getPos(), s1, s2);
     double s1ps2 = s1 + s2;
 
     // If all possible triangles will have d2 < minsep, then abort the recursion here.
@@ -555,11 +555,11 @@ void BaseCorr3::process111(
     // Calculate the distances if they aren't known yet
     double s=0.;
     if (d1sq == 0.)
-        d1sq = metric.DistSq(c2.getData().getPos(), c3.getData().getPos(), s, s);
+        d1sq = metric.DistSq(c2.getPos(), c3.getPos(), s, s);
     if (d2sq == 0.)
-        d2sq = metric.DistSq(c1.getData().getPos(), c3.getData().getPos(), s, s);
+        d2sq = metric.DistSq(c1.getPos(), c3.getPos(), s, s);
     if (d3sq == 0.)
-        d3sq = metric.DistSq(c1.getData().getPos(), c2.getData().getPos(), s, s);
+        d3sq = metric.DistSq(c1.getPos(), c2.getPos(), s, s);
 
     inc_ws();
     if (O == 0) {
@@ -601,8 +601,7 @@ void BaseCorr3::process111(
             xdbg<<":set1\n";
             // If the BinType doesn't want sorting, then make sure we get all the cells
             // into the first location, and switch to ordered = 1.
-            if (!metric.CCW(c1.getData().getPos(), c3.getData().getPos(),
-                            c2.getData().getPos())) {
+            if (!metric.CCW(c1.getPos(), c3.getPos(), c2.getPos())) {
                 xdbg<<"132\n";
                 process111Sorted<B,1>(c1, c3, c2, metric, d1sq, d3sq, d2sq);
                 xdbg<<"213\n";
@@ -633,8 +632,7 @@ void BaseCorr3::process111(
         } else {
             // For the non-sorting BinTypes (i.e. LogSAS so far), we just need to make sure
             // 1-3-2 is counter-clockwise
-            if (!metric.CCW(c1.getData().getPos(), c3.getData().getPos(),
-                            c2.getData().getPos())) {
+            if (!metric.CCW(c1.getPos(), c3.getPos(), c2.getPos())) {
                 xdbg<<":swap23\n";
                 // Swap 2,3
                 process111Sorted<B,O>(c1, c3, c2, metric, d1sq, d3sq, d2sq);
@@ -659,9 +657,9 @@ void BaseCorr3::process111Sorted(
     const double s2 = c2.getSize();
     const double s3 = c3.getSize();
 
-    xdbg<<"Process111Sorted: c1 = "<<c1.getData().getPos()<<"  "<<"  "<<c1.getSize()<<"  "<<c1.getData().getN()<<std::endl;
-    xdbg<<"                  c2 = "<<c2.getData().getPos()<<"  "<<"  "<<c2.getSize()<<"  "<<c2.getData().getN()<<std::endl;
-    xdbg<<"                  c3 = "<<c3.getData().getPos()<<"  "<<"  "<<c3.getSize()<<"  "<<c3.getData().getN()<<std::endl;
+    xdbg<<"Process111Sorted: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getN()<<std::endl;
+    xdbg<<"                  c2 = "<<c2.getPos()<<"  "<<c2.getSize()<<"  "<<c2.getN()<<std::endl;
+    xdbg<<"                  c3 = "<<c3.getPos()<<"  "<<c3.getSize()<<"  "<<c3.getN()<<std::endl;
     xdbg<<"                  d123 = "<<sqrt(d1sq)<<"  "<<sqrt(d2sq)<<"  "<<sqrt(d3sq)<<std::endl;
     xdbg<<ws()<<"ProcessSorted111: c1 = "<<indices(c1)<<"  c2 = "<<indices(c2)<<"  c3 = "<<indices(c3)<<"  ordered="<<O<<"\n";
 
@@ -799,7 +797,6 @@ struct DirectHelper<NData,NData,NData>
     template <int C>
     static void ProcessZeta(
         const Cell<NData,C>& , const Cell<NData,C>& , const Cell<NData,C>&,
-        const double , const double , const double ,
         ZetaData<NData,NData,NData>& , int )
     {}
 };
@@ -810,7 +807,6 @@ struct DirectHelper<KData,KData,KData>
     template <int C>
     static void ProcessZeta(
         const Cell<KData,C>& c1, const Cell<KData,C>& c2, const Cell<KData,C>& c3,
-        const double , const double , const double ,
         ZetaData<KData,KData,KData>& zeta, int index)
     {
         zeta.zeta[index] += c1.getData().getWK() * c2.getData().getWK() * c3.getData().getWK();
@@ -823,7 +819,6 @@ struct DirectHelper<GData,GData,GData>
     template <int C>
     static void ProcessZeta(
         const Cell<GData,C>& c1, const Cell<GData,C>& c2, const Cell<GData,C>& c3,
-        const double d1, const double d2, const double d3,
         ZetaData<GData,GData,GData>& zeta, int index)
     {
         std::complex<double> g1 = c1.getData().getWG();
@@ -886,11 +881,11 @@ void Corr3<D1,D2,D3>::finishProcess(
     const double d1, const double d2, const double d3, const double u, const double v,
     const double logd1, const double logd2, const double logd3, const int index)
 {
-    double nnn = double(c1.getData().getN()) * c2.getData().getN() * c3.getData().getN();
+    double nnn = double(c1.getN()) * c2.getN() * c3.getN();
     _ntri[index] += nnn;
     dbg<<ws()<<"Index = "<<index<<", nnn = "<<nnn<<" => "<<_ntri[index]<<std::endl;
 
-    double www = c1.getData().getW() * c2.getData().getW() * c3.getData().getW();
+    double www = c1.getW() * c2.getW() * c3.getW();
     _meand1[index] += www * d1;
     _meanlogd1[index] += www * logd1;
     _meand2[index] += www * d2;
@@ -905,7 +900,7 @@ void Corr3<D1,D2,D3>::finishProcess(
         static_cast<const Cell<D1,C>&>(c1),
         static_cast<const Cell<D2,C>&>(c2),
         static_cast<const Cell<D3,C>&>(c3),
-        d1, d2, d3, _zeta, index);
+        _zeta, index);
 }
 
 template <int D1, int D2, int D3>

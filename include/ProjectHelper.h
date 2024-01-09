@@ -72,7 +72,7 @@ struct ProjectHelper<Flat>
         const Cell<D1,Flat>& c1, const Cell<D,Flat>& c2, std::complex<double>& z2)
     {
         // Project given spin-s quantity to the line connecting them.
-        std::complex<double> r(c2.getData().getPos() - c1.getData().getPos());
+        std::complex<double> r(c2.getPos() - c1.getPos());
         z2 *= _expmsialpha<D>(r);
     }
 
@@ -82,7 +82,7 @@ struct ProjectHelper<Flat>
         std::complex<double>& z1, std::complex<double>& z2)
     {
         // Project given spin-s quantities to the line connecting them.
-        std::complex<double> r(c2.getData().getPos() - c1.getData().getPos());
+        std::complex<double> r(c2.getPos() - c1.getPos());
         std::complex<double> expmsialpha = _expmsialpha<D>(r);
         z1 *= expmsialpha;
         z2 *= expmsialpha;
@@ -94,9 +94,9 @@ struct ProjectHelper<Flat>
         std::complex<double>& z1, std::complex<double>& z2, std::complex<double>& z3)
     {
         // Project given spin-s quantities to the line connecting each to the centroid.
-        const Position<Flat>& p1 = c1.getData().getPos();
-        const Position<Flat>& p2 = c2.getData().getPos();
-        const Position<Flat>& p3 = c3.getData().getPos();
+        const Position<Flat>& p1 = c1.getPos();
+        const Position<Flat>& p2 = c2.getPos();
+        const Position<Flat>& p3 = c3.getPos();
         Position<Flat> cen = (p1 + p2 + p3)/3.;
         std::complex<double> r1(cen - p1);
         std::complex<double> r2(cen - p2);
@@ -189,8 +189,8 @@ struct ProjectHelper<Sphere>
     static void Project(
         const Cell<D1,Sphere>& c1, const Cell<D,Sphere>& c2, std::complex<double>& z2)
     {
-        const Position<Sphere>& p1 = c1.getData().getPos();
-        const Position<Sphere>& p2 = c2.getData().getPos();
+        const Position<Sphere>& p1 = c1.getPos();
+        const Position<Sphere>& p2 = c2.getPos();
         std::complex<double> r = calculate_direction(p1,p2);
         z2 *= _expmsialpha<D>(r);
     }
@@ -200,8 +200,8 @@ struct ProjectHelper<Sphere>
         const Cell<D,Sphere>& c1, const Cell<D,Sphere>& c2,
         std::complex<double>& z1, std::complex<double>& z2)
     {
-        const Position<Sphere>& p1 = c1.getData().getPos();
-        const Position<Sphere>& p2 = c2.getData().getPos();
+        const Position<Sphere>& p1 = c1.getPos();
+        const Position<Sphere>& p2 = c2.getPos();
         std::complex<double> r12 = calculate_direction(p1,p2);
         std::complex<double> expmsialpha = _expmsialpha<D>(r12);
         z2 *= expmsialpha;
@@ -220,9 +220,9 @@ struct ProjectHelper<Sphere>
         const Cell<D,Sphere>& c1, const Cell<D,Sphere>& c2, const Cell<D,Sphere>& c3,
         std::complex<double>& z1, std::complex<double>& z2, std::complex<double>& z3)
     {
-        const Position<Sphere>& p1 = c1.getData().getPos();
-        const Position<Sphere>& p2 = c2.getData().getPos();
-        const Position<Sphere>& p3 = c3.getData().getPos();
+        const Position<Sphere>& p1 = c1.getPos();
+        const Position<Sphere>& p2 = c2.getPos();
+        const Position<Sphere>& p3 = c3.getPos();
         Position<Sphere> cen((p1 + p2 + p3)/3.);
         z1 *= _expmsialpha<D>(calculate_direction(cen,p1));
         z2 *= _expmsialpha<D>(calculate_direction(cen,p2));
@@ -240,8 +240,8 @@ struct ProjectHelper<ThreeD>
     static void Project(
         const Cell<D1,ThreeD>& c1, const Cell<D,ThreeD>& c2, std::complex<double>& z2)
     {
-        const Position<ThreeD>& p1 = c1.getData().getPos();
-        const Position<ThreeD>& p2 = c2.getData().getPos();
+        const Position<ThreeD>& p1 = c1.getPos();
+        const Position<ThreeD>& p2 = c2.getPos();
         Position<Sphere> sp1(p1);
         Position<Sphere> sp2(p2);
         std::complex<double> r = ProjectHelper<Sphere>::calculate_direction(sp1,sp2);
@@ -253,8 +253,8 @@ struct ProjectHelper<ThreeD>
         const Cell<D,ThreeD>& c1, const Cell<D,ThreeD>& c2,
         std::complex<double>& z1, std::complex<double>& z2)
     {
-        const Position<ThreeD>& p1 = c1.getData().getPos();
-        const Position<ThreeD>& p2 = c2.getData().getPos();
+        const Position<ThreeD>& p1 = c1.getPos();
+        const Position<ThreeD>& p2 = c2.getPos();
         Position<Sphere> sp1(p1);
         Position<Sphere> sp2(p2);
         std::complex<double> r12 = ProjectHelper<Sphere>::calculate_direction(sp1,sp2);
@@ -271,9 +271,9 @@ struct ProjectHelper<ThreeD>
         const Cell<D,ThreeD>& c1, const Cell<D,ThreeD>& c2, const Cell<D,ThreeD>& c3,
         std::complex<double>& z1, std::complex<double>& z2, std::complex<double>& z3)
     {
-        const Position<ThreeD>& p1 = c1.getData().getPos();
-        const Position<ThreeD>& p2 = c2.getData().getPos();
-        const Position<ThreeD>& p3 = c3.getData().getPos();
+        const Position<ThreeD>& p1 = c1.getPos();
+        const Position<ThreeD>& p2 = c2.getPos();
+        const Position<ThreeD>& p3 = c3.getPos();
         Position<Sphere> sp1(p1);
         Position<Sphere> sp2(p2);
         Position<Sphere> sp3(p3);

@@ -712,9 +712,9 @@ struct MetricHelper<Arc, P>
         // Rather than do trig though, recompute the chord lengths so we can compute
         // cos(phi) with just regular arithmetic and a sqrt.
         //
-        double d1sq = (c2.getData().getPos() - c3.getData().getPos()).normSq();
-        double d2sq = (c1.getData().getPos() - c3.getData().getPos()).normSq();
-        double d3sq = (c1.getData().getPos() - c2.getData().getPos()).normSq();
+        double d1sq = (c2.getPos() - c3.getPos()).normSq();
+        double d2sq = (c1.getPos() - c3.getPos()).normSq();
+        double d3sq = (c1.getPos() - c2.getPos()).normSq();
 
         double cosphi = (d2sq + d3sq - 0.5*d2sq*d3sq - d1sq);
         cosphi /= 2. * std::sqrt( d2sq * d3sq * (1.-0.25*d2sq) * (1.-0.25*d3sq) );

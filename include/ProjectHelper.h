@@ -105,6 +105,10 @@ struct ProjectHelper<Flat>
         z2 *= _expmsialpha<D>(r2);
         z3 *= _expmsialpha<D>(r3);
     }
+
+    static std::complex<double> ExpIPhi(
+        const Position<Flat>& p1, const Position<Flat>& p2, double r)
+    { return (p2-p1) / r; }
 };
 
 template <>
@@ -228,6 +232,13 @@ struct ProjectHelper<Sphere>
         z2 *= _expmsialpha<D>(calculate_direction(cen,p2));
         z3 *= _expmsialpha<D>(calculate_direction(cen,p3));
     }
+    static std::complex<double> ExpIPhi(
+        const Position<Sphere>& p1, const Position<Sphere>& p2, double r)
+    {
+        std::complex<double> z = calculate_direction(p2,p1);
+        z /= sqrt(safe_norm(z));
+        return z;
+    }
 };
 
 // The projections for ThreeD are basically the same as for Sphere.
@@ -282,6 +293,15 @@ struct ProjectHelper<ThreeD>
         z1 *= _expmsialpha<D>(ProjectHelper<Sphere>::calculate_direction(cen,sp1));
         z2 *= _expmsialpha<D>(ProjectHelper<Sphere>::calculate_direction(cen,sp2));
         z3 *= _expmsialpha<D>(ProjectHelper<Sphere>::calculate_direction(cen,sp3));
+    }
+    static std::complex<double> ExpIPhi(
+        const Position<ThreeD>& p1, const Position<ThreeD>& p2, double r)
+    {
+        Position<Sphere> sp1(p1);
+        Position<Sphere> sp2(p2);
+        std::complex<double> z = ProjectHelper<Sphere>::calculate_direction(sp2,sp1);
+        z /= sqrt(safe_norm(z));
+        return z;
     }
 };
 

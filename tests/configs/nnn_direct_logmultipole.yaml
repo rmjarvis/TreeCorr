@@ -10,8 +10,8 @@ bin_type: LogMultipole
 
 min_sep: 10.
 max_sep: 30.
-nbins: 2
-max_n: 20
+nbins: 10
+max_n: 30
 
 bin_slop: 0
 

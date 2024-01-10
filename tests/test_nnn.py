@@ -4113,7 +4113,7 @@ def test_direct_logmultipole_auto():
     # to see if comes out right.  This should exactly match the treecorr code if bin_slop=0.
 
     if __name__ == '__main__':
-        ngal = 100
+        ngal = 200
     else:
         ngal = 50
     s = 10.
@@ -4124,13 +4124,13 @@ def test_direct_logmultipole_auto():
 
     min_sep = 10.
     max_sep = 30.
-    nbins = 2
-    max_n = 20
+    nbins = 10
+    max_n = 30
 
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
+    dddb = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
                                   brute=True, verbose=1, bin_type='LogMultipole')
     t0 = time.time()
-    ddd.process(cat)
+    dddb.process(cat)
     t1 = time.time()
     print('time for multipole, brute=True: ',t1-t0)
 
@@ -4154,23 +4154,69 @@ def test_direct_logmultipole_auto():
                 if d2 == 0.: continue
                 if d3 == 0.: continue
                 phi = np.arccos((d2**2 + d3**2 - d1**2)/(2*d2*d3))
-                if not is_ccw(x[i],y[i],x[k],y[k],x[j],y[j]):
-                    continue
                 if d2 < min_sep or d2 >= max_sep: continue
                 if d3 < min_sep or d3 >= max_sep: continue
                 kr2 = int(np.floor( (np.log(d2)-log_min_sep) / bin_size ))
                 kr3 = int(np.floor( (np.log(d3)-log_min_sep) / bin_size ))
                 assert 0 <= kr2 < nbins
                 assert 0 <= kr3 < nbins
+                if not is_ccw(x[i],y[i],x[k],y[k],x[j],y[j]):
+                    phi = -phi
                 true_zeta[kr2,kr3,:] += np.exp(-1j * n1d * phi)
                 true_ntri[kr2,kr3,:] += 1.
                 # Also compute the SAS binning count
-                kphi = int(np.floor(phi / (max_n * np.pi)))
-                true_ntri_sas[kr2,kr3,kphi] += 1.
+                if phi > 0:
+                    kphi = int(np.floor(phi / (max_n * np.pi)))
+                    true_ntri_sas[kr2,kr3,kphi] += 1.
 
+    np.testing.assert_array_equal(dddb.ntri, true_ntri)
+    np.testing.assert_array_equal(dddb.weight, true_ntri)
+    np.testing.assert_allclose(dddb.zeta, true_zeta, atol=1.e-12)
+
+    # Repeat with binslop = 0.
+    # This now does the real Multipole algorithm, which of course is the whole point
+    # of the multipole binning.  brute=True does a direct 3 point computation.
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
+                                  bin_slop=0, verbose=1, bin_type='LogMultipole')
+    t0 = time.time()
+    ddd.process(cat)
+    t1 = time.time()
+    print('time for multipole, bin_slop=0: ',t1-t0)
+    #print('ntri = ',ddd.ntri.ravel())
+    #print('weight = ',ddd.weight.ravel())
+    #print('zeta = ',ddd.zeta.ravel())
+    #print('true ntri = ',true_ntri.ravel())
+    #print('true zeta = ',true_zeta.ravel())
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
     np.testing.assert_array_equal(ddd.weight, true_ntri)
-    np.testing.assert_allclose(ddd.zeta, true_zeta)
+    np.testing.assert_allclose(ddd.zeta, true_zeta, atol=1.e-12)
+    np.testing.assert_allclose(ddd.meand2, dddb.meand2)
+    np.testing.assert_allclose(ddd.meanlogd2, dddb.meanlogd2)
+    np.testing.assert_allclose(ddd.meand3, dddb.meand3)
+    np.testing.assert_allclose(ddd.meanlogd3, dddb.meanlogd3)
+
+    # And again with no top-level recursion
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
+                                  bin_slop=0, verbose=1, max_top=0, bin_type='LogMultipole')
+    t0 = time.time()
+    ddd.process(cat)
+    t1 = time.time()
+    print('time for multipole, bin_slop=0, max_top=0: ',t1-t0)
+    #print('ntri = ',ddd.ntri.ravel())
+    #print('weight = ',ddd.weight.ravel())
+    #print('zeta = ',ddd.zeta.ravel())
+    #print('true ntri = ',true_ntri.ravel())
+    #print('true zeta = ',true_zeta.ravel())
+    np.testing.assert_array_equal(ddd.ntri, true_ntri)
+    np.testing.assert_array_equal(ddd.weight, true_ntri)
+    # I'm not sure why this has a little worse accuracy.  Fails for 1.e-12.
+    np.testing.assert_allclose(ddd.zeta, true_zeta, rtol=1.e-10)
+    np.testing.assert_allclose(ddd.meand2, dddb.meand2)
+    np.testing.assert_allclose(ddd.meanlogd2, dddb.meanlogd2)
+    np.testing.assert_allclose(ddd.meand3, dddb.meand3)
+    np.testing.assert_allclose(ddd.meanlogd3, dddb.meanlogd3)
+
+    do_pickle(ddd)
 
     # Check that running via the corr3 script works correctly.
     file_name = os.path.join('data','nnn_direct_data_logmultipole.dat')
@@ -4183,37 +4229,13 @@ def test_direct_logmultipole_auto():
     treecorr.corr3(config, logger)
     corr3_output = np.genfromtxt(os.path.join('output','nnn_direct_logmultipole.out'), names=True,
                                     skip_header=1)
-    np.testing.assert_allclose(corr3_output['d2_nom'], ddd.d2nom.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(corr3_output['d3_nom'], ddd.d3nom.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(corr3_output['n'], ddd.n.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(corr3_output['ntri'], ddd.ntri.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(corr3_output['DDD'], ddd.weight.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(corr3_output['zeta'], np.real(ddd.zeta).flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(corr3_output['zeta_im'], np.imag(ddd.zeta).flatten(), rtol=1.e-3)
-
-    # Repeat with binslop = 0, since the code flow is different from brute=True
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
-                                  bin_slop=0, verbose=1, bin_type='LogMultipole')
-    t0 = time.time()
-    ddd.process(cat)
-    t1 = time.time()
-    print('time for multipole, bin_slop=0: ',t1-t0)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri)
-    np.testing.assert_array_equal(ddd.weight, true_ntri)
-    np.testing.assert_allclose(ddd.zeta, true_zeta)
-
-    # And again with no top-level recursion
-    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
-                                  bin_slop=0, verbose=1, max_top=0, bin_type='LogMultipole')
-    t0 = time.time()
-    ddd.process(cat)
-    t1 = time.time()
-    print('time for multipole, bin_slop=0, max_top=0: ',t1-t0)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri)
-    np.testing.assert_array_equal(ddd.weight, true_ntri)
-    np.testing.assert_allclose(ddd.zeta, true_zeta)
-
-    do_pickle(ddd)
+    np.testing.assert_allclose(corr3_output['d2_nom'], ddd.d2nom.flatten(), rtol=1.e-4)
+    np.testing.assert_allclose(corr3_output['d3_nom'], ddd.d3nom.flatten(), rtol=1.e-4)
+    np.testing.assert_allclose(corr3_output['n'], ddd.n.flatten(), rtol=1.e-4)
+    np.testing.assert_allclose(corr3_output['ntri'], ddd.ntri.flatten(), rtol=1.e-4)
+    np.testing.assert_allclose(corr3_output['DDD'], ddd.weight.flatten(), rtol=1.e-4)
+    np.testing.assert_allclose(corr3_output['zeta'], np.real(ddd.zeta).flatten(), rtol=1.e-4)
+    np.testing.assert_allclose(corr3_output['zeta_im'], np.imag(ddd.zeta).flatten(), rtol=1.e-4)
 
     # Test I/O
     ascii_name = 'output/nnn_ascii_logmultipole.txt'

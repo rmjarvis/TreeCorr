@@ -1314,8 +1314,8 @@ struct BinTypeHelper<LogMultipole>
     // If return value is false, split1, split2, split3 will be set on output.
     static bool singleBin(double d1sq, double d2sq, double d3sq,
                           double s1, double s2, double s3,
-                          double b, double , double ,
-                          double bsq, double , double ,
+                          double b, double bphi, double ,
+                          double bsq, double bphisq, double ,
                           bool& split1, bool& split2, bool& split3,
                           double& d1, double& d2, double& d3,
                           double& phi, double& cosphi)
@@ -1356,6 +1356,7 @@ struct BinTypeHelper<LogMultipole>
                 // Note: if s1 was 0, then still need to check here.
                 d2split ||
                 (s1==0. && s2sq > d3sq * bsq) ||
+                (SQR(s1+s2) > bphisq * d3sq) ||
 
                 // Also, definitely split if s2 > d1
                 (s2sq > d1sq));
@@ -1365,6 +1366,7 @@ struct BinTypeHelper<LogMultipole>
             split3 = (s3 > 0.) && (
                 d3split ||
                 (s1==0. && s3sq > d2sq * bsq) ||
+                (SQR(s1+s3) > bphisq * d2sq) ||
                 (s3sq > d1sq));
             xdbg<<"split2 = "<<split2<<std::endl;
 

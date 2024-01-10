@@ -558,7 +558,8 @@ class Corr3(object):
             self._ro.nubins = int(self.config['max_n'])
             if self.max_n < 0:
                 raise ValueError("max_n must be non-negative")
-            self._ro.min_u = self._ro.max_u = self._ro.ubin_size = 0
+            self._ro.min_u = self._ro.max_u = 0
+            self._ro.ubin_size = np.pi / self.max_n  # Use this to compute bu
             self._ro.min_v = self._ro.max_v = self._ro.nvbins = self._ro.vbin_size = 0
         else:  # pragma: no cover  (Already checked by config layer)
             raise ValueError("Invalid bin_type %s"%self.bin_type)
@@ -586,25 +587,21 @@ class Corr3(object):
                     self._ro.bv = self.vbin_size
                 else:
                     self._ro.bv = 0.1
-            elif self.bin_type == 'LogSAS':
+            else:
+                # LogSAS, LogMultipole
                 if self._ro.ubin_size <= 0.1:
                     self._ro.bu = self._ro.ubin_size
                 else:
                     self._ro.bu = 0.1
-                self._ro.bv = 0
-            else:
-                self._ro.bu = 0
                 self._ro.bv = 0
         else:
             self._ro.b = self.bin_size * self.bin_slop
             if self.bin_type == 'LogRUV':
                 self._ro.bu = self.ubin_size * self.bin_slop
                 self._ro.bv = self.vbin_size * self.bin_slop
-            elif self.bin_type == 'LogSAS':
-                self._ro.bu = self._ro.ubin_size * self.bin_slop
-                self._ro.bv = 0
             else:
-                self._ro.bu = 0
+                # LogSAS, LogMultipole
+                self._ro.bu = self._ro.ubin_size * self.bin_slop
                 self._ro.bv = 0
 
         if self.b > 0.100001:  # Add some numerical slop

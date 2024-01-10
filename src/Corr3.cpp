@@ -89,6 +89,7 @@ BaseCorr3::BaseCorr3(
            break;
       case LogMultipole:
            _ntot = BinTypeHelper<LogMultipole>::calculateNTot(nbins, nubins, nvbins);
+           _nvbins = _nbins * (2*_nubins+1);  // Use this for size of Gn array.
            break;
       default:
            dbg<<"bin_type = "<<bin_type<<std::endl;
@@ -792,6 +793,61 @@ struct DirectHelper<NData,NData,NData>
             wwwztothen *= z;
         }
     }
+    template <int C>
+    static void CalculateGn(
+        const Cell<NData,C>& c1, const Cell<NData,C>& c2,
+        double rsq, double r, int k, int maxn, double w,
+        std::complex<double>* Gn)
+    {
+        std::complex<double> z = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), r);
+        int index = k*(2*maxn+1) + maxn;
+        dbg<<"CalculateGn: "<<index<<"  "<<maxn<<"  "<<w<<"  "<<z<<std::endl;
+        dbg<<"pos = "<<c1.getPos()<<"  "<<c2.getPos()<<" r = "<<r<<std::endl;
+        std::complex<double> wztothen = w * z;
+        Gn[index] += w;
+        for (int n=1; n <= maxn; ++n) {
+            // TODO: For N and K, these are symmetric conjugates.  Probably only need 1/2.
+            Gn[index + n] += wztothen;
+            Gn[index - n] += std::conj(wztothen);
+            wztothen *= z;
+        }
+    }
+    template <int C>
+    static void CalculateZeta(const Cell<NData,C>& c1, std::complex<double>* Gn, double* weight2,
+                              ZetaData<NData,NData,NData>& zeta, int nbins, int maxn)
+    {
+        const int nnbins = 2*maxn+1;
+        const double w1 = c1.getW();
+        dbg<<"CalculateZeta: "<<nbins<<"  "<<maxn<<"  "<<nnbins<<"  "<<w1<<std::endl;
+        for (int k2=0; k2<nbins; ++k2) {
+            // Do the k2=k3 bins.
+            // We want to make sure not to include degenerate triangles with c2 = c3.
+            // These would get included in the naive calculation:
+            //   Zeta[k2,k3,n] = Sum w_k1 G_n[k2,n] G_n[k3,n]*
+            //   G_n[k,n] = Sum w_k e^{i phi_k n)
+            // The Zeta product includes terms like
+            //   w_k2^2 e^{i phi_k2 n) e^{-i phi_k2 n}
+            //   = w_k2^2.
+            // So we need to subtract them off.
+            // The /2 is so that we only count half the triangles.  In the python layer
+            // (finalize) we add this to the transpose, which copies k2,k3 -> k3,k2.
+            // In the process, it will double these, so only make them half the right value now.
+            int iz = (k2*nbins + k2)*nnbins;
+            int i2 = k2*nnbins;
+            for (int n=0; n < nnbins; ++n, ++iz, ++i2) {
+                zeta.zeta[iz] += w1 * (std::norm(Gn[i2]) - weight2[k2]) / 2.;
+            }
+            for (int k3=k2+1; k3<nbins; ++k3) {
+                int i2 = k2*nnbins;
+                int i3 = k3*nnbins;
+                for (int n=0; n < nnbins; ++n, ++iz, ++i2, ++i3) {
+                    std::complex<double> z = w1 * Gn[i2] * std::conj(Gn[i3]);
+                    zeta.zeta[iz] += z.real();
+                    zeta.zeta_im[iz] += z.imag();
+                }
+            }
+        }
+    }
 };
 
 template <>
@@ -821,6 +877,41 @@ struct DirectHelper<KData,KData,KData>
             zeta.zeta[index - n] += wkztothen.real();
             zeta.zeta_im[index - n] += wkztothen.imag();
             wkztothen *= z;
+        }
+    }
+    template <int C>
+    static void CalculateGn(
+        const Cell<KData,C>& c1, const Cell<KData,C>& c2,
+        double rsq, double r, int k, int maxn, double w, std::complex<double>* Gn)
+    {
+        double wk = c2.getData().getWK();
+        std::complex<double> z = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), r);
+        int index = k*(2*maxn+1) + maxn;
+        std::complex<double> wkztothen = wk * z;
+        Gn[index] += wk;
+        for (int n=1; n <= maxn; ++n) {
+            Gn[index + n] += std::conj(wkztothen);
+            Gn[index - n] += wkztothen;
+            wkztothen *= z;
+        }
+    }
+    template <int C>
+    static void CalculateZeta(const Cell<KData,C>& c1, std::complex<double>* Gn, double* weight2,
+                              ZetaData<KData,KData,KData>& zeta, int nbins, int maxn)
+    {
+        const int nnbins = 2*maxn+1;
+        const double wk1 = c1.getData().getWK();
+        for (int k2=0; k2<nbins; ++k2) {
+            for (int k3=0; k3<nbins; ++k3) {
+                int iz = (k2*nbins + k3)*nnbins;
+                int i2 = k2*nnbins;
+                int i3 = k3*nnbins;
+                for (int n=0; n < nnbins; ++n, ++iz, ++i2, ++i3) {
+                    std::complex<double> z = wk1 * Gn[i2] * std::conj(Gn[i3]);
+                    zeta.zeta[iz] += z.real();
+                    zeta.zeta_im[iz] += z.imag();
+                }
+            }
         }
     }
 };
@@ -880,6 +971,19 @@ struct DirectHelper<GData,GData,GData>
         const Cell<GData,C>& c1, const Cell<GData,C>& c2, const Cell<GData,C>& c3,
         const double sinphi, const double cosphi, const double www,
         ZetaData<GData,GData,GData>& zeta, int index, int maxn)
+    {
+        // TODO
+    }
+    template <int C>
+    static void CalculateGn(
+        const Cell<GData,C>& c1, const Cell<GData,C>& c2,
+        double rsq, double r, int k, int maxn, double w, std::complex<double>* Gn)
+    {
+        // TODO
+    }
+    template <int C>
+    static void CalculateZeta(const Cell<GData,C>& c1, std::complex<double>* Gn, double* weight2,
+                              ZetaData<GData,GData,GData>& zeta, int nbins, int maxn)
     {
         // TODO
     }
@@ -951,11 +1055,82 @@ void Corr3<D1,D2,D3>::finishProcessMP(
     _meanlogd3[index] += www * logd3;
     _weight[index] += www;
 
-    DirectHelper<D1,D2,D3>::template ProcessMultipole<C>(
+    DirectHelper<D1,D2,D3>::ProcessMultipole(
         static_cast<const Cell<D1,C>&>(c1),
         static_cast<const Cell<D2,C>&>(c2),
         static_cast<const Cell<D3,C>&>(c3),
         sinphi, cosphi, www, _zeta, index, _nubins);
+}
+
+template <int D1, int D2, int D3> template <int C>
+void Corr3<D1,D2,D3>::calculateGn(
+    const BaseCell<C>& c1, const BaseCell<C>& c2,
+    double rsq, double r, double logr, int k,
+    double* meanr, double* meanlogr, double* weight,
+    double* meanr2, double* meanlogr2, double* weight2,
+    double* npairs, std::complex<double>* Gn)
+{
+    // For now we only include the counts and weight from c2.
+    // We'll include c1 as part of the triple in calculateZeta.
+    double n = c2.getN();
+    double w = c2.getW();
+    double w2 = c2.getW2();
+    meanr[k] += w * r;
+    meanlogr[k] += w * logr;
+    weight[k] += w;
+    meanr2[k] += w2 * r;
+    meanlogr2[k] += w2 * logr;
+    weight2[k] += w2;
+    npairs[k] += n;
+
+    DirectHelper<D1,D2,D3>::CalculateGn(
+        static_cast<const Cell<D1,C>&>(c1),
+        static_cast<const Cell<D2,C>&>(c2),
+        rsq, r, k, _nubins, w, Gn);
+}
+
+template <int D1, int D2, int D3> template <int C>
+void Corr3<D1,D2,D3>::calculateZeta(
+    const BaseCell<C>& c1,
+    double* meanr, double* meanlogr, double* weight,
+    double* meanr2, double* meanlogr2, double* weight2,
+    double* npairs, std::complex<double>* Gn)
+{
+    // First finish the computation of meand2, etc. based on the 2pt accumulations.
+    double n1 = c1.getN();
+    double w1 = c1.getW();
+    const int maxn = _nubins;
+    const int nnbins = 2*maxn+1;
+    for (int k2=0; k2<_nbins; ++k2) {
+        int i = (k2 * _nbins + k2) * nnbins + maxn;
+        // Do the k2=k3 bins.
+        // For these, we need to be careful not to count cases where c2=c3.
+        // This means we need to subtract off sums of w^2 for instance.
+        // The /2 is so that we only count half the triangles.  In the python layer
+        // (finalize) we add this to the transpose, which copies k2,k3 -> k3,k2.
+        // In the process, it will double these, so only make them half the right value now.
+        _ntri[i] += n1 * npairs[k2] * (npairs[k2]-1) / 2;
+        _weight[i] += w1 * (weight[k2] * weight[k2] - weight2[k2]) / 2.;
+        _meand2[i] += w1 * (weight[k2] * meanr[k2] - meanr2[k2]) / 2.;
+        _meanlogd2[i] += w1 * (weight[k2] * meanlogr[k2] - meanlogr2[k2]) / 2.;
+        _meand3[i] += w1 * (weight[k2] * meanr[k2] - meanr2[k2]) / 2.;
+        _meanlogd3[i] += w1 * (weight[k2] * meanlogr[k2] - meanlogr2[k2]) / 2.;
+        for (int k3=k2+1; k3<_nbins; ++k3) {
+            i += nnbins;
+            _ntri[i] += n1 * npairs[k2] * npairs[k3];
+            _weight[i] += w1 * weight[k2] * weight[k3];
+            _meand2[i] += w1 * weight[k3] * meanr[k2];
+            _meanlogd2[i] += w1 * weight[k3] * meanlogr[k2];
+            _meand3[i] += w1 * weight[k2] * meanr[k3];
+            _meanlogd3[i] += w1 * weight[k2] * meanlogr[k3];
+        }
+    }
+
+    // Finish the calculation for Zeta_n(d1,d2) using G_n(d).
+    // In Porth et al, this is eqs. 21, 23, 24, 25 for GGG, and eqn 27 for NNN.
+    // The version for KKK is obvious from these.
+    DirectHelper<D1,D2,D3>::CalculateZeta(
+        static_cast<const Cell<D1,C>&>(c1), Gn, weight2, _zeta, _nbins, _nubins);
 }
 
 template <int D1, int D2, int D3>
@@ -992,6 +1167,328 @@ void Corr3<D1,D2,D3>::operator+=(const Corr3<D1,D2,D3>& rhs)
     for (int i=0; i<_ntot; ++i) _ntri[i] += rhs._ntri[i];
 }
 
+
+//
+// Fast multipole algorithm
+// The idea here is to first recurse down to find cells that are small enough that
+// at least some of the bins can use them as is.
+// Then for each of these cells, we find all the cells that can contribute to the
+// sums for Gn, throwing out any that are too far away.
+// Next we recursively split these up, computing the parts of Gn that we can at each
+// level.
+// When we get to the cells that are small enough not to need to be split further, we
+// finish the calculation, coputing Zeta_n from G_n.
+//
+
+template <int B, int M, int C>
+void BaseCorr3::multipole(const BaseField<C>& field, bool dots)
+{
+    reset_ws();
+    Assert(_coords == -1 || _coords == C);
+    _coords = C;
+    const long n1 = field.getNTopLevel();
+    dbg<<"field has "<<n1<<" top level nodes\n";
+    Assert(n1 > 0);
+
+#ifdef _OPENMP
+#pragma omp parallel
+    {
+        // Give each thread their own copy of the data vector to fill in.
+        std::shared_ptr<BaseCorr3> corrp = duplicate();
+        BaseCorr3& corr = *corrp;
+#else
+        BaseCorr3& corr = *this;
+#endif
+
+        MetricHelper<M,0> metric(0, 0, _xp, _yp, _zp);
+        // Scratch arrays used for computing Gn, etc..
+        std::complex<double> Gn[_nvbins];
+        double meanr[_nvbins];
+        double meanlogr[_nvbins];
+        double weight[_nvbins];
+        double meanr2[_nvbins];
+        double meanlogr2[_nvbins];
+        double weight2[_nvbins];
+        double npairs[_nvbins];
+
+#ifdef _OPENMP
+#pragma omp for schedule(dynamic)
+#endif
+        for (long i=0;i<n1;++i) {
+            const BaseCell<C>& c1 = *field.getCells()[i];
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+            {
+                if (dots) std::cout<<'.'<<std::flush;
+#ifdef DEBUGLOGGING
+#ifdef _OPENMP
+                dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
+#endif
+                xdbg<<"field = \n";
+                if (verbose_level >= 2) c1.WriteTree(get_dbgout());
+#endif
+            }
+            corr.template multipoleSplit1<B>(c1, field.getCells(), metric,
+                                             meanr, meanlogr, weight,
+                                             meanr2, meanlogr2, weight2,
+                                             npairs, Gn);
+        }
+#ifdef _OPENMP
+        // Accumulate the results
+#pragma omp critical
+        {
+            addData(corr);
+        }
+    }
+#endif
+    if (dots) std::cout<<std::endl;
+}
+
+template <int B, int M, int C>
+void BaseCorr3::multipoleSplit1(
+    const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
+    const MetricHelper<M,0>& metric,
+    double* meanr, double* meanlogr, double* weight,
+    double* meanr2, double* meanlogr2, double* weight2,
+    double* npairs, std::complex<double>* Gn)
+{
+    dbg<<"MultipoleSplit1: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getN()<<std::endl;
+    dbg<<"           len c2  = "<<c2list.size()<<std::endl;
+
+    const Position<C>& p1 = c1.getPos();
+    double s1 = c1.getSize(); // May be modified by DistSq function.
+    xdbg<<"B,M,C = "<<B<<"  "<<M<<"  "<<C<<std::endl;
+
+    // Split cells in c2list if they will definitely need to be split.
+    // And remove any that cannot contribute to the sums for this c1.
+    std::vector<const BaseCell<C>*> newc2list;
+    for (const BaseCell<C>* c2: c2list) {
+
+        const Position<C>& p2 = c2->getPos();
+        double s2 = c2->getSize();
+        const double rsq = metric.DistSq(p1,p2,s1,s2);
+        const double s1ps2 = s1+s2;
+        xdbg<<"rsq = "<<rsq<<"  s = "<<s2<<"  "<<s1ps2<<std::endl;
+
+        // This sequence mirrors the calculation in Corr2.process11.
+        double rpar = 0; // Gets set to correct value by this function if appropriate
+        if (metric.isRParOutsideRange(p1, p2, s1ps2, rpar)) {
+            continue;
+        }
+        xdbg<<"RPar in range\n";
+
+        if (BinTypeHelper<B>::tooSmallDist(rsq, s1ps2, _minsep, _minsepsq) &&
+            metric.tooSmallDist(p1, p2, rsq, rpar, s1ps2, _minsep, _minsepsq)) {
+            continue;
+        }
+        xdbg<<"Not too small separation\n";
+
+        if (BinTypeHelper<B>::tooLargeDist(rsq, s1ps2, _maxsep, _maxsepsq) &&
+            metric.tooLargeDist(p1, p2, rsq, rpar, s1ps2, _maxsep, _maxsepsq)) {
+            continue;
+        }
+        xdbg<<"Not too large separation\n";
+
+        int k=-1;
+        double r=0,logr=0;
+        // First check if the distance alone requires a split for c2.
+        bool split = !BinTypeHelper<B>::singleBin(rsq, s1ps2, p1, p2, _binsize, _b, _bsq,
+                                                   _minsep, _maxsep, _logminsep, k, r, logr);
+        xdbg<<"split = "<<split<<std::endl;
+
+        // If not splitting due to side length, might still need to split for angle.
+        if (!split) {
+            double bphisq_eff = BinTypeHelper<B>::getEffectiveBSq(rsq, _busq);
+            split = SQR(s1ps2) > bphisq_eff;
+            xdbg<<"split => "<<split<<std::endl;
+        }
+
+        // If we need to split something, split c2 if it's larger than c1.
+        if (split && s2 > s1) {
+            Assert(c2->getLeft());
+            Assert(c2->getRight());
+            newc2list.push_back(c2->getLeft());
+            newc2list.push_back(c2->getRight());
+        } else {
+            newc2list.push_back(c2);
+        }
+    }
+
+    // See if we can stop splitting c1
+    // The criterion is that for the largest separation we will be caring about,
+    // c1 is at least possibly small enough to use as is without futher splitting.
+    // i.e. s1 < maxsep * b
+    double maxbsq_eff = BinTypeHelper<B>::getEffectiveBSq(_maxsepsq, _bsq);
+    if (SQR(s1) > maxbsq_eff) {
+        multipoleSplit1<B>(*c1.getLeft(), newc2list, metric,
+                           meanr, meanlogr, weight, meanr2, meanlogr2, weight2, npairs, Gn);
+        multipoleSplit1<B>(*c1.getRight(), newc2list, metric,
+                           meanr, meanlogr, weight, meanr2, meanlogr2, weight2, npairs, Gn);
+    } else {
+        // Zero out scratch arrays
+        for (int i=0; i<_nvbins; ++i) {
+            meanr[i] = 0.;
+            meanlogr[i] = 0.;
+            weight[i] = 0.;
+            meanr2[i] = 0.;
+            meanlogr2[i] = 0.;
+            weight2[i] = 0.;
+            npairs[i] = 0.;
+            Gn[i] = 0.;
+        }
+        multipoleFinish<B>(c1, newc2list, metric,
+                           meanr, meanlogr, weight, meanr2, meanlogr2, weight2, npairs, Gn);
+    }
+}
+
+template <int B, int M, int C>
+void BaseCorr3::multipoleFinish(
+    const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
+    const MetricHelper<M,0>& metric,
+    double* meanr, double* meanlogr, double* weight,
+    double* meanr2, double* meanlogr2, double* weight2,
+    double* npairs, std::complex<double>* Gn)
+{
+    // This is structured a lot like the previous function.
+    // However, in this one, we will actually be filling the Gn array.
+    // We fill what we can before splitting further.
+    // Note: if we decide to split c1, we need to make a copy of Gn before
+    // recursing.  This is why we split up the calculation into two functions like
+    // this.  We want to minimize the number of copies of Gn (et al) we need to make.
+    dbg<<"MultipoleFinish: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getN()<<std::endl;
+    dbg<<"           len c2  = "<<c2list.size()<<std::endl;
+
+    const Position<C>& p1 = c1.getPos();
+    double s1 = c1.getSize(); // May be modified by DistSq function.
+    double s1sq = SQR(s1);
+    xdbg<<"B,M,C = "<<B<<"  "<<M<<"  "<<C<<std::endl;
+    bool anysplit1=false;
+
+    // As before, split any cells in c2list that need to be split given the current c1.
+    // And remove any that cannot contribute to the sums.
+    // This time we also accumulate the Gn array for any that can be done.
+    // Those also don't get added to newc2list.
+    std::vector<const BaseCell<C>*> newc2list;
+    for (const BaseCell<C>* c2: c2list) {
+
+        const Position<C>& p2 = c2->getPos();
+        double s2 = c2->getSize();
+        const double rsq = metric.DistSq(p1,p2,s1,s2);
+        xdbg<<"rsq = "<<rsq<<std::endl;
+        const double s1ps2 = s1+s2;
+
+        // This sequence mirrors the calculation in Corr2.process11.
+        double rpar = 0; // Gets set to correct value by this function if appropriate
+        if (metric.isRParOutsideRange(p1, p2, s1ps2, rpar)) {
+            continue;
+        }
+        xdbg<<"RPar in range\n";
+
+        if (BinTypeHelper<B>::tooSmallDist(rsq, s1ps2, _minsep, _minsepsq) &&
+            metric.tooSmallDist(p1, p2, rsq, rpar, s1ps2, _minsep, _minsepsq)) {
+            continue;
+        }
+        xdbg<<"Not too small separation\n";
+
+        if (BinTypeHelper<B>::tooLargeDist(rsq, s1ps2, _maxsep, _maxsepsq) &&
+            metric.tooLargeDist(p1, p2, rsq, rpar, s1ps2, _maxsep, _maxsepsq)) {
+            continue;
+        }
+        xdbg<<"Not too large separation\n";
+
+        // Now check if these cells are small enough that it is ok to drop into a single bin.
+        int k=-1;
+        double r=0,logr=0;
+
+        if (metric.isRParInsideRange(p1, p2, s1ps2, rpar) &&
+            BinTypeHelper<B>::singleBin(rsq, s1ps2, p1, p2, _binsize, _b, _bsq,
+                                        _minsep, _maxsep, _logminsep, k, r, logr))
+        {
+            // Check angle
+            double bphisq_eff = BinTypeHelper<B>::getEffectiveBSq(rsq, _busq);
+            if (SQR(s1ps2) <= bphisq_eff) {
+                // This c2 is fine to use as is with the current c1.  Neither needs to split.
+                xdbg<<"s1ps2 = "<<s1ps2<<" _b = "<<_b<<"  "<<_bu<<std::endl;
+                xdbg<<"Drop into single bin.\n";
+                if (BinTypeHelper<B>::isRSqInRange(rsq, p1, p2, _minsep, _minsepsq,
+                                                   _maxsep, _maxsepsq)) {
+                    if (k < 0) {
+                        // Then these aren't calculated yet.  Do that now.
+                        r = sqrt(rsq);
+                        logr = log(r);
+                        k = BinTypeHelper<B>::calculateBinK(p1, p2, r, logr, _binsize,
+                                                            _minsep, _maxsep, _logminsep);
+                    }
+                    calculateGn(c1, *c2, rsq, r, logr, k,
+                                meanr, meanlogr, weight, meanr2, meanlogr2, weight2, npairs, Gn);
+                }
+                continue;
+            }
+        }
+
+        // OK, need to split.  Figure out if we should split c1 or c2 or both.
+        bool split1=false;
+        bool split2=false;
+        double bsq_eff = BinTypeHelper<B>::getEffectiveBSq(rsq,std::min(_bsq,_busq));
+        CalcSplitSq(split1,split2,s1,s2,s1ps2,bsq_eff);
+        xdbg<<"split2 = "<<split2<<std::endl;
+        if (split1) anysplit1 = true;
+
+        if (split2) {
+            Assert(c2->getLeft());
+            Assert(c2->getRight());
+            newc2list.push_back(c2->getLeft());
+            newc2list.push_back(c2->getRight());
+        } else {
+            newc2list.push_back(c2);
+        }
+    }
+    xdbg<<"newsize = "<<newc2list.size()<<", anysplit1 = "<<anysplit1<<std::endl;
+    if (newc2list.size() > 0) {
+        if (anysplit1) {
+            Assert(c1.getLeft());
+            Assert(c1.getRight());
+            // Then we need to split c1 further.  This means we need a copy of Gn and the
+            // other scratch arrays, so we can pass what we have now to each child cell.
+            double meanr_copy[_nvbins];
+            double meanlogr_copy[_nvbins];
+            double weight_copy[_nvbins];
+            double meanr2_copy[_nvbins];
+            double meanlogr2_copy[_nvbins];
+            double weight2_copy[_nvbins];
+            double npairs_copy[_nvbins];
+            std::complex<double> Gn_copy[_nvbins];
+            for (int i=0;i<_nvbins;++i) {
+                meanr_copy[i] = meanr[i];
+                meanlogr_copy[i] = meanlogr[i];
+                weight_copy[i] = weight[i];
+                meanr2_copy[i] = meanr2[i];
+                meanlogr2_copy[i] = meanlogr2[i];
+                weight2_copy[i] = weight2[i];
+                npairs_copy[i] = npairs[i];
+                Gn_copy[i] = Gn[i];
+            }
+            multipoleFinish<B>(*c1.getLeft(), newc2list, metric,
+                               meanr_copy, meanlogr_copy, weight_copy,
+                               meanr2_copy, meanlogr2_copy, weight2_copy,
+                               npairs_copy, Gn_copy);
+            multipoleFinish<B>(*c1.getRight(), newc2list, metric,
+                               meanr_copy, meanlogr_copy, weight_copy,
+                               meanr2_copy, meanlogr2_copy, weight2_copy,
+                               npairs, Gn);
+        } else {
+            // If we still have c2 items to process, but don't have to split c1,
+            // we don't need to make copies.
+            multipoleFinish<B>(c1, newc2list, metric, meanr, meanlogr, weight,
+                               meanr2, meanlogr2, weight2, npairs, Gn);
+        }
+    } else {
+        // We finished all the calculations for Gn.
+        // Turn this into Zeta_n.
+        calculateZeta(c1, meanr, meanlogr, weight, meanr2, meanlogr2, weight2, npairs, Gn);
+    }
+}
 
 //
 //
@@ -1046,11 +1543,26 @@ Corr3<D1,D2,D3>* BuildCorr3(
             meanu, meanv, weight, ntri);
 }
 
+// A quick helper struct so we only instantiate multipole for Multipole BinTypes.
+// _B is actually the corresponding 2pt BinType since the algorithm will use 2pt tests.
+// For now, we only have one such 3pt type, LogMultipole, so _B is always Log.
+template <int B>
+struct ValidMultipole
+{ enum { _B = Log }; };
+
 template <int B, int M, int C>
 void ProcessAutob(BaseCorr3& corr, BaseField<C>& field, bool dots)
 {
     Assert((ValidMC<M,C>::_M == M));
-    corr.template process<B,ValidMC<M,C>::_M>(field, dots);
+    // Note: The code exists to do Multipole binning with the regular processing, which
+    // was useful in development.  But the alternate algorithm is really the point of that
+    // binning, so I always do that now.  Not sure if there is a good reason to have an
+    // option to use the normal 3pt algorithm with LogMultipole, but maybe.
+    if (B == LogMultipole) {
+        corr.template multipole<ValidMultipole<B>::_B,ValidMC<M,C>::_M>(field, dots);
+    } else {
+        corr.template process<B,ValidMC<M,C>::_M>(field, dots);
+    }
 }
 
 template <int B, int C>

@@ -400,6 +400,36 @@ class NNNCorrelation(Corr3):
         self.tot += cat1.sumw * cat2.sumw * cat3.sumw
 
     def _finalize(self):
+        if self.bin_type == 'LogMultipole':
+            # The multipole calculation only accumulates these for half the triangles, since
+            # the other half are equivalent. Copy them over to the missing half of these arrays.
+            self.ntri += np.transpose(self.ntri, axes=(1,0,2))
+            self.weight += np.transpose(self.weight, axes=(1,0,2))
+            orig_meand2 = self.meand2.copy()
+            orig_meanlogd2 = self.meanlogd2.copy()
+            self.meand2 += np.transpose(self.meand3, axes=(1,0,2))
+            self.meanlogd2 += np.transpose(self.meanlogd3, axes=(1,0,2))
+            self.meand3 += np.transpose(orig_meand2, axes=(1,0,2))
+            self.meanlogd3 += np.transpose(orig_meanlogd2, axes=(1,0,2))
+            self.mp += np.transpose(self.mp, axes=(1,0,2))
+            self.mp_im -= np.transpose(self.mp_im, axes=(1,0,2))
+
+            # It also only sets most of the values at [i,j,max_n].
+            # Broadcast those to the rest of the values in the third dimension.
+            self.ntri[:,:,:] = self.ntri[:,:,self.max_n][:,:,np.newaxis]
+            self.weight[:,:,:] = self.weight[:,:,self.max_n][:,:,np.newaxis]
+            self.meand2[:,:,:] = self.meand2[:,:,self.max_n][:,:,np.newaxis]
+            self.meanlogd2[:,:,:] = self.meanlogd2[:,:,self.max_n][:,:,np.newaxis]
+            self.meand3[:,:,:] = self.meand3[:,:,self.max_n][:,:,np.newaxis]
+            self.meanlogd3[:,:,:] = self.meanlogd3[:,:,self.max_n][:,:,np.newaxis]
+
+            # And finally, make the final complex zeta from the two real arrays.
+            self.zeta = self.mp + 1j * self.mp_im
+            # varzeta = <www>^2 * ntri  (per bin)
+            self.varzeta = np.zeros_like(self.weight)
+            mask = self.ntri != 0
+            self.varzeta[mask] = self.weight[mask]**2 / self.ntri[mask]
+
         mask1 = self.weight != 0
         mask2 = self.weight == 0
 
@@ -441,25 +471,6 @@ class NNNCorrelation(Corr3):
                 self.meand1[mask2] = 0.
                 self.meanlogd1[mask2] = 0.
                 self.meanu[mask2] = 0.
-
-        if self.bin_type == 'LogMultipole':
-            # Multipole only sets most of the values at [i,j,max_n].
-            # Broadcast those to the rest of the values in the third dimension.
-            self.ntri[:,:,:] = self.ntri[:,:,self.max_n][:,:,np.newaxis]
-            self.weight[:,:,:] = self.weight[:,:,self.max_n][:,:,np.newaxis]
-            self.meand1[:,:,:] = self.meand1[:,:,self.max_n][:,:,np.newaxis]
-            self.meanlogd1[:,:,:] = self.meanlogd1[:,:,self.max_n][:,:,np.newaxis]
-            self.meand2[:,:,:] = self.meand2[:,:,self.max_n][:,:,np.newaxis]
-            self.meanlogd2[:,:,:] = self.meanlogd2[:,:,self.max_n][:,:,np.newaxis]
-            self.meand3[:,:,:] = self.meand3[:,:,self.max_n][:,:,np.newaxis]
-            self.meanlogd3[:,:,:] = self.meanlogd3[:,:,self.max_n][:,:,np.newaxis]
-            self.meanu[:,:,:] = self.meanu[:,:,self.max_n][:,:,np.newaxis]
-
-            # Also make the final complex zeta from the two real arrays.
-            self.zeta = self.mp + 1j * self.mp_im
-            # varzeta = <www>^2 * ntri  (per bin)
-            self.varzeta = np.zeros_like(self.weight)
-            self.varzeta[mask1] = self.weight[mask1]**2 / self.ntri[mask1]
 
     def finalize(self):
         """Finalize the calculation of meand1, meanlogd1, etc.

@@ -670,6 +670,60 @@ class NNNCorrelation(Corr3):
         else:
             return self.tot
 
+    def toSAS(self, **kwargs):
+        """Convert a multipole-binned correlation to the corresponding SAS binning.
+
+        This is only valid for bin_type == LogMultipole.
+
+        Keyword Arguments:
+            **kwargs:   Any kwargs that you want to use to configure the returned object.
+                        Typically, might include min_phi, max_phi, nphi_bins, phi_bin_size.
+                        The default phi binning is [0,pi] with nphi_bins = self.max_n.
+
+        Returns:
+            nnn_sas:    An NNNCorrelation object with bin_type=LogSAS containing the
+                        same information as this object, but with the SAS binning.
+        """
+        if self.bin_type != 'LogMultipole':
+            raise TypeError("toSAS is invalid for bin_type = %s"%self.bin_type)
+
+        config = self.config.copy()
+        config['bin_type'] = 'LogSAS'
+        max_n = config.pop('max_n')
+        config['nphi_bins'] = max_n
+        sas = NNNCorrelation(config, **kwargs)
+
+        sas.tot = self.tot
+
+        # Copy these over
+        sas.meand2[:,:,:] = self.meand2[:,:,0][:,:,None]
+        sas.meanlogd2[:,:,:] = self.meanlogd2[:,:,0][:,:,None]
+        sas.meand3[:,:,:] = self.meand3[:,:,0][:,:,None]
+        sas.meanlogd3[:,:,:] = self.meanlogd3[:,:,0][:,:,None]
+
+        # Use nominal for meanphi
+        sas.meanu[:] = sas.phi
+        # Compute d1 from actual d2,d3 and nominal phi
+        sas.meand1[:] = np.sqrt(sas.meand2**2 + sas.meand3**2
+                                - 2*sas.meand2 * sas.meand3 * np.cos(sas.phi))
+        sas.meanlogd1[:] = np.log(sas.meand1)
+
+        # Eqn 26 of Porth et al, 2023
+        # N(d2,d3,phi) = 1/2pi sum_n N_n(d2,d3) exp(i n phi)
+        expiphi = np.exp(1j * self.n1d[:,None] * sas.phi1d)
+        sas.weight[:] = np.real(self.zeta.dot(expiphi)) / (2*np.pi) * sas.phi_bin_size
+
+        # For ntri, we recorded the total ntri for each pair of d2,d3.
+        # Allocate those proportionally to the weights.
+        # The extra factor of 2 is because Multipole counts the triangles
+        # twice (with c2,c3 in each spot).  The standard SAS counting just
+        # counts the ones in CCW orientation. (i.e. no double counting.)
+        ratio = self.ntri[:,:,0] / np.sum(sas.weight, axis=2) / 2
+        sas.ntri[:] = sas.weight * ratio[:,:,None]
+
+        return sas
+
+
     def calculateZeta(self, *, rrr, drr=None, rdd=None):
         r"""Calculate the 3pt function given another 3pt function of random
         points using the same mask, and possibly cross correlations of the data and random.

@@ -3825,6 +3825,33 @@ def test_nnn_logsas():
     np.testing.assert_allclose(np.log(np.abs(zeta)), np.log(np.abs(true_zeta)),
                                   atol=0.1*tol_factor)
 
+    # Repeat this using Multipole and then convert to SAS:
+    dddm = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=100,
+                                  sep_units='arcmin', verbose=1, bin_type='LogMultipole')
+    t0 = time.time()
+    dddm.process(cat)
+    ddd2 = dddm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins)
+    t1 = time.time()
+    print('time for multipole ddd:', t1-t0)
+
+    rrrm = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=100,
+                                  sep_units='arcmin', verbose=1, bin_type='LogMultipole')
+    t0 = time.time()
+    rrrm.process(rand)
+    rrr2 = rrrm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins)
+    t1 = time.time()
+    print('time for multipole rrr:', t1-t0)
+
+    zeta2, varzeta2 = ddd2.calculateZeta(rrr=rrr2)
+    print('mean ratio = ',np.mean(zeta2 / true_zeta))
+    print('max rel diff = ',np.max(np.abs((zeta2 - true_zeta)/true_zeta)))
+    np.testing.assert_allclose(zeta2, true_zeta, rtol=0.1*tol_factor)
+    np.testing.assert_allclose(np.log(np.abs(zeta2)), np.log(np.abs(true_zeta)),
+                                  atol=0.1*tol_factor)
+    # With max_n=100, it's even closer to matching the direct LogSAS calculation.
+    # So most of the inaccuracy is intrinsic to this ngal realization.
+    np.testing.assert_allclose(zeta2, zeta, rtol=0.03*tol_factor)
+
     # Check that we get the same result using the corr3 function
     cat.write(os.path.join('data','nnn_data_logsas.dat'))
     rand.write(os.path.join('data','nnn_rand_logsas.dat'))
@@ -4115,7 +4142,7 @@ def test_direct_logmultipole_auto():
     if __name__ == '__main__':
         ngal = 200
     else:
-        ngal = 50
+        ngal = 100
     s = 10.
     rng = np.random.RandomState(8675309)
     x = rng.normal(0,s, (ngal,) )
@@ -4123,9 +4150,9 @@ def test_direct_logmultipole_auto():
     cat = treecorr.Catalog(x=x, y=y)
 
     min_sep = 10.
-    max_sep = 30.
-    nbins = 10
-    max_n = 30
+    max_sep = 20.
+    nbins = 5
+    max_n = 20
 
     dddb = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
                                   brute=True, verbose=1, bin_type='LogMultipole')
@@ -4164,14 +4191,27 @@ def test_direct_logmultipole_auto():
                     phi = -phi
                 true_zeta[kr2,kr3,:] += np.exp(-1j * n1d * phi)
                 true_ntri[kr2,kr3,:] += 1.
-                # Also compute the SAS binning count
                 if phi > 0:
-                    kphi = int(np.floor(phi / (max_n * np.pi)))
+                    # Also compute the SAS binning count
+                    kphi = int(np.floor(phi * max_n / np.pi))
                     true_ntri_sas[kr2,kr3,kphi] += 1.
 
     np.testing.assert_array_equal(dddb.ntri, true_ntri)
     np.testing.assert_array_equal(dddb.weight, true_ntri)
     np.testing.assert_allclose(dddb.zeta, true_zeta, atol=1.e-12)
+
+    sas = dddb.toSAS()
+    print('mean ratio weight = ',np.mean(sas.weight/true_ntri_sas))
+    print('mean ratio ntri = ',np.mean(sas.ntri/true_ntri_sas))
+    print('rms ratio weight = ',np.std(sas.weight/true_ntri_sas))
+    print('rms ratio ntri = ',np.std(sas.ntri/true_ntri_sas))
+    # These are pretty noisy with this few ngal, but they are pretty close on average.
+    np.testing.assert_allclose(sas.weight, true_ntri_sas, rtol=0.5)
+    np.testing.assert_allclose(sas.ntri, true_ntri_sas, rtol=0.5)
+    np.testing.assert_allclose(np.mean(sas.weight/true_ntri_sas), 1.0, rtol=1.e-3)
+    np.testing.assert_allclose(np.mean(sas.ntri/true_ntri_sas), 1.0, rtol=1.e-3)
+    assert np.std(sas.weight/true_ntri_sas) < 0.05
+    assert np.std(sas.ntri/true_ntri_sas) < 0.05
 
     # Repeat with binslop = 0.
     # This now does the real Multipole algorithm, which of course is the whole point

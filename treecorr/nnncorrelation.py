@@ -500,6 +500,9 @@ class NNNCorrelation(Corr3):
             self.meanv[:,:,:] = 0.
         self.weight[:,:,:] = 0.
         self.ntri[:,:,:] = 0.
+        if self.bin_type == 'LogMultipole':
+            self.mp[:,:,:] = 0.
+            self.mp_im[:,:,:] = 0.
         self.tot = 0.
         self._cov = None
 
@@ -526,6 +529,9 @@ class NNNCorrelation(Corr3):
                 np.sum([c.meanv for c in others], axis=0, out=self.meanv)
             np.sum([c.weight for c in others], axis=0, out=self.weight)
             np.sum([c.ntri for c in others], axis=0, out=self.ntri)
+            if self.bin_type == 'LogMultipole':
+                np.sum([c.mp for c in others], axis=0, out=self.mp)
+                np.sum([c.mp_im for c in others], axis=0, out=self.mp_im)
         self.tot = tot
 
     def _add_tot(self, ijk, c1, c2, c3):
@@ -573,6 +579,9 @@ class NNNCorrelation(Corr3):
             self.meanv[:] += other.meanv[:]
         self.weight[:] += other.weight[:]
         self.ntri[:] += other.ntri[:]
+        if self.bin_type == 'LogMultipole':
+            self.mp[:] += other.mp[:]
+            self.mp_im[:] += other.mp_im[:]
         return self
 
     def process(self, cat1, cat2=None, cat3=None, *, metric=None, ordered=True,

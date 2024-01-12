@@ -801,8 +801,8 @@ struct DirectHelper<NData,NData,NData>
     {
         std::complex<double> z = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), r);
         int index = k*(2*maxn+1) + maxn;
-        dbg<<"CalculateGn: "<<index<<"  "<<maxn<<"  "<<w<<"  "<<z<<std::endl;
-        dbg<<"pos = "<<c1.getPos()<<"  "<<c2.getPos()<<" r = "<<r<<std::endl;
+        xdbg<<"CalculateGn: "<<index<<"  "<<maxn<<"  "<<w<<"  "<<z<<std::endl;
+        xdbg<<"pos = "<<c1.getPos()<<"  "<<c2.getPos()<<" r = "<<r<<std::endl;
         std::complex<double> wztothen = w * z;
         Gn[index] += w;
         for (int n=1; n <= maxn; ++n) {
@@ -818,7 +818,7 @@ struct DirectHelper<NData,NData,NData>
     {
         const int nnbins = 2*maxn+1;
         const double w1 = c1.getW();
-        dbg<<"CalculateZeta: "<<nbins<<"  "<<maxn<<"  "<<nnbins<<"  "<<w1<<std::endl;
+        xdbg<<"CalculateZeta: "<<nbins<<"  "<<maxn<<"  "<<nnbins<<"  "<<w1<<std::endl;
         for (int k2=0; k2<nbins; ++k2) {
             // Do the k2=k3 bins.
             // We want to make sure not to include degenerate triangles with c2 = c3.
@@ -1044,7 +1044,7 @@ void Corr3<D1,D2,D3>::finishProcessMP(
     // d2, d3 combination.
     double nnn = double(c1.getN()) * c2.getN() * c3.getN();
     _ntri[index] += nnn;
-    dbg<<ws()<<"Index = "<<index<<", nnn = "<<nnn<<" => "<<_ntri[index]<<std::endl;
+    xdbg<<ws()<<"MP Index = "<<index<<", nnn = "<<nnn<<" => "<<_ntri[index]<<std::endl;
 
     double www = c1.getW() * c2.getW() * c3.getW();
     _meand1[index] += www * d1;
@@ -1070,6 +1070,7 @@ void Corr3<D1,D2,D3>::calculateGn(
     double* meanr2, double* meanlogr2, double* weight2,
     double* npairs, std::complex<double>* Gn)
 {
+    xdbg<<ws()<<"Gn Index = "<<k<<std::endl;
     // For now we only include the counts and weight from c2.
     // We'll include c1 as part of the triple in calculateZeta.
     double n = c2.getN();
@@ -1096,6 +1097,7 @@ void Corr3<D1,D2,D3>::calculateZeta(
     double* meanr2, double* meanlogr2, double* weight2,
     double* npairs, std::complex<double>* Gn)
 {
+    xdbg<<ws()<<"Zeta c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<std::endl;
     // First finish the computation of meand2, etc. based on the 2pt accumulations.
     double n1 = c1.getN();
     double w1 = c1.getW();
@@ -1183,6 +1185,7 @@ void Corr3<D1,D2,D3>::operator+=(const Corr3<D1,D2,D3>& rhs)
 template <int B, int M, int C>
 void BaseCorr3::multipole(const BaseField<C>& field, bool dots)
 {
+    dbg<<"Start multipole auto\n";
     reset_ws();
     Assert(_coords == -1 || _coords == C);
     _coords = C;
@@ -1246,6 +1249,90 @@ void BaseCorr3::multipole(const BaseField<C>& field, bool dots)
 }
 
 template <int B, int M, int C>
+void BaseCorr3::multipole(const BaseField<C>& field1, const BaseField<C>& field2, bool dots)
+{
+    dbg<<"Start multipole cross12\n";
+    reset_ws();
+    xdbg<<"_coords = "<<_coords<<std::endl;
+    xdbg<<"C = "<<C<<std::endl;
+    Assert(_coords == -1 || _coords == C);
+    _coords = C;
+    const long n1 = field1.getNTopLevel();
+    const long n2 = field2.getNTopLevel();
+    dbg<<"field1 has "<<n1<<" top level nodes\n";
+    dbg<<"field2 has "<<n2<<" top level nodes\n";
+    Assert(n1 > 0);
+    Assert(n2 > 0);
+
+    MetricHelper<M,0> metric(0, 0, _xp, _yp, _zp);
+
+#ifdef DEBUGLOGGING
+    if (verbose_level >= 2) {
+        xdbg<<"field1: \n";
+        for (long i=0;i<n1;++i) {
+            xdbg<<"node "<<i<<std::endl;
+            const BaseCell<C>& c1 = *field1.getCells()[i];
+            c1.WriteTree(get_dbgout());
+        }
+        xdbg<<"field2: \n";
+        for (long i=0;i<n2;++i) {
+            xdbg<<"node "<<i<<std::endl;
+            const BaseCell<C>& c2 = *field2.getCells()[i];
+            c2.WriteTree(get_dbgout());
+        }
+    }
+#endif
+
+#ifdef _OPENMP
+#pragma omp parallel
+    {
+        // Give each thread their own copy of the data vector to fill in.
+        std::shared_ptr<BaseCorr3> corrp = duplicate();
+        BaseCorr3& corr = *corrp;
+#else
+        BaseCorr3& corr = *this;
+#endif
+        // Scratch arrays used for computing Gn, etc..
+        std::complex<double> Gn[_nvbins];
+        double meanr[_nvbins];
+        double meanlogr[_nvbins];
+        double weight[_nvbins];
+        double meanr2[_nvbins];
+        double meanlogr2[_nvbins];
+        double weight2[_nvbins];
+        double npairs[_nvbins];
+
+#ifdef _OPENMP
+#pragma omp for schedule(dynamic)
+#endif
+        for (long i=0;i<n1;++i) {
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+            {
+                if (dots) std::cout<<'.'<<std::flush;
+#ifdef _OPENMP
+                dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
+#endif
+            }
+            const BaseCell<C>& c1 = *field1.getCells()[i];
+            corr.template multipoleSplit1<B>(c1, field2.getCells(), metric,
+                                             meanr, meanlogr, weight,
+                                             meanr2, meanlogr2, weight2,
+                                             npairs, Gn);
+        }
+#ifdef _OPENMP
+        // Accumulate the results
+#pragma omp critical
+        {
+            addData(corr);
+        }
+    }
+#endif
+    if (dots) std::cout<<std::endl;
+}
+
+template <int B, int M, int C>
 void BaseCorr3::multipoleSplit1(
     const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
     const MetricHelper<M,0>& metric,
@@ -1253,8 +1340,7 @@ void BaseCorr3::multipoleSplit1(
     double* meanr2, double* meanlogr2, double* weight2,
     double* npairs, std::complex<double>* Gn)
 {
-    dbg<<"MultipoleSplit1: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getN()<<std::endl;
-    dbg<<"           len c2  = "<<c2list.size()<<std::endl;
+    xdbg<<ws()<<"MultipoleSplit1: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<"  len c2 = "<<c2list.size()<<std::endl;
 
     const Position<C>& p1 = c1.getPos();
     double s1 = c1.getSize(); // May be modified by DistSq function.
@@ -1319,6 +1405,7 @@ void BaseCorr3::multipoleSplit1(
     // The criterion is that for the largest separation we will be caring about,
     // c1 is at least possibly small enough to use as is without futher splitting.
     // i.e. s1 < maxsep * b
+    inc_ws();
     double maxbsq_eff = BinTypeHelper<B>::getEffectiveBSq(_maxsepsq, _bsq);
     if (SQR(s1) > maxbsq_eff) {
         multipoleSplit1<B>(*c1.getLeft(), newc2list, metric,
@@ -1340,6 +1427,7 @@ void BaseCorr3::multipoleSplit1(
         multipoleFinish<B>(c1, newc2list, metric,
                            meanr, meanlogr, weight, meanr2, meanlogr2, weight2, npairs, Gn);
     }
+    dec_ws();
 }
 
 template <int B, int M, int C>
@@ -1356,12 +1444,10 @@ void BaseCorr3::multipoleFinish(
     // Note: if we decide to split c1, we need to make a copy of Gn before
     // recursing.  This is why we split up the calculation into two functions like
     // this.  We want to minimize the number of copies of Gn (et al) we need to make.
-    dbg<<"MultipoleFinish: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getN()<<std::endl;
-    dbg<<"           len c2  = "<<c2list.size()<<std::endl;
+    xdbg<<ws()<<"MultipoleFinish1: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<"  len c2 = "<<c2list.size()<<std::endl;
 
     const Position<C>& p1 = c1.getPos();
     double s1 = c1.getSize(); // May be modified by DistSq function.
-    double s1sq = SQR(s1);
     xdbg<<"B,M,C = "<<B<<"  "<<M<<"  "<<C<<std::endl;
     bool anysplit1=false;
 
@@ -1446,6 +1532,7 @@ void BaseCorr3::multipoleFinish(
     }
     xdbg<<"newsize = "<<newc2list.size()<<", anysplit1 = "<<anysplit1<<std::endl;
     if (newc2list.size() > 0) {
+        inc_ws();
         if (anysplit1) {
             Assert(c1.getLeft());
             Assert(c1.getRight());
@@ -1483,6 +1570,7 @@ void BaseCorr3::multipoleFinish(
             multipoleFinish<B>(c1, newc2list, metric, meanr, meanlogr, weight,
                                meanr2, meanlogr2, weight2, npairs, Gn);
         }
+        dec_ws();
     } else {
         // We finished all the calculations for Gn.
         // Turn this into Zeta_n.
@@ -1613,7 +1701,11 @@ void ProcessCross12b(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2
            corr.template process<B,0,ValidMC<M,C>::_M>(field1, field2, dots);
            break;
       case 1:
-           corr.template process<B,1,ValidMC<M,C>::_M>(field1, field2, dots);
+           if (B == LogMultipole) {
+               corr.template multipole<ValidMultipole<B>::_B,ValidMC<M,C>::_M>(field1, field2, dots);
+           } else {
+               corr.template process<B,1,ValidMC<M,C>::_M>(field1, field2, dots);
+           }
            break;
       default:
            Assert(false);

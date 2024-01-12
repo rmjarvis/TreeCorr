@@ -1437,7 +1437,8 @@ struct BinTypeHelper<LogMultipole>
         // Calculate cosphi, sinphi for this triangle.
         // (We use the u variable for sinphi in this class.)
         cosphi = metric.calculateCosPhi(c1,c2,c3,d1sq,d2sq,d3sq,d1,d2,d3);
-        sinphi = sqrt(1.-SQR(cosphi));
+        // abs shouldn't be necessary, but with numerical precision, 1-cosphi**2 can be < 0.
+        sinphi = std::sqrt(std::abs(1.-SQR(cosphi)));
         if (!metric.CCW(c1.getPos(), c3.getPos(), c2.getPos())) {
             sinphi = -sinphi;
         }

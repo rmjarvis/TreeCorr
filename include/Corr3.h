@@ -54,6 +54,8 @@ public:
                  const BaseField<C>& field3, bool dots);
     template <int B, int M, int C>
     void multipole(const BaseField<C>& field, bool dots);
+    template <int B, int M, int C>
+    void multipole(const BaseField<C>& field1,  const BaseField<C>& field2, bool dots);
 
     // Main worker functions for calculating the result
     template <int B, int M, int C>

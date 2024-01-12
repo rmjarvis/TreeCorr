@@ -3844,6 +3844,7 @@ def test_nnn_logsas():
 
     zeta2, varzeta2 = ddd2.calculateZeta(rrr=rrr2)
     print('mean ratio = ',np.mean(zeta2 / true_zeta))
+    print('mean diff = ',np.mean(zeta2 - true_zeta))
     print('max rel diff = ',np.max(np.abs((zeta2 - true_zeta)/true_zeta)))
     np.testing.assert_allclose(zeta2, true_zeta, rtol=0.1*tol_factor)
     np.testing.assert_allclose(np.log(np.abs(zeta2)), np.log(np.abs(true_zeta)),
@@ -4041,9 +4042,9 @@ def test_nnn_logsas():
     rdd = ddd.copy()
 
     t0 = time.time()
-    drr.process(cat,rand, ordered=False)
+    drr.process(cat,rand, ordered=True)
     t1 = time.time()
-    rdd.process(rand,cat, ordered=False)
+    rdd.process(rand,cat, ordered=True)
     t2 = time.time()
     print('time for drr: ',t1-t0)
     print('time for rdd: ',t2-t1)
@@ -4134,6 +4135,37 @@ def test_nnn_logsas():
         header = fitsio.read_header(out_file_name3, 1)
         np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
 
+    # Repeat this using Multipole and then convert to SAS:
+    drrm = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=100,
+                                  sep_units='arcmin', bin_type='LogMultipole')
+    rddm = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=100,
+                                  sep_units='arcmin', bin_type='LogMultipole')
+
+    drrm = dddm.copy()
+    rddm = dddm.copy()
+    t0 = time.time()
+    drrm.process(cat,rand, ordered=True)
+    drr2 = drrm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins)
+    t1 = time.time()
+    rddm.process(rand,cat, ordered=True)
+    rdd2 = rddm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins)
+    t2 = time.time()
+    print('time for drr via Multipole: ',t1-t0)
+    print('time for rdd via Multipole: ',t2-t1)
+
+    zeta2, varzeta = ddd.calculateZeta(rrr=rrr2, drr=drr2, rdd=rdd2)
+    print('Multpole method: mean ratio = ',np.mean(zeta2 / true_zeta))
+    print('Relative to direct SAS:')
+    print('ddd ratio = ',np.mean(ddd2.weight/ddd.weight))
+    print('drr ratio = ',np.mean(drr2.weight/drr.weight))
+    print('rdd ratio = ',np.mean(rdd2.weight/rdd.weight))
+    print('rrr ratio = ',np.mean(rrr2.weight/rrr.weight))
+    print('zeta ratio = ',np.mean(zeta2/zeta))
+    np.testing.assert_allclose(zeta2, true_zeta, rtol=0.1*tol_factor)
+    np.testing.assert_allclose(np.log(np.abs(zeta2)), np.log(np.abs(true_zeta)), atol=0.1*tol_factor)
+    np.testing.assert_allclose(zeta2, zeta, rtol=0.03*tol_factor)
+
+
 @timer
 def test_direct_logmultipole_auto():
     # If the catalogs are small enough, we can do a direct count of the number of triangles
@@ -4155,7 +4187,7 @@ def test_direct_logmultipole_auto():
     max_n = 20
 
     dddb = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
-                                  brute=True, verbose=1, bin_type='LogMultipole')
+                                  brute=True, bin_type='LogMultipole')
     t0 = time.time()
     dddb.process(cat)
     t1 = time.time()
@@ -4217,7 +4249,7 @@ def test_direct_logmultipole_auto():
     # This now does the real Multipole algorithm, which of course is the whole point
     # of the multipole binning.  brute=True does a direct 3 point computation.
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
-                                  bin_slop=0, verbose=1, bin_type='LogMultipole')
+                                  bin_slop=0, bin_type='LogMultipole')
     t0 = time.time()
     ddd.process(cat)
     t1 = time.time()
@@ -4237,7 +4269,7 @@ def test_direct_logmultipole_auto():
 
     # And again with no top-level recursion
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
-                                  bin_slop=0, verbose=1, max_top=0, bin_type='LogMultipole')
+                                  bin_slop=0, max_top=0, bin_type='LogMultipole')
     t0 = time.time()
     ddd.process(cat)
     t1 = time.time()
@@ -4311,6 +4343,221 @@ def test_direct_logmultipole_auto():
         np.testing.assert_allclose(ddd4.meanlogd2, ddd.meanlogd2)
         np.testing.assert_allclose(ddd4.meanlogd3, ddd.meanlogd3)
 
+@timer
+def test_direct_logmultipole_cross12():
+    # Check the 1-2 cross correlation with LogMultipole
+    if __name__ == '__main__':
+        ngal = 200
+        tol_factor = 1
+    else:
+        ngal = 80
+        tol_factor = 2
+
+    s = 10.
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) )
+    w1 = np.ones_like(x1) * 3
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1)
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) )
+    w2 = np.ones_like(x1) * 5
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2)
+
+    min_sep = 10.
+    max_sep = 20.
+    nbins = 5
+    max_n = 20
+
+    dddb = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
+                                   brute=True, bin_type='LogMultipole')
+    t0 = time.time()
+    dddb.process(cat1, cat2, ordered=True)
+    t1 = time.time()
+    print('time for multipole, brute=True: ',t1-t0)
+
+    log_min_sep = np.log(min_sep)
+    log_max_sep = np.log(max_sep)
+    true_zeta_122 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_ntri_122 = np.zeros((nbins, nbins, 2*max_n+1))
+    true_ntri_sas_122 = np.zeros((nbins, nbins, max_n))
+    true_zeta_212 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_ntri_212 = np.zeros((nbins, nbins, 2*max_n+1))
+    true_ntri_sas_212 = np.zeros((nbins, nbins, max_n))
+    true_zeta_221 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_ntri_221 = np.zeros((nbins, nbins, 2*max_n+1))
+    true_ntri_sas_221 = np.zeros((nbins, nbins, max_n))
+    bin_size = (log_max_sep - log_min_sep) / nbins
+    n1d = np.arange(-max_n, max_n+1)
+    t0 = time.time()
+    for i in range(ngal):
+        for j in range(ngal):
+            for k in range(ngal):
+                if j == k: continue
+                d1 = np.sqrt((x2[j]-x2[k])**2 + (y2[j]-y2[k])**2)
+                d2 = np.sqrt((x1[i]-x2[k])**2 + (y1[i]-y2[k])**2)
+                d3 = np.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2)
+                if d1 == 0.: continue
+                if d2 == 0.: continue
+                if d3 == 0.: continue
+
+                kr1 = int(np.floor( (np.log(d1)-log_min_sep) / bin_size ))
+                kr2 = int(np.floor( (np.log(d2)-log_min_sep) / bin_size ))
+                kr3 = int(np.floor( (np.log(d3)-log_min_sep) / bin_size ))
+
+                # 123
+                if d2 >= min_sep and d2 < max_sep and d3 >= min_sep and d3 < max_sep:
+                    assert 0 <= kr2 < nbins
+                    assert 0 <= kr3 < nbins
+                    phi = np.arccos((d2**2 + d3**2 - d1**2)/(2*d2*d3))
+                    if not is_ccw(x1[i],y1[i],x2[k],y2[k],x2[j],y2[j]):
+                        phi = -phi
+                    true_zeta_122[kr2,kr3,:] += np.exp(-1j * n1d * phi)
+                    true_ntri_122[kr2,kr3,:] += 1.
+                    if phi > 0:
+                        kphi = int(np.floor(phi * max_n / np.pi))
+                        true_ntri_sas_122[kr2,kr3,kphi] += 1
+
+                # 231
+                if d1 >= min_sep and d1 < max_sep and d3 >= min_sep and d3 < max_sep:
+                    assert 0 <= kr1 < nbins
+                    assert 0 <= kr3 < nbins
+                    phi = np.arccos((d1**2 + d3**2 - d2**2)/(2*d1*d3))
+                    if not is_ccw(x1[i],y1[i],x2[k],y2[k],x2[j],y2[j]):
+                        phi = -phi
+                    true_zeta_221[kr3,kr1,:] += np.exp(-1j * n1d * phi)
+                    true_ntri_221[kr3,kr1,:] += 1.
+                    if phi > 0:
+                        kphi = int(np.floor(phi * max_n / np.pi))
+                        true_ntri_sas_221[kr3,kr1,kphi] += 1
+
+                # 312
+                if d1 >= min_sep and d1 < max_sep and d2 >= min_sep and d2 < max_sep:
+                    assert 0 <= kr1 < nbins
+                    assert 0 <= kr2 < nbins
+                    phi = np.arccos((d1**2 + d2**2 - d3**2)/(2*d1*d2))
+                    if not is_ccw(x1[i],y1[i],x2[k],y2[k],x2[j],y2[j]):
+                        phi = -phi
+                    true_zeta_212[kr1,kr2,:] += np.exp(-1j * n1d * phi)
+                    true_ntri_212[kr1,kr2,:] += 1.
+                    if phi > 0:
+                        kphi = int(np.floor(phi * max_n / np.pi))
+                        true_ntri_sas_212[kr1,kr2,kphi] += 1
+    t1 = time.time()
+    print('time for Python brute: ',t1-t0)
+
+    # The 75 here is w1 * w2^2, which we didn't bother with above, but they are constant.
+    np.testing.assert_array_equal(dddb.ntri, true_ntri_122)
+    np.testing.assert_array_equal(dddb.weight, 75*true_ntri_122)
+    np.testing.assert_allclose(dddb.zeta, 75*true_zeta_122, atol=1.e-12)
+
+    sas = dddb.toSAS()
+    print('mean ratio weight = ',np.mean(sas.weight/true_ntri_sas_122))
+    print('mean ratio ntri = ',np.mean(sas.ntri/true_ntri_sas_122))
+    print('rms ratio weight = ',np.std(sas.weight/true_ntri_sas_122))
+    print('rms ratio ntri = ',np.std(sas.ntri/true_ntri_sas_122))
+    # These are pretty noisy with this few ngal, but they are pretty close on average.
+    np.testing.assert_allclose(sas.weight, 75*true_ntri_sas_122, rtol=0.5 * tol_factor)
+    np.testing.assert_allclose(sas.ntri, true_ntri_sas_122, rtol=0.5 * tol_factor)
+    np.testing.assert_allclose(np.mean(sas.weight/true_ntri_sas_122), 75.0, rtol=1.e-3 * tol_factor)
+    np.testing.assert_allclose(np.mean(sas.ntri/true_ntri_sas_122), 1.0, rtol=1.e-3 * tol_factor)
+    assert np.std(sas.weight/true_ntri_sas_122) < 0.05 * 75 * tol_factor
+    assert np.std(sas.ntri/true_ntri_sas_122) < 0.05 * tol_factor
+
+    #t0 = time.time()
+    #ddd.process(cat2, cat1, cat2, ordered=True)
+    #t1 = time.time()
+    #print('time for brute ordered 212: ',t1-t0)
+    #np.testing.assert_array_equal(ddd.ntri, true_ntri_212)
+    #t0 = time.time()
+    #ddd.process(cat2, cat2, cat1, ordered=True)
+    #t1 = time.time()
+    #print('time for brute ordered 221: ',t1-t0)
+    #np.testing.assert_array_equal(ddd.ntri, true_ntri_221)
+
+    #t0 = time.time()
+    #dddb.process(cat1, cat2, ordered=False)
+    #t1 = time.time()
+    #true_ntri_sum = true_ntri_122 + true_ntri_212 + true_ntri_221
+    #print('time for brute unordered: ',t1-t0)
+    #np.testing.assert_array_equal(ddd.ntri, true_ntri_221_sum)
+
+    # Repeat with binslop = 0
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
+                                  bin_slop=0, bin_type='LogMultipole')
+    t0 = time.time()
+    ddd.process(cat1, cat2, ordered=True)
+    t1 = time.time()
+    print('time for bin_slop=0 ordered: ',t1-t0)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
+    np.testing.assert_array_equal(ddd.weight, 75*true_ntri_122)
+    np.testing.assert_allclose(ddd.zeta, 75*true_zeta_122, atol=1.e-12)
+    np.testing.assert_allclose(ddd.meand2, dddb.meand2)
+    np.testing.assert_allclose(ddd.meanlogd2, dddb.meanlogd2)
+    np.testing.assert_allclose(ddd.meand3, dddb.meand3)
+    np.testing.assert_allclose(ddd.meanlogd3, dddb.meanlogd3)
+
+    # And again with no top-level recursion
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
+                                  bin_slop=0, max_top=0, bin_type='LogMultipole')
+    t0 = time.time()
+    ddd.process(cat1, cat2, ordered=True)
+    t1 = time.time()
+    print('time for multipole, bin_slop=0, max_top=0, ordered: ',t1-t0)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
+    np.testing.assert_array_equal(ddd.weight, 75*true_ntri_122)
+    np.testing.assert_allclose(ddd.zeta, 75*true_zeta_122, rtol=1.e-10)
+    np.testing.assert_allclose(ddd.meand2, dddb.meand2)
+    np.testing.assert_allclose(ddd.meanlogd2, dddb.meanlogd2)
+    np.testing.assert_allclose(ddd.meand3, dddb.meand3)
+    np.testing.assert_allclose(ddd.meanlogd3, dddb.meanlogd3)
+
+    #t0 = time.time()
+    #ddd.process(cat2, cat1, cat2, ordered=True)
+    #t1 = time.time()
+    #print('time for bin_slop=0 ordered 212: ',t1-t0)
+    #np.testing.assert_array_equal(ddd.ntri, true_ntri_212)
+    #t0 = time.time()
+    #ddd.process(cat2, cat2, cat1, ordered=True)
+    #t1 = time.time()
+    #print('time for bin_slop=0 ordered 221: ',t1-t0)
+    #np.testing.assert_array_equal(ddd.ntri, true_ntri_221)
+    #t0 = time.time()
+    #ddd.process(cat1, cat2, ordered=False)
+    #t1 = time.time()
+    #print('time for bin_slop=0 unordered: ',t1-t0)
+
+    # Split into patches to test the list-based version of the code.
+    # Note: Multipole cannot work with cat2 as a list, but cat1 can be.
+    # TODO: Can maybe make it work with cat2 in patches with larger patches and no cross terms.
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, npatch=10)
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
+                                  bin_slop=0, bin_type='LogMultipole')
+
+    t0 = time.time()
+    ddd.process(cat1, cat2, ordered=True)
+    t1 = time.time()
+    print('time for patch ordered: ',t1-t0)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
+    np.testing.assert_array_equal(ddd.weight, 75*true_ntri_122)
+    np.testing.assert_allclose(ddd.zeta, 75*true_zeta_122, rtol=1.e-10)
+    #t0 = time.time()
+    #ddd.process(cat1, cat2, ordered=False)
+    #t1 = time.time()
+    #print('time for patch unordered: ',t1-t0)
+    #np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
+    #t0 = time.time()
+    #ddd.process(cat2, cat1, cat2, ordered=True)
+    #t1 = time.time()
+    #print('time for patch ordered 212: ',t1-t0)
+    #np.testing.assert_array_equal(ddd.ntri, true_ntri_212)
+    #t0 = time.time()
+    #ddd.process(cat2, cat2, cat1, ordered=True)
+    #t1 = time.time()
+    #print('time for patch ordered 221: ',t1-t0)
+    #np.testing.assert_array_equal(ddd.ntri, true_ntri_221)
+
+
 if __name__ == '__main__':
     test_direct_logmultipole_auto()
     quit()
@@ -4332,3 +4579,5 @@ if __name__ == '__main__':
     test_direct_logsas_cross()
     test_direct_logsas_cross12()
     test_nnn_logsas()
+    test_direct_logmultipole_auto()
+    test_direct_logmultipole_cross12()

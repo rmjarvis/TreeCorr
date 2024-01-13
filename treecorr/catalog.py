@@ -635,9 +635,11 @@ class Catalog(object):
 
         if logger is not None:
             self.logger = logger
+            self._logger_name = logger.name
         else:
+            self._logger_name = 'treecorr.Catalog'
             self.logger = setup_logger(get(self.config,'verbose',int,1),
-                                       self.config.get('log_file',None))
+                                       self.config.get('log_file',None), self._logger_name)
 
         # Start with everything set to None.  Overwrite as appropriate.
         self._x = None
@@ -2739,8 +2741,9 @@ class Catalog(object):
 
     def __setstate__(self, d):
         self.__dict__ = d
-        self.logger = setup_logger(get(self.config,'verbose',int,1),
-                                   self.config.get('log_file',None))
+        if self._logger_name is not None:
+            self.logger = setup_logger(get(self.config,'verbose',int,1),
+                                       self.config.get('log_file',None), self._logger_name)
         self._field = lambda : None
 
     def __repr__(self):

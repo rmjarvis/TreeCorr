@@ -288,10 +288,12 @@ class Corr2(object):
         self._corr = None  # Do this first to make sure we always have it for __del__
         self.config = merge_config(config,kwargs,Corr2._valid_params)
         if logger is None:
+            self._logger_name = 'treecorr.Corr2'
             self.logger = setup_logger(get(self.config,'verbose',int,1),
-                                       self.config.get('log_file',None))
+                                       self.config.get('log_file',None), self._logger_name)
         else:
             self.logger = logger
+            self._logger_name = logger.name
 
         # We'll make a bunch of attributes here, which we put into a namespace called _ro.
         # These are the core attributes that won't ever be changed after construction.
@@ -581,8 +583,9 @@ class Corr2(object):
     def __setstate__(self, d):
         self.__dict__ = d
         self._corr = None
-        self.logger = setup_logger(get(self.config,'verbose',int,1),
-                                   self.config.get('log_file',None))
+        if self._logger_name is not None:
+            self.logger = setup_logger(get(self.config,'verbose',int,1),
+                                       self.config.get('log_file',None), self._logger_name)
 
     def clear(self):
         """Clear all data vectors, the results dict, and any related values.

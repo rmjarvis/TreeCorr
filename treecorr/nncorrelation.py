@@ -191,6 +191,7 @@ class NNCorrelation(Corr2):
         ret._rr = ret._dr = ret._rd = None
         ret._write_rr = ret._write_dr = ret._write_rd = None
         ret._cov = None
+        ret._logger_name = None
         # This override is really the main advantage of using this:
         setattr(ret, '_nonzero', False)
         return ret

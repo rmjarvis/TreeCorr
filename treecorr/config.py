@@ -158,7 +158,7 @@ def _read_params_file(file_name):
     return config
 
 
-def setup_logger(verbose, log_file=None):
+def setup_logger(verbose, log_file=None, name=None):
     """Parse the integer verbosity level from the command line args into a logging_level string
 
     :param verbose:     An integer indicating what verbosity level to use.
@@ -174,10 +174,10 @@ def setup_logger(verbose, log_file=None):
     logging_level = logging_levels[int(verbose)]
 
     # Setup logging to go to sys.stdout or (if requested) to an output file
-    if log_file is None:
+    if name is None:
         name = 'treecorr'
-    else:
-        name = 'treecorr_' + log_file
+        if log_file is not None:
+            name += '_' + log_file
     logger = logging.getLogger(name)
 
     if len(logger.handlers) == 0:  # only add handler once!

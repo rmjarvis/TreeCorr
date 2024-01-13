@@ -54,8 +54,11 @@ public:
                  const BaseField<C>& field3, bool dots);
     template <int B, int M, int C>
     void multipole(const BaseField<C>& field, bool dots);
-    template <int B, int M, int C>
+    template <int B, int O, int M, int C>
     void multipole(const BaseField<C>& field1,  const BaseField<C>& field2, bool dots);
+    template <int B, int O, int M, int C>
+    void multipole(const BaseField<C>& field1,  const BaseField<C>& field2,
+                   const BaseField<C>& field3, bool dots);
 
     // Main worker functions for calculating the result
     template <int B, int M, int C>
@@ -81,19 +84,53 @@ public:
                           const double logd1, const double logd2, const double logd3,
                           const int index);
 
+
+    template <int B, int M, int C>
+    void splitC2Cells(const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
+                      const MetricHelper<M,0>& metric, std::vector<const BaseCell<C>*>& newc2list);
+
     template <int B, int M, int C>
     void multipoleSplit1(const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
                          const MetricHelper<M,0>& metric,
-                         double* meanr, double* meanlogr, double* weight,
-                         double* meanr2, double* meanlogr2, double* weight2,
+                         double* sumwr, double* sumwlogr, double* sumw,
+                         double* sumwwr, double* sumwwlogr, double* sumww,
                          double* npairs, std::complex<double>* Gn);
+
+    template <int B, int O, int M, int C>
+    void multipoleSplit1(const BaseCell<C>& c1,
+                         const std::vector<const BaseCell<C>*>& c2list,
+                         const std::vector<const BaseCell<C>*>& c3list,
+                         const MetricHelper<M,0>& metric,
+                         double* sumwr2, double* sumwlogr2, double* sumw2,
+                         double* npairs2, std::complex<double>* Gn2,
+                         double* sumwr3, double* sumwlogr3, double* sumw3,
+                         double* npairs3, std::complex<double>* Gn3);
+
+    template <int B, int M, int C>
+    void splitC2CellsOrCalculateGn(const BaseCell<C>& c1,
+                                   const std::vector<const BaseCell<C>*>& c2list,
+                                   const MetricHelper<M,0>& metric,
+                                   std::vector<const BaseCell<C>*>& newc2list, bool& anysplit1,
+                                   double* sumwr, double* sumwlogr, double* sumw,
+                                   double* sumwwr, double* sumwwlogr, double* sumww,
+                                   double* npairs, std::complex<double>* Gn);
 
     template <int B, int M, int C>
     void multipoleFinish(const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
                          const MetricHelper<M,0>& metric,
-                         double* meanr, double* meanlogr, double* weight,
-                         double* meanr2, double* meanlogr2, double* weight2,
+                         double* sumwr, double* sumwlogr, double* sumw,
+                         double* sumwwr, double* sumwwlogr, double* sumww,
                          double* npairs, std::complex<double>* Gn);
+
+    template <int B, int O, int M, int C>
+    void multipoleFinish(const BaseCell<C>& c1,
+                         const std::vector<const BaseCell<C>*>& c2list,
+                         const std::vector<const BaseCell<C>*>& c3list,
+                         const MetricHelper<M,0>& metric,
+                         double* sumwr2, double* sumwlogr2, double* sumw2,
+                         double* npairs2, std::complex<double>* Gn2,
+                         double* sumwr3, double* sumwlogr3, double* sumw3,
+                         double* npairs3, std::complex<double>* Gn3);
 
     template <int C>
     void finishProcess(const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
@@ -114,18 +151,27 @@ public:
     template <int C>
     void calculateGn(const BaseCell<C>& c1, const BaseCell<C>& c2,
                      double rsq, double r, double logr, int k,
-                     double* meanr, double* meanlogr, double* weight,
-                     double* meanr2, double* meanlogr2, double* weight2,
+                     double* sumwr, double* sumwlogr, double* sumw,
+                     double* sumwwr, double* sumwwlogr, double* sumww,
                      double* npairs, std::complex<double>* Gn)
     { doCalculateGn(c1, c2, rsq, r, logr, k,
-                    meanr, meanlogr, weight, meanr2, meanlogr2, weight2, npairs, Gn); }
+                    sumwr, sumwlogr, sumw, sumwwr, sumwwlogr, sumww, npairs, Gn); }
 
     template <int C>
     void calculateZeta(const BaseCell<C>& c1,
-                       double* meanr, double* meanlogr, double* weight,
-                       double* meanr2, double* meanlogr2, double* weight2,
-                       double* npairs, std::complex<double>* Gn)
-    { doCalculateZeta(c1, meanr, meanlogr, weight, meanr2, meanlogr2, weight2, npairs, Gn); }
+                       double* sumwr2, double* sumwlogr2, double* sumw2,
+                       double* sumwwr2, double* sumwwlogr2, double* sumww2,
+                       double* npairs2, std::complex<double>* Gn2)
+    { doCalculateZeta(c1, sumwr2, sumwlogr2, sumw2, sumwwr2, sumwwlogr2, sumww2, npairs2, Gn2); }
+
+    template <int C>
+    void calculateZeta(const BaseCell<C>& c1,
+                       double* sumwr2, double* sumwlogr2, double* sumw2,
+                       double* npairs2, std::complex<double>* Gn2,
+                       double* sumwr3, double* sumwlogr3, double* sumw3,
+                       double* npairs3, std::complex<double>* Gn3)
+    { doCalculateZeta(c1, sumwr2, sumwlogr2, sumw2, npairs2, Gn2,
+                      sumwr3, sumwlogr3, sumw3, npairs3, Gn3); }
 
 protected:
 
@@ -146,7 +192,7 @@ protected:
     virtual void doFinishProcessMP(
         const BaseCell<Flat>& c1, const BaseCell<Flat>& c2, const BaseCell<Flat>& c3,
         const double d1, const double d2, const double d3, const double sinphi, const double cosphi,
-        const double logd1, const double logd2, const double logd3, const int index) = 0;
+        const double logd1, const double logd2, const double logd3, const int index) =0;
     virtual void doFinishProcessMP(
         const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2, const BaseCell<Sphere>& c3,
         const double d1, const double d2, const double d3, const double sinphi, const double cosphi,
@@ -159,35 +205,50 @@ protected:
     virtual void doCalculateGn(
         const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
         double rsq, double r, double logr, int k,
-        double* meanr, double* meanlogr, double* weight,
-        double* meanr2, double* meanlogr2, double* weight2,
+        double* sumwr, double* sumwlogr, double* sumw,
+        double* sumwwr, double* sumwwlogr, double* sumww,
         double* npairs, std::complex<double>* Gn) =0;
     virtual void doCalculateGn(
         const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
         double rsq, double r, double logr, int k,
-        double* meanr, double* meanlogr, double* weight,
-        double* meanr2, double* meanlogr2, double* weight2,
+        double* sumwr, double* sumwlogr, double* sumw,
+        double* sumwwr, double* sumwwlogr, double* sumww,
         double* npairs, std::complex<double>* Gn) =0;
     virtual void doCalculateGn(
         const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
         double rsq, double r, double logr, int k,
-        double* meanr, double* meanlogr, double* weight,
-        double* meanr2, double* meanlogr2, double* weight2,
+        double* sumwr, double* sumwlogr, double* sumw,
+        double* sumwwr, double* sumwwlogr, double* sumww,
         double* npairs, std::complex<double>* Gn) =0;
 
     virtual void doCalculateZeta(const BaseCell<Flat>& c1,
-                                 double* meanr, double* meanlogr, double* weight,
-                                 double* meanr2, double* meanlogr2, double* weight2,
-                                 double* npairs, std::complex<double>* Gn) =0;
+                                 double* sumwr2, double* sumwlogr2, double* sumw2,
+                                 double* sumwwr2, double* sumwwlogr2, double* sumww2,
+                                 double* npairs2, std::complex<double>* Gn2) =0;
     virtual void doCalculateZeta(const BaseCell<Sphere>& c1,
-                                 double* meanr, double* meanlogr, double* weight,
-                                 double* meanr2, double* meanlogr2, double* weight2,
-                                 double* npairs, std::complex<double>* Gn) =0;
+                                 double* sumwr2, double* sumwlogr2, double* sumw2,
+                                 double* sumwwr2, double* sumwwlogr2, double* sumww2,
+                                 double* npairs2, std::complex<double>* Gn2) =0;
     virtual void doCalculateZeta(const BaseCell<ThreeD>& c1,
-                                 double* meanr, double* meanlogr, double* weight,
-                                 double* meanr2, double* meanlogr2, double* weight2,
-                                 double* npairs, std::complex<double>* Gn) =0;
+                                 double* sumwr2, double* sumwlogr2, double* sumw2,
+                                 double* sumwwr2, double* sumwwlogr2, double* sumww2,
+                                 double* npairs2, std::complex<double>* Gn2) =0;
 
+    virtual void doCalculateZeta(const BaseCell<Flat>& c1,
+                                 double* sumwr2, double* sumwlogr2, double* sumw2,
+                                 double* npairs2, std::complex<double>* Gn2,
+                                 double* sumwr3, double* sumwlogr3, double* sumw3,
+                                 double* npairs3, std::complex<double>* Gn3) =0;
+    virtual void doCalculateZeta(const BaseCell<Sphere>& c1,
+                                 double* sumwr2, double* sumwlogr2, double* sumw2,
+                                 double* npairs2, std::complex<double>* Gn2,
+                                 double* sumwr3, double* sumwlogr3, double* sumw3,
+                                 double* npairs3, std::complex<double>* Gn3) =0;
+    virtual void doCalculateZeta(const BaseCell<ThreeD>& c1,
+                                 double* sumwr2, double* sumwlogr2, double* sumw2,
+                                 double* npairs2, std::complex<double>* Gn2,
+                                 double* sumwr3, double* sumwlogr3, double* sumw3,
+                                 double* npairs3, std::complex<double>* Gn3) =0;
 
 protected:
 
@@ -268,15 +329,22 @@ public:
     template <int C>
     void calculateGn(const BaseCell<C>& c1, const BaseCell<C>& c2,
                      double rsq, double r, double logr, int k,
-                     double* meanr, double* meanlogr, double* weight,
-                     double* meanr2, double* meanlogr2, double* weight2,
+                     double* sumwr, double* sumwlogr, double* sumw,
+                     double* sumwwr, double* sumwwlogr, double* sumww,
                      double* npairs, std::complex<double>* Gn);
 
     template <int C>
     void calculateZeta(const BaseCell<C>& c1,
-                       double* meanr, double* meanlogr, double* weight,
-                       double* meanr2, double* meanlogr2, double* weight2,
-                       double* npairs, std::complex<double>* Gn);
+                       double* sumwr2, double* sumwlogr2, double* sumw2,
+                       double* sumwwr2, double* sumwwlogr2, double* sumww2,
+                       double* npairs2, std::complex<double>* Gn2);
+
+    template <int C>
+    void calculateZeta(const BaseCell<C>& c1,
+                       double* sumwr2, double* sumwlogr2, double* sumw2,
+                       double* npairs2, std::complex<double>* Gn2,
+                       double* sumwr3, double* sumwlogr3, double* sumw3,
+                       double* npairs3, std::complex<double>* Gn3);
 
     // Note: op= only copies _data.  Not all the params.
     void operator=(const Corr3<D1,D2,D3>& rhs);
@@ -319,43 +387,65 @@ protected:
     void doCalculateGn(
         const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
         double rsq, double r, double logr, int k,
-        double* meanr, double* meanlogr, double* weight,
-        double* meanr2, double* meanlogr2, double* weight2,
+        double* sumwr, double* sumwlogr, double* sumw,
+        double* sumwwr, double* sumwwlogr, double* sumww,
         double* npairs, std::complex<double>* Gn)
     { calculateGn(c1, c2, rsq, r, logr, k,
-                  meanr, meanlogr, weight, meanr2, meanlogr2, weight2, npairs, Gn); }
+                  sumwr, sumwlogr, sumw, sumwwr, sumwwlogr, sumww, npairs, Gn); }
     void doCalculateGn(
         const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
         double rsq, double r, double logr, int k,
-        double* meanr, double* meanlogr, double* weight,
-        double* meanr2, double* meanlogr2, double* weight2,
+        double* sumwr, double* sumwlogr, double* sumw,
+        double* sumwwr, double* sumwwlogr, double* sumww,
         double* npairs, std::complex<double>* Gn)
     { calculateGn(c1, c2, rsq, r, logr, k,
-                  meanr, meanlogr, weight, meanr2, meanlogr2, weight2, npairs, Gn); }
+                  sumwr, sumwlogr, sumw, sumwwr, sumwwlogr, sumww, npairs, Gn); }
     void doCalculateGn(
         const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
         double rsq, double r, double logr, int k,
-        double* meanr, double* meanlogr, double* weight,
-        double* meanr2, double* meanlogr2, double* weight2,
+        double* sumwr, double* sumwlogr, double* sumw,
+        double* sumwwr, double* sumwwlogr, double* sumww,
         double* npairs, std::complex<double>* Gn)
     { calculateGn(c1, c2, rsq, r, logr, k,
-                  meanr, meanlogr, weight, meanr2, meanlogr2, weight2, npairs, Gn); }
+                  sumwr, sumwlogr, sumw, sumwwr, sumwwlogr, sumww, npairs, Gn); }
 
     void doCalculateZeta(const BaseCell<Flat>& c1,
-                         double* meanr, double* meanlogr, double* weight,
-                         double* meanr2, double* meanlogr2, double* weight2,
-                         double* npairs, std::complex<double>* Gn)
-    { calculateZeta(c1, meanr, meanlogr, weight, meanr2, meanlogr2, weight2, npairs, Gn); }
+                         double* sumwr2, double* sumwlogr2, double* sumw2,
+                         double* sumwwr2, double* sumwwlogr2, double* sumww2,
+                         double* npairs2, std::complex<double>* Gn2)
+    { calculateZeta(c1, sumwr2, sumwlogr2, sumw2, sumwwr2, sumwwlogr2, sumww2, npairs2, Gn2); }
     void doCalculateZeta(const BaseCell<Sphere>& c1,
-                         double* meanr, double* meanlogr, double* weight,
-                         double* meanr2, double* meanlogr2, double* weight2,
-                         double* npairs, std::complex<double>* Gn)
-    { calculateZeta(c1, meanr, meanlogr, weight, meanr2, meanlogr2, weight2, npairs, Gn); }
+                         double* sumwr2, double* sumwlogr2, double* sumw2,
+                         double* sumwwr2, double* sumwwlogr2, double* sumww2,
+                         double* npairs2, std::complex<double>* Gn2)
+    { calculateZeta(c1, sumwr2, sumwlogr2, sumw2, sumwwr2, sumwwlogr2, sumww2, npairs2, Gn2); }
     void doCalculateZeta(const BaseCell<ThreeD>& c1,
-                         double* meanr, double* meanlogr, double* weight,
-                         double* meanr2, double* meanlogr2, double* weight2,
-                         double* npairs, std::complex<double>* Gn)
-    { calculateZeta(c1, meanr, meanlogr, weight, meanr2, meanlogr2, weight2, npairs, Gn); }
+                         double* sumwr2, double* sumwlogr2, double* sumw2,
+                         double* sumwwr2, double* sumwwlogr2, double* sumww2,
+                         double* npairs2, std::complex<double>* Gn2)
+    { calculateZeta(c1, sumwr2, sumwlogr2, sumw2, sumwwr2, sumwwlogr2, sumww2, npairs2, Gn2); }
+
+    void doCalculateZeta(const BaseCell<Flat>& c1,
+                         double* sumwr2, double* sumwlogr2, double* sumw2,
+                         double* npairs2, std::complex<double>* Gn2,
+                         double* sumwr3, double* sumwlogr3, double* sumw3,
+                         double* npairs3, std::complex<double>* Gn3)
+    { calculateZeta(c1, sumwr2, sumwlogr2, sumw2, npairs2, Gn2,
+                    sumwr3, sumwlogr3, sumw3, npairs3, Gn3); }
+    void doCalculateZeta(const BaseCell<Sphere>& c1,
+                         double* sumwr2, double* sumwlogr2, double* sumw2,
+                         double* npairs2, std::complex<double>* Gn2,
+                         double* sumwr3, double* sumwlogr3, double* sumw3,
+                         double* npairs3, std::complex<double>* Gn3)
+    { calculateZeta(c1, sumwr2, sumwlogr2, sumw2, npairs2, Gn2,
+                    sumwr3, sumwlogr3, sumw3, npairs3, Gn3); }
+    void doCalculateZeta(const BaseCell<ThreeD>& c1,
+                         double* sumwr2, double* sumwlogr2, double* sumw2,
+                         double* npairs2, std::complex<double>* Gn2,
+                         double* sumwr3, double* sumwlogr3, double* sumw3,
+                         double* npairs3, std::complex<double>* Gn3)
+    { calculateZeta(c1, sumwr2, sumwlogr2, sumw2, npairs2, Gn2,
+                    sumwr3, sumwlogr3, sumw3, npairs3, Gn3); }
 
     // These are usually allocated in the python layer and just built up here.
     // So all we have here is a bare pointer for each of them.

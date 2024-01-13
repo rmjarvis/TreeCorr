@@ -399,20 +399,21 @@ class NNNCorrelation(Corr3):
                                self.output_dots, self._bintype, self._metric)
         self.tot += cat1.sumw * cat2.sumw * cat3.sumw
 
-    def _finalize(self):
+    def _finalize(self, sym23=True):
         if self.bin_type == 'LogMultipole':
             # The multipole calculation only accumulates these for half the triangles, since
             # the other half are equivalent. Copy them over to the missing half of these arrays.
-            self.ntri += np.transpose(self.ntri, axes=(1,0,2))
-            self.weight += np.transpose(self.weight, axes=(1,0,2))
-            orig_meand2 = self.meand2.copy()
-            orig_meanlogd2 = self.meanlogd2.copy()
-            self.meand2 += np.transpose(self.meand3, axes=(1,0,2))
-            self.meanlogd2 += np.transpose(self.meanlogd3, axes=(1,0,2))
-            self.meand3 += np.transpose(orig_meand2, axes=(1,0,2))
-            self.meanlogd3 += np.transpose(orig_meanlogd2, axes=(1,0,2))
-            self.mp += np.transpose(self.mp, axes=(1,0,2))
-            self.mp_im -= np.transpose(self.mp_im, axes=(1,0,2))
+            if sym23:
+                self.ntri += np.transpose(self.ntri, axes=(1,0,2))
+                self.weight += np.transpose(self.weight, axes=(1,0,2))
+                orig_meand2 = self.meand2.copy()
+                orig_meanlogd2 = self.meanlogd2.copy()
+                self.meand2 += np.transpose(self.meand3, axes=(1,0,2))
+                self.meanlogd2 += np.transpose(self.meanlogd3, axes=(1,0,2))
+                self.meand3 += np.transpose(orig_meand2, axes=(1,0,2))
+                self.meanlogd3 += np.transpose(orig_meanlogd2, axes=(1,0,2))
+                self.mp += np.transpose(self.mp, axes=(1,0,2))
+                self.mp_im -= np.transpose(self.mp_im, axes=(1,0,2))
 
             # It also only sets most of the values at [i,j,max_n].
             # Broadcast those to the rest of the values in the third dimension.
@@ -472,14 +473,19 @@ class NNNCorrelation(Corr3):
                 self.meanlogd1[mask2] = 0.
                 self.meanu[mask2] = 0.
 
-    def finalize(self):
+    def finalize(self, sym23=True):
         """Finalize the calculation of meand1, meanlogd1, etc.
 
         The `process_auto`, `process_cross12` and `process_cross` commands accumulate values in
         each bin, so they can be called multiple times if appropriate.  Afterwards, this command
         finishes the calculation of meand1, meand2, etc. by dividing by the total weight.
+
+        Parameters:
+            sym23 (bool):   Whether the calculation should treat cats 2 and 3 as equivalent.
+                            (default: True) This should be set to False for cross-correlations
+                            of 3 different catalogs with ordered=True.
         """
-        self._finalize()
+        self._finalize(sym23)
 
     @lazy_property
     def _nonzero(self):
@@ -649,7 +655,8 @@ class NNNCorrelation(Corr3):
             self._process_all_cross(cat1, cat2, cat3, metric, ordered, num_threads, comm, low_mem)
 
         if finalize:
-            self.finalize()
+            sym23 = cat3 is None or not ordered
+            self.finalize(sym23)
 
     def _mean_weight(self):
         mean_np = np.mean(self.ntri)

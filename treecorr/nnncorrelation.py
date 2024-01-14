@@ -150,6 +150,7 @@ class NNNCorrelation(Corr3):
         self._write_rrr = None
         self._write_drr = None
         self._write_rdd = None
+        self.zeta = None
         self.logger.debug('Finished building NNNCorr')
 
     @property
@@ -584,7 +585,7 @@ class NNNCorrelation(Corr3):
 
         This raises a RuntimeError if calculateZeta has not been run yet.
         """
-        if self._rrr_weight is None:
+        if self.zeta is None:
             raise RuntimeError("You need to call calculateZeta before calling estimate_cov.")
         return self.zeta.ravel()
 
@@ -949,7 +950,10 @@ class NNNCorrelation(Corr3):
                          'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
                          'meand3', 'meanlogd3', 'meanphi']
         if rrr is None:
-            col_names += [ 'DDD', 'ntri' ]
+            if self.zeta is not None:
+                col_names += [ 'zeta', 'sigma_zeta', 'DDD', 'ntri']
+            else:
+                col_names += [ 'DDD', 'ntri' ]
         else:
             col_names += [ 'zeta','sigma_zeta','DDD','RRR' ]
             if drr is not None:
@@ -973,6 +977,8 @@ class NNNCorrelation(Corr3):
         if rrr is None:
             if drr is not None or rdd is not None:
                 raise TypeError("rrr must be provided if other combinations are not None")
+            if self.zeta is not None:
+                data += [ self.zeta, np.sqrt(self.varzeta) ]
             data += [ self.weight, self.ntri ]
         else:
             # This will check for other invalid combinations of rrr, drr, etc.

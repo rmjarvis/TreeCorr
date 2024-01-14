@@ -109,28 +109,26 @@ def test_direct_logruv():
         np.testing.assert_allclose(data['zeta'], kkk.zeta.flatten(), rtol=1.e-3)
 
     # Also check the cross calculation.
-    # Here, we get 6x as many triangles, since each triangle is discovered 6 times.
-    kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, brute=True)
-    kkk.process(cat, cat, cat, num_threads=2)
+    kkk.process(cat,cat,cat, num_threads=2)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri)
+    np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
+
+    kkk.process(cat,cat)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri)
+    np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
+
+    # With ordered=False, we get 6x as many triangles, since each triangle is discovered 6 times.
+    kkk.process(cat,cat,cat, ordered=False)
     np.testing.assert_array_equal(kkk.ntri, 6*true_ntri)
     np.testing.assert_allclose(kkk.weight, 6*true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
 
-    # But with ordered=True, it only counts each triangle once.
-    kkk.process(cat,cat,cat, ordered=True, num_threads=2)
-    np.testing.assert_array_equal(kkk.ntri, true_ntri)
-    np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
-
     # Or with 2 argument version, finds each triangle 3 times.
-    kkk.process(cat,cat)
+    kkk.process(cat,cat, ordered=False)
     np.testing.assert_array_equal(kkk.ntri, 3*true_ntri)
     np.testing.assert_allclose(kkk.weight, 3*true_weight, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
-
-    kkk.process(cat,cat, ordered=True)
-    np.testing.assert_array_equal(kkk.ntri, true_ntri)
-    np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
 
     # Repeat with binslop = 0
@@ -142,12 +140,12 @@ def test_direct_logruv():
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
 
-    kkk.process(cat,cat,cat, ordered=True)
+    kkk.process(cat,cat,cat)
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
 
-    kkk.process(cat,cat, ordered=True)
+    kkk.process(cat,cat)
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
@@ -505,15 +503,11 @@ def test_direct_logruv_cross():
     z_list = [true_zeta_123, true_zeta_132, true_zeta_213, true_zeta_231,
               true_zeta_312, true_zeta_321]
 
-    # With the default ordered=False, we end up with the sum of all permutations.
     true_ntri_sum = sum(n_list)
     true_weight_sum = sum(w_list)
     true_zeta_sum = sum(z_list)
     pos = true_weight_sum > 0
     true_zeta_sum[pos] /= true_weight_sum[pos]
-    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
-    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
-    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-5)
 
     # Now normalize each one individually.
     for w,z in zip(w_list, z_list):
@@ -521,56 +515,67 @@ def test_direct_logruv_cross():
         z[pos] /= w[pos]
 
     # With ordered=True we get just the ones in the given order.
-    kkk.process(cat1, cat2, cat3, ordered=True)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
     np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-5)
-    kkk.process(cat1, cat3, cat2, ordered=True)
+    kkk.process(cat1, cat3, cat2)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_132)
     np.testing.assert_allclose(kkk.weight, true_weight_132, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_132, rtol=1.e-5)
-    kkk.process(cat2, cat1, cat3, ordered=True)
+    kkk.process(cat2, cat1, cat3)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_213)
     np.testing.assert_allclose(kkk.weight, true_weight_213, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_213, rtol=1.e-5)
-    kkk.process(cat2, cat3, cat1, ordered=True)
+    kkk.process(cat2, cat3, cat1)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_231)
     np.testing.assert_allclose(kkk.weight, true_weight_231, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_231, rtol=1.e-5)
-    kkk.process(cat3, cat1, cat2, ordered=True)
+    kkk.process(cat3, cat1, cat2)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_312)
     np.testing.assert_allclose(kkk.weight, true_weight_312, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_312, rtol=1.e-5)
-    kkk.process(cat3, cat2, cat1, ordered=True)
+    kkk.process(cat3, cat2, cat1)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_321)
     np.testing.assert_allclose(kkk.weight, true_weight_321, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_321, rtol=1.e-5)
+
+    # With the default ordered=False, we end up with the sum of all permutations.
+    kkk.process(cat1, cat2, cat3, ordered=False)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-5)
 
     # Repeat with binslop = 0
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=0, verbose=1)
-    kkk.process(cat1, cat2, cat3)
-    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
 
     kkk.process(cat1, cat2, cat3, ordered=True)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
     np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-5)
+
+    kkk.process(cat1, cat2, cat3, ordered=False)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-5)
 
     # And again with no top-level recursion
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=0, verbose=1, max_top=0)
-    kkk.process(cat1, cat2, cat3)
-    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
 
     kkk.process(cat1, cat2, cat3, ordered=True)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
     np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-5)
+
+    kkk.process(cat1, cat2, cat3, ordered=False)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-5)
 
     # Error to have cat3, but not cat2
     with assert_raises(ValueError):
@@ -701,15 +706,11 @@ def test_direct_logruv_cross12():
     w_list = [true_weight_122, true_weight_212, true_weight_221]
     z_list = [true_zeta_122, true_zeta_212, true_zeta_221]
 
-    # With the default ordered=False, we end up with the sum of all permutations.
     true_ntri_sum = sum(n_list)
     true_weight_sum = sum(w_list)
     true_zeta_sum = sum(z_list)
     pos = true_weight_sum > 0
     true_zeta_sum[pos] /= true_weight_sum[pos]
-    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
-    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
-    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-5)
 
     # Now normalize each one individually.
     for w,z in zip(w_list, z_list):
@@ -717,40 +718,45 @@ def test_direct_logruv_cross12():
         z[pos] /= w[pos]
 
     # With ordered=True we get just the ones in the given order.
-    kkk.process(cat1, cat2, ordered=True)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_122)
     np.testing.assert_allclose(kkk.weight, true_weight_122, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_122, rtol=1.e-5)
-    kkk.process(cat2, cat1, cat2, ordered=True)
+    kkk.process(cat2, cat1, cat2)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_212)
     np.testing.assert_allclose(kkk.weight, true_weight_212, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_212, rtol=1.e-5)
-    kkk.process(cat2, cat2, cat1, ordered=True)
+    kkk.process(cat2, cat2, cat1)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_221)
     np.testing.assert_allclose(kkk.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_221, rtol=1.e-5)
+
+    # With ordered=False, we end up with the sum of all permutations.
+    kkk.process(cat1, cat2, ordered=False)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-5)
 
     # Split into patches to test the list-based version of the code.
     cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=4)
     cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2, npatch=4)
 
-    kkk.process(cat1, cat2, num_threads=2)
-    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
-    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
-    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-5)
-
-    kkk.process(cat1, cat2, ordered=True)
+    kkk.process(cat1, cat2)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_122)
     np.testing.assert_allclose(kkk.weight, true_weight_122, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_122, rtol=1.e-5)
-    kkk.process(cat2, cat1, cat2, ordered=True)
+    kkk.process(cat2, cat1, cat2)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_212)
     np.testing.assert_allclose(kkk.weight, true_weight_212, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_212, rtol=1.e-5)
-    kkk.process(cat2, cat2, cat1, ordered=True)
+    kkk.process(cat2, cat2, cat1)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_221)
     np.testing.assert_allclose(kkk.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_221, rtol=1.e-5)
+
+    kkk.process(cat1, cat2, ordered=False)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-5)
 
 
 @timer
@@ -897,15 +903,11 @@ def test_direct_logruv_cross_3d():
     z_list = [true_zeta_123, true_zeta_132, true_zeta_213, true_zeta_231,
               true_zeta_312, true_zeta_321]
 
-    # With the default ordered=False, we end up with the sum of all permutations.
     true_ntri_sum = sum(n_list)
     true_weight_sum = sum(w_list)
     true_zeta_sum = sum(z_list)
     pos = true_weight_sum > 0
     true_zeta_sum[pos] /= true_weight_sum[pos]
-    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
-    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
-    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-5)
 
     # Now normalize each one individually.
     for w,z in zip(w_list, z_list):
@@ -913,36 +915,47 @@ def test_direct_logruv_cross_3d():
         z[pos] /= w[pos]
 
     # With ordered=True, we get just the ones in this order.
-    kkk.process(cat1, cat2, cat3, ordered=True, num_threads=2)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
     np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-5)
+
+    # With ordered=False, we end up with the sum of all permutations.
+    kkk.process(cat1, cat2, cat3, ordered=False)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-5)
 
     # Repeat with binslop = 0
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=0, verbose=1)
-    kkk.process(cat1, cat2, cat3)
-    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
 
-    kkk.process(cat1, cat2, cat3, ordered=True, num_threads=2)
+    kkk.process(cat1, cat2, cat3, ordered=True)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
     np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-5)
+
+    kkk.process(cat1, cat2, cat3, ordered=False)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-5)
 
     # And again with no top-level recursion
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=0, verbose=1, max_top=0)
-    kkk.process(cat1, cat2, cat3)
-    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
 
-    kkk.process(cat1, cat2, cat3, ordered=True, num_threads=2)
+    kkk.process(cat1, cat2, cat3, ordered=True)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
     np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-5)
+
+    kkk.process(cat1, cat2, cat3, ordered=False)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-5)
 
 
 @timer
@@ -977,12 +990,12 @@ def test_constant():
     np.testing.assert_allclose(kkk.zeta, A**3, rtol=1.e-5)
 
     # Should also work as a cross-correlation
-    kkk.process(cat, cat, cat)
+    kkk.process(cat, cat, cat, ordered=True)
     print('as cross-correlation: kkk.zeta = ',kkk.zeta.flatten())
     np.testing.assert_allclose(kkk.zeta, A**3, rtol=1.e-5)
 
-    kkk.process(cat, cat, cat, ordered=True)
-    print('as cross-correlation ordered: kkk.zeta = ',kkk.zeta.flatten())
+    kkk.process(cat, cat, cat, ordered=False)
+    print('as cross-correlation unordered: kkk.zeta = ',kkk.zeta.flatten())
     np.testing.assert_allclose(kkk.zeta, A**3, rtol=1.e-5)
 
     # Check LogSAS binning
@@ -992,12 +1005,12 @@ def test_constant():
     print('LogSAS: kkk.zeta = ',kkk2.zeta.flatten())
     np.testing.assert_allclose(kkk2.zeta, A**3, rtol=1.e-5)
 
-    kkk2.process(cat, cat)
+    kkk2.process(cat, cat, ordered=True)
     print('as cross-correlation: kkk.zeta = ',kkk2.zeta.flatten())
     np.testing.assert_allclose(kkk2.zeta, A**3, rtol=1.e-5)
 
-    kkk2.process(cat, cat, ordered=True)
-    print('as cross-correlation ordered: kkk.zeta = ',kkk2.zeta.flatten())
+    kkk2.process(cat, cat, ordered=False)
+    print('as cross-correlation unordered: kkk.zeta = ',kkk2.zeta.flatten())
     np.testing.assert_allclose(kkk2.zeta, A**3, rtol=1.e-5)
 
     # Now add some noise to the values. It should still work, but at slightly lower accuracy.
@@ -1271,27 +1284,26 @@ def test_direct_logsas():
         np.testing.assert_allclose(data['zeta'], kkk.zeta.flatten(), rtol=1.e-3)
 
     # Also check the cross calculation.
-    # Here, we get 6x as many triangles, since each triangle is discovered 6 times.
-    kkk.process(cat, cat, cat, num_threads=2)
+    kkk.process(cat,cat,cat)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri)
+    np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
+
+    kkk.process(cat,cat)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri)
+    np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
+
+    # With ordered=False, we get 6x as many triangles, since each triangle is discovered 6 times.
+    kkk.process(cat, cat, cat, ordered=False)
     np.testing.assert_array_equal(kkk.ntri, 6*true_ntri)
     np.testing.assert_allclose(kkk.weight, 6*true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
 
-    # But with ordered=True, it only counts each triangle once.
-    kkk.process(cat,cat,cat, ordered=True, num_threads=2)
-    np.testing.assert_array_equal(kkk.ntri, true_ntri)
-    np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
-
     # Or with 2 argument version, finds each triangle 3 times.
-    kkk.process(cat,cat)
+    kkk.process(cat,cat, ordered=False)
     np.testing.assert_array_equal(kkk.ntri, 3*true_ntri)
     np.testing.assert_allclose(kkk.weight, 3*true_weight, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
-
-    kkk.process(cat,cat, ordered=True)
-    np.testing.assert_array_equal(kkk.ntri, true_ntri)
-    np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
 
     # Repeat with binslop = 0
@@ -1303,12 +1315,12 @@ def test_direct_logsas():
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
 
-    kkk.process(cat,cat,cat, ordered=True)
+    kkk.process(cat,cat,cat)
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
 
-    kkk.process(cat,cat, ordered=True)
+    kkk.process(cat,cat)
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
@@ -1712,15 +1724,11 @@ def test_direct_logsas_cross():
     z_list = [true_zeta_123, true_zeta_132, true_zeta_213, true_zeta_231,
               true_zeta_312, true_zeta_321]
 
-    # With the default ordered=False, we end up with the sum of all permutations.
     true_ntri_sum = sum(n_list)
     true_weight_sum = sum(w_list)
     true_zeta_sum = sum(z_list)
     pos = true_weight_sum > 0
     true_zeta_sum[pos] /= true_weight_sum[pos]
-    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
-    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
-    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4, atol=1.e-6)
 
     # Now normalize each one individually.
     for w,z in zip(w_list, z_list):
@@ -1728,54 +1736,65 @@ def test_direct_logsas_cross():
         z[pos] /= w[pos]
 
     # With ordered=True we get just the ones in the given order.
-    kkk.process(cat1, cat2, cat3, ordered=True)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
     np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-4, atol=1.e-6)
-    kkk.process(cat1, cat3, cat2, ordered=True)
+    kkk.process(cat1, cat3, cat2)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_132)
     np.testing.assert_allclose(kkk.weight, true_weight_132, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_132, rtol=1.e-4, atol=1.e-6)
-    kkk.process(cat2, cat1, cat3, ordered=True)
+    kkk.process(cat2, cat1, cat3)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_213)
     np.testing.assert_allclose(kkk.weight, true_weight_213, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_213, rtol=1.e-4, atol=1.e-6)
-    kkk.process(cat2, cat3, cat1, ordered=True)
+    kkk.process(cat2, cat3, cat1)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_231)
     np.testing.assert_allclose(kkk.weight, true_weight_231, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_231, rtol=1.e-4, atol=1.e-6)
-    kkk.process(cat3, cat1, cat2, ordered=True)
+    kkk.process(cat3, cat1, cat2)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_312)
     np.testing.assert_allclose(kkk.weight, true_weight_312, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_312, rtol=1.e-4, atol=1.e-6)
-    kkk.process(cat3, cat2, cat1, ordered=True)
+    kkk.process(cat3, cat2, cat1)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_321)
     np.testing.assert_allclose(kkk.weight, true_weight_321, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_321, rtol=1.e-4, atol=1.e-6)
+
+    # With ordered=False, we end up with the sum of all permutations.
+    kkk.process(cat1, cat2, cat3, ordered=False)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4, atol=1.e-6)
 
     # Repeat with binslop = 0
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep,
                                   nbins=nbins, nphi_bins=nphi_bins,
                                   bin_slop=0, bin_type='LogSAS')
-    kkk.process(cat1, cat2, cat3)
-    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
 
     kkk.process(cat1, cat2, cat3, ordered=True)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
     np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-4, atol=1.e-6)
+
+    kkk.process(cat1, cat2, cat3, ordered=False)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4, atol=1.e-6)
 
     # And again with no top-level recursion
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep,
                                   nbins=nbins, nphi_bins=nphi_bins,
                                   bin_slop=0, max_top=0, bin_type='LogSAS')
-    kkk.process(cat1, cat2, cat3)
-    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
 
     kkk.process(cat1, cat2, cat3, ordered=True)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
     np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-4, atol=1.e-6)
+
+    kkk.process(cat1, cat2, cat3, ordered=False)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4, atol=1.e-6)
 
     # Error to have cat3, but not cat2
     with assert_raises(ValueError):
@@ -1896,9 +1915,6 @@ def test_direct_logsas_cross12():
     true_zeta_sum = sum(z_list)
     pos = true_weight_sum > 0
     true_zeta_sum[pos] /= true_weight_sum[pos]
-    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
-    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
-    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4, atol=1.e-6)
 
     # Now normalize each one individually.
     for w,z in zip(w_list, z_list):
@@ -1906,40 +1922,44 @@ def test_direct_logsas_cross12():
         z[pos] /= w[pos]
 
     # With ordered=True we get just the ones in the given order.
-    kkk.process(cat1, cat2, ordered=True)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_122)
     np.testing.assert_allclose(kkk.weight, true_weight_122, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_122, rtol=1.e-4, atol=1.e-6)
-    kkk.process(cat2, cat1, cat2, ordered=True)
+    kkk.process(cat2, cat1, cat2)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_212)
     np.testing.assert_allclose(kkk.weight, true_weight_212, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_212, rtol=1.e-4, atol=1.e-6)
-    kkk.process(cat2, cat2, cat1, ordered=True)
+    kkk.process(cat2, cat2, cat1)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_221)
     np.testing.assert_allclose(kkk.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_221, rtol=1.e-4, atol=1.e-6)
+
+    kkk.process(cat1, cat2, ordered=False)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4, atol=1.e-6)
 
     # Split into patches to test the list-based version of the code.
     cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=4)
     cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2, npatch=4)
 
-    kkk.process(cat1, cat2, num_threads=2)
-    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
-    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
-    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4, atol=1.e-6)
-
-    kkk.process(cat1, cat2, ordered=True)
+    kkk.process(cat1, cat2)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_122)
     np.testing.assert_allclose(kkk.weight, true_weight_122, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_122, rtol=1.e-4, atol=1.e-6)
-    kkk.process(cat2, cat1, cat2, ordered=True)
+    kkk.process(cat2, cat1, cat2)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_212)
     np.testing.assert_allclose(kkk.weight, true_weight_212, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_212, rtol=1.e-4, atol=1.e-6)
-    kkk.process(cat2, cat2, cat1, ordered=True)
+    kkk.process(cat2, cat2, cat1)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_221)
     np.testing.assert_allclose(kkk.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_221, rtol=1.e-4, atol=1.e-6)
+
+    kkk.process(cat1, cat2, ordered=False)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4, atol=1.e-6)
 
 
 @timer
@@ -1996,7 +2016,7 @@ def test_kkk_logsas():
                                    min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                    sep_units='arcmin', phi_units='deg', bin_type='LogSAS')
     t0 = time.time()
-    kkkc.process(cat,cat,cat, ordered=True)
+    kkkc.process(cat,cat,cat)
     t1 = time.time()
     print('cross process time = ',t1-t0)
     print(kkk.zeta)
@@ -2009,7 +2029,7 @@ def test_kkk_logsas():
     np.testing.assert_allclose(kkkc.zeta, kkk.zeta, rtol=1.e-3)
 
     t0 = time.time()
-    kkkc.process(cat,cat, ordered=True)
+    kkkc.process(cat,cat)
     t1 = time.time()
     print('cross12 process time = ',t1-t0)
     np.testing.assert_allclose(kkkc.ntri, kkk.ntri, rtol=1.e-3)

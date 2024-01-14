@@ -963,8 +963,8 @@ def test_direct_logruv_auto():
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   brute=True, verbose=0)
-    drr.process(cat, rcat)
-    rdd.process(rcat, cat)
+    drr.process(cat, rcat, ordered=False)
+    rdd.process(rcat, cat, ordered=False)
     zeta, varzeta = ddd.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)
 
     config['nnn_statistic'] = 'compensated'
@@ -1000,22 +1000,24 @@ def test_direct_logruv_auto():
     ddd.process(cat)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
-    # And compare to the cross correlation
-    # Here, we get 6x as much, since each triangle is discovered 6 times.
-    ddd.clear()
+    # Compare to the cross correlation
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=0, verbose=1)
     ddd.process(cat,cat,cat, num_threads=2)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri)
+
+    ddd.process(cat,cat)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri)
+
+    # With ordered=False, we get 6x as much, since each triangle is discovered 6 times.
+    ddd.process(cat,cat,cat, ordered=False, num_threads=2)
     np.testing.assert_array_equal(ddd.ntri, 6*true_ntri)
 
-    # But with ordered=True, it only counts each triangle once.
-    ddd.process(cat,cat,cat, ordered=True, num_threads=2)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri)
-
     # Or with 2 argument version, finds each triangle 3 times.
-    ddd.process(cat,cat)
+    ddd.process(cat,cat, ordered=False)
     np.testing.assert_array_equal(ddd.ntri, 3*true_ntri)
-
-    ddd.process(cat,cat, ordered=True)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     do_pickle(ddd)
 
@@ -1227,7 +1229,7 @@ def test_direct_logruv_cross():
     t0 = time.time()
     ddd.process(cat1, cat2, cat3)
     t1 = time.time()
-    print('brute unordered: ',t1-t0)
+    print('brute ordered 123: ',t1-t0)
 
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
@@ -1295,84 +1297,84 @@ def test_direct_logruv_cross():
                 assert 0 <= kv < 2*nvbins
                 true_ntri[kr,ku,kv] += 1
 
-    # With the default ordered=False, we end up with the sum of all permutations.
-    true_ntri_sum = true_ntri_123 + true_ntri_132 + true_ntri_213 + true_ntri_231 +\
-            true_ntri_312 + true_ntri_321
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
-
-    # With ordered=True we get just the ones in the given order.
-    t0 = time.time()
-    ddd.process(cat1, cat2, cat3, ordered=True)
-    t1 = time.time()
-    print('brute ordered 123: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
     t0 = time.time()
-    ddd.process(cat1, cat3, cat2, ordered=True)
+    ddd.process(cat1, cat3, cat2)
     t1 = time.time()
     print('brute ordered 132: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_132)
     t0 = time.time()
-    ddd.process(cat2, cat1, cat3, ordered=True)
+    ddd.process(cat2, cat1, cat3)
     t1 = time.time()
     print('brute ordered 213: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_213)
     t0 = time.time()
-    ddd.process(cat2, cat3, cat1, ordered=True)
+    ddd.process(cat2, cat3, cat1)
     t1 = time.time()
     print('brute ordered 231: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_231)
     t0 = time.time()
-    ddd.process(cat3, cat1, cat2, ordered=True)
+    ddd.process(cat3, cat1, cat2)
     t1 = time.time()
     print('brute ordered 312: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_312)
     t0 = time.time()
-    ddd.process(cat3, cat2, cat1, ordered=True)
+    ddd.process(cat3, cat2, cat1)
     t1 = time.time()
     print('brute ordered 321: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_321)
+
+    # With ordered=False, we end up with the sum of all permutations.
+    t0 = time.time()
+    ddd.process(cat1, cat2, cat3, ordered=False)
+    t1 = time.time()
+    print('brute unordered: ',t1-t0)
+    true_ntri_sum = true_ntri_123 + true_ntri_132 + true_ntri_213 + true_ntri_231 +\
+            true_ntri_312 + true_ntri_321
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     # Repeat with binslop = 0
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=0, verbose=1)
-    t0 = time.time()
-    ddd.process(cat1, cat2, cat3)
-    t1 = time.time()
-    print('bin_slop=0 unordered: ',t1-t0)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     t0 = time.time()
-    ddd.process(cat1, cat2, cat3, ordered=True)
+    ddd.process(cat1, cat2, cat3)
     t1 = time.time()
     print('bin_slop=0 ordered 123: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
     t0 = time.time()
-    ddd.process(cat1, cat3, cat2, ordered=True)
+    ddd.process(cat1, cat3, cat2)
     t1 = time.time()
     print('bin_slop=0 ordered 132: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_132)
     t0 = time.time()
-    ddd.process(cat2, cat1, cat3, ordered=True)
+    ddd.process(cat2, cat1, cat3)
     t1 = time.time()
     print('bin_slop=0 ordered 213: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_213)
     t0 = time.time()
-    ddd.process(cat2, cat3, cat1, ordered=True)
+    ddd.process(cat2, cat3, cat1)
     t1 = time.time()
     print('bin_slop=0 ordered 231: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_231)
     t0 = time.time()
-    ddd.process(cat3, cat1, cat2, ordered=True)
+    ddd.process(cat3, cat1, cat2)
     t1 = time.time()
     print('bin_slop=0 ordered 312: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_312)
     t0 = time.time()
-    ddd.process(cat3, cat2, cat1, ordered=True)
+    ddd.process(cat3, cat2, cat1)
     t1 = time.time()
     print('bin_slop=0 ordered 321: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_321)
+
+    t0 = time.time()
+    ddd.process(cat1, cat2, cat3, ordered=False)
+    t1 = time.time()
+    print('bin_slop=0 unordered: ',t1-t0)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     # And again with no top-level recursion
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
@@ -1380,7 +1382,7 @@ def test_direct_logruv_cross():
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=0, verbose=1, max_top=0)
     t0 = time.time()
-    ddd.process(cat1, cat2, cat3, ordered=True)
+    ddd.process(cat1, cat2, cat3)
     t1 = time.time()
     print('no top bin_slop=0, ordered 123 ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
@@ -1489,26 +1491,25 @@ def test_direct_logruv_cross12():
                 assert 0 <= kv < 2*nvbins
                 true_ntri[kr,ku,kv] += 1
 
-    # With the default ordered=False, we end up with the sum of all permutations.
-    true_ntri_sum = true_ntri_122 + true_ntri_212 + true_ntri_221
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
-
-    # With ordered=True we get just the ones in the given order.
-    t0 = time.time()
-    ddd.process(cat1, cat2, ordered=True)
-    t1 = time.time()
-    print('brute ordered: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
     t0 = time.time()
-    ddd.process(cat2, cat1, cat2, ordered=True)
+    ddd.process(cat2, cat1, cat2)
     t1 = time.time()
     print('brute ordered 212: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_212)
     t0 = time.time()
-    ddd.process(cat2, cat2, cat1, ordered=True)
+    ddd.process(cat2, cat2, cat1)
     t1 = time.time()
     print('brute ordered 221: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_221)
+
+    # With ordered=False, we end up with the sum of all permutations.
+    t0 = time.time()
+    ddd.process(cat1, cat2, ordered=False)
+    t1 = time.time()
+    print('brute unordered: ',t1-t0)
+    true_ntri_sum = true_ntri_122 + true_ntri_212 + true_ntri_221
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     # Repeat with binslop = 0
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
@@ -1518,23 +1519,24 @@ def test_direct_logruv_cross12():
     t0 = time.time()
     ddd.process(cat1, cat2)
     t1 = time.time()
-    print('bin_slop=0 unordered: ',t1-t0)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
-    t0 = time.time()
-    ddd.process(cat1, cat2, ordered=True)
-    t1 = time.time()
     print('bin_slop=0 ordered: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
     t0 = time.time()
-    ddd.process(cat2, cat1, cat2, ordered=True)
+    ddd.process(cat2, cat1, cat2)
     t1 = time.time()
     print('bin_slop=0 ordered 212: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_212)
     t0 = time.time()
-    ddd.process(cat2, cat2, cat1, ordered=True)
+    ddd.process(cat2, cat2, cat1)
     t1 = time.time()
     print('bin_slop=0 ordered 221: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_221)
+
+    t0 = time.time()
+    ddd.process(cat1, cat2, ordered=False)
+    t1 = time.time()
+    print('bin_slop=0 unordered: ',t1-t0)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     # And again with no top-level recursion
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
@@ -1544,8 +1546,8 @@ def test_direct_logruv_cross12():
     t0 = time.time()
     ddd.process(cat1, cat2)
     t1 = time.time()
-    print('no top bin_slop=0 unordered: ',t1-t0)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
+    print('no top bin_slop=0: ',t1-t0)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
 
     # Split into patches to test the list-based version of the code.
     cat1 = treecorr.Catalog(x=x1, y=y1, npatch=10)
@@ -1558,13 +1560,13 @@ def test_direct_logruv_cross12():
     t0 = time.time()
     ddd.process(cat1, cat2)
     t1 = time.time()
-    print('patch unordered: ',t1-t0)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
-    t0 = time.time()
-    ddd.process(cat1, cat2, ordered=True)
-    t1 = time.time()
     print('patch ordered 122: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
+    t0 = time.time()
+    ddd.process(cat1, cat2, ordered=False)
+    t1 = time.time()
+    print('patch unordered: ',t1-t0)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
 
 @timer
@@ -1877,12 +1879,12 @@ def test_direct_logruv_partial():
                 assert 0 <= kv < 2*nvbins
                 true_ntri[kr,ku,kv] += 1
 
+    np.testing.assert_array_equal(ddda.ntri, true_ntri_123)
+
     true_ntri_sum = true_ntri_123 + true_ntri_132 + true_ntri_213 + true_ntri_231 +\
             true_ntri_312 + true_ntri_321
+    ddda.process(cat1a, cat2a, cat3a, ordered=False)
     np.testing.assert_array_equal(ddda.ntri, true_ntri_sum)
-
-    ddda.process(cat1a, cat2a, cat3a, ordered=True)
-    np.testing.assert_array_equal(ddda.ntri, true_ntri_123)
 
     # Now check that we get the same thing with all the points, but with w=0 for the ones
     # we don't want.
@@ -1900,10 +1902,10 @@ def test_direct_logruv_partial():
                                    min_v=min_v, max_v=max_v, nvbins=nvbins,
                                    brute=True)
     dddb.process(cat1b, cat2b, cat3b)
-    np.testing.assert_array_equal(dddb.ntri, true_ntri_sum)
-
-    dddb.process(cat1b, cat2b, cat3b, ordered=True)
     np.testing.assert_array_equal(dddb.ntri, true_ntri_123)
+
+    dddb.process(cat1b, cat2b, cat3b, ordered=False)
+    np.testing.assert_array_equal(dddb.ntri, true_ntri_sum)
 
 
 @timer
@@ -2015,10 +2017,10 @@ def test_direct_logruv_3d_auto():
     # And compare to the cross correlation
     # With ordered=False, we get 6x as much, since each triangle is discovered 6 times.
     ddd.process(cat,cat,cat)
-    np.testing.assert_array_equal(ddd.ntri, 6*true_ntri)
-
-    ddd.process(cat,cat,cat, ordered=True)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
+
+    ddd.process(cat,cat,cat, ordered=False)
+    np.testing.assert_array_equal(ddd.ntri, 6*true_ntri)
 
     # Also compare to using x,y,z rather than ra,dec,r
     cat = treecorr.Catalog(x=x, y=y, z=z)
@@ -2141,41 +2143,47 @@ def test_direct_logruv_3d_cross():
                 assert 0 <= kv < 2*nvbins
                 true_ntri[kr,ku,kv] += 1
 
-    # With the default ordered=False, we end up with the sum of all permutations.
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
+
+    # With ordered=False, we end up with the sum of all permutations.
+    ddd.process(cat1, cat2, cat3, ordered=False)
     true_ntri_sum = true_ntri_123 + true_ntri_132 + true_ntri_213 + true_ntri_231 +\
             true_ntri_312 + true_ntri_321
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
-
-    ddd.process(cat1, cat2, cat3, ordered=True)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
 
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=0, verbose=1)
     ddd.process(cat1, cat2, cat3)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
-    ddd.process(cat1, cat2, cat3, ordered=True)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
+    ddd.process(cat1, cat2, cat3, ordered=False)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     # And again with no top-level recursion
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=0, verbose=1, max_top=0)
-    ddd.process(cat1, cat2, cat3)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
     ddd.process(cat1, cat2, cat3, ordered=True)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
+    ddd.process(cat1, cat2, cat3, ordered=False)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     # Also compare to using x,y,z rather than ra,dec,r
     cat1 = treecorr.Catalog(x=x1, y=y1, z=z1)
     cat2 = treecorr.Catalog(x=x2, y=y2, z=z2)
     cat3 = treecorr.Catalog(x=x3, y=y3, z=z3)
-    ddd.process(cat1, cat2, cat3)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
+
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=0, verbose=1)
+
     ddd.process(cat1, cat2, cat3, ordered=True)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
+    ddd.process(cat1, cat2, cat3, ordered=False)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
 
 @timer
@@ -2487,8 +2495,8 @@ def test_nnn_logruv():
     drr = ddd.copy()
     rdd = ddd.copy()
 
-    drr.process(cat,rand)
-    rdd.process(rand,cat)
+    drr.process(cat,rand, ordered=False)
+    rdd.process(rand,cat, ordered=False)
 
     zeta, varzeta = ddd.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)
     print('compensated zeta = ',zeta)
@@ -2925,20 +2933,20 @@ def test_direct_logsas_auto():
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # And compare to the cross correlation
-    # As before, this will count each triangle 6 times.
     ddd.process(cat,cat,cat)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri)
+
+    # As before, this will count each triangle 6 times.
+    ddd.process(cat,cat,cat, ordered=False)
     np.testing.assert_array_equal(ddd.ntri, 6*true_ntri)
 
-    # But with ordered=True, it only counts each triangle once.
-    ddd.process(cat,cat,cat, ordered=True)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri)
-
-    # Or with 2 argument version, finds each triangle 3 times.
+    # Or with 2 argument version
     ddd.process(cat,cat)
-    np.testing.assert_array_equal(ddd.ntri, 3*true_ntri)
-
-    ddd.process(cat,cat, ordered=True)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
+
+    # Now ordered=False finds each triangle 3 times.
+    ddd.process(cat,cat, ordered=False)
+    np.testing.assert_array_equal(ddd.ntri, 3*true_ntri)
 
     do_pickle(ddd)
 
@@ -3114,72 +3122,73 @@ def test_direct_logsas_cross():
     t1 = time.time()
     print('Python brute: ',t1-t0)
 
-    # With the default ordered=False, we end up with the sum of all permutations.
-    true_ntri_sum = true_ntri_123 + true_ntri_132 + true_ntri_213 + true_ntri_231 +\
-            true_ntri_312 + true_ntri_321
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
-
-    # With ordered=True we get just the ones in the given order.
-    t0 = time.time()
-    ddd.process(cat1, cat2, cat3, ordered=True)
-    t1 = time.time()
-    print('brute ordered 123: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
+
     t0 = time.time()
-    ddd.process(cat1, cat3, cat2, ordered=True)
+    ddd.process(cat1, cat3, cat2)
     t1 = time.time()
     print('brute ordered 132: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_132)
     t0 = time.time()
-    ddd.process(cat2, cat1, cat3, ordered=True)
+    ddd.process(cat2, cat1, cat3)
     t1 = time.time()
     print('brute ordered 213: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_213)
     t0 = time.time()
-    ddd.process(cat2, cat3, cat1, ordered=True)
+    ddd.process(cat2, cat3, cat1)
     t1 = time.time()
     print('brute ordered 231: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_231)
     t0 = time.time()
-    ddd.process(cat3, cat1, cat2, ordered=True)
+    ddd.process(cat3, cat1, cat2)
     t1 = time.time()
     print('brute ordered 312: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_312)
     t0 = time.time()
-    ddd.process(cat3, cat2, cat1, ordered=True)
+    ddd.process(cat3, cat2, cat1)
     t1 = time.time()
     print('brute ordered 321: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_321)
+
+    # With ordered=False, we end up with the sum of all permutations.
+    t0 = time.time()
+    ddd.process(cat1, cat2, cat3, ordered=False)
+    t1 = time.time()
+    print('brute unordered: ',t1-t0)
+    true_ntri_sum = true_ntri_123 + true_ntri_132 + true_ntri_213 + true_ntri_231 +\
+            true_ntri_312 + true_ntri_321
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     # Repeat with binslop = 0
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                   bin_slop=0, verbose=1, bin_type='LogSAS')
     t0 = time.time()
-    ddd.process(cat1, cat2, cat3)
-    t1 = time.time()
-    print('bin_slop=0 unordered: ',t1-t0)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
-    t0 = time.time()
     ddd.process(cat1, cat2, cat3, ordered=True)
     t1 = time.time()
     print('bin_slop=0 ordered: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
+
+    t0 = time.time()
+    ddd.process(cat1, cat2, cat3, ordered=False)
+    t1 = time.time()
+    print('bin_slop=0 unordered: ',t1-t0)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     # And again with no top-level recursion
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                   bin_slop=0, verbose=1, max_top=0, bin_type='LogSAS')
     t0 = time.time()
-    ddd.process(cat1, cat2, cat3)
-    t1 = time.time()
-    print('no top unordered: ',t1-t0)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
-    t0 = time.time()
     ddd.process(cat1, cat2, cat3, ordered=True)
     t1 = time.time()
     print('no top ordered: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
+    t0 = time.time()
+    ddd.process(cat1, cat2, cat3, ordered=False)
+    t1 = time.time()
+    print('no top unordered: ',t1-t0)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     # Split into patches to test the list-based version of the code.
     cat1 = treecorr.Catalog(x=x1, y=y1, npatch=10)
@@ -3193,38 +3202,38 @@ def test_direct_logsas_cross():
     t0 = time.time()
     ddd.process(cat1, cat2, cat3)
     t1 = time.time()
-    print('patch unordered: ',t1-t0)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
-    t0 = time.time()
-    ddd.process(cat1, cat2, cat3, ordered=True)
-    t1 = time.time()
     print('patch ordered 123: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
     t0 = time.time()
-    ddd.process(cat1, cat3, cat2, ordered=True)
+    ddd.process(cat1, cat3, cat2)
     t1 = time.time()
     print('patch ordered 132: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_132)
     t0 = time.time()
-    ddd.process(cat2, cat1, cat3, ordered=True)
+    ddd.process(cat2, cat1, cat3)
     t1 = time.time()
     print('patch ordered 213: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_213)
     t0 = time.time()
-    ddd.process(cat2, cat3, cat1, ordered=True)
+    ddd.process(cat2, cat3, cat1)
     t1 = time.time()
     print('patch ordered 231: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_231)
     t0 = time.time()
-    ddd.process(cat3, cat1, cat2, ordered=True)
+    ddd.process(cat3, cat1, cat2)
     t1 = time.time()
     print('patch ordered 312: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_312)
     t0 = time.time()
-    ddd.process(cat3, cat2, cat1, ordered=True)
+    ddd.process(cat3, cat2, cat1)
     t1 = time.time()
     print('patch ordered 321: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_321)
+    t0 = time.time()
+    ddd.process(cat1, cat2, cat3, ordered=False)
+    t1 = time.time()
+    print('patch unordered: ',t1-t0)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
 
 @timer
@@ -3320,26 +3329,26 @@ def test_direct_logsas_cross12():
     t1 = time.time()
     print('Python brute: ',t1-t0)
 
-    # With the default ordered=False, we end up with the sum of all permutations.
-    true_ntri_sum = true_ntri_122 + true_ntri_212 + true_ntri_221
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
-
-    # With ordered=True we get just the ones in the given order.
-    t0 = time.time()
-    ddd.process(cat1, cat2, ordered=True)
-    t1 = time.time()
-    print('brute ordered: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
+
     t0 = time.time()
-    ddd.process(cat2, cat1, cat2, ordered=True)
+    ddd.process(cat2, cat1, cat2)
     t1 = time.time()
     print('brute ordered 212: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_212)
     t0 = time.time()
-    ddd.process(cat2, cat2, cat1, ordered=True)
+    ddd.process(cat2, cat2, cat1)
     t1 = time.time()
     print('brute ordered 221: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_221)
+
+    # With ordered=False, we end up with the sum of all permutations.
+    t0 = time.time()
+    ddd.process(cat1, cat2, ordered=False)
+    t1 = time.time()
+    print('brute ordered: ',t1-t0)
+    true_ntri_sum = true_ntri_122 + true_ntri_212 + true_ntri_221
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     # Repeat with binslop = 0
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
@@ -3348,33 +3357,29 @@ def test_direct_logsas_cross12():
     t0 = time.time()
     ddd.process(cat1, cat2)
     t1 = time.time()
-    print('bin_slop=0 unordered: ',t1-t0)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
-    t0 = time.time()
-    ddd.process(cat1, cat2, ordered=True)
-    t1 = time.time()
     print('bin_slop=0 ordered: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
     t0 = time.time()
-    ddd.process(cat2, cat1, cat2, ordered=True)
+    ddd.process(cat2, cat1, cat2)
     t1 = time.time()
     print('bin_slop=0 ordered 212: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_212)
     t0 = time.time()
-    ddd.process(cat2, cat2, cat1, ordered=True)
+    ddd.process(cat2, cat2, cat1)
     t1 = time.time()
     print('bin_slop=0 ordered 221: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_221)
+
+    t0 = time.time()
+    ddd.process(cat1, cat2, ordered=False)
+    t1 = time.time()
+    print('bin_slop=0 unordered: ',t1-t0)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     # And again with no top-level recursion
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                   bin_slop=0, verbose=1, max_top=0, bin_type='LogSAS')
-    t0 = time.time()
-    ddd.process(cat1, cat2)
-    t1 = time.time()
-    print('no top unordered: ',t1-t0)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
     t0 = time.time()
     ddd.process(cat1, cat2, ordered=True)
     t1 = time.time()
@@ -3390,16 +3395,16 @@ def test_direct_logsas_cross12():
     t1 = time.time()
     print('no top ordered 221: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_221)
+    t0 = time.time()
+    ddd.process(cat1, cat2, ordered=False)
+    t1 = time.time()
+    print('no top unordered: ',t1-t0)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     # Split into patches to test the list-based version of the code.
     cat1 = treecorr.Catalog(x=x1, y=y1, npatch=10)
     cat2 = treecorr.Catalog(x=x2, y=y2, npatch=10)
 
-    t0 = time.time()
-    ddd.process(cat1, cat2)
-    t1 = time.time()
-    print('patch unordered: ',t1-t0)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
     t0 = time.time()
     ddd.process(cat1, cat2, ordered=True)
     t1 = time.time()
@@ -3415,6 +3420,11 @@ def test_direct_logsas_cross12():
     t1 = time.time()
     print('patch ordered 221: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_221)
+    t0 = time.time()
+    ddd.process(cat1, cat2, ordered=False)
+    t1 = time.time()
+    print('patch unordered: ',t1-t0)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
 @timer
 def test_nnn_logsas():
@@ -3478,7 +3488,7 @@ def test_nnn_logsas():
                                    min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                    sep_units='arcmin', verbose=1, bin_type='LogSAS')
     t0 = time.time()
-    dddc.process(cat,cat,cat, ordered=True)
+    dddc.process(cat,cat,cat)
     t1 = time.time()
     print('cross process time = ',t1-t0)
     np.testing.assert_allclose(dddc.ntri, ddd.ntri)
@@ -3488,7 +3498,7 @@ def test_nnn_logsas():
     np.testing.assert_allclose(dddc.meanphi, ddd.meanphi)
 
     t0 = time.time()
-    dddc.process(cat,cat, ordered=True)
+    dddc.process(cat,cat)
     t1 = time.time()
     print('cross12 process time = ',t1-t0)
     np.testing.assert_allclose(dddc.ntri, ddd.ntri)
@@ -3715,8 +3725,8 @@ def test_nnn_logsas():
     drr = ddd.copy()
     rdd = ddd.copy()
 
-    drr.process(cat,rand)
-    rdd.process(rand,cat)
+    drr.process(cat,rand, ordered=False)
+    rdd.process(rand,cat, ordered=False)
 
     zeta, varzeta = ddd.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)
     print('compensated zeta = ',zeta)
@@ -3804,8 +3814,6 @@ def test_nnn_logsas():
         np.testing.assert_almost_equal(data['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
         header = fitsio.read_header(out_file_name3, 1)
         np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
-
-
 
 if __name__ == '__main__':
     test_logruv_binning()

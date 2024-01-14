@@ -148,11 +148,11 @@ def corr3(config, logger=None):
         if rrr is not None and config['nnn_statistic'] == 'compensated':
             logger.warning("Performing DRR calculations...")
             drr = NNNCorrelation(config, logger=logger)
-            drr.process(cat1,rand1)
+            drr.process(cat1,rand1, ordered=False)
             logger.info("Done DRR calculations.")
             logger.warning("Performing DDR calculations...")
             rdd = NNNCorrelation(config, logger=logger)
-            rdd.process(rand1,cat1)
+            rdd.process(rand1,cat1, ordered=False)
             logger.info("Done DDR calculations.")
         ddd.write(config['nnn_file_name'], rrr=rrr, drr=drr, rdd=rdd)
         logger.warning("Wrote NNN correlation to %s",config['nnn_file_name'])

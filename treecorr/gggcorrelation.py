@@ -291,13 +291,13 @@ class GGGCorrelation(Corr3):
         self.corr.processAuto(field.data, self.output_dots,
                               self._bintype, self._metric)
 
-    def process_cross12(self, cat1, cat2, *, metric=None, ordered=False, num_threads=None):
+    def process_cross12(self, cat1, cat2, *, metric=None, ordered=True, num_threads=None):
         """Process two catalogs, accumulating the 3pt cross-correlation, where one of the
         points in each triangle come from the first catalog, and two come from the second.
 
         This accumulates the cross-correlation for the given catalogs as part of a larger
-        auto-correlation calculation.  E.g. when splitting up a large catalog into patches,
-        this is appropriate to use for the cross correlation between different patches
+        auto- or cross-correlation calculation.  E.g. when splitting up a large catalog into
+        patches, this is appropriate to use for the cross correlation between different patches
         as part of the complete auto-correlation of the full catalog.
 
         Parameters:
@@ -309,7 +309,7 @@ class GGGCorrelation(Corr3):
                                 (default: 'Euclidean'; this value can also be given in the
                                 constructor in the config dict.)
             ordered (bool):     Whether to fix the order of the triangle vertices to match the
-                                catalogs. (default: False)
+                                catalogs. (default: True)
             num_threads (int):  How many OpenMP threads to use during the calculation.
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
@@ -341,12 +341,12 @@ class GGGCorrelation(Corr3):
         self.corr.processCross12(f1.data, f2.data, (1 if ordered else 0),
                                  self.output_dots, self._bintype, self._metric)
 
-    def process_cross(self, cat1, cat2, cat3, *, metric=None, ordered=False, num_threads=None):
+    def process_cross(self, cat1, cat2, cat3, *, metric=None, ordered=True, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
 
         This accumulates the cross-correlation for the given catalogs as part of a larger
-        auto-correlation calculation.  E.g. when splitting up a large catalog into patches,
-        this is appropriate to use for the cross correlation between different patches
+        auto- or cross-correlation calculation.  E.g. when splitting up a large catalog into
+        patches, this is appropriate to use for the cross correlation between different patches
         as part of the complete auto-correlation of the full catalog.
 
         Parameters:
@@ -357,7 +357,7 @@ class GGGCorrelation(Corr3):
                                 (default: 'Euclidean'; this value can also be given in the
                                 constructor in the config dict.)
             ordered (bool):     Whether to fix the order of the triangle vertices to match the
-                                catalogs. (default: False)
+                                catalogs. (default: True)
             num_threads (int):  How many OpenMP threads to use during the calculation.
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
@@ -557,7 +557,7 @@ class GGGCorrelation(Corr3):
         np.sum([c.weight for c in others], axis=0, out=self.weight)
         np.sum([c.ntri for c in others], axis=0, out=self.ntri)
 
-    def process(self, cat1, cat2=None, cat3=None, *, metric=None, ordered=False, num_threads=None,
+    def process(self, cat1, cat2=None, cat3=None, *, metric=None, ordered=True, num_threads=None,
                 comm=None, low_mem=False, initialize=True, finalize=True):
         """Compute the 3pt correlation function.
 
@@ -566,11 +566,15 @@ class GGGCorrelation(Corr3):
           first catalog taking one corner of the triangles, and the second taking two corners.
         - If 3 arguments are given, then compute a three-way cross-correlation function.
 
-        For cross correlations, the default behavior is to allow the three triangle vertices
-        (P1, P2, P3) to come from any of the three (or two) catalogs.  However, if you want to
-        keep track of the order of the catalogs, you can set ``ordered=True``, which will fix
-        P1 to come from ``cat1``, P2 from ``cat2`` and P3 from ``cat3``.  The sides d1, d2, d3
-        are taken to be opposite P1, P2, P3 respectively.
+        For cross correlations, the default behavior is to use cat1 for the first vertex (P1),
+        cat2 for the second vertex (P2), and cat3 for the third vertex (P3).  If only two
+        catalogs are given, vertices P2 and P3 both come from cat2.  The sides d1, d2, d3,
+        used to define the binning, are taken to be opposte P1, P2, P3 respectively.
+
+        However, if you want to accumulate triangles where objects from each catalog can take
+        any position in the triangles, you can set ``ordered=False``.  In this case,
+        triangles will be formed where P1, P2 and P3 can come any input catalog, so long as there
+        is one from cat1, one from cat2, and one from cat3 (or two from cat2 if cat3 is None).
 
         All arguments may be lists, in which case all items in the list are used
         for that element of the correlation.
@@ -585,7 +589,7 @@ class GGGCorrelation(Corr3):
                                 (default: 'Euclidean'; this value can also be given in the
                                 constructor in the config dict.)
             ordered (bool):     Whether to fix the order of the triangle vertices to match the
-                                catalogs. (see above; default: False)
+                                catalogs. (see above; default: True)
             num_threads (int):  How many OpenMP threads to use during the calculation.
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)

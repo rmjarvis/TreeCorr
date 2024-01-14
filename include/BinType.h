@@ -417,9 +417,9 @@ struct BinTypeHelper<LogRUV>
         double minu, double minusq, double maxu, double maxusq,
         double minv, double minvsq, double maxv, double maxvsq)
     {
-        dbg<<"Stop111: "<<std::sqrt(d1sq)<<"  "<<std::sqrt(d2sq)<<"  "<<std::sqrt(d3sq)<<std::endl;
-        dbg<<"sizes = "<<s1<<"  "<<s2<<"  "<<s3<<std::endl;
-        dbg<<"sep range = "<<minsep<<"  "<<maxsep<<std::endl;
+        xdbg<<"Stop111: "<<std::sqrt(d1sq)<<"  "<<std::sqrt(d2sq)<<"  "<<std::sqrt(d3sq)<<std::endl;
+        xdbg<<"sizes = "<<s1<<"  "<<s2<<"  "<<s3<<std::endl;
+        xdbg<<"sep range = "<<minsep<<"  "<<maxsep<<std::endl;
 
         if (!O) {
             Assert(d1sq >= d2sq);
@@ -457,19 +457,19 @@ struct BinTypeHelper<LogRUV>
 
             // (d2 + s1+s3) < (d3 - s1-s2)
             if (O == 3 && d3sq > SQR(d2 + 2*s1+s2+s3)) {
-                dbg<<"d2 cannot be larger than d3\n";
+                xdbg<<"d2 cannot be larger than d3\n";
                 return true;
             }
             // (d1 + s2+s3) < (d2 - s1-s3)
             double ss = s1+s2+2*s3;
             if (ss < d2 && d1sq < SQR(d2 - ss)) {
-                dbg<<"d1 cannot be larger than d2\n";
+                xdbg<<"d1 cannot be larger than d2\n";
                 return true;
             }
             d1 = sqrt(d1sq);
             // (d1 + s2+s3) < (d3 - s1-s2)
             if (d3sq > SQR(d1 + s1+2*s2+s3)) {
-                dbg<<"d1 cannot be larger than d3\n";
+                xdbg<<"d1 cannot be larger than d3\n";
                 return true;
             }
         }
@@ -783,7 +783,7 @@ struct BinTypeHelper<LogSAS>
 {
     enum { sort_d123 = false };
 
-    static int calculateNTot(int nbins, int nphibins, int nvbins)
+    static int calculateNTot(int nbins, int nphibins, int )
     { return nbins * nbins * nphibins; }
 
     static bool tooSmallS2(double s2, double halfminsep, double minphi, double )
@@ -1240,6 +1240,7 @@ struct BinTypeHelper<LogSAS>
     }
 
 };
+
 
 #endif
 

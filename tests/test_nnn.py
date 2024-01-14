@@ -64,13 +64,14 @@ def test_logruv_binning():
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
     assert nnn.nbins == 20
+    assert nnn.bin_type == 'LogRUV'
     check_defaultuv(nnn)
     check_arrays(nnn)
 
     # Specify min, max, n for u,v too.
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20,
                                   min_u=0.2, max_u=0.9, nubins=12,
-                                  min_v=0., max_v=0.2, nvbins=2)
+                                  min_v=0., max_v=0.2, nvbins=2, bin_type='LogRUV')
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
     assert nnn.nbins == 20
@@ -83,7 +84,7 @@ def test_logruv_binning():
     check_arrays(nnn)
 
     # Omit min_sep
-    nnn = treecorr.NNNCorrelation(max_sep=20, nbins=20, bin_size=0.1)
+    nnn = treecorr.NNNCorrelation(max_sep=20, nbins=20, bin_size=0.1, bin_type='LogRUV')
     assert nnn.bin_size == 0.1
     assert nnn.max_sep == 20.
     assert nnn.nbins == 20
@@ -93,7 +94,7 @@ def test_logruv_binning():
     # Specify max, n, bs for u,v too.
     nnn = treecorr.NNNCorrelation(max_sep=20, nbins=20, bin_size=0.1,
                                   max_u=0.9, nubins=3, ubin_size=0.05,
-                                  max_v=0.4, nvbins=4, vbin_size=0.05)
+                                  max_v=0.4, nvbins=4, vbin_size=0.05, bin_type='LogRUV')
     assert nnn.bin_size == 0.1
     assert nnn.max_sep == 20.
     assert nnn.nbins == 20
@@ -108,7 +109,7 @@ def test_logruv_binning():
     check_arrays(nnn)
 
     # Omit max_sep
-    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=20, bin_size=0.1)
+    nnn = treecorr.NNNCorrelation(min_sep=5, nbins=20, bin_size=0.1, bin_type='LogRUV')
     assert nnn.bin_size == 0.1
     assert nnn.min_sep == 5.
     assert nnn.nbins == 20
@@ -117,7 +118,7 @@ def test_logruv_binning():
     # Specify min, n, bs for u,v too.
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=20, bin_size=0.1,
                                   min_u=0.7, nubins=4, ubin_size=0.05,
-                                  min_v=0.2, nvbins=4, vbin_size=0.05)
+                                  min_v=0.2, nvbins=4, vbin_size=0.05, bin_type='LogRUV')
     assert nnn.min_sep == 5.
     assert nnn.bin_size == 0.1
     assert nnn.nbins == 20
@@ -131,7 +132,7 @@ def test_logruv_binning():
     check_arrays(nnn)
 
     # Omit nbins
-    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1)
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1, bin_type='LogRUV')
     assert nnn.bin_size <= 0.1
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
@@ -140,7 +141,7 @@ def test_logruv_binning():
     # Specify min, max, bs for u,v too.
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
                                   min_u=0.2, max_u=0.9, ubin_size=0.03,
-                                  min_v=0.1, max_v=0.3, vbin_size=0.07)
+                                  min_v=0.1, max_v=0.3, vbin_size=0.07, bin_type='LogRUV')
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
     assert nnn.bin_size <= 0.1
@@ -157,7 +158,7 @@ def test_logruv_binning():
     # If only one of min/max v are set, respect that
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
                                   min_u=0.2, ubin_size=0.03,
-                                  min_v=0.2, vbin_size=0.07)
+                                  min_v=0.2, vbin_size=0.07, bin_type='LogRUV')
     assert nnn.min_u == 0.2
     assert nnn.max_u == 1.
     assert nnn.nubins == 27
@@ -169,7 +170,7 @@ def test_logruv_binning():
     check_arrays(nnn)
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
                                   max_u=0.2, ubin_size=0.03,
-                                  max_v=0.2, vbin_size=0.07)
+                                  max_v=0.2, vbin_size=0.07, bin_type='LogRUV')
     assert nnn.min_u == 0.
     assert nnn.max_u == 0.2
     assert nnn.nubins == 7
@@ -183,7 +184,7 @@ def test_logruv_binning():
     # If only vbin_size is set for v, automatically figure out others.
     # (And if necessary adjust the bin_size down a bit.)
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
-                                  ubin_size=0.3, vbin_size=0.3)
+                                  ubin_size=0.3, vbin_size=0.3, bin_type='LogRUV')
     assert nnn.bin_size <= 0.1
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
@@ -199,7 +200,7 @@ def test_logruv_binning():
 
     # If only nvbins is set for v, automatically figure out others.
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
-                                  nubins=5, nvbins=5)
+                                  nubins=5, nvbins=5, bin_type='LogRUV')
     assert nnn.bin_size <= 0.1
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
@@ -216,7 +217,7 @@ def test_logruv_binning():
     # If both nvbins and vbin_size are set, set min/max automatically
     nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, bin_size=0.1,
                                   ubin_size=0.1, nubins=5,
-                                  vbin_size=0.1, nvbins=5)
+                                  vbin_size=0.1, nvbins=5, bin_type='LogRUV')
     assert nnn.bin_size <= 0.1
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
@@ -253,35 +254,36 @@ def test_logruv_binning():
     assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=20, max_sep=5, nbins=20,
                   bin_type='Invalid')
     assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
-                  min_u=0.3, max_u=0.9, ubin_size=0.1, nubins=6)
+                  min_u=0.3, max_u=0.9, ubin_size=0.1, nubins=6, bin_type='LogRUV')
     assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
-                  min_u=0.9, max_u=0.3)
+                  min_u=0.9, max_u=0.3, bin_type='LogRUV')
     assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
-                  min_u=-0.1, max_u=0.3)
+                  min_u=-0.1, max_u=0.3, bin_type='LogRUV')
     assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
-                  min_u=0.1, max_u=1.3)
+                  min_u=0.1, max_u=1.3, bin_type='LogRUV')
     assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
-                  min_v=0.1, max_v=0.9, vbin_size=0.1, nvbins=9)
+                  min_v=0.1, max_v=0.9, vbin_size=0.1, nvbins=9, bin_type='LogRUV')
     assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
-                  min_v=0.9, max_v=0.3)
+                  min_v=0.9, max_v=0.3, bin_type='LogRUV')
     assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
-                  min_v=-0.1, max_v=0.3)
+                  min_v=-0.1, max_v=0.3, bin_type='LogRUV')
     assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
-                  min_v=0.1, max_v=1.3)
+                  min_v=0.1, max_v=1.3, bin_type='LogRUV')
     assert_raises(ValueError, treecorr.NNNCorrelation, min_sep=20, max_sep=5, nbins=20,
-                  split_method='invalid')
+                  split_method='invalid', bin_type='LogRUV')
     assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
-                  phi_bin_size=0.3)
+                  phi_bin_size=0.3, bin_type='LogRUV')
     assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
-                  nphi_bins=3)
+                  nphi_bins=3, bin_type='LogRUV')
     assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
-                  min_phi=0.3)
+                  min_phi=0.3, bin_type='LogRUV')
     assert_raises(TypeError, treecorr.NNNCorrelation, min_sep=5, max_sep=20, bin_size=0.1,
-                  max_phi=0.3)
+                  max_phi=0.3, bin_type='LogRUV')
 
     # Check the use of sep_units
     # radians
-    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='radians')
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='radians',
+                                  bin_type='LogRUV')
     np.testing.assert_almost_equal(nnn.min_sep, 5.)
     np.testing.assert_almost_equal(nnn.max_sep, 20.)
     np.testing.assert_almost_equal(nnn._min_sep, 5.)
@@ -293,7 +295,8 @@ def test_logruv_binning():
     check_arrays(nnn)
 
     # arcsec
-    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='arcsec')
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='arcsec',
+                                  bin_type='LogRUV')
     np.testing.assert_almost_equal(nnn.min_sep, 5.)
     np.testing.assert_almost_equal(nnn.max_sep, 20.)
     np.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/180/3600)
@@ -307,7 +310,8 @@ def test_logruv_binning():
     check_defaultuv(nnn)
 
     # arcmin
-    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='arcmin')
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='arcmin',
+                                  bin_type='LogRUV')
     np.testing.assert_almost_equal(nnn.min_sep, 5.)
     np.testing.assert_almost_equal(nnn.max_sep, 20.)
     np.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/180/60)
@@ -320,7 +324,8 @@ def test_logruv_binning():
     check_defaultuv(nnn)
 
     # degrees
-    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='degrees')
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='degrees',
+                                  bin_type='LogRUV')
     np.testing.assert_almost_equal(nnn.min_sep, 5.)
     np.testing.assert_almost_equal(nnn.max_sep, 20.)
     np.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/180)
@@ -333,7 +338,8 @@ def test_logruv_binning():
     check_defaultuv(nnn)
 
     # hours
-    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='hours')
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, sep_units='hours',
+                                  bin_type='LogRUV')
     np.testing.assert_almost_equal(nnn.min_sep, 5.)
     np.testing.assert_almost_equal(nnn.max_sep, 20.)
     np.testing.assert_almost_equal(nnn._min_sep, 5. * math.pi/12)
@@ -349,7 +355,8 @@ def test_logruv_binning():
     # Start with default behavior
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1,
                                   min_u=0., max_u=0.9, ubin_size=0.03,
-                                  min_v=0., max_v=0.21, vbin_size=0.07)
+                                  min_v=0., max_v=0.21, vbin_size=0.07,
+                                  bin_type='LogRUV')
     assert nnn.bin_slop == 1.0
     assert nnn.bin_size == 0.1
     assert np.isclose(nnn.ubin_size, 0.03)
@@ -361,7 +368,8 @@ def test_logruv_binning():
     # Explicitly set bin_slop=1.0 does the same thing.
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=1.0,
                                   min_u=0., max_u=0.9, ubin_size=0.03,
-                                  min_v=0., max_v=0.21, vbin_size=0.07)
+                                  min_v=0., max_v=0.21, vbin_size=0.07,
+                                  bin_type='LogRUV')
     assert nnn.bin_slop == 1.0
     assert nnn.bin_size == 0.1
     assert np.isclose(nnn.ubin_size, 0.03)
@@ -373,7 +381,8 @@ def test_logruv_binning():
     # Use a smaller bin_slop
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=0.2,
                                   min_u=0., max_u=0.9, ubin_size=0.03,
-                                  min_v=0., max_v=0.21, vbin_size=0.07)
+                                  min_v=0., max_v=0.21, vbin_size=0.07,
+                                  bin_type='LogRUV')
     assert nnn.bin_slop == 0.2
     assert nnn.bin_size == 0.1
     assert np.isclose(nnn.ubin_size, 0.03)
@@ -385,7 +394,8 @@ def test_logruv_binning():
     # Use bin_slop == 0
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=0.0,
                                   min_u=0., max_u=0.9, ubin_size=0.03,
-                                  min_v=0., max_v=0.21, vbin_size=0.07)
+                                  min_v=0., max_v=0.21, vbin_size=0.07,
+                                  bin_type='LogRUV')
     assert nnn.bin_slop == 0.0
     assert nnn.bin_size == 0.1
     assert np.isclose(nnn.ubin_size, 0.03)
@@ -397,7 +407,8 @@ def test_logruv_binning():
     # Bigger bin_slop
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.1, bin_slop=2.0,
                                   min_u=0., max_u=0.9, ubin_size=0.03,
-                                  min_v=0., max_v=0.21, vbin_size=0.07, verbose=0)
+                                  min_v=0., max_v=0.21, vbin_size=0.07, verbose=0,
+                                  bin_type='LogRUV')
     assert nnn.bin_slop == 2.0
     assert nnn.bin_size == 0.1
     assert np.isclose(nnn.ubin_size, 0.03)
@@ -409,7 +420,8 @@ def test_logruv_binning():
     # With bin_size > 0.1, explicit bin_slop=1.0 is accepted.
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.4, bin_slop=1.0,
                                   min_u=0., max_u=0.9, ubin_size=0.03,
-                                  min_v=0., max_v=0.21, vbin_size=0.07, verbose=0)
+                                  min_v=0., max_v=0.21, vbin_size=0.07, verbose=0,
+                                  bin_type='LogRUV')
     assert nnn.bin_slop == 1.0
     assert nnn.bin_size == 0.4
     assert np.isclose(nnn.ubin_size, 0.03)
@@ -421,7 +433,8 @@ def test_logruv_binning():
     # But implicit bin_slop is reduced so that b = 0.1
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.4,
                                   min_u=0., max_u=0.9, ubin_size=0.03,
-                                  min_v=0., max_v=0.21, vbin_size=0.07)
+                                  min_v=0., max_v=0.21, vbin_size=0.07,
+                                  bin_type='LogRUV')
     assert nnn.bin_size == 0.4
     assert np.isclose(nnn.ubin_size, 0.03)
     assert np.isclose(nnn.vbin_size, 0.07)
@@ -433,7 +446,8 @@ def test_logruv_binning():
     # Separately for each of the three parameters
     nnn = treecorr.NNNCorrelation(min_sep=5, nbins=14, bin_size=0.05,
                                   min_u=0., max_u=0.9, ubin_size=0.3,
-                                  min_v=0., max_v=0.17, vbin_size=0.17)
+                                  min_v=0., max_v=0.17, vbin_size=0.17,
+                                  bin_type='LogRUV')
     assert nnn.bin_size == 0.05
     assert np.isclose(nnn.ubin_size, 0.3)
     assert np.isclose(nnn.vbin_size, 0.17)
@@ -473,10 +487,12 @@ def test_logsas_binning():
 
     # Check the different ways to set up the binning:
     # Omit bin_size
-    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20, bin_type='LogSAS')
+    # Default is LogSAS
+    nnn = treecorr.NNNCorrelation(min_sep=5, max_sep=20, nbins=20)
     assert nnn.min_sep == 5.
     assert nnn.max_sep == 20.
     assert nnn.nbins == 20
+    assert nnn.bin_type == 'LogSAS'
     check_default_phi(nnn)
     check_arrays(nnn)
 
@@ -843,7 +859,7 @@ def test_direct_logruv_auto():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  brute=True, verbose=1)
+                                  brute=True, verbose=1, bin_type='LogRUV')
     ddd.process(cat)
 
     log_min_sep = np.log(min_sep)
@@ -920,7 +936,7 @@ def test_direct_logruv_auto():
     rrr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  brute=True, verbose=0, rng=rng)
+                                  brute=True, verbose=0, rng=rng, bin_type='LogRUV')
     rrr.process(rcat)
     zeta, varzeta = ddd.calculateZeta(rrr=rrr)
 
@@ -958,11 +974,11 @@ def test_direct_logruv_auto():
     drr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  brute=True, verbose=0)
+                                  brute=True, verbose=0, bin_type='LogRUV')
     rdd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  brute=True, verbose=0)
+                                  brute=True, verbose=0, bin_type='LogRUV')
     drr.process(cat, rcat, ordered=False)
     rdd.process(rcat, cat, ordered=False)
     zeta, varzeta = ddd.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)
@@ -990,7 +1006,7 @@ def test_direct_logruv_auto():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=1)
+                                  bin_slop=0, verbose=1, bin_type='LogRUV')
     ddd.process(cat)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
@@ -998,7 +1014,7 @@ def test_direct_logruv_auto():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=1, max_top=0)
+                                  bin_slop=0, verbose=1, max_top=0, bin_type='LogRUV')
     ddd.process(cat)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
@@ -1006,7 +1022,7 @@ def test_direct_logruv_auto():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=1)
+                                  bin_slop=0, verbose=1, bin_type='LogRUV')
     ddd.process(cat,cat,cat, num_threads=2)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
@@ -1090,7 +1106,7 @@ def test_direct_logruv_auto():
     ddd.write(ascii_name, precision=16)
     ddd3 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, nubins=nubins,
-                                   min_v=min_v, max_v=max_v, nvbins=nvbins)
+                                   min_v=min_v, max_v=max_v, nvbins=nvbins, bin_type='LogRUV')
     ddd3.read(ascii_name)
     np.testing.assert_allclose(ddd3.ntri, ddd.ntri)
     np.testing.assert_allclose(ddd3.weight, ddd.weight)
@@ -1107,47 +1123,47 @@ def test_direct_logruv_auto():
         ddd2 += config
     ddd4 = treecorr.NNNCorrelation(min_sep=min_sep/2, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, nubins=nubins,
-                                   min_v=min_v, max_v=max_v, nvbins=nvbins)
+                                   min_v=min_v, max_v=max_v, nvbins=nvbins, bin_type='LogRUV')
     with assert_raises(ValueError):
         ddd2 += ddd4
     ddd5 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep*2, nbins=nbins,
                                    min_u=min_u, max_u=max_u, nubins=nubins,
-                                   min_v=min_v, max_v=max_v, nvbins=nvbins)
+                                   min_v=min_v, max_v=max_v, nvbins=nvbins, bin_type='LogRUV')
     with assert_raises(ValueError):
         ddd2 += ddd5
     ddd6 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins*2,
                                    min_u=min_u, max_u=max_u, nubins=nubins,
-                                   min_v=min_v, max_v=max_v, nvbins=nvbins)
+                                   min_v=min_v, max_v=max_v, nvbins=nvbins, bin_type='LogRUV')
     with assert_raises(ValueError):
         ddd2 += ddd6
     ddd7 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u-0.1, max_u=max_u, nubins=nubins,
-                                   min_v=min_v, max_v=max_v, nvbins=nvbins)
+                                   min_v=min_v, max_v=max_v, nvbins=nvbins, bin_type='LogRUV')
     with assert_raises(ValueError):
         ddd2 += ddd7
     ddd8 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u+0.1, nubins=nubins,
-                                   min_v=min_v, max_v=max_v, nvbins=nvbins)
+                                   min_v=min_v, max_v=max_v, nvbins=nvbins, bin_type='LogRUV')
     with assert_raises(ValueError):
         ddd2 += ddd8
     ddd9 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, nubins=nubins*2,
-                                   min_v=min_v, max_v=max_v, nvbins=nvbins)
+                                   min_v=min_v, max_v=max_v, nvbins=nvbins, bin_type='LogRUV')
     with assert_raises(ValueError):
         ddd2 += ddd9
     ddd10 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                     min_u=min_u, max_u=max_u, nubins=nubins,
-                                    min_v=min_v-0.1, max_v=max_v, nvbins=nvbins)
+                                    min_v=min_v-0.1, max_v=max_v, nvbins=nvbins, bin_type='LogRUV')
     with assert_raises(ValueError):
         ddd2 += ddd10
     ddd11 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                     min_u=min_u, max_u=max_u, nubins=nubins,
-                                    min_v=min_v, max_v=max_v+0.1, nvbins=nvbins)
+                                    min_v=min_v, max_v=max_v+0.1, nvbins=nvbins, bin_type='LogRUV')
     with assert_raises(ValueError):
         ddd2 += ddd11
     ddd12 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                     min_u=min_u, max_u=max_u, nubins=nubins,
-                                    min_v=min_v, max_v=max_v, nvbins=nvbins*2)
+                                    min_v=min_v, max_v=max_v, nvbins=nvbins*2, bin_type='LogRUV')
     with assert_raises(ValueError):
         ddd2 += ddd12
 
@@ -1157,7 +1173,7 @@ def test_direct_logruv_auto():
         ddd13 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                         min_u=min_u, max_u=max_u, nubins=nubins,
                                         min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                        logger=cl.logger)
+                                        logger=cl.logger, bin_type='LogRUV')
         ddd13.process_auto(cat2)
         ddd13 += ddd2
     assert "Detected a change in catalog coordinate systems" in cl.output
@@ -1166,7 +1182,7 @@ def test_direct_logruv_auto():
         ddd14 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                         min_u=min_u, max_u=max_u, nubins=nubins,
                                         min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                        logger=cl.logger)
+                                        logger=cl.logger, bin_type='LogRUV')
         ddd14.process_auto(cat2, metric='Arc')
         ddd14 += ddd2
     assert "Detected a change in metric" in cl.output
@@ -1180,7 +1196,7 @@ def test_direct_logruv_auto():
         ddd.write(fits_name)
         ddd15 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                         min_u=min_u, max_u=max_u, nubins=nubins,
-                                        min_v=min_v, max_v=max_v, nvbins=nvbins)
+                                        min_v=min_v, max_v=max_v, nvbins=nvbins, bin_type='LogRUV')
         ddd15.read(fits_name)
         np.testing.assert_allclose(ddd15.ntri, ddd.ntri)
         np.testing.assert_allclose(ddd15.weight, ddd.weight)
@@ -1227,7 +1243,7 @@ def test_direct_logruv_cross():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  brute=True, verbose=1)
+                                  brute=True, verbose=1, bin_type='LogRUV')
     t0 = time.time()
     ddd.process(cat1, cat2, cat3)
     t1 = time.time()
@@ -1339,7 +1355,7 @@ def test_direct_logruv_cross():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=1)
+                                  bin_slop=0, verbose=1, bin_type='LogRUV')
 
     t0 = time.time()
     ddd.process(cat1, cat2, cat3)
@@ -1382,7 +1398,7 @@ def test_direct_logruv_cross():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=1, max_top=0)
+                                  bin_slop=0, verbose=1, max_top=0, bin_type='LogRUV')
     t0 = time.time()
     ddd.process(cat1, cat2, cat3)
     t1 = time.time()
@@ -1424,7 +1440,7 @@ def test_direct_logruv_cross12():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  brute=True, verbose=1)
+                                  brute=True, verbose=1, bin_type='LogRUV')
     t0 = time.time()
     ddd.process(cat1, cat2)
     t1 = time.time()
@@ -1517,7 +1533,7 @@ def test_direct_logruv_cross12():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=1)
+                                  bin_slop=0, verbose=1, bin_type='LogRUV')
     t0 = time.time()
     ddd.process(cat1, cat2)
     t1 = time.time()
@@ -1544,7 +1560,7 @@ def test_direct_logruv_cross12():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=1, max_top=0)
+                                  bin_slop=0, verbose=1, max_top=0, bin_type='LogRUV')
     t0 = time.time()
     ddd.process(cat1, cat2)
     t1 = time.time()
@@ -1558,7 +1574,7 @@ def test_direct_logruv_cross12():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=1)
+                                  bin_slop=0, verbose=1, bin_type='LogRUV')
     t0 = time.time()
     ddd.process(cat1, cat2)
     t1 = time.time()
@@ -1596,7 +1612,7 @@ def test_direct_logruv_spherical():
     nubins = 5
     nvbins = 5
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                  sep_units='deg', brute=True)
+                                  sep_units='deg', brute=True, bin_type='LogRUV')
     ddd.process(cat, num_threads=2)
 
     r = np.sqrt(x**2 + y**2 + z**2)
@@ -1665,7 +1681,7 @@ def test_direct_logruv_spherical():
     # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                  sep_units='deg', bin_slop=0, max_top=0)
+                                  sep_units='deg', bin_slop=0, max_top=0, bin_type='LogRUV')
     ddd.process(cat)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
     np.testing.assert_allclose(ddd.weight, true_weight, rtol=1.e-5, atol=1.e-8)
@@ -1701,7 +1717,7 @@ def test_direct_logruv_arc():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
                                   nubins=nubins, ubin_size=ubin_size,
                                   nvbins=nvbins, vbin_size=vbin_size,
-                                  sep_units='deg', brute=True)
+                                  sep_units='deg', brute=True, bin_type='LogRUV')
     ddd.process(cat, metric='Arc')
 
     r = np.sqrt(x**2 + y**2 + z**2)
@@ -1772,7 +1788,7 @@ def test_direct_logruv_arc():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
                                   nubins=nubins, ubin_size=ubin_size,
                                   nvbins=nvbins, vbin_size=vbin_size,
-                                  sep_units='deg', bin_slop=0, max_top=0)
+                                  sep_units='deg', bin_slop=0, max_top=0, bin_type='LogRUV')
     ddd.process(cat, metric='Arc')
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
     np.testing.assert_allclose(ddd.weight, true_weight, rtol=1.e-5, atol=1.e-8)
@@ -1811,7 +1827,7 @@ def test_direct_logruv_partial():
     ddda = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, nubins=nubins,
                                    min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                   brute=True)
+                                   brute=True, bin_type='LogRUV')
     ddda.process(cat1a, cat2a, cat3a)
 
     log_min_sep = np.log(min_sep)
@@ -1902,7 +1918,7 @@ def test_direct_logruv_partial():
     dddb = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, nubins=nubins,
                                    min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                   brute=True)
+                                   brute=True, bin_type='LogRUV')
     dddb.process(cat1b, cat2b, cat3b)
     np.testing.assert_array_equal(dddb.ntri, true_ntri_123)
 
@@ -1940,7 +1956,7 @@ def test_direct_logruv_3d_auto():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  brute=True, verbose=1)
+                                  brute=True, verbose=1, bin_type='LogRUV')
     ddd.process(cat)
 
     log_min_sep = np.log(min_sep)
@@ -2004,7 +2020,7 @@ def test_direct_logruv_3d_auto():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=1)
+                                  bin_slop=0, verbose=1, bin_type='LogRUV')
     ddd.process(cat)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
@@ -2012,7 +2028,7 @@ def test_direct_logruv_3d_auto():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=1, max_top=0)
+                                  bin_slop=0, verbose=1, max_top=0, bin_type='LogRUV')
     ddd.process(cat)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
@@ -2020,7 +2036,7 @@ def test_direct_logruv_3d_auto():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=1)
+                                  bin_slop=0, verbose=1, bin_type='LogRUV')
     ddd.process(cat,cat,cat)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
@@ -2080,7 +2096,7 @@ def test_direct_logruv_3d_cross():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  brute=True, verbose=1)
+                                  brute=True, verbose=1, bin_type='LogRUV')
     ddd.process(cat1, cat2, cat3)
 
     log_min_sep = np.log(min_sep)
@@ -2160,7 +2176,7 @@ def test_direct_logruv_3d_cross():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=1)
+                                  bin_slop=0, verbose=1, bin_type='LogRUV')
     ddd.process(cat1, cat2, cat3)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
     ddd.process(cat1, cat2, cat3, ordered=False)
@@ -2170,7 +2186,7 @@ def test_direct_logruv_3d_cross():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=1, max_top=0)
+                                  bin_slop=0, verbose=1, max_top=0, bin_type='LogRUV')
     ddd.process(cat1, cat2, cat3, ordered=True)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
     ddd.process(cat1, cat2, cat3, ordered=False)
@@ -2184,7 +2200,7 @@ def test_direct_logruv_3d_cross():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=1)
+                                  bin_slop=0, verbose=1, bin_type='LogRUV')
 
     ddd.process(cat1, cat2, cat3, ordered=True)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
@@ -2247,14 +2263,14 @@ def test_nnn_logruv():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                   nubins=nubins, nvbins=nvbins,
-                                  sep_units='arcmin', verbose=1)
+                                  sep_units='arcmin', verbose=1, bin_type='LogRUV')
     ddd.process(cat)
 
     # Using bin_size=None rather than omitting bin_size is equivalent.
     ddd2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_size=None,
                                    min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                    nubins=nubins, nvbins=nvbins,
-                                   sep_units='arcmin', verbose=1)
+                                   sep_units='arcmin', verbose=1, bin_type='LogRUV')
     ddd2.process(cat, num_threads=1)
     ddd.process(cat, num_threads=1)
     assert ddd2 == ddd
@@ -2289,7 +2305,7 @@ def test_nnn_logruv():
     rrr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                   nubins=nubins, nvbins=nvbins,
-                                  sep_units='arcmin', verbose=1)
+                                  sep_units='arcmin', verbose=1, bin_type='LogRUV')
     rrr.process(rand)
 
     d1 = ddd.meand1
@@ -2373,7 +2389,7 @@ def test_nnn_logruv():
         ddd2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                        min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                        nubins=nubins, nvbins=nvbins,
-                                       sep_units='arcmin', verbose=1)
+                                       sep_units='arcmin', verbose=1, bin_type='LogRUV')
         ddd2.read(out_file_name1)
         np.testing.assert_almost_equal(ddd2.logr, ddd.logr)
         np.testing.assert_almost_equal(ddd2.u, ddd.u)
@@ -2444,7 +2460,7 @@ def test_nnn_logruv():
         ddd3 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                        min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                        nubins=nubins, nvbins=nvbins,
-                                       sep_units='arcmin', verbose=1)
+                                       sep_units='arcmin', verbose=1, bin_type='LogRUV')
         ddd3.read(out_file_name3)
         np.testing.assert_almost_equal(ddd3.logr, ddd.logr)
         np.testing.assert_almost_equal(ddd3.u, ddd.u)
@@ -2480,7 +2496,8 @@ def test_nnn_logruv():
         ddd.calculateZeta(rrr=rrr, drr=rrr)
     rrr2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                   nubins=nubins, nvbins=nvbins, sep_units='arcmin')
+                                   nubins=nubins, nvbins=nvbins, sep_units='arcmin',
+                                   bin_type='LogRUV')
     # Error if any of them haven't been run yet.
     with assert_raises(ValueError):
         ddd.calculateZeta(rrr=rrr2, drr=rrr, rdd=rrr)
@@ -2665,7 +2682,7 @@ def test_3d_logruv():
     cat = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='deg', dec_units='deg')
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                  nubins=nubins, nvbins=nvbins, verbose=1)
+                                  nubins=nubins, nvbins=nvbins, verbose=1, bin_type='LogRUV')
     ddd.process(cat)
 
     rx = (rng.random_sample(nrand)-0.5) * L + xcen
@@ -2678,7 +2695,7 @@ def test_3d_logruv():
     rand = treecorr.Catalog(ra=rra, dec=rdec, r=rr, ra_units='deg', dec_units='deg')
     rrr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                  nubins=nubins, nvbins=nvbins, verbose=1)
+                                  nubins=nubins, nvbins=nvbins, verbose=1, bin_type='LogRUV')
     rrr.process(rand)
 
     d1 = ddd.meand1
@@ -2744,13 +2761,15 @@ def test_list_logruv():
 
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                  nubins=nubins, nvbins=nvbins, bin_slop=0.1, verbose=1)
+                                  nubins=nubins, nvbins=nvbins, bin_slop=0.1, verbose=1,
+                                  bin_type='LogRUV')
     ddd.process(data_cats)
 
     # Now do the same thing with one big catalog
     dddx = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                   nubins=nubins, nvbins=nvbins, bin_slop=0.1, verbose=1)
+                                   nubins=nubins, nvbins=nvbins, bin_slop=0.1, verbose=1,
+                                   bin_type='LogRUV')
     data_catx = treecorr.Catalog(x=x.reshape( (ngal*ncats,) ), y=y.reshape( (ngal*ncats,) ))
     dddx.process(data_catx)
     # Only test to rtol=0.1, since there are now differences between the auto and cross related
@@ -2760,12 +2779,14 @@ def test_list_logruv():
 
     rrr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                  nubins=nubins, nvbins=nvbins, bin_slop=0.1, verbose=1)
+                                  nubins=nubins, nvbins=nvbins, bin_slop=0.1, verbose=1,
+                                  bin_type='LogRUV')
     rrr.process(rand_cats)
 
     rrrx = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                   nubins=nubins, nvbins=nvbins, bin_slop=0.1, verbose=1)
+                                   nubins=nubins, nvbins=nvbins, bin_slop=0.1, verbose=1,
+                                   bin_type='LogRUV')
     rand_catx = treecorr.Catalog(x=rx.reshape( (nrand*ncats,) ), y=ry.reshape( (nrand*ncats,) ))
     rrrx.process(rand_catx)
     np.testing.assert_allclose(rrr.ntri, rrrx.ntri, rtol=0.1)

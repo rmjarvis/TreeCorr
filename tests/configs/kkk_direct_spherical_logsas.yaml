@@ -10,6 +10,7 @@ w_col: w
 
 verbose: 1
 
+bin_type: LogSAS
 min_sep: 5.
 max_sep: 100.
 nbins: 3
@@ -17,6 +18,5 @@ sep_units: degrees
 nphi_bins: 6
 phi_units: degrees
 bin_slop: 0
-bin_type: LogSAS
 
 kkk_file_name: output/kkk_direct_sph_logsas.fits

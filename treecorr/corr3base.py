@@ -111,7 +111,7 @@ class Corr3(object):
           linearly from min_u .. max_u and min_v .. max_v.
         - 'LogSAS' uses the SAS description given above. The bin steps will be uniform in log(d)
           for both d2 and d3 from log(min_sep) .. log(max_sep).  The phi values are binned
-          linearly from min_phi .. max_phi.
+          linearly from min_phi .. max_phi.  This is the default.
 
     Parameters:
         config (dict):      A configuration dict that can be used to pass in the below kwargs if
@@ -226,7 +226,7 @@ class Corr3(object):
         metric (str):       Which metric to use for distance measurements.  Options are listed
                             above.  (default: 'Euclidean')
         bin_type (str):     What type of binning should be used.  Only one option currently.
-                            (default: 'LogRUV')
+                            (default: 'LogSAS')
         period (float):     For the 'Periodic' metric, the period to use in all directions.
                             (default: None)
         xperiod (float):    For the 'Periodic' metric, the period to use in the x direction.
@@ -316,7 +316,7 @@ class Corr3(object):
                 'The number of digits after the decimal in the output.'),
         'metric': (str, False, 'Euclidean', ['Euclidean', 'Arc', 'Periodic'],
                 'Which metric to use for the distance measurements'),
-        'bin_type': (str, False, 'LogRUV', ['LogRUV', 'LogSAS'],
+        'bin_type': (str, False, 'LogSAS', ['LogRUV', 'LogSAS'],
                 'Which type of binning should be used'),
         'period': (float, False, None, None,
                 'The period to use for all directions for the Periodic metric'),
@@ -361,7 +361,7 @@ class Corr3(object):
         else:
             self._ro.output_dots = get(self.config,'verbose',int,1) >= 2
 
-        self._ro.bin_type = self.config.get('bin_type', 'LogRUV')
+        self._ro.bin_type = self.config.get('bin_type', 'LogSAS')
 
         self._ro.sep_units = self.config.get('sep_units','')
         self._ro._sep_units = get(self.config,'sep_units',str,'radians')

@@ -11,12 +11,12 @@ w_col: w
 
 verbose: 1
 
+bin_type: LogSAS
 min_sep: 1.
 max_sep: 10.
 nbins: 10
 nphi_bins: 10
 sep_units: arcmin
 bin_slop: 0
-bin_type: LogSAS
 
 ggg_file_name: output/ggg_direct_logsas.fits

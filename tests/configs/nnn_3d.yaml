@@ -10,6 +10,7 @@ dec_units: deg
 
 verbose: 1
 
+bin_type: LogRUV
 min_sep: 10.
 max_sep: 20.
 nbins: 8

@@ -363,7 +363,8 @@ def test_3pt():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, xperiod=Lx, yperiod=Ly, brute=True)
+                                  bin_slop=0, xperiod=Lx, yperiod=Ly, brute=True,
+                                  bin_type='LogRUV')
     ddd.process(cat, metric='Periodic', num_threads=1)
     #print('ddd.ntri = ',ddd.ntri)
 
@@ -452,7 +453,8 @@ def test_3pt():
     # If don't give a period, then an error.
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
-                                  min_v=min_v, max_v=max_v, nvbins=nvbins)
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_type='LogRUV')
     with assert_raises(ValueError):
         ddd.process(cat, metric='Periodic')
 
@@ -460,13 +462,13 @@ def test_3pt():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  xperiod=3)
+                                  xperiod=3, bin_type='LogRUV')
     with assert_raises(ValueError):
         ddd.process(cat, metric='Periodic')
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  yperiod=3)
+                                  yperiod=3, bin_type='LogRUV')
     with assert_raises(ValueError):
         ddd.process(cat, metric='Periodic')
 
@@ -474,7 +476,7 @@ def test_3pt():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  period=3)
+                                  period=3, bin_type='LogRUV')
     with assert_raises(ValueError):
         ddd.process(cat)
 

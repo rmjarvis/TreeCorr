@@ -124,8 +124,8 @@ def test_kkk_jk():
             print(run,': ',np.mean(k),np.std(k))
             cat = treecorr.Catalog(x=x, y=y, k=k)
             kkk = treecorr.KKKCorrelation(nbins=3, min_sep=30., max_sep=100.,
-                                           min_u=0.9, max_u=1.0, nubins=1,
-                                           min_v=0.0, max_v=0.1, nvbins=1)
+                                          min_u=0.9, max_u=1.0, nubins=1,
+                                          min_v=0.0, max_v=0.1, nvbins=1, bin_type='LogRUV')
             kkk.process(cat)
             print(kkk.ntri.ravel().tolist())
             print(kkk.zeta.ravel().tolist())
@@ -147,7 +147,7 @@ def test_kkk_jk():
     cat = treecorr.Catalog(x=x, y=y, k=k)
     kkk = treecorr.KKKCorrelation(nbins=3, min_sep=30., max_sep=100.,
                                   min_u=0.9, max_u=1.0, nubins=1,
-                                  min_v=0.0, max_v=0.1, nvbins=1, rng=rng)
+                                  min_v=0.0, max_v=0.1, nvbins=1, rng=rng, bin_type='LogRUV')
     kkk.process(cat)
     print(kkk.ntri.ravel())
     print(kkk.zeta.ravel())
@@ -251,7 +251,7 @@ def test_kkk_jk():
         kkkp.write(file_name, write_patch_results=True)
         kkk3 = treecorr.KKKCorrelation(nbins=3, min_sep=30., max_sep=100.,
                                        min_u=0.9, max_u=1.0, nubins=1,
-                                       min_v=0.0, max_v=0.1, nvbins=1, rng=rng)
+                                       min_v=0.0, max_v=0.1, nvbins=1, rng=rng, bin_type='LogRUV')
         kkk3.read(file_name)
         cov3 = kkk3.estimate_cov('jackknife')
         np.testing.assert_allclose(cov3, cov1)
@@ -261,7 +261,7 @@ def test_kkk_jk():
     kkkp.write(file_name, write_patch_results=True)
     kkk4 = treecorr.KKKCorrelation(nbins=3, min_sep=30., max_sep=100.,
                                    min_u=0.9, max_u=1.0, nubins=1,
-                                   min_v=0.0, max_v=0.1, nvbins=1, rng=rng)
+                                   min_v=0.0, max_v=0.1, nvbins=1, rng=rng, bin_type='LogRUV')
     kkk4.read(file_name)
     cov4 = kkk4.estimate_cov('jackknife')
     np.testing.assert_allclose(cov4, cov1)
@@ -279,7 +279,7 @@ def test_kkk_jk():
         kkkp.write(file_name, write_patch_results=True)
         kkk5 = treecorr.KKKCorrelation(nbins=3, min_sep=30., max_sep=100.,
                                        min_u=0.9, max_u=1.0, nubins=1,
-                                       min_v=0.0, max_v=0.1, nvbins=1, rng=rng)
+                                       min_v=0.0, max_v=0.1, nvbins=1, rng=rng, bin_type='LogRUV')
         kkk5.read(file_name)
         cov5 = kkk5.estimate_cov('jackknife')
         np.testing.assert_allclose(cov5, cov1)
@@ -580,7 +580,7 @@ def test_ggg_jk():
             cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
             ggg = treecorr.GGGCorrelation(nbins=1, min_sep=20., max_sep=40.,
                                            min_u=0.6, max_u=1.0, nubins=1,
-                                           min_v=0.0, max_v=0.6, nvbins=1)
+                                           min_v=0.0, max_v=0.6, nvbins=1, bin_type='LogRUV')
             ggg.process(cat)
             print(ggg.ntri.ravel())
             print(f(ggg))
@@ -601,7 +601,7 @@ def test_ggg_jk():
     cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
     ggg = treecorr.GGGCorrelation(nbins=1, min_sep=20., max_sep=40.,
                                   min_u=0.6, max_u=1.0, nubins=1,
-                                  min_v=0.0, max_v=0.6, nvbins=1, rng=rng)
+                                  min_v=0.0, max_v=0.6, nvbins=1, rng=rng, bin_type='LogRUV')
     ggg.process(cat)
     print(ggg.ntri.ravel())
     print(ggg.gam0.ravel())
@@ -687,7 +687,7 @@ def test_ggg_jk():
         gggp.write(file_name, write_patch_results=True)
         ggg3 = treecorr.GGGCorrelation(nbins=1, min_sep=20., max_sep=40.,
                                        min_u=0.6, max_u=1.0, nubins=1,
-                                       min_v=0.0, max_v=0.6, nvbins=1)
+                                       min_v=0.0, max_v=0.6, nvbins=1, bin_type='LogRUV')
         ggg3.read(file_name)
         cov3 = ggg3.estimate_cov('jackknife', func=f)
         print('cov3 = ',cov3)
@@ -698,7 +698,7 @@ def test_ggg_jk():
     gggp.write(file_name, write_patch_results=True)
     ggg4 = treecorr.GGGCorrelation(nbins=1, min_sep=20., max_sep=40.,
                                    min_u=0.6, max_u=1.0, nubins=1,
-                                   min_v=0.0, max_v=0.6, nvbins=1)
+                                   min_v=0.0, max_v=0.6, nvbins=1, bin_type='LogRUV')
     ggg4.read(file_name)
     cov4 = ggg4.estimate_cov('jackknife', func=f)
     np.testing.assert_allclose(cov4, cov1)
@@ -716,7 +716,7 @@ def test_ggg_jk():
         gggp.write(file_name, write_patch_results=True)
         ggg5 = treecorr.GGGCorrelation(nbins=1, min_sep=20., max_sep=40.,
                                        min_u=0.6, max_u=1.0, nubins=1,
-                                       min_v=0.0, max_v=0.6, nvbins=1)
+                                       min_v=0.0, max_v=0.6, nvbins=1, bin_type='LogRUV')
         ggg5.read(file_name)
         cov5 = ggg5.estimate_cov('jackknife', func=f)
         np.testing.assert_allclose(cov5, cov1)
@@ -987,14 +987,14 @@ def test_nnn_jk():
             cat = treecorr.Catalog(x=x[select], y=y[select])
             ddd = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
                                            min_u=0.8, max_u=1.0, nubins=1,
-                                           min_v=0.0, max_v=0.2, nvbins=1)
+                                           min_v=0.0, max_v=0.2, nvbins=1, bin_type='LogRUV')
 
             rx = rng.uniform(0,1000, rand_factor*nsource)
             ry = rng.uniform(0,1000, rand_factor*nsource)
             rand_cat = treecorr.Catalog(x=rx, y=ry)
             rrr = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
                                           min_u=0.8, max_u=1.0, nubins=1,
-                                          min_v=0.0, max_v=0.2, nvbins=1)
+                                          min_v=0.0, max_v=0.2, nvbins=1, bin_type='LogRUV')
             rrr.process(rand_cat)
             rdd = ddd.copy()
             drr = ddd.copy()
@@ -1033,7 +1033,7 @@ def test_nnn_jk():
     rand_cat = treecorr.Catalog(x=rx, y=ry)
     rrr = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
                                   min_u=0.8, max_u=1.0, nubins=1,
-                                  min_v=0.0, max_v=0.2, nvbins=1)
+                                  min_v=0.0, max_v=0.2, nvbins=1, bin_type='LogRUV')
     t0 = time.time()
     rrr.process(rand_cat)
     t1 = time.time()
@@ -1051,7 +1051,7 @@ def test_nnn_jk():
     cat = treecorr.Catalog(x=x[select], y=y[select])
     ddd = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
                                   min_u=0.8, max_u=1.0, nubins=1,
-                                  min_v=0.0, max_v=0.2, nvbins=1, rng=rng)
+                                  min_v=0.0, max_v=0.2, nvbins=1, rng=rng, bin_type='LogRUV')
     rdd = ddd.copy()
     drr = ddd.copy()
     ddd.process(cat)
@@ -1081,7 +1081,7 @@ def test_nnn_jk():
     # Do the same thing with patches on D, but not yet on R.
     dddp = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
                                    min_u=0.8, max_u=1.0, nubins=1,
-                                   min_v=0.0, max_v=0.2, nvbins=1, rng=rng)
+                                   min_v=0.0, max_v=0.2, nvbins=1, rng=rng, bin_type='LogRUV')
     rddp = dddp.copy()
     drrp = dddp.copy()
     catp = treecorr.Catalog(x=x[select], y=y[select], patch_centers=patch_centers)
@@ -1305,7 +1305,7 @@ def test_nnn_jk():
         rddp.write(rdd_file_name, write_patch_results=True)
         ddd3 = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
                                        min_u=0.8, max_u=1.0, nubins=1,
-                                       min_v=0.0, max_v=0.2, nvbins=1)
+                                       min_v=0.0, max_v=0.2, nvbins=1, bin_type='LogRUV')
         rrr3 = ddd3.copy()
         drr3 = ddd3.copy()
         rdd3 = ddd3.copy()
@@ -1328,7 +1328,7 @@ def test_nnn_jk():
     rddp.write(rdd_file_name, write_patch_results=True)
     ddd4 = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
                                    min_u=0.8, max_u=1.0, nubins=1,
-                                   min_v=0.0, max_v=0.2, nvbins=1)
+                                   min_v=0.0, max_v=0.2, nvbins=1, bin_type='LogRUV')
     rrr4 = ddd4.copy()
     drr4 = ddd4.copy()
     rdd4 = ddd4.copy()
@@ -1359,7 +1359,7 @@ def test_nnn_jk():
         rddp.write(rdd_file_name, write_patch_results=True)
         ddd5 = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
                                        min_u=0.8, max_u=1.0, nubins=1,
-                                       min_v=0.0, max_v=0.2, nvbins=1)
+                                       min_v=0.0, max_v=0.2, nvbins=1, bin_type='LogRUV')
         rrr5 = ddd5.copy()
         drr5 = ddd5.copy()
         rdd5 = ddd5.copy()
@@ -1422,13 +1422,13 @@ def test_brute_jk():
     # Start with KKK, since relatively simple.
     kkk1 = treecorr.KKKCorrelation(nbins=3, min_sep=100., max_sep=300., brute=True,
                                    min_u=0., max_u=1.0, nubins=1,
-                                   min_v=0., max_v=1.0, nvbins=1)
+                                   min_v=0., max_v=1.0, nvbins=1, bin_type='LogRUV')
     kkk1.process(cat_nopatch)
 
     kkk = treecorr.KKKCorrelation(nbins=3, min_sep=100., max_sep=300., brute=True,
                                   min_u=0., max_u=1.0, nubins=1,
                                   min_v=0., max_v=1.0, nvbins=1,
-                                  var_method='jackknife')
+                                  var_method='jackknife', bin_type='LogRUV')
     kkk.process(cat)
     np.testing.assert_allclose(kkk.zeta, kkk1.zeta)
 
@@ -1441,7 +1441,7 @@ def test_brute_jk():
                                 g2=cat.g2[cat.patch != i])
         kkk1 = treecorr.KKKCorrelation(nbins=3, min_sep=100., max_sep=300., brute=True,
                                        min_u=0., max_u=1.0, nubins=1,
-                                       min_v=0., max_v=1.0, nvbins=1)
+                                       min_v=0., max_v=1.0, nvbins=1, bin_type='LogRUV')
         kkk1.process(cat1)
         print('zeta = ',kkk1.zeta.ravel())
         kkk_zeta_list.append(kkk1.zeta.ravel())
@@ -1456,13 +1456,13 @@ def test_brute_jk():
     # Now GGG
     ggg1 = treecorr.GGGCorrelation(nbins=3, min_sep=100., max_sep=300., brute=True,
                                    min_u=0., max_u=1.0, nubins=1,
-                                   min_v=0., max_v=1.0, nvbins=1)
+                                   min_v=0., max_v=1.0, nvbins=1, bin_type='LogRUV')
     ggg1.process(cat_nopatch)
 
     ggg = treecorr.GGGCorrelation(nbins=3, min_sep=100., max_sep=300., brute=True,
                                   min_u=0., max_u=1.0, nubins=1,
                                   min_v=0., max_v=1.0, nvbins=1,
-                                  var_method='jackknife')
+                                  var_method='jackknife', bin_type='LogRUV')
     ggg.process(cat)
     np.testing.assert_allclose(ggg.gam0, ggg1.gam0)
     np.testing.assert_allclose(ggg.gam1, ggg1.gam1)
@@ -1482,7 +1482,7 @@ def test_brute_jk():
                                 g2=cat.g2[cat.patch != i])
         ggg1 = treecorr.GGGCorrelation(nbins=3, min_sep=100., max_sep=300., brute=True,
                                        min_u=0., max_u=1.0, nubins=1,
-                                       min_v=0., max_v=1.0, nvbins=1)
+                                       min_v=0., max_v=1.0, nvbins=1, bin_type='LogRUV')
         ggg1.process(cat1)
         ggg_gam0_list.append(ggg1.gam0.ravel())
         ggg_gam1_list.append(ggg1.gam1.ravel())
@@ -1532,7 +1532,7 @@ def test_brute_jk():
     ddd = treecorr.NNNCorrelation(nbins=3, min_sep=100., max_sep=300., bin_slop=0,
                                   min_u=0., max_u=1.0, nubins=1,
                                   min_v=0., max_v=1.0, nvbins=1,
-                                  var_method='jackknife')
+                                  var_method='jackknife', bin_type='LogRUV')
     drr = ddd.copy()
     rdd = ddd.copy()
     rrr = ddd.copy()
@@ -1553,7 +1553,7 @@ def test_brute_jk():
                                      y=rand_cat.y[rand_cat.patch != i])
         ddd1 = treecorr.NNNCorrelation(nbins=3, min_sep=100., max_sep=300., bin_slop=0,
                                        min_u=0., max_u=1.0, nubins=1,
-                                       min_v=0., max_v=1.0, nvbins=1)
+                                       min_v=0., max_v=1.0, nvbins=1, bin_type='LogRUV')
         drr1 = ddd1.copy()
         rdd1 = ddd1.copy()
         rrr1 = ddd1.copy()
@@ -1640,12 +1640,12 @@ def test_finalize_false():
     # KKK auto
     kkk1 = treecorr.KKKCorrelation(nbins=3, min_sep=30., max_sep=100., brute=True,
                                    min_u=0.8, max_u=1.0, nubins=1,
-                                   min_v=0., max_v=0.2, nvbins=1)
+                                   min_v=0., max_v=0.2, nvbins=1, bin_type='LogRUV')
     kkk1.process(cat)
 
     kkk2 = treecorr.KKKCorrelation(nbins=3, min_sep=30., max_sep=100., brute=True,
                                    min_u=0.8, max_u=1.0, nubins=1,
-                                   min_v=0., max_v=0.2, nvbins=1)
+                                   min_v=0., max_v=0.2, nvbins=1, bin_type='LogRUV')
     kkk2.process(cat1, initialize=True, finalize=False)
     kkk2.process(cat2, initialize=False, finalize=False)
     kkk2.process(cat3, initialize=False, finalize=False)
@@ -1728,12 +1728,12 @@ def test_finalize_false():
     # GGG auto
     ggg1 = treecorr.GGGCorrelation(nbins=3, min_sep=30., max_sep=100., brute=True,
                                    min_u=0.8, max_u=1.0, nubins=1,
-                                   min_v=0., max_v=0.2, nvbins=1)
+                                   min_v=0., max_v=0.2, nvbins=1, bin_type='LogRUV')
     ggg1.process(cat)
 
     ggg2 = treecorr.GGGCorrelation(nbins=3, min_sep=30., max_sep=100., brute=True,
                                    min_u=0.8, max_u=1.0, nubins=1,
-                                   min_v=0., max_v=0.2, nvbins=1)
+                                   min_v=0., max_v=0.2, nvbins=1, bin_type='LogRUV')
     ggg2.process(cat1, initialize=True, finalize=False)
     ggg2.process(cat2, initialize=False, finalize=False)
     ggg2.process(cat3, initialize=False, finalize=False)
@@ -1823,12 +1823,12 @@ def test_finalize_false():
     # NNN auto
     nnn1 = treecorr.NNNCorrelation(nbins=3, min_sep=10., max_sep=200., bin_slop=0,
                                    min_u=0.8, max_u=1.0, nubins=1,
-                                   min_v=0., max_v=0.2, nvbins=1)
+                                   min_v=0., max_v=0.2, nvbins=1, bin_type='LogRUV')
     nnn1.process(cat)
 
     nnn2 = treecorr.NNNCorrelation(nbins=3, min_sep=10., max_sep=200., bin_slop=0,
                                    min_u=0.8, max_u=1.0, nubins=1,
-                                   min_v=0., max_v=0.2, nvbins=1)
+                                   min_v=0., max_v=0.2, nvbins=1, bin_type='LogRUV')
     nnn2.process(cat1, initialize=True, finalize=False)
     nnn2.process(cat2, initialize=False, finalize=False)
     nnn2.process(cat3, initialize=False, finalize=False)
@@ -1940,7 +1940,7 @@ def test_lowmem():
 
     kkk = treecorr.KKKCorrelation(nbins=1, min_sep=280., max_sep=300.,
                                   min_u=0.95, max_u=1.0, nubins=1,
-                                  min_v=0., max_v=0.05, nvbins=1)
+                                  min_v=0., max_v=0.05, nvbins=1, bin_type='LogRUV')
 
     t0 = time.time()
     s0 = hp.heap().size if hp else 0

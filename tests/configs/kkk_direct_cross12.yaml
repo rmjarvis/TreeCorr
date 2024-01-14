@@ -9,6 +9,7 @@ k_col: 4
 
 verbose: 0
 
+bin_type: LogRUV
 min_sep: 1.
 bin_size: 0.2
 nbins: 10

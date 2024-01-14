@@ -63,7 +63,7 @@ def do_mpi_corr(comm, Correlation, cross, attr, output=True):
 
     config = dict(nbins=3, min_sep=100., max_sep=200., sep_units='arcmin',
                   min_u=0.9, max_u=1.0, nubins=1,
-                  min_v=0.0, max_v=0.1, nvbins=1, bin_slop=0)
+                  min_v=0.0, max_v=0.1, nvbins=1, bin_slop=0, bin_type='LogRUV')
 
     # First run on one process
     t0 = time.time()
@@ -135,7 +135,7 @@ def do_mpi_corr2(comm, Correlation, cross, attr, output=True):
 
     config = dict(nbins=3, min_sep=100., max_sep=200., sep_units='arcmin',
                   min_u=0.9, max_u=1.0, nubins=1,
-                  min_v=0.0, max_v=0.1, nvbins=1, bin_slop=0)
+                  min_v=0.0, max_v=0.1, nvbins=1, bin_slop=0, bin_type='LogRUV')
 
     # First run on one process
     t0 = time.time()

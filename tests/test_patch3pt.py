@@ -2010,4 +2010,4 @@ if __name__ == '__main__':
     test_nnn_jk()
     test_brute_jk()
     test_finalize_false()
-    test_lowmem
+    test_lowmem()

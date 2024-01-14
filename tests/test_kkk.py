@@ -545,7 +545,7 @@ def test_direct_logruv_cross():
     np.testing.assert_allclose(kkk.weight, true_weight_321, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_321, rtol=1.e-5)
 
-    # With the default ordered=False, we end up with the sum of all permutations.
+    # With ordered=False, we end up with the sum of all permutations.
     kkk.process(cat1, cat2, cat3, ordered=False)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
     np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
@@ -1915,7 +1915,6 @@ def test_direct_logsas_cross12():
     w_list = [true_weight_122, true_weight_212, true_weight_221]
     z_list = [true_zeta_122, true_zeta_212, true_zeta_221]
 
-    # With the default ordered=False, we end up with the sum of all permutations.
     true_ntri_sum = sum(n_list)
     true_weight_sum = sum(w_list)
     true_zeta_sum = sum(z_list)
@@ -1940,6 +1939,7 @@ def test_direct_logsas_cross12():
     np.testing.assert_allclose(kkk.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_221, rtol=1.e-4, atol=1.e-6)
 
+    # With ordered=False, we end up with the sum of all permutations.
     kkk.process(cat1, cat2, ordered=False)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
     np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)

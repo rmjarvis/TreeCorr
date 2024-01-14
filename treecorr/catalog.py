@@ -2741,7 +2741,7 @@ class Catalog(object):
 
     def __setstate__(self, d):
         self.__dict__ = d
-        if self._logger_name is not None:
+        if self._logger_name is not None:  # pragma: no branch
             self.logger = setup_logger(get(self.config,'verbose',int,1),
                                        self.config.get('log_file',None), self._logger_name)
         self._field = lambda : None

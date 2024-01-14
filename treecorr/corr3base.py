@@ -30,7 +30,7 @@ class Namespace(object):
     pass
 
 class Corr3(object):
-    """This class stores the results of a 3-point correlation calculation, along with some
+    r"""This class stores the results of a 3-point correlation calculation, along with some
     ancillary data.
 
     This is a base class that is not intended to be constructed directly.  But it has a few
@@ -52,9 +52,9 @@ class Corr3(object):
 
         .. math::
 
-            r &= d2 \\\\
-            u &= \\frac{d3}{d2} \\\\
-            v &= \\pm \\frac{(d1 - d2)}{d3} \\\\
+            r &= d2 \\
+            u &= \frac{d3}{d2} \\
+            v &= \pm \frac{(d1 - d2)}{d3} \\
 
         The orientation of the triangle is specified by the sign of v.
         Positive v triangles have the three sides d1,d2,d3 in counter-clockwise orientation.
@@ -215,10 +215,10 @@ class Corr3(object):
                               the range.
 
         min_top (int):      The minimum number of top layers to use when setting up the field.
-                            (default: :math:`\\max(3, \\log_2(N_{\\rm cpu}))`)
+                            (default: :math:`\max(3, \log_2(N_{\rm cpu}))`)
         max_top (int):      The maximum number of top layers to use when setting up the field.
                             The top-level cells are where each calculation job starts. There will
-                            typically be of order :math:`2^{\\rm max\\_top}` top-level cells.
+                            typically be of order :math:`2^{\rm max\_top}` top-level cells.
                             (default: 10)
         precision (int):    The precision to use for the output values. This specifies how many
                             digits to write. (default: 4)
@@ -1332,11 +1332,11 @@ class Corr3(object):
         return estimate_multi_cov([self], method, func=all_func, comm=comm)
 
     def build_cov_design_matrix(self, method, *, func=None, comm=None):
-        """Build the design matrix that is used for estimating the covariance matrix.
+        r"""Build the design matrix that is used for estimating the covariance matrix.
 
         The design matrix for patch-based covariance estimates is a matrix where each row
-        corresponds to a different estimate of the data vector, :math:`\\zeta_i` (or
-        :math:`f(\\zeta_i)` if using the optional ``func`` parameter).
+        corresponds to a different estimate of the data vector, :math:`\zeta_i` (or
+        :math:`f(\zeta_i)` if using the optional ``func`` parameter).
 
         The different of rows in the matrix for each valid ``method`` are:
 

@@ -39,15 +39,6 @@ class NNNCorrelation(Corr3):
         tot:        The total number of triangles processed, which is used to normalize
                     the randoms if they have a different number of triangles.
 
-    If the bin_type is LogSAS, then it will have these attributes:
-
-    Attributes:
-        nphi_bins:  The number of bins in phi where v = +-(d1-d2)/d3.
-        phi_bin_size: The size of the bins in phi.
-        min_phi:    The minimum phi being considered.
-        max_phi:    The maximum phi being considered.
-        phi1d:      The nominal centers of the nphi_bins bins in phi.
-
     If the bin_type is LogRUV, then it will have these attributes:
 
     Attributes:
@@ -62,27 +53,19 @@ class NNNCorrelation(Corr3):
         u1d:        The nominal centers of the nubins bins in u.
         v1d:        The nominal centers of the nvbins bins in v.
 
-    In addition, the following attributes are numpy arrays whose shape is (nbins, nphi_bins, nbins)
-    if bin_type is LogSAS or (nbins, nubins, nvbins) if bin_type is LogRUV:
-
-    If bin_type is LogSAS:
+    If the bin_type is LogSAS, then it will have these attributes:
 
     Attributes:
-        logd2:      The nominal center of each d2 side bin in log(d2).
-        d2nom:      The nominal center of each d2 side bin converted to regular distance.
-                    i.e. d2 = exp(logd2).
-        logd3:      The nominal center of each d3 side bin in log(d3).
-        d3nom:      The nominal center of each d3 side bin converted to regular distance.
-                    i.e. d3 = exp(logd3).
-        phi:        The nominal center of each angular bin.
-        meand2:     The (weighted) mean value of d2 for the triangles in each bin.
-        meanlogd2:  The mean value of log(d2) for the triangles in each bin.
-        meand3:     The (weighted) mean value of d3 for the triangles in each bin.
-        meanlogd3:  The mean value of log(d3) for the triangles in each bin.
-        meanphi:    The (weighted) mean value of phi for the triangles in each bin.
-        weight:     The total weight in each bin.
-        ntri:       The number of triangles going into each bin (including those where one or
-                    more objects have w=0).
+        nphi_bins:  The number of bins in phi where v = +-(d1-d2)/d3.
+        phi_bin_size: The size of the bins in phi.
+        min_phi:    The minimum phi being considered.
+        max_phi:    The maximum phi being considered.
+        phi1d:      The nominal centers of the nphi_bins bins in phi.
+
+    In addition, the following attributes are numpy arrays whose shape is:
+
+        * (nbins, nubins, nvbins) if bin_type is LogRUV
+        * (nbins, nbins, nphi_bins) if bin_type is LogSAS
 
     If bin_type is LogRUV:
 
@@ -92,14 +75,33 @@ class NNNCorrelation(Corr3):
                     i.e. r = exp(logr).
         u:          The nominal center of each bin in u.
         v:          The nominal center of each bin in v.
+        meanu:      The mean value of u for the triangles in each bin.
+        meanv:      The mean value of v for the triangles in each bin.
+        weight:     The total weight in each bin.
+        ntri:       The number of triangles going into each bin (including those where one or
+                    more objects have w=0).
+
+    If bin_type is LogSAS:
+
+    Attributes:
+        logd2:      The nominal center of each bin in log(d2).
+        d2nom:      The nominal center of each bin converted to regular d2 distance.
+                    i.e. d2 = exp(logd2).
+        logd3:      The nominal center of each bin in log(d3).
+        d3nom:      The nominal center of each bin converted to regular d3 distance.
+                    i.e. d3 = exp(logd3).
+        phi:        The nominal center of each angular bin.
+        meanphi:    The (weighted) mean value of phi for the triangles in each bin.
+
+    For any bin_type:
+
+    Attributes:
         meand1:     The (weighted) mean value of d1 for the triangles in each bin.
         meanlogd1:  The mean value of log(d1) for the triangles in each bin.
-        meand2:     The (weighted) mean value of d2 (aka r) for the triangles in each bin.
+        meand2:     The (weighted) mean value of d2 for the triangles in each bin.
         meanlogd2:  The mean value of log(d2) for the triangles in each bin.
         meand3:     The (weighted) mean value of d3 for the triangles in each bin.
         meanlogd3:  The mean value of log(d3) for the triangles in each bin.
-        meanu:      The mean value of u for the triangles in each bin.
-        meanv:      The mean value of v for the triangles in each bin.
         weight:     The total weight in each bin.
         ntri:       The number of triangles going into each bin (including those where one or
                     more objects have w=0).
@@ -851,6 +853,30 @@ class NNNCorrelation(Corr3):
         r_nom           The nominal center of the bin in r = d2 where d1 > d2 > d3
         u_nom           The nominal center of the bin in u = d3/d2
         v_nom           The nominal center of the bin in v = +-(d1-d2)/d3
+        meanu           The mean value :math:`\langle u\rangle` of triangles that fell
+                        into each bin
+        meanv           The mean value :math:`\langle v\rangle` of triangles that fell
+                        into each bin
+        ==========      ================================================================
+
+        For bin_type = LogSAS, the output file will include the following columns:
+
+        ==========      ================================================================
+        Column          Description
+        ==========      ================================================================
+        d2_nom          The nominal center of the bin in d2
+        d3_nom          The nominal center of the bin in d3
+        phi_nom         The nominal center of the bin in phi, the opening angle between
+                        d2 and d3 in the counter-clockwise direction
+        meanphi         The mean value :math:`\langle phi\rangle` of triangles that fell
+                        into each bin
+        ==========      ================================================================
+
+        In addition, all bin types include the following columns:
+
+        ==========      ================================================================
+        Column          Description
+        ==========      ================================================================
         meand1          The mean value :math:`\langle d1\rangle` of triangles that fell
                         into each bin
         meanlogd1       The mean value :math:`\langle \log(d1)\rangle` of triangles that
@@ -863,40 +889,8 @@ class NNNCorrelation(Corr3):
                         into each bin
         meanlogd3       The mean value :math:`\langle \log(d3)\rangle` of triangles that
                         fell into each bin
-        meanu           The mean value :math:`\langle u\rangle` of triangles that fell
-                        into each bin
-        meanv           The mean value :math:`\langle v\rangle` of triangles that fell
-                        into each bin
-        zeta            The estimator :math:`\zeta(r,u,v)` (if rrr is given)
-        sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`
-                        (if rrr is given)
-        DDD             The total weight of DDD triangles in each bin
-        RRR             The total weight of RRR triangles in each bin (if rrr is given)
-        DRR             The total weight of DRR triangles in each bin (if drr is given)
-        RDD             The total weight of RDD triangles in each bin (if rdd is given)
-        ntri            The number of triangles contributing to each bin
-        ==========      ================================================================
-
-        For bin_type = LogSAS, the output file will include the following columns:
-
-        ==========      ================================================================
-        Column          Description
-        ==========      ================================================================
-        d2_nom          The nominal center of the bin in d2
-        d3_nom          The nominal center of the bin in d3
-        phi_nom         The nominal center of the bin in phi, the opening angle between
-                        d2 and d3 in the counter-clockwise direction
-        meand2          The mean value :math:`\langle d2\rangle` of triangles that fell
-                        into each bin
-        meanlogd2       The mean value :math:`\langle \log(d2)\rangle` of triangles that
-                        fell into each bin
-        meand3          The mean value :math:`\langle d3\rangle` of triangles that fell
-                        into each bin
-        meanlogd3       The mean value :math:`\langle \log(d3)\rangle` of triangles that
-                        fell into each bin
-        meanphi         The mean value :math:`\langle phi\rangle` of triangles that fell
-                        into each bin
-        zeta            The estimator :math:`\zeta(d2,phi,d3)` (if rrr is given)
+        zeta            The estimator :math:`\zeta` (if rrr is given, or zeta was
+                        already computed)
         sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`
                         (if rrr is given)
         DDD             The total weight of DDD triangles in each bin

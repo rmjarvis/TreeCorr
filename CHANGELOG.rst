@@ -32,8 +32,8 @@ API Changes
 - Switched the default behavior of 3pt cross-correlations to respect the order of the catalogs
   in the triangle definitions.  That is, points from cat1 will be at P1 in the triangle,
   points from cat2 at P2, and points from cat3 at P3.  To recover the old behavior, you may
-  use the new ``ordered=False`` option.
-- Switched the default binning for three-point correlations to LogSAS, rather than LogRUV.
+  use the new ``ordered=False`` option. (#166)
+- Switched the default binning for three-point correlations to LogSAS, rather than LogRUV. (#166)
 
 
 Performance improvements

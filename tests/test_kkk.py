@@ -40,7 +40,8 @@ def test_direct_logruv():
     nrbins = 10
     nubins = 5
     nvbins = 5
-    kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, brute=True)
+    kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, brute=True,
+                                  bin_type='LogRUV')
     kkk.process(cat, num_threads=2)
 
     true_ntri = np.zeros((nrbins, nubins, 2*nvbins), dtype=int)
@@ -134,7 +135,7 @@ def test_direct_logruv():
     # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                  bin_slop=0, max_top=0)
+                                  bin_slop=0, max_top=0, bin_type='LogRUV')
     kkk.process(cat)
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
@@ -183,7 +184,8 @@ def test_direct_logruv():
 
     ascii_name = 'output/kkk_ascii.txt'
     kkk.write(ascii_name, precision=16)
-    kkk3 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins)
+    kkk3 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                   bin_type='LogRUV')
     kkk3.read(ascii_name)
     np.testing.assert_allclose(kkk3.ntri, kkk.ntri)
     np.testing.assert_allclose(kkk3.weight, kkk.weight)
@@ -204,7 +206,8 @@ def test_direct_logruv():
     else:
         fits_name = 'output/kkk_fits.fits'
         kkk.write(fits_name)
-        kkk4 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins)
+        kkk4 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                       bin_type='LogRUV')
         kkk4.read(fits_name)
         np.testing.assert_allclose(kkk4.ntri, kkk.ntri)
         np.testing.assert_allclose(kkk4.weight, kkk.weight)
@@ -220,37 +223,40 @@ def test_direct_logruv():
 
     with assert_raises(TypeError):
         kkk2 += config
-    kkk5 = treecorr.KKKCorrelation(min_sep=min_sep/2, bin_size=bin_size, nbins=nrbins)
+    kkk5 = treecorr.KKKCorrelation(min_sep=min_sep/2, bin_size=bin_size, nbins=nrbins,
+                                   bin_type='LogRUV')
     with assert_raises(ValueError):
         kkk2 += kkk5
-    kkk6 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size/2, nbins=nrbins)
+    kkk6 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size/2, nbins=nrbins,
+                                   bin_type='LogRUV')
     with assert_raises(ValueError):
         kkk2 += kkk6
-    kkk7 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins*2)
+    kkk7 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins*2,
+                                   bin_type='LogRUV')
     with assert_raises(ValueError):
         kkk2 += kkk7
     kkk8 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                   min_u=0.1)
+                                   min_u=0.1, bin_type='LogRUV')
     with assert_raises(ValueError):
         kkk2 += kkk8
     kkk0 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                   max_u=0.1)
+                                   max_u=0.1, bin_type='LogRUV')
     with assert_raises(ValueError):
         kkk2 += kkk0
     kkk10 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                   nubins=nrbins*2)
+                                   nubins=nrbins*2, bin_type='LogRUV')
     with assert_raises(ValueError):
         kkk2 += kkk10
     kkk11 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                   min_v=0.1)
+                                   min_v=0.1, bin_type='LogRUV')
     with assert_raises(ValueError):
         kkk2 += kkk11
     kkk12 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                   max_v=0.1)
+                                   max_v=0.1, bin_type='LogRUV')
     with assert_raises(ValueError):
         kkk2 += kkk12
     kkk13 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                   nvbins=nrbins*2)
+                                   nvbins=nrbins*2, bin_type='LogRUV')
     with assert_raises(ValueError):
         kkk2 += kkk13
 
@@ -279,7 +285,7 @@ def test_direct_logruv_spherical():
     nubins = 5
     nvbins = 5
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                  sep_units='deg', brute=True)
+                                  sep_units='deg', brute=True, bin_type='LogRUV')
     kkk.process(cat)
 
     r = np.sqrt(x**2 + y**2 + z**2)
@@ -355,7 +361,7 @@ def test_direct_logruv_spherical():
     # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                  sep_units='deg', bin_slop=0, max_top=0)
+                                  sep_units='deg', bin_slop=0, max_top=0, bin_type='LogRUV')
     kkk.process(cat)
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
@@ -399,7 +405,7 @@ def test_direct_logruv_cross():
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  brute=True)
+                                  brute=True, bin_type='LogRUV')
     kkk.process(cat1, cat2, cat3, num_threads=2)
 
     # Figure out the correct answer for each permutation
@@ -549,7 +555,7 @@ def test_direct_logruv_cross():
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=1)
+                                  bin_slop=0, verbose=1, bin_type='LogRUV')
 
     kkk.process(cat1, cat2, cat3, ordered=True)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
@@ -565,7 +571,7 @@ def test_direct_logruv_cross():
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=1, max_top=0)
+                                  bin_slop=0, verbose=1, max_top=0, bin_type='LogRUV')
 
     kkk.process(cat1, cat2, cat3, ordered=True)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
@@ -614,7 +620,7 @@ def test_direct_logruv_cross12():
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  brute=True)
+                                  brute=True, bin_type='LogRUV')
     kkk.process(cat1, cat2, num_threads=2)
 
     # Figure out the correct answer for each permutation
@@ -799,7 +805,7 @@ def test_direct_logruv_cross_3d():
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  brute=True)
+                                  brute=True, bin_type='LogRUV')
     kkk.process(cat1, cat2, cat3, num_threads=2)
 
     # Figure out the correct answer for each permutation
@@ -929,7 +935,7 @@ def test_direct_logruv_cross_3d():
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=1)
+                                  bin_slop=0, verbose=1, bin_type='LogRUV')
 
     kkk.process(cat1, cat2, cat3, ordered=True)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
@@ -945,7 +951,7 @@ def test_direct_logruv_cross_3d():
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=1, max_top=0)
+                                  bin_slop=0, verbose=1, max_top=0, bin_type='LogRUV')
 
     kkk.process(cat1, cat2, cat3, ordered=True)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
@@ -984,7 +990,7 @@ def test_constant():
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                   nubins=nubins, nvbins=nvbins,
-                                  sep_units='arcmin', verbose=1)
+                                  sep_units='arcmin', verbose=1, bin_type='LogRUV')
     kkk.process(cat)
     print('kkk.zeta = ',kkk.zeta.flatten())
     np.testing.assert_allclose(kkk.zeta, A**3, rtol=1.e-5)
@@ -1070,7 +1076,7 @@ def test_kkk_logruv():
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                   nubins=nubins, nvbins=nvbins,
-                                  sep_units='arcmin', verbose=1)
+                                  sep_units='arcmin', verbose=1, bin_type='LogRUV')
     kkk.process(cat, num_threads=1)
 
     # Using bin_size=None rather than omiting bin_size is equivalent.
@@ -1078,7 +1084,7 @@ def test_kkk_logruv():
     kkk2 = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_size=None,
                                    min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                    nubins=nubins, nvbins=nvbins,
-                                   sep_units='arcmin', verbose=1)
+                                   sep_units='arcmin', verbose=1, bin_type='LogRUV')
     kkk2.process(cat, num_threads=1)
     assert kkk2 == kkk
 
@@ -1171,7 +1177,7 @@ def test_kkk_logruv():
         kkk2 = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                        min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                        nubins=nubins, nvbins=nvbins,
-                                       sep_units='arcmin', verbose=1)
+                                       sep_units='arcmin', verbose=1, bin_type='LogRUV')
         kkk2.read(out_file_name)
         np.testing.assert_almost_equal(kkk2.logr, kkk.logr)
         np.testing.assert_almost_equal(kkk2.u, kkk.u)

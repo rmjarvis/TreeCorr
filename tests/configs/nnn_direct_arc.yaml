@@ -9,6 +9,7 @@ w_col: w
 
 verbose: 1
 
+bin_type: LogRUV
 min_sep: 1.
 max_sep: 180.
 nbins: 10

@@ -9,6 +9,7 @@ y_units: arcmin
 
 verbose: 1
 
+bin_type: LogRUV
 min_sep: 11.
 max_sep: 13.
 nbins: 2

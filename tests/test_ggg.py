@@ -40,7 +40,8 @@ def test_direct_logruv():
     nrbins = 10
     nubins = 5
     nvbins = 5
-    ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, brute=True)
+    ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, brute=True,
+                                  bin_type='LogRUV')
     ggg.process(cat, num_threads=2)
 
     true_ntri = np.zeros((nrbins, nubins, 2*nvbins), dtype=int)
@@ -156,7 +157,8 @@ def test_direct_logruv():
         np.testing.assert_allclose(data['gam3i'], ggg.gam3i.flatten(), rtol=1.e-3)
 
     # Also check the cross calculation.
-    ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, brute=True)
+    ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, brute=True,
+                                  bin_type='LogRUV')
     ggg.process(cat, cat, cat, num_threads=2)
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
     np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
@@ -195,7 +197,8 @@ def test_direct_logruv():
     np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-5, atol=1.e-8)
 
     # Or with 2 argument version, finds each triangle 3 times.
-    ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, brute=True)
+    ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, brute=True,
+                                  bin_type='LogRUV')
     ggg.process(cat, cat, ordered=False)
     np.testing.assert_array_equal(ggg.ntri, 3*true_ntri)
     np.testing.assert_allclose(ggg.weight, 3*true_weight, rtol=1.e-5, atol=1.e-8)
@@ -211,7 +214,7 @@ def test_direct_logruv():
     # Repeat with binslop = 0, since the code flow is different from brute=True.
     # And don't do any top-level recursion so we actually test not going to the leaves.
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                  bin_slop=0, max_top=0)
+                                  bin_slop=0, max_top=0, bin_type='LogRUV')
     ggg.process(cat)
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
     np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
@@ -295,7 +298,8 @@ def test_direct_logruv():
 
     ascii_name = 'output/ggg_ascii.txt'
     ggg.write(ascii_name, precision=16)
-    ggg3 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins)
+    ggg3 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                   bin_type='LogRUV')
     ggg3.read(ascii_name)
     np.testing.assert_allclose(ggg3.ntri, ggg.ntri)
     np.testing.assert_allclose(ggg3.weight, ggg.weight)
@@ -323,7 +327,8 @@ def test_direct_logruv():
     else:
         fits_name = 'output/ggg_fits.fits'
         ggg.write(fits_name)
-        ggg4 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins)
+        ggg4 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                       bin_type='LogRUV')
         ggg4.read(fits_name)
         np.testing.assert_allclose(ggg4.ntri, ggg.ntri)
         np.testing.assert_allclose(ggg4.weight, ggg.weight)
@@ -348,37 +353,40 @@ def test_direct_logruv():
 
     with assert_raises(TypeError):
         ggg2 += config
-    ggg5 = treecorr.GGGCorrelation(min_sep=min_sep/2, bin_size=bin_size, nbins=nrbins)
+    ggg5 = treecorr.GGGCorrelation(min_sep=min_sep/2, bin_size=bin_size, nbins=nrbins,
+                                   bin_type='LogRUV')
     with assert_raises(ValueError):
         ggg2 += ggg5
-    ggg6 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size/2, nbins=nrbins)
+    ggg6 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size/2, nbins=nrbins,
+                                   bin_type='LogRUV')
     with assert_raises(ValueError):
         ggg2 += ggg6
-    ggg7 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins*2)
+    ggg7 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins*2,
+                                   bin_type='LogRUV')
     with assert_raises(ValueError):
         ggg2 += ggg7
     ggg8 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                   min_u=0.1)
+                                   min_u=0.1, bin_type='LogRUV')
     with assert_raises(ValueError):
         ggg2 += ggg8
     ggg0 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                   max_u=0.1)
+                                   min_u=0.1, bin_type='LogRUV')
     with assert_raises(ValueError):
         ggg2 += ggg0
     ggg10 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                   nubins=nrbins*2)
+                                   nubins=nrbins*2, bin_type='LogRUV')
     with assert_raises(ValueError):
         ggg2 += ggg10
     ggg11 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                   min_v=0.1)
+                                    min_v=0.1, bin_type='LogRUV')
     with assert_raises(ValueError):
         ggg2 += ggg11
     ggg12 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                   max_v=0.1)
+                                    max_v=0.1, bin_type='LogRUV')
     with assert_raises(ValueError):
         ggg2 += ggg12
     ggg13 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                   nvbins=nrbins*2)
+                                    nvbins=nrbins*2, bin_type='LogRUV')
     with assert_raises(ValueError):
         ggg2 += ggg13
 
@@ -407,7 +415,7 @@ def test_direct_logruv_spherical():
     nubins = 5
     nvbins = 5
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                  sep_units='deg', brute=True)
+                                  sep_units='deg', brute=True, bin_type='LogRUV')
     ggg.process(cat)
 
     r = np.sqrt(x**2 + y**2 + z**2)
@@ -528,7 +536,7 @@ def test_direct_logruv_spherical():
     # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                  sep_units='deg', bin_slop=0, max_top=0)
+                                  sep_units='deg', bin_slop=0, max_top=0, bin_type='LogRUV')
     ggg.process(cat)
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
     np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
@@ -583,7 +591,7 @@ def test_direct_logruv_cross():
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  brute=True)
+                                  brute=True, bin_type='LogRUV')
     ggg.process(cat1, cat2, cat3, num_threads=2)
 
     # Figure out the correct answer for each permutation
@@ -835,7 +843,7 @@ def test_direct_logruv_cross():
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=1, max_top=0)
+                                  bin_slop=0, verbose=1, max_top=0, bin_type='LogRUV')
 
     ggg.process(cat1, cat2, cat3, ordered=True)
     np.testing.assert_array_equal(ggg.ntri, true_ntri_123)
@@ -857,7 +865,7 @@ def test_direct_logruv_cross():
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=1, max_top=0)
+                                  bin_slop=0, verbose=1, max_top=0, bin_type='LogRUV')
 
     ggg.process(cat1, cat2, cat3, ordered=True)
     #print('max_top = 0: ggg.ntri = ',ggg.ntri)
@@ -920,7 +928,7 @@ def test_direct_logruv_cross12():
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  brute=True)
+                                  brute=True, bin_type='LogRUV')
     ggg.process(cat1, cat2, num_threads=2)
 
     # Figure out the correct answer for each permutation
@@ -1127,7 +1135,7 @@ def test_direct_logruv_cross12():
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=1)
+                                  bin_slop=0, verbose=1, bin_type='LogRUV')
 
     ggg.process(cat1, cat2, ordered=True)
     np.testing.assert_array_equal(ggg.ntri, true_ntri_122)
@@ -1149,7 +1157,7 @@ def test_direct_logruv_cross12():
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
-                                  bin_slop=0, verbose=1, max_top=0)
+                                  bin_slop=0, verbose=1, max_top=0, bin_type='LogRUV')
 
     ggg.process(cat1, cat2, ordered=True)
     np.testing.assert_array_equal(ggg.ntri, true_ntri_122)
@@ -1250,14 +1258,14 @@ def test_ggg_logruv():
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                   nubins=nubins, nvbins=nvbins,
-                                  sep_units='arcmin', verbose=1)
+                                  sep_units='arcmin', verbose=1, bin_type='LogRUV')
     ggg.process(cat)
 
     # Using bin_size=None rather than omiting bin_size is equivalent.
     ggg2 = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_size=None,
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                   nubins=nubins, nvbins=nvbins,
-                                  sep_units='arcmin', verbose=1)
+                                  sep_units='arcmin', verbose=1, bin_type='LogRUV')
     ggg2.process(cat, num_threads=1)
     ggg.process(cat, num_threads=1)
     assert ggg2 == ggg
@@ -1487,7 +1495,7 @@ def test_ggg_logruv():
         ggg2 = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                    nubins=nubins, nvbins=nvbins,
-                                   sep_units='arcmin', verbose=1)
+                                   sep_units='arcmin', verbose=1, bin_type='LogRUV')
         ggg2.read(out_file_name1)
         np.testing.assert_almost_equal(ggg2.logr, ggg.logr)
         np.testing.assert_almost_equal(ggg2.u, ggg.u)
@@ -1528,7 +1536,7 @@ def test_map3_logruv():
     r0 = 10.
     L = 20.*r0
     out_name = os.path.join('data','ggg_map.out')
-    ggg = treecorr.GGGCorrelation(bin_size=0.1, min_sep=1, nbins=47, verbose=2)
+    ggg = treecorr.GGGCorrelation(bin_size=0.1, min_sep=1, nbins=47, verbose=2, bin_type='LogRUV')
 
     # This takes a few hours to run, so be careful about enabling this.
     if not os.path.isfile(out_name):
@@ -1898,7 +1906,7 @@ def test_grid_logruv():
     cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   nubins=nubins, nvbins=nvbins,
-                                  verbose=1)
+                                  verbose=1, bin_type='LogRUV')
     ggg.process(cat)
 
     # log(<d>) != <logd>, but it should be close:
@@ -2031,7 +2039,8 @@ def test_vargam_logruv():
 
             cat = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
             ggg = treecorr.GGGCorrelation(bin_size=0.5, min_sep=30., max_sep=100.,
-                                          sep_units='arcmin', nubins=3, nvbins=3, verbose=1)
+                                          sep_units='arcmin', nubins=3, nvbins=3, verbose=1,
+                                          bin_type='LogRUV')
             ggg.process(cat)
             all_gggs.append(ggg)
 
@@ -2175,7 +2184,8 @@ def test_vargam_logruv():
 
     cat = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
     ggg = treecorr.GGGCorrelation(bin_size=0.5, min_sep=30., max_sep=100.,
-                                  sep_units='arcmin', nubins=3, nvbins=3, verbose=1)
+                                  sep_units='arcmin', nubins=3, nvbins=3, verbose=1,
+                                  bin_type='LogRUV')
     ggg.process(cat)
     print('single run:')
     print('max relerr for gam0r = ',np.max(np.abs((ggg.vargam0 - var_gam0r)/var_gam0r)))

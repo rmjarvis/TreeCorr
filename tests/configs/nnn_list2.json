@@ -7,6 +7,7 @@
 
 "verbose": 1,
 
+"bin_type": "LogRUV",
 "min_sep": 30.0,
 "max_sep": 50.0,
 "nbins": 3,

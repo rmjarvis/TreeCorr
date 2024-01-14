@@ -60,7 +60,7 @@ void InitializeCentersTree(std::vector<Position<C> >& centers, const BaseCell<C>
 
 template <int C>
 void InitializeCentersTree(std::vector<Position<C> >& centers,
-                           const std::vector<BaseCell<C>*>& cells, long long seed)
+                           const std::vector<const BaseCell<C>*>& cells, long long seed)
 {
     dbg<<"Initialize centers: "<<centers.size()<<"  "<<cells.size()<<std::endl;
     long ncenters = centers.size();
@@ -110,7 +110,7 @@ void InitializeCentersTree(std::vector<Position<C> >& centers,
 
 template <int C>
 void InitializeCentersRand(std::vector<Position<C> >& centers,
-                           const std::vector<BaseCell<C>*>& cells, long long seed)
+                           const std::vector<const BaseCell<C>*>& cells, long long seed)
 {
     dbg<<"Initialize centers (random): "<<centers.size()<<"  "<<cells.size()<<std::endl;
     // Pick npatch random numbers from the total number of objecst.
@@ -219,7 +219,7 @@ Position<C> InitializeCentersKMPP(const BaseCell<C>* cell,
 
 template <int C>
 void InitializeCentersKMPP(std::vector<Position<C> >& centers,
-                           const std::vector<BaseCell<C>*>& cells, long long seed)
+                           const std::vector<const BaseCell<C>*>& cells, long long seed)
 {
     // cf. https://en.wikipedia.org/wiki/K-means%2B%2B
     // The basic KMeans++ algorithm is as follows:
@@ -646,7 +646,7 @@ void FindCellsInPatches(const std::vector<Position<C> >& centers,
 // patch and then runs f, which can be any of the above function classes.
 template <int C, typename F>
 void FindCellsInPatches(const std::vector<Position<C> >& centers,
-                        const std::vector<BaseCell<C>*>& cells, F& f,
+                        const std::vector<const BaseCell<C>*>& cells, F& f,
                         const std::vector<double>* inertia=0)
 {
 #ifdef _OPENMP
@@ -743,7 +743,7 @@ template <int C>
 void KMeansInitTree1(BaseField<C>& field, double* pycenters, int npatch, long long seed)
 {
     dbg<<"Start KMeansInitTree for "<<npatch<<" patches\n";
-    const std::vector<BaseCell<C>*> cells = field.getCells();
+    const std::vector<const BaseCell<C>*> cells = field.getCells();
     std::vector<Position<C> > centers(npatch);
     InitializeCentersTree(centers, cells, seed);
     WriteCenters(centers, pycenters, npatch);
@@ -753,7 +753,7 @@ template <int C>
 void KMeansInitRand1(BaseField<C>& field, double* pycenters, int npatch, long long seed)
 {
     dbg<<"Start KMeansInitRand for "<<npatch<<" patches\n";
-    const std::vector<BaseCell<C>*> cells = field.getCells();
+    const std::vector<const BaseCell<C>*> cells = field.getCells();
     std::vector<Position<C> > centers(npatch);
     InitializeCentersRand(centers, cells, seed);
     WriteCenters(centers, pycenters, npatch);
@@ -763,7 +763,7 @@ template <int C>
 void KMeansInitKMPP1(BaseField<C>& field, double* pycenters, int npatch, long long seed)
 {
     dbg<<"Start KMeansInitKMPP for "<<npatch<<" patches\n";
-    const std::vector<BaseCell<C>*> cells = field.getCells();
+    const std::vector<const BaseCell<C>*> cells = field.getCells();
     std::vector<Position<C> > centers(npatch);
     InitializeCentersKMPP(centers, cells, seed);
     WriteCenters(centers, pycenters, npatch);
@@ -774,7 +774,7 @@ void KMeansRun1(BaseField<C>& field, double* pycenters, int npatch, int max_iter
                 bool alt)
 {
     dbg<<"Start KMeansRun for "<<npatch<<" patches\n";
-    const std::vector<BaseCell<C>*> cells = field.getCells();
+    const std::vector<const BaseCell<C>*> cells = field.getCells();
 
     // Initialize the centers of the patches smartly according to the tree structure.
     std::vector<Position<C> > centers(npatch);
@@ -835,7 +835,7 @@ template <int C>
 void KMeansAssign1(BaseField<C>& field, const double* pycenters, int npatch, long* patches, long n)
 {
     dbg<<"Start KMeansAssign for "<<npatch<<" patches\n";
-    const std::vector<BaseCell<C>*> cells = field.getCells();
+    const std::vector<const BaseCell<C>*> cells = field.getCells();
 
     std::vector<Position<C> > centers(npatch);
     ReadCenters(centers, pycenters, npatch);

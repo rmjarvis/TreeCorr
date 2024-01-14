@@ -62,15 +62,6 @@ class GGGCorrelation(Corr3):
         max_sep:    The maximum separation being considered.
         logr1d:     The nominal centers of the nbins bins in log(r).
 
-    If the bin_type is LogSAS, then it will have these attributes:
-
-    Attributes:
-        nphi_bins:  The number of bins in phi.
-        phi_bin_size: The size of the bins in phi.
-        min_phi:    The minimum phi being considered.
-        max_phi:    The maximum phi being considered.
-        phi1d:      The nominal centers of the nphi_bins bins in phi.
-
     If the bin_type is LogRUV, then it will have these attributes:
 
     Attributes:
@@ -85,20 +76,19 @@ class GGGCorrelation(Corr3):
         u1d:        The nominal centers of the nubins bins in u.
         v1d:        The nominal centers of the nvbins bins in v.
 
-    In addition, the following attributes are numpy arrays whose shape is (nbins, nphi_bins, nbins)
-    if bin_type is LogSAS or (nbins, nubins, nvbins) if bin_type is LogRUV:
-
-    If bin_type is LogSAS:
+    If the bin_type is LogSAS, then it will have these attributes:
 
     Attributes:
-        logd2:      The nominal center of each d2 side bin in log(d2).
-        d2nom:      The nominal center of each d2 side bin converted to regular distance.
-                    i.e. d2 = exp(logd2).
-        logd3:      The nominal center of each d3 side bin in log(d3).
-        d3nom:      The nominal center of each d3 side bin converted to regular distance.
-                    i.e. d3 = exp(logd3).
-        phi:        The nominal center of each angular bin.
-        meanphi:    The (weighted) mean value of phi for the triangles in each bin.
+        nphi_bins:  The number of bins in phi.
+        phi_bin_size: The size of the bins in phi.
+        min_phi:    The minimum phi being considered.
+        max_phi:    The maximum phi being considered.
+        phi1d:      The nominal centers of the nphi_bins bins in phi.
+
+    In addition, the following attributes are numpy arrays whose shape is:
+
+        * (nbins, nubins, nvbins) if bin_type is LogRUV
+        * (nbins, nbins, nphi_bins) if bin_type is LogSAS
 
     If bin_type is LogRUV:
 
@@ -111,13 +101,25 @@ class GGGCorrelation(Corr3):
         meanu:      The (weighted) mean value of u for the triangles in each bin.
         meanv:      The (weighted) mean value of v for the triangles in each bin.
 
+    If bin_type is LogSAS:
+
+    Attributes:
+        logd2:      The nominal center of each bin in log(d2).
+        d2nom:      The nominal center of each bin converted to regular d2 distance.
+                    i.e. d2 = exp(logd2).
+        logd3:      The nominal center of each bin in log(d3).
+        d3nom:      The nominal center of each bin converted to regular d3 distance.
+                    i.e. d3 = exp(logd3).
+        phi:        The nominal center of each angular bin.
+        meanphi:    The (weighted) mean value of phi for the triangles in each bin.
+
     For any bin_type:
 
     Attributes:
-        gam0:       The 0th "natural" correlation function, :math:`\Gamma_0(r,u,v)`.
-        gam1:       The 1st "natural" correlation function, :math:`\Gamma_1(r,u,v)`.
-        gam2:       The 2nd "natural" correlation function, :math:`\Gamma_2(r,u,v)`.
-        gam3:       The 3rd "natural" correlation function, :math:`\Gamma_3(r,u,v)`.
+        gam0:       The 0th "natural" correlation function, :math:`\Gamma_0`.
+        gam1:       The 1st "natural" correlation function, :math:`\Gamma_1`.
+        gam2:       The 2nd "natural" correlation function, :math:`\Gamma_2`.
+        gam3:       The 3rd "natural" correlation function, :math:`\Gamma_3`.
         vargam0:    The variance of :math:`\Gamma_0`, only including the shot noise
                     propagated into the final correlation.  This (and the related values for
                     1,2,3) does not include sample variance, so it is always an underestimate
@@ -681,6 +683,30 @@ class GGGCorrelation(Corr3):
         r_nom           The nominal center of the bin in r = d2 where d1 > d2 > d3
         u_nom           The nominal center of the bin in u = d3/d2
         v_nom           The nominal center of the bin in v = +-(d1-d2)/d3
+        meanu           The mean value :math:`\langle u\rangle` of triangles that fell
+                        into each bin
+        meanv           The mean value :math:`\langle v\rangle` of triangles that fell
+                        into each bin
+        ==========      ================================================================
+
+        For bin_type = LogSAS, the output file will include the following columns:
+
+        ==========      ================================================================
+        Column          Description
+        ==========      ================================================================
+        d2_nom          The nominal center of the bin in d2
+        d3_nom          The nominal center of the bin in d3
+        phi_nom         The nominal center of the bin in phi, the opening angle between
+                        d2 and d3 in the counter-clockwise direction
+        meanphi         The mean value :math:`\langle phi\rangle` of triangles that fell
+                        into each bin
+        ==========      ================================================================
+
+        In addition, all bin types include the following columns:
+
+        ==========      ================================================================
+        Column          Description
+        ==========      ================================================================
         meand1          The mean value :math:`\langle d1\rangle` of triangles that fell
                         into each bin
         meanlogd1       The mean value :math:`\langle \log(d1)\rangle` of triangles that
@@ -693,53 +719,14 @@ class GGGCorrelation(Corr3):
                         into each bin
         meanlogd3       The mean value :math:`\langle \log(d3)\rangle` of triangles that
                         fell into each bin
-        meanu           The mean value :math:`\langle u\rangle` of triangles that fell
-                        into each bin
-        meanv           The mean value :math:`\langle v\rangle` of triangles that fell
-                        into each bin
-        gam0r           The real part of the estimator of :math:`\Gamma_0(r,u,v)`
-        gam0i           The imag part of the estimator of :math:`\Gamma_0(r,u,v)`
-        gam1r           The real part of the estimator of :math:`\Gamma_1(r,u,v)`
-        gam1i           The imag part of the estimator of :math:`\Gamma_1(r,u,v)`
-        gam2r           The real part of the estimator of :math:`\Gamma_2(r,u,v)`
-        gam2i           The imag part of the estimator of :math:`\Gamma_2(r,u,v)`
-        gam3r           The real part of the estimator of :math:`\Gamma_3(r,u,v)`
-        gam3i           The imag part of the estimator of :math:`\Gamma_3(r,u,v)`
-        sigma_gam0      The sqrt of the variance estimate of :math:`\Gamma_0`
-        sigma_gam1      The sqrt of the variance estimate of :math:`\Gamma_1`
-        sigma_gam2      The sqrt of the variance estimate of :math:`\Gamma_2`
-        sigma_gam3      The sqrt of the variance estimate of :math:`\Gamma_3`
-        weight          The total weight of triangles contributing to each bin
-        ntri            The number of triangles contributing to each bin
-        ==========      ================================================================
-
-        For bin_type = LogSAS, the output file will include the following columns:
-
-        ==========      ================================================================
-        Column          Description
-        ==========      ================================================================
-        d2_nom          The nominal center of the bin in d2
-        d3_nom          The nominal center of the bin in d3
-        phi_nom         The nominal center of the bin in phi, the opening angle between
-                        d2 and d3 in the counter-clockwise direction
-        meand2          The mean value :math:`\langle d2\rangle` of triangles that fell
-                        into each bin
-        meanlogd2       The mean value :math:`\langle \log(d2)\rangle` of triangles that
-                        fell into each bin
-        meand3          The mean value :math:`\langle d3\rangle` of triangles that fell
-                        into each bin
-        meanlogd3       The mean value :math:`\langle \log(d3)\rangle` of triangles that
-                        fell into each bin
-        meanphi         The mean value :math:`\langle phi\rangle` of triangles that fell
-                        into each bin
-        gam0r           The real part of the estimator of :math:`\Gamma_0(r,u,v)`
-        gam0i           The imag part of the estimator of :math:`\Gamma_0(r,u,v)`
-        gam1r           The real part of the estimator of :math:`\Gamma_1(r,u,v)`
-        gam1i           The imag part of the estimator of :math:`\Gamma_1(r,u,v)`
-        gam2r           The real part of the estimator of :math:`\Gamma_2(r,u,v)`
-        gam2i           The imag part of the estimator of :math:`\Gamma_2(r,u,v)`
-        gam3r           The real part of the estimator of :math:`\Gamma_3(r,u,v)`
-        gam3i           The imag part of the estimator of :math:`\Gamma_3(r,u,v)`
+        gam0r           The real part of the estimator of :math:`\Gamma_0`
+        gam0i           The imag part of the estimator of :math:`\Gamma_0`
+        gam1r           The real part of the estimator of :math:`\Gamma_1`
+        gam1i           The imag part of the estimator of :math:`\Gamma_1`
+        gam2r           The real part of the estimator of :math:`\Gamma_2`
+        gam2i           The imag part of the estimator of :math:`\Gamma_2`
+        gam3r           The real part of the estimator of :math:`\Gamma_3`
+        gam3i           The imag part of the estimator of :math:`\Gamma_3`
         sigma_gam0      The sqrt of the variance estimate of :math:`\Gamma_0`
         sigma_gam1      The sqrt of the variance estimate of :math:`\Gamma_1`
         sigma_gam2      The sqrt of the variance estimate of :math:`\Gamma_2`

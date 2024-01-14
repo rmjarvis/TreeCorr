@@ -2014,11 +2014,15 @@ def test_direct_logruv_3d_auto():
     ddd.process(cat)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
-    # And compare to the cross correlation
-    # With ordered=False, we get 6x as much, since each triangle is discovered 6 times.
+    # Compare to the cross correlation
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=0, verbose=1)
     ddd.process(cat,cat,cat)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
+    # With ordered=False, we get 6x as much, since each triangle is discovered 6 times.
     ddd.process(cat,cat,cat, ordered=False)
     np.testing.assert_array_equal(ddd.ntri, 6*true_ntri)
 
@@ -2870,7 +2874,7 @@ def test_direct_logsas_auto():
                 if d3 == 0.: continue
                 phi = np.arccos((d2**2 + d3**2 - d1**2)/(2*d2*d3))
                 if not is_ccw(x[i],y[i],x[k],y[k],x[j],y[j]):
-                    phi = 2*np.pi - phi
+                    continue
                 if d2 < min_sep or d2 >= max_sep: continue
                 if d3 < min_sep or d3 >= max_sep: continue
                 if phi < min_phi or phi >= max_phi: continue
@@ -2953,6 +2957,9 @@ def test_direct_logsas_auto():
     # Split into patches to test the list-based version of the code.
     cat = treecorr.Catalog(x=x, y=y, npatch=10)
 
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                  bin_slop=0, verbose=1,bin_type='LogSAS')
     ddd.process(cat)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
@@ -3404,6 +3411,9 @@ def test_direct_logsas_cross12():
     # Split into patches to test the list-based version of the code.
     cat1 = treecorr.Catalog(x=x1, y=y1, npatch=10)
     cat2 = treecorr.Catalog(x=x2, y=y2, npatch=10)
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                  bin_slop=0, verbose=1, bin_type='LogSAS')
 
     t0 = time.time()
     ddd.process(cat1, cat2, ordered=True)
@@ -3454,15 +3464,16 @@ def test_nnn_logsas():
     # of separations and a moderate range for u, v, which gives us a variety of triangle lengths.
     s = 10.
     if __name__ == "__main__":
-        ngal = 20000
+        ngal = 200000
         nrand = 3 * ngal
         L = 50. * s  # Not infinity, so this introduces some error.  Our integrals were to infinity.
         tol_factor = 1
     else:
-        ngal = 2000
+        ngal = 5000
         nrand = ngal
         L = 20. * s
         tol_factor = 5
+
     rng = np.random.RandomState(8675309)
     x = rng.normal(0,s, (ngal,) )
     y = rng.normal(0,s, (ngal,) )
@@ -3508,9 +3519,9 @@ def test_nnn_logsas():
     np.testing.assert_allclose(dddc.meanphi, ddd.meanphi)
 
     # log(<d>) != <logd>, but it should be close:
-    print('meanlogd1 - log(meand1) = ',ddd.meanlogd1 - np.log(ddd.meand1))
-    print('meanlogd2 - log(meand2) = ',ddd.meanlogd2 - np.log(ddd.meand2))
-    print('meanlogd3 - log(meand3) = ',ddd.meanlogd3 - np.log(ddd.meand3))
+    #print('meanlogd1 - log(meand1) = ',ddd.meanlogd1 - np.log(ddd.meand1))
+    #print('meanlogd2 - log(meand2) = ',ddd.meanlogd2 - np.log(ddd.meand2))
+    #print('meanlogd3 - log(meand3) = ',ddd.meanlogd3 - np.log(ddd.meand3))
     np.testing.assert_allclose(ddd.meanlogd1, np.log(ddd.meand1), rtol=1.e-3)
     np.testing.assert_allclose(ddd.meanlogd2, np.log(ddd.meand2), rtol=1.e-3)
     np.testing.assert_allclose(ddd.meanlogd3, np.log(ddd.meand3), rtol=1.e-3)
@@ -3521,7 +3532,10 @@ def test_nnn_logsas():
     rrr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                   sep_units='arcmin', verbose=1, bin_type='LogSAS')
+    t0 = time.time()
     rrr.process(rand)
+    t1 = time.time()
+    print('time for rrr: ',t1-t0)
 
     d1 = ddd.meand1
     d2 = ddd.meand2
@@ -3532,8 +3546,7 @@ def test_nnn_logsas():
     zeta, varzeta = ddd.calculateZeta(rrr=rrr)
     print('zeta = ',zeta)
     print('true_zeta = ',true_zeta)
-    print('ratio = ',zeta / true_zeta)
-    print('diff = ',zeta - true_zeta)
+    print('mean ratio = ',np.mean(zeta / true_zeta))
     print('max rel diff = ',np.max(np.abs((zeta - true_zeta)/true_zeta)))
     np.testing.assert_allclose(zeta, true_zeta, rtol=0.1*tol_factor)
     np.testing.assert_allclose(np.log(np.abs(zeta)), np.log(np.abs(true_zeta)),
@@ -3543,13 +3556,13 @@ def test_nnn_logsas():
     cat.write(os.path.join('data','nnn_data_logsas.dat'))
     rand.write(os.path.join('data','nnn_rand_logsas.dat'))
     config = treecorr.config.read_config('configs/nnn_logsas.yaml')
-    config['verbose'] = 3
+    config['verbose'] = 1
     treecorr.corr3(config)
     corr3_output = np.genfromtxt(os.path.join('output','nnn_logsas.out'), names=True, skip_header=1)
-    print('zeta = ',zeta)
-    print('from corr3 output = ',corr3_output['zeta'])
-    print('ratio = ',corr3_output['zeta']/zeta.flatten())
-    print('diff = ',corr3_output['zeta']-zeta.flatten())
+    #print('zeta = ',zeta)
+    #print('from corr3 output = ',corr3_output['zeta'])
+    #print('ratio = ',corr3_output['zeta']/zeta.flatten())
+    #print('diff = ',corr3_output['zeta']-zeta.flatten())
     np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
 
     # Check the fits write option
@@ -3600,7 +3613,7 @@ def test_nnn_logsas():
         # The read function should reshape them to the right shape.
         ddd2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                        min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
-                                       sep_units='arcmin', verbose=1, bin_type='LogSAS')
+                                       sep_units='arcmin', bin_type='LogSAS')
         ddd2.read(out_file_name1)
         np.testing.assert_almost_equal(ddd2.logd2, ddd.logd2)
         np.testing.assert_almost_equal(ddd2.logd3, ddd.logd3)
@@ -3667,7 +3680,7 @@ def test_nnn_logsas():
 
         ddd3 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                        min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
-                                       sep_units='arcmin', verbose=1, bin_type='LogSAS')
+                                       sep_units='arcmin', bin_type='LogSAS')
         ddd3.read(out_file_name3)
         np.testing.assert_almost_equal(ddd3.logd2, ddd.logd2)
         np.testing.assert_almost_equal(ddd3.logd3, ddd.logd3)
@@ -3700,16 +3713,16 @@ def test_nnn_logsas():
         ddd.calculateZeta(rrr=rrr, rdd=rrr)
     with assert_raises(TypeError):
         ddd.calculateZeta(rrr=rrr, drr=rrr)
-    rrr2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+    rrr3 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                    min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                    sep_units='arcmin', bin_type='LogSAS')
     # Error if any of them haven't been run yet.
     with assert_raises(ValueError):
-        ddd.calculateZeta(rrr=rrr2, drr=rrr, rdd=rrr)
+        ddd.calculateZeta(rrr=rrr3, drr=rrr, rdd=rrr)
     with assert_raises(ValueError):
-        ddd.calculateZeta(rrr=rrr, drr=rrr2, rdd=rrr)
+        ddd.calculateZeta(rrr=rrr, drr=rrr3, rdd=rrr)
     with assert_raises(ValueError):
-        ddd.calculateZeta(rrr=rrr, drr=rrr, rdd=rrr2)
+        ddd.calculateZeta(rrr=rrr, drr=rrr, rdd=rrr3)
 
     out_file_name3 = os.path.join('output','nnn_out3_logsas.dat')
     with assert_raises(TypeError):
@@ -3725,8 +3738,13 @@ def test_nnn_logsas():
     drr = ddd.copy()
     rdd = ddd.copy()
 
+    t0 = time.time()
     drr.process(cat,rand, ordered=False)
+    t1 = time.time()
     rdd.process(rand,cat, ordered=False)
+    t2 = time.time()
+    print('time for drr: ',t1-t0)
+    print('time for rdd: ',t2-t1)
 
     zeta, varzeta = ddd.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)
     print('compensated zeta = ',zeta)
@@ -3734,14 +3752,13 @@ def test_nnn_logsas():
     xi1 = (1./(4.*np.pi)) * (L/s)**2 * np.exp(-d1**2/(4.*s**2)) - 1.
     xi2 = (1./(4.*np.pi)) * (L/s)**2 * np.exp(-d2**2/(4.*s**2)) - 1.
     xi3 = (1./(4.*np.pi)) * (L/s)**2 * np.exp(-d3**2/(4.*s**2)) - 1.
-    print('xi1 = ',xi1)
-    print('xi2 = ',xi2)
-    print('xi3 = ',xi3)
-    print('true_zeta + xi1 + xi2 + xi3 = ',true_zeta)
+    #print('xi1 = ',xi1)
+    #print('xi2 = ',xi2)
+    #print('xi3 = ',xi3)
+    #print('true_zeta + xi1 + xi2 + xi3 = ',true_zeta)
     true_zeta -= xi1 + xi2 + xi3
-    print('true_zeta => ',true_zeta)
-    print('ratio = ',zeta / true_zeta)
-    print('diff = ',zeta - true_zeta)
+    #print('true_zeta => ',true_zeta)
+    print('mean ratio = ',np.mean(zeta / true_zeta))
     print('max rel diff = ',np.max(np.abs((zeta - true_zeta)/true_zeta)))
     np.testing.assert_allclose(zeta, true_zeta, rtol=0.1*tol_factor)
     np.testing.assert_allclose(np.log(np.abs(zeta)), np.log(np.abs(true_zeta)), atol=0.1*tol_factor)
@@ -3814,6 +3831,7 @@ def test_nnn_logsas():
         np.testing.assert_almost_equal(data['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
         header = fitsio.read_header(out_file_name3, 1)
         np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
+
 
 if __name__ == '__main__':
     test_logruv_binning()

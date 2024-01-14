@@ -1322,7 +1322,7 @@ void BaseCorr3::multipole(const BaseField<C>& field, bool dots)
     if (dots) std::cout<<std::endl;
 }
 
-template <int B, int O, int M, int C>
+template <int B, int M, int C>
 void BaseCorr3::multipole(const BaseField<C>& field1, const BaseField<C>& field2, bool dots)
 {
     dbg<<"Start multipole cross12\n";
@@ -1391,7 +1391,7 @@ void BaseCorr3::multipole(const BaseField<C>& field1, const BaseField<C>& field2
     if (dots) std::cout<<std::endl;
 }
 
-template <int B, int O, int M, int C>
+template <int B, int M, int C>
 void BaseCorr3::multipole(const BaseField<C>& field1, const BaseField<C>& field2,
                           const BaseField<C>& field3, bool dots)
 {
@@ -1455,7 +1455,7 @@ void BaseCorr3::multipole(const BaseField<C>& field1, const BaseField<C>& field2
 #endif
             }
             const BaseCell<C>& c1 = *c1list[i];
-            corr.template multipoleSplit1<B,O>(
+            corr.template multipoleSplit1<B>(
                 c1, c2list, c3list, metric,
                 sumwr2, sumwlogr2, sumw2, npairs2, Gn2,
                 sumwr3, sumwlogr3, sumw3, npairs3, Gn3);
@@ -1576,7 +1576,7 @@ void BaseCorr3::multipoleSplit1(
     }
     dec_ws();
 }
-template <int B, int O, int M, int C>
+template <int B, int M, int C>
 void BaseCorr3::multipoleSplit1(
     const BaseCell<C>& c1,
     const std::vector<const BaseCell<C>*>& c2list,
@@ -1602,11 +1602,11 @@ void BaseCorr3::multipoleSplit1(
     inc_ws();
     double maxbsq_eff = BinTypeHelper<B>::getEffectiveBSq(_maxsepsq, _bsq);
     if (SQR(s1) > maxbsq_eff) {
-        multipoleSplit1<B,O>(
+        multipoleSplit1<B>(
             *c1.getLeft(), newc2list, newc3list, metric,
             sumwr2, sumwlogr2, sumw2, npairs2, Gn2,
             sumwr3, sumwlogr3, sumw3, npairs3, Gn3);
-        multipoleSplit1<B,O>(
+        multipoleSplit1<B>(
             *c1.getRight(), newc2list, newc3list, metric,
             sumwr2, sumwlogr2, sumw2, npairs2, Gn2,
             sumwr3, sumwlogr3, sumw3, npairs3, Gn3);
@@ -1624,7 +1624,7 @@ void BaseCorr3::multipoleSplit1(
             npairs3[i] = 0.;
             Gn3[i] = 0.;
         }
-        multipoleFinish<B,O>(
+        multipoleFinish<B>(
             c1, newc2list, newc3list, metric,
             sumwr2, sumwlogr2, sumw2, npairs2, Gn2,
             sumwr3, sumwlogr3, sumw3, npairs3, Gn3);
@@ -1789,7 +1789,7 @@ void BaseCorr3::multipoleFinish(
     }
 }
 
-template <int B, int O, int M, int C>
+template <int B, int M, int C>
 void BaseCorr3::multipoleFinish(
     const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
     const std::vector<const BaseCell<C>*>& c3list, const MetricHelper<M,0>& metric,
@@ -1842,18 +1842,18 @@ void BaseCorr3::multipoleFinish(
                 npairs3c[i] = npairs3[i];
                 Gn3c[i] = Gn3[i];
             }
-            multipoleFinish<B,O>(
+            multipoleFinish<B>(
                 *c1.getLeft(), newc2list, newc3list, metric,
                 sumwr2c, sumwlogr2c, sumw2c, npairs2c, Gn2c,
                 sumwr3c, sumwlogr3c, sumw3c, npairs3c, Gn3c);
-            multipoleFinish<B,O>(
+            multipoleFinish<B>(
                 *c1.getRight(), newc2list, newc3list, metric,
                 sumwr2c, sumwlogr2c, sumw2c, npairs2c, Gn2c,
                 sumwr3c, sumwlogr3c, sumw3c, npairs3c, Gn3c);
         } else {
             // If we still have c2 items to process, but don't have to split c1,
             // we don't need to make copies.
-            multipoleFinish<B,O>(
+            multipoleFinish<B>(
                 c1, newc2list, newc3list, metric,
                 sumwr2, sumwlogr2, sumw2, npairs2, Gn2,
                 sumwr3, sumwlogr3, sumw3, npairs3, Gn3);
@@ -1985,19 +1985,30 @@ void ProcessCross12b(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2
                      int ordered, bool dots)
 {
     Assert((ValidMC<M,C>::_M == M));
-    switch(ordered) {
-      case 0:
-           corr.template process<B,0,ValidMC<M,C>::_M>(field1, field2, dots);
-           break;
-      case 1:
-           if (B == LogMultipole) {
-               corr.template multipole<ValidMPB<B>::_B,1,ValidMC<M,C>::_M>(field1, field2, dots);
-           } else {
+    if (B == LogMultipole) {
+        switch(ordered) {
+          case 0:
+               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+                   field2, field1, field2, dots);
+               // Drop through.
+          case 1:
+               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+                   field1, field2, dots);
+               break;
+          default:
+               Assert(false);
+        }
+    } else {
+        switch(ordered) {
+          case 0:
+               corr.template process<B,0,ValidMC<M,C>::_M>(field1, field2, dots);
+               break;
+          case 1:
                corr.template process<B,1,ValidMC<M,C>::_M>(field1, field2, dots);
-           }
-           break;
-      default:
-           Assert(false);
+               break;
+          default:
+               Assert(false);
+        }
     }
 }
 
@@ -2046,23 +2057,36 @@ void ProcessCrossb(BaseCorr3& corr,
                    int ordered, bool dots)
 {
     Assert((ValidMC<M,C>::_M == M));
-    switch(ordered) {
-      case 0:
-           corr.template process<B,0,ValidMC<M,C>::_M>(field1, field2, field3, dots);
-           break;
-      case 1:
-           corr.template process<B,1,ValidMC<M,C>::_M>(field1, field2, field3, dots);
-           break;
-      case 3:
-           if (B == LogMultipole) {
-               corr.template multipole<ValidMPB<B>::_B,3,ValidMC<M,C>::_M>(
+    if (B == LogMultipole) {
+        switch(ordered) {
+          case 0:
+               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+                   field2, field1, field3, dots);
+               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+                   field3, field1, field2, dots);
+               // Drop through.
+          case 1:
+          case 3:
+               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
                    field1, field2, field3, dots);
-           } else {
+               break;
+          default:
+               Assert(false);
+        }
+    } else {
+        switch(ordered) {
+          case 0:
+               corr.template process<B,0,ValidMC<M,C>::_M>(field1, field2, field3, dots);
+               break;
+          case 1:
+               corr.template process<B,1,ValidMC<M,C>::_M>(field1, field2, field3, dots);
+               break;
+          case 3:
                corr.template process<B,3,ValidMC<M,C>::_M>(field1, field2, field3, dots);
-           }
-           break;
-      default:
-           Assert(false);
+               break;
+          default:
+               Assert(false);
+        }
     }
 }
 

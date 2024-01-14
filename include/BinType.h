@@ -692,12 +692,13 @@ struct BinTypeHelper<LogRUV>
         Assert(d1 > 0.);
         Assert(d3 > 0.);
         Assert(u > 0.);
-        Assert(v >= 0.);  // v can potentially == 0.
 
         if (O && !(d1 >= d2 && d2 >= d3)) {
             xdbg<<"Sides are not in correct size ordering d1 >= d2 >= d3\n";
             return false;
         }
+
+        Assert(v >= 0.);  // v can potentially == 0.
 
         if (d2 < minsep || d2 >= maxsep) {
             xdbg<<"d2 not in minsep .. maxsep\n";
@@ -723,7 +724,7 @@ struct BinTypeHelper<LogRUV>
         Assert(kr >= 0);
         Assert(kr <= nbins);
         if (kr == nbins) --kr;  // This is rare, but can happen with numerical differences
-                                 // between the math for log and for non-log checks.
+                                // between the math for log and for non-log checks.
         Assert(kr < nbins);
 
         int ku = int(floor((u-minu)/ubinsize));

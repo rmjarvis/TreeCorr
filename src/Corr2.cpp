@@ -150,6 +150,8 @@ void BaseCorr2::process(const BaseField<C>& field, bool dots)
     dbg<<"field has "<<n1<<" top level nodes\n";
     Assert(n1 > 0);
 
+    const std::vector<const BaseCell<C>*>& cells = field.getCells();
+
 #ifdef _OPENMP
 #pragma omp parallel
     {
@@ -176,10 +178,10 @@ void BaseCorr2::process(const BaseField<C>& field, bool dots)
 #endif
                 if (dots) std::cout<<'.'<<std::flush;
             }
-            const BaseCell<C>& c1 = *field.getCells()[i];
+            const BaseCell<C>& c1 = *cells[i];
             bc2.template process2<B,M,P>(c1, metric);
             for (long j=i+1;j<n1;++j) {
-                const BaseCell<C>& c2 = *field.getCells()[j];
+                const BaseCell<C>& c2 = *cells[j];
                 bc2.process11<B,M,P,BinTypeHelper<B>::do_reverse>(c1, c2, metric);
             }
         }
@@ -226,6 +228,9 @@ void BaseCorr2::process(const BaseField<C>& field1, const BaseField<C>& field2, 
     Assert(n1 > 0);
     Assert(n2 > 0);
 
+    const std::vector<const BaseCell<C>*>& c1list = field1.getCells();
+    const std::vector<const BaseCell<C>*>& c2list = field2.getCells();
+
 #ifdef _OPENMP
 #pragma omp parallel
     {
@@ -251,9 +256,9 @@ void BaseCorr2::process(const BaseField<C>& field1, const BaseField<C>& field2, 
 #endif
                 if (dots) std::cout<<'.'<<std::flush;
             }
-            const BaseCell<C>& c1 = *field1.getCells()[i];
+            const BaseCell<C>& c1 = *c1list[i];
             for (long j=0;j<n2;++j) {
-                const BaseCell<C>& c2 = *field2.getCells()[j];
+                const BaseCell<C>& c2 = *c2list[j];
                 bc2.process11<B,M,P,false>(c1, c2, metric);
             }
         }

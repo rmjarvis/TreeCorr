@@ -218,6 +218,8 @@ void BaseCorr3::process(const BaseField<C>& field, bool dots)
     dbg<<"field has "<<n1<<" top level nodes\n";
     Assert(n1 > 0);
 
+    const std::vector<const BaseCell<C>*>& cells = field.getCells();
+
 #ifdef _OPENMP
 #pragma omp parallel
     {
@@ -234,7 +236,7 @@ void BaseCorr3::process(const BaseField<C>& field, bool dots)
 #pragma omp for schedule(dynamic)
 #endif
         for (long i=0;i<n1;++i) {
-            const BaseCell<C>& c1 = *field.getCells()[i];
+            const BaseCell<C>& c1 = *cells[i];
 #ifdef _OPENMP
 #pragma omp critical
 #endif
@@ -246,11 +248,11 @@ void BaseCorr3::process(const BaseField<C>& field, bool dots)
             }
             corr.template process3<B>(c1, metric);
             for (long j=i+1;j<n1;++j) {
-                const BaseCell<C>& c2 = *field.getCells()[j];
+                const BaseCell<C>& c2 = *cells[j];
                 corr.template process12<B,0>(c1, c2, metric);
                 corr.template process12<B,0>(c2, c1, metric);
                 for (long k=j+1;k<n1;++k) {
-                    const BaseCell<C>& c3 = *field.getCells()[k];
+                    const BaseCell<C>& c3 = *cells[k];
                     corr.template process111<B,0>(c1, c2, c3, metric);
                 }
             }
@@ -285,6 +287,8 @@ void BaseCorr3::process(const BaseField<C>& field1, const BaseField<C>& field2,
 
     MetricHelper<M,0> metric(0, 0, _xp, _yp, _zp);
 
+    const std::vector<const BaseCell<C>*>& c1list = field1.getCells();
+    const std::vector<const BaseCell<C>*>& c2list = field2.getCells();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -309,12 +313,12 @@ void BaseCorr3::process(const BaseField<C>& field1, const BaseField<C>& field2,
                 dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
 #endif
             }
-            const BaseCell<C>& c1 = *field1.getCells()[i];
+            const BaseCell<C>& c1 = *c1list[i];
             for (long j=0;j<n2;++j) {
-                const BaseCell<C>& c2 = *field2.getCells()[j];
+                const BaseCell<C>& c2 = *c2list[j];
                 corr.template process12<B,O>(c1, c2, metric);
                 for (long k=j+1;k<n2;++k) {
-                    const BaseCell<C>& c3 = *field2.getCells()[k];
+                    const BaseCell<C>& c3 = *c2list[k];
                     corr.template process111<B,O>(c1, c2, c3, metric);
                 }
             }
@@ -352,6 +356,9 @@ void BaseCorr3::process(const BaseField<C>& field1, const BaseField<C>& field2,
 
     MetricHelper<M,0> metric(0, 0, _xp, _yp, _zp);
 
+    const std::vector<const BaseCell<C>*>& c1list = field1.getCells();
+    const std::vector<const BaseCell<C>*>& c2list = field2.getCells();
+    const std::vector<const BaseCell<C>*>& c3list = field3.getCells();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -376,11 +383,11 @@ void BaseCorr3::process(const BaseField<C>& field1, const BaseField<C>& field2,
                 dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
 #endif
             }
-            const BaseCell<C>& c1 = *field1.getCells()[i];
+            const BaseCell<C>& c1 = *c1list[i];
             for (long j=0;j<n2;++j) {
-                const BaseCell<C>& c2 = *field2.getCells()[j];
+                const BaseCell<C>& c2 = *c2list[j];
                 for (long k=0;k<n3;++k) {
-                    const BaseCell<C>& c3 = *field3.getCells()[k];
+                    const BaseCell<C>& c3 = *c3list[k];
                     corr.template process111<B,O>(c1, c2, c3, metric);
                 }
             }

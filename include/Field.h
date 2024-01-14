@@ -51,7 +51,14 @@ public:
     Position<C> getCenter() const { return _center; }
     double getSize() const { return std::sqrt(_sizesq); }
     long getNTopLevel() const { BuildCells(); return long(_cells.size()); }
-    const std::vector<BaseCell<C>*>& getCells() const { BuildCells(); return _cells; }
+    const std::vector<const BaseCell<C>*>& getCells() const
+    {
+        BuildCells();
+        // const_cast is insufficient to turn this into a vector of const BaseCell*.
+        // cf. https://stackoverflow.com/questions/19122858/why-is-a-vector-of-pointers-not-castable-to-a-const-vector-of-const-pointers
+        // But reinterpret_cast here is safe.
+        return reinterpret_cast<std::vector<const BaseCell<C>*>&>(_cells);
+    }
     long countNear(double x, double y, double z, double sep) const;
     void getNear(double x, double y, double z, double sep, long* indices, long n) const;
 

@@ -473,7 +473,7 @@ class NNNCorrelation(Corr3):
                 self.meanlogd1[mask2] = 0.
                 self.meanu[mask2] = 0.
 
-    def finalize(self, sym23=True):
+    def finalize(self, *, sym23=True):
         """Finalize the calculation of meand1, meanlogd1, etc.
 
         The `process_auto`, `process_cross12` and `process_cross` commands accumulate values in
@@ -650,13 +650,31 @@ class NNNCorrelation(Corr3):
                 raise ValueError("For two catalog case, use cat1,cat2, not cat1,cat3")
             self._process_all_auto(cat1, metric, num_threads, comm, low_mem)
         elif cat3 is None:
+            # TODO: I think I know how to make multipole work when cat2,3 use patches.
+            #       The issue is that for each galaxy in cat1, we need to compute Gn for all
+            #       pairs in cats 2 and 3 bofore finishing the calculation.  So we can't do
+            #       arbitrary cross-correlations of patches from cat1 with patches in cat 2,3
+            #       as we normally do. However, if we get slightly larger patches from cats 2,3
+            #       with a buffer region equal to max_sep, then all the triangles using a
+            #       galaxy from cat1 can be processed in a single call.  I'll add this feature
+            #       in a later branch.
+            if len(cat2) > 1 and self.bin_type == 'LogMultipole':
+                raise ValueError("Multipole algorithm cannot be used when cat2 is a list.")
+            if len(cat1) > 1 and self.bin_type == 'LogMultipole' and not ordered:
+                raise ValueError("Multipole algorithm cannot be used when cat1 is a list and ordered=False.")
             self._process_all_cross12(cat1, cat2, metric, ordered, num_threads, comm, low_mem)
         else:
+            if len(cat2) > 1 and self.bin_type == 'LogMultipole':
+                raise ValueError("Multipole algorithm cannot be used when cat2 is a list.")
+            if len(cat3) > 1 and self.bin_type == 'LogMultipole':
+                raise ValueError("Multipole algorithm cannot be used when cat3 is a list.")
+            if len(cat1) > 1 and self.bin_type == 'LogMultipole' and not ordered:
+                raise ValueError("Multipole algorithm cannot be used when cat1 is a list and ordered=False.")
             self._process_all_cross(cat1, cat2, cat3, metric, ordered, num_threads, comm, low_mem)
 
         if finalize:
             sym23 = cat3 is None or not ordered
-            self.finalize(sym23)
+            self.finalize(sym23=sym23)
 
     def _mean_weight(self):
         mean_np = np.mean(self.ntri)

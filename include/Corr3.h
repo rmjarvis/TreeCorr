@@ -54,9 +54,9 @@ public:
                  const BaseField<C>& field3, bool dots);
     template <int B, int M, int C>
     void multipole(const BaseField<C>& field, bool dots);
-    template <int B, int O, int M, int C>
+    template <int B, int M, int C>
     void multipole(const BaseField<C>& field1,  const BaseField<C>& field2, bool dots);
-    template <int B, int O, int M, int C>
+    template <int B, int M, int C>
     void multipole(const BaseField<C>& field1,  const BaseField<C>& field2,
                    const BaseField<C>& field3, bool dots);
 
@@ -96,7 +96,7 @@ public:
                          double* sumwwr, double* sumwwlogr, double* sumww,
                          double* npairs, std::complex<double>* Gn);
 
-    template <int B, int O, int M, int C>
+    template <int B, int M, int C>
     void multipoleSplit1(const BaseCell<C>& c1,
                          const std::vector<const BaseCell<C>*>& c2list,
                          const std::vector<const BaseCell<C>*>& c3list,
@@ -122,7 +122,7 @@ public:
                          double* sumwwr, double* sumwwlogr, double* sumww,
                          double* npairs, std::complex<double>* Gn);
 
-    template <int B, int O, int M, int C>
+    template <int B, int M, int C>
     void multipoleFinish(const BaseCell<C>& c1,
                          const std::vector<const BaseCell<C>*>& c2list,
                          const std::vector<const BaseCell<C>*>& c3list,

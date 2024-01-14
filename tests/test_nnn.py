@@ -4042,9 +4042,9 @@ def test_nnn_logsas():
     rdd = ddd.copy()
 
     t0 = time.time()
-    drr.process(cat,rand, ordered=True)
+    drr.process(cat,rand, ordered=False)
     t1 = time.time()
-    rdd.process(rand,cat, ordered=True)
+    rdd.process(rand,cat, ordered=False)
     t2 = time.time()
     print('time for drr: ',t1-t0)
     print('time for rdd: ',t2-t1)
@@ -4144,10 +4144,10 @@ def test_nnn_logsas():
     drrm = dddm.copy()
     rddm = dddm.copy()
     t0 = time.time()
-    drrm.process(cat,rand, ordered=True)
+    drrm.process(cat,rand, ordered=False)
     drr2 = drrm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins)
     t1 = time.time()
-    rddm.process(rand,cat, ordered=True)
+    rddm.process(rand,cat, ordered=False)
     rdd2 = rddm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins)
     t2 = time.time()
     print('time for drr via Multipole: ',t1-t0)
@@ -4246,8 +4246,6 @@ def test_direct_logmultipole_auto():
     assert np.std(sas.ntri/true_ntri_sas) < 0.05
 
     # Repeat with binslop = 0.
-    # This now does the real Multipole algorithm, which of course is the whole point
-    # of the multipole binning.  brute=True does a direct 3 point computation.
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
                                   bin_slop=0, bin_type='LogMultipole')
     t0 = time.time()
@@ -4372,7 +4370,7 @@ def test_direct_logmultipole_cross12():
     dddb = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
                                    brute=True, bin_type='LogMultipole')
     t0 = time.time()
-    dddb.process(cat1, cat2, ordered=True)
+    dddb.process(cat1, cat2)
     t1 = time.time()
     print('time for multipole, brute=True: ',t1-t0)
 
@@ -4468,7 +4466,7 @@ def test_direct_logmultipole_cross12():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
                                   bin_slop=0, bin_type='LogMultipole')
     t0 = time.time()
-    ddd.process(cat1, cat2, ordered=True)
+    ddd.process(cat1, cat2)
     t1 = time.time()
     print('time for bin_slop=0 ordered: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
@@ -4480,34 +4478,35 @@ def test_direct_logmultipole_cross12():
     np.testing.assert_allclose(ddd.meanlogd3, dddb.meanlogd3)
 
     t0 = time.time()
-    ddd.process(cat2, cat1, cat2, ordered=True)
+    ddd.process(cat2, cat1, cat2)
     t1 = time.time()
     print('time for bin_slop=0 ordered 212: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_212)
     np.testing.assert_array_equal(ddd.weight, 75*true_ntri_212)
     np.testing.assert_allclose(ddd.zeta, 75*true_zeta_212, atol=1.e-12)
     t0 = time.time()
-    ddd.process(cat2, cat2, cat1, ordered=True)
+    ddd.process(cat2, cat2, cat1)
     t1 = time.time()
     print('time for bin_slop=0 ordered 221: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_221)
     np.testing.assert_array_equal(ddd.weight, 75*true_ntri_221)
     np.testing.assert_allclose(ddd.zeta, 75*true_zeta_221, atol=1.e-12)
 
-    #t0 = time.time()
-    #ddd.process(cat1, cat2, ordered=False)
-    #t1 = time.time()
-    #true_ntri_sum = true_ntri_122 + true_ntri_212 + true_ntri_221
-    #print('time for bin_slop=0 unordered: ',t1-t0)
-    #np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
-    #np.testing.assert_array_equal(ddd.weight, 75*true_ntri_sum)
-    #np.testing.assert_allclose(ddd.zeta, 75*true_zeta_sum, atol=1.e-12)
+    t0 = time.time()
+    ddd.process(cat1, cat2, ordered=False)
+    t1 = time.time()
+    true_ntri_sum = true_ntri_122 + true_ntri_212 + true_ntri_221
+    true_zeta_sum = true_zeta_122 + true_zeta_212 + true_zeta_221
+    print('time for bin_slop=0 unordered: ',t1-t0)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
+    np.testing.assert_array_equal(ddd.weight, 75*true_ntri_sum)
+    np.testing.assert_allclose(ddd.zeta, 75*true_zeta_sum, atol=1.e-12)
 
     # And again with no top-level recursion
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
                                   bin_slop=0, max_top=0, bin_type='LogMultipole')
     t0 = time.time()
-    ddd.process(cat1, cat2, ordered=True)
+    ddd.process(cat1, cat2)
     t1 = time.time()
     print('time for multipole, bin_slop=0, max_top=0, ordered: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
@@ -4519,26 +4518,26 @@ def test_direct_logmultipole_cross12():
     np.testing.assert_allclose(ddd.meanlogd3, dddb.meanlogd3)
 
     t0 = time.time()
-    ddd.process(cat2, cat1, cat2, ordered=True)
+    ddd.process(cat2, cat1, cat2)
     t1 = time.time()
     print('time for bin_slop=0, max_top=0 ordered 212: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_212)
     np.testing.assert_array_equal(ddd.weight, 75*true_ntri_212)
     np.testing.assert_allclose(ddd.zeta, 75*true_zeta_212, rtol=1.e-10)
     t0 = time.time()
-    ddd.process(cat2, cat2, cat1, ordered=True)
+    ddd.process(cat2, cat2, cat1)
     t1 = time.time()
     print('time for bin_slop=0, max_top=0 ordered 221: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_221)
     np.testing.assert_array_equal(ddd.weight, 75*true_ntri_221)
     np.testing.assert_allclose(ddd.zeta, 75*true_zeta_221, rtol=1.e-10)
-    #t0 = time.time()
-    #ddd.process(cat1, cat2, ordered=False)
-    #t1 = time.time()
-    #print('time for bin_slop=0, max_top=0 unordered: ',t1-t0)
-    #np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
-    #np.testing.assert_array_equal(ddd.weight, 75*true_ntri_sum)
-    #np.testing.assert_allclose(ddd.zeta, 75*true_zeta_sum, rtol=1.e-10)
+    t0 = time.time()
+    ddd.process(cat1, cat2, ordered=False)
+    t1 = time.time()
+    print('time for bin_slop=0, max_top=0 unordered: ',t1-t0)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
+    np.testing.assert_array_equal(ddd.weight, 75*true_ntri_sum)
+    np.testing.assert_allclose(ddd.zeta, 75*true_zeta_sum, rtol=1.e-10)
 
     # Split into patches to test the list-based version of the code.
     # Note: Multipole cannot work with cat2 as a list, but cat1 can be.
@@ -4548,33 +4547,22 @@ def test_direct_logmultipole_cross12():
                                   bin_slop=0, bin_type='LogMultipole')
 
     t0 = time.time()
-    ddd.process(cat1, cat2, ordered=True)
+    ddd.process(cat1, cat2)
     t1 = time.time()
     print('time for patch ordered: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
     np.testing.assert_array_equal(ddd.weight, 75*true_ntri_122)
     np.testing.assert_allclose(ddd.zeta, 75*true_zeta_122, rtol=1.e-10)
-    t0 = time.time()
-    ddd.process(cat2, cat1, cat2, ordered=True)
-    t1 = time.time()
-    print('time for patch ordered 212: ',t1-t0)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_212)
-    np.testing.assert_array_equal(ddd.weight, 75*true_ntri_212)
-    np.testing.assert_allclose(ddd.zeta, 75*true_zeta_212, rtol=1.e-10)
-    t0 = time.time()
-    ddd.process(cat2, cat2, cat1, ordered=True)
-    t1 = time.time()
-    print('time for patch ordered 221: ',t1-t0)
-    np.testing.assert_array_equal(ddd.ntri, true_ntri_221)
-    np.testing.assert_array_equal(ddd.weight, 75*true_ntri_221)
-    np.testing.assert_allclose(ddd.zeta, 75*true_zeta_221, rtol=1.e-10)
-    #t0 = time.time()
-    #ddd.process(cat1, cat2, ordered=False)
-    #t1 = time.time()
-    #print('time for patch unordered: ',t1-t0)
-    #np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
-    #np.testing.assert_array_equal(ddd.weight, 75*true_ntri_sum)
-    #np.testing.assert_allclose(ddd.zeta, 75*true_zeta_sum, rtol=1.e-10)
+
+    with assert_raises(ValueError):
+        ddd.process(cat2, cat1, cat2, ordered=True)
+    with assert_raises(ValueError):
+        ddd.process(cat2, cat2, cat1, ordered=True)
+    with assert_raises(ValueError):
+        ddd.process(cat1, cat2, ordered=False)
+    with assert_raises(ValueError):
+        ddd.process(cat2, cat1, ordered=True)
+
 
 @timer
 def test_direct_logmultipole_cross():
@@ -4609,7 +4597,7 @@ def test_direct_logmultipole_cross():
     dddb = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
                                    brute=True, bin_type='LogMultipole')
     t0 = time.time()
-    dddb.process(cat1, cat2, cat3, ordered=True)
+    dddb.process(cat1, cat2, cat3)
     t1 = time.time()
     print('time for multipole, brute=True: ',t1-t0)
 
@@ -4738,22 +4726,11 @@ def test_direct_logmultipole_cross():
                                rtol=1.e-3 * tol_factor)
     assert np.std(sas.weight/true_weight_sas_123) < 0.05 * tol_factor
 
-    #t0 = time.time()
-    #dddb.process(cat1, cat2, cat3, ordered=False)
-    #t1 = time.time()
-    #true_ntri_sum = true_ntri_123 + true_ntri_132 + true_ntri_213 + true_ntri_231 + true_ntri_312 + true_ntri_321
-    #true_weight_sum = true_weight_123 + true_weight_132 + true_weight_213 + true_weight_231 + true_weight_312 + true_weight_321
-    #true_zeta_sum = true_zeta_123 + true_zeta_132 + true_zeta_213 + true_zeta_231 + true_zeta_312 + true_zeta_321
-    #print('time for brute unordered: ',t1-t0)
-    #np.testing.assert_allclose(ddd.weight, true_weight_sum)
-    #np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
-    #np.testing.assert_allclose(dddb.zeta, true_zeta_sum, rtol=1.e-5)
-
     # Repeat with binslop = 0
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
                                   bin_slop=0, bin_type='LogMultipole')
     t0 = time.time()
-    ddd.process(cat1, cat2, cat3, ordered=True)
+    ddd.process(cat1, cat2, cat3)
     t1 = time.time()
     print('time for bin_slop=0 ordered: ',t1-t0)
     np.testing.assert_allclose(ddd.weight, true_weight_123)
@@ -4764,43 +4741,47 @@ def test_direct_logmultipole_cross():
     np.testing.assert_allclose(ddd.meand3, dddb.meand3)
     np.testing.assert_allclose(ddd.meanlogd3, dddb.meanlogd3)
 
-    ddd.process(cat1, cat3, cat2, ordered=True)
+    ddd.process(cat1, cat3, cat2)
     np.testing.assert_allclose(ddd.weight, true_weight_132)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_132)
     np.testing.assert_allclose(ddd.zeta, true_zeta_132, rtol=1.e-5)
 
-    ddd.process(cat2, cat1, cat3, ordered=True)
+    ddd.process(cat2, cat1, cat3)
     np.testing.assert_allclose(ddd.weight, true_weight_213)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_213)
     np.testing.assert_allclose(ddd.zeta, true_zeta_213, rtol=1.e-5)
 
-    ddd.process(cat2, cat3, cat1, ordered=True)
+    ddd.process(cat2, cat3, cat1)
     np.testing.assert_allclose(ddd.weight, true_weight_231)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_231)
     np.testing.assert_allclose(ddd.zeta, true_zeta_231, rtol=1.e-5)
 
-    ddd.process(cat3, cat1, cat2, ordered=True)
+    ddd.process(cat3, cat1, cat2)
     np.testing.assert_allclose(ddd.weight, true_weight_312)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_312)
     np.testing.assert_allclose(ddd.zeta, true_zeta_312, rtol=1.e-5)
 
-    ddd.process(cat3, cat2, cat1, ordered=True)
+    ddd.process(cat3, cat2, cat1)
     np.testing.assert_allclose(ddd.weight, true_weight_321)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_321)
     np.testing.assert_allclose(ddd.zeta, true_zeta_321, rtol=1.e-5)
 
-    #t0 = time.time()
-    #ddd.process(cat1, cat2, cat3, ordered=False)
-    #t1 = time.time()
-    #print('time for bin_slop=0 unordered: ',t1-t0)
-    #np.testing.assert_allclose(ddd.weight, true_weight_sum)
-    #np.testing.assert_allclose(ddd.zeta, true_zeta_sum, rtol=1.e-5)
+    t0 = time.time()
+    ddd.process(cat1, cat2, cat3, ordered=False)
+    t1 = time.time()
+    true_ntri_sum = true_ntri_123 + true_ntri_132 + true_ntri_213 + true_ntri_231 + true_ntri_312 + true_ntri_321
+    true_weight_sum = true_weight_123 + true_weight_132 + true_weight_213 + true_weight_231 + true_weight_312 + true_weight_321
+    true_zeta_sum = true_zeta_123 + true_zeta_132 + true_zeta_213 + true_zeta_231 + true_zeta_312 + true_zeta_321
+    print('time for bin_slop=0 unordered: ',t1-t0)
+    np.testing.assert_allclose(ddd.weight, true_weight_sum)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
+    np.testing.assert_allclose(ddd.zeta, true_zeta_sum, rtol=1.e-5)
 
     # And again with no top-level recursion
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
                                   bin_slop=0, max_top=0, bin_type='LogMultipole')
     t0 = time.time()
-    ddd.process(cat1, cat2, cat3, ordered=True)
+    ddd.process(cat1, cat2, cat3)
     t1 = time.time()
     print('time for multipole, bin_slop=0, max_top=0, ordered: ',t1-t0)
     np.testing.assert_allclose(ddd.weight, true_weight_123)
@@ -4811,13 +4792,13 @@ def test_direct_logmultipole_cross():
     np.testing.assert_allclose(ddd.meand3, dddb.meand3)
     np.testing.assert_allclose(ddd.meanlogd3, dddb.meanlogd3)
 
-    #t0 = time.time()
-    #ddd.process(cat1, cat2, cat3, ordered=False)
-    #t1 = time.time()
-    #print('time for bin_slop=0 unordered: ',t1-t0)
-    #np.testing.assert_allclose(ddd.weight, true_weight_sum)
-    #np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
-    #np.testing.assert_allclose(dddb.zeta, true_zeta_sum, rtol=1.e-5)
+    t0 = time.time()
+    ddd.process(cat1, cat2, cat3, ordered=False)
+    t1 = time.time()
+    print('time for bin_slop=0 unordered: ',t1-t0)
+    np.testing.assert_allclose(ddd.weight, true_weight_sum)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
+    np.testing.assert_allclose(ddd.zeta, true_zeta_sum, rtol=1.e-5)
 
     # Split into patches to test the list-based version of the code.
     # Note: Multipole cannot work with cat2, cat3 as a list, but cat1 can be.
@@ -4827,15 +4808,25 @@ def test_direct_logmultipole_cross():
                                   bin_slop=0, bin_type='LogMultipole')
 
     t0 = time.time()
-    ddd.process(cat1, cat2, cat3, ordered=True)
+    ddd.process(cat1, cat2, cat3)
     t1 = time.time()
     print('time for patch ordered: ',t1-t0)
     np.testing.assert_allclose(ddd.weight, true_weight_123)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
     np.testing.assert_allclose(ddd.zeta, true_zeta_123, rtol=1.e-5)
 
+    with assert_raises(ValueError):
+        ddd.process(cat1, cat2, cat3, ordered=False)
+    with assert_raises(ValueError):
+        ddd.process(cat2, cat1, cat3, ordered=True)
+    with assert_raises(ValueError):
+        ddd.process(cat2, cat3, cat1, ordered=True)
+    with assert_raises(ValueError):
+        ddd.process(cat1, cat1, cat1, ordered=True)
+
 
 if __name__ == '__main__':
+    test_direct_logmultipole_cross12()
     test_direct_logmultipole_cross()
     quit()
 

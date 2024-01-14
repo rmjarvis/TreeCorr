@@ -691,7 +691,7 @@ void BaseCorr3::process111Sorted(
         int index;
         if (BinTypeHelper<B>::template isTriangleInRange<O>(
                 c1, c2, c3, metric,
-                d1, d2, d3, u, v,
+                d1sq, d2sq, d3sq, d1, d2, d3, u, v,
                 _logminsep, _minsep, _maxsep, _binsize, _nbins,
                 _minu, _maxu, _ubinsize, _nubins,
                 _minv, _maxv, _vbinsize, _nvbins,

@@ -679,11 +679,12 @@ struct BinTypeHelper<LogRUV>
     static bool isTriangleInRange(const BaseCell<C>& c1, const BaseCell<C>& c2,
                                   const BaseCell<C>& c3,
                                   const MetricHelper<M,0>& metric,
+                                  double d1sq, double d2sq, double d3sq,
                                   double d1, double d2, double d3, double& u, double& v,
                                   double logminsep,
-                                  double minsep, double maxsep, double binsize, double nbins,
-                                  double minu, double maxu, double ubinsize, double nubins,
-                                  double minv, double maxv, double vbinsize, double nvbins,
+                                  double minsep, double maxsep, double binsize, int nbins,
+                                  double minu, double maxu, double ubinsize, int nubins,
+                                  double minv, double maxv, double vbinsize, int nvbins,
                                   double& logd1, double& logd2, double& logd3,
                                   int ntot, int& index)
     {
@@ -1148,11 +1149,12 @@ struct BinTypeHelper<LogSAS>
     static bool isTriangleInRange(const BaseCell<C>& c1, const BaseCell<C>& c2,
                                   const BaseCell<C>& c3,
                                   const MetricHelper<M,0>& metric,
+                                  double d1sq, double d2sq, double d3sq,
                                   double d1, double d2, double d3, double& phi, double& cosphi,
                                   double logminsep,
-                                  double minsep, double maxsep, double binsize, double nbins,
-                                  double minphi, double maxphi, double phibinsize, double nphibins,
-                                  double , double , double , double ,
+                                  double minsep, double maxsep, double binsize, int nbins,
+                                  double minphi, double maxphi, double phibinsize, int nphibins,
+                                  double , double , double , int ,
                                   double& logd1, double& logd2, double& logd3,
                                   int ntot, int& index)
     {

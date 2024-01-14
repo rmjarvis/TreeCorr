@@ -25,9 +25,15 @@ API Changes
   normally used directly by users, so it shouldn't be noticeable in user code. (#155)
 - Removed all deprecations from the 4.x series. (#156)
 - Removed support for reading back in output files from the 3.x series. (#165)
-- Removed the 3pt CrossCorrelation classes.  See the new ``ordered=True`` option to the 3pt
-  ``process`` method instead to get correlations where the order of the three catalogs is fixed.
-  This is simpler and more intuitive, and for many use cases it is more efficient. (#165)
+- Removed the 3pt CrossCorrelation classes, which used to be the way to get ordered three-point
+  correlations.  But they were rather unwieldy and not very intuitive.  The new ``ordered``
+  option to the three-point ``process`` methods is much simpler and more efficient for the common
+  case of only wanting a single order for the catalogs. (#165)
+- Switched the default behavior of 3pt cross-correlations to respect the order of the catalogs
+  in the triangle definitions.  That is, points from cat1 will be at P1 in the triangle,
+  points from cat2 at P2, and points from cat3 at P3.  To recover the old behavior, you may
+  use the new ``ordered=False`` option.
+- Switched the default binning for three-point correlations to LogSAS, rather than LogRUV.
 
 
 Performance improvements

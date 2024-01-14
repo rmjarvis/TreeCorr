@@ -41,6 +41,7 @@ public:
     virtual ~BaseCorr3() {}
 
     virtual std::shared_ptr<BaseCorr3> duplicate() =0;
+    virtual void writeZeta(std::ostream& os, int n) const = 0;
 
     virtual void addData(const BaseCorr3& rhs) =0;
 
@@ -161,6 +162,9 @@ public:
     { *this += static_cast<const Corr3<D1,D2,D3>&>(rhs); }
 
     void clear();  // Set all data to 0.
+
+    void writeZeta(std::ostream& os, int n=1) const
+    { _zeta.write_full(os, n); }
 
     template <int C>
     void finishProcess(

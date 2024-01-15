@@ -199,7 +199,11 @@ class GGGCorrelation(Corr3):
         self.gam1i = np.zeros(shape, dtype=float)
         self.gam2i = np.zeros(shape, dtype=float)
         self.gam3i = np.zeros(shape, dtype=float)
-        self.weight = np.zeros(shape, dtype=float)
+        self.weightr = np.zeros(shape, dtype=float)
+        if self.bin_type == 'LogMultipole':
+            self.weighti = np.zeros(shape, dtype=float)
+        else:
+            self.weighti = np.array([])
         self.ntri = np.zeros(shape, dtype=float)
         self._vargam0 = None
         self._vargam1 = None
@@ -208,6 +212,13 @@ class GGGCorrelation(Corr3):
         self._cov = None
         self._var_num = 0
         self.logger.debug('Finished building GGGCorr')
+
+    @property
+    def weight(self):
+        if self.weighti.size:
+            return self.weightr + 1j * self.weighti
+        else:
+            return self.weightr
 
     @property
     def gam0(self):
@@ -238,7 +249,7 @@ class GGGCorrelation(Corr3):
                     self.gam2r, self.gam2i, self.gam3r, self.gam3i,
                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
                     self.meand3, self.meanlogd3, self.meanu, self.meanv,
-                    self.weight, self.ntri)
+                    self.weightr, self.weighti, self.ntri)
         return self._corr
 
     def __eq__(self, other):
@@ -418,26 +429,26 @@ class GGGCorrelation(Corr3):
                                self.output_dots, self._bintype, self._metric)
 
     def _finalize(self):
-        mask1 = self.weight != 0
-        mask2 = self.weight == 0
+        mask1 = self.weightr != 0
+        mask2 = self.weightr == 0
 
-        self.gam0r[mask1] /= self.weight[mask1]
-        self.gam0i[mask1] /= self.weight[mask1]
-        self.gam1r[mask1] /= self.weight[mask1]
-        self.gam1i[mask1] /= self.weight[mask1]
-        self.gam2r[mask1] /= self.weight[mask1]
-        self.gam2i[mask1] /= self.weight[mask1]
-        self.gam3r[mask1] /= self.weight[mask1]
-        self.gam3i[mask1] /= self.weight[mask1]
-        self.meand1[mask1] /= self.weight[mask1]
-        self.meanlogd1[mask1] /= self.weight[mask1]
-        self.meand2[mask1] /= self.weight[mask1]
-        self.meanlogd2[mask1] /= self.weight[mask1]
-        self.meand3[mask1] /= self.weight[mask1]
-        self.meanlogd3[mask1] /= self.weight[mask1]
-        self.meanu[mask1] /= self.weight[mask1]
+        self.gam0r[mask1] /= self.weightr[mask1]
+        self.gam0i[mask1] /= self.weightr[mask1]
+        self.gam1r[mask1] /= self.weightr[mask1]
+        self.gam1i[mask1] /= self.weightr[mask1]
+        self.gam2r[mask1] /= self.weightr[mask1]
+        self.gam2i[mask1] /= self.weightr[mask1]
+        self.gam3r[mask1] /= self.weightr[mask1]
+        self.gam3i[mask1] /= self.weightr[mask1]
+        self.meand1[mask1] /= self.weightr[mask1]
+        self.meanlogd1[mask1] /= self.weightr[mask1]
+        self.meand2[mask1] /= self.weightr[mask1]
+        self.meanlogd2[mask1] /= self.weightr[mask1]
+        self.meand3[mask1] /= self.weightr[mask1]
+        self.meanlogd3[mask1] /= self.weightr[mask1]
+        self.meanu[mask1] /= self.weightr[mask1]
         if self.bin_type == 'LogRUV':
-            self.meanv[mask1] /= self.weight[mask1]
+            self.meanv[mask1] /= self.weightr[mask1]
 
         # Update the units
         self._apply_units(mask1)
@@ -476,8 +487,8 @@ class GGGCorrelation(Corr3):
             varg3 (float):  The variance per component of the third shear field.
         """
         self._finalize()
-        mask1 = self.weight != 0
-        mask2 = self.weight == 0
+        mask1 = self.weightr != 0
+        mask2 = self.weightr == 0
         self._var_num = 4 * varg1 * varg2 * varg3
 
     @property
@@ -532,7 +543,9 @@ class GGGCorrelation(Corr3):
         self.meanu[:,:,:] = 0.
         if self.bin_type == 'LogRUV':
             self.meanv[:,:,:] = 0.
-        self.weight[:,:,:] = 0.
+        self.weightr[:,:,:] = 0.
+        if self.bin_type == 'LogMultipole':
+            self.weighti[:,:,:] = 0.
         self.ntri[:,:,:] = 0.
         self._vargam0 = None
         self._vargam1 = None
@@ -572,7 +585,9 @@ class GGGCorrelation(Corr3):
         self.meanu[:] += other.meanu[:]
         if self.bin_type == 'LogRUV':
             self.meanv[:] += other.meanv[:]
-        self.weight[:] += other.weight[:]
+        self.weightr[:] += other.weightr[:]
+        if self.bin_type == 'LogMultipole':
+            self.weighti[:] += other.weighti[:]
         self.ntri[:] += other.ntri[:]
         return self
 
@@ -599,7 +614,9 @@ class GGGCorrelation(Corr3):
         np.sum([c.meanu for c in others], axis=0, out=self.meanu)
         if self.bin_type == 'LogRUV':
             np.sum([c.meanv for c in others], axis=0, out=self.meanv)
-        np.sum([c.weight for c in others], axis=0, out=self.weight)
+        np.sum([c.weightr for c in others], axis=0, out=self.weightr)
+        if self.bin_type == 'LogMultipole':
+            np.sum([c.weighti for c in others], axis=0, out=self.weighti)
         np.sum([c.ntri for c in others], axis=0, out=self.ntri)
 
     def process(self, cat1, cat2=None, cat3=None, *, metric=None, ordered=True, num_threads=None,
@@ -892,7 +909,7 @@ class GGGCorrelation(Corr3):
         self._vargam1 = data['sigma_gam1'].reshape(s)**2
         self._vargam2 = data['sigma_gam2'].reshape(s)**2
         self._vargam3 = data['sigma_gam3'].reshape(s)**2
-        self.weight = data['weight'].reshape(s)
+        self.weightr = data['weight'].reshape(s)
         self.ntri = data['ntri'].reshape(s)
         self.coords = params['coords'].strip()
         self.metric = params['metric'].strip()

@@ -161,14 +161,12 @@ class NNNCorrelation(Corr3):
         Corr3.__init__(self, config, logger=logger, **kwargs)
 
         shape = self.data_shape
-        self.weight = np.zeros(shape, dtype=float)
         self.ntri = np.zeros(shape, dtype=float)
+        self.weightr = np.zeros(shape, dtype=float)
         if self.bin_type == 'LogMultipole':
-            self.mp = np.zeros(shape, dtype=float)
-            self.mp_im = np.zeros(shape, dtype=float)
+            self.weighti = np.zeros(shape, dtype=float)
         else:
-            self.mp = np.array([])
-            self.mp_im = np.array([])
+            self.weighti = np.array([])
         self.tot = 0.
         self._rrr_weight = None
         self._rrr = None
@@ -183,6 +181,13 @@ class NNNCorrelation(Corr3):
         self.logger.debug('Finished building NNNCorr')
 
     @property
+    def weight(self):
+        if self.weighti.size:
+            return self.weightr + 1j * self.weighti
+        else:
+            return self.weightr
+
+    @property
     def corr(self):
         if self._corr is None:
             x = np.array([])
@@ -192,10 +197,10 @@ class NNNCorrelation(Corr3):
                     self._ro.min_u,self._ro.max_u,self._ro.nubins,self._ro.ubin_size,self.bu,
                     self._ro.min_v,self._ro.max_v,self._ro.nvbins,self._ro.vbin_size,self.bv,
                     self.xperiod, self.yperiod, self.zperiod,
-                    self.mp, self.mp_im, x, x, x, x, x, x,
+                    x, x, x, x, x, x, x, x,
                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
                     self.meand3, self.meanlogd3, self.meanu, self.meanv,
-                    self.weight, self.ntri)
+                    self.weightr, self.weighti, self.ntri)
         return self._corr
 
     def __eq__(self, other):
@@ -246,7 +251,11 @@ class NNNCorrelation(Corr3):
         ret.meanlogd3 = self._zero_array
         ret.meanu = self._zero_array
         ret.meanv = self._zero_array
-        ret.weight = self._zero_array
+        ret.weightr = self._zero_array
+        if self.bin_type == 'LogMultipole':
+            ret.weighti = self._zero_array
+        else:
+            self.weighti = np.array([])
         ret.ntri = self._zero_array
         ret.tot = tot
         ret._corr = None
@@ -400,49 +409,42 @@ class NNNCorrelation(Corr3):
         self.tot += cat1.sumw * cat2.sumw * cat3.sumw
 
     def _finalize(self, sym23=True):
-        if self.bin_type == 'LogMultipole':
+        if self.bin_type == 'LogMultipole' and sym23:
             # The multipole calculation only accumulates these for half the triangles, since
             # the other half are equivalent. Copy them over to the missing half of these arrays.
-            if sym23:
-                self.ntri += np.transpose(self.ntri, axes=(1,0,2))
-                self.weight += np.transpose(self.weight, axes=(1,0,2))
-                orig_meand2 = self.meand2.copy()
-                orig_meanlogd2 = self.meanlogd2.copy()
-                self.meand2 += np.transpose(self.meand3, axes=(1,0,2))
-                self.meanlogd2 += np.transpose(self.meanlogd3, axes=(1,0,2))
-                self.meand3 += np.transpose(orig_meand2, axes=(1,0,2))
-                self.meanlogd3 += np.transpose(orig_meanlogd2, axes=(1,0,2))
-                self.mp += np.transpose(self.mp, axes=(1,0,2))
-                self.mp_im -= np.transpose(self.mp_im, axes=(1,0,2))
+            self.ntri += np.transpose(self.ntri, axes=(1,0,2))
+            orig_meand2 = self.meand2.copy()
+            orig_meanlogd2 = self.meanlogd2.copy()
+            self.meand2 += np.transpose(self.meand3, axes=(1,0,2))
+            self.meanlogd2 += np.transpose(self.meanlogd3, axes=(1,0,2))
+            self.meand3 += np.transpose(orig_meand2, axes=(1,0,2))
+            self.meanlogd3 += np.transpose(orig_meanlogd2, axes=(1,0,2))
+            self.weightr += np.transpose(self.weightr, axes=(1,0,2))
+            self.weighti -= np.transpose(self.weighti, axes=(1,0,2))
 
-            # It also only sets most of the values at [i,j,max_n].
+        mask1 = self.weightr != 0
+        mask2 = self.weightr == 0
+
+        self.meand1[mask1] /= self.weightr[mask1]
+        self.meanlogd1[mask1] /= self.weightr[mask1]
+        self.meand2[mask1] /= self.weightr[mask1]
+        self.meanlogd2[mask1] /= self.weightr[mask1]
+        self.meand3[mask1] /= self.weightr[mask1]
+        self.meanlogd3[mask1] /= self.weightr[mask1]
+        self.meanu[mask1] /= self.weightr[mask1]
+        if self.bin_type == 'LogRUV':
+            self.meanv[mask1] /= self.weightr[mask1]
+
+        if self.bin_type == 'LogMultipole':
+            # Multipole only sets the meand values at [i,j,max_n].
+            # (This is also where the complex weight is just a scalar = sum(www),
+            # so the above normalizations are correct.)
             # Broadcast those to the rest of the values in the third dimension.
             self.ntri[:,:,:] = self.ntri[:,:,self.max_n][:,:,np.newaxis]
-            self.weight[:,:,:] = self.weight[:,:,self.max_n][:,:,np.newaxis]
             self.meand2[:,:,:] = self.meand2[:,:,self.max_n][:,:,np.newaxis]
             self.meanlogd2[:,:,:] = self.meanlogd2[:,:,self.max_n][:,:,np.newaxis]
             self.meand3[:,:,:] = self.meand3[:,:,self.max_n][:,:,np.newaxis]
             self.meanlogd3[:,:,:] = self.meanlogd3[:,:,self.max_n][:,:,np.newaxis]
-
-            # And finally, make the final complex zeta from the two real arrays.
-            self.zeta = self.mp + 1j * self.mp_im
-            # varzeta = <www>^2 * ntri  (per bin)
-            self.varzeta = np.zeros_like(self.weight)
-            mask = self.ntri != 0
-            self.varzeta[mask] = self.weight[mask]**2 / self.ntri[mask]
-
-        mask1 = self.weight != 0
-        mask2 = self.weight == 0
-
-        self.meand1[mask1] /= self.weight[mask1]
-        self.meanlogd1[mask1] /= self.weight[mask1]
-        self.meand2[mask1] /= self.weight[mask1]
-        self.meanlogd2[mask1] /= self.weight[mask1]
-        self.meand3[mask1] /= self.weight[mask1]
-        self.meanlogd3[mask1] /= self.weight[mask1]
-        self.meanu[mask1] /= self.weight[mask1]
-        if self.bin_type == 'LogRUV':
-            self.meanv[mask1] /= self.weight[mask1]
 
         # Update the units
         self._apply_units(mask1)
@@ -504,11 +506,10 @@ class NNNCorrelation(Corr3):
         self.meanu[:,:,:] = 0.
         if self.bin_type == 'LogRUV':
             self.meanv[:,:,:] = 0.
-        self.weight[:,:,:] = 0.
         self.ntri[:,:,:] = 0.
+        self.weightr[:,:,:] = 0.
         if self.bin_type == 'LogMultipole':
-            self.mp[:,:,:] = 0.
-            self.mp_im[:,:,:] = 0.
+            self.weighti[:,:,:] = 0.
         self.tot = 0.
         self._cov = None
 
@@ -533,11 +534,10 @@ class NNNCorrelation(Corr3):
             np.sum([c.meanu for c in others], axis=0, out=self.meanu)
             if self.bin_type == 'LogRUV':
                 np.sum([c.meanv for c in others], axis=0, out=self.meanv)
-            np.sum([c.weight for c in others], axis=0, out=self.weight)
             np.sum([c.ntri for c in others], axis=0, out=self.ntri)
+            np.sum([c.weightr for c in others], axis=0, out=self.weightr)
             if self.bin_type == 'LogMultipole':
-                np.sum([c.mp for c in others], axis=0, out=self.mp)
-                np.sum([c.mp_im for c in others], axis=0, out=self.mp_im)
+                np.sum([c.weighti for c in others], axis=0, out=self.weighti)
         self.tot = tot
 
     def _add_tot(self, ijk, c1, c2, c3):
@@ -583,11 +583,10 @@ class NNNCorrelation(Corr3):
         self.meanu[:] += other.meanu[:]
         if self.bin_type == 'LogRUV':
             self.meanv[:] += other.meanv[:]
-        self.weight[:] += other.weight[:]
         self.ntri[:] += other.ntri[:]
+        self.weightr[:] += other.weightr[:]
         if self.bin_type == 'LogMultipole':
-            self.mp[:] += other.mp[:]
-            self.mp_im[:] += other.mp_im[:]
+            self.weighti[:] += other.weighti[:]
         return self
 
     def process(self, cat1, cat2=None, cat3=None, *, metric=None, ordered=True,
@@ -677,21 +676,17 @@ class NNNCorrelation(Corr3):
             self.finalize(sym23=sym23)
 
     def _mean_weight(self):
-        mean_np = np.mean(self.ntri)
-        return 1 if mean_np == 0 else np.mean(self.weight)/mean_np
+        mean_ntri = np.mean(self.ntri)
+        return 1 if mean_ntri == 0 else np.mean(self.weight)/mean_ntri
 
     def getStat(self):
         """The standard statistic for the current correlation object as a 1-d array.
 
-        This raises a RuntimeError if calculateZeta has not been run yet. (Unless bin_type
-        is LogMultipole, which doesn't need calcaulateZeta.)
+        This raises a RuntimeError if calculateZeta has not been run yet.
         """
-        if self.bin_type == 'LogMultipole':
-            return np.concatenate(self.zeta.ravel(), self.zeta_im.ravel())
-        else:
-            if self.zeta is None:
-                raise RuntimeError("You need to call calculateZeta before calling estimate_cov.")
-            return self.zeta.ravel()
+        if self.zeta is None:
+            raise RuntimeError("You need to call calculateZeta before calling estimate_cov.")
+        return self.zeta.ravel()
 
     def getWeight(self):
         """The weight array for the current correlation object as a 1-d array.
@@ -745,7 +740,7 @@ class NNNCorrelation(Corr3):
         # Eqn 26 of Porth et al, 2023
         # N(d2,d3,phi) = 1/2pi sum_n N_n(d2,d3) exp(i n phi)
         expiphi = np.exp(1j * self.n1d[:,None] * sas.phi1d)
-        sas.weight[:] = np.real(self.zeta.dot(expiphi)) / (2*np.pi) * sas.phi_bin_size
+        sas.weight[:] = np.real(self.weight.dot(expiphi)) / (2*np.pi) * sas.phi_bin_size
 
         # For ntri, we recorded the total ntri for each pair of d2,d3.
         # Allocate those proportionally to the weights.
@@ -1045,6 +1040,8 @@ class NNNCorrelation(Corr3):
         d2_nom          The nominal center of the bin in d2
         d3_nom          The nominal center of the bin in d3
         n               The multipole index n
+        weight_re       The real part of the complex weight.
+        weight_im       The imaginary part of the complex weight.
         ==========      ================================================================
 
         In addition, all bin types include the following columns:
@@ -1066,8 +1063,6 @@ class NNNCorrelation(Corr3):
                         fell into each bin
         zeta            The estimator :math:`\zeta` (if rrr is given, or zeta was
                         already computed)
-        zeta_im         The imaginary part of :math:`\zeta` if relevant (only relevant
-                        for LogMultipole binning)
         sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`
                         (if rrr is given or for LogMultipole binning)
         DDD             The total weight of DDD triangles in each bin
@@ -1127,12 +1122,10 @@ class NNNCorrelation(Corr3):
                          'meand3', 'meanlogd3']
         if rrr is None:
             if self.zeta is not None:
-                if np.iscomplexobj(self.zeta):
-                    col_names += [ 'zeta', 'zeta_im', 'sigma_zeta', 'DDD', 'ntri']
-                else:
-                    col_names += [ 'zeta', 'sigma_zeta', 'DDD', 'ntri']
-            else:
-                col_names += [ 'DDD', 'ntri' ]
+                col_names += [ 'zeta', 'sigma_zeta' ]
+            if self.weighti.size:
+                col_names += [ 'weight_re', 'weight_im' ]
+            col_names += [ 'DDD', 'ntri' ]
         else:
             col_names += [ 'zeta','sigma_zeta','DDD','RRR' ]
             if drr is not None:
@@ -1162,11 +1155,13 @@ class NNNCorrelation(Corr3):
             if drr is not None or rdd is not None:
                 raise TypeError("rrr must be provided if other combinations are not None")
             if self.zeta is not None:
-                if np.iscomplexobj(self.zeta):
-                    data += [ np.real(self.zeta), np.imag(self.zeta), np.sqrt(self.varzeta) ]
-                else:
-                    data += [ self.zeta, np.sqrt(self.varzeta) ]
-            data += [ self.weight, self.ntri ]
+                data += [ self.zeta, np.sqrt(self.varzeta) ]
+            if self.weighti.size:
+                data += [ self.weightr, self.weighti ]
+                weight = np.abs(self.weight)
+            else:
+                weight = self.weightr
+            data += [ weight, self.ntri ]
         else:
             # This will check for other invalid combinations of rrr, drr, etc.
             zeta, varzeta = self.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)
@@ -1220,14 +1215,15 @@ class NNNCorrelation(Corr3):
             self.meanv = data['meanv'].reshape(s)
         elif self.bin_type == 'LogSAS':
             self.meanu = data['meanphi'].reshape(s)
-        self.weight = data['DDD'].reshape(s)
-        self.ntri = data['ntri'].reshape(s)
         if 'zeta' in data.dtype.names:
             self.zeta = data['zeta'].reshape(s)
-            if 'zeta_im' in data.dtype.names:
-                zeta_im = data['zeta_im'].reshape(s)
-                self.zeta = self.zeta + 1j * zeta_im
             self.varzeta = data['sigma_zeta'].reshape(s)**2
+        if 'weight_im' in data.dtype.names:
+            self.weightr = data['weight_re'].reshape(s)
+            self.weighti = data['weight_im'].reshape(s)
+        else:
+            self.weightr = data['DDD'].reshape(s)
+        self.ntri = data['ntri'].reshape(s)
         self.tot = params['tot']
         self.coords = params['coords'].strip()
         self.metric = params['metric'].strip()

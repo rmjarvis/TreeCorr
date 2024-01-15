@@ -166,12 +166,23 @@ class KKKCorrelation(Corr3):
 
         shape = self.data_shape
         self.zeta = np.zeros(shape, dtype=float)
-        self.weight = np.zeros(shape, dtype=float)
+        self.weightr = np.zeros(shape, dtype=float)
+        if self.bin_type == 'LogMultipole':
+            self.weighti = np.zeros(shape, dtype=float)
+        else:
+            self.weighti = np.array([])
         self.ntri = np.zeros(shape, dtype=float)
         self._varzeta = None
         self._cov = None
         self._var_num = 0
         self.logger.debug('Finished building KKKCorr')
+
+    @property
+    def weight(self):
+        if self.weighti.size:
+            return self.weightr + 1j * self.weighti
+        else:
+            return self.weightr
 
     @property
     def corr(self):
@@ -186,7 +197,7 @@ class KKKCorrelation(Corr3):
                     self.zeta, x, x, x, x, x, x, x,
                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
                     self.meand3, self.meanlogd3, self.meanu, self.meanv,
-                    self.weight, self.ntri)
+                    self.weightr, self.weighti, self.ntri)
         return self._corr
 
     def __eq__(self, other):
@@ -356,19 +367,19 @@ class KKKCorrelation(Corr3):
                                self.output_dots, self._bintype, self._metric)
 
     def _finalize(self):
-        mask1 = self.weight != 0
-        mask2 = self.weight == 0
+        mask1 = self.weightr != 0
+        mask2 = self.weightr == 0
 
-        self.zeta[mask1] /= self.weight[mask1]
-        self.meand1[mask1] /= self.weight[mask1]
-        self.meanlogd1[mask1] /= self.weight[mask1]
-        self.meand2[mask1] /= self.weight[mask1]
-        self.meanlogd2[mask1] /= self.weight[mask1]
-        self.meand3[mask1] /= self.weight[mask1]
-        self.meanlogd3[mask1] /= self.weight[mask1]
-        self.meanu[mask1] /= self.weight[mask1]
+        self.zeta[mask1] /= self.weightr[mask1]
+        self.meand1[mask1] /= self.weightr[mask1]
+        self.meanlogd1[mask1] /= self.weightr[mask1]
+        self.meand2[mask1] /= self.weightr[mask1]
+        self.meanlogd2[mask1] /= self.weightr[mask1]
+        self.meand3[mask1] /= self.weightr[mask1]
+        self.meanlogd3[mask1] /= self.weightr[mask1]
+        self.meanu[mask1] /= self.weightr[mask1]
         if self.bin_type == 'LogRUV':
-            self.meanv[mask1] /= self.weight[mask1]
+            self.meanv[mask1] /= self.weightr[mask1]
 
         # Update the units
         self._apply_units(mask1)
@@ -430,7 +441,9 @@ class KKKCorrelation(Corr3):
         self.meanu[:,:,:] = 0.
         if self.bin_type == 'LogRUV':
             self.meanv[:,:,:] = 0.
-        self.weight[:,:,:] = 0.
+        self.weightr[:,:,:] = 0.
+        if self.bin_type == 'LogMultipole':
+            self.weighti[:,:,:] = 0.
         self.ntri[:,:,:] = 0.
         self._varzeta = None
         self._cov = None
@@ -460,7 +473,9 @@ class KKKCorrelation(Corr3):
         self.meanu[:] += other.meanu[:]
         if self.bin_type == 'LogRUV':
             self.meanv[:] += other.meanv[:]
-        self.weight[:] += other.weight[:]
+        self.weightr[:] += other.weightr[:]
+        if self.bin_type == 'LogMultipole':
+            self.weighti[:] += other.weighti[:]
         self.ntri[:] += other.ntri[:]
         return self
 
@@ -480,7 +495,9 @@ class KKKCorrelation(Corr3):
         np.sum([c.meanu for c in others], axis=0, out=self.meanu)
         if self.bin_type == 'LogRUV':
             np.sum([c.meanv for c in others], axis=0, out=self.meanv)
-        np.sum([c.weight for c in others], axis=0, out=self.weight)
+        np.sum([c.weightr for c in others], axis=0, out=self.weightr)
+        if self.bin_type == 'LogMultipole':
+            np.sum([c.weighti for c in others], axis=0, out=self.weighti)
         np.sum([c.ntri for c in others], axis=0, out=self.ntri)
 
     def process(self, cat1, cat2=None, cat3=None, *, metric=None, ordered=True, num_threads=None,
@@ -721,7 +738,7 @@ class KKKCorrelation(Corr3):
             self.meanu = data['meanphi'].reshape(s)
         self.zeta = data['zeta'].reshape(s)
         self._varzeta = data['sigma_zeta'].reshape(s)**2
-        self.weight = data['weight'].reshape(s)
+        self.weightr = data['weight'].reshape(s)
         self.ntri = data['ntri'].reshape(s)
         self.coords = params['coords'].strip()
         self.metric = params['metric'].strip()

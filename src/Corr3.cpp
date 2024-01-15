@@ -97,6 +97,9 @@ BaseCorr3::BaseCorr3(
            _ntot = BinTypeHelper<LogMultipole>::calculateNTot(nbins, nubins, nvbins);
            _nvbins = _nbins * (2*_nubins+1);  // Use this for size of Gn array.
            _is_multipole = true;
+           // Sizes of scratch arrays.
+           _Wnsize = _nbins * (_nubins+1);
+           _Gnsize = _nnn ? 0 : _nbins * (2*_nubins+1);
            break;
       default:
            dbg<<"bin_type = "<<bin_type<<std::endl;
@@ -158,7 +161,8 @@ BaseCorr3::BaseCorr3(const BaseCorr3& rhs):
     _minusq(rhs._minusq), _maxusq(rhs._maxusq),
     _minvsq(rhs._minvsq), _maxvsq(rhs._maxvsq),
     _bsq(rhs._bsq), _busq(rhs._busq), _bvsq(rhs._bvsq),
-    _ntot(rhs._ntot), _coords(rhs._coords), _nnn(rhs._nnn)
+    _ntot(rhs._ntot), _coords(rhs._coords),
+    _nnn(rhs._nnn), _Wnsize(rhs._Wnsize), _Gnsize(rhs._Gnsize)
 {}
 
 
@@ -588,7 +592,7 @@ void BaseCorr3::process111(
                     process111Sorted<B,O>(c3, c2, c1, metric, d3sq, d2sq, d1sq);
                 }
             }
-        } else {
+        } else if (BinTypeHelper<B>::swap_23) {
             xdbg<<":set1\n";
             // If the BinType doesn't want sorting, then make sure we get all the cells
             // into the first location, and switch to ordered = 1.
@@ -607,6 +611,14 @@ void BaseCorr3::process111(
                 xdbg<<"231\n";
                 process111Sorted<B,1>(c2, c3, c1, metric, d2sq, d3sq, d1sq);
             }
+        } else {
+            // For LogMultipole, just do all the combinations.
+            process111Sorted<B,3>(c1, c3, c2, metric, d1sq, d3sq, d2sq);
+            process111Sorted<B,3>(c1, c2, c3, metric, d1sq, d2sq, d3sq);
+            process111Sorted<B,3>(c2, c1, c3, metric, d2sq, d1sq, d3sq);
+            process111Sorted<B,3>(c2, c3, c1, metric, d2sq, d3sq, d1sq);
+            process111Sorted<B,3>(c3, c2, c1, metric, d3sq, d2sq, d1sq);
+            process111Sorted<B,3>(c3, c1, c2, metric, d3sq, d1sq, d2sq);
         }
     } else if (O == 1) {
         if (BinTypeHelper<B>::sort_d123) {
@@ -620,7 +632,7 @@ void BaseCorr3::process111(
                 // 132 -> 123
                 process111Sorted<B,O>(c1, c3, c2, metric, d1sq, d3sq, d2sq);
             }
-        } else {
+        } else if (BinTypeHelper<B>::swap_23) {
             // For the non-sorting BinTypes (e.g. LogSAS), we just need to make sure
             // 1-3-2 is counter-clockwise
             if (!metric.CCW(c1.getPos(), c3.getPos(), c2.getPos())) {
@@ -631,6 +643,11 @@ void BaseCorr3::process111(
                 xdbg<<":noswap\n";
                 process111Sorted<B,O>(c1, c2, c3, metric, d1sq, d2sq, d3sq);
             }
+        } else {
+            // For LogMultipole, this is just a debugging thing anyway, so do the most
+            // straightforward thing and process both orderings.
+            process111Sorted<B,3>(c1, c2, c3, metric, d1sq, d2sq, d3sq);
+            process111Sorted<B,3>(c1, c3, c2, metric, d1sq, d3sq, d2sq);
         }
     } else {
         xdbg<<":nosort\n";
@@ -818,16 +835,14 @@ struct DirectHelper<NData,NData,NData>
         std::complex<double>* Wn, std::complex<double>* Gn)
     {
         std::complex<double> z = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), r);
-        int index = k*(2*maxn+1) + maxn;
+        int index = k*(maxn+1);
         xdbg<<"CalculateGn: "<<index<<"  "<<maxn<<"  "<<w<<"  "<<z<<std::endl;
         xdbg<<"pos = "<<c1.getPos()<<"  "<<c2.getPos()<<" r = "<<r<<std::endl;
         Wn[index] += w;
         std::complex<double> wztothen = w;
         for (int n=1; n <= maxn; ++n) {
             wztothen *= z;
-            // TODO: These are symmetric conjugates.  Only need n>0.
             Wn[index + n] += wztothen;
-            Wn[index - n] += std::conj(wztothen);
         }
     }
     template <int C>
@@ -836,10 +851,13 @@ struct DirectHelper<NData,NData,NData>
                               double* weight, double* weight_im,
                               ZetaData<NData,NData,NData>& zeta, int nbins, int maxn)
     {
-        const int nnbins = 2*maxn+1;
         const double w1 = c1.getW();
-        xdbg<<"CalculateZeta: "<<nbins<<"  "<<maxn<<"  "<<nnbins<<"  "<<w1<<std::endl;
-        for (int k2=0; k2<nbins; ++k2) {
+        dbg<<"CalculateZeta: "<<nbins<<"  "<<maxn<<"  "<<w1<<std::endl;
+        const int step23 = 2*maxn+1;
+        const int step32 = nbins * step23;
+        const int step22 = step32 + step23;
+        int iz22 = maxn;
+        for (int k2=0; k2<nbins; ++k2, iz22+=step22) {
             // Do the k2=k3 bins.
             // We want to make sure not to include degenerate triangles with c2 = c3.
             // These would get included in the naive calculation:
@@ -850,51 +868,89 @@ struct DirectHelper<NData,NData,NData>
             //   = (w_k2)^2.
             // So we need to subtract them off.
             // sumww has been storing Sum (w_k)^2, which is the amount to subtract in each bin.
-            //
-            // The /2 bit is so that we only count half the triangles.  In the python layer
-            // (finalize) we add this to its transpose, which copies k2,k3 -> k3,k2.
-            // In the process, it will double these, so only make them half the right value now.
-            int iz = (k2*nbins + k2)*nnbins;
-            int i2 = k2*nnbins;
-            for (int n=0; n < nnbins; ++n, ++iz, ++i2) {
-                weight[iz] += w1 * (std::norm(Wn[i2]) - sumww[k2]) / 2.;
+
+            const int i2 = k2*(maxn+1);
+            for (int n=0; n<=maxn; ++n) {
+                double www = w1 * (std::norm(Wn[i2+n]) - sumww[k2]);
+                weight[iz22+n] += www;
+                if (n > 0) {
+                    weight[iz22-n] += www;
+                }
             }
-            for (int k3=k2+1; k3<nbins; ++k3) {
-                int i2 = k2*nnbins;
-                int i3 = k3*nnbins;
-                for (int n=0; n < nnbins; ++n, ++iz, ++i2, ++i3) {
-                    std::complex<double> z = w1 * Wn[i2] * std::conj(Wn[i3]);
-                    weight[iz] += z.real();
-                    weight_im[iz] += z.imag();
+            int iz23 = iz22 + step23;
+            int iz32 = iz22 + step32;
+            for (int k3=k2+1; k3<nbins; ++k3, iz23+=step23, iz32+=step32) {
+                Assert(iz23 == (k2 * nbins + k3) * (2*maxn+1) + maxn);
+                Assert(iz32 == (k3 * nbins + k2) * (2*maxn+1) + maxn);
+                const int i3 = k3*(maxn+1);
+                for (int n=0; n<=maxn; ++n) {
+                    std::complex<double> z = w1 * Wn[i2+n] * std::conj(Wn[i3+n]);
+                    weight[iz23+n] += z.real();
+                    weight_im[iz23+n] += z.imag();
+                    // Given the symmetry of these, we could skip these here and copy them later,
+                    // but a few extra additions in this step is a tiny fraction of the total
+                    // computation, so for simplicity, just do them all here.
+                    weight[iz32+n] += z.real();
+                    weight_im[iz32+n] -= z.imag();
+                    if (n > 0) {
+                        weight[iz23-n] += z.real();
+                        weight_im[iz23-n] -= z.imag();
+                        weight[iz32-n] += z.real();
+                        weight_im[iz32-n] += z.imag();
+                    }
                 }
             }
         }
     }
 
     template <int C>
-    static void CalculateZeta(const Cell<NData,C>& c1,
+    static void CalculateZeta(const Cell<NData,C>& c1, int ordered,
                               std::complex<double>* Wn2, std::complex<double>* Gn2,
                               std::complex<double>* Wn3, std::complex<double>* Gn3,
                               double* weight, double* weight_im,
                               ZetaData<NData,NData,NData>& zeta, int nbins, int maxn)
     {
-        const int nnbins = 2*maxn+1;
         const double w1 = c1.getW();
-        xdbg<<"CalculateZeta: "<<nbins<<"  "<<maxn<<"  "<<nnbins<<"  "<<w1<<std::endl;
-        int iz=0;
-        for (int k2=0; k2<nbins; ++k2) {
-            for (int k3=0; k3<nbins; ++k3) {
-                int i2 = k2*nnbins;
-                int i3 = k3*nnbins;
-                for (int n=0; n < nnbins; ++n, ++iz, ++i2, ++i3) {
-                    // Slighlty confusing: c2 is across from d2, so Wn2 (which used c2list)
-                    // has values that correspond to d3 (distance from c1 to c2).
-                    // So we use Wn2 with i3, but Wn3 with i2.
-                    // The conjugate goes with Wn2, since phi sweeps from d2 to d3, and
-                    // we want z = exp(-inphi).
-                    std::complex<double> z = w1 * Wn3[i2] * std::conj(Wn2[i3]);
-                    weight[iz] += z.real();
-                    weight_im[iz] += z.imag();
+        xdbg<<"CalculateZeta: "<<nbins<<"  "<<maxn<<"  "<<w1<<std::endl;
+        const int step = 2*maxn+1;
+        int iz = maxn;
+        if (ordered == 3) {
+            for (int k2=0; k2<nbins; ++k2) {
+                const int i2 = k2*(maxn+1);
+                for (int k3=0; k3<nbins; ++k3, iz+=step) {
+                    const int i3 = k3*(maxn+1);
+                    for (int n=0; n<=maxn; ++n) {
+                        // Slighlty confusing: c2 is across from d2, so Wn2 (which used c2list)
+                        // has values that correspond to d3 (distance from c1 to c2).
+                        // So we use Wn2 with i3, but Wn3 with i2.
+                        // The conjugate goes with Wn2, since phi sweeps from d2 to d3, and
+                        // we want z = exp(-inphi).
+                        std::complex<double> z = w1 * Wn3[i2+n] * std::conj(Wn2[i3+n]);
+                        weight[iz+n] += z.real();
+                        weight_im[iz+n] += z.imag();
+                        if (n > 0) {
+                            weight[iz-n] += z.real();
+                            weight_im[iz-n] -= z.imag();
+                        }
+                    }
+                }
+            }
+        } else {
+            Assert(ordered == 1);
+            for (int k2=0; k2<nbins; ++k2) {
+                const int i2 = k2*(maxn+1);
+                for (int k3=0; k3<nbins; ++k3, iz+=step) {
+                    const int i3 = k3*(maxn+1);
+                    for (int n=0; n<=maxn; ++n) {
+                        std::complex<double> z = w1 * Wn3[i2+n] * std::conj(Wn2[i3+n]);
+                        z += w1 * Wn2[i2+n] * std::conj(Wn3[i3+n]);
+                        weight[iz+n] += z.real();
+                        weight_im[iz+n] += z.imag();
+                        if (n > 0) {
+                            weight[iz-n] += z.real();
+                            weight_im[iz-n] -= z.imag();
+                        }
+                    }
                 }
             }
         }
@@ -945,7 +1001,6 @@ struct DirectHelper<KData,KData,KData>
         for (int n=1; n <= maxn; ++n) {
             wkztothen *= z;
             Wn[index + n] += std::conj(wkztothen);
-            Wn[index - n] += wkztothen;
         }
     }
     template <int C>
@@ -954,23 +1009,22 @@ struct DirectHelper<KData,KData,KData>
                               double* weight, double* weight_im,
                               ZetaData<KData,KData,KData>& zeta, int nbins, int maxn)
     {
-        const int nnbins = 2*maxn+1;
         const double wk1 = c1.getData().getWK();
         for (int k2=0; k2<nbins; ++k2) {
             for (int k3=0; k3<nbins; ++k3) {
-                int iz = (k2*nbins + k3)*nnbins;
-                int i2 = k2*nnbins;
-                int i3 = k3*nnbins;
-                for (int n=0; n < nnbins; ++n, ++iz, ++i2, ++i3) {
-                    std::complex<double> z = wk1 * Wn[i2] * std::conj(Wn[i3]);
-                    zeta.zeta[iz] += z.real();
-                    zeta.zeta_im[iz] += z.imag();
+                const int iz = (k2*nbins + k3)*(2*maxn+1);
+                const int i2 = k2*(maxn+1);
+                const int i3 = k3*(maxn+1);
+                for (int n=0; n<=maxn; ++n) {
+                    std::complex<double> z = wk1 * Wn[i2+n] * std::conj(Wn[i3+n]);
+                    zeta.zeta[iz+n] += z.real();
+                    zeta.zeta_im[iz+n] += z.imag();
                 }
             }
         }
     }
     template <int C>
-    static void CalculateZeta(const Cell<KData,C>& c1,
+    static void CalculateZeta(const Cell<KData,C>& c1, int ordered,
                               std::complex<double>* Wn2, std::complex<double>* Gn2,
                               std::complex<double>* Wn3, std::complex<double>* Gn3,
                               double* weight, double* weight_im,
@@ -1055,7 +1109,7 @@ struct DirectHelper<GData,GData,GData>
         // TODO
     }
     template <int C>
-    static void CalculateZeta(const Cell<GData,C>& c1,
+    static void CalculateZeta(const Cell<GData,C>& c1, int ordered,
                               std::complex<double>* Wn2, std::complex<double>* Gn2,
                               std::complex<double>* Wn3, std::complex<double>* Gn3,
                               double* weight, double* weight_im,
@@ -1115,9 +1169,9 @@ void Corr3<D1,D2,D3>::finishProcessMP(
 {
     // Note: For multipole process, we don't have a u,v so we use those spots to store
     // sinphi, cosphi.
-    // Also, the index is just the index of the first two directions of the array.
-    // We will fill in all 2*maxn+1 values in the _zeta arrays that correpond to this
-    // d2, d3 combination.
+    // Also, the index is just the index for n=0.  The finalize function in python
+    // will copy this to the other 2*maxn locations for each row.
+
     double nnn = double(c1.getN()) * c2.getN() * c3.getN();
     _ntri[index] += nnn;
     xdbg<<ws()<<"MP Index = "<<index<<", nnn = "<<nnn<<" => "<<_ntri[index]<<std::endl;
@@ -1181,28 +1235,37 @@ void Corr3<D1,D2,D3>::calculateZeta(
     const int maxn = _nubins;
     const int nnbins = 2*maxn+1;
     for (int k2=0; k2<_nbins; ++k2) {
-        int i = (k2 * _nbins + k2) * nnbins + maxn;
+        int i22 = (k2 * _nbins + k2) * nnbins + maxn;
         // Do the k2=k3 bins.
-        // For O=0, we need to be careful not to count cases where c2=c3.
+        // We need to be careful not to count cases where c2=c3.
         // This means we need to subtract off sums of w^2 for instance.
-        // The /2 is so that we only count half the triangles.  In the python layer
-        // (finalize) we add this to the transpose, which copies k2,k3 -> k3,k2.
-        // In the process, it will double these, so only make them half the right value now.
-        _ntri[i] += n1 * npairs[k2] * (npairs[k2]-1) / 2;
-        _meand2[i] += w1 * (sumw[k2] * sumwr[k2] - sumwwr[k2]) / 2.;
-        _meanlogd2[i] += w1 * (sumw[k2] * sumwlogr[k2] - sumwwlogr[k2]) / 2.;
-        _meand3[i] += w1 * (sumw[k2] * sumwr[k2] - sumwwr[k2]) / 2.;
-        _meanlogd3[i] += w1 * (sumw[k2] * sumwlogr[k2] - sumwwlogr[k2]) / 2.;
+        _ntri[i22] += n1 * npairs[k2] * (npairs[k2]-1);
+        _meand2[i22] += w1 * (sumw[k2] * sumwr[k2] - sumwwr[k2]);
+        _meanlogd2[i22] += w1 * (sumw[k2] * sumwlogr[k2] - sumwwlogr[k2]);
+        _meand3[i22] += w1 * (sumw[k2] * sumwr[k2] - sumwwr[k2]);
+        _meanlogd3[i22] += w1 * (sumw[k2] * sumwlogr[k2] - sumwwlogr[k2]);
         for (int k3=k2+1; k3<_nbins; ++k3) {
-            i += nnbins;
-            _ntri[i] += n1 * npairs[k2] * npairs[k3];
-            _meand2[i] += w1 * sumw[k3] * sumwr[k2];
-            _meanlogd2[i] += w1 * sumw[k3] * sumwlogr[k2];
-            _meand3[i] += w1 * sumw[k2] * sumwr[k3];
-            _meanlogd3[i] += w1 * sumw[k2] * sumwlogr[k3];
+            int i23 = (k2 * _nbins + k3) * nnbins + maxn;
+            int i32 = (k3 * _nbins + k2) * nnbins + maxn;
+            double nnn = n1 * npairs[k2] * npairs[k3];
+            _ntri[i23] += nnn;
+            _ntri[i32] += nnn;
+            double ww12 = w1 * sumw[k3];
+            double ww13 = w1 * sumw[k2];
+            double wwwd2 = ww13 * sumwr[k2];
+            _meand2[i23] += wwwd2;
+            _meand3[i32] += wwwd2;
+            double wwwlogd2 = ww13 * sumwlogr[k2];
+            _meanlogd2[i23] += wwwlogd2;
+            _meanlogd3[i32] += wwwlogd2;
+            double wwwd3 = ww12 * sumwr[k3];
+            _meand3[i23] += wwwd3;
+            _meand2[i32] += wwwd3;
+            double wwwlogd3 = ww12 * sumwlogr[k3];
+            _meanlogd3[i23] += wwwlogd3;
+            _meanlogd2[i32] += wwwlogd3;
         }
     }
-
     // Finish the calculation for Zeta_n(d1,d2) using G_n(d).
     // In Porth et al, this is eqs. 21, 23, 24, 25 for GGG, and eqn 27 for NNN.
     // The version for KKK is obvious from these.
@@ -1213,7 +1276,7 @@ void Corr3<D1,D2,D3>::calculateZeta(
 
 template <int D1, int D2, int D3> template <int C>
 void Corr3<D1,D2,D3>::calculateZeta(
-    const BaseCell<C>& c1,
+    const BaseCell<C>& c1, int ordered,
     double* sumwr2, double* sumwlogr2, double* sumw2, double* npairs2,
     std::complex<double>* Wn2, std::complex<double>* Gn2,
     double* sumwr3, double* sumwlogr3, double* sumw3, double* npairs3,
@@ -1226,19 +1289,36 @@ void Corr3<D1,D2,D3>::calculateZeta(
     const int maxn = _nubins;
     const int nnbins = 2*maxn+1;
     int i=maxn;
-    for (int k2=0; k2<_nbins; ++k2) {
-        for (int k3=0; k3<_nbins; ++k3, i+=nnbins) {
-            _ntri[i] += n1 * npairs3[k2] * npairs2[k3];
-            _meand2[i] += w1 * sumw2[k3] * sumwr3[k2];
-            _meanlogd2[i] += w1 * sumw2[k3] * sumwlogr3[k2];
-            _meand3[i] += w1 * sumw3[k2] * sumwr2[k3];
-            _meanlogd3[i] += w1 * sumw3[k2] * sumwlogr2[k3];
+    if (ordered == 3) {
+        // Keep track of locations p2 and p3 separately.
+        for (int k2=0; k2<_nbins; ++k2) {
+            for (int k3=0; k3<_nbins; ++k3, i+=nnbins) {
+                _ntri[i] += n1 * npairs3[k2] * npairs2[k3];
+                double ww12 = w1 * sumw2[k3];
+                double ww13 = w1 * sumw3[k2];
+                _meand2[i] += ww12 * sumwr3[k2];
+                _meanlogd2[i] += ww12 * sumwlogr3[k2];
+                _meand3[i] += ww13 * sumwr2[k3];
+                _meanlogd3[i] += ww13 * sumwlogr2[k3];
+            }
+        }
+    } else {
+        Assert(ordered == 1);
+        // ordered == 1 means points 2 and 3 can swap freely.
+        // So add up the results where k2 and k3 take both spots.
+        for (int k2=0; k2<_nbins; ++k2) {
+            for (int k3=0; k3<_nbins; ++k3, i+=nnbins) {
+                _ntri[i] += n1 * (npairs3[k2] * npairs2[k3] + npairs2[k2] * npairs3[k3]);
+                _meand2[i] += w1 * (sumw2[k3] * sumwr3[k2] + sumw3[k3] * sumwr2[k2]);
+                _meanlogd2[i] += w1 * (sumw2[k3] * sumwlogr3[k2] + sumw3[k3] * sumwlogr2[k2]);
+                _meand3[i] += w1 * (sumw2[k2] * sumwr3[k3] + sumw3[k2] * sumwr2[k3]);
+                _meanlogd3[i] += w1 * (sumw2[k2] * sumwlogr3[k3] + sumw3[k3] * sumwlogr2[k3]);
+            }
         }
     }
-
     // Finish the calculation for Zeta_n(d1,d2) using G_n(d).
     DirectHelper<D1,D2,D3>::CalculateZeta(
-        static_cast<const Cell<D1,C>&>(c1),
+        static_cast<const Cell<D1,C>&>(c1), ordered,
         Wn2, Gn2, Wn3, Gn3, _weight, _weight_im, _zeta, _nbins, _nubins);
 }
 
@@ -1320,15 +1400,15 @@ void BaseCorr3::multipole(const BaseField<C>& field, bool dots)
 
         MetricHelper<M,0> metric(0, 0, _xp, _yp, _zp);
         // Scratch arrays used for computing Gn, etc..
-        std::complex<double> Gn[_nnn ? 0 : _nvbins];
-        std::complex<double> Wn[_nvbins];
-        double sumwr[_nvbins];
-        double sumwlogr[_nvbins];
-        double sumw[_nvbins];
-        double sumwwr[_nvbins];
-        double sumwwlogr[_nvbins];
-        double sumww[_nvbins];
-        double npairs[_nvbins];
+        std::complex<double> Gn[_Gnsize];
+        std::complex<double> Wn[_Wnsize];
+        double sumwr[_nbins];
+        double sumwlogr[_nbins];
+        double sumw[_nbins];
+        double sumwwr[_nbins];
+        double sumwwlogr[_nbins];
+        double sumww[_nbins];
+        double npairs[_nbins];
 
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
@@ -1390,15 +1470,15 @@ void BaseCorr3::multipole(const BaseField<C>& field1, const BaseField<C>& field2
         BaseCorr3& corr = *this;
 #endif
         // Scratch arrays used for computing Gn, etc..
-        std::complex<double> Gn[_nnn ? 0 : _nvbins];
-        std::complex<double> Wn[_nvbins];
-        double sumwr[_nvbins];
-        double sumwlogr[_nvbins];
-        double sumw[_nvbins];
-        double sumwwr[_nvbins];
-        double sumwwlogr[_nvbins];
-        double sumww[_nvbins];
-        double npairs[_nvbins];
+        std::complex<double> Gn[_Gnsize];
+        std::complex<double> Wn[_Wnsize];
+        double sumwr[_nbins];
+        double sumwlogr[_nbins];
+        double sumw[_nbins];
+        double sumwwr[_nbins];
+        double sumwwlogr[_nbins];
+        double sumww[_nbins];
+        double npairs[_nbins];
 
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
@@ -1431,7 +1511,7 @@ void BaseCorr3::multipole(const BaseField<C>& field1, const BaseField<C>& field2
 
 template <int B, int M, int C>
 void BaseCorr3::multipole(const BaseField<C>& field1, const BaseField<C>& field2,
-                          const BaseField<C>& field3, bool dots)
+                          const BaseField<C>& field3, bool dots, int ordered)
 {
     dbg<<"Start multipole cross full\n";
     reset_ws();
@@ -1467,19 +1547,19 @@ void BaseCorr3::multipole(const BaseField<C>& field1, const BaseField<C>& field2
         // Scratch arrays used for computing Gn, etc..
         // Note: We don't need to subtract off w^2 for the k2=k3 bins, so don't accumulate
         // and sumww arrays.
-        std::complex<double> Gn2[_nnn ? 0 : _nvbins];
-        std::complex<double> Wn2[_nvbins];
-        double sumwr2[_nvbins];
-        double sumwlogr2[_nvbins];
-        double sumw2[_nvbins];
-        double npairs2[_nvbins];
+        std::complex<double> Gn2[_Gnsize];
+        std::complex<double> Wn2[_Wnsize];
+        double sumwr2[_nbins];
+        double sumwlogr2[_nbins];
+        double sumw2[_nbins];
+        double npairs2[_nbins];
 
-        std::complex<double> Gn3[_nnn ? 0 : _nvbins];
-        std::complex<double> Wn3[_nvbins];
-        double sumwr3[_nvbins];
-        double sumwlogr3[_nvbins];
-        double sumw3[_nvbins];
-        double npairs3[_nvbins];
+        std::complex<double> Gn3[_Gnsize];
+        std::complex<double> Wn3[_Wnsize];
+        double sumwr3[_nbins];
+        double sumwlogr3[_nbins];
+        double sumw3[_nbins];
+        double npairs3[_nbins];
 
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
@@ -1496,7 +1576,7 @@ void BaseCorr3::multipole(const BaseField<C>& field1, const BaseField<C>& field2
             }
             const BaseCell<C>& c1 = *c1list[i];
             corr.template multipoleSplit1<B>(
-                c1, c2list, c3list, metric,
+                c1, c2list, c3list, metric, ordered,
                 sumwr2, sumwlogr2, sumw2, npairs2, Wn2, Gn2,
                 sumwr3, sumwlogr3, sumw3, npairs3, Wn3, Gn3);
         }
@@ -1601,7 +1681,7 @@ void BaseCorr3::multipoleSplit1(
                            sumwr, sumwlogr, sumw, npairs, sumwwr, sumwwlogr, sumww, Wn, Gn);
     } else {
         // Zero out scratch arrays
-        for (int i=0; i<_nvbins; ++i) {
+        for (int i=0; i<_nbins; ++i) {
             sumwr[i] = 0.;
             sumwlogr[i] = 0.;
             sumw[i] = 0.;
@@ -1609,8 +1689,14 @@ void BaseCorr3::multipoleSplit1(
             sumwwlogr[i] = 0.;
             sumww[i] = 0.;
             npairs[i] = 0.;
+        }
+        for (int i=0; i<_Wnsize; ++i) {
             Wn[i] = 0.;
-            if (!_nnn) Gn[i] = 0.;
+        }
+        if (!_nnn) {
+            for (int i=0; i<_Gnsize; ++i) {
+                Gn[i] = 0.;
+            }
         }
         multipoleFinish<B>(c1, newc2list, metric,
                            sumwr, sumwlogr, sumw, npairs, sumwwr, sumwwlogr, sumww, Wn, Gn);
@@ -1622,7 +1708,7 @@ void BaseCorr3::multipoleSplit1(
     const BaseCell<C>& c1,
     const std::vector<const BaseCell<C>*>& c2list,
     const std::vector<const BaseCell<C>*>& c3list,
-    const MetricHelper<M,0>& metric,
+    const MetricHelper<M,0>& metric, int ordered,
     double* sumwr2, double* sumwlogr2, double* sumw2, double* npairs2,
     std::complex<double>* Wn2, std::complex<double>* Gn2,
     double* sumwr3, double* sumwlogr3, double* sumw3, double* npairs3,
@@ -1644,33 +1730,37 @@ void BaseCorr3::multipoleSplit1(
     double maxbsq_eff = BinTypeHelper<B>::getEffectiveBSq(_maxsepsq, _bsq);
     if (SQR(s1) > maxbsq_eff) {
         multipoleSplit1<B>(
-            *c1.getLeft(), newc2list, newc3list, metric,
+            *c1.getLeft(), newc2list, newc3list, metric, ordered,
             sumwr2, sumwlogr2, sumw2, npairs2, Wn2, Gn2,
             sumwr3, sumwlogr3, sumw3, npairs3, Wn3, Gn3);
         multipoleSplit1<B>(
-            *c1.getRight(), newc2list, newc3list, metric,
+            *c1.getRight(), newc2list, newc3list, metric, ordered,
             sumwr2, sumwlogr2, sumw2, npairs2, Wn2, Gn2,
             sumwr3, sumwlogr3, sumw3, npairs3, Wn3, Gn3);
     } else {
         // Zero out scratch arrays
-        for (int i=0; i<_nvbins; ++i) {
+        for (int i=0; i<_nbins; ++i) {
             sumwr2[i] = 0.;
             sumwlogr2[i] = 0.;
             sumw2[i] = 0.;
             npairs2[i] = 0.;
-            Wn2[i] = 0.;
             sumwr3[i] = 0.;
             sumwlogr3[i] = 0.;
             sumw3[i] = 0.;
             npairs3[i] = 0.;
+        }
+        for (int i=0; i<_Wnsize; ++i) {
+            Wn2[i] = 0.;
             Wn3[i] = 0.;
-            if (!_nnn) {
+        }
+        if (!_nnn) {
+            for (int i=0; i<_Gnsize; ++i) {
                 Gn2[i] = 0.;
                 Gn3[i] = 0.;
             }
         }
         multipoleFinish<B>(
-            c1, newc2list, newc3list, metric,
+            c1, newc2list, newc3list, metric, ordered,
             sumwr2, sumwlogr2, sumw2, npairs2, Wn2, Gn2,
             sumwr3, sumwlogr3, sumw3, npairs3, Wn3, Gn3);
     }
@@ -1798,16 +1888,14 @@ void BaseCorr3::multipoleFinish(
             Assert(c1.getRight());
             // Then we need to split c1 further.  This means we need a copy of Gn and the
             // other scratch arrays, so we can pass what we have now to each child cell.
-            double sumwrc[_nvbins];
-            double sumwlogrc[_nvbins];
-            double sumwc[_nvbins];
-            double sumwwrc[_nvbins];
-            double sumwwlogrc[_nvbins];
-            double sumwwc[_nvbins];
-            double npairsc[_nvbins];
-            std::complex<double> Gnc[_nnn ? 0 : _nvbins];
-            std::complex<double> Wnc[_nvbins];
-            for (int i=0;i<_nvbins;++i) {
+            double sumwrc[_nbins];
+            double sumwlogrc[_nbins];
+            double sumwc[_nbins];
+            double sumwwrc[_nbins];
+            double sumwwlogrc[_nbins];
+            double sumwwc[_nbins];
+            double npairsc[_nbins];
+            for (int i=0;i<_nbins;++i) {
                 sumwrc[i] = sumwr[i];
                 sumwlogrc[i] = sumwlogr[i];
                 sumwc[i] = sumw[i];
@@ -1815,10 +1903,14 @@ void BaseCorr3::multipoleFinish(
                 sumwwlogrc[i] = sumwwlogr[i];
                 sumwwc[i] = sumww[i];
                 npairsc[i] = npairs[i];
+            }
+            std::complex<double> Wnc[_Wnsize];
+            for (int i=0;i<_Wnsize;++i) {
                 Wnc[i] = Wn[i];
             }
+            std::complex<double> Gnc[_Gnsize];
             if (!_nnn) {
-                for (int i=0;i<_nvbins;++i) {
+                for (int i=0;i<_Gnsize;++i) {
                     Gnc[i] = Gn[i];
                 }
             }
@@ -1846,7 +1938,7 @@ void BaseCorr3::multipoleFinish(
 template <int B, int M, int C>
 void BaseCorr3::multipoleFinish(
     const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
-    const std::vector<const BaseCell<C>*>& c3list, const MetricHelper<M,0>& metric,
+    const std::vector<const BaseCell<C>*>& c3list, const MetricHelper<M,0>& metric, int ordered,
     double* sumwr2, double* sumwlogr2, double* sumw2, double* npairs2,
     std::complex<double>* Wn2, std::complex<double>* Gn2,
     double* sumwr3, double* sumwlogr3, double* sumw3, double* npairs3,
@@ -1874,49 +1966,51 @@ void BaseCorr3::multipoleFinish(
             Assert(c1.getRight());
             // Then we need to split c1 further.  This means we need a copy of Gn and the
             // other scratch arrays, so we can pass what we have now to each child cell.
-            double sumwr2c[_nvbins];
-            double sumwlogr2c[_nvbins];
-            double sumw2c[_nvbins];
-            double npairs2c[_nvbins];
-            std::complex<double> Gn2c[_nnn ? 0 : _nvbins];
-            std::complex<double> Wn2c[_nvbins];
-            double sumwr3c[_nvbins];
-            double sumwlogr3c[_nvbins];
-            double sumw3c[_nvbins];
-            double npairs3c[_nvbins];
-            std::complex<double> Gn3c[_nnn ? 0 : _nvbins];
-            std::complex<double> Wn3c[_nvbins];
-            for (int i=0;i<_nvbins;++i) {
+            double sumwr2c[_nbins];
+            double sumwlogr2c[_nbins];
+            double sumw2c[_nbins];
+            double npairs2c[_nbins];
+            double sumwr3c[_nbins];
+            double sumwlogr3c[_nbins];
+            double sumw3c[_nbins];
+            double npairs3c[_nbins];
+            for (int i=0;i<_nbins;++i) {
                 sumwr2c[i] = sumwr2[i];
                 sumwlogr2c[i] = sumwlogr2[i];
                 sumw2c[i] = sumw2[i];
                 npairs2c[i] = npairs2[i];
-                Wn2c[i] = Wn2[i];
                 sumwr3c[i] = sumwr3[i];
                 sumwlogr3c[i] = sumwlogr3[i];
                 sumw3c[i] = sumw3[i];
                 npairs3c[i] = npairs3[i];
+            }
+            std::complex<double> Wn2c[_Wnsize];
+            std::complex<double> Wn3c[_Wnsize];
+            for (int i=0;i<_Wnsize;++i) {
+                Wn2c[i] = Wn2[i];
                 Wn3c[i] = Wn3[i];
             }
+            std::complex<double> Gn2c[_Gnsize];
+            std::complex<double> Gn3c[_Gnsize];
             if (!_nnn) {
-                for (int i=0;i<_nvbins;++i) {
+                for (int i=0;i<_Gnsize;++i) {
                     Gn2c[i] = Gn2[i];
                     Gn3c[i] = Gn3[i];
                 }
             }
             multipoleFinish<B>(
-                *c1.getLeft(), newc2list, newc3list, metric,
+                *c1.getLeft(), newc2list, newc3list, metric, ordered,
                 sumwr2c, sumwlogr2c, sumw2c, npairs2c, Wn2c, Gn2c,
                 sumwr3c, sumwlogr3c, sumw3c, npairs3c, Wn3c, Gn3c);
             multipoleFinish<B>(
-                *c1.getRight(), newc2list, newc3list, metric,
+                *c1.getRight(), newc2list, newc3list, metric, ordered,
                 sumwr2, sumwlogr2, sumw2, npairs2, Wn2, Gn2,
                 sumwr3, sumwlogr3, sumw3, npairs3, Wn3, Gn3);
         } else {
             // If we still have c2 items to process, but don't have to split c1,
             // we don't need to make copies.
             multipoleFinish<B>(
-                c1, newc2list, newc3list, metric,
+                c1, newc2list, newc3list, metric, ordered,
                 sumwr2, sumwlogr2, sumw2, npairs2, Wn2, Gn2,
                 sumwr3, sumwlogr3, sumw3, npairs3, Wn3, Gn3);
         }
@@ -1924,7 +2018,8 @@ void BaseCorr3::multipoleFinish(
     } else {
         // We finished all the calculations for Gn.
         // Turn this into Zeta_n.
-        calculateZeta(c1, sumwr2, sumwlogr2, sumw2, npairs2, Wn2, Gn2,
+        calculateZeta(c1, ordered,
+                      sumwr2, sumwlogr2, sumw2, npairs2, Wn2, Gn2,
                       sumwr3, sumwlogr3, sumw3, npairs3, Wn3, Gn3);
     }
 }
@@ -2054,7 +2149,7 @@ void ProcessCross12b(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2
         switch(ordered) {
           case 0:
                corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
-                   field2, field1, field2, dots);
+                   field2, field1, field2, dots, 1);
                // Drop through.
           case 1:
                corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
@@ -2130,14 +2225,17 @@ void ProcessCrossb(BaseCorr3& corr,
         switch(ordered) {
           case 0:
                corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
-                   field2, field1, field3, dots);
+                   field2, field1, field3, dots, 1);
                corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
-                   field3, field1, field2, dots);
+                   field3, field1, field2, dots, 1);
                // Drop through.
           case 1:
+               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+                   field1, field2, field3, dots, 1);
+               break;
           case 3:
                corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
-                   field1, field2, field3, dots);
+                   field1, field2, field3, dots, 3);
                break;
           default:
                Assert(false);

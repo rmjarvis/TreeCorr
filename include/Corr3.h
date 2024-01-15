@@ -58,7 +58,7 @@ public:
     void multipole(const BaseField<C>& field1,  const BaseField<C>& field2, bool dots);
     template <int B, int M, int C>
     void multipole(const BaseField<C>& field1,  const BaseField<C>& field2,
-                   const BaseField<C>& field3, bool dots);
+                   const BaseField<C>& field3, bool dots, int ordered);
 
     // Main worker functions for calculating the result
     template <int B, int M, int C>
@@ -100,7 +100,7 @@ public:
     void multipoleSplit1(const BaseCell<C>& c1,
                          const std::vector<const BaseCell<C>*>& c2list,
                          const std::vector<const BaseCell<C>*>& c3list,
-                         const MetricHelper<M,0>& metric,
+                         const MetricHelper<M,0>& metric, int ordered,
                          double* sumwr2, double* sumwlogr2, double* sumw2, double* npairs2,
                          std::complex<double>* Wn2, std::complex<double>* Gn2,
                          double* sumwr3, double* sumwlogr3, double* sumw3, double* npairs3,
@@ -126,7 +126,7 @@ public:
     void multipoleFinish(const BaseCell<C>& c1,
                          const std::vector<const BaseCell<C>*>& c2list,
                          const std::vector<const BaseCell<C>*>& c3list,
-                         const MetricHelper<M,0>& metric,
+                         const MetricHelper<M,0>& metric, int ordered,
                          double* sumwr2, double* sumwlogr2, double* sumw2, double* npairs2,
                          std::complex<double>* Wn2, std::complex<double>* Gn2,
                          double* sumwr3, double* sumwlogr3, double* sumw3, double* npairs3,
@@ -165,12 +165,12 @@ public:
     { doCalculateZeta(c1, sumwr, sumwlogr, sumw, npairs, sumwwr, sumwwlogr, sumww, Wn, Gn); }
 
     template <int C>
-    void calculateZeta(const BaseCell<C>& c1,
+    void calculateZeta(const BaseCell<C>& c1, int ordered,
                        double* sumwr2, double* sumwlogr2, double* sumw2, double* npairs2,
                        std::complex<double>* Wn2, std::complex<double>* Gn2,
                        double* sumwr3, double* sumwlogr3, double* sumw3, double* npairs3,
                        std::complex<double>* Wn3, std::complex<double>* Gn3)
-    { doCalculateZeta(c1, sumwr2, sumwlogr2, sumw2, npairs2, Wn2, Gn2,
+    { doCalculateZeta(c1, ordered, sumwr2, sumwlogr2, sumw2, npairs2, Wn2, Gn2,
                       sumwr3, sumwlogr3, sumw3, npairs3, Wn3, Gn3); }
 
 protected:
@@ -234,17 +234,17 @@ protected:
                                  double* sumwwr, double* sumwwlogr, double* sumww,
                                  std::complex<double>* Wn, std::complex<double>* Gn) =0;
 
-    virtual void doCalculateZeta(const BaseCell<Flat>& c1,
+    virtual void doCalculateZeta(const BaseCell<Flat>& c1, int ordered,
                                  double* sumwr2, double* sumwlogr2, double* sumw2, double* npairs2,
                                  std::complex<double>* Wn2, std::complex<double>* Gn2,
                                  double* sumwr3, double* sumwlogr3, double* sumw3, double* npairs3,
                                  std::complex<double>* Wn3, std::complex<double>* Gn3) =0;
-    virtual void doCalculateZeta(const BaseCell<Sphere>& c1,
+    virtual void doCalculateZeta(const BaseCell<Sphere>& c1, int ordered,
                                  double* sumwr2, double* sumwlogr2, double* sumw2, double* npairs2,
                                  std::complex<double>* Wn2, std::complex<double>* Gn2,
                                  double* sumwr3, double* sumwlogr3, double* sumw3, double* npairs3,
                                  std::complex<double>* Wn3, std::complex<double>* Gn3) =0;
-    virtual void doCalculateZeta(const BaseCell<ThreeD>& c1,
+    virtual void doCalculateZeta(const BaseCell<ThreeD>& c1, int ordered,
                                  double* sumwr2, double* sumwlogr2, double* sumw2, double* npairs2,
                                  std::complex<double>* Wn2, std::complex<double>* Gn2,
                                  double* sumwr3, double* sumwlogr3, double* sumw3, double* npairs3,
@@ -286,8 +286,8 @@ protected:
     bool _nnn;  // Most D1,D2,D3 stuff is in the non-base classes.  However, for the Multipole
                 // algorith, we distinguish NNN from the rest, since NNN doesn't need to
                 // allocated the temporary Gn array, so we can save some memory.
-
-
+    int _Wnsize;
+    int _Gnsize;
 };
 
 // Corr3 encapsulates a binned correlation function.
@@ -345,7 +345,7 @@ public:
                        std::complex<double>* Wn, std::complex<double>* Gn);
 
     template <int C>
-    void calculateZeta(const BaseCell<C>& c1,
+    void calculateZeta(const BaseCell<C>& c1, int ordered,
                        double* sumwr2, double* sumwlogr2, double* sumw2, double* npairs2,
                        std::complex<double>* Wn2, std::complex<double>* Gn2,
                        double* sumwr3, double* sumwlogr3, double* sumw3, double* npairs3,
@@ -430,26 +430,26 @@ protected:
                          std::complex<double>* Wn, std::complex<double>* Gn)
     { calculateZeta(c1, sumwr, sumwlogr, sumw, npairs, sumwwr, sumwwlogr, sumww, Wn, Gn); }
 
-    void doCalculateZeta(const BaseCell<Flat>& c1,
+    void doCalculateZeta(const BaseCell<Flat>& c1, int ordered,
                          double* sumwr2, double* sumwlogr2, double* sumw2, double* npairs2,
                          std::complex<double>* Wn2, std::complex<double>* Gn2,
                          double* sumwr3, double* sumwlogr3, double* sumw3, double* npairs3,
                          std::complex<double>* Wn3, std::complex<double>* Gn3)
-    { calculateZeta(c1, sumwr2, sumwlogr2, sumw2, npairs2, Wn2, Gn2,
+    { calculateZeta(c1, ordered, sumwr2, sumwlogr2, sumw2, npairs2, Wn2, Gn2,
                     sumwr3, sumwlogr3, sumw3, npairs3, Wn3, Gn3); }
-    void doCalculateZeta(const BaseCell<Sphere>& c1,
+    void doCalculateZeta(const BaseCell<Sphere>& c1, int ordered,
                          double* sumwr2, double* sumwlogr2, double* sumw2, double* npairs2,
                          std::complex<double>* Wn2, std::complex<double>* Gn2,
                          double* sumwr3, double* sumwlogr3, double* sumw3, double* npairs3,
                          std::complex<double>* Wn3, std::complex<double>* Gn3)
-    { calculateZeta(c1, sumwr2, sumwlogr2, sumw2, npairs2, Wn2, Gn2,
+    { calculateZeta(c1, ordered, sumwr2, sumwlogr2, sumw2, npairs2, Wn2, Gn2,
                     sumwr3, sumwlogr3, sumw3, npairs3, Wn3, Gn3); }
-    void doCalculateZeta(const BaseCell<ThreeD>& c1,
+    void doCalculateZeta(const BaseCell<ThreeD>& c1, int ordered,
                          double* sumwr2, double* sumwlogr2, double* sumw2, double* npairs2,
                          std::complex<double>* Wn2, std::complex<double>* Gn2,
                          double* sumwr3, double* sumwlogr3, double* sumw3, double* npairs3,
                          std::complex<double>* Wn3, std::complex<double>* Gn3)
-    { calculateZeta(c1, sumwr2, sumwlogr2, sumw2, npairs2, Wn2, Gn2,
+    { calculateZeta(c1, ordered, sumwr2, sumwlogr2, sumw2, npairs2, Wn2, Gn2,
                     sumwr3, sumwlogr3, sumw3, npairs3, Wn3, Gn3); }
 
     // These are usually allocated in the python layer and just built up here.

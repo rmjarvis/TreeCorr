@@ -111,7 +111,6 @@ class NNNCorrelation(Corr3):
                     i.e. d3 = exp(logd3).
         n:          The multipole index n for each bin.
 
->>>>>>> Initial python layer code for LogMultipole
     For any bin_type:
 
     Attributes:
@@ -408,20 +407,7 @@ class NNNCorrelation(Corr3):
                                self.output_dots, self._bintype, self._metric)
         self.tot += cat1.sumw * cat2.sumw * cat3.sumw
 
-    def _finalize(self, sym23=True):
-        if self.bin_type == 'LogMultipole' and sym23:
-            # The multipole calculation only accumulates these for half the triangles, since
-            # the other half are equivalent. Copy them over to the missing half of these arrays.
-            self.ntri += np.transpose(self.ntri, axes=(1,0,2))
-            orig_meand2 = self.meand2.copy()
-            orig_meanlogd2 = self.meanlogd2.copy()
-            self.meand2 += np.transpose(self.meand3, axes=(1,0,2))
-            self.meanlogd2 += np.transpose(self.meanlogd3, axes=(1,0,2))
-            self.meand3 += np.transpose(orig_meand2, axes=(1,0,2))
-            self.meanlogd3 += np.transpose(orig_meanlogd2, axes=(1,0,2))
-            self.weightr += np.transpose(self.weightr, axes=(1,0,2))
-            self.weighti -= np.transpose(self.weighti, axes=(1,0,2))
-
+    def _finalize(self):
         mask1 = self.weightr != 0
         mask2 = self.weightr == 0
 
@@ -475,19 +461,14 @@ class NNNCorrelation(Corr3):
                 self.meanlogd1[mask2] = 0.
                 self.meanu[mask2] = 0.
 
-    def finalize(self, *, sym23=True):
+    def finalize(self):
         """Finalize the calculation of meand1, meanlogd1, etc.
 
         The `process_auto`, `process_cross12` and `process_cross` commands accumulate values in
         each bin, so they can be called multiple times if appropriate.  Afterwards, this command
         finishes the calculation of meand1, meand2, etc. by dividing by the total weight.
-
-        Parameters:
-            sym23 (bool):   Whether the calculation should treat cats 2 and 3 as equivalent.
-                            (default: True) This should be set to False for cross-correlations
-                            of 3 different catalogs with ordered=True.
         """
-        self._finalize(sym23)
+        self._finalize()
 
     @lazy_property
     def _nonzero(self):
@@ -672,8 +653,7 @@ class NNNCorrelation(Corr3):
             self._process_all_cross(cat1, cat2, cat3, metric, ordered, num_threads, comm, low_mem)
 
         if finalize:
-            sym23 = cat3 is None or not ordered
-            self.finalize(sym23=sym23)
+            self.finalize()
 
     def _mean_weight(self):
         mean_ntri = np.mean(self.ntri)
@@ -1064,7 +1044,7 @@ class NNNCorrelation(Corr3):
         zeta            The estimator :math:`\zeta` (if rrr is given, or zeta was
                         already computed)
         sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`
-                        (if rrr is given or for LogMultipole binning)
+                        (if rrr is given)
         DDD             The total weight of DDD triangles in each bin
         RRR             The total weight of RRR triangles in each bin (if rrr is given)
         DRR             The total weight of DRR triangles in each bin (if drr is given)

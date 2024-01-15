@@ -363,7 +363,7 @@ struct BinTypeHelper<TwoD>
 template <>
 struct BinTypeHelper<LogRUV>
 {
-    enum { sort_d123 = true };
+    enum { sort_d123 = true, swap_23 = true };
 
     static int calculateNTot(int nbins, int nubins, int nvbins)
     { return nbins * nubins * nvbins * 2; }
@@ -783,7 +783,7 @@ struct BinTypeHelper<LogRUV>
 template <>
 struct BinTypeHelper<LogSAS>
 {
-    enum { sort_d123 = false };
+    enum { sort_d123 = false, swap_23 = true };
 
     static int calculateNTot(int nbins, int nphibins, int )
     { return nbins * nbins * nphibins; }
@@ -1246,7 +1246,7 @@ struct BinTypeHelper<LogSAS>
 template <>
 struct BinTypeHelper<LogMultipole>
 {
-    enum { sort_d123 = false };
+    enum { sort_d123 = false, swap_23 = false };
 
     static int calculateNTot(int nbins, int maxn, int )
     { return nbins * nbins * (2*maxn+1); }

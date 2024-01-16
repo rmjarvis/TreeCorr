@@ -3830,7 +3830,7 @@ def test_nnn_logsas():
                                   sep_units='arcmin', verbose=1, bin_type='LogMultipole')
     t0 = time.time()
     dddm.process(cat)
-    ddd2 = dddm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins)
+    ddds = dddm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins)
     t1 = time.time()
     print('time for multipole ddd:', t1-t0)
 
@@ -3838,11 +3838,11 @@ def test_nnn_logsas():
                                   sep_units='arcmin', verbose=1, bin_type='LogMultipole')
     t0 = time.time()
     rrrm.process(rand)
-    rrr2 = rrrm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins)
+    rrrs = rrrm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins)
     t1 = time.time()
     print('time for multipole rrr:', t1-t0)
 
-    zeta2, varzeta2 = ddd2.calculateZeta(rrr=rrr2)
+    zeta2, varzeta2 = ddds.calculateZeta(rrr=rrrs)
     print('mean ratio = ',np.mean(zeta2 / true_zeta))
     print('mean diff = ',np.mean(zeta2 - true_zeta))
     print('max rel diff = ',np.max(np.abs((zeta2 - true_zeta)/true_zeta)))
@@ -3981,26 +3981,26 @@ def test_nnn_logsas():
             attrs = data.attrs
             np.testing.assert_almost_equal(attrs['tot']/ddd.tot, 1.)
 
-        ddd3 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+        ddd2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                        min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                        sep_units='arcmin', bin_type='LogSAS')
-        ddd3.read(out_file_name3)
-        np.testing.assert_almost_equal(ddd3.logd2, ddd.logd2)
-        np.testing.assert_almost_equal(ddd3.logd3, ddd.logd3)
-        np.testing.assert_almost_equal(ddd3.phi, ddd.phi)
-        np.testing.assert_almost_equal(ddd3.meand1, ddd.meand1)
-        np.testing.assert_almost_equal(ddd3.meanlogd1, ddd.meanlogd1)
-        np.testing.assert_almost_equal(ddd3.meand2, ddd.meand2)
-        np.testing.assert_almost_equal(ddd3.meanlogd2, ddd.meanlogd2)
-        np.testing.assert_almost_equal(ddd3.meand3, ddd.meand3)
-        np.testing.assert_almost_equal(ddd3.meanlogd3, ddd.meanlogd3)
-        np.testing.assert_almost_equal(ddd3.meanphi, ddd.meanphi)
-        np.testing.assert_almost_equal(ddd3.ntri, ddd.ntri)
-        np.testing.assert_almost_equal(ddd3.tot/ddd.tot, 1.)
-        assert ddd3.coords == ddd.coords
-        assert ddd3.metric == ddd.metric
-        assert ddd3.sep_units == ddd.sep_units
-        assert ddd3.bin_type == ddd.bin_type
+        ddd2.read(out_file_name3)
+        np.testing.assert_almost_equal(ddd2.logd2, ddd.logd2)
+        np.testing.assert_almost_equal(ddd2.logd3, ddd.logd3)
+        np.testing.assert_almost_equal(ddd2.phi, ddd.phi)
+        np.testing.assert_almost_equal(ddd2.meand1, ddd.meand1)
+        np.testing.assert_almost_equal(ddd2.meanlogd1, ddd.meanlogd1)
+        np.testing.assert_almost_equal(ddd2.meand2, ddd.meand2)
+        np.testing.assert_almost_equal(ddd2.meanlogd2, ddd.meanlogd2)
+        np.testing.assert_almost_equal(ddd2.meand3, ddd.meand3)
+        np.testing.assert_almost_equal(ddd2.meanlogd3, ddd.meanlogd3)
+        np.testing.assert_almost_equal(ddd2.meanphi, ddd.meanphi)
+        np.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
+        np.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
+        assert ddd2.coords == ddd.coords
+        assert ddd2.metric == ddd.metric
+        assert ddd2.sep_units == ddd.sep_units
+        assert ddd2.bin_type == ddd.bin_type
 
     # Test compensated zeta
     # First just check the mechanics.
@@ -4145,25 +4145,103 @@ def test_nnn_logsas():
     rddm = dddm.copy()
     t0 = time.time()
     drrm.process(cat,rand, ordered=False)
-    drr2 = drrm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins)
+    drrs = drrm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins)
     t1 = time.time()
     rddm.process(rand,cat, ordered=False)
-    rdd2 = rddm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins)
+    rdds = rddm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins)
     t2 = time.time()
     print('time for drr via Multipole: ',t1-t0)
     print('time for rdd via Multipole: ',t2-t1)
 
-    zeta2, varzeta = ddd.calculateZeta(rrr=rrr2, drr=drr2, rdd=rdd2)
+    zeta2, varzeta = ddd.calculateZeta(rrr=rrrs, drr=drrs, rdd=rdds)
     print('Multpole method: mean ratio = ',np.mean(zeta2 / true_zeta))
     print('Relative to direct SAS:')
-    print('ddd ratio = ',np.mean(ddd2.weight/ddd.weight))
-    print('drr ratio = ',np.mean(drr2.weight/drr.weight))
-    print('rdd ratio = ',np.mean(rdd2.weight/rdd.weight))
-    print('rrr ratio = ',np.mean(rrr2.weight/rrr.weight))
+    print('ddd ratio = ',np.mean(ddds.weight/ddd.weight))
+    print('drr ratio = ',np.mean(drrs.weight/drr.weight))
+    print('rdd ratio = ',np.mean(rdds.weight/rdd.weight))
+    print('rrr ratio = ',np.mean(rrrs.weight/rrr.weight))
     print('zeta ratio = ',np.mean(zeta2/zeta))
+    print('ddd ntri ratio = ',np.mean(ddds.ntri/ddd.ntri))
+    print('ddd meand1 ratio = ',np.mean(ddds.meand1/ddd.meand1))
+    print('ddd meanlogd1 ratio = ',np.mean(ddds.meanlogd1/ddd.meanlogd1))
+    print('ddd meand2 ratio = ',np.mean(ddds.meand2/ddd.meand2))
+    print('ddd meanlogd2 ratio = ',np.mean(ddds.meanlogd2/ddd.meanlogd2))
+    print('ddd meand3 ratio = ',np.mean(ddds.meand3/ddd.meand3))
+    print('ddd meanlogd3 ratio = ',np.mean(ddds.meanlogd3/ddd.meanlogd3))
+    print('drr ntri ratio = ',np.mean(drrs.ntri/drr.ntri))
+    print('drr meand1 ratio = ',np.mean(drrs.meand1/drr.meand1))
+    print('drr meanlogd1 ratio = ',np.mean(drrs.meanlogd1/drr.meanlogd1))
+    print('drr meand2 ratio = ',np.mean(drrs.meand2/drr.meand2))
+    print('drr meanlogd2 ratio = ',np.mean(drrs.meanlogd2/drr.meanlogd2))
+    print('drr meand3 ratio = ',np.mean(drrs.meand3/drr.meand3))
+    print('drr meanlogd3 ratio = ',np.mean(drrs.meanlogd3/drr.meanlogd3))
     np.testing.assert_allclose(zeta2, true_zeta, rtol=0.1*tol_factor)
-    np.testing.assert_allclose(np.log(np.abs(zeta2)), np.log(np.abs(true_zeta)), atol=0.1*tol_factor)
     np.testing.assert_allclose(zeta2, zeta, rtol=0.03*tol_factor)
+    np.testing.assert_allclose(ddds.weight, ddd.weight, rtol=0.03*tol_factor)
+    np.testing.assert_allclose(drrs.weight, drr.weight, rtol=0.03*tol_factor)
+    np.testing.assert_allclose(rdds.weight, rdd.weight, rtol=0.03*tol_factor)
+    np.testing.assert_allclose(rrrs.weight, rrr.weight, rtol=0.03*tol_factor)
+
+    # The distances usually match very well, but some scatter to a little more
+    # than 10% off, so only test these at rtol=0.2.  The log ones are a bit worse sometimes.
+    np.testing.assert_allclose(ddds.ntri, ddd.ntri, rtol=0.1*tol_factor)
+    np.testing.assert_allclose(ddds.meand1, ddd.meand1, rtol=0.2*tol_factor)
+    np.testing.assert_allclose(ddds.meanlogd1, ddd.meanlogd1, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(ddds.meand2, ddd.meand2, rtol=0.2*tol_factor)
+    np.testing.assert_allclose(ddds.meanlogd2, ddd.meanlogd2, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(ddds.meand3, ddd.meand3, rtol=0.2*tol_factor)
+    np.testing.assert_allclose(ddds.meanlogd3, ddd.meanlogd3, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(drrs.ntri, drr.ntri, rtol=0.1*tol_factor)
+    np.testing.assert_allclose(drrs.meand1, drr.meand1, rtol=0.2*tol_factor)
+    np.testing.assert_allclose(drrs.meanlogd1, drr.meanlogd1, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(drrs.meand2, drr.meand2, rtol=0.2*tol_factor)
+    np.testing.assert_allclose(drrs.meanlogd2, drr.meanlogd2, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(drrs.meand3, drr.meand3, rtol=0.2*tol_factor)
+    np.testing.assert_allclose(drrs.meanlogd3, drr.meanlogd3, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(rdds.ntri, rdd.ntri, rtol=0.1*tol_factor)
+    np.testing.assert_allclose(rdds.meand1, rdd.meand1, rtol=0.2*tol_factor)
+    np.testing.assert_allclose(rdds.meanlogd1, rdd.meanlogd1, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(rdds.meand2, rdd.meand2, rtol=0.2*tol_factor)
+    np.testing.assert_allclose(rdds.meanlogd2, rdd.meanlogd2, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(rdds.meand3, rdd.meand3, rtol=0.2*tol_factor)
+    np.testing.assert_allclose(rdds.meanlogd3, rdd.meanlogd3, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(rrrs.ntri, rrr.ntri, rtol=0.1*tol_factor)
+    np.testing.assert_allclose(rrrs.meand1, rrr.meand1, rtol=0.2*tol_factor)
+    np.testing.assert_allclose(rrrs.meanlogd1, rrr.meanlogd1, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(rrrs.meand2, rrr.meand2, rtol=0.2*tol_factor)
+    np.testing.assert_allclose(rrrs.meanlogd2, rrr.meanlogd2, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(rrrs.meand3, rrr.meand3, rtol=0.2*tol_factor)
+    np.testing.assert_allclose(rrrs.meanlogd3, rrr.meanlogd3, rtol=0.5*tol_factor)
+
+    # The mean values are closer of course.
+    np.testing.assert_allclose(np.mean(ddds.ntri), np.mean(ddd.ntri), rtol=0.03*tol_factor)
+    np.testing.assert_allclose(np.mean(ddds.meand1), np.mean(ddd.meand1), rtol=0.03*tol_factor)
+    np.testing.assert_allclose(np.mean(ddds.meanlogd1), np.mean(ddd.meanlogd1), rtol=0.04*tol_factor)
+    np.testing.assert_allclose(np.mean(ddds.meand2), np.mean(ddd.meand2), rtol=0.03*tol_factor)
+    np.testing.assert_allclose(np.mean(ddds.meanlogd2), np.mean(ddd.meanlogd2), rtol=0.04*tol_factor)
+    np.testing.assert_allclose(np.mean(ddds.meand3), np.mean(ddd.meand3), rtol=0.03*tol_factor)
+    np.testing.assert_allclose(np.mean(ddds.meanlogd3), np.mean(ddd.meanlogd3), rtol=0.04*tol_factor)
+    np.testing.assert_allclose(np.mean(drrs.ntri), np.mean(drr.ntri), rtol=0.03*tol_factor)
+    np.testing.assert_allclose(np.mean(drrs.meand1), np.mean(drr.meand1), rtol=0.03*tol_factor)
+    np.testing.assert_allclose(np.mean(drrs.meanlogd1), np.mean(drr.meanlogd1), rtol=0.04*tol_factor)
+    np.testing.assert_allclose(np.mean(drrs.meand2), np.mean(drr.meand2), rtol=0.03*tol_factor)
+    np.testing.assert_allclose(np.mean(drrs.meanlogd2), np.mean(drr.meanlogd2), rtol=0.04*tol_factor)
+    np.testing.assert_allclose(np.mean(drrs.meand3), np.mean(drr.meand3), rtol=0.03*tol_factor)
+    np.testing.assert_allclose(np.mean(drrs.meanlogd3), np.mean(drr.meanlogd3), rtol=0.04*tol_factor)
+    np.testing.assert_allclose(np.mean(rdds.ntri), np.mean(rdd.ntri), rtol=0.03*tol_factor)
+    np.testing.assert_allclose(np.mean(rdds.meand1), np.mean(rdd.meand1), rtol=0.03*tol_factor)
+    np.testing.assert_allclose(np.mean(rdds.meanlogd1), np.mean(rdd.meanlogd1), rtol=0.04*tol_factor)
+    np.testing.assert_allclose(np.mean(rdds.meand2), np.mean(rdd.meand2), rtol=0.03*tol_factor)
+    np.testing.assert_allclose(np.mean(rdds.meanlogd2), np.mean(rdd.meanlogd2), rtol=0.04*tol_factor)
+    np.testing.assert_allclose(np.mean(rdds.meand3), np.mean(rdd.meand3), rtol=0.03*tol_factor)
+    np.testing.assert_allclose(np.mean(rdds.meanlogd3), np.mean(rdd.meanlogd3), rtol=0.04*tol_factor)
+    np.testing.assert_allclose(np.mean(rrrs.ntri), np.mean(rrr.ntri), rtol=0.03*tol_factor)
+    np.testing.assert_allclose(np.mean(rrrs.meand1), np.mean(rrr.meand1), rtol=0.03*tol_factor)
+    np.testing.assert_allclose(np.mean(rrrs.meanlogd1), np.mean(rrr.meanlogd1), rtol=0.04*tol_factor)
+    np.testing.assert_allclose(np.mean(rrrs.meand2), np.mean(rrr.meand2), rtol=0.03*tol_factor)
+    np.testing.assert_allclose(np.mean(rrrs.meanlogd2), np.mean(rrr.meanlogd2), rtol=0.04*tol_factor)
+    np.testing.assert_allclose(np.mean(rrrs.meand3), np.mean(rrr.meand3), rtol=0.03*tol_factor)
+    np.testing.assert_allclose(np.mean(rrrs.meanlogd3), np.mean(rrr.meanlogd3), rtol=0.04*tol_factor)
 
 
 @timer
@@ -4591,21 +4669,27 @@ def test_direct_logmultipole_cross():
     true_weight_123 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
     true_ntri_123 = np.zeros((nbins, nbins, 2*max_n+1))
     true_weight_sas_123 = np.zeros((nbins, nbins, max_n))
+    true_ntri_sas_123 = np.zeros((nbins, nbins, max_n))
     true_weight_132 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
     true_ntri_132 = np.zeros((nbins, nbins, 2*max_n+1))
     true_weight_sas_132 = np.zeros((nbins, nbins, max_n))
+    true_ntri_sas_132 = np.zeros((nbins, nbins, max_n))
     true_weight_213 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
     true_ntri_213 = np.zeros((nbins, nbins, 2*max_n+1))
     true_weight_sas_213 = np.zeros((nbins, nbins, max_n))
+    true_ntri_sas_213 = np.zeros((nbins, nbins, max_n))
     true_weight_231 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
     true_ntri_231 = np.zeros((nbins, nbins, 2*max_n+1))
     true_weight_sas_231 = np.zeros((nbins, nbins, max_n))
+    true_ntri_sas_231 = np.zeros((nbins, nbins, max_n))
     true_weight_312 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
     true_ntri_312 = np.zeros((nbins, nbins, 2*max_n+1))
     true_weight_sas_312 = np.zeros((nbins, nbins, max_n))
+    true_ntri_sas_312 = np.zeros((nbins, nbins, max_n))
     true_weight_321 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
     true_ntri_321 = np.zeros((nbins, nbins, 2*max_n+1))
     true_weight_sas_321 = np.zeros((nbins, nbins, max_n))
+    true_ntri_sas_321 = np.zeros((nbins, nbins, max_n))
     bin_size = (log_max_sep - log_min_sep) / nbins
     n1d = np.arange(-max_n, max_n+1)
     t0 = time.time()
@@ -4639,9 +4723,11 @@ def test_direct_logmultipole_cross():
                     if phi > 0:
                         kphi = int(np.floor(phi * max_n / np.pi))
                         true_weight_sas_123[kr2,kr3,kphi] += www
+                        true_ntri_sas_123[kr2,kr3,kphi] += 1
                     else:
                         kphi = int(np.floor(-phi * max_n / np.pi))
                         true_weight_sas_132[kr3,kr2,kphi] += www
+                        true_ntri_sas_132[kr3,kr2,kphi] += 1
 
                 # 231, 213
                 if d1 >= min_sep and d1 < max_sep and d3 >= min_sep and d3 < max_sep:
@@ -4657,9 +4743,11 @@ def test_direct_logmultipole_cross():
                     if phi > 0:
                         kphi = int(np.floor(phi * max_n / np.pi))
                         true_weight_sas_231[kr3,kr1,kphi] += www
+                        true_ntri_sas_231[kr3,kr1,kphi] += 1
                     else:
                         kphi = int(np.floor(-phi * max_n / np.pi))
                         true_weight_sas_213[kr1,kr3,kphi] += www
+                        true_ntri_sas_213[kr1,kr3,kphi] += 1
 
                 # 312, 321
                 if d1 >= min_sep and d1 < max_sep and d2 >= min_sep and d2 < max_sep:
@@ -4675,9 +4763,11 @@ def test_direct_logmultipole_cross():
                     if phi > 0:
                         kphi = int(np.floor(phi * max_n / np.pi))
                         true_weight_sas_312[kr1,kr2,kphi] += www
+                        true_ntri_sas_312[kr1,kr2,kphi] += 1
                     else:
                         kphi = int(np.floor(-phi * max_n / np.pi))
                         true_weight_sas_321[kr2,kr1,kphi] += www
+                        true_ntri_sas_321[kr2,kr1,kphi] += 1
 
     t1 = time.time()
     print('time for Python brute: ',t1-t0)
@@ -4688,15 +4778,19 @@ def test_direct_logmultipole_cross():
     np.testing.assert_allclose(dddb.weight, true_weight_123, rtol=1.e-5)
 
     sas = dddb.toSAS()
-    print('mean ratio = ',np.mean(sas.weight/true_weight_sas_123))
-    print('rms ratio = ',np.std(sas.weight/true_weight_sas_123))
-    print('mean ratio = ',np.mean(sas.weight/true_weight_sas_123))
-    print('rms ratio = ',np.std(sas.weight/true_weight_sas_123))
+    print('mean ratio weight = ',np.mean(sas.weight/true_weight_sas_123))
+    print('mean ratio ntri = ',np.mean(sas.ntri/true_ntri_sas_123))
+    print('rms ratio weight = ',np.std(sas.weight/true_weight_sas_123))
+    print('rms ratio ntri = ',np.std(sas.ntri/true_ntri_sas_123))
     # These are pretty noisy with this few ngal, but they are pretty close on average.
     np.testing.assert_allclose(sas.weight, true_weight_sas_123, rtol=0.5 * tol_factor)
+    np.testing.assert_allclose(sas.ntri, true_ntri_sas_123, rtol=0.5 * tol_factor)
     np.testing.assert_allclose(np.mean(sas.weight/true_weight_sas_123), 1.0,
                                rtol=1.e-3 * tol_factor)
+    np.testing.assert_allclose(np.mean(sas.ntri/true_ntri_sas_123), 1.0,
+                               rtol=1.e-2 * tol_factor)
     assert np.std(sas.weight/true_weight_sas_123) < 0.05 * tol_factor
+    assert np.std(sas.ntri/true_ntri_sas_123) < 0.1 * tol_factor
 
     # Repeat with binslop = 0
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
@@ -4737,9 +4831,26 @@ def test_direct_logmultipole_cross():
     t1 = time.time()
     true_ntri_sum = true_ntri_123 + true_ntri_132 + true_ntri_213 + true_ntri_231 + true_ntri_312 + true_ntri_321
     true_weight_sum = true_weight_123 + true_weight_132 + true_weight_213 + true_weight_231 + true_weight_312 + true_weight_321
+    true_ntri_sas_sum = true_ntri_sas_123 + true_ntri_sas_132 + true_ntri_sas_213 + true_ntri_sas_231 + true_ntri_sas_312 + true_ntri_sas_321
+    true_weight_sas_sum = true_weight_sas_123 + true_weight_sas_132 + true_weight_sas_213 + true_weight_sas_231 + true_weight_sas_312 + true_weight_sas_321
     print('time for bin_slop=0 unordered: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
     np.testing.assert_allclose(ddd.weight, true_weight_sum, rtol=1.e-5)
+
+    sas = ddd.toSAS()
+    print('mean ratio weight = ',np.mean(sas.weight/true_weight_sas_sum))
+    print('mean ratio ntri = ',np.mean(sas.ntri/true_ntri_sas_sum))
+    print('rms ratio weight = ',np.std(sas.weight/true_weight_sas_sum))
+    print('rms ratio ntri = ',np.std(sas.ntri/true_ntri_sas_sum))
+    # These are pretty noisy with this few ngal, but they are pretty close on average.
+    np.testing.assert_allclose(sas.weight, true_weight_sas_sum, rtol=0.5 * tol_factor)
+    np.testing.assert_allclose(sas.ntri, true_ntri_sas_sum, rtol=0.5 * tol_factor)
+    np.testing.assert_allclose(np.mean(sas.weight/true_weight_sas_sum), 1.0,
+                               rtol=1.e-3 * tol_factor)
+    np.testing.assert_allclose(np.mean(sas.ntri/true_ntri_sas_sum), 1.0,
+                               rtol=1.e-2 * tol_factor)
+    assert np.std(sas.weight/true_weight_sas_sum) < 0.05 * tol_factor
+    assert np.std(sas.ntri/true_ntri_sas_sum) < 0.05 * tol_factor
 
     # And again with no top-level recursion
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
@@ -4787,12 +4898,6 @@ def test_direct_logmultipole_cross():
 
 
 if __name__ == '__main__':
-    test_direct_logmultipole_auto()
-    test_direct_logmultipole_cross12()
-    test_direct_logmultipole_cross()
-    #test_nnn_logsas()
-    quit()
-
     test_logruv_binning()
     test_logsas_binning()
     test_logmultipole_binning()

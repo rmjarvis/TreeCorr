@@ -724,10 +724,12 @@ class NNNCorrelation(Corr3):
 
         # For ntri, we recorded the total ntri for each pair of d2,d3.
         # Allocate those proportionally to the weights.
-        # The extra factor of 2 is because Multipole counts the triangles
+        # The extra factor of 0.5 is because Multipole counts the triangles
         # twice (with c2,c3 in each spot).  The standard SAS counting just
         # counts the ones in CCW orientation. (i.e. no double counting.)
-        ratio = self.ntri[:,:,0] / np.sum(sas.weight, axis=2) / 2
+        # (If phi range is not [0,pi], this may be even smaller.)
+        phi_frac = (sas.max_phi - sas.min_phi) / (2*np.pi)
+        ratio = self.ntri[:,:,0] / np.sum(sas.weight, axis=2) * phi_frac
         sas.ntri[:] = sas.weight * ratio[:,:,None]
 
         return sas

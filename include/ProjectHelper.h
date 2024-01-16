@@ -235,6 +235,9 @@ struct ProjectHelper<Sphere>
     static std::complex<double> ExpIPhi(
         const Position<Sphere>& p1, const Position<Sphere>& p2, double r)
     {
+        // Here we want the angle between North and p2 at the location of p1.
+        // This is almost what calculate_direction does, but we need to reverse
+        // the order, since it returns the angle between p1 and N at p2.
         std::complex<double> z = calculate_direction(p2,p1);
         z /= sqrt(safe_norm(z));
         return z;

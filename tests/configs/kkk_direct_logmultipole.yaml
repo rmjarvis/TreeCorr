@@ -1,0 +1,22 @@
+
+file_name: data/kkk_direct_logmultipole.fits
+
+x_col: x
+y_col: y
+x_units: arcmin
+y_units: arcmin
+k_col: k
+w_col: w
+
+verbose: 1
+
+bin_type: LogMultipole
+min_sep: 1.
+max_sep: 10.
+nbins: 5
+max_n: 20
+phi_units: 'radians'
+sep_units: arcmin
+bin_slop: 0
+
+kkk_file_name: output/kkk_direct_logmultipole.fits

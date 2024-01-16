@@ -165,12 +165,14 @@ class KKKCorrelation(Corr3):
         Corr3.__init__(self, config, logger=logger, **kwargs)
 
         shape = self.data_shape
-        self.zeta = np.zeros(shape, dtype=float)
+        self.zetar = np.zeros(shape, dtype=float)
         self.weightr = np.zeros(shape, dtype=float)
         if self.bin_type == 'LogMultipole':
             self.weighti = np.zeros(shape, dtype=float)
+            self.zetai = np.zeros(shape, dtype=float)
         else:
             self.weighti = np.array([])
+            self.zetai = np.array([])
         self.ntri = np.zeros(shape, dtype=float)
         self._varzeta = None
         self._cov = None
@@ -185,6 +187,13 @@ class KKKCorrelation(Corr3):
             return self.weightr
 
     @property
+    def zeta(self):
+        if self.zetai.size:
+            return self.zetar + 1j * self.zetai
+        else:
+            return self.zetar
+
+    @property
     def corr(self):
         if self._corr is None:
             x = np.array([])
@@ -194,7 +203,7 @@ class KKKCorrelation(Corr3):
                     self._ro.min_u,self._ro.max_u,self._ro.nubins,self._ro.ubin_size,self.bu,
                     self._ro.min_v,self._ro.max_v,self._ro.nvbins,self._ro.vbin_size,self.bv,
                     self.xperiod, self.yperiod, self.zperiod,
-                    self.zeta, x, x, x, x, x, x, x,
+                    self.zetar, self.zetai, x, x, x, x, x, x,
                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
                     self.meand3, self.meanlogd3, self.meanu, self.meanv,
                     self.weightr, self.weighti, self.ntri)
@@ -370,14 +379,15 @@ class KKKCorrelation(Corr3):
         mask1 = self.weightr != 0
         mask2 = self.weightr == 0
 
-        self.zeta[mask1] /= self.weightr[mask1]
-        self.meand1[mask1] /= self.weightr[mask1]
-        self.meanlogd1[mask1] /= self.weightr[mask1]
         self.meand2[mask1] /= self.weightr[mask1]
         self.meanlogd2[mask1] /= self.weightr[mask1]
         self.meand3[mask1] /= self.weightr[mask1]
         self.meanlogd3[mask1] /= self.weightr[mask1]
-        self.meanu[mask1] /= self.weightr[mask1]
+        if self.bin_type != 'LogMultipole':
+            self.zetar[mask1] /= self.weightr[mask1]
+            self.meand1[mask1] /= self.weightr[mask1]
+            self.meanlogd1[mask1] /= self.weightr[mask1]
+            self.meanu[mask1] /= self.weightr[mask1]
         if self.bin_type == 'LogRUV':
             self.meanv[mask1] /= self.weightr[mask1]
 
@@ -399,11 +409,27 @@ class KKKCorrelation(Corr3):
             self.meanlogd2[mask2] = self.logd2[mask2]
             self.meand3[mask2] = self.d3nom[mask2]
             self.meanlogd3[mask2] = self.logd3[mask2]
-            self.meanu[mask2] = self.phi[mask2]
-            self.meand1[mask2] = np.sqrt(self.d2nom[mask2]**2 + self.d3nom[mask2]**2
-                                         - 2*self.d2nom[mask2]*self.d3nom[mask2]*
-                                         np.cos(self.phi[mask2]))
-            self.meanlogd1[mask2] = np.log(self.meand1[mask2])
+            if self.bin_type == 'LogSAS':
+                self.meanu[mask2] = self.phi[mask2]
+                self.meand1[mask2] = np.sqrt(self.d2nom[mask2]**2 + self.d3nom[mask2]**2
+                                             - 2*self.d2nom[mask2]*self.d3nom[mask2]*
+                                             np.cos(self.phi[mask2]))
+                self.meanlogd1[mask2] = np.log(self.meand1[mask2])
+            else:
+                self.meanu[mask2] = 0.
+                self.meand1[mask2] = 0.
+                self.meanlogd1[mask2] = 0.
+
+        if self.bin_type == 'LogMultipole':
+            # Multipole only sets the meand values at [i,j,max_n].
+            # (This is also where the complex weight is just a scalar = sum(www),
+            # so the above normalizations are correct.)
+            # Broadcast those to the rest of the values in the third dimension.
+            self.ntri[:,:,:] = self.ntri[:,:,self.max_n][:,:,np.newaxis]
+            self.meand2[:,:,:] = self.meand2[:,:,self.max_n][:,:,np.newaxis]
+            self.meanlogd2[:,:,:] = self.meanlogd2[:,:,self.max_n][:,:,np.newaxis]
+            self.meand3[:,:,:] = self.meand3[:,:,self.max_n][:,:,np.newaxis]
+            self.meanlogd3[:,:,:] = self.meanlogd3[:,:,self.max_n][:,:,np.newaxis]
 
     def finalize(self, vark1, vark2, vark3):
         """Finalize the calculation of the correlation function.
@@ -431,7 +457,6 @@ class KKKCorrelation(Corr3):
     def _clear(self):
         """Clear the data vectors
         """
-        self.zeta[:,:,:] = 0.
         self.meand1[:,:,:] = 0.
         self.meanlogd1[:,:,:] = 0.
         self.meand2[:,:,:] = 0.
@@ -441,8 +466,10 @@ class KKKCorrelation(Corr3):
         self.meanu[:,:,:] = 0.
         if self.bin_type == 'LogRUV':
             self.meanv[:,:,:] = 0.
+        self.zetar[:,:,:] = 0.
         self.weightr[:,:,:] = 0.
         if self.bin_type == 'LogMultipole':
+            self.zetai[:,:,:] = 0.
             self.weighti[:,:,:] = 0.
         self.ntri[:,:,:] = 0.
         self._varzeta = None
@@ -463,7 +490,6 @@ class KKKCorrelation(Corr3):
 
         if not other.nonzero: return self
         self._set_metric(other.metric, other.coords, other.coords, other.coords)
-        self.zeta[:] += other.zeta[:]
         self.meand1[:] += other.meand1[:]
         self.meanlogd1[:] += other.meanlogd1[:]
         self.meand2[:] += other.meand2[:]
@@ -473,8 +499,10 @@ class KKKCorrelation(Corr3):
         self.meanu[:] += other.meanu[:]
         if self.bin_type == 'LogRUV':
             self.meanv[:] += other.meanv[:]
+        self.zetar[:] += other.zetar[:]
         self.weightr[:] += other.weightr[:]
         if self.bin_type == 'LogMultipole':
+            self.zetai[:] += other.zetai[:]
             self.weighti[:] += other.weighti[:]
         self.ntri[:] += other.ntri[:]
         return self
@@ -485,7 +513,6 @@ class KKKCorrelation(Corr3):
         #     for other in others:
         #         self += other
         # but no sanity checks and use numpy.sum for faster calculation.
-        np.sum([c.zeta for c in others], axis=0, out=self.zeta)
         np.sum([c.meand1 for c in others], axis=0, out=self.meand1)
         np.sum([c.meanlogd1 for c in others], axis=0, out=self.meanlogd1)
         np.sum([c.meand2 for c in others], axis=0, out=self.meand2)
@@ -495,8 +522,10 @@ class KKKCorrelation(Corr3):
         np.sum([c.meanu for c in others], axis=0, out=self.meanu)
         if self.bin_type == 'LogRUV':
             np.sum([c.meanv for c in others], axis=0, out=self.meanv)
+        np.sum([c.zetar for c in others], axis=0, out=self.zetar)
         np.sum([c.weightr for c in others], axis=0, out=self.weightr)
         if self.bin_type == 'LogMultipole':
+            np.sum([c.zetai for c in others], axis=0, out=self.zetai)
             np.sum([c.weighti for c in others], axis=0, out=self.weighti)
         np.sum([c.ntri for c in others], axis=0, out=self.ntri)
 
@@ -562,8 +591,18 @@ class KKKCorrelation(Corr3):
                 raise ValueError("For two catalog case, use cat1,cat2, not cat1,cat3")
             self._process_all_auto(cat1, metric, num_threads, comm, low_mem)
         elif cat3 is None:
+            if len(cat2) > 1 and self.bin_type == 'LogMultipole':
+                raise ValueError("Multipole algorithm cannot be used when cat2 is a list.")
+            if len(cat1) > 1 and self.bin_type == 'LogMultipole' and not ordered:
+                raise ValueError("Multipole algorithm cannot be used when cat1 is a list and ordered=False.")
             self._process_all_cross12(cat1, cat2, metric, ordered, num_threads, comm, low_mem)
         else:
+            if len(cat2) > 1 and self.bin_type == 'LogMultipole':
+                raise ValueError("Multipole algorithm cannot be used when cat2 is a list.")
+            if len(cat3) > 1 and self.bin_type == 'LogMultipole':
+                raise ValueError("Multipole algorithm cannot be used when cat3 is a list.")
+            if len(cat1) > 1 and self.bin_type == 'LogMultipole' and not ordered:
+                raise ValueError("Multipole algorithm cannot be used when cat1 is a list and ordered=False.")
             self._process_all_cross(cat1, cat2, cat3, metric, ordered, num_threads, comm, low_mem)
 
         if finalize:
@@ -586,6 +625,71 @@ class KKKCorrelation(Corr3):
                 self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
                 self.logger.info("vark3 = %f: sig_k = %f",vark3,math.sqrt(vark3))
             self.finalize(vark1,vark2,vark3)
+
+    def getWeight(self):
+        # For most bin types, this is just the normal weight.
+        # but for LogMultipole, the absolute value is what we want.
+        return np.abs(self.weight.ravel())
+
+    def toSAS(self, **kwargs):
+        """Convert a multipole-binned correlation to the corresponding SAS binning.
+
+        This is only valid for bin_type == LogMultipole.
+
+        Keyword Arguments:
+            **kwargs:   Any kwargs that you want to use to configure the returned object.
+                        Typically, might include min_phi, max_phi, nphi_bins, phi_bin_size.
+                        The default phi binning is [0,pi] with nphi_bins = self.max_n.
+
+        Returns:
+            nnn_sas:    An NNNCorrelation object with bin_type=LogSAS containing the
+                        same information as this object, but with the SAS binning.
+        """
+        if self.bin_type != 'LogMultipole':
+            raise TypeError("toSAS is invalid for bin_type = %s"%self.bin_type)
+
+        config = self.config.copy()
+        config['bin_type'] = 'LogSAS'
+        max_n = config.pop('max_n')
+        config['nphi_bins'] = max_n
+        sas = KKKCorrelation(config, **kwargs)
+        if not np.array_equal(sas.rnom1d, self.rnom1d):
+            raise ValueError("toSAS cannot change sep parameters")
+
+        # Copy these over
+        sas.meand2[:,:,:] = self.meand2[:,:,0][:,:,None]
+        sas.meanlogd2[:,:,:] = self.meanlogd2[:,:,0][:,:,None]
+        sas.meand3[:,:,:] = self.meand3[:,:,0][:,:,None]
+        sas.meanlogd3[:,:,:] = self.meanlogd3[:,:,0][:,:,None]
+
+        # Use nominal for meanphi
+        sas.meanu[:] = sas.phi / sas._phi_units
+        # Compute d1 from actual d2,d3 and nominal phi
+        sas.meand1[:] = np.sqrt(sas.meand2**2 + sas.meand3**2
+                                - 2*sas.meand2 * sas.meand3 * np.cos(sas.phi))
+        sas.meanlogd1[:] = np.log(sas.meand1)
+
+        # Z(d2,d3,phi) = 1/2pi sum_n Z_n(d2,d3) exp(i n phi)
+        expiphi = np.exp(1j * self.n1d[:,None] * sas.phi1d)
+        sas.weightr[:] = np.real(self.weight.dot(expiphi)) / (2*np.pi) * sas.phi_bin_size
+        sas.zetar[:] = np.real(self.zeta.dot(expiphi)) / (2*np.pi) * sas.phi_bin_size
+
+        # We leave zeta unnormalized in the Multipole class, so after the FT,
+        # we still need to divide by weight.
+        mask = sas.weightr != 0
+        sas.zetar[mask] /= sas.weightr[mask]
+
+        # For ntri, we recorded the total ntri for each pair of d2,d3.
+        # Allocate those proportionally to the weights.
+        # The extra factor of 0.5 is because Multipole counts the triangles
+        # twice (with c2,c3 in each spot).  The standard SAS counting just
+        # counts the ones in CCW orientation. (i.e. no double counting.)
+        # (If phi range is not [0,pi], this may be even smaller.)
+        phi_frac = (sas.max_phi - sas.min_phi) / (2*np.pi)
+        ratio = self.ntri[:,:,0] / np.sum(sas.weight, axis=2) * phi_frac
+        sas.ntri[:] = sas.weight * ratio[:,:,None]
+
+        return sas
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False):
         r"""Write the correlation function to the file, file_name.
@@ -644,10 +748,13 @@ class KKKCorrelation(Corr3):
                         into each bin
         meanlogd3       The mean value :math:`\langle \log(d3)\rangle` of triangles that
                         fell into each bin
-        zeta            The estimator of :math:`\zeta`
+        zeta            The estimator of :math:`\zeta` (For LogMultipole, this is split
+                        into real and imaginary parts, zeta_re and zeta_im.)
         sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`
                         (if rrr is given)
-        weight          The total weight of triangles contributing to each bin
+        weight          The total weight of triangles contributing to each bin. (For
+                        LogMultipole, this is split into real and imaginary parts,
+                        weight_re and weight_im.)
         ntri            The number of triangles contributing to each bin
         ==========      ================================================================
 
@@ -676,11 +783,18 @@ class KKKCorrelation(Corr3):
             col_names = ['r_nom', 'u_nom', 'v_nom',
                          'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
                          'meand3', 'meanlogd3', 'meanu', 'meanv']
-        else:
+        elif self.bin_type == 'LogSAS':
             col_names = ['d2_nom', 'd3_nom', 'phi_nom',
                          'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
                          'meand3', 'meanlogd3', 'meanphi']
-        col_names += ['zeta', 'sigma_zeta', 'weight', 'ntri']
+        else:
+            col_names = ['d2_nom', 'd3_nom', 'n',
+                         'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
+                         'meand3', 'meanlogd3']
+        if self.bin_type == 'LogMultipole':
+            col_names += ['zeta_re', 'zeta_im', 'sigma_zeta', 'weight_re', 'weight_im', 'ntri']
+        else:
+            col_names += ['zeta', 'sigma_zeta', 'weight', 'ntri']
         return col_names
 
     @property
@@ -689,11 +803,19 @@ class KKKCorrelation(Corr3):
             data = [ self.rnom, self.u, self.v,
                      self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
                      self.meand3, self.meanlogd3, self.meanu, self.meanv ]
-        else:
+        elif self.bin_type == 'LogSAS':
             data = [ self.d2nom, self.d3nom, self.phi,
                      self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
                      self.meand3, self.meanlogd3, self.meanphi ]
-        data += [ self.zeta, np.sqrt(self.varzeta), self.weight, self.ntri ]
+        else:
+            data = [ self.d2nom, self.d3nom, self.n,
+                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
+                     self.meand3, self.meanlogd3 ]
+        if self.bin_type == 'LogMultipole':
+            data += [ self.zetar, self.zetai, np.sqrt(self.varzeta),
+                      self.weightr, self.weighti, self.ntri ]
+        else:
+            data += [ self.zeta, np.sqrt(self.varzeta), self.weight, self.ntri ]
         data = [ col.flatten() for col in data ]
         return data
 
@@ -736,9 +858,15 @@ class KKKCorrelation(Corr3):
             self.meanv = data['meanv'].reshape(s)
         else:
             self.meanu = data['meanphi'].reshape(s)
-        self.zeta = data['zeta'].reshape(s)
+        if self.bin_type == 'LogMultipole':
+            self.zetar = data['zeta_re'].reshape(s)
+            self.zetai = data['zeta_im'].reshape(s)
+            self.weightr = data['weight_re'].reshape(s)
+            self.weighti = data['weight_im'].reshape(s)
+        else:
+            self.zetar = data['zeta'].reshape(s)
+            self.weightr = data['weight'].reshape(s)
         self._varzeta = data['sigma_zeta'].reshape(s)**2
-        self.weightr = data['weight'].reshape(s)
         self.ntri = data['ntri'].reshape(s)
         self.coords = params['coords'].strip()
         self.metric = params['metric'].strip()

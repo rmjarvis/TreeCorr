@@ -3834,6 +3834,16 @@ def test_nnn_logsas():
     t1 = time.time()
     print('time for multipole ddd:', t1-t0)
 
+    # Error to try to change sep binning with toSAS
+    with assert_raises(ValueError):
+        dddm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins, min_sep=5)
+    with assert_raises(ValueError):
+        dddm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins, max_sep=25)
+    with assert_raises(ValueError):
+        dddm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins, nbins=20)
+    with assert_raises(ValueError):
+        dddm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins, bin_size=0.2, nbins=None)
+
     rrrm = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=100,
                                   sep_units='arcmin', verbose=1, bin_type='LogMultipole')
     t0 = time.time()

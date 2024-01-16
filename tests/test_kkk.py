@@ -1557,7 +1557,7 @@ def test_direct_logsas_spherical():
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, sep_units='deg',
                                   nbins=nbins, nphi_bins=nphi_bins, phi_units='deg',
                                   bin_slop=0, bin_type='LogSAS', metric='Arc')
-    kkk.process(cat, num_threads=1)
+    kkk.process(cat)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_arc)
     np.testing.assert_allclose(kkk.weight, true_weight_arc, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta_arc, rtol=1.e-4, atol=1.e-6)
@@ -2012,7 +2012,6 @@ def test_kkk_logsas():
                                   sep_units='arcmin', phi_units='deg', bin_type='LogSAS')
     t0 = time.time()
     kkk.process(cat)
-    print(kkk.ntri)
     t1 = time.time()
     print('auto process time = ',t1-t0)
 
@@ -2025,8 +2024,6 @@ def test_kkk_logsas():
     kkkc.process(cat,cat,cat)
     t1 = time.time()
     print('cross process time = ',t1-t0)
-    print(kkk.zeta)
-    print(kkkc.zeta)
     np.testing.assert_allclose(kkkc.ntri, kkk.ntri, rtol=1.e-3)
     np.testing.assert_allclose(kkkc.meanlogd1, kkk.meanlogd1, rtol=1.e-3)
     np.testing.assert_allclose(kkkc.meanlogd2, kkk.meanlogd2, rtol=1.e-3)
@@ -2062,6 +2059,39 @@ def test_kkk_logsas():
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=0.2 * tol_factor)
     np.testing.assert_allclose(np.log(np.abs(kkk.zeta)), np.log(np.abs(true_zeta)),
                                atol=0.1 * tol_factor)
+
+    # Repeat this using Multipole and then convert to SAS:
+    kkkm = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=100,
+                                  sep_units='arcmin', bin_type='LogMultipole')
+    t0 = time.time()
+    kkkm.process(cat)
+    kkks = kkkm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins, phi_units='deg')
+    t1 = time.time()
+    print('time for multipole kkk:', t1-t0)
+
+    print('mean ratio = ',np.mean(kkks.zeta / true_zeta))
+    print('mean diff = ',np.mean(kkks.zeta - true_zeta))
+    np.testing.assert_allclose(kkks.zeta, true_zeta, rtol=0.1*tol_factor)
+    np.testing.assert_allclose(kkks.zeta, kkk.zeta, rtol=0.03*tol_factor)
+    np.testing.assert_allclose(kkks.ntri, kkk.ntri, rtol=0.03*tol_factor)
+    np.testing.assert_allclose(kkks.meanlogd1, kkk.meanlogd1, rtol=0.03*tol_factor)
+    np.testing.assert_allclose(kkks.meanlogd2, kkk.meanlogd2, rtol=0.03*tol_factor)
+    np.testing.assert_allclose(kkks.meanlogd3, kkk.meanlogd3, rtol=0.03*tol_factor)
+    np.testing.assert_allclose(kkks.meanphi, kkk.meanphi, rtol=0.03*tol_factor)
+
+    # Error to try to change sep binning with toSAS
+    with assert_raises(ValueError):
+        kkks = kkkm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins, phi_units='deg',
+                          min_sep=5)
+    with assert_raises(ValueError):
+        kkks = kkkm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins, phi_units='deg',
+                          max_sep=25)
+    with assert_raises(ValueError):
+        kkks = kkkm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins, phi_units='deg',
+                          nbins=20)
+    with assert_raises(ValueError):
+        kkks = kkkm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins, phi_units='deg',
+                          bin_size=0.2, nbins=None)
 
     # Check that we get the same result using the corr3 functin:
     cat.write(os.path.join('data','kkk_data_logsas.dat'))
@@ -2122,6 +2152,562 @@ def test_kkk_logsas():
         assert kkk2.phi_units == kkk.phi_units
         assert kkk2.bin_type == kkk.bin_type
 
+@timer
+def test_direct_logmultipole_auto():
+    # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
+    # This should exactly match the treecorr code if brute=True.
+
+    if __name__ == '__main__':
+        ngal = 200
+    else:
+        ngal = 100
+    s = 10.
+    sig_kap = 3
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(0,s, (ngal,) )
+    y = rng.normal(0,s, (ngal,) )
+    w = rng.random_sample(ngal)
+    kap = rng.normal(0,sig_kap, (ngal,) )
+    cat = treecorr.Catalog(x=x, y=y, w=w, k=kap)
+
+    min_sep = 1.
+    max_sep = 10.
+    nbins = 5
+    max_n = 20
+
+    kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
+                                  brute=True, bin_type='LogMultipole')
+    kkk.process(cat)
+    print('kkk.zeta = ',kkk.zeta)
+
+    log_min_sep = np.log(min_sep)
+    log_max_sep = np.log(max_sep)
+    bin_size = (log_max_sep - log_min_sep) / nbins
+    n1d = np.arange(-max_n, max_n+1)
+    true_ntri = np.zeros((nbins, nbins, 2*max_n+1))
+    true_weight = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_zeta = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    for i in range(ngal):
+        for j in range(ngal):
+            if i == j: continue
+            for k in range(ngal):
+                if k == i: continue
+                if k == j: continue
+                d1 = np.sqrt((x[j]-x[k])**2 + (y[j]-y[k])**2)
+                d2 = np.sqrt((x[i]-x[k])**2 + (y[i]-y[k])**2)
+                d3 = np.sqrt((x[i]-x[j])**2 + (y[i]-y[j])**2)
+                if d1 == 0.: continue
+                if d2 == 0.: continue
+                if d3 == 0.: continue
+                phi = np.arccos((d2**2 + d3**2 - d1**2)/(2*d2*d3))
+                if d2 < min_sep or d2 >= max_sep: continue
+                if d3 < min_sep or d3 >= max_sep: continue
+                kr2 = int(np.floor( (np.log(d2)-log_min_sep) / bin_size ))
+                kr3 = int(np.floor( (np.log(d3)-log_min_sep) / bin_size ))
+                assert 0 <= kr2 < nbins
+                assert 0 <= kr3 < nbins
+                if not is_ccw(x[i],y[i],x[k],y[k],x[j],y[j]):
+                    phi = -phi
+
+                www = w[i] * w[j] * w[k]
+                zeta = www * kap[i] * kap[j] * kap[k]
+                true_zeta[kr2,kr3,:] += zeta * np.exp(-1j * n1d * phi)
+                true_weight[kr2,kr3,:] += www * np.exp(-1j * n1d * phi)
+                true_ntri[kr2,kr3,:] += 1.
+
+    print('true_zeta = ',true_zeta)
+
+    np.testing.assert_array_equal(kkk.ntri, true_ntri)
+    np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-4, atol=1.e-8)
+
+    # Note: Don't test SAS here like we did for NNN.  Without a real coherent signal, the
+    # fourier transform doesn't do a great job of describing the phi dependence.  Rely on
+    # the bigger runs with an intentional signal to test the toSAS function.
+
+    # Repeat with binslop = 0.
+    kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
+                                  bin_slop=0, bin_type='LogMultipole')
+    kkk.process(cat)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri)
+    np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-4, atol=1.e-8)
+
+    # And again with no top-level recursion
+    kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
+                                  bin_slop=0, max_top=0, bin_type='LogMultipole')
+    kkk.process(cat)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri)
+    np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-4, atol=1.e-8)
+
+    do_pickle(kkk)
+
+    # Check that running via the corr3 script works correctly.
+    config = treecorr.config.read_config('configs/kkk_direct_logmultipole.yaml')
+    cat.write(config['file_name'])
+    treecorr.corr3(config)
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        data = fitsio.read(config['kkk_file_name'])
+        np.testing.assert_allclose(data['d2_nom'], kkk.d2nom.flatten(), rtol=1.e-4)
+        np.testing.assert_allclose(data['d3_nom'], kkk.d3nom.flatten(), rtol=1.e-4)
+        np.testing.assert_allclose(data['n'], kkk.n.flatten(), rtol=1.e-4)
+        np.testing.assert_allclose(data['ntri'], kkk.ntri.flatten(), rtol=1.e-4)
+        np.testing.assert_allclose(data['weight_re'], np.real(kkk.weight.flatten()), rtol=1.e-4)
+        np.testing.assert_allclose(data['weight_im'], np.imag(kkk.weight.flatten()), rtol=1.e-4, atol=1.e-8)
+        np.testing.assert_allclose(data['zeta_re'], np.real(kkk.zeta.flatten()), rtol=1.e-4)
+        np.testing.assert_allclose(data['zeta_im'], np.imag(kkk.zeta.flatten()), rtol=1.e-4, atol=1.e-8)
+
+@timer
+def test_direct_logmultipole_spherical():
+    # Repeat in spherical coords
+
+    if __name__ == '__main__':
+        ngal = 100
+    else:
+        ngal = 50
+    s = 10.
+    sig_kap = 3
+    rng = np.random.RandomState(8675309)
+    x = rng.normal(0,s, (ngal,) )
+    y = rng.normal(0,s, (ngal,) ) + 20  # Covers a pretty large angle on the sky, so spherical
+    z = rng.normal(0,s, (ngal,) )       # geometry matters.
+    w = np.ones_like(x) * 3
+    kap = rng.normal(0,sig_kap, (ngal,) )
+
+    ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
+    cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w, k=kap)
+
+    min_sep = 10.
+    max_sep = 100.
+    nbins = 5
+    max_n = 20
+
+    kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, sep_units='deg', nbins=nbins,
+                                  max_n=max_n, bin_slop=0, max_top=2, bin_type='LogMultipole')
+    kkk.process(cat)
+
+    r = np.sqrt(x**2 + y**2 + z**2)
+    x /= r; y /= r; z /= r
+
+    n1d = np.arange(-max_n, max_n+1)
+    true_ntri = np.zeros((nbins, nbins, 2*max_n+1))
+    true_weight = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_zeta = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_meand2 = np.zeros((nbins, nbins, 2*max_n+1))
+    true_meand3 = np.zeros((nbins, nbins, 2*max_n+1))
+    true_ntri_arc = np.zeros((nbins, nbins, 2*max_n+1))
+    true_weight_arc = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_zeta_arc = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_meand2_arc = np.zeros((nbins, nbins, 2*max_n+1))
+    true_meand3_arc = np.zeros((nbins, nbins, 2*max_n+1))
+
+    rad_min_sep = min_sep * coord.degrees / coord.radians
+    rad_max_sep = max_sep * coord.degrees / coord.radians
+    bin_size = np.log(max_sep / min_sep) / nbins
+    for i in range(ngal):
+        for j in range(ngal):
+            if i == j: continue
+            for k in range(ngal):
+                if k == i: continue
+                if k == j: continue
+                d1 = np.sqrt((x[j]-x[k])**2 + (y[j]-y[k])**2 + (z[j]-z[k])**2)
+                d2 = np.sqrt((x[i]-x[k])**2 + (y[i]-y[k])**2 + (z[k]-z[i])**2)
+                d3 = np.sqrt((x[i]-x[j])**2 + (y[i]-y[j])**2 + (z[i]-z[j])**2)
+                if d1 == 0.: continue
+                if d2 == 0.: continue
+                if d3 == 0.: continue
+
+                # Use spherical geometry for phi definition.
+                # Law of cosines in spherical geom:
+                # cos(c) = cos(a) cos(b) + sin(a) sin(b) cos(phi)
+                # We need to convert the above chord distanes to great circle angles.
+                a = 2*np.arcsin(d2/2)
+                b = 2*np.arcsin(d3/2)
+                c = 2*np.arcsin(d1/2)
+                phi = np.arccos((np.cos(c) - np.cos(a)*np.cos(b)) / (np.sin(a)*np.sin(b)))
+                if not is_ccw_3d(x[i],y[i],z[i],x[k],y[k],z[k],x[j],y[j],z[j]):
+                    phi = -phi
+
+                www = w[i] * w[j] * w[k]
+                zeta = www * kap[i] * kap[j] * kap[k]
+
+                if ((rad_min_sep <= d2 < rad_max_sep) and
+                    (rad_min_sep <= d3 < rad_max_sep)):
+                    kr2 = int(np.floor(np.log(d2/rad_min_sep) / bin_size))
+                    kr3 = int(np.floor(np.log(d3/rad_min_sep) / bin_size))
+                    assert 0 <= kr2 < nbins
+                    assert 0 <= kr3 < nbins
+
+                    true_zeta[kr2,kr3,:] += zeta * np.exp(-1j * n1d * phi)
+                    true_weight[kr2,kr3,:] += www * np.exp(-1j * n1d * phi)
+                    true_ntri[kr2,kr3,:] += 1.
+                    true_meand2[kr2,kr3,:] += d2
+                    true_meand3[kr2,kr3,:] += d3
+
+                # For Arc metric, use c,a,b rather than d1,d2,d3.
+                if ((rad_min_sep <= a < rad_max_sep) and
+                    (rad_min_sep <= b < rad_max_sep)):
+                    kr2 = int(np.floor(np.log(a/rad_min_sep) / bin_size))
+                    kr3 = int(np.floor(np.log(b/rad_min_sep) / bin_size))
+
+                    assert 0 <= kr2 < nbins
+                    assert 0 <= kr3 < nbins
+
+                    true_zeta_arc[kr2,kr3,:] += zeta * np.exp(-1j * n1d * phi)
+                    true_weight_arc[kr2,kr3,:] += www * np.exp(-1j * n1d * phi)
+                    true_ntri_arc[kr2,kr3,:] += 1.
+                    true_meand2_arc[kr2,kr3,:] += a
+                    true_meand3_arc[kr2,kr3,:] += b
+
+    pos = true_ntri > 0
+    true_meand2[pos] /= true_ntri[pos]
+    true_meand3[pos] /= true_ntri[pos]
+    posa = true_ntri_arc > 0
+    true_meand2_arc[posa] /= true_ntri_arc[posa]
+    true_meand3_arc[posa] /= true_ntri_arc[posa]
+
+    # Convert chord distances and angle to spherical values (in degrees)
+    for dd in [true_meand2, true_meand3]:
+        dd[:] = 2 * np.arcsin(dd/2) * 180/np.pi
+    for dd in [true_meand2_arc, true_meand3_arc]:
+        dd *= 180. / np.pi
+
+    np.testing.assert_array_equal(kkk.ntri, true_ntri)
+    np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-4, atol=1.e-6)
+
+    np.testing.assert_allclose(np.mean(kkk.meand2[pos]/true_meand2[pos]), 1.0, rtol=1.e-3)
+    np.testing.assert_allclose(np.mean(kkk.meand3[pos]/true_meand3[pos]), 1.0, rtol=1.e-3)
+
+    # Now use Arc metric
+    kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, sep_units='deg', nbins=nbins,
+                                  max_n=max_n, bin_slop=0, max_top=2, bin_type='LogMultipole',
+                                  metric='Arc')
+    kkk.process(cat)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_arc)
+    np.testing.assert_allclose(kkk.weight, true_weight_arc, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_arc, rtol=1.e-4, atol=1.e-6)
+
+    np.testing.assert_allclose(np.mean(kkk.zeta/true_zeta_arc), 1.0, rtol=1.e-3)
+    np.testing.assert_allclose(np.mean(kkk.weight/true_weight_arc), 1.0, rtol=1.e-3)
+    np.testing.assert_allclose(np.mean(kkk.ntri/true_ntri_arc), 1.0, rtol=1.e-3)
+    np.testing.assert_allclose(np.mean(kkk.meand2[posa]/true_meand2_arc[posa]), 1.0, rtol=1.e-3)
+    np.testing.assert_allclose(np.mean(kkk.meand3[posa]/true_meand3_arc[posa]), 1.0, rtol=1.e-3)
+
+
+@timer
+def test_direct_logmultipole_cross():
+    # Check the cross correlation with LogMultipole
+    if __name__ == '__main__':
+        ngal = 200
+        tol_factor = 1
+    else:
+        ngal = 80
+        tol_factor = 2
+
+    s = 10.
+    sig_kap = 3
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) )
+    w1 = rng.uniform(1,3, (ngal,))
+    k1 = rng.normal(0,sig_kap, (ngal,))
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1)
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) )
+    w2 = rng.uniform(1,3, (ngal,))
+    k2 = rng.normal(0,sig_kap, (ngal,))
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2)
+    x3 = rng.normal(0,s, (ngal,) )
+    y3 = rng.normal(0,s, (ngal,) )
+    w3 = rng.uniform(1,3, (ngal,))
+    k3 = rng.normal(0,sig_kap, (ngal,))
+    cat3 = treecorr.Catalog(x=x3, y=y3, w=w3, k=k3)
+
+    min_sep = 1.
+    max_sep = 10.
+    nbins = 5
+    max_n = 20
+
+    kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
+                                  brute=True, bin_type='LogMultipole')
+    kkk.process(cat1, cat2, cat3)
+
+    log_min_sep = np.log(min_sep)
+    log_max_sep = np.log(max_sep)
+    true_zeta_123 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_weight_123 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_zeta_132 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_weight_132 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_zeta_213 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_weight_213 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_zeta_231 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_weight_231 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_zeta_312 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_weight_312 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_zeta_321 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_weight_321 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    bin_size = (log_max_sep - log_min_sep) / nbins
+    n1d = np.arange(-max_n, max_n+1)
+    for i in range(ngal):
+        for j in range(ngal):
+            for k in range(ngal):
+                d1 = np.sqrt((x2[j]-x3[k])**2 + (y2[j]-y3[k])**2)
+                d2 = np.sqrt((x1[i]-x3[k])**2 + (y1[i]-y3[k])**2)
+                d3 = np.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2)
+                if d1 == 0.: continue
+                if d2 == 0.: continue
+                if d3 == 0.: continue
+
+                kr1 = int(np.floor( (np.log(d1)-log_min_sep) / bin_size ))
+                kr2 = int(np.floor( (np.log(d2)-log_min_sep) / bin_size ))
+                kr3 = int(np.floor( (np.log(d3)-log_min_sep) / bin_size ))
+
+                www = w1[i] * w2[j] * w3[k]
+                zeta = www * k1[i] * k2[j] * k3[k]
+
+                # 123, 132
+                if d2 >= min_sep and d2 < max_sep and d3 >= min_sep and d3 < max_sep:
+                    assert 0 <= kr2 < nbins
+                    assert 0 <= kr3 < nbins
+                    phi = np.arccos((d2**2 + d3**2 - d1**2)/(2*d2*d3))
+                    if not is_ccw(x1[i],y1[i],x3[k],y3[k],x2[j],y2[j]):
+                        phi = -phi
+                    true_zeta_123[kr2,kr3,:] += zeta * np.exp(-1j * n1d * phi)
+                    true_weight_123[kr2,kr3,:] += www * np.exp(-1j * n1d * phi)
+                    true_zeta_132[kr3,kr2,:] += zeta * np.exp(1j * n1d * phi)
+                    true_weight_132[kr3,kr2,:] += www * np.exp(1j * n1d * phi)
+
+                # 231, 213
+                if d1 >= min_sep and d1 < max_sep and d3 >= min_sep and d3 < max_sep:
+                    assert 0 <= kr1 < nbins
+                    assert 0 <= kr3 < nbins
+                    phi = np.arccos((d1**2 + d3**2 - d2**2)/(2*d1*d3))
+                    if not is_ccw(x1[i],y1[i],x3[k],y3[k],x2[j],y2[j]):
+                        phi = -phi
+                    true_zeta_231[kr3,kr1,:] += zeta * np.exp(-1j * n1d * phi)
+                    true_weight_231[kr3,kr1,:] += www * np.exp(-1j * n1d * phi)
+                    true_zeta_213[kr1,kr3,:] += zeta * np.exp(1j * n1d * phi)
+                    true_weight_213[kr1,kr3,:] += www * np.exp(1j * n1d * phi)
+
+                # 312, 321
+                if d1 >= min_sep and d1 < max_sep and d2 >= min_sep and d2 < max_sep:
+                    assert 0 <= kr1 < nbins
+                    assert 0 <= kr2 < nbins
+                    phi = np.arccos((d1**2 + d2**2 - d3**2)/(2*d1*d2))
+                    if not is_ccw(x1[i],y1[i],x3[k],y3[k],x2[j],y2[j]):
+                        phi = -phi
+                    true_zeta_312[kr1,kr2,:] += zeta * np.exp(-1j * n1d * phi)
+                    true_weight_312[kr1,kr2,:] += www * np.exp(-1j * n1d * phi)
+                    true_zeta_321[kr2,kr1,:] += zeta * np.exp(1j * n1d * phi)
+                    true_weight_321[kr2,kr1,:] += www * np.exp(1j * n1d * phi)
+
+    np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-4)
+
+    # Repeat with binslop = 0
+    kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
+                                  bin_slop=0, max_top=2, bin_type='LogMultipole')
+    kkk.process(cat1, cat2, cat3)
+    np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-4)
+
+    kkk.process(cat1, cat3, cat2)
+    np.testing.assert_allclose(kkk.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_132, rtol=1.e-4)
+
+    kkk.process(cat2, cat1, cat3)
+    np.testing.assert_allclose(kkk.weight, true_weight_213, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_213, rtol=1.e-4)
+
+    kkk.process(cat2, cat3, cat1)
+    np.testing.assert_allclose(kkk.weight, true_weight_231, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_231, rtol=1.e-4)
+
+    kkk.process(cat3, cat1, cat2)
+    np.testing.assert_allclose(kkk.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_312, rtol=1.e-4)
+
+    kkk.process(cat3, cat2, cat1)
+    np.testing.assert_allclose(kkk.weight, true_weight_321, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_321, rtol=1.e-4)
+
+    kkk.process(cat1, cat2, cat3, ordered=False)
+    w_list = [true_weight_123, true_weight_132, true_weight_213, true_weight_231,
+              true_weight_312, true_weight_321]
+    z_list = [true_zeta_123, true_zeta_132, true_zeta_213, true_zeta_231,
+              true_zeta_312, true_zeta_321]
+
+    true_weight_sum = sum(w_list)
+    true_zeta_sum = sum(z_list)
+
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4)
+
+    # Split into patches to test the list-based version of the code.
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=10)
+
+    kkk.process(cat1, cat2, cat3)
+    np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-4)
+
+    with assert_raises(ValueError):
+        kkk.process(cat1, cat2, cat3, ordered=False)
+    with assert_raises(ValueError):
+        kkk.process(cat2, cat1, cat3, ordered=True)
+    with assert_raises(ValueError):
+        kkk.process(cat2, cat3, cat1, ordered=True)
+    with assert_raises(ValueError):
+        kkk.process(cat1, cat1, cat1, ordered=True)
+
+@timer
+def test_direct_logmultipole_cross12():
+    # Check the 1-2 cross correlation with LogMultipole
+    if __name__ == '__main__':
+        ngal = 200
+        tol_factor = 1
+    else:
+        ngal = 70
+        tol_factor = 3
+
+    s = 10.
+    sig_kap = 3
+    rng = np.random.RandomState(8675309)
+    x1 = rng.normal(0,s, (ngal,) )
+    y1 = rng.normal(0,s, (ngal,) )
+    w1 = rng.random_sample(ngal)
+    k1 = rng.normal(0,sig_kap, (ngal,) )
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1)
+    x2 = rng.normal(0,s, (ngal,) )
+    y2 = rng.normal(0,s, (ngal,) )
+    w2 = rng.random_sample(ngal)
+    k2 = rng.normal(0,sig_kap, (ngal,) )
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2)
+
+    min_sep = 1.
+    max_sep = 10.
+    nbins = 5
+    max_n = 20
+
+    kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
+                                  bin_slop=0, max_top=2, bin_type='LogMultipole')
+    kkk.process(cat1, cat2)
+
+    log_min_sep = np.log(min_sep)
+    log_max_sep = np.log(max_sep)
+    true_zeta_122 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_weight_122 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_ntri_122 = np.zeros((nbins, nbins, 2*max_n+1))
+    true_zeta_212 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_weight_212 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_ntri_212 = np.zeros((nbins, nbins, 2*max_n+1))
+    true_zeta_221 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_weight_221 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_ntri_221 = np.zeros((nbins, nbins, 2*max_n+1))
+    bin_size = (log_max_sep - log_min_sep) / nbins
+    n1d = np.arange(-max_n, max_n+1)
+    for i in range(ngal):
+        for j in range(ngal):
+            for k in range(ngal):
+                if j == k: continue
+                d1 = np.sqrt((x2[j]-x2[k])**2 + (y2[j]-y2[k])**2)
+                d2 = np.sqrt((x1[i]-x2[k])**2 + (y1[i]-y2[k])**2)
+                d3 = np.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2)
+                if d1 == 0.: continue
+                if d2 == 0.: continue
+                if d3 == 0.: continue
+
+                kr1 = int(np.floor( (np.log(d1)-log_min_sep) / bin_size ))
+                kr2 = int(np.floor( (np.log(d2)-log_min_sep) / bin_size ))
+                kr3 = int(np.floor( (np.log(d3)-log_min_sep) / bin_size ))
+
+                www = w1[i] * w2[j] * w2[k]
+                zeta = www * k1[i] * k2[j] * k2[k]
+
+                # 122
+                if d2 >= min_sep and d2 < max_sep and d3 >= min_sep and d3 < max_sep:
+                    assert 0 <= kr2 < nbins
+                    assert 0 <= kr3 < nbins
+                    phi = np.arccos((d2**2 + d3**2 - d1**2)/(2*d2*d3))
+                    if not is_ccw(x1[i],y1[i],x2[k],y2[k],x2[j],y2[j]):
+                        phi = -phi
+                    true_weight_122[kr2,kr3,:] += www * np.exp(-1j * n1d * phi)
+                    true_zeta_122[kr2,kr3,:] += zeta * np.exp(-1j * n1d * phi)
+                    true_ntri_122[kr2,kr3,:] += 1.
+
+                # 221
+                if d1 >= min_sep and d1 < max_sep and d3 >= min_sep and d3 < max_sep:
+                    assert 0 <= kr1 < nbins
+                    assert 0 <= kr3 < nbins
+                    phi = np.arccos((d1**2 + d3**2 - d2**2)/(2*d1*d3))
+                    if not is_ccw(x1[i],y1[i],x2[k],y2[k],x2[j],y2[j]):
+                        phi = -phi
+                    true_weight_221[kr3,kr1,:] += www * np.exp(-1j * n1d * phi)
+                    true_zeta_221[kr3,kr1,:] += zeta * np.exp(-1j * n1d * phi)
+                    true_ntri_221[kr3,kr1,:] += 1.
+
+                # 212
+                if d1 >= min_sep and d1 < max_sep and d2 >= min_sep and d2 < max_sep:
+                    assert 0 <= kr1 < nbins
+                    assert 0 <= kr2 < nbins
+                    phi = np.arccos((d1**2 + d2**2 - d3**2)/(2*d1*d2))
+                    if not is_ccw(x1[i],y1[i],x2[k],y2[k],x2[j],y2[j]):
+                        phi = -phi
+                    true_weight_212[kr1,kr2,:] += www * np.exp(-1j * n1d * phi)
+                    true_zeta_212[kr1,kr2,:] += zeta * np.exp(-1j * n1d * phi)
+                    true_ntri_212[kr1,kr2,:] += 1.
+
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_122)
+    np.testing.assert_allclose(kkk.weight, true_weight_122, rtol=1.e-5 * tol_factor)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_122, rtol=1.e-4 * tol_factor)
+
+    kkk.process(cat2, cat1, cat2)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_212)
+    np.testing.assert_allclose(kkk.weight, true_weight_212, rtol=1.e-5 * tol_factor)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_212, rtol=1.e-4 * tol_factor)
+
+    kkk.process(cat2, cat2, cat1)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_221)
+    np.testing.assert_allclose(kkk.weight, true_weight_221, rtol=1.e-5 * tol_factor)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_221, rtol=1.e-4 * tol_factor)
+
+    # With ordered=False, we end up with the sum of all permutations.
+    n_list = [true_ntri_122, true_ntri_212, true_ntri_221]
+    w_list = [true_weight_122, true_weight_212, true_weight_221]
+    z_list = [true_zeta_122, true_zeta_212, true_zeta_221]
+
+    true_ntri_sum = sum(n_list)
+    true_weight_sum = sum(w_list)
+    true_zeta_sum = sum(z_list)
+
+    kkk.process(cat1, cat2, ordered=False)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-4 * tol_factor, atol=1.e-8)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4 * tol_factor, atol=1.e-8)
+
+    # Split into patches to test the list-based version of the code.
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=4)
+
+    kkk.process(cat1, cat2)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_122)
+    np.testing.assert_allclose(kkk.weight, true_weight_122, rtol=1.e-5 * tol_factor)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_122, rtol=1.e-4 * tol_factor)
+
+    with assert_raises(ValueError):
+        kkk.process(cat2, cat1, cat2, ordered=True)
+    with assert_raises(ValueError):
+        kkk.process(cat2, cat2, cat1, ordered=True)
+    with assert_raises(ValueError):
+        kkk.process(cat1, cat2, ordered=False)
+    with assert_raises(ValueError):
+        kkk.process(cat2, cat1, ordered=True)
+
+
 if __name__ == '__main__':
     test_direct_logruv()
     test_direct_logruv_spherical()
@@ -2135,3 +2721,7 @@ if __name__ == '__main__':
     test_direct_logsas_cross()
     test_direct_logsas_cross12()
     test_kkk_logsas()
+    test_direct_logmultipole_auto()
+    test_direct_logmultipole_spherical()
+    test_direct_logmultipole_cross()
+    test_direct_logmultipole_cross12()

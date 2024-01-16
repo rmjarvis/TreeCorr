@@ -22,6 +22,7 @@
 #include <limits>
 #include <cmath>
 #include "Metric.h"
+#include "ProjectHelper.h"
 
 // We use a code for the type of binning to use:
 // Log is logarithmic spacing in r
@@ -1436,12 +1437,11 @@ struct BinTypeHelper<LogMultipole>
 
         // Calculate cosphi, sinphi for this triangle.
         // (We use the u variable for sinphi in this class.)
-        cosphi = metric.calculateCosPhi(c1,c2,c3,d1sq,d2sq,d3sq,d1,d2,d3);
-        // abs shouldn't be necessary, but with numerical precision, 1-cosphi**2 can be < 0.
-        sinphi = std::sqrt(std::abs(1.-SQR(cosphi)));
-        if (!metric.CCW(c1.getPos(), c3.getPos(), c2.getPos())) {
-            sinphi = -sinphi;
-        }
+        std::complex<double> r3 = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), d3);
+        std::complex<double> r2 = ProjectHelper<C>::ExpIPhi(c1.getPos(), c3.getPos(), d2);
+        std::complex<double> expiphi = r3 * std::conj(r2);
+        cosphi = std::real(expiphi);
+        sinphi = std::imag(expiphi);
 
         xdbg<<"d1,d2,d3 = "<<d1<<", "<<d2<<", "<<d3<<std::endl;
         // index is the index for this d2,d3 at n=0.

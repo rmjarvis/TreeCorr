@@ -1550,8 +1550,9 @@ class Corr3(object):
 
             # Also convert the chord distance to a real angle.
             # L = 2 sin(theta/2)
-            self.meand1[mask] = 2. * np.arcsin(self.meand1[mask]/2.)
-            self.meanlogd1[mask] = np.log(2.*np.arcsin(np.exp(self.meanlogd1[mask])/2.))
+            if self.bin_type != 'LogMultipole':
+                self.meand1[mask] = 2. * np.arcsin(self.meand1[mask]/2.)
+                self.meanlogd1[mask] = np.log(2.*np.arcsin(np.exp(self.meanlogd1[mask])/2.))
             self.meand2[mask] = 2. * np.arcsin(self.meand2[mask]/2.)
             self.meanlogd2[mask] = np.log(2.*np.arcsin(np.exp(self.meanlogd2[mask])/2.))
             self.meand3[mask] = 2. * np.arcsin(self.meand3[mask]/2.)
@@ -1559,8 +1560,9 @@ class Corr3(object):
 
         if self.bin_type == 'LogSAS':
             self.meanphi[mask] /= self._phi_units
-        self.meand1[mask] /= self._sep_units
-        self.meanlogd1[mask] -= self._log_sep_units
+        if self.bin_type != 'LogMultipole':
+            self.meand1[mask] /= self._sep_units
+            self.meanlogd1[mask] -= self._log_sep_units
         self.meand2[mask] /= self._sep_units
         self.meanlogd2[mask] -= self._log_sep_units
         self.meand3[mask] /= self._sep_units

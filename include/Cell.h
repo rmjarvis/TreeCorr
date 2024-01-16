@@ -77,7 +77,7 @@ public:
     virtual ~BaseCellData() {}
 
     BaseCellData(const Position<C>& pos, double w) :
-        _pos(pos), _w(w), _w2(w*w), _n(1)
+        _pos(pos), _w(w), _n(1)
     {}
 
     BaseCellData(const std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >& vdata,
@@ -85,14 +85,12 @@ public:
 
     const Position<C>& getPos() const { return _pos; }
     double getW() const { return _w; }
-    double getW2() const { return _w2; }
     long getN() const { return _n; }
 
 protected:
 
     Position<C> _pos;
     float _w;
-    float _w2;
     long _n;
 };
 
@@ -305,7 +303,6 @@ public:
     const BaseCellData<C>& getData() const { return *_data; }
     const Position<C>& getPos() const { return _data->getPos(); }
     double getW() const { return _data->getW(); }
-    double getW2() const { return _data->getW2(); }
     long getN() const { return _data->getN(); }
 
     double getSize() const { return _size; }

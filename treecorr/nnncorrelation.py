@@ -411,26 +411,16 @@ class NNNCorrelation(Corr3):
         mask1 = self.weightr != 0
         mask2 = self.weightr == 0
 
-        self.meand1[mask1] /= self.weightr[mask1]
-        self.meanlogd1[mask1] /= self.weightr[mask1]
         self.meand2[mask1] /= self.weightr[mask1]
         self.meanlogd2[mask1] /= self.weightr[mask1]
         self.meand3[mask1] /= self.weightr[mask1]
         self.meanlogd3[mask1] /= self.weightr[mask1]
-        self.meanu[mask1] /= self.weightr[mask1]
+        if self.bin_type != 'LogMultipole':
+            self.meand1[mask1] /= self.weightr[mask1]
+            self.meanlogd1[mask1] /= self.weightr[mask1]
+            self.meanu[mask1] /= self.weightr[mask1]
         if self.bin_type == 'LogRUV':
             self.meanv[mask1] /= self.weightr[mask1]
-
-        if self.bin_type == 'LogMultipole':
-            # Multipole only sets the meand values at [i,j,max_n].
-            # (This is also where the complex weight is just a scalar = sum(www),
-            # so the above normalizations are correct.)
-            # Broadcast those to the rest of the values in the third dimension.
-            self.ntri[:,:,:] = self.ntri[:,:,self.max_n][:,:,np.newaxis]
-            self.meand2[:,:,:] = self.meand2[:,:,self.max_n][:,:,np.newaxis]
-            self.meanlogd2[:,:,:] = self.meanlogd2[:,:,self.max_n][:,:,np.newaxis]
-            self.meand3[:,:,:] = self.meand3[:,:,self.max_n][:,:,np.newaxis]
-            self.meanlogd3[:,:,:] = self.meanlogd3[:,:,self.max_n][:,:,np.newaxis]
 
         # Update the units
         self._apply_units(mask1)
@@ -451,15 +441,26 @@ class NNNCorrelation(Corr3):
             self.meand3[mask2] = self.d3nom[mask2]
             self.meanlogd3[mask2] = self.logd3[mask2]
             if self.bin_type == 'LogSAS':
+                self.meanu[mask2] = self.phi[mask2]
                 self.meand1[mask2] = np.sqrt(self.d2nom[mask2]**2 + self.d3nom[mask2]**2
                                              - 2*self.d2nom[mask2]*self.d3nom[mask2]*
                                              np.cos(self.phi[mask2]))
                 self.meanlogd1[mask2] = np.log(self.meand1[mask2])
-                self.meanu[mask2] = self.phi[mask2]
             else:
+                self.meanu[mask2] = 0.
                 self.meand1[mask2] = 0.
                 self.meanlogd1[mask2] = 0.
-                self.meanu[mask2] = 0.
+
+        if self.bin_type == 'LogMultipole':
+            # Multipole only sets the meand values at [i,j,max_n].
+            # (This is also where the complex weight is just a scalar = sum(www),
+            # so the above normalizations are correct.)
+            # Broadcast those to the rest of the values in the third dimension.
+            self.ntri[:,:,:] = self.ntri[:,:,self.max_n][:,:,np.newaxis]
+            self.meand2[:,:,:] = self.meand2[:,:,self.max_n][:,:,np.newaxis]
+            self.meanlogd2[:,:,:] = self.meanlogd2[:,:,self.max_n][:,:,np.newaxis]
+            self.meand3[:,:,:] = self.meand3[:,:,self.max_n][:,:,np.newaxis]
+            self.meanlogd3[:,:,:] = self.meanlogd3[:,:,self.max_n][:,:,np.newaxis]
 
     def finalize(self):
         """Finalize the calculation of meand1, meanlogd1, etc.
@@ -701,6 +702,8 @@ class NNNCorrelation(Corr3):
         max_n = config.pop('max_n')
         config['nphi_bins'] = max_n
         sas = NNNCorrelation(config, **kwargs)
+        if not np.array_equal(sas.rnom1d, self.rnom1d):
+            raise ValueError("toSAS cannot change sep parameters")
 
         sas.tot = self.tot
 
@@ -711,7 +714,7 @@ class NNNCorrelation(Corr3):
         sas.meanlogd3[:,:,:] = self.meanlogd3[:,:,0][:,:,None]
 
         # Use nominal for meanphi
-        sas.meanu[:] = sas.phi
+        sas.meanu[:] = sas.phi / sas._phi_units
         # Compute d1 from actual d2,d3 and nominal phi
         sas.meand1[:] = np.sqrt(sas.meand2**2 + sas.meand3**2
                                 - 2*sas.meand2 * sas.meand3 * np.cos(sas.phi))

@@ -432,21 +432,22 @@ class GGGCorrelation(Corr3):
         mask1 = self.weightr != 0
         mask2 = self.weightr == 0
 
-        self.gam0r[mask1] /= self.weightr[mask1]
-        self.gam0i[mask1] /= self.weightr[mask1]
-        self.gam1r[mask1] /= self.weightr[mask1]
-        self.gam1i[mask1] /= self.weightr[mask1]
-        self.gam2r[mask1] /= self.weightr[mask1]
-        self.gam2i[mask1] /= self.weightr[mask1]
-        self.gam3r[mask1] /= self.weightr[mask1]
-        self.gam3i[mask1] /= self.weightr[mask1]
-        self.meand1[mask1] /= self.weightr[mask1]
-        self.meanlogd1[mask1] /= self.weightr[mask1]
         self.meand2[mask1] /= self.weightr[mask1]
         self.meanlogd2[mask1] /= self.weightr[mask1]
         self.meand3[mask1] /= self.weightr[mask1]
         self.meanlogd3[mask1] /= self.weightr[mask1]
-        self.meanu[mask1] /= self.weightr[mask1]
+        if self.bin_type != 'LogMultipole':
+            self.gam0r[mask1] /= self.weightr[mask1]
+            self.gam0i[mask1] /= self.weightr[mask1]
+            self.gam1r[mask1] /= self.weightr[mask1]
+            self.gam1i[mask1] /= self.weightr[mask1]
+            self.gam2r[mask1] /= self.weightr[mask1]
+            self.gam2i[mask1] /= self.weightr[mask1]
+            self.gam3r[mask1] /= self.weightr[mask1]
+            self.gam3i[mask1] /= self.weightr[mask1]
+            self.meand1[mask1] /= self.weightr[mask1]
+            self.meanlogd1[mask1] /= self.weightr[mask1]
+            self.meanu[mask1] /= self.weightr[mask1]
         if self.bin_type == 'LogRUV':
             self.meanv[mask1] /= self.weightr[mask1]
 
@@ -468,11 +469,27 @@ class GGGCorrelation(Corr3):
             self.meanlogd2[mask2] = self.logd2[mask2]
             self.meand3[mask2] = self.d3nom[mask2]
             self.meanlogd3[mask2] = self.logd3[mask2]
-            self.meanu[mask2] = self.phi[mask2]
-            self.meand1[mask2] = np.sqrt(self.d2nom[mask2]**2 + self.d3nom[mask2]**2
-                                         - 2*self.d2nom[mask2]*self.d3nom[mask2]*
-                                         np.cos(self.phi[mask2]))
-            self.meanlogd1[mask2] = np.log(self.meand1[mask2])
+            if self.bin_type == 'LogSAS':
+                self.meanu[mask2] = self.phi[mask2]
+                self.meand1[mask2] = np.sqrt(self.d2nom[mask2]**2 + self.d3nom[mask2]**2
+                                             - 2*self.d2nom[mask2]*self.d3nom[mask2]*
+                                             np.cos(self.phi[mask2]))
+                self.meanlogd1[mask2] = np.log(self.meand1[mask2])
+            else:
+                self.meanu[mask2] = 0
+                self.meand1[mask2] = 0
+                self.meanlogd1[mask2] = 0
+
+        if self.bin_type == 'LogMultipole':
+            # Multipole only sets the meand values at [i,j,max_n].
+            # (This is also where the complex weight is just a scalar = sum(www),
+            # so the above normalizations are correct.)
+            # Broadcast those to the rest of the values in the third dimension.
+            self.ntri[:,:,:] = self.ntri[:,:,self.max_n][:,:,np.newaxis]
+            self.meand2[:,:,:] = self.meand2[:,:,self.max_n][:,:,np.newaxis]
+            self.meanlogd2[:,:,:] = self.meanlogd2[:,:,self.max_n][:,:,np.newaxis]
+            self.meand3[:,:,:] = self.meand3[:,:,self.max_n][:,:,np.newaxis]
+            self.meanlogd3[:,:,:] = self.meanlogd3[:,:,self.max_n][:,:,np.newaxis]
 
     def finalize(self, varg1, varg2, varg3):
         """Finalize the calculation of the correlation function.
@@ -681,8 +698,18 @@ class GGGCorrelation(Corr3):
                 raise ValueError("For two catalog case, use cat1,cat2, not cat1,cat3")
             self._process_all_auto(cat1, metric, num_threads, comm, low_mem)
         elif cat3 is None:
+            if len(cat2) > 1 and self.bin_type == 'LogMultipole':
+                raise ValueError("Multipole algorithm cannot be used when cat2 is a list.")
+            if len(cat1) > 1 and self.bin_type == 'LogMultipole' and not ordered:
+                raise ValueError("Multipole algorithm cannot be used when cat1 is a list and ordered=False.")
             self._process_all_cross12(cat1, cat2, metric, ordered, num_threads, comm, low_mem)
         else:
+            if len(cat2) > 1 and self.bin_type == 'LogMultipole':
+                raise ValueError("Multipole algorithm cannot be used when cat2 is a list.")
+            if len(cat3) > 1 and self.bin_type == 'LogMultipole':
+                raise ValueError("Multipole algorithm cannot be used when cat3 is a list.")
+            if len(cat1) > 1 and self.bin_type == 'LogMultipole' and not ordered:
+                raise ValueError("Multipole algorithm cannot be used when cat1 is a list and ordered=False.")
             self._process_all_cross(cat1, cat2, cat3, metric, ordered, num_threads, comm, low_mem)
 
         if finalize:
@@ -725,7 +752,128 @@ class GGGCorrelation(Corr3):
 
         In this case, 4 copies of self.weight.ravel().
         """
-        return np.concatenate([self.weight.ravel()] * 4)
+        return np.concatenate([np.abs(self.weight.ravel())] * 4)
+
+    def toSAS(self, **kwargs):
+        """Convert a multipole-binned correlation to the corresponding SAS binning.
+
+        This is only valid for bin_type == LogMultipole.
+
+        Keyword Arguments:
+            **kwargs:   Any kwargs that you want to use to configure the returned object.
+                        Typically, might include min_phi, max_phi, nphi_bins, phi_bin_size.
+                        The default phi binning is [0,pi] with nphi_bins = self.max_n.
+
+        Returns:
+            ggg_sas:    An GGGCorrelation object with bin_type=LogSAS containing the
+                        same information as this object, but with the SAS binning.
+        """
+        if self.bin_type != 'LogMultipole':
+            raise TypeError("toSAS is invalid for bin_type = %s"%self.bin_type)
+
+        config = self.config.copy()
+        config['bin_type'] = 'LogSAS'
+        max_n = config.pop('max_n')
+        config['nphi_bins'] = max_n
+        sas = GGGCorrelation(config, **kwargs)
+        if not np.array_equal(sas.rnom1d, self.rnom1d):
+            raise ValueError("toSAS cannot change sep parameters")
+
+        # Copy these over
+        sas.meand2[:,:,:] = self.meand2[:,:,0][:,:,None]
+        sas.meanlogd2[:,:,:] = self.meanlogd2[:,:,0][:,:,None]
+        sas.meand3[:,:,:] = self.meand3[:,:,0][:,:,None]
+        sas.meanlogd3[:,:,:] = self.meanlogd3[:,:,0][:,:,None]
+
+        # Use nominal for meanphi
+        sas.meanu[:] = sas.phi / sas._phi_units
+        # Compute d1 from actual d2,d3 and nominal phi
+        sas.meand1[:] = np.sqrt(sas.meand2**2 + sas.meand3**2
+                                - 2*sas.meand2 * sas.meand3 * np.cos(sas.phi))
+        sas.meanlogd1[:] = np.log(sas.meand1)
+
+        # Z(d2,d3,phi) = 1/2pi sum_n Z_n(d2,d3) exp(i n phi)
+        expiphi = np.exp(1j * self.n1d[:,None] * sas.phi1d)
+        sas.weightr[:] = np.real(self.weight.dot(expiphi)) / (2*np.pi) * sas.phi_bin_size
+        gam0 = self.gam0.dot(expiphi) / (2*np.pi) * sas.phi_bin_size
+        gam1 = self.gam1.dot(expiphi) / (2*np.pi) * sas.phi_bin_size
+        gam2 = self.gam2.dot(expiphi) / (2*np.pi) * sas.phi_bin_size
+        gam3 = self.gam3.dot(expiphi) / (2*np.pi) * sas.phi_bin_size
+
+        # We leave the gam_mu unnormalized in the Multipole class, so after the FT,
+        # we still need to divide by weight.
+        mask = sas.weightr != 0
+        gam0[mask] /= sas.weightr[mask]
+        gam1[mask] /= sas.weightr[mask]
+        gam2[mask] /= sas.weightr[mask]
+        gam3[mask] /= sas.weightr[mask]
+
+        # Now fix the projection.
+        # The multipole algorithm uses the Porth et al x projection.
+        # We need to switch that to the canoical centroid projection.
+
+        # Define some complex "vectors" where p1 is at the origin and
+        # p3 is on the x axis:
+        # s = p3 - p1
+        # t = p2 - p1
+        # u = (s+t)/2
+        # q1 = (s+t)/3.  (this is the centroid)
+        # q2 = q1-t
+        # q3 = q1-s
+        s = sas.meand2
+        t = sas.meand3 * np.exp(1j * sas.meanphi * sas._phi_units)
+        u = (s+t)/2
+        q1 = (s+t)/3.
+        q2 = q1-t
+        q3 = q1-s
+
+        # Currently the projection is as follows:
+        # g1 is projected along u
+        # g2 is projected along t
+        # g3 is projected along s
+        #
+        # We want to have
+        # g1 projected along q1
+        # g2 projected along q2
+        # g3 projected along q3
+        #
+        # The phases to multiply by are exp(2iphi_current) * exp(-2iphi_target). I.e.
+        # g1phase = (u conj(q1))**2 / |u conj(q1)|**2
+        # g2phase = (t conj(q2))**2 / |t conj(q2)|**2
+        # g3phase = (s conj(q3))**2 / |s conj(q3)|**2
+        g1phase = (u * np.conj(q1))**2
+        g2phase = (t * np.conj(q2))**2
+        g3phase = (s * np.conj(q3))**2
+        g1phase /= np.abs(g1phase)
+        g2phase /= np.abs(g2phase)
+        g3phase /= np.abs(g3phase)
+
+        # Now just multiply each gam by the appropriate combination of phases.
+        gam0 *= g1phase * g2phase * g3phase
+        gam1 *= np.conj(g1phase) * g2phase * g3phase
+        gam2 *= g1phase * np.conj(g2phase) * g3phase
+        gam3 *= g1phase * g2phase * np.conj(g3phase)
+
+        sas.gam0r = np.real(gam0)
+        sas.gam0i = np.imag(gam0)
+        sas.gam1r = np.real(gam1)
+        sas.gam1i = np.imag(gam1)
+        sas.gam2r = np.real(gam2)
+        sas.gam2i = np.imag(gam2)
+        sas.gam3r = np.real(gam3)
+        sas.gam3i = np.imag(gam3)
+
+        # For ntri, we recorded the total ntri for each pair of d2,d3.
+        # Allocate those proportionally to the weights.
+        # The extra factor of 0.5 is because Multipole counts the triangles
+        # twice (with c2,c3 in each spot).  The standard SAS counting just
+        # counts the ones in CCW orientation. (i.e. no double counting.)
+        # (If phi range is not [0,pi], this may be even smaller.)
+        phi_frac = (sas.max_phi - sas.min_phi) / (2*np.pi)
+        ratio = self.ntri[:,:,0] / np.sum(sas.weight, axis=2) * phi_frac
+        sas.ntri[:] = sas.weight * ratio[:,:,None]
+
+        return sas
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False):
         r"""Write the correlation function to the file, file_name.
@@ -801,7 +949,9 @@ class GGGCorrelation(Corr3):
         sigma_gam1      The sqrt of the variance estimate of :math:`\Gamma_1`
         sigma_gam2      The sqrt of the variance estimate of :math:`\Gamma_2`
         sigma_gam3      The sqrt of the variance estimate of :math:`\Gamma_3`
-        weight          The total weight of triangles contributing to each bin
+        weight          The total weight of triangles contributing to each bin. (For
+                        LogMultipole, this is split into real and imaginary parts,
+                        weight_re and weight_im.)
         ntri            The number of triangles contributing to each bin
         ==========      ================================================================
 
@@ -830,14 +980,21 @@ class GGGCorrelation(Corr3):
             col_names = ['r_nom', 'u_nom', 'v_nom',
                          'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
                          'meand3', 'meanlogd3', 'meanu', 'meanv']
-        else:
+        elif self.bin_type == 'LogSAS':
             col_names = ['d2_nom', 'd3_nom', 'phi_nom',
                          'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
                          'meand3', 'meanlogd3', 'meanphi']
+        else:
+            col_names = ['d2_nom', 'd3_nom', 'n',
+                         'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
+                         'meand3', 'meanlogd3']
         col_names += ['gam0r', 'gam0i', 'gam1r', 'gam1i',
                       'gam2r', 'gam2i', 'gam3r', 'gam3i',
-                      'sigma_gam0', 'sigma_gam1', 'sigma_gam2',
-                      'sigma_gam3', 'weight', 'ntri']
+                      'sigma_gam0', 'sigma_gam1', 'sigma_gam2', 'sigma_gam3']
+        if self.bin_type == 'LogMultipole':
+            col_names += ['weight_re', 'weight_im', 'ntri']
+        else:
+            col_names += ['weight', 'ntri']
         return col_names
 
     @property
@@ -846,14 +1003,22 @@ class GGGCorrelation(Corr3):
             data = [ self.rnom, self.u, self.v,
                      self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
                      self.meand3, self.meanlogd3, self.meanu, self.meanv ]
-        else:
+        elif self.bin_type == 'LogSAS':
             data = [ self.d2nom, self.d3nom, self.phi,
                      self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
                      self.meand3, self.meanlogd3, self.meanphi ]
+        else:
+            data = [ self.d2nom, self.d3nom, self.n,
+                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
+                     self.meand3, self.meanlogd3 ]
         data += [ self.gam0r, self.gam0i, self.gam1r, self.gam1i,
                   self.gam2r, self.gam2i, self.gam3r, self.gam3i,
-                  np.sqrt(self.vargam0), np.sqrt(self.vargam1), np.sqrt(self.vargam2),
-                  np.sqrt(self.vargam3), self.weight, self.ntri ]
+                  np.sqrt(self.vargam0), np.sqrt(self.vargam1),
+                  np.sqrt(self.vargam2), np.sqrt(self.vargam3) ]
+        if self.bin_type == 'LogMultipole':
+            data += [ self.weightr, self.weighti, self.ntri ]
+        else:
+            data += [ self.weight, self.ntri ]
         data = [ col.flatten() for col in data ]
         return data
 
@@ -909,7 +1074,11 @@ class GGGCorrelation(Corr3):
         self._vargam1 = data['sigma_gam1'].reshape(s)**2
         self._vargam2 = data['sigma_gam2'].reshape(s)**2
         self._vargam3 = data['sigma_gam3'].reshape(s)**2
-        self.weightr = data['weight'].reshape(s)
+        if self.bin_type == 'LogMultipole':
+            self.weightr = data['weight_re'].reshape(s)
+            self.weighti = data['weight_im'].reshape(s)
+        else:
+            self.weightr = data['weight'].reshape(s)
         self.ntri = data['ntri'].reshape(s)
         self.coords = params['coords'].strip()
         self.metric = params['metric'].strip()

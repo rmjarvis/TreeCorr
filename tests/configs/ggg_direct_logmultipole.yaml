@@ -1,0 +1,23 @@
+
+file_name: data/ggg_direct_logmultipole.fits
+
+x_col: x
+y_col: y
+x_units: arcmin
+y_units: arcmin
+g1_col: g1
+g2_col: g2
+w_col: w
+
+verbose: 1
+
+bin_type: LogMultipole
+min_sep: 5.
+max_sep: 50.
+nbins: 5
+max_n: 20
+phi_units: 'radians'
+sep_units: arcmin
+bin_slop: 0
+
+ggg_file_name: output/ggg_direct_logmultipole.fits

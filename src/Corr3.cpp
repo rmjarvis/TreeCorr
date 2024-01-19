@@ -807,22 +807,22 @@ struct DirectHelper<NData,NData,NData>
     template <int C>
     static void ProcessMultipole(
         const Cell<NData,C>& c1, const Cell<NData,C>& c2, const Cell<NData,C>& c3,
-        const double sinphi, const double cosphi, const double www,
+        double d1, double d2, double d3, double sinphi, double cosphi, double www,
         double* weight, double* weight_im,
         ZetaData<NData,NData,NData>& zeta, int index, int maxn)
     {
         // index is the index for n=0.
         // Add www * exp(-inphi) to all -maxn <= n <= maxn
 
-        std::complex<double> z(cosphi, sinphi);
+        std::complex<double> z(cosphi, -sinphi);
         weight[index] += www;
         std::complex<double> wwwztothen = www;
         for (int n=1; n <= maxn; ++n) {
             wwwztothen *= z;
             weight[index + n] += wwwztothen.real();
-            weight_im[index + n] -= wwwztothen.imag();
+            weight_im[index + n] += wwwztothen.imag();
             weight[index - n] += wwwztothen.real();
-            weight_im[index - n] += wwwztothen.imag();
+            weight_im[index - n] -= wwwztothen.imag();
         }
     }
 
@@ -951,13 +951,13 @@ struct DirectHelper<KData,KData,KData>
     template <int C>
     static void ProcessMultipole(
         const Cell<KData,C>& c1, const Cell<KData,C>& c2, const Cell<KData,C>& c3,
-        const double sinphi, const double cosphi, const double www,
+        double d1, double d2, double d3, double sinphi, double cosphi, double www,
         double* weight, double* weight_im,
         ZetaData<KData,KData,KData>& zeta, int index, int maxn)
     {
         double wk = c1.getData().getWK() * c2.getData().getWK() * c3.getData().getWK();
 
-        std::complex<double> z(cosphi, sinphi);
+        std::complex<double> z(cosphi, -sinphi);
         weight[index] += www;
         zeta.zeta[index] += wk;
         std::complex<double> wwwztothen = www;
@@ -966,13 +966,13 @@ struct DirectHelper<KData,KData,KData>
             wwwztothen *= z;
             wkztothen *= z;
             weight[index + n] += wwwztothen.real();
-            weight_im[index + n] -= wwwztothen.imag();
+            weight_im[index + n] += wwwztothen.imag();
             weight[index - n] += wwwztothen.real();
-            weight_im[index - n] += wwwztothen.imag();
+            weight_im[index - n] -= wwwztothen.imag();
             zeta.zeta[index + n] += wkztothen.real();
-            zeta.zeta_im[index + n] -= wkztothen.imag();
+            zeta.zeta_im[index + n] += wkztothen.imag();
             zeta.zeta[index - n] += wkztothen.real();
-            zeta.zeta_im[index - n] += wkztothen.imag();
+            zeta.zeta_im[index - n] -= wkztothen.imag();
         }
     }
 
@@ -1152,11 +1152,74 @@ struct DirectHelper<GData,GData,GData>
     template <int C>
     static void ProcessMultipole(
         const Cell<GData,C>& c1, const Cell<GData,C>& c2, const Cell<GData,C>& c3,
-        const double sinphi, const double cosphi, const double www,
+        double d1, double d2, double d3, double sinphi, double cosphi, double www,
         double* weight, double* weight_im,
         ZetaData<GData,GData,GData>& zeta, int index, int maxn)
     {
-        // TODO
+        std::complex<double> g1 = c1.getData().getWG();
+        std::complex<double> g2 = c2.getData().getWG();
+        std::complex<double> g3 = c3.getData().getWG();
+        ProjectHelper<C>::ProjectX(c1, c2, c3, d1, d2, d3, g1, g2, g3);
+
+        std::complex<double> gam0 = g1 * g2 * g3;
+        std::complex<double> gam1 = std::conj(g1) * g2 * g3;
+        std::complex<double> gam2 = g1 * std::conj(g2) * g3;
+        std::complex<double> gam3 = g1 * g2 * std::conj(g3);
+
+        std::complex<double> z(cosphi, -sinphi);
+        weight[index] += www;
+        zeta.gam0r[index] += gam0.real();
+        zeta.gam0i[index] += gam0.imag();
+        zeta.gam1r[index] += gam1.real();
+        zeta.gam1i[index] += gam1.imag();
+        zeta.gam2r[index] += gam2.real();
+        zeta.gam2i[index] += gam2.imag();
+        zeta.gam3r[index] += gam3.real();
+        zeta.gam3i[index] += gam3.imag();
+        std::complex<double> wwwztothen = www;
+        std::complex<double> gam0ztothen = gam0;
+        std::complex<double> gam1ztothen = gam1;
+        std::complex<double> gam2ztothen = gam2;
+        std::complex<double> gam3ztothen = gam3;
+        for (int n=1; n <= maxn; ++n) {
+            wwwztothen *= z;
+            gam0ztothen *= z;
+            gam1ztothen *= z;
+            gam2ztothen *= z;
+            gam3ztothen *= z;
+            weight[index + n] += wwwztothen.real();
+            weight_im[index + n] += wwwztothen.imag();
+            weight[index - n] += wwwztothen.real();
+            weight_im[index - n] -= wwwztothen.imag();
+            zeta.gam0r[index + n] += gam0ztothen.real();
+            zeta.gam0i[index + n] += gam0ztothen.imag();
+            zeta.gam1r[index + n] += gam1ztothen.real();
+            zeta.gam1i[index + n] += gam1ztothen.imag();
+            zeta.gam2r[index + n] += gam2ztothen.real();
+            zeta.gam2i[index + n] += gam2ztothen.imag();
+            zeta.gam3r[index + n] += gam3ztothen.real();
+            zeta.gam3i[index + n] += gam3ztothen.imag();
+        }
+        // Unlike for N and K, the -n components are not complex conjugates.
+        // So do a separate loop for them.
+        gam0ztothen = gam0;  // These will now be gam_mu * conj(z)^n
+        gam1ztothen = gam1;
+        gam2ztothen = gam2;
+        gam3ztothen = gam3;
+        for (int n=1; n <= maxn; ++n) {
+            gam0ztothen *= std::conj(z);
+            gam1ztothen *= std::conj(z);
+            gam2ztothen *= std::conj(z);
+            gam3ztothen *= std::conj(z);
+            zeta.gam0r[index - n] += gam0ztothen.real();
+            zeta.gam0i[index - n] += gam0ztothen.imag();
+            zeta.gam1r[index - n] += gam1ztothen.real();
+            zeta.gam1i[index - n] += gam1ztothen.imag();
+            zeta.gam2r[index - n] += gam2ztothen.real();
+            zeta.gam2i[index - n] += gam2ztothen.imag();
+            zeta.gam3r[index - n] += gam3ztothen.real();
+            zeta.gam3i[index - n] += gam3ztothen.imag();
+        }
     }
 
     template <int C>
@@ -1165,7 +1228,39 @@ struct DirectHelper<GData,GData,GData>
         double rsq, double r, int k, int maxn, double w,
         MultipoleScratch<GData, GData>& mp)
     {
-        // TODO
+        std::complex<double> wg = c2.getData().getWG();
+        std::complex<double> z = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), r);
+
+        if (mp.ww) {
+            std::complex<double> wgzc = wg * std::conj(z);
+            std::complex<double> zcsq = std::conj(z*z);
+            mp.sumwwgg1[k] += SQR(wgzc);
+            mp.sumwwgg2[k] += std::norm(wg) * zcsq;
+            mp.sumwwgg3[k] += SQR(wgzc * zcsq);
+        }
+
+        int iw = k*(maxn+1);
+        mp.Wn[iw] += w;
+        std::complex<double> wztothen = w;
+        for (int n=1; n <= maxn; ++n) {
+            wztothen *= z;
+            mp.Wn[iw + n] += wztothen;
+        }
+
+        // Note: we'll need Gn values from -maxn-3 <= n <= maxn-1
+        int ig = k*(2*maxn+3)+maxn+3;
+        mp.Gn[ig] += wg;
+        std::complex<double> wgztothen = wg;
+        for (int n=1; n <= maxn-1; ++n) {
+            wgztothen *= z;
+            mp.Gn[ig + n] += wgztothen;
+        }
+        // Repeat for -n, since +/- n is not symmetric as g is complex.
+        wgztothen = wg;   // Now this is really wg conj(z)^n
+        for (int n=1; n <= maxn+3; ++n) {
+            wgztothen *= std::conj(z);
+            mp.Gn[ig - n] += wgztothen;
+        }
     }
 
     template <int C>
@@ -1174,7 +1269,119 @@ struct DirectHelper<GData,GData,GData>
                               double* weight, double* weight_im,
                               ZetaData<GData,GData,GData>& zeta, int nbins, int maxn)
     {
-        // TODO
+        const double w1 = c1.getW();
+        const std::complex<double> wg1 = c1.getData().getWG();
+        const int step23 = 2*maxn+1;
+        const int step32 = nbins * step23;
+        const int step22 = step32 + step23;
+        int iz22 = maxn;
+        for (int k2=0; k2<nbins; ++k2, iz22+=step22) {
+            // Do the k2=k3 bins.
+            // As for NNN, we subtract off the sum of w_k^2 when k2=k3.
+            // The corresponding thing for the Gamma values is a bit trickier.
+            // Gamma_0 includes sum_k wg_k^2 z^-3
+            // Gamma_1 includes sum_k wg_k^2 z^-1
+            // Gamma_2 includes sum_k |wg_k|^2 z^-2
+            // Gamma_3 includes sum_k |wg_k|^2 z^-2
+            // These terms are called sumwwgg3, sumwwgg1, and sumwwgg3, respectively,
+            // numbered by the power of z they include.
+
+            // These are the indices in the Wn, Gn arrays (respectively) for n=0.
+            const int iw2 = k2*(maxn+1);
+            const int ig2 = k2*(2*maxn+3)+maxn+3;
+
+            for (int n=0; n<=maxn; ++n) {
+                double www = w1 * (std::norm(mp.Wn[iw2+n]) - mp.sumww[k2]);
+                weight[iz22+n] += www;
+                if (n > 0) {
+                    weight[iz22-n] += www;
+                }
+            }
+            for (int n=-maxn; n<=maxn; ++n) {
+                std::complex<double> gam0 =
+                    wg1 * (mp.Gn[ig2+n-3] * mp.Gn[ig2-n-3] - mp.sumwwgg3[k2]);
+                std::complex<double> gam1 =
+                    std::conj(wg1) * (mp.Gn[ig2+n-1] * mp.Gn[ig2-n-1] - mp.sumwwgg1[k2]);
+                std::complex<double> gam2 =
+                    wg1 * (mp.Gn[ig2+n-3] * std::conj(mp.Gn[ig2+n-1]) - mp.sumwwgg2[k2]);
+                std::complex<double> gam3 =
+                    wg1 * (std::conj(mp.Gn[ig2-n-1]) * mp.Gn[ig2-n-3] - mp.sumwwgg2[k2]);
+                zeta.gam0r[iz22+n] += gam0.real();
+                zeta.gam0i[iz22+n] += gam0.imag();
+                zeta.gam1r[iz22+n] += gam1.real();
+                zeta.gam1i[iz22+n] += gam1.imag();
+                zeta.gam2r[iz22+n] += gam2.real();
+                zeta.gam2i[iz22+n] += gam2.imag();
+                zeta.gam3r[iz22+n] += gam3.real();
+                zeta.gam3i[iz22+n] += gam3.imag();
+            }
+
+            int iz23 = iz22 + step23;
+            int iz32 = iz22 + step32;
+            for (int k3=k2+1; k3<nbins; ++k3, iz23+=step23, iz32+=step32) {
+                XAssert(iz23 == (k2 * nbins + k3) * (2*maxn+1) + maxn);
+                XAssert(iz32 == (k3 * nbins + k2) * (2*maxn+1) + maxn);
+                const int iw3 = k3*(maxn+1);
+                const int ig3 = k3*(2*maxn+3) + maxn+3;
+                for (int n=0; n<=maxn; ++n) {
+                    std::complex<double> www = w1 * mp.Wn[iw2+n] * std::conj(mp.Wn[iw3+n]);
+                    weight[iz23+n] += www.real();
+                    weight_im[iz23+n] += www.imag();
+                    weight[iz32+n] += www.real();
+                    weight_im[iz32+n] -= www.imag();
+                    if (n > 0) {
+                        weight[iz23-n] += www.real();
+                        weight_im[iz23-n] -= www.imag();
+                        weight[iz32-n] += www.real();
+                        weight_im[iz32-n] += www.imag();
+                    }
+                }
+
+                // W_-n = conj(W_n), so we have only been storing n>=0.
+                // But G_n does not have that property, so use the actual n<0 index.
+                // cf. Porth et al eqns 21, 23, 24, 25
+                // Note: they have an extra negative sign, which I'm pretty sure we just
+                // incorporate into our expiphi factor.  It first shows up in their eqn 18.
+                // We define our projection directions such that there is no additional minus
+                // sign required to compute the Gammas.
+                //
+                // Note also that this is not symmetric w.r.t +/-n, so just loop
+                // from -maxn to maxn for these.
+                for (int n=-maxn; n<=maxn; ++n) {
+                    // Notation note: What we call d2 and d3 are Theta1 and Theta2 in
+                    // Porth et al.  So the ig2 factors, which refer to d2 and thus c3,
+                    // correspond to G(theta_i, Theta_1) in eqns 21,23-25.  And ig3 factors
+                    // correspond to G(theta_i, Theta_2).
+                    std::complex<double> gam0 = wg1 * mp.Gn[ig2+n-3] * mp.Gn[ig3-n-3];
+                    std::complex<double> gam1 = std::conj(wg1) * mp.Gn[ig2+n-1] * mp.Gn[ig3-n-1];
+                    std::complex<double> gam2 = wg1 * mp.Gn[ig2+n-3] * std::conj(mp.Gn[ig3+n-1]);
+                    std::complex<double> gam3 = wg1 * std::conj(mp.Gn[ig2-n-1]) * mp.Gn[ig3-n-3];
+                    zeta.gam0r[iz23+n] += gam0.real();
+                    zeta.gam0i[iz23+n] += gam0.imag();
+                    zeta.gam1r[iz23+n] += gam1.real();
+                    zeta.gam1i[iz23+n] += gam1.imag();
+                    zeta.gam2r[iz23+n] += gam2.real();
+                    zeta.gam2i[iz23+n] += gam2.imag();
+                    zeta.gam3r[iz23+n] += gam3.real();
+                    zeta.gam3i[iz23+n] += gam3.imag();
+
+                    // This time there is nothing symmetrical to exploit between the
+                    // 2,3 and 3,2 terms.  Just recaulculate Gamma values for k3, k2.
+                    gam0 = wg1 * mp.Gn[ig3+n-3] * mp.Gn[ig2-n-3];
+                    gam1 = std::conj(wg1) * mp.Gn[ig3+n-1] * mp.Gn[ig2-n-1];
+                    gam2 = wg1 * mp.Gn[ig3+n-3] * std::conj(mp.Gn[ig2+n-1]);
+                    gam3 = wg1 * std::conj(mp.Gn[ig3-n-1]) * mp.Gn[ig2-n-3];
+                    zeta.gam0r[iz32+n] += gam0.real();
+                    zeta.gam0i[iz32+n] += gam0.imag();
+                    zeta.gam1r[iz32+n] += gam1.real();
+                    zeta.gam1i[iz32+n] += gam1.imag();
+                    zeta.gam2r[iz32+n] += gam2.real();
+                    zeta.gam2i[iz32+n] += gam2.imag();
+                    zeta.gam3r[iz32+n] += gam3.real();
+                    zeta.gam3i[iz32+n] += gam3.imag();
+                }
+            }
+        }
     }
 
     template <int C>
@@ -1184,7 +1391,52 @@ struct DirectHelper<GData,GData,GData>
                               double* weight, double* weight_im,
                               ZetaData<GData,GData,GData>& zeta, int nbins, int maxn)
     {
-        // TODO
+        const double w1 = c1.getW();
+        const std::complex<double> wg1 = c1.getData().getWG();
+        const int step = 2*maxn+1;
+        int iz = maxn;
+        // If ordered == 1, then also count contribution from swapping cats 2,3
+        const bool swap23 = (ordered == 1);
+        for (int k2=0; k2<nbins; ++k2) {
+            const int iw2 = k2*(maxn+1);
+            const int ig2 = k2*(2*maxn+3) + maxn+3;
+            for (int k3=0; k3<nbins; ++k3, iz+=step) {
+                const int iw3 = k3*(maxn+1);
+                const int ig3 = k3*(2*maxn+3) + maxn+3;
+                for (int n=0; n<=maxn; ++n) {
+                    std::complex<double> www = w1 * mp3.Wn[iw2+n] * std::conj(mp2.Wn[iw3+n]);
+                    if (swap23) {
+                        www += w1 * mp2.Wn[iw2+n] * std::conj(mp3.Wn[iw3+n]);
+                    }
+                    weight[iz+n] += www.real();
+                    weight_im[iz+n] += www.imag();
+                    if (n > 0) {
+                        weight[iz-n] += www.real();
+                        weight_im[iz-n] -= www.imag();
+                    }
+                }
+                for (int n=-maxn; n<=maxn; ++n) {
+                    std::complex<double> gam0 = wg1 * mp3.Gn[ig2+n-3] * mp2.Gn[ig3-n-3];
+                    std::complex<double> gam1 = std::conj(wg1) * mp3.Gn[ig2+n-1] * mp2.Gn[ig3-n-1];
+                    std::complex<double> gam2 = wg1 * mp3.Gn[ig2+n-3] * std::conj(mp2.Gn[ig3+n-1]);
+                    std::complex<double> gam3 = wg1 * std::conj(mp3.Gn[ig2-n-1]) * mp2.Gn[ig3-n-3];
+                    if (swap23) {
+                        gam0 += wg1 * mp2.Gn[ig2+n-3] * mp3.Gn[ig3-n-3];
+                        gam1 += std::conj(wg1) * mp2.Gn[ig2+n-1] * mp3.Gn[ig3-n-1];
+                        gam2 += wg1 * mp2.Gn[ig2+n-3] * std::conj(mp3.Gn[ig3+n-1]);
+                        gam3 += wg1 * std::conj(mp2.Gn[ig2-n-1]) * mp3.Gn[ig3-n-3];
+                    }
+                    zeta.gam0r[iz+n] += gam0.real();
+                    zeta.gam0i[iz+n] += gam0.imag();
+                    zeta.gam1r[iz+n] += gam1.real();
+                    zeta.gam1i[iz+n] += gam1.imag();
+                    zeta.gam2r[iz+n] += gam2.real();
+                    zeta.gam2i[iz+n] += gam2.imag();
+                    zeta.gam3r[iz+n] += gam3.real();
+                    zeta.gam3i[iz+n] += gam3.imag();
+                }
+            }
+        }
     }
 };
 
@@ -1256,7 +1508,7 @@ void Corr3<D1,D2,D3>::finishProcessMP(
     DirectHelper<D1,D2,D3>::ProcessMultipole(
         static_cast<const Cell<D1,C>&>(c1),
         static_cast<const Cell<D2,C>&>(c2),
-        static_cast<const Cell<D3,C>&>(c3),
+        static_cast<const Cell<D3,C>&>(c3), d1, d2, d3,
         sinphi, cosphi, www, _weight, _weight_im, _zeta, index, _nubins);
 }
 
@@ -1746,7 +1998,9 @@ void BaseCorr3::multipoleSplit1(
     std::vector<const BaseCell<C>*> newc2list;
     std::vector<const BaseCell<C>*> newc3list;
     splitC2Cells<B>(c1, c2list, metric, newc2list);
+    xdbg<<"c2 split "<<c2list.size()<<" => "<<newc2list.size()<<std::endl;
     splitC2Cells<B>(c1, c3list, metric, newc3list);
+    xdbg<<"c3 split "<<c3list.size()<<" => "<<newc3list.size()<<std::endl;
 
     // See if we can stop splitting c1
     inc_ws();

@@ -106,6 +106,32 @@ struct ProjectHelper<Flat>
         z3 *= _expmsialpha<D>(r3);
     }
 
+    template <int D>
+    static void ProjectX(
+        const Cell<D,Flat>& c1, const Cell<D,Flat>& c2, const Cell<D,Flat>& c3,
+        double d1, double d2, double d3,
+        std::complex<double>& z1, std::complex<double>& z2, std::complex<double>& z3)
+    {
+        // Project given spin-s quantities using the x projection in Porth et al, 2023.
+        // Namely c2 projects to the line c1-c2, c3 projects to the line c1-c3, and c1
+        // projects to the average of these two directions.
+        const Position<Flat>& p1 = c1.getPos();
+        const Position<Flat>& p2 = c2.getPos();
+        const Position<Flat>& p3 = c3.getPos();
+        std::complex<double> r2 = p2 - p1;
+        r2 /= d3;
+        std::complex<double> r3 = p3 - p1;
+        r3 /= d2;
+        std::complex<double> r1 = r2 + r3;
+        std::complex<double> proj1 = _expmsialpha<D>(r1);
+        std::complex<double> proj2 = _expmsialpha<D>(r2);
+        std::complex<double> proj3 = _expmsialpha<D>(r3);
+
+        z1 *= proj1;
+        z2 *= proj2;
+        z3 *= proj3;
+    }
+
     static std::complex<double> ExpIPhi(
         const Position<Flat>& p1, const Position<Flat>& p2, double r)
     { return (p2-p1) / r; }
@@ -232,6 +258,47 @@ struct ProjectHelper<Sphere>
         z2 *= _expmsialpha<D>(calculate_direction(cen,p2));
         z3 *= _expmsialpha<D>(calculate_direction(cen,p3));
     }
+
+    template <int D>
+    static void ProjectX(
+        const Cell<D,Sphere>& c1, const Cell<D,Sphere>& c2, const Cell<D,Sphere>& c3,
+        double d1, double d2, double d3,
+        std::complex<double>& z1, std::complex<double>& z2, std::complex<double>& z3)
+    {
+        // Project given spin-s quantities using the x projection in Porth et al, 2023.
+        // Namely c2 projects to the line c1-c2, c3 projects to the line c1-c3, and c1
+        // projects to the average of these two directions.
+        const Position<Sphere>& p1 = c1.getPos();
+        const Position<Sphere>& p2 = c2.getPos();
+        const Position<Sphere>& p3 = c3.getPos();
+        // The rest is also needed by the ThreeD version, so break it out as its own function.
+        ProjectX<D>(p1,p2,p3,z1,z2,z3);
+    }
+
+    template <int D>
+    static void ProjectX(
+        const Position<Sphere>& p1, const Position<Sphere>& p2, const Position<Sphere>& p3,
+        std::complex<double>& z1, std::complex<double>& z2, std::complex<double>& z3)
+    {
+        std::complex<double> r2 = calculate_direction(p1,p2);
+        std::complex<double> proj2 = _expmsialpha<D>(r2);
+        std::complex<double> r3 = calculate_direction(p1,p3);
+        std::complex<double> proj3 = _expmsialpha<D>(r3);
+
+        // In spherical geometry, the projection directions are not symmetric.
+        // We also need to calculate the directions at p1 to each of the other two.
+        std::complex<double> r12 = calculate_direction(p2,p1);
+        r12 /= sqrt(safe_norm(r12));
+        std::complex<double> r13 = calculate_direction(p3,p1);
+        r13 /= sqrt(safe_norm(r13));
+        std::complex<double> r1 = r12 + r13;
+        std::complex<double> proj1 = _expmsialpha<D>(r1);
+
+        z1 *= proj1;
+        z2 *= proj2;
+        z3 *= proj3;
+    }
+
     static std::complex<double> ExpIPhi(
         const Position<Sphere>& p1, const Position<Sphere>& p2, double r)
     {
@@ -297,6 +364,22 @@ struct ProjectHelper<ThreeD>
         z2 *= _expmsialpha<D>(ProjectHelper<Sphere>::calculate_direction(cen,sp2));
         z3 *= _expmsialpha<D>(ProjectHelper<Sphere>::calculate_direction(cen,sp3));
     }
+
+    template <int D>
+    static void ProjectX(
+        const Cell<D,ThreeD>& c1, const Cell<D,ThreeD>& c2, const Cell<D,ThreeD>& c3,
+        double d1, double d2, double d3,
+        std::complex<double>& z1, std::complex<double>& z2, std::complex<double>& z3)
+    {
+        // Project given spin-s quantities using the x projection in Porth et al, 2023.
+        // Namely c2 projects to the line c1-c2, c3 projects to the line c1-c3, and c1
+        // projects to the average of these two directions.
+        Position<Sphere> p1(c1.getPos());
+        Position<Sphere> p2(c2.getPos());
+        Position<Sphere> p3(c3.getPos());
+        ProjectHelper<Sphere>::ProjectX<D>(p1,p2,p3,z1,z3,z3);
+    }
+
     static std::complex<double> ExpIPhi(
         const Position<ThreeD>& p1, const Position<ThreeD>& p2, double r)
     {

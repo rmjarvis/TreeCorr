@@ -247,7 +247,7 @@ class KGCorrelation(Corr2):
         if self._varxi is None:
             self._varxi = np.zeros_like(self.rnom, dtype=float)
             if self._var_num != 0:
-                self._varxi.ravel()[:] = self.cov.diagonal()
+                self._varxi.ravel()[:] = self.cov_diag
         return self._varxi
 
     def _clear(self):

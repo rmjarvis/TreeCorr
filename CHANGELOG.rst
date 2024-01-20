@@ -34,6 +34,8 @@ API Changes
   points from cat2 at P2, and points from cat3 at P3.  To recover the old behavior, you may
   use the new ``ordered=False`` option. (#166)
 - Switched the default binning for three-point correlations to LogSAS, rather than LogRUV. (#166)
+- Changed estimate_cov with method='shot' to only return the diagonal, rather than gratuitously
+  making a full, mostly empty diagonal matrix. (#166)
 
 
 Performance improvements
@@ -42,6 +44,8 @@ Performance improvements
 - Reduced the compiled library size, and refactored things so the new correlation types would not
   add nearly as much to the compiled size as they would have previously. (#157)
 - Made a small (~5-10%) improvment in speed of most 2pt correlation runs. (#157)
+- Made variance calculations more efficient when using var_method='shot'.  Now it doesn't
+  gratuitiously make a full covariance matrix, only to then extract the diagonal. (#166)
 
 
 New features

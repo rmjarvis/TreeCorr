@@ -668,9 +668,8 @@ def test_gg_jk():
     np.testing.assert_allclose(gg2.varxip, gg1.varxip, rtol=1.e-2*tol_factor)
     np.testing.assert_allclose(gg2.varxim, gg1.varxim, rtol=1.e-2*tol_factor)
 
-    # Can get this as a (diagonal) covariance matrix using estimate_cov
-    np.testing.assert_allclose(gg2.estimate_cov('shot'),
-                               np.diag(np.concatenate([gg2.varxip, gg2.varxim])))
+    # estimate_cov with var_method='shot' returns just the diagonal.
+    np.testing.assert_allclose(gg2.estimate_cov('shot'), np.concatenate([gg2.varxip, gg2.varxim]))
 
     with assert_raises(ValueError):
         gg2.build_cov_design_matrix('shot')
@@ -703,9 +702,8 @@ def test_gg_jk():
     t1 = time.time()
     print('Time to calculate jackknife covariance = ',t1-t0)
 
-    # Can also get the shot covariance matrix using estimate_cov
-    np.testing.assert_allclose(gg3.estimate_cov('shot'),
-                               np.diag(np.concatenate([gg2.varxip, gg2.varxim])))
+    # estimate_cov with var_method='shot' returns just the diagonal.
+    np.testing.assert_allclose(gg3.estimate_cov('shot'), np.concatenate([gg2.varxip, gg2.varxim]))
 
     # And can even get the jackknife covariance from a run that used var_method='shot'
     np.testing.assert_allclose(gg2.estimate_cov('jackknife'), gg3.cov)
@@ -1060,9 +1058,9 @@ def test_ng_jk():
     np.testing.assert_allclose(ng2.xi, ng1.xi, rtol=3.e-2*tol_factor)
     np.testing.assert_allclose(ng2.varxi, ng1.varxi, rtol=1.e-2*tol_factor)
 
-    # Can get this as a (diagonal) covariance matrix using estimate_cov
-    np.testing.assert_allclose(ng2.estimate_cov('shot'), np.diag(ng2.varxi))
-    np.testing.assert_allclose(ng1.estimate_cov('shot'), np.diag(ng1.varxi))
+    # estimate_cov with var_method='shot' returns just the diagonal.
+    np.testing.assert_allclose(ng2.estimate_cov('shot'), ng2.varxi)
+    np.testing.assert_allclose(ng1.estimate_cov('shot'), ng1.varxi)
 
     # Now run with jackknife variance estimate.  Should be much better.
     ng3 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife',
@@ -1433,9 +1431,9 @@ def test_nn_jk():
     np.testing.assert_allclose(xib2, xib1, rtol=3.e-2*tol_factor)
     np.testing.assert_allclose(varxib2, varxib1, rtol=2.e-2*tol_factor)
 
-    # Can get this as a (diagonal) covariance matrix using estimate_cov
-    np.testing.assert_allclose(nn2.estimate_cov('shot'), np.diag(varxib2))
-    np.testing.assert_allclose(nn1.estimate_cov('shot'), np.diag(varxib1))
+    # estimate_cov with var_method='shot' returns just the diagonal.
+    np.testing.assert_allclose(nn2.estimate_cov('shot'), varxib2)
+    np.testing.assert_allclose(nn1.estimate_cov('shot'), varxib1)
 
     # Now run with jackknife variance estimate.  Should be much better.
     nn3 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., var_method='jackknife')

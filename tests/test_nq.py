@@ -1081,9 +1081,9 @@ def test_jk():
     np.testing.assert_allclose(nq2.xi, nq1.xi, rtol=1.e-2)
     np.testing.assert_allclose(nq2.varxi, nq1.varxi, rtol=1.e-2)
 
-    # Can get this as a (diagonal) covariance matrix using estimate_cov
-    np.testing.assert_allclose(nq2.estimate_cov('shot'), np.diag(nq2.varxi))
-    np.testing.assert_allclose(nq1.estimate_cov('shot'), np.diag(nq1.varxi))
+    # estimate_cov with var_method='shot' returns just the diagonal.
+    np.testing.assert_allclose(nq2.estimate_cov('shot'), nq2.varxi)
+    np.testing.assert_allclose(nq1.estimate_cov('shot'), nq1.varxi)
 
     # Now try jackknife variance estimate.
     t0 = time.time()

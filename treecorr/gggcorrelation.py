@@ -181,12 +181,14 @@ class GGGCorrelation(Corr3):
         self.gam1i = np.zeros(shape, dtype=float)
         self.gam2i = np.zeros(shape, dtype=float)
         self.gam3i = np.zeros(shape, dtype=float)
-        self.vargam0 = np.zeros(shape, dtype=float)
-        self.vargam1 = np.zeros(shape, dtype=float)
-        self.vargam2 = np.zeros(shape, dtype=float)
-        self.vargam3 = np.zeros(shape, dtype=float)
         self.weight = np.zeros(shape, dtype=float)
         self.ntri = np.zeros(shape, dtype=float)
+        self._vargam0 = None
+        self._vargam1 = None
+        self._vargam2 = None
+        self._vargam3 = None
+        self._cov = None
+        self._var_num = 0
         self.logger.debug('Finished building GGGCorr')
 
     @property
@@ -459,16 +461,38 @@ class GGGCorrelation(Corr3):
         mask1 = self.weight != 0
         mask2 = self.weight == 0
         self._var_num = 4 * varg1 * varg2 * varg3
-        self.cov = self.estimate_cov(self.var_method)
-        # Note: diagonal should be very close to pure real.  So ok to just copy real part.
-        diag = self.cov.diagonal()
-        # This should never trigger.  If you find this assert to fail, please post an
-        # issue about it describing your use case that caused it to fail.
-        assert np.sum(diag.imag**2) <= 1.e-8 * np.sum(diag.real**2)
-        self.vargam0.ravel()[:] = self.cov.diagonal()[0:self._nbins].real
-        self.vargam1.ravel()[:] = self.cov.diagonal()[self._nbins:2*self._nbins].real
-        self.vargam2.ravel()[:] = self.cov.diagonal()[2*self._nbins:3*self._nbins].real
-        self.vargam3.ravel()[:] = self.cov.diagonal()[3*self._nbins:4*self._nbins].real
+
+    @property
+    def vargam0(self):
+        if self._vargam0 is None:
+            self._vargam0 = np.zeros(self.data_shape)
+            if self._var_num != 0:
+                self._vargam0.ravel()[:] = self.cov_diag[0:self._nbins].real
+        return self._vargam0
+
+    @property
+    def vargam1(self):
+        if self._vargam1 is None:
+            self._vargam1 = np.zeros(self.data_shape)
+            if self._var_num != 0:
+                self._vargam1.ravel()[:] = self.cov_diag[self._nbins:2*self._nbins].real
+        return self._vargam1
+
+    @property
+    def vargam2(self):
+        if self._vargam2 is None:
+            self._vargam2 = np.zeros(self.data_shape)
+            if self._var_num != 0:
+                self._vargam2.ravel()[:] = self.cov_diag[2*self._nbins:3*self._nbins].real
+        return self._vargam2
+
+    @property
+    def vargam3(self):
+        if self._vargam3 is None:
+            self._vargam3 = np.zeros(self.data_shape)
+            if self._var_num != 0:
+                self._vargam3.ravel()[:] = self.cov_diag[3*self._nbins:4*self._nbins].real
+        return self._vargam3
 
     def _clear(self):
         """Clear the data vectors
@@ -481,10 +505,6 @@ class GGGCorrelation(Corr3):
         self.gam2i[:,:,:] = 0.
         self.gam3r[:,:,:] = 0.
         self.gam3i[:,:,:] = 0.
-        self.vargam0[:,:,:] = 0.
-        self.vargam1[:,:,:] = 0.
-        self.vargam2[:,:,:] = 0.
-        self.vargam3[:,:,:] = 0.
         self.meand1[:,:,:] = 0.
         self.meanlogd1[:,:,:] = 0.
         self.meand2[:,:,:] = 0.
@@ -496,6 +516,11 @@ class GGGCorrelation(Corr3):
             self.meanv[:,:,:] = 0.
         self.weight[:,:,:] = 0.
         self.ntri[:,:,:] = 0.
+        self._vargam0 = None
+        self._vargam1 = None
+        self._vargam2 = None
+        self._vargam3 = None
+        self._cov = None
 
     def __iadd__(self, other):
         """Add a second `GGGCorrelation`'s data to this one.
@@ -835,10 +860,10 @@ class GGGCorrelation(Corr3):
         self.gam3r = data['gam3r'].reshape(s)
         self.gam3i = data['gam3i'].reshape(s)
         # Read old output files without error.
-        self.vargam0 = data['sigma_gam0'].reshape(s)**2
-        self.vargam1 = data['sigma_gam1'].reshape(s)**2
-        self.vargam2 = data['sigma_gam2'].reshape(s)**2
-        self.vargam3 = data['sigma_gam3'].reshape(s)**2
+        self._vargam0 = data['sigma_gam0'].reshape(s)**2
+        self._vargam1 = data['sigma_gam1'].reshape(s)**2
+        self._vargam2 = data['sigma_gam2'].reshape(s)**2
+        self._vargam3 = data['sigma_gam3'].reshape(s)**2
         self.weight = data['weight'].reshape(s)
         self.ntri = data['ntri'].reshape(s)
         self.coords = params['coords'].strip()

@@ -569,9 +569,28 @@ class Corr2(object):
 
     @property
     def cov(self):
+        """The estimated covariance matrix
+        """
         if self._cov is None:
             self._cov = self.estimate_cov(self.var_method)
-        return self._cov
+        if self._cov.ndim == 1:
+            return np.diag(self._cov)
+        else:
+            return self._cov
+
+    @property
+    def cov_diag(self):
+        """A possibly more efficient way to access just the diagonal of the covariance matrix.
+
+        If var_method == 'shot', then this won't make the full covariance matrix, just to
+        then pull out the diagonal.
+        """
+        if self._cov is None:
+            self._cov = self.estimate_cov(self.var_method)
+        if self._cov.ndim == 1:
+            return self._cov
+        else:
+            return self._cov.diagonal()
 
     def __getstate__(self):
         d = self.__dict__.copy()
@@ -836,8 +855,9 @@ class Corr2(object):
 
             - 'shot' = The variance based on "shot noise" only.  This includes the Poisson
               counts of points for N statistics, shape noise for G statistics, and the observed
-              scatter in the values for K statistics.  In this case, the returned covariance
-              matrix will be diagonal, since there is no way to estimate the off-diagonal terms.
+              scatter in the values for K statistics.  In this case, the returned value will
+              only be the diagonal.  Use np.diagonal(cov) if you actually want a full
+              matrix from this.
             - 'jackknife' = A jackknife estimate of the covariance matrix based on the scatter
               in the measurement when excluding one patch at a time.
             - 'sample' = An estimate based on the sample covariance of a set of samples,
@@ -1355,8 +1375,8 @@ def estimate_multi_cov(corrs, method, *, func=None, comm=None):
 
         - 'shot' = The variance based on "shot noise" only.  This includes the Poisson
           counts of points for N statistics, shape noise for G statistics, and the observed
-          scatter in the values for K statistics.  In this case, the returned covariance
-          matrix will be diagonal, since there is no way to estimate the off-diagonal terms.
+          scatter in the values for K statistics.  In this case, the returned value will only
+          be the diagonal.  Use np.diagonal(cov) if you actually want a full matrix from this.
         - 'jackknife' = A jackknife estimate of the covariance matrix based on the scatter
           in the measurement when excluding one patch at a time.
         - 'sample' = An estimate based on the sample covariance of a set of samples,
@@ -1571,7 +1591,7 @@ def _cov_shot(corrs):
         # Note: if w=0 anywhere, leave v=0 there, rather than divide by zero.
         v[mask1] = c._var_num / v[mask1]
         vlist.append(v)
-    return np.diag(np.concatenate(vlist))  # Return as a covariance matrix
+    return np.concatenate(vlist)  # Return as just the diagonal
 
 def _check_patch_nums(corrs, name):
     # Figure out what pairs (i,j) are possible for these correlation functions.

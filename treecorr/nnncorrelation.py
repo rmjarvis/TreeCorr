@@ -153,6 +153,8 @@ class NNNCorrelation(Corr3):
         self._write_drr = None
         self._write_rdd = None
         self.zeta = None
+        self._cov = None
+        self._var_num = 0
         self.logger.debug('Finished building NNNCorr')
 
     @property
@@ -225,6 +227,7 @@ class NNNCorrelation(Corr3):
         ret._corr = None
         ret._rrr = ret._drr = ret._rdd = None
         ret._write_rrr = ret._write_drr = ret._write_rdd = None
+        ret._cov = None
         ret._logger_name = None
         # This override is really the main advantage of using this:
         setattr(ret, '_nonzero', False)
@@ -438,6 +441,7 @@ class NNNCorrelation(Corr3):
         self.weight[:,:,:] = 0.
         self.ntri[:,:,:] = 0.
         self.tot = 0.
+        self._cov = None
 
     def _sum(self, others):
         # Equivalent to the operation of:
@@ -750,8 +754,8 @@ class NNNCorrelation(Corr3):
                 self.__dict__.pop('_ok',None)  # If it was already made, it will need to be redone.
 
         # Now that it's all set up, calculate the covariance and set varzeta to the diagonal.
-        self.cov = self.estimate_cov(self.var_method)
-        self.varzeta = self.cov.diagonal().reshape(self.zeta.shape)
+        self._cov = self.estimate_cov(self.var_method)
+        self.varzeta = self.cov_diag.reshape(self.zeta.shape)
         return self.zeta, self.varzeta
 
     def _calculate_xi_from_pairs(self, pairs):

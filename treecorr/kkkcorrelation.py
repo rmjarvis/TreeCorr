@@ -148,9 +148,11 @@ class KKKCorrelation(Corr3):
 
         shape = self.data_shape
         self.zeta = np.zeros(shape, dtype=float)
-        self.varzeta = np.zeros(shape, dtype=float)
         self.weight = np.zeros(shape, dtype=float)
         self.ntri = np.zeros(shape, dtype=float)
+        self._varzeta = None
+        self._cov = None
+        self._var_num = 0
         self.logger.debug('Finished building KKKCorr')
 
     @property
@@ -388,14 +390,19 @@ class KKKCorrelation(Corr3):
         """
         self._finalize()
         self._var_num = vark1 * vark2 * vark3
-        self.cov = self.estimate_cov(self.var_method)
-        self.varzeta.ravel()[:] = self.cov.diagonal()
+
+    @property
+    def varzeta(self):
+        if self._varzeta is None:
+            self._varzeta = np.zeros(self.data_shape)
+            if self._var_num != 0:
+                self._varzeta.ravel()[:] = self.cov_diag
+        return self._varzeta
 
     def _clear(self):
         """Clear the data vectors
         """
         self.zeta[:,:,:] = 0.
-        self.varzeta[:,:,:] = 0.
         self.meand1[:,:,:] = 0.
         self.meanlogd1[:,:,:] = 0.
         self.meand2[:,:,:] = 0.
@@ -407,6 +414,8 @@ class KKKCorrelation(Corr3):
             self.meanv[:,:,:] = 0.
         self.weight[:,:,:] = 0.
         self.ntri[:,:,:] = 0.
+        self._varzeta = None
+        self._cov = None
 
     def __iadd__(self, other):
         """Add a second `KKKCorrelation`'s data to this one.
@@ -683,7 +692,7 @@ class KKKCorrelation(Corr3):
         else:
             self.meanu = data['meanphi'].reshape(s)
         self.zeta = data['zeta'].reshape(s)
-        self.varzeta = data['sigma_zeta'].reshape(s)**2
+        self._varzeta = data['sigma_zeta'].reshape(s)**2
         self.weight = data['weight'].reshape(s)
         self.ntri = data['ntri'].reshape(s)
         self.coords = params['coords'].strip()

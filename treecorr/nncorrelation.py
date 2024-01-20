@@ -589,7 +589,7 @@ class NNCorrelation(Corr2):
 
         # Now that it's all set up, calculate the covariance and set varxi to the diagonal.
         self._cov = self.estimate_cov(self.var_method)
-        self.varxi = self.cov.diagonal()
+        self.varxi = self.cov_diag
         return self.xi, self.varxi
 
     def _calculate_xi_from_pairs(self, pairs):

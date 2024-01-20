@@ -306,7 +306,7 @@ class QQCorrelation(Corr2):
         if self._varxip is None:
             self._varxip = np.zeros_like(self.rnom, dtype=float)
             if self._var_num != 0:
-                self._varxip.ravel()[:] = self.cov.diagonal()[:self._nbins]
+                self._varxip.ravel()[:] = self.cov_diag[:self._nbins]
         return self._varxip
 
     @property
@@ -314,7 +314,7 @@ class QQCorrelation(Corr2):
         if self._varxim is None:
             self._varxim = np.zeros_like(self.rnom, dtype=float)
             if self._var_num != 0:
-                self._varxim.ravel()[:] = self.cov.diagonal()[self._nbins:]
+                self._varxim.ravel()[:] = self.cov_diag[self._nbins:]
         return self._varxim
 
     def _clear(self):

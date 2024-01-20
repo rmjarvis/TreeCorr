@@ -257,7 +257,7 @@ class NVCorrelation(Corr2):
         if self._raw_varxi is None:
             self._raw_varxi = np.zeros_like(self.rnom, dtype=float)
             if self._var_num != 0:
-                self._raw_varxi.ravel()[:] = self.cov.diagonal()
+                self._raw_varxi.ravel()[:] = self.cov_diag
         return self._raw_varxi
 
     @property
@@ -417,7 +417,7 @@ class NVCorrelation(Corr2):
 
                 self._cov = self.estimate_cov(self.var_method)
                 self._varxi = np.zeros_like(self.rnom, dtype=float)
-                self._varxi.ravel()[:] = self.cov.diagonal()
+                self._varxi.ravel()[:] = self.cov_diag
             else:
                 self._varxi = self.raw_varxi + rv.varxi
         else:

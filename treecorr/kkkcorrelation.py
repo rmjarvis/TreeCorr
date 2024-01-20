@@ -856,7 +856,7 @@ class KKKCorrelation(Corr3):
         if self.bin_type == 'LogRUV':
             self.meanu = data['meanu'].reshape(s)
             self.meanv = data['meanv'].reshape(s)
-        else:
+        elif self.bin_type == 'LogSAS':
             self.meanu = data['meanphi'].reshape(s)
         if self.bin_type == 'LogMultipole':
             self.zetar = data['zeta_re'].reshape(s)

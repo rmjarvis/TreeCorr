@@ -254,7 +254,7 @@ class NNNCorrelation(Corr3):
         if self.bin_type == 'LogMultipole':
             ret.weighti = self._zero_array
         else:
-            self.weighti = np.array([])
+            ret.weighti = np.array([])
         ret.ntri = self._zero_array
         ret.tot = tot
         ret._corr = None

@@ -3450,6 +3450,9 @@ def test_ggg_logsas():
     with assert_raises(ValueError):
         gggs = gggm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins, phi_units='deg',
                           bin_size=0.01, nbins=None)
+    # Error if non-Multipole calls toSAS
+    with assert_raises(TypeError):
+        gggs.toSAS()
 
     # Check that we get the same result using the corr3 function:
     cat.write(os.path.join('data','ggg_data_logsas.dat'))
@@ -4082,6 +4085,48 @@ def test_direct_logmultipole_auto():
         np.testing.assert_allclose(data['gam3r'], np.real(ggg.gam3.flatten()), rtol=1.e-4)
         np.testing.assert_allclose(data['gam3i'], np.imag(ggg.gam3.flatten()), rtol=1.e-4, atol=1.e-8)
 
+    # Test I/O
+    ascii_name = 'output/ggg_ascii_logmultipole.txt'
+    ggg.write(ascii_name, precision=16)
+    ggg3 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nbins, max_n=max_n,
+                                   bin_type='LogMultipole')
+    ggg3.read(ascii_name)
+    np.testing.assert_allclose(ggg3.ntri, ggg.ntri)
+    np.testing.assert_allclose(ggg3.weight, ggg.weight)
+    np.testing.assert_allclose(ggg3.gam0, ggg.gam0)
+    np.testing.assert_allclose(ggg3.gam1, ggg.gam1)
+    np.testing.assert_allclose(ggg3.gam2, ggg.gam2)
+    np.testing.assert_allclose(ggg3.gam3, ggg.gam3)
+    np.testing.assert_allclose(ggg3.meand1, ggg.meand1)
+    np.testing.assert_allclose(ggg3.meand2, ggg.meand2)
+    np.testing.assert_allclose(ggg3.meand3, ggg.meand3)
+    np.testing.assert_allclose(ggg3.meanlogd1, ggg.meanlogd1)
+    np.testing.assert_allclose(ggg3.meanlogd2, ggg.meanlogd2)
+    np.testing.assert_allclose(ggg3.meanlogd3, ggg.meanlogd3)
+
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        fits_name = 'output/ggg_fits_logmultipole.fits'
+        ggg.write(fits_name)
+        ggg4 = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nbins, max_n=max_n,
+                                       bin_type='LogMultipole')
+        ggg4.read(fits_name)
+        np.testing.assert_allclose(ggg4.ntri, ggg.ntri)
+        np.testing.assert_allclose(ggg4.weight, ggg.weight)
+        np.testing.assert_allclose(ggg3.gam0, ggg.gam0)
+        np.testing.assert_allclose(ggg3.gam1, ggg.gam1)
+        np.testing.assert_allclose(ggg3.gam2, ggg.gam2)
+        np.testing.assert_allclose(ggg3.gam3, ggg.gam3)
+        np.testing.assert_allclose(ggg4.meand1, ggg.meand1)
+        np.testing.assert_allclose(ggg4.meand2, ggg.meand2)
+        np.testing.assert_allclose(ggg4.meand3, ggg.meand3)
+        np.testing.assert_allclose(ggg4.meanlogd1, ggg.meanlogd1)
+        np.testing.assert_allclose(ggg4.meanlogd2, ggg.meanlogd2)
+        np.testing.assert_allclose(ggg4.meanlogd3, ggg.meanlogd3)
+
 @timer
 def test_direct_logmultipole_spherical():
     # Repeat in spherical coords
@@ -4383,6 +4428,9 @@ def test_direct_logmultipole_cross():
     np.testing.assert_allclose(ggg.gam2, true_gam2_123, rtol=1.e-4)
     np.testing.assert_allclose(ggg.gam3, true_gam3_123, rtol=1.e-4)
 
+    # No tests of accuracy yet, but make sure patch-based covariance works.
+    cov = ggg.estimate_cov('sample')
+
     with assert_raises(ValueError):
         ggg.process(cat1, cat2, cat3, ordered=False)
     with assert_raises(ValueError):
@@ -4501,6 +4549,9 @@ def test_direct_logmultipole_cross12():
     np.testing.assert_allclose(ggg.gam1, true_gam1_122, rtol=1.e-4)
     np.testing.assert_allclose(ggg.gam2, true_gam2_122, rtol=1.e-4)
     np.testing.assert_allclose(ggg.gam3, true_gam3_122, rtol=1.e-4)
+
+    # No tests of accuracy yet, but make sure patch-based covariance works.
+    cov = ggg.estimate_cov('sample')
 
     with assert_raises(ValueError):
         ggg.process(cat2, cat1, cat2, ordered=True)

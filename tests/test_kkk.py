@@ -2092,6 +2092,9 @@ def test_kkk_logsas():
     with assert_raises(ValueError):
         kkks = kkkm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins, phi_units='deg',
                           bin_size=0.2, nbins=None)
+    # Error if non-Multipole calls toSAS
+    with assert_raises(TypeError):
+        kkks.toSAS()
 
     # Check that we get the same result using the corr3 functin:
     cat.write(os.path.join('data','kkk_data_logsas.dat'))
@@ -2261,6 +2264,43 @@ def test_direct_logmultipole_auto():
         np.testing.assert_allclose(data['weight_im'], np.imag(kkk.weight.flatten()), rtol=1.e-4, atol=1.e-8)
         np.testing.assert_allclose(data['zeta_re'], np.real(kkk.zeta.flatten()), rtol=1.e-4)
         np.testing.assert_allclose(data['zeta_im'], np.imag(kkk.zeta.flatten()), rtol=1.e-4, atol=1.e-8)
+
+    # Test I/O
+    ascii_name = 'output/kkk_ascii_logmultipole.txt'
+    kkk.write(ascii_name, precision=16)
+    kkk3 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nbins, max_n=max_n,
+                                   bin_type='LogMultipole')
+    kkk3.read(ascii_name)
+    np.testing.assert_allclose(kkk3.ntri, kkk.ntri)
+    np.testing.assert_allclose(kkk3.weight, kkk.weight)
+    np.testing.assert_allclose(kkk3.zeta, kkk.zeta)
+    np.testing.assert_allclose(kkk3.meand1, kkk.meand1)
+    np.testing.assert_allclose(kkk3.meand2, kkk.meand2)
+    np.testing.assert_allclose(kkk3.meand3, kkk.meand3)
+    np.testing.assert_allclose(kkk3.meanlogd1, kkk.meanlogd1)
+    np.testing.assert_allclose(kkk3.meanlogd2, kkk.meanlogd2)
+    np.testing.assert_allclose(kkk3.meanlogd3, kkk.meanlogd3)
+
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        fits_name = 'output/kkk_fits_logmultipole.fits'
+        kkk.write(fits_name)
+        kkk4 = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nbins, max_n=max_n,
+                                       bin_type='LogMultipole')
+        kkk4.read(fits_name)
+        np.testing.assert_allclose(kkk4.ntri, kkk.ntri)
+        np.testing.assert_allclose(kkk4.weight, kkk.weight)
+        np.testing.assert_allclose(kkk3.zeta, kkk.zeta)
+        np.testing.assert_allclose(kkk4.meand1, kkk.meand1)
+        np.testing.assert_allclose(kkk4.meand2, kkk.meand2)
+        np.testing.assert_allclose(kkk4.meand3, kkk.meand3)
+        np.testing.assert_allclose(kkk4.meanlogd1, kkk.meanlogd1)
+        np.testing.assert_allclose(kkk4.meanlogd2, kkk.meanlogd2)
+        np.testing.assert_allclose(kkk4.meanlogd3, kkk.meanlogd3)
+
 
 @timer
 def test_direct_logmultipole_spherical():
@@ -2550,11 +2590,14 @@ def test_direct_logmultipole_cross():
     np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4)
 
     # Split into patches to test the list-based version of the code.
-    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=10)
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=8)
 
     kkk.process(cat1, cat2, cat3)
     np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-4)
+
+    # No tests of accuracy yet, but make sure patch-based covariance works.
+    cov = kkk.estimate_cov('sample')
 
     with assert_raises(ValueError):
         kkk.process(cat1, cat2, cat3, ordered=False)
@@ -2697,6 +2740,9 @@ def test_direct_logmultipole_cross12():
     np.testing.assert_array_equal(kkk.ntri, true_ntri_122)
     np.testing.assert_allclose(kkk.weight, true_weight_122, rtol=1.e-5 * tol_factor)
     np.testing.assert_allclose(kkk.zeta, true_zeta_122, rtol=1.e-4 * tol_factor)
+
+    # No tests of accuracy yet, but make sure patch-based covariance works.
+    cov = kkk.estimate_cov('sample')
 
     with assert_raises(ValueError):
         kkk.process(cat2, cat1, cat2, ordered=True)

@@ -1286,6 +1286,12 @@ def test_varxi():
     cat = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
     gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=10., max_sep=100., sep_units='arcmin',
                                 verbose=1)
+
+    # Before running process, varxi and cov area allowed, but all 0.
+    np.testing.assert_array_equal(gg.cov, 0)
+    np.testing.assert_array_equal(gg.varxip, 0)
+    np.testing.assert_array_equal(gg.varxim, 0)
+
     gg.process(cat)
     print('single run:')
     print('max relerr for xip = ',np.max(np.abs((gg.varxip - var_xip)/var_xip)))

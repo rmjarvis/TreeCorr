@@ -2186,6 +2186,14 @@ def test_vargam_logruv():
     ggg = treecorr.GGGCorrelation(bin_size=0.5, min_sep=30., max_sep=100.,
                                   sep_units='arcmin', nubins=3, nvbins=3, verbose=1,
                                   bin_type='LogRUV')
+
+    # Before running process, vargam and cov area allowed, but all 0.
+    np.testing.assert_array_equal(ggg.cov, 0)
+    np.testing.assert_array_equal(ggg.vargam0, 0)
+    np.testing.assert_array_equal(ggg.vargam1, 0)
+    np.testing.assert_array_equal(ggg.vargam2, 0)
+    np.testing.assert_array_equal(ggg.vargam3, 0)
+
     ggg.process(cat)
     print('single run:')
     print('max relerr for gam0r = ',np.max(np.abs((ggg.vargam0 - var_gam0r)/var_gam0r)))
@@ -2194,6 +2202,8 @@ def test_vargam_logruv():
     print('ratio = ',ggg.vargam0 / var_gam0i)
     np.testing.assert_allclose(ggg.vargam0, var_gam0r, rtol=0.3)
     np.testing.assert_allclose(ggg.vargam0, var_gam0i, rtol=0.3)
+    n = len(ggg.vargam0.ravel())
+    np.testing.assert_allclose(ggg.cov.diagonal()[0:n], ggg.vargam0.ravel())
 
     print('max relerr for gam1r = ',np.max(np.abs((ggg.vargam1 - var_gam1r)/var_gam1r)))
     print('ratio = ',ggg.vargam1 / var_gam1r)
@@ -2201,6 +2211,7 @@ def test_vargam_logruv():
     print('ratio = ',ggg.vargam1 / var_gam1i)
     np.testing.assert_allclose(ggg.vargam1, var_gam1r, rtol=0.3)
     np.testing.assert_allclose(ggg.vargam1, var_gam1i, rtol=0.3)
+    np.testing.assert_allclose(ggg.cov.diagonal()[n:2*n], ggg.vargam1.ravel())
 
     print('max relerr for gam2r = ',np.max(np.abs((ggg.vargam2 - var_gam2r)/var_gam2r)))
     print('ratio = ',ggg.vargam2 / var_gam2r)
@@ -2208,6 +2219,7 @@ def test_vargam_logruv():
     print('ratio = ',ggg.vargam2 / var_gam2i)
     np.testing.assert_allclose(ggg.vargam2, var_gam2r, rtol=0.3)
     np.testing.assert_allclose(ggg.vargam2, var_gam2i, rtol=0.3)
+    np.testing.assert_allclose(ggg.cov.diagonal()[2*n:3*n], ggg.vargam2.ravel())
 
     print('max relerr for gam3r = ',np.max(np.abs((ggg.vargam3 - var_gam3r)/var_gam3r)))
     print('ratio = ',ggg.vargam3 / var_gam3r)
@@ -2215,6 +2227,7 @@ def test_vargam_logruv():
     print('ratio = ',ggg.vargam3 / var_gam3i)
     np.testing.assert_allclose(ggg.vargam3, var_gam3r, rtol=0.3)
     np.testing.assert_allclose(ggg.vargam3, var_gam3i, rtol=0.3)
+    np.testing.assert_allclose(ggg.cov.diagonal()[3*n:], ggg.vargam3.ravel())
 
     var_map = ggg.calculateMap3()[8]
     print('max relerr for map3 = ',np.max(np.abs((var_map - var_map3)/var_map3)))

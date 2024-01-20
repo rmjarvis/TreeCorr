@@ -148,10 +148,16 @@ def test_kkk_jk():
     kkk = treecorr.KKKCorrelation(nbins=3, min_sep=30., max_sep=100.,
                                   min_u=0.9, max_u=1.0, nubins=1,
                                   min_v=0.0, max_v=0.1, nvbins=1, rng=rng, bin_type='LogRUV')
+
+    # Before running process, varzeta and cov area allowed, but all 0.
+    np.testing.assert_array_equal(kkk.cov, 0)
+    np.testing.assert_array_equal(kkk.varzeta, 0)
+
     kkk.process(cat)
     print(kkk.ntri.ravel())
     print(kkk.zeta.ravel())
     print(kkk.varzeta.ravel())
+    np.testing.assert_allclose(kkk.cov.diagonal(), kkk.varzeta.ravel())
 
     kkkp = kkk.copy()
     catp = treecorr.Catalog(x=x, y=y, k=k, npatch=npatch)
@@ -1452,6 +1458,7 @@ def test_brute_jk():
     print('KKK: treecorr jackknife varzeta = ',kkk.varzeta.ravel())
     print('KKK: direct jackknife varzeta = ',varzeta)
     np.testing.assert_allclose(kkk.varzeta.ravel(), varzeta)
+    np.testing.assert_allclose(kkk.cov.diagonal(), kkk.varzeta.ravel())
 
     # Now GGG
     ggg1 = treecorr.GGGCorrelation(nbins=3, min_sep=100., max_sep=300., brute=True,
@@ -1490,6 +1497,10 @@ def test_brute_jk():
         ggg_gam3_list.append(ggg1.gam3.ravel())
         ggg_map3_list.append(ggg1.calculateMap3()[0])
 
+    # cov isn't built until we ask for either it or varxi.
+    # For coverage, access via cov first this time.
+    cov = ggg.cov
+
     ggg_gam0_list = np.array(ggg_gam0_list)
     vargam0 = np.diagonal(np.cov(ggg_gam0_list.T, bias=True)) * (len(ggg_gam0_list)-1)
     print('GGG: treecorr jackknife vargam0 = ',ggg.vargam0.ravel())
@@ -1510,6 +1521,13 @@ def test_brute_jk():
     print('GGG: treecorr jackknife vargam3 = ',ggg.vargam3.ravel())
     print('GGG: direct jackknife vargam3 = ',vargam3)
     np.testing.assert_allclose(ggg.vargam3.ravel(), vargam3)
+
+    # These are the same as the diagonal of the covariance matrix.
+    n = len(ggg.gam0.ravel())
+    np.testing.assert_allclose(ggg.vargam0.ravel(), cov.diagonal()[0:n])
+    np.testing.assert_allclose(ggg.vargam1.ravel(), cov.diagonal()[n:2*n])
+    np.testing.assert_allclose(ggg.vargam2.ravel(), cov.diagonal()[2*n:3*n])
+    np.testing.assert_allclose(ggg.vargam3.ravel(), cov.diagonal()[3*n:])
 
     ggg_map3_list = np.array(ggg_map3_list)
     varmap3 = np.diagonal(np.cov(ggg_map3_list.T, bias=True)) * (len(ggg_map3_list)-1)

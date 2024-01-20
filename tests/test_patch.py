@@ -1068,13 +1068,20 @@ def test_ng_jk():
     t0 = time.time()
     ng3.process(cat1p, cat2p)
     t1 = time.time()
+
+    # cov isn't built until we ask for either it or varxi.
+    # For coverage, access via cov first this time.
+    cov = ng3.cov
+
     print('Time for jackknife processing = ',t1-t0)
     print('xi = ',ng3.xi)
     print('varxi = ',ng3.varxi)
+    print('cov.diag = ',ng3.cov.diagonal())
     print('ratio = ',ng3.varxi / var_xi)
     np.testing.assert_allclose(ng3.weight, ng2.weight)
     np.testing.assert_allclose(ng3.xi, ng2.xi)
     np.testing.assert_allclose(np.log(ng3.varxi), np.log(var_xi), atol=0.4*tol_factor)
+    np.testing.assert_allclose(np.log(ng3.cov.diagonal()), np.log(var_xi), atol=0.4*tol_factor)
 
     # Check using estimate_cov
     t0 = time.time()

@@ -135,8 +135,8 @@ class Corr3(object):
           for both d2 and d3 from log(min_sep) .. log(max_sep).  The phi values are binned
           linearly from min_phi .. max_phi.  This is the default.
         - 'LogMultipole' uses the multipole description given above. The bin steps will be uniform
-          in log(d) for both d2 and d3 from log(min_sep) .. log(max_sep), and there are values
-          for -max_n <= n <= max_n.
+          in log(d) for both d2 and d3 from log(min_sep) .. log(max_sep), and the n value range
+          from -max_n .. max_n, inclusive.
 
     Parameters:
         config (dict):      A configuration dict that can be used to pass in the below kwargs if
@@ -176,21 +176,6 @@ class Corr3(object):
                             means to use a bin_slop that gives a maximum error of 10% on any bin,
                             which has been found to yield good results for most application.
 
-        nubins (int):       Analogous to nbins for the u values when bin_type=LogRUV.  (The default
-                            is to calculate from ubin_size = bin_size, min_u = 0, max_u = 1, but
-                            this can be overridden by specifying up to 3 of these four parametes.)
-        ubin_size (float):  Analogous to bin_size for the u values. (default: bin_size)
-        min_u (float):      Analogous to min_sep for the u values. (default: 0)
-        max_u (float):      Analogous to max_sep for the u values. (default: 1)
-
-        nvbins (int):       Analogous to nbins for the positive v values when bin__type=LogRUV.
-                            (The default is to calculate from vbin_size = bin_size, min_v = 0,
-                            max_v = 1, but this can be overridden by specifying up to 3 of these
-                            four parametes.)
-        vbin_size (float):  Analogous to bin_size for the v values. (default: bin_size)
-        min_v (float):      Analogous to min_sep for the positive v values. (default: 0)
-        max_v (float):      Analogous to max_sep for the positive v values. (default: 1)
-
         nphi_bins (int):    Analogous to nbins for the phi values when bin_type=LogSAS.  (The
                             default is to calculate from phi_bin_size = bin_size, min_phi = 0,
                             max_u = np.pi, but this can be overridden by specifying up to 3 of
@@ -205,6 +190,21 @@ class Corr3(object):
 
         max_n (int):        The maximum value of n to store for the multipole binning.
                             (required if bin_type=LogMultipole)
+
+        nubins (int):       Analogous to nbins for the u values when bin_type=LogRUV.  (The default
+                            is to calculate from ubin_size = bin_size, min_u = 0, max_u = 1, but
+                            this can be overridden by specifying up to 3 of these four parametes.)
+        ubin_size (float):  Analogous to bin_size for the u values. (default: bin_size)
+        min_u (float):      Analogous to min_sep for the u values. (default: 0)
+        max_u (float):      Analogous to max_sep for the u values. (default: 1)
+
+        nvbins (int):       Analogous to nbins for the positive v values when bin__type=LogRUV.
+                            (The default is to calculate from vbin_size = bin_size, min_v = 0,
+                            max_v = 1, but this can be overridden by specifying up to 3 of these
+                            four parametes.)
+        vbin_size (float):  Analogous to bin_size for the v values. (default: bin_size)
+        min_v (float):      Analogous to min_sep for the positive v values. (default: 0)
+        max_v (float):      Analogous to max_sep for the positive v values. (default: 1)
 
         brute (bool):       Whether to use the "brute force" algorithm.  (default: False) Options
                             are:
@@ -552,7 +552,6 @@ class Corr3(object):
                 if key in self.config:
                     raise TypeError("%s is invalid for bin_type=LogMultipole"%key)
             self._ro._bintype = _treecorr.LogMultipole
-            # Note: we refer to phi as u in the _ro namespace to make function calls easier.
             if self.config.get('max_n', None) is None:
                 raise TypeError("Missing required parameter max_n")
             self._ro.nubins = int(self.config['max_n'])

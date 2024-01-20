@@ -1247,6 +1247,9 @@ struct BinTypeHelper<LogSAS>
 template <>
 struct BinTypeHelper<LogMultipole>
 {
+    // Note: I didn't try too hard to optimize the functions here, since most of them are
+    // only used when DIRECT_MULTPOLE is enabled, which is really just for debugging.
+
     enum { sort_d123 = false, swap_23 = false };
 
     static int calculateNTot(int nbins, int maxn, int )

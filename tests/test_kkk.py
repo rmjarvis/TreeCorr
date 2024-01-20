@@ -2225,7 +2225,7 @@ def test_direct_logmultipole_auto():
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-4, atol=1.e-8)
 
     # Note: Don't test SAS here like we did for NNN.  Without a real coherent signal, the
-    # fourier transform doesn't do a great job of describing the phi dependence.  Rely on
+    # fourier expansion doesn't do a great job of describing the phi dependence.  Rely on
     # the bigger runs with an intentional signal to test the toSAS function.
 
     # Repeat with binslop = 0.

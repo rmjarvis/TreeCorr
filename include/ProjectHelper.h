@@ -113,7 +113,7 @@ struct ProjectHelper<Flat>
         std::complex<double>& z1, std::complex<double>& z2, std::complex<double>& z3)
     {
         // Project given spin-s quantities using the x projection in Porth et al, 2023.
-        // Namely c2 projects to the line c1-c2, c3 projects to the line c1-c3, and c1
+        // Namely z2 projects to the line c1-c2, z3 projects to the line c1-c3, and z1
         // projects to the average of these two directions.
         const Position<Flat>& p1 = c1.getPos();
         const Position<Flat>& p2 = c2.getPos();
@@ -266,7 +266,7 @@ struct ProjectHelper<Sphere>
         std::complex<double>& z1, std::complex<double>& z2, std::complex<double>& z3)
     {
         // Project given spin-s quantities using the x projection in Porth et al, 2023.
-        // Namely c2 projects to the line c1-c2, c3 projects to the line c1-c3, and c1
+        // Namely z2 projects to the line c1-c2, z3 projects to the line c1-c3, and z1
         // projects to the average of these two directions.
         const Position<Sphere>& p1 = c1.getPos();
         const Position<Sphere>& p2 = c2.getPos();
@@ -372,11 +372,12 @@ struct ProjectHelper<ThreeD>
         std::complex<double>& z1, std::complex<double>& z2, std::complex<double>& z3)
     {
         // Project given spin-s quantities using the x projection in Porth et al, 2023.
-        // Namely c2 projects to the line c1-c2, c3 projects to the line c1-c3, and c1
+        // Namely z2 projects to the line c1-c2, z3 projects to the line c1-c3, and z1
         // projects to the average of these two directions.
         Position<Sphere> p1(c1.getPos());
         Position<Sphere> p2(c2.getPos());
         Position<Sphere> p3(c3.getPos());
+        // Use the Sphere implementation with these positions.
         ProjectHelper<Sphere>::ProjectX<D>(p1,p2,p3,z1,z3,z3);
     }
 

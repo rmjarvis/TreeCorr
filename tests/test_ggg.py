@@ -4033,7 +4033,7 @@ def test_direct_logmultipole_auto():
     np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-4, atol=1.e-8)
 
     # Note: Don't test SAS here like we did for NNN.  Without a real coherent signal, the
-    # fourier transform doesn't do a great job of describing the phi dependence.  Rely on
+    # fourier expansion doesn't do a great job of describing the phi dependence.  Rely on
     # the bigger runs with an intentional signal to test the toSAS function.
 
     # Repeat with binslop = 0.
@@ -4611,11 +4611,12 @@ def test_map3_logmultipole():
     nq2 = np.abs(q2)**2
     nq3 = np.abs(q3)**2
 
-    # Skip the lowest r values, to make sure the integral has enough smaller s and t than R.
+    # Skip the lowest r values, to make sure the integral has s and t values sufficiently
+    # smaller than R for the integral to come out right.
     # Interestingly, with the multpole method, we don't need to scale up the true_map
-    # by the (1+5r0/L) factor to get the middle values right.  But we need to cut out
-    # more low R values to get to the ones where rtol=0.1 works.  And the B-mode values
-    # are noisier, so I had to increase the tolerance for those tests.
+    # by the (1+5r0/L) factor to get the middle values right like we did in test_map3_logsas.
+    # But we need to cut out more low R values to get to the ones where rtol=0.1 works.
+    # And the B-mode values are noisier, so I had to increase the tolerance for those tests.
     r = ggg.rnom1d[14:]
     print('r = ',r)
     true_map3 = 2816./243. *np.pi * gamma0**3 * r0**12 * r**6 / (L**2 * (r**2+r0**2)**8)
@@ -4647,16 +4648,6 @@ def test_map3_logmultipole():
     print('diff = ',map3-true_map3[mask])
     print('max diff = ',max(abs(map3 - true_map3[mask])))
     np.testing.assert_allclose(map3, true_map3[mask], rtol=0.1)
-
-    # Finally add some tests where the B-mode is expected to be non-zero.
-    # The easiest way to do this is to have gamma0 be complex.
-    # Then the real part drives the E-mode, and the imaginary part the B-mode.
-    gamma0 = 0.03 + 0.04j
-    temp = 2816./243. * np.pi * r0**12 * r**6 / (L**2 * (r**2+r0**2)**8)
-    true_map3 = temp * gamma0.real**3
-    true_map2mx = temp * gamma0.real**2 * gamma0.imag
-    true_mapmx2 = temp * gamma0.real * gamma0.imag**2
-    true_mx3 = temp * gamma0.imag**3
 
 
 if __name__ == '__main__':

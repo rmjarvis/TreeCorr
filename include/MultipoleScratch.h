@@ -31,9 +31,10 @@ std::unique_ptr<T> make_unique(Args&&... args)
     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
+// Base class has implementation of npairs, sumw, sumwr, sumwr, and Wn.
+// Anything related to K or G values is in the relevant derived classes.
 struct BaseMultipoleScratch
 {
-
     BaseMultipoleScratch(int nbins, int nubins, bool use_ww) :
         ww(use_ww), n(nbins), Wnsize(nbins * (nubins+1)),
         Wn(Wnsize), npairs(n), sumw(n), sumwr(n), sumwlogr(n)
@@ -87,7 +88,6 @@ struct BaseMultipoleScratch
     std::vector<double> sumww;
     std::vector<double> sumwwr;
     std::vector<double> sumwwlogr;
-
 };
 
 template <int D1, int D2> struct MultipoleScratch;

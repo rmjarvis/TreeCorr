@@ -676,10 +676,9 @@ class KKKCorrelation(Corr3):
 
         # For ntri, we recorded the total ntri for each pair of d2,d3.
         # Allocate those proportionally to the weights.
-        # The extra factor of 0.5 is because Multipole counts the triangles
-        # twice (with c2,c3 in each spot).  The standard SAS counting just
-        # counts the ones in CCW orientation. (i.e. no double counting.)
-        # (If phi range is not [0,pi], this may be even smaller.)
+        # Note: Multipole counts the weight for all 0 < phi < 2pi.
+        # We reduce this by the fraction of this covered by [min_phi, max_phi].
+        # (Typically 1/2, since usually [0,pi].)
         phi_frac = (sas.max_phi - sas.min_phi) / (2*np.pi)
         ratio = self.ntri[:,:,0] / np.sum(sas.weight, axis=2) * phi_frac
         sas.ntri[:] = sas.weight * ratio[:,:,None]
@@ -747,8 +746,8 @@ class KKKCorrelation(Corr3):
                         into real and imaginary parts, zeta_re and zeta_im.)
         sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`
                         (if rrr is given)
-        weight          The total weight of triangles contributing to each bin. (For
-                        LogMultipole, this is split into real and imaginary parts,
+        weight          The total weight of triangles contributing to each bin.
+                        (For LogMultipole, this is split into real and imaginary parts,
                         weight_re and weight_im.)
         ntri            The number of triangles contributing to each bin
         ==========      ================================================================

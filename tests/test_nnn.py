@@ -3865,8 +3865,8 @@ def test_nnn_logsas():
     np.testing.assert_allclose(zeta2, true_zeta, rtol=0.1*tol_factor)
     np.testing.assert_allclose(np.log(np.abs(zeta2)), np.log(np.abs(true_zeta)),
                                   atol=0.1*tol_factor)
-    # With max_n=100, it's even closer to matching the direct LogSAS calculation.
-    # So most of the inaccuracy is intrinsic to this ngal realization.
+    # With max_n=100, it matches the direct LogSAS calculation quite well.
+    # So most of the above imprecision is intrinsic to this ngal realization.
     np.testing.assert_allclose(zeta2, zeta, rtol=0.03*tol_factor)
 
     # Check that we get the same result using the corr3 function
@@ -3997,26 +3997,26 @@ def test_nnn_logsas():
             attrs = data.attrs
             np.testing.assert_almost_equal(attrs['tot']/ddd.tot, 1.)
 
-        ddd2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+        ddd3 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                        min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                        sep_units='arcmin', bin_type='LogSAS')
-        ddd2.read(out_file_name3)
-        np.testing.assert_almost_equal(ddd2.logd2, ddd.logd2)
-        np.testing.assert_almost_equal(ddd2.logd3, ddd.logd3)
-        np.testing.assert_almost_equal(ddd2.phi, ddd.phi)
-        np.testing.assert_almost_equal(ddd2.meand1, ddd.meand1)
-        np.testing.assert_almost_equal(ddd2.meanlogd1, ddd.meanlogd1)
-        np.testing.assert_almost_equal(ddd2.meand2, ddd.meand2)
-        np.testing.assert_almost_equal(ddd2.meanlogd2, ddd.meanlogd2)
-        np.testing.assert_almost_equal(ddd2.meand3, ddd.meand3)
-        np.testing.assert_almost_equal(ddd2.meanlogd3, ddd.meanlogd3)
-        np.testing.assert_almost_equal(ddd2.meanphi, ddd.meanphi)
-        np.testing.assert_almost_equal(ddd2.ntri, ddd.ntri)
-        np.testing.assert_almost_equal(ddd2.tot/ddd.tot, 1.)
-        assert ddd2.coords == ddd.coords
-        assert ddd2.metric == ddd.metric
-        assert ddd2.sep_units == ddd.sep_units
-        assert ddd2.bin_type == ddd.bin_type
+        ddd3.read(out_file_name3)
+        np.testing.assert_almost_equal(ddd3.logd2, ddd.logd2)
+        np.testing.assert_almost_equal(ddd3.logd3, ddd.logd3)
+        np.testing.assert_almost_equal(ddd3.phi, ddd.phi)
+        np.testing.assert_almost_equal(ddd3.meand1, ddd.meand1)
+        np.testing.assert_almost_equal(ddd3.meanlogd1, ddd.meanlogd1)
+        np.testing.assert_almost_equal(ddd3.meand2, ddd.meand2)
+        np.testing.assert_almost_equal(ddd3.meanlogd2, ddd.meanlogd2)
+        np.testing.assert_almost_equal(ddd3.meand3, ddd.meand3)
+        np.testing.assert_almost_equal(ddd3.meanlogd3, ddd.meanlogd3)
+        np.testing.assert_almost_equal(ddd3.meanphi, ddd.meanphi)
+        np.testing.assert_almost_equal(ddd3.ntri, ddd.ntri)
+        np.testing.assert_almost_equal(ddd3.tot/ddd.tot, 1.)
+        assert ddd3.coords == ddd.coords
+        assert ddd3.metric == ddd.metric
+        assert ddd3.sep_units == ddd.sep_units
+        assert ddd3.bin_type == ddd.bin_type
 
     # Test compensated zeta
     # First just check the mechanics.
@@ -4229,7 +4229,7 @@ def test_nnn_logsas():
     np.testing.assert_allclose(rrrs.meand3, rrr.meand3, rtol=0.2*tol_factor)
     np.testing.assert_allclose(rrrs.meanlogd3, rrr.meanlogd3, rtol=0.5*tol_factor)
 
-    # The mean values are closer of course.
+    # The mean values are closer.
     np.testing.assert_allclose(np.mean(ddds.ntri), np.mean(ddd.ntri), rtol=0.03*tol_factor)
     np.testing.assert_allclose(np.mean(ddds.meand1), np.mean(ddd.meand1), rtol=0.03*tol_factor)
     np.testing.assert_allclose(np.mean(ddds.meanlogd1), np.mean(ddd.meanlogd1), rtol=0.04*tol_factor)

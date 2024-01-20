@@ -37,7 +37,7 @@ public:
     BaseCorr3(BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
               double minu, double maxu, int nubins, double ubinsize, double bu,
               double minv, double maxv, int nvbins, double vbinsize, double bv,
-              double xp, double yp, double zp, bool nnn);
+              double xp, double yp, double zp);
     BaseCorr3(const BaseCorr3& rhs);
     virtual ~BaseCorr3() {}
 
@@ -207,7 +207,6 @@ protected:
 protected:
 
     BinType _bin_type;
-    bool _is_multipole;
     double _minsep;
     double _maxsep;
     int _nbins;
@@ -387,9 +386,8 @@ protected:
 template <int D1, int D2, int D3>
 struct ZetaData // This works for NNK, NKK, KKK
 {
-    ZetaData(double* z0, double* z1, double*, double*, double*, double*, double*, double*,
-             bool c) :
-        zeta(z0), zeta_im(z1), is_complex(c)
+    ZetaData(double* z0, double* z1, double*, double*, double*, double*, double*, double*) :
+        zeta(z0), zeta_im(z1), is_complex(z1 != nullptr)
     {}
 
     void new_data(int n)
@@ -443,7 +441,7 @@ inline std::ostream& operator<<(std::ostream& os, const ZetaData<D1,D2,D3>& zeta
 template <int D1, int D2>
 struct ZetaData<D1,D2,GData> // This works for NNG, NKG, KKG
 {
-    ZetaData(double* z0, double* z1, double*, double*, double*, double*, double*, double*, bool) :
+    ZetaData(double* z0, double* z1, double*, double*, double*, double*, double*, double*) :
         zeta(z0), zeta_im(z1) {}
 
     void new_data(int n)
@@ -537,7 +535,7 @@ template <>
 struct ZetaData<GData, GData, GData>
 {
     ZetaData(double* z0, double* z1, double* z2, double* z3,
-             double* z4, double* z5, double* z6, double* z7, bool) :
+             double* z4, double* z5, double* z6, double* z7) :
         gam0r(z0), gam0i(z1), gam1r(z2), gam1i(z3),
         gam2r(z4), gam2i(z5), gam3r(z6), gam3i(z7) {}
 
@@ -617,7 +615,7 @@ struct ZetaData<GData, GData, GData>
 template <>
 struct ZetaData<NData, NData, NData>
 {
-    ZetaData(double* , double* , double*, double*, double*, double*, double*, double*, bool c) {}
+    ZetaData(double* , double* , double*, double*, double*, double*, double*, double*) {}
     void new_data(int n) {}
     void delete_data() {}
     void copy(const ZetaData<NData, NData, NData>& rhs, int n) {}

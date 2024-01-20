@@ -15,6 +15,10 @@
 #ifndef TreeCorr_Field_H
 #define TreeCorr_Field_H
 
+#if defined(__GNUC__) && __GNUC__ >= 6
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#endif
+
 #include "Cell.h"
 
 // Most of the functionality for building Cells and doing the correlation functions is the

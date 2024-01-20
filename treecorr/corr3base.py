@@ -1364,7 +1364,9 @@ class Corr3(object):
         This is the weight array corresponding to `getStat`. Usually just self.weight.ravel(),
         but duplicated for GGGCorrelation to match what `getStat` does in that case.
         """
-        return self.weight.ravel()
+        # For most bin types, this is just the normal weight.
+        # but for LogMultipole, the absolute value is what we want.
+        return np.abs(self.weight.ravel())
 
     def estimate_cov(self, method, *, func=None, comm=None):
         """Estimate the covariance matrix based on the data

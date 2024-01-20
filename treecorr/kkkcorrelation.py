@@ -626,11 +626,6 @@ class KKKCorrelation(Corr3):
                 self.logger.info("vark3 = %f: sig_k = %f",vark3,math.sqrt(vark3))
             self.finalize(vark1,vark2,vark3)
 
-    def getWeight(self):
-        # For most bin types, this is just the normal weight.
-        # but for LogMultipole, the absolute value is what we want.
-        return np.abs(self.weight.ravel())
-
     def toSAS(self, **kwargs):
         """Convert a multipole-binned correlation to the corresponding SAS binning.
 

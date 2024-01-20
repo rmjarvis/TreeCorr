@@ -18,6 +18,7 @@ import coord
 import time
 
 from test_helper import do_pickle, assert_raises, timer, is_ccw, is_ccw_3d
+from test_helper import get_from_wiki
 
 @timer
 def test_direct_logruv():
@@ -4510,6 +4511,102 @@ def test_direct_logmultipole_cross12():
     with assert_raises(ValueError):
         ggg.process(cat2, cat1, ordered=True)
 
+@timer
+def test_map3_logmultipole():
+    # Same as test_map3_logsas, but use multipole algorithm and toSAS.
+
+    gamma0 = 0.05
+    r0 = 10.
+    L = 20.*r0
+    out_name = 'ggg_map_logmultipole.fits'
+    gggm = treecorr.GGGCorrelation(bin_size=0.1, min_sep=1, max_sep=120, max_n=100,
+                                   verbose=2, bin_type='LogMultipole')
+
+    # This only takes a couple minutes on my laptop, unlike the drect LogSAS test, which takes
+    # many hours.  Way faster, but still long enough that it's better to save the output and not
+    # run it usually when testing.
+    if True:
+        get_from_wiki(out_name)
+    else:
+        # This is how that file was made.  Change True to False to remake it.
+        ngal = 100000
+
+        rng = np.random.RandomState(8675309)
+        x = (rng.random_sample(ngal)-0.5) * L
+        y = (rng.random_sample(ngal)-0.5) * L
+        r2 = (x**2 + y**2)/r0**2
+        g1 = -gamma0 * np.exp(-r2/2.) * (x**2-y**2)/r0**2
+        g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
+
+        cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, verbose=2)
+        t0 = time.time()
+        gggm.process(cat)
+        t1 = time.time()
+        print('time for mulitpole process = ',t1-t0)
+        gggm.write(os.path.join('data',out_name))
+
+    gggm.read(os.path.join('data',out_name))
+    ggg = gggm.toSAS(phi_bin_size=0.05)
+
+    d1 = ggg.meand1
+    d2 = ggg.meand2
+    d3 = ggg.meand3
+    s = d2
+    t = d3 * np.exp(1j * ggg.meanphi)
+    q1 = (s + t)/3.
+    q2 = q1 - t
+    q3 = q1 - s
+    nq1 = np.abs(q1)**2
+    nq2 = np.abs(q2)**2
+    nq3 = np.abs(q3)**2
+
+    # Skip the lowest r values, to make sure the integral has enough smaller s and t than R.
+    # Interestingly, with the multpole method, we don't need to scale up the true_map
+    # by the (1+5r0/L) factor to get the middle values right.  But we need to cut out
+    # more low R values to get to the ones where rtol=0.1 works.  And the B-mode values
+    # are noisier, so I had to increase the tolerance for those tests.
+    r = ggg.rnom1d[14:]
+    print('r = ',r)
+    true_map3 = 2816./243. *np.pi * gamma0**3 * r0**12 * r**6 / (L**2 * (r**2+r0**2)**8)
+    print('true map3 = ',true_map3)
+
+    ggg_map3 = ggg.calculateMap3(R=r)
+    map3, mapmapmx, mapmxmap, mxmapmap, mxmxmap, mxmapmx, mapmxmx, mx3, var = ggg_map3
+    print('R = ',r)
+    print('map3 = ',map3)
+    print('true_map3 = ',true_map3)
+    print('ratio = ',map3/true_map3)
+    print('diff = ',map3-true_map3)
+    print('max diff = ',max(abs(map3 - true_map3)))
+    np.testing.assert_allclose(map3, true_map3, rtol=0.1, atol=2.e-9)
+    for mx in (mapmapmx, mapmxmap, mxmapmap, mxmxmap, mxmapmx, mapmxmx, mx3):
+        #print('mx = ',mx)
+        #print('max = ',max(abs(mx)))
+        np.testing.assert_allclose(mx, 0., atol=4.e-9)
+
+    # Target the range where we expect good results.
+    # This is the same as we had for the regular LogSAS tests.  Both methods work well here.
+    mask = (r > 5) & (r < 30)
+    R = r[mask]
+    map3 = ggg.calculateMap3(R=R)[0]
+    print('R = ',R)
+    print('map3 = ',map3)
+    print('true_map3 = ',true_map3[mask])
+    print('ratio = ',map3/true_map3[mask])
+    print('diff = ',map3-true_map3[mask])
+    print('max diff = ',max(abs(map3 - true_map3[mask])))
+    np.testing.assert_allclose(map3, true_map3[mask], rtol=0.1)
+
+    # Finally add some tests where the B-mode is expected to be non-zero.
+    # The easiest way to do this is to have gamma0 be complex.
+    # Then the real part drives the E-mode, and the imaginary part the B-mode.
+    gamma0 = 0.03 + 0.04j
+    temp = 2816./243. * np.pi * r0**12 * r**6 / (L**2 * (r**2+r0**2)**8)
+    true_map3 = temp * gamma0.real**3
+    true_map2mx = temp * gamma0.real**2 * gamma0.imag
+    true_mapmx2 = temp * gamma0.real * gamma0.imag**2
+    true_mx3 = temp * gamma0.imag**3
+
 
 if __name__ == '__main__':
     test_direct_logruv()
@@ -4530,3 +4627,4 @@ if __name__ == '__main__':
     test_direct_logmultipole_spherical()
     test_direct_logmultipole_cross()
     test_direct_logmultipole_cross12()
+    test_map3_logmultipole()

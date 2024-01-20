@@ -1203,7 +1203,7 @@ class NNNCorrelation(Corr3):
         if 'zeta' in data.dtype.names:
             self.zeta = data['zeta'].reshape(s)
             self.varzeta = data['sigma_zeta'].reshape(s)**2
-        if 'weight_im' in data.dtype.names:
+        if self.bin_type == 'LogMultipole':
             self.weightr = data['weight_re'].reshape(s)
             self.weighti = data['weight_im'].reshape(s)
         else:

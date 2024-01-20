@@ -1059,7 +1059,7 @@ class GGGCorrelation(Corr3):
         if self.bin_type == 'LogRUV':
             self.meanu = data['meanu'].reshape(s)
             self.meanv = data['meanv'].reshape(s)
-        else:
+        elif self.bin_type == 'LogSAS':
             self.meanu = data['meanphi'].reshape(s)
         self.gam0r = data['gam0r'].reshape(s)
         self.gam0i = data['gam0i'].reshape(s)

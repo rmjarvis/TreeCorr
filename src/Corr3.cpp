@@ -71,8 +71,8 @@ BaseCorr3::BaseCorr3(
     BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
     double minu, double maxu, int nubins, double ubinsize, double bu,
     double minv, double maxv, int nvbins, double vbinsize, double bv,
-    double xp, double yp, double zp, bool nnn):
-    _bin_type(bin_type), _is_multipole(false),
+    double xp, double yp, double zp):
+    _bin_type(bin_type),
     _minsep(minsep), _maxsep(maxsep), _nbins(nbins), _binsize(binsize), _b(b),
     _minu(minu), _maxu(maxu), _nubins(nubins), _ubinsize(ubinsize), _bu(bu),
     _minv(minv), _maxv(maxv), _nvbins(nvbins), _vbinsize(vbinsize), _bv(bv),
@@ -96,7 +96,6 @@ BaseCorr3::BaseCorr3(
       case LogMultipole:
            _ntot = BinTypeHelper<LogMultipole>::calculateNTot(nbins, nubins, nvbins);
            _nvbins = _nbins * (2*_nubins+1);
-           _is_multipole = true;
            break;
       default:
            dbg<<"bin_type = "<<bin_type<<std::endl;
@@ -137,16 +136,16 @@ Corr3<D1,D2,D3>::Corr3(
     BaseCorr3(bin_type, minsep, maxsep, nbins, binsize, b,
               minu, maxu, nubins, ubinsize, bu,
               minv, maxv, nvbins, vbinsize, bv,
-              xp, yp, zp, (D1==NData && D2==NData && D3==NData)),
+              xp, yp, zp),
     _owns_data(false),
-    _zeta(zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7, _is_multipole),
+    _zeta(zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7),
     _meand1(meand1), _meanlogd1(meanlogd1), _meand2(meand2), _meanlogd2(meanlogd2),
     _meand3(meand3), _meanlogd3(meanlogd3), _meanu(meanu), _meanv(meanv),
     _weight(weight), _weight_im(weight_im), _ntri(ntri)
 {}
 
 BaseCorr3::BaseCorr3(const BaseCorr3& rhs):
-    _bin_type(rhs._bin_type), _is_multipole(rhs._is_multipole),
+    _bin_type(rhs._bin_type),
     _minsep(rhs._minsep), _maxsep(rhs._maxsep), _nbins(rhs._nbins),
     _binsize(rhs._binsize), _b(rhs._b),
     _minu(rhs._minu), _maxu(rhs._maxu), _nubins(rhs._nubins),
@@ -164,8 +163,7 @@ BaseCorr3::BaseCorr3(const BaseCorr3& rhs):
 
 template <int D1, int D2, int D3>
 Corr3<D1,D2,D3>::Corr3(const Corr3<D1,D2,D3>& rhs, bool copy_data) :
-    BaseCorr3(rhs), _owns_data(true),
-    _zeta(0,0,0,0,0,0,0,0, _is_multipole)
+    BaseCorr3(rhs), _owns_data(true), _zeta(rhs._zeta)
 {
     _zeta.new_data(_ntot);
     _meand1 = new double[_ntot];
@@ -177,7 +175,7 @@ Corr3<D1,D2,D3>::Corr3(const Corr3<D1,D2,D3>& rhs, bool copy_data) :
     _meanu = new double[_ntot];
     _meanv = new double[_ntot];
     _weight = new double[_ntot];
-    if (_is_multipole)
+    if (rhs._weight_im)
         _weight_im = new double[_ntot];
     else
         _weight_im = 0;
@@ -201,7 +199,7 @@ Corr3<D1,D2,D3>::~Corr3()
         delete [] _meanu; _meanu = 0;
         delete [] _meanv; _meanv = 0;
         delete [] _weight; _weight = 0;
-        if (_is_multipole) {
+        if (_weight_im) {
             delete [] _weight_im; _weight_im = 0;
         }
         delete [] _ntri; _ntri = 0;
@@ -221,7 +219,7 @@ void Corr3<D1,D2,D3>::clear()
     for (int i=0; i<_ntot; ++i) _meanu[i] = 0.;
     for (int i=0; i<_ntot; ++i) _meanv[i] = 0.;
     for (int i=0; i<_ntot; ++i) _weight[i] = 0.;
-    if (_is_multipole) {
+    if (_weight_im) {
         for (int i=0; i<_ntot; ++i) _weight_im[i] = 0.;
     }
     for (int i=0; i<_ntot; ++i) _ntri[i] = 0.;
@@ -608,7 +606,8 @@ void BaseCorr3::process111(
                 process111Sorted<B,1>(c2, c3, c1, metric, d2sq, d3sq, d1sq);
             }
         } else {
-            // For LogMultipole, just do all the combinations.
+            // If can't swap 23, and we are unordered, do all the combinations,
+            // and switch ordered to 3.
             process111Sorted<B,3>(c1, c3, c2, metric, d1sq, d3sq, d2sq);
             process111Sorted<B,3>(c1, c2, c3, metric, d1sq, d2sq, d3sq);
             process111Sorted<B,3>(c2, c1, c3, metric, d2sq, d1sq, d3sq);
@@ -640,8 +639,7 @@ void BaseCorr3::process111(
                 process111Sorted<B,O>(c1, c2, c3, metric, d1sq, d2sq, d3sq);
             }
         } else {
-            // For LogMultipole, this is just a debugging thing anyway, so do the most
-            // straightforward thing and process both orderings.
+            // If can't swap 23, do both ways and switch ordered to 3.
             process111Sorted<B,3>(c1, c2, c3, metric, d1sq, d2sq, d3sq);
             process111Sorted<B,3>(c1, c3, c2, metric, d1sq, d3sq, d2sq);
         }
@@ -791,6 +789,493 @@ void BaseCorr3::process111Sorted(
     }
 }
 
+//
+// Fast multipole algorithm
+// The idea here is to first recurse down to find cells that are small enough that
+// at least some of the bins can use them as is.
+// Then for each of these cells, we find all the cells that can contribute to the
+// sums for Gn, throwing out any that are too far away.
+// Next we recursively split these up, computing the parts of Gn that we can at each
+// level.
+// When we get to the cells that are small enough not to need to be split further, we
+// finish the calculation, coputing Zeta_n from G_n.
+//
+
+template <int B, int M, int C>
+void BaseCorr3::multipole(const BaseField<C>& field, bool dots)
+{
+    dbg<<"Start multipole auto\n";
+    reset_ws();
+    Assert(_coords == -1 || _coords == C);
+    _coords = C;
+    const long n1 = field.getNTopLevel();
+    dbg<<"field has "<<n1<<" top level nodes\n";
+    Assert(n1 > 0);
+
+    MetricHelper<M,0> metric(0, 0, _xp, _yp, _zp);
+    const std::vector<const BaseCell<C>*>& cells = field.getCells();
+
+#ifdef _OPENMP
+#pragma omp parallel
+    {
+        // Give each thread their own copy of the data vector to fill in.
+        std::shared_ptr<BaseCorr3> corrp = duplicate();
+        BaseCorr3& corr = *corrp;
+#else
+        BaseCorr3& corr = *this;
+#endif
+
+        std::unique_ptr<BaseMultipoleScratch> mp = getMP2(true);
+
+#ifdef _OPENMP
+#pragma omp for schedule(dynamic)
+#endif
+        for (long i=0;i<n1;++i) {
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+            {
+                if (dots) std::cout<<'.'<<std::flush;
+#ifdef _OPENMP
+                dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
+#endif
+            }
+            const BaseCell<C>& c1 = *cells[i];
+            corr.template multipoleSplit1<B>(c1, cells, metric, *mp);
+        }
+#ifdef _OPENMP
+        // Accumulate the results
+#pragma omp critical
+        {
+            addData(corr);
+        }
+    }
+#endif
+    if (dots) std::cout<<std::endl;
+}
+
+template <int B, int M, int C>
+void BaseCorr3::multipole(const BaseField<C>& field1, const BaseField<C>& field2, bool dots)
+{
+    dbg<<"Start multipole cross12\n";
+    reset_ws();
+    xdbg<<"_coords = "<<_coords<<std::endl;
+    xdbg<<"C = "<<C<<std::endl;
+    Assert(_coords == -1 || _coords == C);
+    _coords = C;
+    const long n1 = field1.getNTopLevel();
+    const long n2 = field2.getNTopLevel();
+    dbg<<"field1 has "<<n1<<" top level nodes\n";
+    dbg<<"field2 has "<<n2<<" top level nodes\n";
+    Assert(n1 > 0);
+    Assert(n2 > 0);
+
+    MetricHelper<M,0> metric(0, 0, _xp, _yp, _zp);
+
+    const std::vector<const BaseCell<C>*>& c1list = field1.getCells();
+    const std::vector<const BaseCell<C>*>& c2list = field2.getCells();
+
+#ifdef _OPENMP
+#pragma omp parallel
+    {
+        // Give each thread their own copy of the data vector to fill in.
+        std::shared_ptr<BaseCorr3> corrp = duplicate();
+        BaseCorr3& corr = *corrp;
+#else
+        BaseCorr3& corr = *this;
+#endif
+
+        std::unique_ptr<BaseMultipoleScratch> mp = getMP2(true);
+
+#ifdef _OPENMP
+#pragma omp for schedule(dynamic)
+#endif
+        for (long i=0;i<n1;++i) {
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+            {
+                if (dots) std::cout<<'.'<<std::flush;
+#ifdef _OPENMP
+                dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
+#endif
+            }
+            const BaseCell<C>& c1 = *c1list[i];
+            corr.template multipoleSplit1<B>(c1, c2list, metric, *mp);
+        }
+#ifdef _OPENMP
+        // Accumulate the results
+#pragma omp critical
+        {
+            addData(corr);
+        }
+    }
+#endif
+    if (dots) std::cout<<std::endl;
+}
+
+template <int B, int M, int C>
+void BaseCorr3::multipole(const BaseField<C>& field1, const BaseField<C>& field2,
+                          const BaseField<C>& field3, bool dots, int ordered)
+{
+    dbg<<"Start multipole cross full\n";
+    reset_ws();
+    xdbg<<"_coords = "<<_coords<<std::endl;
+    xdbg<<"C = "<<C<<std::endl;
+    Assert(_coords == -1 || _coords == C);
+    _coords = C;
+    const long n1 = field1.getNTopLevel();
+    const long n2 = field2.getNTopLevel();
+    const long n3 = field3.getNTopLevel();
+    dbg<<"field1 has "<<n1<<" top level nodes\n";
+    dbg<<"field2 has "<<n2<<" top level nodes\n";
+    dbg<<"field3 has "<<n3<<" top level nodes\n";
+    Assert(n1 > 0);
+    Assert(n2 > 0);
+    Assert(n3 > 0);
+
+    MetricHelper<M,0> metric(0, 0, _xp, _yp, _zp);
+
+    const std::vector<const BaseCell<C>*>& c1list = field1.getCells();
+    const std::vector<const BaseCell<C>*>& c2list = field2.getCells();
+    const std::vector<const BaseCell<C>*>& c3list = field3.getCells();
+
+#ifdef _OPENMP
+#pragma omp parallel
+    {
+        // Give each thread their own copy of the data vector to fill in.
+        std::shared_ptr<BaseCorr3> corrp = duplicate();
+        BaseCorr3& corr = *corrp;
+#else
+        BaseCorr3& corr = *this;
+#endif
+
+        // Note: We don't need to subtract off w^2 for the k2=k3 bins, so don't accumulate
+        // sumww and related arrays.  (That's what false here means.)
+        std::unique_ptr<BaseMultipoleScratch> mp2 = getMP2(false);
+        std::unique_ptr<BaseMultipoleScratch> mp3 = getMP3(false);
+
+#ifdef _OPENMP
+#pragma omp for schedule(dynamic)
+#endif
+        for (long i=0;i<n1;++i) {
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+            {
+                if (dots) std::cout<<'.'<<std::flush;
+#ifdef _OPENMP
+                dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
+#endif
+            }
+            const BaseCell<C>& c1 = *c1list[i];
+            corr.template multipoleSplit1<B>(c1, c2list, c3list, metric, ordered, *mp2, *mp3);
+        }
+#ifdef _OPENMP
+        // Accumulate the results
+#pragma omp critical
+        {
+            addData(corr);
+        }
+    }
+#endif
+    if (dots) std::cout<<std::endl;
+}
+
+template <int B, int M, int C>
+void BaseCorr3::splitC2Cells(
+    const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
+    const MetricHelper<M,0>& metric, std::vector<const BaseCell<C>*>& newc2list)
+{
+    // Given the current c1, make a new c2 list where we throw away any from c2 list
+    // that can't contribute to the bins, and split any that need to be split.
+    const Position<C>& p1 = c1.getPos();
+    double s1 = c1.getSize();
+    for (const BaseCell<C>* c2: c2list) {
+        const Position<C>& p2 = c2->getPos();
+        double s2 = c2->getSize();
+        const double rsq = metric.DistSq(p1,p2,s1,s2);
+        const double s1ps2 = s1+s2;
+        xdbg<<"rsq = "<<rsq<<"  s = "<<s2<<"  "<<s1ps2<<std::endl;
+
+        // This sequence mirrors the calculation in Corr2.process11.
+        double rpar = 0; // Gets set to correct value by this function if appropriate
+        if (metric.isRParOutsideRange(p1, p2, s1ps2, rpar)) {
+            continue;
+        }
+
+        if (BinTypeHelper<B>::tooSmallDist(rsq, s1ps2, _minsep, _minsepsq) &&
+            metric.tooSmallDist(p1, p2, rsq, rpar, s1ps2, _minsep, _minsepsq)) {
+            continue;
+        }
+
+        if (BinTypeHelper<B>::tooLargeDist(rsq, s1ps2, _maxsep, _maxsepsq) &&
+            metric.tooLargeDist(p1, p2, rsq, rpar, s1ps2, _maxsep, _maxsepsq)) {
+            continue;
+        }
+
+        int k=-1;
+        double r=0,logr=0;
+        // First check if the distance alone requires a split for c2.
+        bool split = !BinTypeHelper<B>::singleBin(rsq, s1ps2, p1, p2, _binsize, _b, _bsq,
+                                                   _minsep, _maxsep, _logminsep, k, r, logr);
+
+        // If not splitting due to side length, might still need to split for angle.
+        if (!split) {
+            double bphisq_eff = BinTypeHelper<B>::getEffectiveBSq(rsq, _busq);
+            split = SQR(s1ps2) > bphisq_eff;
+        }
+
+        // If we need to split something, split c2 if it's larger than c1.
+        // (We always split c1 in this part of the code.)
+        if (split && s2 > s1) {
+            XAssert(c2->getLeft());
+            Assert(c2->getRight());
+            newc2list.push_back(c2->getLeft());
+            newc2list.push_back(c2->getRight());
+        } else {
+            newc2list.push_back(c2);
+        }
+    }
+}
+
+template <int B, int M, int C>
+void BaseCorr3::multipoleSplit1(
+    const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
+    const MetricHelper<M,0>& metric, BaseMultipoleScratch& mp)
+{
+    xdbg<<ws()<<"MultipoleSplit1: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<"  len c2 = "<<c2list.size()<<std::endl;
+
+    double s1 = c1.getSize();
+
+    // Split cells in c2list if they will definitely need to be split.
+    // And remove any that cannot contribute to the sums for this c1.
+    std::vector<const BaseCell<C>*> newc2list;
+    splitC2Cells<B>(c1, c2list, metric, newc2list);
+
+    // See if we can stop splitting c1
+    // The criterion is that for the largest separation we will be caring about,
+    // c1 is at least possibly small enough to use as is without futher splitting.
+    // i.e. s1 < maxsep * b
+    inc_ws();
+    double maxbsq_eff = BinTypeHelper<B>::getEffectiveBSq(_maxsepsq, _bsq);
+    if (SQR(s1) > maxbsq_eff) {
+        multipoleSplit1<B>(*c1.getLeft(), newc2list, metric, mp);
+        multipoleSplit1<B>(*c1.getRight(), newc2list, metric, mp);
+    } else {
+        // Zero out scratch arrays
+        mp.clear();
+        multipoleFinish<B>(c1, newc2list, metric, mp);
+    }
+    dec_ws();
+}
+
+template <int B, int M, int C>
+void BaseCorr3::multipoleSplit1(
+    const BaseCell<C>& c1,
+    const std::vector<const BaseCell<C>*>& c2list,
+    const std::vector<const BaseCell<C>*>& c3list,
+    const MetricHelper<M,0>& metric, int ordered,
+    BaseMultipoleScratch& mp2, BaseMultipoleScratch& mp3)
+{
+    xdbg<<ws()<<"MultipoleSplit1: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<"  len c2 = "<<c2list.size()<<" len c3 = "<<c3list.size()<<std::endl;
+
+    double s1 = c1.getSize();
+
+    // Split cells in both lists if appropriate
+    std::vector<const BaseCell<C>*> newc2list;
+    std::vector<const BaseCell<C>*> newc3list;
+    splitC2Cells<B>(c1, c2list, metric, newc2list);
+    xdbg<<"c2 split "<<c2list.size()<<" => "<<newc2list.size()<<std::endl;
+    splitC2Cells<B>(c1, c3list, metric, newc3list);
+    xdbg<<"c3 split "<<c3list.size()<<" => "<<newc3list.size()<<std::endl;
+
+    // See if we can stop splitting c1
+    inc_ws();
+    double maxbsq_eff = BinTypeHelper<B>::getEffectiveBSq(_maxsepsq, _bsq);
+    if (SQR(s1) > maxbsq_eff) {
+        multipoleSplit1<B>(*c1.getLeft(), newc2list, newc3list, metric, ordered, mp2, mp3);
+        multipoleSplit1<B>(*c1.getRight(), newc2list, newc3list, metric, ordered, mp2, mp3);
+    } else {
+        // Zero out scratch arrays
+        mp2.clear();
+        mp3.clear();
+        multipoleFinish<B>(c1, newc2list, newc3list, metric, ordered, mp2, mp3);
+    }
+    dec_ws();
+}
+
+template <int B, int M, int C>
+void BaseCorr3::splitC2CellsOrCalculateGn(
+    const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
+    const MetricHelper<M,0>& metric, std::vector<const BaseCell<C>*>& newc2list, bool& anysplit1,
+    BaseMultipoleScratch& mp)
+{
+    // Similar to splitC2Cells, but this time, check to see if any cells are small enough that
+    // neither c1 nor c2 need to be split further.  In those cases, accumulate Gn and other
+    // scratch arrays and don't add that c2 to newc2list.
+    const Position<C>& p1 = c1.getPos();
+    double s1 = c1.getSize();
+    for (const BaseCell<C>* c2: c2list) {
+        const Position<C>& p2 = c2->getPos();
+        double s2 = c2->getSize();
+        const double rsq = metric.DistSq(p1,p2,s1,s2);
+        const double s1ps2 = s1+s2;
+        xdbg<<"rsq = "<<rsq<<"  s = "<<s2<<"  "<<s1ps2<<std::endl;
+
+        // This sequence mirrors the calculation in Corr2.process11.
+        double rpar = 0; // Gets set to correct value by this function if appropriate
+        if (metric.isRParOutsideRange(p1, p2, s1ps2, rpar)) {
+            continue;
+        }
+
+        if (BinTypeHelper<B>::tooSmallDist(rsq, s1ps2, _minsep, _minsepsq) &&
+            metric.tooSmallDist(p1, p2, rsq, rpar, s1ps2, _minsep, _minsepsq)) {
+            continue;
+        }
+
+        if (BinTypeHelper<B>::tooLargeDist(rsq, s1ps2, _maxsep, _maxsepsq) &&
+            metric.tooLargeDist(p1, p2, rsq, rpar, s1ps2, _maxsep, _maxsepsq)) {
+            continue;
+        }
+
+        // Now check if these cells are small enough that it is ok to drop into a single bin.
+        int k=-1;
+        double r=0,logr=0;
+
+        if (metric.isRParInsideRange(p1, p2, s1ps2, rpar) &&
+            BinTypeHelper<B>::singleBin(rsq, s1ps2, p1, p2, _binsize, _b, _bsq,
+                                        _minsep, _maxsep, _logminsep, k, r, logr))
+        {
+            // Check angle
+            double bphisq_eff = BinTypeHelper<B>::getEffectiveBSq(rsq, _busq);
+            if (SQR(s1ps2) <= bphisq_eff) {
+                // This c2 is fine to use as is with the current c1.  Neither needs to split.
+                xdbg<<"Drop into single bin.\n";
+                if (BinTypeHelper<B>::isRSqInRange(rsq, p1, p2, _minsep, _minsepsq,
+                                                   _maxsep, _maxsepsq)) {
+                    if (k < 0) {
+                        // Then these aren't calculated yet.  Do that now.
+                        r = sqrt(rsq);
+                        logr = log(r);
+                        k = BinTypeHelper<B>::calculateBinK(p1, p2, r, logr, _binsize,
+                                                            _minsep, _maxsep, _logminsep);
+                    }
+                    calculateGn(c1, *c2, rsq, r, logr, k, mp);
+                }
+                continue;
+            }
+        }
+
+        // OK, need to split.  Figure out if we should split c1 or c2 or both.
+        bool split1=false;
+        bool split2=false;
+        double bsq_eff = BinTypeHelper<B>::getEffectiveBSq(rsq,std::min(_bsq,_busq));
+        CalcSplitSq(split1,split2,s1,s2,s1ps2,bsq_eff);
+        xdbg<<"split2 = "<<split2<<std::endl;
+        if (split1) anysplit1 = true;
+
+        if (split2) {
+            XAssert(c2->getLeft());
+            XAssert(c2->getRight());
+            newc2list.push_back(c2->getLeft());
+            newc2list.push_back(c2->getRight());
+        } else {
+            newc2list.push_back(c2);
+        }
+    }
+}
+
+template <int B, int M, int C>
+void BaseCorr3::multipoleFinish(
+    const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
+    const MetricHelper<M,0>& metric, BaseMultipoleScratch& mp)
+{
+    // This is structured a lot like the previous function.
+    // However, in this one, we will actually be filling the Gn array.
+    // We fill what we can before splitting further.
+    // Note: if we decide to split c1, we need to make a copy of Gn before
+    // recursing.  This is why we split up the calculation into two functions like
+    // this.  We want to minimize the number of copies of Gn (et al) we need to make.
+    xdbg<<ws()<<"MultipoleFinish1: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<"  len c2 = "<<c2list.size()<<std::endl;
+
+    xdbg<<"B,M,C = "<<B<<"  "<<M<<"  "<<C<<std::endl;
+    bool anysplit1=false;
+
+    // As before, split any cells in c2list that need to be split given the current c1.
+    // And remove any that cannot contribute to the sums.
+    // This time we also accumulate the Gn array for any that can be done.
+    // Those also don't get added to newc2list.
+    std::vector<const BaseCell<C>*> newc2list;
+    splitC2CellsOrCalculateGn<B>(c1, c2list, metric, newc2list, anysplit1, mp);
+    xdbg<<"newsize = "<<newc2list.size()<<", anysplit1 = "<<anysplit1<<std::endl;
+
+    if (newc2list.size() > 0) {
+        inc_ws();
+        if (anysplit1) {
+            // Then we need to split c1 further.  This means we need a copy of Gn and the
+            // other scratch arrays, so we can pass what we have now to each child cell.
+            std::unique_ptr<BaseMultipoleScratch> mp_copy = mp.duplicate();
+            XAssert(c1.getLeft());
+            XAssert(c1.getRight());
+            multipoleFinish<B>(*c1.getLeft(), newc2list, metric, mp);
+            multipoleFinish<B>(*c1.getRight(), newc2list, metric, *mp_copy);
+        } else {
+            // If we still have c2 items to process, but don't have to split c1,
+            // we don't need to make copies.
+            multipoleFinish<B>(c1, newc2list, metric, mp);
+        }
+        dec_ws();
+    } else {
+        // We finished all the calculations for Gn.
+        // Turn this into Zeta_n.
+        calculateZeta(c1, mp);
+    }
+}
+
+template <int B, int M, int C>
+void BaseCorr3::multipoleFinish(
+    const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
+    const std::vector<const BaseCell<C>*>& c3list, const MetricHelper<M,0>& metric, int ordered,
+    BaseMultipoleScratch& mp2, BaseMultipoleScratch& mp3)
+{
+    xdbg<<ws()<<"MultipoleFinish1: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<"  len c2 = "<<c2list.size()<<"  len c3 = "<<c3list.size()<<std::endl;
+
+    xdbg<<"B,M,C = "<<B<<"  "<<M<<"  "<<C<<std::endl;
+    bool anysplit1=false;
+
+    std::vector<const BaseCell<C>*> newc2list;
+    splitC2CellsOrCalculateGn<B>(c1, c2list, metric, newc2list, anysplit1, mp2);
+    std::vector<const BaseCell<C>*> newc3list;
+    splitC2CellsOrCalculateGn<B>(c1, c3list, metric, newc3list, anysplit1, mp3);
+    xdbg<<"newsize = "<<newc2list.size()<<","<<newc3list.size()<<", anysplit1 = "<<anysplit1<<std::endl;
+
+    if (newc2list.size() > 0 || newc3list.size() > 0) {
+        inc_ws();
+        if (anysplit1) {
+            // Then we need to split c1 further.  Make copies of scratch arrays.
+            std::unique_ptr<BaseMultipoleScratch> mp2_copy = mp2.duplicate();
+            std::unique_ptr<BaseMultipoleScratch> mp3_copy = mp3.duplicate();
+            XAssert(c1.getLeft());
+            XAssert(c1.getRight());
+            multipoleFinish<B>(
+                *c1.getLeft(), newc2list, newc3list, metric, ordered, mp2, mp3);
+            multipoleFinish<B>(
+                *c1.getRight(), newc2list, newc3list, metric, ordered, *mp2_copy, *mp3_copy);
+        } else {
+            // If we still have c2 items to process, but don't have to split c1,
+            // we don't need to make copies.
+            multipoleFinish<B>(c1, newc2list, newc3list, metric, ordered, mp2, mp3);
+        }
+        dec_ws();
+    } else {
+        // We finished all the calculations for Gn.
+        // Turn this into Zeta_n.
+        calculateZeta(c1, ordered, mp2, mp3);
+    }
+}
+
+
 // We also set up a helper class for doing the direct processing
 template <int D1, int D2, int D3>
 struct DirectHelper;
@@ -856,13 +1341,13 @@ struct DirectHelper<NData,NData,NData>
         for (int k2=0; k2<nbins; ++k2, iz22+=step22) {
             // Do the k2=k3 bins.
             // We want to make sure not to include degenerate triangles with c2 = c3.
-            // These would get included in the naive calculation:
+            // The straightforward calculation is:
             //   W[k2,k3,n] = Sum w_k1 W_n[k2,n] W_n[k3,n]*
             //   W_n[k,n] = Sum w_k e^(i phi_k n)
-            // The W product includes terms like
+            // But this includes terms that look like:
             //   (w_k2)^2 e^(i phi_k2 n) e^(-i phi_k2 n)
             //   = (w_k2)^2.
-            // So we need to subtract them off.
+            // We don't want these in the usm, So we need to subtract them off.
             // sumww has been storing Sum (w_k)^2, which is the amount to subtract in each bin.
 
             const int i2 = k2*(maxn+1);
@@ -1248,6 +1733,8 @@ struct DirectHelper<GData,GData,GData>
         }
 
         // Note: we'll need Gn values from -maxn-3 <= n <= maxn-1
+        // So the size of Gn is nbins * (2*maxn + 3).
+        // And ig is set to the index for n=0.
         int ig = k*(2*maxn+3)+maxn+3;
         mp.Gn[ig] += wg;
         std::complex<double> wgztothen = wg;
@@ -1255,7 +1742,7 @@ struct DirectHelper<GData,GData,GData>
             wgztothen *= z;
             mp.Gn[ig + n] += wgztothen;
         }
-        // Repeat for -n, since +/- n is not symmetric as g is complex.
+        // Repeat for -n, since +/- n is not symmetric, as g is complex.
         wgztothen = wg;   // Now this is really wg conj(z)^n
         for (int n=1; n <= maxn+3; ++n) {
             wgztothen *= std::conj(z);
@@ -1283,10 +1770,10 @@ struct DirectHelper<GData,GData,GData>
             // Gamma_1 includes sum_k wg_k^2 z^-1
             // Gamma_2 includes sum_k |wg_k|^2 z^-2
             // Gamma_3 includes sum_k |wg_k|^2 z^-2
-            // These terms are called sumwwgg3, sumwwgg1, and sumwwgg3, respectively,
+            // These terms are called sumwwgg3, sumwwgg1, and sumwwgg2, respectively,
             // numbered by the power of z they include.
 
-            // These are the indices in the Wn, Gn arrays (respectively) for n=0.
+            // iw2, ig2 are the indices in the Wn, Gn arrays (respectively) for n=0.
             const int iw2 = k2*(maxn+1);
             const int ig2 = k2*(2*maxn+3)+maxn+3;
 
@@ -1345,8 +1832,7 @@ struct DirectHelper<GData,GData,GData>
                 // We define our projection directions such that there is no additional minus
                 // sign required to compute the Gammas.
                 //
-                // Note also that this is not symmetric w.r.t +/-n, so just loop
-                // from -maxn to maxn for these.
+                // Since this is not symmetric w.r.t +/-n, loop from -maxn to maxn for these.
                 for (int n=-maxn; n<=maxn; ++n) {
                     // Notation note: What we call d2 and d3 are Theta1 and Theta2 in
                     // Porth et al.  So the ig2 factors, which refer to d2 and thus c3,
@@ -1617,10 +2103,11 @@ void Corr3<D1,D2,D3>::calculateZeta(
         // Keep track of locations p2 and p3 separately.
         for (int k2=0; k2<_nbins; ++k2) {
             for (int k3=0; k3<_nbins; ++k3, i+=nnbins) {
-                // This is a bit confusing.  In sumw2 (and similar paramters), the "2"
-                // refers to these being computed for cat2, which is at p2, opposite d2.
-                // So the distances that have been accumulated in them are actually d3 values.
-                // k3 is our index for d3 bins, so we use mp2.sumw[k3] and mp3.sumw[k2], etc.
+                // This is a bit confusing.  In the name mp2, the "2" refers to these arrays
+                // being computed for cat2, which is at p2, opposite d2.  So the distances that
+                // have been accumulated in mp2 are actually d3 values.  Similarly, mp3 has
+                // the d2 sums.  k2 is our index for d2 bins and k3 is our index for d3 bins,
+                // so this meand we use mp2.sumwr[k3] and mp3.sumwr[k2], etc.
                 _ntri[i] += n1 * mp3.npairs[k2] * mp2.npairs[k3];
                 double ww12 = w1 * mp3.sumw[k2];
                 double ww13 = w1 * mp2.sumw[k3];
@@ -1671,7 +2158,7 @@ void Corr3<D1,D2,D3>::operator=(const Corr3<D1,D2,D3>& rhs)
     for (int i=0; i<_ntot; ++i) _meanu[i] = rhs._meanu[i];
     for (int i=0; i<_ntot; ++i) _meanv[i] = rhs._meanv[i];
     for (int i=0; i<_ntot; ++i) _weight[i] = rhs._weight[i];
-    if (_is_multipole) {
+    if (_weight_im) {
         for (int i=0; i<_ntot; ++i) _weight_im[i] = rhs._weight_im[i];
     }
     for (int i=0; i<_ntot; ++i) _ntri[i] = rhs._ntri[i];
@@ -1691,503 +2178,10 @@ void Corr3<D1,D2,D3>::operator+=(const Corr3<D1,D2,D3>& rhs)
     for (int i=0; i<_ntot; ++i) _meanu[i] += rhs._meanu[i];
     for (int i=0; i<_ntot; ++i) _meanv[i] += rhs._meanv[i];
     for (int i=0; i<_ntot; ++i) _weight[i] += rhs._weight[i];
-    if (_is_multipole) {
+    if (_weight_im) {
         for (int i=0; i<_ntot; ++i) _weight_im[i] += rhs._weight_im[i];
     }
     for (int i=0; i<_ntot; ++i) _ntri[i] += rhs._ntri[i];
-}
-
-
-//
-// Fast multipole algorithm
-// The idea here is to first recurse down to find cells that are small enough that
-// at least some of the bins can use them as is.
-// Then for each of these cells, we find all the cells that can contribute to the
-// sums for Gn, throwing out any that are too far away.
-// Next we recursively split these up, computing the parts of Gn that we can at each
-// level.
-// When we get to the cells that are small enough not to need to be split further, we
-// finish the calculation, coputing Zeta_n from G_n.
-//
-
-template <int B, int M, int C>
-void BaseCorr3::multipole(const BaseField<C>& field, bool dots)
-{
-    dbg<<"Start multipole auto\n";
-    reset_ws();
-    Assert(_coords == -1 || _coords == C);
-    _coords = C;
-    const long n1 = field.getNTopLevel();
-    dbg<<"field has "<<n1<<" top level nodes\n";
-    Assert(n1 > 0);
-
-    MetricHelper<M,0> metric(0, 0, _xp, _yp, _zp);
-    const std::vector<const BaseCell<C>*>& cells = field.getCells();
-
-#ifdef _OPENMP
-#pragma omp parallel
-    {
-        // Give each thread their own copy of the data vector to fill in.
-        std::shared_ptr<BaseCorr3> corrp = duplicate();
-        BaseCorr3& corr = *corrp;
-#else
-        BaseCorr3& corr = *this;
-#endif
-
-        std::unique_ptr<BaseMultipoleScratch> mp = getMP2(true);
-
-#ifdef _OPENMP
-#pragma omp for schedule(dynamic)
-#endif
-        for (long i=0;i<n1;++i) {
-#ifdef _OPENMP
-#pragma omp critical
-#endif
-            {
-                if (dots) std::cout<<'.'<<std::flush;
-#ifdef _OPENMP
-                dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
-#endif
-            }
-            const BaseCell<C>& c1 = *cells[i];
-            corr.template multipoleSplit1<B>(c1, cells, metric, *mp);
-        }
-#ifdef _OPENMP
-        // Accumulate the results
-#pragma omp critical
-        {
-            addData(corr);
-        }
-    }
-#endif
-    if (dots) std::cout<<std::endl;
-}
-
-template <int B, int M, int C>
-void BaseCorr3::multipole(const BaseField<C>& field1, const BaseField<C>& field2, bool dots)
-{
-    dbg<<"Start multipole cross12\n";
-    reset_ws();
-    xdbg<<"_coords = "<<_coords<<std::endl;
-    xdbg<<"C = "<<C<<std::endl;
-    Assert(_coords == -1 || _coords == C);
-    _coords = C;
-    const long n1 = field1.getNTopLevel();
-    const long n2 = field2.getNTopLevel();
-    dbg<<"field1 has "<<n1<<" top level nodes\n";
-    dbg<<"field2 has "<<n2<<" top level nodes\n";
-    Assert(n1 > 0);
-    Assert(n2 > 0);
-
-    MetricHelper<M,0> metric(0, 0, _xp, _yp, _zp);
-
-    const std::vector<const BaseCell<C>*>& c1list = field1.getCells();
-    const std::vector<const BaseCell<C>*>& c2list = field2.getCells();
-
-#ifdef _OPENMP
-#pragma omp parallel
-    {
-        // Give each thread their own copy of the data vector to fill in.
-        std::shared_ptr<BaseCorr3> corrp = duplicate();
-        BaseCorr3& corr = *corrp;
-#else
-        BaseCorr3& corr = *this;
-#endif
-
-        std::unique_ptr<BaseMultipoleScratch> mp = getMP2(true);
-
-#ifdef _OPENMP
-#pragma omp for schedule(dynamic)
-#endif
-        for (long i=0;i<n1;++i) {
-#ifdef _OPENMP
-#pragma omp critical
-#endif
-            {
-                if (dots) std::cout<<'.'<<std::flush;
-#ifdef _OPENMP
-                dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
-#endif
-            }
-            const BaseCell<C>& c1 = *c1list[i];
-            corr.template multipoleSplit1<B>(c1, c2list, metric, *mp);
-        }
-#ifdef _OPENMP
-        // Accumulate the results
-#pragma omp critical
-        {
-            addData(corr);
-        }
-    }
-#endif
-    if (dots) std::cout<<std::endl;
-}
-
-template <int B, int M, int C>
-void BaseCorr3::multipole(const BaseField<C>& field1, const BaseField<C>& field2,
-                          const BaseField<C>& field3, bool dots, int ordered)
-{
-    dbg<<"Start multipole cross full\n";
-    reset_ws();
-    xdbg<<"_coords = "<<_coords<<std::endl;
-    xdbg<<"C = "<<C<<std::endl;
-    Assert(_coords == -1 || _coords == C);
-    _coords = C;
-    const long n1 = field1.getNTopLevel();
-    const long n2 = field2.getNTopLevel();
-    const long n3 = field3.getNTopLevel();
-    dbg<<"field1 has "<<n1<<" top level nodes\n";
-    dbg<<"field2 has "<<n2<<" top level nodes\n";
-    dbg<<"field3 has "<<n3<<" top level nodes\n";
-    Assert(n1 > 0);
-    Assert(n2 > 0);
-    Assert(n3 > 0);
-
-    MetricHelper<M,0> metric(0, 0, _xp, _yp, _zp);
-
-    const std::vector<const BaseCell<C>*>& c1list = field1.getCells();
-    const std::vector<const BaseCell<C>*>& c2list = field2.getCells();
-    const std::vector<const BaseCell<C>*>& c3list = field3.getCells();
-
-#ifdef _OPENMP
-#pragma omp parallel
-    {
-        // Give each thread their own copy of the data vector to fill in.
-        std::shared_ptr<BaseCorr3> corrp = duplicate();
-        BaseCorr3& corr = *corrp;
-#else
-        BaseCorr3& corr = *this;
-#endif
-
-        // Note: We don't need to subtract off w^2 for the k2=k3 bins, so don't accumulate
-        // sumww and related arrays.  (That's what false here means.)
-        std::unique_ptr<BaseMultipoleScratch> mp2 = getMP2(false);
-        std::unique_ptr<BaseMultipoleScratch> mp3 = getMP3(false);
-
-#ifdef _OPENMP
-#pragma omp for schedule(dynamic)
-#endif
-        for (long i=0;i<n1;++i) {
-#ifdef _OPENMP
-#pragma omp critical
-#endif
-            {
-                if (dots) std::cout<<'.'<<std::flush;
-#ifdef _OPENMP
-                dbg<<omp_get_thread_num()<<" "<<i<<std::endl;
-#endif
-            }
-            const BaseCell<C>& c1 = *c1list[i];
-            corr.template multipoleSplit1<B>(c1, c2list, c3list, metric, ordered, *mp2, *mp3);
-        }
-#ifdef _OPENMP
-        // Accumulate the results
-#pragma omp critical
-        {
-            addData(corr);
-        }
-    }
-#endif
-    if (dots) std::cout<<std::endl;
-}
-
-template <int B, int M, int C>
-void BaseCorr3::splitC2Cells(
-    const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
-    const MetricHelper<M,0>& metric, std::vector<const BaseCell<C>*>& newc2list)
-{
-    const Position<C>& p1 = c1.getPos();
-    double s1 = c1.getSize();
-    for (const BaseCell<C>* c2: c2list) {
-        const Position<C>& p2 = c2->getPos();
-        double s2 = c2->getSize();
-        const double rsq = metric.DistSq(p1,p2,s1,s2);
-        const double s1ps2 = s1+s2;
-        xdbg<<"rsq = "<<rsq<<"  s = "<<s2<<"  "<<s1ps2<<std::endl;
-
-        // This sequence mirrors the calculation in Corr2.process11.
-        double rpar = 0; // Gets set to correct value by this function if appropriate
-        if (metric.isRParOutsideRange(p1, p2, s1ps2, rpar)) {
-            continue;
-        }
-        xdbg<<"RPar in range\n";
-
-        if (BinTypeHelper<B>::tooSmallDist(rsq, s1ps2, _minsep, _minsepsq) &&
-            metric.tooSmallDist(p1, p2, rsq, rpar, s1ps2, _minsep, _minsepsq)) {
-            continue;
-        }
-        xdbg<<"Not too small separation\n";
-
-        if (BinTypeHelper<B>::tooLargeDist(rsq, s1ps2, _maxsep, _maxsepsq) &&
-            metric.tooLargeDist(p1, p2, rsq, rpar, s1ps2, _maxsep, _maxsepsq)) {
-            continue;
-        }
-        xdbg<<"Not too large separation\n";
-
-        int k=-1;
-        double r=0,logr=0;
-        // First check if the distance alone requires a split for c2.
-        bool split = !BinTypeHelper<B>::singleBin(rsq, s1ps2, p1, p2, _binsize, _b, _bsq,
-                                                   _minsep, _maxsep, _logminsep, k, r, logr);
-        xdbg<<"split = "<<split<<std::endl;
-
-        // If not splitting due to side length, might still need to split for angle.
-        if (!split) {
-            double bphisq_eff = BinTypeHelper<B>::getEffectiveBSq(rsq, _busq);
-            split = SQR(s1ps2) > bphisq_eff;
-            xdbg<<"split => "<<split<<std::endl;
-        }
-
-        // If we need to split something, split c2 if it's larger than c1.
-        if (split && s2 > s1) {
-            XAssert(c2->getLeft());
-            Assert(c2->getRight());
-            newc2list.push_back(c2->getLeft());
-            newc2list.push_back(c2->getRight());
-        } else {
-            newc2list.push_back(c2);
-        }
-    }
-}
-
-template <int B, int M, int C>
-void BaseCorr3::multipoleSplit1(
-    const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
-    const MetricHelper<M,0>& metric, BaseMultipoleScratch& mp)
-{
-    xdbg<<ws()<<"MultipoleSplit1: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<"  len c2 = "<<c2list.size()<<std::endl;
-
-    double s1 = c1.getSize();
-    xdbg<<"B,M,C = "<<B<<"  "<<M<<"  "<<C<<std::endl;
-
-    // Split cells in c2list if they will definitely need to be split.
-    // And remove any that cannot contribute to the sums for this c1.
-    std::vector<const BaseCell<C>*> newc2list;
-    splitC2Cells<B>(c1, c2list, metric, newc2list);
-
-    // See if we can stop splitting c1
-    // The criterion is that for the largest separation we will be caring about,
-    // c1 is at least possibly small enough to use as is without futher splitting.
-    // i.e. s1 < maxsep * b
-    inc_ws();
-    double maxbsq_eff = BinTypeHelper<B>::getEffectiveBSq(_maxsepsq, _bsq);
-    if (SQR(s1) > maxbsq_eff) {
-        multipoleSplit1<B>(*c1.getLeft(), newc2list, metric, mp);
-        multipoleSplit1<B>(*c1.getRight(), newc2list, metric, mp);
-    } else {
-        // Zero out scratch arrays
-        mp.clear();
-        multipoleFinish<B>(c1, newc2list, metric, mp);
-    }
-    dec_ws();
-}
-template <int B, int M, int C>
-void BaseCorr3::multipoleSplit1(
-    const BaseCell<C>& c1,
-    const std::vector<const BaseCell<C>*>& c2list,
-    const std::vector<const BaseCell<C>*>& c3list,
-    const MetricHelper<M,0>& metric, int ordered,
-    BaseMultipoleScratch& mp2, BaseMultipoleScratch& mp3)
-{
-    xdbg<<ws()<<"MultipoleSplit1: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<"  len c2 = "<<c2list.size()<<" len c3 = "<<c3list.size()<<std::endl;
-    xdbg<<"B,M,C = "<<B<<"  "<<M<<"  "<<C<<std::endl;
-
-    double s1 = c1.getSize();
-
-    // Split cells in both lists if appropriate
-    std::vector<const BaseCell<C>*> newc2list;
-    std::vector<const BaseCell<C>*> newc3list;
-    splitC2Cells<B>(c1, c2list, metric, newc2list);
-    xdbg<<"c2 split "<<c2list.size()<<" => "<<newc2list.size()<<std::endl;
-    splitC2Cells<B>(c1, c3list, metric, newc3list);
-    xdbg<<"c3 split "<<c3list.size()<<" => "<<newc3list.size()<<std::endl;
-
-    // See if we can stop splitting c1
-    inc_ws();
-    double maxbsq_eff = BinTypeHelper<B>::getEffectiveBSq(_maxsepsq, _bsq);
-    if (SQR(s1) > maxbsq_eff) {
-        multipoleSplit1<B>(*c1.getLeft(), newc2list, newc3list, metric, ordered, mp2, mp3);
-        multipoleSplit1<B>(*c1.getRight(), newc2list, newc3list, metric, ordered, mp2, mp3);
-    } else {
-        // Zero out scratch arrays
-        mp2.clear();
-        mp3.clear();
-        multipoleFinish<B>(c1, newc2list, newc3list, metric, ordered, mp2, mp3);
-    }
-    dec_ws();
-}
-
-template <int B, int M, int C>
-void BaseCorr3::splitC2CellsOrCalculateGn(
-    const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
-    const MetricHelper<M,0>& metric, std::vector<const BaseCell<C>*>& newc2list, bool& anysplit1,
-    BaseMultipoleScratch& mp)
-{
-    const Position<C>& p1 = c1.getPos();
-    double s1 = c1.getSize();
-    for (const BaseCell<C>* c2: c2list) {
-        const Position<C>& p2 = c2->getPos();
-        double s2 = c2->getSize();
-        const double rsq = metric.DistSq(p1,p2,s1,s2);
-        xdbg<<"rsq = "<<rsq<<std::endl;
-        const double s1ps2 = s1+s2;
-
-        // This sequence mirrors the calculation in Corr2.process11.
-        double rpar = 0; // Gets set to correct value by this function if appropriate
-        if (metric.isRParOutsideRange(p1, p2, s1ps2, rpar)) {
-            continue;
-        }
-        xdbg<<"RPar in range\n";
-
-        if (BinTypeHelper<B>::tooSmallDist(rsq, s1ps2, _minsep, _minsepsq) &&
-            metric.tooSmallDist(p1, p2, rsq, rpar, s1ps2, _minsep, _minsepsq)) {
-            continue;
-        }
-        xdbg<<"Not too small separation\n";
-
-        if (BinTypeHelper<B>::tooLargeDist(rsq, s1ps2, _maxsep, _maxsepsq) &&
-            metric.tooLargeDist(p1, p2, rsq, rpar, s1ps2, _maxsep, _maxsepsq)) {
-            continue;
-        }
-        xdbg<<"Not too large separation\n";
-
-        // Now check if these cells are small enough that it is ok to drop into a single bin.
-        int k=-1;
-        double r=0,logr=0;
-
-        if (metric.isRParInsideRange(p1, p2, s1ps2, rpar) &&
-            BinTypeHelper<B>::singleBin(rsq, s1ps2, p1, p2, _binsize, _b, _bsq,
-                                        _minsep, _maxsep, _logminsep, k, r, logr))
-        {
-            // Check angle
-            double bphisq_eff = BinTypeHelper<B>::getEffectiveBSq(rsq, _busq);
-            if (SQR(s1ps2) <= bphisq_eff) {
-                // This c2 is fine to use as is with the current c1.  Neither needs to split.
-                xdbg<<"s1ps2 = "<<s1ps2<<" _b = "<<_b<<"  "<<_bu<<std::endl;
-                xdbg<<"Drop into single bin.\n";
-                if (BinTypeHelper<B>::isRSqInRange(rsq, p1, p2, _minsep, _minsepsq,
-                                                   _maxsep, _maxsepsq)) {
-                    if (k < 0) {
-                        // Then these aren't calculated yet.  Do that now.
-                        r = sqrt(rsq);
-                        logr = log(r);
-                        k = BinTypeHelper<B>::calculateBinK(p1, p2, r, logr, _binsize,
-                                                            _minsep, _maxsep, _logminsep);
-                    }
-                    calculateGn(c1, *c2, rsq, r, logr, k, mp);
-                }
-                continue;
-            }
-        }
-
-        // OK, need to split.  Figure out if we should split c1 or c2 or both.
-        bool split1=false;
-        bool split2=false;
-        double bsq_eff = BinTypeHelper<B>::getEffectiveBSq(rsq,std::min(_bsq,_busq));
-        CalcSplitSq(split1,split2,s1,s2,s1ps2,bsq_eff);
-        xdbg<<"split2 = "<<split2<<std::endl;
-        if (split1) anysplit1 = true;
-
-        if (split2) {
-            XAssert(c2->getLeft());
-            XAssert(c2->getRight());
-            newc2list.push_back(c2->getLeft());
-            newc2list.push_back(c2->getRight());
-        } else {
-            newc2list.push_back(c2);
-        }
-    }
-}
-
-template <int B, int M, int C>
-void BaseCorr3::multipoleFinish(
-    const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
-    const MetricHelper<M,0>& metric, BaseMultipoleScratch& mp)
-{
-    // This is structured a lot like the previous function.
-    // However, in this one, we will actually be filling the Gn array.
-    // We fill what we can before splitting further.
-    // Note: if we decide to split c1, we need to make a copy of Gn before
-    // recursing.  This is why we split up the calculation into two functions like
-    // this.  We want to minimize the number of copies of Gn (et al) we need to make.
-    xdbg<<ws()<<"MultipoleFinish1: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<"  len c2 = "<<c2list.size()<<std::endl;
-
-    xdbg<<"B,M,C = "<<B<<"  "<<M<<"  "<<C<<std::endl;
-    bool anysplit1=false;
-
-    // As before, split any cells in c2list that need to be split given the current c1.
-    // And remove any that cannot contribute to the sums.
-    // This time we also accumulate the Gn array for any that can be done.
-    // Those also don't get added to newc2list.
-    std::vector<const BaseCell<C>*> newc2list;
-    splitC2CellsOrCalculateGn<B>(
-        c1, c2list, metric, newc2list, anysplit1, mp);
-
-    xdbg<<"newsize = "<<newc2list.size()<<", anysplit1 = "<<anysplit1<<std::endl;
-    if (newc2list.size() > 0) {
-        inc_ws();
-        if (anysplit1) {
-            XAssert(c1.getLeft());
-            XAssert(c1.getRight());
-            // Then we need to split c1 further.  This means we need a copy of Gn and the
-            // other scratch arrays, so we can pass what we have now to each child cell.
-            std::unique_ptr<BaseMultipoleScratch> mp_copy = mp.duplicate();
-            multipoleFinish<B>(*c1.getLeft(), newc2list, metric, mp);
-            multipoleFinish<B>(*c1.getRight(), newc2list, metric, *mp_copy);
-        } else {
-            // If we still have c2 items to process, but don't have to split c1,
-            // we don't need to make copies.
-            multipoleFinish<B>(c1, newc2list, metric, mp);
-        }
-        dec_ws();
-    } else {
-        // We finished all the calculations for Gn.
-        // Turn this into Zeta_n.
-        calculateZeta(c1, mp);
-    }
-}
-
-template <int B, int M, int C>
-void BaseCorr3::multipoleFinish(
-    const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
-    const std::vector<const BaseCell<C>*>& c3list, const MetricHelper<M,0>& metric, int ordered,
-    BaseMultipoleScratch& mp2, BaseMultipoleScratch& mp3)
-{
-    xdbg<<ws()<<"MultipoleFinish1: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<"  len c2 = "<<c2list.size()<<"  len c3 = "<<c3list.size()<<std::endl;
-
-    xdbg<<"B,M,C = "<<B<<"  "<<M<<"  "<<C<<std::endl;
-    bool anysplit1=false;
-
-    std::vector<const BaseCell<C>*> newc2list;
-    splitC2CellsOrCalculateGn<B>(c1, c2list, metric, newc2list, anysplit1, mp2);
-    std::vector<const BaseCell<C>*> newc3list;
-    splitC2CellsOrCalculateGn<B>(c1, c3list, metric, newc3list, anysplit1, mp3);
-    xdbg<<"newsize = "<<newc2list.size()<<","<<newc3list.size()<<", anysplit1 = "<<anysplit1<<std::endl;
-
-    if (newc2list.size() > 0 || newc3list.size() > 0) {
-        inc_ws();
-        if (anysplit1) {
-            XAssert(c1.getLeft());
-            XAssert(c1.getRight());
-            // Then we need to split c1 further.  This means we need a copy of Gn and the
-            // other scratch arrays, so we can pass what we have now to each child cell.
-            std::unique_ptr<BaseMultipoleScratch> mp2_copy = mp2.duplicate();
-            std::unique_ptr<BaseMultipoleScratch> mp3_copy = mp3.duplicate();
-            multipoleFinish<B>(
-                *c1.getLeft(), newc2list, newc3list, metric, ordered, mp2, mp3);
-            multipoleFinish<B>(
-                *c1.getRight(), newc2list, newc3list, metric, ordered, *mp2_copy, *mp3_copy);
-        } else {
-            // If we still have c2 items to process, but don't have to split c1,
-            // we don't need to make copies.
-            multipoleFinish<B>(c1, newc2list, newc3list, metric, ordered, mp2, mp3);
-        }
-        dec_ws();
-    } else {
-        // We finished all the calculations for Gn.
-        // Turn this into Zeta_n.
-        calculateZeta(c1, ordered, mp2, mp3);
-    }
 }
 
 //
@@ -2210,7 +2204,7 @@ Corr3<D1,D2,D3>* BuildCorr3(
     py::array_t<double>& meand2p, py::array_t<double>& meanlogd2p,
     py::array_t<double>& meand3p, py::array_t<double>& meanlogd3p,
     py::array_t<double>& meanup, py::array_t<double>& meanvp,
-    py::array_t<double>& weightp, py::array_t<double>& weight_imp,
+    py::array_t<double>& weightp, py::array_t<double>& weightip,
     py::array_t<double>& ntrip)
 {
     double* zeta0 = zeta0p.size() == 0 ? 0 : static_cast<double*>(zeta0p.mutable_data());
@@ -2230,7 +2224,7 @@ Corr3<D1,D2,D3>* BuildCorr3(
     double* meanu = static_cast<double*>(meanup.mutable_data());
     double* meanv = static_cast<double*>(meanvp.mutable_data());
     double* weight = static_cast<double*>(weightp.mutable_data());
-    double* weight_im = static_cast<double*>(weight_imp.mutable_data());
+    double* weight_im = weightip.size() == 0 ? 0 : static_cast<double*>(weightip.mutable_data());
     double* ntri = static_cast<double*>(ntrip.mutable_data());
 
     dbg<<"Start BuildCorr3 "<<D1<<" "<<D2<<" "<<D3<<" "<<bin_type<<std::endl;
@@ -2501,7 +2495,7 @@ void WrapCorr3(py::module& _treecorr, std::string prefix)
         py::array_t<double>& meand2p, py::array_t<double>& meanlogd2p,
         py::array_t<double>& meand3p, py::array_t<double>& meanlogd3p,
         py::array_t<double>& meanup, py::array_t<double>& meanvp,
-        py::array_t<double>& weightp, py::array_t<double>& weight_imp,
+        py::array_t<double>& weightp, py::array_t<double>& weightip,
         py::array_t<double>& ntrip);
 
     py::class_<Corr3<D1,D2,D3>, BaseCorr3> corr3(_treecorr, (prefix + "Corr").c_str());

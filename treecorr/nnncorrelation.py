@@ -727,10 +727,9 @@ class NNNCorrelation(Corr3):
 
         # For ntri, we recorded the total ntri for each pair of d2,d3.
         # Allocate those proportionally to the weights.
-        # The extra factor of 0.5 is because Multipole counts the triangles
-        # twice (with c2,c3 in each spot).  The standard SAS counting just
-        # counts the ones in CCW orientation. (i.e. no double counting.)
-        # (If phi range is not [0,pi], this may be even smaller.)
+        # Note: Multipole counts the weight for all 0 < phi < 2pi.
+        # We reduce this by the fraction of this covered by [min_phi, max_phi].
+        # (Typically 1/2, since usually [0,pi].)
         phi_frac = (sas.max_phi - sas.min_phi) / (2*np.pi)
         ratio = self.ntri[:,:,0] / np.sum(sas.weight, axis=2) * phi_frac
         sas.ntri[:] = sas.weight * ratio[:,:,None]
@@ -781,9 +780,10 @@ class NNNCorrelation(Corr3):
 
         .. note::
 
-            This method is not valid for bin_type='LogMultipole'.  In that case, the
-            raw calculation directly computes ``zeta``, which is the multipole expansion
-            of the triangle weights.
+            This method is not valid for bin_type='LogMultipole'. I don't think there is
+            a straightforward way to go directly from the multipole expoansion of DDD and
+            RRR to Zeta.  Normally one would instead convert both to LogSAS binning
+            (cf. `toSAS`) and then call `calculateZeta` with those.
 
         Parameters:
             rrr (NNNCorrelation):   The auto-correlation of the random field (RRR)

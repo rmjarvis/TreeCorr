@@ -1275,10 +1275,145 @@ void BaseCorr3::multipoleFinish(
     }
 }
 
-
-// We also set up a helper class for doing the direct processing
+// Helper class (defined below) to do specialized calculations depending on the DTypes.
 template <int D1, int D2, int D3>
 struct DirectHelper;
+
+template <int D1, int D2, int D3> template <int C>
+void Corr3<D1,D2,D3>::calculateGn(
+    const BaseCell<C>& c1, const BaseCell<C>& c2,
+    double rsq, double r, double logr, int k,
+    BaseMultipoleScratch& mp)
+{
+    xdbg<<ws()<<"Gn Index = "<<k<<std::endl;
+    // For now we only include the counts and weight from c2.
+    // We'll include c1 as part of the triple in calculateZeta.
+    double n = c2.getN();
+    double w = c2.getW();
+    mp.npairs[k] += n;
+    mp.sumw[k] += w;
+    mp.sumwr[k] += w * r;
+    mp.sumwlogr[k] += w * logr;
+    if (mp.ww) {
+        double ww = w * w;
+        mp.sumww[k] += ww;
+        mp.sumwwr[k] += ww * r;
+        mp.sumwwlogr[k] += ww * logr;
+    }
+
+    DirectHelper<D1,D2,D3>::CalculateGn(
+        static_cast<const Cell<D1,C>&>(c1),
+        static_cast<const Cell<D2,C>&>(c2),
+        rsq, r, k, _nubins, w,
+        static_cast<MultipoleScratch<D1, D2>&>(mp));
+}
+
+template <int D1, int D2, int D3> template <int C>
+void Corr3<D1,D2,D3>::calculateZeta(const BaseCell<C>& c1, BaseMultipoleScratch& mp)
+{
+    xdbg<<ws()<<"Zeta c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<std::endl;
+    // First finish the computation of meand2, etc. based on the 2pt accumulations.
+    double n1 = c1.getN();
+    double w1 = c1.getW();
+    const int maxn = _nubins;
+    const int nnbins = 2*maxn+1;
+    for (int k2=0; k2<_nbins; ++k2) {
+        int i22 = (k2 * _nbins + k2) * nnbins + maxn;
+        // Do the k2=k3 bins.
+        // We need to be careful not to count cases where c2=c3.
+        // This means we need to subtract off sums of w^2 for instance.
+        _ntri[i22] += n1 * mp.npairs[k2] * (mp.npairs[k2]-1);
+        _meand2[i22] += w1 * (mp.sumw[k2] * mp.sumwr[k2] - mp.sumwwr[k2]);
+        _meanlogd2[i22] += w1 * (mp.sumw[k2] * mp.sumwlogr[k2] - mp.sumwwlogr[k2]);
+        _meand3[i22] += w1 * (mp.sumw[k2] * mp.sumwr[k2] - mp.sumwwr[k2]);
+        _meanlogd3[i22] += w1 * (mp.sumw[k2] * mp.sumwlogr[k2] - mp.sumwwlogr[k2]);
+        for (int k3=k2+1; k3<_nbins; ++k3) {
+            int i23 = (k2 * _nbins + k3) * nnbins + maxn;
+            int i32 = (k3 * _nbins + k2) * nnbins + maxn;
+            double nnn = n1 * mp.npairs[k2] * mp.npairs[k3];
+            _ntri[i23] += nnn;
+            _ntri[i32] += nnn;
+            double ww12 = w1 * mp.sumw[k2];
+            double ww13 = w1 * mp.sumw[k3];
+            double wwwd2 = ww13 * mp.sumwr[k2];
+            _meand2[i23] += wwwd2;
+            _meand3[i32] += wwwd2;
+            double wwwlogd2 = ww13 * mp.sumwlogr[k2];
+            _meanlogd2[i23] += wwwlogd2;
+            _meanlogd3[i32] += wwwlogd2;
+            double wwwd3 = ww12 * mp.sumwr[k3];
+            _meand3[i23] += wwwd3;
+            _meand2[i32] += wwwd3;
+            double wwwlogd3 = ww12 * mp.sumwlogr[k3];
+            _meanlogd3[i23] += wwwlogd3;
+            _meanlogd2[i32] += wwwlogd3;
+        }
+    }
+    // Finish the calculation for Zeta_n(d1,d2) using G_n(d).
+    // In Porth et al, this is eqs. 21, 23, 24, 25 for GGG, and eqn 27 for NNN.
+    // The version for KKK is obvious from these.
+    DirectHelper<D1,D2,D3>::CalculateZeta(
+        static_cast<const Cell<D1,C>&>(c1),
+        static_cast<MultipoleScratch<D1, D2>&>(mp),
+        _weight, _weight_im, _zeta, _nbins, _nubins);
+}
+
+template <int D1, int D2, int D3> template <int C>
+void Corr3<D1,D2,D3>::calculateZeta(
+    const BaseCell<C>& c1, int ordered,
+    BaseMultipoleScratch& mp2, BaseMultipoleScratch& mp3)
+{
+    xdbg<<ws()<<"Zeta c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<std::endl;
+    // First finish the computation of meand2, etc. based on the 2pt accumulations.
+    double n1 = c1.getN();
+    double w1 = c1.getW();
+    const int maxn = _nubins;
+    const int nnbins = 2*maxn+1;
+    int i=maxn;
+    if (ordered == 3) {
+        // Keep track of locations p2 and p3 separately.
+        for (int k2=0; k2<_nbins; ++k2) {
+            for (int k3=0; k3<_nbins; ++k3, i+=nnbins) {
+                // This is a bit confusing.  In the name mp2, the "2" refers to these arrays
+                // being computed for cat2, which is at p2, opposite d2.  So the distances that
+                // have been accumulated in mp2 are actually d3 values.  Similarly, mp3 has
+                // the d2 sums.  k2 is our index for d2 bins and k3 is our index for d3 bins,
+                // so this meand we use mp2.sumwr[k3] and mp3.sumwr[k2], etc.
+                _ntri[i] += n1 * mp3.npairs[k2] * mp2.npairs[k3];
+                double ww12 = w1 * mp3.sumw[k2];
+                double ww13 = w1 * mp2.sumw[k3];
+                _meand2[i] += ww13 * mp3.sumwr[k2];
+                _meanlogd2[i] += ww13 * mp3.sumwlogr[k2];
+                _meand3[i] += ww12 * mp2.sumwr[k3];
+                _meanlogd3[i] += ww12 * mp2.sumwlogr[k3];
+            }
+        }
+    } else {
+        XAssert(ordered == 1);
+        // ordered == 1 means points 2 and 3 can swap freely.
+        // So add up the results where k2 and k3 take both spots.
+        for (int k2=0; k2<_nbins; ++k2) {
+            for (int k3=0; k3<_nbins; ++k3, i+=nnbins) {
+                _ntri[i] += n1 * (mp2.npairs[k2] * mp3.npairs[k3] +
+                                  mp3.npairs[k2] * mp2.npairs[k3]);
+                _meand2[i] += w1 * (mp2.sumw[k3] * mp3.sumwr[k2] +
+                                    mp3.sumw[k3] * mp2.sumwr[k2]);
+                _meanlogd2[i] += w1 * (mp2.sumw[k3] * mp3.sumwlogr[k2] +
+                                       mp3.sumw[k3] * mp2.sumwlogr[k2]);
+                _meand3[i] += w1 * (mp2.sumw[k2] * mp3.sumwr[k3] +
+                                    mp3.sumw[k2] * mp2.sumwr[k3]);
+                _meanlogd3[i] += w1 * (mp2.sumw[k2] * mp3.sumwlogr[k3] +
+                                       mp3.sumw[k3] * mp2.sumwlogr[k3]);
+            }
+        }
+    }
+    // Finish the calculation for Zeta_n(d1,d2) using G_n(d).
+    DirectHelper<D1,D2,D3>::CalculateZeta(
+        static_cast<const Cell<D1,C>&>(c1), ordered,
+        static_cast<MultipoleScratch<D1,D2>&>(mp2),
+        static_cast<MultipoleScratch<D1,D3>&>(mp3),
+        _weight, _weight_im, _zeta, _nbins, _nubins);
+}
 
 template <>
 struct DirectHelper<NData,NData,NData>
@@ -2007,142 +2142,6 @@ std::unique_ptr<BaseMultipoleScratch> Corr3<D1,D2,D3>::getMP2(bool use_ww)
 template <int D1, int D2, int D3>
 std::unique_ptr<BaseMultipoleScratch> Corr3<D1,D2,D3>::getMP3(bool use_ww)
 { return make_unique<MultipoleScratch<D1,D3> >(_nbins, _nubins, use_ww); }
-
-template <int D1, int D2, int D3> template <int C>
-void Corr3<D1,D2,D3>::calculateGn(
-    const BaseCell<C>& c1, const BaseCell<C>& c2,
-    double rsq, double r, double logr, int k,
-    BaseMultipoleScratch& mp)
-{
-    xdbg<<ws()<<"Gn Index = "<<k<<std::endl;
-    // For now we only include the counts and weight from c2.
-    // We'll include c1 as part of the triple in calculateZeta.
-    double n = c2.getN();
-    double w = c2.getW();
-    mp.npairs[k] += n;
-    mp.sumw[k] += w;
-    mp.sumwr[k] += w * r;
-    mp.sumwlogr[k] += w * logr;
-    if (mp.ww) {
-        double ww = w * w;
-        mp.sumww[k] += ww;
-        mp.sumwwr[k] += ww * r;
-        mp.sumwwlogr[k] += ww * logr;
-    }
-
-    DirectHelper<D1,D2,D3>::CalculateGn(
-        static_cast<const Cell<D1,C>&>(c1),
-        static_cast<const Cell<D2,C>&>(c2),
-        rsq, r, k, _nubins, w,
-        static_cast<MultipoleScratch<D1, D2>&>(mp));
-}
-
-template <int D1, int D2, int D3> template <int C>
-void Corr3<D1,D2,D3>::calculateZeta(const BaseCell<C>& c1, BaseMultipoleScratch& mp)
-{
-    xdbg<<ws()<<"Zeta c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<std::endl;
-    // First finish the computation of meand2, etc. based on the 2pt accumulations.
-    double n1 = c1.getN();
-    double w1 = c1.getW();
-    const int maxn = _nubins;
-    const int nnbins = 2*maxn+1;
-    for (int k2=0; k2<_nbins; ++k2) {
-        int i22 = (k2 * _nbins + k2) * nnbins + maxn;
-        // Do the k2=k3 bins.
-        // We need to be careful not to count cases where c2=c3.
-        // This means we need to subtract off sums of w^2 for instance.
-        _ntri[i22] += n1 * mp.npairs[k2] * (mp.npairs[k2]-1);
-        _meand2[i22] += w1 * (mp.sumw[k2] * mp.sumwr[k2] - mp.sumwwr[k2]);
-        _meanlogd2[i22] += w1 * (mp.sumw[k2] * mp.sumwlogr[k2] - mp.sumwwlogr[k2]);
-        _meand3[i22] += w1 * (mp.sumw[k2] * mp.sumwr[k2] - mp.sumwwr[k2]);
-        _meanlogd3[i22] += w1 * (mp.sumw[k2] * mp.sumwlogr[k2] - mp.sumwwlogr[k2]);
-        for (int k3=k2+1; k3<_nbins; ++k3) {
-            int i23 = (k2 * _nbins + k3) * nnbins + maxn;
-            int i32 = (k3 * _nbins + k2) * nnbins + maxn;
-            double nnn = n1 * mp.npairs[k2] * mp.npairs[k3];
-            _ntri[i23] += nnn;
-            _ntri[i32] += nnn;
-            double ww12 = w1 * mp.sumw[k2];
-            double ww13 = w1 * mp.sumw[k3];
-            double wwwd2 = ww13 * mp.sumwr[k2];
-            _meand2[i23] += wwwd2;
-            _meand3[i32] += wwwd2;
-            double wwwlogd2 = ww13 * mp.sumwlogr[k2];
-            _meanlogd2[i23] += wwwlogd2;
-            _meanlogd3[i32] += wwwlogd2;
-            double wwwd3 = ww12 * mp.sumwr[k3];
-            _meand3[i23] += wwwd3;
-            _meand2[i32] += wwwd3;
-            double wwwlogd3 = ww12 * mp.sumwlogr[k3];
-            _meanlogd3[i23] += wwwlogd3;
-            _meanlogd2[i32] += wwwlogd3;
-        }
-    }
-    // Finish the calculation for Zeta_n(d1,d2) using G_n(d).
-    // In Porth et al, this is eqs. 21, 23, 24, 25 for GGG, and eqn 27 for NNN.
-    // The version for KKK is obvious from these.
-    DirectHelper<D1,D2,D3>::CalculateZeta(
-        static_cast<const Cell<D1,C>&>(c1),
-        static_cast<MultipoleScratch<D1, D2>&>(mp),
-        _weight, _weight_im, _zeta, _nbins, _nubins);
-}
-
-template <int D1, int D2, int D3> template <int C>
-void Corr3<D1,D2,D3>::calculateZeta(
-    const BaseCell<C>& c1, int ordered,
-    BaseMultipoleScratch& mp2, BaseMultipoleScratch& mp3)
-{
-    xdbg<<ws()<<"Zeta c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<std::endl;
-    // First finish the computation of meand2, etc. based on the 2pt accumulations.
-    double n1 = c1.getN();
-    double w1 = c1.getW();
-    const int maxn = _nubins;
-    const int nnbins = 2*maxn+1;
-    int i=maxn;
-    if (ordered == 3) {
-        // Keep track of locations p2 and p3 separately.
-        for (int k2=0; k2<_nbins; ++k2) {
-            for (int k3=0; k3<_nbins; ++k3, i+=nnbins) {
-                // This is a bit confusing.  In the name mp2, the "2" refers to these arrays
-                // being computed for cat2, which is at p2, opposite d2.  So the distances that
-                // have been accumulated in mp2 are actually d3 values.  Similarly, mp3 has
-                // the d2 sums.  k2 is our index for d2 bins and k3 is our index for d3 bins,
-                // so this meand we use mp2.sumwr[k3] and mp3.sumwr[k2], etc.
-                _ntri[i] += n1 * mp3.npairs[k2] * mp2.npairs[k3];
-                double ww12 = w1 * mp3.sumw[k2];
-                double ww13 = w1 * mp2.sumw[k3];
-                _meand2[i] += ww13 * mp3.sumwr[k2];
-                _meanlogd2[i] += ww13 * mp3.sumwlogr[k2];
-                _meand3[i] += ww12 * mp2.sumwr[k3];
-                _meanlogd3[i] += ww12 * mp2.sumwlogr[k3];
-            }
-        }
-    } else {
-        XAssert(ordered == 1);
-        // ordered == 1 means points 2 and 3 can swap freely.
-        // So add up the results where k2 and k3 take both spots.
-        for (int k2=0; k2<_nbins; ++k2) {
-            for (int k3=0; k3<_nbins; ++k3, i+=nnbins) {
-                _ntri[i] += n1 * (mp2.npairs[k2] * mp3.npairs[k3] +
-                                  mp3.npairs[k2] * mp2.npairs[k3]);
-                _meand2[i] += w1 * (mp2.sumw[k3] * mp3.sumwr[k2] +
-                                    mp3.sumw[k3] * mp2.sumwr[k2]);
-                _meanlogd2[i] += w1 * (mp2.sumw[k3] * mp3.sumwlogr[k2] +
-                                       mp3.sumw[k3] * mp2.sumwlogr[k2]);
-                _meand3[i] += w1 * (mp2.sumw[k2] * mp3.sumwr[k3] +
-                                    mp3.sumw[k2] * mp2.sumwr[k3]);
-                _meanlogd3[i] += w1 * (mp2.sumw[k2] * mp3.sumwlogr[k3] +
-                                       mp3.sumw[k3] * mp2.sumwlogr[k3]);
-            }
-        }
-    }
-    // Finish the calculation for Zeta_n(d1,d2) using G_n(d).
-    DirectHelper<D1,D2,D3>::CalculateZeta(
-        static_cast<const Cell<D1,C>&>(c1), ordered,
-        static_cast<MultipoleScratch<D1,D2>&>(mp2),
-        static_cast<MultipoleScratch<D1,D3>&>(mp3),
-        _weight, _weight_im, _zeta, _nbins, _nubins);
-}
 
 template <int D1, int D2, int D3>
 void Corr3<D1,D2,D3>::operator=(const Corr3<D1,D2,D3>& rhs)

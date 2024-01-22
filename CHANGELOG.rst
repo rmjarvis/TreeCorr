@@ -60,6 +60,7 @@ New features
 - Added spin-3 and spin-4 correlations using the letters T (for Trefoil) and Q (for Quatrefoil)
   respectively, including `NTCorrelation`, `KTCorrelation`, `TTCorrelation`, `NQCorrelation`,
   `KQCorrelation` and `QQCorrelation`. (#160)
+- Automatically recognize .h5 as an HDF5 suffix in file names. (#161)
 - Added ``ordered=True`` option to the 3pt ``process`` methods for keeping the order of the
   catalogs fixed in the triangle orientation. (#165)
 - Added ``bin_type='LogSAS'`` for 3pt correlations. (#165)

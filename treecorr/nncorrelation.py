@@ -355,7 +355,7 @@ class NNCorrelation(Corr2):
             np.sum([c.npairs for c in others], axis=0, out=self.npairs)
         self.tot = tot
 
-    def _add_tot(self, i, j, c1, c2):
+    def _add_tot(self, ij, c1, c2):
         # When storing results from a patch-based run, tot needs to be accumulated even if
         # the total weight being accumulated comes out to be zero.
         # This only applies to NNCorrelation.  For the other ones, this is a no op.
@@ -365,10 +365,10 @@ class NNCorrelation(Corr2):
         # gets messed up.  We need to accumulate the tot value of all pairs, even if
         # the resulting weight is zero.  But use a minimal copy with just the necessary fields
         # to save some time.
-        self.results[(i,j)] = self._zero_copy(tot)
+        self.results[ij] = self._zero_copy(tot)
 
     def process(self, cat1, cat2=None, *, metric=None, num_threads=None, comm=None, low_mem=False,
-                initialize=True, finalize=True):
+                initialize=True, finalize=True, patch_method='global'):
         """Compute the correlation function.
 
         - If only 1 argument is given, then compute an auto-correlation function.
@@ -396,9 +396,14 @@ class NNCorrelation(Corr2):
                                 `Corr2.clear`.  (default: True)
             finalize (bool):    Whether to complete the calculation with a call to `finalize`.
                                 (default: True)
+            patch_method (str): Which patch method to use. (default: 'global')
         """
         if initialize:
             self.clear()
+
+        if patch_method not in ['local', 'global']:
+            raise ValueError("Invalid patch_method %s"%patch_method)
+        local = patch_method == 'local'
 
         if not isinstance(cat1,list):
             cat1 = cat1.get_patches(low_mem=low_mem)
@@ -406,9 +411,9 @@ class NNCorrelation(Corr2):
             cat2 = cat2.get_patches(low_mem=low_mem)
 
         if cat2 is None or len(cat2) == 0:
-            self._process_all_auto(cat1, metric, num_threads, comm, low_mem)
+            self._process_all_auto(cat1, metric, num_threads, comm, low_mem, local)
         else:
-            self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem)
+            self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem, local)
 
         if finalize:
             self.finalize()

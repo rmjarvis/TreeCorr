@@ -150,16 +150,16 @@ struct MultipoleScratch<GData, GData> : public BaseMultipoleScratch
         Gnsize(nbins * (2*nubins+3)), Gn(Gnsize)
     {
         if (ww) {
+            sumwwgg0.resize(n);
             sumwwgg1.resize(n);
             sumwwgg2.resize(n);
-            sumwwgg3.resize(n);
         }
     }
 
     MultipoleScratch(const MultipoleScratch& rhs) :
         BaseMultipoleScratch(rhs),
         Gnsize(rhs.Gnsize), Gn(rhs.Gn),
-        sumwwgg1(rhs.sumwwgg1), sumwwgg2(rhs.sumwwgg2), sumwwgg3(rhs.sumwwgg3)
+        sumwwgg0(rhs.sumwwgg0), sumwwgg1(rhs.sumwwgg1), sumwwgg2(rhs.sumwwgg2)
     {}
 
     std::unique_ptr<BaseMultipoleScratch> duplicate()
@@ -174,9 +174,9 @@ struct MultipoleScratch<GData, GData> : public BaseMultipoleScratch
         for (int i=0; i<Gnsize; ++i) Gn[i] = 0.;
         if (ww) {
             for (int i=0; i<n; ++i) {
+                sumwwgg0[i] = 0.;
                 sumwwgg1[i] = 0.;
                 sumwwgg2[i] = 0.;
-                sumwwgg3[i] = 0.;
             }
         }
     }
@@ -184,9 +184,9 @@ struct MultipoleScratch<GData, GData> : public BaseMultipoleScratch
     const int Gnsize;
 
     std::vector<std::complex<double> > Gn;
+    std::vector<std::complex<double> > sumwwgg0;
     std::vector<std::complex<double> > sumwwgg1;
     std::vector<std::complex<double> > sumwwgg2;
-    std::vector<std::complex<double> > sumwwgg3;
 };
 
 #endif

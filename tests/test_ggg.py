@@ -4139,16 +4139,9 @@ def test_direct_logmultipole_spherical():
         tol_factor = 3
     s = 10.
     rng = np.random.RandomState(8675309)
-    # Note: the multipole math isn't exact in spherical coordinates with respect to how
-    # the shears rotate.  They don't quite rotate lienarly in the angle phi.
-    # So this test keeps the angles relatively small.  We test up to 30 arcmin, where the
-    # errors from spherical geometry are fairly modest.  Tests pass at rtol=2.e-3.
-    # Tests at >10 degrees have errors of 10% or more, though they pass with the DIRECT_MULTIPOLE
-    # option enabled in Corr3.cpp.  That obviously misses the point of the mutlipole algorithm,
-    # but it provides some evidence that it's an error that arises from using the Gn's.
     x = rng.normal(0,s, (ngal,) )
-    y = rng.normal(0,s, (ngal,) ) + 1000
-    z = rng.normal(0,s, (ngal,) )
+    y = rng.normal(0,s, (ngal,) ) + 20  # Covers a pretty large angle on the sky, so spherical
+    z = rng.normal(0,s, (ngal,) )       # geometry matters.
     w = np.ones_like(x) * 3
     g1 = rng.normal(0,0.2, (ngal,) )
     g2 = rng.normal(0,0.2, (ngal,) )
@@ -4158,15 +4151,14 @@ def test_direct_logmultipole_spherical():
 
     cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='rad', dec_units='rad', w=w, g1=g1, g2=g2)
 
-    min_sep = 5.
-    max_sep = 30.
+    min_sep = 10.
+    max_sep = 100.
     nbins = 5
     max_n = 20
 
-    ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, sep_units='arcmin', nbins=nbins,
+    ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, sep_units='deg', nbins=nbins,
                                   max_n=max_n, bin_slop=0, max_top=2, bin_type='LogMultipole')
     ggg.process(cat)
-    #print(ggg.ntri)
 
     r = np.sqrt(x**2 + y**2 + z**2)
     x /= r; y /= r; z /= r
@@ -4179,8 +4171,8 @@ def test_direct_logmultipole_spherical():
     true_gam2 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
     true_gam3 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
 
-    rad_min_sep = min_sep * coord.arcmin / coord.radians
-    rad_max_sep = max_sep * coord.arcmin / coord.radians
+    rad_min_sep = min_sep * coord.degrees / coord.radians
+    rad_max_sep = max_sep * coord.degrees / coord.radians
     bin_size = np.log(max_sep / min_sep) / nbins
     north_pole = coord.CelestialCoord(0*coord.radians, 90*coord.degrees)
     for i in range(ngal):
@@ -4239,17 +4231,6 @@ def test_direct_logmultipole_spherical():
                 gam2 = www * g1p * np.conjugate(g2p) * g3p
                 gam3 = www * g1p * g2p * np.conjugate(g3p)
 
-                #if kr2 == 0 and kr3 == 1:
-                if 0:
-                    print('d = ',d1,d2,d3)
-                    print('g1 = ',g1p)
-                    print('g2 = ',g2p)
-                    print('g3 = ',g3p)
-                    print('gam0 = ',gam0)
-                    print('gam1 = ',gam1)
-                    print('gam2 = ',gam2)
-                    print('gam3 = ',gam3)
-
                 true_ntri[kr2,kr3,:] += 1
                 true_weight[kr2,kr3,:] += www * np.exp(-1j * n1d * phi)
                 true_gam0[kr2,kr3,:] += gam0 * np.exp(-1j * n1d * phi)
@@ -4257,28 +4238,17 @@ def test_direct_logmultipole_spherical():
                 true_gam2[kr2,kr3,:] += gam2 * np.exp(-1j * n1d * phi)
                 true_gam3[kr2,kr3,:] += gam3 * np.exp(-1j * n1d * phi)
 
-    #print('true ntri = ',true_ntri)
-    #print('gam0 = ',ggg.gam0)
-    #print('true gam0 = ',true_gam0)
-    #print('gam1 = ',ggg.gam1)
-    #print('true gam1 = ',true_gam1)
-    #print('gam2 = ',ggg.gam2)
-    #print('true gam2 = ',true_gam2)
-    #print('gam3 = ',ggg.gam3)
-    #print('true gam3 = ',true_gam3)
     print('gam0 max rel diff = ',np.max(np.abs(ggg.gam0/true_gam0-1)))
     print('gam1 max rel diff = ',np.max(np.abs(ggg.gam1/true_gam1-1)))
     print('gam2 max rel diff = ',np.max(np.abs(ggg.gam2/true_gam2-1)))
     print('gam3 max rel diff = ',np.max(np.abs(ggg.gam3/true_gam3-1)))
-    # All of these are < 0.0012 for ngal=100
-    # It doesn't improve with larger ngal, so I think these errors are due to the spherical
-    # geometry not quite matching the math of the multipole expansion exactly.
+
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
     np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(ggg.gam0, true_gam0, rtol=2.e-3 * tol_factor, atol=1.e-6)
-    np.testing.assert_allclose(ggg.gam1, true_gam1, rtol=2.e-3 * tol_factor, atol=1.e-6)
-    np.testing.assert_allclose(ggg.gam2, true_gam2, rtol=2.e-3 * tol_factor, atol=1.e-6)
-    np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=2.e-3 * tol_factor, atol=1.e-6)
+    np.testing.assert_allclose(ggg.gam0, true_gam0, rtol=1.e-5 * tol_factor, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam1, true_gam1, rtol=1.e-5 * tol_factor, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam2, true_gam2, rtol=1.e-5 * tol_factor, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-5 * tol_factor, atol=1.e-8)
 
 @timer
 def test_direct_logmultipole_cross():

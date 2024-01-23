@@ -315,7 +315,7 @@ class NKCorrelation(Corr2):
         self._cov = None
 
     def process(self, cat1, cat2, *, metric=None, num_threads=None, comm=None, low_mem=False,
-                initialize=True, finalize=True):
+                initialize=True, finalize=True, patch_method='global'):
         """Compute the correlation function.
 
         Both arguments may be lists, in which case all items in the list are used
@@ -339,6 +339,7 @@ class NKCorrelation(Corr2):
                                 `Corr2.clear`.  (default: True)
             finalize (bool):    Whether to complete the calculation with a call to `finalize`.
                                 (default: True)
+            patch_method (str): Which patch method to use. (default: 'global')
         """
         import math
         if initialize:
@@ -346,12 +347,16 @@ class NKCorrelation(Corr2):
             self._rk = None
             self._processed_cats.clear()
 
+        if patch_method not in ['local', 'global']:
+            raise ValueError("Invalid patch_method %s"%patch_method)
+        local = patch_method == 'local'
+
         if not isinstance(cat1,list):
             cat1 = cat1.get_patches(low_mem=low_mem)
         if not isinstance(cat2,list):
             cat2 = cat2.get_patches(low_mem=low_mem)
 
-        self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem)
+        self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem, local)
 
         self._processed_cats.extend(cat2)
         if finalize:

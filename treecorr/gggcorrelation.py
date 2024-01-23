@@ -637,7 +637,7 @@ class GGGCorrelation(Corr3):
         np.sum([c.ntri for c in others], axis=0, out=self.ntri)
 
     def process(self, cat1, cat2=None, cat3=None, *, metric=None, ordered=True, num_threads=None,
-                comm=None, low_mem=False, initialize=True, finalize=True):
+                comm=None, low_mem=False, initialize=True, finalize=True, patch_method='global'):
         """Compute the 3pt correlation function.
 
         - If only 1 argument is given, then compute an auto-correlation function.
@@ -681,10 +681,15 @@ class GGGCorrelation(Corr3):
                                 `Corr3.clear`.  (default: True)
             finalize (bool):    Whether to complete the calculation with a call to `finalize`.
                                 (default: True)
+            patch_method(str):  Which patch method to use. (default: 'global')
         """
         import math
         if initialize:
             self.clear()
+
+        if patch_method not in ['local', 'global']:
+            raise ValueError("Invalid patch_method %s"%patch_method)
+        local = patch_method == 'local'
 
         if not isinstance(cat1,list):
             cat1 = cat1.get_patches(low_mem=low_mem)
@@ -696,13 +701,13 @@ class GGGCorrelation(Corr3):
         if cat2 is None:
             if cat3 is not None:
                 raise ValueError("For two catalog case, use cat1,cat2, not cat1,cat3")
-            self._process_all_auto(cat1, metric, num_threads, comm, low_mem)
+            self._process_all_auto(cat1, metric, num_threads, comm, low_mem, local)
         elif cat3 is None:
             if len(cat2) > 1 and self.bin_type == 'LogMultipole':
                 raise ValueError("Multipole algorithm cannot be used when cat2 is a list.")
             if len(cat1) > 1 and self.bin_type == 'LogMultipole' and not ordered:
                 raise ValueError("Multipole algorithm cannot be used when cat1 is a list and ordered=False.")
-            self._process_all_cross12(cat1, cat2, metric, ordered, num_threads, comm, low_mem)
+            self._process_all_cross12(cat1, cat2, metric, ordered, num_threads, comm, low_mem, local)
         else:
             if len(cat2) > 1 and self.bin_type == 'LogMultipole':
                 raise ValueError("Multipole algorithm cannot be used when cat2 is a list.")
@@ -710,7 +715,7 @@ class GGGCorrelation(Corr3):
                 raise ValueError("Multipole algorithm cannot be used when cat3 is a list.")
             if len(cat1) > 1 and self.bin_type == 'LogMultipole' and not ordered:
                 raise ValueError("Multipole algorithm cannot be used when cat1 is a list and ordered=False.")
-            self._process_all_cross(cat1, cat2, cat3, metric, ordered, num_threads, comm, low_mem)
+            self._process_all_cross(cat1, cat2, cat3, metric, ordered, num_threads, comm, low_mem, local)
 
         if finalize:
             if cat2 is None:

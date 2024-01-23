@@ -329,7 +329,7 @@ class KKCorrelation(Corr2):
         np.sum([c.npairs for c in others], axis=0, out=self.npairs)
 
     def process(self, cat1, cat2=None, *, metric=None, num_threads=None, comm=None, low_mem=False,
-                initialize=True, finalize=True):
+                initialize=True, finalize=True, patch_method='global'):
         """Compute the correlation function.
 
         - If only 1 argument is given, then compute an auto-correlation function.
@@ -357,6 +357,7 @@ class KKCorrelation(Corr2):
                                 `Corr2.clear`.  (default: True)
             finalize (bool):    Whether to complete the calculation with a call to `finalize`.
                                 (default: True)
+            patch_method (str): Which patch method to use. (default: 'global')
         """
         import math
         if initialize:
@@ -364,15 +365,19 @@ class KKCorrelation(Corr2):
             self._processed_cats1.clear()
             self._processed_cats2.clear()
 
+        if patch_method not in ['local', 'global']:
+            raise ValueError("Invalid patch_method %s"%patch_method)
+        local = patch_method == 'local'
+
         if not isinstance(cat1,list):
             cat1 = cat1.get_patches(low_mem=low_mem)
         if cat2 is not None and not isinstance(cat2,list):
             cat2 = cat2.get_patches(low_mem=low_mem)
 
         if cat2 is None:
-            self._process_all_auto(cat1, metric, num_threads, comm, low_mem)
+            self._process_all_auto(cat1, metric, num_threads, comm, low_mem, local)
         else:
-            self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem)
+            self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem, local)
 
         self._processed_cats1.extend(cat1)
         if cat2 is not None:

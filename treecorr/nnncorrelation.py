@@ -571,8 +571,8 @@ class NNNCorrelation(Corr3):
             self.weighti[:] += other.weighti[:]
         return self
 
-    def process(self, cat1, cat2=None, cat3=None, *, metric=None, ordered=True,
-                num_threads=None, comm=None, low_mem=False, initialize=True, finalize=True):
+    def process(self, cat1, cat2=None, cat3=None, *, metric=None, ordered=True, num_threads=None,
+                comm=None, low_mem=False, initialize=True, finalize=True, patch_method='global'):
         """Accumulate the 3pt correlation of the points in the given Catalog(s).
 
         - If only 1 argument is given, then compute an auto-correlation function.
@@ -618,9 +618,14 @@ class NNNCorrelation(Corr3):
                                 `Corr3.clear`.  (default: True)
             finalize (bool):    Whether to complete the calculation with a call to `finalize`.
                                 (default: True)
+            patch_method(str):  Which patch method to use. (default: 'global')
         """
         if initialize:
             self.clear()
+
+        if patch_method not in ['local', 'global']:
+            raise ValueError("Invalid patch_method %s"%patch_method)
+        local = patch_method == 'local'
 
         if not isinstance(cat1,list): cat1 = cat1.get_patches()
         if cat2 is not None and not isinstance(cat2,list): cat2 = cat2.get_patches()
@@ -629,7 +634,7 @@ class NNNCorrelation(Corr3):
         if cat2 is None:
             if cat3 is not None:
                 raise ValueError("For two catalog case, use cat1,cat2, not cat1,cat3")
-            self._process_all_auto(cat1, metric, num_threads, comm, low_mem)
+            self._process_all_auto(cat1, metric, num_threads, comm, low_mem, local)
         elif cat3 is None:
             # TODO: I think I know how to make multipole work when cat2,3 use patches.
             #       The issue is that for each galaxy in cat1, we need to compute Gn for all
@@ -643,7 +648,7 @@ class NNNCorrelation(Corr3):
                 raise ValueError("Multipole algorithm cannot be used when cat2 is a list.")
             if len(cat1) > 1 and self.bin_type == 'LogMultipole' and not ordered:
                 raise ValueError("Multipole algorithm cannot be used when cat1 is a list and ordered=False.")
-            self._process_all_cross12(cat1, cat2, metric, ordered, num_threads, comm, low_mem)
+            self._process_all_cross12(cat1, cat2, metric, ordered, num_threads, comm, low_mem, local)
         else:
             if len(cat2) > 1 and self.bin_type == 'LogMultipole':
                 raise ValueError("Multipole algorithm cannot be used when cat2 is a list.")
@@ -651,7 +656,7 @@ class NNNCorrelation(Corr3):
                 raise ValueError("Multipole algorithm cannot be used when cat3 is a list.")
             if len(cat1) > 1 and self.bin_type == 'LogMultipole' and not ordered:
                 raise ValueError("Multipole algorithm cannot be used when cat1 is a list and ordered=False.")
-            self._process_all_cross(cat1, cat2, cat3, metric, ordered, num_threads, comm, low_mem)
+            self._process_all_cross(cat1, cat2, cat3, metric, ordered, num_threads, comm, low_mem, local)
 
         if finalize:
             self.finalize()

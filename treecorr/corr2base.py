@@ -620,7 +620,7 @@ class Corr2(object):
         """
         return np.any(self.npairs)
 
-    def _add_tot(self, i, j, c1, c2):
+    def _add_tot(self, ij, c1, c2):
         # No op for all but NNCorrelation, which needs to add the tot value
         pass
 
@@ -631,7 +631,26 @@ class Corr2(object):
         return self.corr.triviallyZero(self._bintype, self._metric, self._coords,
                                        x1, y1, z1, s1, x2, y2, z2, s2)
 
-    def _process_all_auto(self, cat1, metric, num_threads, comm, low_mem):
+    def _single_process12(self, c1, c2, ij, metric, num_threads, temp, force_write=False):
+        # Helper function for _process_all_auto and _process_cross for doing cross pairs.
+        temp._clear()
+        if not self._trivially_zero(c1,c2,metric):
+            self.logger.info('Process patches %s cross',ij)
+            temp.process_cross(c1, c2, metric=metric, num_threads=num_threads)
+        else:
+            self.logger.info('Skipping %s pair, which are too far apart ' +
+                            'for this set of separations',ij)
+        if temp.nonzero or force_write:
+            if ij in self.results and self.results[ij].nonzero:
+                self.results[ij] += temp
+            else:
+                self.results[ij] = temp.copy()
+            self += temp
+        else:
+            # NNCorrelation needs to add the tot value
+            self._add_tot(ij, c1, c2)
+
+    def _process_all_auto(self, cat1, metric, num_threads, comm, low_mem, local):
 
         def is_my_job(my_indices, i, j, n):
             # Helper function to figure out if a given (i,j) job should be done on the
@@ -693,41 +712,44 @@ class Corr2(object):
             self._set_metric(metric, cat1[0].coords)
             temp = self.copy()
             temp.results = {}  # Don't mess up the original results
-            for ii,c1 in enumerate(cat1):
-                i = c1.patch if c1.patch is not None else ii
-                if is_my_job(my_indices, i, i, n):
-                    temp._clear()
-                    self.logger.info('Process patch %d auto',i)
-                    temp.process_auto(c1, metric=metric, num_threads=num_threads)
-                    if (i,i) not in self.results:
-                        self.results[(i,i)] = temp.copy()
-                    else:
-                        self.results[(i,i)] += temp
-                    self += temp
-                for jj,c2 in list(enumerate(cat1))[::-1]:
-                    j = c2.patch if c2.patch is not None else jj
-                    if i < j and is_my_job(my_indices, i, j, n):
+
+            if local:
+                for ii,c1 in enumerate(cat1):
+                    i = c1.patch if c1.patch is not None else ii
+                    if is_my_job(my_indices, i, i, n):
                         temp._clear()
-                        if not self._trivially_zero(c1,c2,metric):
-                            self.logger.info('Process patches %d,%d cross',i,j)
-                            temp.process_cross(c1, c2, metric=metric, num_threads=num_threads)
+                        self.logger.info('Process patch %d auto',i)
+                        temp.process_auto(c1, metric=metric, num_threads=num_threads)
+                        if (i,i) not in self.results:
+                            self.results[(i,i)] = temp.copy()
                         else:
-                            self.logger.info('Skipping %d,%d pair, which are too far apart ' +
-                                             'for this set of separations',i,j)
-                        if temp.nonzero:
-                            if (i,j) not in self.results:
-                                self.results[(i,j)] = temp.copy()
-                            else:
-                                self.results[(i,j)] += temp
-                            self += temp
+                            self.results[(i,i)] += temp
+                        self += temp
+
+                        if low_mem:
+                            c1.unload()
+            else:
+                for ii,c1 in enumerate(cat1):
+                    i = c1.patch if c1.patch is not None else ii
+                    if is_my_job(my_indices, i, i, n):
+                        temp._clear()
+                        self.logger.info('Process patch %d auto',i)
+                        temp.process_auto(c1, metric=metric, num_threads=num_threads)
+                        if (i,i) not in self.results:
+                            self.results[(i,i)] = temp.copy()
                         else:
-                            # NNCorrelation needs to add the tot value
-                            self._add_tot(i, j, c1, c2)
-                        if low_mem and jj != ii+1:
-                            # Don't unload i+1, since that's the next one we'll need.
-                            c2.unload()
-                if low_mem:
-                    c1.unload()
+                            self.results[(i,i)] += temp
+                        self += temp
+
+                    for jj,c2 in list(enumerate(cat1))[::-1]:
+                        j = c2.patch if c2.patch is not None else jj
+                        if i < j and is_my_job(my_indices, i, j, n):
+                            self._single_process12(c1, c2, (i,j), metric, num_threads, temp)
+                            if low_mem and jj != ii+1:
+                                # Don't unload i+1, since that's the next one we'll need.
+                                c2.unload()
+                    if low_mem:
+                        c1.unload()
             if comm is not None:
                 rank = comm.Get_rank()
                 size = comm.Get_size()
@@ -741,7 +763,7 @@ class Corr2(object):
                         self += temp
                         self.results.update(temp.results)
 
-    def _process_all_cross(self, cat1, cat2, metric, num_threads, comm, low_mem):
+    def _process_all_cross(self, cat1, cat2, metric, num_threads, comm, low_mem, local):
 
         def is_my_job(my_indices, i, j, n1, n2):
             # Helper function to figure out if a given (i,j) job should be done on the
@@ -789,31 +811,32 @@ class Corr2(object):
             self._set_metric(metric, cat1[0].coords, cat2[0].coords)
             temp = self.copy()
             temp.results = {}  # Don't mess up the original results
-            for ii,c1 in enumerate(cat1):
-                i = c1.patch if c1.patch is not None else ii
-                for jj,c2 in enumerate(cat2):
-                    j = c2.patch if c2.patch is not None else jj
-                    if is_my_job(my_indices, i, j, n1, n2):
-                        temp._clear()
-                        if not self._trivially_zero(c1,c2,metric):
-                            self.logger.info('Process patches %d,%d cross',i,j)
-                            temp.process_cross(c1, c2, metric=metric, num_threads=num_threads)
-                        else:
-                            self.logger.info('Skipping %d,%d pair, which are too far apart ' +
-                                             'for this set of separations',i,j)
-                        if temp.nonzero or i==j or n1==1 or n2==1:
-                            if (i,j) not in self.results:
-                                self.results[(i,j)] = temp.copy()
-                            else:
-                                self.results[(i,j)] += temp
-                            self += temp
-                        else:
-                            # NNCorrelation needs to add the tot value
-                            self._add_tot(i, j, c1, c2)
+
+            if local:
+                # The local algorithm only crosses i from cat1 with i from cat2.
+                # The calling routine is responsible for making sure cat2 is large enough to
+                # include all objects within max_sep of the border of the corresponding cat1.
+                for ii, (c1,c2) in enumerate(zip(cat1,cat2)):
+                    i = c1.patch if c1.patch is not None else ii
+                    if c2.patch is not None and c2.patch != i:
+                        raise RuntimeError("cat2 has wrong patch number %s != %s"%(c2.patch,i))
+                    if is_my_job(my_indices, i, i, n1, n2):
+                        self._single_process12(c1, c2, (i,i), metric, num_threads, temp, True)
                         if low_mem:
+                            c1.unload()
                             c2.unload()
-                if low_mem:
-                    c1.unload()
+            else:
+                for ii,c1 in enumerate(cat1):
+                    i = c1.patch if c1.patch is not None else ii
+                    for jj,c2 in enumerate(cat2):
+                        j = c2.patch if c2.patch is not None else jj
+                        if is_my_job(my_indices, i, j, n1, n2):
+                            self._single_process12(c1, c2, (i,j), metric, num_threads, temp,
+                                                   (i==j or n1==1 or n2==1))
+                            if low_mem:
+                                c2.unload()
+                    if low_mem:
+                        c1.unload()
             if comm is not None:
                 rank = comm.Get_rank()
                 size = comm.Get_size()

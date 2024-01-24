@@ -2287,10 +2287,10 @@ void ProcessAutoa(BaseCorr3& corr, BaseField<C>& field, bool dots, Metric metric
 
 template <int C>
 void ProcessAuto(BaseCorr3& corr, BaseField<C>& field,
-                 bool dots, BinType bin_type, Metric metric)
+                 bool dots, Metric metric)
 {
-    dbg<<"Start ProcessAuto "<<bin_type<<" "<<metric<<std::endl;
-    switch(bin_type) {
+    dbg<<"Start ProcessAuto "<<corr.getBinType()<<" "<<metric<<std::endl;
+    switch(corr.getBinType()) {
       case LogRUV:
            ProcessAutoa<LogRUV>(corr, field, dots, metric);
            break;
@@ -2362,10 +2362,10 @@ void ProcessCross12a(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2
 
 template <int C>
 void ProcessCross12(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2,
-                    int ordered, bool dots, BinType bin_type, Metric metric)
+                    int ordered, bool dots, Metric metric)
 {
-    dbg<<"Start ProcessCross12 "<<bin_type<<" "<<ordered<<"  "<<metric<<std::endl;
-    switch(bin_type) {
+    dbg<<"Start ProcessCross12 "<<corr.getBinType()<<" "<<ordered<<"  "<<metric<<std::endl;
+    switch(corr.getBinType()) {
       case LogRUV:
            ProcessCross12a<LogRUV>(corr, field1, field2, ordered, dots, metric);
            break;
@@ -2449,10 +2449,10 @@ void ProcessCrossa(BaseCorr3& corr,
 template <int C>
 void ProcessCross(BaseCorr3& corr,
                   BaseField<C>& field1, BaseField<C>& field2, BaseField<C>& field3,
-                  int ordered, bool dots, BinType bin_type, Metric metric)
+                  int ordered, bool dots, Metric metric)
 {
-    dbg<<"Start ProcessCross3 "<<bin_type<<" "<<ordered<<"  "<<metric<<std::endl;
-    switch(bin_type) {
+    dbg<<"Start ProcessCross3 "<<corr.getBinType()<<" "<<ordered<<"  "<<metric<<std::endl;
+    switch(corr.getBinType()) {
       case LogRUV:
            ProcessCrossa<LogRUV>(corr, field1, field2, field3, ordered, dots, metric);
            break;
@@ -2473,12 +2473,12 @@ template <int C, typename W>
 void WrapProcess(py::module& _treecorr, W& base_corr3)
 {
     typedef void (*auto_type)(BaseCorr3& corr, BaseField<C>& field,
-                              bool dots, BinType bin_type, Metric metric);
+                              bool dots, Metric metric);
     typedef void (*cross12_type)(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2,
-                                 int ordered, bool dots, BinType bin_type, Metric metric);
+                                 int ordered, bool dots, Metric metric);
     typedef void (*cross_type)(BaseCorr3& corr,
                                BaseField<C>& field1, BaseField<C>& field2, BaseField<C>& field3,
-                               int ordered, bool dots, BinType bin_type, Metric metric);
+                               int ordered, bool dots, Metric metric);
 
     base_corr3.def("processAuto", auto_type(&ProcessAuto));
     base_corr3.def("processCross12", cross12_type(&ProcessCross12));

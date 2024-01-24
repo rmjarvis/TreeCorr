@@ -300,8 +300,7 @@ class NNNCorrelation(Corr3):
                               coords=self.coords)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        self.corr.processAuto(field.data, self.output_dots,
-                              self._bintype, self._metric)
+        self.corr.processAuto(field.data, self.output_dots, self._metric)
         self.tot += (1./6.) * cat.sumw**3
 
     def process_cross12(self, cat1, cat2, *, metric=None, ordered=True, num_threads=None):
@@ -350,7 +349,7 @@ class NNNCorrelation(Corr3):
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         self.corr.processCross12(f1.data, f2.data, (1 if ordered else 0),
-                                 self.output_dots, self._bintype, self._metric)
+                                 self.output_dots, self._metric)
         self.tot += cat1.sumw * cat2.sumw**2 / 2.
 
     def process_cross(self, cat1, cat2, cat3, *, metric=None, ordered=True, num_threads=None):
@@ -404,7 +403,7 @@ class NNNCorrelation(Corr3):
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         self.corr.processCross(f1.data, f2.data, f3.data,
                                (3 if ordered is True else 1 if ordered == 1 else 0),
-                               self.output_dots, self._bintype, self._metric)
+                               self.output_dots, self._metric)
         self.tot += cat1.sumw * cat2.sumw * cat3.sumw
 
     def _finalize(self):

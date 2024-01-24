@@ -41,6 +41,8 @@ public:
     BaseCorr3(const BaseCorr3& rhs);
     virtual ~BaseCorr3() {}
 
+    BinType getBinType() const { return _bin_type; }
+
     virtual std::shared_ptr<BaseCorr3> duplicate() =0;
     virtual void writeZeta(std::ostream& os, int n) const = 0;
 

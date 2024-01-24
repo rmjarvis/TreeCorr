@@ -628,7 +628,7 @@ class Corr2(object):
         # For now, ignore the metric.  Just be conservative about how much space we need.
         x1,y1,z1,s1 = c1._get_center_size()
         x2,y2,z2,s2 = c2._get_center_size()
-        return self.corr.triviallyZero(self._bintype, self._metric, self._coords,
+        return self.corr.triviallyZero(self._metric, self._coords,
                                        x1, y1, z1, s1, x2, y2, z2, s2)
 
     def _single_process12(self, c1, c2, ij, metric, num_threads, temp, force_write=False):
@@ -1161,8 +1161,7 @@ class Corr2(object):
         sep = np.zeros(n, dtype=float)
         seed = 0 if self.rng is None else int(self.rng.random() * 2**63)
         ntot = self.corr.samplePairs(f1.data, f2.data, min_sep, max_sep,
-                                     self._bintype, self._metric, seed,
-                                     i1, i2, sep)
+                                     self._metric, seed, i1, i2, sep)
 
         if ntot < n:
             n = ntot

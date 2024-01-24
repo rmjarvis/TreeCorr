@@ -207,8 +207,7 @@ class GGCorrelation(Corr2):
                               coords=self.coords)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        self.corr.processAuto(field.data, self.output_dots,
-                              self._bintype, self._metric)
+        self.corr.processAuto(field.data, self.output_dots, self._metric)
 
 
     def process_cross(self, cat1, cat2, *, metric=None, num_threads=None):
@@ -251,8 +250,7 @@ class GGCorrelation(Corr2):
                             coords=self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        self.corr.processCross(f1.data, f2.data, self.output_dots,
-                               self._bintype, self._metric)
+        self.corr.processCross(f1.data, f2.data, self.output_dots, self._metric)
 
     def getStat(self):
         """The standard statistic for the current correlation object as a 1-d array.

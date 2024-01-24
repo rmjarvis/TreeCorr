@@ -36,6 +36,8 @@ public:
     BaseCorr2(const BaseCorr2& rhs);
     virtual ~BaseCorr2() {}
 
+    BinType getBinType() const { return _bin_type; }
+
     virtual std::shared_ptr<BaseCorr2> duplicate() =0;
 
     virtual void addData(const BaseCorr2& rhs) =0;

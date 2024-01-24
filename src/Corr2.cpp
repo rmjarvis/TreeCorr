@@ -640,7 +640,7 @@ Sampler::Sampler(const BaseCorr2& base_corr2, double minsep, double maxsep,
     _halfminsep = 0.5*_minsep;
     _minsepsq = _minsep*_minsep;
     _maxsepsq = _maxsep*_maxsep;
-    _fullmaxsep = CalculateFullMaxSep(_bin_type, _minsep, _maxsep, _nbins, _binsize);
+    _fullmaxsep = CalculateFullMaxSep(base_corr2.getBinType(), _minsep, _maxsep, _nbins, _binsize);
     _fullmaxsepsq = _fullmaxsep*_fullmaxsep;
 }
 
@@ -935,9 +935,9 @@ void ProcessAuto1(BaseCorr2& corr, BaseField<C>& field, bool dots, Metric metric
 }
 
 template <int C>
-void ProcessAuto(BaseCorr2& corr, BaseField<C>& field, bool dots, BinType bin_type, Metric metric)
+void ProcessAuto(BaseCorr2& corr, BaseField<C>& field, bool dots, Metric metric)
 {
-    switch(bin_type) {
+    switch(corr.getBinType()) {
       case Log:
            ProcessAuto1<Log>(corr, field, dots, metric);
            break;
@@ -997,10 +997,10 @@ void ProcessCross1(BaseCorr2& corr, BaseField<C>& field1, BaseField<C>& field2,
 
 template <int C>
 void ProcessCross(BaseCorr2& corr, BaseField<C>& field1, BaseField<C>& field2,
-                  bool dots, BinType bin_type, Metric metric)
+                  bool dots, Metric metric)
 {
-    dbg<<"Start ProcessCross: "<<bin_type<<" "<<metric<<std::endl;
-    switch(bin_type) {
+    dbg<<"Start ProcessCross: "<<corr.getBinType()<<" "<<metric<<std::endl;
+    switch(corr.getBinType()) {
       case Log:
            ProcessCross1<Log>(corr, field1, field2, dots, metric);
            break;
@@ -1036,7 +1036,7 @@ int GetOMPThreads()
 
 template <int C>
 long SamplePairs(BaseCorr2& corr, BaseField<C>& field1, BaseField<C>& field2,
-                 double minsep, double maxsep, BinType bin_type, Metric metric, long long seed,
+                 double minsep, double maxsep, Metric metric, long long seed,
                  py::array_t<long>& i1p, py::array_t<long>& i2p, py::array_t<double>& sepp)
 {
     long n = long(i1p.size());
@@ -1049,13 +1049,13 @@ long SamplePairs(BaseCorr2& corr, BaseField<C>& field1, BaseField<C>& field2,
     long* i2 = static_cast<long*>(i2p.mutable_data());
     double* sep = static_cast<double*>(sepp.mutable_data());
 
-    dbg<<"Start SamplePairs: "<<bin_type<<" "<<metric<<std::endl;
+    dbg<<"Start SamplePairs: "<<corr.getBinType()<<" "<<metric<<std::endl;
 
     Sampler sampler(corr, minsep, maxsep, i1, i2, sep, n);
 
     // I don't know how to do the sampling safely in parallel, so temporarily set num_threads=1.
     int old_num_threads = SetOMPThreads(1);
-    ProcessCross(sampler, field1, field2, false, bin_type, metric);
+    ProcessCross(sampler, field1, field2, false, metric);
     SetOMPThreads(old_num_threads);
 
     return sampler.getK();
@@ -1127,11 +1127,11 @@ int TriviallyZero1(BaseCorr2& corr, Metric metric, Coord coords,
     return 0;
 }
 
-int TriviallyZero(BaseCorr2& corr, BinType bin_type, Metric metric, Coord coords,
+int TriviallyZero(BaseCorr2& corr, Metric metric, Coord coords,
                   double x1, double y1, double z1, double s1,
                   double x2, double y2, double z2, double s2)
 {
-    switch(bin_type) {
+    switch(corr.getBinType()) {
       case Log:
            return TriviallyZero1<Log>(corr, metric, coords,
                                       x1, y1, z1, s1, x2, y2, z2, s2);
@@ -1171,17 +1171,17 @@ template <int C, typename W>
 void WrapProcess(py::module& _treecorr, W& base_corr2)
 {
     typedef void (*auto_type)(BaseCorr2& corr, BaseField<C>& field,
-                              bool dots, BinType bin_type, Metric metric);
+                              bool dots, Metric metric);
     base_corr2.def("processAuto", auto_type(&ProcessAuto));
 
     typedef void (*cross_type)(BaseCorr2& corr, BaseField<C>& field1, BaseField<C>& field2,
-                               bool dots, BinType bin_type, Metric metric);
+                               bool dots, Metric metric);
     base_corr2.def("processCross", cross_type(&ProcessCross));
 
     typedef long (*sample_type)(BaseCorr2& corr,
                                 BaseField<C>& field1, BaseField<C>& field2,
                                 double minsep, double maxsep,
-                                BinType bin_type, Metric metric, long long seed,
+                                Metric metric, long long seed,
                                 py::array_t<long>& i1p, py::array_t<long>& i2p,
                                 py::array_t<double>& sepp);
     base_corr2.def("samplePairs", sample_type(&SamplePairs));

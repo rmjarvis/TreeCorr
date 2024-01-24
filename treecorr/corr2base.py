@@ -624,8 +624,7 @@ class Corr2(object):
         # No op for all but NNCorrelation, which needs to add the tot value
         pass
 
-    def _trivially_zero(self, c1, c2, metric):
-        # For now, ignore the metric.  Just be conservative about how much space we need.
+    def _trivially_zero(self, c1, c2):
         x1,y1,z1,s1 = c1._get_center_size()
         x2,y2,z2,s2 = c2._get_center_size()
         return self.corr.triviallyZero(self._metric, self._coords,
@@ -634,7 +633,7 @@ class Corr2(object):
     def _single_process12(self, c1, c2, ij, metric, num_threads, temp, force_write=False):
         # Helper function for _process_all_auto and _process_cross for doing cross pairs.
         temp._clear()
-        if not self._trivially_zero(c1,c2,metric):
+        if not self._trivially_zero(c1, c2):
             self.logger.info('Process patches %s cross',ij)
             temp.process_cross(c1, c2, metric=metric, num_threads=num_threads)
         else:

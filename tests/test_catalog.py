@@ -2457,8 +2457,127 @@ def test_lru():
 
     assert_raises(ValueError, cache.resize, -20)
 
+@timer
+def test_combine():
+    nobj = 100
+    rng = np.random.RandomState(8675309)
+    x = rng.random_sample(nobj)
+    y = rng.random_sample(nobj)
+    z = rng.random_sample(nobj)
+    w = rng.random_sample(nobj)
+    k = rng.random_sample(nobj)
+    g1 = rng.random_sample(nobj)
+    g2 = rng.random_sample(nobj)
+    v1 = rng.random_sample(nobj)
+    v2 = rng.random_sample(nobj)
+    t1 = rng.random_sample(nobj)
+    t2 = rng.random_sample(nobj)
+    q1 = rng.random_sample(nobj)
+    q2 = rng.random_sample(nobj)
+
+    # This is the full catalog with all rows
+    cat1 = treecorr.Catalog(x=x, y=y, z=z, w=w, g1=g1, g2=g2, k=k, v1=v1, v2=v2,
+                            t1=t1, t2=t2, q1=q1, q2=q2)
+    np.testing.assert_array_equal(cat1.x, x)
+    np.testing.assert_array_equal(cat1.y, y)
+    np.testing.assert_array_equal(cat1.z, z)
+    np.testing.assert_array_equal(cat1.w, w)
+    np.testing.assert_array_equal(cat1.k, k)
+    np.testing.assert_array_equal(cat1.g1, g1)
+    np.testing.assert_array_equal(cat1.g2, g2)
+    np.testing.assert_array_equal(cat1.v1, v1)
+    np.testing.assert_array_equal(cat1.v2, v2)
+    np.testing.assert_array_equal(cat1.t1, t1)
+    np.testing.assert_array_equal(cat1.t2, t2)
+    np.testing.assert_array_equal(cat1.q1, q1)
+    np.testing.assert_array_equal(cat1.q2, q2)
+
+    # Now build it up slowly.
+    cats = [treecorr.Catalog(x=x[i:j], y=y[i:j], z=z[i:j], w=w[i:j], k=k[i:j],
+                             v1=v1[i:j], v2=v2[i:j], g1=g1[i:j], g2=g2[i:j],
+                             t1=t1[i:j], t2=t2[i:j], q1=q1[i:j], q2=q2[i:j])
+            for (i,j) in [(0,20), (20,33), (33,82), (82,83), (83,100)]]
+    cat2 = treecorr.Catalog.combine(cats)
+    np.testing.assert_array_equal(cat2.x, x)
+    np.testing.assert_array_equal(cat2.y, y)
+    np.testing.assert_array_equal(cat2.z, z)
+    np.testing.assert_array_equal(cat2.w, w)
+    np.testing.assert_array_equal(cat2.k, k)
+    np.testing.assert_array_equal(cat2.g1, g1)
+    np.testing.assert_array_equal(cat2.g2, g2)
+    np.testing.assert_array_equal(cat2.v1, v1)
+    np.testing.assert_array_equal(cat2.v2, v2)
+    np.testing.assert_array_equal(cat2.t1, t1)
+    np.testing.assert_array_equal(cat2.t2, t2)
+    np.testing.assert_array_equal(cat2.q1, q1)
+    np.testing.assert_array_equal(cat2.q2, q2)
+    assert cat2.ra is None
+    assert cat2.dec is None
+    assert cat2.ntot == cat1.ntot
+    assert cat2.nobj == cat1.nobj
+    assert cat2.nontrivial_w == cat1.nontrivial_w
+    assert cat2.sumw == cat1.sumw
+    assert cat2.sumw2 == cat1.sumw2
+    assert cat2.coords == cat1.coords
+    assert cat2 == cat1
+
+    # Error if cat2 is missing some columns
+    cat_no_t_q = treecorr.Catalog(x=x, y=y, z=z, w=w, g1=g1, g2=g2, k=k, v1=v1, v2=v2)
+    assert_raises(ValueError, treecorr.Catalog.combine, [cat2, cat_no_t_q])
+
+    # Can also use the mask to build up slowly
+    cat3 = treecorr.Catalog.combine(
+        [cat1]*5,
+        [slice(i,j) for i,j in [(0,20), (20,33), (33,82), (82,83), (83,100)]])
+    assert cat3 == cat1
+    assert cat3.ntot == cat1.ntot
+    assert cat3.nobj == cat1.nobj
+    assert cat3.nontrivial_w == cat1.nontrivial_w
+    assert cat3.sumw == cat1.sumw
+    assert cat3.sumw2 == cat1.sumw2
+    assert cat3.coords == cat1.coords
+
+    k = np.arange(100)
+    cat4 = treecorr.Catalog.combine(
+        [cat1]*5,
+        [(k>=i) & (k<j) for i,j in [(0,20), (20,33), (33,82), (82,83), (83,100)]])
+    assert cat4 == cat1
+    assert cat4.ntot == cat1.ntot
+    assert cat4.nobj == cat1.nobj
+    assert cat4.nontrivial_w == cat1.nontrivial_w
+    assert cat4.sumw == cat1.sumw
+    assert cat4.sumw2 == cat1.sumw2
+    assert cat4.coords == cat1.coords
+
+    # Check ra, dec
+    cats = [treecorr.Catalog(ra=x[i:j], dec=y[i:j], r=z[i:j], w=w[i:j], k=k[i:j],
+                             ra_units='deg', dec_units='deg')
+            for (i,j) in [(0,20), (20,33), (33,82), (82,83), (83,100)]]
+    cat5 = treecorr.Catalog.combine(cats)
+    np.testing.assert_allclose(cat5.ra, x*np.pi/180)
+    np.testing.assert_allclose(cat5.dec, y*np.pi/180)
+    np.testing.assert_array_equal(cat5.r, z)
+    np.testing.assert_array_equal(cat5.w, w)
+    np.testing.assert_array_equal(cat5.k, k)
+    assert cat5.v1 is None
+    assert cat5.v2 is None
+    assert cat5.g1 is None
+    assert cat5.g2 is None
+    assert cat5.t1 is None
+    assert cat5.t2 is None
+    assert cat5.q1 is None
+    assert cat5.q2 is None
+    assert cat5.ntot == len(x)
+
+    # An empty list is invalid.
+    assert_raises(ValueError, treecorr.Catalog.combine, [])
+    assert_raises(ValueError, treecorr.Catalog.combine, [cat1], [])
+    assert_raises(ValueError, treecorr.Catalog.combine, [cat1]*2, [slice(None)])
+
 
 if __name__ == '__main__':
+    test_combine()
+    quit()
     test_ascii()
     test_fits()
     test_hdf5()
@@ -2473,3 +2592,4 @@ if __name__ == '__main__':
     test_write()
     test_field()
     test_lru()
+    test_combine()

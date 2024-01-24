@@ -1269,6 +1269,50 @@ class Catalog(object):
 
         self.logger.info("   nobj = %d",self.nobj)
 
+    @classmethod
+    def combine(cls, cat_list, mask_list=None):
+        """Combine several Catalogs into a single larger Catalog
+
+        If desired, one can also specify a mask for each of the input catalogs, which will
+        select just a portion of the rows in that catalog
+
+        All the Catalog must have the same columns defined (e.g. ra, dec, x, y, k, g1, g2, etc.)
+
+        Parameters:
+            cat_list:   A list of Catalog instances to combine.
+            mask_list:  (optional) Which objects to take from each Catalog.  If given, it must
+                        be a list of the same length as cat_list. (default: None)
+
+        Returns:
+            combined_cat
+        """
+        if len(cat_list) == 0:
+            raise ValueError("cat_list cannot be empty")
+        if mask_list is not None and len(mask_list) != len(cat_list):
+            raise ValueError("mask_list not the same length as cat_list")
+        # Use the characteristics of the first catalog to decide which columns to generate.
+        cat0 = cat_list[0]
+        check_wpos = cat0._wpos if cat0._wpos is not None else cat0._w
+        kwargs = dict(keep_zero_weight=np.any(check_wpos==0))
+        if cat0.ra is not None:
+            kwargs['ra_units'] = 'rad'
+            kwargs['dec_units'] = 'rad'
+            kwargs['allow_xyz'] = True
+        for key in ['_x', '_y', '_z', '_ra', '_dec', '_r', '_w', '_wpos',
+                    '_k', '_v1', '_v2', '_g1', '_g2', '_t1', '_t2', '_q1', '_q2']:
+            if getattr(cat0, key) is not None:
+                ar_list = []
+                for i,c in enumerate(cat_list):
+                    if getattr(c, key) is None:
+                        raise ValueError("Column %s not found in cat %d"%(key[1:],i))
+                    a = getattr(c,key)
+                    if mask_list is not None:
+                        a = a[mask_list[i]]
+                    ar_list.append(a)
+                ar = np.concatenate(ar_list)
+                kwargs[key[1:]] = ar
+        return Catalog(**kwargs)
+
     def _assign_patches(self):
         # This is equivalent to the following:
         #   field = self.getNField()

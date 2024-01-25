@@ -391,6 +391,26 @@ def test_direct_logruv():
     with assert_raises(ValueError):
         ggg2 += ggg13
 
+    # Split into patches to test the list-based version of the code.
+    catp = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, npatch=3)
+
+    ggg.process(catp)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri)
+    np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-5)
+
+    ggg.process(catp, patch_method='local')
+    np.testing.assert_array_equal(ggg.ntri, true_ntri)
+    np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-5)
+
+
 @timer
 def test_direct_logruv_spherical():
     # Repeat in spherical coords
@@ -894,6 +914,43 @@ def test_direct_logruv_cross():
     with assert_raises(ValueError):
         ggg.process(cat1, cat3=cat3)
 
+    # Split into patches to test the list-based version of the code.
+    cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=3)
+    cat2p = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2, patch_centers=cat1p.patch_centers)
+    cat3p = treecorr.Catalog(x=x3, y=y3, w=w3, g1=g1_3, g2=g2_3, patch_centers=cat1p.patch_centers)
+
+    ggg.process(cat1p, cat2p, cat3p)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_123)
+    np.testing.assert_allclose(ggg.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_123, rtol=1.e-5)
+
+    ggg.process(cat1p, cat2p, cat3p, ordered=False)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
+    np.testing.assert_allclose(ggg.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_sum, rtol=1.e-5)
+
+    ggg.process(cat1p, cat2p, cat3p, patch_method='local')
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_123)
+    np.testing.assert_allclose(ggg.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_123, rtol=1.e-5)
+
+    ggg.process(cat1p, cat2p, cat3p, ordered=False, patch_method='local')
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
+    np.testing.assert_allclose(ggg.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_sum, rtol=1.e-5)
+
 
 @timer
 def test_direct_logruv_cross12():
@@ -1176,10 +1233,10 @@ def test_direct_logruv_cross12():
     np.testing.assert_allclose(ggg.gam2, true_gam2_sum, rtol=1.e-5)
 
     # Split into patches to test the list-based version of the code.
-    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=3)
-    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2, npatch=3)
+    cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=3)
+    cat2p = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2, patch_centers=cat1p.patch_centers)
 
-    ggg.process(cat1, cat2, ordered=True, num_threads=2)
+    ggg.process(cat1p, cat2p, ordered=True)
     np.testing.assert_array_equal(ggg.ntri, true_ntri_122)
     np.testing.assert_allclose(ggg.weight, true_weight_122, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_122, rtol=1.e-5)
@@ -1187,7 +1244,23 @@ def test_direct_logruv_cross12():
     np.testing.assert_allclose(ggg.gam2, true_gam2_122, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam3, true_gam3_122, rtol=1.e-5)
 
-    ggg.process(cat1, cat2, ordered=False, num_threads=2)
+    ggg.process(cat1p, cat2p, ordered=False)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
+    np.testing.assert_allclose(ggg.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_sum, rtol=1.e-5)
+
+    ggg.process(cat1p, cat2p, ordered=True, patch_method='local')
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_122)
+    np.testing.assert_allclose(ggg.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_122, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_122, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_122, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_122, rtol=1.e-5)
+
+    ggg.process(cat1p, cat2p, ordered=False, patch_method='local')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
     np.testing.assert_allclose(ggg.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_sum, rtol=1.e-5)
@@ -2473,6 +2546,25 @@ def test_direct_logsas():
         np.testing.assert_allclose(ggg4.gam2, ggg.gam2)
         np.testing.assert_allclose(ggg4.gam3, ggg.gam3)
 
+    # Split into patches to test the list-based version of the code.
+    catp = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, npatch=3)
+
+    ggg.process(catp)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri)
+    np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-5)
+
+    ggg.process(catp, ordered=False, patch_method='local')
+    np.testing.assert_array_equal(ggg.ntri, true_ntri)
+    np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-5)
+
 
 @timer
 def test_direct_logsas_spherical():
@@ -2954,6 +3046,43 @@ def test_direct_logsas_cross():
     with assert_raises(ValueError):
         ggg.process(cat1, cat3=cat3)
 
+    # Split into patches to test the list-based version of the code.
+    cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=3)
+    cat2p = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2, patch_centers=cat1p.patch_centers)
+    cat3p = treecorr.Catalog(x=x3, y=y3, w=w3, g1=g1_3, g2=g2_3, patch_centers=cat1p.patch_centers)
+
+    ggg.process(cat1p, cat2p, cat3p)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_123)
+    np.testing.assert_allclose(ggg.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_123, rtol=1.e-5)
+
+    ggg.process(cat1p, cat2p, cat3p, ordered=False)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
+    np.testing.assert_allclose(ggg.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_sum, rtol=1.e-5)
+
+    ggg.process(cat1p, cat2p, cat3p, patch_method='local')
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_123)
+    np.testing.assert_allclose(ggg.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_123, rtol=1.e-5)
+
+    ggg.process(cat1p, cat2p, cat3p, ordered=False, patch_method='local')
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
+    np.testing.assert_allclose(ggg.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_sum, rtol=1.e-5)
+
 
 @timer
 def test_direct_logsas_cross12():
@@ -3153,24 +3282,24 @@ def test_direct_logsas_cross12():
     np.testing.assert_allclose(ggg.gam3, true_gam3_sum, rtol=1.e-4, atol=1.e-6)
 
     # Split into patches to test the list-based version of the code.
-    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=4)
-    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2, npatch=4)
+    cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=4)
+    cat2p = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2, patch_centers=cat1p.patch_centers)
 
-    ggg.process(cat1, cat2)
+    ggg.process(cat1p, cat2p)
     np.testing.assert_array_equal(ggg.ntri, true_ntri_122)
     np.testing.assert_allclose(ggg.weight, true_weight_122, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_122, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam1, true_gam1_122, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam2, true_gam2_122, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam3, true_gam3_122, rtol=1.e-4, atol=1.e-6)
-    ggg.process(cat2, cat1, cat2)
+    ggg.process(cat2p, cat1p, cat2p)
     np.testing.assert_array_equal(ggg.ntri, true_ntri_212)
     np.testing.assert_allclose(ggg.weight, true_weight_212, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_212, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam1, true_gam1_212, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam2, true_gam2_212, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam3, true_gam3_212, rtol=1.e-4, atol=1.e-6)
-    ggg.process(cat2, cat2, cat1)
+    ggg.process(cat2p, cat2p, cat1p)
     np.testing.assert_array_equal(ggg.ntri, true_ntri_221)
     np.testing.assert_allclose(ggg.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_221, rtol=1.e-4, atol=1.e-6)
@@ -3178,7 +3307,37 @@ def test_direct_logsas_cross12():
     np.testing.assert_allclose(ggg.gam2, true_gam2_221, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam3, true_gam3_221, rtol=1.e-4, atol=1.e-6)
 
-    ggg.process(cat1, cat2, ordered=False, num_threads=2)
+    ggg.process(cat1p, cat2p, ordered=False, num_threads=2)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
+    np.testing.assert_allclose(ggg.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_sum, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_sum, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_sum, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_sum, rtol=1.e-4, atol=1.e-6)
+
+    ggg.process(cat1p, cat2p, patch_method='local')
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_122)
+    np.testing.assert_allclose(ggg.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_122, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_122, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_122, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_122, rtol=1.e-4, atol=1.e-6)
+    ggg.process(cat2p, cat1p, cat2p, patch_method='local')
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_212)
+    np.testing.assert_allclose(ggg.weight, true_weight_212, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_212, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_212, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_212, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_212, rtol=1.e-4, atol=1.e-6)
+    ggg.process(cat2p, cat2p, cat1p, patch_method='local')
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_221)
+    np.testing.assert_allclose(ggg.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_221, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_221, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_221, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_221, rtol=1.e-4, atol=1.e-6)
+
+    ggg.process(cat1p, cat2p, ordered=False, num_threads=2, patch_method='local')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
     np.testing.assert_allclose(ggg.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_sum, rtol=1.e-4, atol=1.e-6)

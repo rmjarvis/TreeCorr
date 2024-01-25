@@ -696,6 +696,20 @@ def test_gg_jk():
     np.testing.assert_allclose(np.log(gg3.varxip), np.log(var_xip), atol=0.4*tol_factor)
     np.testing.assert_allclose(np.log(gg3.varxim), np.log(var_xim), atol=0.3*tol_factor)
 
+    # Should also work with local patches
+    gg3l = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife',
+                                  rng=rng)
+    t0 = time.time()
+    gg3l.process(cat, patch_method='local')
+    t1 = time.time()
+    print('Time for local patch processing = ',t1-t0)
+    np.testing.assert_allclose(gg3l.weight, 2*gg2.weight, rtol=0.05)
+    np.testing.assert_allclose(gg3l.xip, gg2.xip, rtol=0.02*tol_factor)
+    np.testing.assert_allclose(gg3l.xim, gg2.xim, rtol=0.02*tol_factor, atol=1.e-4*tol_factor)
+    # Not as accurate, since it can't remove the jackknife patches from one half of the pairs.
+    np.testing.assert_allclose(np.log(gg3l.varxip), np.log(var_xip), atol=0.9*tol_factor)
+    np.testing.assert_allclose(np.log(gg3l.varxim), np.log(var_xim), atol=0.9*tol_factor)
+
     # Can get the covariance matrix using estimate_cov, which is also stored as cov attribute
     t0 = time.time()
     np.testing.assert_allclose(gg3.estimate_cov('jackknife'), gg3.cov)
@@ -1100,6 +1114,7 @@ def test_ng_jk():
     print('weight = ',ng4.weight)
     print('xi = ',ng4.xi)
     print('varxi = ',ng4.varxi)
+    print('ratio = ',ng4.weight / ng1.weight)
     np.testing.assert_allclose(ng4.weight, ng1.weight, rtol=1.e-2*tol_factor)
     np.testing.assert_allclose(ng4.xi, ng1.xi, rtol=3.e-2*tol_factor)
     np.testing.assert_allclose(np.log(ng4.varxi), np.log(var_xi), atol=0.6*tol_factor)
@@ -1113,9 +1128,21 @@ def test_ng_jk():
     print('weight = ',ng5.weight)
     print('xi = ',ng5.xi)
     print('varxi = ',ng5.varxi)
+    print('ratio = ',ng5.weight / ng1.weight)
     np.testing.assert_allclose(ng5.weight, ng1.weight, rtol=1.e-2*tol_factor)
     np.testing.assert_allclose(ng5.xi, ng1.xi, rtol=3.e-2*tol_factor)
     np.testing.assert_allclose(np.log(ng5.varxi), np.log(var_xi), atol=0.5*tol_factor)
+
+    # The local method should be essentially the same result as using the full cat2.
+    ng4l = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife',
+                                  rng=rng)
+    t0 = time.time()
+    ng4l.process(cat1p, cat2p, patch_method='local')
+    t1 = time.time()
+    print('Time for local patch processing with cat1 first = ',t1-t0)
+    np.testing.assert_allclose(ng4l.weight, ng4.weight, rtol=3.e-3*tol_factor)
+    np.testing.assert_allclose(ng4l.xi, ng4.xi, rtol=3.e-3*tol_factor)
+    np.testing.assert_allclose(np.log(ng4l.varxi), np.log(ng4.varxi), atol=3.e-2*tol_factor)
 
     # Check sample covariance estimate
     t0 = time.time()
@@ -1612,6 +1639,19 @@ def test_nn_jk():
     np.testing.assert_allclose(np.log(varxib4), np.log(var_xib), atol=0.6*tol_factor)
     np.testing.assert_allclose(varxic4, varxib4)
     np.testing.assert_allclose(varxid4, varxib4)
+
+    # Check with patch_method='local'
+    print('with patch_method=local:')
+    nn4.process(catp, patch_method='local')
+    rr4.process(rand_catp, patch_method='local')
+    rn4.process(catp, rand_catp, patch_method='local')
+    nr4.process(rand_catp, catp, patch_method='local')
+    xib5, varxib5 = nn4.calculateXi(rr=rr4, dr=nr4)
+    np.testing.assert_allclose(xib5, xib3, rtol=0.03)
+    np.testing.assert_allclose(np.log(varxib5), np.log(var_xib), atol=0.6*tol_factor)
+    xic5, varxic5 = nn4.calculateXi(rr=rr4, rd=rn4)
+    np.testing.assert_allclose(xib5, xib3, rtol=0.03)
+    np.testing.assert_allclose(np.log(varxib5), np.log(var_xib), atol=0.6*tol_factor)
 
     # Check some invalid parameters
     # randoms need patches, at least for d part.

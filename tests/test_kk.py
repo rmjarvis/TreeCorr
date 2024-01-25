@@ -101,8 +101,8 @@ def test_direct():
                                 max_top=0)
     kk.process(cat1, cat2)
     np.testing.assert_array_equal(kk.npairs, true_npairs)
-    np.testing.assert_allclose(kk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(kk.xi, true_xi, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(kk.weight, true_weight)
+    np.testing.assert_allclose(kk.xi, true_xi, rtol=1.e-5)
 
     # Check a few basic operations with a KKCorrelation object.
     do_pickle(kk)
@@ -160,13 +160,47 @@ def test_direct():
     with assert_raises(ValueError):
         kk2 += kk6
 
+    # Split into patches to test the list-based version of the code.
+    cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=10)
+    cat2p = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2, patch_centers=cat1p.patch_centers)
+
+    kk2.process(cat1p, cat2)
+    np.testing.assert_array_equal(kk2.npairs, kk.npairs)
+    np.testing.assert_allclose(kk2.weight, kk.weight)
+    np.testing.assert_allclose(kk2.xi, kk.xi, rtol=1.e-5)
+
+    kk2.process(cat1p, cat2, patch_method='local')
+    np.testing.assert_array_equal(kk2.npairs, kk.npairs)
+    np.testing.assert_allclose(kk2.weight, kk.weight)
+    np.testing.assert_allclose(kk2.xi, kk.xi, rtol=1.e-5)
+
+    kk2.process(cat1, cat2p)
+    np.testing.assert_array_equal(kk2.npairs, kk.npairs)
+    np.testing.assert_allclose(kk2.weight, kk.weight)
+    np.testing.assert_allclose(kk2.xi, kk.xi, rtol=1.e-5)
+
+    kk2.process(cat1, cat2p, patch_method='local')
+    np.testing.assert_array_equal(kk2.npairs, kk.npairs)
+    np.testing.assert_allclose(kk2.weight, kk.weight)
+    np.testing.assert_allclose(kk2.xi, kk.xi, rtol=1.e-5)
+
+    kk2.process(cat1p, cat2p)
+    np.testing.assert_array_equal(kk2.npairs, kk.npairs)
+    np.testing.assert_allclose(kk2.weight, kk.weight)
+    np.testing.assert_allclose(kk2.xi, kk.xi, rtol=1.e-5)
+
+    kk2.process(cat1p, cat2p, patch_method='local')
+    np.testing.assert_array_equal(kk2.npairs, kk.npairs)
+    np.testing.assert_allclose(kk2.weight, kk.weight)
+    np.testing.assert_allclose(kk2.xi, kk.xi, rtol=1.e-5)
+
 
 @timer
 def test_direct_spherical():
     # Repeat in spherical coords
 
     ngal = 100
-    s = 10.
+    s = 30.
     rng = np.random.RandomState(8675309)
     x1 = rng.normal(0,s, (ngal,) )
     y1 = rng.normal(0,s, (ngal,) ) + 200  # Put everything at large y, so small angle on sky
@@ -258,6 +292,44 @@ def test_direct_spherical():
     np.testing.assert_array_equal(kk.npairs, true_npairs)
     np.testing.assert_allclose(kk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kk.xi, true_xi, rtol=1.e-3, atol=1.e-6)
+
+    # Split into patches to test the list-based version of the code.
+    cat1p = treecorr.Catalog(ra=ra1, dec=dec1, ra_units='rad', dec_units='rad', w=w1, k=k1,
+                             npatch=12, rng=rng)
+    cat2p = treecorr.Catalog(ra=ra2, dec=dec2, ra_units='rad', dec_units='rad', w=w2, k=k2,
+                             patch_centers=cat1p.patch_centers)
+    kk2 = treecorr.KKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                 sep_units='deg', bin_slop=0)
+
+    kk2.process(cat1p, cat2)
+    np.testing.assert_array_equal(kk2.npairs, kk.npairs)
+    np.testing.assert_allclose(kk2.weight, kk.weight)
+    np.testing.assert_allclose(kk2.xi, kk.xi, rtol=1.e-5)
+
+    kk2.process(cat1p, cat2, patch_method='local')
+    np.testing.assert_array_equal(kk2.npairs, kk.npairs)
+    np.testing.assert_allclose(kk2.weight, kk.weight)
+    np.testing.assert_allclose(kk2.xi, kk.xi, rtol=1.e-5)
+
+    kk2.process(cat1, cat2p)
+    np.testing.assert_array_equal(kk2.npairs, kk.npairs)
+    np.testing.assert_allclose(kk2.weight, kk.weight)
+    np.testing.assert_allclose(kk2.xi, kk.xi, rtol=1.e-5)
+
+    kk2.process(cat1, cat2p, patch_method='local')
+    np.testing.assert_array_equal(kk2.npairs, kk.npairs)
+    np.testing.assert_allclose(kk2.weight, kk.weight)
+    np.testing.assert_allclose(kk2.xi, kk.xi, rtol=1.e-5)
+
+    kk2.process(cat1p, cat2p)
+    np.testing.assert_array_equal(kk2.npairs, kk.npairs)
+    np.testing.assert_allclose(kk2.weight, kk.weight)
+    np.testing.assert_allclose(kk2.xi, kk.xi, rtol=1.e-5)
+
+    kk2.process(cat1p, cat2p, patch_method='local')
+    np.testing.assert_array_equal(kk2.npairs, kk.npairs)
+    np.testing.assert_allclose(kk2.weight, kk.weight)
+    np.testing.assert_allclose(kk2.xi, kk.xi, rtol=1.e-5)
 
 
 @timer

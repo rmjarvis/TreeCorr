@@ -25,6 +25,7 @@ import collections
 from . import _treecorr
 from .config import merge_config, setup_logger, get
 from .util import parse_metric, metric_enum, coord_enum, set_omp_threads, lazy_property
+from .catalog import Catalog
 
 class Namespace(object):
     pass
@@ -630,11 +631,68 @@ class Corr2(object):
         return self.corr.triviallyZero(self._metric, self._coords,
                                        x1, y1, z1, s1, x2, y2, z2, s2)
 
+    def make_expanded_patch(self, cat1, cat2, metric, low_mem=False):
+        """Make an expanded patch from the list of cat2 patches so that the expanded catalog
+        includes all objects that could possibly get counted in this correlation binning.
+
+        This is used for the patch_method='local' option of process.
+
+        Parameters:
+            cat1:       The primary catalog around which to build the expanded patch.
+            cat2:       The list of patches from which to build the expanded patch.
+            metric:     Which metric to use.  See `Metrics` for details.
+            low_mem:    Whether to try to conserve memory by unloading each patch after adding
+                        its data to the expanded patch. [default: False]
+        """
+        # First figure out the center and size of cat1.
+        x1,y1,z1,s1 = cat1._get_center_size()
+
+        if self._coords == _treecorr.ThreeD:
+            # For 3d coords, we collapse everything onto the unit circle, since that's
+            # what we care about for patch considerations.
+            r = np.sqrt(x1**2 + y1**2 + z1**2)
+            if r != 0:  # pragma: no branch
+                x1 /= r; y1 /= r; z1 /= r
+
+        cat_list = []
+        mask_list = []
+        sumw = 0
+        for p in cat2:
+            sumw += p.sumw
+            if self._trivially_zero(cat1, p):
+                if low_mem and p is not cat1:
+                    p.unload()
+                continue
+            px = p.x; py = p.y; pz = 0 if p.z is None else p.z
+            if self._coords == _treecorr.ThreeD:
+                pr = np.sqrt(px**2 + py**2 + pz**2)
+                pr[pr==0] = 1
+                px /= r; py /= r; pz /= r
+            dsq = (px-x1)**2 + (py-y1)**2 + (pz-z1)**2
+            d = np.sqrt(dsq)
+            mask = np.where(d < s1+self._max_sep)
+            if len(mask[0]) == 0:
+                if low_mem and p is not cat1:
+                    p.unload()
+                continue
+            cat_list.append(p)
+            mask_list.append(mask)
+            if low_mem:
+                p.unload()
+        if len(cat_list) == 0:
+            return None
+        else:
+            cat2e = Catalog.combine(cat_list, mask_list)
+            # This is important for NNN correlations to get the tot to work out right.
+            # Basically, we treat the extended patch as though it included all of cat2
+            # for the purposes of figuring out the right tot normalization.
+            cat2e._sumw = sumw
+        return cat2e
+
     def _single_process12(self, c1, c2, ij, metric, num_threads, temp, force_write=False):
         # Helper function for _process_all_auto and _process_cross for doing cross pairs.
         temp._clear()
         if not self._trivially_zero(c1, c2):
-            self.logger.info('Process patches %s cross',ij)
             temp.process_cross(c1, c2, metric=metric, num_threads=num_threads)
         else:
             self.logger.info('Skipping %s pair, which are too far apart ' +
@@ -716,15 +774,9 @@ class Corr2(object):
                 for ii,c1 in enumerate(cat1):
                     i = c1.patch if c1.patch is not None else ii
                     if is_my_job(my_indices, i, i, n):
-                        temp._clear()
-                        self.logger.info('Process patch %d auto',i)
-                        temp.process_auto(c1, metric=metric, num_threads=num_threads)
-                        if (i,i) not in self.results:
-                            self.results[(i,i)] = temp.copy()
-                        else:
-                            self.results[(i,i)] += temp
-                        self += temp
-
+                        c1e = self.make_expanded_patch(c1, cat1, metric, low_mem)
+                        self.logger.info('Process patch %d with surrounding local patches',i)
+                        self._single_process12(c1, c1e, (i,i), metric, num_threads, temp, True)
                         if low_mem:
                             c1.unload()
             else:
@@ -743,6 +795,7 @@ class Corr2(object):
                     for jj,c2 in list(enumerate(cat1))[::-1]:
                         j = c2.patch if c2.patch is not None else jj
                         if i < j and is_my_job(my_indices, i, j, n):
+                            self.logger.info('Process patches %d, %d cross',i,j)
                             self._single_process12(c1, c2, (i,j), metric, num_threads, temp)
                             if low_mem and jj != ii+1:
                                 # Don't unload i+1, since that's the next one we'll need.
@@ -812,15 +865,20 @@ class Corr2(object):
             temp.results = {}  # Don't mess up the original results
 
             if local:
-                # The local algorithm only crosses i from cat1 with i from cat2.
-                # The calling routine is responsible for making sure cat2 is large enough to
-                # include all objects within max_sep of the border of the corresponding cat1.
-                for ii, (c1,c2) in enumerate(zip(cat1,cat2)):
+                for ii,c1 in enumerate(cat1):
                     i = c1.patch if c1.patch is not None else ii
-                    if c2.patch is not None and c2.patch != i:
-                        raise RuntimeError("cat2 has wrong patch number %s != %s"%(c2.patch,i))
                     if is_my_job(my_indices, i, i, n1, n2):
-                        self._single_process12(c1, c2, (i,i), metric, num_threads, temp, True)
+                        # Note: This is probably the patch in cat2 that corresponds to the
+                        # current c1 patch.  If not, then one common use case is that cat2 has
+                        # just one item, and cat2[0] is the right choice.  If not, then using
+                        # cat2[0] isn't wrong.  It just may end up with some more objects than
+                        # we need, so be a bit inefficient.  Not worth trying to be more careful
+                        # for edge cases where neither of these are the right patch to start with.
+                        c2 = cat2[ii] if ii < len(cat2) else cat2[0]
+                        c2e = self.make_expanded_patch(c1, cat2, metric, low_mem)
+                        if c2e is not None:
+                            self.logger.info('Process patch %d with surrounding local patches',i)
+                            self._single_process12(c1, c2e, (i,i), metric, num_threads, temp, True)
                         if low_mem:
                             c1.unload()
                             c2.unload()
@@ -830,6 +888,7 @@ class Corr2(object):
                     for jj,c2 in enumerate(cat2):
                         j = c2.patch if c2.patch is not None else jj
                         if is_my_job(my_indices, i, j, n1, n2):
+                            self.logger.info('Process patches %d, %d cross',i,j)
                             self._single_process12(c1, c2, (i,j), metric, num_threads, temp,
                                                    (i==j or n1==1 or n2==1))
                             if low_mem:

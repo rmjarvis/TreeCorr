@@ -631,19 +631,7 @@ class Corr2(object):
         return self.corr.triviallyZero(self._metric, self._coords,
                                        x1, y1, z1, s1, x2, y2, z2, s2)
 
-    def make_expanded_patch(self, cat1, cat2, metric, low_mem=False):
-        """Make an expanded patch from the list of cat2 patches so that the expanded catalog
-        includes all objects that could possibly get counted in this correlation binning.
-
-        This is used for the patch_method='local' option of process.
-
-        Parameters:
-            cat1:       The primary catalog around which to build the expanded patch.
-            cat2:       The list of patches from which to build the expanded patch.
-            metric:     Which metric to use.  See `Metrics` for details.
-            low_mem:    Whether to try to conserve memory by unloading each patch after adding
-                        its data to the expanded patch. [default: False]
-        """
+    def _make_expanded_patch(self, cat1, cat2, metric, low_mem):
         # First figure out the center and size of cat1.
         x1,y1,z1,s1 = cat1._get_center_size()
 
@@ -677,7 +665,7 @@ class Corr2(object):
                 continue
             cat_list.append(p)
             mask_list.append(mask)
-            if low_mem:
+            if low_mem and p is not cat1:
                 p.unload()
         if len(cat_list) == 0:
             return None
@@ -774,7 +762,7 @@ class Corr2(object):
                 for ii,c1 in enumerate(cat1):
                     i = c1.patch if c1.patch is not None else ii
                     if is_my_job(my_indices, i, i, n):
-                        c1e = self.make_expanded_patch(c1, cat1, metric, low_mem)
+                        c1e = self._make_expanded_patch(c1, cat1, metric, low_mem)
                         self.logger.info('Process patch %d with surrounding local patches',i)
                         self._single_process12(c1, c1e, (i,i), metric, num_threads, temp, True)
                         if low_mem:
@@ -868,20 +856,12 @@ class Corr2(object):
                 for ii,c1 in enumerate(cat1):
                     i = c1.patch if c1.patch is not None else ii
                     if is_my_job(my_indices, i, i, n1, n2):
-                        # Note: This is probably the patch in cat2 that corresponds to the
-                        # current c1 patch.  If not, then one common use case is that cat2 has
-                        # just one item, and cat2[0] is the right choice.  If not, then using
-                        # cat2[0] isn't wrong.  It just may end up with some more objects than
-                        # we need, so be a bit inefficient.  Not worth trying to be more careful
-                        # for edge cases where neither of these are the right patch to start with.
-                        c2 = cat2[ii] if ii < len(cat2) else cat2[0]
-                        c2e = self.make_expanded_patch(c1, cat2, metric, low_mem)
+                        c2e = self._make_expanded_patch(c1, cat2, metric, low_mem)
                         if c2e is not None:
                             self.logger.info('Process patch %d with surrounding local patches',i)
                             self._single_process12(c1, c2e, (i,i), metric, num_threads, temp, True)
                         if low_mem:
                             c1.unload()
-                            c2.unload()
             else:
                 for ii,c1 in enumerate(cat1):
                     i = c1.patch if c1.patch is not None else ii

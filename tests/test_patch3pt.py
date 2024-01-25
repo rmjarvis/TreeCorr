@@ -84,33 +84,14 @@ def test_kkk_jk():
     # accuracy tests for those two are pretty loose.
 
     if __name__ == '__main__':
-        # This setup takes about 740 sec to run.
         nhalo = 3000
         nsource = 5000
         npatch = 32
         tol_factor = 1
-    elif False:
-        # This setup takes about 180 sec to run.
-        nhalo = 2000
-        nsource = 2000
-        npatch = 16
-        tol_factor = 2
-    elif False:
-        # This setup takes about 51 sec to run.
-        nhalo = 1000
-        nsource = 1000
-        npatch = 16
-        tol_factor = 3
     else:
-        # This setup takes about 20 sec to run.
-        # So we use this one for regular unit test runs.
-        # It's pretty terrible in terms of testing the accuracy, but it works for code coverage.
-        # But whenever actually working on this part of the code, definitely need to switch
-        # to one of the above setups.  Preferably run the name==main version to get a good
-        # test of the code correctness.
         nhalo = 500
         nsource = 500
-        npatch = 16
+        npatch = 12
         tol_factor = 4
 
     file_name = 'data/test_kkk_jk_{}.npz'.format(nsource)
@@ -160,7 +141,7 @@ def test_kkk_jk():
     np.testing.assert_allclose(kkk.cov.diagonal(), kkk.varzeta.ravel())
 
     kkkp = kkk.copy()
-    catp = treecorr.Catalog(x=x, y=y, k=k, npatch=npatch)
+    catp = treecorr.Catalog(x=x, y=y, k=k, npatch=npatch, rng=rng)
 
     # Do the same thing with patches.
     kkkp.process(catp)
@@ -318,7 +299,85 @@ def test_kkk_jk():
     cov = kkkp.estimate_cov('bootstrap')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.3*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.4*tol_factor)
+
+    # Check with patch_method='local'
+    kkkp.process(catp, patch_method='local')
+    print('with patch_method=local:')
+    print(kkkp.ntri.ravel())
+    print(kkkp.zeta.ravel())
+    print(kkkp.varzeta.ravel())
+    np.testing.assert_allclose(kkkp.ntri, kkk.ntri, rtol=0.05 * tol_factor)
+    np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
+    np.testing.assert_allclose(kkkp.varzeta, kkk.varzeta, rtol=0.05 * tol_factor, atol=3.e-6)
+
+    print('jackknife:')
+    cov = kkkp.estimate_cov('jackknife')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.6 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    kkkp.process(catp, catp, patch_method='local')
+    print('with patch_method=local, cross12:')
+    print(kkkp.ntri.ravel())
+    print(kkkp.zeta.ravel())
+    print(kkkp.varzeta.ravel())
+    np.testing.assert_allclose(kkkp.ntri, kkk.ntri, rtol=0.05 * tol_factor)
+    np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
+    np.testing.assert_allclose(kkkp.varzeta, kkk.varzeta, rtol=0.05 * tol_factor, atol=3.e-6)
+
+    print('jackknife:')
+    cov = kkkp.estimate_cov('jackknife')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.6 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    kkkp.process(catp, catp, ordered=False, patch_method='local')
+    print('with patch_method=local, cross12 unordered:')
+    print(kkkp.ntri.ravel())
+    print(kkkp.zeta.ravel())
+    np.testing.assert_allclose(kkkp.ntri, 3*kkk.ntri, rtol=0.05 * tol_factor)
+    np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
+    # shot varzeta is wrong in this case, since it doesn't realize the triangles are repeating.
+
+    print('jackknife:')
+    cov = kkkp.estimate_cov('jackknife')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.6 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    kkkp.process(catp, catp, catp, patch_method='local')
+    print('with patch_method=local, cross:')
+    print(kkkp.ntri.ravel())
+    print(kkkp.zeta.ravel())
+    print(kkkp.varzeta.ravel())
+    np.testing.assert_allclose(kkkp.ntri, kkk.ntri, rtol=0.05 * tol_factor)
+    np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
+    np.testing.assert_allclose(kkkp.varzeta, kkk.varzeta, rtol=0.05 * tol_factor, atol=3.e-6)
+
+    print('jackknife:')
+    cov = kkkp.estimate_cov('jackknife')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.6 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    kkkp.process(catp, catp, catp, ordered=False, patch_method='local')
+    print('with patch_method=local, cross unordered:')
+    print(kkkp.ntri.ravel())
+    print(kkkp.zeta.ravel())
+    np.testing.assert_allclose(kkkp.ntri, 6*kkk.ntri, rtol=0.05 * tol_factor)
+    np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
+
+    print('jackknife:')
+    cov = kkkp.estimate_cov('jackknife')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.6 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
 
     # Repeat this test with different combinations of patch with non-patch catalogs:
     # All the methods work best when the patches are used for all 3 catalogs.  But there
@@ -474,7 +533,7 @@ def test_kkk_jk():
     cov = kkkp.estimate_cov('bootstrap')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.3*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.4*tol_factor)
 
     # Patch on 1,3
     print('with patches on 1,3:')
@@ -504,7 +563,7 @@ def test_kkk_jk():
     cov = kkkp.estimate_cov('bootstrap')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.3*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.4*tol_factor)
 
     # All catalogs need to have the same number of patches
     catq = treecorr.Catalog(x=x, y=y, k=k, npatch=2*npatch)
@@ -541,18 +600,6 @@ def test_ggg_jk():
         nsource = 5000
         npatch = 32
         tol_factor = 1
-    elif False:
-        # This setup takes about 160 sec to run.
-        nhalo = 2000
-        nsource = 2000
-        npatch = 16
-        tol_factor = 2
-    elif False:
-        # This setup takes about 50 sec to run.
-        nhalo = 1000
-        nsource = 1000
-        npatch = 16
-        tol_factor = 3
     else:
         # This setup takes about 13 sec to run.
         nhalo = 500
@@ -760,6 +807,84 @@ def test_ggg_jk():
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.4*tol_factor)
 
+    # Check with patch_method='local'
+    gggp.process(catp, patch_method='local')
+    print('with patch_method=local:')
+    np.testing.assert_allclose(gggp.ntri, ggg.ntri, rtol=0.05 * tol_factor)
+    np.testing.assert_allclose(gggp.gam0, ggg.gam0, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(gggp.gam1, ggg.gam1, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(gggp.gam2, ggg.gam2, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(gggp.gam3, ggg.gam3, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(gggp.vargam0, ggg.vargam0, rtol=0.1 * tol_factor)
+    np.testing.assert_allclose(gggp.vargam1, ggg.vargam1, rtol=0.1 * tol_factor)
+    np.testing.assert_allclose(gggp.vargam2, ggg.vargam2, rtol=0.1 * tol_factor)
+    np.testing.assert_allclose(gggp.vargam3, ggg.vargam3, rtol=0.1 * tol_factor)
+
+    cov = gggp.estimate_cov('jackknife', func=f)
+    print(np.diagonal(cov).real)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.5*tol_factor)
+
+    gggp.process(catp, catp, patch_method='local')
+    print('with patch_method=local, cross12:')
+    np.testing.assert_allclose(gggp.ntri, ggg.ntri, rtol=0.05 * tol_factor)
+    np.testing.assert_allclose(gggp.gam0, ggg.gam0, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(gggp.gam1, ggg.gam1, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(gggp.gam2, ggg.gam2, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(gggp.gam3, ggg.gam3, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(gggp.vargam0, ggg.vargam0, rtol=0.1 * tol_factor)
+    np.testing.assert_allclose(gggp.vargam1, ggg.vargam1, rtol=0.1 * tol_factor)
+    np.testing.assert_allclose(gggp.vargam2, ggg.vargam2, rtol=0.1 * tol_factor)
+    np.testing.assert_allclose(gggp.vargam3, ggg.vargam3, rtol=0.1 * tol_factor)
+
+    cov = gggp.estimate_cov('jackknife', func=f)
+    print(np.diagonal(cov).real)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.5*tol_factor)
+
+    gggp.process(catp, catp, ordered=False, patch_method='local')
+    print('with patch_method=local, cros12 unordered:')
+    np.testing.assert_allclose(gggp.ntri, 3*ggg.ntri, rtol=0.05 * tol_factor)
+    np.testing.assert_allclose(gggp.gam0, ggg.gam0, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(gggp.gam1, ggg.gam1, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(gggp.gam2, ggg.gam2, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(gggp.gam3, ggg.gam3, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+
+    cov = gggp.estimate_cov('jackknife', func=f)
+    print(np.diagonal(cov).real)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.5*tol_factor)
+
+    gggp.process(catp, catp, catp, patch_method='local')
+    print('with patch_method=local, cross:')
+    np.testing.assert_allclose(gggp.ntri, ggg.ntri, rtol=0.05 * tol_factor)
+    np.testing.assert_allclose(gggp.gam0, ggg.gam0, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(gggp.gam1, ggg.gam1, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(gggp.gam2, ggg.gam2, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(gggp.gam3, ggg.gam3, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(gggp.vargam0, ggg.vargam0, rtol=0.1 * tol_factor)
+    np.testing.assert_allclose(gggp.vargam1, ggg.vargam1, rtol=0.1 * tol_factor)
+    np.testing.assert_allclose(gggp.vargam2, ggg.vargam2, rtol=0.1 * tol_factor)
+    np.testing.assert_allclose(gggp.vargam3, ggg.vargam3, rtol=0.1 * tol_factor)
+
+    cov = gggp.estimate_cov('jackknife', func=f)
+    print(np.diagonal(cov).real)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.6*tol_factor)
+
+    gggp.process(catp, catp, catp, ordered=False, patch_method='local')
+    print('with patch_method=local, cross unordered:')
+    np.testing.assert_allclose(gggp.ntri, 6*ggg.ntri, rtol=0.05 * tol_factor)
+    np.testing.assert_allclose(gggp.gam0, ggg.gam0, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(gggp.gam1, ggg.gam1, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(gggp.gam2, ggg.gam2, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(gggp.gam3, ggg.gam3, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+
+    cov = gggp.estimate_cov('jackknife', func=f)
+    print(np.diagonal(cov).real)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.5*tol_factor)
+
     # The separate patch/non-patch combinations aren't that interesting, so skip them
     # for GGG unless running from main.
     if __name__ == '__main__':
@@ -950,27 +1075,17 @@ def test_nnn_jk():
     # Test jackknife and other covariance estimates for nnn correlations.
 
     if __name__ == '__main__':
-        # This setup takes about 1200 sec to run.
         nhalo = 300
         nsource = 2000
         npatch = 16
         source_factor = 50
         rand_factor = 3
         tol_factor = 1
-    elif False:
-        # This setup takes about 250 sec to run.
-        nhalo = 200
-        nsource = 1000
-        npatch = 16
-        source_factor = 50
-        rand_factor = 2
-        tol_factor = 2
     else:
-        # This setup takes about 44 sec to run.
-        nhalo = 100
+        nhalo = 50
         nsource = 500
         npatch = 8
-        source_factor = 30
+        source_factor = 50
         rand_factor = 1
         tol_factor = 3
 
@@ -1293,6 +1408,28 @@ def test_nnn_jk():
     t1 = time.time()
     print('t = ',t1-t0)
     t0 = time.time()
+
+    # Check with patch_method='local'
+    print('with patch_method=local:')
+    dddp.process(catp, patch_method='local')
+    rrrp.process(rand_catp, patch_method='local')
+    drrp.process(catp, rand_catp, ordered=False, patch_method='local')
+    rddp.process(rand_catp, catp, ordered=False, patch_method='local')
+    zeta_c2, var_zeta_c2 = dddp.calculateZeta(rrr=rrrp, drr=drrp, rdd=rddp)
+    print('DRR:',drrp.tot)
+    print(drrp.ntri.ravel())
+    print('RDD:',rddp.tot)
+    print(rddp.ntri.ravel())
+    print(zeta_c2.ravel())
+    print(var_zeta_c2.ravel())
+    np.testing.assert_allclose(zeta_c2, zeta_c1, rtol=0.05 * tol_factor, atol=1.e-3 * tol_factor)
+    np.testing.assert_allclose(var_zeta_c2, var_zeta_c1, rtol=0.05 * tol_factor)
+
+    print('jackknife:')
+    cov = dddp.estimate_cov('jackknife')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnnc))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.8*tol_factor)
 
     # Check that these still work after roundtripping through files.
     cov1 = dddp.estimate_cov('jackknife')

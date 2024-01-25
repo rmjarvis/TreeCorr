@@ -25,6 +25,7 @@ from .config import merge_config, setup_logger, get
 from .util import parse_metric, metric_enum, coord_enum, set_omp_threads, lazy_property
 from .util import make_reader
 from .corr2base import estimate_multi_cov, build_multi_cov_design_matrix
+from .catalog import Catalog
 
 class Namespace(object):
     pass
@@ -1013,7 +1014,7 @@ class Corr3(object):
         # No op for all but NNCorrelation, which needs to add the tot value
         pass
 
-    def _trivially_zero(self, c1, c2, c3, metric):
+    def _trivially_zero(self, c1, c2, c3):
         # For now, ignore the metric.  Just be conservative about how much space we need.
         x1,y1,z1,s1 = c1._get_center_size()
         x2,y2,z2,s2 = c2._get_center_size()
@@ -1024,11 +1025,61 @@ class Corr3(object):
         d3, d2, d1 = sorted([d1,d2,d3])
         return (d2 > s1 + s2 + s3 + 2*self._max_sep)  # The 2* is where we are being conservative.
 
+    def _make_expanded_patch(self, cat1, cat2, metric, low_mem):
+        # (This is almost identical to the one in Corr2, which means there is an opportunity
+        # for code sharing.  Not bothering now though.)
+
+        # First figure out the center and size of cat1.
+        x1,y1,z1,s1 = cat1._get_center_size()
+
+        if self._coords == _treecorr.ThreeD:
+            # For 3d coords, we collapse everything onto the unit circle, since that's
+            # what we care about for patch considerations.
+            r = np.sqrt(x1**2 + y1**2 + z1**2)
+            if r != 0:  # pragma: no branch
+                x1 /= r; y1 /= r; z1 /= r
+
+        cat_list = []
+        mask_list = []
+        sumw = 0
+        for p in cat2:
+            sumw += p.sumw
+            x2,y2,z2,s2 = p._get_center_size()
+            if ((x2-x1)**2 + (y2-y1)**2 + (z2-z1)**2)**0.5 > self._max_sep + s1 + s2:
+                if low_mem and p is not cat1:
+                    p.unload()
+                continue
+            px = p.x; py = p.y; pz = 0 if p.z is None else p.z
+            if self._coords == _treecorr.ThreeD:
+                pr = np.sqrt(px**2 + py**2 + pz**2)
+                pr[pr==0] = 1
+                px /= r; py /= r; pz /= r
+            dsq = (px-x1)**2 + (py-y1)**2 + (pz-z1)**2
+            d = np.sqrt(dsq)
+            mask = np.where(d < s1+self._max_sep)
+            if len(mask[0]) == 0:
+                if low_mem and p is not cat1:
+                    p.unload()
+                continue
+            cat_list.append(p)
+            mask_list.append(mask)
+            if low_mem and p is not cat1:
+                p.unload()
+        if len(cat_list) == 0:
+            return None
+        else:
+            cat2e = Catalog.combine(cat_list, mask_list)
+            # This is important for NNN correlations to get the tot to work out right.
+            # Basically, we treat the extended patch as though it included all of cat2
+            # for the purposes of figuring out the right tot normalization.
+            cat2e._sumw = sumw
+        return cat2e
+
     def _single_process12(self, c1, c2, ijj, metric, ordered, num_threads, temp, force_write):
         # Helper function for _process_all_auto, etc. for doing 12 cross pairs
         temp._clear()
 
-        if not self._trivially_zero(c1,c2,c2,metric):
+        if not self._trivially_zero(c1,c2,c2):
             self.logger.info('Process patches %s cross12',ijj)
             temp.process_cross12(c1, c2, metric=metric, ordered=ordered, num_threads=num_threads)
         else:
@@ -1048,7 +1099,7 @@ class Corr3(object):
         # Helper function for _process_all_auto, etc. for doing 123 cross triples
         temp._clear()
 
-        if not self._trivially_zero(c1,c2,c3,metric):
+        if not self._trivially_zero(c1,c2,c3):
             self.logger.info('Process patches %s cross',ijk)
             temp.process_cross(c1, c2, c3, metric=metric, ordered=ordered, num_threads=num_threads)
         else:
@@ -1126,14 +1177,12 @@ class Corr3(object):
                 for ii,c1 in enumerate(cat1):
                     i = c1.patch if c1.patch is not None else ii
                     if is_my_job(my_indices, i, i, i, n):
-                        temp._clear()
-                        self.logger.info('Process patch %d auto',i)
-                        temp.process_auto(c1, metric=metric, num_threads=num_threads)
-                        if (i,i,i) in self.results and self.results[(i,i,i)].nonzero:
-                            self.results[(i,i,i)] += temp
-                        else:
-                            self.results[(i,i,i)] = temp.copy()
-                        self += temp
+                        c1e = self._make_expanded_patch(c1, cat1, metric, low_mem)
+                        self.logger.info('Process patch %d with surrounding local patches',i)
+                        self._single_process12(c1, c1e, (i,i,i), metric, 1,
+                                               num_threads, temp, True)
+                        if low_mem:
+                            c1.unload()
             else:
                 for ii,c1 in enumerate(cat1):
                     i = c1.patch if c1.patch is not None else ii
@@ -1251,19 +1300,31 @@ class Corr3(object):
             ordered1 = 1 if ordered else 0
 
             if local:
-                # The local algorithm only crosses i from cat1 with i from cat2.
-                # The calling routine is responsible for making sure cat2 is large enough to
-                # include all objects within max_sep of the border of the corresponding cat1.
-                for ii, (c1,c2) in enumerate(zip(cat1,cat2)):
+                for ii,c1 in enumerate(cat1):
                     i = c1.patch if c1.patch is not None else ii
-                    if c2.patch is not None and c2.patch != i:
-                        raise RuntimeError("cat2 has wrong patch number %s != %s"%(c2.patch,i))
                     if is_my_job(my_indices, i, i, i, n1, n2):
-                        self._single_process12(c1, c2, (i,i,i), metric, ordered,
-                                               num_threads, temp, True)
+                        c2e = self._make_expanded_patch(c1, cat2, metric, low_mem)
+                        if c2e is not None:
+                            self.logger.info('Process patch %d with surrounding local patches',i)
+                            self._single_process12(c1, c2e, (i,i,i), metric, 1,
+                                                   num_threads, temp, True)
                         if low_mem:
                             c1.unload()
-                            c2.unload()
+                if not ordered:
+                    # local method doesn't do unordered properly as is.
+                    # It can only handle ordered=1 (or 3).
+                    # So in this case, we need to repeat with c2 in the first spot.
+                    for ii,c2 in enumerate(cat2):
+                        i = c2.patch if c2.patch is not None else ii
+                        if is_my_job(my_indices, i, i, i, n1, n2):
+                            c1e = self._make_expanded_patch(c2, cat1, metric, low_mem)
+                            c2e = self._make_expanded_patch(c2, cat2, metric, low_mem)
+                            if c1e is not None and c2e is not None:
+                                self.logger.info('Process patch %d from cat2 with surrounding local patches',i)
+                                self._single_process123(c2, c1e, c2e, (i,i,i), metric, 1,
+                                                        num_threads, temp, True)
+                            if low_mem:
+                                c2.unload()
             else:
                 for ii,c1 in enumerate(cat1):
                     i = c1.patch if c1.patch is not None else ii
@@ -1359,19 +1420,44 @@ class Corr3(object):
             temp.results = {}
 
             if local:
-                # The local algorithm only crosses i from cat1 with i from cat2 and cat3.
-                # The calling routine is responsible for making sure cats 2,3 are large enough to
-                # include all objects within max_sep of the border of the corresponding cat1.
-                for ii, (c1,c2,c3) in enumerate(zip(cat1,cat2,cat3)):
+                for ii,c1 in enumerate(cat1):
                     i = c1.patch if c1.patch is not None else ii
-                    if c2.patch is not None and c2.patch != i:
-                        raise RuntimeError("cat2 has wrong patch number %s != %s"%(c2.patch,i))
-                    if is_my_job(my_indices, i, i, i, n1, n2):
-                        self._single_process12(c1, c2, (i,i,i), metric, ordered,
-                                               num_threads, temp, True)
+                    if is_my_job(my_indices, i, i, i, n1, n2, n3):
+                        c2e = self._make_expanded_patch(c1, cat2, metric, low_mem)
+                        c3e = self._make_expanded_patch(c1, cat3, metric, low_mem)
+                        if c2e is not None and c3e is not None:
+                            self.logger.info('Process patch %d with surrounding local patches',i)
+                            self._single_process123(c1, c2e, c3e, (i,i,i), metric,
+                                                    1 if not ordered else ordered,
+                                                    num_threads, temp, True)
                         if low_mem:
                             c1.unload()
-                            c2.unload()
+                if not ordered:
+                    # local method doesn't do unordered properly as is.
+                    # It can only handle ordered=1 or 3.
+                    # So in this case, we need to repeat with c2 and c3 in the first spot.
+                    for ii,c2 in enumerate(cat2):
+                        i = c2.patch if c2.patch is not None else ii
+                        if is_my_job(my_indices, i, i, i, n1, n2, n3):
+                            c1e = self._make_expanded_patch(c2, cat1, metric, low_mem)
+                            c3e = self._make_expanded_patch(c2, cat3, metric, low_mem)
+                            if c1e is not None and c3e is not None:
+                                self.logger.info('Process patch %d from cat2 with surrounding local patches',i)
+                                self._single_process123(c2, c1e, c3e, (i,i,i), metric, 1,
+                                                        num_threads, temp, True)
+                            if low_mem:
+                                c2.unload()
+                    for ii,c3 in enumerate(cat3):
+                        i = c3.patch if c3.patch is not None else ii
+                        if is_my_job(my_indices, i, i, i, n1, n2, n3):
+                            c1e = self._make_expanded_patch(c3, cat1, metric, low_mem)
+                            c2e = self._make_expanded_patch(c3, cat2, metric, low_mem)
+                            if c1e is not None and c2e is not None:
+                                self.logger.info('Process patch %d from cat3 with surrounding local patches',i)
+                                self._single_process123(c3, c1e, c2e, (i,i,i), metric, 1,
+                                                        num_threads, temp, True)
+                            if low_mem:
+                                c3.unload()
             else:
                 for ii,c1 in enumerate(cat1):
                     i = c1.patch if c1.patch is not None else ii

@@ -105,7 +105,7 @@ template <int D1, int D2>
 Corr2<D1,D2>::Corr2(const Corr2<D1,D2>& rhs, bool copy_data) :
     BaseCorr2(rhs), _owns_data(true), _xi(0,0,0,0), _weight(0)
 {
-    dbg<<"Corr2 copy constructor\n";
+    xdbg<<"Corr2 copy constructor\n";
     _xi.new_data(_nbins);
     _meanr = new double[_nbins];
     _meanlogr = new double[_nbins];
@@ -119,7 +119,7 @@ Corr2<D1,D2>::Corr2(const Corr2<D1,D2>& rhs, bool copy_data) :
 template <int D1, int D2>
 Corr2<D1,D2>::~Corr2()
 {
-    dbg<<"Corr2 destructor\n";
+    xdbg<<"Corr2 destructor\n";
     if (_owns_data) {
         _xi.delete_data(_nbins);
         delete [] _meanr; _meanr = 0;
@@ -512,7 +512,8 @@ void BaseCorr2::directProcess11(
     const BaseCell<C>& c1, const BaseCell<C>& c2, const double rsq,
     int k, double r, double logr)
 {
-    xdbg<<"DirectProcess11: rsq = "<<rsq<<std::endl;
+    xdbg<<"DirectProcess11: rsq = "<<rsq<<"  r = "<<sqrt(rsq)<<std::endl;
+    xdbg<<"p1 = "<<c1.getPos()<<"  p2 = "<<c2.getPos()<<std::endl;
     XAssert(rsq >= _minsepsq);
     XAssert(rsq < _fullmaxsepsq);
     // Note that most of these XAsserts around are still hardcoded for Log binning and Euclidean

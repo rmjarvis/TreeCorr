@@ -13,6 +13,7 @@
 
 import numpy as np
 import os
+import time
 import coord
 import treecorr
 
@@ -75,22 +76,10 @@ def test_direct():
     true_xip /= true_weight
     true_xim /= true_weight
 
-    print('true_npairs = ',true_npairs)
-    print('diff = ',gg.npairs - true_npairs)
     np.testing.assert_array_equal(gg.npairs, true_npairs)
-
-    print('true_weight = ',true_weight)
-    print('diff = ',gg.weight - true_weight)
     np.testing.assert_allclose(gg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-
-    print('true_xip = ',true_xip)
-    print('gg.xip = ',gg.xip)
-    print('gg.xip_im = ',gg.xip_im)
     np.testing.assert_allclose(gg.xip, true_xip.real, rtol=1.e-4, atol=1.e-8)
     np.testing.assert_allclose(gg.xip_im, true_xip.imag, rtol=1.e-4, atol=1.e-8)
-    print('true_xim = ',true_xim)
-    print('gg.xim = ',gg.xim)
-    print('gg.xim_im = ',gg.xim_im)
     np.testing.assert_allclose(gg.xim, true_xim.real, rtol=1.e-4, atol=1.e-8)
     np.testing.assert_allclose(gg.xim_im, true_xim.imag, rtol=1.e-4, atol=1.e-8)
 
@@ -122,12 +111,6 @@ def test_direct():
     np.testing.assert_allclose(gg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(gg.xip, true_xip.real, rtol=1.e-4, atol=1.e-8)
     np.testing.assert_allclose(gg.xip_im, true_xip.imag, rtol=1.e-4, atol=1.e-8)
-    print('true_xim = ',true_xim)
-    print('gg.xim = ',gg.xim)
-    print('gg.xim_im = ',gg.xim_im)
-    print('diff = ',gg.xim - true_xim.real)
-    print('max diff = ',np.max(np.abs(gg.xim - true_xim.real)))
-    print('rel diff = ',(gg.xim - true_xim.real)/true_xim.real)
     # This is the one that is highly affected by the approximation from averaging the shears
     # before projecting, rather than averaging each shear projected to its own connecting line.
     np.testing.assert_allclose(gg.xim, true_xim.real, rtol=1.e-3, atol=3.e-4)
@@ -200,6 +183,59 @@ def test_direct():
     gg6 = treecorr.GGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins*2)
     with assert_raises(ValueError):
         gg2 += gg6
+
+    # Split into patches to test the list-based version of the code.
+    cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g11, g2=g21, npatch=5, rng=rng)
+    cat2p = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g12, g2=g22, patch_centers=cat1p.patch_centers)
+
+    gg2.process(cat1p, cat2)
+    np.testing.assert_array_equal(gg2.npairs, gg.npairs)
+    np.testing.assert_allclose(gg2.weight, gg.weight)
+    np.testing.assert_allclose(gg2.meanr, gg.meanr, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.meanlogr, gg.meanlogr, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.xip, gg.xip, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.xim, gg.xim, rtol=1.e-4, atol=1.e-4)
+
+    gg2.process(cat1p, cat2, patch_method='local')
+    np.testing.assert_array_equal(gg2.npairs, gg.npairs)
+    np.testing.assert_allclose(gg2.weight, gg.weight)
+    np.testing.assert_allclose(gg2.meanr, gg.meanr, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.meanlogr, gg.meanlogr, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.xip, gg.xip, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.xim, gg.xim, rtol=1.e-4, atol=1.e-4)
+
+    gg2.process(cat1, cat2p)
+    np.testing.assert_array_equal(gg2.npairs, gg.npairs)
+    np.testing.assert_allclose(gg2.weight, gg.weight)
+    np.testing.assert_allclose(gg2.meanr, gg.meanr, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.meanlogr, gg.meanlogr, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.xip, gg.xip, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.xim, gg.xim, rtol=1.e-4, atol=1.e-4)
+
+    gg2.process(cat1, cat2p, patch_method='local')
+    np.testing.assert_array_equal(gg2.npairs, gg.npairs)
+    np.testing.assert_allclose(gg2.weight, gg.weight)
+    np.testing.assert_allclose(gg2.meanr, gg.meanr, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.meanlogr, gg.meanlogr, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.xip, gg.xip, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.xim, gg.xim, rtol=1.e-4, atol=1.e-4)
+
+    gg2.process(cat1p, cat2p)
+    np.testing.assert_array_equal(gg2.npairs, gg.npairs)
+    np.testing.assert_allclose(gg2.weight, gg.weight)
+    np.testing.assert_allclose(gg2.meanr, gg.meanr, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.meanlogr, gg.meanlogr, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.xip, gg.xip, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.xim, gg.xim, rtol=1.e-4, atol=1.e-4)
+
+    gg2.process(cat1p, cat2p, patch_method='local')
+    np.testing.assert_array_equal(gg2.npairs, gg.npairs)
+    np.testing.assert_allclose(gg2.weight, gg.weight)
+    np.testing.assert_allclose(gg2.meanr, gg.meanr, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.meanlogr, gg.meanlogr, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.xip, gg.xip, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.xim, gg.xim, rtol=1.e-4, atol=1.e-4)
+
 
 @timer
 def test_direct_spherical():
@@ -284,22 +320,10 @@ def test_direct_spherical():
     true_xip /= true_weight
     true_xim /= true_weight
 
-    print('true_npairs = ',true_npairs)
-    print('diff = ',gg.npairs - true_npairs)
     np.testing.assert_array_equal(gg.npairs, true_npairs)
-
-    print('true_weight = ',true_weight)
-    print('diff = ',gg.weight - true_weight)
     np.testing.assert_allclose(gg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-
-    print('true_xip = ',true_xip)
-    print('gg.xip = ',gg.xip)
-    print('gg.xip_im = ',gg.xip_im)
     np.testing.assert_allclose(gg.xip, true_xip.real, rtol=1.e-4, atol=1.e-8)
     np.testing.assert_allclose(gg.xip_im, true_xip.imag, rtol=1.e-4, atol=1.e-8)
-    print('true_xim = ',true_xim)
-    print('gg.xim = ',gg.xim)
-    print('gg.xim_im = ',gg.xim_im)
     np.testing.assert_allclose(gg.xim, true_xim.real, rtol=1.e-4, atol=1.e-8)
     np.testing.assert_allclose(gg.xim_im, true_xim.imag, rtol=1.e-4, atol=1.e-8)
 
@@ -333,6 +357,63 @@ def test_direct_spherical():
     np.testing.assert_allclose(gg.xip_im, true_xip.imag, rtol=1.e-3, atol=1.e-6)
     np.testing.assert_allclose(gg.xim, true_xim.real, rtol=1.e-3, atol=2.e-4)
     np.testing.assert_allclose(gg.xim_im, true_xim.imag, rtol=1.e-3, atol=2.e-4)
+
+    # Split into patches to test the list-based version of the code.
+    cat1p = treecorr.Catalog(ra=ra1, dec=dec1, ra_units='rad', dec_units='rad', w=w1,
+                             g1=g11, g2=g21, npatch=5, rng=rng)
+    cat2p = treecorr.Catalog(ra=ra2, dec=dec2, ra_units='rad', dec_units='rad', w=w2,
+                             g1=g12, g2=g22, patch_centers=cat1p.patch_centers)
+
+    gg2 = treecorr.GGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                 sep_units='deg', bin_slop=0, max_top=0)
+    gg2.process(cat1p, cat2)
+    np.testing.assert_array_equal(gg2.npairs, gg.npairs)
+    np.testing.assert_allclose(gg2.weight, gg.weight)
+    np.testing.assert_allclose(gg2.meanr, gg.meanr, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.meanlogr, gg.meanlogr, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.xip, gg.xip, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(gg2.xim, gg.xim, rtol=1.e-4, atol=1.e-4)
+
+    gg2.process(cat1p, cat2, patch_method='local')
+    np.testing.assert_array_equal(gg2.npairs, gg.npairs)
+    np.testing.assert_allclose(gg2.weight, gg.weight)
+    np.testing.assert_allclose(gg2.meanr, gg.meanr, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.meanlogr, gg.meanlogr, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.xip, gg.xip, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(gg2.xim, gg.xim, rtol=1.e-4, atol=1.e-4)
+
+    gg2.process(cat1, cat2p)
+    np.testing.assert_array_equal(gg2.npairs, gg.npairs)
+    np.testing.assert_allclose(gg2.weight, gg.weight)
+    np.testing.assert_allclose(gg2.meanr, gg.meanr, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.meanlogr, gg.meanlogr, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.xip, gg.xip, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(gg2.xim, gg.xim, rtol=1.e-4, atol=1.e-4)
+
+    gg2.process(cat1, cat2p, patch_method='local')
+    np.testing.assert_array_equal(gg2.npairs, gg.npairs)
+    np.testing.assert_allclose(gg2.weight, gg.weight)
+    np.testing.assert_allclose(gg2.meanr, gg.meanr, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.meanlogr, gg.meanlogr, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.xip, gg.xip, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(gg2.xim, gg.xim, rtol=1.e-4, atol=1.e-4)
+
+    gg2.process(cat1p, cat2p)
+    np.testing.assert_array_equal(gg2.npairs, gg.npairs)
+    np.testing.assert_allclose(gg2.weight, gg.weight)
+    np.testing.assert_allclose(gg2.meanr, gg.meanr, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.meanlogr, gg.meanlogr, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.xip, gg.xip, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(gg2.xim, gg.xim, rtol=1.e-4, atol=1.e-4)
+
+    gg2.process(cat1p, cat2p, patch_method='local')
+    np.testing.assert_array_equal(gg2.npairs, gg.npairs)
+    np.testing.assert_allclose(gg2.weight, gg.weight)
+    np.testing.assert_allclose(gg2.meanr, gg.meanr, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.meanlogr, gg.meanlogr, rtol=1.e-5)
+    np.testing.assert_allclose(gg2.xip, gg.xip, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(gg2.xim, gg.xim, rtol=1.e-4, atol=1.e-4)
+
 
 @timer
 def test_gg():
@@ -372,7 +453,10 @@ def test_gg():
     cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
     gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
                                 verbose=1)
+    t0 = time.time()
     gg.process(cat)
+    t1 = time.time()
+    print('Time for gg process = ',t1-t0)
 
     # Using nbins=None rather than omiting nbins is equivalent.
     gg2 = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., nbins=None, sep_units='arcmin')
@@ -381,31 +465,18 @@ def test_gg():
     assert gg2 == gg
 
     # log(<R>) != <logR>, but it should be close:
-    print('meanlogr - log(meanr) = ',gg.meanlogr - np.log(gg.meanr))
     np.testing.assert_allclose(gg.meanlogr, np.log(gg.meanr), atol=1.e-3)
 
     r = gg.meanr
     temp = np.pi/16. * gamma0**2 * (r0/L)**2 * np.exp(-0.25*r**2/r0**2)
     true_xip = temp * (r**4 - 16.*r**2*r0**2 + 32.*r0**4)/r0**4
     true_xim = temp * r**4/r0**4
-
-    print('gg.xip = ',gg.xip)
-    print('true_xip = ',true_xip)
-    print('ratio = ',gg.xip / true_xip)
-    print('diff = ',gg.xip - true_xip)
-    print('max diff = ',max(abs(gg.xip - true_xip)))
+    print('xip max diff = ',max(abs(gg.xip - true_xip)))
     # It's within 10% everywhere except at the zero crossings.
     np.testing.assert_allclose(gg.xip, true_xip, rtol=0.1 * tol_factor, atol=1.e-7 * tol_factor)
-    print('xip_im = ',gg.xip_im)
     np.testing.assert_allclose(gg.xip_im, 0, atol=2.e-7 * tol_factor)
-
-    print('gg.xim = ',gg.xim)
-    print('true_xim = ',true_xim)
-    print('ratio = ',gg.xim / true_xim)
-    print('diff = ',gg.xim - true_xim)
-    print('max diff = ',max(abs(gg.xim - true_xim)))
+    print('xim max diff = ',max(abs(gg.xim - true_xim)))
     np.testing.assert_allclose(gg.xim, true_xim, rtol=0.1 * tol_factor, atol=2.e-7 * tol_factor)
-    print('xim_im = ',gg.xim_im)
     np.testing.assert_allclose(gg.xim_im, 0, atol=1.e-7 * tol_factor)
 
     # Should also work as a cross-correlation with itself
@@ -427,7 +498,6 @@ def test_gg():
     mapsq_file = 'output/gg_m2.txt'
     gg.writeMapSq(mapsq_file, precision=16)
     data = np.genfromtxt(os.path.join('output','gg_m2.txt'), names=True)
-    print('dtype = ',data.dtype)
     np.testing.assert_allclose(data['Mapsq'], mapsq)
     np.testing.assert_allclose(data['Mxsq'], mxsq)
 
@@ -438,37 +508,14 @@ def test_gg():
     config['precision'] = 8
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','gg.out'), names=True, skip_header=1)
-    print('gg.xip = ',gg.xip)
-    print('from corr2 output = ',corr2_output['xip'])
-    print('ratio = ',corr2_output['xip']/gg.xip)
-    print('diff = ',corr2_output['xip']-gg.xip)
     np.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-4)
-
-    print('gg.xim = ',gg.xim)
-    print('from corr2 output = ',corr2_output['xim'])
-    print('ratio = ',corr2_output['xim']/gg.xim)
-    print('diff = ',corr2_output['xim']-gg.xim)
     np.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-4)
-
-    print('xip_im from corr2 output = ',corr2_output['xip_im'])
-    print('max err = ',max(abs(corr2_output['xip_im'])))
     np.testing.assert_allclose(corr2_output['xip_im'], 0, atol=2.e-7 * tol_factor)
-    print('xim_im from corr2 output = ',corr2_output['xim_im'])
-    print('max err = ',max(abs(corr2_output['xim_im'])))
     np.testing.assert_allclose(corr2_output['xim_im'], 0, atol=2.e-7 * tol_factor)
 
     # Check m2 output
     corr2_output2 = np.genfromtxt(os.path.join('output','gg_m2.out'), names=True)
-    print('mapsq = ',mapsq)
-    print('from corr2 output = ',corr2_output2['Mapsq'])
-    print('ratio = ',corr2_output2['Mapsq']/mapsq)
-    print('diff = ',corr2_output2['Mapsq']-mapsq)
     np.testing.assert_allclose(corr2_output2['Mapsq'], mapsq, rtol=1.e-4)
-
-    print('mxsq = ',mxsq)
-    print('from corr2 output = ',corr2_output2['Mxsq'])
-    print('ratio = ',corr2_output2['Mxsq']/mxsq)
-    print('diff = ',corr2_output2['Mxsq']-mxsq)
     np.testing.assert_allclose(corr2_output2['Mxsq'], mxsq, rtol=1.e-4)
 
     # OK to have m2 output, but not gg
@@ -735,10 +782,12 @@ def test_spherical():
         nsource = 1000000
         L = 50.*r0  # Not infinity, so this introduces some error.  Our integrals were to infinity.
         tol_factor = 1
+        npatch = 20
     else:
         nsource = 100000
         L = 50.*r0
         tol_factor = 5
+        npatch = 3
     rng = np.random.RandomState(8675309)
     x = (rng.random_sample(nsource)-0.5) * L
     y = (rng.random_sample(nsource)-0.5) * L
@@ -812,22 +861,14 @@ def test_spherical():
         gg.process(cat)
 
         print('ra0, dec0 = ',ra0,dec0)
-        print('gg.xip = ',gg.xip)
-        print('true_xip = ',true_xip)
-        print('ratio = ',gg.xip / true_xip)
-        print('diff = ',gg.xip - true_xip)
-        print('max diff = ',max(abs(gg.xip - true_xip)))
+        print('xip max diff = ',max(abs(gg.xip - true_xip)))
         # The 3rd and 4th centers are somewhat less accurate.  Not sure why.
         # The math seems to be right, since the last one that gets all the way to the pole
         # works, so I'm not sure what is going on.  It's just a few bins that get a bit less
         # accurate.  Possibly worth investigating further at some point...
         assert max(abs(gg.xip - true_xip)) < 3.e-7 * tol_factor
 
-        print('gg.xim = ',gg.xim)
-        print('true_xim = ',true_xim)
-        print('ratio = ',gg.xim / true_xim)
-        print('diff = ',gg.xim - true_xim)
-        print('max diff = ',max(abs(gg.xim - true_xim)))
+        print('xim max diff = ',max(abs(gg.xim - true_xim)))
         assert max(abs(gg.xim - true_xim)) < 2.e-7 * tol_factor
 
     # One more center that can be done very easily.  If the center is the north pole, then all
@@ -840,23 +881,15 @@ def test_spherical():
 
     cat = treecorr.Catalog(ra=ra, dec=dec, g1=gammat, g2=np.zeros_like(gammat), ra_units='rad',
                            dec_units='rad')
+    t0 = time.time()
     gg.process(cat)
+    t1 = time.time()
+    print('time for spherical gg process = ',t1-t0)
 
-    print('gg.xip = ',gg.xip)
-    print('gg.xip_im = ',gg.xip_im)
-    print('true_xip = ',true_xip)
-    print('ratio = ',gg.xip / true_xip)
-    print('diff = ',gg.xip - true_xip)
-    print('max diff = ',max(abs(gg.xip - true_xip)))
+    print('xip max diff = ',max(abs(gg.xip - true_xip)))
     assert max(abs(gg.xip - true_xip)) < 3.e-7 * tol_factor
     assert max(abs(gg.xip_im)) < 3.e-7 * tol_factor
-
-    print('gg.xim = ',gg.xim)
-    print('gg.xim_im = ',gg.xim_im)
-    print('true_xim = ',true_xim)
-    print('ratio = ',gg.xim / true_xim)
-    print('diff = ',gg.xim - true_xim)
-    print('max diff = ',max(abs(gg.xim - true_xim)))
+    print('xim max diff = ',max(abs(gg.xim - true_xim)))
     assert max(abs(gg.xim - true_xim)) < 2.e-7 * tol_factor
     assert max(abs(gg.xim_im)) < 2.e-7 * tol_factor
 
@@ -867,23 +900,38 @@ def test_spherical():
     treecorr.corr2(config)
     corr2_output = np.genfromtxt(os.path.join('output','gg_spherical.out'), names=True,
                                  skip_header=1)
-    print('gg.xip = ',gg.xip)
-    print('from corr2 output = ',corr2_output['xip'])
-    print('ratio = ',corr2_output['xip']/gg.xip)
-    print('diff = ',corr2_output['xip']-gg.xip)
     np.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
-
-    print('gg.xim = ',gg.xim)
-    print('from corr2 output = ',corr2_output['xim'])
-    print('ratio = ',corr2_output['xim']/gg.xim)
-    print('diff = ',corr2_output['xim']-gg.xim)
     np.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-3)
-
-    print('xip_im from corr2 output = ',corr2_output['xip_im'])
     assert max(abs(corr2_output['xip_im'])) < 3.e-7 * tol_factor
-
-    print('xim_im from corr2 output = ',corr2_output['xim_im'])
     assert max(abs(corr2_output['xim_im'])) < 2.e-7 * tol_factor
+
+    # Split into patches to test the list-based version of the code.
+    catp = treecorr.Catalog(ra=ra, dec=dec, g1=gammat, g2=np.zeros_like(gammat), ra_units='rad',
+                            dec_units='rad', npatch=npatch)
+    gg2 = gg.copy()
+
+    t0 = time.time()
+    gg2.process(catp)
+    t1 = time.time()
+    print('Time for global patch process = ',t1-t0)
+    np.testing.assert_allclose(gg2.npairs, gg.npairs, rtol=0.05)
+    np.testing.assert_allclose(gg2.weight, gg.weight, rtol=0.05)
+    np.testing.assert_allclose(gg2.meanr, gg.meanr, rtol=0.005)
+    np.testing.assert_allclose(gg2.meanlogr, gg.meanlogr, rtol=0.005)
+    np.testing.assert_allclose(gg2.xip, gg.xip, rtol=0.05 * tol_factor, atol=1.e-8 * tol_factor)
+    np.testing.assert_allclose(gg2.xim, gg.xim, rtol=0.05 * tol_factor, atol=1.e-7 * tol_factor)
+
+    t0 = time.time()
+    gg2.process(catp, patch_method='local')
+    t1 = time.time()
+    print('Time for local patch process = ',t1-t0)
+    # Note: local version does each pair 2x for auto correlations
+    np.testing.assert_allclose(gg2.npairs, 2*gg.npairs, rtol=0.05)
+    np.testing.assert_allclose(gg2.weight, 2*gg.weight, rtol=0.05)
+    np.testing.assert_allclose(gg2.meanr, gg.meanr, rtol=0.005)
+    np.testing.assert_allclose(gg2.meanlogr, gg.meanlogr, rtol=0.005)
+    np.testing.assert_allclose(gg2.xip, gg.xip, rtol=0.05 * tol_factor, atol=1.e-8 * tol_factor)
+    np.testing.assert_allclose(gg2.xim, gg.xim, rtol=0.05 * tol_factor, atol=1.e-7 * tol_factor)
 
 
 @timer
@@ -909,23 +957,16 @@ def test_aardvark():
     direct_xip = direct_data[:,3]
     direct_xim = direct_data[:,4]
 
-    #print('gg.xip = ',gg.xip)
-    #print('direct.xip = ',direct_xip)
-
     xip_err = gg.xip - direct_xip
-    print('xip_err = ',xip_err)
-    print('max = ',max(abs(xip_err)))
+    print('max xip err = ',max(abs(xip_err)))
     assert max(abs(xip_err)) < 2.e-7
-    print('xip_im = ',gg.xip_im)
-    print('max = ',max(abs(gg.xip_im)))
+    print('max xip_im = ',max(abs(gg.xip_im)))
     assert max(abs(gg.xip_im)) < 3.e-7
 
     xim_err = gg.xim - direct_xim
-    print('xim_err = ',xim_err)
-    print('max = ',max(abs(xim_err)))
+    print('max xim_err = ',max(abs(xim_err)))
     assert max(abs(xim_err)) < 1.e-7
-    print('xim_im = ',gg.xim_im)
-    print('max = ',max(abs(gg.xim_im)))
+    print('max xim_im = ',max(abs(gg.xim_im)))
     assert max(abs(gg.xim_im)) < 1.e-7
 
     # However, after some back and forth about the calculation, we concluded that Eric hadn't
@@ -939,17 +980,10 @@ def test_aardvark():
     bs0_xip = bs0_data[:,2]
     bs0_xim = bs0_data[:,3]
 
-    #print('gg.xip = ',gg.xip)
-    #print('bs0.xip = ',bs0_xip)
-
     xip_err = gg.xip - bs0_xip
-    print('xip_err = ',xip_err)
-    print('max = ',max(abs(xip_err)))
     assert max(abs(xip_err)) < 1.e-7
 
     xim_err = gg.xim - bs0_xim
-    print('xim_err = ',xim_err)
-    print('max = ',max(abs(xim_err)))
     assert max(abs(xim_err)) < 5.e-8
 
     # Check that we get the same result using the corr2 function
@@ -958,23 +992,9 @@ def test_aardvark():
         treecorr.corr2(config)
         corr2_output = np.genfromtxt(os.path.join('output','Aardvark.out'), names=True,
                                      skip_header=1)
-        print('gg.xip = ',gg.xip)
-        print('from corr2 output = ',corr2_output['xip'])
-        print('ratio = ',corr2_output['xip']/gg.xip)
-        print('diff = ',corr2_output['xip']-gg.xip)
         np.testing.assert_allclose(corr2_output['xip'], gg.xip, rtol=1.e-3)
-
-        print('gg.xim = ',gg.xim)
-        print('from corr2 output = ',corr2_output['xim'])
-        print('ratio = ',corr2_output['xim']/gg.xim)
-        print('diff = ',corr2_output['xim']-gg.xim)
         np.testing.assert_allclose(corr2_output['xim'], gg.xim, rtol=1.e-3)
-
-        print('xip_im from corr2 output = ',corr2_output['xip_im'])
-        print('max err = ',max(abs(corr2_output['xip_im'])))
         assert max(abs(corr2_output['xip_im'])) < 3.e-7
-        print('xim_im from corr2 output = ',corr2_output['xim_im'])
-        print('max err = ',max(abs(corr2_output['xim_im'])))
         assert max(abs(corr2_output['xim_im'])) < 1.e-7
 
     # As bin_slop decreases, the agreement should get even better.
@@ -984,17 +1004,9 @@ def test_aardvark():
         gg = treecorr.GGCorrelation(config)
         gg.process(cat1)
 
-        #print('gg.xip = ',gg.xip)
-        #print('bs0.xip = ',bs0_xip)
-
         xip_err = gg.xip - bs0_xip
-        print('xip_err = ',xip_err)
-        print('max = ',max(abs(xip_err)))
         assert max(abs(xip_err)) < 2.e-8
-
         xim_err = gg.xim - bs0_xim
-        print('xim_err = ',xim_err)
-        print('max = ',max(abs(xim_err)))
         assert max(abs(xim_err)) < 3.e-8
 
 
@@ -1020,18 +1032,11 @@ def test_shuffle():
 
     # Put these in a single 2d array so we can easily use np.random.shuffle
     data = np.array( [x, y, g1, g2] ).T
-    print('data = ',data)
     rng.shuffle(data)
 
     cat_s = treecorr.Catalog(x=data[:,0], y=data[:,1], g1=data[:,2], g2=data[:,3])
     gg_s = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=30., verbose=1)
     gg_s.process(cat_s)
-
-    print('gg_u.xip = ',gg_u.xip)
-    print('gg_s.xip = ',gg_s.xip)
-    print('ratio = ',gg_u.xip / gg_s.xip)
-    print('diff = ',gg_u.xip - gg_s.xip)
-    print('max diff = ',max(abs(gg_u.xip - gg_s.xip)))
     assert max(abs(gg_u.xip - gg_s.xip)) < 1.e-14
 
 @timer
@@ -1100,7 +1105,6 @@ def test_haloellip():
     lens_absg = np.abs(lens_g)
     lens_x = (rng.random_sample(nlens)-0.5) * L
     lens_y = (rng.random_sample(nlens)-0.5) * L
-    print('Made lenses')
 
     e_a = 0.17  # The amplitude of the constant part of the signal
     e_b = 0.23  # The amplitude of the quadrupole part of the signal
@@ -1130,12 +1134,10 @@ def test_haloellip():
         source_y[i*nsource: (i+1)*nsource] = lens_y[i] + z.imag
         source_g1[i*nsource: (i+1)*nsource] = source_g.real
         source_g2[i*nsource: (i+1)*nsource] = source_g.imag
-    print('Made sources')
 
     source_cat = treecorr.Catalog(x=source_x, y=source_y, g1=source_g1, g2=source_g2)
     gg = treecorr.GGCorrelation(min_sep=1, bin_size=0.1, nbins=35)
     lens_mean_absg = np.mean(lens_absg)
-    print('mean_absg = ',lens_mean_absg)
 
     # First the original version where we only use the phase of the lens ellipticities:
     lens_cat1 = treecorr.Catalog(x=lens_x, y=lens_y, g1=lens_g1/lens_absg, g2=lens_g2/lens_absg)
@@ -1213,8 +1215,8 @@ def test_varxi():
     nruns = 50000
 
     file_name = 'data/test_varxi_gg.npz'
-    print(file_name)
     if not os.path.isfile(file_name):
+        print(file_name)
         all_ggs = []
 
         for run in range(nruns):
@@ -1325,13 +1327,6 @@ def test_double():
                                 verbose=1)
     gg.process(cat)
 
-    print('xip = ',gg.xip)
-    print('npairs = ',gg.npairs)
-    print('weight = ',gg.weight)
-    #print('xip_im = ',gg.xip_im)
-    #print('xim = ',gg.xim)
-    #print('xim_im = ',gg.xim_im)
-
     print('Duplicated galaxies')
     ra_2 = np.concatenate([ra,ra])
     dec_2 = np.concatenate([dec,dec])
@@ -1343,12 +1338,6 @@ def test_double():
                                   verbose=1)
     gg_2.process(cat_2)
 
-    print('xip = ',gg_2.xip)
-    print('npairs = ',gg_2.npairs)
-    print('weight/4 = ',gg_2.weight/4)
-    #print('xip_im = ',gg_2.xip_im)
-    #print('xim = ',gg_2.xim)
-    #print('xim_im = ',gg_2.xim_im)
     print('max diff xip = ',np.max(np.abs(gg_2.xip-gg.xip)))
     print('max diff xip_im = ',np.max(np.abs(gg_2.xip_im-gg.xip_im)))
     print('max diff xim = ',np.max(np.abs(gg_2.xim-gg.xim)))

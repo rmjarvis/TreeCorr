@@ -327,7 +327,7 @@ def test_kkk_jk():
 
     # Patch on 1 only:
     print('with patches on 1 only:')
-    kkkp.process(catp, cat)
+    kkkp.process(catp, cat, ordered=False)
     print(kkkp.zeta.ravel())
     np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
 
@@ -357,7 +357,7 @@ def test_kkk_jk():
 
     # Patch on 2 only:
     print('with patches on 2 only:')
-    kkkp.process(cat, catp, cat)
+    kkkp.process(cat, catp, cat, ordered=False)
     print(kkkp.zeta.ravel())
     np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
 
@@ -388,7 +388,7 @@ def test_kkk_jk():
 
     # Patch on 3 only:
     print('with patches on 3 only:')
-    kkkp.process(cat, cat, catp)
+    kkkp.process(cat, cat, catp, ordered=False)
     print(kkkp.zeta.ravel())
     np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
 
@@ -418,7 +418,7 @@ def test_kkk_jk():
 
     # Patch on 1,2
     print('with patches on 1,2:')
-    kkkp.process(catp, catp, cat)
+    kkkp.process(catp, catp, cat, ordered=False)
     print(kkkp.zeta.ravel())
     np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
 
@@ -448,7 +448,7 @@ def test_kkk_jk():
 
     # Patch on 2,3
     print('with patches on 2,3:')
-    kkkp.process(cat, catp)
+    kkkp.process(cat, catp, ordered=False)
     print(kkkp.zeta.ravel())
     np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
 
@@ -478,7 +478,7 @@ def test_kkk_jk():
 
     # Patch on 1,3
     print('with patches on 1,3:')
-    kkkp.process(catp, cat, catp)
+    kkkp.process(catp, cat, catp, ordered=False)
     print(kkkp.zeta.ravel())
     np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
 
@@ -765,7 +765,7 @@ def test_ggg_jk():
     if __name__ == '__main__':
         # Patch on 1 only:
         print('with patches on 1 only:')
-        gggp.process(catp, cat)
+        gggp.process(catp, cat, ordered=False)
 
         print('jackknife:')
         cov = gggp.estimate_cov('jackknife', func=f)
@@ -793,7 +793,7 @@ def test_ggg_jk():
 
         # Patch on 2 only:
         print('with patches on 2 only:')
-        gggp.process(cat, catp, cat)
+        gggp.process(cat, catp, cat, ordered=False)
 
         print('jackknife:')
         cov = gggp.estimate_cov('jackknife', func=f)
@@ -821,7 +821,7 @@ def test_ggg_jk():
 
         # Patch on 3 only:
         print('with patches on 3 only:')
-        gggp.process(cat, cat, catp)
+        gggp.process(cat, cat, catp, ordered=False)
 
         print('jackknife:')
         cov = gggp.estimate_cov('jackknife', func=f)
@@ -849,7 +849,7 @@ def test_ggg_jk():
 
         # Patch on 1,2
         print('with patches on 1,2:')
-        gggp.process(catp, catp, cat)
+        gggp.process(catp, catp, cat, ordered=False)
 
         print('jackknife:')
         cov = gggp.estimate_cov('jackknife', func=f)
@@ -877,7 +877,7 @@ def test_ggg_jk():
 
         # Patch on 2,3
         print('with patches on 2,3:')
-        gggp.process(cat, catp)
+        gggp.process(cat, catp, ordered=False)
 
         print('jackknife:')
         cov = gggp.estimate_cov('jackknife', func=f)
@@ -905,7 +905,7 @@ def test_ggg_jk():
 
         # Patch on 1,3
         print('with patches on 1,3:')
-        gggp.process(catp, cat, catp)
+        gggp.process(catp, cat, catp, ordered=False)
 
         print('jackknife:')
         cov = gggp.estimate_cov('jackknife', func=f)
@@ -1005,8 +1005,8 @@ def test_nnn_jk():
             rdd = ddd.copy()
             drr = ddd.copy()
             ddd.process(cat)
-            rdd.process(rand_cat, cat)
-            drr.process(cat, rand_cat)
+            rdd.process(rand_cat, cat, ordered=False)
+            drr.process(cat, rand_cat, ordered=False)
             zeta_s, _ = ddd.calculateZeta(rrr=rrr)
             zeta_c, _ = ddd.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)
             print('simple: ',zeta_s.ravel())
@@ -1061,8 +1061,8 @@ def test_nnn_jk():
     rdd = ddd.copy()
     drr = ddd.copy()
     ddd.process(cat)
-    rdd.process(rand_cat, cat)
-    drr.process(cat, rand_cat)
+    rdd.process(rand_cat, cat, ordered=False)
+    drr.process(cat, rand_cat, ordered=False)
     zeta_s1, var_zeta_s1 = ddd.calculateZeta(rrr=rrr)
     zeta_c1, var_zeta_c1 = ddd.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)
     print('DDD:',ddd.tot)
@@ -1097,8 +1097,8 @@ def test_nnn_jk():
 
     print('with patches on D:')
     dddp.process(catp)
-    rddp.process(rand_cat, catp)
-    drrp.process(catp, rand_cat)
+    rddp.process(rand_cat, catp, ordered=False)
+    drrp.process(catp, rand_cat, ordered=False)
 
     # Need to run calculateZeta to get patch-based covariance
     with assert_raises(RuntimeError):
@@ -1194,8 +1194,8 @@ def test_nnn_jk():
     rand_catp = treecorr.Catalog(x=rx, y=ry, patch_centers=patch_centers)
     rrrp = rrr.copy()
     rrrp.process(rand_catp)
-    drrp.process(catp, rand_catp)
-    rddp.process(rand_catp, catp)
+    drrp.process(catp, rand_catp, ordered=False)
+    rddp.process(rand_catp, catp, ordered=False)
     print('simple: ')
     zeta_s2, var_zeta_s2 = dddp.calculateZeta(rrr=rrrp)
     print('DDD:',dddp.tot)
@@ -1555,8 +1555,8 @@ def test_brute_jk():
     rdd = ddd.copy()
     rrr = ddd.copy()
     ddd.process(cat)
-    drr.process(cat, rand_cat)
-    rdd.process(rand_cat, cat)
+    drr.process(cat, rand_cat, ordered=False)
+    rdd.process(rand_cat, cat, ordered=False)
     rrr.process(rand_cat)
 
     zeta1_list = []
@@ -1576,8 +1576,8 @@ def test_brute_jk():
         rdd1 = ddd1.copy()
         rrr1 = ddd1.copy()
         ddd1.process(cat1)
-        drr1.process(cat1, rand_cat1)
-        rdd1.process(rand_cat1, cat1)
+        drr1.process(cat1, rand_cat1, ordered=False)
+        rdd1.process(rand_cat1, cat1, ordered=False)
         rrr1.process(rand_cat1)
         zeta1_list.append(ddd1.calculateZeta(rrr=rrr1)[0].ravel())
         zeta2_list.append(ddd1.calculateZeta(rrr=rrr1, drr=drr1, rdd=rdd1)[0].ravel())
@@ -1606,8 +1606,8 @@ def test_brute_jk():
     drr3 = drr.copy()
     rdd3 = rdd.copy()
     rrr3.process(rand_cat3)
-    drr3.process(cat3, rand_cat3)
-    rdd3.process(rand_cat3, cat3)
+    drr3.process(cat3, rand_cat3, ordered=False)
+    rdd3.process(rand_cat3, cat3, ordered=False)
     with assert_raises(RuntimeError):
         ddd.calculateZeta(rrr=rrr3)
     with assert_raises(RuntimeError):
@@ -1718,10 +1718,10 @@ def test_finalize_false():
     np.testing.assert_allclose(kkk1.zeta, kkk2.zeta)
 
     # KKK cross
-    kkk1.process(cat, cat2, cat3)
-    kkk2.process(cat1, cat2, cat3, initialize=True, finalize=False)
-    kkk2.process(cat2, cat2, cat3, initialize=False, finalize=False)
-    kkk2.process(cat3, cat2, cat3, initialize=False, finalize=True)
+    kkk1.process(cat, cat2, cat3, ordered=False)
+    kkk2.process(cat1, cat2, cat3, ordered=False, initialize=True, finalize=False)
+    kkk2.process(cat2, cat2, cat3, ordered=False, initialize=False, finalize=False)
+    kkk2.process(cat3, cat2, cat3, ordered=False, initialize=False, finalize=True)
 
     np.testing.assert_allclose(kkk1.ntri, kkk2.ntri)
     np.testing.assert_allclose(kkk1.weight, kkk2.weight)

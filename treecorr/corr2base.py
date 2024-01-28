@@ -647,7 +647,12 @@ class Corr2(object):
         sumw = 0
         for p in cat2:
             sumw += p.sumw
-            if self._trivially_zero(cat1, p):
+            x2,y2,z2,s2 = p._get_center_size()
+            if self._coords == _treecorr.ThreeD:
+                r = np.sqrt(x2**2 + y2**2 + z2**2)
+                if r != 0:
+                    x2 /= r; y2 /= r; z2 /= r
+            if ((x2-x1)**2 + (y2-y1)**2 + (z2-z1)**2)**0.5 > self._max_sep + s1 + s2:
                 if low_mem and p is not cat1:
                     p.unload()
                 continue
@@ -655,7 +660,8 @@ class Corr2(object):
             if self._coords == _treecorr.ThreeD:
                 pr = np.sqrt(px**2 + py**2 + pz**2)
                 pr[pr==0] = 1
-                px /= r; py /= r; pz /= r
+                # Don't divide in place.  That would change p's internals.
+                px = px/pr; py = py/pr; pz = pz/pr
             dsq = (px-x1)**2 + (py-y1)**2 + (pz-z1)**2
             d = np.sqrt(dsq)
             mask = np.where(d < s1+self._max_sep)
@@ -671,7 +677,7 @@ class Corr2(object):
             return None
         else:
             cat2e = Catalog.combine(cat_list, mask_list)
-            # This is important for NNN correlations to get the tot to work out right.
+            # This is important for NN correlations to get the tot to work out right.
             # Basically, we treat the extended patch as though it included all of cat2
             # for the purposes of figuring out the right tot normalization.
             cat2e._sumw = sumw

@@ -24,7 +24,7 @@ from . import _treecorr
 from .config import merge_config, setup_logger, get
 from .util import parse_metric, metric_enum, coord_enum, set_omp_threads, lazy_property
 from .util import make_reader
-from .corr2base import estimate_multi_cov, build_multi_cov_design_matrix
+from .corr2base import estimate_multi_cov, build_multi_cov_design_matrix, Corr2
 from .catalog import Catalog
 
 class Namespace(object):
@@ -1025,55 +1025,7 @@ class Corr3(object):
         d3, d2, d1 = sorted([d1,d2,d3])
         return (d2 > s1 + s2 + s3 + 2*self._max_sep)  # The 2* is where we are being conservative.
 
-    def _make_expanded_patch(self, cat1, cat2, metric, low_mem):
-        # (This is almost identical to the one in Corr2, which means there is an opportunity
-        # for code sharing.  Not bothering now though.)
-
-        # First figure out the center and size of cat1.
-        x1,y1,z1,s1 = cat1._get_center_size()
-
-        if self._coords == _treecorr.ThreeD:
-            # For 3d coords, we collapse everything onto the unit circle, since that's
-            # what we care about for patch considerations.
-            r = np.sqrt(x1**2 + y1**2 + z1**2)
-            if r != 0:  # pragma: no branch
-                x1 /= r; y1 /= r; z1 /= r
-
-        cat_list = []
-        mask_list = []
-        sumw = 0
-        for p in cat2:
-            sumw += p.sumw
-            x2,y2,z2,s2 = p._get_center_size()
-            if ((x2-x1)**2 + (y2-y1)**2 + (z2-z1)**2)**0.5 > self._max_sep + s1 + s2:
-                if low_mem and p is not cat1:
-                    p.unload()
-                continue
-            px = p.x; py = p.y; pz = 0 if p.z is None else p.z
-            if self._coords == _treecorr.ThreeD:
-                pr = np.sqrt(px**2 + py**2 + pz**2)
-                pr[pr==0] = 1
-                px /= r; py /= r; pz /= r
-            dsq = (px-x1)**2 + (py-y1)**2 + (pz-z1)**2
-            d = np.sqrt(dsq)
-            mask = np.where(d < s1+self._max_sep)
-            if len(mask[0]) == 0:
-                if low_mem and p is not cat1:
-                    p.unload()
-                continue
-            cat_list.append(p)
-            mask_list.append(mask)
-            if low_mem and p is not cat1:
-                p.unload()
-        if len(cat_list) == 0:
-            return None
-        else:
-            cat2e = Catalog.combine(cat_list, mask_list)
-            # This is important for NNN correlations to get the tot to work out right.
-            # Basically, we treat the extended patch as though it included all of cat2
-            # for the purposes of figuring out the right tot normalization.
-            cat2e._sumw = sumw
-        return cat2e
+    _make_expanded_patch = Corr2._make_expanded_patch
 
     def _single_process12(self, c1, c2, ijj, metric, ordered, num_threads, temp, force_write):
         # Helper function for _process_all_auto, etc. for doing 12 cross pairs

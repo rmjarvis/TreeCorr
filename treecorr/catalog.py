@@ -1292,6 +1292,7 @@ class Catalog(object):
             raise ValueError("mask_list not the same length as cat_list")
         # Use the characteristics of the first catalog to decide which columns to generate.
         cat0 = cat_list[0]
+        cat0.load()
         check_wpos = cat0._wpos if cat0._wpos is not None else cat0._w
         kwargs = dict(keep_zero_weight=np.any(check_wpos==0))
         if cat0.ra is not None:
@@ -1303,6 +1304,7 @@ class Catalog(object):
             if getattr(cat0, key) is not None:
                 ar_list = []
                 for i,c in enumerate(cat_list):
+                    c.load()
                     if getattr(c, key) is None:
                         raise ValueError("Column %s not found in cat %d"%(key[1:],i))
                     a = getattr(c,key)

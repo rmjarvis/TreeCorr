@@ -1288,7 +1288,7 @@ def test_direct_logruv_auto():
     do_pickle(ddd)
 
     # Split into patches to test the list-based version of the code.
-    cat = treecorr.Catalog(x=x, y=y, npatch=10)
+    cat = treecorr.Catalog(x=x, y=y, npatch=10, rng=rng)
 
     ddd.process(cat)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
@@ -1816,8 +1816,8 @@ def test_direct_logruv_cross12():
     np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
 
     # Split into patches to test the list-based version of the code.
-    cat1 = treecorr.Catalog(x=x1, y=y1, npatch=10)
-    cat2 = treecorr.Catalog(x=x2, y=y2, npatch=10)
+    cat1 = treecorr.Catalog(x=x1, y=y1, npatch=10, rng=rng)
+    cat2 = treecorr.Catalog(x=x2, y=y2, patch_centers=cat1.patch_centers)
 
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
@@ -3228,7 +3228,7 @@ def test_direct_logsas_auto():
     do_pickle(ddd)
 
     # Split into patches to test the list-based version of the code.
-    cat = treecorr.Catalog(x=x, y=y, npatch=10)
+    cat = treecorr.Catalog(x=x, y=y, npatch=10, rng=rng)
 
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
@@ -3471,9 +3471,9 @@ def test_direct_logsas_cross():
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     # Split into patches to test the list-based version of the code.
-    cat1 = treecorr.Catalog(x=x1, y=y1, npatch=10)
-    cat2 = treecorr.Catalog(x=x2, y=y2, npatch=10)
-    cat3 = treecorr.Catalog(x=x3, y=y3, npatch=10)
+    cat1 = treecorr.Catalog(x=x1, y=y1, npatch=10, rng=rng)
+    cat2 = treecorr.Catalog(x=x2, y=y2, patch_centers=cat1.patch_centers)
+    cat3 = treecorr.Catalog(x=x3, y=y3, patch_centers=cat1.patch_centers)
 
     # back to default top levels
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
@@ -3682,8 +3682,8 @@ def test_direct_logsas_cross12():
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
 
     # Split into patches to test the list-based version of the code.
-    cat1 = treecorr.Catalog(x=x1, y=y1, npatch=10)
-    cat2 = treecorr.Catalog(x=x2, y=y2, npatch=10)
+    cat1 = treecorr.Catalog(x=x1, y=y1, npatch=10, rng=rng)
+    cat2 = treecorr.Catalog(x=x2, y=y2, patch_centers=cat1.patch_centers)
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                   bin_slop=0, verbose=1, bin_type='LogSAS')
@@ -4621,7 +4621,7 @@ def test_direct_logmultipole_cross12():
 
     # Split into patches to test the list-based version of the code.
     # First with just one catalog with patches
-    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, npatch=8)
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, npatch=8, rng=rng)
 
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
                                   bin_slop=0, bin_type='LogMultipole')
@@ -4911,7 +4911,7 @@ def test_direct_logmultipole_cross():
 
     # Split into patches to test the list-based version of the code.
     # First with just one catalog with patches
-    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, npatch=8)
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, npatch=8, rng=rng)
 
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
                                   bin_slop=0, bin_type='LogMultipole')

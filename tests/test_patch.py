@@ -2764,7 +2764,7 @@ def test_lowmem():
     gk_cat0 = treecorr.Catalog(ra=ra[:ngal//100], dec=dec[:ngal//100], r=r[:ngal//100],
                                ra_units='deg', dec_units='deg',
                                g1=g1, g2=g2, k=k,
-                               npatch=4)
+                               npatch=10)
     patch_centers = gk_cat0.patch_centers
     file_name = os.path.join('output','test_lowmem_gk.fits')
     gk_cat0.write(file_name)
@@ -2828,6 +2828,24 @@ def test_lowmem():
     np.testing.assert_allclose(ng1.xi, ng2.xi)
     np.testing.assert_allclose(ng1.weight, ng2.weight)
 
+    # Also with patch_method=local
+    t0 = time.time()
+    s0 = hp.heap().size if hp else 0
+    ng1.process(gk_cat1, gk_cat1, patch_method='local')
+    t1 = time.time()
+    s1 = hp.heap().size if hp else 0
+    print('NG1: ',s1, t1-t0, s1-s0)
+    gk_cat1.unload()
+    t0 = time.time()
+    s0 = hp.heap().size if hp else 0
+    ng2.process(gk_cat2, gk_cat2, patch_method='local', low_mem=True)
+    t1 = time.time()
+    s1 = hp.heap().size if hp else 0
+    print('NG2: ',s1, t1-t0, s1-s0)
+    gk_cat2.unload()
+    np.testing.assert_allclose(ng1.xi, ng2.xi)
+    np.testing.assert_allclose(ng1.weight, ng2.weight)
+
     # KK with r_col now to test that that works properly.
     clear_save('test_lowmem_gk_%03d.fits', npatch)
     gk_cat1 = treecorr.Catalog(file_name,
@@ -2851,6 +2869,24 @@ def test_lowmem():
     t0 = time.time()
     s0 = hp.heap().size if hp else 0
     kk2.process(gk_cat2, low_mem=True)
+    t1 = time.time()
+    s1 = hp.heap().size if hp else 0
+    print('KK2: ',s1, t1-t0, s1-s0)
+    gk_cat2.unload()
+    np.testing.assert_allclose(kk1.xi, kk2.xi)
+    np.testing.assert_allclose(kk1.weight, kk2.weight)
+
+    # Also with patch_method=local
+    t0 = time.time()
+    s0 = hp.heap().size if hp else 0
+    kk1.process(gk_cat1, patch_method='local')
+    t1 = time.time()
+    s1 = hp.heap().size if hp else 0
+    print('KK1: ',s1, t1-t0, s1-s0)
+    gk_cat1.unload()
+    t0 = time.time()
+    s0 = hp.heap().size if hp else 0
+    kk2.process(gk_cat2, patch_method='local', low_mem=True)
     t1 = time.time()
     s1 = hp.heap().size if hp else 0
     print('KK2: ',s1, t1-t0, s1-s0)

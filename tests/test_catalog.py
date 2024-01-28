@@ -2020,7 +2020,7 @@ def test_write():
                             w=w, g1=g1, g2=g2, k=k)
 
     # Test ASCII output
-    cat1.write(os.path.join('output','cat1.dat'), cat_precision=20)
+    cat1.write(os.path.join('output','cat1.dat'), precision=20)
     cat1_asc = treecorr.Catalog(os.path.join('output','cat1.dat'), file_type='ASCII',
                                 x_col=1, y_col=2, z_col=3)
     np.testing.assert_almost_equal(cat1_asc.x, x)

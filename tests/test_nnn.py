@@ -4620,12 +4620,11 @@ def test_direct_logmultipole_cross12():
     np.testing.assert_allclose(ddd.weight, 75*true_weight_sum, rtol=1.e-9)
 
     # Split into patches to test the list-based version of the code.
-    # Note: Multipole cannot work with cat2 as a list, but cat1 can be.
-    # TODO: Can maybe make it work with cat2 in patches with larger patches and no cross terms.
+    # First with just one catalog with patches
     cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, npatch=8)
+
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
                                   bin_slop=0, bin_type='LogMultipole')
-
     t0 = time.time()
     ddd.process(cat1, cat2)
     t1 = time.time()
@@ -4633,17 +4632,22 @@ def test_direct_logmultipole_cross12():
     np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
     np.testing.assert_allclose(ddd.weight, 75*true_weight_122, rtol=1.e-10)
 
+    ddd.process(cat1, cat2, ordered=False)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
+    np.testing.assert_allclose(ddd.weight, 75*true_weight_sum, rtol=1.e-9)
+
+    # Now with both patched.
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, patch_centers=cat1.patch_centers)
+    ddd.process(cat1, cat2)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
+    np.testing.assert_allclose(ddd.weight, 75*true_weight_122, rtol=1.e-10)
+    ddd.process(cat1, cat2, ordered=False)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
+    np.testing.assert_allclose(ddd.weight, 75*true_weight_sum, rtol=1.e-9)
+
     # No tests of accuracy yet, but make sure patch-based covariance works.
     cov = ddd.estimate_cov('sample', func=lambda c: c.weight.ravel())
-
-    with assert_raises(ValueError):
-        ddd.process(cat2, cat1, cat2, ordered=True)
-    with assert_raises(ValueError):
-        ddd.process(cat2, cat2, cat1, ordered=True)
-    with assert_raises(ValueError):
-        ddd.process(cat1, cat2, ordered=False)
-    with assert_raises(ValueError):
-        ddd.process(cat2, cat1, ordered=True)
+    cov = ddd.estimate_cov('jackknife', func=lambda c: c.weight.ravel())
 
     # One more for coverage.  _zero_copy is only needed when round-tripping results through
     # a file when at least one patch pair in results has no data.
@@ -4906,12 +4910,11 @@ def test_direct_logmultipole_cross():
     np.testing.assert_allclose(ddd.weight, true_weight_sum, rtol=1.e-5)
 
     # Split into patches to test the list-based version of the code.
-    # Note: Multipole cannot work with cat2, cat3 as a list, but cat1 can be.
-    # TODO: Can maybe make it work with 2,3 in patches with larger patches and no cross terms.
+    # First with just one catalog with patches
     cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, npatch=8)
+
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
                                   bin_slop=0, bin_type='LogMultipole')
-
     t0 = time.time()
     ddd.process(cat1, cat2, cat3)
     t1 = time.time()
@@ -4919,17 +4922,22 @@ def test_direct_logmultipole_cross():
     np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
     np.testing.assert_allclose(ddd.weight, true_weight_123, rtol=1.e-5)
 
+    ddd.process(cat1, cat2, cat3, ordered=False)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
+    np.testing.assert_allclose(ddd.weight, true_weight_sum, rtol=1.e-5)
+
+    # Now with both patched.
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, patch_centers=cat1.patch_centers)
+    ddd.process(cat1, cat2, cat3)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
+    np.testing.assert_allclose(ddd.weight, true_weight_123, rtol=1.e-5)
+    ddd.process(cat1, cat2, cat3, ordered=False)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
+    np.testing.assert_allclose(ddd.weight, true_weight_sum, rtol=1.e-5)
+
     # No tests of accuracy yet, but make sure patch-based covariance works.
     cov = ddd.estimate_cov('sample', func=lambda c: c.weight.ravel())
-
-    with assert_raises(ValueError):
-        ddd.process(cat1, cat2, cat3, ordered=False)
-    with assert_raises(ValueError):
-        ddd.process(cat2, cat1, cat3, ordered=True)
-    with assert_raises(ValueError):
-        ddd.process(cat2, cat3, cat1, ordered=True)
-    with assert_raises(ValueError):
-        ddd.process(cat1, cat1, cat1, ordered=True)
+    cov = ddd.estimate_cov('jackknife', func=lambda c: c.weight.ravel())
 
 
 if __name__ == '__main__':

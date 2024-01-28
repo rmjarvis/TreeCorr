@@ -2590,23 +2590,60 @@ def test_direct_logmultipole_cross():
     np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4)
 
     # Split into patches to test the list-based version of the code.
+    # First with just one catalog with patches
     cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=8)
 
     kkk.process(cat1, cat2, cat3)
     np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-4)
+    kkk.process(cat1, cat3, cat2)
+    np.testing.assert_allclose(kkk.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_132, rtol=1.e-4)
+    kkk.process(cat2, cat1, cat3)
+    np.testing.assert_allclose(kkk.weight, true_weight_213, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_213, rtol=1.e-4)
+    kkk.process(cat2, cat3, cat1)
+    np.testing.assert_allclose(kkk.weight, true_weight_231, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_231, rtol=1.e-4)
+    kkk.process(cat3, cat1, cat2)
+    np.testing.assert_allclose(kkk.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_312, rtol=1.e-4)
+    kkk.process(cat3, cat2, cat1)
+    np.testing.assert_allclose(kkk.weight, true_weight_321, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_321, rtol=1.e-4)
+    kkk.process(cat1, cat2, cat3, ordered=False)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4)
+
+    # Now with all 3 patched.
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2, patch_centers=cat1.patch_centers)
+    cat3 = treecorr.Catalog(x=x3, y=y3, w=w3, k=k3, patch_centers=cat1.patch_centers)
+
+    kkk.process(cat1, cat2, cat3)
+    np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-4)
+    kkk.process(cat1, cat3, cat2)
+    np.testing.assert_allclose(kkk.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_132, rtol=1.e-4)
+    kkk.process(cat2, cat1, cat3)
+    np.testing.assert_allclose(kkk.weight, true_weight_213, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_213, rtol=1.e-4)
+    kkk.process(cat2, cat3, cat1)
+    np.testing.assert_allclose(kkk.weight, true_weight_231, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_231, rtol=1.e-4)
+    kkk.process(cat3, cat1, cat2)
+    np.testing.assert_allclose(kkk.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_312, rtol=1.e-4)
+    kkk.process(cat3, cat2, cat1)
+    np.testing.assert_allclose(kkk.weight, true_weight_321, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_321, rtol=1.e-4)
+    kkk.process(cat1, cat2, cat3, ordered=False)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4)
 
     # No tests of accuracy yet, but make sure patch-based covariance works.
     cov = kkk.estimate_cov('sample')
-
-    with assert_raises(ValueError):
-        kkk.process(cat1, cat2, cat3, ordered=False)
-    with assert_raises(ValueError):
-        kkk.process(cat2, cat1, cat3, ordered=True)
-    with assert_raises(ValueError):
-        kkk.process(cat2, cat3, cat1, ordered=True)
-    with assert_raises(ValueError):
-        kkk.process(cat1, cat1, cat1, ordered=True)
+    cov = kkk.estimate_cov('jackknife')
 
 @timer
 def test_direct_logmultipole_cross12():
@@ -2734,24 +2771,30 @@ def test_direct_logmultipole_cross12():
     np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4 * tol_factor, atol=1.e-8)
 
     # Split into patches to test the list-based version of the code.
+    # First with just one catalog with patches
     cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=4)
 
     kkk.process(cat1, cat2)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_122)
     np.testing.assert_allclose(kkk.weight, true_weight_122, rtol=1.e-5 * tol_factor)
     np.testing.assert_allclose(kkk.zeta, true_zeta_122, rtol=1.e-4 * tol_factor)
+    kkk.process(cat1, cat2, ordered=False)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5 * tol_factor)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4 * tol_factor)
+
+    # Now with both patched.
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2, patch_centers=cat1.patch_centers)
+    kkk.process(cat1, cat2)
+    np.testing.assert_allclose(kkk.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_122, rtol=1.e-4)
+    kkk.process(cat1, cat2, ordered=False)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4)
 
     # No tests of accuracy yet, but make sure patch-based covariance works.
     cov = kkk.estimate_cov('sample')
-
-    with assert_raises(ValueError):
-        kkk.process(cat2, cat1, cat2, ordered=True)
-    with assert_raises(ValueError):
-        kkk.process(cat2, cat2, cat1, ordered=True)
-    with assert_raises(ValueError):
-        kkk.process(cat1, cat2, ordered=False)
-    with assert_raises(ValueError):
-        kkk.process(cat2, cat1, ordered=True)
+    cov = kkk.estimate_cov('jackknife')
 
 
 if __name__ == '__main__':

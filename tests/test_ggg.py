@@ -392,7 +392,7 @@ def test_direct_logruv():
         ggg2 += ggg13
 
     # Split into patches to test the list-based version of the code.
-    catp = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, npatch=3)
+    catp = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, npatch=3, rng=rng)
 
     ggg.process(catp)
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
@@ -915,7 +915,7 @@ def test_direct_logruv_cross():
         ggg.process(cat1, cat3=cat3)
 
     # Split into patches to test the list-based version of the code.
-    cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=3)
+    cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=3, rng=rng)
     cat2p = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2, patch_centers=cat1p.patch_centers)
     cat3p = treecorr.Catalog(x=x3, y=y3, w=w3, g1=g1_3, g2=g2_3, patch_centers=cat1p.patch_centers)
 
@@ -1233,7 +1233,7 @@ def test_direct_logruv_cross12():
     np.testing.assert_allclose(ggg.gam2, true_gam2_sum, rtol=1.e-5)
 
     # Split into patches to test the list-based version of the code.
-    cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=3)
+    cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=3, rng=rng)
     cat2p = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2, patch_centers=cat1p.patch_centers)
 
     ggg.process(cat1p, cat2p, ordered=True)
@@ -2547,7 +2547,7 @@ def test_direct_logsas():
         np.testing.assert_allclose(ggg4.gam3, ggg.gam3)
 
     # Split into patches to test the list-based version of the code.
-    catp = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, npatch=3)
+    catp = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, npatch=3, rng=rng)
 
     ggg.process(catp)
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
@@ -3047,7 +3047,7 @@ def test_direct_logsas_cross():
         ggg.process(cat1, cat3=cat3)
 
     # Split into patches to test the list-based version of the code.
-    cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=3)
+    cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=3, rng=rng)
     cat2p = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2, patch_centers=cat1p.patch_centers)
     cat3p = treecorr.Catalog(x=x3, y=y3, w=w3, g1=g1_3, g2=g2_3, patch_centers=cat1p.patch_centers)
 
@@ -3282,7 +3282,7 @@ def test_direct_logsas_cross12():
     np.testing.assert_allclose(ggg.gam3, true_gam3_sum, rtol=1.e-4, atol=1.e-6)
 
     # Split into patches to test the list-based version of the code.
-    cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=4)
+    cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=4, rng=rng)
     cat2p = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2, patch_centers=cat1p.patch_centers)
 
     ggg.process(cat1p, cat2p)
@@ -4548,7 +4548,7 @@ def test_direct_logmultipole_cross():
 
     # Split into patches to test the list-based version of the code.
     # First with just one catalog with patches
-    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=10)
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=10, rng=rng)
 
     ggg.process(cat1, cat2, cat3)
     np.testing.assert_allclose(ggg.weight, true_weight_123, rtol=1.e-5)
@@ -4686,7 +4686,7 @@ def test_direct_logmultipole_cross12():
 
     # Split into patches to test the list-based version of the code.
     # First with just one catalog with patches
-    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=4)
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=4, rng=rng)
 
     ggg.process(cat1, cat2)
     np.testing.assert_array_equal(ggg.ntri, true_ntri_122)

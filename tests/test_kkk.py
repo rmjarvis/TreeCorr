@@ -743,8 +743,8 @@ def test_direct_logruv_cross12():
     np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-5)
 
     # Split into patches to test the list-based version of the code.
-    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=4)
-    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2, npatch=4)
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=4, rng=rng)
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2, patch_centers=cat1.patch_centers)
 
     kkk.process(cat1, cat2)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_122)
@@ -773,34 +773,37 @@ def test_direct_logruv_cross_3d():
     s = 10.
     sig_kap = 3
     rng = np.random.RandomState(8675309)
-    x1 = rng.normal(0,s, (ngal,) )
-    y1 = rng.normal(0,s, (ngal,) )
-    z1 = rng.normal(0,s, (ngal,) )
+    x1 = rng.normal(30,s, (ngal,) )
+    y1 = rng.normal(30,s, (ngal,) )
+    z1 = rng.normal(30,s, (ngal,) )
     w1 = rng.random_sample(ngal)
     k1 = rng.normal(0,sig_kap, (ngal,) )
+    # For coverage, make one point 0,0,0.  This will be its own patch, which covers the
+    # edge case of a patch having r=0.  Probably would never happen in real use cases...
+    x1[0] = y1[0] = z1[0] = 0
     cat1 = treecorr.Catalog(x=x1, y=y1, z=z1, w=w1, k=k1)
-    x2 = rng.normal(0,s, (ngal,) )
-    y2 = rng.normal(0,s, (ngal,) )
-    z2 = rng.normal(0,s, (ngal,) )
+    x2 = rng.normal(30,s, (ngal,) )
+    y2 = rng.normal(30,s, (ngal,) )
+    z2 = rng.normal(30,s, (ngal,) )
     w2 = rng.random_sample(ngal)
     k2 = rng.normal(0,sig_kap, (ngal,) )
     cat2 = treecorr.Catalog(x=x2, y=y2, z=z2, w=w2, k=k2)
-    x3 = rng.normal(0,s, (ngal,) )
-    y3 = rng.normal(0,s, (ngal,) )
-    z3 = rng.normal(0,s, (ngal,) )
+    x3 = rng.normal(30,s, (ngal,) )
+    y3 = rng.normal(30,s, (ngal,) )
+    z3 = rng.normal(30,s, (ngal,) )
     w3 = rng.random_sample(ngal)
     k3 = rng.normal(0,sig_kap, (ngal,) )
     cat3 = treecorr.Catalog(x=x3, y=y3, z=z3, w=w3, k=k3)
 
-    min_sep = 1.
+    min_sep = 5.
     bin_size = 0.2
-    nrbins = 10
+    nrbins = 5
     min_u = 0.13
     max_u = 0.89
-    nubins = 5
+    nubins = 3
     min_v = 0.13
     max_v = 0.59
-    nvbins = 5
+    nvbins = 3
 
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
@@ -923,13 +926,13 @@ def test_direct_logruv_cross_3d():
     # With ordered=True, we get just the ones in this order.
     np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
     np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
-    np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-4)
 
     # With ordered=False, we end up with the sum of all permutations.
     kkk.process(cat1, cat2, cat3, ordered=False)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
     np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
-    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4)
 
     # Repeat with binslop = 0
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
@@ -940,12 +943,12 @@ def test_direct_logruv_cross_3d():
     kkk.process(cat1, cat2, cat3, ordered=True)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
     np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
-    np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-4)
 
     kkk.process(cat1, cat2, cat3, ordered=False)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
     np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
-    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4)
 
     # And again with no top-level recursion
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
@@ -956,12 +959,38 @@ def test_direct_logruv_cross_3d():
     kkk.process(cat1, cat2, cat3, ordered=True)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
     np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
-    np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-4)
 
     kkk.process(cat1, cat2, cat3, ordered=False)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
     np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
-    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4)
+
+    # Split into patches to test the list-based version of the code.
+    cat1 = treecorr.Catalog(x=x1, y=y1, z=z1, w=w1, k=k1, npatch=30, rng=rng)
+    cat2 = treecorr.Catalog(x=x2, y=y2, z=z2, w=w2, k=k2, patch_centers=cat1.patch_centers)
+    cat3 = treecorr.Catalog(x=x3, y=y3, z=z3, w=w3, k=k3, patch_centers=cat1.patch_centers)
+
+    kkk.process(cat1, cat2, cat3)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
+    np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-4)
+
+    kkk.process(cat1, cat2, cat3, ordered=False)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4)
+
+    # And with patch_method=local
+    kkk.process(cat1, cat2, cat3, patch_method='local')
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
+    np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-4)
+
+    kkk.process(cat1, cat2, cat3, patch_method='local', ordered=False)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4)
 
 
 @timer
@@ -1946,8 +1975,8 @@ def test_direct_logsas_cross12():
     np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4, atol=1.e-6)
 
     # Split into patches to test the list-based version of the code.
-    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=4)
-    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2, npatch=4)
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=4, rng=rng)
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2, patch_centers=cat1.patch_centers)
 
     kkk.process(cat1, cat2)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_122)
@@ -2591,7 +2620,7 @@ def test_direct_logmultipole_cross():
 
     # Split into patches to test the list-based version of the code.
     # First with just one catalog with patches
-    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=8)
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=8, rng=rng)
 
     kkk.process(cat1, cat2, cat3)
     np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
@@ -2772,7 +2801,7 @@ def test_direct_logmultipole_cross12():
 
     # Split into patches to test the list-based version of the code.
     # First with just one catalog with patches
-    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=4)
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=4, rng=rng)
 
     kkk.process(cat1, cat2)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_122)

@@ -566,7 +566,7 @@ def test_kkk_jk():
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.4*tol_factor)
 
     # All catalogs need to have the same number of patches
-    catq = treecorr.Catalog(x=x, y=y, k=k, npatch=2*npatch)
+    catq = treecorr.Catalog(x=x, y=y, k=k, npatch=2*npatch, rng=rng)
     with assert_raises(RuntimeError):
         kkkp.process(catp, catq)
     with assert_raises(RuntimeError):
@@ -663,7 +663,7 @@ def test_ggg_jk():
     print(ggg.gam3.ravel())
 
     gggp = ggg.copy()
-    catp = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, npatch=npatch)
+    catp = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, npatch=npatch, rng=rng)
 
     # Do the same thing with patches.
     gggp.process(catp)
@@ -1737,7 +1737,7 @@ def test_brute_jk():
     np.testing.assert_allclose(ddd.varzeta.ravel(), varzeta2)
 
     # Can't do patch calculation with different numbers of patches in rrr, drr, rdd.
-    rand_cat3 = treecorr.Catalog(x=rx, y=ry, npatch=3)
+    rand_cat3 = treecorr.Catalog(x=rx, y=ry, npatch=3, rng=rng)
     cat3 = treecorr.Catalog(x=x, y=y, patch_centers=rand_cat3.patch_centers)
     rrr3 = rrr.copy()
     drr3 = drr.copy()
@@ -1781,7 +1781,7 @@ def test_finalize_false():
                            g1=np.concatenate([g1_1, g1_2, g1_3]),
                            g2=np.concatenate([g2_1, g2_2, g2_3]),
                            k=np.concatenate([k_1, k_2, k_3]),
-                           npatch=npatch)
+                           npatch=npatch, rng=rng)
 
     # Now the three separately, using the same patch centers
     cat1 = treecorr.Catalog(x=x_1, y=y_1, g1=g1_1, g2=g2_1, k=k_1, patch_centers=cat.patch_centers)
@@ -2063,13 +2063,13 @@ def test_lowmem():
     if __name__ == '__main__':
         nsource = 10000
         nhalo = 100
-        npatch = 4
+        npatch = 10
         himem = 7.e5
         lomem = 9.e4
     else:
         nsource = 1000
         nhalo = 100
-        npatch = 4
+        npatch = 10
         himem = 1.4e5
         lomem = 1.e5
 
@@ -2077,7 +2077,7 @@ def test_lowmem():
     x, y, g1, g2, k = generate_shear_field(nsource, nhalo, rng)
 
     file_name = os.path.join('output','test_lowmem_3pt.fits')
-    orig_cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=k, npatch=npatch)
+    orig_cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=k, npatch=npatch, rng=rng)
     patch_centers = orig_cat.patch_centers
     orig_cat.write(file_name)
     del orig_cat
@@ -2144,7 +2144,21 @@ def test_lowmem():
     np.testing.assert_array_equal(ntri3, ntri1)
     np.testing.assert_array_equal(zeta3, zeta1)
 
-    # Check running as a cross-correlation
+    # Check patch_method=local
+    save_cat.unload()
+    t0 = time.time()
+    s0 = hp.heap().size if hp else 0
+    kkk.process(save_cat, save_cat, patch_method='local', low_mem=True)
+    t1 = time.time()
+    s1 = hp.heap().size if hp else 0
+    print('lomem 2: ',s1, t1-t0, s1-s0)
+    assert s1-s0 < lomem
+    ntri3 = kkk.ntri
+    zeta3 = kkk.zeta
+    np.testing.assert_array_equal(ntri3, ntri1)
+    np.testing.assert_array_equal(zeta3, zeta1)
+
+    # Check running as a 3-cat cross-correlation
     save_cat.unload()
     t0 = time.time()
     s0 = hp.heap().size if hp else 0

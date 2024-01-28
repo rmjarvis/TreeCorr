@@ -2063,13 +2063,13 @@ def test_lowmem():
     if __name__ == '__main__':
         nsource = 10000
         nhalo = 100
-        npatch = 10
+        npatch = 4
         himem = 7.e5
         lomem = 9.e4
     else:
         nsource = 1000
         nhalo = 100
-        npatch = 10
+        npatch = 4
         himem = 1.4e5
         lomem = 1.e5
 
@@ -2144,20 +2144,6 @@ def test_lowmem():
     np.testing.assert_array_equal(ntri3, ntri1)
     np.testing.assert_array_equal(zeta3, zeta1)
 
-    # Check patch_method=local
-    save_cat.unload()
-    t0 = time.time()
-    s0 = hp.heap().size if hp else 0
-    kkk.process(save_cat, save_cat, patch_method='local', low_mem=True)
-    t1 = time.time()
-    s1 = hp.heap().size if hp else 0
-    print('lomem 2: ',s1, t1-t0, s1-s0)
-    assert s1-s0 < lomem
-    ntri3 = kkk.ntri
-    zeta3 = kkk.zeta
-    np.testing.assert_array_equal(ntri3, ntri1)
-    np.testing.assert_array_equal(zeta3, zeta1)
-
     # Check running as a 3-cat cross-correlation
     save_cat.unload()
     t0 = time.time()
@@ -2171,6 +2157,20 @@ def test_lowmem():
     zeta4 = kkk.zeta
     np.testing.assert_array_equal(ntri4, ntri1)
     np.testing.assert_array_equal(zeta4, zeta1)
+
+    # Check patch_method=local
+    save_cat.unload()
+    t0 = time.time()
+    s0 = hp.heap().size if hp else 0
+    kkk.process(save_cat, save_cat, patch_method='local', low_mem=True)
+    t1 = time.time()
+    s1 = hp.heap().size if hp else 0
+    print('lomem 4: ',s1, t1-t0, s1-s0)
+    assert s1-s0 < lomem
+    ntri5 = kkk.ntri
+    zeta5 = kkk.zeta
+    np.testing.assert_array_equal(ntri5, ntri1)
+    np.testing.assert_array_equal(zeta5, zeta1)
 
 
 if __name__ == '__main__':

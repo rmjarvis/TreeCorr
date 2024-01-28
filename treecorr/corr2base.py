@@ -676,7 +676,7 @@ class Corr2(object):
         if len(cat_list) == 0:
             return None
         else:
-            cat2e = Catalog.combine(cat_list, mask_list)
+            cat2e = Catalog.combine(cat_list, mask_list=mask_list, low_mem=low_mem)
             # This is important for NN correlations to get the tot to work out right.
             # Basically, we treat the extended patch as though it included all of cat2
             # for the purposes of figuring out the right tot normalization.

@@ -2528,7 +2528,7 @@ def test_combine():
     # Can also use the mask to build up slowly
     cat3 = treecorr.Catalog.combine(
         [cat1]*5,
-        [slice(i,j) for i,j in [(0,20), (20,33), (33,82), (82,83), (83,100)]])
+        mask_list=[slice(i,j) for i,j in [(0,20), (20,33), (33,82), (82,83), (83,100)]])
     assert cat3 == cat1
     assert cat3.ntot == cat1.ntot
     assert cat3.nobj == cat1.nobj
@@ -2540,7 +2540,7 @@ def test_combine():
     k = np.arange(100)
     cat4 = treecorr.Catalog.combine(
         [cat1]*5,
-        [(k>=i) & (k<j) for i,j in [(0,20), (20,33), (33,82), (82,83), (83,100)]])
+        mask_list=[(k>=i) & (k<j) for i,j in [(0,20), (20,33), (33,82), (82,83), (83,100)]])
     assert cat4 == cat1
     assert cat4.ntot == cat1.ntot
     assert cat4.nobj == cat1.nobj
@@ -2569,10 +2569,38 @@ def test_combine():
     assert cat5.q2 is None
     assert cat5.ntot == len(x)
 
+    # Check low_mem
+    file_name = os.path.join('data', 'test_combine.dat')
+    cat1.write(file_name)
+    cats = [treecorr.Catalog(file_name, x_col='x', y_col='y', w_col='w', q1_col='q1', q2_col='q2')
+            for i in range(5)]
+    masks = [slice(i,j) for i,j in [(0,20), (20,33), (33,82), (82,83), (83,100)]]
+    for c in cats:
+        assert not c.loaded
+    # Load just cats[2].  This should stay loaded after combine.
+    cats[2].load()
+    cat6 = treecorr.Catalog.combine(cats, mask_list=masks, low_mem=True)
+    np.testing.assert_allclose(cat6.x, x)
+    np.testing.assert_allclose(cat6.y, y)
+    np.testing.assert_allclose(cat6.w, w)
+    np.testing.assert_allclose(cat6.q1, q1)
+    np.testing.assert_allclose(cat6.q2, q2)
+    assert cat6.z is None
+    assert cat6.k is None
+    assert cat6.g1 is None
+    assert cat6.g2 is None
+    assert cat6.ntot == len(x)
+    assert not cats[0].loaded
+    assert not cats[1].loaded
+    assert cats[2].loaded
+    assert not cats[3].loaded
+    assert not cats[4].loaded
+
     # An empty list is invalid.
     assert_raises(ValueError, treecorr.Catalog.combine, [])
-    assert_raises(ValueError, treecorr.Catalog.combine, [cat1], [])
-    assert_raises(ValueError, treecorr.Catalog.combine, [cat1]*2, [slice(None)])
+    assert_raises(ValueError, treecorr.Catalog.combine, [cat1], mask_list=[])
+    assert_raises(ValueError, treecorr.Catalog.combine, [cat1]*2, mask_list=[slice(None)])
+    assert_raises(TypeError, treecorr.Catalog.combine, [cat1], [slice(None)])
 
 
 if __name__ == '__main__':

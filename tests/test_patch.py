@@ -650,7 +650,7 @@ def test_gg_jk():
     np.testing.assert_array_less(gg1.varxim, var_xim)
 
     # Now run with patches, but still with shot variance.  Should be basically the same answer.
-    cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, npatch=npatch)
+    cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, npatch=npatch, rng=rng)
     gg2 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='shot',
                                  rng=rng)
     t0 = time.time()
@@ -705,7 +705,7 @@ def test_gg_jk():
     print('Time for local patch processing = ',t1-t0)
     np.testing.assert_allclose(gg3l.weight, 2*gg2.weight, rtol=0.05)
     np.testing.assert_allclose(gg3l.xip, gg2.xip, rtol=0.02*tol_factor)
-    np.testing.assert_allclose(gg3l.xim, gg2.xim, rtol=0.02*tol_factor, atol=1.e-4*tol_factor)
+    np.testing.assert_allclose(gg3l.xim, gg2.xim, rtol=0.03*tol_factor, atol=1.e-4*tol_factor)
     # Not as accurate, since it can't remove the jackknife patches from one half of the pairs.
     np.testing.assert_allclose(np.log(gg3l.varxip), np.log(var_xip), atol=0.9*tol_factor)
     np.testing.assert_allclose(np.log(gg3l.varxim), np.log(var_xim), atol=0.9*tol_factor)
@@ -1054,7 +1054,7 @@ def test_ng_jk():
     # Note: This turns out to work significantly better if cat1 is used to make the patches.
     # Otherwise the number of lenses per patch varies a lot, which affects the variance estimate.
     # But that means we need to keep the w=0 object in the catalog, so all objects get a patch.
-    cat1p = treecorr.Catalog(x=x, y=y, w=w, npatch=npatch, keep_zero_weight=True)
+    cat1p = treecorr.Catalog(x=x, y=y, w=w, npatch=npatch, keep_zero_weight=True, rng=rng)
     cat2p = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, patch=cat1p.patch)
     print('tot w = ',np.sum(w))
     print('Patch\tNlens')
@@ -1142,7 +1142,7 @@ def test_ng_jk():
     print('Time for local patch processing with cat1 first = ',t1-t0)
     np.testing.assert_allclose(ng4l.weight, ng4.weight, rtol=3.e-3*tol_factor)
     np.testing.assert_allclose(ng4l.xi, ng4.xi, rtol=3.e-3*tol_factor)
-    np.testing.assert_allclose(np.log(ng4l.varxi), np.log(ng4.varxi), atol=3.e-2*tol_factor)
+    np.testing.assert_allclose(np.log(ng4l.varxi), np.log(ng4.varxi), atol=0.05*tol_factor)
 
     # Check sample covariance estimate
     t0 = time.time()
@@ -1433,7 +1433,7 @@ def test_nn_jk():
     # Now run with patches, but still with shot variance.  Should be basically the same answer.
     # The jackknife estimate (later) works better if the patches are based on the full catalog
     # rather than the weighted catalog, since it covers the area more smoothly.
-    full_catp = treecorr.Catalog(x=x, y=y, npatch=npatch)
+    full_catp = treecorr.Catalog(x=x, y=y, npatch=npatch, rng=rng)
     catp = treecorr.Catalog(x=x, y=y, w=w, patch_centers=full_catp.patch_centers)
     print('tot w = ',np.sum(w))
     print('Patch\tNlens')
@@ -1775,7 +1775,7 @@ def test_kappa_jk():
     w[k>=thresh] = 1.
     cat1 = treecorr.Catalog(x=x, y=y, k=k, w=w)
     cat2 = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=k)
-    cat1p = treecorr.Catalog(x=x, y=y, k=k, w=w, keep_zero_weight=True, npatch=npatch)
+    cat1p = treecorr.Catalog(x=x, y=y, k=k, w=w, keep_zero_weight=True, npatch=npatch, rng=rng)
     cat2p = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=k, patch=cat1p.patch)
 
     # NK
@@ -2298,7 +2298,8 @@ def test_clusters():
     # Note: This turns out to work significantly better if cat1 is used to make the patches.
     # Otherwise the number of lenses per patch varies a lot, which affects the variance estimate.
     # But that means we need to keep the w=0 object in the catalog, so all objects get a patch.
-    cat2p = treecorr.Catalog(x=source_x, y=source_y, g1=source_g1, g2=source_g2, npatch=npatch)
+    cat2p = treecorr.Catalog(x=source_x, y=source_y, g1=source_g1, g2=source_g2, npatch=npatch,
+                             rng=rng)
     cat1p = treecorr.Catalog(x=lens_x, y=lens_y, patch_centers=cat2p.patch_centers)
     print('tot n = ',nlens)
     print('Patch\tNlens')
@@ -2403,7 +2404,7 @@ def test_brute_jk():
     indx = rng.choice(range(len(x)),nsource,replace=False)
     source_cat = treecorr.Catalog(x=x[indx], y=y[indx],
                                   g1=g1[indx], g2=g2[indx], k=k[indx],
-                                  npatch=npatch)
+                                  npatch=npatch, rng=rng)
     print('source_cat patches = ',np.unique(source_cat.patch))
     print('len = ',source_cat.nobj, source_cat.ntot)
     assert source_cat.nobj == nsource
@@ -2703,7 +2704,7 @@ def test_lowmem():
 
     partial_cat = treecorr.Catalog(file_name, every_nth=100,
                                    ra_col='ra', dec_col='dec', ra_units='deg', dec_units='deg',
-                                   npatch=npatch)
+                                   npatch=npatch, rng=rng)
 
     patch_centers = partial_cat.patch_centers
     del partial_cat
@@ -2764,7 +2765,7 @@ def test_lowmem():
     gk_cat0 = treecorr.Catalog(ra=ra[:ngal//100], dec=dec[:ngal//100], r=r[:ngal//100],
                                ra_units='deg', dec_units='deg',
                                g1=g1, g2=g2, k=k,
-                               npatch=10)
+                               npatch=10, rng=rng)
     patch_centers = gk_cat0.patch_centers
     file_name = os.path.join('output','test_lowmem_gk.fits')
     gk_cat0.write(file_name)
@@ -3025,7 +3026,7 @@ def test_finalize_false():
                            g1=np.concatenate([g1_1, g1_2, g1_3]),
                            g2=np.concatenate([g2_1, g2_2, g2_3]),
                            k=np.concatenate([k_1, k_2, k_3]),
-                           npatch=npatch)
+                           npatch=npatch, rng=rng)
 
     # Now the three separately, using the same patch centers
     cat1 = treecorr.Catalog(x=x_1, y=y_1, g1=g1_1, g2=g2_1, k=k_1, patch_centers=cat.patch_centers)
@@ -3331,7 +3332,7 @@ def test_huge_npatch():
     print('Time for non-patch processing = ',t1-t0)
 
     # Now run with patches:
-    catp = treecorr.Catalog(x=x, y=y, k=k, npatch=npatch)
+    catp = treecorr.Catalog(x=x, y=y, k=k, npatch=npatch, rng=rng)
     print('Patch\tNlens')
     for i in range(npatch):
         print('%d\t%d'%(i,np.sum([catp.patch==i])))

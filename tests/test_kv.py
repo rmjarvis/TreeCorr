@@ -175,6 +175,8 @@ def test_direct():
     kv6 = treecorr.KVCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins*2)
     with assert_raises(ValueError):
         kv2 += kv6
+    with assert_raises(ValueError):
+        kv.process(cat1, cat2, patch_method='nonlocal')
 
 @timer
 def test_direct_spherical():

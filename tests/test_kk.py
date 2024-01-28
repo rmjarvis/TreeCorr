@@ -194,6 +194,9 @@ def test_direct():
     np.testing.assert_allclose(kk2.weight, kk.weight)
     np.testing.assert_allclose(kk2.xi, kk.xi, rtol=1.e-5)
 
+    with assert_raises(ValueError):
+        kk2.process(cat1p, cat2p, patch_method='nonlocal')
+
 
 @timer
 def test_direct_spherical():

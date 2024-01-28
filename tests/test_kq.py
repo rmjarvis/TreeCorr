@@ -175,6 +175,9 @@ def test_direct():
     kq6 = treecorr.KQCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins*2)
     with assert_raises(ValueError):
         kq2 += kq6
+    with assert_raises(ValueError):
+        kq.process(cat1, cat2, patch_method='nonlocal')
+
 
 @timer
 def test_direct_spherical():

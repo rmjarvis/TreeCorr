@@ -236,6 +236,8 @@ def test_direct():
     np.testing.assert_allclose(gg2.xip, gg.xip, rtol=1.e-5)
     np.testing.assert_allclose(gg2.xim, gg.xim, rtol=1.e-4, atol=1.e-4)
 
+    with assert_raises(ValueError):
+        gg2.process(cat1, cat2p, patch_method='nonlocal')
 
 @timer
 def test_direct_spherical():

@@ -1457,6 +1457,7 @@ def test_direct_logruv_auto():
         np.testing.assert_allclose(ddd15.meanu, ddd.meanu)
         np.testing.assert_allclose(ddd15.meanv, ddd.meanv)
 
+
 @timer
 def test_direct_logruv_cross():
     # If the catalogs are small enough, we can do a direct count of the number of triangles
@@ -1833,6 +1834,20 @@ def test_direct_logruv_cross12():
     t1 = time.time()
     print('patch unordered: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
+
+    t0 = time.time()
+    ddd.process(cat1, cat2, patch_method='local')
+    t1 = time.time()
+    print('patch ordered 122: ',t1-t0)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
+    t0 = time.time()
+    ddd.process(cat1, cat2, ordered=False, patch_method='local')
+    t1 = time.time()
+    print('patch unordered: ',t1-t0)
+    np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
+
+    with assert_raises(ValueError):
+        ddd.process(cat1, cat2, patch_method='nonlocal')
 
 
 @timer
@@ -4926,18 +4941,22 @@ def test_direct_logmultipole_cross():
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
     np.testing.assert_allclose(ddd.weight, true_weight_sum, rtol=1.e-5)
 
-    # Now with both patched.
+    # Now with all three patched.
     cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, patch_centers=cat1.patch_centers)
-    ddd.process(cat1, cat2, cat3)
+    cat3 = treecorr.Catalog(x=x3, y=y3, w=w3, patch_centers=cat1.patch_centers)
+    ddd.process(cat1, cat2, cat3, patch_method='local')
     np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
     np.testing.assert_allclose(ddd.weight, true_weight_123, rtol=1.e-5)
-    ddd.process(cat1, cat2, cat3, ordered=False)
+    ddd.process(cat1, cat2, cat3, ordered=False, patch_method='local')
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
     np.testing.assert_allclose(ddd.weight, true_weight_sum, rtol=1.e-5)
 
     # No tests of accuracy yet, but make sure patch-based covariance works.
     cov = ddd.estimate_cov('sample', func=lambda c: c.weight.ravel())
     cov = ddd.estimate_cov('jackknife', func=lambda c: c.weight.ravel())
+
+    with assert_raises(ValueError):
+        ddd.process(cat1, cat2, cat3, patch_method='global')
 
 
 if __name__ == '__main__':

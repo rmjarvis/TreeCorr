@@ -2655,7 +2655,7 @@ class Catalog(object):
 
         return self._patches
 
-    def write(self, file_name, *, file_type=None, cat_precision=None):
+    def write(self, file_name, *, file_type=None, precision=None):
         """Write the catalog to a file.
 
         The position columns are output using the same units as were used when building the
@@ -2697,9 +2697,9 @@ class Catalog(object):
             file_name (str):    The name of the file to write to.
             file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default:
                                 determine the type automatically from the extension of file_name.)
-            cat_precision (int): For ASCII output catalogs, the desired precision. (default: 16;
+            precision (int):    For ASCII output catalogs, the desired precision. (default: 16;
                                 this value can also be given in the Catalog constructor in the
-                                config dict.)
+                                config dict as cat_precision.)
         Returns:
             The column names that were written to the file as a list.
         """
@@ -2760,10 +2760,10 @@ class Catalog(object):
             col_names.append('patch')
             columns.append(self.patch)
 
-        if cat_precision is None:
-            cat_precision = get(self.config,'cat_precision',int,16)
+        if precision is None:
+            precision = get(self.config,'cat_precision',int,16)
 
-        writer = make_writer(file_name, precision=cat_precision, file_type=file_type,
+        writer = make_writer(file_name, precision=precision, file_type=file_type,
                              logger=self.logger)
         with writer:
             writer.write(col_names, columns)

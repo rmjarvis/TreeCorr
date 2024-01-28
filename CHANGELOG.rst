@@ -36,6 +36,7 @@ API Changes
 - Switched the default binning for three-point correlations to LogSAS, rather than LogRUV. (#166)
 - Changed estimate_cov with method='shot' to only return the diagonal, rather than gratuitously
   making a full, mostly empty diagonal matrix. (#166)
+- Changed name of Catalog.write kwarg from cat_precision to just precision. (#168)
 
 
 Performance improvements

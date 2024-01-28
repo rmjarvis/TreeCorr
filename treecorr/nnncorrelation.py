@@ -571,7 +571,7 @@ class NNNCorrelation(Corr3):
         return self
 
     def process(self, cat1, cat2=None, cat3=None, *, metric=None, ordered=True, num_threads=None,
-                comm=None, low_mem=False, initialize=True, finalize=True, patch_method='global'):
+                comm=None, low_mem=False, initialize=True, finalize=True, patch_method='auto'):
         """Accumulate the 3pt correlation of the points in the given Catalog(s).
 
         - If only 1 argument is given, then compute an auto-correlation function.
@@ -617,14 +617,20 @@ class NNNCorrelation(Corr3):
                                 `Corr3.clear`.  (default: True)
             finalize (bool):    Whether to complete the calculation with a call to `finalize`.
                                 (default: True)
-            patch_method(str):  Which patch method to use. (default: 'global')
+            patch_method(str):  Which patch method to use. (default: 'auto', which uses 'local'
+                                if bin_type=LogMultipole, and 'global' otherwise)
         """
         if initialize:
             self.clear()
 
-        if patch_method not in ['local', 'global']:
-            raise ValueError("Invalid patch_method %s"%patch_method)
-        local = patch_method == 'local'
+        if patch_method == 'auto':
+            local = self.bin_type == 'LogMultipole'
+        else:
+            if patch_method not in ['local', 'global']:
+                raise ValueError("Invalid patch_method %s"%patch_method)
+            local = patch_method == 'local'
+            if not local and self.bin_type == 'LogMultipole':
+                raise ValueError("LogMultipole binning cannot use patch_method='global'")
 
         if not isinstance(cat1,list): cat1 = cat1.get_patches()
         if cat2 is not None and not isinstance(cat2,list): cat2 = cat2.get_patches()

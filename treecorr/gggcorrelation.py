@@ -636,7 +636,7 @@ class GGGCorrelation(Corr3):
         np.sum([c.ntri for c in others], axis=0, out=self.ntri)
 
     def process(self, cat1, cat2=None, cat3=None, *, metric=None, ordered=True, num_threads=None,
-                comm=None, low_mem=False, initialize=True, finalize=True, patch_method='global'):
+                comm=None, low_mem=False, initialize=True, finalize=True, patch_method='auto'):
         """Compute the 3pt correlation function.
 
         - If only 1 argument is given, then compute an auto-correlation function.
@@ -680,15 +680,21 @@ class GGGCorrelation(Corr3):
                                 `Corr3.clear`.  (default: True)
             finalize (bool):    Whether to complete the calculation with a call to `finalize`.
                                 (default: True)
-            patch_method(str):  Which patch method to use. (default: 'global')
+            patch_method(str):  Which patch method to use. (default: 'auto', which uses 'local'
+                                if bin_type=LogMultipole, and 'global' otherwise)
         """
         import math
         if initialize:
             self.clear()
 
-        if patch_method not in ['local', 'global']:
-            raise ValueError("Invalid patch_method %s"%patch_method)
-        local = patch_method == 'local'
+        if patch_method == 'auto':
+            local = self.bin_type == 'LogMultipole'
+        else:
+            if patch_method not in ['local', 'global']:
+                raise ValueError("Invalid patch_method %s"%patch_method)
+            local = patch_method == 'local'
+            if not local and self.bin_type == 'LogMultipole':
+                raise ValueError("LogMultipole binning cannot use patch_method='local'")
 
         if not isinstance(cat1,list):
             cat1 = cat1.get_patches(low_mem=low_mem)
@@ -696,10 +702,6 @@ class GGGCorrelation(Corr3):
             cat2 = cat2.get_patches(low_mem=low_mem)
         if cat3 is not None and not isinstance(cat3,list):
             cat3 = cat3.get_patches(low_mem=low_mem)
-
-        if not local and cat2 is not None and len(cat1) > 0 and self.bin_type == 'LogMultipole':
-            self.logger.warning("Using patch_method=local, since LogMultipole binning cannot use global")
-            local = True
 
         if cat2 is None:
             if cat3 is not None:

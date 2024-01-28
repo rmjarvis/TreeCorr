@@ -766,7 +766,7 @@ class Corr2(object):
 
             if local:
                 for ii,c1 in enumerate(cat1):
-                    i = c1.patch if c1.patch is not None else ii
+                    i = c1._single_patch if c1._single_patch is not None else ii
                     if is_my_job(my_indices, i, i, n):
                         c1e = self._make_expanded_patch(c1, cat1, metric, low_mem)
                         self.logger.info('Process patch %d with surrounding local patches',i)
@@ -775,7 +775,7 @@ class Corr2(object):
                             c1.unload()
             else:
                 for ii,c1 in enumerate(cat1):
-                    i = c1.patch if c1.patch is not None else ii
+                    i = c1._single_patch if c1._single_patch is not None else ii
                     if is_my_job(my_indices, i, i, n):
                         temp._clear()
                         self.logger.info('Process patch %d auto',i)
@@ -787,7 +787,7 @@ class Corr2(object):
                         self += temp
 
                     for jj,c2 in list(enumerate(cat1))[::-1]:
-                        j = c2.patch if c2.patch is not None else jj
+                        j = c2._single_patch if c2._single_patch is not None else jj
                         if i < j and is_my_job(my_indices, i, j, n):
                             self.logger.info('Process patches %d, %d cross',i,j)
                             self._single_process12(c1, c2, (i,j), metric, num_threads, temp)
@@ -860,7 +860,7 @@ class Corr2(object):
 
             if local:
                 for ii,c1 in enumerate(cat1):
-                    i = c1.patch if c1.patch is not None else ii
+                    i = c1._single_patch if c1._single_patch is not None else ii
                     if is_my_job(my_indices, i, i, n1, n2):
                         c2e = self._make_expanded_patch(c1, cat2, metric, low_mem)
                         if c2e is not None:
@@ -870,9 +870,9 @@ class Corr2(object):
                             c1.unload()
             else:
                 for ii,c1 in enumerate(cat1):
-                    i = c1.patch if c1.patch is not None else ii
+                    i = c1._single_patch if c1._single_patch is not None else ii
                     for jj,c2 in enumerate(cat2):
-                        j = c2.patch if c2.patch is not None else jj
+                        j = c2._single_patch if c2._single_patch is not None else jj
                         if is_my_job(my_indices, i, j, n1, n2):
                             self.logger.info('Process patches %d, %d cross',i,j)
                             self._single_process12(c1, c2, (i,j), metric, num_threads, temp,

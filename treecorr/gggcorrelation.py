@@ -694,7 +694,7 @@ class GGGCorrelation(Corr3):
                 raise ValueError("Invalid patch_method %s"%patch_method)
             local = patch_method == 'local'
             if not local and self.bin_type == 'LogMultipole':
-                raise ValueError("LogMultipole binning cannot use patch_method='local'")
+                raise ValueError("LogMultipole binning cannot use patch_method='global'")
 
         if not isinstance(cat1,list):
             cat1 = cat1.get_patches(low_mem=low_mem)

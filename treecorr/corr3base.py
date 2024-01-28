@@ -1127,7 +1127,7 @@ class Corr3(object):
 
             if local:
                 for ii,c1 in enumerate(cat1):
-                    i = c1.patch if c1.patch is not None else ii
+                    i = c1._single_patch if c1._single_patch is not None else ii
                     if is_my_job(my_indices, i, i, i, n):
                         c1e = self._make_expanded_patch(c1, cat1, metric, low_mem)
                         self.logger.info('Process patch %d with surrounding local patches',i)
@@ -1137,7 +1137,7 @@ class Corr3(object):
                             c1.unload()
             else:
                 for ii,c1 in enumerate(cat1):
-                    i = c1.patch if c1.patch is not None else ii
+                    i = c1._single_patch if c1._single_patch is not None else ii
                     if is_my_job(my_indices, i, i, i, n):
                         temp._clear()
                         self.logger.info('Process patch %d auto',i)
@@ -1149,7 +1149,7 @@ class Corr3(object):
                         self += temp
 
                     for jj,c2 in list(enumerate(cat1))[::-1]:
-                        j = c2.patch if c2.patch is not None else jj
+                        j = c2._single_patch if c2._single_patch is not None else jj
                         if i < j:
                             if is_my_job(my_indices, i, j, j, n):
                                 # One point in c1, 2 in c2.
@@ -1161,7 +1161,7 @@ class Corr3(object):
 
                             # One point in each of c1, c2, c3
                             for kk,c3 in enumerate(cat1):
-                                k = c3.patch if c3.patch is not None else kk
+                                k = c3._single_patch if c3._single_patch is not None else kk
                                 if j < k and is_my_job(my_indices, i, j, k, n):
                                     self._single_process123(c1, c2, c3, (i,j,k), metric, 0,
                                                             num_threads, temp, False)
@@ -1253,7 +1253,7 @@ class Corr3(object):
 
             if local:
                 for ii,c1 in enumerate(cat1):
-                    i = c1.patch if c1.patch is not None else ii
+                    i = c1._single_patch if c1._single_patch is not None else ii
                     if is_my_job(my_indices, i, i, i, n1, n2):
                         c2e = self._make_expanded_patch(c1, cat2, metric, low_mem)
                         if c2e is not None:
@@ -1267,7 +1267,7 @@ class Corr3(object):
                     # It can only handle ordered=1 (or 3).
                     # So in this case, we need to repeat with c2 in the first spot.
                     for ii,c2 in enumerate(cat2):
-                        i = c2.patch if c2.patch is not None else ii
+                        i = c2._single_patch if c2._single_patch is not None else ii
                         if is_my_job(my_indices, i, i, i, n1, n2):
                             c1e = self._make_expanded_patch(c2, cat1, metric, low_mem)
                             c2e = self._make_expanded_patch(c2, cat2, metric, low_mem)
@@ -1279,16 +1279,16 @@ class Corr3(object):
                                 c2.unload()
             else:
                 for ii,c1 in enumerate(cat1):
-                    i = c1.patch if c1.patch is not None else ii
+                    i = c1._single_patch if c1._single_patch is not None else ii
                     for jj,c2 in enumerate(cat2):
-                        j = c2.patch if c2.patch is not None else jj
+                        j = c2._single_patch if c2._single_patch is not None else jj
                         if is_my_job(my_indices, i, j, j, n1, n2):
                             self._single_process12(c1, c2, (i,j,j), metric, ordered,
                                                    num_threads, temp,
                                                    (i==j or n1==1 or n2==1))
                         # One point in each of c1, c2, c3
                         for kk,c3 in list(enumerate(cat2))[::-1]:
-                            k = c3.patch if c3.patch is not None else kk
+                            k = c3._single_patch if c3._single_patch is not None else kk
                             if j < k and is_my_job(my_indices, i, j, k, n1, n2):
                                 self._single_process123(c1, c2, c3, (i,j,k), metric, ordered1,
                                                         num_threads, temp, False)
@@ -1373,7 +1373,7 @@ class Corr3(object):
 
             if local:
                 for ii,c1 in enumerate(cat1):
-                    i = c1.patch if c1.patch is not None else ii
+                    i = c1._single_patch if c1._single_patch is not None else ii
                     if is_my_job(my_indices, i, i, i, n1, n2, n3):
                         c2e = self._make_expanded_patch(c1, cat2, metric, low_mem)
                         c3e = self._make_expanded_patch(c1, cat3, metric, low_mem)
@@ -1382,14 +1382,19 @@ class Corr3(object):
                             self._single_process123(c1, c2e, c3e, (i,i,i), metric,
                                                     1 if not ordered else ordered,
                                                     num_threads, temp, True)
+                        else:
+                            raise '14'
                         if low_mem:
+                            raise '15'
                             c1.unload()
+                    else:
+                        raise '7'
                 if not ordered:
                     # local method doesn't do unordered properly as is.
                     # It can only handle ordered=1 or 3.
                     # So in this case, we need to repeat with c2 and c3 in the first spot.
                     for ii,c2 in enumerate(cat2):
-                        i = c2.patch if c2.patch is not None else ii
+                        i = c2._single_patch if c2._single_patch is not None else ii
                         if is_my_job(my_indices, i, i, i, n1, n2, n3):
                             c1e = self._make_expanded_patch(c2, cat1, metric, low_mem)
                             c3e = self._make_expanded_patch(c2, cat3, metric, low_mem)
@@ -1400,7 +1405,7 @@ class Corr3(object):
                             if low_mem:
                                 c2.unload()
                     for ii,c3 in enumerate(cat3):
-                        i = c3.patch if c3.patch is not None else ii
+                        i = c3._single_patch if c3._single_patch is not None else ii
                         if is_my_job(my_indices, i, i, i, n1, n2, n3):
                             c1e = self._make_expanded_patch(c3, cat1, metric, low_mem)
                             c2e = self._make_expanded_patch(c3, cat2, metric, low_mem)
@@ -1412,11 +1417,11 @@ class Corr3(object):
                                 c3.unload()
             else:
                 for ii,c1 in enumerate(cat1):
-                    i = c1.patch if c1.patch is not None else ii
+                    i = c1._single_patch if c1._single_patch is not None else ii
                     for jj,c2 in enumerate(cat2):
-                        j = c2.patch if c2.patch is not None else jj
+                        j = c2._single_patch if c2._single_patch is not None else jj
                         for kk,c3 in enumerate(cat3):
-                            k = c3.patch if c3.patch is not None else kk
+                            k = c3._single_patch if c3._single_patch is not None else kk
                             if is_my_job(my_indices, i, j, k, n1, n2, n3):
                                 self._single_process123(c1, c2, c3, (i,j,k), metric, ordered,
                                                         num_threads, temp,

@@ -967,30 +967,33 @@ def test_direct_logruv_cross_3d():
     np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4)
 
     # Split into patches to test the list-based version of the code.
-    cat1 = treecorr.Catalog(x=x1, y=y1, z=z1, w=w1, k=k1, npatch=30, rng=rng)
-    cat2 = treecorr.Catalog(x=x2, y=y2, z=z2, w=w2, k=k2, patch_centers=cat1.patch_centers)
-    cat3 = treecorr.Catalog(x=x3, y=y3, z=z3, w=w3, k=k3, patch_centers=cat1.patch_centers)
+    cat1p = treecorr.Catalog(x=x1, y=y1, z=z1, w=w1, k=k1, npatch=30, rng=rng)
+    cat2p = treecorr.Catalog(x=x2, y=y2, z=z2, w=w2, k=k2, patch_centers=cat1.patch_centers)
+    cat3p = treecorr.Catalog(x=x3, y=y3, z=z3, w=w3, k=k3, patch_centers=cat1.patch_centers)
 
-    kkk.process(cat1, cat2, cat3)
+    kkk.process(cat1p, cat2p, cat3p)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
     np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-4)
 
-    kkk.process(cat1, cat2, cat3, ordered=False)
+    kkk.process(cat1p, cat2p, cat3p, ordered=False)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
     np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4)
 
     # And with patch_method=local
-    kkk.process(cat1, cat2, cat3, patch_method='local')
+    kkk.process(cat1p, cat2p, cat3p, patch_method='local')
     np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
     np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-4)
 
-    kkk.process(cat1, cat2, cat3, patch_method='local', ordered=False)
+    kkk.process(cat1p, cat2p, cat3p, patch_method='local', ordered=False)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
     np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4)
+
+    with assert_raises(ValueError):
+        kkk.process(cat1p, cat2p, cat3p, patch_method='nonlocal')
 
 
 @timer
@@ -2648,31 +2651,35 @@ def test_direct_logmultipole_cross():
     cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2, patch_centers=cat1.patch_centers)
     cat3 = treecorr.Catalog(x=x3, y=y3, w=w3, k=k3, patch_centers=cat1.patch_centers)
 
-    kkk.process(cat1, cat2, cat3)
+    kkk.process(cat1, cat2, cat3, patch_method='local')
     np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-4)
-    kkk.process(cat1, cat3, cat2)
+    kkk.process(cat1, cat3, cat2, patch_method='local')
     np.testing.assert_allclose(kkk.weight, true_weight_132, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_132, rtol=1.e-4)
-    kkk.process(cat2, cat1, cat3)
+    kkk.process(cat2, cat1, cat3, patch_method='local')
     np.testing.assert_allclose(kkk.weight, true_weight_213, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_213, rtol=1.e-4)
-    kkk.process(cat2, cat3, cat1)
+    kkk.process(cat2, cat3, cat1, patch_method='local')
     np.testing.assert_allclose(kkk.weight, true_weight_231, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_231, rtol=1.e-4)
-    kkk.process(cat3, cat1, cat2)
+    kkk.process(cat3, cat1, cat2, patch_method='local')
     np.testing.assert_allclose(kkk.weight, true_weight_312, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_312, rtol=1.e-4)
-    kkk.process(cat3, cat2, cat1)
+    kkk.process(cat3, cat2, cat1, patch_method='local')
     np.testing.assert_allclose(kkk.weight, true_weight_321, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_321, rtol=1.e-4)
-    kkk.process(cat1, cat2, cat3, ordered=False)
+    kkk.process(cat1, cat2, cat3, ordered=False, patch_method='local')
     np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4)
 
     # No tests of accuracy yet, but make sure patch-based covariance works.
     cov = kkk.estimate_cov('sample')
     cov = kkk.estimate_cov('jackknife')
+
+    with assert_raises(ValueError):
+        kkk.process(cat1, cat2, cat3, patch_method='global')
+
 
 @timer
 def test_direct_logmultipole_cross12():

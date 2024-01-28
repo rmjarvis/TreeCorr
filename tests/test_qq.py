@@ -200,6 +200,8 @@ def test_direct():
     qq6 = treecorr.QQCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins*2)
     with assert_raises(ValueError):
         qq2 += qq6
+    with assert_raises(ValueError):
+        qq.process(cat1, cat2, patch_method='nonlocal')
 
 @timer
 def test_direct_spherical():

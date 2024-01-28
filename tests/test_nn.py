@@ -633,6 +633,9 @@ def test_direct_count():
     np.testing.assert_allclose(dd8.meanr, dd.meanr)
     np.testing.assert_allclose(dd8.meanlogr, dd.meanlogr)
 
+    with assert_raises(ValueError):
+        dd.process(cat1, cat2, patch_method='nonlocal')
+
 
 @timer
 def test_direct_spherical():

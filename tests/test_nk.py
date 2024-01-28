@@ -173,6 +173,9 @@ def test_direct():
         np.testing.assert_allclose(nk4.meanlogr, nk.meanlogr)
         np.testing.assert_allclose(nk4.xi, nk.xi)
 
+    with assert_raises(ValueError):
+        nk.process(cat1, cat2, patch_method='nonlocal')
+
 
 @timer
 def test_direct_spherical():

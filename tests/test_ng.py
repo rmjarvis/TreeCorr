@@ -183,7 +183,8 @@ def test_direct():
     ng6 = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins*2)
     with assert_raises(ValueError):
         ng2 += ng6
-
+    with assert_raises(ValueError):
+        ng.process(cat1, cat2, patch_method='nonlocal')
 
 
 @timer

@@ -199,6 +199,8 @@ def test_direct():
     vv6 = treecorr.VVCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins*2)
     with assert_raises(ValueError):
         vv2 += vv6
+    with assert_raises(ValueError):
+        vv.process(cat1, cat2, patch_method='nonlocal')
 
 @timer
 def test_direct_spherical():

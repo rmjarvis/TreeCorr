@@ -951,6 +951,9 @@ def test_direct_logruv_cross():
     np.testing.assert_allclose(ggg.gam2, true_gam2_sum, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam3, true_gam3_sum, rtol=1.e-5)
 
+    with assert_raises(ValueError):
+        ggg.process(cat1p, cat2p, cat3p, patch_method='nonlocal')
+
 
 @timer
 def test_direct_logruv_cross12():
@@ -4567,13 +4570,13 @@ def test_direct_logmultipole_cross():
     cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2, patch_centers=cat1.patch_centers)
     cat3 = treecorr.Catalog(x=x3, y=y3, w=w3, g1=g1_3, g2=g2_3, patch_centers=cat1.patch_centers)
 
-    ggg.process(cat1, cat2, cat3)
+    ggg.process(cat1, cat2, cat3, patch_method='local')
     np.testing.assert_allclose(ggg.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_123, rtol=1.e-4)
     np.testing.assert_allclose(ggg.gam1, true_gam1_123, rtol=1.e-4)
     np.testing.assert_allclose(ggg.gam2, true_gam2_123, rtol=1.e-4)
     np.testing.assert_allclose(ggg.gam3, true_gam3_123, rtol=1.e-4)
-    ggg.process(cat1, cat3, cat2)
+    ggg.process(cat1, cat3, cat2, patch_method='local')
     np.testing.assert_allclose(ggg.weight, true_weight_132, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_132, rtol=1.e-4)
     np.testing.assert_allclose(ggg.gam1, true_gam1_132, rtol=1.e-4)
@@ -4583,6 +4586,9 @@ def test_direct_logmultipole_cross():
     # No tests of accuracy yet, but make sure patch-based covariance works.
     cov = ggg.estimate_cov('sample')
     cov = ggg.estimate_cov('jackknife')
+
+    with assert_raises(ValueError):
+        ggg.process(cat1, cat2, cat3, patch_method='global')
 
 
 @timer

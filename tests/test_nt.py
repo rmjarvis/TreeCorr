@@ -183,6 +183,8 @@ def test_direct():
     nt6 = treecorr.NTCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins*2)
     with assert_raises(ValueError):
         nt2 += nt6
+    with assert_raises(ValueError):
+        nt.process(cat1, cat2, patch_method='nonlocal')
 
 
 

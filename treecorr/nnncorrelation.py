@@ -636,10 +636,6 @@ class NNNCorrelation(Corr3):
         if cat2 is not None and not isinstance(cat2,list): cat2 = cat2.get_patches()
         if cat3 is not None and not isinstance(cat3,list): cat3 = cat3.get_patches()
 
-        if not local and cat2 is not None and len(cat1) > 0 and self.bin_type == 'LogMultipole':
-            self.logger.warning("Using patch_method=local, since LogMultipole binning cannot use global")
-            local = True
-
         if cat2 is None:
             if cat3 is not None:
                 raise ValueError("For two catalog case, use cat1,cat2, not cat1,cat3")

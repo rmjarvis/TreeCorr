@@ -4547,27 +4547,43 @@ def test_direct_logmultipole_cross():
     np.testing.assert_allclose(ggg.gam3, true_gam3_132, rtol=1.e-4)
 
     # Split into patches to test the list-based version of the code.
+    # First with just one catalog with patches
     cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=10)
 
     ggg.process(cat1, cat2, cat3)
-    np.testing.assert_allclose(ggg.ntri, true_ntri_123, rtol=1.e-5)
     np.testing.assert_allclose(ggg.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_123, rtol=1.e-4)
     np.testing.assert_allclose(ggg.gam1, true_gam1_123, rtol=1.e-4)
     np.testing.assert_allclose(ggg.gam2, true_gam2_123, rtol=1.e-4)
     np.testing.assert_allclose(ggg.gam3, true_gam3_123, rtol=1.e-4)
+    ggg.process(cat1, cat3, cat2)
+    np.testing.assert_allclose(ggg.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_132, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_132, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_132, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_132, rtol=1.e-4)
+
+    # Now with all 3 patched.
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2, patch_centers=cat1.patch_centers)
+    cat3 = treecorr.Catalog(x=x3, y=y3, w=w3, g1=g1_3, g2=g2_3, patch_centers=cat1.patch_centers)
+
+    ggg.process(cat1, cat2, cat3)
+    np.testing.assert_allclose(ggg.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_123, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_123, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_123, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_123, rtol=1.e-4)
+    ggg.process(cat1, cat3, cat2)
+    np.testing.assert_allclose(ggg.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_132, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_132, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_132, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_132, rtol=1.e-4)
 
     # No tests of accuracy yet, but make sure patch-based covariance works.
     cov = ggg.estimate_cov('sample')
+    cov = ggg.estimate_cov('jackknife')
 
-    with assert_raises(ValueError):
-        ggg.process(cat1, cat2, cat3, ordered=False)
-    with assert_raises(ValueError):
-        ggg.process(cat2, cat1, cat3, ordered=True)
-    with assert_raises(ValueError):
-        ggg.process(cat2, cat3, cat1, ordered=True)
-    with assert_raises(ValueError):
-        ggg.process(cat1, cat1, cat1, ordered=True)
 
 @timer
 def test_direct_logmultipole_cross12():
@@ -4669,6 +4685,7 @@ def test_direct_logmultipole_cross12():
     np.testing.assert_allclose(ggg.gam3, true_gam3_122, rtol=1.e-4)
 
     # Split into patches to test the list-based version of the code.
+    # First with just one catalog with patches
     cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=4)
 
     ggg.process(cat1, cat2)
@@ -4679,17 +4696,18 @@ def test_direct_logmultipole_cross12():
     np.testing.assert_allclose(ggg.gam2, true_gam2_122, rtol=1.e-4)
     np.testing.assert_allclose(ggg.gam3, true_gam3_122, rtol=1.e-4)
 
+    # Now with both patched.
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2, patch_centers=cat1.patch_centers)
+    ggg.process(cat1, cat2)
+    np.testing.assert_allclose(ggg.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_122, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_122, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_122, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_122, rtol=1.e-4)
+
     # No tests of accuracy yet, but make sure patch-based covariance works.
     cov = ggg.estimate_cov('sample')
-
-    with assert_raises(ValueError):
-        ggg.process(cat2, cat1, cat2, ordered=True)
-    with assert_raises(ValueError):
-        ggg.process(cat2, cat2, cat1, ordered=True)
-    with assert_raises(ValueError):
-        ggg.process(cat1, cat2, ordered=False)
-    with assert_raises(ValueError):
-        ggg.process(cat2, cat1, ordered=True)
+    cov = ggg.estimate_cov('jackknife')
 
 @timer
 def test_map3_logmultipole():

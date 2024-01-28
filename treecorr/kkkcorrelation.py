@@ -590,23 +590,17 @@ class KKKCorrelation(Corr3):
         if cat3 is not None and not isinstance(cat3,list):
             cat3 = cat3.get_patches(low_mem=low_mem)
 
+        if not local and cat2 is not None and len(cat1) > 0 and self.bin_type == 'LogMultipole':
+            self.logger.warning("Using patch_method=local, since LogMultipole binning cannot use global")
+            local = True
+
         if cat2 is None:
             if cat3 is not None:
                 raise ValueError("For two catalog case, use cat1,cat2, not cat1,cat3")
             self._process_all_auto(cat1, metric, num_threads, comm, low_mem, local)
         elif cat3 is None:
-            if len(cat2) > 1 and self.bin_type == 'LogMultipole':
-                raise ValueError("Multipole algorithm cannot be used when cat2 is a list.")
-            if len(cat1) > 1 and self.bin_type == 'LogMultipole' and not ordered:
-                raise ValueError("Multipole algorithm cannot be used when cat1 is a list and ordered=False.")
             self._process_all_cross12(cat1, cat2, metric, ordered, num_threads, comm, low_mem, local)
         else:
-            if len(cat2) > 1 and self.bin_type == 'LogMultipole':
-                raise ValueError("Multipole algorithm cannot be used when cat2 is a list.")
-            if len(cat3) > 1 and self.bin_type == 'LogMultipole':
-                raise ValueError("Multipole algorithm cannot be used when cat3 is a list.")
-            if len(cat1) > 1 and self.bin_type == 'LogMultipole' and not ordered:
-                raise ValueError("Multipole algorithm cannot be used when cat1 is a list and ordered=False.")
             self._process_all_cross(cat1, cat2, cat3, metric, ordered, num_threads, comm, low_mem, local)
 
         if finalize:

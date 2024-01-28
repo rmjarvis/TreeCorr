@@ -1270,7 +1270,7 @@ class Catalog(object):
         self.logger.info("   nobj = %d",self.nobj)
 
     @classmethod
-    def combine(cls, cat_list, mask_list=None):
+    def combine(cls, cat_list, *, mask_list=None, low_mem=False):
         """Combine several Catalogs into a single larger Catalog
 
         If desired, one can also specify a mask for each of the input catalogs, which will
@@ -1279,9 +1279,11 @@ class Catalog(object):
         All the Catalog must have the same columns defined (e.g. ra, dec, x, y, k, g1, g2, etc.)
 
         Parameters:
-            cat_list:   A list of Catalog instances to combine.
-            mask_list:  (optional) Which objects to take from each Catalog.  If given, it must
-                        be a list of the same length as cat_list. (default: None)
+            cat_list:       A list of Catalog instances to combine.
+            mask_list:      (optional) Which objects to take from each Catalog.  If given, it must
+                            be a list of the same length as cat_list. (default: None)
+            low_mem (bool): Whether to try to leave the catalogs in cat_list unloaded if they
+                            started out that way to keep total memory down. (default: False)
 
         Returns:
             combined_cat
@@ -1290,29 +1292,48 @@ class Catalog(object):
             raise ValueError("cat_list cannot be empty")
         if mask_list is not None and len(mask_list) != len(cat_list):
             raise ValueError("mask_list not the same length as cat_list")
+
         # Use the characteristics of the first catalog to decide which columns to generate.
-        cat0 = cat_list[0]
-        cat0.load()
-        check_wpos = cat0._wpos if cat0._wpos is not None else cat0._w
+        cat = cat_list[0]
+        loaded = cat.loaded
+        cat.load()
+        check_wpos = cat._wpos if cat._wpos is not None else cat._w
         kwargs = dict(keep_zero_weight=np.any(check_wpos==0))
-        if cat0.ra is not None:
+        if cat.ra is not None:
             kwargs['ra_units'] = 'rad'
             kwargs['dec_units'] = 'rad'
             kwargs['allow_xyz'] = True
-        for key in ['_x', '_y', '_z', '_ra', '_dec', '_r', '_w', '_wpos',
-                    '_k', '_v1', '_v2', '_g1', '_g2', '_t1', '_t2', '_q1', '_q2']:
-            if getattr(cat0, key) is not None:
-                ar_list = []
-                for i,c in enumerate(cat_list):
-                    c.load()
-                    if getattr(c, key) is None:
-                        raise ValueError("Column %s not found in cat %d"%(key[1:],i))
-                    a = getattr(c,key)
-                    if mask_list is not None:
-                        a = a[mask_list[i]]
-                    ar_list.append(a)
-                ar = np.concatenate(ar_list)
-                kwargs[key[1:]] = ar
+        keys = []
+        for key in ['x', 'y', 'z', 'ra', 'dec', 'r', 'w', 'wpos',
+                    'k', 'v1', 'v2', 'g1', 'g2', 't1', 't2', 'q1', 'q2']:
+            if getattr(cat, key) is not None:
+                a = getattr(cat,key)
+                if mask_list is not None:
+                    a = a[mask_list[0]]
+                # Start these as lists, which we'll concatenate once we have them all.
+                kwargs[key] = [a]
+                keys.append(key)
+        if not loaded and low_mem:
+            cat.unload()
+
+        # Add data from the rest of the catalogs to the array lists
+        for i,cat in enumerate(cat_list):
+            if i == 0: continue
+            loaded = cat.loaded
+            cat.load()
+            for key in keys:  # These are now just the ones that were in cat0.
+                if getattr(cat, key) is None:
+                    raise ValueError("Column %s not found in cat %d"%(key,i))
+                a = getattr(cat,key)
+                if mask_list is not None:
+                    a = a[mask_list[i]]
+                kwargs[key].append(a)
+            if not loaded and low_mem:
+                cat.unload()
+
+        # Concatenate the arrays.
+        for key in keys:
+            kwargs[key] = np.concatenate(kwargs[key])
         return Catalog(**kwargs)
 
     def _assign_patches(self):

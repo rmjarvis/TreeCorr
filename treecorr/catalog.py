@@ -1841,12 +1841,9 @@ class Catalog(object):
                     s = s[use]
                 elif s == slice(None):
                     s = use
-                elif isinstance(use, np.ndarray):
+                else:
                     end1 = np.max(use)*s.step+s.start+1
                     s = np.arange(s.start, end1, s.step)[use]
-                else:
-                    # If use isn't an ndarray, it's slice(None), in which case, just use s as is.
-                    assert use == slice(None)
                 self._patch = None
                 data = {}  # Start fresh, since the ones we used so far are done.
 

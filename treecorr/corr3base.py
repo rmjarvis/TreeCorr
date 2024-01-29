@@ -1385,10 +1385,7 @@ class Corr3(object):
                         else:
                             raise '14'
                         if low_mem:
-                            raise '15'
                             c1.unload()
-                    else:
-                        raise '7'
                 if not ordered:
                     # local method doesn't do unordered properly as is.
                     # It can only handle ordered=1 or 3.

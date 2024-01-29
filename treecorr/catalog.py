@@ -675,6 +675,7 @@ class Catalog(object):
         self._varq = None
         self._patches = None
         self._centers = None
+        self._computed_centers = None
         self._rng = rng
 
         first_row = get_from_list(self.config,'first_row',num,int,1)
@@ -1840,9 +1841,12 @@ class Catalog(object):
                     s = s[use]
                 elif s == slice(None):
                     s = use
-                else:
-                    end1 = np.max(use)+s.start+1
+                elif isinstance(use, np.ndarray):
+                    end1 = np.max(use)*s.step+s.start+1
                     s = np.arange(s.start, end1, s.step)[use]
+                else:
+                    # If use isn't an ndarray, it's slice(None), in which case, just use s as is.
+                    assert use == slice(None)
                 self._patch = None
                 data = {}  # Start fresh, since the ones we used so far are done.
 
@@ -2332,32 +2336,37 @@ class Catalog(object):
         if self._centers is not None:
             return self._centers
 
-        self.load()
-        if self._patch is None:
-            if self.coords == 'flat':
-                self._centers = np.array([[self._weighted_mean(self.x),
-                                           self._weighted_mean(self.y)]])
-            else:
-                self._centers = np.array([[self._weighted_mean(self.x),
-                                           self._weighted_mean(self.y),
-                                           self._weighted_mean(self.z)]])
-        else:
-            self._centers = np.empty((self.npatch,2 if self.z is None else 3))
-            for p in range(self.npatch):
-                indx = np.where(self.patch == p)[0]
-                if len(indx) == 0:
-                    raise RuntimeError("Cannot find center for patch %s."%p +
-                                       "  No items with this patch number")
+        # Distinguish between the origianl patch centers we got on input (self._centers)
+        # and the centers we find from the data by averaging the position in each patch
+        # (self._computed_centers).  There are times that we only want the former.
+        if self._computed_centers is None:
+            self.load()
+            if self._patch is None:
                 if self.coords == 'flat':
-                    self._centers[p] = [self._weighted_mean(self.x,indx),
-                                        self._weighted_mean(self.y,indx)]
+                    centers = np.array([[self._weighted_mean(self.x),
+                                        self._weighted_mean(self.y)]])
                 else:
-                    self._centers[p] = [self._weighted_mean(self.x,indx),
-                                        self._weighted_mean(self.y,indx),
-                                        self._weighted_mean(self.z,indx)]
-        if self.coords == 'spherical':
-            self._centers /= np.sqrt(np.sum(self._centers**2,axis=1))[:,np.newaxis]
-        return self._centers
+                    centers = np.array([[self._weighted_mean(self.x),
+                                        self._weighted_mean(self.y),
+                                        self._weighted_mean(self.z)]])
+            else:
+                centers = np.empty((self.npatch,2 if self.z is None else 3))
+                for p in range(self.npatch):
+                    indx = np.where(self.patch == p)[0]
+                    if len(indx) == 0:
+                        raise RuntimeError("Cannot find center for patch %s."%p +
+                                        "  No items with this patch number")
+                    if self.coords == 'flat':
+                        centers[p] = [self._weighted_mean(self.x,indx),
+                                    self._weighted_mean(self.y,indx)]
+                    else:
+                        centers[p] = [self._weighted_mean(self.x,indx),
+                                    self._weighted_mean(self.y,indx),
+                                    self._weighted_mean(self.z,indx)]
+            if self.coords == 'spherical':
+                centers /= np.sqrt(np.sum(centers**2,axis=1))[:,np.newaxis]
+            self._computed_centers = centers
+        return self._computed_centers
 
     def write_patch_centers(self, file_name):
         """Write the patch centers to a file.
@@ -2463,7 +2472,8 @@ class Catalog(object):
             self._patch = None
             if self._patches is not None:
                 for p in self._patches:
-                    p.unload()
+                    if p is not self:
+                        p.unload()
         self.clear_cache()
 
     def get_patch_file_names(self, save_patch_dir):
@@ -2624,9 +2634,8 @@ class Catalog(object):
             else:
                 # This triggers a load of the current catalog, but no choice here.
                 patch_set = sorted(set(self.patch))
-            centers = self._centers if self._patch is None else None
             self._patches = [Catalog(config=self.config, file_name=self.file_name,
-                                     patch=i, npatch=self.npatch, patch_centers=centers)
+                                     patch=i, npatch=self.npatch, patch_centers=self._centers)
                              for i in patch_set]
         else:
             patch_set = sorted(set(self.patch))

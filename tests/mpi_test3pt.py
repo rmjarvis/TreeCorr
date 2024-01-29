@@ -42,7 +42,7 @@ def setup():
         part_cat.write_patch_centers(patch_file)
         del part_cat
 
-def do_mpi_corr(comm, Correlation, cross, attr, output=True):
+def do_mpi_corr(comm, Correlation, cross, attr, output=True, patch_method='auto', low_mem=False):
     rank = comm.Get_rank()
     size = comm.Get_size()
     file_name = os.path.join('data','Aardvark.fit')
@@ -71,11 +71,11 @@ def do_mpi_corr(comm, Correlation, cross, attr, output=True):
         # Limit to fairly small nearly equilateral triangles.
         corr0 = Correlation(config)
         if cross == 0:
-            corr0.process(cat)
+            corr0.process(cat, patch_method=patch_method, low_mem=low_mem)
         elif cross == 1:
-            corr0.process(cat, cat)
+            corr0.process(cat, cat, patch_method=patch_method, low_mem=low_mem)
         else:
-            corr0.process(cat, cat, cat)
+            corr0.process(cat, cat, cat, patch_method=patch_method, low_mem=low_mem)
 
     t1 = time.time()
     comm.Barrier()
@@ -92,13 +92,13 @@ def do_mpi_corr(comm, Correlation, cross, attr, output=True):
     # To use the multiple process, just pass comm to the process command.
     if cross == 0:
         corr1.logger.info('cross=0')
-        corr1.process(cat, comm=comm)
+        corr1.process(cat, comm=comm, patch_method=patch_method, low_mem=low_mem)
     elif cross == 1:
         corr1.logger.info('cross=1')
-        corr1.process(cat, cat, comm=comm)
+        corr1.process(cat, cat, comm=comm, patch_method=patch_method, low_mem=low_mem)
     else:
         corr1.logger.info('cross=2')
-        corr1.process(cat, cat, cat, comm=comm)
+        corr1.process(cat, cat, cat, comm=comm, patch_method=patch_method, low_mem=low_mem)
     t2 = time.time()
     comm.Barrier()
     if output:
@@ -112,7 +112,7 @@ def do_mpi_corr(comm, Correlation, cross, attr, output=True):
         for a in attr:
             np.testing.assert_allclose(getattr(corr0,a), getattr(corr1,a))
 
-def do_mpi_corr2(comm, Correlation, cross, attr, output=True):
+def do_mpi_corr2(comm, Correlation, cross, attr, output=True, patch_method='global', low_mem=False):
     # Repeat cross correlations where one of the catalogs doesn't use patches.
 
     rank = comm.Get_rank()
@@ -142,15 +142,17 @@ def do_mpi_corr2(comm, Correlation, cross, attr, output=True):
     if rank == 0:
         corr0 = Correlation(config)
         if cross == 0:
-            corr0.process(cat1, cat2)
+            corr0.process(cat1, cat2, patch_method=patch_method, low_mem=low_mem)
         elif cross == 1:
-            corr0.process(cat2, cat1)
+            corr0.process(cat2, cat1, patch_method=patch_method, low_mem=low_mem)
         elif cross == 2:
-            corr0.process(cat1, cat2, cat2)
+            corr0.process(cat1, cat2, cat2, patch_method=patch_method, low_mem=low_mem)
         elif cross == 3:
-            corr0.process(cat2, cat1, cat2)
+            corr0.process(cat2, cat1, cat2, patch_method=patch_method, low_mem=low_mem)
+        elif cross == 4:
+            corr0.process(cat2, cat2, cat1, patch_method=patch_method, low_mem=low_mem)
         else:
-            corr0.process(cat2, cat2, cat1)
+            corr0.process(cat1, cat2, ordered=False, patch_method=patch_method, low_mem=low_mem)
 
     t1 = time.time()
     comm.Barrier()
@@ -166,15 +168,17 @@ def do_mpi_corr2(comm, Correlation, cross, attr, output=True):
 
     # To use the multiple process, just pass comm to the process command.
     if cross == 0:
-        corr1.process(cat1, cat2, comm=comm)
+        corr1.process(cat1, cat2, comm=comm, patch_method=patch_method, low_mem=low_mem)
     elif cross == 1:
-        corr1.process(cat2, cat1, comm=comm)
+        corr1.process(cat2, cat1, comm=comm, patch_method=patch_method, low_mem=low_mem)
     elif cross == 2:
-        corr1.process(cat1, cat2, cat2, comm=comm)
+        corr1.process(cat1, cat2, cat2, comm=comm, patch_method=patch_method, low_mem=low_mem)
     elif cross == 3:
-        corr1.process(cat2, cat1, cat2, comm=comm)
+        corr1.process(cat2, cat1, cat2, comm=comm, patch_method=patch_method, low_mem=low_mem)
+    elif cross == 4:
+        corr1.process(cat2, cat2, cat1, comm=comm, patch_method=patch_method, low_mem=low_mem)
     else:
-        corr1.process(cat2, cat2, cat1, comm=comm)
+        corr1.process(cat1, cat2, ordered=False, comm=comm, patch_method=patch_method, low_mem=low_mem)
     t2 = time.time()
     comm.Barrier()
     if output:
@@ -190,11 +194,26 @@ def do_mpi_corr2(comm, Correlation, cross, attr, output=True):
 
 def do_mpi_ggg(comm, output=True):
     do_mpi_corr(comm, treecorr.GGGCorrelation, 0, ['ntri', 'gam0', 'gam1', 'gam2', 'gam3'], output)
+    do_mpi_corr(comm, treecorr.GGGCorrelation, 0, ['ntri', 'gam0', 'gam1', 'gam2', 'gam3'], output,
+                'local')
+    do_mpi_corr(comm, treecorr.GGGCorrelation, 0, ['ntri', 'gam0', 'gam1', 'gam2', 'gam3'], output,
+                'global', True)
+    do_mpi_corr(comm, treecorr.GGGCorrelation, 0, ['ntri', 'gam0', 'gam1', 'gam2', 'gam3'], output,
+                'local', True)
 
 def do_mpi_kkk(comm, output=True):
     do_mpi_corr(comm, treecorr.KKKCorrelation, 0, ['ntri', 'zeta'], output)
     do_mpi_corr(comm, treecorr.KKKCorrelation, 1, ['ntri', 'zeta'], output)
     do_mpi_corr(comm, treecorr.KKKCorrelation, 2, ['ntri', 'zeta'], output)
+    do_mpi_corr(comm, treecorr.KKKCorrelation, 0, ['ntri', 'zeta'], output, 'local')
+    do_mpi_corr(comm, treecorr.KKKCorrelation, 1, ['ntri', 'zeta'], output, 'local')
+    do_mpi_corr(comm, treecorr.KKKCorrelation, 2, ['ntri', 'zeta'], output, 'local')
+    do_mpi_corr(comm, treecorr.KKKCorrelation, 0, ['ntri', 'zeta'], output, 'global', True)
+    do_mpi_corr(comm, treecorr.KKKCorrelation, 1, ['ntri', 'zeta'], output, 'global', True)
+    do_mpi_corr(comm, treecorr.KKKCorrelation, 2, ['ntri', 'zeta'], output, 'global', True)
+    do_mpi_corr(comm, treecorr.KKKCorrelation, 0, ['ntri', 'zeta'], output, 'local', True)
+    do_mpi_corr(comm, treecorr.KKKCorrelation, 1, ['ntri', 'zeta'], output, 'local', True)
+    do_mpi_corr(comm, treecorr.KKKCorrelation, 2, ['ntri', 'zeta'], output, 'local', True)
 
 def do_mpi_kkk2(comm, output=True):
     do_mpi_corr2(comm, treecorr.KKKCorrelation, 0, ['ntri', 'zeta'], output)
@@ -202,6 +221,25 @@ def do_mpi_kkk2(comm, output=True):
     do_mpi_corr2(comm, treecorr.KKKCorrelation, 2, ['ntri', 'zeta'], output)
     do_mpi_corr2(comm, treecorr.KKKCorrelation, 3, ['ntri', 'zeta'], output)
     do_mpi_corr2(comm, treecorr.KKKCorrelation, 4, ['ntri', 'zeta'], output)
+    do_mpi_corr2(comm, treecorr.KKKCorrelation, 5, ['ntri', 'zeta'], output)
+    do_mpi_corr2(comm, treecorr.KKKCorrelation, 0, ['ntri', 'zeta'], output, 'local')
+    do_mpi_corr2(comm, treecorr.KKKCorrelation, 1, ['ntri', 'zeta'], output, 'local')
+    do_mpi_corr2(comm, treecorr.KKKCorrelation, 2, ['ntri', 'zeta'], output, 'local')
+    do_mpi_corr2(comm, treecorr.KKKCorrelation, 3, ['ntri', 'zeta'], output, 'local')
+    do_mpi_corr2(comm, treecorr.KKKCorrelation, 4, ['ntri', 'zeta'], output, 'local')
+    do_mpi_corr2(comm, treecorr.KKKCorrelation, 5, ['ntri', 'zeta'], output, 'local')
+    do_mpi_corr2(comm, treecorr.KKKCorrelation, 0, ['ntri', 'zeta'], output, 'global', True)
+    do_mpi_corr2(comm, treecorr.KKKCorrelation, 1, ['ntri', 'zeta'], output, 'global', True)
+    do_mpi_corr2(comm, treecorr.KKKCorrelation, 2, ['ntri', 'zeta'], output, 'global', True)
+    do_mpi_corr2(comm, treecorr.KKKCorrelation, 3, ['ntri', 'zeta'], output, 'global', True)
+    do_mpi_corr2(comm, treecorr.KKKCorrelation, 4, ['ntri', 'zeta'], output, 'global', True)
+    do_mpi_corr2(comm, treecorr.KKKCorrelation, 5, ['ntri', 'zeta'], output, 'global', True)
+    do_mpi_corr2(comm, treecorr.KKKCorrelation, 0, ['ntri', 'zeta'], output, 'local', True)
+    do_mpi_corr2(comm, treecorr.KKKCorrelation, 1, ['ntri', 'zeta'], output, 'local', True)
+    do_mpi_corr2(comm, treecorr.KKKCorrelation, 2, ['ntri', 'zeta'], output, 'local', True)
+    do_mpi_corr2(comm, treecorr.KKKCorrelation, 3, ['ntri', 'zeta'], output, 'local', True)
+    do_mpi_corr2(comm, treecorr.KKKCorrelation, 4, ['ntri', 'zeta'], output, 'local', True)
+    do_mpi_corr2(comm, treecorr.KKKCorrelation, 5, ['ntri', 'zeta'], output, 'local', True)
 
 if __name__ == '__main__':
     from mpi4py import MPI

@@ -4766,13 +4766,11 @@ def test_map3_logmultipole():
 
     # Skip the lowest r values, to make sure the integral has s and t values sufficiently
     # smaller than R for the integral to come out right.
-    # Interestingly, with the multpole method, we don't need to scale up the true_map
-    # by the (1+5r0/L) factor to get the middle values right like we did in test_map3_logsas.
-    # But we need to cut out more low R values to get to the ones where rtol=0.1 works.
-    # And the B-mode values are noisier, so I had to increase the tolerance for those tests.
-    r = ggg.rnom1d[14:]
+    r = ggg.rnom1d[7:]
     print('r = ',r)
     true_map3 = 2816./243. *np.pi * gamma0**3 * r0**12 * r**6 / (L**2 * (r**2+r0**2)**8)
+    true_map3 *= (1+5*r0/L)  # cf. comment in test_map3_logsas
+    print('scale true_map3 by ',1+5*r0/L)
     print('true map3 = ',true_map3)
 
     ggg_map3 = ggg.calculateMap3(R=r)
@@ -4785,9 +4783,7 @@ def test_map3_logmultipole():
     print('max diff = ',max(abs(map3 - true_map3)))
     np.testing.assert_allclose(map3, true_map3, rtol=0.1, atol=2.e-9)
     for mx in (mapmapmx, mapmxmap, mxmapmap, mxmxmap, mxmapmx, mapmxmx, mx3):
-        #print('mx = ',mx)
-        #print('max = ',max(abs(mx)))
-        np.testing.assert_allclose(mx, 0., atol=4.e-9)
+        np.testing.assert_allclose(mx, 0., atol=2.e-9)
 
     # Target the range where we expect good results.
     # This is the same as we had for the regular LogSAS tests.  Both methods work well here.

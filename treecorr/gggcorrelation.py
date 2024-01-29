@@ -816,17 +816,19 @@ class GGGCorrelation(Corr3):
         # p3 is on the x axis:
         # s = p3 - p1
         # t = p2 - p1
+        # u = angle bisector of s, t
         # q1 = (s+t)/3.  (this is the centroid)
         # q2 = q1-t
         # q3 = q1-s
         s = sas.meand2
         t = sas.meand3 * np.exp(1j * sas.meanphi * sas._phi_units)
+        u = (1 + t/np.abs(t))/2
         q1 = (s+t)/3.
         q2 = q1-t
         q3 = q1-s
 
         # Currently the projection is as follows:
-        # g1 is projected along q1
+        # g1 is projected along u
         # g2 is projected along t
         # g3 is projected along s
         #
@@ -836,22 +838,25 @@ class GGGCorrelation(Corr3):
         # g3 projected along q3
         #
         # The phases to multiply by are exp(2iphi_current) * exp(-2iphi_target). I.e.
-        # g1phase = 1
+        # g1phase = (u conj(q1))**2 / |u conj(q1)|**2
         # g2phase = (t conj(q2))**2 / |t conj(q2)|**2
         # g3phase = (s conj(q3))**2 / |s conj(q3)|**2
+        g1phase = (u * np.conj(q1))**2
         g2phase = (t * np.conj(q2))**2
         g3phase = (s * np.conj(q3))**2
+        g1phase /= np.abs(g1phase)
         g2phase /= np.abs(g2phase)
         g3phase /= np.abs(g3phase)
 
         # Now just multiply each gam by the appropriate combination of phases.
-        # Note: gam0,1 have the same phase correction and gam2,3 are just conjuagates.
-        gam0phase = g2phase * g3phase
-        gam2phase = np.conj(g2phase) * g3phase
+        gam0phase = g1phase * g2phase * g3phase
+        gam1phase = np.conj(g1phase) * g2phase * g3phase
+        gam2phase = g1phase * np.conj(g2phase) * g3phase
+        gam3phase = g1phase * g2phase * np.conj(g3phase)
         gam0 *= gam0phase
-        gam1 *= gam0phase
+        gam1 *= gam1phase
         gam2 *= gam2phase
-        gam3 *= np.conj(gam2phase)
+        gam3 *= gam3phase
 
         sas.gam0r = np.real(gam0)
         sas.gam0i = np.imag(gam0)

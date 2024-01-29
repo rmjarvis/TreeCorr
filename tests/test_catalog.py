@@ -2604,8 +2604,6 @@ def test_combine():
 
 
 if __name__ == '__main__':
-    test_combine()
-    quit()
     test_ascii()
     test_fits()
     test_hdf5()

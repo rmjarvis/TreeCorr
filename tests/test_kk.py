@@ -298,7 +298,7 @@ def test_direct_spherical():
 
     # Split into patches to test the list-based version of the code.
     cat1p = treecorr.Catalog(ra=ra1, dec=dec1, ra_units='rad', dec_units='rad', w=w1, k=k1,
-                             npatch=12, rng=rng)
+                             npatch=30, rng=rng)
     cat2p = treecorr.Catalog(ra=ra2, dec=dec2, ra_units='rad', dec_units='rad', w=w2, k=k2,
                              patch_centers=cat1p.patch_centers)
     kk2 = treecorr.KKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,

@@ -125,6 +125,25 @@ def test_cat_patches():
         assert cata.get_patches(low_mem=False) == [cata]
         assert catb.get_patches(low_mem=True) == [catb]
 
+    # Read a single patch from a file with only one patch.
+    file_name0 = os.path.join('output','test_cat_patch0.dat')
+    p = cat5.patches[0]
+    p._patch = np.zeros(p.ntot, dtype=int)
+    p.write(file_name0)
+    cat5a = treecorr.Catalog(file_name0, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
+                             patch_col=3, patch=0)
+    assert cat5a.patch == 0
+    assert cat5a.ntot == cat5.patches[0].ntot
+    np.testing.assert_allclose(cat5a.ra, cat5.patches[0].ra)
+    np.testing.assert_allclose(cat5a.dec, cat5.patches[0].dec)
+
+    cat5b = treecorr.Catalog(file_name0, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
+                             patch_col=3, patch=0, last_row=6)
+    assert cat5b.patch == 0
+    assert cat5b.ntot == 6
+    np.testing.assert_allclose(cat5b.ra, cat5.patches[0].ra[:6])
+    np.testing.assert_allclose(cat5b.dec, cat5.patches[0].dec[:6])
+
     # Patches start in an unloaded state (by default)
     cat5b = treecorr.Catalog(file_name5, ra_col=1, dec_col=2, ra_units='rad', dec_units='rad',
                              patch_col=3)

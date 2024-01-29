@@ -686,11 +686,11 @@ class Corr2(object):
     def _single_process12(self, c1, c2, ij, metric, num_threads, temp, force_write=False):
         # Helper function for _process_all_auto and _process_cross for doing cross pairs.
         temp._clear()
-        if not self._trivially_zero(c1, c2):
+        if c2 is not None and not self._trivially_zero(c1, c2):
             temp.process_cross(c1, c2, metric=metric, num_threads=num_threads)
         else:
             self.logger.info('Skipping %s pair, which are too far apart ' +
-                            'for this set of separations',ij)
+                             'for this set of separations',ij)
         if temp.nonzero or force_write:
             if ij in self.results and self.results[ij].nonzero:
                 self.results[ij] += temp
@@ -863,9 +863,8 @@ class Corr2(object):
                     i = c1._single_patch if c1._single_patch is not None else ii
                     if is_my_job(my_indices, i, i, n1, n2):
                         c2e = self._make_expanded_patch(c1, cat2, metric, low_mem)
-                        if c2e is not None:
-                            self.logger.info('Process patch %d with surrounding local patches',i)
-                            self._single_process12(c1, c2e, (i,i), metric, num_threads, temp, True)
+                        self.logger.info('Process patch %d with surrounding local patches',i)
+                        self._single_process12(c1, c2e, (i,i), metric, num_threads, temp, True)
                         if low_mem:
                             c1.unload()
             else:

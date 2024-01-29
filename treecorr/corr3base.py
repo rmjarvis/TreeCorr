@@ -1031,7 +1031,7 @@ class Corr3(object):
         # Helper function for _process_all_auto, etc. for doing 12 cross pairs
         temp._clear()
 
-        if not self._trivially_zero(c1,c2,c2):
+        if c2 is not None and not self._trivially_zero(c1,c2,c2):
             self.logger.info('Process patches %s cross12',ijj)
             temp.process_cross12(c1, c2, metric=metric, ordered=ordered, num_threads=num_threads)
         else:
@@ -1051,7 +1051,7 @@ class Corr3(object):
         # Helper function for _process_all_auto, etc. for doing 123 cross triples
         temp._clear()
 
-        if not self._trivially_zero(c1,c2,c3):
+        if c2 is not None and c3 is not None and not self._trivially_zero(c1,c2,c3):
             self.logger.info('Process patches %s cross',ijk)
             temp.process_cross(c1, c2, c3, metric=metric, ordered=ordered, num_threads=num_threads)
         else:
@@ -1256,10 +1256,9 @@ class Corr3(object):
                     i = c1._single_patch if c1._single_patch is not None else ii
                     if is_my_job(my_indices, i, i, i, n1, n2):
                         c2e = self._make_expanded_patch(c1, cat2, metric, low_mem)
-                        if c2e is not None:
-                            self.logger.info('Process patch %d with surrounding local patches',i)
-                            self._single_process12(c1, c2e, (i,i,i), metric, 1,
-                                                   num_threads, temp, True)
+                        self.logger.info('Process patch %d with surrounding local patches',i)
+                        self._single_process12(c1, c2e, (i,i,i), metric, 1,
+                                               num_threads, temp, True)
                         if low_mem:
                             c1.unload()
                 if not ordered:
@@ -1271,10 +1270,9 @@ class Corr3(object):
                         if is_my_job(my_indices, i, i, i, n1, n2):
                             c1e = self._make_expanded_patch(c2, cat1, metric, low_mem)
                             c2e = self._make_expanded_patch(c2, cat2, metric, low_mem)
-                            if c1e is not None and c2e is not None:
-                                self.logger.info('Process patch %d from cat2 with surrounding local patches',i)
-                                self._single_process123(c2, c1e, c2e, (i,i,i), metric, 1,
-                                                        num_threads, temp, True)
+                            self.logger.info('Process patch %d from cat2 with surrounding local patches',i)
+                            self._single_process123(c2, c1e, c2e, (i,i,i), metric, 1,
+                                                    num_threads, temp, True)
                             if low_mem:
                                 c2.unload()
             else:
@@ -1377,13 +1375,10 @@ class Corr3(object):
                     if is_my_job(my_indices, i, i, i, n1, n2, n3):
                         c2e = self._make_expanded_patch(c1, cat2, metric, low_mem)
                         c3e = self._make_expanded_patch(c1, cat3, metric, low_mem)
-                        if c2e is not None and c3e is not None:
-                            self.logger.info('Process patch %d with surrounding local patches',i)
-                            self._single_process123(c1, c2e, c3e, (i,i,i), metric,
-                                                    1 if not ordered else ordered,
-                                                    num_threads, temp, True)
-                        else:
-                            raise '14'
+                        self.logger.info('Process patch %d with surrounding local patches',i)
+                        self._single_process123(c1, c2e, c3e, (i,i,i), metric,
+                                                1 if not ordered else ordered,
+                                                num_threads, temp, True)
                         if low_mem:
                             c1.unload()
                 if not ordered:
@@ -1395,10 +1390,9 @@ class Corr3(object):
                         if is_my_job(my_indices, i, i, i, n1, n2, n3):
                             c1e = self._make_expanded_patch(c2, cat1, metric, low_mem)
                             c3e = self._make_expanded_patch(c2, cat3, metric, low_mem)
-                            if c1e is not None and c3e is not None:
-                                self.logger.info('Process patch %d from cat2 with surrounding local patches',i)
-                                self._single_process123(c2, c1e, c3e, (i,i,i), metric, 1,
-                                                        num_threads, temp, True)
+                            self.logger.info('Process patch %d from cat2 with surrounding local patches',i)
+                            self._single_process123(c2, c1e, c3e, (i,i,i), metric, 1,
+                                                    num_threads, temp, True)
                             if low_mem:
                                 c2.unload()
                     for ii,c3 in enumerate(cat3):
@@ -1406,10 +1400,9 @@ class Corr3(object):
                         if is_my_job(my_indices, i, i, i, n1, n2, n3):
                             c1e = self._make_expanded_patch(c3, cat1, metric, low_mem)
                             c2e = self._make_expanded_patch(c3, cat2, metric, low_mem)
-                            if c1e is not None and c2e is not None:
-                                self.logger.info('Process patch %d from cat3 with surrounding local patches',i)
-                                self._single_process123(c3, c1e, c2e, (i,i,i), metric, 1,
-                                                        num_threads, temp, True)
+                            self.logger.info('Process patch %d from cat3 with surrounding local patches',i)
+                            self._single_process123(c3, c1e, c2e, (i,i,i), metric, 1,
+                                                    num_threads, temp, True)
                             if low_mem:
                                 c3.unload()
             else:

@@ -1999,6 +1999,24 @@ def test_direct_logsas_cross12():
     np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4, atol=1.e-6)
 
+    kkk.process(cat1, cat2, patch_method='local')
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_122)
+    np.testing.assert_allclose(kkk.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_122, rtol=1.e-4, atol=1.e-6)
+    kkk.process(cat2, cat1, cat2, patch_method='local')
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_212)
+    np.testing.assert_allclose(kkk.weight, true_weight_212, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_212, rtol=1.e-4, atol=1.e-6)
+    kkk.process(cat2, cat2, cat1, patch_method='local')
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_221)
+    np.testing.assert_allclose(kkk.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_221, rtol=1.e-4, atol=1.e-6)
+
+    kkk.process(cat1, cat2, ordered=False, patch_method='local')
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4, atol=1.e-6)
+
 
 @timer
 def test_kkk_logsas():
@@ -2820,17 +2838,21 @@ def test_direct_logmultipole_cross12():
     np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4 * tol_factor)
 
     # Now with both patched.
+    # Note: patch_method=local is the default here, but specifying it is allowed.
     cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2, patch_centers=cat1.patch_centers)
-    kkk.process(cat1, cat2)
+    kkk.process(cat1, cat2, patch_method='local')
     np.testing.assert_allclose(kkk.weight, true_weight_122, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_122, rtol=1.e-4)
-    kkk.process(cat1, cat2, ordered=False)
+    kkk.process(cat1, cat2, ordered=False, patch_method='local')
     np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4)
 
     # No tests of accuracy yet, but make sure patch-based covariance works.
     cov = kkk.estimate_cov('sample')
     cov = kkk.estimate_cov('jackknife')
+
+    with assert_raises(ValueError):
+        kkk.process(cat1, cat2, patch_method='global')
 
 
 if __name__ == '__main__':

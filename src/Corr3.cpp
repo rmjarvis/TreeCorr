@@ -1486,12 +1486,11 @@ struct DirectHelper<NData,NData,NData>
             // sumww has been storing Sum (w_k)^2, which is the amount to subtract in each bin.
 
             const int i2 = k2*(maxn+1);
-            for (int n=0; n<=maxn; ++n) {
+            weight[iz22] += w1 * (std::norm(mp.Wn[i2]) - mp.sumww[k2]);
+            for (int n=1; n<=maxn; ++n) {
                 double www = w1 * (std::norm(mp.Wn[i2+n]) - mp.sumww[k2]);
                 weight[iz22+n] += www;
-                if (n > 0) {
-                    weight[iz22-n] += www;
-                }
+                weight[iz22-n] += www;
             }
             int iz23 = iz22 + step23;
             int iz32 = iz22 + step32;
@@ -1499,8 +1498,16 @@ struct DirectHelper<NData,NData,NData>
                 XAssert(iz23 == (k2 * nbins + k3) * (2*maxn+1) + maxn);
                 XAssert(iz32 == (k3 * nbins + k2) * (2*maxn+1) + maxn);
                 const int i3 = k3*(maxn+1);
-                for (int n=0; n<=maxn; ++n) {
-                    std::complex<double> www = w1 * mp.Wn[i2+n] * std::conj(mp.Wn[i3+n]);
+
+                // n=0
+                const std::complex<double> www = w1 * mp.Wn[i2] * std::conj(mp.Wn[i3]);
+                weight[iz23] += www.real();
+                weight_im[iz23] += www.imag();
+                weight[iz32] += www.real();
+                weight_im[iz32] -= www.imag();
+
+                for (int n=1; n<=maxn; ++n) {
+                    const std::complex<double> www = w1 * mp.Wn[i2+n] * std::conj(mp.Wn[i3+n]);
                     weight[iz23+n] += www.real();
                     weight_im[iz23+n] += www.imag();
                     // Given the symmetry of these, we could skip these here and copy them later,
@@ -1508,12 +1515,11 @@ struct DirectHelper<NData,NData,NData>
                     // computation, so for simplicity, just do them all here.
                     weight[iz32+n] += www.real();
                     weight_im[iz32+n] -= www.imag();
-                    if (n > 0) {
-                        weight[iz23-n] += www.real();
-                        weight_im[iz23-n] -= www.imag();
-                        weight[iz32-n] += www.real();
-                        weight_im[iz32-n] += www.imag();
-                    }
+
+                    weight[iz23-n] += www.real();
+                    weight_im[iz23-n] -= www.imag();
+                    weight[iz32-n] += www.real();
+                    weight_im[iz32-n] += www.imag();
                 }
             }
         }
@@ -1535,7 +1541,16 @@ struct DirectHelper<NData,NData,NData>
             const int i2 = k2*(maxn+1);
             for (int k3=0; k3<nbins; ++k3, iz+=step) {
                 const int i3 = k3*(maxn+1);
-                for (int n=0; n<=maxn; ++n) {
+
+                // n=0
+                std::complex<double> www = w1 * mp3.Wn[i2] * std::conj(mp2.Wn[i3]);
+                if (swap23) {
+                    www += w1 * mp2.Wn[i2] * std::conj(mp3.Wn[i3]);
+                }
+                weight[iz] += www.real();
+                weight_im[iz] += www.imag();
+
+                for (int n=1; n<=maxn; ++n) {
                     // Slighlty confusing: c2 is across from d2, so Wn2 (which used c2list)
                     // has values that correspond to d3 (distance from c1 to c2).
                     // So we use mp2.Wn with i3, but mp3.Wn with i2.
@@ -1547,10 +1562,9 @@ struct DirectHelper<NData,NData,NData>
                     }
                     weight[iz+n] += www.real();
                     weight_im[iz+n] += www.imag();
-                    if (n > 0) {
-                        weight[iz-n] += www.real();
-                        weight_im[iz-n] -= www.imag();
-                    }
+
+                    weight[iz-n] += www.real();
+                    weight_im[iz-n] -= www.imag();
                 }
             }
         }
@@ -1636,15 +1650,19 @@ struct DirectHelper<KData,KData,KData>
             // We also subtract off the sum of (w_k kappa_k)^2 for the same reason.
 
             const int i2 = k2*(maxn+1);
-            for (int n=0; n<=maxn; ++n) {
+
+            // n=0
+            weight[iz22] += w1 * (std::norm(mp.Wn[i2]) - mp.sumww[k2]);
+            zeta.zeta[iz22] += wk1 * (std::norm(mp.Gn[i2]) - mp.sumwwkk[k2]);
+
+            for (int n=1; n<=maxn; ++n) {
                 double www = w1 * (std::norm(mp.Wn[i2+n]) - mp.sumww[k2]);
                 double wwwk = wk1 * (std::norm(mp.Gn[i2+n]) - mp.sumwwkk[k2]);
                 weight[iz22+n] += www;
                 zeta.zeta[iz22+n] += wwwk;
-                if (n > 0) {
-                    weight[iz22-n] += www;
-                    zeta.zeta[iz22-n] += wwwk;
-                }
+
+                weight[iz22-n] += www;
+                zeta.zeta[iz22-n] += wwwk;
             }
             int iz23 = iz22 + step23;
             int iz32 = iz22 + step32;
@@ -1652,9 +1670,22 @@ struct DirectHelper<KData,KData,KData>
                 XAssert(iz23 == (k2 * nbins + k3) * (2*maxn+1) + maxn);
                 XAssert(iz32 == (k3 * nbins + k2) * (2*maxn+1) + maxn);
                 const int i3 = k3*(maxn+1);
-                for (int n=0; n<=maxn; ++n) {
-                    std::complex<double> www = w1 * mp.Wn[i2+n] * std::conj(mp.Wn[i3+n]);
-                    std::complex<double> wwwk = wk1 * mp.Gn[i2+n] * std::conj(mp.Gn[i3+n]);
+
+                // n=0
+                const std::complex<double> www = w1 * mp.Wn[i2] * std::conj(mp.Wn[i3]);
+                const std::complex<double> wwwk = wk1 * mp.Gn[i2] * std::conj(mp.Gn[i3]);
+                weight[iz23] += www.real();
+                weight_im[iz23] += www.imag();
+                weight[iz32] += www.real();
+                weight_im[iz32] -= www.imag();
+                zeta.zeta[iz23] += wwwk.real();
+                zeta.zeta_im[iz23] += wwwk.imag();
+                zeta.zeta[iz32] += wwwk.real();
+                zeta.zeta_im[iz32] -= wwwk.imag();
+
+                for (int n=1; n<=maxn; ++n) {
+                    const std::complex<double> www = w1 * mp.Wn[i2+n] * std::conj(mp.Wn[i3+n]);
+                    const std::complex<double> wwwk = wk1 * mp.Gn[i2+n] * std::conj(mp.Gn[i3+n]);
                     weight[iz23+n] += www.real();
                     weight_im[iz23+n] += www.imag();
                     weight[iz32+n] += www.real();
@@ -1663,16 +1694,15 @@ struct DirectHelper<KData,KData,KData>
                     zeta.zeta_im[iz23+n] += wwwk.imag();
                     zeta.zeta[iz32+n] += wwwk.real();
                     zeta.zeta_im[iz32+n] -= wwwk.imag();
-                    if (n > 0) {
-                        weight[iz23-n] += www.real();
-                        weight_im[iz23-n] -= www.imag();
-                        weight[iz32-n] += www.real();
-                        weight_im[iz32-n] += www.imag();
-                        zeta.zeta[iz23-n] += wwwk.real();
-                        zeta.zeta_im[iz23-n] -= wwwk.imag();
-                        zeta.zeta[iz32-n] += wwwk.real();
-                        zeta.zeta_im[iz32-n] += wwwk.imag();
-                    }
+
+                    weight[iz23-n] += www.real();
+                    weight_im[iz23-n] -= www.imag();
+                    weight[iz32-n] += www.real();
+                    weight_im[iz32-n] += www.imag();
+                    zeta.zeta[iz23-n] += wwwk.real();
+                    zeta.zeta_im[iz23-n] -= wwwk.imag();
+                    zeta.zeta[iz32-n] += wwwk.real();
+                    zeta.zeta_im[iz32-n] += wwwk.imag();
                 }
             }
         }
@@ -1695,7 +1725,20 @@ struct DirectHelper<KData,KData,KData>
             const int i2 = k2*(maxn+1);
             for (int k3=0; k3<nbins; ++k3, iz+=step) {
                 const int i3 = k3*(maxn+1);
-                for (int n=0; n<=maxn; ++n) {
+
+                // n=0
+                std::complex<double> www = w1 * mp3.Wn[i2] * std::conj(mp2.Wn[i3]);
+                std::complex<double> wwwk = wk1 * mp3.Gn[i2] * std::conj(mp2.Gn[i3]);
+                if (swap23) {
+                    www += w1 * mp2.Wn[i2] * std::conj(mp3.Wn[i3]);
+                    wwwk += wk1 * mp2.Gn[i2] * std::conj(mp3.Gn[i3]);
+                }
+                weight[iz] += www.real();
+                weight_im[iz] += www.imag();
+                zeta.zeta[iz] += wwwk.real();
+                zeta.zeta_im[iz] += wwwk.imag();
+
+                for (int n=1; n<=maxn; ++n) {
                     std::complex<double> www = w1 * mp3.Wn[i2+n] * std::conj(mp2.Wn[i3+n]);
                     std::complex<double> wwwk = wk1 * mp3.Gn[i2+n] * std::conj(mp2.Gn[i3+n]);
                     if (swap23) {
@@ -1706,12 +1749,11 @@ struct DirectHelper<KData,KData,KData>
                     weight_im[iz+n] += www.imag();
                     zeta.zeta[iz+n] += wwwk.real();
                     zeta.zeta_im[iz+n] += wwwk.imag();
-                    if (n > 0) {
-                        weight[iz-n] += www.real();
-                        weight_im[iz-n] -= www.imag();
-                        zeta.zeta[iz-n] += wwwk.real();
-                        zeta.zeta_im[iz-n] -= wwwk.imag();
-                    }
+
+                    weight[iz-n] += www.real();
+                    weight_im[iz-n] -= www.imag();
+                    zeta.zeta[iz-n] += wwwk.real();
+                    zeta.zeta_im[iz-n] -= wwwk.imag();
                 }
             }
         }
@@ -1916,13 +1958,16 @@ struct DirectHelper<GData,GData,GData>
             const int iw2 = k2*(maxn+1);
             const int ig2 = k2*(2*maxn+3)+maxn+1;
 
-            for (int n=0; n<=maxn; ++n) {
+            // n=0
+            weight[iz22] += w1 * (std::norm(mp.Wn[iw2]) - mp.sumww[k2]);
+
+            for (int n=1; n<=maxn; ++n) {
                 double www = w1 * (std::norm(mp.Wn[iw2+n]) - mp.sumww[k2]);
                 weight[iz22+n] += www;
-                if (n > 0) {
-                    weight[iz22-n] += www;
-                }
+                weight[iz22-n] += www;
             }
+
+#if 0
             for (int n=-maxn; n<=maxn; ++n) {
                 // These aren't quite the same as in Porth et al.
                 // Rather than rely on n-3 to rotate shears 2 and 3, we have already applied
@@ -1944,6 +1989,65 @@ struct DirectHelper<GData,GData,GData>
                 zeta.gam3r[iz22+n] += gam3.real();
                 zeta.gam3i[iz22+n] += gam3.imag();
             }
+#else
+            // Note: These formulae aren't quite the same as in Porth et al.
+            // Rather than rely on n-3 to rotate shears 2 and 3, we have already applied
+            // the right rotation when making Gn.  Now we just need n-1 to rotate g1.
+
+            // First n=0
+            const std::complex<double> g1wwgg0 = wg1 * mp.sumwwgg0[k2];
+            const std::complex<double> g1cwwgg1 = std::conj(wg1) * mp.sumwwgg1[k2];
+            const std::complex<double> g1wwgg2 = wg1 * mp.sumwwgg2[k2];
+
+            const std::complex<double> g1G2m = wg1 * mp.Gn[ig2-1];
+            const std::complex<double> g1cG2p = std::conj(wg1) * mp.Gn[ig2+1];
+
+            const std::complex<double> gam0 = g1G2m * mp.Gn[ig2-1] - g1wwgg0;
+            const std::complex<double> gam1 = g1cG2p * mp.Gn[ig2+1] - g1cwwgg1;
+            const std::complex<double> gam2 = g1G2m * std::conj(mp.Gn[ig2+1]) - g1wwgg2;
+
+            zeta.gam0r[iz22] += gam0.real();
+            zeta.gam0i[iz22] += gam0.imag();
+            zeta.gam1r[iz22] += gam1.real();
+            zeta.gam1i[iz22] += gam1.imag();
+            zeta.gam2r[iz22] += gam2.real();
+            zeta.gam2i[iz22] += gam2.imag();
+            zeta.gam3r[iz22] += gam2.real();  // gam3 = gam2 for n=0, k2=k3 case.
+            zeta.gam3i[iz22] += gam2.imag();
+
+            for (int n=1; n<=maxn; ++n) {
+                const std::complex<double> G2pp = mp.Gn[ig2+n+1];
+                const std::complex<double> G2pm = mp.Gn[ig2+n-1];
+                const std::complex<double> G2mp = mp.Gn[ig2-n+1];
+                const std::complex<double> G2mm = mp.Gn[ig2-n-1];
+
+                const std::complex<double> g1G2mm = wg1 * G2mm;
+                const std::complex<double> g1cG2pp = std::conj(wg1) * G2pp;
+
+                const std::complex<double> gam0 = g1G2mm * G2pm - g1wwgg0;
+                const std::complex<double> gam1 = g1cG2pp * G2mp - g1cwwgg1;
+                const std::complex<double> gam2 = std::conj(g1cG2pp) * G2pm - g1wwgg2;
+                const std::complex<double> gam3 = g1G2mm * std::conj(G2mp) - g1wwgg2;
+
+                zeta.gam0r[iz22+n] += gam0.real();
+                zeta.gam0i[iz22+n] += gam0.imag();
+                zeta.gam1r[iz22+n] += gam1.real();
+                zeta.gam1i[iz22+n] += gam1.imag();
+                zeta.gam2r[iz22+n] += gam2.real();
+                zeta.gam2i[iz22+n] += gam2.imag();
+                zeta.gam3r[iz22+n] += gam3.real();
+                zeta.gam3i[iz22+n] += gam3.imag();
+
+                zeta.gam0r[iz22-n] += gam0.real();
+                zeta.gam0i[iz22-n] += gam0.imag();
+                zeta.gam1r[iz22-n] += gam1.real();
+                zeta.gam1i[iz22-n] += gam1.imag();
+                zeta.gam2r[iz22-n] += gam3.real();
+                zeta.gam2i[iz22-n] += gam3.imag();
+                zeta.gam3r[iz22-n] += gam2.real();
+                zeta.gam3i[iz22-n] += gam2.imag();
+            }
+#endif
 
             int iz23 = iz22 + step23;
             int iz32 = iz22 + step32;
@@ -1952,18 +2056,25 @@ struct DirectHelper<GData,GData,GData>
                 XAssert(iz32 == (k3 * nbins + k2) * (2*maxn+1) + maxn);
                 const int iw3 = k3*(maxn+1);
                 const int ig3 = k3*(2*maxn+3) + maxn+1;
-                for (int n=0; n<=maxn; ++n) {
-                    std::complex<double> www = w1 * mp.Wn[iw2+n] * std::conj(mp.Wn[iw3+n]);
+
+                // n=0
+                const std::complex<double> www = w1 * mp.Wn[iw2] * std::conj(mp.Wn[iw3]);
+                weight[iz23] += www.real();
+                weight_im[iz23] += www.imag();
+                weight[iz32] += www.real();
+                weight_im[iz32] -= www.imag();
+
+                for (int n=1; n<=maxn; ++n) {
+                    const std::complex<double> www = w1 * mp.Wn[iw2+n] * std::conj(mp.Wn[iw3+n]);
                     weight[iz23+n] += www.real();
                     weight_im[iz23+n] += www.imag();
                     weight[iz32+n] += www.real();
                     weight_im[iz32+n] -= www.imag();
-                    if (n > 0) {
-                        weight[iz23-n] += www.real();
-                        weight_im[iz23-n] -= www.imag();
-                        weight[iz32-n] += www.real();
-                        weight_im[iz32-n] += www.imag();
-                    }
+
+                    weight[iz23-n] += www.real();
+                    weight_im[iz23-n] -= www.imag();
+                    weight[iz32-n] += www.real();
+                    weight_im[iz32-n] += www.imag();
                 }
 
                 // W_-n = conj(W_n), so we have only been storing n>=0.
@@ -1973,13 +2084,14 @@ struct DirectHelper<GData,GData,GData>
                 // incorporate into our expiphi factor.  It first shows up in their eqn 18.
                 // We define our projection directions such that there is no additional minus
                 // sign required to compute the Gammas.
-                //
+
+                // Notation note: What we call d2 and d3 are Theta1 and Theta2 in
+                // Porth et al.  So the ig2 factors, which refer to d2 and thus c3,
+                // correspond to G(theta_i, Theta_1) in eqns 21,23-25.  And ig3 factors
+                // correspond to G(theta_i, Theta_2).
+#if 0
                 // Since this is not symmetric w.r.t +/-n, loop from -maxn to maxn for these.
                 for (int n=-maxn; n<=maxn; ++n) {
-                    // Notation note: What we call d2 and d3 are Theta1 and Theta2 in
-                    // Porth et al.  So the ig2 factors, which refer to d2 and thus c3,
-                    // correspond to G(theta_i, Theta_1) in eqns 21,23-25.  And ig3 factors
-                    // correspond to G(theta_i, Theta_2).
                     std::complex<double> gam0 = wg1 * mp.Gn[ig2+n-1] * mp.Gn[ig3-n-1];
                     std::complex<double> gam1 = std::conj(wg1) * mp.Gn[ig2+n+1] * mp.Gn[ig3-n+1];
                     std::complex<double> gam2 = wg1 * mp.Gn[ig2+n-1] * std::conj(mp.Gn[ig3+n+1]);
@@ -2008,6 +2120,108 @@ struct DirectHelper<GData,GData,GData>
                     zeta.gam3r[iz32+n] += gam3.real();
                     zeta.gam3i[iz32+n] += gam3.imag();
                 }
+#else
+                // The above is the most straightforward way to do the calculation.
+                // However, there are some repeated bits in the complex multiplications that
+                // we can optimize by doing things out by hand.
+
+                // First n=0:
+                const std::complex<double> G2p = mp.Gn[ig2+1];
+                const std::complex<double> G2m = mp.Gn[ig2-1];
+                const std::complex<double> G3p = mp.Gn[ig3+1];
+                const std::complex<double> G3m = mp.Gn[ig3-1];
+
+                const std::complex<double> g1G2m = wg1 * G2m;
+                const std::complex<double> g1cG2p = std::conj(wg1) * G2p;
+
+                const std::complex<double> gam0 = g1G2m * G3m;
+                const std::complex<double> gam1 = g1cG2p * G3p;
+                const std::complex<double> gam2 = g1G2m * std::conj(G3p);
+                const std::complex<double> gam3 = std::conj(g1cG2p) * G3m;
+
+                zeta.gam0r[iz23] += gam0.real();
+                zeta.gam0i[iz23] += gam0.imag();
+                zeta.gam1r[iz23] += gam1.real();
+                zeta.gam1i[iz23] += gam1.imag();
+                zeta.gam2r[iz23] += gam2.real();
+                zeta.gam2i[iz23] += gam2.imag();
+                zeta.gam3r[iz23] += gam3.real();
+                zeta.gam3i[iz23] += gam3.imag();
+
+                zeta.gam0r[iz32] += gam0.real();
+                zeta.gam0i[iz32] += gam0.imag();
+                zeta.gam1r[iz32] += gam1.real();
+                zeta.gam1i[iz32] += gam1.imag();
+                zeta.gam2r[iz32] += gam3.real();
+                zeta.gam2i[iz32] += gam3.imag();
+                zeta.gam3r[iz32] += gam2.real();
+                zeta.gam3i[iz32] += gam2.imag();
+
+                // Now do +-n for n>0
+                for (int n=1; n<=maxn; ++n) {
+                    const std::complex<double> G2pp = mp.Gn[ig2+n+1];
+                    const std::complex<double> G2pm = mp.Gn[ig2+n-1];
+                    const std::complex<double> G2mp = mp.Gn[ig2-n+1];
+                    const std::complex<double> G2mm = mp.Gn[ig2-n-1];
+                    const std::complex<double> G3pp = mp.Gn[ig3+n+1];
+                    const std::complex<double> G3pm = mp.Gn[ig3+n-1];
+                    const std::complex<double> G3mp = mp.Gn[ig3-n+1];
+                    const std::complex<double> G3mm = mp.Gn[ig3-n-1];
+
+                    const std::complex<double> g1G2pm = wg1 * G2pm;
+                    const std::complex<double> g1cG2pp = std::conj(wg1) * G2pp;
+                    const std::complex<double> g1G2mpc = wg1 * std::conj(G2mp);
+                    const std::complex<double> g1G2mm = wg1 * G2mm;
+
+                    const std::complex<double> gam0p = g1G2pm * G3mm;
+                    const std::complex<double> gam1p = g1cG2pp * G3mp;
+                    const std::complex<double> gam2p = g1G2pm * std::conj(G3pp);
+                    const std::complex<double> gam3p = g1G2mpc * G3mm;
+
+                    zeta.gam0r[iz23+n] += gam0p.real();
+                    zeta.gam0i[iz23+n] += gam0p.imag();
+                    zeta.gam1r[iz23+n] += gam1p.real();
+                    zeta.gam1i[iz23+n] += gam1p.imag();
+                    zeta.gam2r[iz23+n] += gam2p.real();
+                    zeta.gam2i[iz23+n] += gam2p.imag();
+                    zeta.gam3r[iz23+n] += gam3p.real();
+                    zeta.gam3i[iz23+n] += gam3p.imag();
+
+                    // 3,2 with -n is very similar to 2,3 with +n, so can do those now too.
+                    // Just need to swap gam2 and gam3 values.
+                    zeta.gam0r[iz32-n] += gam0p.real();
+                    zeta.gam0i[iz32-n] += gam0p.imag();
+                    zeta.gam1r[iz32-n] += gam1p.real();
+                    zeta.gam1i[iz32-n] += gam1p.imag();
+                    zeta.gam2r[iz32-n] += gam3p.real();
+                    zeta.gam2i[iz32-n] += gam3p.imag();
+                    zeta.gam3r[iz32-n] += gam2p.real();
+                    zeta.gam3i[iz32-n] += gam2p.imag();
+
+                    const std::complex<double> gam0m = g1G2mm * G3pm;
+                    const std::complex<double> gam1m = std::conj(g1G2mpc) * G3pp;
+                    const std::complex<double> gam2m = std::conj(g1cG2pp) * G3pm;
+                    const std::complex<double> gam3m = g1G2mm * std::conj(G3mp);
+
+                    zeta.gam0r[iz32+n] += gam0m.real();
+                    zeta.gam0i[iz32+n] += gam0m.imag();
+                    zeta.gam1r[iz32+n] += gam1m.real();
+                    zeta.gam1i[iz32+n] += gam1m.imag();
+                    zeta.gam2r[iz32+n] += gam2m.real();
+                    zeta.gam2i[iz32+n] += gam2m.imag();
+                    zeta.gam3r[iz32+n] += gam3m.real();
+                    zeta.gam3i[iz32+n] += gam3m.imag();
+
+                    zeta.gam0r[iz23-n] += gam0m.real();
+                    zeta.gam0i[iz23-n] += gam0m.imag();
+                    zeta.gam1r[iz23-n] += gam1m.real();
+                    zeta.gam1i[iz23-n] += gam1m.imag();
+                    zeta.gam2r[iz23-n] += gam3m.real();
+                    zeta.gam2i[iz23-n] += gam3m.imag();
+                    zeta.gam3r[iz23-n] += gam2m.real();
+                    zeta.gam3i[iz23-n] += gam2m.imag();
+                }
+#endif
             }
         }
     }
@@ -2031,18 +2245,25 @@ struct DirectHelper<GData,GData,GData>
             for (int k3=0; k3<nbins; ++k3, iz+=step) {
                 const int iw3 = k3*(maxn+1);
                 const int ig3 = k3*(2*maxn+3) + maxn+1;
-                for (int n=0; n<=maxn; ++n) {
+
+                std::complex<double> www = w1 * mp3.Wn[iw2] * std::conj(mp2.Wn[iw3]);
+                if (swap23) {
+                    www += w1 * mp2.Wn[iw2] * std::conj(mp3.Wn[iw3]);
+                }
+                weight[iz] += www.real();
+                weight_im[iz] += www.imag();
+
+                for (int n=1; n<=maxn; ++n) {
                     std::complex<double> www = w1 * mp3.Wn[iw2+n] * std::conj(mp2.Wn[iw3+n]);
                     if (swap23) {
                         www += w1 * mp2.Wn[iw2+n] * std::conj(mp3.Wn[iw3+n]);
                     }
                     weight[iz+n] += www.real();
                     weight_im[iz+n] += www.imag();
-                    if (n > 0) {
-                        weight[iz-n] += www.real();
-                        weight_im[iz-n] -= www.imag();
-                    }
+                    weight[iz-n] += www.real();
+                    weight_im[iz-n] -= www.imag();
                 }
+#if 0
                 for (int n=-maxn; n<=maxn; ++n) {
                     std::complex<double> gam0 = wg1 * mp3.Gn[ig2+n-1] * mp2.Gn[ig3-n-1];
                     std::complex<double> gam1 = std::conj(wg1) * mp3.Gn[ig2+n+1] * mp2.Gn[ig3-n+1];
@@ -2063,6 +2284,118 @@ struct DirectHelper<GData,GData,GData>
                     zeta.gam3r[iz+n] += gam3.real();
                     zeta.gam3i[iz+n] += gam3.imag();
                 }
+#else
+                // There isn't as much symmetrty in this case, since we have two different
+                // Gn arrays, but there are a few intermediate values we can reuse.
+
+                // First n=0 case
+                const std::complex<double> G32p = mp3.Gn[ig2+1];
+                const std::complex<double> G32m = mp3.Gn[ig2-1];
+                const std::complex<double> G23p = mp2.Gn[ig3+1];
+                const std::complex<double> G23m = mp2.Gn[ig3-1];
+
+                const std::complex<double> g1G32m = wg1 * G32m;
+                const std::complex<double> g1cG32p = std::conj(wg1) * G32p;
+
+                std::complex<double> gam0 = g1G32m * G23m;
+                std::complex<double> gam1 = g1cG32p * G23p;
+                std::complex<double> gam2 = g1G32m * std::conj(G23p);
+                std::complex<double> gam3 = std::conj(g1cG32p) * G23m;
+
+                if (swap23) {
+                    const std::complex<double> G22p = mp2.Gn[ig2+1];
+                    const std::complex<double> G22m = mp2.Gn[ig2-1];
+                    const std::complex<double> G33p = mp3.Gn[ig3+1];
+                    const std::complex<double> G33m = mp3.Gn[ig3-1];
+
+                    const std::complex<double> g1G22m = wg1 * G22m;
+                    const std::complex<double> g1cG22p = std::conj(wg1) * G22p;
+                    gam0 += g1G22m * G33m;
+                    gam1 += g1cG22p * G33p;
+                    gam2 += g1G22m * std::conj(G33p);
+                    gam3 += std::conj(g1cG22p) * G33m;
+                }
+
+                zeta.gam0r[iz] += gam0.real();
+                zeta.gam0i[iz] += gam0.imag();
+                zeta.gam1r[iz] += gam1.real();
+                zeta.gam1i[iz] += gam1.imag();
+                zeta.gam2r[iz] += gam2.real();
+                zeta.gam2i[iz] += gam2.imag();
+                zeta.gam3r[iz] += gam3.real();
+                zeta.gam3i[iz] += gam3.imag();
+
+                // Now +-n for the rest
+                for (int n=1; n<=maxn; ++n) {
+                    const std::complex<double> G32pp = mp3.Gn[ig2+n+1];
+                    const std::complex<double> G32pm = mp3.Gn[ig2+n-1];
+                    const std::complex<double> G32mp = mp3.Gn[ig2-n+1];
+                    const std::complex<double> G32mm = mp3.Gn[ig2-n-1];
+                    const std::complex<double> G23pp = mp2.Gn[ig3+n+1];
+                    const std::complex<double> G23pm = mp2.Gn[ig3+n-1];
+                    const std::complex<double> G23mp = mp2.Gn[ig3-n+1];
+                    const std::complex<double> G23mm = mp2.Gn[ig3-n-1];
+
+                    const std::complex<double> g1G32pm = wg1 * G32pm;
+                    const std::complex<double> g1cG32pp = std::conj(wg1) * G32pp;
+                    const std::complex<double> g1G32mpc = wg1 * std::conj(G32mp);
+                    const std::complex<double> g1G32mm = wg1 * G32mm;
+
+                    std::complex<double> gam0p = g1G32pm * G23mm;
+                    std::complex<double> gam1p = g1cG32pp * G23mp;
+                    std::complex<double> gam2p = g1G32pm * std::conj(G23pp);
+                    std::complex<double> gam3p = g1G32mpc * G23mm;
+
+                    std::complex<double> gam0m = g1G32mm * G23pm;
+                    std::complex<double> gam1m = std::conj(g1G32mpc) * G23pp;
+                    std::complex<double> gam2m = g1G32mm * std::conj(G23mp);
+                    std::complex<double> gam3m = std::conj(g1cG32pp) * G23pm;
+
+                    if (swap23) {
+                        const std::complex<double> G22pp = mp2.Gn[ig2+n+1];
+                        const std::complex<double> G22pm = mp2.Gn[ig2+n-1];
+                        const std::complex<double> G22mp = mp2.Gn[ig2-n+1];
+                        const std::complex<double> G22mm = mp2.Gn[ig2-n-1];
+                        const std::complex<double> G33pp = mp3.Gn[ig3+n+1];
+                        const std::complex<double> G33pm = mp3.Gn[ig3+n-1];
+                        const std::complex<double> G33mp = mp3.Gn[ig3-n+1];
+                        const std::complex<double> G33mm = mp3.Gn[ig3-n-1];
+
+                        const std::complex<double> g1G22pm = wg1 * G22pm;
+                        const std::complex<double> g1cG22pp = std::conj(wg1) * G22pp;
+                        const std::complex<double> g1G22mpc = wg1 * std::conj(G22mp);
+                        const std::complex<double> g1G22mm = wg1 * G22mm;
+
+                        gam0p += g1G22pm * G33mm;
+                        gam1p += g1cG22pp * G33mp;
+                        gam2p += g1G22pm * std::conj(G33pp);
+                        gam3p += g1G22mpc * G33mm;
+
+                        gam0m += g1G22mm * G33pm;
+                        gam1m += std::conj(g1G22mpc) * G33pp;
+                        gam2m += g1G22mm * std::conj(G33mp);
+                        gam3m += std::conj(g1cG22pp) * G33pm;
+                    }
+
+                    zeta.gam0r[iz+n] += gam0p.real();
+                    zeta.gam0i[iz+n] += gam0p.imag();
+                    zeta.gam1r[iz+n] += gam1p.real();
+                    zeta.gam1i[iz+n] += gam1p.imag();
+                    zeta.gam2r[iz+n] += gam2p.real();
+                    zeta.gam2i[iz+n] += gam2p.imag();
+                    zeta.gam3r[iz+n] += gam3p.real();
+                    zeta.gam3i[iz+n] += gam3p.imag();
+
+                    zeta.gam0r[iz-n] += gam0m.real();
+                    zeta.gam0i[iz-n] += gam0m.imag();
+                    zeta.gam1r[iz-n] += gam1m.real();
+                    zeta.gam1i[iz-n] += gam1m.imag();
+                    zeta.gam2r[iz-n] += gam2m.real();
+                    zeta.gam2i[iz-n] += gam2m.imag();
+                    zeta.gam3r[iz-n] += gam3m.real();
+                    zeta.gam3i[iz-n] += gam3m.imag();
+                }
+#endif
             }
         }
     }

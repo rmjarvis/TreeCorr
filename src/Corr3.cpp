@@ -507,10 +507,20 @@ void BaseCorr3::process12(const BaseCell<C>& c1, const BaseCell<C>& c2,
     inc_ws();
     Assert(c2.getLeft());
     Assert(c2.getRight());
-    process12<B,O>(c1, *c2.getLeft(), metric);
-    process12<B,O>(c1, *c2.getRight(), metric);
-    // 111 order is 123, 132, 213, 231, 312, 321   Here 3->2.
-    process111<B,O>(c1, *c2.getLeft(), *c2.getRight(), metric);
+    if (s1 > s2) {
+        Assert(c1.getLeft());
+        Assert(c1.getRight());
+        process12<B,O>(*c1.getLeft(), *c2.getLeft(), metric);
+        process12<B,O>(*c1.getLeft(), *c2.getRight(), metric);
+        process12<B,O>(*c1.getRight(), *c2.getLeft(), metric);
+        process12<B,O>(*c1.getRight(), *c2.getRight(), metric);
+        process111<B,O>(*c1.getLeft(), *c2.getLeft(), *c2.getRight(), metric);
+        process111<B,O>(*c1.getRight(), *c2.getLeft(), *c2.getRight(), metric);
+    } else {
+        process12<B,O>(c1, *c2.getLeft(), metric);
+        process12<B,O>(c1, *c2.getRight(), metric);
+        process111<B,O>(c1, *c2.getLeft(), *c2.getRight(), metric);
+    }
     dec_ws();
 }
 

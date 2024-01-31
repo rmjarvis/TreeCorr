@@ -1118,7 +1118,7 @@ class GGGCorrelation(Corr3):
             # Note that we actually accumulate the Gammas with a different choice for
             # alpha_i.  We accumulate the shears relative to the q vectors, not relative to s.
             # cf. JBJ Equation 41 and footnote 3.  The upshot is that we multiply JBJ's formulae
-            # be (q1q2q3)^2 / |q1q2q3|^2 for T0 and (q1*q2q3)^2/|q1q2q3|^2 for T1.
+            # by (q1q2q3)^2 / |q1q2q3|^2 for T0 and (q1*q2q3)^2/|q1q2q3|^2 for T1.
             # Then T0 becomes
             # T0 = -(|q1 q2 q3|^2)/24 exp(-(|q1|^2+|q2|^2+|q3|^2)/2)
             T0 = expfactor * a123 / 24

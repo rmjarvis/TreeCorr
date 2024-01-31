@@ -1075,7 +1075,7 @@ void BaseCorr3::multipoleSplit1(
     } else {
         // Zero out scratch arrays
         mp.clear();
-        multipoleFinish<B>(c1, newc2list, metric, mp);
+        multipoleFinish<B>(c1, newc2list, metric, mp, _nbins);
     }
     dec_ws();
 }
@@ -1110,13 +1110,13 @@ void BaseCorr3::multipoleSplit1(
         // Zero out scratch arrays
         mp2.clear();
         mp3.clear();
-        multipoleFinish<B>(c1, newc2list, newc3list, metric, ordered, mp2, mp3);
+        multipoleFinish<B>(c1, newc2list, newc3list, metric, ordered, mp2, mp3, _nbins);
     }
     dec_ws();
 }
 
 template <int B, int M, int C>
-void BaseCorr3::splitC2CellsOrCalculateGn(
+double BaseCorr3::splitC2CellsOrCalculateGn(
     const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
     const MetricHelper<M,0>& metric, std::vector<const BaseCell<C>*>& newc2list, bool& anysplit1,
     BaseMultipoleScratch& mp)
@@ -1126,6 +1126,7 @@ void BaseCorr3::splitC2CellsOrCalculateGn(
     // scratch arrays and don't add that c2 to newc2list.
     const Position<C>& p1 = c1.getPos();
     double s1 = c1.getSize();
+    double max_remaining_r = 0.;
     for (const BaseCell<C>* c2: c2list) {
         const Position<C>& p2 = c2->getPos();
         double s2 = c2->getSize();
@@ -1151,7 +1152,8 @@ void BaseCorr3::splitC2CellsOrCalculateGn(
 
         // Now check if these cells are small enough that it is ok to drop into a single bin.
         int k=-1;
-        double r=0,logr=0;
+        double r=sqrt(rsq);
+        double logr=0;
 
         if (metric.isRParInsideRange(p1, p2, s1ps2, rpar) &&
             BinTypeHelper<B>::singleBin(rsq, s1ps2, p1, p2, _binsize, _b, _bsq,
@@ -1166,7 +1168,6 @@ void BaseCorr3::splitC2CellsOrCalculateGn(
                                                    _maxsep, _maxsepsq)) {
                     if (k < 0) {
                         // Then these aren't calculated yet.  Do that now.
-                        r = sqrt(rsq);
                         logr = log(r);
                         k = BinTypeHelper<B>::calculateBinK(p1, p2, r, logr, _binsize,
                                                             _minsep, _maxsep, _logminsep);
@@ -1176,6 +1177,7 @@ void BaseCorr3::splitC2CellsOrCalculateGn(
                 continue;
             }
         }
+        max_remaining_r = std::max(r + s1ps2, max_remaining_r);
 
         // OK, need to split.  Figure out if we should split c1 or c2 or both.
         bool split1=false;
@@ -1194,12 +1196,13 @@ void BaseCorr3::splitC2CellsOrCalculateGn(
             newc2list.push_back(c2);
         }
     }
+    return max_remaining_r;
 }
 
 template <int B, int M, int C>
 void BaseCorr3::multipoleFinish(
     const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
-    const MetricHelper<M,0>& metric, BaseMultipoleScratch& mp)
+    const MetricHelper<M,0>& metric, BaseMultipoleScratch& mp, int mink_zeta)
 {
     // This is structured a lot like the previous function.
     // However, in this one, we will actually be filling the Gn array.
@@ -1217,10 +1220,29 @@ void BaseCorr3::multipoleFinish(
     // This time we also accumulate the Gn array for any that can be done.
     // Those also don't get added to newc2list.
     std::vector<const BaseCell<C>*> newc2list;
-    splitC2CellsOrCalculateGn<B>(c1, c2list, metric, newc2list, anysplit1, mp);
+    double maxr = splitC2CellsOrCalculateGn<B>(c1, c2list, metric, newc2list, anysplit1, mp);
     xdbg<<"newsize = "<<newc2list.size()<<", anysplit1 = "<<anysplit1<<std::endl;
+    xdbg<<"maxr = "<<maxr<<std::endl;
 
     if (newc2list.size() > 0) {
+        // maxr is the maximum possible separation remaining in c2list.
+        // minr_zeta is the lowest value of r for which we have already calculated zeta.
+        // If maxr < minr_zeta, then we may be able compute some more zeta values now.
+        // Find the potential starting k for which we could compute zeta values.
+        // (+1 because we can't actually do the one that still has some r separations.)
+        Assert(maxr > 0.);
+        if (maxr < _maxsep) {
+            int k = maxr < _minsep ? 0 :
+                BinTypeHelper<B>::calculateBinK(
+                    c1.getPos(), c1.getPos(), maxr, log(maxr), _binsize,
+                    _minsep, _maxsep, _logminsep) + 1;
+            Assert(k >= 0);
+            if (k < mink_zeta) {
+                calculateZeta(c1, mp, k, mink_zeta);
+                mink_zeta = k;
+            }
+        }
+
         inc_ws();
         if (anysplit1) {
             // Then we need to split c1 further.  This means we need a copy of Gn and the
@@ -1228,18 +1250,18 @@ void BaseCorr3::multipoleFinish(
             std::unique_ptr<BaseMultipoleScratch> mp_copy = mp.duplicate();
             XAssert(c1.getLeft());
             XAssert(c1.getRight());
-            multipoleFinish<B>(*c1.getLeft(), newc2list, metric, mp);
-            multipoleFinish<B>(*c1.getRight(), newc2list, metric, *mp_copy);
+            multipoleFinish<B>(*c1.getLeft(), newc2list, metric, mp, mink_zeta);
+            multipoleFinish<B>(*c1.getRight(), newc2list, metric, *mp_copy, mink_zeta);
         } else {
             // If we still have c2 items to process, but don't have to split c1,
             // we don't need to make copies.
-            multipoleFinish<B>(c1, newc2list, metric, mp);
+            multipoleFinish<B>(c1, newc2list, metric, mp, mink_zeta);
         }
         dec_ws();
     } else {
         // We finished all the calculations for Gn.
         // Turn this into Zeta_n.
-        calculateZeta(c1, mp);
+        calculateZeta(c1, mp, 0, mink_zeta);
     }
 }
 
@@ -1247,7 +1269,7 @@ template <int B, int M, int C>
 void BaseCorr3::multipoleFinish(
     const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
     const std::vector<const BaseCell<C>*>& c3list, const MetricHelper<M,0>& metric, int ordered,
-    BaseMultipoleScratch& mp2, BaseMultipoleScratch& mp3)
+    BaseMultipoleScratch& mp2, BaseMultipoleScratch& mp3, int mink_zeta)
 {
     xdbg<<ws()<<"MultipoleFinish1: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<"  len c2 = "<<c2list.size()<<"  len c3 = "<<c3list.size()<<std::endl;
 
@@ -1255,12 +1277,32 @@ void BaseCorr3::multipoleFinish(
     bool anysplit1=false;
 
     std::vector<const BaseCell<C>*> newc2list;
-    splitC2CellsOrCalculateGn<B>(c1, c2list, metric, newc2list, anysplit1, mp2);
+    double maxr2 = splitC2CellsOrCalculateGn<B>(c1, c2list, metric, newc2list, anysplit1, mp2);
     std::vector<const BaseCell<C>*> newc3list;
-    splitC2CellsOrCalculateGn<B>(c1, c3list, metric, newc3list, anysplit1, mp3);
+    double maxr3 = splitC2CellsOrCalculateGn<B>(c1, c3list, metric, newc3list, anysplit1, mp3);
     xdbg<<"newsize = "<<newc2list.size()<<","<<newc3list.size()<<", anysplit1 = "<<anysplit1<<std::endl;
+    double maxr = std::max(maxr2, maxr3);
+    xdbg<<"maxr = "<<maxr2<<", "<<maxr3<<" -> "<<maxr<<std::endl;
 
     if (newc2list.size() > 0 || newc3list.size() > 0) {
+        // maxr is the maximum possible separation remaining in either c2list or c3list.
+        // minr_zeta is the lowest value of r for which we have already calculated zeta.
+        // If maxr < minr_zeta, then we may be able compute some more zeta values now.
+        // Find the potential starting k for which we could compute zeta values.
+        // (+1 because we can't actually do the one that still has some r separations.)
+        Assert(maxr > 0.);
+        if (maxr < _maxsep) {
+            int k = maxr < _minsep ? 0 :
+                BinTypeHelper<B>::calculateBinK(
+                    c1.getPos(), c1.getPos(), maxr, log(maxr), _binsize,
+                    _minsep, _maxsep, _logminsep) + 1;
+            Assert(k >= 0);
+            if (k < mink_zeta) {
+                calculateZeta(c1, ordered, mp2, mp3, k, mink_zeta);
+                mink_zeta = k;
+            }
+        }
+
         inc_ws();
         if (anysplit1) {
             // Then we need to split c1 further.  Make copies of scratch arrays.
@@ -1269,19 +1311,20 @@ void BaseCorr3::multipoleFinish(
             XAssert(c1.getLeft());
             XAssert(c1.getRight());
             multipoleFinish<B>(
-                *c1.getLeft(), newc2list, newc3list, metric, ordered, mp2, mp3);
+                *c1.getLeft(), newc2list, newc3list, metric, ordered, mp2, mp3, mink_zeta);
             multipoleFinish<B>(
-                *c1.getRight(), newc2list, newc3list, metric, ordered, *mp2_copy, *mp3_copy);
+                *c1.getRight(), newc2list, newc3list, metric, ordered, *mp2_copy, *mp3_copy,
+                mink_zeta);
         } else {
             // If we still have c2 items to process, but don't have to split c1,
             // we don't need to make copies.
-            multipoleFinish<B>(c1, newc2list, newc3list, metric, ordered, mp2, mp3);
+            multipoleFinish<B>(c1, newc2list, newc3list, metric, ordered, mp2, mp3, mink_zeta);
         }
         dec_ws();
     } else {
         // We finished all the calculations for Gn.
         // Turn this into Zeta_n.
-        calculateZeta(c1, ordered, mp2, mp3);
+        calculateZeta(c1, ordered, mp2, mp3, 0, mink_zeta);
     }
 }
 
@@ -1319,15 +1362,20 @@ void Corr3<D1,D2,D3>::calculateGn(
 }
 
 template <int D1, int D2, int D3> template <int C>
-void Corr3<D1,D2,D3>::calculateZeta(const BaseCell<C>& c1, BaseMultipoleScratch& mp)
+void Corr3<D1,D2,D3>::calculateZeta(const BaseCell<C>& c1, BaseMultipoleScratch& mp,
+                                    int kstart, int mink_zeta)
 {
+    // kstart is the lowest k we can compute on this call.
+    // mink_zeta is the lowest k which is already computed, so don't do them again.
+    dbg<<"calculateZeta: "<<kstart<<" "<<mink_zeta<<"  "<<_nbins<<std::endl;
+
     xdbg<<ws()<<"Zeta c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<std::endl;
     // First finish the computation of meand2, etc. based on the 2pt accumulations.
     double n1 = c1.getN();
     double w1 = c1.getW();
     const int maxn = _nubins;
     const int nnbins = 2*maxn+1;
-    for (int k2=0; k2<_nbins; ++k2) {
+    for (int k2=kstart; k2<mink_zeta; ++k2) {
         int i22 = (k2 * _nbins + k2) * nnbins + maxn;
         // Do the k2=k3 bins.
         // We need to be careful not to count cases where c2=c3.
@@ -1362,18 +1410,21 @@ void Corr3<D1,D2,D3>::calculateZeta(const BaseCell<C>& c1, BaseMultipoleScratch&
     // Finish the calculation for Zeta_n(d1,d2) using G_n(d).
     // In Porth et al, this is eqs. 21, 23, 24, 25 for GGG, and eqn 27 for NNN.
     // The version for KKK is obvious from these.
+    dbg<<"call CalculateZeta"<<std::endl;
     DirectHelper<D1,D2,D3>::CalculateZeta(
         static_cast<const Cell<D1,C>&>(c1),
-        static_cast<MultipoleScratch<D1, D2>&>(mp),
+        static_cast<MultipoleScratch<D1, D2>&>(mp), kstart, mink_zeta,
         _weight, _weight_im, _zeta, _nbins, _nubins);
+    dbg<<"done"<<std::endl;
 }
 
 template <int D1, int D2, int D3> template <int C>
 void Corr3<D1,D2,D3>::calculateZeta(
     const BaseCell<C>& c1, int ordered,
-    BaseMultipoleScratch& mp2, BaseMultipoleScratch& mp3)
+    BaseMultipoleScratch& mp2, BaseMultipoleScratch& mp3, int kstart, int mink_zeta)
 {
-    xdbg<<ws()<<"Zeta c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<std::endl;
+    xdbg<<ws()<<"Zeta c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<"  "<<ordered<<std::endl;
+    xdbg<<"kstart, mink_zeta, nbins = "<<kstart<<" "<<mink_zeta<<" "<<_nbins<<std::endl;
     // First finish the computation of meand2, etc. based on the 2pt accumulations.
     double n1 = c1.getN();
     double w1 = c1.getW();
@@ -1382,8 +1433,12 @@ void Corr3<D1,D2,D3>::calculateZeta(
     int i=maxn;
     if (ordered == 3) {
         // Keep track of locations p2 and p3 separately.
-        for (int k2=0; k2<_nbins; ++k2) {
-            for (int k3=0; k3<_nbins; ++k3, i+=nnbins) {
+        i += kstart * nnbins * _nbins;
+        for (int k2=kstart; k2<_nbins; ++k2) {
+            const int k3end = k2 < mink_zeta ? _nbins : mink_zeta;
+            i += kstart * nnbins;
+            for (int k3=kstart; k3<k3end; ++k3, i+=nnbins) {
+                XAssert(i == (k2*_nbins + k3)*nnbins + maxn);
                 // This is a bit confusing.  In the name mp2, the "2" refers to these arrays
                 // being computed for cat2, which is at p2, opposite d2.  So the distances that
                 // have been accumulated in mp2 are actually d3 values.  Similarly, mp3 has
@@ -1397,13 +1452,17 @@ void Corr3<D1,D2,D3>::calculateZeta(
                 _meand3[i] += ww12 * mp2.sumwr[k3];
                 _meanlogd3[i] += ww12 * mp2.sumwlogr[k3];
             }
+            i += (_nbins - k3end) * nnbins;
         }
     } else {
         XAssert(ordered == 1);
         // ordered == 1 means points 2 and 3 can swap freely.
         // So add up the results where k2 and k3 take both spots.
-        for (int k2=0; k2<_nbins; ++k2) {
-            for (int k3=0; k3<_nbins; ++k3, i+=nnbins) {
+        i += kstart * nnbins * _nbins;
+        for (int k2=kstart; k2<_nbins; ++k2) {
+            const int k3end = k2 < mink_zeta ? _nbins : mink_zeta;
+            i += kstart * nnbins;
+            for (int k3=kstart; k3<k3end; ++k3, i+=nnbins) {
                 _ntri[i] += n1 * (mp2.npairs[k2] * mp3.npairs[k3] +
                                   mp3.npairs[k2] * mp2.npairs[k3]);
                 _meand2[i] += w1 * (mp2.sumw[k3] * mp3.sumwr[k2] +
@@ -1415,13 +1474,14 @@ void Corr3<D1,D2,D3>::calculateZeta(
                 _meanlogd3[i] += w1 * (mp2.sumw[k2] * mp3.sumwlogr[k3] +
                                        mp3.sumw[k3] * mp2.sumwlogr[k3]);
             }
+            i += (_nbins - k3end) * nnbins;
         }
     }
     // Finish the calculation for Zeta_n(d1,d2) using G_n(d).
     DirectHelper<D1,D2,D3>::CalculateZeta(
         static_cast<const Cell<D1,C>&>(c1), ordered,
         static_cast<MultipoleScratch<D1,D2>&>(mp2),
-        static_cast<MultipoleScratch<D1,D3>&>(mp3),
+        static_cast<MultipoleScratch<D1,D3>&>(mp3), kstart, mink_zeta,
         _weight, _weight_im, _zeta, _nbins, _nubins);
 }
 
@@ -1475,6 +1535,7 @@ struct DirectHelper<NData,NData,NData>
     template <int C>
     static void CalculateZeta(const Cell<NData,C>& c1,
                               MultipoleScratch<NData, NData>& mp,
+                              int kstart, int mink_zeta,
                               double* weight, double* weight_im,
                               ZetaData<NData,NData,NData>& zeta, int nbins, int maxn)
     {
@@ -1483,7 +1544,8 @@ struct DirectHelper<NData,NData,NData>
         const int step32 = nbins * step23;
         const int step22 = step32 + step23;
         int iz22 = maxn;
-        for (int k2=0; k2<nbins; ++k2, iz22+=step22) {
+        iz22 += kstart * step22;
+        for (int k2=kstart; k2<mink_zeta; ++k2, iz22+=step22) {
             // Do the k2=k3 bins.
             // We want to make sure not to include degenerate triangles with c2 = c3.
             // The straightforward calculation is:
@@ -1539,6 +1601,7 @@ struct DirectHelper<NData,NData,NData>
     static void CalculateZeta(const Cell<NData,C>& c1, int ordered,
                               MultipoleScratch<NData, NData>& mp2,
                               MultipoleScratch<NData, NData>& mp3,
+                              int kstart, int mink_zeta,
                               double* weight, double* weight_im,
                               ZetaData<NData,NData,NData>& zeta, int nbins, int maxn)
     {
@@ -1547,9 +1610,12 @@ struct DirectHelper<NData,NData,NData>
         int iz = maxn;
         // If ordered == 1, then also count contribution from swapping cats 2,3
         const bool swap23 = (ordered == 1);
-        for (int k2=0; k2<nbins; ++k2) {
+        iz += kstart * nbins * step;
+        for (int k2=kstart; k2<nbins; ++k2) {
             const int i2 = k2*(maxn+1);
-            for (int k3=0; k3<nbins; ++k3, iz+=step) {
+            const int k3end = k2 < mink_zeta ? nbins : mink_zeta;
+            iz += kstart * step;
+            for (int k3=kstart; k3<k3end; ++k3, iz+=step) {
                 const int i3 = k3*(maxn+1);
 
                 // n=0
@@ -1577,6 +1643,7 @@ struct DirectHelper<NData,NData,NData>
                     weight_im[iz-n] -= www.imag();
                 }
             }
+            iz += (nbins - k3end) * step;
         }
     }
 };
@@ -1645,6 +1712,7 @@ struct DirectHelper<KData,KData,KData>
     template <int C>
     static void CalculateZeta(const Cell<KData,C>& c1,
                               MultipoleScratch<KData, KData>& mp,
+                              int kstart, int mink_zeta,
                               double* weight, double* weight_im,
                               ZetaData<KData,KData,KData>& zeta, int nbins, int maxn)
     {
@@ -1654,7 +1722,8 @@ struct DirectHelper<KData,KData,KData>
         const int step32 = nbins * step23;
         const int step22 = step32 + step23;
         int iz22 = maxn;
-        for (int k2=0; k2<nbins; ++k2, iz22+=step22) {
+        iz22 += kstart * step22;
+        for (int k2=kstart; k2<mink_zeta; ++k2, iz22+=step22) {
             // Do the k2=k3 bins.
             // As for NNN, we subtract off the sum of w_k^2 when k2=k3.
             // We also subtract off the sum of (w_k kappa_k)^2 for the same reason.
@@ -1722,6 +1791,7 @@ struct DirectHelper<KData,KData,KData>
     static void CalculateZeta(const Cell<KData,C>& c1, int ordered,
                               MultipoleScratch<KData, KData>& mp2,
                               MultipoleScratch<KData, KData>& mp3,
+                              int kstart, int mink_zeta,
                               double* weight, double* weight_im,
                               ZetaData<KData,KData,KData>& zeta, int nbins, int maxn)
     {
@@ -1731,9 +1801,12 @@ struct DirectHelper<KData,KData,KData>
         int iz = maxn;
         // If ordered == 1, then also count contribution from swapping cats 2,3
         const bool swap23 = (ordered == 1);
-        for (int k2=0; k2<nbins; ++k2) {
+        iz += kstart * nbins * step;
+        for (int k2=kstart; k2<nbins; ++k2) {
             const int i2 = k2*(maxn+1);
-            for (int k3=0; k3<nbins; ++k3, iz+=step) {
+            const int k3end = k2 < mink_zeta ? nbins : mink_zeta;
+            iz += kstart * step;
+            for (int k3=kstart; k3<k3end; ++k3, iz+=step) {
                 const int i3 = k3*(maxn+1);
 
                 // n=0
@@ -1766,6 +1839,7 @@ struct DirectHelper<KData,KData,KData>
                     zeta.zeta_im[iz-n] -= wwwk.imag();
                 }
             }
+            iz += (nbins - k3end) * step;
         }
     }
 };
@@ -1945,6 +2019,7 @@ struct DirectHelper<GData,GData,GData>
     template <int C>
     static void CalculateZeta(const Cell<GData,C>& c1,
                               MultipoleScratch<GData, GData>& mp,
+                              int kstart, int mink_zeta,
                               double* weight, double* weight_im,
                               ZetaData<GData,GData,GData>& zeta, int nbins, int maxn)
     {
@@ -1954,7 +2029,8 @@ struct DirectHelper<GData,GData,GData>
         const int step32 = nbins * step23;
         const int step22 = step32 + step23;
         int iz22 = maxn;
-        for (int k2=0; k2<nbins; ++k2, iz22+=step22) {
+        iz22 += kstart * step22;
+        for (int k2=kstart; k2<mink_zeta; ++k2, iz22+=step22) {
             // Do the k2=k3 bins.
             // As for NNN, we subtract off the sum of w_k^2 when k2=k3.
             // The corresponding thing for the Gamma values is a bit trickier.
@@ -2240,6 +2316,7 @@ struct DirectHelper<GData,GData,GData>
     static void CalculateZeta(const Cell<GData,C>& c1, int ordered,
                               MultipoleScratch<GData, GData>& mp2,
                               MultipoleScratch<GData, GData>& mp3,
+                              int kstart, int mink_zeta,
                               double* weight, double* weight_im,
                               ZetaData<GData,GData,GData>& zeta, int nbins, int maxn)
     {
@@ -2249,10 +2326,13 @@ struct DirectHelper<GData,GData,GData>
         int iz = maxn;
         // If ordered == 1, then also count contribution from swapping cats 2,3
         const bool swap23 = (ordered == 1);
-        for (int k2=0; k2<nbins; ++k2) {
+        iz += kstart * nbins * step;
+        for (int k2=kstart; k2<nbins; ++k2) {
             const int iw2 = k2*(maxn+1);
             const int ig2 = k2*(2*maxn+3) + maxn+1;
-            for (int k3=0; k3<nbins; ++k3, iz+=step) {
+            const int k3end = k2 < mink_zeta ? nbins : mink_zeta;
+            iz += kstart * step;
+            for (int k3=kstart; k3<k3end; ++k3, iz+=step) {
                 const int iw3 = k3*(maxn+1);
                 const int ig3 = k3*(2*maxn+3) + maxn+1;
 
@@ -2407,6 +2487,7 @@ struct DirectHelper<GData,GData,GData>
                 }
 #endif
             }
+            iz += (nbins - k3end) * step;
         }
     }
 };

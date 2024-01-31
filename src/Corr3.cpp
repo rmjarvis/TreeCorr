@@ -1075,7 +1075,7 @@ void BaseCorr3::multipoleSplit1(
     } else {
         // Zero out scratch arrays
         mp.clear();
-        multipoleFinish<B>(c1, newc2list, metric, mp, _nbins);
+        multipoleFinish<B>(c1, newc2list, metric, mp, _nbins, 0);
     }
     dec_ws();
 }
@@ -1110,7 +1110,7 @@ void BaseCorr3::multipoleSplit1(
         // Zero out scratch arrays
         mp2.clear();
         mp3.clear();
-        multipoleFinish<B>(c1, newc2list, newc3list, metric, ordered, mp2, mp3, _nbins);
+        multipoleFinish<B>(c1, newc2list, newc3list, metric, ordered, mp2, mp3, _nbins, 0, 0);
     }
     dec_ws();
 }
@@ -1119,7 +1119,7 @@ template <int B, int M, int C>
 double BaseCorr3::splitC2CellsOrCalculateGn(
     const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
     const MetricHelper<M,0>& metric, std::vector<const BaseCell<C>*>& newc2list, bool& anysplit1,
-    BaseMultipoleScratch& mp)
+    BaseMultipoleScratch& mp, double prev_max_remaining_r)
 {
     // Similar to splitC2Cells, but this time, check to see if any cells are small enough that
     // neither c1 nor c2 need to be split further.  In those cases, accumulate Gn and other
@@ -1127,6 +1127,21 @@ double BaseCorr3::splitC2CellsOrCalculateGn(
     const Position<C>& p1 = c1.getPos();
     double s1 = c1.getSize();
     double max_remaining_r = 0.;
+    // The calculation of thresh1 here is pretty arbitrary.
+    // The point of thresh1 is to only split cell1 when it is needed for the pairs with the
+    // largest separation.  This gives us the maximum chance of usefully computing large r parts
+    // of Zeta as early as possible.
+    // Here are some timings with different choices of these on the SLICS mock catalog
+    // I got from Lucas Porth with 3.2e6 shapes, running with 10 cores on my laptop.
+    // 0.0,  0.0: 13m31
+    // 0.8,  0.0: 11m30
+    // 0.9,  0.0: 11m21
+    // 0.95, 0.0: 11m26
+    // This run had bin_size = 0.1, so I suspect that is the reason for 0.9 being optimial.
+    // Thus, I made the ansatz that (1-bin_size) * r is the right threshold in general.
+    // But in practice, I think it doesn't matter too much so long as it's a number vaguely
+    // close to 1.
+    double thresh1 = BinTypeHelper<B>::oneBinLessThan(prev_max_remaining_r, _binsize);
     for (const BaseCell<C>* c2: c2list) {
         const Position<C>& p2 = c2->getPos();
         double s2 = c2->getSize();
@@ -1177,15 +1192,16 @@ double BaseCorr3::splitC2CellsOrCalculateGn(
                 continue;
             }
         }
-        max_remaining_r = std::max(r + s1ps2, max_remaining_r);
+        double rtot = r+s1ps2;
+        max_remaining_r = std::max(rtot, max_remaining_r);
 
         // OK, need to split.  Figure out if we should split c1 or c2 or both.
-        bool split1=false;
         bool split2=false;
+        bool split1=false;
         double bsq_eff = BinTypeHelper<B>::getEffectiveBSq(rsq,std::min(_bsq,_busq));
         CalcSplitSq(split1,split2,s1,s2,s1ps2,bsq_eff);
         xdbg<<"split2 = "<<split2<<std::endl;
-        if (split1) anysplit1 = true;
+        if (split1 && r+s1ps2 > thresh1) anysplit1 = true;
 
         if (split2) {
             XAssert(c2->getLeft());
@@ -1202,7 +1218,7 @@ double BaseCorr3::splitC2CellsOrCalculateGn(
 template <int B, int M, int C>
 void BaseCorr3::multipoleFinish(
     const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
-    const MetricHelper<M,0>& metric, BaseMultipoleScratch& mp, int mink_zeta)
+    const MetricHelper<M,0>& metric, BaseMultipoleScratch& mp, int mink_zeta, double maxr)
 {
     // This is structured a lot like the previous function.
     // However, in this one, we will actually be filling the Gn array.
@@ -1220,7 +1236,7 @@ void BaseCorr3::multipoleFinish(
     // This time we also accumulate the Gn array for any that can be done.
     // Those also don't get added to newc2list.
     std::vector<const BaseCell<C>*> newc2list;
-    double maxr = splitC2CellsOrCalculateGn<B>(c1, c2list, metric, newc2list, anysplit1, mp);
+    maxr = splitC2CellsOrCalculateGn<B>(c1, c2list, metric, newc2list, anysplit1, mp, maxr);
     xdbg<<"newsize = "<<newc2list.size()<<", anysplit1 = "<<anysplit1<<std::endl;
     xdbg<<"maxr = "<<maxr<<std::endl;
 
@@ -1250,12 +1266,12 @@ void BaseCorr3::multipoleFinish(
             std::unique_ptr<BaseMultipoleScratch> mp_copy = mp.duplicate();
             XAssert(c1.getLeft());
             XAssert(c1.getRight());
-            multipoleFinish<B>(*c1.getLeft(), newc2list, metric, mp, mink_zeta);
-            multipoleFinish<B>(*c1.getRight(), newc2list, metric, *mp_copy, mink_zeta);
+            multipoleFinish<B>(*c1.getLeft(), newc2list, metric, mp, mink_zeta, maxr);
+            multipoleFinish<B>(*c1.getRight(), newc2list, metric, *mp_copy, mink_zeta, maxr);
         } else {
             // If we still have c2 items to process, but don't have to split c1,
             // we don't need to make copies.
-            multipoleFinish<B>(c1, newc2list, metric, mp, mink_zeta);
+            multipoleFinish<B>(c1, newc2list, metric, mp, mink_zeta, maxr);
         }
         dec_ws();
     } else {
@@ -1269,7 +1285,8 @@ template <int B, int M, int C>
 void BaseCorr3::multipoleFinish(
     const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
     const std::vector<const BaseCell<C>*>& c3list, const MetricHelper<M,0>& metric, int ordered,
-    BaseMultipoleScratch& mp2, BaseMultipoleScratch& mp3, int mink_zeta)
+    BaseMultipoleScratch& mp2, BaseMultipoleScratch& mp3, int mink_zeta,
+    double maxr2, double maxr3)
 {
     xdbg<<ws()<<"MultipoleFinish1: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<"  len c2 = "<<c2list.size()<<"  len c3 = "<<c3list.size()<<std::endl;
 
@@ -1277,9 +1294,9 @@ void BaseCorr3::multipoleFinish(
     bool anysplit1=false;
 
     std::vector<const BaseCell<C>*> newc2list;
-    double maxr2 = splitC2CellsOrCalculateGn<B>(c1, c2list, metric, newc2list, anysplit1, mp2);
+    maxr2 = splitC2CellsOrCalculateGn<B>(c1, c2list, metric, newc2list, anysplit1, mp2, maxr2);
     std::vector<const BaseCell<C>*> newc3list;
-    double maxr3 = splitC2CellsOrCalculateGn<B>(c1, c3list, metric, newc3list, anysplit1, mp3);
+    maxr3 = splitC2CellsOrCalculateGn<B>(c1, c3list, metric, newc3list, anysplit1, mp3, maxr3);
     xdbg<<"newsize = "<<newc2list.size()<<","<<newc3list.size()<<", anysplit1 = "<<anysplit1<<std::endl;
     double maxr = std::max(maxr2, maxr3);
     xdbg<<"maxr = "<<maxr2<<", "<<maxr3<<" -> "<<maxr<<std::endl;
@@ -1310,15 +1327,15 @@ void BaseCorr3::multipoleFinish(
             std::unique_ptr<BaseMultipoleScratch> mp3_copy = mp3.duplicate();
             XAssert(c1.getLeft());
             XAssert(c1.getRight());
-            multipoleFinish<B>(
-                *c1.getLeft(), newc2list, newc3list, metric, ordered, mp2, mp3, mink_zeta);
-            multipoleFinish<B>(
-                *c1.getRight(), newc2list, newc3list, metric, ordered, *mp2_copy, *mp3_copy,
-                mink_zeta);
+            multipoleFinish<B>(*c1.getLeft(), newc2list, newc3list, metric, ordered,
+                               mp2, mp3, mink_zeta, maxr2, maxr3);
+            multipoleFinish<B>(*c1.getRight(), newc2list, newc3list, metric, ordered,
+                               *mp2_copy, *mp3_copy, mink_zeta, maxr2, maxr3);
         } else {
             // If we still have c2 items to process, but don't have to split c1,
             // we don't need to make copies.
-            multipoleFinish<B>(c1, newc2list, newc3list, metric, ordered, mp2, mp3, mink_zeta);
+            multipoleFinish<B>(c1, newc2list, newc3list, metric, ordered,
+                               mp2, mp3, mink_zeta, maxr2, maxr3);
         }
         dec_ws();
     } else {

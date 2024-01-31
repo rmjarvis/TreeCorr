@@ -109,12 +109,12 @@ public:
         const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
         const MetricHelper<M,0>& metric,
         std::vector<const BaseCell<C>*>& newc2list, bool& anysplit1,
-        BaseMultipoleScratch& mp);
+        BaseMultipoleScratch& mp, double maxr);
 
     template <int B, int M, int C>
     void multipoleFinish(const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
                          const MetricHelper<M,0>& metric, BaseMultipoleScratch& mp,
-                         int mink_zeta);
+                         int mink_zeta, double maxr);
 
     template <int B, int M, int C>
     void multipoleFinish(const BaseCell<C>& c1,
@@ -122,7 +122,7 @@ public:
                          const std::vector<const BaseCell<C>*>& c3list,
                          const MetricHelper<M,0>& metric, int ordered,
                          BaseMultipoleScratch& mp2, BaseMultipoleScratch& mp3,
-                         int mink_zeta);
+                         int mink_zeta, double maxr2, double maxr3);
 
     template <int C>
     void finishProcess(const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,

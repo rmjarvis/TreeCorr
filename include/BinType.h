@@ -147,6 +147,9 @@ struct BinTypeHelper<Log>
         return true;
     }
 
+    static double oneBinLessThan(double r, double binsize)
+    { return (1.-binsize) * r; }
+
 };
 
 template <>
@@ -235,6 +238,8 @@ struct BinTypeHelper<Linear>
         return true;
     }
 
+    static double oneBinLessThan(double r, double binsize)
+    { return r-binsize; }
 };
 
 // Note: The TwoD bin_type is only valid for the Flat Coord.
@@ -358,6 +363,9 @@ struct BinTypeHelper<TwoD>
         xdbg<<"Single bin returning true: "<<dx<<','<<dy<<','<<s1ps2<<','<<binsize<<std::endl;
         return true;
     }
+
+    static double oneBinLessThan(double r, double binsize)
+    { return r-binsize; }
 };
 
 
@@ -779,6 +787,8 @@ struct BinTypeHelper<LogRUV>
         return true;
     }
 
+    static double oneBinLessThan(double r, double binsize)
+    { return (1.-binsize)*r; }
 };
 
 template <>
@@ -1242,6 +1252,8 @@ struct BinTypeHelper<LogSAS>
         return true;
     }
 
+    static double oneBinLessThan(double r, double binsize)
+    { return (1.-binsize)*r; }
 };
 
 template <>
@@ -1463,6 +1475,8 @@ struct BinTypeHelper<LogMultipole>
         return true;
     }
 
+    static double oneBinLessThan(double r, double binsize)
+    { return (1.-binsize)*r; }
 };
 
 

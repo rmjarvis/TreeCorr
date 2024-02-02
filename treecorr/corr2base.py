@@ -681,6 +681,8 @@ class Corr2(object):
             # Basically, we treat the extended patch as though it included all of cat2
             # for the purposes of figuring out the right tot normalization.
             cat2e._sumw = sumw
+            if cat1.name != '':
+                cat2e.name = cat1.name + " (expanded)"
         return cat2e
 
     def _single_process12(self, c1, c2, ij, metric, num_threads, temp, force_write=False):

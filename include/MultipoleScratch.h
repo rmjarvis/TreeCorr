@@ -169,7 +169,6 @@ struct MultipoleScratch<GData, GData> : public BaseMultipoleScratch
 
     void clear()
     {
-        dbg<<"start clear"<<std::endl;
         BaseMultipoleScratch::clear();
         for (int i=0; i<Gnsize; ++i) Gn[i] = 0.;
         if (ww) {

@@ -135,6 +135,37 @@ double BaseCell<C>::calculateInertia() const
     }
 }
 
+template <int C>
+double BaseCell<C>::calculateSumWSq() const
+{
+    if (getSize() == 0.) return SQR(getW());
+    else if (getN() == 1) return SQR(getW());
+    else return getLeft()->calculateSumWSq() + getRight()->calculateSumWSq();
+}
+
+template <int C>
+double Cell<KData,C>::calculateSumWKSq() const
+{
+    if (this->getSize() == 0.) return SQR(getWK());
+    else if (this->getN() == 1) return SQR(getWK());
+    else return this->getLeft()->calculateSumWKSq() + this->getRight()->calculateSumWKSq();
+}
+
+template <int C>
+std::complex<double> Cell<GData,C>::calculateSumWGSq() const
+{
+    if (this->getSize() == 0.) return SQR(getWG());
+    else if (this->getN() == 1) return SQR(getWG());
+    else return this->getLeft()->calculateSumWGSq() + this->getRight()->calculateSumWGSq();
+}
+
+template <int C>
+double Cell<GData,C>::calculateSumAbsWGSq() const
+{
+    if (this->getSize() == 0.) return std::norm(getWG());
+    else if (this->getN() == 1) return std::norm(getWG());
+    else return this->getLeft()->calculateSumAbsWGSq() + this->getRight()->calculateSumAbsWGSq();
+}
 
 template <int C>
 void BuildCellData(

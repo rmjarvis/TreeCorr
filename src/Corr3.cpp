@@ -1365,10 +1365,10 @@ void Corr3<D1,D2,D3>::calculateGn(
     mp.sumwr[k] += w * r;
     mp.sumwlogr[k] += w * logr;
     if (mp.ww) {
-        double ww = w * w;
-        mp.sumww[k] += ww;
-        mp.sumwwr[k] += ww * r;
-        mp.sumwwlogr[k] += ww * logr;
+        double wsq = c2.calculateSumWSq();
+        mp.sumww[k] += wsq;
+        mp.sumwwr[k] += wsq * r;
+        mp.sumwwlogr[k] += wsq * logr;
     }
 
     DirectHelper<D1,D2,D3>::CalculateGn(
@@ -1382,9 +1382,9 @@ template <int D1, int D2, int D3> template <int C>
 void Corr3<D1,D2,D3>::calculateZeta(const BaseCell<C>& c1, BaseMultipoleScratch& mp,
                                     int kstart, int mink_zeta)
 {
+    xdbg<<ws()<<"calculateZeta: "<<kstart<<" "<<mink_zeta<<"  "<<_nbins<<std::endl;
     // kstart is the lowest k we can compute on this call.
     // mink_zeta is the lowest k which is already computed, so don't do them again.
-    dbg<<"calculateZeta: "<<kstart<<" "<<mink_zeta<<"  "<<_nbins<<std::endl;
 
     xdbg<<ws()<<"Zeta c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<std::endl;
     // First finish the computation of meand2, etc. based on the 2pt accumulations.
@@ -1427,12 +1427,10 @@ void Corr3<D1,D2,D3>::calculateZeta(const BaseCell<C>& c1, BaseMultipoleScratch&
     // Finish the calculation for Zeta_n(d1,d2) using G_n(d).
     // In Porth et al, this is eqs. 21, 23, 24, 25 for GGG, and eqn 27 for NNN.
     // The version for KKK is obvious from these.
-    dbg<<"call CalculateZeta"<<std::endl;
     DirectHelper<D1,D2,D3>::CalculateZeta(
         static_cast<const Cell<D1,C>&>(c1),
         static_cast<MultipoleScratch<D1, D2>&>(mp), kstart, mink_zeta,
         _weight, _weight_im, _zeta, _nbins, _nubins);
-    dbg<<"done"<<std::endl;
 }
 
 template <int D1, int D2, int D3> template <int C>
@@ -1673,7 +1671,7 @@ struct DirectHelper<KData,KData,KData>
         const Cell<KData,C>& c1, const Cell<KData,C>& c2, const Cell<KData,C>& c3,
         ZetaData<KData,KData,KData>& zeta, int index)
     {
-        zeta.zeta[index] += c1.getData().getWK() * c2.getData().getWK() * c3.getData().getWK();
+        zeta.zeta[index] += c1.getWK() * c2.getWK() * c3.getWK();
     }
 
     template <int C>
@@ -1683,7 +1681,7 @@ struct DirectHelper<KData,KData,KData>
         double* weight, double* weight_im,
         ZetaData<KData,KData,KData>& zeta, int index, int maxn)
     {
-        double wk = c1.getData().getWK() * c2.getData().getWK() * c3.getData().getWK();
+        double wk = c1.getWK() * c2.getWK() * c3.getWK();
 
         std::complex<double> z(cosphi, -sinphi);
         weight[index] += www;
@@ -1710,8 +1708,10 @@ struct DirectHelper<KData,KData,KData>
         double rsq, double r, int k, int maxn, double w,
         MultipoleScratch<KData, KData>& mp)
     {
-        double wk = c2.getData().getWK();
-        if (mp.ww) mp.sumwwkk[k] += wk * wk;
+        double wk = c2.getWK();
+        if (mp.ww) {
+            mp.sumwwkk[k] += c2.calculateSumWKSq();
+        }
         std::complex<double> z = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), r);
         int index = k*(maxn+1);
         mp.Wn[index] += w;
@@ -1734,7 +1734,7 @@ struct DirectHelper<KData,KData,KData>
                               ZetaData<KData,KData,KData>& zeta, int nbins, int maxn)
     {
         const double w1 = c1.getW();
-        const double wk1 = c1.getData().getWK();
+        const double wk1 = c1.getWK();
         const int step23 = 2*maxn+1;
         const int step32 = nbins * step23;
         const int step22 = step32 + step23;
@@ -1813,7 +1813,7 @@ struct DirectHelper<KData,KData,KData>
                               ZetaData<KData,KData,KData>& zeta, int nbins, int maxn)
     {
         const double w1 = c1.getW();
-        const double wk1 = c1.getData().getWK();
+        const double wk1 = c1.getWK();
         const int step = 2*maxn+1;
         int iz = maxn;
         // If ordered == 1, then also count contribution from swapping cats 2,3
@@ -1869,9 +1869,9 @@ struct DirectHelper<GData,GData,GData>
         const Cell<GData,C>& c1, const Cell<GData,C>& c2, const Cell<GData,C>& c3,
         ZetaData<GData,GData,GData>& zeta, int index)
     {
-        std::complex<double> g1 = c1.getData().getWG();
-        std::complex<double> g2 = c2.getData().getWG();
-        std::complex<double> g3 = c3.getData().getWG();
+        std::complex<double> g1 = c1.getWG();
+        std::complex<double> g2 = c2.getWG();
+        std::complex<double> g3 = c3.getWG();
         ProjectHelper<C>::Project(c1, c2, c3, g1, g2, g3);
 
         //std::complex<double> gam0 = g1 * g2 * g3;
@@ -1919,9 +1919,9 @@ struct DirectHelper<GData,GData,GData>
         double* weight, double* weight_im,
         ZetaData<GData,GData,GData>& zeta, int index, int maxn)
     {
-        std::complex<double> g1 = c1.getData().getWG();
-        std::complex<double> g2 = c2.getData().getWG();
-        std::complex<double> g3 = c3.getData().getWG();
+        std::complex<double> g1 = c1.getWG();
+        std::complex<double> g2 = c2.getWG();
+        std::complex<double> g3 = c3.getWG();
         ProjectHelper<C>::ProjectX(c1, c2, c3, d1, d2, d3, g1, g2, g3);
 
         std::complex<double> gam0 = g1 * g2 * g3;
@@ -1991,20 +1991,24 @@ struct DirectHelper<GData,GData,GData>
         double rsq, double r, int k, int maxn, double w,
         MultipoleScratch<GData, GData>& mp)
     {
-        std::complex<double> wg = c2.getData().getWG();
+        std::complex<double> wg = c2.getWG();
         std::complex<double> z = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), r);
-        // This next line is not quite how Porth et al do it, but it's necessary to get
+
+        // The projection is not quite how Porth et al do it, but it's necessary to get
         // it to work properly with spherical coordinates, since the shear at c2 doesn't
         // rotate with the same phase as the shear at c1.  So we apply the correct phase
         // now onto g2, and then only use the multipole to apply to g1.
-        ProjectHelper<C>::template Project<GData>(c1, c2, wg);
 
         if (mp.ww) {
-            std::complex<double> wgz = wg * z;
-            std::complex<double> wgzc = wg * std::conj(z);
-            mp.sumwwgg0[k] += SQR(wgzc);
-            mp.sumwwgg1[k] += SQR(wgz);
-            mp.sumwwgg2[k] += std::conj(wgz) * wgzc;
+            std::complex<double> wgsq = c2.calculateSumWGSq();
+            ProjectHelper<C>::template ProjectWithSq<GData>(c1, c2, wg, wgsq);
+            std::complex<double> abswgsq = c2.calculateSumAbsWGSq();
+            std::complex<double> zsq = z * z;
+            mp.sumwwgg0[k] += wgsq * std::conj(zsq);
+            mp.sumwwgg1[k] += wgsq * zsq;
+            mp.sumwwgg2[k] += abswgsq * std::conj(zsq);
+        } else {
+            ProjectHelper<C>::template Project<GData>(c1, c2, wg);
         }
 
         int iw = k*(maxn+1);
@@ -2041,7 +2045,7 @@ struct DirectHelper<GData,GData,GData>
                               ZetaData<GData,GData,GData>& zeta, int nbins, int maxn)
     {
         const double w1 = c1.getW();
-        const std::complex<double> wg1 = c1.getData().getWG();
+        const std::complex<double> wg1 = c1.getWG();
         const int step23 = 2*maxn+1;
         const int step32 = nbins * step23;
         const int step22 = step32 + step23;
@@ -2338,7 +2342,7 @@ struct DirectHelper<GData,GData,GData>
                               ZetaData<GData,GData,GData>& zeta, int nbins, int maxn)
     {
         const double w1 = c1.getW();
-        const std::complex<double> wg1 = c1.getData().getWG();
+        const std::complex<double> wg1 = c1.getWG();
         const int step = 2*maxn+1;
         int iz = maxn;
         // If ordered == 1, then also count contribution from swapping cats 2,3

@@ -307,6 +307,7 @@ public:
 
     double getSize() const { return _size; }
     double calculateInertia() const;
+    double calculateSumWSq() const;
 
     const BaseCell<C>* getLeft() const { return _left; }
     const BaseCell<C>* getRight() const { return _left ? _right : 0; }
@@ -336,20 +337,18 @@ protected:
     };
 };
 
+// A Cell contains the accumulated data for a bunch of galaxies.
+// It is characterized primarily by a centroid and a size.
+// The centroid is simply the weighted centroid of all the galaxy positions.
+// The size is the maximum deviation of any one of these galaxies
+// from the centroid.  That is, all galaxies fall within a radius
+// size from the centroid.
+// The structure also keeps track of some averages and sums about
+// the galaxies which are used in the correlation function calculations.
 template <int D, int C>
 class Cell : public BaseCell<C>
 {
 public:
-
-    // A Cell contains the accumulated data for a bunch of galaxies.
-    // It is characterized primarily by a centroid and a size.
-    // The centroid is simply the weighted centroid of all the galaxy positions.
-    // The size is the maximum deviation of any one of these galaxies
-    // from the centroid.  That is, all galaxies fall within a radius
-    // size from the centroid.
-    // The structure also keeps track of some averages and sums about
-    // the galaxies which are used in the correlation function calculations.
-
     Cell(CellData<D,C>* data, const LeafInfo& info) :
         BaseCell<C>(data, info) {}
 
@@ -367,6 +366,61 @@ public:
 
     const Cell<D,C>* getRight() const
     { return static_cast<const Cell<D,C>*>(BaseCell<C>::getRight()); }
+};
+
+// The above is fine for NData, but K and G need a couple more methods.
+// (When we eventually do 3pt for V,T,Q, they will also need specializations.)
+template <int C>
+class Cell<KData,C> : public BaseCell<C>
+{
+public:
+    Cell(CellData<KData,C>* data, const LeafInfo& info) :
+        BaseCell<C>(data, info) {}
+
+    Cell(CellData<KData,C>* data, const ListLeafInfo& listinfo) :
+        BaseCell<C>(data, listinfo) {}
+
+    Cell(CellData<KData,C>* data, double size, Cell<KData,C>* l, Cell<KData,C>* r) :
+        BaseCell<C>(data, size, l, r) {}
+
+    const CellData<KData,C>& getData() const
+    { return static_cast<const CellData<KData,C>&>(BaseCell<C>::getData()); }
+
+    const Cell<KData,C>* getLeft() const
+    { return static_cast<const Cell<KData,C>*>(BaseCell<C>::getLeft()); }
+
+    const Cell<KData,C>* getRight() const
+    { return static_cast<const Cell<KData,C>*>(BaseCell<C>::getRight()); }
+
+    double getWK() const { return getData().getWK(); }
+    double calculateSumWKSq() const;
+};
+
+template <int C>
+class Cell<GData, C> : public BaseCell<C>
+{
+public:
+    Cell(CellData<GData,C>* data, const LeafInfo& info) :
+        BaseCell<C>(data, info) {}
+
+    Cell(CellData<GData,C>* data, const ListLeafInfo& listinfo) :
+        BaseCell<C>(data, listinfo) {}
+
+    Cell(CellData<GData,C>* data, double size, Cell<GData,C>* l, Cell<GData,C>* r) :
+        BaseCell<C>(data, size, l, r) {}
+
+    const CellData<GData,C>& getData() const
+    { return static_cast<const CellData<GData,C>&>(BaseCell<C>::getData()); }
+
+    const Cell<GData,C>* getLeft() const
+    { return static_cast<const Cell<GData,C>*>(BaseCell<C>::getLeft()); }
+
+    const Cell<GData,C>* getRight() const
+    { return static_cast<const Cell<GData,C>*>(BaseCell<C>::getRight()); }
+
+    std::complex<double> getWG() const { return getData().getWG(); }
+    std::complex<double> calculateSumWGSq() const;
+    double calculateSumAbsWGSq() const;
 };
 
 template <int C>

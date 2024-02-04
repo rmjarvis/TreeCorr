@@ -1033,7 +1033,7 @@ void BaseCorr3::splitC2Cells(
         // If not splitting due to side length, might still need to split for angle.
         if (!split) {
             double bphisq_eff = BinTypeHelper<B>::getEffectiveBSq(rsq, _busq);
-            split = SQR(s1ps2) > bphisq_eff;
+            split = SQR(2*s1ps2) > bphisq_eff;
         }
 
         // If we need to split something, split c2 if it's larger than c1.
@@ -1176,7 +1176,7 @@ double BaseCorr3::splitC2CellsOrCalculateGn(
         {
             // Check angle
             double bphisq_eff = BinTypeHelper<B>::getEffectiveBSq(rsq, _busq);
-            if (SQR(s1ps2) <= bphisq_eff) {
+            if (SQR(2*s1ps2) <= bphisq_eff) {
                 // This c2 is fine to use as is with the current c1.  Neither needs to split.
                 xdbg<<"Drop into single bin.\n";
                 if (BinTypeHelper<B>::isRSqInRange(rsq, p1, p2, _minsep, _minsepsq,

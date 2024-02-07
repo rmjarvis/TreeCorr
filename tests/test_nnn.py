@@ -4677,6 +4677,15 @@ def test_direct_logmultipole_cross12():
     for key in ddd.results:
         np.testing.assert_allclose(ddd2.results[key].weight, ddd.results[key].weight)
 
+    # Make sure max_n=0 works correctly.
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=0,
+                                  bin_slop=0, bin_type='LogMultipole')
+    ddd.process(cat1, cat2)
+    assert ddd.ntri.shape[2] == 1
+    np.testing.assert_array_equal(ddd.ntri[:,:,0], true_ntri_122[:,:,max_n])
+    np.testing.assert_allclose(ddd.weight[:,:,0], 75*true_weight_122[:,:,max_n], rtol=1.e-10)
+
+
 
 @timer
 def test_direct_logmultipole_cross():
@@ -4954,6 +4963,14 @@ def test_direct_logmultipole_cross():
     # No tests of accuracy yet, but make sure patch-based covariance works.
     cov = ddd.estimate_cov('sample', func=lambda c: c.weight.ravel())
     cov = ddd.estimate_cov('jackknife', func=lambda c: c.weight.ravel())
+
+    # Make sure max_n=0 works correctly.
+    ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=0,
+                                  bin_slop=0, bin_type='LogMultipole')
+    ddd.process(cat1, cat2, cat3)
+    assert ddd.ntri.shape[2] == 1
+    np.testing.assert_array_equal(ddd.ntri[:,:,0], true_ntri_123[:,:,max_n])
+    np.testing.assert_allclose(ddd.weight[:,:,0], true_weight_123[:,:,max_n], rtol=1.e-5)
 
     with assert_raises(ValueError):
         ddd.process(cat1, cat2, cat3, patch_method='global')

@@ -559,7 +559,7 @@ class Corr3(object):
             if self.max_n < 0:
                 raise ValueError("max_n must be non-negative")
             self._ro.min_u = self._ro.max_u = 0
-            self._ro.ubin_size = np.pi / self.max_n  # Use this to compute bu
+            self._ro.ubin_size = 2*np.pi / (2*self.max_n+1)  # Use this to compute bu
             self._ro.min_v = self._ro.max_v = self._ro.nvbins = self._ro.vbin_size = 0
         else:  # pragma: no cover  (Already checked by config layer)
             raise ValueError("Invalid bin_type %s"%self.bin_type)
@@ -1676,7 +1676,7 @@ class Corr3(object):
                 max_size = 2 * self._max_sep * self.b
             else:
                 # LogMultipole
-                min_size = 2 * self._min_sep * self.b / self.max_n
+                min_size = 2 * self._min_sep * self.b / (2*self.max_n+1)
                 max_size = 2 * self._max_sep * self.b
             return min_size, max_size
         else:

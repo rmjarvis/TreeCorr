@@ -1,12 +1,15 @@
 import treecorr
 import numpy as np
 
+# http://cuillin.roe.ac.uk/~jharno/SLICS/MockProducts/KiDS450/GalCatalog_LOS1.fits
 file_name = 'GalCatalog_LOS1.fits'
 
 #bs = 0
 #ext = '_bs0'
-bs = 1
-ext = ''
+#bs = 1
+#ext = ''
+bs = 0.5
+ext = '_bs05'
 npatch = 1
 
 cat = treecorr.Catalog(file_name, x_col='x_arcmin', y_col='y_arcmin',

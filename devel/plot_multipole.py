@@ -4,6 +4,11 @@ import numpy as np
 from matplotlib.colors import CenteredNorm
 
 
+#bs = 1
+#ext = ''
+bs = 0.5
+ext = '_bs05'
+
 out_file_name0 = 'LOS1_ggg_bs0.fits'
 gggm0 = treecorr.GGGCorrelation(bin_size=0.1, min_sep=0.5, max_sep=200, max_n=30,
                                 bin_type='LogMultipole')
@@ -16,7 +21,7 @@ norm0 = (theta2 * theta3)**1.5
 
 # Note: index 30 in the last dimension is n=0.
 
-out_file_name1 = 'LOS1_ggg.fits'
+out_file_name1 = 'LOS1_ggg' + ext + '.fits'
 gggm1 = treecorr.GGGCorrelation(bin_size=0.1, min_sep=0.5, max_sep=200, max_n=30,
                                 bin_type='LogMultipole')
 gggm1.read(out_file_name1)
@@ -27,7 +32,7 @@ theta3 = gggm1.meand3
 norm1 = (theta2 * theta3)**1.5
 
 if 0:
-    nnn_out_file_name1 = 'LOS1_nnn.fits'
+    nnn_out_file_name1 = 'LOS1_nnn' + ext + '.fits'
     nnnm1 = treecorr.NNNCorrelation(bin_size=0.1, min_sep=0.5, max_sep=200, max_n=30,
                                     bin_type='LogMultipole')
     nnnm1.read(nnn_out_file_name1)
@@ -59,8 +64,8 @@ for n in [0, 1, 3, 10, 30]:
         fig.colorbar(c, ax=ax[mu,4])
 
         ax[mu,0].set_title('bs=0, log10(Y%d_%d)'%(mu,n))
-        ax[mu,1].set_title('bs=1, log10(Y%d_%d)'%(mu,n))
-        ax[mu,2].set_title('log10(ratio bs=1/bs=0)')
+        ax[mu,1].set_title('bs=%s, log10(Y%d_%d)'%(bs,mu,n))
+        ax[mu,2].set_title('log10(ratio bs=%s/bs=0)'%(bs))
         ax[mu,3].set_title('diff/max (real)')
         ax[mu,4].set_title('diff/max (imag)')
 
@@ -69,7 +74,7 @@ for n in [0, 1, 3, 10, 30]:
     print('bs=0 diagonals:')
     print(w0norm.diagonal())
     print(w0norm.diagonal(1))
-    print('bs=1 diagonals:')
+    print('bs=%s diagonals:'%bs)
     print(w1norm.diagonal())
     print(w1norm.diagonal(1))
     print('diffs')
@@ -91,8 +96,8 @@ for n in [0, 1, 3, 10, 30]:
     fig.colorbar(c, ax=ax[4,4])
 
     ax[4,0].set_title('bs=0, log10(W_%d)'%n)
-    ax[4,1].set_title('bs=1, log10(W_%d)'%n)
-    ax[4,2].set_title('log10(ratio bs=1/bs=0)')
+    ax[4,1].set_title('bs=%s, log10(W_%d)'%(bs,n))
+    ax[4,2].set_title('log10(ratio bs=%s/bs=0)'%(bs))
     ax[4,3].set_title('diff/max (real)')
     ax[4,4].set_title('diff/max (imag)')
 
@@ -108,4 +113,4 @@ for n in [0, 1, 3, 10, 30]:
     fig.suptitle("Comparison of Y and W for n=%d at bin_slop={0,1}"%n, fontsize=16, y=0.99)
 
     fig.tight_layout()
-    fig.savefig('raw_multipole_n%s.png'%n)
+    fig.savefig('raw_multipole_n%s'%n + ext + '.png')

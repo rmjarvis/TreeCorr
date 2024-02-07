@@ -1,7 +1,7 @@
 import treecorr
 import numpy as np
 
-file_name = '../../TreeCorr.wiki/GalCatalog_LOS1.fits'
+file_name = 'GalCatalog_LOS1.fits'
 
 #bs = 0
 #ext = '_bs0'

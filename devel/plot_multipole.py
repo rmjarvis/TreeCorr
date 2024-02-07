@@ -4,7 +4,7 @@ import numpy as np
 from matplotlib.colors import CenteredNorm
 
 
-out_file_name0 = '../../TreeCorr.wiki/LOS1_ggg_bs0.fits'
+out_file_name0 = 'LOS1_ggg_bs0.fits'
 gggm0 = treecorr.GGGCorrelation(bin_size=0.1, min_sep=0.5, max_sep=200, max_n=30,
                                 bin_type='LogMultipole')
 gggm0.read(out_file_name0)

@@ -110,7 +110,7 @@ for n in [0, 1, 3, 10, 30]:
             ax[i,j].set_box_aspect(1)
 
     fig.subplots_adjust(top=0.8)
-    fig.suptitle("Comparison of Y and W for n=%d at bin_slop={0,1}"%n, fontsize=16, y=0.99)
+    fig.suptitle("Comparison of Y and W for n=%d at bin_slop={0,%s}"%(n,bs), fontsize=16, y=0.99)
 
     fig.tight_layout()
     fig.savefig('raw_multipole_n%s'%n + ext + '.png')

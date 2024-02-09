@@ -341,7 +341,7 @@ void BaseCorr2::process11(const BaseCell<C>& c1, const BaseCell<C>& c2,
     } else {
         xdbg<<"Need to split.\n";
         bool split1=false, split2=false;
-        double bsq_eff = BinTypeHelper<B>::getEffectiveBSq(rsq,_bsq);
+        double bsq_eff = BinTypeHelper<B>::getEffectiveBSq(rsq,_bsq,_asq);
         xdbg<<"bsq_eff = "<<bsq_eff<<std::endl;
         CalcSplitSq(split1,split2,s1,s2,s1ps2,bsq_eff);
         xdbg<<"rsq = "<<rsq<<", s1ps2 = "<<s1ps2<<"  ";

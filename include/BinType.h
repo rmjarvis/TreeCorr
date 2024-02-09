@@ -44,11 +44,11 @@ struct BinTypeHelper<Log>
 
     // For Log binning, the test for when to stop splitting is s1+s2 < b*d.
     // This b*d is the "effective" b used by CalcSplit.
-    static double getEffectiveB(double r, double b)
-    { return r*b; }
+    static double getEffectiveB(double r, double b, double a)
+    { return r*std::min(b, a); }
 
-    static double getEffectiveBSq(double rsq, double bsq)
-    { return rsq*bsq; }
+    static double getEffectiveBSq(double rsq, double bsq, double asq)
+    { return rsq*std::min(bsq, asq); }
 
     // Some binnings (e.g. TwoD) have a larger maximum separation than just maxsep.
     // So this function calculates that.  But here, we just use maxsep.
@@ -102,13 +102,13 @@ struct BinTypeHelper<Log>
         // If two leaves, stop splitting.
         if (s1ps2 == 0.) return true;
 
+        // Check for angle being too large.
+        double s1ps2sq = s1ps2 * s1ps2;
+        if (s1ps2sq > asq*rsq) return false;
+
         // Standard stop splitting criterion.
         // s1 + s2 <= b * r
-        double s1ps2sq = s1ps2 * s1ps2;
         if (s1ps2sq <= bsq*rsq) return true;
-
-        // Check for angle being too large.
-        if (s1ps2sq > asq*rsq) return false;
 
         // If s1+s2 > 0.5 * (binsize + b) * r, then the total leakage (on both sides perhaps)
         // will be more than b.  I.e. too much slop.
@@ -162,11 +162,11 @@ struct BinTypeHelper<Linear>
 
     // For Linear binning, the test for when to stop splitting is s1+s2 < b.
     // So the effective b is just b itself.
-    static double getEffectiveB(double r, double b)
-    { return b; }
+    static double getEffectiveB(double r, double b, double a)
+    { return std::min(b, a*r); }
 
-    static double getEffectiveBSq(double rsq, double bsq)
-    { return bsq; }
+    static double getEffectiveBSq(double rsq, double bsq, double asq)
+    { return std::min(bsq, asq*rsq); }
 
     static double calculateFullMaxSep(double minsep, double maxsep, int nbins, double binsize)
     { return maxsep; }
@@ -203,13 +203,13 @@ struct BinTypeHelper<Linear>
     {
         xdbg<<"singleBin: "<<rsq<<"  "<<s1ps2<<std::endl;
 
+        // Check for angle being too large.
+        if (SQR(s1ps2) > asq*rsq) return false;
+
         // Standard stop splitting criterion.
         // s1 + s2 <= b
         // Note: this automatically includes the s1ps2 == 0 case, so don't do it separately.
         if (s1ps2 <= b) return true;
-
-        // Check for angle being too large.
-        if (SQR(s1ps2) > asq*rsq) return false;
 
         // If s1+s2 > 0.5 * (binsize + b), then the total leakage (on both sides perhaps)
         // will be more than b.  I.e. too much slop.
@@ -255,11 +255,11 @@ struct BinTypeHelper<TwoD>
     enum { do_reverse = true };
 
     // Like Linear binning, the effective b is just b itself.
-    static double getEffectiveB(double r, double b)
-    { return b; }
+    static double getEffectiveB(double r, double b, double a)
+    { return std::min(b, a*r); }
 
-    static double getEffectiveBSq(double rsq, double bsq)
-    { return bsq; }
+    static double getEffectiveBSq(double rsq, double bsq, double asq)
+    { return std::min(bsq, asq*rsq); }
 
     // The corners of the grid are at sqrt(2) * maxsep.  This is real maximum separation to use
     // for any checks related to the maxsep in the calling code.  We call this fullmaxsep.
@@ -318,12 +318,12 @@ struct BinTypeHelper<TwoD>
     {
         xdbg<<"singleBin: "<<rsq<<"  "<<s1ps2<<std::endl;
 
+        // Check for angle being too large.
+        if (SQR(s1ps2) > asq*rsq) return false;
+
         // Standard stop splitting criterion.
         // s1 + s2 <= b
         if (s1ps2 <= b) return true;
-
-        // Check for angle being too large.
-        if (SQR(s1ps2) > asq*rsq) return false;
 
         // If s1+s2 > 0.5 * (binsize + b), then the total leakage (on both sides perhaps)
         // will be more than b.  I.e. too much slop.
@@ -573,8 +573,8 @@ struct BinTypeHelper<LogRUV>
     // (For this BinType, d2 is already set coming in.)
     static bool singleBin(double d1sq, double d2sq, double d3sq,
                           double s1, double s2, double s3,
-                          double b, double bu, double bv,
-                          double bsq, double busq, double bvsq,
+                          double b, double a, double bu, double bv,
+                          double bsq, double asq, double busq, double bvsq,
                           bool& split1, bool& split2, bool& split3,
                           double& d1, double& d2, double& d3,
                           double& u, double& v)
@@ -607,6 +607,9 @@ struct BinTypeHelper<LogRUV>
             // Note: if bu >= b, then this is degenerate with above d2 check (since d3 < d2).
             (bu < b && (SQR(s3) * d3sq > SQR(bu*d2sq))) ||
 
+            // Check angles
+            (SQR(s3) > asq * d2sq) ||
+
             // For the v check, it turns out that the triangle where s3 has the maximum effect
             // on v is when the triangle is nearly equilateral.  Both larger d1 and smaller d3
             // reduce the potential impact of s3 on v.
@@ -633,16 +636,14 @@ struct BinTypeHelper<LogRUV>
 
             split1 = (s1 > 0.) && (
                 // Apply the d2split that we saved from above.  If we didn't split c3, split c1.
-                // Note: if s3 was 0, then still need to check here.
                 d2split ||
-                (s3==0. && s3 > d2 * b) ||
+                s1 > b * d2 ||
 
-                // Also, definitely split if s1 > d3
-                (SQR(s1) > d3sq));
+                // Check angles.  Relevant check is s1 > a * d3
+                (SQR(s1) > asq * d3sq));
 
             split2 = (s2 > 0.) && (
-                // Likewise split c2 if s2 > d3
-                (SQR(s2) > d3sq) ||
+                (SQR(s2) > asq * d3sq) ||
 
                 // Split c2 if it's possible for d3 to become larger than the largest possible d2
                 // or if d1 could become smaller than the current smallest possible d2.
@@ -1070,8 +1071,8 @@ struct BinTypeHelper<LogSAS>
     // (For this BinType, d2,d3,cosphi are already set coming in.)
     static bool singleBin(double d1sq, double d2sq, double d3sq,
                           double s1, double s2, double s3,
-                          double b, double bphi, double ,
-                          double bsq, double bphisq, double ,
+                          double b, double a, double bphi, double ,
+                          double bsq, double asq, double bphisq, double ,
                           bool& split1, bool& split2, bool& split3,
                           double& d1, double& d2, double& d3,
                           double& phi, double& cosphi)
@@ -1090,6 +1091,9 @@ struct BinTypeHelper<LogSAS>
         // These are set correctly before they are used.
         double s1ps2=s2, s1ps3=s3;
         bool d2split=false, d3split=false;
+
+        // Same logic for phi bin slop as angle slop.
+        bphi = std::min(bphi, a);
 
         if (s1 > 0) {
             split1 = (
@@ -1123,14 +1127,16 @@ struct BinTypeHelper<LogSAS>
             // Now figure out if c1 or c2 needs to be split.
 
             d1 = sqrt(d1sq);
+            double ad1 = a*d1;
             split2 = (s2 > 0.) && (
                 // Apply the d2split that we saved from above.  If we didn't split c1, split c2.
                 // Note: if s1 was 0, then still need to check here.
                 d2split ||
                 (s1==0. && s2 > d3 * b) ||
 
-                // Also, definitely split if s2 > d1
-                (s2 > d1) ||
+                // Split for angle slop
+                (s2 > ad1) ||
+                (s2+s3 > ad1 && s2 >= s3) ||
 
                 // Split c2 if the maximum dphi from pivoting d3 is > bphi
                 // (s1+s2)/d3 > bphi
@@ -1141,7 +1147,8 @@ struct BinTypeHelper<LogSAS>
                 // Likewise for c3
                 d3split ||
                 (s1==0. && s3 > d2 * b) ||
-                (s3 > d1) ||
+                (s3 > ad1) ||
+                (s2+s3 > ad1 && s3 >= s2) ||
                 (s1ps3 > bphi * d2));
             xdbg<<"split2 = "<<split2<<std::endl;
 
@@ -1339,8 +1346,8 @@ struct BinTypeHelper<LogMultipole>
     // If return value is false, split1, split2, split3 will be set on output.
     static bool singleBin(double d1sq, double d2sq, double d3sq,
                           double s1, double s2, double s3,
-                          double b, double bphi, double ,
-                          double bsq, double bphisq, double ,
+                          double b, double a, double , double ,
+                          double bsq, double asq, double , double ,
                           bool& split1, bool& split2, bool& split3,
                           double& d1, double& d2, double& d3,
                           double& phi, double& cosphi)
@@ -1381,7 +1388,7 @@ struct BinTypeHelper<LogMultipole>
                 // Note: if s1 was 0, then still need to check here.
                 d2split ||
                 (s1==0. && s2sq > d3sq * bsq) ||
-                (SQR(s1+s2) > bphisq * d3sq) ||
+                (SQR(s1+s2) > asq * d3sq) ||
 
                 // Also, definitely split if s2 > d1
                 (s2sq > d1sq));
@@ -1391,7 +1398,7 @@ struct BinTypeHelper<LogMultipole>
             split3 = (s3 > 0.) && (
                 d3split ||
                 (s1==0. && s3sq > d2sq * bsq) ||
-                (SQR(s1+s3) > bphisq * d2sq) ||
+                (SQR(s1+s3) > asq * d2sq) ||
                 (s3sq > d1sq));
             xdbg<<"split2 = "<<split2<<std::endl;
 

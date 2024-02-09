@@ -242,6 +242,7 @@ class GGGCorrelation(Corr3):
             self._corr = _treecorr.GGGCorr(
                     self._bintype,
                     self._min_sep, self._max_sep, self.nbins, self._bin_size, self.b,
+                    self.angle_slop,
                     self._ro.min_u,self._ro.max_u,self._ro.nubins,self._ro.ubin_size,self.bu,
                     self._ro.min_v,self._ro.max_v,self._ro.nvbins,self._ro.vbin_size,self.bv,
                     self.xperiod, self.yperiod, self.zperiod,

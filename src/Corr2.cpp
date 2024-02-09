@@ -53,10 +53,11 @@ double CalculateFullMaxSep(BinType bin_type, double minsep, double maxsep, int n
 }
 
 BaseCorr2::BaseCorr2(
-    BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+    BinType bin_type, double minsep, double maxsep, int nbins, double binsize,
+    double b, double a,
     double minrpar, double maxrpar, double xp, double yp, double zp) :
     _bin_type(bin_type),
-    _minsep(minsep), _maxsep(maxsep), _nbins(nbins), _binsize(binsize), _b(b),
+    _minsep(minsep), _maxsep(maxsep), _nbins(nbins), _binsize(binsize), _b(b), _a(a),
     _minrpar(minrpar), _maxrpar(maxrpar), _xp(xp), _yp(yp), _zp(zp), _coords(-1)
 {
     dbg<<"Corr2 constructor\n";
@@ -67,6 +68,7 @@ BaseCorr2::BaseCorr2(
     _minsepsq = _minsep*_minsep;
     _maxsepsq = _maxsep*_maxsep;
     _bsq = _b * _b;
+    _asq = _a * _a;
     _fullmaxsep = CalculateFullMaxSep(bin_type, minsep, maxsep, nbins, binsize);
     _fullmaxsepsq = _fullmaxsep*_fullmaxsep;
     dbg<<"minsep, maxsep = "<<_minsep<<"  "<<_maxsep<<std::endl;
@@ -80,11 +82,12 @@ BaseCorr2::BaseCorr2(
 
 template <int D1, int D2>
 Corr2<D1,D2>::Corr2(
-    BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+    BinType bin_type, double minsep, double maxsep, int nbins, double binsize,
+    double b, double a,
     double minrpar, double maxrpar, double xp, double yp, double zp,
     double* xi0, double* xi1, double* xi2, double* xi3,
     double* meanr, double* meanlogr, double* weight, double* npairs) :
-    BaseCorr2(bin_type, minsep, maxsep, nbins, binsize, b, minrpar, maxrpar, xp, yp, zp),
+    BaseCorr2(bin_type, minsep, maxsep, nbins, binsize, b, a, minrpar, maxrpar, xp, yp, zp),
     _owns_data(false),
     _xi(xi0,xi1,xi2,xi3), _meanr(meanr), _meanlogr(meanlogr), _weight(weight), _npairs(npairs)
 {}
@@ -96,7 +99,7 @@ BaseCorr2::BaseCorr2(const BaseCorr2& rhs) :
     _minrpar(rhs._minrpar), _maxrpar(rhs._maxrpar),
     _xp(rhs._xp), _yp(rhs._yp), _zp(rhs._zp),
     _logminsep(rhs._logminsep), _halfminsep(rhs._halfminsep),
-    _minsepsq(rhs._minsepsq), _maxsepsq(rhs._maxsepsq), _bsq(rhs._bsq),
+    _minsepsq(rhs._minsepsq), _maxsepsq(rhs._maxsepsq), _bsq(rhs._bsq), _asq(rhs._asq),
     _fullmaxsep(rhs._fullmaxsep), _fullmaxsepsq(rhs._fullmaxsepsq),
     _coords(rhs._coords)
 {}
@@ -328,7 +331,7 @@ void BaseCorr2::process11(const BaseCell<C>& c1, const BaseCell<C>& c2,
     int k=-1;
     double r=0,logr=0;  // If singleBin is true, these values are set for use by directProcess11
     if (metric.isRParInsideRange(p1, p2, s1ps2, rpar) &&
-        BinTypeHelper<B>::singleBin(rsq, s1ps2, p1, p2, _binsize, _b, _bsq,
+        BinTypeHelper<B>::singleBin(rsq, s1ps2, p1, p2, _binsize, _b, _bsq, _a, _asq,
                                     _minsep, _maxsep, _logminsep, k, r, logr))
     {
         xdbg<<"Drop into single bin.\n";
@@ -867,7 +870,8 @@ void Sampler::finishProcess(
 
 template <int D1, int D2>
 Corr2<D1,D2>* BuildCorr2(
-    BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+    BinType bin_type, double minsep, double maxsep, int nbins, double binsize,
+    double b, double a,
     double minrpar, double maxrpar, double xp, double yp, double zp,
     py::array_t<double>& xi0p, py::array_t<double>& xi1p,
     py::array_t<double>& xi2p, py::array_t<double>& xi3p,
@@ -884,7 +888,7 @@ Corr2<D1,D2>* BuildCorr2(
     double* npairs = static_cast<double*>(npairsp.mutable_data());
 
     return new Corr2<D1,D2>(
-            bin_type, minsep, maxsep, nbins, binsize, b, minrpar, maxrpar, xp, yp, zp,
+            bin_type, minsep, maxsep, nbins, binsize, b, a, minrpar, maxrpar, xp, yp, zp,
             xi0, xi1, xi2, xi3, meanr, meanlogr, weight, npairs);
 }
 
@@ -1157,7 +1161,8 @@ template <int D1, int D2>
 void WrapCorr2(py::module& _treecorr, std::string prefix)
 {
     typedef Corr2<D1,D2>* (*init_type)(
-        BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+        BinType bin_type, double minsep, double maxsep, int nbins, double binsize,
+        double b, double a,
         double minrpar, double maxrpar, double xp, double yp, double zp,
         py::array_t<double>& xi0p, py::array_t<double>& xi1p,
         py::array_t<double>& xi2p, py::array_t<double>& xi3p,

@@ -140,16 +140,21 @@ class Corr2(object):
                             may be incorrect by at most 1.0 bin widths.  (default: None, which
                             means to use a bin_slop that gives a maximum error of 10% on any bin,
                             which has been found to yield good results for most application.
+        angle_slop (float): How much slop to allow in the angular direction. This works very
+                            similarly to bin_slop, but applies to the projection angle of a pair
+                            of cells. The projection angle for any two objects in a pair of cells
+                            will differ by no more than angle_slop radians from the projection
+                            angle defined by the centers of the cells. (default: 0.1)
         brute (bool):       Whether to use the "brute force" algorithm.  (default: False) Options
                             are:
 
                              - False (the default): Stop at non-leaf cells whenever the error in
-                               the separation is compatible with the given bin_slop.
+                               the separation is compatible with the given bin_slop and angle_slop.
                              - True: Go to the leaves for both catalogs.
                              - 1: Always go to the leaves for cat1, but stop at non-leaf cells of
-                               cat2 when the error is compatible with the given bin_slop.
+                               cat2 when the error is compatible with the given slop values.
                              - 2: Always go to the leaves for cat2, but stop at non-leaf cells of
-                               cat1 when the error is compatible with the given bin_slop.
+                               cat1 when the error is compatible with the given slop values.
 
         verbose (int):      If no logger is provided, this will optionally specify a logging level
                             to use:
@@ -236,6 +241,9 @@ class Corr2(object):
                 'The fraction of a bin width by which it is ok to let the pairs miss the correct '
                 'bin.',
                 'The default is to use 1 if bin_size <= 0.1, or 0.1/bin_size if bin_size > 0.1.'),
+        'angle_slop' : (float, False, 0.1, None,
+                'The maximum difference in the projection angle for any pair of objects relative '
+                'to that of the pair of cells being accumulated into bins'),
         'brute' : (bool, False, False, [False, True, 1, 2],
                 'Whether to use brute-force algorithm'),
         'verbose' : (int, False, 1, [0, 1, 2, 3],
@@ -456,16 +464,20 @@ class Corr2(object):
         self._ro.max_top = get(self.config,'max_top',int,10)
 
         self._ro.bin_slop = get(self.config,'bin_slop',float,-1.0)
+        self._ro.angle_slop = get(self.config,'angle_slop',float,0.1)
         if self.bin_slop < 0.0:
             self._ro.bin_slop = min(max_good_slop, 1.0)
         self._ro.b = self.bin_size * self.bin_slop
-        if self.bin_slop > max_good_slop + 0.0001:  # Add some numerical slop
+        if (self.bin_slop > max_good_slop + 0.0001 and self.angle_slop > 0.1):
             self.logger.warning(
-                "Using bin_slop = %g, bin_size = %g, b = %g\n"%(self.bin_slop,self.bin_size,self.b)+
-                "It is recommended to use bin_slop <= %s in this case.\n"%max_good_slop+
-                "Larger values of bin_slop (and hence b) may result in significant inaccuracies.")
+                "Using bin_slop = %g, angle_slop = %g, bin_size = %g (b = %g).\n"%(
+                    self.bin_slop, self.angle_slop, self.bin_size, self.b)+
+                "It is recommended to use either bin_slop <= %s "%max_good_slop+
+                "or angle_slop <= 0.1 in this case."+
+                "Larger values of bin_slop/angle_slop may result in significant inaccuracies.")
         else:
-            self.logger.debug("Using bin_slop = %g, b = %g",self.bin_slop,self.b)
+            self.logger.debug("Using bin_slop = %g, angle_slop = %g (b = %g)",
+                self.bin_slop, self.angle_slop, self.b)
 
         self._ro.brute = get(self.config,'brute',bool,False)
         if self.brute:
@@ -549,6 +561,8 @@ class Corr2(object):
     def max_top(self): return self._ro.max_top
     @property
     def bin_slop(self): return self._ro.bin_slop
+    @property
+    def angle_slop(self): return self._ro.angle_slop
     @property
     def b(self): return self._ro.b
     @property

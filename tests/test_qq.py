@@ -82,18 +82,18 @@ def test_direct():
 
     print('true_weight = ',true_weight)
     print('diff = ',qq.weight - true_weight)
-    np.testing.assert_allclose(qq.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(qq.weight, true_weight, rtol=1.e-6, atol=1.e-8)
 
     print('true_xip = ',true_xip)
     print('qq.xip = ',qq.xip)
     print('qq.xip_im = ',qq.xip_im)
-    np.testing.assert_allclose(qq.xip, true_xip.real, rtol=1.e-4, atol=1.e-8)
-    np.testing.assert_allclose(qq.xip_im, true_xip.imag, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(qq.xip, true_xip.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(qq.xip_im, true_xip.imag, rtol=1.e-6, atol=1.e-8)
     print('true_xim = ',true_xim)
     print('qq.xim = ',qq.xim)
     print('qq.xim_im = ',qq.xim_im)
-    np.testing.assert_allclose(qq.xim, true_xim.real, rtol=1.e-4, atol=1.e-8)
-    np.testing.assert_allclose(qq.xim_im, true_xim.imag, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(qq.xim, true_xim.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(qq.xim_im, true_xim.imag, rtol=1.e-6, atol=1.e-8)
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/qq_direct.yaml')
@@ -120,9 +120,9 @@ def test_direct():
                                 max_top=0)
     qq.process(cat1, cat2)
     np.testing.assert_array_equal(qq.npairs, true_npairs)
-    np.testing.assert_allclose(qq.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(qq.xip, true_xip.real, rtol=1.e-4, atol=1.e-8)
-    np.testing.assert_allclose(qq.xip_im, true_xip.imag, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(qq.weight, true_weight, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(qq.xip, true_xip.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(qq.xip_im, true_xip.imag, rtol=1.e-6, atol=1.e-8)
     print('true_xim = ',true_xim)
     print('qq.xim = ',qq.xim)
     print('qq.xim_im = ',qq.xim_im)
@@ -130,8 +130,19 @@ def test_direct():
     print('max diff = ',np.max(np.abs(qq.xim - true_xim.real)))
     print('rel diff = ',(qq.xim - true_xim.real)/true_xim.real)
     print('ratio = ',qq.xim/true_xim.real)
-    np.testing.assert_allclose(qq.xim, true_xim.real, rtol=1.e-3, atol=3.e-4)
-    np.testing.assert_allclose(qq.xim_im, true_xim.imag, atol=1.e-3)
+    np.testing.assert_allclose(qq.xim, true_xim.real, atol=3.e-4)
+    np.testing.assert_allclose(qq.xim_im, true_xim.imag, atol=1.e-4)
+
+    # With angle_slop = 0, it goes back to being basically exact (to single precision).
+    qq = treecorr.QQCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0,
+                                angle_slop=0, max_top=0)
+    qq.process(cat1, cat2)
+    np.testing.assert_array_equal(qq.npairs, true_npairs)
+    np.testing.assert_allclose(qq.weight, true_weight, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(qq.xip, true_xip.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(qq.xip_im, true_xip.imag, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(qq.xim, true_xim.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(qq.xim_im, true_xim.imag, rtol=1.e-6, atol=1.e-8)
 
     # Check a few basic operations with a QQCorrelation object.
     do_pickle(qq)
@@ -292,18 +303,18 @@ def test_direct_spherical():
 
     print('true_weight = ',true_weight)
     print('diff = ',qq.weight - true_weight)
-    np.testing.assert_allclose(qq.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(qq.weight, true_weight, rtol=1.e-6, atol=1.e-8)
 
     print('true_xip = ',true_xip)
     print('qq.xip = ',qq.xip)
     print('qq.xip_im = ',qq.xip_im)
-    np.testing.assert_allclose(qq.xip, true_xip.real, rtol=1.e-4, atol=1.e-8)
-    np.testing.assert_allclose(qq.xip_im, true_xip.imag, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(qq.xip, true_xip.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(qq.xip_im, true_xip.imag, rtol=1.e-6, atol=1.e-8)
     print('true_xim = ',true_xim)
     print('qq.xim = ',qq.xim)
     print('qq.xim_im = ',qq.xim_im)
-    np.testing.assert_allclose(qq.xim, true_xim.real, rtol=1.e-4, atol=1.e-8)
-    np.testing.assert_allclose(qq.xim_im, true_xim.imag, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(qq.xim, true_xim.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(qq.xim_im, true_xim.imag, rtol=1.e-6, atol=1.e-8)
 
     # Check that running via the corr2 script works correctly.
     try:
@@ -330,11 +341,23 @@ def test_direct_spherical():
                                 sep_units='deg', bin_slop=0, max_top=0)
     qq.process(cat1, cat2)
     np.testing.assert_array_equal(qq.npairs, true_npairs)
-    np.testing.assert_allclose(qq.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(qq.xip, true_xip.real, rtol=1.e-3, atol=1.e-6)
-    np.testing.assert_allclose(qq.xip_im, true_xip.imag, rtol=1.e-3, atol=1.e-6)
-    np.testing.assert_allclose(qq.xim, true_xim.real, rtol=1.e-3, atol=2.e-4)
-    np.testing.assert_allclose(qq.xim_im, true_xim.imag, rtol=1.e-3, atol=2.e-4)
+    np.testing.assert_allclose(qq.weight, true_weight, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(qq.xip, true_xip.real, rtol=1.e-6, atol=1.e-6)
+    np.testing.assert_allclose(qq.xip_im, true_xip.imag, rtol=1.e-6, atol=1.e-6)
+    np.testing.assert_allclose(qq.xim, true_xim.real, atol=2.e-4)
+    np.testing.assert_allclose(qq.xim_im, true_xim.imag, atol=2.e-4)
+
+    # With angle_slop = 0, it goes back to being basically exact (to single precision).
+    qq = treecorr.QQCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                sep_units='deg', bin_slop=0, angle_slop=0, max_top=0)
+    qq.process(cat1, cat2)
+    np.testing.assert_array_equal(qq.npairs, true_npairs)
+    np.testing.assert_allclose(qq.weight, true_weight, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(qq.xip, true_xip.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(qq.xip_im, true_xip.imag, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(qq.xim, true_xim.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(qq.xim_im, true_xim.imag, rtol=1.e-6, atol=1.e-8)
+
 
 @timer
 def test_qq():
@@ -1002,9 +1025,9 @@ def test_twod():
 
 
 if __name__ == '__main__':
-    #test_direct()
-    #test_direct_spherical()
-    #test_qq()
+    test_direct()
+    test_direct_spherical()
+    test_qq()
     test_spherical()
     test_varxi()
     test_jk()

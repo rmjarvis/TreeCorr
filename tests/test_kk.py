@@ -73,11 +73,11 @@ def test_direct():
 
     print('true_weight = ',true_weight)
     print('diff = ',kk.weight - true_weight)
-    np.testing.assert_allclose(kk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kk.weight, true_weight, rtol=1.e-6, atol=1.e-8)
 
     print('true_xi = ',true_xi)
     print('kk.xi = ',kk.xi)
-    np.testing.assert_allclose(kk.xi, true_xi, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(kk.xi, true_xi, rtol=1.e-5, atol=1.e-8)
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/kk_direct.yaml')
@@ -101,8 +101,8 @@ def test_direct():
                                 max_top=0)
     kk.process(cat1, cat2)
     np.testing.assert_array_equal(kk.npairs, true_npairs)
-    np.testing.assert_allclose(kk.weight, true_weight)
-    np.testing.assert_allclose(kk.xi, true_xi, rtol=1.e-5)
+    np.testing.assert_allclose(kk.weight, true_weight, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(kk.xi, true_xi, rtol=1.e-5, atol=1.e-8)
 
     # Check a few basic operations with a KKCorrelation object.
     do_pickle(kk)
@@ -265,11 +265,11 @@ def test_direct_spherical():
 
     print('true_weight = ',true_weight)
     print('diff = ',kk.weight - true_weight)
-    np.testing.assert_allclose(kk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kk.weight, true_weight, rtol=1.e-6, atol=1.e-8)
 
     print('true_xi = ',true_xi)
     print('kk.xi = ',kk.xi)
-    np.testing.assert_allclose(kk.xi, true_xi, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(kk.xi, true_xi, rtol=1.e-5, atol=1.e-8)
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/kk_direct_spherical.yaml')
@@ -293,8 +293,8 @@ def test_direct_spherical():
                                 sep_units='deg', bin_slop=0, max_top=0)
     kk.process(cat1, cat2)
     np.testing.assert_array_equal(kk.npairs, true_npairs)
-    np.testing.assert_allclose(kk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(kk.xi, true_xi, rtol=1.e-3, atol=1.e-6)
+    np.testing.assert_allclose(kk.weight, true_weight, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(kk.xi, true_xi, rtol=1.e-5, atol=1.e-8)
 
     # Split into patches to test the list-based version of the code.
     cat1p = treecorr.Catalog(ra=ra1, dec=dec1, ra_units='rad', dec_units='rad', w=w1, k=k1,
@@ -307,32 +307,32 @@ def test_direct_spherical():
     kk2.process(cat1p, cat2)
     np.testing.assert_array_equal(kk2.npairs, kk.npairs)
     np.testing.assert_allclose(kk2.weight, kk.weight)
-    np.testing.assert_allclose(kk2.xi, kk.xi, rtol=1.e-5)
+    np.testing.assert_allclose(kk2.xi, kk.xi, rtol=1.e-6)
 
     kk2.process(cat1p, cat2, patch_method='local')
     np.testing.assert_array_equal(kk2.npairs, kk.npairs)
     np.testing.assert_allclose(kk2.weight, kk.weight)
-    np.testing.assert_allclose(kk2.xi, kk.xi, rtol=1.e-5)
+    np.testing.assert_allclose(kk2.xi, kk.xi, rtol=1.e-6)
 
     kk2.process(cat1, cat2p)
     np.testing.assert_array_equal(kk2.npairs, kk.npairs)
     np.testing.assert_allclose(kk2.weight, kk.weight)
-    np.testing.assert_allclose(kk2.xi, kk.xi, rtol=1.e-5)
+    np.testing.assert_allclose(kk2.xi, kk.xi, rtol=1.e-6)
 
     kk2.process(cat1, cat2p, patch_method='local')
     np.testing.assert_array_equal(kk2.npairs, kk.npairs)
     np.testing.assert_allclose(kk2.weight, kk.weight)
-    np.testing.assert_allclose(kk2.xi, kk.xi, rtol=1.e-5)
+    np.testing.assert_allclose(kk2.xi, kk.xi, rtol=1.e-6)
 
     kk2.process(cat1p, cat2p)
     np.testing.assert_array_equal(kk2.npairs, kk.npairs)
     np.testing.assert_allclose(kk2.weight, kk.weight)
-    np.testing.assert_allclose(kk2.xi, kk.xi, rtol=1.e-5)
+    np.testing.assert_allclose(kk2.xi, kk.xi, rtol=1.e-6)
 
     kk2.process(cat1p, cat2p, patch_method='local')
     np.testing.assert_array_equal(kk2.npairs, kk.npairs)
     np.testing.assert_allclose(kk2.weight, kk.weight)
-    np.testing.assert_allclose(kk2.xi, kk.xi, rtol=1.e-5)
+    np.testing.assert_allclose(kk2.xi, kk.xi, rtol=1.e-6)
 
 
 @timer

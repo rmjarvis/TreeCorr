@@ -368,9 +368,9 @@ def test_linear_binning():
 
     with CaptureLog() as cl:
         nn = treecorr.NNCorrelation(min_sep=0, max_sep=20, bin_size=1, bin_slop=1.0,
-                                    bin_type='Linear', logger=cl.logger)
+                                    angle_slop=0.2, bin_type='Linear', logger=cl.logger)
     print(cl.output)
-    assert "It is recommended to use bin_slop <= 0.05" in cl.output
+    assert "It is recommended to use either bin_slop <= 0.05" in cl.output
     print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 1
     assert nn.bin_slop == 1.0
@@ -378,8 +378,19 @@ def test_linear_binning():
 
     with CaptureLog() as cl:
         nn = treecorr.NNCorrelation(min_sep=0, max_sep=20, bin_size=1, bin_slop=0.2,
+                                    angle_slop=0.2, bin_type='Linear', logger=cl.logger)
+    assert "It is recommended to use either bin_slop <= 0.05" in cl.output
+    print(nn.bin_size,nn.bin_slop,nn.b)
+    assert nn.bin_size == 1
+    assert nn.bin_slop == 0.2
+    np.testing.assert_almost_equal(nn.b, 0.2)
+
+    # The default angle_slop = 0.1 is enough to avoid the warning (because angle_slop makes
+    # the calculation sufficiently accurate for typical purposes).
+    with CaptureLog() as cl:
+        nn = treecorr.NNCorrelation(min_sep=0, max_sep=20, bin_size=1, bin_slop=0.2,
                                     bin_type='Linear', logger=cl.logger)
-    assert "It is recommended to use bin_slop <= 0.05" in cl.output
+    assert "It is recommended to use either bin_slop <= 0.05" not in cl.output
     print(nn.bin_size,nn.bin_slop,nn.b)
     assert nn.bin_size == 1
     assert nn.bin_slop == 0.2

@@ -31,7 +31,8 @@ class BaseCorr2
 {
 public:
 
-    BaseCorr2(BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+    BaseCorr2(BinType bin_type, double minsep, double maxsep, int nbins, double binsize,
+              double b, double a,
               double minrpar, double maxrpar, double xp, double yp, double zp);
     BaseCorr2(const BaseCorr2& rhs);
     virtual ~BaseCorr2() {}
@@ -109,6 +110,7 @@ protected:
     int _nbins;
     double _binsize;
     double _b;
+    double _a;
     double _minrpar, _maxrpar;
     double _xp, _yp, _zp;
     double _logminsep;
@@ -116,6 +118,7 @@ protected:
     double _minsepsq;
     double _maxsepsq;
     double _bsq;
+    double _asq;
     double _fullmaxsep;
     double _fullmaxsepsq;
     int _coords; // Stores the kind of coordinates being used for the analysis.
@@ -128,7 +131,8 @@ class Corr2 : public BaseCorr2
 
 public:
 
-    Corr2(BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+    Corr2(BinType bin_type, double minsep, double maxsep, int nbins, double binsize,
+          double b, double a,
           double minrpar, double maxrpar, double xp, double yp, double zp,
           double* xi0, double* xi1, double* xi2, double* xi3,
           double* meanr, double* meanlogr, double* weight, double* npairs);

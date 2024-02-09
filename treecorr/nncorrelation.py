@@ -88,6 +88,9 @@ class NNCorrelation(Corr2):
         **kwargs:       See the documentation for `Corr2` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
+    # The angles are not important for accuracy of NN correlations.
+    _default_angle_slop = 1
+
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `NNCorrelation`.  See class doc for details.
         """

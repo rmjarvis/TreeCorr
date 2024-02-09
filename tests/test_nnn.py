@@ -4353,9 +4353,9 @@ def test_direct_logmultipole_auto():
     assert np.std(sas.weight/true_ntri_sas) < 0.05
     assert np.std(sas.ntri/true_ntri_sas) < 0.05
 
-    # Repeat with binslop = 0.
+    # Repeat with binslop = 0.  Also use angle_slop here, since angles matter for multipole.
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
-                                  bin_slop=0, bin_type='LogMultipole')
+                                  bin_slop=0, angle_slop=0, bin_type='LogMultipole')
     t0 = time.time()
     ddd.process(cat)
     t1 = time.time()
@@ -4373,7 +4373,7 @@ def test_direct_logmultipole_auto():
 
     # And again with no top-level recursion
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
-                                  bin_slop=0, max_top=0, bin_type='LogMultipole')
+                                  bin_slop=0, angle_slop=0, max_top=0, bin_type='LogMultipole')
     t0 = time.time()
     ddd.process(cat)
     t1 = time.time()
@@ -4567,7 +4567,7 @@ def test_direct_logmultipole_cross12():
 
     # Repeat with binslop = 0
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
-                                  bin_slop=0, bin_type='LogMultipole')
+                                  bin_slop=0, angle_slop=0, bin_type='LogMultipole')
     t0 = time.time()
     ddd.process(cat1, cat2)
     t1 = time.time()
@@ -4603,7 +4603,7 @@ def test_direct_logmultipole_cross12():
 
     # And again with no top-level recursion
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
-                                  bin_slop=0, max_top=0, bin_type='LogMultipole')
+                                  bin_slop=0, angle_slop=0, max_top=0, bin_type='LogMultipole')
     t0 = time.time()
     ddd.process(cat1, cat2)
     t1 = time.time()
@@ -4639,7 +4639,7 @@ def test_direct_logmultipole_cross12():
     cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, npatch=8, rng=rng)
 
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
-                                  bin_slop=0, bin_type='LogMultipole')
+                                  bin_slop=0, angle_slop=0, bin_type='LogMultipole')
     t0 = time.time()
     ddd.process(cat1, cat2)
     t1 = time.time()
@@ -4679,7 +4679,7 @@ def test_direct_logmultipole_cross12():
 
     # Make sure max_n=0 works correctly.
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=0,
-                                  bin_slop=0, bin_type='LogMultipole')
+                                  bin_slop=0, angle_slop=0, bin_type='LogMultipole')
     ddd.process(cat1, cat2)
     assert ddd.ntri.shape[2] == 1
     np.testing.assert_array_equal(ddd.ntri[:,:,0], true_ntri_122[:,:,max_n])
@@ -4854,7 +4854,7 @@ def test_direct_logmultipole_cross():
 
     # Repeat with binslop = 0
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
-                                  bin_slop=0, bin_type='LogMultipole')
+                                  bin_slop=0, angle_slop=0, bin_type='LogMultipole')
     t0 = time.time()
     ddd.process(cat1, cat2, cat3)
     t1 = time.time()
@@ -4914,7 +4914,7 @@ def test_direct_logmultipole_cross():
 
     # And again with no top-level recursion
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
-                                  bin_slop=0, max_top=0, bin_type='LogMultipole')
+                                  bin_slop=0, angle_slop=0, max_top=0, bin_type='LogMultipole')
     t0 = time.time()
     ddd.process(cat1, cat2, cat3)
     t1 = time.time()
@@ -4938,7 +4938,7 @@ def test_direct_logmultipole_cross():
     cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, npatch=8, rng=rng)
 
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
-                                  bin_slop=0, bin_type='LogMultipole')
+                                  bin_slop=0, angle_slop=0, bin_type='LogMultipole')
     t0 = time.time()
     ddd.process(cat1, cat2, cat3)
     t1 = time.time()
@@ -4966,7 +4966,7 @@ def test_direct_logmultipole_cross():
 
     # Make sure max_n=0 works correctly.
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=0,
-                                  bin_slop=0, bin_type='LogMultipole')
+                                  bin_slop=0, angle_slop=0, bin_type='LogMultipole')
     ddd.process(cat1, cat2, cat3)
     assert ddd.ntri.shape[2] == 1
     np.testing.assert_array_equal(ddd.ntri[:,:,0], true_ntri_123[:,:,max_n])

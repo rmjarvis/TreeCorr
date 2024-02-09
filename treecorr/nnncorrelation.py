@@ -154,6 +154,8 @@ class NNNCorrelation(Corr3):
         **kwargs:       See the documentation for `Corr3` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
+    _default_angle_slop = 1
+
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `NNNCorrelation`.  See class doc for details.
         """
@@ -193,6 +195,7 @@ class NNNCorrelation(Corr3):
             self._corr = _treecorr.NNNCorr(
                     self._bintype,
                     self._min_sep,self._max_sep,self.nbins,self._bin_size,self.b,
+                    self.angle_slop,
                     self._ro.min_u,self._ro.max_u,self._ro.nubins,self._ro.ubin_size,self.bu,
                     self._ro.min_v,self._ro.max_v,self._ro.nvbins,self._ro.vbin_size,self.bv,
                     self.xperiod, self.yperiod, self.zperiod,

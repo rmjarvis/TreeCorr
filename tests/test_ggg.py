@@ -228,29 +228,44 @@ def test_direct_logruv():
     np.testing.assert_allclose(ggg.gam3r, true_gam3.real, rtol=1.e-3, atol=1.e-4)
     np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-3, atol=1.e-4)
 
+    # With angle_slop=0 as well, it becomes basically exact again (to single precision)
+    ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                  bin_slop=0, angle_slop=0, max_top=0, bin_type='LogRUV')
+    ggg.process(cat)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri)
+    np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam0r, true_gam0.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam0i, true_gam0.imag, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam1r, true_gam1.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam1i, true_gam1.imag, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam2r, true_gam2.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam2i, true_gam2.imag, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam3r, true_gam3.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-5, atol=1.e-8)
+
     ggg.process(cat, cat, cat)
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
     np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam0r, true_gam0.real, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(ggg.gam0i, true_gam0.imag, rtol=1.e-5, atol=1.e-4)
-    np.testing.assert_allclose(ggg.gam1r, true_gam1.real, rtol=1.e-3, atol=1.e-4)
-    np.testing.assert_allclose(ggg.gam1i, true_gam1.imag, rtol=1.e-3, atol=1.e-4)
-    np.testing.assert_allclose(ggg.gam2r, true_gam2.real, rtol=1.e-3, atol=1.e-4)
-    np.testing.assert_allclose(ggg.gam2i, true_gam2.imag, rtol=1.e-3, atol=1.e-4)
-    np.testing.assert_allclose(ggg.gam3r, true_gam3.real, rtol=1.e-3, atol=1.e-4)
-    np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-3, atol=1.e-4)
+    np.testing.assert_allclose(ggg.gam0i, true_gam0.imag, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam1r, true_gam1.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam1i, true_gam1.imag, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam2r, true_gam2.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam2i, true_gam2.imag, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam3r, true_gam3.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-5, atol=1.e-8)
 
     ggg.process(cat, cat)
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
     np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam0r, true_gam0.real, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(ggg.gam0i, true_gam0.imag, rtol=1.e-5, atol=1.e-4)
-    np.testing.assert_allclose(ggg.gam1r, true_gam1.real, rtol=1.e-3, atol=1.e-4)
-    np.testing.assert_allclose(ggg.gam1i, true_gam1.imag, rtol=1.e-3, atol=1.e-4)
-    np.testing.assert_allclose(ggg.gam2r, true_gam2.real, rtol=1.e-3, atol=1.e-4)
-    np.testing.assert_allclose(ggg.gam2i, true_gam2.imag, rtol=1.e-3, atol=1.e-4)
-    np.testing.assert_allclose(ggg.gam3r, true_gam3.real, rtol=1.e-3, atol=1.e-4)
-    np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-3, atol=1.e-4)
+    np.testing.assert_allclose(ggg.gam0i, true_gam0.imag, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam1r, true_gam1.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam1i, true_gam1.imag, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam2r, true_gam2.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam2i, true_gam2.imag, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam3r, true_gam3.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-5, atol=1.e-8)
 
     # Check a few basic operations with a GGGCorrelation object.
     do_pickle(ggg)
@@ -569,6 +584,20 @@ def test_direct_logruv_spherical():
     np.testing.assert_allclose(ggg.gam2i, true_gam2.imag, rtol=1.e-3, atol=1.e-4)
     np.testing.assert_allclose(ggg.gam3r, true_gam3.real, rtol=1.e-3, atol=1.e-4)
     np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-3, atol=1.e-4)
+
+    ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                  sep_units='deg', bin_slop=0, angle_slop=0, max_top=0, bin_type='LogRUV')
+    ggg.process(cat)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri)
+    np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam0r, true_gam0.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam0i, true_gam0.imag, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam1r, true_gam1.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam1i, true_gam1.imag, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam2r, true_gam2.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam2i, true_gam2.imag, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam3r, true_gam3.real, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-5, atol=1.e-8)
 
 
 @timer
@@ -4200,7 +4229,7 @@ def test_direct_logmultipole_auto():
 
     # Repeat with binslop = 0.
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
-                                  bin_slop=0, bin_type='LogMultipole')
+                                  bin_slop=0, angle_slop=0, bin_type='LogMultipole')
     ggg.process(cat)
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
     np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
@@ -4211,7 +4240,7 @@ def test_direct_logmultipole_auto():
 
     # And again with no top-level recursion
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
-                                  bin_slop=0, max_top=0, bin_type='LogMultipole')
+                                  bin_slop=0, angle_slop=0, max_top=0, bin_type='LogMultipole')
     ggg.process(cat)
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
     np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
@@ -4319,7 +4348,8 @@ def test_direct_logmultipole_spherical():
     max_n = 20
 
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, sep_units='deg', nbins=nbins,
-                                  max_n=max_n, bin_slop=0, max_top=2, bin_type='LogMultipole')
+                                  max_n=max_n, bin_slop=0, angle_slop=0, max_top=2,
+                                  bin_type='LogMultipole')
     ggg.process(cat)
 
     r = np.sqrt(x**2 + y**2 + z**2)
@@ -4532,7 +4562,7 @@ def test_direct_logmultipole_cross():
 
     # Repeat with binslop = 0
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
-                                  bin_slop=0, max_top=2, bin_type='LogMultipole')
+                                  bin_slop=0, angle_slop=0, max_top=2, bin_type='LogMultipole')
     ggg.process(cat1, cat2, cat3)
     np.testing.assert_allclose(ggg.ntri, true_ntri_123, rtol=1.e-5)
     np.testing.assert_allclose(ggg.weight, true_weight_123, rtol=1.e-5)
@@ -4620,7 +4650,7 @@ def test_direct_logmultipole_cross12():
     max_n = 20
 
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
-                                  bin_slop=0, max_top=2, bin_type='LogMultipole')
+                                  bin_slop=0, angle_slop=0, max_top=2, bin_type='LogMultipole')
     ggg.process(cat1, cat2)
 
     log_min_sep = np.log(min_sep)

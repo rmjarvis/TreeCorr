@@ -2280,7 +2280,7 @@ def test_direct_logmultipole_auto():
 
     # Repeat with binslop = 0.
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
-                                  bin_slop=0, bin_type='LogMultipole')
+                                  bin_slop=0, angle_slop=0, bin_type='LogMultipole')
     kkk.process(cat)
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
@@ -2288,7 +2288,7 @@ def test_direct_logmultipole_auto():
 
     # And again with no top-level recursion
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
-                                  bin_slop=0, max_top=0, bin_type='LogMultipole')
+                                  bin_slop=0, angle_slop=0, max_top=0, bin_type='LogMultipole')
     kkk.process(cat)
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
@@ -2378,7 +2378,8 @@ def test_direct_logmultipole_spherical():
     max_n = 20
 
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, sep_units='deg', nbins=nbins,
-                                  max_n=max_n, bin_slop=0, max_top=2, bin_type='LogMultipole')
+                                  max_n=max_n, bin_slop=0, angle_slop=0, max_top=2,
+                                  bin_type='LogMultipole')
     kkk.process(cat)
 
     r = np.sqrt(x**2 + y**2 + z**2)
@@ -2476,8 +2477,8 @@ def test_direct_logmultipole_spherical():
 
     # Now use Arc metric
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, sep_units='deg', nbins=nbins,
-                                  max_n=max_n, bin_slop=0, max_top=2, bin_type='LogMultipole',
-                                  metric='Arc')
+                                  max_n=max_n, bin_slop=0, angle_slop=0, max_top=2,
+                                  bin_type='LogMultipole', metric='Arc')
     kkk.process(cat)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_arc)
     np.testing.assert_allclose(kkk.weight, true_weight_arc, rtol=1.e-5, atol=1.e-8)
@@ -2600,9 +2601,9 @@ def test_direct_logmultipole_cross():
     np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-4)
 
-    # Repeat with binslop = 0
+    # Repeat with binslop = 0, angle_slop=0
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
-                                  bin_slop=0, max_top=2, bin_type='LogMultipole')
+                                  bin_slop=0, angle_slop=0, max_top=2, bin_type='LogMultipole')
     kkk.process(cat1, cat2, cat3)
     np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-4)
@@ -2729,7 +2730,7 @@ def test_direct_logmultipole_cross12():
     max_n = 20
 
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
-                                  bin_slop=0, max_top=2, bin_type='LogMultipole')
+                                  bin_slop=0, angle_slop=0, max_top=2, bin_type='LogMultipole')
     kkk.process(cat1, cat2)
 
     log_min_sep = np.log(min_sep)

@@ -34,7 +34,8 @@ class BaseCorr3
 {
 public:
 
-    BaseCorr3(BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+    BaseCorr3(BinType bin_type, double minsep, double maxsep, int nbins, double binsize,
+              double b, double a,
               double minu, double maxu, int nubins, double ubinsize, double bu,
               double minv, double maxv, int nvbins, double vbinsize, double bv,
               double xp, double yp, double zp);
@@ -224,6 +225,7 @@ protected:
     int _nbins;
     double _binsize;
     double _b;
+    double _a;
     double _minu;
     double _maxu;
     int _nubins;
@@ -244,6 +246,7 @@ protected:
     double _minvsq;
     double _maxvsq;
     double _bsq;
+    double _asq;
     double _busq;
     double _bvsq;
     int _ntot; // Total number of bins (e.g. nbins * nubins * nvbins * 2 for LogRUV)
@@ -256,7 +259,8 @@ class Corr3 : public BaseCorr3
 {
 public:
 
-    Corr3(BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+    Corr3(BinType bin_type, double minsep, double maxsep, int nbins, double binsize,
+          double b, double a,
           double minu, double maxu, int nubins, double ubinsize, double bu,
           double minv, double maxv, int nvbins, double vbinsize, double bv,
           double xp, double yp, double zp,

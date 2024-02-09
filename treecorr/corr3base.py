@@ -176,6 +176,22 @@ class Corr3(object):
                             may be incorrect by at most 1.0 bin widths.  (default: None, which
                             means to use a bin_slop that gives a maximum error of 10% on any bin,
                             which has been found to yield good results for most application.
+        angle_slop (float): How much slop to allow in the angular direction. This works very
+                            similarly to bin_slop, but applies to the projection angle of a pair
+                            of cells. The projection angle for any two objects in a pair of cells
+                            will differ by no more than angle_slop radians from the projection
+                            angle defined by the centers of the cells. (default: 0.1)
+        brute (bool):       Whether to use the "brute force" algorithm.  (default: False) Options
+                            are:
+
+                             - False (the default): Stop at non-leaf cells whenever the error in
+                               the separation is compatible with the given bin_slop and angle_slop.
+                             - True: Go to the leaves for both catalogs.
+                             - 1: Always go to the leaves for cat1, but stop at non-leaf cells of
+                               cat2 when the error is compatible with the given slop values.
+                             - 2: Always go to the leaves for cat2, but stop at non-leaf cells of
+                               cat1 when the error is compatible with the given slop values.
+
 
         nphi_bins (int):    Analogous to nbins for the phi values when bin_type=LogSAS.  (The
                             default is to calculate from phi_bin_size = bin_size, min_phi = 0,
@@ -206,17 +222,6 @@ class Corr3(object):
         vbin_size (float):  Analogous to bin_size for the v values. (default: bin_size)
         min_v (float):      Analogous to min_sep for the positive v values. (default: 0)
         max_v (float):      Analogous to max_sep for the positive v values. (default: 1)
-
-        brute (bool):       Whether to use the "brute force" algorithm.  (default: False) Options
-                            are:
-
-                             - False (the default): Stop at non-leaf cells whenever the error in
-                               the separation is compatible with the given bin_slop.
-                             - True: Go to the leaves for both catalogs.
-                             - 1: Always go to the leaves for cat1, but stop at non-leaf cells of
-                               cat2 when the error is compatible with the given bin_slop.
-                             - 2: Always go to the leaves for cat2, but stop at non-leaf cells of
-                               cat1 when the error is compatible with the given bin_slop.
 
         verbose (int):      If no logger is provided, this will optionally specify a logging level
                             to use:
@@ -282,6 +287,8 @@ class Corr3(object):
                                 This won't work if the system's C compiler cannot use OpenMP
                                 (e.g. clang prior to version 3.7.)
     """
+    _default_angle_slop = 0.1
+
     _valid_params = {
         'nbins' : (int, False, None, None,
                 'The number of output bins to use for sep dimension.'),
@@ -298,6 +305,9 @@ class Corr3(object):
                 'The fraction of a bin width by which it is ok to let the triangles miss the '
                 'correct bin.',
                 'The default is to use 1 if bin_size <= 0.1, or 0.1/bin_size if bin_size > 0.1.'),
+        'angle_slop' : (float, False, None, None,
+                'The maximum difference in the projection angle for any pair of objects relative '
+                'to that of the pair of cells being used for an accumulated triangle'),
         'nubins' : (int, False, None, None,
                 'The number of output bins to use for u dimension.'),
         'ubin_size' : (float, False, None, None,
@@ -558,8 +568,7 @@ class Corr3(object):
             self._ro.nubins = int(self.config['max_n'])
             if self.max_n < 0:
                 raise ValueError("max_n must be non-negative")
-            self._ro.min_u = self._ro.max_u = 0
-            self._ro.ubin_size = 2*np.pi / (2*self.max_n+1)  # Use this to compute bu
+            self._ro.min_u = self._ro.max_u = self._ro.ubin_size = 0
             self._ro.min_v = self._ro.max_v = self._ro.nvbins = self._ro.vbin_size = 0
         else:  # pragma: no cover  (Already checked by config layer)
             raise ValueError("Invalid bin_type %s"%self.bin_type)
@@ -571,6 +580,10 @@ class Corr3(object):
         self._ro.max_top = get(self.config,'max_top',int,10)
 
         self._ro.bin_slop = get(self.config,'bin_slop',float,-1.0)
+        if self.bin_type == 'LogMultipole':
+            self._ro.angle_slop = get(self.config,'angle_slop',float,np.pi/(2*self.max_n+1))
+        else:
+            self._ro.angle_slop = get(self.config,'angle_slop',float,self._default_angle_slop)
         if self.bin_slop < 0.0:
             if self.bin_size <= 0.1:
                 self._ro.bin_slop = 1.0
@@ -587,32 +600,37 @@ class Corr3(object):
                     self._ro.bv = self.vbin_size
                 else:
                     self._ro.bv = 0.1
-            else:
-                # LogSAS, LogMultipole
+            elif self.bin_type == 'LogSAS':
                 if self._ro.ubin_size <= 0.1:
                     self._ro.bu = self._ro.ubin_size
                 else:
                     self._ro.bu = 0.1
                 self._ro.bv = 0
+            else:
+                # LogMultipole
+                self._ro.bu = self._ro.bv = 0
         else:
             self._ro.b = self.bin_size * self.bin_slop
             if self.bin_type == 'LogRUV':
                 self._ro.bu = self.ubin_size * self.bin_slop
                 self._ro.bv = self.vbin_size * self.bin_slop
-            else:
-                # LogSAS, LogMultipole
+            elif self.bin_type == 'LogSAS':
                 self._ro.bu = self._ro.ubin_size * self.bin_slop
                 self._ro.bv = 0
+            else:
+                # LogMultipole
+                self._ro.bu = self._ro.bv = 0
 
-        if self.b > 0.100001:  # Add some numerical slop
+        if self.b > 0.100001 and self.angle_slop > 0.1:
             self.logger.warning(
-                    "Using bin_slop = %g, bin_size = %g\n"%(self.bin_slop,self.bin_size)+
-                    "The b parameter is bin_slop * bin_size = %g\n"%(self.b)+
-                    "It is generally recommended to use b <= 0.1 for most applications.\n"+
-                    "Larger values of this b parameter may result in significant inaccuracies.")
+                "Using bin_slop = %g, angle_slop = %g, bin_size = %g (b = %g)\n"%(
+                    self.bin_slop, self.angle_slop, self.bin_size, self.b)+
+                "It is recommended to use either bin_slop <= %g or angle_slop <= 0.1.\n"%(
+                    0.1/self.bin_size)+
+                "Larger values of bin_slop/angle_slop may result in significant inaccuracies.")
         else:
-            self.logger.debug("Using bin_slop = %g, b = %g, bu = %g, bv = %g",
-                              self.bin_slop,self.b,self.bu,self.bv)
+            self.logger.debug("Using bin_slop = %g, angle_slop = %g (b = %g, bu = %g, bv = %g)",
+                              self.bin_slop, self.angle_slop, self.b, self.bu, self.bv)
 
         # This makes nbins evenly spaced entries in log(r) starting with 0 with step bin_size
         self._ro.logr1d = np.linspace(start=0, stop=self.nbins*self.bin_size,
@@ -901,6 +919,7 @@ class Corr3(object):
                     (self.bin_type != 'LogSAS' or self.phi_units == other.phi_units) and
                     self.coords == other.coords and
                     self.bin_slop == other.bin_slop and
+                    self.angle_slop == other.angle_slop and
                     self.xperiod == other.xperiod and
                     self.yperiod == other.yperiod and
                     self.zperiod == other.zperiod)
@@ -942,6 +961,8 @@ class Corr3(object):
     def max_top(self): return self._ro.max_top
     @property
     def bin_slop(self): return self._ro.bin_slop
+    @property
+    def angle_slop(self): return self._ro.angle_slop
     @property
     def b(self): return self._ro.b
     @property

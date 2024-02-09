@@ -68,12 +68,13 @@ template <int C> std::string indices(const BaseCell<C>& c) { return ""; }
 
 
 BaseCorr3::BaseCorr3(
-    BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+    BinType bin_type, double minsep, double maxsep, int nbins, double binsize,
+    double b, double a,
     double minu, double maxu, int nubins, double ubinsize, double bu,
     double minv, double maxv, int nvbins, double vbinsize, double bv,
     double xp, double yp, double zp):
     _bin_type(bin_type),
-    _minsep(minsep), _maxsep(maxsep), _nbins(nbins), _binsize(binsize), _b(b),
+    _minsep(minsep), _maxsep(maxsep), _nbins(nbins), _binsize(binsize), _b(b), _a(a),
     _minu(minu), _maxu(maxu), _nubins(nubins), _ubinsize(ubinsize), _bu(bu),
     _minv(minv), _maxv(maxv), _nvbins(nvbins), _vbinsize(vbinsize), _bv(bv),
     _xp(xp), _yp(yp), _zp(zp), _coords(-1)
@@ -106,6 +107,7 @@ BaseCorr3::BaseCorr3(
     _logminsep = log(_minsep);
     _halfminsep = 0.5*_minsep;
     _bsq = _b * _b;
+    _asq = _a * _a;
     _busq = _bu * _bu;
     _bvsq = _bv * _bv;
     _minsepsq = _minsep*_minsep;
@@ -124,7 +126,7 @@ BaseCorr3::BaseCorr3(
 
 template <int D1, int D2, int D3>
 Corr3<D1,D2,D3>::Corr3(
-    BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+    BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b, double a,
     double minu, double maxu, int nubins, double ubinsize, double bu,
     double minv, double maxv, int nvbins, double vbinsize, double bv,
     double xp, double yp, double zp,
@@ -133,7 +135,7 @@ Corr3<D1,D2,D3>::Corr3(
     double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
     double* meand3, double* meanlogd3, double* meanu, double* meanv,
     double* weight, double* weight_im, double* ntri) :
-    BaseCorr3(bin_type, minsep, maxsep, nbins, binsize, b,
+    BaseCorr3(bin_type, minsep, maxsep, nbins, binsize, b, a,
               minu, maxu, nubins, ubinsize, bu,
               minv, maxv, nvbins, vbinsize, bv,
               xp, yp, zp),
@@ -147,7 +149,7 @@ Corr3<D1,D2,D3>::Corr3(
 BaseCorr3::BaseCorr3(const BaseCorr3& rhs):
     _bin_type(rhs._bin_type),
     _minsep(rhs._minsep), _maxsep(rhs._maxsep), _nbins(rhs._nbins),
-    _binsize(rhs._binsize), _b(rhs._b),
+    _binsize(rhs._binsize), _b(rhs._b), _a(rhs._a),
     _minu(rhs._minu), _maxu(rhs._maxu), _nubins(rhs._nubins),
     _ubinsize(rhs._ubinsize), _bu(rhs._bu),
     _minv(rhs._minv), _maxv(rhs._maxv), _nvbins(rhs._nvbins),
@@ -156,7 +158,7 @@ BaseCorr3::BaseCorr3(const BaseCorr3& rhs):
     _minsepsq(rhs._minsepsq), _maxsepsq(rhs._maxsepsq),
     _minusq(rhs._minusq), _maxusq(rhs._maxusq),
     _minvsq(rhs._minvsq), _maxvsq(rhs._maxvsq),
-    _bsq(rhs._bsq), _busq(rhs._busq), _bvsq(rhs._bvsq),
+    _bsq(rhs._bsq), _asq(rhs._asq), _busq(rhs._busq), _bvsq(rhs._bvsq),
     _ntot(rhs._ntot), _coords(rhs._coords)
 {}
 
@@ -692,7 +694,7 @@ void BaseCorr3::process111Sorted(
     // Now check if these cells are small enough that it is ok to drop into a single bin.
     bool split1=false, split2=false, split3=false;
     if (BinTypeHelper<B>::singleBin(d1sq, d2sq, d3sq, s1, s2, s3,
-                                    _b, _bu, _bv, _bsq, _busq, _bvsq,
+                                    _b, _a, _bu, _bv, _bsq, _asq, _busq, _bvsq,
                                     split1, split2, split3,
                                     d1, d2, d3, u, v))
     {
@@ -1027,14 +1029,8 @@ void BaseCorr3::splitC2Cells(
         int k=-1;
         double r=0,logr=0;
         // First check if the distance alone requires a split for c2.
-        bool split = !BinTypeHelper<B>::singleBin(rsq, s1ps2, p1, p2, _binsize, _b, _bsq, _b, _bsq,
-                                                   _minsep, _maxsep, _logminsep, k, r, logr);
-
-        // If not splitting due to side length, might still need to split for angle.
-        if (!split) {
-            double bphisq_eff = BinTypeHelper<B>::getEffectiveBSq(rsq, _busq);
-            split = SQR(2*s1ps2) > bphisq_eff;
-        }
+        bool split = !BinTypeHelper<B>::singleBin(rsq, s1ps2, p1, p2, _binsize, _b, _bsq, _a, _asq,
+                                                  _minsep, _maxsep, _logminsep, k, r, logr);
 
         // If we need to split something, split c2 if it's larger than c1.
         // (We always split c1 in this part of the code.)
@@ -1068,7 +1064,7 @@ void BaseCorr3::multipoleSplit1(
     // c1 is at least possibly small enough to use as is without futher splitting.
     // i.e. s1 < maxsep * b
     inc_ws();
-    double maxbsq_eff = BinTypeHelper<B>::getEffectiveBSq(_maxsepsq, _bsq);
+    double maxbsq_eff = BinTypeHelper<B>::getEffectiveBSq(_maxsepsq, _bsq, _asq);
     if (SQR(s1) > maxbsq_eff) {
         multipoleSplit1<B>(*c1.getLeft(), newc2list, metric, mp);
         multipoleSplit1<B>(*c1.getRight(), newc2list, metric, mp);
@@ -1102,7 +1098,7 @@ void BaseCorr3::multipoleSplit1(
 
     // See if we can stop splitting c1
     inc_ws();
-    double maxbsq_eff = BinTypeHelper<B>::getEffectiveBSq(_maxsepsq, _bsq);
+    double maxbsq_eff = BinTypeHelper<B>::getEffectiveBSq(_maxsepsq, _bsq, _asq);
     if (SQR(s1) > maxbsq_eff) {
         multipoleSplit1<B>(*c1.getLeft(), newc2list, newc3list, metric, ordered, mp2, mp3);
         multipoleSplit1<B>(*c1.getRight(), newc2list, newc3list, metric, ordered, mp2, mp3);
@@ -1171,26 +1167,22 @@ double BaseCorr3::splitC2CellsOrCalculateGn(
         double logr=0;
 
         if (metric.isRParInsideRange(p1, p2, s1ps2, rpar) &&
-            BinTypeHelper<B>::singleBin(rsq, s1ps2, p1, p2, _binsize, _b, _bsq, _b, _bsq,
+            BinTypeHelper<B>::singleBin(rsq, s1ps2, p1, p2, _binsize, _b, _bsq, _a, _asq,
                                         _minsep, _maxsep, _logminsep, k, r, logr))
         {
-            // Check angle
-            double bphisq_eff = BinTypeHelper<B>::getEffectiveBSq(rsq, _busq);
-            if (SQR(2*s1ps2) <= bphisq_eff) {
-                // This c2 is fine to use as is with the current c1.  Neither needs to split.
-                xdbg<<"Drop into single bin.\n";
-                if (BinTypeHelper<B>::isRSqInRange(rsq, p1, p2, _minsep, _minsepsq,
-                                                   _maxsep, _maxsepsq)) {
-                    if (k < 0) {
-                        // Then these aren't calculated yet.  Do that now.
-                        logr = log(r);
-                        k = BinTypeHelper<B>::calculateBinK(p1, p2, r, logr, _binsize,
-                                                            _minsep, _maxsep, _logminsep);
-                    }
-                    calculateGn(c1, *c2, rsq, r, logr, k, mp);
+            // This c2 is fine to use as is with the current c1.  Neither needs to split.
+            xdbg<<"Drop into single bin.\n";
+            if (BinTypeHelper<B>::isRSqInRange(rsq, p1, p2, _minsep, _minsepsq,
+                                               _maxsep, _maxsepsq)) {
+                if (k < 0) {
+                    // Then these aren't calculated yet.  Do that now.
+                    logr = log(r);
+                    k = BinTypeHelper<B>::calculateBinK(p1, p2, r, logr, _binsize,
+                                                        _minsep, _maxsep, _logminsep);
                 }
-                continue;
+                calculateGn(c1, *c2, rsq, r, logr, k, mp);
             }
+            continue;
         }
         double rtot = r+s1ps2;
         max_remaining_r = std::max(rtot, max_remaining_r);
@@ -1198,7 +1190,7 @@ double BaseCorr3::splitC2CellsOrCalculateGn(
         // OK, need to split.  Figure out if we should split c1 or c2 or both.
         bool split2=false;
         bool split1=false;
-        double bsq_eff = BinTypeHelper<B>::getEffectiveBSq(rsq,std::min(_bsq,_busq));
+        double bsq_eff = BinTypeHelper<B>::getEffectiveBSq(rsq, _bsq, _asq);
         CalcSplitSq(split1,split2,s1,s2,s1ps2,bsq_eff);
         xdbg<<"split2 = "<<split2<<std::endl;
         if (split1 && r+s1ps2 > thresh1) anysplit1 = true;
@@ -2643,7 +2635,7 @@ void Corr3<D1,D2,D3>::operator+=(const Corr3<D1,D2,D3>& rhs)
 
 template <int D1, int D2, int D3>
 Corr3<D1,D2,D3>* BuildCorr3(
-    BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+    BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b, double a,
     double minu, double maxu, int nubins, double ubinsize, double bu,
     double minv, double maxv, int nvbins, double vbinsize, double bv,
     double xp, double yp, double zp,
@@ -2683,7 +2675,7 @@ Corr3<D1,D2,D3>* BuildCorr3(
     Assert(D3 == D1);
 
     return new Corr3<D1,D2,D3>(
-            bin_type, minsep, maxsep, nbins, binsize, b,
+            bin_type, minsep, maxsep, nbins, binsize, b, a,
             minu, maxu, nubins, ubinsize, bu, minv, maxv, nvbins, vbinsize, bv, xp, yp, zp,
             zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7,
             meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3,
@@ -2934,7 +2926,8 @@ template <int D1, int D2, int D3>
 void WrapCorr3(py::module& _treecorr, std::string prefix)
 {
     typedef Corr3<D1,D2,D3>* (*init_type)(
-        BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b,
+        BinType bin_type, double minsep, double maxsep, int nbins, double binsize,
+        double b, double a,
         double minu, double maxu, int nubins, double ubinsize, double bu,
         double minv, double maxv, int nvbins, double vbinsize, double bv,
         double xp, double yp, double zp,

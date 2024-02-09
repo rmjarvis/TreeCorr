@@ -95,6 +95,9 @@ class KKCorrelation(Corr2):
         **kwargs:       See the documentation for `Corr2` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
+    # The angles are not important for accuracy of KK correlations.
+    _default_angle_slop = 1
+
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `KKCorrelation`.  See class doc for details.
         """

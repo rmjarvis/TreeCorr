@@ -225,6 +225,10 @@ class Corr2(object):
                                 This won't work if the system's C compiler cannot use OpenMP
                                 (e.g. clang prior to version 3.7.)
     """
+    # This is appropriate for anything where angles matter, but for pure scalars (NN, NK, KK),
+    # this is unnecessary, so we override it in those classes.
+    _default_angle_slop = 0.1
+
     _valid_params = {
         'nbins' : (int, False, None, None,
                 'The number of output bins to use.'),
@@ -241,7 +245,7 @@ class Corr2(object):
                 'The fraction of a bin width by which it is ok to let the pairs miss the correct '
                 'bin.',
                 'The default is to use 1 if bin_size <= 0.1, or 0.1/bin_size if bin_size > 0.1.'),
-        'angle_slop' : (float, False, 0.1, None,
+        'angle_slop' : (float, False, None, None,
                 'The maximum difference in the projection angle for any pair of objects relative '
                 'to that of the pair of cells being accumulated into bins'),
         'brute' : (bool, False, False, [False, True, 1, 2],
@@ -464,7 +468,7 @@ class Corr2(object):
         self._ro.max_top = get(self.config,'max_top',int,10)
 
         self._ro.bin_slop = get(self.config,'bin_slop',float,-1.0)
-        self._ro.angle_slop = get(self.config,'angle_slop',float,0.1)
+        self._ro.angle_slop = get(self.config,'angle_slop',float,self._default_angle_slop)
         if self.bin_slop < 0.0:
             self._ro.bin_slop = min(max_good_slop, 1.0)
         self._ro.b = self.bin_size * self.bin_slop

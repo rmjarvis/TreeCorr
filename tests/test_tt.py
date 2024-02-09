@@ -82,18 +82,18 @@ def test_direct():
 
     print('true_weight = ',true_weight)
     print('diff = ',tt.weight - true_weight)
-    np.testing.assert_allclose(tt.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(tt.weight, true_weight, rtol=1.e-6, atol=1.e-8)
 
     print('true_xip = ',true_xip)
     print('tt.xip = ',tt.xip)
     print('tt.xip_im = ',tt.xip_im)
-    np.testing.assert_allclose(tt.xip, true_xip.real, rtol=1.e-4, atol=1.e-8)
-    np.testing.assert_allclose(tt.xip_im, true_xip.imag, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(tt.xip, true_xip.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(tt.xip_im, true_xip.imag, rtol=1.e-6, atol=1.e-8)
     print('true_xim = ',true_xim)
     print('tt.xim = ',tt.xim)
     print('tt.xim_im = ',tt.xim_im)
-    np.testing.assert_allclose(tt.xim, true_xim.real, rtol=1.e-4, atol=1.e-8)
-    np.testing.assert_allclose(tt.xim_im, true_xim.imag, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(tt.xim, true_xim.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(tt.xim_im, true_xim.imag, rtol=1.e-6, atol=1.e-8)
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/tt_direct.yaml')
@@ -120,17 +120,28 @@ def test_direct():
                                 max_top=0)
     tt.process(cat1, cat2)
     np.testing.assert_array_equal(tt.npairs, true_npairs)
-    np.testing.assert_allclose(tt.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(tt.xip, true_xip.real, rtol=1.e-4, atol=1.e-8)
-    np.testing.assert_allclose(tt.xip_im, true_xip.imag, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(tt.weight, true_weight, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(tt.xip, true_xip.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(tt.xip_im, true_xip.imag, rtol=1.e-6, atol=1.e-8)
     print('true_xim = ',true_xim)
     print('tt.xim = ',tt.xim)
     print('tt.xim_im = ',tt.xim_im)
     print('diff = ',tt.xim - true_xim.real)
     print('max diff = ',np.max(np.abs(tt.xim - true_xim.real)))
     print('rel diff = ',(tt.xim - true_xim.real)/true_xim.real)
-    np.testing.assert_allclose(tt.xim, true_xim.real, rtol=1.e-3, atol=3.e-4)
-    np.testing.assert_allclose(tt.xim_im, true_xim.imag, atol=1.e-3)
+    np.testing.assert_allclose(tt.xim, true_xim.real, atol=3.e-4)
+    np.testing.assert_allclose(tt.xim_im, true_xim.imag, atol=5.e-4)
+
+    # With angle_slop = 0, it goes back to being basically exact (to single precision).
+    tt = treecorr.TTCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0,
+                                angle_slop=0, max_top=0)
+    tt.process(cat1, cat2)
+    np.testing.assert_array_equal(tt.npairs, true_npairs)
+    np.testing.assert_allclose(tt.weight, true_weight, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(tt.xip, true_xip.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(tt.xip_im, true_xip.imag, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(tt.xim, true_xim.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(tt.xim_im, true_xim.imag, rtol=1.e-6, atol=1.e-8)
 
     # Check a few basic operations with a TTCorrelation object.
     do_pickle(tt)
@@ -291,18 +302,18 @@ def test_direct_spherical():
 
     print('true_weight = ',true_weight)
     print('diff = ',tt.weight - true_weight)
-    np.testing.assert_allclose(tt.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(tt.weight, true_weight, rtol=1.e-6, atol=1.e-8)
 
     print('true_xip = ',true_xip)
     print('tt.xip = ',tt.xip)
     print('tt.xip_im = ',tt.xip_im)
-    np.testing.assert_allclose(tt.xip, true_xip.real, rtol=1.e-4, atol=1.e-8)
-    np.testing.assert_allclose(tt.xip_im, true_xip.imag, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(tt.xip, true_xip.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(tt.xip_im, true_xip.imag, rtol=1.e-6, atol=1.e-8)
     print('true_xim = ',true_xim)
     print('tt.xim = ',tt.xim)
     print('tt.xim_im = ',tt.xim_im)
-    np.testing.assert_allclose(tt.xim, true_xim.real, rtol=1.e-4, atol=1.e-8)
-    np.testing.assert_allclose(tt.xim_im, true_xim.imag, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(tt.xim, true_xim.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(tt.xim_im, true_xim.imag, rtol=1.e-6, atol=1.e-8)
 
     # Check that running via the corr2 script works correctly.
     try:
@@ -329,11 +340,23 @@ def test_direct_spherical():
                                 sep_units='deg', bin_slop=0, max_top=0)
     tt.process(cat1, cat2)
     np.testing.assert_array_equal(tt.npairs, true_npairs)
-    np.testing.assert_allclose(tt.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(tt.xip, true_xip.real, rtol=1.e-3, atol=1.e-6)
-    np.testing.assert_allclose(tt.xip_im, true_xip.imag, rtol=1.e-3, atol=1.e-6)
-    np.testing.assert_allclose(tt.xim, true_xim.real, rtol=1.e-3, atol=2.e-4)
-    np.testing.assert_allclose(tt.xim_im, true_xim.imag, rtol=1.e-3, atol=2.e-4)
+    np.testing.assert_allclose(tt.weight, true_weight, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(tt.xip, true_xip.real, rtol=1.e-6, atol=1.e-6)
+    np.testing.assert_allclose(tt.xip_im, true_xip.imag, rtol=1.e-6, atol=1.e-6)
+    np.testing.assert_allclose(tt.xim, true_xim.real, atol=1.e-4)
+    np.testing.assert_allclose(tt.xim_im, true_xim.imag, atol=1.e-4)
+
+    # With angle_slop = 0, it goes back to being basically exact (to single precision).
+    tt = treecorr.TTCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                sep_units='deg', bin_slop=0, angle_slop=0, max_top=0)
+    tt.process(cat1, cat2)
+    np.testing.assert_array_equal(tt.npairs, true_npairs)
+    np.testing.assert_allclose(tt.weight, true_weight, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(tt.xip, true_xip.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(tt.xip_im, true_xip.imag, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(tt.xim, true_xim.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(tt.xim_im, true_xim.imag, rtol=1.e-6, atol=1.e-8)
+
 
 @timer
 def test_tt():

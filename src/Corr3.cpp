@@ -1027,7 +1027,7 @@ void BaseCorr3::splitC2Cells(
         int k=-1;
         double r=0,logr=0;
         // First check if the distance alone requires a split for c2.
-        bool split = !BinTypeHelper<B>::singleBin(rsq, s1ps2, p1, p2, _binsize, _b, _bsq,
+        bool split = !BinTypeHelper<B>::singleBin(rsq, s1ps2, p1, p2, _binsize, _b, _bsq, _b, _bsq,
                                                    _minsep, _maxsep, _logminsep, k, r, logr);
 
         // If not splitting due to side length, might still need to split for angle.
@@ -1171,7 +1171,7 @@ double BaseCorr3::splitC2CellsOrCalculateGn(
         double logr=0;
 
         if (metric.isRParInsideRange(p1, p2, s1ps2, rpar) &&
-            BinTypeHelper<B>::singleBin(rsq, s1ps2, p1, p2, _binsize, _b, _bsq,
+            BinTypeHelper<B>::singleBin(rsq, s1ps2, p1, p2, _binsize, _b, _bsq, _b, _bsq,
                                         _minsep, _maxsep, _logminsep, k, r, logr))
         {
             // Check angle

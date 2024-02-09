@@ -74,11 +74,11 @@ def test_direct():
 
     print('true_weight = ',true_weight)
     print('diff = ',nk.weight - true_weight)
-    np.testing.assert_allclose(nk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(nk.weight, true_weight, rtol=1.e-6, atol=1.e-8)
 
     print('true_xi = ',true_xi)
     print('nk.xi = ',nk.xi)
-    np.testing.assert_allclose(nk.xi, true_xi, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(nk.xi, true_xi, rtol=1.e-5, atol=2.e-8)
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/nk_direct.yaml')
@@ -114,8 +114,8 @@ def test_direct():
                                 max_top=0)
     nk.process(cat1, cat2)
     np.testing.assert_array_equal(nk.npairs, true_npairs)
-    np.testing.assert_allclose(nk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(nk.xi, true_xi, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(nk.weight, true_weight, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(nk.xi, true_xi, rtol=1.e-5, atol=2.e-8)
 
     # Check a few basic operations with a NKCorrelation object.
     do_pickle(nk)
@@ -271,8 +271,8 @@ def test_direct_spherical():
                                 sep_units='deg', bin_slop=0, max_top=0)
     nk.process(cat1, cat2)
     np.testing.assert_array_equal(nk.npairs, true_npairs)
-    np.testing.assert_allclose(nk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(nk.xi, true_xi, rtol=1.e-3, atol=1.e-6)
+    np.testing.assert_allclose(nk.weight, true_weight, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(nk.xi, true_xi, rtol=1.e-6, atol=1.e-8)
 
 
 @timer
@@ -507,8 +507,8 @@ def test_varxi():
 
             source = treecorr.Catalog(x=x2, y=y2, w=w, k=k)
             rand = treecorr.Catalog(x=x3, y=y3)
-            nk = treecorr.NKCorrelation(bin_size=0.3, min_sep=6., max_sep=15.)
-            rk = treecorr.NKCorrelation(bin_size=0.3, min_sep=6., max_sep=15.)
+            nk = treecorr.NKCorrelation(bin_size=0.3, min_sep=6., max_sep=15., angle_slop=0.3)
+            rk = treecorr.NKCorrelation(bin_size=0.3, min_sep=6., max_sep=15., angle_slop=0.3)
             nk.process(lens, source)
             rk.process(rand, source)
             all_nks.append(nk)
@@ -563,8 +563,8 @@ def test_varxi():
 
     source = treecorr.Catalog(x=x2, y=y2, w=w, k=k)
     rand = treecorr.Catalog(x=x3, y=y3)
-    nk = treecorr.NKCorrelation(bin_size=0.3, min_sep=6., max_sep=15.)
-    rk = treecorr.NKCorrelation(bin_size=0.3, min_sep=6., max_sep=15.)
+    nk = treecorr.NKCorrelation(bin_size=0.3, min_sep=6., max_sep=15., angle_slop=0.3)
+    rk = treecorr.NKCorrelation(bin_size=0.3, min_sep=6., max_sep=15., angle_slop=0.3)
     nk.process(lens, source)
     rk.process(rand, source)
 

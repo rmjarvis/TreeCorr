@@ -793,7 +793,7 @@ def test_ng_rperp():
     # Note: many of the redshifts are equal to other redshifts, so setting max_rpar=0 would
     # be unstable to numerical differences on different machines, as 0 isn't exact, so it would
     # come out to +- 1.e-13 or so.  Use max_rpar=1.e-8 as meaning <= 0.
-    ng = treecorr.NGCorrelation(nbins=10, min_sep=0.5, max_sep=60,
+    ng = treecorr.NGCorrelation(nbins=10, min_sep=0.5, max_sep=60, angle_slop=0.3,
                                 min_rpar=-dmax, max_rpar=1.e-8, bin_slop=0.01)
     ng.process(cat, cat, metric='OldRperp')
 

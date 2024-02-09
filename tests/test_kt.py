@@ -76,13 +76,13 @@ def test_direct():
 
     print('true_weight = ',true_weight)
     print('diff = ',kt.weight - true_weight)
-    np.testing.assert_allclose(kt.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kt.weight, true_weight, rtol=1.e-6, atol=1.e-8)
 
     print('true_xi = ',true_xi)
     print('kt.xi = ',kt.xi)
     print('kt.xi_im = ',kt.xi_im)
-    np.testing.assert_allclose(kt.xi, true_xi.real, rtol=1.e-4, atol=1.e-8)
-    np.testing.assert_allclose(kt.xi_im, true_xi.imag, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(kt.xi, true_xi.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(kt.xi_im, true_xi.imag, rtol=1.e-6, atol=1.e-8)
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/kt_direct.yaml')
@@ -112,9 +112,18 @@ def test_direct():
                                 max_top=0)
     kt.process(cat1, cat2)
     np.testing.assert_array_equal(kt.npairs, true_npairs)
-    np.testing.assert_allclose(kt.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(kt.xi, true_xi.real, rtol=1.e-3, atol=1.e-3)
-    np.testing.assert_allclose(kt.xi_im, true_xi.imag, rtol=1.e-3, atol=1.1e-3)
+    np.testing.assert_allclose(kt.weight, true_weight, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(kt.xi, true_xi.real, atol=1.e-3)
+    np.testing.assert_allclose(kt.xi_im, true_xi.imag, atol=1.1e-3)
+
+    # With angle_slop = 0, it goes back to being basically exact (to single precision).
+    kt = treecorr.KTCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0,
+                                angle_slop=0, max_top=0)
+    kt.process(cat1, cat2)
+    np.testing.assert_array_equal(kt.npairs, true_npairs)
+    np.testing.assert_allclose(kt.weight, true_weight, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(kt.xi, true_xi.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(kt.xi_im, true_xi.imag, rtol=1.e-6, atol=1.e-8)
 
     # Check a few basic operations with a KTCorrelation object.
     do_pickle(kt)
@@ -258,12 +267,12 @@ def test_direct_spherical():
 
     print('true_weight = ',true_weight)
     print('diff = ',kt.weight - true_weight)
-    np.testing.assert_allclose(kt.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(kt.weight, true_weight, rtol=1.e-6, atol=1.e-8)
 
     print('true_xi = ',true_xi)
     print('kt.xi = ',kt.xi)
-    np.testing.assert_allclose(kt.xi, true_xi.real, rtol=1.e-4, atol=1.e-8)
-    np.testing.assert_allclose(kt.xi_im, true_xi.imag, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(kt.xi, true_xi.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(kt.xi_im, true_xi.imag, rtol=1.e-6, atol=2.e-8)
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/kt_direct_spherical.yaml')
@@ -288,9 +297,18 @@ def test_direct_spherical():
                                 sep_units='deg', bin_slop=0, max_top=0)
     kt.process(cat1, cat2)
     np.testing.assert_array_equal(kt.npairs, true_npairs)
-    np.testing.assert_allclose(kt.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(kt.xi, true_xi.real, rtol=1.e-3, atol=1.e-3)
-    np.testing.assert_allclose(kt.xi_im, true_xi.imag, rtol=1.e-3, atol=1.e-3)
+    np.testing.assert_allclose(kt.weight, true_weight, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(kt.xi, true_xi.real, atol=1.e-3)
+    np.testing.assert_allclose(kt.xi_im, true_xi.imag, atol=1.e-3)
+
+    # With angle_slop = 0, it goes back to being basically exact (to single precision).
+    kt = treecorr.KTCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                sep_units='deg', bin_slop=0, angle_slop=0, max_top=0)
+    kt.process(cat1, cat2)
+    np.testing.assert_array_equal(kt.npairs, true_npairs)
+    np.testing.assert_allclose(kt.weight, true_weight, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(kt.xi, true_xi.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(kt.xi_im, true_xi.imag, rtol=1.e-6, atol=2.e-8)
 
 
 @timer

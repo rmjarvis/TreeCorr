@@ -93,7 +93,7 @@ struct BinTypeHelper<Log>
     template <int C>
     static bool singleBin(double rsq, double s1ps2,
                           const Position<C>& p1, const Position<C>& p2,
-                          double binsize, double b, double bsq,
+                          double binsize, double b, double bsq, double a, double asq,
                           double minsep, double maxsep, double logminsep,
                           int& ik, double& r, double& logr)
     {
@@ -106,6 +106,9 @@ struct BinTypeHelper<Log>
         // s1 + s2 <= b * r
         double s1ps2sq = s1ps2 * s1ps2;
         if (s1ps2sq <= bsq*rsq) return true;
+
+        // Check for angle being too large.
+        if (s1ps2sq > asq*rsq) return false;
 
         // If s1+s2 > 0.5 * (binsize + b) * r, then the total leakage (on both sides perhaps)
         // will be more than b.  I.e. too much slop.
@@ -194,7 +197,7 @@ struct BinTypeHelper<Linear>
     template <int C>
     static bool singleBin(double rsq, double s1ps2,
                           const Position<C>& p1, const Position<C>& p2,
-                          double binsize, double b, double bsq,
+                          double binsize, double b, double bsq, double a, double asq,
                           double minsep, double maxsep, double logminsep,
                           int& ik, double& r, double& logr)
     {
@@ -204,6 +207,9 @@ struct BinTypeHelper<Linear>
         // s1 + s2 <= b
         // Note: this automatically includes the s1ps2 == 0 case, so don't do it separately.
         if (s1ps2 <= b) return true;
+
+        // Check for angle being too large.
+        if (SQR(s1ps2) > asq*rsq) return false;
 
         // If s1+s2 > 0.5 * (binsize + b), then the total leakage (on both sides perhaps)
         // will be more than b.  I.e. too much slop.
@@ -306,7 +312,7 @@ struct BinTypeHelper<TwoD>
     template <int C>
     static bool singleBin(double rsq, double s1ps2,
                           const Position<C>& p1, const Position<C>& p2,
-                          double binsize, double b, double bsq,
+                          double binsize, double b, double bsq, double a, double asq,
                           double minsep, double maxsep, double logminsep,
                           int& k, double& r, double& logr)
     {
@@ -315,6 +321,9 @@ struct BinTypeHelper<TwoD>
         // Standard stop splitting criterion.
         // s1 + s2 <= b
         if (s1ps2 <= b) return true;
+
+        // Check for angle being too large.
+        if (SQR(s1ps2) > asq*rsq) return false;
 
         // If s1+s2 > 0.5 * (binsize + b), then the total leakage (on both sides perhaps)
         // will be more than b.  I.e. too much slop.

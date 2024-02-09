@@ -82,18 +82,18 @@ def test_direct():
 
     print('true_weight = ',true_weight)
     print('diff = ',vv.weight - true_weight)
-    np.testing.assert_allclose(vv.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(vv.weight, true_weight, rtol=1.e-6, atol=1.e-8)
 
     print('true_xip = ',true_xip)
     print('vv.xip = ',vv.xip)
     print('vv.xip_im = ',vv.xip_im)
-    np.testing.assert_allclose(vv.xip, true_xip.real, rtol=1.e-4, atol=1.e-8)
-    np.testing.assert_allclose(vv.xip_im, true_xip.imag, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(vv.xip, true_xip.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(vv.xip_im, true_xip.imag, rtol=1.e-6, atol=1.e-8)
     print('true_xim = ',true_xim)
     print('vv.xim = ',vv.xim)
     print('vv.xim_im = ',vv.xim_im)
-    np.testing.assert_allclose(vv.xim, true_xim.real, rtol=1.e-4, atol=1.e-8)
-    np.testing.assert_allclose(vv.xim_im, true_xim.imag, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(vv.xim, true_xim.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(vv.xim_im, true_xim.imag, rtol=1.e-6, atol=1.e-8)
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/vv_direct.yaml')
@@ -120,17 +120,28 @@ def test_direct():
                                 max_top=0)
     vv.process(cat1, cat2)
     np.testing.assert_array_equal(vv.npairs, true_npairs)
-    np.testing.assert_allclose(vv.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(vv.xip, true_xip.real, rtol=1.e-4, atol=1.e-8)
-    np.testing.assert_allclose(vv.xip_im, true_xip.imag, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(vv.weight, true_weight, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(vv.xip, true_xip.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(vv.xip_im, true_xip.imag, rtol=1.e-6, atol=1.e-8)
     print('true_xim = ',true_xim)
     print('vv.xim = ',vv.xim)
     print('vv.xim_im = ',vv.xim_im)
     print('diff = ',vv.xim - true_xim.real)
     print('max diff = ',np.max(np.abs(vv.xim - true_xim.real)))
     print('rel diff = ',(vv.xim - true_xim.real)/true_xim.real)
-    np.testing.assert_allclose(vv.xim, true_xim.real, rtol=1.e-3, atol=3.e-4)
-    np.testing.assert_allclose(vv.xim_im, true_xim.imag, atol=1.e-3)
+    np.testing.assert_allclose(vv.xim, true_xim.real, atol=3.e-4)
+    np.testing.assert_allclose(vv.xim_im, true_xim.imag, atol=1.e-4)
+
+    # With angle_slop = 0, it goes back to being basically exact (to single precision).
+    vv = treecorr.VVCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0,
+                                angle_slop=0, max_top=0)
+    vv.process(cat1, cat2)
+    np.testing.assert_array_equal(vv.npairs, true_npairs)
+    np.testing.assert_allclose(vv.weight, true_weight, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(vv.xip, true_xip.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(vv.xip_im, true_xip.imag, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(vv.xim, true_xim.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(vv.xim_im, true_xim.imag, rtol=1.e-6, atol=1.e-8)
 
     # Check a few basic operations with a VVCorrelation object.
     do_pickle(vv)
@@ -291,18 +302,18 @@ def test_direct_spherical():
 
     print('true_weight = ',true_weight)
     print('diff = ',vv.weight - true_weight)
-    np.testing.assert_allclose(vv.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(vv.weight, true_weight, rtol=1.e-6, atol=1.e-8)
 
     print('true_xip = ',true_xip)
     print('vv.xip = ',vv.xip)
     print('vv.xip_im = ',vv.xip_im)
-    np.testing.assert_allclose(vv.xip, true_xip.real, rtol=1.e-4, atol=1.e-8)
-    np.testing.assert_allclose(vv.xip_im, true_xip.imag, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(vv.xip, true_xip.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(vv.xip_im, true_xip.imag, rtol=1.e-6, atol=1.e-8)
     print('true_xim = ',true_xim)
     print('vv.xim = ',vv.xim)
     print('vv.xim_im = ',vv.xim_im)
-    np.testing.assert_allclose(vv.xim, true_xim.real, rtol=1.e-4, atol=1.e-8)
-    np.testing.assert_allclose(vv.xim_im, true_xim.imag, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(vv.xim, true_xim.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(vv.xim_im, true_xim.imag, rtol=1.e-6, atol=1.e-8)
 
     # Check that running via the corr2 script works correctly.
     try:
@@ -329,11 +340,23 @@ def test_direct_spherical():
                                 sep_units='deg', bin_slop=0, max_top=0)
     vv.process(cat1, cat2)
     np.testing.assert_array_equal(vv.npairs, true_npairs)
-    np.testing.assert_allclose(vv.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(vv.xip, true_xip.real, rtol=1.e-3, atol=1.e-6)
-    np.testing.assert_allclose(vv.xip_im, true_xip.imag, rtol=1.e-3, atol=1.e-6)
-    np.testing.assert_allclose(vv.xim, true_xim.real, rtol=1.e-3, atol=2.e-4)
-    np.testing.assert_allclose(vv.xim_im, true_xim.imag, rtol=1.e-3, atol=2.e-4)
+    np.testing.assert_allclose(vv.weight, true_weight, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(vv.xip, true_xip.real, rtol=1.e-6, atol=3.e-7)
+    np.testing.assert_allclose(vv.xip_im, true_xip.imag, rtol=1.e-6, atol=2.e-7)
+    np.testing.assert_allclose(vv.xim, true_xim.real, atol=1.e-4)
+    np.testing.assert_allclose(vv.xim_im, true_xim.imag, atol=1.e-4)
+
+    # With angle_slop = 0, it goes back to being basically exact (to single precision).
+    vv = treecorr.VVCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                sep_units='deg', bin_slop=0, angle_slop=0, max_top=0)
+    vv.process(cat1, cat2)
+    np.testing.assert_array_equal(vv.npairs, true_npairs)
+    np.testing.assert_allclose(vv.weight, true_weight, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(vv.xip, true_xip.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(vv.xip_im, true_xip.imag, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(vv.xim, true_xim.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(vv.xim_im, true_xim.imag, rtol=1.e-6, atol=1.e-8)
+
 
 @timer
 def test_vv():

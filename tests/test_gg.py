@@ -77,11 +77,11 @@ def test_direct():
     true_xim /= true_weight
 
     np.testing.assert_array_equal(gg.npairs, true_npairs)
-    np.testing.assert_allclose(gg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(gg.xip, true_xip.real, rtol=1.e-4, atol=1.e-8)
-    np.testing.assert_allclose(gg.xip_im, true_xip.imag, rtol=1.e-4, atol=1.e-8)
-    np.testing.assert_allclose(gg.xim, true_xim.real, rtol=1.e-4, atol=1.e-8)
-    np.testing.assert_allclose(gg.xim_im, true_xim.imag, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(gg.weight, true_weight, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(gg.xip, true_xip.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(gg.xip_im, true_xip.imag, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(gg.xim, true_xim.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(gg.xim_im, true_xim.imag, rtol=1.e-6, atol=1.e-8)
 
     # Check that running via the corr2 script works correctly.
     config = treecorr.config.read_config('configs/gg_direct.yaml')
@@ -108,13 +108,24 @@ def test_direct():
                                 max_top=0)
     gg.process(cat1, cat2)
     np.testing.assert_array_equal(gg.npairs, true_npairs)
-    np.testing.assert_allclose(gg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(gg.xip, true_xip.real, rtol=1.e-4, atol=1.e-8)
-    np.testing.assert_allclose(gg.xip_im, true_xip.imag, rtol=1.e-4, atol=1.e-8)
+    np.testing.assert_allclose(gg.weight, true_weight, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(gg.xip, true_xip.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(gg.xip_im, true_xip.imag, rtol=1.e-6, atol=1.e-8)
     # This is the one that is highly affected by the approximation from averaging the shears
     # before projecting, rather than averaging each shear projected to its own connecting line.
-    np.testing.assert_allclose(gg.xim, true_xim.real, rtol=1.e-3, atol=3.e-4)
-    np.testing.assert_allclose(gg.xim_im, true_xim.imag, atol=1.e-3)
+    np.testing.assert_allclose(gg.xim, true_xim.real, atol=3.e-4)
+    np.testing.assert_allclose(gg.xim_im, true_xim.imag, atol=2.e-4)
+
+    # With angle_slop = 0, it goes back to being basically exact (to single precision).
+    gg = treecorr.GGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_slop=0,
+                                angle_slop=0, max_top=0)
+    gg.process(cat1, cat2)
+    np.testing.assert_array_equal(gg.npairs, true_npairs)
+    np.testing.assert_allclose(gg.weight, true_weight, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(gg.xip, true_xip.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(gg.xip_im, true_xip.imag, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(gg.xim, true_xim.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(gg.xim_im, true_xim.imag, rtol=1.e-6, atol=1.e-8)
 
     # Check a few basic operations with a GGCorrelation object.
     do_pickle(gg)
@@ -354,11 +365,22 @@ def test_direct_spherical():
                                 sep_units='deg', bin_slop=0, max_top=0)
     gg.process(cat1, cat2)
     np.testing.assert_array_equal(gg.npairs, true_npairs)
-    np.testing.assert_allclose(gg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(gg.xip, true_xip.real, rtol=1.e-3, atol=1.e-6)
-    np.testing.assert_allclose(gg.xip_im, true_xip.imag, rtol=1.e-3, atol=1.e-6)
-    np.testing.assert_allclose(gg.xim, true_xim.real, rtol=1.e-3, atol=2.e-4)
-    np.testing.assert_allclose(gg.xim_im, true_xim.imag, rtol=1.e-3, atol=2.e-4)
+    np.testing.assert_allclose(gg.weight, true_weight, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(gg.xip, true_xip.real, rtol=1.e-6, atol=1.e-6)
+    np.testing.assert_allclose(gg.xip_im, true_xip.imag, rtol=1.e-6, atol=1.e-6)
+    np.testing.assert_allclose(gg.xim, true_xim.real, atol=2.e-4)
+    np.testing.assert_allclose(gg.xim_im, true_xim.imag, atol=2.e-4)
+
+    # With angle_slop = 0, it goes back to being basically exact (to single precision).
+    gg = treecorr.GGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                sep_units='deg', bin_slop=0, angle_slop=0, max_top=0)
+    gg.process(cat1, cat2)
+    np.testing.assert_array_equal(gg.npairs, true_npairs)
+    np.testing.assert_allclose(gg.weight, true_weight, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(gg.xip, true_xip.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(gg.xip_im, true_xip.imag, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(gg.xim, true_xim.real, rtol=1.e-6, atol=1.e-8)
+    np.testing.assert_allclose(gg.xim_im, true_xim.imag, rtol=1.e-6, atol=1.e-8)
 
     # Split into patches to test the list-based version of the code.
     cat1p = treecorr.Catalog(ra=ra1, dec=dec1, ra_units='rad', dec_units='rad', w=w1,

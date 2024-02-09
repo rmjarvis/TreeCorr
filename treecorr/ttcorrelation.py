@@ -120,7 +120,8 @@ class TTCorrelation(Corr2):
     def corr(self):
         if self._corr is None:
             self._corr = _treecorr.TTCorr(self._bintype, self._min_sep, self._max_sep, self._nbins,
-                                          self._bin_size, self.b, self.min_rpar, self.max_rpar,
+                                          self._bin_size, self.b, self.angle_slop,
+                                          self.min_rpar, self.max_rpar,
                                           self.xperiod, self.yperiod, self.zperiod,
                                           self.xip, self.xip_im, self.xim, self.xim_im,
                                           self.meanr, self.meanlogr, self.weight, self.npairs)
@@ -137,6 +138,7 @@ class TTCorrelation(Corr2):
                 self.coords == other.coords and
                 self.bin_type == other.bin_type and
                 self.bin_slop == other.bin_slop and
+                self.angle_slop == other.angle_slop and
                 self.min_rpar == other.min_rpar and
                 self.max_rpar == other.max_rpar and
                 self.xperiod == other.xperiod and

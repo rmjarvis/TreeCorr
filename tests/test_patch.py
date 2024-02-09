@@ -597,7 +597,7 @@ def test_gg_jk():
             x, y, g1, g2, _ = generate_shear_field(nside)
             print(run,': ',np.mean(g1),np.std(g1),np.min(g1),np.max(g1))
             cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
-            gg = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+            gg = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., angle_slop=0.3)
             gg.process(cat)
             all_ggs.append(gg)
 
@@ -635,7 +635,7 @@ def test_gg_jk():
     x, y, g1, g2, _ = generate_shear_field(nside, rng)
 
     cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
-    gg1 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
+    gg1 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., angle_slop=0.3)
     t0 = time.time()
     gg1.process(cat)
     t1 = time.time()
@@ -671,7 +671,7 @@ def test_gg_jk():
     # Now run with patches, but still with shot variance.  Should be basically the same answer.
     cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, npatch=npatch, rng=rng)
     gg2 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='shot',
-                                 rng=rng)
+                                 angle_slop=0.3, rng=rng)
     t0 = time.time()
     gg2.process(cat)
     t1 = time.time()
@@ -697,7 +697,7 @@ def test_gg_jk():
 
     # Now run with jackknife variance estimate.  Should be much better.
     gg3 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife',
-                                 rng=rng)
+                                 angle_slop=0.3, rng=rng)
     t0 = time.time()
     gg3.process(cat)
     t1 = time.time()
@@ -717,7 +717,7 @@ def test_gg_jk():
 
     # Should also work with local patches
     gg3l = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife',
-                                  rng=rng)
+                                  angle_slop=0.3, rng=rng)
     t0 = time.time()
     gg3l.process(cat, patch_method='local')
     t1 = time.time()
@@ -855,7 +855,8 @@ def test_gg_jk():
     # Make sure using rng=default_rng works as well.
     rng4 = np.random.default_rng(123456)
     cat4 = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, npatch=npatch, rng=rng4)
-    gg4 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng4)
+    gg4 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng4,
+                                 angle_slop=0.3)
     gg4.process(cat4)
     cov_boot = gg4.estimate_cov('marked_bootstrap')
     np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.5*tol_factor)

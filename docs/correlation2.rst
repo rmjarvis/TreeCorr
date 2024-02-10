@@ -2,20 +2,26 @@
 Two-point Correlation Functions
 ===============================
 
-There are 6 differenct classes for calculating the different possible two-point correlation
-functions:
+There are a number of differenct classes for calculating the different possible two-point
+correlation functions:
 
 .. toctree::
 
     nn
     nk
     kk
-    ng
-    kg
-    gg
     nv
     kv
     vv
+    ng
+    kg
+    gg
+    nt
+    kt
+    gt
+    nq
+    kq
+    gq
 
 Each of the above classes is a sub-class of the base class Corr2, so they have a number of
 features in common about how they are constructed.  The common features are documented here.

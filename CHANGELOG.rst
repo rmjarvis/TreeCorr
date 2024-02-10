@@ -36,7 +36,7 @@ API Changes
 - Switched the default binning for three-point correlations to LogSAS, rather than LogRUV. (#166)
 - Changed estimate_cov with method='shot' to only return the diagonal, rather than gratuitously
   making a full, mostly empty diagonal matrix. (#166)
-- Changed name of Catalog.write kwarg from cat_precision to just precision. (#168)
+- Changed name of Catalog.write kwarg from cat_precision to just precision. (#169)
 
 
 Performance improvements
@@ -56,7 +56,7 @@ New features
 - Allow vark, varg, varv for a Catalog be specifiable on input, rather than calculated directly
   from the corresponding values. (#154)
 - Allow numpy.random.Generator for rng arguments (in addition to legacy RandomState). (#157)
-- Added spin-1 correlations using the letter V (for Velocity), including `NVCorrelation`,
+- Added spin-1 correlations using the letter V (for Vector), including `NVCorrelation`,
   `KVCorrelation` and `VVCorrelation`. (#158)
 - Added spin-3 and spin-4 correlations using the letters T (for Trefoil) and Q (for Quatrefoil)
   respectively, including `NTCorrelation`, `KTCorrelation`, `TTCorrelation`, `NQCorrelation`,
@@ -65,6 +65,13 @@ New features
 - Added ``ordered=True`` option to the 3pt ``process`` methods for keeping the order of the
   catalogs fixed in the triangle orientation. (#165)
 - Added ``bin_type='LogSAS'`` for 3pt correlations. (#165)
+- Added ``bin_type='LogMultipole'`` for 3pt correlations and method `GGGCorrelation.toSAS` to
+  convert from this format to the LogSAS binning if desired. (#167)
+- Added ``patch_method`` option to ``process``, and specifically a "local" option.  This is
+  not particularly recommended for most use cases, but it is required for the multipole
+  three-point method, for which it is the default. (#169)
+- Added ``angle_slop`` option to separately tune the allowed angular slop from cell binning,
+  irrespective of the binning. (#170)
 
 
 Bug fixes

@@ -1121,12 +1121,21 @@ class Corr2(object):
             #      d = minsep / (1+1.5 b)
             #      s = 0.5 * b * minsep / (1+1.5 b)
             #        = b * minsep / (2+3b)
-            min_size = self._min_sep * self.b / (2.+3.*self.b)
+            if self.bin_type == 'Log':
+                b1 = min(self.angle_slop, self.b)
+                min_size = self._min_sep * b1 / (2.+3.*b1)
+            else:
+                a = self.angle_slop
+                min_size = min(a * self._min_sep / (2.+3.*a), self.b/2.)
 
             # The maximum size cell that will be useful is one where a cell of size s will
             # be split at the maximum separation even if the other size = 0.
             # i.e. max_size = max_sep * b
-            max_size = self._max_sep * self.b
+            if self.bin_type == 'Log':
+                max_size = self._max_sep * b1
+            else:
+                max_size = min(a * self._max_sep, self.b)
+
             return min_size, max_size
         else:
             # For other metrics, the above calculation doesn't really apply, so just skip

@@ -2288,7 +2288,7 @@ def test_direct_logmultipole_auto():
 
     # And again with no top-level recursion
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
-                                  bin_slop=0, angle_slop=0, max_top=0, bin_type='LogMultipole')
+                                  angle_slop=0, max_top=0, bin_type='LogMultipole')
     kkk.process(cat)
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)

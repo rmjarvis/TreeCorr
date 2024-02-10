@@ -586,7 +586,7 @@ def test_direct_logruv_spherical():
     np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-3, atol=1.e-4)
 
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
-                                  sep_units='deg', bin_slop=0, angle_slop=0, max_top=0, bin_type='LogRUV')
+                                  sep_units='deg', angle_slop=0, max_top=0, bin_type='LogRUV')
     ggg.process(cat)
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
     np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
@@ -4239,8 +4239,9 @@ def test_direct_logmultipole_auto():
     np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-4, atol=1.e-8)
 
     # And again with no top-level recursion
+    # Note: angle_slop=0 implies bin_slop=0
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
-                                  bin_slop=0, angle_slop=0, max_top=0, bin_type='LogMultipole')
+                                  angle_slop=0, max_top=0, bin_type='LogMultipole')
     ggg.process(cat)
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
     np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
@@ -4348,8 +4349,7 @@ def test_direct_logmultipole_spherical():
     max_n = 20
 
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, sep_units='deg', nbins=nbins,
-                                  max_n=max_n, bin_slop=0, angle_slop=0, max_top=2,
-                                  bin_type='LogMultipole')
+                                  max_n=max_n, angle_slop=0, max_top=2, bin_type='LogMultipole')
     ggg.process(cat)
 
     r = np.sqrt(x**2 + y**2 + z**2)

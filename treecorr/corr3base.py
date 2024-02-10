@@ -1685,20 +1685,25 @@ class Corr3(object):
             if self.bin_type == 'LogRUV':
                 # The minimum separation we care about is that of the smallest size, which is
                 # min_sep * min_u.  Do the same calculation as for 2pt to get to min_size.
-                b1 = min(self.b, self.bu, self.bv)
+                b1 = min(self.angle_slop, self.b, self.bu, self.bv)
                 min_size = self._min_sep * self.min_u * b1 / (2.+3.*b1)
 
                 # This time, the maximum size is d1 * b.  d1 can be as high as 2*max_sep.
-                b2 = max(self.b, self.bu, self.bv)
+                b2 = min(self.angle_slop, self.b)
                 max_size = 2. * self._max_sep * b2
             elif self.bin_type == 'LogSAS':
                 # LogSAS
-                min_size = 2 * self._min_sep * np.tan(self.min_phi/2) * self.bu / (2+3*self.bu)
-                max_size = 2 * self._max_sep * self.b
+                b1 = min(self.angle_slop, self.b)
+                min_size1 = self._min_sep * b1 / (2.+3.*b1)
+                b2 = min(self.angle_slop, self.bu)
+                min_size2 = 2 * self._min_sep * np.tan(self.min_phi/2) * b2 / (2+3*b2)
+                min_size = min(min_size1, min_size2)
+                max_size = self._max_sep * b1
             else:
                 # LogMultipole
-                min_size = 2 * self._min_sep * self.b / (2*self.max_n+1)
-                max_size = 2 * self._max_sep * self.b
+                b1 = min(self.angle_slop, self.b)
+                min_size = 2 * self._min_sep * b1 / (2.+3*b1)
+                max_size = self._max_sep * b1
             return min_size, max_size
         else:
             return 0., 0.

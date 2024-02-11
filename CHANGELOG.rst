@@ -70,7 +70,7 @@ New features
 - Added ``patch_method`` option to ``process``, and specifically a "local" option.  This is
   not particularly recommended for most use cases, but it is required for the multipole
   three-point method, for which it is the default. (#169)
-- Added ``angle_slop`` option to separately tune the allowed angular slop from cell binning,
+- Added ``angle_slop`` option to separately tune the allowed angular slop from using cells,
   irrespective of the binning. (#170)
 
 

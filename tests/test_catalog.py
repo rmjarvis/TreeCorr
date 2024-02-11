@@ -1789,7 +1789,7 @@ def test_nan2():
         'max_sep': 100.0,
         'nbins': 10,
         'bin_slop':0.,
-        'angle_slop':1.,
+        'angle_slop': 1.,
         'sep_units':'arcmin',
     }
 

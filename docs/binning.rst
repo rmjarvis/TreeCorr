@@ -229,22 +229,22 @@ angle_slop
 
 For some calculations, the angular orientation of the line between two points is relevant
 to the correlation.  For any complex quantity (e.g. shear), the value used in the correlation
-has to be projected on the the line between the two points (for two-point correlations) or
+has to be projected onto the the line between the two points (for two-point correlations) or
 the centroid of the triangle (for three-point correlations).  Even for scalar quantities,
 three-point correlations using the multipole method also use the angular direction of the
 lines between points.
 
 In such cases, another optional parameter, called ``angle_slop`` provides a slightly different
-accuracy/speed trade off than the one provided by ``bin_slop``.  It sets the maximum error
-allowed in the separation direction between two points relative to the direction between
-the corresponding cells when deciding whether to accumulate a pair of cells.  If some object
-pairs would have a direction that is more than ``angle_slop`` radians different from the
-cell pair direction, then the cells will be split further, even if they would pass the
-``bin_slop`` criterion.
+accuracy/speed trade off than the one provided by ``bin_slop``.  It sets the maximum allowed
+angular difference between the line connecting two cells to be accumulated and the lines connecting
+any two of their consituent points.  If the line connecting some pair has a direction that is more
+than ``angle_slop`` radians different from the cell pair direction, then the cells will be split
+further, even if they would pass the ``bin_slop`` criterion.
 
 This parameter allows one to use fairly large bins for shear (or other non-spin-0) correlations
 and tune the accuracy of the projections without worrying that some pairs of cells will have
-large projection errors because a pair of cells happen to fit precisely in a single bin.
+large projection errors because the range of separations for a pair of cells happen to fit
+precisely into a single bin.
 
 
 brute

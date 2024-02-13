@@ -3129,9 +3129,9 @@ def test_direct_logsas_auto():
     y = rng.normal(0,s, (ngal,) )
     cat = treecorr.Catalog(x=x, y=y)
 
-    min_sep = 1.
+    min_sep = 10.
     max_sep = 50.
-    nbins = 20
+    nbins = 10
     min_phi = 0.33
     max_phi = 2.89
     nphi_bins = 10
@@ -3139,7 +3139,7 @@ def test_direct_logsas_auto():
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                   brute=True, verbose=1, bin_type='LogSAS')
-    ddd.process(cat)
+    ddd.process(cat, algo='triangle')
 
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
@@ -3176,89 +3176,55 @@ def test_direct_logsas_auto():
 
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
-    # Check that running via the corr3 script works correctly.
-    file_name = os.path.join('data','nnn_direct_data_logsas.dat')
-    with open(file_name, 'w') as fid:
-        for i in range(ngal):
-            fid.write(('%.20f %.20f\n')%(x[i],y[i]))
-    L = 10*s
-    nrand = ngal
-    rx = (rng.random_sample(nrand)-0.5) * L
-    ry = (rng.random_sample(nrand)-0.5) * L
-    rcat = treecorr.Catalog(x=rx, y=ry)
-    rand_file_name = os.path.join('data','nnn_direct_rand_logsas.dat')
-    with open(rand_file_name, 'w') as fid:
-        for i in range(nrand):
-            fid.write(('%.20f %.20f\n')%(rx[i],ry[i]))
-    rrr = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                  min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
-                                  brute=True, verbose=0, bin_type='LogSAS', rng=rng)
-    rrr.process(rcat)
-    zeta, varzeta = ddd.calculateZeta(rrr=rrr)
-
-    config = treecorr.config.read_config('configs/nnn_direct_logsas.yaml')
-    logger = treecorr.config.setup_logger(0)
-    treecorr.corr3(config, logger)
-    corr3_output = np.genfromtxt(os.path.join('output','nnn_direct_logsas.out'), names=True,
-                                    skip_header=1)
-    np.testing.assert_allclose(corr3_output['d2_nom'], ddd.d2nom.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(corr3_output['d3_nom'], ddd.d3nom.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(corr3_output['phi_nom'], ddd.phi.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(corr3_output['DDD'], ddd.ntri.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(corr3_output['ntri'], ddd.ntri.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(corr3_output['RRR'], rrr.ntri.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(corr3_output['sigma_zeta'], np.sqrt(varzeta).flatten(), rtol=1.e-3)
-
     # Repeat with binslop = 0, since the code flow is different from brute=True
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                   bin_slop=0, verbose=1, bin_type='LogSAS')
-    ddd.process(cat)
+    ddd.process(cat, algo='triangle')
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # And again with no top-level recursion
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                   bin_slop=0, verbose=1, max_top=0, bin_type='LogSAS')
-    ddd.process(cat)
+    ddd.process(cat, algo='triangle')
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # And compare to the cross correlation
-    ddd.process(cat,cat,cat)
+    ddd.process(cat,cat,cat, algo='triangle')
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # As before, this will count each triangle 6 times.
-    ddd.process(cat,cat,cat, ordered=False)
+    ddd.process(cat,cat,cat, ordered=False, algo='triangle')
     np.testing.assert_array_equal(ddd.ntri, 6*true_ntri)
 
     # Or with 2 argument version
-    ddd.process(cat,cat)
+    ddd.process(cat,cat, algo='triangle')
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # Now ordered=False finds each triangle 3 times.
-    ddd.process(cat,cat, ordered=False)
+    ddd.process(cat,cat, ordered=False, algo='triangle')
     np.testing.assert_array_equal(ddd.ntri, 3*true_ntri)
 
     do_pickle(ddd)
 
     # Split into patches to test the list-based version of the code.
-    cat = treecorr.Catalog(x=x, y=y, npatch=10, rng=rng)
+    catp = treecorr.Catalog(x=x, y=y, npatch=10, rng=rng)
 
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
-                                  bin_slop=0, verbose=1,bin_type='LogSAS')
-    ddd.process(cat)
+                                  bin_slop=0, verbose=1, bin_type='LogSAS')
+    ddd.process(catp, algo='triangle')
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
-    ddd.process(cat,cat, ordered=True)
+    ddd.process(catp,catp, ordered=True, algo='triangle')
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
-    ddd.process(cat,cat, ordered=False)
+    ddd.process(catp,catp, ordered=False, algo='triangle')
     np.testing.assert_array_equal(ddd.ntri, 3*true_ntri)
 
-    ddd.process(cat,cat,cat, ordered=True)
+    ddd.process(catp,catp,catp, ordered=True, algo='triangle')
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
-    ddd.process(cat,cat,cat, ordered=False)
+    ddd.process(catp,catp,catp, ordered=False, algo='triangle')
     np.testing.assert_array_equal(ddd.ntri, 6*true_ntri)
 
     # Test I/O
@@ -3297,6 +3263,53 @@ def test_direct_logsas_auto():
         np.testing.assert_allclose(ddd4.meanlogd3, ddd.meanlogd3)
         np.testing.assert_allclose(ddd4.meanphi, ddd.meanphi)
 
+    # The above all used the old triangle algorithm.  Check the new default of calculating
+    # LogSAS via a temporary object with LogMultipole.
+    ddd2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                   bin_slop=0, verbose=1, bin_type='LogSAS')
+    ddd2.process(cat)
+    print('mean ratio = ',np.mean(ddd2.ntri.ravel()) / np.mean(true_ntri.ravel()))
+    print('mean diff = ',np.mean(ddd2.ntri.ravel()) - np.mean(true_ntri.ravel()))
+    # With this small ngal, the weights are super noisy, so it doesn't match very well.
+    # The mean is kind of ok though.
+    np.testing.assert_allclose(np.mean(ddd2.weight), np.mean(true_ntri), rtol=0.003)
+
+    # Check that running via the corr3 script works correctly.
+    # (The corr3 script will use the multipole algorithm.)
+    file_name = os.path.join('data','nnn_direct_data_logsas.dat')
+    with open(file_name, 'w') as fid:
+        for i in range(ngal):
+            fid.write(('%.20f %.20f\n')%(x[i],y[i]))
+    L = 10*s
+    nrand = ngal
+    rx = (rng.random_sample(nrand)-0.5) * L
+    ry = (rng.random_sample(nrand)-0.5) * L
+    rcat = treecorr.Catalog(x=rx, y=ry)
+    rand_file_name = os.path.join('data','nnn_direct_rand_logsas.dat')
+    with open(rand_file_name, 'w') as fid:
+        for i in range(nrand):
+            fid.write(('%.20f %.20f\n')%(rx[i],ry[i]))
+    rrr2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                  brute=True, verbose=0, bin_type='LogSAS', rng=rng)
+    rrr2.process(rcat)
+    zeta, varzeta = ddd2.calculateZeta(rrr=rrr2)
+
+    config = treecorr.config.read_config('configs/nnn_direct_logsas.yaml')
+    logger = treecorr.config.setup_logger(0)
+    treecorr.corr3(config, logger)
+    corr3_output = np.genfromtxt(os.path.join('output','nnn_direct_logsas.out'), names=True,
+                                 skip_header=1)
+    np.testing.assert_allclose(corr3_output['d2_nom'], ddd2.d2nom.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['d3_nom'], ddd2.d3nom.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['phi_nom'], ddd2.phi.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['DDD'], ddd2.weight.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['ntri'], ddd2.ntri.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['RRR'], rrr2.weight.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['sigma_zeta'], np.sqrt(varzeta).flatten(), rtol=1.e-3)
+
 
 @timer
 def test_direct_logsas_cross():
@@ -3330,7 +3343,7 @@ def test_direct_logsas_cross():
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                   brute=True, verbose=1, bin_type='LogSAS')
     t0 = time.time()
-    ddd.process(cat1, cat2, cat3)
+    ddd.process(cat1, cat2, cat3, algo='triangle')
     t1 = time.time()
     print('brute: ',t1-t0)
 
@@ -3420,34 +3433,34 @@ def test_direct_logsas_cross():
     np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
 
     t0 = time.time()
-    ddd.process(cat1, cat3, cat2)
+    ddd.process(cat1, cat3, cat2, algo='triangle')
     t1 = time.time()
     print('brute ordered 132: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_132)
     t0 = time.time()
-    ddd.process(cat2, cat1, cat3)
+    ddd.process(cat2, cat1, cat3, algo='triangle')
     t1 = time.time()
     print('brute ordered 213: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_213)
     t0 = time.time()
-    ddd.process(cat2, cat3, cat1)
+    ddd.process(cat2, cat3, cat1, algo='triangle')
     t1 = time.time()
     print('brute ordered 231: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_231)
     t0 = time.time()
-    ddd.process(cat3, cat1, cat2)
+    ddd.process(cat3, cat1, cat2, algo='triangle')
     t1 = time.time()
     print('brute ordered 312: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_312)
     t0 = time.time()
-    ddd.process(cat3, cat2, cat1)
+    ddd.process(cat3, cat2, cat1, algo='triangle')
     t1 = time.time()
     print('brute ordered 321: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_321)
 
     # With ordered=False, we end up with the sum of all permutations.
     t0 = time.time()
-    ddd.process(cat1, cat2, cat3, ordered=False)
+    ddd.process(cat1, cat2, cat3, ordered=False, algo='triangle')
     t1 = time.time()
     print('brute unordered: ',t1-t0)
     true_ntri_sum = true_ntri_123 + true_ntri_132 + true_ntri_213 + true_ntri_231 +\
@@ -3459,13 +3472,13 @@ def test_direct_logsas_cross():
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                   bin_slop=0, verbose=1, bin_type='LogSAS')
     t0 = time.time()
-    ddd.process(cat1, cat2, cat3, ordered=True)
+    ddd.process(cat1, cat2, cat3, ordered=True, algo='triangle')
     t1 = time.time()
     print('bin_slop=0 ordered: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
 
     t0 = time.time()
-    ddd.process(cat1, cat2, cat3, ordered=False)
+    ddd.process(cat1, cat2, cat3, ordered=False, algo='triangle')
     t1 = time.time()
     print('bin_slop=0 unordered: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
@@ -3475,12 +3488,12 @@ def test_direct_logsas_cross():
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                   bin_slop=0, verbose=1, max_top=0, bin_type='LogSAS')
     t0 = time.time()
-    ddd.process(cat1, cat2, cat3, ordered=True)
+    ddd.process(cat1, cat2, cat3, ordered=True, algo='triangle')
     t1 = time.time()
     print('no top ordered: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
     t0 = time.time()
-    ddd.process(cat1, cat2, cat3, ordered=False)
+    ddd.process(cat1, cat2, cat3, ordered=False, algo='triangle')
     t1 = time.time()
     print('no top unordered: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
@@ -3495,37 +3508,37 @@ def test_direct_logsas_cross():
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                   bin_slop=0, verbose=1, bin_type='LogSAS')
     t0 = time.time()
-    ddd.process(cat1, cat2, cat3)
+    ddd.process(cat1, cat2, cat3, algo='triangle')
     t1 = time.time()
     print('patch ordered 123: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_123)
     t0 = time.time()
-    ddd.process(cat1, cat3, cat2)
+    ddd.process(cat1, cat3, cat2, algo='triangle')
     t1 = time.time()
     print('patch ordered 132: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_132)
     t0 = time.time()
-    ddd.process(cat2, cat1, cat3)
+    ddd.process(cat2, cat1, cat3, algo='triangle')
     t1 = time.time()
     print('patch ordered 213: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_213)
     t0 = time.time()
-    ddd.process(cat2, cat3, cat1)
+    ddd.process(cat2, cat3, cat1, algo='triangle')
     t1 = time.time()
     print('patch ordered 231: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_231)
     t0 = time.time()
-    ddd.process(cat3, cat1, cat2)
+    ddd.process(cat3, cat1, cat2, algo='triangle')
     t1 = time.time()
     print('patch ordered 312: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_312)
     t0 = time.time()
-    ddd.process(cat3, cat2, cat1)
+    ddd.process(cat3, cat2, cat1, algo='triangle')
     t1 = time.time()
     print('patch ordered 321: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_321)
     t0 = time.time()
-    ddd.process(cat1, cat2, cat3, ordered=False)
+    ddd.process(cat1, cat2, cat3, ordered=False, algo='triangle')
     t1 = time.time()
     print('patch unordered: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
@@ -3559,7 +3572,7 @@ def test_direct_logsas_cross12():
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                   brute=True, verbose=1, bin_type='LogSAS')
     t0 = time.time()
-    ddd.process(cat1, cat2)
+    ddd.process(cat1, cat2, algo='triangle')
     t1 = time.time()
     print('brute: ',t1-t0)
 
@@ -3627,19 +3640,19 @@ def test_direct_logsas_cross12():
     np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
 
     t0 = time.time()
-    ddd.process(cat2, cat1, cat2)
+    ddd.process(cat2, cat1, cat2, algo='triangle')
     t1 = time.time()
     print('brute ordered 212: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_212)
     t0 = time.time()
-    ddd.process(cat2, cat2, cat1)
+    ddd.process(cat2, cat2, cat1, algo='triangle')
     t1 = time.time()
     print('brute ordered 221: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_221)
 
     # With ordered=False, we end up with the sum of all permutations.
     t0 = time.time()
-    ddd.process(cat1, cat2, ordered=False)
+    ddd.process(cat1, cat2, ordered=False, algo='triangle')
     t1 = time.time()
     print('brute ordered: ',t1-t0)
     true_ntri_sum = true_ntri_122 + true_ntri_212 + true_ntri_221
@@ -3650,23 +3663,23 @@ def test_direct_logsas_cross12():
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                   bin_slop=0, verbose=1, bin_type='LogSAS')
     t0 = time.time()
-    ddd.process(cat1, cat2)
+    ddd.process(cat1, cat2, algo='triangle')
     t1 = time.time()
     print('bin_slop=0 ordered: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
     t0 = time.time()
-    ddd.process(cat2, cat1, cat2)
+    ddd.process(cat2, cat1, cat2, algo='triangle')
     t1 = time.time()
     print('bin_slop=0 ordered 212: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_212)
     t0 = time.time()
-    ddd.process(cat2, cat2, cat1)
+    ddd.process(cat2, cat2, cat1, algo='triangle')
     t1 = time.time()
     print('bin_slop=0 ordered 221: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_221)
 
     t0 = time.time()
-    ddd.process(cat1, cat2, ordered=False)
+    ddd.process(cat1, cat2, ordered=False, algo='triangle')
     t1 = time.time()
     print('bin_slop=0 unordered: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
@@ -3676,22 +3689,22 @@ def test_direct_logsas_cross12():
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                   bin_slop=0, verbose=1, max_top=0, bin_type='LogSAS')
     t0 = time.time()
-    ddd.process(cat1, cat2, ordered=True)
+    ddd.process(cat1, cat2, ordered=True, algo='triangle')
     t1 = time.time()
     print('no top ordered: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
     t0 = time.time()
-    ddd.process(cat2, cat1, cat2, ordered=True)
+    ddd.process(cat2, cat1, cat2, ordered=True, algo='triangle')
     t1 = time.time()
     print('no top ordered 212: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_212)
     t0 = time.time()
-    ddd.process(cat2, cat2, cat1, ordered=True)
+    ddd.process(cat2, cat2, cat1, ordered=True, algo='triangle')
     t1 = time.time()
     print('no top ordered 221: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_221)
     t0 = time.time()
-    ddd.process(cat1, cat2, ordered=False)
+    ddd.process(cat1, cat2, ordered=False, algo='triangle')
     t1 = time.time()
     print('no top unordered: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
@@ -3704,22 +3717,22 @@ def test_direct_logsas_cross12():
                                   bin_slop=0, verbose=1, bin_type='LogSAS')
 
     t0 = time.time()
-    ddd.process(cat1, cat2, ordered=True)
+    ddd.process(cat1, cat2, ordered=True, algo='triangle')
     t1 = time.time()
     print('patch ordered 122: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
     t0 = time.time()
-    ddd.process(cat2, cat1, cat2, ordered=True)
+    ddd.process(cat2, cat1, cat2, ordered=True, algo='triangle')
     t1 = time.time()
     print('patch ordered 212: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_212)
     t0 = time.time()
-    ddd.process(cat2, cat2, cat1, ordered=True)
+    ddd.process(cat2, cat2, cat1, ordered=True, algo='triangle')
     t1 = time.time()
     print('patch ordered 221: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_221)
     t0 = time.time()
-    ddd.process(cat1, cat2, ordered=False)
+    ddd.process(cat1, cat2, ordered=False, algo='triangle')
     t1 = time.time()
     print('patch unordered: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
@@ -3777,7 +3790,7 @@ def test_nnn_logsas():
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                   sep_units='arcmin', verbose=1, bin_type='LogSAS')
     t0 = time.time()
-    ddd.process(cat)
+    ddd.process(cat, algo='triangle')
     t1 = time.time()
     print('auto process time = ',t1-t0)
 
@@ -3787,7 +3800,7 @@ def test_nnn_logsas():
                                    min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                    sep_units='arcmin', verbose=1, bin_type='LogSAS')
     t0 = time.time()
-    dddc.process(cat,cat,cat)
+    dddc.process(cat,cat,cat, algo='triangle')
     t1 = time.time()
     print('cross process time = ',t1-t0)
     np.testing.assert_allclose(dddc.ntri, ddd.ntri)
@@ -3797,7 +3810,7 @@ def test_nnn_logsas():
     np.testing.assert_allclose(dddc.meanphi, ddd.meanphi)
 
     t0 = time.time()
-    dddc.process(cat,cat)
+    dddc.process(cat,cat, algo='triangle')
     t1 = time.time()
     print('cross12 process time = ',t1-t0)
     np.testing.assert_allclose(dddc.ntri, ddd.ntri)
@@ -3821,7 +3834,7 @@ def test_nnn_logsas():
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                   sep_units='arcmin', verbose=1, bin_type='LogSAS')
     t0 = time.time()
-    rrr.process(rand)
+    rrr.process(rand, algo='triangle')
     t1 = time.time()
     print('time for rrr: ',t1-t0)
 
@@ -3884,6 +3897,19 @@ def test_nnn_logsas():
     # So most of the above imprecision is intrinsic to this ngal realization.
     np.testing.assert_allclose(zeta2, zeta, rtol=0.03*tol_factor)
 
+    # All of the above is the default algorithm if process doesn't set algo='triangle'.
+    # Check the automatic use of the multipole algorithm from LogSAS.
+    ddd3 = ddd.copy()
+    rrr3 = rrr.copy()
+    ddd3.process(cat, algo='multipole')
+    rrr3.process(rand, algo='multipole')
+    zeta3, varzeta3 = ddd3.calculateZeta(rrr=rrr3)
+    print('mean ratio = ',np.mean(zeta3 / zeta2))
+    print('mean diff = ',np.mean(zeta3 - zeta2))
+    np.testing.assert_allclose(ddd3.weight, ddds.weight, rtol=0.01*tol_factor)
+    np.testing.assert_allclose(rrr3.weight, rrrs.weight, rtol=0.02*tol_factor)
+    np.testing.assert_allclose(zeta3, zeta2, rtol=0.02*tol_factor)
+
     # Check that we get the same result using the corr3 function
     cat.write(os.path.join('data','nnn_data_logsas.dat'))
     rand.write(os.path.join('data','nnn_rand_logsas.dat'))
@@ -3895,7 +3921,15 @@ def test_nnn_logsas():
     #print('from corr3 output = ',corr3_output['zeta'])
     #print('ratio = ',corr3_output['zeta']/zeta.flatten())
     #print('diff = ',corr3_output['zeta']-zeta.flatten())
-    np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['d2_nom'], ddd3.d2nom.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['d3_nom'], ddd3.d3nom.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['phi_nom'], ddd3.phi.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['DDD'], ddd3.weight.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['ntri'], ddd3.ntri.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['RRR'], rrr3.weight.flatten() * (ddd3.tot / rrr3.tot),
+                               rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['zeta'], zeta3.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['sigma_zeta'], np.sqrt(varzeta3).flatten(), rtol=1.e-3)
 
     # Check the fits write option
     try:
@@ -4073,9 +4107,9 @@ def test_nnn_logsas():
     rdd = ddd.copy()
 
     t0 = time.time()
-    drr.process(cat,rand, ordered=False)
+    drr.process(cat,rand, ordered=False, algo='triangle')
     t1 = time.time()
-    rdd.process(rand,cat, ordered=False)
+    rdd.process(rand,cat, ordered=False, algo='triangle')
     t2 = time.time()
     print('time for drr: ',t1-t0)
     print('time for rdd: ',t2-t1)
@@ -4184,7 +4218,7 @@ def test_nnn_logsas():
     print('time for drr via Multipole: ',t1-t0)
     print('time for rdd via Multipole: ',t2-t1)
 
-    zeta2, varzeta = ddd.calculateZeta(rrr=rrrs, drr=drrs, rdd=rdds)
+    zeta2, varzeta2 = ddd.calculateZeta(rrr=rrrs, drr=drrs, rdd=rdds)
     print('Multpole method: mean ratio = ',np.mean(zeta2 / true_zeta))
     print('Relative to direct SAS:')
     print('ddd ratio = ',np.mean(ddds.weight/ddd.weight))
@@ -4273,6 +4307,22 @@ def test_nnn_logsas():
     np.testing.assert_allclose(np.mean(rrrs.meanlogd2), np.mean(rrr.meanlogd2), rtol=0.04*tol_factor)
     np.testing.assert_allclose(np.mean(rrrs.meand3), np.mean(rrr.meand3), rtol=0.03*tol_factor)
     np.testing.assert_allclose(np.mean(rrrs.meanlogd3), np.mean(rrr.meanlogd3), rtol=0.04*tol_factor)
+
+    # Now check the automatic multipole algorithm.
+    # Note: omitting algo defaults to multipole.
+    # Use max_n=100 so we get exact matches to what we just did above.
+    drr3 = drr.copy()
+    rdd3 = rdd.copy()
+    ddd3.process(cat, max_n=100)
+    rrr3.process(rand, max_n=100)
+    drr3.process(cat,rand, ordered=False, max_n=100)
+    rdd3.process(rand,cat, ordered=False, max_n=100)
+    zeta3, varzeta3 = ddd.calculateZeta(rrr=rrrs, drr=drrs, rdd=rdds)
+    np.testing.assert_allclose(zeta3, zeta2)
+    np.testing.assert_allclose(ddd3.weight, ddds.weight)
+    np.testing.assert_allclose(drr3.weight, drrs.weight)
+    np.testing.assert_allclose(rdd3.weight, rdds.weight)
+    np.testing.assert_allclose(rrr3.weight, rrrs.weight)
 
 
 @timer

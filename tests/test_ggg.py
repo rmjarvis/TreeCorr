@@ -1569,31 +1569,31 @@ def test_ggg_logruv():
         out_file_name1 = os.path.join('output','ggg_out1.fits')
         ggg.write(out_file_name1)
         data = fitsio.read(out_file_name1)
-        np.testing.assert_almost_equal(data['r_nom'], np.exp(ggg.logr).flatten())
-        np.testing.assert_almost_equal(data['u_nom'], ggg.u.flatten())
-        np.testing.assert_almost_equal(data['v_nom'], ggg.v.flatten())
-        np.testing.assert_almost_equal(data['meand1'], ggg.meand1.flatten())
-        np.testing.assert_almost_equal(data['meanlogd1'], ggg.meanlogd1.flatten())
-        np.testing.assert_almost_equal(data['meand2'], ggg.meand2.flatten())
-        np.testing.assert_almost_equal(data['meanlogd2'], ggg.meanlogd2.flatten())
-        np.testing.assert_almost_equal(data['meand3'], ggg.meand3.flatten())
-        np.testing.assert_almost_equal(data['meanlogd3'], ggg.meanlogd3.flatten())
-        np.testing.assert_almost_equal(data['meanu'], ggg.meanu.flatten())
-        np.testing.assert_almost_equal(data['meanv'], ggg.meanv.flatten())
-        np.testing.assert_almost_equal(data['gam0r'], ggg.gam0.real.flatten())
-        np.testing.assert_almost_equal(data['gam1r'], ggg.gam1.real.flatten())
-        np.testing.assert_almost_equal(data['gam2r'], ggg.gam2.real.flatten())
-        np.testing.assert_almost_equal(data['gam3r'], ggg.gam3.real.flatten())
-        np.testing.assert_almost_equal(data['gam0i'], ggg.gam0.imag.flatten())
-        np.testing.assert_almost_equal(data['gam1i'], ggg.gam1.imag.flatten())
-        np.testing.assert_almost_equal(data['gam2i'], ggg.gam2.imag.flatten())
-        np.testing.assert_almost_equal(data['gam3i'], ggg.gam3.imag.flatten())
-        np.testing.assert_almost_equal(data['sigma_gam0'], np.sqrt(ggg.vargam0.flatten()))
-        np.testing.assert_almost_equal(data['sigma_gam1'], np.sqrt(ggg.vargam1.flatten()))
-        np.testing.assert_almost_equal(data['sigma_gam2'], np.sqrt(ggg.vargam2.flatten()))
-        np.testing.assert_almost_equal(data['sigma_gam3'], np.sqrt(ggg.vargam3.flatten()))
-        np.testing.assert_almost_equal(data['weight'], ggg.weight.flatten())
-        np.testing.assert_almost_equal(data['ntri'], ggg.ntri.flatten())
+        np.testing.assert_allclose(data['r_nom'], np.exp(ggg.logr).flatten())
+        np.testing.assert_allclose(data['u_nom'], ggg.u.flatten())
+        np.testing.assert_allclose(data['v_nom'], ggg.v.flatten())
+        np.testing.assert_allclose(data['meand1'], ggg.meand1.flatten())
+        np.testing.assert_allclose(data['meanlogd1'], ggg.meanlogd1.flatten())
+        np.testing.assert_allclose(data['meand2'], ggg.meand2.flatten())
+        np.testing.assert_allclose(data['meanlogd2'], ggg.meanlogd2.flatten())
+        np.testing.assert_allclose(data['meand3'], ggg.meand3.flatten())
+        np.testing.assert_allclose(data['meanlogd3'], ggg.meanlogd3.flatten())
+        np.testing.assert_allclose(data['meanu'], ggg.meanu.flatten())
+        np.testing.assert_allclose(data['meanv'], ggg.meanv.flatten())
+        np.testing.assert_allclose(data['gam0r'], ggg.gam0.real.flatten())
+        np.testing.assert_allclose(data['gam1r'], ggg.gam1.real.flatten())
+        np.testing.assert_allclose(data['gam2r'], ggg.gam2.real.flatten())
+        np.testing.assert_allclose(data['gam3r'], ggg.gam3.real.flatten())
+        np.testing.assert_allclose(data['gam0i'], ggg.gam0.imag.flatten())
+        np.testing.assert_allclose(data['gam1i'], ggg.gam1.imag.flatten())
+        np.testing.assert_allclose(data['gam2i'], ggg.gam2.imag.flatten())
+        np.testing.assert_allclose(data['gam3i'], ggg.gam3.imag.flatten())
+        np.testing.assert_allclose(data['sigma_gam0'], np.sqrt(ggg.vargam0.flatten()))
+        np.testing.assert_allclose(data['sigma_gam1'], np.sqrt(ggg.vargam1.flatten()))
+        np.testing.assert_allclose(data['sigma_gam2'], np.sqrt(ggg.vargam2.flatten()))
+        np.testing.assert_allclose(data['sigma_gam3'], np.sqrt(ggg.vargam3.flatten()))
+        np.testing.assert_allclose(data['weight'], ggg.weight.flatten())
+        np.testing.assert_allclose(data['ntri'], ggg.ntri.flatten())
 
         # Check the read function
         # Note: These don't need the flatten.
@@ -1603,27 +1603,27 @@ def test_ggg_logruv():
                                    nubins=nubins, nvbins=nvbins,
                                    sep_units='arcmin', verbose=1, bin_type='LogRUV')
         ggg2.read(out_file_name1)
-        np.testing.assert_almost_equal(ggg2.logr, ggg.logr)
-        np.testing.assert_almost_equal(ggg2.u, ggg.u)
-        np.testing.assert_almost_equal(ggg2.v, ggg.v)
-        np.testing.assert_almost_equal(ggg2.meand1, ggg.meand1)
-        np.testing.assert_almost_equal(ggg2.meanlogd1, ggg.meanlogd1)
-        np.testing.assert_almost_equal(ggg2.meand2, ggg.meand2)
-        np.testing.assert_almost_equal(ggg2.meanlogd2, ggg.meanlogd2)
-        np.testing.assert_almost_equal(ggg2.meand3, ggg.meand3)
-        np.testing.assert_almost_equal(ggg2.meanlogd3, ggg.meanlogd3)
-        np.testing.assert_almost_equal(ggg2.meanu, ggg.meanu)
-        np.testing.assert_almost_equal(ggg2.meanv, ggg.meanv)
-        np.testing.assert_almost_equal(ggg2.gam0, ggg.gam0)
-        np.testing.assert_almost_equal(ggg2.gam1, ggg.gam1)
-        np.testing.assert_almost_equal(ggg2.gam2, ggg.gam2)
-        np.testing.assert_almost_equal(ggg2.gam3, ggg.gam3)
-        np.testing.assert_almost_equal(ggg2.vargam0, ggg.vargam0)
-        np.testing.assert_almost_equal(ggg2.vargam1, ggg.vargam1)
-        np.testing.assert_almost_equal(ggg2.vargam2, ggg.vargam2)
-        np.testing.assert_almost_equal(ggg2.vargam3, ggg.vargam3)
-        np.testing.assert_almost_equal(ggg2.weight, ggg.weight)
-        np.testing.assert_almost_equal(ggg2.ntri, ggg.ntri)
+        np.testing.assert_allclose(ggg2.logr, ggg.logr)
+        np.testing.assert_allclose(ggg2.u, ggg.u)
+        np.testing.assert_allclose(ggg2.v, ggg.v)
+        np.testing.assert_allclose(ggg2.meand1, ggg.meand1)
+        np.testing.assert_allclose(ggg2.meanlogd1, ggg.meanlogd1)
+        np.testing.assert_allclose(ggg2.meand2, ggg.meand2)
+        np.testing.assert_allclose(ggg2.meanlogd2, ggg.meanlogd2)
+        np.testing.assert_allclose(ggg2.meand3, ggg.meand3)
+        np.testing.assert_allclose(ggg2.meanlogd3, ggg.meanlogd3)
+        np.testing.assert_allclose(ggg2.meanu, ggg.meanu)
+        np.testing.assert_allclose(ggg2.meanv, ggg.meanv)
+        np.testing.assert_allclose(ggg2.gam0, ggg.gam0)
+        np.testing.assert_allclose(ggg2.gam1, ggg.gam1)
+        np.testing.assert_allclose(ggg2.gam2, ggg.gam2)
+        np.testing.assert_allclose(ggg2.gam3, ggg.gam3)
+        np.testing.assert_allclose(ggg2.vargam0, ggg.vargam0)
+        np.testing.assert_allclose(ggg2.vargam1, ggg.vargam1)
+        np.testing.assert_allclose(ggg2.vargam2, ggg.vargam2)
+        np.testing.assert_allclose(ggg2.vargam3, ggg.vargam3)
+        np.testing.assert_allclose(ggg2.weight, ggg.weight)
+        np.testing.assert_allclose(ggg2.ntri, ggg.ntri)
         assert ggg2.coords == ggg.coords
         assert ggg2.metric == ggg.metric
         assert ggg2.sep_units == ggg.sep_units
@@ -2368,7 +2368,7 @@ def test_direct_logsas():
     nphi_bins = 10
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   nphi_bins=nphi_bins, brute=True, bin_type='LogSAS')
-    ggg.process(cat, num_threads=2)
+    ggg.process(cat, num_threads=2, algo='triangle')
 
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
@@ -2447,32 +2447,8 @@ def test_direct_logsas():
     np.testing.assert_allclose(ggg.gam2, true_gam2, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-5, atol=1.e-8)
 
-    # Check that running via the corr3 script works correctly.
-    config = treecorr.config.read_config('configs/ggg_direct_logsas.yaml')
-    try:
-        import fitsio
-    except ImportError:
-        pass
-    else:
-        cat.write(config['file_name'])
-        treecorr.corr3(config)
-        data = fitsio.read(config['ggg_file_name'])
-        np.testing.assert_allclose(data['d2_nom'], ggg.d2nom.flatten())
-        np.testing.assert_allclose(data['d3_nom'], ggg.d3nom.flatten())
-        np.testing.assert_allclose(data['phi_nom'], ggg.phi.flatten())
-        np.testing.assert_allclose(data['ntri'], ggg.ntri.flatten())
-        np.testing.assert_allclose(data['weight'], ggg.weight.flatten())
-        np.testing.assert_allclose(data['gam0r'], ggg.gam0r.flatten(), rtol=1.e-3)
-        np.testing.assert_allclose(data['gam0i'], ggg.gam0i.flatten(), rtol=1.e-3)
-        np.testing.assert_allclose(data['gam1r'], ggg.gam1r.flatten(), rtol=1.e-3)
-        np.testing.assert_allclose(data['gam1i'], ggg.gam1i.flatten(), rtol=1.e-3)
-        np.testing.assert_allclose(data['gam2r'], ggg.gam2r.flatten(), rtol=1.e-3)
-        np.testing.assert_allclose(data['gam2i'], ggg.gam2i.flatten(), rtol=1.e-3)
-        np.testing.assert_allclose(data['gam3r'], ggg.gam3r.flatten(), rtol=1.e-3)
-        np.testing.assert_allclose(data['gam3i'], ggg.gam3i.flatten(), rtol=1.e-3)
-
     # Also check the cross calculation.
-    ggg.process(cat,cat,cat, num_threads=2)
+    ggg.process(cat,cat,cat, num_threads=2, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
     np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam0, true_gam0, rtol=1.e-5, atol=1.e-8)
@@ -2480,7 +2456,7 @@ def test_direct_logsas():
     np.testing.assert_allclose(ggg.gam2, true_gam2, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-5, atol=1.e-8)
 
-    ggg.process(cat,cat)
+    ggg.process(cat,cat, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
     np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam0, true_gam0, rtol=1.e-5, atol=1.e-8)
@@ -2489,7 +2465,7 @@ def test_direct_logsas():
     np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-5, atol=1.e-8)
 
     # With ordered=False, we get 6x as many triangles, since each triangle is discovered 6 times.
-    ggg.process(cat, cat, cat, ordered=False)
+    ggg.process(cat, cat, cat, ordered=False, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, 6*true_ntri)
     np.testing.assert_allclose(ggg.weight, 6*true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam0, true_gam0, rtol=1.e-5, atol=1.e-8)
@@ -2498,7 +2474,7 @@ def test_direct_logsas():
     np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-5, atol=1.e-8)
 
     # Or with 2 argument version, finds each triangle 3 times.
-    ggg.process(cat,cat, ordered=False)
+    ggg.process(cat,cat, ordered=False, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, 3*true_ntri)
     np.testing.assert_allclose(ggg.weight, 3*true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam0, true_gam0, rtol=1.e-5, atol=1.e-8)
@@ -2510,7 +2486,7 @@ def test_direct_logsas():
     # And don't do any top-level recursion so we actually test not going to the leaves.
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   nphi_bins=nphi_bins, bin_slop=0, max_top=0, bin_type='LogSAS')
-    ggg.process(cat)
+    ggg.process(cat, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
     np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam0, true_gam0, rtol=1.e-5, atol=1.e-8)
@@ -2518,7 +2494,7 @@ def test_direct_logsas():
     np.testing.assert_allclose(ggg.gam2, true_gam2, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-5, atol=1.e-8)
 
-    ggg.process(cat,cat,cat)
+    ggg.process(cat,cat,cat, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
     np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam0, true_gam0, rtol=1.e-5, atol=1.e-8)
@@ -2526,7 +2502,7 @@ def test_direct_logsas():
     np.testing.assert_allclose(ggg.gam2, true_gam2, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-5, atol=1.e-8)
 
-    ggg.process(cat,cat)
+    ggg.process(cat,cat, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
     np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam0, true_gam0, rtol=1.e-5, atol=1.e-8)
@@ -2581,7 +2557,7 @@ def test_direct_logsas():
     # Split into patches to test the list-based version of the code.
     catp = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, npatch=3, rng=rng)
 
-    ggg.process(catp)
+    ggg.process(catp, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
     np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0, rtol=1.e-5)
@@ -2589,13 +2565,48 @@ def test_direct_logsas():
     np.testing.assert_allclose(ggg.gam2, true_gam2, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-5)
 
-    ggg.process(catp, ordered=False, patch_method='local')
+    ggg.process(catp, ordered=False, patch_method='local', algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
     np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam1, true_gam1, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam2, true_gam2, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-5)
+
+    # The above all used the old triangle algorithm.  Check the new default of calculating
+    # LogSAS via a temporary object with LogMultipole.
+    ggg2 = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                   nphi_bins=nphi_bins, bin_type='LogSAS', bin_slop=0)
+    ggg2.process(cat)
+    np.testing.assert_allclose(np.mean(ggg2.weight), np.mean(true_weight), rtol=0.03)
+    # Don't test gam values, since with this small ngal, it's not at all close.
+    # But when we have a real signal in test_ggg_logsas, we will test the accuracy
+    # of using the multipole algorithm in realistic cases.
+
+    # Check that running via the corr3 script works correctly.
+    # This uses the multipole algorithm, so matches ggg2.
+    config = treecorr.config.read_config('configs/ggg_direct_logsas.yaml')
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        cat.write(config['file_name'])
+        treecorr.corr3(config)
+        data = fitsio.read(config['ggg_file_name'])
+        np.testing.assert_allclose(data['d2_nom'], ggg2.d2nom.flatten())
+        np.testing.assert_allclose(data['d3_nom'], ggg2.d3nom.flatten())
+        np.testing.assert_allclose(data['phi_nom'], ggg2.phi.flatten())
+        np.testing.assert_allclose(data['ntri'], ggg2.ntri.flatten())
+        np.testing.assert_allclose(data['weight'], ggg2.weight.flatten())
+        np.testing.assert_allclose(data['gam0r'], ggg2.gam0r.flatten(), rtol=1.e-3)
+        np.testing.assert_allclose(data['gam0i'], ggg2.gam0i.flatten(), rtol=1.e-3)
+        np.testing.assert_allclose(data['gam1r'], ggg2.gam1r.flatten(), rtol=1.e-3)
+        np.testing.assert_allclose(data['gam1i'], ggg2.gam1i.flatten(), rtol=1.e-3)
+        np.testing.assert_allclose(data['gam2r'], ggg2.gam2r.flatten(), rtol=1.e-3)
+        np.testing.assert_allclose(data['gam2i'], ggg2.gam2i.flatten(), rtol=1.e-3)
+        np.testing.assert_allclose(data['gam3r'], ggg2.gam3r.flatten(), rtol=1.e-3)
+        np.testing.assert_allclose(data['gam3i'], ggg2.gam3i.flatten(), rtol=1.e-3)
 
 
 @timer
@@ -2624,7 +2635,7 @@ def test_direct_logsas_spherical():
     nphi_bins = 10
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, sep_units='deg',
                                   nbins=nbins, nphi_bins=nphi_bins, brute=True, bin_type='LogSAS')
-    ggg.process(cat)
+    ggg.process(cat, algo='triangle')
 
     r = np.sqrt(x**2 + y**2 + z**2)
     x /= r;  y /= r;  z /= r
@@ -2711,6 +2722,23 @@ def test_direct_logsas_spherical():
     np.testing.assert_allclose(ggg.gam2, true_gam2, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-4, atol=1.e-6)
 
+    # Repeat with binslop = 0
+    # And don't do any top-level recursion so we actually test not going to the leaves.
+    ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, sep_units='deg',
+                                  nbins=nbins, nphi_bins=nphi_bins,
+                                  bin_slop=0, bin_type='LogSAS')
+    ggg.process(cat, algo='triangle')
+    np.testing.assert_array_equal(ggg.ntri, true_ntri)
+    np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam0, true_gam0, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(ggg.gam1, true_gam1, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(ggg.gam2, true_gam2, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-4, atol=1.e-6)
+
+    # Check multipole algorithm
+    ggg.process(cat)
+    np.testing.assert_allclose(np.mean(ggg.weight), np.mean(true_weight), rtol=0.02)
+
     # Check that running via the corr3 script works correctly.
     config = treecorr.config.read_config('configs/ggg_direct_spherical_logsas.yaml')
     try:
@@ -2735,18 +2763,6 @@ def test_direct_logsas_spherical():
         np.testing.assert_allclose(data['gam3r'], ggg.gam3r.flatten(), rtol=1.e-3)
         np.testing.assert_allclose(data['gam3i'], ggg.gam3i.flatten(), rtol=1.e-3)
 
-    # Repeat with binslop = 0
-    # And don't do any top-level recursion so we actually test not going to the leaves.
-    ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, sep_units='deg',
-                                  nbins=nbins, nphi_bins=nphi_bins,
-                                  bin_slop=0, max_top=0, bin_type='LogSAS')
-    ggg.process(cat)
-    np.testing.assert_array_equal(ggg.ntri, true_ntri)
-    np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(ggg.gam0, true_gam0, rtol=1.e-4, atol=1.e-6)
-    np.testing.assert_allclose(ggg.gam1, true_gam1, rtol=1.e-4, atol=1.e-6)
-    np.testing.assert_allclose(ggg.gam2, true_gam2, rtol=1.e-4, atol=1.e-6)
-    np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-4, atol=1.e-6)
 
 @timer
 def test_direct_logsas_cross():
@@ -2783,7 +2799,7 @@ def test_direct_logsas_cross():
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep,
                                   nbins=nbins, nphi_bins=nphi_bins,
                                   brute=True, bin_type='LogSAS')
-    ggg.process(cat1, cat2, cat3, num_threads=2)
+    ggg.process(cat1, cat2, cat3, num_threads=2, algo='triangle')
 
     # Figure out the correct answer for each permutation
     true_ntri_123 = np.zeros((nbins, nbins, nphi_bins))
@@ -2987,35 +3003,35 @@ def test_direct_logsas_cross():
     np.testing.assert_allclose(ggg.gam1, true_gam1_123, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam2, true_gam2_123, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam3, true_gam3_123, rtol=1.e-4, atol=1.e-6)
-    ggg.process(cat1, cat3, cat2)
+    ggg.process(cat1, cat3, cat2, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_132)
     np.testing.assert_allclose(ggg.weight, true_weight_132, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_132, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam1, true_gam1_132, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam2, true_gam2_132, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam3, true_gam3_132, rtol=1.e-4, atol=1.e-6)
-    ggg.process(cat2, cat1, cat3)
+    ggg.process(cat2, cat1, cat3, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_213)
     np.testing.assert_allclose(ggg.weight, true_weight_213, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_213, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam1, true_gam1_213, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam2, true_gam2_213, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam3, true_gam3_213, rtol=1.e-4, atol=1.e-6)
-    ggg.process(cat2, cat3, cat1)
+    ggg.process(cat2, cat3, cat1, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_231)
     np.testing.assert_allclose(ggg.weight, true_weight_231, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_231, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam1, true_gam1_231, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam2, true_gam2_231, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam3, true_gam3_231, rtol=1.e-4, atol=1.e-6)
-    ggg.process(cat3, cat1, cat2)
+    ggg.process(cat3, cat1, cat2, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_312)
     np.testing.assert_allclose(ggg.weight, true_weight_312, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_312, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam1, true_gam1_312, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam2, true_gam2_312, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam3, true_gam3_312, rtol=1.e-4, atol=1.e-6)
-    ggg.process(cat3, cat2, cat1)
+    ggg.process(cat3, cat2, cat1, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_321)
     np.testing.assert_allclose(ggg.weight, true_weight_321, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_321, rtol=1.e-4, atol=1.e-6)
@@ -3024,7 +3040,7 @@ def test_direct_logsas_cross():
     np.testing.assert_allclose(ggg.gam3, true_gam3_321, rtol=1.e-4, atol=1.e-6)
 
     # With ordered=False, we end up with the sum of all permutations.
-    ggg.process(cat1, cat2, cat3, ordered=False)
+    ggg.process(cat1, cat2, cat3, ordered=False, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
     np.testing.assert_allclose(ggg.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_sum, rtol=1.e-4, atol=1.e-6)
@@ -3037,7 +3053,7 @@ def test_direct_logsas_cross():
                                   nbins=nbins, nphi_bins=nphi_bins,
                                   bin_slop=0, bin_type='LogSAS')
 
-    ggg.process(cat1, cat2, cat3, ordered=True)
+    ggg.process(cat1, cat2, cat3, ordered=True, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_123)
     np.testing.assert_allclose(ggg.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_123, rtol=1.e-4, atol=1.e-6)
@@ -3045,7 +3061,7 @@ def test_direct_logsas_cross():
     np.testing.assert_allclose(ggg.gam2, true_gam2_123, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam3, true_gam3_123, rtol=1.e-4, atol=1.e-6)
 
-    ggg.process(cat1, cat2, cat3, ordered=False)
+    ggg.process(cat1, cat2, cat3, ordered=False, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
     np.testing.assert_allclose(ggg.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_sum, rtol=1.e-4, atol=1.e-6)
@@ -3058,7 +3074,7 @@ def test_direct_logsas_cross():
                                   nbins=nbins, nphi_bins=nphi_bins,
                                   bin_slop=0, max_top=0, bin_type='LogSAS')
 
-    ggg.process(cat1, cat2, cat3, ordered=True)
+    ggg.process(cat1, cat2, cat3, ordered=True, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_123)
     np.testing.assert_allclose(ggg.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_123, rtol=1.e-4, atol=1.e-6)
@@ -3066,7 +3082,7 @@ def test_direct_logsas_cross():
     np.testing.assert_allclose(ggg.gam2, true_gam2_123, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam3, true_gam3_123, rtol=1.e-4, atol=1.e-6)
 
-    ggg.process(cat1, cat2, cat3, ordered=False)
+    ggg.process(cat1, cat2, cat3, ordered=False, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
     np.testing.assert_allclose(ggg.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_sum, rtol=1.e-4, atol=1.e-6)
@@ -3076,14 +3092,14 @@ def test_direct_logsas_cross():
 
     # Error to have cat3, but not cat2
     with assert_raises(ValueError):
-        ggg.process(cat1, cat3=cat3)
+        ggg.process(cat1, cat3=cat3, algo='triangle')
 
     # Split into patches to test the list-based version of the code.
     cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=3, rng=rng)
     cat2p = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2, patch_centers=cat1p.patch_centers)
     cat3p = treecorr.Catalog(x=x3, y=y3, w=w3, g1=g1_3, g2=g2_3, patch_centers=cat1p.patch_centers)
 
-    ggg.process(cat1p, cat2p, cat3p)
+    ggg.process(cat1p, cat2p, cat3p, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_123)
     np.testing.assert_allclose(ggg.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_123, rtol=1.e-5)
@@ -3091,7 +3107,7 @@ def test_direct_logsas_cross():
     np.testing.assert_allclose(ggg.gam2, true_gam2_123, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam3, true_gam3_123, rtol=1.e-5)
 
-    ggg.process(cat1p, cat2p, cat3p, ordered=False)
+    ggg.process(cat1p, cat2p, cat3p, ordered=False, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
     np.testing.assert_allclose(ggg.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_sum, rtol=1.e-5)
@@ -3099,7 +3115,7 @@ def test_direct_logsas_cross():
     np.testing.assert_allclose(ggg.gam2, true_gam2_sum, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam3, true_gam3_sum, rtol=1.e-5)
 
-    ggg.process(cat1p, cat2p, cat3p, patch_method='local')
+    ggg.process(cat1p, cat2p, cat3p, patch_method='local', algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_123)
     np.testing.assert_allclose(ggg.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_123, rtol=1.e-5)
@@ -3107,7 +3123,7 @@ def test_direct_logsas_cross():
     np.testing.assert_allclose(ggg.gam2, true_gam2_123, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam3, true_gam3_123, rtol=1.e-5)
 
-    ggg.process(cat1p, cat2p, cat3p, ordered=False, patch_method='local')
+    ggg.process(cat1p, cat2p, cat3p, ordered=False, patch_method='local', algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
     np.testing.assert_allclose(ggg.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_sum, rtol=1.e-5)
@@ -3144,7 +3160,7 @@ def test_direct_logsas_cross12():
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep,
                                   nbins=nbins, nphi_bins=nphi_bins,
                                   bin_slop=0, bin_type='LogSAS')
-    ggg.process(cat1, cat2, num_threads=2)
+    ggg.process(cat1, cat2, num_threads=2, algo='triangle')
 
     # Figure out the correct answer for each permutation
     true_ntri_122 = np.zeros((nbins, nbins, nphi_bins))
@@ -3289,14 +3305,14 @@ def test_direct_logsas_cross12():
     np.testing.assert_allclose(ggg.gam1, true_gam1_122, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam2, true_gam2_122, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam3, true_gam3_122, rtol=1.e-4, atol=1.e-6)
-    ggg.process(cat2, cat1, cat2)
+    ggg.process(cat2, cat1, cat2, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_212)
     np.testing.assert_allclose(ggg.weight, true_weight_212, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_212, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam1, true_gam1_212, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam2, true_gam2_212, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam3, true_gam3_212, rtol=1.e-4, atol=1.e-6)
-    ggg.process(cat2, cat2, cat1)
+    ggg.process(cat2, cat2, cat1, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_221)
     np.testing.assert_allclose(ggg.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_221, rtol=1.e-4, atol=1.e-6)
@@ -3305,7 +3321,7 @@ def test_direct_logsas_cross12():
     np.testing.assert_allclose(ggg.gam3, true_gam3_221, rtol=1.e-4, atol=1.e-6)
 
     # With ordered=False, we end up with the sum of all permutations.
-    ggg.process(cat1, cat2, ordered=False)
+    ggg.process(cat1, cat2, ordered=False, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
     np.testing.assert_allclose(ggg.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_sum, rtol=1.e-4, atol=1.e-6)
@@ -3317,21 +3333,21 @@ def test_direct_logsas_cross12():
     cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=4, rng=rng)
     cat2p = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2, patch_centers=cat1p.patch_centers)
 
-    ggg.process(cat1p, cat2p)
+    ggg.process(cat1p, cat2p, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_122)
     np.testing.assert_allclose(ggg.weight, true_weight_122, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_122, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam1, true_gam1_122, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam2, true_gam2_122, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam3, true_gam3_122, rtol=1.e-4, atol=1.e-6)
-    ggg.process(cat2p, cat1p, cat2p)
+    ggg.process(cat2p, cat1p, cat2p, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_212)
     np.testing.assert_allclose(ggg.weight, true_weight_212, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_212, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam1, true_gam1_212, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam2, true_gam2_212, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam3, true_gam3_212, rtol=1.e-4, atol=1.e-6)
-    ggg.process(cat2p, cat2p, cat1p)
+    ggg.process(cat2p, cat2p, cat1p, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_221)
     np.testing.assert_allclose(ggg.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_221, rtol=1.e-4, atol=1.e-6)
@@ -3339,7 +3355,7 @@ def test_direct_logsas_cross12():
     np.testing.assert_allclose(ggg.gam2, true_gam2_221, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam3, true_gam3_221, rtol=1.e-4, atol=1.e-6)
 
-    ggg.process(cat1p, cat2p, ordered=False, num_threads=2)
+    ggg.process(cat1p, cat2p, ordered=False, num_threads=2, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
     np.testing.assert_allclose(ggg.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_sum, rtol=1.e-4, atol=1.e-6)
@@ -3347,21 +3363,21 @@ def test_direct_logsas_cross12():
     np.testing.assert_allclose(ggg.gam2, true_gam2_sum, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam3, true_gam3_sum, rtol=1.e-4, atol=1.e-6)
 
-    ggg.process(cat1p, cat2p, patch_method='local')
+    ggg.process(cat1p, cat2p, patch_method='local', algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_122)
     np.testing.assert_allclose(ggg.weight, true_weight_122, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_122, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam1, true_gam1_122, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam2, true_gam2_122, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam3, true_gam3_122, rtol=1.e-4, atol=1.e-6)
-    ggg.process(cat2p, cat1p, cat2p, patch_method='local')
+    ggg.process(cat2p, cat1p, cat2p, patch_method='local', algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_212)
     np.testing.assert_allclose(ggg.weight, true_weight_212, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_212, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam1, true_gam1_212, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam2, true_gam2_212, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam3, true_gam3_212, rtol=1.e-4, atol=1.e-6)
-    ggg.process(cat2p, cat2p, cat1p, patch_method='local')
+    ggg.process(cat2p, cat2p, cat1p, patch_method='local', algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_221)
     np.testing.assert_allclose(ggg.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_221, rtol=1.e-4, atol=1.e-6)
@@ -3369,7 +3385,7 @@ def test_direct_logsas_cross12():
     np.testing.assert_allclose(ggg.gam2, true_gam2_221, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam3, true_gam3_221, rtol=1.e-4, atol=1.e-6)
 
-    ggg.process(cat1p, cat2p, ordered=False, num_threads=2, patch_method='local')
+    ggg.process(cat1p, cat2p, ordered=False, num_threads=2, patch_method='local', algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
     np.testing.assert_allclose(ggg.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_sum, rtol=1.e-4, atol=1.e-6)
@@ -3439,7 +3455,7 @@ def test_ggg_logsas():
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                   sep_units='arcmin', phi_units='degrees', bin_type='LogSAS')
     t0 = time.time()
-    ggg.process(cat)
+    ggg.process(cat, algo='triangle')
     t1 = time.time()
     print('auto process time = ',t1-t0)
 
@@ -3449,7 +3465,7 @@ def test_ggg_logsas():
                                    min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                    sep_units='arcmin', phi_units='degrees', bin_type='LogSAS')
     t0 = time.time()
-    gggc.process(cat,cat,cat)
+    gggc.process(cat,cat,cat, algo='triangle')
     t1 = time.time()
     print('cross process time = ',t1-t0)
     np.testing.assert_allclose(gggc.ntri, ggg.ntri, rtol=1.e-3)
@@ -3463,7 +3479,7 @@ def test_ggg_logsas():
     np.testing.assert_allclose(gggc.gam3, ggg.gam3, rtol=2.e-3)
 
     t0 = time.time()
-    gggc.process(cat,cat)
+    gggc.process(cat,cat, algo='triangle')
     t1 = time.time()
     print('cross12 process time = ',t1-t0)
     np.testing.assert_allclose(gggc.ntri, ggg.ntri, rtol=1.e-3)
@@ -3593,10 +3609,10 @@ def test_ggg_logsas():
     np.testing.assert_allclose(data['Mx3'], mx3)
 
     # Repeat this using Multipole and then convert to SAS:
-    gggm = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=50,
+    gggm = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=80,
                                   sep_units='arcmin', bin_type='LogMultipole')
     t0 = time.time()
-    gggm.process(cat)
+    gggm.process(cat, algo='triangle')
     gggs = gggm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins, phi_units='deg')
     t1 = time.time()
     print('time for multipole ggg:', t1-t0)
@@ -3645,22 +3661,36 @@ def test_ggg_logsas():
     with assert_raises(TypeError):
         gggs.toSAS()
 
-    # Check that we get the same result using the corr3 function:
+    # All of the above is the default algorithm if process doesn't set algo='triangle'.
+    # Check the automatic use of the multipole algorithm from LogSAS.
+    ggg3 = ggg.copy()
+    ggg3.process(cat, algo='multipole')
+    np.testing.assert_allclose(ggg3.weight, gggs.weight, rtol=1.e-3, atol=0)
+    np.testing.assert_allclose(ggg3.gam0, gggs.gam0, rtol=1.e-3, atol=0)
+    np.testing.assert_allclose(ggg3.gam1, gggs.gam1, rtol=1.e-3, atol=0)
+    np.testing.assert_allclose(ggg3.gam2, gggs.gam2, rtol=1.e-3, atol=0)
+    np.testing.assert_allclose(ggg3.gam3, gggs.gam3, rtol=1.e-3, atol=0)
+
+    # Check that we get the same result using the corr3 functin:
+    # (This implicitly uses the multipole algorithm.)
     cat.write(os.path.join('data','ggg_data_logsas.dat'))
     config = treecorr.config.read_config('configs/ggg_logsas.yaml')
     config['verbose'] = 0
     treecorr.corr3(config)
     corr3_output = np.genfromtxt(os.path.join('output','ggg_logsas.out'), names=True, skip_header=1)
-    np.testing.assert_allclose(corr3_output['gam0r'], ggg.gam0r.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(corr3_output['gam0i'], ggg.gam0i.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(corr3_output['gam1r'], ggg.gam1r.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(corr3_output['gam1i'], ggg.gam1i.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(corr3_output['gam2r'], ggg.gam2r.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(corr3_output['gam2i'], ggg.gam2i.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(corr3_output['gam3r'], ggg.gam3r.flatten(), rtol=1.e-3)
-    np.testing.assert_allclose(corr3_output['gam3i'], ggg.gam3i.flatten(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['gam0r'], ggg3.gam0r.flatten(), rtol=1.e-3, atol=0)
+    np.testing.assert_allclose(corr3_output['gam0i'], ggg3.gam0i.flatten(), rtol=1.e-3, atol=0)
+    np.testing.assert_allclose(corr3_output['gam1r'], ggg3.gam1r.flatten(), rtol=1.e-3, atol=0)
+    np.testing.assert_allclose(corr3_output['gam1i'], ggg3.gam1i.flatten(), rtol=1.e-3, atol=0)
+    np.testing.assert_allclose(corr3_output['gam2r'], ggg3.gam2r.flatten(), rtol=1.e-3, atol=0)
+    np.testing.assert_allclose(corr3_output['gam2i'], ggg3.gam2i.flatten(), rtol=1.e-3, atol=0)
+    np.testing.assert_allclose(corr3_output['gam3r'], ggg3.gam3r.flatten(), rtol=1.e-3, atol=0)
+    np.testing.assert_allclose(corr3_output['gam3i'], ggg3.gam3i.flatten(), rtol=1.e-3, atol=0)
 
     # Check m3 output
+    map3_stats = ggg3.calculateMap3()
+    map3 = map3_stats[0]
+    mx3 = map3_stats[7]
     corr3_output2 = np.genfromtxt(os.path.join('output','ggg_m3_logsas.out'), names=True)
     print('map3 = ',map3)
     print('from corr3 output = ',corr3_output2['Map3'])
@@ -3690,30 +3720,30 @@ def test_ggg_logsas():
         out_file_name1 = os.path.join('output','ggg_out1_logsas.fits')
         ggg.write(out_file_name1)
         data = fitsio.read(out_file_name1)
-        np.testing.assert_almost_equal(data['d2_nom'], np.exp(ggg.logd2).flatten())
-        np.testing.assert_almost_equal(data['d3_nom'], np.exp(ggg.logd3).flatten())
-        np.testing.assert_almost_equal(data['phi_nom'], ggg.phi.flatten())
-        np.testing.assert_almost_equal(data['meand1'], ggg.meand1.flatten())
-        np.testing.assert_almost_equal(data['meanlogd1'], ggg.meanlogd1.flatten())
-        np.testing.assert_almost_equal(data['meand2'], ggg.meand2.flatten())
-        np.testing.assert_almost_equal(data['meanlogd2'], ggg.meanlogd2.flatten())
-        np.testing.assert_almost_equal(data['meand3'], ggg.meand3.flatten())
-        np.testing.assert_almost_equal(data['meanlogd3'], ggg.meanlogd3.flatten())
-        np.testing.assert_almost_equal(data['meanphi'], ggg.meanphi.flatten())
-        np.testing.assert_almost_equal(data['gam0r'], ggg.gam0.real.flatten())
-        np.testing.assert_almost_equal(data['gam1r'], ggg.gam1.real.flatten())
-        np.testing.assert_almost_equal(data['gam2r'], ggg.gam2.real.flatten())
-        np.testing.assert_almost_equal(data['gam3r'], ggg.gam3.real.flatten())
-        np.testing.assert_almost_equal(data['gam0i'], ggg.gam0.imag.flatten())
-        np.testing.assert_almost_equal(data['gam1i'], ggg.gam1.imag.flatten())
-        np.testing.assert_almost_equal(data['gam2i'], ggg.gam2.imag.flatten())
-        np.testing.assert_almost_equal(data['gam3i'], ggg.gam3.imag.flatten())
-        np.testing.assert_almost_equal(data['sigma_gam0'], np.sqrt(ggg.vargam0.flatten()))
-        np.testing.assert_almost_equal(data['sigma_gam1'], np.sqrt(ggg.vargam1.flatten()))
-        np.testing.assert_almost_equal(data['sigma_gam2'], np.sqrt(ggg.vargam2.flatten()))
-        np.testing.assert_almost_equal(data['sigma_gam3'], np.sqrt(ggg.vargam3.flatten()))
-        np.testing.assert_almost_equal(data['weight'], ggg.weight.flatten())
-        np.testing.assert_almost_equal(data['ntri'], ggg.ntri.flatten())
+        np.testing.assert_allclose(data['d2_nom'], np.exp(ggg.logd2).flatten())
+        np.testing.assert_allclose(data['d3_nom'], np.exp(ggg.logd3).flatten())
+        np.testing.assert_allclose(data['phi_nom'], ggg.phi.flatten())
+        np.testing.assert_allclose(data['meand1'], ggg.meand1.flatten())
+        np.testing.assert_allclose(data['meanlogd1'], ggg.meanlogd1.flatten())
+        np.testing.assert_allclose(data['meand2'], ggg.meand2.flatten())
+        np.testing.assert_allclose(data['meanlogd2'], ggg.meanlogd2.flatten())
+        np.testing.assert_allclose(data['meand3'], ggg.meand3.flatten())
+        np.testing.assert_allclose(data['meanlogd3'], ggg.meanlogd3.flatten())
+        np.testing.assert_allclose(data['meanphi'], ggg.meanphi.flatten())
+        np.testing.assert_allclose(data['gam0r'], ggg.gam0.real.flatten())
+        np.testing.assert_allclose(data['gam1r'], ggg.gam1.real.flatten())
+        np.testing.assert_allclose(data['gam2r'], ggg.gam2.real.flatten())
+        np.testing.assert_allclose(data['gam3r'], ggg.gam3.real.flatten())
+        np.testing.assert_allclose(data['gam0i'], ggg.gam0.imag.flatten())
+        np.testing.assert_allclose(data['gam1i'], ggg.gam1.imag.flatten())
+        np.testing.assert_allclose(data['gam2i'], ggg.gam2.imag.flatten())
+        np.testing.assert_allclose(data['gam3i'], ggg.gam3.imag.flatten())
+        np.testing.assert_allclose(data['sigma_gam0'], np.sqrt(ggg.vargam0.flatten()))
+        np.testing.assert_allclose(data['sigma_gam1'], np.sqrt(ggg.vargam1.flatten()))
+        np.testing.assert_allclose(data['sigma_gam2'], np.sqrt(ggg.vargam2.flatten()))
+        np.testing.assert_allclose(data['sigma_gam3'], np.sqrt(ggg.vargam3.flatten()))
+        np.testing.assert_allclose(data['weight'], ggg.weight.flatten())
+        np.testing.assert_allclose(data['ntri'], ggg.ntri.flatten())
 
         # Check the read function
         # Note: These don't need the flatten.
@@ -3722,31 +3752,32 @@ def test_ggg_logsas():
                                        min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                        sep_units='arcmin', phi_units='degrees', bin_type='LogSAS')
         ggg2.read(out_file_name1)
-        np.testing.assert_almost_equal(ggg2.logd2, ggg.logd2)
-        np.testing.assert_almost_equal(ggg2.logd3, ggg.logd3)
-        np.testing.assert_almost_equal(ggg2.phi, ggg.phi)
-        np.testing.assert_almost_equal(ggg2.meand1, ggg.meand1)
-        np.testing.assert_almost_equal(ggg2.meanlogd1, ggg.meanlogd1)
-        np.testing.assert_almost_equal(ggg2.meand2, ggg.meand2)
-        np.testing.assert_almost_equal(ggg2.meanlogd2, ggg.meanlogd2)
-        np.testing.assert_almost_equal(ggg2.meand3, ggg.meand3)
-        np.testing.assert_almost_equal(ggg2.meanlogd3, ggg.meanlogd3)
-        np.testing.assert_almost_equal(ggg2.meanphi, ggg.meanphi)
-        np.testing.assert_almost_equal(ggg2.gam0, ggg.gam0)
-        np.testing.assert_almost_equal(ggg2.gam1, ggg.gam1)
-        np.testing.assert_almost_equal(ggg2.gam2, ggg.gam2)
-        np.testing.assert_almost_equal(ggg2.gam3, ggg.gam3)
-        np.testing.assert_almost_equal(ggg2.vargam0, ggg.vargam0)
-        np.testing.assert_almost_equal(ggg2.vargam1, ggg.vargam1)
-        np.testing.assert_almost_equal(ggg2.vargam2, ggg.vargam2)
-        np.testing.assert_almost_equal(ggg2.vargam3, ggg.vargam3)
-        np.testing.assert_almost_equal(ggg2.weight, ggg.weight)
-        np.testing.assert_almost_equal(ggg2.ntri, ggg.ntri)
+        np.testing.assert_allclose(ggg2.logd2, ggg.logd2)
+        np.testing.assert_allclose(ggg2.logd3, ggg.logd3)
+        np.testing.assert_allclose(ggg2.phi, ggg.phi)
+        np.testing.assert_allclose(ggg2.meand1, ggg.meand1)
+        np.testing.assert_allclose(ggg2.meanlogd1, ggg.meanlogd1)
+        np.testing.assert_allclose(ggg2.meand2, ggg.meand2)
+        np.testing.assert_allclose(ggg2.meanlogd2, ggg.meanlogd2)
+        np.testing.assert_allclose(ggg2.meand3, ggg.meand3)
+        np.testing.assert_allclose(ggg2.meanlogd3, ggg.meanlogd3)
+        np.testing.assert_allclose(ggg2.meanphi, ggg.meanphi)
+        np.testing.assert_allclose(ggg2.gam0, ggg.gam0)
+        np.testing.assert_allclose(ggg2.gam1, ggg.gam1)
+        np.testing.assert_allclose(ggg2.gam2, ggg.gam2)
+        np.testing.assert_allclose(ggg2.gam3, ggg.gam3)
+        np.testing.assert_allclose(ggg2.vargam0, ggg.vargam0)
+        np.testing.assert_allclose(ggg2.vargam1, ggg.vargam1)
+        np.testing.assert_allclose(ggg2.vargam2, ggg.vargam2)
+        np.testing.assert_allclose(ggg2.vargam3, ggg.vargam3)
+        np.testing.assert_allclose(ggg2.weight, ggg.weight)
+        np.testing.assert_allclose(ggg2.ntri, ggg.ntri)
         assert ggg2.coords == ggg.coords
         assert ggg2.metric == ggg.metric
         assert ggg2.sep_units == ggg.sep_units
         assert ggg2.bin_type == ggg.bin_type
 
+ 
 @timer
 def test_map3_logsas():
     # Use the same gamma(r) as in test_ggg.
@@ -3775,7 +3806,7 @@ def test_map3_logsas():
 
         cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, verbose=2)
         t0 = time.time()
-        ggg.process(cat)
+        ggg.process(cat, algo='triangle')
         t1 = time.time()
         print('time for ggg.process = ',t1-t0)
         ggg.write(out_name, precision=16)

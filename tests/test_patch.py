@@ -3298,7 +3298,8 @@ def test_empty_patches():
     with assert_raises(RuntimeError):
         cov = nn.estimate_cov('sample', func=lambda c: c.weight)
 
-    nnn = treecorr.NNNCorrelation(bin_size=0.1, bin_slop=0.1, min_sep=10., max_sep=100.)
+    nnn = treecorr.NNNCorrelation(bin_size=0.1, bin_slop=0.1, min_sep=10., max_sep=100.,
+                                  bin_type='LogRUV')
     nnn.process(cat1p)
     cov = nnn.estimate_cov('jackknife', func=lambda c: c.weight.ravel())
     np.testing.assert_array_equal(cov, 0.)

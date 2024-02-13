@@ -574,7 +574,8 @@ class NNNCorrelation(Corr3):
         return self
 
     def process(self, cat1, cat2=None, cat3=None, *, metric=None, ordered=True, num_threads=None,
-                comm=None, low_mem=False, initialize=True, finalize=True, patch_method='auto'):
+                comm=None, low_mem=False, initialize=True, finalize=True,
+                patch_method=None, algo=None, max_n=None):
         """Accumulate the 3pt correlation of the points in the given Catalog(s).
 
         - If only 1 argument is given, then compute an auto-correlation function.
@@ -620,24 +621,58 @@ class NNNCorrelation(Corr3):
                                 `Corr3.clear`.  (default: True)
             finalize (bool):    Whether to complete the calculation with a call to `finalize`.
                                 (default: True)
-            patch_method(str):  Which patch method to use. (default: 'auto', which uses 'local'
-                                if bin_type=LogMultipole, and 'global' otherwise)
+            patch_method (str): Which patch method to use. (default is to use 'local' if
+                                bin_type=LogMultipole, and 'global' otherwise)
+            algo (str):         Which accumulation algorithm to use. (options are 'triangle' or
+                                'multipole'; default is 'multipole' unless bin_type is 'LogRUV',
+                                which can only use 'triangle')
+            max_n (int):        If using the multpole algorithm, and this is not directly using
+                                bin_type='LogMultipole', then this is the value of max_n to use
+                                for the multipole part of the calculation. (default is to use
+                                2pi/phi_bin_size)
         """
-        if initialize:
-            self.clear()
+        if algo is None:
+            multipole = (self.bin_type != 'LogRUV')
+        else:
+            if algo not in ['triangle', 'multipole']:
+                raise ValueError("Invalid algo %s"%algo)
+            multipole = (algo == 'multipole')
+            if multipole and self.bin_type == 'LogRUV':
+                raise ValueError("LogRUV binning cannot use algo='multipole'")
 
-        if patch_method == 'auto':
-            local = self.bin_type == 'LogMultipole'
+        if multipole and self.bin_type != 'LogMultipole':
+            config = self.config.copy()
+            config['bin_type'] = 'LogMultipole'
+            if max_n is None:
+                max_n = 2.*np.pi / self.phi_bin_size
+            for key in ['min_phi', 'max_phi', 'nphi_bins', 'phi_bin_size']:
+                config.pop(key, None)
+            corr = NNNCorrelation(config, max_n=max_n)
+            corr.process(cat1, cat2, cat3,
+                         metric=metric, ordered=ordered, num_threads=num_threads,
+                         comm=comm, low_mem=low_mem, initialize=initialize, finalize=finalize,
+                         patch_method=patch_method, algo='multipole')
+            corr.toSAS(target=self)
+            return
+
+        if patch_method is None:
+            local = (self.bin_type == 'LogMultipole')
         else:
             if patch_method not in ['local', 'global']:
                 raise ValueError("Invalid patch_method %s"%patch_method)
-            local = patch_method == 'local'
+            local = (patch_method == 'local')
             if not local and self.bin_type == 'LogMultipole':
                 raise ValueError("LogMultipole binning cannot use patch_method='global'")
 
-        if not isinstance(cat1,list): cat1 = cat1.get_patches()
-        if cat2 is not None and not isinstance(cat2,list): cat2 = cat2.get_patches()
-        if cat3 is not None and not isinstance(cat3,list): cat3 = cat3.get_patches()
+        if not isinstance(cat1,list):
+            cat1 = cat1.get_patches(low_mem=low_mem)
+        if cat2 is not None and not isinstance(cat2,list):
+            cat2 = cat2.get_patches(low_mem=low_mem)
+        if cat3 is not None and not isinstance(cat3,list):
+            cat3 = cat3.get_patches(low_mem=low_mem)
+
+        if initialize:
+            self.clear()
 
         if cat2 is None:
             if cat3 is not None:
@@ -675,28 +710,34 @@ class NNNCorrelation(Corr3):
         else:
             return self.tot
 
-    def toSAS(self, **kwargs):
+    def toSAS(self, *, target=None, **kwargs):
         """Convert a multipole-binned correlation to the corresponding SAS binning.
 
         This is only valid for bin_type == LogMultipole.
 
         Keyword Arguments:
+            target:     A target NNNCorrelation object with LogSAS binning to write to.
+                        If this is not given, and new object will be created based on the
+                        configuration paramters of the current object. (default: None)
             **kwargs:   Any kwargs that you want to use to configure the returned object.
                         Typically, might include min_phi, max_phi, nphi_bins, phi_bin_size.
                         The default phi binning is [0,pi] with nphi_bins = self.max_n.
 
         Returns:
-            nnn_sas:    An NNNCorrelation object with bin_type=LogSAS containing the
+            sas:        An NNNCorrelation object with bin_type=LogSAS containing the
                         same information as this object, but with the SAS binning.
         """
         if self.bin_type != 'LogMultipole':
             raise TypeError("toSAS is invalid for bin_type = %s"%self.bin_type)
 
-        config = self.config.copy()
-        config['bin_type'] = 'LogSAS'
-        max_n = config.pop('max_n')
-        config['nphi_bins'] = max_n
-        sas = NNNCorrelation(config, **kwargs)
+        if target is None:
+            config = self.config.copy()
+            config['bin_type'] = 'LogSAS'
+            max_n = config.pop('max_n')
+            config['nphi_bins'] = max_n
+            sas = NNNCorrelation(config, **kwargs)
+        else:
+            sas = target
         if not np.array_equal(sas.rnom1d, self.rnom1d):
             raise ValueError("toSAS cannot change sep parameters")
 
@@ -728,9 +769,9 @@ class NNNCorrelation(Corr3):
         phi_frac = (sas.max_phi - sas.min_phi) / (2*np.pi)
         ratio = self.ntri[:,:,0] / np.sum(sas.weight, axis=2) * phi_frac
         sas.ntri[:] = sas.weight * ratio[:,:,None]
+        sas.ntri[sas.weight==0] = 0  # Fix nans where sum(weight) = 0, so ratio -> nan
 
         return sas
-
 
     def calculateZeta(self, *, rrr, drr=None, rdd=None):
         r"""Calculate the 3pt function given another 3pt function of random
@@ -845,7 +886,7 @@ class NNNCorrelation(Corr3):
         else:
             varzeta_factor = 1 + drrf*drrw/dddw + rddf*rddw/dddw + rrrf*rrrw/dddw
         self._var_num = dddw * varzeta_factor**2  # Should this be **3? Hmm...
-        self._rrr_weight = rrr.weight * rrrf
+        self._rrr_weight = np.abs(rrr.weight) * rrrf
 
         # Now set up the bits needed for patch-based covariance
         self._rrr = rrr

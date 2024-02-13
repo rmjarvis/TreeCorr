@@ -9,9 +9,9 @@ verbose: 0
 
 bin_type: LogSAS
 
-min_sep: 1.
+min_sep: 10.
 max_sep: 50.
-nbins: 20
+nbins: 10
 min_phi: 0.33
 max_phi: 2.89
 nphi_bins: 10

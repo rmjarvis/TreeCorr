@@ -11,9 +11,9 @@ w_col: w
 verbose: 1
 
 bin_type: LogSAS
-min_sep: 1.
-max_sep: 10.
-nbins: 10
+min_sep: 10.
+max_sep: 30.
+nbins: 5
 nphi_bins: 10
 phi_units: 'radians'
 sep_units: arcmin

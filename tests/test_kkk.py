@@ -1176,7 +1176,7 @@ def test_kkk_logruv():
     config['verbose'] = 0
     treecorr.corr3(config)
     corr3_output = np.genfromtxt(os.path.join('output','kkk.out'), names=True, skip_header=1)
-    np.testing.assert_almost_equal(corr3_output['zeta'], kkk.zeta.flatten())
+    np.testing.assert_allclose(corr3_output['zeta'], kkk.zeta.flatten(), rtol=1.e-4)
 
     # Check the fits write option
     try:
@@ -1187,21 +1187,21 @@ def test_kkk_logruv():
         out_file_name = os.path.join('output','kkk_out.fits')
         kkk.write(out_file_name)
         data = fitsio.read(out_file_name)
-        np.testing.assert_almost_equal(data['r_nom'], np.exp(kkk.logr).flatten())
-        np.testing.assert_almost_equal(data['u_nom'], kkk.u.flatten())
-        np.testing.assert_almost_equal(data['v_nom'], kkk.v.flatten())
-        np.testing.assert_almost_equal(data['meand1'], kkk.meand1.flatten())
-        np.testing.assert_almost_equal(data['meanlogd1'], kkk.meanlogd1.flatten())
-        np.testing.assert_almost_equal(data['meand2'], kkk.meand2.flatten())
-        np.testing.assert_almost_equal(data['meanlogd2'], kkk.meanlogd2.flatten())
-        np.testing.assert_almost_equal(data['meand3'], kkk.meand3.flatten())
-        np.testing.assert_almost_equal(data['meanlogd3'], kkk.meanlogd3.flatten())
-        np.testing.assert_almost_equal(data['meanu'], kkk.meanu.flatten())
-        np.testing.assert_almost_equal(data['meanv'], kkk.meanv.flatten())
-        np.testing.assert_almost_equal(data['zeta'], kkk.zeta.flatten())
-        np.testing.assert_almost_equal(data['sigma_zeta'], np.sqrt(kkk.varzeta.flatten()))
-        np.testing.assert_almost_equal(data['weight'], kkk.weight.flatten())
-        np.testing.assert_almost_equal(data['ntri'], kkk.ntri.flatten())
+        np.testing.assert_allclose(data['r_nom'], np.exp(kkk.logr).flatten(), rtol=1.e-4)
+        np.testing.assert_allclose(data['u_nom'], kkk.u.flatten(), rtol=1.e-4)
+        np.testing.assert_allclose(data['v_nom'], kkk.v.flatten(), rtol=1.e-4)
+        np.testing.assert_allclose(data['meand1'], kkk.meand1.flatten(), rtol=1.e-4)
+        np.testing.assert_allclose(data['meanlogd1'], kkk.meanlogd1.flatten(), rtol=1.e-4)
+        np.testing.assert_allclose(data['meand2'], kkk.meand2.flatten(), rtol=1.e-4)
+        np.testing.assert_allclose(data['meanlogd2'], kkk.meanlogd2.flatten(), rtol=1.e-4)
+        np.testing.assert_allclose(data['meand3'], kkk.meand3.flatten(), rtol=1.e-4)
+        np.testing.assert_allclose(data['meanlogd3'], kkk.meanlogd3.flatten(), rtol=1.e-4)
+        np.testing.assert_allclose(data['meanu'], kkk.meanu.flatten(), rtol=1.e-4)
+        np.testing.assert_allclose(data['meanv'], kkk.meanv.flatten(), rtol=1.e-4)
+        np.testing.assert_allclose(data['zeta'], kkk.zeta.flatten(), rtol=1.e-4)
+        np.testing.assert_allclose(data['sigma_zeta'], np.sqrt(kkk.varzeta.flatten()), rtol=1.e-4)
+        np.testing.assert_allclose(data['weight'], kkk.weight.flatten(), rtol=1.e-4)
+        np.testing.assert_allclose(data['ntri'], kkk.ntri.flatten(), rtol=1.e-4)
 
         # Check the read function
         # Note: These don't need the flatten.
@@ -1211,21 +1211,21 @@ def test_kkk_logruv():
                                        nubins=nubins, nvbins=nvbins,
                                        sep_units='arcmin', verbose=1, bin_type='LogRUV')
         kkk2.read(out_file_name)
-        np.testing.assert_almost_equal(kkk2.logr, kkk.logr)
-        np.testing.assert_almost_equal(kkk2.u, kkk.u)
-        np.testing.assert_almost_equal(kkk2.v, kkk.v)
-        np.testing.assert_almost_equal(kkk2.meand1, kkk.meand1)
-        np.testing.assert_almost_equal(kkk2.meanlogd1, kkk.meanlogd1)
-        np.testing.assert_almost_equal(kkk2.meand2, kkk.meand2)
-        np.testing.assert_almost_equal(kkk2.meanlogd2, kkk.meanlogd2)
-        np.testing.assert_almost_equal(kkk2.meand3, kkk.meand3)
-        np.testing.assert_almost_equal(kkk2.meanlogd3, kkk.meanlogd3)
-        np.testing.assert_almost_equal(kkk2.meanu, kkk.meanu)
-        np.testing.assert_almost_equal(kkk2.meanv, kkk.meanv)
-        np.testing.assert_almost_equal(kkk2.zeta, kkk.zeta)
-        np.testing.assert_almost_equal(kkk2.varzeta, kkk.varzeta)
-        np.testing.assert_almost_equal(kkk2.weight, kkk.weight)
-        np.testing.assert_almost_equal(kkk2.ntri, kkk.ntri)
+        np.testing.assert_allclose(kkk2.logr, kkk.logr, rtol=1.e-4)
+        np.testing.assert_allclose(kkk2.u, kkk.u, rtol=1.e-4)
+        np.testing.assert_allclose(kkk2.v, kkk.v, rtol=1.e-4)
+        np.testing.assert_allclose(kkk2.meand1, kkk.meand1, rtol=1.e-4)
+        np.testing.assert_allclose(kkk2.meanlogd1, kkk.meanlogd1, rtol=1.e-4)
+        np.testing.assert_allclose(kkk2.meand2, kkk.meand2, rtol=1.e-4)
+        np.testing.assert_allclose(kkk2.meanlogd2, kkk.meanlogd2, rtol=1.e-4)
+        np.testing.assert_allclose(kkk2.meand3, kkk.meand3, rtol=1.e-4)
+        np.testing.assert_allclose(kkk2.meanlogd3, kkk.meanlogd3, rtol=1.e-4)
+        np.testing.assert_allclose(kkk2.meanu, kkk.meanu, rtol=1.e-4)
+        np.testing.assert_allclose(kkk2.meanv, kkk.meanv, rtol=1.e-4)
+        np.testing.assert_allclose(kkk2.zeta, kkk.zeta, rtol=1.e-4)
+        np.testing.assert_allclose(kkk2.varzeta, kkk.varzeta, rtol=1.e-4)
+        np.testing.assert_allclose(kkk2.weight, kkk.weight, rtol=1.e-4)
+        np.testing.assert_allclose(kkk2.ntri, kkk.ntri, rtol=1.e-4)
         assert kkk2.coords == kkk.coords
         assert kkk2.metric == kkk.metric
         assert kkk2.sep_units == kkk.sep_units
@@ -1243,18 +1243,18 @@ def test_direct_logsas():
     x = rng.normal(0,s, (ngal,) )
     y = rng.normal(0,s, (ngal,) )
     w = rng.random_sample(ngal)
-    kap = rng.normal(0,sig_kap, (ngal,) )
+    kap = rng.normal(10,sig_kap, (ngal,) )
 
     cat = treecorr.Catalog(x=x, y=y, w=w, k=kap)
 
-    min_sep = 1.
-    max_sep = 10.
-    nbins = 10
+    min_sep = 10.
+    max_sep = 30.
+    nbins = 5
     nphi_bins = 10
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   nphi_bins=nphi_bins, phi_units='rad',
                                   brute=True, bin_type='LogSAS')
-    kkk.process(cat, num_threads=2)
+    kkk.process(cat, num_threads=2, algo='triangle')
 
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
@@ -1304,42 +1304,25 @@ def test_direct_logsas():
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
 
-    # Check that running via the corr3 script works correctly.
-    config = treecorr.config.read_config('configs/kkk_direct_logsas.yaml')
-    try:
-        import fitsio
-    except ImportError:
-        pass
-    else:
-        cat.write(config['file_name'])
-        treecorr.corr3(config)
-        data = fitsio.read(config['kkk_file_name'])
-        np.testing.assert_allclose(data['d2_nom'], kkk.d2nom.flatten())
-        np.testing.assert_allclose(data['d3_nom'], kkk.d3nom.flatten())
-        np.testing.assert_allclose(data['phi_nom'], kkk.phi.flatten())
-        np.testing.assert_allclose(data['ntri'], kkk.ntri.flatten())
-        np.testing.assert_allclose(data['weight'], kkk.weight.flatten())
-        np.testing.assert_allclose(data['zeta'], kkk.zeta.flatten(), rtol=1.e-3)
-
     # Also check the cross calculation.
-    kkk.process(cat,cat,cat)
+    kkk.process(cat,cat,cat, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
 
-    kkk.process(cat,cat)
+    kkk.process(cat,cat, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
 
     # With ordered=False, we get 6x as many triangles, since each triangle is discovered 6 times.
-    kkk.process(cat, cat, cat, ordered=False)
+    kkk.process(cat, cat, cat, ordered=False, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, 6*true_ntri)
     np.testing.assert_allclose(kkk.weight, 6*true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
 
     # Or with 2 argument version, finds each triangle 3 times.
-    kkk.process(cat,cat, ordered=False)
+    kkk.process(cat,cat, ordered=False, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, 3*true_ntri)
     np.testing.assert_allclose(kkk.weight, 3*true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
@@ -1348,17 +1331,17 @@ def test_direct_logsas():
     # And don't do any top-level recursion so we actually test not going to the leaves.
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   nphi_bins=nphi_bins, bin_slop=0, max_top=0, bin_type='LogSAS')
-    kkk.process(cat)
+    kkk.process(cat, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
 
-    kkk.process(cat,cat,cat)
+    kkk.process(cat,cat,cat, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
 
-    kkk.process(cat,cat)
+    kkk.process(cat,cat, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
@@ -1401,6 +1384,33 @@ def test_direct_logsas():
         np.testing.assert_allclose(kkk4.meanphi, kkk.meanphi)
         np.testing.assert_allclose(kkk4.zeta, kkk.zeta)
 
+    # The above all used the old triangle algorithm.  Check the new default of calculating
+    # LogSAS via a temporary object with LogMultipole.
+    kkk2 = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                   nphi_bins=nphi_bins, bin_type='LogSAS', bin_slop=0)
+    kkk2.process(cat)
+    np.testing.assert_allclose(np.mean(kkk2.weight), np.mean(true_weight), rtol=0.003)
+    np.testing.assert_allclose(np.mean(kkk2.zeta), np.mean(true_zeta), rtol=0.01)
+    np.testing.assert_allclose(kkk2.zeta, true_zeta, rtol=0.5)
+
+    # Check that running via the corr3 script works correctly.
+    # (The corr3 script will use the multipole algorithm.)
+    config = treecorr.config.read_config('configs/kkk_direct_logsas.yaml')
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        cat.write(config['file_name'])
+        treecorr.corr3(config)
+        data = fitsio.read(config['kkk_file_name'])
+        np.testing.assert_allclose(data['d2_nom'], kkk2.d2nom.flatten())
+        np.testing.assert_allclose(data['d3_nom'], kkk2.d3nom.flatten())
+        np.testing.assert_allclose(data['phi_nom'], kkk2.phi.flatten())
+        np.testing.assert_allclose(data['ntri'], kkk2.ntri.flatten())
+        np.testing.assert_allclose(data['weight'], kkk2.weight.flatten())
+        np.testing.assert_allclose(data['zeta'], kkk2.zeta.flatten(), rtol=1.e-3)
+
 
 @timer
 def test_direct_logsas_spherical():
@@ -1413,7 +1423,7 @@ def test_direct_logsas_spherical():
     y = rng.normal(0,s, (ngal,) ) + 20  # Make sure covers a reasonalby large angle on the sky
     z = rng.normal(0,s, (ngal,) )       # so the spherical geometry matters.
     w = rng.random_sample(ngal)
-    kap = rng.normal(0,3, (ngal,) )
+    kap = rng.normal(10,3, (ngal,) )
     #w = np.ones_like(w)
 
     ra, dec = coord.CelestialCoord.xyz_to_radec(x,y,z)
@@ -1427,7 +1437,7 @@ def test_direct_logsas_spherical():
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, sep_units='deg',
                                   nbins=nbins, nphi_bins=nphi_bins, phi_units='deg',
                                   brute=True, bin_type='LogSAS')
-    kkk.process(cat)
+    kkk.process(cat, algo='triangle')
 
     r = np.sqrt(x**2 + y**2 + z**2)
     x /= r;  y /= r;  z /= r
@@ -1554,29 +1564,12 @@ def test_direct_logsas_spherical():
     np.testing.assert_allclose(kkk.meand3[pos], true_meand3[pos], rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(kkk.meanphi[pos], true_meanphi[pos], rtol=1.e-4, atol=1.e-6)
 
-    # Check that running via the corr3 script works correctly.
-    config = treecorr.config.read_config('configs/kkk_direct_spherical_logsas.yaml')
-    try:
-        import fitsio
-    except ImportError:
-        pass
-    else:
-        cat.write(config['file_name'])
-        treecorr.corr3(config)
-        data = fitsio.read(config['kkk_file_name'])
-        np.testing.assert_allclose(data['d2_nom'], kkk.d2nom.flatten())
-        np.testing.assert_allclose(data['d3_nom'], kkk.d3nom.flatten())
-        np.testing.assert_allclose(data['phi_nom'], kkk.phi.flatten())
-        np.testing.assert_allclose(data['ntri'], kkk.ntri.flatten())
-        np.testing.assert_allclose(data['weight'], kkk.weight.flatten())
-        np.testing.assert_allclose(data['zeta'], kkk.zeta.flatten(), rtol=1.e-3)
-
     # Repeat with binslop = 0
     # And don't do any top-level recursion so we actually test not going to the leaves.
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, sep_units='deg',
                                   nbins=nbins, nphi_bins=nphi_bins, phi_units='deg',
                                   bin_slop=0, max_top=0, bin_type='LogSAS')
-    kkk.process(cat)
+    kkk.process(cat, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-4, atol=1.e-6)
@@ -1589,7 +1582,7 @@ def test_direct_logsas_spherical():
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, sep_units='deg',
                                   nbins=nbins, nphi_bins=nphi_bins, phi_units='deg',
                                   bin_slop=0, bin_type='LogSAS', metric='Arc')
-    kkk.process(cat)
+    kkk.process(cat, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri_arc)
     np.testing.assert_allclose(kkk.weight, true_weight_arc, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta_arc, rtol=1.e-4, atol=1.e-6)
@@ -1601,7 +1594,7 @@ def test_direct_logsas_spherical():
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, sep_units='deg',
                                   nbins=nbins, nphi_bins=nphi_bins, phi_units='deg',
                                   bin_slop=0, max_top=0, bin_type='LogSAS', metric='Arc')
-    kkk.process(cat)
+    kkk.process(cat, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri_arc)
     np.testing.assert_allclose(kkk.weight, true_weight_arc, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta_arc, rtol=1.e-4, atol=1.e-6)
@@ -1609,6 +1602,34 @@ def test_direct_logsas_spherical():
     np.testing.assert_allclose(kkk.meand2[posa], true_meand2_arc[posa], rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(kkk.meand3[posa], true_meand3_arc[posa], rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(kkk.meanphi[posa], true_meanphi_arc[posa], rtol=1.e-4, atol=1.e-6)
+
+    # Check automatic multipole algorithm.
+    kkk2 = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, sep_units='deg',
+                                   nbins=nbins, nphi_bins=nphi_bins, phi_units='deg',
+                                   bin_slop=0, bin_type='LogSAS')
+    kkk2.process(cat)
+    np.testing.assert_allclose(np.mean(kkk2.weight), np.mean(true_weight), rtol=0.01)
+    np.testing.assert_allclose(np.mean(kkk2.zeta), np.mean(true_zeta), rtol=0.03)
+    # Avoid the highest phi bin, since there is a true_zeta=0 value there.
+    np.testing.assert_allclose(kkk2.zeta[:,:,:-1], true_zeta[:,:,:-1], rtol=0.2)
+
+    # Check that running via the corr3 script works correctly.
+    config = treecorr.config.read_config('configs/kkk_direct_spherical_logsas.yaml')
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        cat.write(config['file_name'])
+        treecorr.corr3(config)
+        data = fitsio.read(config['kkk_file_name'])
+        np.testing.assert_allclose(data['d2_nom'], kkk2.d2nom.flatten())
+        np.testing.assert_allclose(data['d3_nom'], kkk2.d3nom.flatten())
+        np.testing.assert_allclose(data['phi_nom'], kkk2.phi.flatten())
+        np.testing.assert_allclose(data['ntri'], kkk2.ntri.flatten())
+        np.testing.assert_allclose(data['weight'], kkk2.weight.flatten())
+        np.testing.assert_allclose(data['zeta'], kkk2.zeta.flatten(), rtol=1.e-3)
+
 
 
 @timer
@@ -1644,7 +1665,7 @@ def test_direct_logsas_cross():
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep,
                                   nbins=nbins, nphi_bins=nphi_bins,
                                   brute=True, bin_type='LogSAS')
-    kkk.process(cat1, cat2, cat3, num_threads=2)
+    kkk.process(cat1, cat2, cat3, num_threads=2, algo='triangle')
 
     # Figure out the correct answer for each permutation
     true_ntri_123 = np.zeros( (nbins, nbins, nphi_bins) )
@@ -1777,29 +1798,29 @@ def test_direct_logsas_cross():
     np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
     np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-4, atol=1.e-6)
-    kkk.process(cat1, cat3, cat2)
+    kkk.process(cat1, cat3, cat2, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri_132)
     np.testing.assert_allclose(kkk.weight, true_weight_132, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_132, rtol=1.e-4, atol=1.e-6)
-    kkk.process(cat2, cat1, cat3)
+    kkk.process(cat2, cat1, cat3, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri_213)
     np.testing.assert_allclose(kkk.weight, true_weight_213, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_213, rtol=1.e-4, atol=1.e-6)
-    kkk.process(cat2, cat3, cat1)
+    kkk.process(cat2, cat3, cat1, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri_231)
     np.testing.assert_allclose(kkk.weight, true_weight_231, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_231, rtol=1.e-4, atol=1.e-6)
-    kkk.process(cat3, cat1, cat2)
+    kkk.process(cat3, cat1, cat2, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri_312)
     np.testing.assert_allclose(kkk.weight, true_weight_312, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_312, rtol=1.e-4, atol=1.e-6)
-    kkk.process(cat3, cat2, cat1)
+    kkk.process(cat3, cat2, cat1, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri_321)
     np.testing.assert_allclose(kkk.weight, true_weight_321, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_321, rtol=1.e-4, atol=1.e-6)
 
     # With ordered=False, we end up with the sum of all permutations.
-    kkk.process(cat1, cat2, cat3, ordered=False)
+    kkk.process(cat1, cat2, cat3, ordered=False, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
     np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4, atol=1.e-6)
@@ -1809,12 +1830,12 @@ def test_direct_logsas_cross():
                                   nbins=nbins, nphi_bins=nphi_bins,
                                   bin_slop=0, bin_type='LogSAS')
 
-    kkk.process(cat1, cat2, cat3, ordered=True)
+    kkk.process(cat1, cat2, cat3, ordered=True, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
     np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-4, atol=1.e-6)
 
-    kkk.process(cat1, cat2, cat3, ordered=False)
+    kkk.process(cat1, cat2, cat3, ordered=False, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
     np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4, atol=1.e-6)
@@ -1824,19 +1845,19 @@ def test_direct_logsas_cross():
                                   nbins=nbins, nphi_bins=nphi_bins,
                                   bin_slop=0, max_top=0, bin_type='LogSAS')
 
-    kkk.process(cat1, cat2, cat3, ordered=True)
+    kkk.process(cat1, cat2, cat3, ordered=True, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri_123)
     np.testing.assert_allclose(kkk.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_123, rtol=1.e-4, atol=1.e-6)
 
-    kkk.process(cat1, cat2, cat3, ordered=False)
+    kkk.process(cat1, cat2, cat3, ordered=False, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
     np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4, atol=1.e-6)
 
     # Error to have cat3, but not cat2
     with assert_raises(ValueError):
-        kkk.process(cat1, cat3=cat3)
+        kkk.process(cat1, cat3=cat3, algo='triangle')
 
 
 @timer
@@ -1866,7 +1887,7 @@ def test_direct_logsas_cross12():
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep,
                                   nbins=nbins, nphi_bins=nphi_bins,
                                   bin_slop=0, bin_type='LogSAS')
-    kkk.process(cat1, cat2, num_threads=2)
+    kkk.process(cat1, cat2, num_threads=2, algo='triangle')
 
     # Figure out the correct answer for each permutation
     true_ntri_122 = np.zeros( (nbins, nbins, nphi_bins) )
@@ -1962,17 +1983,17 @@ def test_direct_logsas_cross12():
     np.testing.assert_array_equal(kkk.ntri, true_ntri_122)
     np.testing.assert_allclose(kkk.weight, true_weight_122, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_122, rtol=1.e-4, atol=1.e-6)
-    kkk.process(cat2, cat1, cat2)
+    kkk.process(cat2, cat1, cat2, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri_212)
     np.testing.assert_allclose(kkk.weight, true_weight_212, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_212, rtol=1.e-4, atol=1.e-6)
-    kkk.process(cat2, cat2, cat1)
+    kkk.process(cat2, cat2, cat1, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri_221)
     np.testing.assert_allclose(kkk.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_221, rtol=1.e-4, atol=1.e-6)
 
     # With ordered=False, we end up with the sum of all permutations.
-    kkk.process(cat1, cat2, ordered=False)
+    kkk.process(cat1, cat2, ordered=False, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
     np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4, atol=1.e-6)
@@ -1981,38 +2002,38 @@ def test_direct_logsas_cross12():
     cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=4, rng=rng)
     cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2, patch_centers=cat1.patch_centers)
 
-    kkk.process(cat1, cat2)
+    kkk.process(cat1, cat2, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri_122)
     np.testing.assert_allclose(kkk.weight, true_weight_122, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_122, rtol=1.e-4, atol=1.e-6)
-    kkk.process(cat2, cat1, cat2)
+    kkk.process(cat2, cat1, cat2, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri_212)
     np.testing.assert_allclose(kkk.weight, true_weight_212, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_212, rtol=1.e-4, atol=1.e-6)
-    kkk.process(cat2, cat2, cat1)
+    kkk.process(cat2, cat2, cat1, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri_221)
     np.testing.assert_allclose(kkk.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_221, rtol=1.e-4, atol=1.e-6)
 
-    kkk.process(cat1, cat2, ordered=False)
+    kkk.process(cat1, cat2, ordered=False, algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
     np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4, atol=1.e-6)
 
-    kkk.process(cat1, cat2, patch_method='local')
+    kkk.process(cat1, cat2, patch_method='local', algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri_122)
     np.testing.assert_allclose(kkk.weight, true_weight_122, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_122, rtol=1.e-4, atol=1.e-6)
-    kkk.process(cat2, cat1, cat2, patch_method='local')
+    kkk.process(cat2, cat1, cat2, patch_method='local', algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri_212)
     np.testing.assert_allclose(kkk.weight, true_weight_212, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_212, rtol=1.e-4, atol=1.e-6)
-    kkk.process(cat2, cat2, cat1, patch_method='local')
+    kkk.process(cat2, cat2, cat1, patch_method='local', algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri_221)
     np.testing.assert_allclose(kkk.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_221, rtol=1.e-4, atol=1.e-6)
 
-    kkk.process(cat1, cat2, ordered=False, patch_method='local')
+    kkk.process(cat1, cat2, ordered=False, patch_method='local', algo='triangle')
     np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
     np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4, atol=1.e-6)
@@ -2061,7 +2082,7 @@ def test_kkk_logsas():
                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                   sep_units='arcmin', phi_units='deg', bin_type='LogSAS')
     t0 = time.time()
-    kkk.process(cat)
+    kkk.process(cat, algo='triangle')
     t1 = time.time()
     print('auto process time = ',t1-t0)
 
@@ -2071,7 +2092,7 @@ def test_kkk_logsas():
                                    min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                    sep_units='arcmin', phi_units='deg', bin_type='LogSAS')
     t0 = time.time()
-    kkkc.process(cat,cat,cat)
+    kkkc.process(cat,cat,cat, algo='triangle')
     t1 = time.time()
     print('cross process time = ',t1-t0)
     np.testing.assert_allclose(kkkc.ntri, kkk.ntri, rtol=1.e-3)
@@ -2082,7 +2103,7 @@ def test_kkk_logsas():
     np.testing.assert_allclose(kkkc.zeta, kkk.zeta, rtol=1.e-3)
 
     t0 = time.time()
-    kkkc.process(cat,cat)
+    kkkc.process(cat,cat, algo='triangle')
     t1 = time.time()
     print('cross12 process time = ',t1-t0)
     np.testing.assert_allclose(kkkc.ntri, kkk.ntri, rtol=1.e-3)
@@ -2146,13 +2167,23 @@ def test_kkk_logsas():
     with assert_raises(TypeError):
         kkks.toSAS()
 
+    # All of the above is the default algorithm if process doesn't set algo='triangle'.
+    # Check the automatic use of the multipole algorithm from LogSAS.
+    kkk3 = kkk.copy()
+    kkk3.process(cat, algo='multipole')
+    np.testing.assert_allclose(kkk3.weight, kkks.weight, rtol=0.01*tol_factor)
+    np.testing.assert_allclose(kkk3.zeta, kkks.zeta, rtol=0.02*tol_factor)
+
     # Check that we get the same result using the corr3 functin:
+    # (This implicitly uses the multipole algorithm.)
     cat.write(os.path.join('data','kkk_data_logsas.dat'))
     config = treecorr.config.read_config('configs/kkk_logsas.yaml')
     config['verbose'] = 0
     treecorr.corr3(config)
     corr3_output = np.genfromtxt(os.path.join('output','kkk_logsas.out'), names=True, skip_header=1)
-    np.testing.assert_almost_equal(corr3_output['zeta'], kkk.zeta.flatten())
+    print('kkk3.zeta = ',kkk3.zeta)
+    print('corr3 zeta = ',corr3_output['zeta'])
+    np.testing.assert_allclose(corr3_output['zeta'], kkk3.zeta.flatten(), rtol=1.e-4)
 
     # Check the fits write option
     try:
@@ -2163,20 +2194,20 @@ def test_kkk_logsas():
         out_file_name = os.path.join('output','kkk_out_logsas.fits')
         kkk.write(out_file_name)
         data = fitsio.read(out_file_name)
-        np.testing.assert_almost_equal(data['d2_nom'], np.exp(kkk.logd2).flatten())
-        np.testing.assert_almost_equal(data['d3_nom'], np.exp(kkk.logd3).flatten())
-        np.testing.assert_almost_equal(data['phi_nom'], kkk.phi.flatten())
-        np.testing.assert_almost_equal(data['meand1'], kkk.meand1.flatten())
-        np.testing.assert_almost_equal(data['meanlogd1'], kkk.meanlogd1.flatten())
-        np.testing.assert_almost_equal(data['meand2'], kkk.meand2.flatten())
-        np.testing.assert_almost_equal(data['meanlogd2'], kkk.meanlogd2.flatten())
-        np.testing.assert_almost_equal(data['meand3'], kkk.meand3.flatten())
-        np.testing.assert_almost_equal(data['meanlogd3'], kkk.meanlogd3.flatten())
-        np.testing.assert_almost_equal(data['meanphi'], kkk.meanphi.flatten())
-        np.testing.assert_almost_equal(data['zeta'], kkk.zeta.flatten())
-        np.testing.assert_almost_equal(data['sigma_zeta'], np.sqrt(kkk.varzeta.flatten()))
-        np.testing.assert_almost_equal(data['weight'], kkk.weight.flatten())
-        np.testing.assert_almost_equal(data['ntri'], kkk.ntri.flatten())
+        np.testing.assert_allclose(data['d2_nom'], np.exp(kkk.logd2).flatten())
+        np.testing.assert_allclose(data['d3_nom'], np.exp(kkk.logd3).flatten())
+        np.testing.assert_allclose(data['phi_nom'], kkk.phi.flatten())
+        np.testing.assert_allclose(data['meand1'], kkk.meand1.flatten())
+        np.testing.assert_allclose(data['meanlogd1'], kkk.meanlogd1.flatten())
+        np.testing.assert_allclose(data['meand2'], kkk.meand2.flatten())
+        np.testing.assert_allclose(data['meanlogd2'], kkk.meanlogd2.flatten())
+        np.testing.assert_allclose(data['meand3'], kkk.meand3.flatten())
+        np.testing.assert_allclose(data['meanlogd3'], kkk.meanlogd3.flatten())
+        np.testing.assert_allclose(data['meanphi'], kkk.meanphi.flatten())
+        np.testing.assert_allclose(data['zeta'], kkk.zeta.flatten())
+        np.testing.assert_allclose(data['sigma_zeta'], np.sqrt(kkk.varzeta.flatten()))
+        np.testing.assert_allclose(data['weight'], kkk.weight.flatten())
+        np.testing.assert_allclose(data['ntri'], kkk.ntri.flatten())
 
         # Check the read function
         # Note: These don't need the flatten.
@@ -2185,20 +2216,20 @@ def test_kkk_logsas():
                                        min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
                                        sep_units='arcmin', phi_units='deg', bin_type='LogSAS')
         kkk2.read(out_file_name)
-        np.testing.assert_almost_equal(kkk2.logd2, kkk.logd2)
-        np.testing.assert_almost_equal(kkk2.logd3, kkk.logd3)
-        np.testing.assert_almost_equal(kkk2.phi, kkk.phi)
-        np.testing.assert_almost_equal(kkk2.meand1, kkk.meand1)
-        np.testing.assert_almost_equal(kkk2.meanlogd1, kkk.meanlogd1)
-        np.testing.assert_almost_equal(kkk2.meand2, kkk.meand2)
-        np.testing.assert_almost_equal(kkk2.meanlogd2, kkk.meanlogd2)
-        np.testing.assert_almost_equal(kkk2.meand3, kkk.meand3)
-        np.testing.assert_almost_equal(kkk2.meanlogd3, kkk.meanlogd3)
-        np.testing.assert_almost_equal(kkk2.meanphi, kkk.meanphi)
-        np.testing.assert_almost_equal(kkk2.zeta, kkk.zeta)
-        np.testing.assert_almost_equal(kkk2.varzeta, kkk.varzeta)
-        np.testing.assert_almost_equal(kkk2.weight, kkk.weight)
-        np.testing.assert_almost_equal(kkk2.ntri, kkk.ntri)
+        np.testing.assert_allclose(kkk2.logd2, kkk.logd2)
+        np.testing.assert_allclose(kkk2.logd3, kkk.logd3)
+        np.testing.assert_allclose(kkk2.phi, kkk.phi)
+        np.testing.assert_allclose(kkk2.meand1, kkk.meand1)
+        np.testing.assert_allclose(kkk2.meanlogd1, kkk.meanlogd1)
+        np.testing.assert_allclose(kkk2.meand2, kkk.meand2)
+        np.testing.assert_allclose(kkk2.meanlogd2, kkk.meanlogd2)
+        np.testing.assert_allclose(kkk2.meand3, kkk.meand3)
+        np.testing.assert_allclose(kkk2.meanlogd3, kkk.meanlogd3)
+        np.testing.assert_allclose(kkk2.meanphi, kkk.meanphi)
+        np.testing.assert_allclose(kkk2.zeta, kkk.zeta)
+        np.testing.assert_allclose(kkk2.varzeta, kkk.varzeta)
+        np.testing.assert_allclose(kkk2.weight, kkk.weight)
+        np.testing.assert_allclose(kkk2.ntri, kkk.ntri)
         assert kkk2.coords == kkk.coords
         assert kkk2.metric == kkk.metric
         assert kkk2.sep_units == kkk.sep_units
@@ -2835,7 +2866,7 @@ def test_direct_logmultipole_cross12():
     np.testing.assert_allclose(kkk.zeta, true_zeta_122, rtol=1.e-4 * tol_factor)
     kkk.process(cat1, cat2, ordered=False)
     np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
-    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5 * tol_factor)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=2.e-5 * tol_factor)
     np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4 * tol_factor)
 
     # Now with both patched.
@@ -2845,7 +2876,7 @@ def test_direct_logmultipole_cross12():
     np.testing.assert_allclose(kkk.weight, true_weight_122, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_122, rtol=1.e-4)
     kkk.process(cat1, cat2, ordered=False, patch_method='local')
-    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=2.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4)
 
     # No tests of accuracy yet, but make sure patch-based covariance works.

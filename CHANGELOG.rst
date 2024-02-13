@@ -47,6 +47,11 @@ Performance improvements
 - Made a small (~5-10%) improvment in speed of most 2pt correlation runs. (#157)
 - Made variance calculations more efficient when using var_method='shot'.  Now it doesn't
   gratuitiously make a full covariance matrix, only to then extract the diagonal. (#166)
+- Added the multipole algorithm for three-point correlations, descibed in Porth et al (2023)
+  for GGG, and previously in Chen & Szapudi (2005), Slepian & Eisenstein (2015) and Philcox et al
+  (2022) for NNN and KKK.  This algorithm is much, much faster than the 3 point calculation that
+  TreeCorr had done, so it is now the default.  However, this algorithm only works with SAS
+  binning, so LogSAS is now the default binning for three-point correlations. (#167, #171)
 
 
 New features

@@ -581,7 +581,7 @@ def test_kkk_jk():
     kkkp2 = treecorr.KKKCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
                                     min_phi=0.8, max_phi=2.0, nphi_bins=3,
                                     rng=rng, bin_type='LogSAS')
-    kkkp2.process(catp)
+    kkkp2.process(catp, algo='triangle')
     cov = kkkp2.estimate_cov('jackknife', func=lambda c: c.weight.ravel())
     A, w = kkkp2.build_cov_design_matrix('jackknife', func=lambda c: c.weight.ravel())
     vmean = np.mean(A, axis=0)
@@ -1061,7 +1061,7 @@ def test_ggg_jk():
     gggp2 = treecorr.GGGCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
                                     min_phi=0.8, max_phi=2.0, nphi_bins=3,
                                     rng=rng, bin_type='LogSAS')
-    gggp2.process(catp)
+    gggp2.process(catp, algo='triangle')
     cov = gggp2.estimate_cov('jackknife', func=lambda c: c.weight.ravel())
     A, w = gggp2.build_cov_design_matrix('jackknife', func=lambda c: c.weight.ravel())
     vmean = np.mean(A, axis=0)
@@ -1519,7 +1519,7 @@ def test_nnn_jk():
     dddp2 = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
                                     min_phi=0.8, max_phi=2.0, nphi_bins=3,
                                     rng=rng, bin_type='LogSAS')
-    dddp2.process(catp)
+    dddp2.process(catp, algo='triangle')
     cov = dddp2.estimate_cov('jackknife', func=lambda c: c.weight.ravel())
     A, w = dddp2.build_cov_design_matrix('jackknife', func=lambda c: c.weight.ravel())
     vmean = np.mean(A, axis=0)

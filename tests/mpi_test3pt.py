@@ -42,7 +42,7 @@ def setup():
         part_cat.write_patch_centers(patch_file)
         del part_cat
 
-def do_mpi_corr(comm, Correlation, cross, attr, output=True, patch_method='auto', low_mem=False):
+def do_mpi_corr(comm, Correlation, cross, attr, output=True, patch_method=None, low_mem=False):
     rank = comm.Get_rank()
     size = comm.Get_size()
     file_name = os.path.join('data','Aardvark.fit')

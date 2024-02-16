@@ -2124,7 +2124,7 @@ def test_vargam_logruv():
     ngal = 300
     nruns = 50000
 
-    file_name = 'data/test_vargam_ggg.npz'
+    file_name = 'data/test_vargam_ggg_logruv.npz'
     print(file_name)
     if not os.path.isfile(file_name):
         all_gggs = []
@@ -4858,6 +4858,199 @@ def test_map3_logmultipole():
     print('diff = ',map3-true_map3[mask])
     print('max diff = ',max(abs(map3 - true_map3[mask])))
     np.testing.assert_allclose(map3, true_map3[mask], rtol=0.1)
+
+@timer
+def test_vargam():
+    # Test that vargam0, etc. are correct (or close) based on actual variance of many runs.
+
+    # Same gamma pattern as in test_ggg().  Although the signal doesn't actually matter at all here.
+    gamma0 = 0.05
+    r0 = 10.
+    L = 50.*r0
+    rng = np.random.RandomState(8675309)
+
+    # Note: to get a good estimate of var(gam), you need a lot of runs.  The number of
+    # runs matters much more than the number of galaxies for getting this to pass.
+    ngal = 5000
+    nruns = 50000
+
+    file_name = 'data/test_vargam_ggg.npz'
+    if not os.path.isfile(file_name):
+        print(file_name)
+        all_gam0 = []
+        all_gam1 = []
+        all_gam2 = []
+        all_gam3 = []
+        all_vargam0 = []
+        all_vargam1 = []
+        all_vargam2 = []
+        all_vargam3 = []
+
+        for run in range(nruns):
+            print(f'{run}/{nruns}')
+            # In addition to the shape noise below, there is shot noise from the random x,y positions.
+            x = (rng.random_sample(ngal)-0.5) * L
+            y = (rng.random_sample(ngal)-0.5) * L
+            # Varied weights are hard, but at least check that non-unit weights work correctly.
+            w = np.ones_like(x) * 5
+            r2 = (x**2 + y**2)/r0**2
+            g1 = -gamma0 * np.exp(-r2/2.) * (x**2-y**2)/r0**2
+            g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
+            # This time, add some shape noise (different each run).
+            g1 += rng.normal(0, 0.3, size=ngal)
+            g2 += rng.normal(0, 0.3, size=ngal)
+
+            cat = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2)
+            ggg = treecorr.GGGCorrelation(nbins=2, min_sep=30., max_sep=50., nphi_bins=20)
+            ggg.process(cat)
+            all_gam0.append(ggg.gam0)
+            all_gam1.append(ggg.gam1)
+            all_gam2.append(ggg.gam2)
+            all_gam3.append(ggg.gam3)
+            all_vargam0.append(ggg.vargam0)
+            all_vargam1.append(ggg.vargam1)
+            all_vargam2.append(ggg.vargam2)
+            all_vargam3.append(ggg.vargam3)
+
+        mean_gam0 = np.mean(all_gam0, axis=0)
+        mean_gam1 = np.mean(all_gam1, axis=0)
+        mean_gam2 = np.mean(all_gam2, axis=0)
+        mean_gam3 = np.mean(all_gam3, axis=0)
+        var_gam0r = np.var(np.real(all_gam0), axis=0)
+        var_gam1r = np.var(np.real(all_gam1), axis=0)
+        var_gam2r = np.var(np.real(all_gam2), axis=0)
+        var_gam3r = np.var(np.real(all_gam3), axis=0)
+        var_gam0i = np.var(np.imag(all_gam0), axis=0)
+        var_gam1i = np.var(np.imag(all_gam1), axis=0)
+        var_gam2i = np.var(np.imag(all_gam2), axis=0)
+        var_gam3i = np.var(np.imag(all_gam3), axis=0)
+        mean_vargam0 = np.mean(all_vargam0, axis=0)
+        mean_vargam1 = np.mean(all_vargam1, axis=0)
+        mean_vargam2 = np.mean(all_vargam2, axis=0)
+        mean_vargam3 = np.mean(all_vargam3, axis=0)
+
+        np.savez(file_name,
+                 mean_gam0=mean_gam0, var_gam0r=var_gam0r,
+                 var_gam0i=var_gam0i, mean_vargam0=mean_vargam0,
+                 mean_gam1=mean_gam1, var_gam1r=var_gam1r,
+                 var_gam1i=var_gam1i, mean_vargam1=mean_vargam1,
+                 mean_gam2=mean_gam2, var_gam2r=var_gam2r,
+                 var_gam2i=var_gam2i, mean_vargam2=mean_vargam2,
+                 mean_gam3=mean_gam3, var_gam3r=var_gam3r,
+                 var_gam3i=var_gam3i, mean_vargam3=mean_vargam3)
+
+    data = np.load(file_name)
+    mean_gam0 = data['mean_gam0']
+    mean_gam1 = data['mean_gam1']
+    mean_gam2 = data['mean_gam2']
+    mean_gam3 = data['mean_gam3']
+    var_gam0r = data['var_gam0r']
+    var_gam1r = data['var_gam1r']
+    var_gam2r = data['var_gam2r']
+    var_gam3r = data['var_gam3r']
+    var_gam0i = data['var_gam0i']
+    var_gam1i = data['var_gam1i']
+    var_gam2i = data['var_gam2i']
+    var_gam3i = data['var_gam3i']
+    mean_vargam0 = data['mean_vargam0']
+    mean_vargam1 = data['mean_vargam1']
+    mean_vargam2 = data['mean_vargam2']
+    mean_vargam3 = data['mean_vargam3']
+
+    print('nruns = ',nruns)
+    print('mean_gam0 = ',mean_gam0)
+    print('mean_vargam0 = ',mean_vargam0)
+    print('var_gam0 = ',var_gam0r,var_gam0i)
+    print('ratio = ',mean_vargam0 / var_gam0r)
+    print('max relerr = ',np.max(np.abs((var_gam0r - mean_vargam0)/var_gam0r)))
+    np.testing.assert_allclose(mean_vargam0, var_gam0r, rtol=0.4)
+    np.testing.assert_allclose(mean_vargam1, var_gam1r, rtol=0.4)
+    np.testing.assert_allclose(mean_vargam2, var_gam2r, rtol=0.4)
+    np.testing.assert_allclose(mean_vargam3, var_gam3r, rtol=0.4)
+    np.testing.assert_allclose(mean_vargam0, var_gam0i, rtol=0.4)
+    np.testing.assert_allclose(mean_vargam1, var_gam1i, rtol=0.4)
+    np.testing.assert_allclose(mean_vargam2, var_gam2i, rtol=0.4)
+    np.testing.assert_allclose(mean_vargam3, var_gam3i, rtol=0.4)
+
+    # The shot noise variance estimate is actually pretty good everywhere except at equilateral
+    # triangles.  The problem is that equilateral triangles get counted multiple times with
+    # each point at the primary vertex, but all with the same value.  So they have a higher
+    # actual variance than you would estimate from the nominal weight.  If we exclude those
+    # triangles we get agreement at much lower rtol.
+    i,j,k = np.meshgrid(range(2), range(2), range(20))
+    k_eq = int(60/180 * 20)
+    noneq = ~((i==j) & (k==k_eq))
+    print('noneq ratio = ', mean_vargam0[noneq] / var_gam0r[noneq])
+    print('max relerr = ',np.max(np.abs((var_gam0r[noneq] - mean_vargam0[noneq])/var_gam0r[noneq])))
+    np.testing.assert_allclose(mean_vargam0[noneq], var_gam0r[noneq], rtol=0.1)
+    np.testing.assert_allclose(mean_vargam1[noneq], var_gam1r[noneq], rtol=0.1)
+    np.testing.assert_allclose(mean_vargam2[noneq], var_gam2r[noneq], rtol=0.1)
+    np.testing.assert_allclose(mean_vargam3[noneq], var_gam3r[noneq], rtol=0.1)
+    np.testing.assert_allclose(mean_vargam0[noneq], var_gam0i[noneq], rtol=0.1)
+    np.testing.assert_allclose(mean_vargam1[noneq], var_gam1i[noneq], rtol=0.1)
+    np.testing.assert_allclose(mean_vargam2[noneq], var_gam2i[noneq], rtol=0.1)
+    np.testing.assert_allclose(mean_vargam3[noneq], var_gam3i[noneq], rtol=0.1)
+
+    # Now the actual test that's based on current code, not just from the saved file.
+    # There is a bit more noise on a singe run, so the tolerance needs to be somewhat higher.
+    x = (rng.random_sample(ngal)-0.5) * L
+    y = (rng.random_sample(ngal)-0.5) * L
+    # Varied weights are hard, but at least check that non-unit weights work correctly.
+    w = np.ones_like(x) * 5
+    r2 = (x**2 + y**2)/r0**2
+    g1 = -gamma0 * np.exp(-r2/2.) * (x**2-y**2)/r0**2
+    g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
+    # This time, add some shape noise (different each run).
+    g1 += rng.normal(0, 0.3, size=ngal)
+    g2 += rng.normal(0, 0.3, size=ngal)
+
+    cat = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2)
+    ggg = treecorr.GGGCorrelation(nbins=2, min_sep=30., max_sep=50., nphi_bins=20)
+
+    # Before running process, varxi and cov area allowed, but all 0.
+    np.testing.assert_array_equal(ggg.cov, 0)
+    np.testing.assert_array_equal(ggg.vargam0, 0)
+    np.testing.assert_array_equal(ggg.vargam1, 0)
+    np.testing.assert_array_equal(ggg.vargam2, 0)
+    np.testing.assert_array_equal(ggg.vargam3, 0)
+
+    ggg.process(cat)
+    print('single run:')
+    print('gam0 ratio = ',ggg.vargam0/var_gam0r)
+    print('gam1 ratio = ',ggg.vargam1/var_gam1r)
+    print('gam2 ratio = ',ggg.vargam2/var_gam2r)
+    print('gam3 ratio = ',ggg.vargam3/var_gam3r)
+    print('max relerr for gam0 = ',np.max(np.abs((ggg.vargam0[noneq] - var_gam0r[noneq])/var_gam0r[noneq])))
+    print('max relerr for gam1 = ',np.max(np.abs((ggg.vargam1[noneq] - var_gam1r[noneq])/var_gam1r[noneq])))
+    print('max relerr for gam2 = ',np.max(np.abs((ggg.vargam2[noneq] - var_gam2r[noneq])/var_gam2r[noneq])))
+    print('max relerr for gam3 = ',np.max(np.abs((ggg.vargam3[noneq] - var_gam3r[noneq])/var_gam3r[noneq])))
+    np.testing.assert_allclose(ggg.vargam0[noneq], var_gam0r[noneq], rtol=0.1)
+    np.testing.assert_allclose(ggg.vargam1[noneq], var_gam1r[noneq], rtol=0.1)
+    np.testing.assert_allclose(ggg.vargam2[noneq], var_gam2r[noneq], rtol=0.1)
+    np.testing.assert_allclose(ggg.vargam3[noneq], var_gam3r[noneq], rtol=0.1)
+    np.testing.assert_allclose(ggg.vargam0[noneq], var_gam0i[noneq], rtol=0.1)
+    np.testing.assert_allclose(ggg.vargam1[noneq], var_gam1i[noneq], rtol=0.1)
+    np.testing.assert_allclose(ggg.vargam2[noneq], var_gam2i[noneq], rtol=0.1)
+    np.testing.assert_allclose(ggg.vargam3[noneq], var_gam3i[noneq], rtol=0.1)
+
+    ggg.process(cat, algo='triangle')
+    print('single run with algo=triangle:')
+    print('gam0 ratio = ',ggg.vargam0/var_gam0r)
+    print('gam1 ratio = ',ggg.vargam1/var_gam1r)
+    print('gam2 ratio = ',ggg.vargam2/var_gam2r)
+    print('gam3 ratio = ',ggg.vargam3/var_gam3r)
+    print('max relerr for gam0 = ',np.max(np.abs((ggg.vargam0[noneq] - var_gam0r[noneq])/var_gam0r[noneq])))
+    print('max relerr for gam1 = ',np.max(np.abs((ggg.vargam1[noneq] - var_gam1r[noneq])/var_gam1r[noneq])))
+    print('max relerr for gam2 = ',np.max(np.abs((ggg.vargam2[noneq] - var_gam2r[noneq])/var_gam2r[noneq])))
+    print('max relerr for gam3 = ',np.max(np.abs((ggg.vargam3[noneq] - var_gam3r[noneq])/var_gam3r[noneq])))
+    np.testing.assert_allclose(ggg.vargam0[noneq], var_gam0r[noneq], rtol=0.2)
+    np.testing.assert_allclose(ggg.vargam1[noneq], var_gam1r[noneq], rtol=0.2)
+    np.testing.assert_allclose(ggg.vargam2[noneq], var_gam2r[noneq], rtol=0.2)
+    np.testing.assert_allclose(ggg.vargam3[noneq], var_gam3r[noneq], rtol=0.2)
+    np.testing.assert_allclose(ggg.vargam0[noneq], var_gam0i[noneq], rtol=0.2)
+    np.testing.assert_allclose(ggg.vargam1[noneq], var_gam1i[noneq], rtol=0.2)
+    np.testing.assert_allclose(ggg.vargam2[noneq], var_gam2i[noneq], rtol=0.2)
+    np.testing.assert_allclose(ggg.vargam3[noneq], var_gam3i[noneq], rtol=0.2)
 
 
 if __name__ == '__main__':

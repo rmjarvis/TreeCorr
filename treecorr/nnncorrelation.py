@@ -738,6 +738,7 @@ class NNNCorrelation(Corr3):
             sas = NNNCorrelation(config, **kwargs)
         else:
             sas = target
+            sas.clear()
         if not np.array_equal(sas.rnom1d, self.rnom1d):
             raise ValueError("toSAS cannot change sep parameters")
 

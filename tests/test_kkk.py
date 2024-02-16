@@ -2886,6 +2886,102 @@ def test_direct_logmultipole_cross12():
     with assert_raises(ValueError):
         kkk.process(cat1, cat2, patch_method='global')
 
+@timer
+def test_varzeta():
+    # Test that varzeta is correct (or close) based on actual variance of many runs.
+
+    # Signal doesn't matter much.  Use the one from test_gg.
+    kappa0 = 0.03
+    r0 = 10.
+    L = 50.*r0
+    rng = np.random.RandomState(8675309)
+
+    # Note: to get a good estimate of var(zeta), you need a lot of runs.  The number of
+    # runs matters much more than the number of galaxies for getting this to pass.
+    ngal = 5000
+    nruns = 50000
+
+    file_name = 'data/test_varzeta_kkk.npz'
+    print(file_name)
+    if not os.path.isfile(file_name):
+        all_zeta = []
+        all_varzeta = []
+        for run in range(nruns):
+            print(f'{run}/{nruns}')
+            x = (rng.random_sample(ngal)-0.5) * L
+            y = (rng.random_sample(ngal)-0.5) * L
+            # Varied weights are hard, but at least check that non-unit weights work correctly.
+            w = np.ones_like(x) * 5
+            r2 = (x**2 + y**2)/r0**2
+            k = kappa0 * np.exp(-r2/2.)
+            k += rng.normal(0, 0.1, size=ngal)
+
+            cat = treecorr.Catalog(x=x, y=y, w=w, k=k)
+            kkk = treecorr.KKKCorrelation(nbins=2, min_sep=30., max_sep=50., nphi_bins=20)
+            kkk.process(cat)
+            all_zeta.append(kkk.zeta)
+            all_varzeta.append(kkk.varzeta)
+
+        mean_zeta = np.mean(all_zeta, axis=0)
+        var_zeta = np.var(all_zeta, axis=0)
+        mean_varzeta = np.mean(all_varzeta, axis=0)
+
+        np.savez(file_name,
+                 mean_zeta=mean_zeta, var_zeta=var_zeta, mean_varzeta=mean_varzeta)
+
+    data = np.load(file_name)
+    mean_zeta = data['mean_zeta']
+    mean_varzeta = data['mean_varzeta']
+    var_zeta = data['var_zeta']
+    print('nruns = ',nruns)
+    print('mean_zeta = ',mean_zeta)
+    print('mean_varzeta = ',mean_varzeta)
+    print('var_zeta = ',var_zeta)
+    print('ratio = ', mean_varzeta / var_zeta)
+    print('max relerr for zeta = ',np.max(np.abs((var_zeta - mean_varzeta)/var_zeta)))
+    np.testing.assert_allclose(mean_varzeta, var_zeta, rtol=0.6)
+
+    # The shot noise variance estimate is actually pretty good everywhere except at equilateral
+    # triangles.  The problem is that equilateral triangles get counted multiple times with
+    # each point at the primary vertex, but all with the same value.  So they have a higher
+    # actual variance than you would estimate from the nominal weight.  If we exclude those
+    # triangles we get agreement at much lower rtol.
+    i,j,k = np.meshgrid(range(2), range(2), range(20))
+    k_eq = int(60/180 * 20)
+    noneq = ~((i==j) & (k==k_eq))
+    print('noneq ratio = ', mean_varzeta[noneq] / var_zeta[noneq])
+    print('max relerr = ',np.max(np.abs((var_zeta[noneq] - mean_varzeta[noneq])/var_zeta[noneq])))
+    np.testing.assert_allclose(mean_varzeta[noneq], var_zeta[noneq], rtol=0.1)
+
+    # Now the actual test that's based on current code, not just from the saved file.
+    # There is a bit more noise on a singe run, so the tolerance needs to be somewhat higher.
+    x = (rng.random_sample(ngal)-0.5) * L
+    y = (rng.random_sample(ngal)-0.5) * L
+    w = np.ones_like(x) * 5
+    r2 = (x**2 + y**2)/r0**2
+    k = kappa0 * np.exp(-r2/2.)
+    k += rng.normal(0, 0.1, size=ngal)
+
+    cat = treecorr.Catalog(x=x, y=y, w=w, k=k)
+    kkk = treecorr.KKKCorrelation(nbins=2, min_sep=30., max_sep=50., nphi_bins=20)
+    kkk.process(cat)
+
+    print('single run:')
+    print('kkk.varzeta = ',kkk.varzeta)
+    print('ratio = ',kkk.varzeta / var_zeta)
+    print('max relerr for zeta = ',np.max(np.abs((kkk.varzeta - var_zeta)/var_zeta)))
+    print('noneq = ',np.max(np.abs((kkk.varzeta[noneq] - var_zeta[noneq])/var_zeta[noneq])))
+    np.testing.assert_allclose(kkk.varzeta[noneq], var_zeta[noneq], rtol=0.15)
+
+    kkk.process(cat, algo='triangle')
+    print('single run with algo=triangle:')
+    print('kkk.varzeta = ',kkk.varzeta)
+    print('ratio = ',kkk.varzeta / var_zeta)
+    print('max relerr for zeta = ',np.max(np.abs((kkk.varzeta - var_zeta)/var_zeta)))
+    print('noneq = ',np.max(np.abs((kkk.varzeta[noneq] - var_zeta[noneq])/var_zeta[noneq])))
+    np.testing.assert_allclose(kkk.varzeta[noneq], var_zeta[noneq], rtol=0.15)
+
+
 
 if __name__ == '__main__':
     test_direct_logruv()
@@ -2904,3 +3000,4 @@ if __name__ == '__main__':
     test_direct_logmultipole_spherical()
     test_direct_logmultipole_cross()
     test_direct_logmultipole_cross12()
+    test_varzeta()

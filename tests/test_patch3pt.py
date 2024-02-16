@@ -130,7 +130,7 @@ def test_kkk_jk():
                                   min_u=0.9, max_u=1.0, nubins=1,
                                   min_v=0.0, max_v=0.1, nvbins=1, rng=rng, bin_type='LogRUV')
 
-    # Before running process, varzeta and cov area allowed, but all 0.
+    # Before running process, varzeta and cov are allowed, but all 0.
     np.testing.assert_array_equal(kkk.cov, 0)
     np.testing.assert_array_equal(kkk.varzeta, 0)
 

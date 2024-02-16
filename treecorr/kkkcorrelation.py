@@ -448,6 +448,12 @@ class KKKCorrelation(Corr3):
         self._finalize()
         self._var_num = vark1 * vark2 * vark3
 
+        # I don't really understand why the variance is coming out 2x larger than the normal
+        # formula for LogSAS.  But with a Gaussian field, I need to multipole the numerator
+        # by two to get the variance estimates to come out right.
+        if self.bin_type in ['LogSAS', 'LogMultipole']:
+            self._var_num *= 2
+
     @property
     def varzeta(self):
         if self._varzeta is None:
@@ -690,6 +696,7 @@ class KKKCorrelation(Corr3):
             sas = KKKCorrelation(config, **kwargs)
         else:
             sas = target
+            sas.clear()
         if not np.array_equal(sas.rnom1d, self.rnom1d):
             raise ValueError("toSAS cannot change sep parameters")
 
@@ -698,6 +705,7 @@ class KKKCorrelation(Corr3):
         sas.meanlogd2[:,:,:] = self.meanlogd2[:,:,0][:,:,None]
         sas.meand3[:,:,:] = self.meand3[:,:,0][:,:,None]
         sas.meanlogd3[:,:,:] = self.meanlogd3[:,:,0][:,:,None]
+        sas._var_num = self._var_num
 
         # Use nominal for meanphi
         sas.meanu[:] = sas.phi / sas._phi_units

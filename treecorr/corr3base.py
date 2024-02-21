@@ -1717,10 +1717,10 @@ class Corr3(object):
 
     def _calculate_xi_from_pairs(self, pairs):
         # Compute the xi data vector for the given list of pairs.
-        # pairs is input as a list of (i,j) values.
+        # "pairs" here are really triples, input as a list of (i,j,k) values.
 
         # This is the normal calculation.  It needs to be overridden when there are randoms.
-        self._sum([self.results[ij] for ij in pairs])
+        self._sum([self.results[ijk] for ijk in pairs])
         self._finalize()
 
     def _jackknife_pairs(self):

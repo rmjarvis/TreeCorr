@@ -832,6 +832,11 @@ class GGGCorrelation(Corr3):
         sas.meand3[:,:,:] = self.meand3[:,:,0][:,:,None]
         sas.meanlogd3[:,:,:] = self.meanlogd3[:,:,0][:,:,None]
         sas._var_num = self._var_num
+        sas.npatch1 = self.npatch1
+        sas.npatch2 = self.npatch2
+        sas.npatch3 = self.npatch3
+        sas.coords = self.coords
+        sas.metric = self.metric
 
         # Use nominal for meanphi
         sas.meanu[:] = sas.phi / sas._phi_units
@@ -921,9 +926,38 @@ class GGGCorrelation(Corr3):
         # We reduce this by the fraction of this covered by [min_phi, max_phi].
         # (Typically 1/2, since usually [0,pi].)
         phi_frac = (sas.max_phi - sas.min_phi) / (2*np.pi)
-        ratio = self.ntri[:,:,0] / np.sum(sas.weight, axis=2) * phi_frac
+        denom = np.sum(sas.weight, axis=2)
+        denom[denom==0] = 1  # Don't divide by 0
+        ratio = self.ntri[:,:,0] / denom * phi_frac
         sas.ntri[:] = sas.weight * ratio[:,:,None]
-        sas.ntri[sas.weight==0] = 0  # Fix nans where sum(weight) = 0, so ratio -> nan
+
+        for k,v in self.results.items():
+            temp = sas.copy()
+            temp.weightr[:] = np.real(v.weight.dot(expiphi)) / (2*np.pi) * sas.phi_bin_size
+            temp.ntri[:] = temp.weight * ratio[:,:,None]
+            gam0 = v.gam0.dot(expiphi) / (2*np.pi) * sas.phi_bin_size * gam0phase
+            gam1 = v.gam1.dot(expiphi) / (2*np.pi) * sas.phi_bin_size * gam1phase
+            gam2 = v.gam2.dot(expiphi) / (2*np.pi) * sas.phi_bin_size * gam2phase
+            gam3 = v.gam3.dot(expiphi) / (2*np.pi) * sas.phi_bin_size * gam3phase
+            temp.gam0r = np.real(gam0)
+            temp.gam0i = np.imag(gam0)
+            temp.gam1r = np.real(gam1)
+            temp.gam1i = np.imag(gam1)
+            temp.gam2r = np.real(gam2)
+            temp.gam2i = np.imag(gam2)
+            temp.gam3r = np.real(gam3)
+            temp.gam3i = np.imag(gam3)
+
+            # Undo the normalization of the d arrays.
+            temp.meand1 *= temp.weightr
+            temp.meand2 *= temp.weightr
+            temp.meand3 *= temp.weightr
+            temp.meanlogd1 *= temp.weightr
+            temp.meanlogd2 *= temp.weightr
+            temp.meanlogd3 *= temp.weightr
+            temp.meanu *= temp.weightr
+
+            sas.results[k] = temp
 
         return sas
 
@@ -1301,6 +1335,8 @@ class GGGCorrelation(Corr3):
         # integral by doing a matrix product.
         if R is None:
             R = self.rnom1d
+        else:
+            R = np.array(R)
 
         # Pick s = d2, so dlogs is bin_size
         s = d2 = np.outer(1./R, self.meand2.ravel())

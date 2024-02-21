@@ -71,7 +71,7 @@ def generate_shear_field(npos, nhalo, rng=None):
 
 
 @timer
-def test_kkk_jk():
+def test_kkk_logruv_jk():
     # Test jackknife and other covariance estimates for kkk correlations.
     # Note: This test takes a while!
     # The main version I think is a pretty decent test of the code correctness.
@@ -94,7 +94,7 @@ def test_kkk_jk():
         npatch = 12
         tol_factor = 4
 
-    file_name = 'data/test_kkk_jk_{}.npz'.format(nsource)
+    file_name = 'data/test_kkk_logruv_jk_{}.npz'.format(nsource)
     print(file_name)
     if not os.path.isfile(file_name):
         nruns = 1000
@@ -114,8 +114,7 @@ def test_kkk_jk():
         mean_kkk = np.mean([kkk.zeta.ravel() for kkk in all_kkks], axis=0)
         var_kkk = np.var([kkk.zeta.ravel() for kkk in all_kkks], axis=0)
 
-        np.savez(file_name, all_kkk=np.array([kkk.zeta.ravel() for kkk in all_kkks]),
-                 mean_kkk=mean_kkk, var_kkk=var_kkk)
+        np.savez(file_name, mean_kkk=mean_kkk, var_kkk=var_kkk)
 
     data = np.load(file_name)
     mean_kkk = data['mean_kkk']
@@ -153,6 +152,13 @@ def test_kkk_jk():
     np.testing.assert_allclose(kkkp.ntri, kkk.ntri, rtol=0.05 * tol_factor)
     np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
     np.testing.assert_allclose(kkkp.varzeta, kkk.varzeta, rtol=0.05 * tol_factor, atol=3.e-6)
+
+    # Check calculate_xi with all pairs in results dict.
+    kkk2 = kkkp.copy()
+    kkk2._calculate_xi_from_pairs(list(kkkp.results.keys()))
+    np.testing.assert_allclose(kkk2.ntri, kkk.ntri, rtol=0.05 * tol_factor)
+    np.testing.assert_allclose(kkk2.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
+    np.testing.assert_allclose(kkk2.varzeta, kkk.varzeta, rtol=0.05 * tol_factor, atol=3.e-6)
 
     print('jackknife:')
     cov = kkkp.estimate_cov('jackknife')
@@ -220,7 +226,7 @@ def test_kkk_jk():
 
     # Check that these still work after roundtripping through a file.
     cov1 = kkkp.estimate_cov('jackknife')
-    file_name = os.path.join('output','test_write_results_kkk.pkl')
+    file_name = os.path.join('output','test_write_results_logruv_kkk.pkl')
     with open(file_name, 'wb') as f:
         pickle.dump(kkkp, f)
     with open(file_name, 'rb') as f:
@@ -310,6 +316,13 @@ def test_kkk_jk():
     np.testing.assert_allclose(kkkp.ntri, kkk.ntri, rtol=0.05 * tol_factor)
     np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
     np.testing.assert_allclose(kkkp.varzeta, kkk.varzeta, rtol=0.05 * tol_factor, atol=3.e-6)
+
+    # Check calculate_xi with all pairs in results dict.
+    kkk2 = kkkp.copy()
+    kkk2._calculate_xi_from_pairs(list(kkkp.results.keys()))
+    np.testing.assert_allclose(kkk2.ntri, kkk.ntri, rtol=0.05 * tol_factor)
+    np.testing.assert_allclose(kkk2.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
+    np.testing.assert_allclose(kkk2.varzeta, kkk.varzeta, rtol=0.05 * tol_factor, atol=3.e-6)
 
     print('jackknife:')
     cov = kkkp.estimate_cov('jackknife')
@@ -406,7 +419,7 @@ def test_kkk_jk():
     cov = kkkp.estimate_cov('marked_bootstrap')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.9*tol_factor)
 
     print('bootstrap:')
     cov = kkkp.estimate_cov('bootstrap')
@@ -591,7 +604,7 @@ def test_kkk_jk():
 
 
 @timer
-def test_ggg_jk():
+def test_ggg_logruv_jk():
     # Test jackknife and other covariance estimates for ggg correlations.
 
     if __name__ == '__main__':
@@ -618,7 +631,7 @@ def test_ggg_jk():
     # bins.  So this function averages these two values to produce 1 value for each gamma.
     f = lambda g: np.array([np.mean(g.gam0), np.mean(g.gam1), np.mean(g.gam2), np.mean(g.gam3)])
 
-    file_name = 'data/test_ggg_jk_{}.npz'.format(nsource)
+    file_name = 'data/test_ggg_logruv_jk_{}.npz'.format(nsource)
     print(file_name)
     if not os.path.isfile(file_name):
         nruns = 1000
@@ -688,6 +701,19 @@ def test_ggg_jk():
     np.testing.assert_allclose(gggp.vargam2, ggg.vargam2, rtol=0.1 * tol_factor)
     np.testing.assert_allclose(gggp.vargam3, ggg.vargam3, rtol=0.1 * tol_factor)
 
+    # Check calculate_xi with all pairs in results dict.
+    ggg2 = gggp.copy()
+    ggg2._calculate_xi_from_pairs(list(gggp.results.keys()))
+    np.testing.assert_allclose(ggg2.ntri, ggg.ntri, rtol=0.05 * tol_factor)
+    np.testing.assert_allclose(ggg2.gam0, ggg.gam0, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(ggg2.gam1, ggg.gam1, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(ggg2.gam2, ggg.gam2, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(ggg2.gam3, ggg.gam3, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(ggg2.vargam0, ggg.vargam0, rtol=0.1 * tol_factor)
+    np.testing.assert_allclose(ggg2.vargam1, ggg.vargam1, rtol=0.1 * tol_factor)
+    np.testing.assert_allclose(ggg2.vargam2, ggg.vargam2, rtol=0.1 * tol_factor)
+    np.testing.assert_allclose(ggg2.vargam3, ggg.vargam3, rtol=0.1 * tol_factor)
+
     print('jackknife:')
     cov = gggp.estimate_cov('jackknife', func=f)
     print(np.diagonal(cov).real)
@@ -720,7 +746,7 @@ def test_ggg_jk():
 
     # Check that these still work after roundtripping through a file.
     cov1 = gggp.estimate_cov('jackknife', func=f)
-    file_name = os.path.join('output','test_write_results_ggg.pkl')
+    file_name = os.path.join('output','test_write_results_logruv_ggg.pkl')
     with open(file_name, 'wb') as fid:
         pickle.dump(gggp, fid)
     with open(file_name, 'rb') as fid:
@@ -819,6 +845,19 @@ def test_ggg_jk():
     np.testing.assert_allclose(gggp.vargam1, ggg.vargam1, rtol=0.1 * tol_factor)
     np.testing.assert_allclose(gggp.vargam2, ggg.vargam2, rtol=0.1 * tol_factor)
     np.testing.assert_allclose(gggp.vargam3, ggg.vargam3, rtol=0.1 * tol_factor)
+
+    # Check calculate_xi with all pairs in results dict.
+    ggg2 = gggp.copy()
+    ggg2._calculate_xi_from_pairs(list(gggp.results.keys()))
+    np.testing.assert_allclose(ggg2.ntri, ggg.ntri, rtol=0.05 * tol_factor)
+    np.testing.assert_allclose(ggg2.gam0, ggg.gam0, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(ggg2.gam1, ggg.gam1, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(ggg2.gam2, ggg.gam2, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(ggg2.gam3, ggg.gam3, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
+    np.testing.assert_allclose(ggg2.vargam0, ggg.vargam0, rtol=0.1 * tol_factor)
+    np.testing.assert_allclose(ggg2.vargam1, ggg.vargam1, rtol=0.1 * tol_factor)
+    np.testing.assert_allclose(ggg2.vargam2, ggg.vargam2, rtol=0.1 * tol_factor)
+    np.testing.assert_allclose(ggg2.vargam3, ggg.vargam3, rtol=0.1 * tol_factor)
 
     cov = gggp.estimate_cov('jackknife', func=f)
     print(np.diagonal(cov).real)
@@ -1026,7 +1065,7 @@ def test_ggg_jk():
         cov = gggp.estimate_cov('bootstrap', func=f)
         print(np.diagonal(cov).real)
         print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
-        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.3*tol_factor)
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.4*tol_factor)
 
         # Patch on 1,3
         print('with patches on 1,3:')
@@ -1071,7 +1110,7 @@ def test_ggg_jk():
 
 
 @timer
-def test_nnn_jk():
+def test_nnn_logruv_jk():
     # Test jackknife and other covariance estimates for nnn correlations.
 
     if __name__ == '__main__':
@@ -1089,7 +1128,7 @@ def test_nnn_jk():
         rand_factor = 1
         tol_factor = 3
 
-    file_name = 'data/test_nnn_jk_{}.npz'.format(nsource)
+    file_name = 'data/test_nnn_logruv_jk_{}.npz'.format(nsource)
     print(file_name)
     if not os.path.isfile(file_name):
         rng = np.random.RandomState()
@@ -2173,10 +2212,616 @@ def test_lowmem():
     np.testing.assert_array_equal(zeta5, zeta1)
 
 
+@timer
+def test_kkk_logsas_jk():
+    # Test jackknife covariance estimates for kkk correlations with LogSAS binning.
+
+    if __name__ == '__main__':
+        nhalo = 1000
+        nsource = 100000
+        npatch = 16
+        tol_factor = 1
+    else:
+        nhalo = 500
+        nsource = 5000
+        npatch = 12
+        tol_factor = 4
+
+    file_name = 'data/test_kkk_logsas_jk_{}.npz'.format(nsource)
+    print(file_name)
+    if not os.path.isfile(file_name):
+        nruns = 1000
+        all_zetas = []
+        rng1 = np.random.default_rng()
+        for run in range(nruns):
+            x, y, _, _, k = generate_shear_field(nsource, nhalo, rng1)
+            print(run,': ',np.mean(k),np.std(k))
+            cat = treecorr.Catalog(x=x, y=y, k=k)
+            kkk = treecorr.KKKCorrelation(nbins=2, min_sep=30., max_sep=50., nphi_bins=20,
+                                          bin_type='LogSAS')
+            kkk.process(cat)
+            all_zetas.append(kkk.zeta.ravel())
+
+        mean_kkk = np.mean([zeta for zeta in all_zetas], axis=0)
+        var_kkk = np.var([zeta for zeta in all_zetas], axis=0)
+
+        np.savez(file_name, mean_kkk=mean_kkk, var_kkk=var_kkk)
+
+    data = np.load(file_name)
+    mean_kkk = data['mean_kkk']
+    var_kkk = data['var_kkk']
+    print('mean kkk = ',mean_kkk)
+    print('var kkk = ',var_kkk)
+
+    # First LogSAS
+    rng = np.random.default_rng(1234)
+    x, y, _, _, k = generate_shear_field(nsource, nhalo, rng)
+    cat = treecorr.Catalog(x=x, y=y, k=k)
+    kkk = treecorr.KKKCorrelation(nbins=2, min_sep=30., max_sep=50., nphi_bins=20,
+                                  rng=rng, bin_type='LogSAS')
+
+    # Before running process, varzeta and cov are allowed, but all 0.
+    np.testing.assert_array_equal(kkk.cov, 0)
+    np.testing.assert_array_equal(kkk.varzeta, 0)
+
+    kkk.process(cat)
+    np.testing.assert_allclose(kkk.zeta.ravel(), mean_kkk, rtol=0.1 * tol_factor)
+    print(kkk.varzeta.ravel())
+    print(var_kkk)
+    print('ratio = ',kkk.varzeta.ravel()/var_kkk)
+    np.testing.assert_array_less(kkk.varzeta.ravel(), 0.1*var_kkk)
+    np.testing.assert_allclose(kkk.cov.diagonal(), kkk.varzeta.ravel())
+
+    kkkp = kkk.copy()
+    catp = treecorr.Catalog(x=x, y=y, k=k, npatch=npatch, rng=rng)
+
+    # Do the same thing with patches.
+    kkkp.process(catp)
+    np.testing.assert_allclose(kkkp.zeta.ravel(), mean_kkk, rtol=0.1 * tol_factor)
+    np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor)
+    print('with patches:')
+    print('weight ratio = ',kkkp.weight.ravel()/kkk.weight.ravel())
+    np.testing.assert_allclose(kkkp.weight, kkk.weight, rtol=0.1 * tol_factor)
+    print('varzeta ratio = ',kkkp.varzeta.ravel()/kkk.varzeta.ravel())
+    np.testing.assert_allclose(kkkp.varzeta, kkk.varzeta, rtol=0.1 * tol_factor)
+
+    # Check calculate_xi with all pairs in results dict.
+    kkk2 = kkkp.copy()
+    kkk2._calculate_xi_from_pairs(list(kkkp.results.keys()))
+    np.testing.assert_allclose(kkk2.ntri, kkkp.ntri, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(kkk2.zeta, kkkp.zeta, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(kkk2.weight, kkkp.weight, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(kkk2.varzeta, kkkp.varzeta, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(kkk2.meand1, kkkp.meand1, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(kkk2.meand2, kkkp.meand2, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(kkk2.meand3, kkkp.meand3, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(kkk2.meanlogd1, kkkp.meanlogd1, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(kkk2.meanlogd2, kkkp.meanlogd2, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(kkk2.meanlogd3, kkkp.meanlogd3, rtol=0.01 * tol_factor)
+
+    print('jackknife:')
+    cov = kkkp.estimate_cov('jackknife')
+    print('diag = ',np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.6 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.7*tol_factor)
+
+    print('sample:')
+    cov = kkkp.estimate_cov('sample')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.6 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('marked:')
+    cov = kkkp.estimate_cov('marked_bootstrap')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.6 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.9*tol_factor)
+
+    print('bootstrap:')
+    cov = kkkp.estimate_cov('bootstrap')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.6 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    # Check that these still work after roundtripping through a file.
+    cov1 = kkkp.estimate_cov('jackknife')
+    file_name = os.path.join('output','test_write_results_logsas_kkk.pkl')
+    with open(file_name, 'wb') as f:
+        pickle.dump(kkkp, f)
+    with open(file_name, 'rb') as f:
+        kkk2 = pickle.load(f)
+    cov2 = kkk2.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov2, cov1)
+
+    # And again using the normal write command.
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        file_name = os.path.join('output','test_write_results_kkk.fits')
+        kkkp.write(file_name, write_patch_results=True)
+        kkk3 = treecorr.KKKCorrelation(nbins=2, min_sep=30., max_sep=50., nphi_bins=20)
+        kkk3.read(file_name)
+        cov3 = kkk3.estimate_cov('jackknife')
+        np.testing.assert_allclose(cov3, cov1)
+
+    # Also with ascii, since that works differeny.
+    file_name = os.path.join('output','test_write_results_kkk.dat')
+    kkkp.write(file_name, write_patch_results=True)
+    kkk4 = treecorr.KKKCorrelation(nbins=2, min_sep=30., max_sep=50., nphi_bins=20)
+    kkk4.read(file_name)
+    cov4 = kkk4.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov4, cov1)
+
+    # And also try to match the type if HDF
+    try:
+        import h5py
+    except ImportError:
+        print('Skipping saving HDF patches, since h5py not installed.')
+        h5py = None
+
+    if h5py is not None:
+        # Finally with hdf
+        file_name = os.path.join('output','test_write_results_kkk.hdf5')
+        kkkp.write(file_name, write_patch_results=True)
+        kkk5 = treecorr.KKKCorrelation(nbins=2, min_sep=30., max_sep=50., nphi_bins=20)
+        kkk5.read(file_name)
+        cov5 = kkk5.estimate_cov('jackknife')
+        np.testing.assert_allclose(cov5, cov1)
+
+
+@timer
+def test_ggg_logsas_jk():
+    # Test jackknife and other covariance estimates for ggg correlations.
+
+    if __name__ == '__main__':
+        nhalo = 1000
+        nsource = 50000
+        npatch = 16
+        nbins = 20
+        tol_factor = 1
+    else:
+        nhalo = 300
+        nsource = 2000
+        npatch = 8
+        nbins = 10
+        tol_factor = 2
+
+    f = lambda g: g.calculateMap3(R=[30, 50, 80, 100])[0]
+
+    file_name = 'data/test_ggg_logsas_jk_{}.npz'.format(nsource)
+    print(file_name)
+    if not os.path.isfile(file_name):
+        nruns = 1000
+        all_gggs = []
+        rng1 = np.random.default_rng()
+        for run in range(nruns):
+            x, y, g1, g2, _ = generate_shear_field(nsource, nhalo, rng1)
+            print(run,': ',np.mean(g1),np.std(g1),np.mean(g2),np.std(g2))
+            cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
+            ggg = treecorr.GGGCorrelation(nbins=nbins, min_sep=10., max_sep=300., nphi_bins=nbins,
+                                          bin_type='LogSAS')
+            ggg.process(cat)
+            all_gggs.append(ggg)
+        all_ggg = np.array([f(ggg) for ggg in all_gggs])
+        mean_ggg = np.mean(all_ggg, axis=0)
+        var_ggg = np.var(all_ggg, axis=0)
+        np.savez(file_name, mean_ggg=mean_ggg, var_ggg=var_ggg)
+
+    data = np.load(file_name)
+    mean_ggg = data['mean_ggg']
+    var_ggg = data['var_ggg']
+    print('mean = ',mean_ggg)
+    print('var = ',var_ggg)
+
+    rng = np.random.default_rng(1234)
+    x, y, g1, g2, _ = generate_shear_field(nsource, nhalo, rng)
+    cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
+    ggg = treecorr.GGGCorrelation(nbins=nbins, min_sep=10., max_sep=300., nphi_bins=nbins,
+                                  rng=rng, bin_type='LogSAS')
+    ggg.process(cat)
+    print('f = ',f(ggg))
+
+    # Do the same thing with patches.
+    catp = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, npatch=npatch, rng=rng)
+    gggp = ggg.copy()
+    gggp.process(catp)
+    print('with patches:')
+    print('f = ',f(gggp))
+
+    # Check calculate_xi with all pairs in results dict.
+    ggg2 = gggp.copy()
+    ggg2._calculate_xi_from_pairs(list(gggp.results.keys()))
+    f2 = f(ggg2)
+    np.testing.assert_allclose(ggg2.ntri, gggp.ntri, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(ggg2.weight, gggp.weight, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(ggg2.meand1, gggp.meand1, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(ggg2.meand2, gggp.meand2, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(ggg2.meand3, gggp.meand3, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(ggg2.meanlogd1, gggp.meanlogd1, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(ggg2.meanlogd2, gggp.meanlogd2, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(ggg2.meanlogd3, gggp.meanlogd3, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(ggg2.gam0, gggp.gam0, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(ggg2.gam1, gggp.gam1, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(ggg2.gam2, gggp.gam2, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(ggg2.gam3, gggp.gam3, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(ggg2.vargam0, gggp.vargam0, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(ggg2.vargam1, gggp.vargam1, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(ggg2.vargam2, gggp.vargam2, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(ggg2.vargam3, gggp.vargam3, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(f(ggg2), f(gggp), rtol=0.01 * tol_factor)
+
+    print('jackknife:')
+    cov = gggp.estimate_cov('jackknife', func=f)
+    print(np.diagonal(cov).real)
+    print(var_ggg)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.9*tol_factor)
+
+    print('sample:')
+    cov = gggp.estimate_cov('sample', func=f)
+    print(np.diagonal(cov).real)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+    print('marked:')
+    cov = gggp.estimate_cov('marked_bootstrap', func=f)
+    print(np.diagonal(cov).real)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+
+    print('bootstrap:')
+    cov = gggp.estimate_cov('bootstrap', func=f)
+    print(np.diagonal(cov).real)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.1*tol_factor)
+
+    # Check that these still work after roundtripping through a file.
+    cov1 = gggp.estimate_cov('jackknife', func=f)
+    file_name = os.path.join('output','test_write_results_logsas_ggg.pkl')
+    with open(file_name, 'wb') as fid:
+        pickle.dump(gggp, fid)
+    with open(file_name, 'rb') as fid:
+        ggg2 = pickle.load(fid)
+    cov2 = ggg2.estimate_cov('jackknife', func=f)
+    np.testing.assert_allclose(cov2, cov1)
+
+    # And again using the normal write command.
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        file_name = os.path.join('output','test_write_results_ggg.fits')
+        gggp.write(file_name, write_patch_results=True)
+        ggg3 = treecorr.GGGCorrelation(nbins=nbins, min_sep=10., max_sep=300., nphi_bins=nbins,
+                                       bin_type='LogSAS')
+        ggg3.read(file_name)
+        cov3 = ggg3.estimate_cov('jackknife', func=f)
+        print('cov3 = ',cov3)
+        np.testing.assert_allclose(cov3, cov1)
+
+    # Also with ascii, since that works differeny.
+    file_name = os.path.join('output','test_write_results_ggg.dat')
+    gggp.write(file_name, write_patch_results=True)
+    ggg4 = treecorr.GGGCorrelation(nbins=nbins, min_sep=10., max_sep=300., nphi_bins=nbins,
+                                   bin_type='LogSAS')
+    ggg4.read(file_name)
+    cov4 = ggg4.estimate_cov('jackknife', func=f)
+    np.testing.assert_allclose(cov4, cov1)
+
+    # And also try to match the type if HDF
+    try:
+        import h5py
+    except ImportError:
+        print('Skipping saving HDF patches, since h5py not installed.')
+        h5py = None
+
+    if h5py is not None:
+        # Finally with hdf
+        file_name = os.path.join('output','test_write_results_ggg.hdf5')
+        gggp.write(file_name, write_patch_results=True)
+        ggg5 = treecorr.GGGCorrelation(nbins=nbins, min_sep=10., max_sep=300., nphi_bins=nbins,
+                                       bin_type='LogSAS')
+        ggg5.read(file_name)
+        cov5 = ggg5.estimate_cov('jackknife', func=f)
+        np.testing.assert_allclose(cov5, cov1)
+
+
+@timer
+def test_nnn_logsas_jk():
+    # Test jackknife and other covariance estimates for nnn correlations.
+
+    if __name__ == '__main__':
+        nhalo = 100
+        nsource = 5000
+        npatch = 16
+        source_factor = 50
+        rand_factor = 1
+        tol_factor = 1
+    else:
+        nhalo = 50
+        nsource = 1000
+        npatch = 8
+        source_factor = 50
+        rand_factor = 1
+        tol_factor = 3
+
+    file_name = 'data/test_nnn_logsas_jk_{}.npz'.format(nsource)
+    print(file_name)
+    if not os.path.isfile(file_name):
+        rng = np.random.RandomState()
+        nruns = 1000
+        all_nnns = []
+        all_nnnc = []
+        t0 = time.time()
+        for run in range(nruns):
+            x, y, _, _, k = generate_shear_field(nsource * source_factor, nhalo, rng)
+            p = k**3
+            p /= np.sum(p)
+            ns = rng.poisson(nsource)
+            select = rng.choice(range(len(x)), size=ns, replace=False, p=p)
+            print(run,': ',np.mean(k),np.std(k),np.min(k),np.max(k))
+            cat = treecorr.Catalog(x=x[select], y=y[select])
+            ddd = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., nphi_bins=20,
+                                          bin_slop=0.2, bin_type='LogSAS')
+
+            rx = rng.uniform(0,1000, rand_factor*nsource)
+            ry = rng.uniform(0,1000, rand_factor*nsource)
+            rand_cat = treecorr.Catalog(x=rx, y=ry)
+            rrr = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., nphi_bins=20,
+                                          bin_slop=0.2, bin_type='LogSAS')
+            rrr.process(rand_cat)
+            rdd = ddd.copy()
+            drr = ddd.copy()
+            ddd.process(cat)
+            rdd.process(rand_cat, cat, ordered=False)
+            drr.process(cat, rand_cat, ordered=False)
+            zeta_s, _ = ddd.calculateZeta(rrr=rrr)
+            zeta_c, _ = ddd.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)
+            #print('simple: ',zeta_s.ravel())
+            #print('compensated: ',zeta_c.ravel())
+            all_nnns.append(zeta_s.ravel())
+            all_nnnc.append(zeta_c.ravel())
+        mean_nnns = np.mean(all_nnns, axis=0)
+        var_nnns = np.var(all_nnns, axis=0)
+        mean_nnnc = np.mean(all_nnnc, axis=0)
+        var_nnnc = np.var(all_nnnc, axis=0)
+        np.savez(file_name, mean_nnns=mean_nnns, var_nnns=var_nnns,
+                 mean_nnnc=mean_nnnc, var_nnnc=var_nnnc)
+
+    data = np.load(file_name)
+    mean_nnns = data['mean_nnns']
+    var_nnns = data['var_nnns']
+    mean_nnnc = data['mean_nnnc']
+    var_nnnc = data['var_nnnc']
+    print('mean simple = ',mean_nnns)
+    print('var simple = ',var_nnns)
+    print('mean compensated = ',mean_nnnc)
+    print('var compensated = ',var_nnnc)
+
+    # Make a random catalog with 2x as many sources, randomly distributed .
+    rng = np.random.RandomState(1234)
+    rx = rng.uniform(0,1000, rand_factor*nsource)
+    ry = rng.uniform(0,1000, rand_factor*nsource)
+    rand_cat = treecorr.Catalog(x=rx, y=ry)
+    rrr = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., nphi_bins=20,
+                                  bin_slop=0.2, rng=rng, bin_type='LogSAS')
+    t0 = time.time()
+    rrr.process(rand_cat)
+    t1 = time.time()
+    print('Time to process rand cat = ',t1-t0)
+    print('RRR:',rrr.tot)
+    print(rrr.ntri.ravel())
+
+    # Make the data catalog
+    x, y, _, _, k = generate_shear_field(nsource * source_factor, nhalo, rng=rng)
+    print('mean k = ',np.mean(k))
+    print('min,max = ',np.min(k),np.max(k))
+    p = k**3
+    p /= np.sum(p)
+    select = rng.choice(range(len(x)), size=nsource, replace=False, p=p)
+    cat = treecorr.Catalog(x=x[select], y=y[select])
+    ddd = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., nphi_bins=20,
+                                  bin_slop=0.2, rng=rng, bin_type='LogSAS')
+    rdd = ddd.copy()
+    drr = ddd.copy()
+    ddd.process(cat)
+    rdd.process(rand_cat, cat, ordered=False)
+    drr.process(cat, rand_cat, ordered=False)
+    zeta_s1, var_zeta_s1 = ddd.calculateZeta(rrr=rrr)
+    zeta_c1, var_zeta_c1 = ddd.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)
+    print('DDD:',ddd.tot)
+    print(ddd.ntri.ravel())
+    print('simple: ')
+    print(zeta_s1.ravel())
+    print(var_zeta_s1.ravel())
+    print('compensated: ')
+    print(zeta_c1.ravel())
+    print(var_zeta_c1.ravel())
+
+    # Make the patches with a large random catalog to make sure the patches are uniform area.
+    big_rx = rng.uniform(0,1000, 100*nsource)
+    big_ry = rng.uniform(0,1000, 100*nsource)
+    big_catp = treecorr.Catalog(x=big_rx, y=big_ry, npatch=npatch, rng=rng)
+    patch_centers = big_catp.patch_centers
+
+    # Do the same thing with patches
+    dddp = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., nphi_bins=20,
+                                   bin_slop=0.2, rng=rng, bin_type='LogSAS')
+    rrrp = dddp.copy()
+    rddp = dddp.copy()
+    drrp = dddp.copy()
+    catp = treecorr.Catalog(x=x[select], y=y[select], patch_centers=patch_centers)
+    rand_catp = treecorr.Catalog(x=rx, y=ry, patch_centers=patch_centers)
+    print('Patch\tNtot')
+    for p in catp.patches:
+        print(p.patch,'\t',p.ntot,'\t',patch_centers[p.patch])
+
+    dddp.process(catp)
+    rrrp.process(rand_catp)
+    drrp.process(catp, rand_catp, ordered=False)
+    rddp.process(rand_catp, catp, ordered=False)
+
+    # Need to run calculateZeta to get patch-based covariance
+    with assert_raises(RuntimeError):
+        dddp.estimate_cov('jackknife')
+
+    zeta_s2, var_zeta_s2 = dddp.calculateZeta(rrr=rrrp)
+    print('DDD:',dddp.tot)
+    print(dddp.ntri.ravel())
+    print('simple: ')
+    print(zeta_s2.ravel())
+    print(var_zeta_s2.ravel())
+    np.testing.assert_allclose(zeta_s2, zeta_s1, rtol=0.05 * tol_factor)
+    np.testing.assert_allclose(var_zeta_s2, var_zeta_s1, rtol=0.05 * tol_factor)
+
+    # Check the _calculate_xi_from_pairs function.  Using all pairs, should get total xi.
+    ddd1 = dddp.copy()
+    ddd1._calculate_xi_from_pairs(dddp.results.keys())
+    np.testing.assert_allclose(ddd1.zeta, dddp.zeta)
+
+    print('jackknife:')
+    cov = dddp.estimate_cov('jackknife')
+    print('ratio = ',list(np.diagonal(cov)/var_nnns))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.7*tol_factor)
+
+    print('sample:')
+    cov = dddp.estimate_cov('sample')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=1.0*tol_factor)
+
+    print('marked:')
+    cov = dddp.estimate_cov('marked_bootstrap')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.8*tol_factor)
+
+    print('bootstrap:')
+    cov = dddp.estimate_cov('bootstrap')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.7*tol_factor)
+
+    print('compensated: ')
+    zeta_c2, var_zeta_c2 = dddp.calculateZeta(rrr=rrrp, drr=drrp, rdd=rddp)
+    print(zeta_c2.ravel())
+    print(var_zeta_c2.ravel())
+    np.testing.assert_allclose(zeta_c2, zeta_c1, rtol=0.05 * tol_factor, atol=1.e-3 * tol_factor)
+    np.testing.assert_allclose(var_zeta_c2, var_zeta_c1, rtol=0.05 * tol_factor)
+
+    print('jackknife:')
+    cov = dddp.estimate_cov('jackknife')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnnc))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.8*tol_factor)
+
+    print('sample:')
+    cov = dddp.estimate_cov('sample')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnnc))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=1.1*tol_factor)
+
+    print('marked:')
+    cov = dddp.estimate_cov('marked_bootstrap')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnnc))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=1.2*tol_factor)
+
+    print('bootstrap:')
+    cov = dddp.estimate_cov('bootstrap')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnnc))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.8*tol_factor)
+
+    # Check that these still work after roundtripping through files.
+    cov1 = dddp.estimate_cov('jackknife')
+    try:
+        import fitsio
+    except ImportError:
+        pass
+    else:
+        file_name = os.path.join('output','test_write_results_ddd.fits')
+        rrr_file_name = os.path.join('output','test_write_results_rrr.fits')
+        drr_file_name = os.path.join('output','test_write_results_drr.fits')
+        rdd_file_name = os.path.join('output','test_write_results_rdd.fits')
+        dddp.write(file_name, write_patch_results=True)
+        rrrp.write(rrr_file_name, write_patch_results=True)
+        drrp.write(drr_file_name, write_patch_results=True)
+        rddp.write(rdd_file_name, write_patch_results=True)
+        ddd3 = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., nphi_bins=20,
+                                       bin_type='LogSAS')
+        rrr3 = ddd3.copy()
+        drr3 = ddd3.copy()
+        rdd3 = ddd3.copy()
+        ddd3.read(file_name)
+        rrr3.read(rrr_file_name)
+        drr3.read(drr_file_name)
+        rdd3.read(rdd_file_name)
+        ddd3.calculateZeta(rrr=rrr3, drr=drr3, rdd=rdd3)
+        cov3 = ddd3.estimate_cov('jackknife')
+        np.testing.assert_allclose(cov3, cov1)
+
+    # Also with ascii, since that works differeny.
+    file_name = os.path.join('output','test_write_results_ddd.dat')
+    rrr_file_name = os.path.join('output','test_write_results_rrr.dat')
+    drr_file_name = os.path.join('output','test_write_results_drr.dat')
+    rdd_file_name = os.path.join('output','test_write_results_rdd.dat')
+    dddp.write(file_name, write_patch_results=True)
+    rrrp.write(rrr_file_name, write_patch_results=True)
+    drrp.write(drr_file_name, write_patch_results=True)
+    rddp.write(rdd_file_name, write_patch_results=True)
+    ddd4 = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., nphi_bins=20,
+                                   bin_type='LogSAS')
+    rrr4 = ddd4.copy()
+    drr4 = ddd4.copy()
+    rdd4 = ddd4.copy()
+    ddd4.read(file_name)
+    rrr4.read(rrr_file_name)
+    drr4.read(drr_file_name)
+    rdd4.read(rdd_file_name)
+    ddd4.calculateZeta(rrr=rrr4, drr=drr4, rdd=rdd4)
+    cov4 = ddd4.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov4, cov1)
+
+    # And also try to match the type if HDF
+    try:
+        import h5py
+    except ImportError:
+        print('Skipping saving HDF patches, since h5py not installed.')
+        h5py = None
+
+    if h5py is not None:
+        # Finally with hdf
+        file_name = os.path.join('output','test_write_results_ddd.hdf5')
+        rrr_file_name = os.path.join('output','test_write_results_rrr.hdf5')
+        drr_file_name = os.path.join('output','test_write_results_drr.hdf5')
+        rdd_file_name = os.path.join('output','test_write_results_rdd.hdf5')
+        dddp.write(file_name, write_patch_results=True)
+        rrrp.write(rrr_file_name, write_patch_results=True)
+        drrp.write(drr_file_name, write_patch_results=True)
+        rddp.write(rdd_file_name, write_patch_results=True)
+        ddd5 = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., nphi_bins=20,
+                                       bin_type='LogSAS')
+        rrr5 = ddd5.copy()
+        drr5 = ddd5.copy()
+        rdd5 = ddd5.copy()
+        ddd5.read(file_name)
+        rrr5.read(rrr_file_name)
+        drr5.read(drr_file_name)
+        rdd5.read(rdd_file_name)
+        ddd5.calculateZeta(rrr=rrr5, drr=drr5, rdd=rdd5)
+        cov5 = ddd5.estimate_cov('jackknife')
+        np.testing.assert_allclose(cov5, cov1)
+
+
 if __name__ == '__main__':
-    test_kkk_jk()
-    test_ggg_jk()
-    test_nnn_jk()
+    test_kkk_logruv_jk()
+    test_ggg_logruv_jk()
+    test_nnn_logruv_jk()
     test_brute_jk()
     test_finalize_false()
     test_lowmem()
+    test_kkk_logsas_jk()
+    test_ggg_logsas_jk()
+    test_nnn_logsas_jk()

@@ -742,13 +742,17 @@ class NNNCorrelation(Corr3):
         if not np.array_equal(sas.rnom1d, self.rnom1d):
             raise ValueError("toSAS cannot change sep parameters")
 
-        sas.tot = self.tot
-
         # Copy these over
+        sas.tot = self.tot
         sas.meand2[:,:,:] = self.meand2[:,:,0][:,:,None]
         sas.meanlogd2[:,:,:] = self.meanlogd2[:,:,0][:,:,None]
         sas.meand3[:,:,:] = self.meand3[:,:,0][:,:,None]
         sas.meanlogd3[:,:,:] = self.meanlogd3[:,:,0][:,:,None]
+        sas.npatch1 = self.npatch1
+        sas.npatch2 = self.npatch2
+        sas.npatch3 = self.npatch3
+        sas.coords = self.coords
+        sas.metric = self.metric
 
         # Use nominal for meanphi
         sas.meanu[:] = sas.phi / sas._phi_units
@@ -760,7 +764,7 @@ class NNNCorrelation(Corr3):
         # Eqn 26 of Porth et al, 2023
         # N(d2,d3,phi) = 1/2pi sum_n N_n(d2,d3) exp(i n phi)
         expiphi = np.exp(1j * self.n1d[:,None] * sas.phi1d)
-        sas.weight[:] = np.real(self.weight.dot(expiphi)) / (2*np.pi) * sas.phi_bin_size
+        sas.weightr[:] = np.real(self.weight.dot(expiphi)) / (2*np.pi) * sas.phi_bin_size
 
         # For ntri, we recorded the total ntri for each pair of d2,d3.
         # Allocate those proportionally to the weights.
@@ -768,9 +772,27 @@ class NNNCorrelation(Corr3):
         # We reduce this by the fraction of this covered by [min_phi, max_phi].
         # (Typically 1/2, since usually [0,pi].)
         phi_frac = (sas.max_phi - sas.min_phi) / (2*np.pi)
-        ratio = self.ntri[:,:,0] / np.sum(sas.weight, axis=2) * phi_frac
+        denom = np.sum(sas.weight, axis=2)
+        denom[denom==0] = 1  # Don't divide by 0
+        ratio = self.ntri[:,:,0] / denom * phi_frac
         sas.ntri[:] = sas.weight * ratio[:,:,None]
-        sas.ntri[sas.weight==0] = 0  # Fix nans where sum(weight) = 0, so ratio -> nan
+
+        for k,v in self.results.items():
+            temp = sas.copy()
+            temp.weightr[:] = np.real(v.weight.dot(expiphi)) / (2*np.pi) * sas.phi_bin_size
+            temp.tot = v.tot
+            temp.ntri[:] = temp.weight * ratio[:,:,None]
+
+            # Undo the normalization of the d arrays.
+            temp.meand1 *= temp.weightr
+            temp.meand2 *= temp.weightr
+            temp.meand3 *= temp.weightr
+            temp.meanlogd1 *= temp.weightr
+            temp.meanlogd2 *= temp.weightr
+            temp.meanlogd3 *= temp.weightr
+            temp.meanu *= temp.weightr
+
+            sas.results[k] = temp
 
         return sas
 

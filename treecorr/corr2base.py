@@ -1264,7 +1264,7 @@ class Corr2(object):
     #########################################################################################
     #                                                                                       #
     # Important note for the following two functions.                                       #
-    # These use to have lines like this:    `                                               #
+    # These used to have lines like this:   `                                               #
     #                                                                                       #
     #     return [ [(j,k) for j,k in self.results.keys() if j!=i and k!=i]                  #
     #               for i in range(self.npatch1) ]                                          #

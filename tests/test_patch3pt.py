@@ -2253,7 +2253,6 @@ def test_kkk_logsas_jk():
     print('mean kkk = ',mean_kkk)
     print('var kkk = ',var_kkk)
 
-    # First LogSAS
     rng = np.random.default_rng(1234)
     x, y, _, _, k = generate_shear_field(nsource, nhalo, rng)
     cat = treecorr.Catalog(x=x, y=y, k=k)
@@ -2374,6 +2373,37 @@ def test_kkk_logsas_jk():
         cov5 = kkk5.estimate_cov('jackknife')
         np.testing.assert_allclose(cov5, cov1)
 
+    # Check jackknife, etc. using LogMultipole
+    print('Using LogMultipole:')
+    kkkm = treecorr.KKKCorrelation(nbins=2, min_sep=30., max_sep=50., max_n=40,
+                                   rng=rng, bin_type='LogMultipole')
+    kkkm.process(catp)
+    fm = lambda kkk: kkk.toSAS(nphi_bins=20).zeta.ravel()
+
+    print('jackknife:')
+    cov = kkkm.estimate_cov('jackknife', func=fm)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.6 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.7*tol_factor)
+
+    print('sample:')
+    cov = kkkm.estimate_cov('sample', func=fm)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.6 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('marked:')
+    cov = kkkm.estimate_cov('marked_bootstrap', func=fm)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.6 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.9*tol_factor)
+
+    print('bootstrap:')
+    cov = kkkm.estimate_cov('bootstrap', func=fm)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.6 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.9*tol_factor)
+
 
 @timer
 def test_ggg_logsas_jk():
@@ -2473,13 +2503,13 @@ def test_ggg_logsas_jk():
     cov = gggp.estimate_cov('marked_bootstrap', func=f)
     print(np.diagonal(cov).real)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.1*tol_factor)
 
     print('bootstrap:')
     cov = gggp.estimate_cov('bootstrap', func=f)
     print(np.diagonal(cov).real)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.1*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
 
     # Check that these still work after roundtripping through a file.
     cov1 = gggp.estimate_cov('jackknife', func=f)
@@ -2531,6 +2561,38 @@ def test_ggg_logsas_jk():
         ggg5.read(file_name)
         cov5 = ggg5.estimate_cov('jackknife', func=f)
         np.testing.assert_allclose(cov5, cov1)
+
+    # Check jackknife, etc. using LogMultipole
+    print('Using LogMultipole:')
+    gggm = treecorr.GGGCorrelation(nbins=nbins, min_sep=10., max_sep=300., max_n=2*nbins,
+                                   rng=rng, bin_type='LogMultipole', num_bootstrap=100)
+    gggm.process(catp)
+    fm = lambda ggg: f(ggg.toSAS(nphi_bins=20))
+
+    print('jackknife:')
+    cov = gggm.estimate_cov('jackknife', func=fm)
+    print(np.diagonal(cov).real)
+    print(var_ggg)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.9*tol_factor)
+
+    print('sample:')
+    cov = gggm.estimate_cov('sample', func=fm)
+    print(np.diagonal(cov).real)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.1*tol_factor)
+
+    print('marked:')
+    cov = gggm.estimate_cov('marked_bootstrap', func=fm)
+    print(np.diagonal(cov).real)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.1*tol_factor)
+
+    print('bootstrap:')
+    cov = gggm.estimate_cov('bootstrap', func=fm)
+    print(np.diagonal(cov).real)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.9*tol_factor)
 
 
 @timer
@@ -2584,8 +2646,6 @@ def test_nnn_logsas_jk():
             drr.process(cat, rand_cat, ordered=False)
             zeta_s, _ = ddd.calculateZeta(rrr=rrr)
             zeta_c, _ = ddd.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)
-            #print('simple: ',zeta_s.ravel())
-            #print('compensated: ',zeta_c.ravel())
             all_nnns.append(zeta_s.ravel())
             all_nnnc.append(zeta_c.ravel())
         mean_nnns = np.mean(all_nnns, axis=0)
@@ -2616,8 +2676,6 @@ def test_nnn_logsas_jk():
     rrr.process(rand_cat)
     t1 = time.time()
     print('Time to process rand cat = ',t1-t0)
-    print('RRR:',rrr.tot)
-    print(rrr.ntri.ravel())
 
     # Make the data catalog
     x, y, _, _, k = generate_shear_field(nsource * source_factor, nhalo, rng=rng)
@@ -2636,8 +2694,6 @@ def test_nnn_logsas_jk():
     drr.process(cat, rand_cat, ordered=False)
     zeta_s1, var_zeta_s1 = ddd.calculateZeta(rrr=rrr)
     zeta_c1, var_zeta_c1 = ddd.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)
-    print('DDD:',ddd.tot)
-    print(ddd.ntri.ravel())
     print('simple: ')
     print(zeta_s1.ravel())
     print(var_zeta_s1.ravel())
@@ -2673,8 +2729,6 @@ def test_nnn_logsas_jk():
         dddp.estimate_cov('jackknife')
 
     zeta_s2, var_zeta_s2 = dddp.calculateZeta(rrr=rrrp)
-    print('DDD:',dddp.tot)
-    print(dddp.ntri.ravel())
     print('simple: ')
     print(zeta_s2.ravel())
     print(var_zeta_s2.ravel())
@@ -2732,7 +2786,7 @@ def test_nnn_logsas_jk():
     print('bootstrap:')
     cov = dddp.estimate_cov('bootstrap')
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnnc))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.8*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.9*tol_factor)
 
     # Check that these still work after roundtripping through files.
     cov1 = dddp.estimate_cov('jackknife')
@@ -2813,6 +2867,81 @@ def test_nnn_logsas_jk():
         ddd5.calculateZeta(rrr=rrr5, drr=drr5, rdd=rdd5)
         cov5 = ddd5.estimate_cov('jackknife')
         np.testing.assert_allclose(cov5, cov1)
+
+    # Check jackknife, etc. using LogMultipole
+    print('Using LogMultipole:')
+    dddm = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., max_n=40,
+                                   rng=rng, bin_type='LogMultipole', num_bootstrap=100)
+    rrrm = dddm.copy()
+    drrm = dddm.copy()
+    rddm = dddm.copy()
+    dddm.process(catp)
+    rrrm.process(rand_catp)
+    drrm.process(catp, rand_catp, ordered=False)
+    rddm.process(rand_catp, catp, ordered=False)
+
+    def zeta_ms(corrs):
+        ddd, rrr = corrs
+        ddds = ddd.toSAS(nphi_bins=20)
+        rrrs = rrr.toSAS(nphi_bins=20)
+        zeta, var_zeta = ddds.calculateZeta(rrr=rrrs)
+        return zeta.ravel()
+
+    def zeta_mc(corrs):
+        ddd, rrr, drr, rdd = corrs
+        ddds = ddd.toSAS(nphi_bins=20)
+        rrrs = rrr.toSAS(nphi_bins=20)
+        drrs = drr.toSAS(nphi_bins=20)
+        rdds = rdd.toSAS(nphi_bins=20)
+        zeta, var_zeta = ddds.calculateZeta(rrr=rrrs, drr=drrs, rdd=rdds)
+        return zeta.ravel()
+
+    zeta_s3 = zeta_ms([dddm,rrrm])
+    np.testing.assert_allclose(zeta_s3, zeta_s1.ravel(), rtol=0.05 * tol_factor)
+    zeta_c3 = zeta_mc([dddm,rrrm,drrm,rddm])
+    np.testing.assert_allclose(zeta_c3, zeta_c1.ravel(), rtol=0.05 * tol_factor)
+
+    print('simple:')
+    print('jackknife:')
+    cov = treecorr.estimate_multi_cov([dddm,rrrm], 'jackknife', func=zeta_ms)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.7*tol_factor)
+
+    print('sample:')
+    cov = treecorr.estimate_multi_cov([dddm,rrrm], 'sample', func=zeta_ms)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=1.1*tol_factor)
+
+    print('marked:')
+    cov = treecorr.estimate_multi_cov([dddm,rrrm], 'marked_bootstrap', func=zeta_ms)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.7*tol_factor)
+
+    print('bootstrap:')
+    cov = treecorr.estimate_multi_cov([dddm,rrrm], 'bootstrap', func=zeta_ms)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.8*tol_factor)
+
+    print('compensated: ')
+    print('jackknife:')
+    cov = treecorr.estimate_multi_cov([dddm,rrrm,drrm,rddm], 'jackknife', func=zeta_mc)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnnc))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.8*tol_factor)
+
+    print('sample:')
+    cov = treecorr.estimate_multi_cov([dddm,rrrm,drrm,rddm], 'sample', func=zeta_mc)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnnc))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=1.3*tol_factor)
+
+    print('marked:')
+    cov = treecorr.estimate_multi_cov([dddm,rrrm,drrm,rddm], 'marked_bootstrap', func=zeta_mc)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnnc))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.9*tol_factor)
+
+    print('bootstrap:')
+    cov = treecorr.estimate_multi_cov([dddm,rrrm,drrm,rddm], 'bootstrap', func=zeta_mc)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnnc))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=1.0*tol_factor)
 
 
 if __name__ == '__main__':

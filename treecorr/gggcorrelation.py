@@ -1340,7 +1340,7 @@ class GGGCorrelation(Corr3):
         if R is None:
             R = self.rnom1d
         else:
-            R = np.array(R)
+            R = np.asarray(R)
 
         # Pick s = d2, so dlogs is bin_size
         s = d2 = np.outer(1./R, self.meand2.ravel())

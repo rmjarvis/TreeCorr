@@ -260,6 +260,11 @@ def test_direct_logruv():
     with assert_raises(ValueError):
         kkk2 += kkk13
 
+    with assert_raises(ValueError):
+        kkk.process(cat, algo='invalid')
+    with assert_raises(ValueError):
+        kkk.process(cat, algo='multipole')
+
 
 @timer
 def test_direct_logruv_spherical():
@@ -1411,6 +1416,8 @@ def test_direct_logsas():
         np.testing.assert_allclose(data['weight'], kkk2.weight.flatten())
         np.testing.assert_allclose(data['zeta'], kkk2.zeta.flatten(), rtol=1.e-3)
 
+    with assert_raises(ValueError):
+        kkk.process(cat, algo='invalid')
 
 @timer
 def test_direct_logsas_spherical():

@@ -4866,6 +4866,13 @@ def test_map3_logmultipole():
     print('max diff = ',max(abs(map3 - true_map3[mask])))
     np.testing.assert_allclose(map3, true_map3[mask], rtol=0.1)
 
+    # The default is to use max_n phi bins, which should also work fine here.
+    gggm.read(os.path.join('data',out_name))
+    ggg = gggm.toSAS()
+    map3 = ggg.calculateMap3(R=R)[0]
+    np.testing.assert_allclose(map3, true_map3[mask], rtol=0.1)
+
+
 @timer
 def test_vargam():
     # Test that vargam0, etc. are correct (or close) based on actual variance of many runs.

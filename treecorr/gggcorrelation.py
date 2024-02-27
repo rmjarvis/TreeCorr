@@ -509,7 +509,7 @@ class GGGCorrelation(Corr3):
         self._var_num = 4 * varg1 * varg2 * varg3
 
         # I don't really understand why the variance is coming out 2x larger than the normal
-        # formula for LogSAS.  But with a Gaussian field, I need to multipole the numerator
+        # formula for LogSAS.  But with just Gaussian noise, I need to multiply the numerator
         # by two to get the variance estimates to come out right.
         if self.bin_type in ['LogSAS', 'LogMultipole']:
             self._var_num *= 2
@@ -696,7 +696,7 @@ class GGGCorrelation(Corr3):
             max_n (int):        If using the multpole algorithm, and this is not directly using
                                 bin_type='LogMultipole', then this is the value of max_n to use
                                 for the multipole part of the calculation. (default is to use
-                                pi/phi_bin_size; this value can also be given in the constructor
+                                2pi/phi_bin_size; this value can also be given in the constructor
                                 in the config dict.)
         """
         import math
@@ -804,7 +804,7 @@ class GGGCorrelation(Corr3):
 
         Keyword Arguments:
             target:     A target GGGCorrelation object with LogSAS binning to write to.
-                        If this is not given, and new object will be created based on the
+                        If this is not given, a new object will be created based on the
                         configuration paramters of the current object. (default: None)
             **kwargs:   Any kwargs that you want to use to configure the returned object.
                         Typically, might include min_phi, max_phi, nphi_bins, phi_bin_size.
@@ -821,7 +821,8 @@ class GGGCorrelation(Corr3):
             config = self.config.copy()
             config['bin_type'] = 'LogSAS'
             max_n = config.pop('max_n')
-            config['nphi_bins'] = max_n
+            if 'nphi_bins' not in kwargs and 'phi_bin_size' not in kwargs:
+                config['nphi_bins'] = max_n
             sas = GGGCorrelation(config, **kwargs)
         else:
             sas = target

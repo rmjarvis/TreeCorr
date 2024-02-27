@@ -629,7 +629,7 @@ class NNNCorrelation(Corr3):
             max_n (int):        If using the multpole algorithm, and this is not directly using
                                 bin_type='LogMultipole', then this is the value of max_n to use
                                 for the multipole part of the calculation. (default is to use
-                                pi/phi_bin_size; this value can also be given in the constructor
+                                2pi/phi_bin_size; this value can also be given in the constructor
                                 in the config dict.)
         """
         if algo is None:
@@ -720,7 +720,7 @@ class NNNCorrelation(Corr3):
 
         Keyword Arguments:
             target:     A target NNNCorrelation object with LogSAS binning to write to.
-                        If this is not given, and new object will be created based on the
+                        If this is not given, a new object will be created based on the
                         configuration paramters of the current object. (default: None)
             **kwargs:   Any kwargs that you want to use to configure the returned object.
                         Typically, might include min_phi, max_phi, nphi_bins, phi_bin_size.
@@ -737,7 +737,8 @@ class NNNCorrelation(Corr3):
             config = self.config.copy()
             config['bin_type'] = 'LogSAS'
             max_n = config.pop('max_n')
-            config['nphi_bins'] = max_n
+            if 'nphi_bins' not in kwargs and 'phi_bin_size' not in kwargs:
+                config['nphi_bins'] = max_n
             sas = NNNCorrelation(config, **kwargs)
         else:
             sas = target

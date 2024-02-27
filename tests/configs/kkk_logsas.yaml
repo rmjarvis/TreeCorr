@@ -18,5 +18,6 @@ min_phi: 45.
 max_phi: 90.
 phi_units: degree
 nphi_bins: 5
+max_n: 100
 
 kkk_file_name: output/kkk_logsas.out

@@ -19,6 +19,7 @@ max_phi: 90
 phi_units: deg
 nphi_bins: 10
 bin_type: LogSAS
+max_n: 80
 
 ggg_file_name: output/ggg_logsas.out
 m3_file_name: output/ggg_m3_logsas.out

@@ -518,8 +518,7 @@ class Corr3(object):
                              self.nvbins,self.min_v,self.max_v,self.vbin_size)
         elif self.bin_type == 'LogSAS':
             for key in ['min_u', 'max_u', 'nubins', 'ubin_size',
-                        'min_v', 'max_v', 'nvbins', 'vbin_size',
-                        'max_n']:
+                        'min_v', 'max_v', 'nvbins', 'vbin_size']:
                 if key in self.config:
                     raise TypeError("%s is invalid for bin_type=LogSAS"%key)
             self._ro._bintype = _treecorr.LogSAS

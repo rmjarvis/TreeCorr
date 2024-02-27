@@ -17,6 +17,7 @@ sep_units: arcmin
 min_phi: 0.8
 max_phi: 2.3
 nphi_bins: 15
+max_n: 100
 
 nnn_statistic: simple
 nnn_file_name: output/nnn_logsas.out

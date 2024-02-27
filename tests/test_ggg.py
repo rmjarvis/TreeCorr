@@ -3671,12 +3671,12 @@ def test_ggg_logsas():
     # All of the above is the default algorithm if process doesn't set algo='triangle'.
     # Check the automatic use of the multipole algorithm from LogSAS.
     ggg3 = ggg.copy()
-    ggg3.process(cat, algo='multipole')
-    np.testing.assert_allclose(ggg3.weight, gggs.weight, rtol=1.e-3, atol=0)
-    np.testing.assert_allclose(ggg3.gam0, gggs.gam0, rtol=1.e-3, atol=0)
-    np.testing.assert_allclose(ggg3.gam1, gggs.gam1, rtol=1.e-3, atol=0)
-    np.testing.assert_allclose(ggg3.gam2, gggs.gam2, rtol=1.e-3, atol=0)
-    np.testing.assert_allclose(ggg3.gam3, gggs.gam3, rtol=1.e-3, atol=0)
+    ggg3.process(cat, algo='multipole', max_n=80)
+    np.testing.assert_allclose(ggg3.weight, gggs.weight)
+    np.testing.assert_allclose(ggg3.gam0, gggs.gam0)
+    np.testing.assert_allclose(ggg3.gam1, gggs.gam1)
+    np.testing.assert_allclose(ggg3.gam2, gggs.gam2)
+    np.testing.assert_allclose(ggg3.gam3, gggs.gam3)
 
     # Check that we get the same result using the corr3 functin:
     # (This implicitly uses the multipole algorithm.)

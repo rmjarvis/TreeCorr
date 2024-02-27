@@ -3909,14 +3909,14 @@ def test_nnn_logsas():
     # Check the automatic use of the multipole algorithm from LogSAS.
     ddd3 = ddd.copy()
     rrr3 = rrr.copy()
-    ddd3.process(cat, algo='multipole')
-    rrr3.process(rand, algo='multipole')
+    ddd3.process(cat, algo='multipole', max_n=100)
+    rrr3.process(rand, algo='multipole', max_n=100)
     zeta3, varzeta3 = ddd3.calculateZeta(rrr=rrr3)
     print('mean ratio = ',np.mean(zeta3 / zeta2))
     print('mean diff = ',np.mean(zeta3 - zeta2))
-    np.testing.assert_allclose(ddd3.weight, ddds.weight, rtol=0.01*tol_factor)
-    np.testing.assert_allclose(rrr3.weight, rrrs.weight, rtol=0.02*tol_factor)
-    np.testing.assert_allclose(zeta3, zeta2, rtol=0.02*tol_factor)
+    np.testing.assert_allclose(ddd3.weight, ddds.weight)
+    np.testing.assert_allclose(rrr3.weight, rrrs.weight)
+    np.testing.assert_allclose(zeta3, zeta2)
 
     # Check that we get the same result using the corr3 function
     cat.write(os.path.join('data','nnn_data_logsas.dat'))

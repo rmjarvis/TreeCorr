@@ -2177,9 +2177,9 @@ def test_kkk_logsas():
     # All of the above is the default algorithm if process doesn't set algo='triangle'.
     # Check the automatic use of the multipole algorithm from LogSAS.
     kkk3 = kkk.copy()
-    kkk3.process(cat, algo='multipole')
-    np.testing.assert_allclose(kkk3.weight, kkks.weight, rtol=0.01*tol_factor)
-    np.testing.assert_allclose(kkk3.zeta, kkks.zeta, rtol=0.02*tol_factor)
+    kkk3.process(cat, algo='multipole', max_n=100)
+    np.testing.assert_allclose(kkk3.weight, kkks.weight)
+    np.testing.assert_allclose(kkk3.zeta, kkks.zeta)
 
     # Check that we get the same result using the corr3 functin:
     # (This implicitly uses the multipole algorithm.)

@@ -696,7 +696,8 @@ class GGGCorrelation(Corr3):
             max_n (int):        If using the multpole algorithm, and this is not directly using
                                 bin_type='LogMultipole', then this is the value of max_n to use
                                 for the multipole part of the calculation. (default is to use
-                                pi/phi_bin_size)
+                                pi/phi_bin_size; this value can also be given in the constructor
+                                in the config dict.)
         """
         import math
 
@@ -714,6 +715,8 @@ class GGGCorrelation(Corr3):
             config['bin_type'] = 'LogMultipole'
             if max_n is None:
                 max_n = 2.*np.pi / self.phi_bin_size
+                # If max_n was given in constructor, use that instead.
+                max_n = config.get('max_n', max_n)
             for key in ['min_phi', 'max_phi', 'nphi_bins', 'phi_bin_size']:
                 config.pop(key, None)
             corr = GGGCorrelation(config, max_n=max_n)

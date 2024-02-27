@@ -1457,6 +1457,11 @@ def test_direct_logruv_auto():
         np.testing.assert_allclose(ddd15.meanu, ddd.meanu)
         np.testing.assert_allclose(ddd15.meanv, ddd.meanv)
 
+    with assert_raises(ValueError):
+        ddd.process(cat, algo='invalid')
+    with assert_raises(ValueError):
+        ddd.process(cat, algo='multipole')
+
 
 @timer
 def test_direct_logruv_cross():
@@ -3309,6 +3314,9 @@ def test_direct_logsas_auto():
     np.testing.assert_allclose(corr3_output['RRR'], rrr2.weight.flatten(), rtol=1.e-3)
     np.testing.assert_allclose(corr3_output['zeta'], zeta.flatten(), rtol=1.e-3)
     np.testing.assert_allclose(corr3_output['sigma_zeta'], np.sqrt(varzeta).flatten(), rtol=1.e-3)
+
+    with assert_raises(ValueError):
+        ddd.process(cat, algo='invalid')
 
 
 @timer

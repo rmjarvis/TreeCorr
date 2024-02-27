@@ -425,6 +425,10 @@ def test_direct_logruv():
     np.testing.assert_allclose(ggg.gam2, true_gam2, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-5)
 
+    with assert_raises(ValueError):
+        ggg.process(cat, algo='invalid')
+    with assert_raises(ValueError):
+        ggg.process(cat, algo='multipole')
 
 @timer
 def test_direct_logruv_spherical():
@@ -2607,6 +2611,9 @@ def test_direct_logsas():
         np.testing.assert_allclose(data['gam2i'], ggg2.gam2i.flatten(), rtol=1.e-3)
         np.testing.assert_allclose(data['gam3r'], ggg2.gam3r.flatten(), rtol=1.e-3)
         np.testing.assert_allclose(data['gam3i'], ggg2.gam3i.flatten(), rtol=1.e-3)
+
+    with assert_raises(ValueError):
+        ggg.process(cat, algo='invalid')
 
 
 @timer

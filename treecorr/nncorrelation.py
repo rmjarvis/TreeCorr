@@ -108,6 +108,7 @@ class NNCorrelation(Corr2):
         self._write_rr = None
         self._write_dr = None
         self._write_rd = None
+        self._write_patch_results = False
         self._cov = None
         self._var_num = 0
         self.logger.debug('Finished building NNCorr')
@@ -163,12 +164,13 @@ class NNCorrelation(Corr2):
                 # never add more to it after the copy, so shallow copy is fine.
                 ret.__dict__[key] = item
         ret._corr = None # We'll want to make a new one of these if we need it.
-        if self._rd is not None:
-            ret._rd = self._rd.copy()
-        if self._dr is not None:
-            ret._dr = self._dr.copy()
-        if self._rr is not None:
+        # True is possible during read before we finish reading in these attributes.
+        if self._rr is not None and self._rr is not True:
             ret._rr = self._rr.copy()
+        if self._rd is not None and self._rd is not True:
+            ret._rd = self._rd.copy()
+        if self._dr is not None and self._dr is not True:
+            ret._dr = self._dr.copy()
         if self._cov is not None:
             ret._cov = self._cov.copy()
         return ret
@@ -195,6 +197,7 @@ class NNCorrelation(Corr2):
         ret._corr = None
         ret._rr = ret._dr = ret._rd = None
         ret._write_rr = ret._write_dr = ret._write_rd = None
+        ret._write_patch_results = False
         ret._cov = None
         ret._logger_name = None
         # This override is really the main advantage of using this:
@@ -722,11 +725,24 @@ class NNCorrelation(Corr2):
         self._write_rr = rr
         self._write_dr = dr
         self._write_rd = rd
+        self._write_patch_results = write_patch_results
         with make_writer(file_name, precision, file_type, self.logger) as writer:
             self._write(writer, name, write_patch_results, zero_tot=True)
+            if write_patch_results:
+                # Also write out rr, dr, rd, so covariances can be computed on round trip.
+                rr = rr or self._rr
+                dr = dr or self._dr
+                rd = rd or self._rd
+                if rr:
+                    rr._write(writer, '_rr', write_patch_results, zero_tot=True)
+                if dr:
+                    dr._write(writer, '_dr', write_patch_results, zero_tot=True)
+                if rd:
+                    dr._write(writer, '_rd', write_patch_results, zero_tot=True)
         self._write_rr = None
         self._write_dr = None
         self._write_rd = None
+        self._write_patch_results = False
 
     @property
     def _write_col_names(self):
@@ -776,8 +792,13 @@ class NNCorrelation(Corr2):
 
     @property
     def _write_params(self):
-        return { 'tot' : self.tot, 'coords' : self.coords, 'metric' : self.metric,
-                 'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
+        params = { 'tot' : self.tot, 'coords' : self.coords, 'metric' : self.metric,
+                   'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
+        if self._write_patch_results:
+            params['_rr'] = bool(self._rr)
+            params['_rd'] = bool(self._rd)
+            params['_dr'] = bool(self._dr)
+        return params
 
     def read(self, file_name, *, file_type=None):
         """Read in values from a file.
@@ -799,6 +820,18 @@ class NNCorrelation(Corr2):
         self.logger.info('Reading NN correlations from %s',file_name)
         with make_reader(file_name, file_type, self.logger) as reader:
             self._read(reader)
+            if self._rr:
+                rr = self.copy()
+                rr._read(reader, name='_rr')
+                self._rr = rr
+            if self._dr:
+                dr = self.copy()
+                dr._read(reader, name='_dr')
+                self._dr = dr
+            if self._rd:
+                rd = self.copy()
+                rd._read(reader, name='_rd')
+                self._rd = rd
 
     def _read_from_data(self, data, params):
         s = self.logr.shape
@@ -814,6 +847,10 @@ class NNCorrelation(Corr2):
             self.varxi = data['sigma_xi'].reshape(s)**2
         self.npatch1 = params.get('npatch1', 1)
         self.npatch2 = params.get('npatch2', 1)
+        # Note: "or None" turns False -> None
+        self._rr = params.get('_rr', None) or None
+        self._rd = params.get('_rd', None) or None
+        self._dr = params.get('_dr', None) or None
 
     def calculateNapSq(self, *, rr, R=None, dr=None, rd=None, m2_uform=None):
         r"""Calculate the corrollary to the aperture mass statistics for counts.

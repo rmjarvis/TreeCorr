@@ -1553,6 +1553,12 @@ def test_nn_jk():
         cov4 = nn4.estimate_cov('jackknife')
         np.testing.assert_allclose(cov4, nn3.cov)
 
+        # It should also work (now, as of version 5.0) from just the nn output file.
+        nn4 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+        nn4.read(file_name)
+        cov4 = nn4.estimate_cov('jackknife')
+        np.testing.assert_allclose(cov4, nn3.cov)
+
     # Also with ascii, since that works differeny.
     file_name = os.path.join('output','test_write_results_dd.dat')
     rr_file_name = os.path.join('output','test_write_results_rr.dat')
@@ -1567,6 +1573,12 @@ def test_nn_jk():
     rr5.read(rr_file_name)
     dr5.read(dr_file_name)
     nn5.calculateXi(rr=rr5, dr=dr5)
+    cov5 = nn5.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov5, nn3.cov)
+
+    print('Start ASCII read')
+    nn5 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+    nn5.read(file_name)
     cov5 = nn5.estimate_cov('jackknife')
     np.testing.assert_allclose(cov5, nn3.cov)
 
@@ -1590,6 +1602,11 @@ def test_nn_jk():
         rr6.read(rr_file_name)
         dr6.read(dr_file_name)
         nn6.calculateXi(rr=rr6, dr=dr6)
+        cov6 = nn6.estimate_cov('jackknife')
+        np.testing.assert_allclose(cov6, nn3.cov)
+
+        nn6 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+        nn6.read(file_name)
         cov6 = nn6.estimate_cov('jackknife')
         np.testing.assert_allclose(cov6, nn3.cov)
 
@@ -1659,6 +1676,15 @@ def test_nn_jk():
     np.testing.assert_allclose(np.log(varxib4), np.log(var_xib), atol=0.6*tol_factor)
     np.testing.assert_allclose(varxic4, varxib4)
     np.testing.assert_allclose(varxid4, varxib4)
+
+    # Repeat the serialization check, now that we have all 4 dd, rr, dr, rd
+    # Just do ASCII this time, since that's sufficient for this.
+    file_name = os.path.join('output','test_write_results.out')
+    nn4.write(file_name, write_patch_results=True, precision=15)
+    nn5 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
+    nn5.read(file_name)
+    cov5 = nn5.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov5, nn4.cov)
 
     # Check with patch_method='local'
     print('with patch_method=local:')

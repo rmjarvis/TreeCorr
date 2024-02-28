@@ -148,7 +148,7 @@ def test_direct():
 
     ascii_name = 'output/kt_ascii.txt'
     kt.write(ascii_name, precision=16)
-    kt3 = treecorr.KTCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+    kt3 = treecorr.KTCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_type='Log')
     kt3.read(ascii_name)
     np.testing.assert_allclose(kt3.npairs, kt.npairs)
     np.testing.assert_allclose(kt3.weight, kt.weight)
@@ -156,6 +156,9 @@ def test_direct():
     np.testing.assert_allclose(kt3.meanlogr, kt.meanlogr)
     np.testing.assert_allclose(kt3.xi, kt.xi)
     np.testing.assert_allclose(kt3.xi_im, kt.xi_im)
+
+    # Check that the repr is minimal
+    assert repr(kt3) == f'KTCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
     try:
         import fitsio

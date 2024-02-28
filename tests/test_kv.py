@@ -148,7 +148,7 @@ def test_direct():
 
     ascii_name = 'output/kv_ascii.txt'
     kv.write(ascii_name, precision=16)
-    kv3 = treecorr.KVCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+    kv3 = treecorr.KVCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_type='Log')
     kv3.read(ascii_name)
     np.testing.assert_allclose(kv3.npairs, kv.npairs)
     np.testing.assert_allclose(kv3.weight, kv.weight)
@@ -156,6 +156,9 @@ def test_direct():
     np.testing.assert_allclose(kv3.meanlogr, kv.meanlogr)
     np.testing.assert_allclose(kv3.xi, kv.xi)
     np.testing.assert_allclose(kv3.xi_im, kv.xi_im)
+
+    # Check that the repr is minimal
+    assert repr(kv3) == f'KVCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
     try:
         import fitsio

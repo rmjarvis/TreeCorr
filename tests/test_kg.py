@@ -147,7 +147,7 @@ def test_direct():
 
     ascii_name = 'output/kg_ascii.txt'
     kg.write(ascii_name, precision=16)
-    kg3 = treecorr.KGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+    kg3 = treecorr.KGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_type='Log')
     kg3.read(ascii_name)
     np.testing.assert_allclose(kg3.npairs, kg.npairs)
     np.testing.assert_allclose(kg3.weight, kg.weight)
@@ -155,6 +155,9 @@ def test_direct():
     np.testing.assert_allclose(kg3.meanlogr, kg.meanlogr)
     np.testing.assert_allclose(kg3.xi, kg.xi)
     np.testing.assert_allclose(kg3.xi_im, kg.xi_im)
+
+    # Check that the repr is minimal
+    assert repr(kg3) == f'KGCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
     try:
         import fitsio

@@ -170,7 +170,7 @@ def test_direct():
 
     ascii_name = 'output/tt_ascii.txt'
     tt.write(ascii_name, precision=16)
-    tt3 = treecorr.TTCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+    tt3 = treecorr.TTCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_type='Log')
     tt3.read(ascii_name)
     np.testing.assert_allclose(tt3.npairs, tt.npairs)
     np.testing.assert_allclose(tt3.weight, tt.weight)
@@ -180,6 +180,9 @@ def test_direct():
     np.testing.assert_allclose(tt3.xip_im, tt.xip_im)
     np.testing.assert_allclose(tt3.xim, tt.xim)
     np.testing.assert_allclose(tt3.xim_im, tt.xim_im)
+
+    # Check that the repr is minimal
+    assert repr(tt3) == f'TTCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
     try:
         import fitsio

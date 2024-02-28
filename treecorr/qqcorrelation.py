@@ -174,7 +174,7 @@ class QQCorrelation(Corr2):
         return ret
 
     def __repr__(self):
-        return 'QQCorrelation(config=%r)'%self.config
+        return f'QQCorrelation({self._repr_kwargs})'
 
     def process_auto(self, cat, *, metric=None, num_threads=None):
         """Process a single catalog, accumulating the auto-correlation.

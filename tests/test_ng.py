@@ -157,7 +157,7 @@ def test_direct():
 
     ascii_name = 'output/ng_ascii.txt'
     ng.write(ascii_name, precision=16)
-    ng3 = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+    ng3 = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_type='Log')
     ng3.read(ascii_name)
     np.testing.assert_allclose(ng3.npairs, ng.npairs)
     np.testing.assert_allclose(ng3.weight, ng.weight)
@@ -165,6 +165,9 @@ def test_direct():
     np.testing.assert_allclose(ng3.meanlogr, ng.meanlogr)
     np.testing.assert_allclose(ng3.xi, ng.xi)
     np.testing.assert_allclose(ng3.xi_im, ng.xi_im)
+
+    # Check that the repr is minimal
+    assert repr(ng3) == f'NGCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
     try:
         import fitsio

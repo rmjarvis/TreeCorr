@@ -289,7 +289,7 @@ class GGGCorrelation(Corr3):
         return ret
 
     def __repr__(self):
-        return 'GGGCorrelation(config=%r)'%self.config
+        return f'GGGCorrelation({self._repr_kwargs})'
 
     def process_auto(self, cat, *, metric=None, num_threads=None):
         """Process a single catalog, accumulating the auto-correlation.

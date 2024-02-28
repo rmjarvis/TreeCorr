@@ -154,7 +154,7 @@ def test_direct():
 
     ascii_name = 'output/gg_ascii.txt'
     gg.write(ascii_name, precision=16)
-    gg3 = treecorr.GGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+    gg3 = treecorr.GGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_type='Log')
     gg3.read(ascii_name)
     np.testing.assert_allclose(gg3.npairs, gg.npairs)
     np.testing.assert_allclose(gg3.weight, gg.weight)
@@ -164,6 +164,9 @@ def test_direct():
     np.testing.assert_allclose(gg3.xip_im, gg.xip_im)
     np.testing.assert_allclose(gg3.xim, gg.xim)
     np.testing.assert_allclose(gg3.xim_im, gg.xim_im)
+
+    # Check that the repr is minimal
+    assert repr(gg3) == f'GGCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
     try:
         import fitsio

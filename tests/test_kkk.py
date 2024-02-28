@@ -1368,6 +1368,9 @@ def test_direct_logsas():
     np.testing.assert_allclose(kkk3.meanphi, kkk.meanphi)
     np.testing.assert_allclose(kkk3.zeta, kkk.zeta)
 
+    # Check that the repr is minimal
+    assert repr(kkk3) == f"KKKCorrelation(min_sep={min_sep}, bin_size={bin_size}, nbins={nbins}, nphi_bins={nphi_bins})"
+
     try:
         import fitsio
     except ImportError:

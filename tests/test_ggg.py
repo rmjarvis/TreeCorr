@@ -2534,6 +2534,9 @@ def test_direct_logsas():
     np.testing.assert_allclose(ggg3.gam2, ggg.gam2)
     np.testing.assert_allclose(ggg3.gam3, ggg.gam3)
 
+    # Check that the repr is minimal
+    assert repr(ggg3) == f"GGGCorrelation(min_sep={min_sep}, bin_size={bin_size}, nbins={nbins}, nphi_bins={nphi_bins})"
+
     try:
         import fitsio
     except ImportError:

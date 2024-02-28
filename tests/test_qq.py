@@ -171,7 +171,7 @@ def test_direct():
 
     ascii_name = 'output/qq_ascii.txt'
     qq.write(ascii_name, precision=16)
-    qq3 = treecorr.QQCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+    qq3 = treecorr.QQCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_type='Log')
     qq3.read(ascii_name)
     np.testing.assert_allclose(qq3.npairs, qq.npairs)
     np.testing.assert_allclose(qq3.weight, qq.weight)
@@ -181,6 +181,9 @@ def test_direct():
     np.testing.assert_allclose(qq3.xip_im, qq.xip_im)
     np.testing.assert_allclose(qq3.xim, qq.xim)
     np.testing.assert_allclose(qq3.xim_im, qq.xim_im)
+
+    # Check that the repr is minimal
+    assert repr(qq3) == f'QQCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
     try:
         import fitsio

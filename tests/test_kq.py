@@ -148,7 +148,7 @@ def test_direct():
 
     ascii_name = 'output/kq_ascii.txt'
     kq.write(ascii_name, precision=16)
-    kq3 = treecorr.KQCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+    kq3 = treecorr.KQCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_type='Log')
     kq3.read(ascii_name)
     np.testing.assert_allclose(kq3.npairs, kq.npairs)
     np.testing.assert_allclose(kq3.weight, kq.weight)
@@ -156,6 +156,9 @@ def test_direct():
     np.testing.assert_allclose(kq3.meanlogr, kq.meanlogr)
     np.testing.assert_allclose(kq3.xi, kq.xi)
     np.testing.assert_allclose(kq3.xi_im, kq.xi_im)
+
+    # Check that the repr is minimal
+    assert repr(kq3) == f'KQCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
     try:
         import fitsio

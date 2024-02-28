@@ -3248,6 +3248,9 @@ def test_direct_logsas_auto():
     np.testing.assert_allclose(ddd3.meanlogd3, ddd.meanlogd3)
     np.testing.assert_allclose(ddd3.meanphi, ddd.meanphi)
 
+    # Check that the repr is minimal
+    assert repr(ddd3) == f"NNNCorrelation(min_sep={min_sep}, bin_size={bin_size}, nbins={nbins}, nphi_bins={nphi_bins})"
+
     try:
         import fitsio
     except ImportError:

@@ -138,13 +138,16 @@ def test_direct():
 
     ascii_name = 'output/nk_ascii.txt'
     nk.write(ascii_name, precision=16)
-    nk3 = treecorr.NKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+    nk3 = treecorr.NKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_type='Log')
     nk3.read(ascii_name)
     np.testing.assert_allclose(nk3.npairs, nk.npairs)
     np.testing.assert_allclose(nk3.weight, nk.weight)
     np.testing.assert_allclose(nk3.meanr, nk.meanr)
     np.testing.assert_allclose(nk3.meanlogr, nk.meanlogr)
     np.testing.assert_allclose(nk3.xi, nk.xi)
+
+    # Check that the repr is minimal
+    assert repr(nk3) == f'NKCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
     with assert_raises(TypeError):
         nk2 += config

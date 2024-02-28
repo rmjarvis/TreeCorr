@@ -177,7 +177,7 @@ class NQCorrelation(Corr2):
         return ret
 
     def __repr__(self):
-        return 'NQCorrelation(config=%r)'%self.config
+        return f'NQCorrelation({self._repr_kwargs})'
 
     def process_cross(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation.

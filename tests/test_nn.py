@@ -1242,7 +1242,8 @@ def test_nn():
 
     # Check the read function (not at very high accuracy for the ASCII I/O)
     dd.calculateXi(rr=rr, dr=dr)  # reset this to the better calculation
-    dd2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
+    dd2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin',
+                                 bin_type='Log')
     dd2.read(out_file_name)
     np.testing.assert_allclose(dd2.logr, dd.logr, rtol=1.e-3)
     np.testing.assert_allclose(dd2.meanr, dd.meanr, rtol=1.e-3)
@@ -1255,6 +1256,9 @@ def test_nn():
     assert dd2.metric == dd.metric
     assert dd2.sep_units == dd.sep_units
     assert dd2.bin_type == dd.bin_type
+
+    # Check that the repr is minimal
+    assert repr(dd2) == f"NNCorrelation(bin_size=0.1, min_sep=1.0, max_sep=25.0, sep_units='arcmin')"
 
     # Check the fits write option
     try:

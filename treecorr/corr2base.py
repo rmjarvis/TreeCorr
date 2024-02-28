@@ -23,7 +23,7 @@ import itertools
 import collections
 
 from . import _treecorr
-from .config import merge_config, setup_logger, get
+from .config import merge_config, setup_logger, get, make_minimal_config
 from .util import parse_metric, metric_enum, coord_enum, set_omp_threads, lazy_property
 from .catalog import Catalog
 
@@ -511,6 +511,12 @@ class Corr2(object):
         if self._rng is None:
             self._rng = np.random.default_rng()
         return self._rng
+
+    # Helper for making a nice repr that doesn't list all params that are just defaults.
+    @property
+    def _repr_kwargs(self):
+        kwargs = make_minimal_config(self.config, Corr2._valid_params)
+        return ', '.join(f'{k}={v!r}' for k,v in kwargs.items())
 
     # Properties for all the read-only attributes ("ro" stands for "read-only")
     @property

@@ -418,3 +418,15 @@ def merge_config(config, kwargs, valid_params, aliases=None):
             if key in valid_params and key not in kwargs:
                 kwargs[key] = value
     return check_config(kwargs, valid_params, aliases)
+
+def make_minimal_config(config, valid_params):
+    """Make a minimal version of a config dict, excluding any values that are the default.
+
+    Parameters:
+        config (dict):          The source config (will not be modified)
+        valid_params (dict):    A dict of valid parameters that are allowed for this usage.
+
+    Returns:
+        minimal_config  The dict without any default values.
+    """
+    return { k:v for k,v in config.items() if v != valid_params[k][2] }

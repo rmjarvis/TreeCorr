@@ -156,7 +156,7 @@ def test_direct():
 
     ascii_name = 'output/nv_ascii.txt'
     nv.write(ascii_name, precision=16)
-    nv3 = treecorr.NVCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins)
+    nv3 = treecorr.NVCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_type='Log')
     nv3.read(ascii_name)
     np.testing.assert_allclose(nv3.npairs, nv.npairs)
     np.testing.assert_allclose(nv3.weight, nv.weight)
@@ -164,6 +164,9 @@ def test_direct():
     np.testing.assert_allclose(nv3.meanlogr, nv.meanlogr)
     np.testing.assert_allclose(nv3.xi, nv.xi)
     np.testing.assert_allclose(nv3.xi_im, nv.xi_im)
+
+    # Check that the repr is minimal
+    assert repr(nv3) == f'NVCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
     try:
         import fitsio

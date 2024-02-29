@@ -26,7 +26,7 @@ class AsciiWriter(object):
     def __init__(self, file_name, *, precision=4, logger=None):
         """
         Parameters:
-            file_name:      The file name
+            file_name:      The file name.
             precision:      The number of digits of precision to output.
             logger:         If desired, a logger object for logging. (default: None)
         """
@@ -51,7 +51,7 @@ class AsciiWriter(object):
         """Write some columns to an output ASCII file with the given column names.
 
         Parameters:
-            col_names:      A list of columns names for the given columns.  These will be written
+            col_names:      A list of columns names for the given columns. These will be written
                             in a header comment line at the top of the output file.
             columns:        A list of numpy arrays with the data to write.
             params:         A dict of extra parameters to write at the top of the output file.
@@ -90,7 +90,7 @@ class FitsWriter(object):
     def __init__(self, file_name, *, logger=None):
         """
         Parameters:
-            file_name:      The file name
+            file_name:      The file name.
             logger:         If desired, a logger object for logging. (default: None)
         """
         try:
@@ -146,7 +146,7 @@ class HdfWriter(object):
     def __init__(self, file_name, *, logger=None):
         """
         Parameters:
-            file_name:     The file name
+            file_name:      The file name.
             logger:         If desired, a logger object for logging. (default: None)
         """
         try:

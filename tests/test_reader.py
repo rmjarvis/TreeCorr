@@ -34,15 +34,15 @@ def test_fits_reader():
 
     # Check things not allowed if not in context
     with assert_raises(RuntimeError):
-        r.read(['RA'], slice(0,10,2), 1)
+        r.read(['RA'], slice(0,10,2), ext=1)
     with assert_raises(RuntimeError):
         r.read('RA')
     with assert_raises(RuntimeError):
-        r.row_count('DEC', 1)
+        r.row_count('DEC', ext=1)
     with assert_raises(RuntimeError):
         r.row_count()
     with assert_raises(RuntimeError):
-        r.names(1)
+        r.names(ext=1)
     with assert_raises(RuntimeError):
         r.names()
     with assert_raises(RuntimeError):
@@ -65,15 +65,15 @@ def test_fits_reader():
 
         s = slice(0, 10, 2)
         for ext in [1, 'AARDWOLF']:
-            data = r.read(['RA'], s, ext)
-            dec = r.read('DEC', s, ext)
+            data = r.read(['RA'], s, ext=ext)
+            dec = r.read('DEC', s, ext=ext)
             assert data['RA'].size == 5
             assert dec.size == 5
 
-            assert r.row_count('RA', ext) == 390935
-            assert r.row_count('GAMMA1', ext) == 390935
-            assert set(r.names(ext)) == set("INDEX RA DEC Z EPSILON GAMMA1 GAMMA2 KAPPA MU".split())
-            assert set(r.names(ext)) == set(r.names())
+            assert r.row_count('RA', ext=ext) == 390935
+            assert r.row_count('GAMMA1', ext=ext) == 390935
+            assert set(r.names(ext=ext)) == set("INDEX RA DEC Z EPSILON GAMMA1 GAMMA2 KAPPA MU".split())
+            assert set(r.names(ext=ext)) == set(r.names())
 
         # Can read without slice or ext to use defaults
         assert r.row_count() == 390935
@@ -86,20 +86,20 @@ def test_fits_reader():
         mu = d['MU']
 
         # check we can also index by integer, not just number
-        d = r.read(['DEC'], np.arange(10), 'AARDWOLF')
+        d = r.read(['DEC'], np.arange(10), ext='AARDWOLF')
         assert d.size==10
 
     # Again check things not allowed if not in context
     with assert_raises(RuntimeError):
-        r.read(['RA'], slice(0,10,2), 1)
+        r.read(['RA'], slice(0,10,2), ext=1)
     with assert_raises(RuntimeError):
         r.read('RA')
     with assert_raises(RuntimeError):
-        r.row_count('DEC', 1)
+        r.row_count('DEC', ext=1)
     with assert_raises(RuntimeError):
         r.row_count()
     with assert_raises(RuntimeError):
-        r.names(1)
+        r.names(ext=1)
     with assert_raises(RuntimeError):
         r.names()
     with assert_raises(RuntimeError):
@@ -179,15 +179,15 @@ def test_hdf_reader():
 
     # Check things not allowed if not in context
     with assert_raises(RuntimeError):
-        r.read(['RA'], slice(0,10,2), '/')
+        r.read(['RA'], slice(0,10,2), ext='/')
     with assert_raises(RuntimeError):
         r.read('RA')
     with assert_raises(RuntimeError):
-        r.row_count('DEC', '/')
+        r.row_count('DEC', ext='/')
     with assert_raises(RuntimeError):
         r.row_count('DEC')
     with assert_raises(RuntimeError):
-        r.names('/')
+        r.names(ext='/')
     with assert_raises(RuntimeError):
         r.names()
     with assert_raises(RuntimeError):
@@ -216,13 +216,13 @@ def test_hdf_reader():
         assert dec.size == 5
 
         assert r.row_count('RA') == 390935
-        assert r.row_count('RA','/') == 390935
+        assert r.row_count('RA', ext='/') == 390935
         assert r.row_count('GAMMA1') == 390935
         # Unlike the other readers, this needs a column name.
         with assert_raises(TypeError):
             r.row_count()
         assert set(r.names()) == set("INDEX RA DEC Z EPSILON GAMMA1 GAMMA2 KAPPA MU".split())
-        assert set(r.names('/')) == set(r.names())
+        assert set(r.names(ext='/')) == set(r.names())
 
         # Can read without slice or ext to use defaults
         g2 = r.read('GAMMA2')
@@ -235,15 +235,15 @@ def test_hdf_reader():
 
     # Again check things not allowed if not in context
     with assert_raises(RuntimeError):
-        r.read(['RA'], slice(0,10,2), '/')
+        r.read(['RA'], slice(0,10,2), ext='/')
     with assert_raises(RuntimeError):
         r.read('RA')
     with assert_raises(RuntimeError):
-        r.row_count('DEC', '/')
+        r.row_count('DEC', ext='/')
     with assert_raises(RuntimeError):
         r.row_count('DEC')
     with assert_raises(RuntimeError):
-        r.names('/')
+        r.names(ext='/')
     with assert_raises(RuntimeError):
         r.names()
     with assert_raises(RuntimeError):
@@ -281,17 +281,17 @@ def test_parquet_reader():
 
     # Check things not allowed if not in context
     with assert_raises(RuntimeError):
-        r.read(['RA'], slice(0,10,2), None)
+        r.read(['RA'], slice(0,10,2), ext=None)
     with assert_raises(RuntimeError):
         r.read('RA')
     with assert_raises(RuntimeError):
-        r.row_count('DEC', None)
+        r.row_count('DEC', ext=None)
     with assert_raises(RuntimeError):
         r.row_count('DEC')
     with assert_raises(RuntimeError):
         r.row_count()
     with assert_raises(RuntimeError):
-        r.names(None)
+        r.names(ext=None)
     with assert_raises(RuntimeError):
         r.names()
 
@@ -317,27 +317,27 @@ def test_parquet_reader():
         assert dec.size == 5
 
         assert r.row_count('RA') == 390935
-        assert r.row_count('RA',None) == 390935
+        assert r.row_count('RA', ext=None) == 390935
         assert r.row_count('GAMMA1') == 390935
         assert r.row_count() == 390935
         print('names = ',set(r.names()))
         print('names = ',set("INDEX RA DEC Z GAMMA1 GAMMA2 KAPPA MU".split()))
         assert set(r.names()) == set("INDEX RA DEC Z GAMMA1 GAMMA2 KAPPA MU".split())
-        assert set(r.names(None)) == set(r.names())
+        assert set(r.names(ext=None)) == set(r.names())
 
     # Again check things not allowed if not in context
     with assert_raises(RuntimeError):
-        r.read(['RA'], slice(0,10,2), None)
+        r.read(['RA'], slice(0,10,2), ext=None)
     with assert_raises(RuntimeError):
         r.read('RA')
     with assert_raises(RuntimeError):
-        r.row_count('DEC', None)
+        r.row_count('DEC', ext=None)
     with assert_raises(RuntimeError):
         r.row_count('DEC')
     with assert_raises(RuntimeError):
         r.row_count()
     with assert_raises(RuntimeError):
-        r.names(None)
+        r.names(ext=None)
     with assert_raises(RuntimeError):
         r.names()
 
@@ -352,11 +352,11 @@ def _test_ascii_reader(r, has_names=True):
     with assert_raises(RuntimeError):
         r.read('ra')
     with assert_raises(RuntimeError):
-        r.row_count(1, None)
+        r.row_count(1, ext=None)
     with assert_raises(RuntimeError):
         r.row_count()
     with assert_raises(RuntimeError):
-        r.names(None)
+        r.names(ext=None)
     with assert_raises(RuntimeError):
         r.names()
 
@@ -388,7 +388,7 @@ def _test_ascii_reader(r, has_names=True):
         assert data[3][4] == 0.01816738  # x, row 9
         assert data[9][3] == 0.79008204  # z, row 7
 
-        assert r.row_count(1, None) == 20
+        assert r.row_count(1, ext=None) == 20
         assert r.row_count() == 20
         assert r.ncols == 12
         for i in range(12):
@@ -428,7 +428,7 @@ def _test_ascii_reader(r, has_names=True):
         assert data['x'][4] == 0.01816738
         assert data['z'][3] == 0.79008204
 
-        assert r.row_count('ra', None) == 20
+        assert r.row_count('ra', ext=None) == 20
         assert r.row_count() == 20
         assert r.ncols == 12
         names = ['ra', 'dec', 'x', 'y', 'k', 'g1', 'g2', 'w', 'z', 'r', 'wpos', 'flag']
@@ -464,11 +464,11 @@ def _test_ascii_reader(r, has_names=True):
         r.read('ra')
     r.nrows = None
     with assert_raises(RuntimeError):
-        r.row_count(1, None)
+        r.row_count(1, ext=None)
     with assert_raises(RuntimeError):
         r.row_count()
     with assert_raises(RuntimeError):
-        r.names(None)
+        r.names(ext=None)
     with assert_raises(RuntimeError):
         r.names()
 

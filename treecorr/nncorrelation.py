@@ -168,10 +168,10 @@ class NNCorrelation(Corr2):
         # True is possible during read before we finish reading in these attributes.
         if self._rr is not None and self._rr is not True:
             ret._rr = self._rr.copy()
-        if self._rd is not None and self._rd is not True:
-            ret._rd = self._rd.copy()
         if self._dr is not None and self._dr is not True:
             ret._dr = self._dr.copy()
+        if self._rd is not None and self._rd is not True:
+            ret._rd = self._rd.copy()
         if self._cov is not None:
             ret._cov = self._cov.copy()
         return ret
@@ -515,7 +515,7 @@ class NNCorrelation(Corr2):
         elif dr is not None and rd is None:
             self.xi = self.weight - 2.*dr.weight * drf + denom
         else:
-            self.xi = self.weight - rd.weight * rdf - dr.weight * drf + denom
+            self.xi = self.weight - dr.weight * drf - rd.weight * rdf + denom
 
         # Divide by RR in all cases.
         if np.any(rr.weight == 0):
@@ -574,7 +574,7 @@ class NNCorrelation(Corr2):
                                    rd.npatch1 not in (self.npatch1, 1)):
                 raise RuntimeError("RD must be run with the same patches as DD")
 
-            # If there are any rr,rd,dr patch pairs that aren't in results (because dr is a cross
+            # If there are any rr,dr,rd patch pairs that aren't in results (because dr is a cross
             # correlation, and dd,rr may be auto-correlations, or because the d catalogs has some
             # patches with no items), then we need to add some dummy results to make sure all the
             # right pairs are computed when we make the vectors for the covariance matrix.
@@ -661,7 +661,7 @@ class NNCorrelation(Corr2):
         elif self._dr is not None and self._rd is None:
             xi = dd - 2.*dr * drf + denom
         else:
-            xi = dd - rd * rdf - dr * drf + denom
+            xi = dd - dr * drf - rd * rdf + denom
         denom[denom == 0] = 1  # Guard against division by zero.
         self.xi = xi / denom
         self._rr_weight = denom
@@ -739,7 +739,7 @@ class NNCorrelation(Corr2):
                 if dr:
                     dr._write(writer, '_dr', write_patch_results, zero_tot=True)
                 if rd:
-                    dr._write(writer, '_rd', write_patch_results, zero_tot=True)
+                    rd._write(writer, '_rd', write_patch_results, zero_tot=True)
         self._write_rr = None
         self._write_dr = None
         self._write_rd = None
@@ -800,8 +800,8 @@ class NNCorrelation(Corr2):
         params['metric'] = self.metric
         if self._write_patch_results:
             params['_rr'] = bool(self._rr)
-            params['_rd'] = bool(self._rd)
             params['_dr'] = bool(self._dr)
+            params['_rd'] = bool(self._rd)
         return params
 
     @classmethod
@@ -884,8 +884,8 @@ class NNCorrelation(Corr2):
         self.npatch2 = params.get('npatch2', 1)
         # Note: "or None" turns False -> None
         self._rr = params.get('_rr', None) or None
-        self._rd = params.get('_rd', None) or None
         self._dr = params.get('_dr', None) or None
+        self._rd = params.get('_rd', None) or None
 
     def calculateNapSq(self, *, rr, R=None, dr=None, rd=None, m2_uform=None):
         r"""Calculate the corrollary to the aperture mass statistics for counts.

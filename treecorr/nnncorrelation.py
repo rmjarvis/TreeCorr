@@ -177,6 +177,7 @@ class NNNCorrelation(Corr3):
         self._write_rrr = None
         self._write_drr = None
         self._write_rdd = None
+        self._write_patch_results = False
         self.zeta = None
         self._cov = None
         self._var_num = 0
@@ -231,12 +232,15 @@ class NNNCorrelation(Corr3):
                 # never add more to it after the copy, so shallow copy is fine.
                 ret.__dict__[key] = item
         ret._corr = None # We'll want to make a new one of these if we need it.
-        if self._drr is not None:
-            ret._drr = self._drr.copy()
-        if self._rdd is not None:
-            ret._rdd = self._rdd.copy()
-        if self._rrr is not None:
+        # True is possible during read before we finish reading in these attributes.
+        if self._rrr is not None and self._rrr is not True:
             ret._rrr = self._rrr.copy()
+        if self._drr is not None and self._drr is not True:
+            ret._drr = self._drr.copy()
+        if self._rdd is not None and self._rdd is not True:
+            ret._rdd = self._rdd.copy()
+        if self._cov is not None:
+            ret._cov = self._cov.copy()
         return ret
 
     def _zero_copy(self, tot):
@@ -264,6 +268,7 @@ class NNNCorrelation(Corr3):
         ret._corr = None
         ret._rrr = ret._drr = ret._rdd = None
         ret._write_rrr = ret._write_drr = ret._write_rdd = None
+        ret._write_patch_results = False
         ret._cov = None
         ret._logger_name = None
         # This override is really the main advantage of using this:
@@ -1145,11 +1150,24 @@ class NNNCorrelation(Corr3):
         self._write_rrr = rrr
         self._write_drr = drr
         self._write_rdd = rdd
+        self._write_patch_results = write_patch_results
         with make_writer(file_name, precision, file_type, self.logger) as writer:
             self._write(writer, name, write_patch_results, zero_tot=True)
+            if write_patch_results:
+                # Also write out rr, dr, rd, so covariances can be computed on round trip.
+                rrr = rrr or self._rrr
+                drr = drr or self._drr
+                rdd = rdd or self._rdd
+                if rrr:
+                    rrr._write(writer, '_rrr', write_patch_results, zero_tot=True)
+                if drr:
+                    drr._write(writer, '_drr', write_patch_results, zero_tot=True)
+                if rdd:
+                    rdd._write(writer, '_rdd', write_patch_results, zero_tot=True)
         self._write_rrr = None
         self._write_drr = None
         self._write_rdd = None
+        self._write_patch_results = False
 
     @property
     def _write_col_names(self):
@@ -1232,6 +1250,10 @@ class NNNCorrelation(Corr3):
         params['tot'] = self.tot
         params['coords'] = self.coords
         params['metric'] = self.metric
+        if self._write_patch_results:
+            params['_rrr'] = bool(self._rrr)
+            params['_drr'] = bool(self._drr)
+            params['_rdd'] = bool(self._rdd)
         return params
 
     @classmethod
@@ -1259,7 +1281,7 @@ class NNNCorrelation(Corr3):
             kwargs = make_minimal_config(params, Corr3._valid_params)
             corr = cls(**kwargs, logger=logger, rng=rng)
             corr.logger.info('Reading NNN correlations from %s',file_name)
-            corr._read(reader, name=name, params=params)
+            corr._do_read(reader, name=name, params=params)
         return corr
 
     def read(self, file_name, *, file_type=None):
@@ -1281,7 +1303,22 @@ class NNNCorrelation(Corr3):
         """
         self.logger.info('Reading NNN correlations from %s',file_name)
         with make_reader(file_name, file_type, self.logger) as reader:
-            self._read(reader)
+            self._do_read(reader)
+
+    def _do_read(self, reader, name=None, params=None):
+        self._read(reader, name, params)
+        if self._rrr:
+            rrr = self.copy()
+            rrr._read(reader, name='_rrr')
+            self._rrr = rrr
+        if self._drr:
+            drr = self.copy()
+            drr._read(reader, name='_drr')
+            self._drr = drr
+        if self._rdd:
+            rdd = self.copy()
+            rdd._read(reader, name='_rdd')
+            self._rdd = rdd
 
     def _read_from_data(self, data, params):
         s = self.data_shape
@@ -1311,3 +1348,7 @@ class NNNCorrelation(Corr3):
         self.npatch1 = params.get('npatch1', 1)
         self.npatch2 = params.get('npatch2', 1)
         self.npatch3 = params.get('npatch3', 1)
+        # Note: "or None" turns False -> None
+        self._rrr = params.get('_rrr', None) or None
+        self._drr = params.get('_drr', None) or None
+        self._rdd = params.get('_rdd', None) or None

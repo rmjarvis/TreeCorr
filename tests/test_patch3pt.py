@@ -1499,6 +1499,17 @@ def test_nnn_logruv_jk():
         cov3 = ddd3.estimate_cov('jackknife')
         np.testing.assert_allclose(cov3, cov1)
 
+        # It should also work (now, as of version 5.0) from just the ddd output file.
+        ddd3b = treecorr.NNNCorrelation.from_file(file_name)
+        print('ddd3.results = ',ddd3.results)
+        print('ddd3b.results = ',ddd3b.results)
+        print('ddd3._rrr = ',ddd3._rrr)
+        print('ddd3b._rrr = ',ddd3b._rrr)
+        print('ddd3._rrr.results = ',ddd3._rrr.results)
+        print('ddd3b._rrr.results = ',ddd3b._rrr.results)
+        cov3b = ddd3b.estimate_cov('jackknife')
+        np.testing.assert_allclose(cov3b, cov1)
+
     # Also with ascii, since that works differeny.
     file_name = os.path.join('output','test_write_results_ddd.dat')
     rrr_file_name = os.path.join('output','test_write_results_rrr.dat')
@@ -1508,19 +1519,18 @@ def test_nnn_logruv_jk():
     rrrp.write(rrr_file_name, write_patch_results=True)
     drrp.write(drr_file_name, write_patch_results=True)
     rddp.write(rdd_file_name, write_patch_results=True)
-    ddd4 = treecorr.NNNCorrelation(nbins=3, min_sep=50., max_sep=100., bin_slop=0.2,
-                                   min_u=0.8, max_u=1.0, nubins=1,
-                                   min_v=0.0, max_v=0.2, nvbins=1, bin_type='LogRUV')
-    rrr4 = ddd4.copy()
-    drr4 = ddd4.copy()
-    rdd4 = ddd4.copy()
-    ddd4.read(file_name)
-    rrr4.read(rrr_file_name)
-    drr4.read(drr_file_name)
-    rdd4.read(rdd_file_name)
+    ddd4 = treecorr.NNNCorrelation.from_file(file_name)
+    rrr4 = treecorr.NNNCorrelation.from_file(rrr_file_name)
+    drr4 = treecorr.NNNCorrelation.from_file(drr_file_name)
+    rdd4 = treecorr.NNNCorrelation.from_file(rdd_file_name)
     ddd4.calculateZeta(rrr=rrr4, drr=drr4, rdd=rdd4)
     cov4 = ddd4.estimate_cov('jackknife')
     np.testing.assert_allclose(cov4, cov1)
+
+    # It should also work (now, as of version 5.0) from just the ddd output file.
+    ddd4b = treecorr.NNNCorrelation.from_file(file_name)
+    cov4b = ddd4b.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov4b, cov1)
 
     # And also try to match the type if HDF
     try:
@@ -1552,6 +1562,10 @@ def test_nnn_logruv_jk():
         ddd5.calculateZeta(rrr=rrr5, drr=drr5, rdd=rdd5)
         cov5 = ddd5.estimate_cov('jackknife')
         np.testing.assert_allclose(cov5, cov1)
+
+        ddd5b = treecorr.NNNCorrelation.from_file(file_name)
+        cov5b = ddd5b.estimate_cov('jackknife')
+        np.testing.assert_allclose(cov5b, cov1)
 
     # Don't check LogSAS for accuracy.  Just make sure the code runs.
     print('LogSAS')

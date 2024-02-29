@@ -1559,7 +1559,6 @@ def test_nn_jk():
     cov5 = nn5.estimate_cov('jackknife')
     np.testing.assert_allclose(cov5, nn3.cov)
 
-    print('Start ASCII read')
     nn5 = treecorr.NNCorrelation.from_file(file_name)
     cov5 = nn5.estimate_cov('jackknife')
     np.testing.assert_allclose(cov5, nn3.cov)

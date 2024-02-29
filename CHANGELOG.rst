@@ -37,6 +37,7 @@ API Changes
 - Changed estimate_cov with method='shot' to only return the diagonal, rather than gratuitously
   making a full, mostly empty diagonal matrix. (#166)
 - Changed name of Catalog.write kwarg from cat_precision to just precision. (#169)
+- Output files had additional information in the header to enable ``from_file``. (#172)
 
 
 Performance improvements
@@ -77,6 +78,12 @@ New features
   three-point method, for which it is the default. (#169)
 - Added ``angle_slop`` option to separately tune the allowed angular slop from using cells,
   irrespective of the binning. (#170)
+- Added ``algo`` option to 3-point ``process`` functions to conrol whether to use new
+  multipole algorithm or the old triangle algorithm. (#171)
+- Added serialization of rr, dr, etc. when writing with write_patch_results=True option,
+  so you no longer have to separately write files for them to recover the covariance. (#172)
+- Added :ref:`from_file <GGCorrlation.from_file>` class methods to construct a Correlation
+  object from a file without needing to know the correct configuration parameters. (#172)
 
 
 Bug fixes

@@ -34,11 +34,11 @@ class AsciiReader(object):
     can_slice = True
     default_ext = None
 
-    def __init__(self, file_name, delimiter=None, comment_marker='#', logger=None):
+    def __init__(self, file_name, *, delimiter=None, comment_marker='#', logger=None):
         """
         Parameters:
-            file_name (str):        The file name
-            delimiter (str):        What delimiter to use between values.  (default: None,
+            file_name (str):        The file name.
+            delimiter (str):        What delimiter to use between values. (default: None,
                                     which means any whitespace)
             comment_marker (str):   What token indicates a comment line. (default: '#')
         """
@@ -60,7 +60,7 @@ class AsciiReader(object):
         ASCII files don't have extensions, so the only ext allowed is None.
 
         Parameters:
-            ext (str):      The extension to check
+            ext (str):      The extension to check.
 
         Returns:
             Whether ext is None
@@ -74,19 +74,19 @@ class AsciiReader(object):
         None is the only valid extension for ASCII files.
 
         Parameters:
-            ext (str):  The extension to check
+            ext (str):  The extension to check.
         """
         if ext is not None:
             raise ValueError("Invalid ext={} for file {}".format(ext,self.file_name))
 
 
-    def read(self, cols, s=slice(None), ext=None):
+    def read(self, cols, s=slice(None), *, ext=None):
         """Read a slice of a column or list of columns from a specified extension.
 
         Parameters:
-            cols (str/list):    The name(s) of column(s) to read
-            s (slice/array):    A slice object or selection of integers to read (default: all)
-            ext (str):          The extension (ignored)
+            cols (str/list):    The name(s) of column(s) to read.
+            s (slice/array):    A slice object or selection of integers to read. (default: all)
+            ext (str):          The extension. (ignored)
 
         Returns:
             The data as a dict or single numpy array as appropriate
@@ -140,11 +140,11 @@ class AsciiReader(object):
         else:
             return {col : data[:,i] for i,col in enumerate(cols)}
 
-    def read_params(self, ext=None):
+    def read_params(self, *, ext=None):
         """Read the params in the given extension, if any.
 
         Parameters:
-            ext (str):          The extension (ignored -- Ascii always reads the next group)
+            ext (str):          The extension. (ignored -- Ascii always reads the next group)
 
         Returns:
             params
@@ -169,11 +169,11 @@ class AsciiReader(object):
         self.ncols = len(self.col_names)
         return params
 
-    def read_data(self, ext=None, max_rows=None):
+    def read_data(self, *, ext=None, max_rows=None):
         """Read all data in the file, and the parameters in the header, if any.
 
         Parameters:
-            ext (str):          The extension (ignored -- Ascii always reads the next group)
+            ext (str):          The extension. (ignored -- Ascii always reads the next group)
             max_rows (int):     The max number of rows to read. (default: None)
 
         Returns:
@@ -182,12 +182,12 @@ class AsciiReader(object):
         data = np.genfromtxt(self.file, names=self.col_names, max_rows=max_rows)
         return data
 
-    def row_count(self, col=None, ext=None):
+    def row_count(self, col=None, *, ext=None):
         """Count the number of rows in the file.
 
         Parameters:
-            col (str):  The column to use (ignored)
-            ext (str):  The extension (ignored)
+            col (str):  The column to use. (ignored)
+            ext (str):  The extension. (ignored)
 
         Returns:
             The number of rows
@@ -210,11 +210,11 @@ class AsciiReader(object):
         self.nrows = lines - self.comment_rows
         return self.nrows
 
-    def names(self, ext=None):
+    def names(self, *, ext=None):
         """Return a list of the names of all the columns in an extension
 
         Parameters:
-            ext (str):  The extension (ignored)
+            ext (str):  The extension. (ignored)
 
         Returns:
             A list of string column names
@@ -262,11 +262,11 @@ class AsciiReader(object):
 class PandasReader(AsciiReader):
     """Reader interface for ASCII files using pandas.
     """
-    def __init__(self, file_name, delimiter=None, comment_marker='#', logger=None):
+    def __init__(self, file_name, *, delimiter=None, comment_marker='#', logger=None):
         """
         Parameters:
-            file_name (str):        The file name
-            delimiter (str):        What delimiter to use between values.  (default: None,
+            file_name (str):        The file name.
+            delimiter (str):        What delimiter to use between values. (default: None,
                                     which means any whitespace)
             comment_marker (str):   What token indicates a comment line. (default: '#')
         """
@@ -277,18 +277,18 @@ class PandasReader(AsciiReader):
                 logger.error("Unable to import pandas.  Cannot read %s"%file_name)
             raise
 
-        AsciiReader.__init__(self, file_name, delimiter, comment_marker)
+        AsciiReader.__init__(self, file_name, delimiter=delimiter, comment_marker=comment_marker)
         # This is how pandas handles whitespace
         self.sep = r'\s+' if self.delimiter is None else self.delimiter
 
 
-    def read(self, cols, s=slice(None), ext=None):
+    def read(self, cols, s=slice(None), *, ext=None):
         """Read a slice of a column or list of columns from a specified extension.
 
         Parameters:
-            cols (str/list):    The name(s) of column(s) to read
-            s (slice/array):    A slice object or selection of integers to read (default: all)
-            ext (str):          The extension (ignored)
+            cols (str/list):    The name(s) of column(s) to read.
+            s (slice/array):    A slice object or selection of integers to read. (default: all)
+            ext (str):          The extension. (ignored)
 
         Returns:
             The data as a dict or single numpy array as appropriate
@@ -349,11 +349,11 @@ class ParquetReader():
     can_slice = True
     default_ext = None
 
-    def __init__(self, file_name, delimiter=None, comment_marker='#', logger=None):
+    def __init__(self, file_name, *, delimiter=None, comment_marker='#', logger=None):
         """
         Parameters:
-            file_name (str):        The file name
-            delimiter (str):        What delimiter to use between values.  (default: None,
+            file_name (str):        The file name.
+            delimiter (str):        What delimiter to use between values. (default: None,
                                     which means any whitespace)
             comment_marker (str):   What token indicates a comment line. (default: '#')
         """
@@ -379,7 +379,7 @@ class ParquetReader():
         Parquet files don't have extensions, so the only ext allowed is None.
 
         Parameters:
-            ext (str):      The extension to check
+            ext (str):      The extension to check.
 
         Returns:
             Whether ext is None
@@ -393,18 +393,18 @@ class ParquetReader():
         None is the only valid extension for ASCII files.
 
         Parameters:
-            ext (str):  The extension to check
+            ext (str):  The extension to check.
         """
         if ext is not None:
             raise ValueError("Invalid ext={} for file {}".format(ext,self.file_name))
 
-    def read(self, cols, s=slice(None), ext=None):
+    def read(self, cols, s=slice(None), *, ext=None):
         """Read a slice of a column or list of columns from a specified extension.
 
         Parameters:
-            cols (str/list):    The name(s) of column(s) to read
-            s (slice/array):    A slice object or selection of integers to read (default: all)
-            ext (str):          The extension (ignored)
+            cols (str/list):    The name(s) of column(s) to read.
+            s (slice/array):    A slice object or selection of integers to read. (default: all)
+            ext (str):          The extension. (ignored)
 
         Returns:
             The data as a recarray or simple numpy array as appropriate
@@ -414,25 +414,25 @@ class ParquetReader():
         else:
             return self.df[cols][s].to_records()
 
-    def row_count(self, col=None, ext=None):
+    def row_count(self, col=None, *, ext=None):
         """Count the number of rows in the named extension and column
 
         Unlike in FitsReader, col is required.
 
         Parameters:
-            col (str):  The column to use (ignored)
-            ext (str):  The extension (ignored)
+            col (str):  The column to use. (ignored)
+            ext (str):  The extension. (ignored)
 
         Returns:
             The number of rows
         """
         return len(self.df)
 
-    def names(self, ext=None):
+    def names(self, *, ext=None):
         """Return a list of the names of all the columns in an extension
 
         Parameters:
-            ext (str):  The extension to search for columns (ignored)
+            ext (str):  The extension to search for columns. (ignored)
 
         Returns:
             A list of string column names
@@ -455,10 +455,10 @@ class FitsReader(object):
     """
     default_ext = 1
 
-    def __init__(self, file_name, logger=None):
+    def __init__(self, file_name, *, logger=None):
         """
         Parameters:
-            file_name (str):    The file name
+            file_name (str):    The file name.
         """
         try:
             import fitsio
@@ -487,7 +487,7 @@ class FitsReader(object):
         This may be either a name or an integer.
 
         Parameters:
-            ext (str/int):  The extension to check for (default: 1)
+            ext (str/int):  The extension to check for. (default: 1)
 
         Returns:
             Whether the extension exists
@@ -501,7 +501,7 @@ class FitsReader(object):
         The ext must both exist and be a table (not an image)
 
         Parameters:
-            ext (str/int):  The extension to check
+            ext (str/int):  The extension to check.
         """
         import fitsio
 
@@ -527,13 +527,13 @@ class FitsReader(object):
                 pass
         return ext
 
-    def read(self, cols, s=slice(None), ext=None):
+    def read(self, cols, s=slice(None), *, ext=None):
         """Read a slice of a column or list of columns from a specified extension
 
         Parameters:
-            cols (str/list):    The name(s) of column(s) to read
-            s (slice/array):    A slice object or selection of integers to read (default: all)
-            ext (str/int)):     The FITS extension to use (default: 1)
+            cols (str/list):    The name(s) of column(s) to read.
+            s (slice/array):    A slice object or selection of integers to read. (default: all)
+            ext (str/int)):     The FITS extension to use. (default: 1)
 
         Returns:
             The data as a recarray or simple numpy array as appropriate
@@ -541,7 +541,7 @@ class FitsReader(object):
         ext = self._update_ext(ext)
         return self.file[ext][cols][s]
 
-    def read_params(self, ext=None, clean=True):
+    def read_params(self, *, ext=None, clean=True):
         """Read the params in the given extension, if any.
 
         Parameters:
@@ -568,11 +568,11 @@ class FitsReader(object):
             params = new_params
         return params
 
-    def read_data(self, ext=None, max_rows=None):
+    def read_data(self, *, ext=None, max_rows=None):
         """Read all data in the file, and the parameters in the header, if any.
 
         Parameters:
-            ext (str/int):      The FITS extension to use (default: 1)
+            ext (str/int):      The FITS extension to use. (default: 1)
             max_rows (int):     The max number of rows to read. (ignored)
 
         Returns:
@@ -582,7 +582,7 @@ class FitsReader(object):
         data = self.file[ext].read()
         return data
 
-    def row_count(self, col=None, ext=None):
+    def row_count(self, col=None, *, ext=None):
         """Count the number of rows in the named extension
 
         For compatibility with the HDF interface, which can have columns
@@ -590,8 +590,8 @@ class FitsReader(object):
         ignored here.
 
         Parameters:
-            col (str):      The column to use (ignored)
-            ext (str/int):  The FITS extension to use (default: 1)
+            col (str):      The column to use. (ignored)
+            ext (str/int):  The FITS extension to use. (default: 1)
 
         Returns:
             The number of rows
@@ -599,11 +599,11 @@ class FitsReader(object):
         ext = self._update_ext(ext)
         return self.file[ext].get_nrows()
 
-    def names(self, ext=None):
+    def names(self, *, ext=None):
         """Return a list of the names of all the columns in an extension
 
         Parameters:
-            ext (str/int):  The extension to search for columns (default: 1)
+            ext (str/int):  The extension to search for columns. (default: 1)
 
         Returns:
             A list of string column names
@@ -631,10 +631,10 @@ class HdfReader(object):
     can_slice = True
     default_ext = '/'
 
-    def __init__(self, file_name, logger=None):
+    def __init__(self, file_name, *, logger=None):
         """
         Parameters:
-            file_name (str):    The file name
+            file_name (str):    The file name.
         """
         try:
             import h5py
@@ -656,7 +656,7 @@ class HdfReader(object):
         """Check if there is an extension with the given name in the file.
 
         Parameters:
-            ext (str):      The extension to check for
+            ext (str):      The extension to check for.
 
         Returns:
             Whether the extension exists
@@ -677,22 +677,22 @@ class HdfReader(object):
         The ext must exist - there is no other requirement for HDF files.
 
         Parameters:
-            ext (str):  The extension to check
+            ext (str):  The extension to check.
         """
         if ext not in self:
             raise ValueError("Invalid ext={} for file {} (does not exist)".format(
                              ext,self.file_name))
 
-    def read(self, cols, s=slice(None), ext=None):
+    def read(self, cols, s=slice(None), *, ext=None):
         """Read a slice of a column or list of columns from a specified extension.
 
         Slices should always be used when reading HDF files - using a sequence of
         integers is painfully slow.
 
         Parameters:
-            cols (str/list):    The name(s) of column(s) to read
-            s (slice/array):    A slice object or selection of integers to read (default: all)
-            ext (str):          The HDF (sub-)group to use (default: '/')
+            cols (str/list):    The name(s) of column(s) to read.
+            s (slice/array):    A slice object or selection of integers to read. (default: all)
+            ext (str):          The HDF (sub-)group to use. (default: '/')
 
         Returns:
             The data as a dict or single numpy array as appropriate
@@ -703,11 +703,11 @@ class HdfReader(object):
         else:
             return {col : g[col][s] for col in cols}
 
-    def read_params(self, ext=None):
+    def read_params(self, *, ext=None):
         """Read the params in the given extension, if any.
 
         Parameters:
-            ext (str):          The HDF (sub-)group to use (default: '/')
+            ext (str):          The HDF (sub-)group to use. (default: '/')
 
         Returns:
             params
@@ -717,11 +717,11 @@ class HdfReader(object):
 
         return params
 
-    def read_data(self, ext=None, max_rows=None):
+    def read_data(self, *, ext=None, max_rows=None):
         """Read all data in the file, and the parameters in the attributes, if any.
 
         Parameters:
-            ext (str):          The HDF (sub-)group to use (default: '/')
+            ext (str):          The HDF (sub-)group to use. (default: '/')
             max_rows (int):     The max number of rows to read. (ignored)
 
         Returns:
@@ -744,25 +744,25 @@ class HdfReader(object):
 
         return data
 
-    def row_count(self, col, ext=None):
+    def row_count(self, col, *, ext=None):
         """Count the number of rows in the named extension and column
 
         Unlike in FitsReader, col is required.
 
         Parameters:
-            col (str):  The column to use
-            ext (str):  The HDF group name to use (default: '/')
+            col (str):  The column to use.
+            ext (str):  The HDF group name to use. (default: '/')
 
         Returns:
             The number of rows
         """
         return self._group(ext)[col].size
 
-    def names(self, ext=None):
+    def names(self, *, ext=None):
         """Return a list of the names of all the columns in an extension
 
         Parameters:
-            ext (str):  The extension to search for columns (default: '/')
+            ext (str):  The extension to search for columns. (default: '/')
 
         Returns:
             A list of string column names

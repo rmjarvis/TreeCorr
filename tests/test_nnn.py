@@ -1367,6 +1367,19 @@ def test_direct_logruv_auto():
     np.testing.assert_allclose(ddd3.meanu, ddd.meanu)
     np.testing.assert_allclose(ddd3.meanv, ddd.meanv)
 
+    # New in version 5.0 is a simpler API for reading
+    ddd3b = treecorr.NNNCorrelation.from_file(ascii_name)
+    np.testing.assert_allclose(ddd3b.ntri, ddd.ntri)
+    np.testing.assert_allclose(ddd3b.weight, ddd.weight)
+    np.testing.assert_allclose(ddd3b.meand1, ddd.meand1)
+    np.testing.assert_allclose(ddd3b.meand2, ddd.meand2)
+    np.testing.assert_allclose(ddd3b.meand3, ddd.meand3)
+    np.testing.assert_allclose(ddd3b.meanlogd1, ddd.meanlogd1)
+    np.testing.assert_allclose(ddd3b.meanlogd2, ddd.meanlogd2)
+    np.testing.assert_allclose(ddd3b.meanlogd3, ddd.meanlogd3)
+    np.testing.assert_allclose(ddd3b.meanu, ddd.meanu)
+    np.testing.assert_allclose(ddd3b.meanv, ddd.meanv)
+
     with assert_raises(TypeError):
         ddd2 += config
     ddd4 = treecorr.NNNCorrelation(min_sep=min_sep/2, max_sep=max_sep, nbins=nbins,
@@ -1456,6 +1469,18 @@ def test_direct_logruv_auto():
         np.testing.assert_allclose(ddd15.meanlogd3, ddd.meanlogd3)
         np.testing.assert_allclose(ddd15.meanu, ddd.meanu)
         np.testing.assert_allclose(ddd15.meanv, ddd.meanv)
+
+        ddd15b = treecorr.NNNCorrelation.from_file(fits_name)
+        np.testing.assert_allclose(ddd15b.ntri, ddd.ntri)
+        np.testing.assert_allclose(ddd15b.weight, ddd.weight)
+        np.testing.assert_allclose(ddd15b.meand1, ddd.meand1)
+        np.testing.assert_allclose(ddd15b.meand2, ddd.meand2)
+        np.testing.assert_allclose(ddd15b.meand3, ddd.meand3)
+        np.testing.assert_allclose(ddd15b.meanlogd1, ddd.meanlogd1)
+        np.testing.assert_allclose(ddd15b.meanlogd2, ddd.meanlogd2)
+        np.testing.assert_allclose(ddd15b.meanlogd3, ddd.meanlogd3)
+        np.testing.assert_allclose(ddd15b.meanu, ddd.meanu)
+        np.testing.assert_allclose(ddd15b.meanv, ddd.meanv)
 
     with assert_raises(ValueError):
         ddd.process(cat, algo='invalid')
@@ -2654,11 +2679,7 @@ def test_nnn_logruv():
         # Check the read function
         # Note: These don't need the flatten.
         # The read function should reshape them to the right shape.
-        ddd2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                       min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                       nubins=nubins, nvbins=nvbins,
-                                       sep_units='arcmin', verbose=1, bin_type='LogRUV')
-        ddd2.read(out_file_name1)
+        ddd2 = treecorr.NNNCorrelation.from_file(out_file_name1)
         np.testing.assert_almost_equal(ddd2.logr, ddd.logr)
         np.testing.assert_almost_equal(ddd2.u, ddd.u)
         np.testing.assert_almost_equal(ddd2.v, ddd.v)
@@ -2677,7 +2698,7 @@ def test_nnn_logruv():
         assert ddd2.sep_units == ddd.sep_units
         assert ddd2.bin_type == ddd.bin_type
 
-        ddd2.read(out_file_name2)
+        ddd2 = treecorr.NNNCorrelation.from_file(out_file_name2)
         np.testing.assert_almost_equal(ddd2.logr, ddd.logr)
         np.testing.assert_almost_equal(ddd2.u, ddd.u)
         np.testing.assert_almost_equal(ddd2.v, ddd.v)
@@ -2725,11 +2746,7 @@ def test_nnn_logruv():
             attrs = data.attrs
             np.testing.assert_almost_equal(attrs['tot']/ddd.tot, 1.)
 
-        ddd3 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                       min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                       nubins=nubins, nvbins=nvbins,
-                                       sep_units='arcmin', verbose=1, bin_type='LogRUV')
-        ddd3.read(out_file_name3)
+        ddd3 = treecorr.NNNCorrelation.from_file(out_file_name3)
         np.testing.assert_almost_equal(ddd3.logr, ddd.logr)
         np.testing.assert_almost_equal(ddd3.u, ddd.u)
         np.testing.assert_almost_equal(ddd3.v, ddd.v)
@@ -2837,7 +2854,7 @@ def test_nnn_logruv():
         header = fitsio.read_header(out_file_name3, 1)
         np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
 
-        ddd2.read(out_file_name3)
+        ddd2 = treecorr.NNNCorrelation.from_file(out_file_name3)
         np.testing.assert_almost_equal(ddd2.logr, ddd.logr)
         np.testing.assert_almost_equal(ddd2.u, ddd.u)
         np.testing.assert_almost_equal(ddd2.v, ddd.v)
@@ -3251,6 +3268,18 @@ def test_direct_logsas_auto():
     # Check that the repr is minimal
     assert repr(ddd3) == f"NNNCorrelation(min_sep={min_sep}, bin_size={bin_size}, nbins={nbins}, nphi_bins={nphi_bins})"
 
+    # New in version 5.0 is a simpler API for reading
+    ddd3b = treecorr.NNNCorrelation.from_file(ascii_name)
+    np.testing.assert_allclose(ddd3b.ntri, ddd.ntri)
+    np.testing.assert_allclose(ddd3b.weight, ddd.weight)
+    np.testing.assert_allclose(ddd3b.meand1, ddd.meand1)
+    np.testing.assert_allclose(ddd3b.meand2, ddd.meand2)
+    np.testing.assert_allclose(ddd3b.meand3, ddd.meand3)
+    np.testing.assert_allclose(ddd3b.meanlogd1, ddd.meanlogd1)
+    np.testing.assert_allclose(ddd3b.meanlogd2, ddd.meanlogd2)
+    np.testing.assert_allclose(ddd3b.meanlogd3, ddd.meanlogd3)
+    np.testing.assert_allclose(ddd3b.meanphi, ddd.meanphi)
+
     try:
         import fitsio
     except ImportError:
@@ -3270,6 +3299,17 @@ def test_direct_logsas_auto():
         np.testing.assert_allclose(ddd4.meanlogd2, ddd.meanlogd2)
         np.testing.assert_allclose(ddd4.meanlogd3, ddd.meanlogd3)
         np.testing.assert_allclose(ddd4.meanphi, ddd.meanphi)
+
+        ddd4b = treecorr.NNNCorrelation.from_file(fits_name)
+        np.testing.assert_allclose(ddd4b.ntri, ddd.ntri)
+        np.testing.assert_allclose(ddd4b.weight, ddd.weight)
+        np.testing.assert_allclose(ddd4b.meand1, ddd.meand1)
+        np.testing.assert_allclose(ddd4b.meand2, ddd.meand2)
+        np.testing.assert_allclose(ddd4b.meand3, ddd.meand3)
+        np.testing.assert_allclose(ddd4b.meanlogd1, ddd.meanlogd1)
+        np.testing.assert_allclose(ddd4b.meanlogd2, ddd.meanlogd2)
+        np.testing.assert_allclose(ddd4b.meanlogd3, ddd.meanlogd3)
+        np.testing.assert_allclose(ddd4b.meanphi, ddd.meanphi)
 
     # The above all used the old triangle algorithm.  Check the new default of calculating
     # LogSAS via a temporary object with LogMultipole.
@@ -3990,10 +4030,7 @@ def test_nnn_logsas():
         # Check the read function
         # Note: These don't need the flatten.
         # The read function should reshape them to the right shape.
-        ddd2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                       min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
-                                       sep_units='arcmin', bin_type='LogSAS')
-        ddd2.read(out_file_name1)
+        ddd2 = treecorr.NNNCorrelation.from_file(out_file_name1)
         np.testing.assert_almost_equal(ddd2.logd2, ddd.logd2)
         np.testing.assert_almost_equal(ddd2.logd3, ddd.logd3)
         np.testing.assert_almost_equal(ddd2.phi, ddd.phi)
@@ -4011,7 +4048,7 @@ def test_nnn_logsas():
         assert ddd2.sep_units == ddd.sep_units
         assert ddd2.bin_type == ddd.bin_type
 
-        ddd2.read(out_file_name2)
+        ddd2 = treecorr.NNNCorrelation.from_file(out_file_name2)
         np.testing.assert_almost_equal(ddd2.logd2, ddd.logd2)
         np.testing.assert_almost_equal(ddd2.logd3, ddd.logd3)
         np.testing.assert_almost_equal(ddd2.phi, ddd.phi)
@@ -4057,10 +4094,7 @@ def test_nnn_logsas():
             attrs = data.attrs
             np.testing.assert_almost_equal(attrs['tot']/ddd.tot, 1.)
 
-        ddd3 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                       min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
-                                       sep_units='arcmin', bin_type='LogSAS')
-        ddd3.read(out_file_name3)
+        ddd3 = treecorr.NNNCorrelation.from_file(out_file_name3)
         np.testing.assert_almost_equal(ddd3.logd2, ddd.logd2)
         np.testing.assert_almost_equal(ddd3.logd3, ddd.logd3)
         np.testing.assert_almost_equal(ddd3.phi, ddd.phi)
@@ -4169,7 +4203,7 @@ def test_nnn_logsas():
         header = fitsio.read_header(out_file_name3, 1)
         np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
 
-        ddd2.read(out_file_name3)
+        ddd2 = treecorr.NNNCorrelation.from_file(out_file_name3)
         np.testing.assert_almost_equal(ddd2.logd2, ddd.logd2)
         np.testing.assert_almost_equal(ddd2.logd3, ddd.logd3)
         np.testing.assert_almost_equal(ddd2.phi, ddd.phi)
@@ -4487,6 +4521,16 @@ def test_direct_logmultipole_auto():
     np.testing.assert_allclose(ddd3.meanlogd2, ddd.meanlogd2)
     np.testing.assert_allclose(ddd3.meanlogd3, ddd.meanlogd3)
 
+    ddd3b = treecorr.NNNCorrelation.from_file(ascii_name)
+    np.testing.assert_allclose(ddd3b.ntri, ddd.ntri)
+    np.testing.assert_allclose(ddd3b.weight, ddd.weight)
+    np.testing.assert_allclose(ddd3b.meand1, ddd.meand1)
+    np.testing.assert_allclose(ddd3b.meand2, ddd.meand2)
+    np.testing.assert_allclose(ddd3b.meand3, ddd.meand3)
+    np.testing.assert_allclose(ddd3b.meanlogd1, ddd.meanlogd1)
+    np.testing.assert_allclose(ddd3b.meanlogd2, ddd.meanlogd2)
+    np.testing.assert_allclose(ddd3b.meanlogd3, ddd.meanlogd3)
+
     try:
         import fitsio
     except ImportError:
@@ -4505,6 +4549,17 @@ def test_direct_logmultipole_auto():
         np.testing.assert_allclose(ddd4.meanlogd1, ddd.meanlogd1)
         np.testing.assert_allclose(ddd4.meanlogd2, ddd.meanlogd2)
         np.testing.assert_allclose(ddd4.meanlogd3, ddd.meanlogd3)
+
+        ddd4b = treecorr.NNNCorrelation.from_file(fits_name)
+        np.testing.assert_allclose(ddd4b.ntri, ddd.ntri)
+        np.testing.assert_allclose(ddd4b.weight, ddd.weight)
+        np.testing.assert_allclose(ddd4b.meand1, ddd.meand1)
+        np.testing.assert_allclose(ddd4b.meand2, ddd.meand2)
+        np.testing.assert_allclose(ddd4b.meand3, ddd.meand3)
+        np.testing.assert_allclose(ddd4b.meanlogd1, ddd.meanlogd1)
+        np.testing.assert_allclose(ddd4b.meanlogd2, ddd.meanlogd2)
+        np.testing.assert_allclose(ddd4b.meanlogd3, ddd.meanlogd3)
+
 
 @timer
 def test_direct_logmultipole_cross12():
@@ -4731,9 +4786,7 @@ def test_direct_logmultipole_cross12():
     ddd.process(cat1, cat1.patches[0])
     file_name = os.path.join('data','nnn_zero_copy.dat')
     ddd.write(file_name, precision=16, write_patch_results=True)
-    ddd2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
-                                   bin_type='LogMultipole')
-    ddd2.read(file_name)
+    ddd2 = treecorr.NNNCorrelation.from_file(file_name)
     assert len(ddd2.results) == len(ddd.results)
     for key in ddd.results:
         np.testing.assert_allclose(ddd2.results[key].weight, ddd.results[key].weight)

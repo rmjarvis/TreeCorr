@@ -1909,9 +1909,10 @@ class Corr3(object):
                 i += 1
             assert i == num_patch_tri
 
-    def _read(self, reader, name=None):
+    def _read(self, reader, name=None, params=None):
         name = 'main' if 'main' in reader and name is None else name
-        params = reader.read_params(ext=name)
+        if params is None:
+            params = reader.read_params(ext=name)
         num_rows = params.get('num_rows', None)
         num_patch_tri = params.get('num_patch_tri', 0)
         num_zero_patch = params.get('num_zero_patch', 0)

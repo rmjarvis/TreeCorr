@@ -199,6 +199,20 @@ def test_direct_logruv():
     np.testing.assert_allclose(kkk3.meanv, kkk.meanv)
     np.testing.assert_allclose(kkk3.zeta, kkk.zeta)
 
+    # New in version 5.0 is a simpler API for reading
+    kkk3b = treecorr.KKKCorrelation.from_file(ascii_name)
+    np.testing.assert_allclose(kkk3b.ntri, kkk.ntri)
+    np.testing.assert_allclose(kkk3b.weight, kkk.weight)
+    np.testing.assert_allclose(kkk3b.meand1, kkk.meand1)
+    np.testing.assert_allclose(kkk3b.meand2, kkk.meand2)
+    np.testing.assert_allclose(kkk3b.meand3, kkk.meand3)
+    np.testing.assert_allclose(kkk3b.meanlogd1, kkk.meanlogd1)
+    np.testing.assert_allclose(kkk3b.meanlogd2, kkk.meanlogd2)
+    np.testing.assert_allclose(kkk3b.meanlogd3, kkk.meanlogd3)
+    np.testing.assert_allclose(kkk3b.meanu, kkk.meanu)
+    np.testing.assert_allclose(kkk3b.meanv, kkk.meanv)
+    np.testing.assert_allclose(kkk3b.zeta, kkk.zeta)
+
     try:
         import fitsio
     except ImportError:
@@ -220,6 +234,19 @@ def test_direct_logruv():
         np.testing.assert_allclose(kkk4.meanu, kkk.meanu)
         np.testing.assert_allclose(kkk4.meanv, kkk.meanv)
         np.testing.assert_allclose(kkk4.zeta, kkk.zeta)
+
+        kkk4b = treecorr.KKKCorrelation.from_file(fits_name)
+        np.testing.assert_allclose(kkk4b.ntri, kkk.ntri)
+        np.testing.assert_allclose(kkk4b.weight, kkk.weight)
+        np.testing.assert_allclose(kkk4b.meand1, kkk.meand1)
+        np.testing.assert_allclose(kkk4b.meand2, kkk.meand2)
+        np.testing.assert_allclose(kkk4b.meand3, kkk.meand3)
+        np.testing.assert_allclose(kkk4b.meanlogd1, kkk.meanlogd1)
+        np.testing.assert_allclose(kkk4b.meanlogd2, kkk.meanlogd2)
+        np.testing.assert_allclose(kkk4b.meanlogd3, kkk.meanlogd3)
+        np.testing.assert_allclose(kkk4b.meanu, kkk.meanu)
+        np.testing.assert_allclose(kkk4b.meanv, kkk.meanv)
+        np.testing.assert_allclose(kkk4b.zeta, kkk.zeta)
 
     with assert_raises(TypeError):
         kkk2 += config
@@ -1211,11 +1238,7 @@ def test_kkk_logruv():
         # Check the read function
         # Note: These don't need the flatten.
         # The read function should reshape them to the right shape.
-        kkk2 = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                       min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                       nubins=nubins, nvbins=nvbins,
-                                       sep_units='arcmin', verbose=1, bin_type='LogRUV')
-        kkk2.read(out_file_name)
+        kkk2 = treecorr.KKKCorrelation.from_file(out_file_name)
         np.testing.assert_allclose(kkk2.logr, kkk.logr, rtol=1.e-4)
         np.testing.assert_allclose(kkk2.u, kkk.u, rtol=1.e-4)
         np.testing.assert_allclose(kkk2.v, kkk.v, rtol=1.e-4)
@@ -1371,6 +1394,19 @@ def test_direct_logsas():
     # Check that the repr is minimal
     assert repr(kkk3) == f"KKKCorrelation(min_sep={min_sep}, bin_size={bin_size}, nbins={nbins}, nphi_bins={nphi_bins})"
 
+    # New in version 5.0 is a simpler API for reading
+    kkk3b = treecorr.KKKCorrelation.from_file(ascii_name)
+    np.testing.assert_allclose(kkk3b.ntri, kkk.ntri)
+    np.testing.assert_allclose(kkk3b.weight, kkk.weight)
+    np.testing.assert_allclose(kkk3b.meand1, kkk.meand1)
+    np.testing.assert_allclose(kkk3b.meand2, kkk.meand2)
+    np.testing.assert_allclose(kkk3b.meand3, kkk.meand3)
+    np.testing.assert_allclose(kkk3b.meanlogd1, kkk.meanlogd1)
+    np.testing.assert_allclose(kkk3b.meanlogd2, kkk.meanlogd2)
+    np.testing.assert_allclose(kkk3b.meanlogd3, kkk.meanlogd3)
+    np.testing.assert_allclose(kkk3b.meanphi, kkk.meanphi)
+    np.testing.assert_allclose(kkk3b.zeta, kkk.zeta)
+
     try:
         import fitsio
     except ImportError:
@@ -1391,6 +1427,18 @@ def test_direct_logsas():
         np.testing.assert_allclose(kkk4.meanlogd3, kkk.meanlogd3)
         np.testing.assert_allclose(kkk4.meanphi, kkk.meanphi)
         np.testing.assert_allclose(kkk4.zeta, kkk.zeta)
+
+        kkk4b = treecorr.KKKCorrelation.from_file(fits_name)
+        np.testing.assert_allclose(kkk4b.ntri, kkk.ntri)
+        np.testing.assert_allclose(kkk4b.weight, kkk.weight)
+        np.testing.assert_allclose(kkk4b.meand1, kkk.meand1)
+        np.testing.assert_allclose(kkk4b.meand2, kkk.meand2)
+        np.testing.assert_allclose(kkk4b.meand3, kkk.meand3)
+        np.testing.assert_allclose(kkk4b.meanlogd1, kkk.meanlogd1)
+        np.testing.assert_allclose(kkk4b.meanlogd2, kkk.meanlogd2)
+        np.testing.assert_allclose(kkk4b.meanlogd3, kkk.meanlogd3)
+        np.testing.assert_allclose(kkk4b.meanphi, kkk.meanphi)
+        np.testing.assert_allclose(kkk4b.zeta, kkk.zeta)
 
     # The above all used the old triangle algorithm.  Check the new default of calculating
     # LogSAS via a temporary object with LogMultipole.
@@ -2231,10 +2279,7 @@ def test_kkk_logsas():
         # Check the read function
         # Note: These don't need the flatten.
         # The read function should reshape them to the right shape.
-        kkk2 = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                       min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
-                                       sep_units='arcmin', phi_units='deg', bin_type='LogSAS')
-        kkk2.read(out_file_name)
+        kkk2 = treecorr.KKKCorrelation.from_file(out_file_name)
         np.testing.assert_allclose(kkk2.logd2, kkk.logd2)
         np.testing.assert_allclose(kkk2.logd3, kkk.logd3)
         np.testing.assert_allclose(kkk2.phi, kkk.phi)
@@ -2381,6 +2426,17 @@ def test_direct_logmultipole_auto():
     np.testing.assert_allclose(kkk3.meanlogd2, kkk.meanlogd2)
     np.testing.assert_allclose(kkk3.meanlogd3, kkk.meanlogd3)
 
+    kkk3b = treecorr.KKKCorrelation.from_file(ascii_name)
+    np.testing.assert_allclose(kkk3b.ntri, kkk.ntri)
+    np.testing.assert_allclose(kkk3b.weight, kkk.weight)
+    np.testing.assert_allclose(kkk3b.zeta, kkk.zeta)
+    np.testing.assert_allclose(kkk3b.meand1, kkk.meand1)
+    np.testing.assert_allclose(kkk3b.meand2, kkk.meand2)
+    np.testing.assert_allclose(kkk3b.meand3, kkk.meand3)
+    np.testing.assert_allclose(kkk3b.meanlogd1, kkk.meanlogd1)
+    np.testing.assert_allclose(kkk3b.meanlogd2, kkk.meanlogd2)
+    np.testing.assert_allclose(kkk3b.meanlogd3, kkk.meanlogd3)
+
     try:
         import fitsio
     except ImportError:
@@ -2400,6 +2456,17 @@ def test_direct_logmultipole_auto():
         np.testing.assert_allclose(kkk4.meanlogd1, kkk.meanlogd1)
         np.testing.assert_allclose(kkk4.meanlogd2, kkk.meanlogd2)
         np.testing.assert_allclose(kkk4.meanlogd3, kkk.meanlogd3)
+
+        kkk4b = treecorr.KKKCorrelation.from_file(fits_name)
+        np.testing.assert_allclose(kkk4b.ntri, kkk.ntri)
+        np.testing.assert_allclose(kkk4b.weight, kkk.weight)
+        np.testing.assert_allclose(kkk3b.zeta, kkk.zeta)
+        np.testing.assert_allclose(kkk4b.meand1, kkk.meand1)
+        np.testing.assert_allclose(kkk4b.meand2, kkk.meand2)
+        np.testing.assert_allclose(kkk4b.meand3, kkk.meand3)
+        np.testing.assert_allclose(kkk4b.meanlogd1, kkk.meanlogd1)
+        np.testing.assert_allclose(kkk4b.meanlogd2, kkk.meanlogd2)
+        np.testing.assert_allclose(kkk4b.meanlogd3, kkk.meanlogd3)
 
 
 @timer

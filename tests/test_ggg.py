@@ -336,6 +336,26 @@ def test_direct_logruv():
     np.testing.assert_allclose(ggg3.gam3r, ggg.gam3r)
     np.testing.assert_allclose(ggg3.gam3i, ggg.gam3i)
 
+    # New in version 5.0 is a simpler API for reading
+    ggg3b = treecorr.GGGCorrelation.from_file(ascii_name)
+    np.testing.assert_allclose(ggg3b.weight, ggg.weight)
+    np.testing.assert_allclose(ggg3b.meand1, ggg.meand1)
+    np.testing.assert_allclose(ggg3b.meand2, ggg.meand2)
+    np.testing.assert_allclose(ggg3b.meand3, ggg.meand3)
+    np.testing.assert_allclose(ggg3b.meanlogd1, ggg.meanlogd1)
+    np.testing.assert_allclose(ggg3b.meanlogd2, ggg.meanlogd2)
+    np.testing.assert_allclose(ggg3b.meanlogd3, ggg.meanlogd3)
+    np.testing.assert_allclose(ggg3b.meanu, ggg.meanu)
+    np.testing.assert_allclose(ggg3b.meanv, ggg.meanv)
+    np.testing.assert_allclose(ggg3b.gam0r, ggg.gam0r)
+    np.testing.assert_allclose(ggg3b.gam0i, ggg.gam0i)
+    np.testing.assert_allclose(ggg3b.gam1r, ggg.gam1r)
+    np.testing.assert_allclose(ggg3b.gam1i, ggg.gam1i)
+    np.testing.assert_allclose(ggg3b.gam2r, ggg.gam2r)
+    np.testing.assert_allclose(ggg3b.gam2i, ggg.gam2i)
+    np.testing.assert_allclose(ggg3b.gam3r, ggg.gam3r)
+    np.testing.assert_allclose(ggg3b.gam3i, ggg.gam3i)
+
     try:
         import fitsio
     except ImportError:
@@ -364,6 +384,25 @@ def test_direct_logruv():
         np.testing.assert_allclose(ggg4.gam2i, ggg.gam2i)
         np.testing.assert_allclose(ggg4.gam3r, ggg.gam3r)
         np.testing.assert_allclose(ggg4.gam3i, ggg.gam3i)
+
+        ggg4b = treecorr.GGGCorrelation.from_file(fits_name)
+        np.testing.assert_allclose(ggg4b.weight, ggg.weight)
+        np.testing.assert_allclose(ggg4b.meand1, ggg.meand1)
+        np.testing.assert_allclose(ggg4b.meand2, ggg.meand2)
+        np.testing.assert_allclose(ggg4b.meand3, ggg.meand3)
+        np.testing.assert_allclose(ggg4b.meanlogd1, ggg.meanlogd1)
+        np.testing.assert_allclose(ggg4b.meanlogd2, ggg.meanlogd2)
+        np.testing.assert_allclose(ggg4b.meanlogd3, ggg.meanlogd3)
+        np.testing.assert_allclose(ggg4b.meanu, ggg.meanu)
+        np.testing.assert_allclose(ggg4b.meanv, ggg.meanv)
+        np.testing.assert_allclose(ggg4b.gam0r, ggg.gam0r)
+        np.testing.assert_allclose(ggg4b.gam0i, ggg.gam0i)
+        np.testing.assert_allclose(ggg4b.gam1r, ggg.gam1r)
+        np.testing.assert_allclose(ggg4b.gam1i, ggg.gam1i)
+        np.testing.assert_allclose(ggg4b.gam2r, ggg.gam2r)
+        np.testing.assert_allclose(ggg4b.gam2i, ggg.gam2i)
+        np.testing.assert_allclose(ggg4b.gam3r, ggg.gam3r)
+        np.testing.assert_allclose(ggg4b.gam3i, ggg.gam3i)
 
     assert ggg.var_method == 'shot'  # Only option currently.
 
@@ -1602,11 +1641,7 @@ def test_ggg_logruv():
         # Check the read function
         # Note: These don't need the flatten.
         # The read function should reshape them to the right shape.
-        ggg2 = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
-                                   nubins=nubins, nvbins=nvbins,
-                                   sep_units='arcmin', verbose=1, bin_type='LogRUV')
-        ggg2.read(out_file_name1)
+        ggg2 = treecorr.GGGCorrelation.from_file(out_file_name1)
         np.testing.assert_allclose(ggg2.logr, ggg.logr)
         np.testing.assert_allclose(ggg2.u, ggg.u)
         np.testing.assert_allclose(ggg2.v, ggg.v)
@@ -2537,6 +2572,20 @@ def test_direct_logsas():
     # Check that the repr is minimal
     assert repr(ggg3) == f"GGGCorrelation(min_sep={min_sep}, bin_size={bin_size}, nbins={nbins}, nphi_bins={nphi_bins})"
 
+    # New in version 5.0 is a simpler API for reading
+    ggg3b = treecorr.GGGCorrelation.from_file(ascii_name)
+    np.testing.assert_allclose(ggg3b.weight, ggg.weight)
+    np.testing.assert_allclose(ggg3b.meand1, ggg.meand1)
+    np.testing.assert_allclose(ggg3b.meand2, ggg.meand2)
+    np.testing.assert_allclose(ggg3b.meand3, ggg.meand3)
+    np.testing.assert_allclose(ggg3b.meanlogd1, ggg.meanlogd1)
+    np.testing.assert_allclose(ggg3b.meanlogd2, ggg.meanlogd2)
+    np.testing.assert_allclose(ggg3b.meanlogd3, ggg.meanlogd3)
+    np.testing.assert_allclose(ggg3b.gam0, ggg.gam0)
+    np.testing.assert_allclose(ggg3b.gam1, ggg.gam1)
+    np.testing.assert_allclose(ggg3b.gam2, ggg.gam2)
+    np.testing.assert_allclose(ggg3b.gam3, ggg.gam3)
+
     try:
         import fitsio
     except ImportError:
@@ -2560,6 +2609,19 @@ def test_direct_logsas():
         np.testing.assert_allclose(ggg4.gam1, ggg.gam1)
         np.testing.assert_allclose(ggg4.gam2, ggg.gam2)
         np.testing.assert_allclose(ggg4.gam3, ggg.gam3)
+
+        ggg4b = treecorr.GGGCorrelation.from_file(fits_name)
+        np.testing.assert_allclose(ggg4b.weight, ggg.weight)
+        np.testing.assert_allclose(ggg4b.meand1, ggg.meand1)
+        np.testing.assert_allclose(ggg4b.meand2, ggg.meand2)
+        np.testing.assert_allclose(ggg4b.meand3, ggg.meand3)
+        np.testing.assert_allclose(ggg4b.meanlogd1, ggg.meanlogd1)
+        np.testing.assert_allclose(ggg4b.meanlogd2, ggg.meanlogd2)
+        np.testing.assert_allclose(ggg4b.meanlogd3, ggg.meanlogd3)
+        np.testing.assert_allclose(ggg4b.gam0, ggg.gam0)
+        np.testing.assert_allclose(ggg4b.gam1, ggg.gam1)
+        np.testing.assert_allclose(ggg4b.gam2, ggg.gam2)
+        np.testing.assert_allclose(ggg4b.gam3, ggg.gam3)
 
     # Split into patches to test the list-based version of the code.
     catp = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2, npatch=3, rng=rng)
@@ -3727,9 +3789,9 @@ def test_ggg_logsas():
     except ImportError:
         pass
     else:
-        out_file_name1 = os.path.join('output','ggg_out1_logsas.fits')
-        ggg.write(out_file_name1)
-        data = fitsio.read(out_file_name1)
+        out_file_name = os.path.join('output','ggg_out_logsas.fits')
+        ggg.write(out_file_name)
+        data = fitsio.read(out_file_name)
         np.testing.assert_allclose(data['d2_nom'], np.exp(ggg.logd2).flatten())
         np.testing.assert_allclose(data['d3_nom'], np.exp(ggg.logd3).flatten())
         np.testing.assert_allclose(data['phi_nom'], ggg.phi.flatten())
@@ -3758,10 +3820,7 @@ def test_ggg_logsas():
         # Check the read function
         # Note: These don't need the flatten.
         # The read function should reshape them to the right shape.
-        ggg2 = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
-                                       min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
-                                       sep_units='arcmin', phi_units='degrees', bin_type='LogSAS')
-        ggg2.read(out_file_name1)
+        ggg2 = treecorr.GGGCorrelation.from_file(out_file_name)
         np.testing.assert_allclose(ggg2.logd2, ggg.logd2)
         np.testing.assert_allclose(ggg2.logd3, ggg.logd3)
         np.testing.assert_allclose(ggg2.phi, ggg.phi)
@@ -4337,6 +4396,20 @@ def test_direct_logmultipole_auto():
     np.testing.assert_allclose(ggg3.meanlogd2, ggg.meanlogd2)
     np.testing.assert_allclose(ggg3.meanlogd3, ggg.meanlogd3)
 
+    ggg3b = treecorr.GGGCorrelation.from_file(ascii_name)
+    np.testing.assert_allclose(ggg3b.ntri, ggg.ntri)
+    np.testing.assert_allclose(ggg3b.weight, ggg.weight)
+    np.testing.assert_allclose(ggg3b.gam0, ggg.gam0)
+    np.testing.assert_allclose(ggg3b.gam1, ggg.gam1)
+    np.testing.assert_allclose(ggg3b.gam2, ggg.gam2)
+    np.testing.assert_allclose(ggg3b.gam3, ggg.gam3)
+    np.testing.assert_allclose(ggg3b.meand1, ggg.meand1)
+    np.testing.assert_allclose(ggg3b.meand2, ggg.meand2)
+    np.testing.assert_allclose(ggg3b.meand3, ggg.meand3)
+    np.testing.assert_allclose(ggg3b.meanlogd1, ggg.meanlogd1)
+    np.testing.assert_allclose(ggg3b.meanlogd2, ggg.meanlogd2)
+    np.testing.assert_allclose(ggg3b.meanlogd3, ggg.meanlogd3)
+
     try:
         import fitsio
     except ImportError:
@@ -4359,6 +4432,20 @@ def test_direct_logmultipole_auto():
         np.testing.assert_allclose(ggg4.meanlogd1, ggg.meanlogd1)
         np.testing.assert_allclose(ggg4.meanlogd2, ggg.meanlogd2)
         np.testing.assert_allclose(ggg4.meanlogd3, ggg.meanlogd3)
+
+        ggg4b = treecorr.GGGCorrelation.from_file(fits_name)
+        np.testing.assert_allclose(ggg4b.ntri, ggg.ntri)
+        np.testing.assert_allclose(ggg4b.weight, ggg.weight)
+        np.testing.assert_allclose(ggg3b.gam0, ggg.gam0)
+        np.testing.assert_allclose(ggg3b.gam1, ggg.gam1)
+        np.testing.assert_allclose(ggg3b.gam2, ggg.gam2)
+        np.testing.assert_allclose(ggg3b.gam3, ggg.gam3)
+        np.testing.assert_allclose(ggg4b.meand1, ggg.meand1)
+        np.testing.assert_allclose(ggg4b.meand2, ggg.meand2)
+        np.testing.assert_allclose(ggg4b.meand3, ggg.meand3)
+        np.testing.assert_allclose(ggg4b.meanlogd1, ggg.meanlogd1)
+        np.testing.assert_allclose(ggg4b.meanlogd2, ggg.meanlogd2)
+        np.testing.assert_allclose(ggg4b.meanlogd3, ggg.meanlogd3)
 
 @timer
 def test_direct_logmultipole_spherical():
@@ -4870,7 +4957,6 @@ def test_map3_logmultipole():
     np.testing.assert_allclose(map3, true_map3[mask], rtol=0.1)
 
     # The default is to use max_n phi bins, which should also work fine here.
-    gggm.read(os.path.join('data',out_name))
     ggg = gggm.toSAS()
     map3 = ggg.calculateMap3(R=R)[0]
     np.testing.assert_allclose(map3, true_map3[mask], rtol=0.1)

@@ -21,6 +21,7 @@ from . import _treecorr
 from .catalog import calculateVarV
 from .corr2base import Corr2
 from .util import make_writer, make_reader
+from .config import make_minimal_config
 
 
 class VVCorrelation(Corr2):
@@ -499,8 +500,11 @@ class VVCorrelation(Corr2):
 
     @property
     def _write_params(self):
-        return { 'coords' : self.coords, 'metric' : self.metric,
-                 'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
+        params = make_minimal_config(self.config, Corr2._valid_params)
+        # Add in a couple other things we want to preserve that aren't construction kwargs.
+        params['coords'] = self.coords
+        params['metric'] = self.metric
+        return params
 
     def read(self, file_name, *, file_type=None):
         """Read in values from a file.

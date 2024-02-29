@@ -20,6 +20,7 @@ import numpy as np
 from . import _treecorr
 from .corr2base import Corr2
 from .util import make_writer, make_reader, lazy_property
+from .config import make_minimal_config
 
 
 class NNCorrelation(Corr2):
@@ -792,8 +793,11 @@ class NNCorrelation(Corr2):
 
     @property
     def _write_params(self):
-        params = { 'tot' : self.tot, 'coords' : self.coords, 'metric' : self.metric,
-                   'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
+        params = make_minimal_config(self.config, Corr2._valid_params)
+        # Add in a couple other things we want to preserve that aren't construction kwargs.
+        params['tot'] = self.tot
+        params['coords'] = self.coords
+        params['metric'] = self.metric
         if self._write_patch_results:
             params['_rr'] = bool(self._rr)
             params['_rd'] = bool(self._rd)

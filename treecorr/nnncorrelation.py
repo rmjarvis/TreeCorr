@@ -20,6 +20,7 @@ import numpy as np
 from . import _treecorr
 from .corr3base import Corr3
 from .util import make_writer, make_reader, lazy_property
+from .config import make_minimal_config
 
 
 class NNNCorrelation(Corr3):
@@ -1226,8 +1227,12 @@ class NNNCorrelation(Corr3):
 
     @property
     def _write_params(self):
-        return { 'tot' : self.tot, 'coords' : self.coords, 'metric' : self.metric,
-                 'sep_units' : self.sep_units, 'bin_type' : self.bin_type }
+        params = make_minimal_config(self.config, Corr3._valid_params)
+        # Add in a couple other things we want to preserve that aren't construction kwargs.
+        params['tot'] = self.tot
+        params['coords'] = self.coords
+        params['metric'] = self.metric
+        return params
 
     def read(self, file_name, *, file_type=None):
         """Read in values from a file.

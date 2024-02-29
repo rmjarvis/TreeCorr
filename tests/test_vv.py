@@ -184,6 +184,17 @@ def test_direct():
     # Check that the repr is minimal
     assert repr(vv3) == f'VVCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
+    # Simpler API using from_file:
+    vv3b = treecorr.VVCorrelation.from_file(ascii_name)
+    np.testing.assert_allclose(vv3b.npairs, vv.npairs)
+    np.testing.assert_allclose(vv3b.weight, vv.weight)
+    np.testing.assert_allclose(vv3b.meanr, vv.meanr)
+    np.testing.assert_allclose(vv3b.meanlogr, vv.meanlogr)
+    np.testing.assert_allclose(vv3b.xip, vv.xip)
+    np.testing.assert_allclose(vv3b.xip_im, vv.xip_im)
+    np.testing.assert_allclose(vv3b.xim, vv.xim)
+    np.testing.assert_allclose(vv3b.xim_im, vv.xim_im)
+
     try:
         import fitsio
     except ImportError:
@@ -201,6 +212,16 @@ def test_direct():
         np.testing.assert_allclose(vv4.xip_im, vv.xip_im)
         np.testing.assert_allclose(vv4.xim, vv.xim)
         np.testing.assert_allclose(vv4.xim_im, vv.xim_im)
+
+        vv4b = treecorr.VVCorrelation.from_file(fits_name)
+        np.testing.assert_allclose(vv4b.npairs, vv.npairs)
+        np.testing.assert_allclose(vv4b.weight, vv.weight)
+        np.testing.assert_allclose(vv4b.meanr, vv.meanr)
+        np.testing.assert_allclose(vv4b.meanlogr, vv.meanlogr)
+        np.testing.assert_allclose(vv4b.xip, vv.xip)
+        np.testing.assert_allclose(vv4b.xip_im, vv.xip_im)
+        np.testing.assert_allclose(vv4b.xim, vv.xim)
+        np.testing.assert_allclose(vv4b.xim_im, vv.xim_im)
 
     with assert_raises(TypeError):
         vv2 += config
@@ -489,8 +510,7 @@ def test_vv():
     np.testing.assert_allclose(data['npairs'], vv.npairs)
 
     # Check the read function
-    vv2 = treecorr.VVCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin')
-    vv2.read(out_file_name)
+    vv2 = treecorr.VVCorrelation.from_file(out_file_name)
     np.testing.assert_allclose(vv2.logr, vv.logr)
     np.testing.assert_allclose(vv2.meanr, vv.meanr)
     np.testing.assert_allclose(vv2.meanlogr, vv.meanlogr)
@@ -506,6 +526,7 @@ def test_vv():
     assert vv2.metric == vv.metric
     assert vv2.sep_units == vv.sep_units
     assert vv2.bin_type == vv.bin_type
+
 
 @timer
 def test_spherical():
@@ -919,8 +940,7 @@ def test_jk():
     else:
         file_name = os.path.join('output','test_write_results_vv.fits')
         vv2.write(file_name, write_patch_results=True)
-        vv3 = treecorr.VVCorrelation(corr_params)
-        vv3.read(file_name)
+        vv3 = treecorr.VVCorrelation.from_file(file_name)
         cov3 = vv3.estimate_cov('jackknife')
         np.testing.assert_allclose(cov3, cov2)
 
@@ -1008,8 +1028,7 @@ def test_twod():
     else:
         fits_name = 'output/vv_twod.fits'
         vv.write(fits_name)
-        vv2 = treecorr.VVCorrelation(bin_size=2, nbins=nbins, bin_type='TwoD')
-        vv2.read(fits_name)
+        vv2 = treecorr.VVCorrelation.from_file(fits_name)
         np.testing.assert_allclose(vv2.npairs, vv.npairs)
         np.testing.assert_allclose(vv2.weight, vv.weight)
         np.testing.assert_allclose(vv2.meanr, vv.meanr)
@@ -1021,8 +1040,7 @@ def test_twod():
 
     ascii_name = 'output/vv_twod.txt'
     vv.write(ascii_name, precision=16)
-    vv3 = treecorr.VVCorrelation(bin_size=2, nbins=nbins, bin_type='TwoD')
-    vv3.read(ascii_name)
+    vv3 = treecorr.VVCorrelation.from_file(ascii_name)
     np.testing.assert_allclose(vv3.npairs, vv.npairs)
     np.testing.assert_allclose(vv3.weight, vv.weight)
     np.testing.assert_allclose(vv3.meanr, vv.meanr)

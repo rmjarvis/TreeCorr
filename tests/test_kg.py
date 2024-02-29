@@ -159,6 +159,15 @@ def test_direct():
     # Check that the repr is minimal
     assert repr(kg3) == f'KGCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
+    # New in version 5.0 is a simpler API for reading
+    kg3b = treecorr.KGCorrelation.from_file(ascii_name)
+    np.testing.assert_allclose(kg3b.npairs, kg.npairs)
+    np.testing.assert_allclose(kg3b.weight, kg.weight)
+    np.testing.assert_allclose(kg3b.meanr, kg.meanr)
+    np.testing.assert_allclose(kg3b.meanlogr, kg.meanlogr)
+    np.testing.assert_allclose(kg3b.xi, kg.xi)
+    np.testing.assert_allclose(kg3b.xi_im, kg.xi_im)
+
     try:
         import fitsio
     except ImportError:
@@ -174,6 +183,14 @@ def test_direct():
         np.testing.assert_allclose(kg4.meanlogr, kg.meanlogr)
         np.testing.assert_allclose(kg4.xi, kg.xi)
         np.testing.assert_allclose(kg4.xi_im, kg.xi_im)
+
+        kg4b = treecorr.KGCorrelation.from_file(fits_name)
+        np.testing.assert_allclose(kg4b.npairs, kg.npairs)
+        np.testing.assert_allclose(kg4b.weight, kg.weight)
+        np.testing.assert_allclose(kg4b.meanr, kg.meanr)
+        np.testing.assert_allclose(kg4b.meanlogr, kg.meanlogr)
+        np.testing.assert_allclose(kg4b.xi, kg.xi)
+        np.testing.assert_allclose(kg4b.xi_im, kg.xi_im)
 
     with assert_raises(TypeError):
         kg2 += config
@@ -449,9 +466,9 @@ def test_kg():
     except ImportError:
         pass
     else:
-        out_file_name1 = os.path.join('output','kg_out1.fits')
-        kg.write(out_file_name1)
-        data = fitsio.read(out_file_name1)
+        out_file_name = os.path.join('output','kg_out.fits')
+        kg.write(out_file_name)
+        data = fitsio.read(out_file_name)
         np.testing.assert_almost_equal(data['r_nom'], np.exp(kg.logr))
         np.testing.assert_almost_equal(data['meanr'], kg.meanr)
         np.testing.assert_almost_equal(data['meanlogr'], kg.meanlogr)
@@ -462,8 +479,7 @@ def test_kg():
         np.testing.assert_almost_equal(data['npairs'], kg.npairs)
 
         # Check the read function
-        kg2 = treecorr.KGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin')
-        kg2.read(out_file_name1)
+        kg2 = treecorr.KGCorrelation.from_file(out_file_name)
         np.testing.assert_almost_equal(kg2.logr, kg.logr)
         np.testing.assert_almost_equal(kg2.meanr, kg.meanr)
         np.testing.assert_almost_equal(kg2.meanlogr, kg.meanlogr)

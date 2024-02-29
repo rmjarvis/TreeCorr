@@ -168,6 +168,15 @@ def test_direct():
     # Check that the repr is minimal
     assert repr(nv3) == f'NVCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
+    # Simpler API using from_file:
+    nv3b = treecorr.NVCorrelation.from_file(ascii_name)
+    np.testing.assert_allclose(nv3b.npairs, nv.npairs)
+    np.testing.assert_allclose(nv3b.weight, nv.weight)
+    np.testing.assert_allclose(nv3b.meanr, nv.meanr)
+    np.testing.assert_allclose(nv3b.meanlogr, nv.meanlogr)
+    np.testing.assert_allclose(nv3b.xi, nv.xi)
+    np.testing.assert_allclose(nv3b.xi_im, nv.xi_im)
+
     try:
         import fitsio
     except ImportError:
@@ -183,6 +192,14 @@ def test_direct():
         np.testing.assert_allclose(nv4.meanlogr, nv.meanlogr)
         np.testing.assert_allclose(nv4.xi, nv.xi)
         np.testing.assert_allclose(nv4.xi_im, nv.xi_im)
+
+        nv4b = treecorr.NVCorrelation.from_file(fits_name)
+        np.testing.assert_allclose(nv4b.npairs, nv.npairs)
+        np.testing.assert_allclose(nv4b.weight, nv.weight)
+        np.testing.assert_allclose(nv4b.meanr, nv.meanr)
+        np.testing.assert_allclose(nv4b.meanlogr, nv.meanlogr)
+        np.testing.assert_allclose(nv4b.xi, nv.xi)
+        np.testing.assert_allclose(nv4b.xi_im, nv.xi_im)
 
     with assert_raises(TypeError):
         nv2 += config
@@ -670,8 +687,7 @@ def test_nv():
         np.testing.assert_almost_equal(data['npairs'], nv.npairs)
 
         # Check the read function
-        nv2 = treecorr.NVCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin')
-        nv2.read(out_file_name2)
+        nv2 = treecorr.NVCorrelation.from_file(out_file_name2)
         np.testing.assert_almost_equal(nv2.logr, nv.logr)
         np.testing.assert_almost_equal(nv2.meanr, nv.meanr)
         np.testing.assert_almost_equal(nv2.meanlogr, nv.meanlogr)
@@ -1153,8 +1169,7 @@ def test_jk():
     else:
         file_name = os.path.join('output','test_write_results_nv.fits')
         nv2.write(file_name, write_patch_results=True)
-        nv5 = treecorr.NVCorrelation(corr_params)
-        nv5.read(file_name)
+        nv5 = treecorr.NVCorrelation.from_file(file_name)
         cov5 = nv5.estimate_cov('jackknife')
         np.testing.assert_allclose(cov5, cov2)
 

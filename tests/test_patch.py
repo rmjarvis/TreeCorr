@@ -907,8 +907,7 @@ def test_gg_jk():
     else:
         file_name = os.path.join('output','test_write_results_gg.fits')
         gg3.write(file_name, write_patch_results=True)
-        gg4 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-        gg4.read(file_name)
+        gg4 = treecorr.GGCorrelation.from_file(file_name)
         cov4 = gg4.estimate_cov('jackknife')
         np.testing.assert_allclose(cov4, gg3.cov)
         covxip4 = gg4.estimate_cov('jackknife', func=lambda gg: gg.xip)
@@ -917,8 +916,7 @@ def test_gg_jk():
     # Also with ascii, since that works differeny.
     file_name = os.path.join('output','test_write_results_gg.dat')
     gg3.write(file_name, write_patch_results=True)
-    gg5 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-    gg5.read(file_name)
+    gg5 = treecorr.GGCorrelation.from_file(file_name)
     cov5 = gg5.estimate_cov('jackknife')
     np.testing.assert_allclose(cov5, gg3.cov)
     covxip5 = gg5.estimate_cov('jackknife', func=lambda gg: gg.xip)
@@ -933,8 +931,7 @@ def test_gg_jk():
         # Finally with hdf
         file_name = os.path.join('output','test_write_results_gg.hdf5')
         gg3.write(file_name, write_patch_results=True)
-        gg6 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-        gg6.read(file_name)
+        gg6 = treecorr.GGCorrelation.from_file(file_name)
         cov6 = gg6.estimate_cov('jackknife')
         np.testing.assert_allclose(cov6, gg3.cov)
         covxip6 = gg6.estimate_cov('jackknife', func=lambda gg: gg.xip)
@@ -1225,20 +1222,14 @@ def test_ng_jk():
     else:
         file_name = os.path.join('output','test_write_results_ng.fits')
         ng3.write(file_name, write_patch_results=True)
-        ng4 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-        ng4.read(file_name)
-        print('ng4.xi = ',ng4.xi)
-        print('results = ',ng4.results)
-        print('results = ',ng4.results.keys())
+        ng4 = treecorr.NGCorrelation.from_file(file_name)
         cov4 = ng4.estimate_cov('jackknife')
-        print('cov4 = ',cov4)
         np.testing.assert_allclose(cov4, ng3.cov)
 
     # Also with ascii, since that works differeny.
     file_name = os.path.join('output','test_write_results_ng.dat')
     ng3.write(file_name, write_patch_results=True)
-    ng5 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-    ng5.read(file_name)
+    ng5 = treecorr.NGCorrelation.from_file(file_name)
     cov5 = ng5.estimate_cov('jackknife')
     np.testing.assert_allclose(cov5, ng3.cov)
 
@@ -1251,8 +1242,7 @@ def test_ng_jk():
         # Finally with hdf
         file_name = os.path.join('output','test_write_results_ng.hdf5')
         ng3.write(file_name, write_patch_results=True)
-        ng6 = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-        ng6.read(file_name)
+        ng6 = treecorr.NGCorrelation.from_file(file_name)
         cov6 = ng6.estimate_cov('jackknife')
         np.testing.assert_allclose(cov6, ng3.cov)
 
@@ -1543,19 +1533,15 @@ def test_nn_jk():
         nn3.write(file_name, write_patch_results=True)
         rr.write(rr_file_name, write_patch_results=True)
         nr3.write(dr_file_name, write_patch_results=True)
-        nn4 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
-        rr4 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
-        nr4 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
-        nn4.read(file_name)
-        rr4.read(rr_file_name)
-        nr4.read(dr_file_name)
+        nn4 = treecorr.NNCorrelation.from_file(file_name)
+        rr4 = treecorr.NNCorrelation.from_file(rr_file_name)
+        nr4 = treecorr.NNCorrelation.from_file(dr_file_name)
         nn4.calculateXi(rr=rr4, dr=nr4)
         cov4 = nn4.estimate_cov('jackknife')
         np.testing.assert_allclose(cov4, nn3.cov)
 
         # It should also work (now, as of version 5.0) from just the nn output file.
-        nn4 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
-        nn4.read(file_name)
+        nn4 = treecorr.NNCorrelation.from_file(file_name)
         cov4 = nn4.estimate_cov('jackknife')
         np.testing.assert_allclose(cov4, nn3.cov)
 
@@ -1566,19 +1552,15 @@ def test_nn_jk():
     nn3.write(file_name, write_patch_results=True, precision=15)
     rr.write(rr_file_name, write_patch_results=True, precision=15)
     nr3.write(dr_file_name, write_patch_results=True, precision=15)
-    nn5 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
-    rr5 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
-    dr5 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
-    nn5.read(file_name)
-    rr5.read(rr_file_name)
-    dr5.read(dr_file_name)
+    nn5 = treecorr.NNCorrelation.from_file(file_name)
+    rr5 = treecorr.NNCorrelation.from_file(rr_file_name)
+    dr5 = treecorr.NNCorrelation.from_file(dr_file_name)
     nn5.calculateXi(rr=rr5, dr=dr5)
     cov5 = nn5.estimate_cov('jackknife')
     np.testing.assert_allclose(cov5, nn3.cov)
 
     print('Start ASCII read')
-    nn5 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
-    nn5.read(file_name)
+    nn5 = treecorr.NNCorrelation.from_file(file_name)
     cov5 = nn5.estimate_cov('jackknife')
     np.testing.assert_allclose(cov5, nn3.cov)
 
@@ -1595,18 +1577,14 @@ def test_nn_jk():
         nn3.write(file_name, write_patch_results=True)
         rr.write(rr_file_name, write_patch_results=True)
         nr3.write(dr_file_name, write_patch_results=True)
-        nn6 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
-        rr6 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
-        dr6 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
-        nn6.read(file_name)
-        rr6.read(rr_file_name)
-        dr6.read(dr_file_name)
+        nn6 = treecorr.NNCorrelation.from_file(file_name)
+        rr6 = treecorr.NNCorrelation.from_file(rr_file_name)
+        dr6 = treecorr.NNCorrelation.from_file(dr_file_name)
         nn6.calculateXi(rr=rr6, dr=dr6)
         cov6 = nn6.estimate_cov('jackknife')
         np.testing.assert_allclose(cov6, nn3.cov)
 
-        nn6 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
-        nn6.read(file_name)
+        nn6 = treecorr.NNCorrelation.from_file(file_name)
         cov6 = nn6.estimate_cov('jackknife')
         np.testing.assert_allclose(cov6, nn3.cov)
 
@@ -1681,8 +1659,7 @@ def test_nn_jk():
     # Just do ASCII this time, since that's sufficient for this.
     file_name = os.path.join('output','test_write_results.out')
     nn4.write(file_name, write_patch_results=True, precision=15)
-    nn5 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
-    nn5.read(file_name)
+    nn5 = treecorr.NNCorrelation.from_file(file_name)
     cov5 = nn5.estimate_cov('jackknife')
     np.testing.assert_allclose(cov5, nn4.cov)
 
@@ -1856,16 +1833,14 @@ def test_kappa_jk():
     else:
         file_name = os.path.join('output','test_write_results_nk.fits')
         nk.write(file_name, write_patch_results=True)
-        nk4 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
-        nk4.read(file_name)
+        nk4 = treecorr.NKCorrelation.from_file(file_name)
         cov4 = nk4.estimate_cov('jackknife')
         np.testing.assert_allclose(cov4, nk.cov)
 
     # Also with ascii, since that works differeny.
     file_name = os.path.join('output','test_write_results_nk.dat')
     nk.write(file_name, write_patch_results=True)
-    nk5 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
-    nk5.read(file_name)
+    nk5 = treecorr.NKCorrelation.from_file(file_name)
     cov5 = nk5.estimate_cov('jackknife')
     np.testing.assert_allclose(cov5, nk.cov)
 
@@ -1878,8 +1853,7 @@ def test_kappa_jk():
         # Finally with hdf
         file_name = os.path.join('output','test_write_results_nk.hdf5')
         nk.write(file_name, write_patch_results=True)
-        nk6 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
-        nk6.read(file_name)
+        nk6 = treecorr.NKCorrelation.from_file(file_name)
         cov6 = nk6.estimate_cov('jackknife')
         np.testing.assert_allclose(cov6, nk.cov)
 
@@ -1946,16 +1920,14 @@ def test_kappa_jk():
     else:
         file_name = os.path.join('output','test_write_results_kk.fits')
         kk.write(file_name, write_patch_results=True)
-        kk4 = treecorr.KKCorrelation(bin_size=0.3, min_sep=6., max_sep=30.)
-        kk4.read(file_name)
+        kk4 = treecorr.KKCorrelation.from_file(file_name)
         cov4 = kk4.estimate_cov('jackknife')
         np.testing.assert_allclose(cov4, kk.cov)
 
     # Also with ascii, since that works differeny.
     file_name = os.path.join('output','test_write_results_kk.dat')
     kk.write(file_name, write_patch_results=True)
-    kk5 = treecorr.KKCorrelation(bin_size=0.3, min_sep=6., max_sep=30.)
-    kk5.read(file_name)
+    kk5 = treecorr.KKCorrelation.from_file(file_name)
     cov5 = kk5.estimate_cov('jackknife')
     np.testing.assert_allclose(cov5, kk.cov)
 
@@ -1968,8 +1940,7 @@ def test_kappa_jk():
         # Finally with hdf
         file_name = os.path.join('output','test_write_results_kk.hdf5')
         kk.write(file_name, write_patch_results=True)
-        kk6 = treecorr.KKCorrelation(bin_size=0.3, min_sep=6., max_sep=30.)
-        kk6.read(file_name)
+        kk6 = treecorr.KKCorrelation.from_file(file_name)
         cov6 = kk6.estimate_cov('jackknife')
         np.testing.assert_allclose(cov6, kk.cov)
 
@@ -2002,16 +1973,14 @@ def test_kappa_jk():
     else:
         file_name = os.path.join('output','test_write_results_kg.fits')
         kg.write(file_name, write_patch_results=True)
-        kg4 = treecorr.KGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-        kg4.read(file_name)
+        kg4 = treecorr.KGCorrelation.from_file(file_name)
         cov4 = kg4.estimate_cov('jackknife')
         np.testing.assert_allclose(cov4, kg.cov)
 
     # Also with ascii, since that works differeny.
     file_name = os.path.join('output','test_write_results_kg.dat')
     kg.write(file_name, write_patch_results=True)
-    kg5 = treecorr.KGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-    kg5.read(file_name)
+    kg5 = treecorr.KGCorrelation.from_file(file_name)
     cov5 = kg5.estimate_cov('jackknife')
     np.testing.assert_allclose(cov5, kg.cov)
 
@@ -2024,8 +1993,7 @@ def test_kappa_jk():
         # Finally with hdf
         file_name = os.path.join('output','test_write_results_kg.hdf5')
         kg.write(file_name, write_patch_results=True)
-        kg6 = treecorr.KGCorrelation(bin_size=0.3, min_sep=10., max_sep=50.)
-        kg6.read(file_name)
+        kg6 = treecorr.KGCorrelation.from_file(file_name)
         cov6 = kg6.estimate_cov('jackknife')
         np.testing.assert_allclose(cov6, kg.cov)
 
@@ -3033,8 +3001,7 @@ def test_config():
 
     # Check that we get the same result using the corr2 function
     treecorr.corr2(config, logger=logger)
-    gg2 = treecorr.GGCorrelation(config)
-    gg2.read(config['gg_file_name'])
+    gg2 = treecorr.GGCorrelation.from_file(config['gg_file_name'])
     print('gg.varxip = ',gg.varxip)
     print('gg2.varxip = ',gg2.varxip)
 

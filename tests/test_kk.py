@@ -136,6 +136,14 @@ def test_direct():
     # Check that the repr is minimal
     assert repr(kk3) == f'KKCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
+    # New in version 5.0 is a simpler API for reading
+    kk3b = treecorr.KKCorrelation.from_file(ascii_name)
+    np.testing.assert_allclose(kk3b.npairs, kk.npairs)
+    np.testing.assert_allclose(kk3b.weight, kk.weight)
+    np.testing.assert_allclose(kk3b.meanr, kk.meanr)
+    np.testing.assert_allclose(kk3b.meanlogr, kk.meanlogr)
+    np.testing.assert_allclose(kk3b.xi, kk.xi)
+
     try:
         import fitsio
     except ImportError:
@@ -150,6 +158,13 @@ def test_direct():
         np.testing.assert_allclose(kk4.meanr, kk.meanr)
         np.testing.assert_allclose(kk4.meanlogr, kk.meanlogr)
         np.testing.assert_allclose(kk4.xi, kk.xi)
+
+        kk4b = treecorr.KKCorrelation.from_file(fits_name)
+        np.testing.assert_allclose(kk4b.npairs, kk.npairs)
+        np.testing.assert_allclose(kk4b.weight, kk.weight)
+        np.testing.assert_allclose(kk4b.meanr, kk.meanr)
+        np.testing.assert_allclose(kk4b.meanlogr, kk.meanlogr)
+        np.testing.assert_allclose(kk4b.xi, kk.xi)
 
     with assert_raises(TypeError):
         kk2 += config
@@ -456,8 +471,7 @@ def test_kk():
         np.testing.assert_almost_equal(data['npairs'], kk.npairs)
 
         # Check the read function
-        kk2 = treecorr.KKCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin')
-        kk2.read(out_file_name)
+        kk2 = treecorr.KKCorrelation.from_file(out_file_name)
         np.testing.assert_almost_equal(kk2.logr, kk.logr)
         np.testing.assert_almost_equal(kk2.meanr, kk.meanr)
         np.testing.assert_almost_equal(kk2.meanlogr, kk.meanlogr)

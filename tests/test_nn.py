@@ -1259,6 +1259,19 @@ def test_nn():
 
     # Check that the repr is minimal
     assert repr(dd2) == f"NNCorrelation(bin_size=0.1, min_sep=1.0, max_sep=25.0, sep_units='arcmin')"
+    # Simpler API using from_file:
+    dd2b = treecorr.NNCorrelation.from_file(out_file_name)
+    np.testing.assert_allclose(dd2b.logr, dd.logr, rtol=1.e-3)
+    np.testing.assert_allclose(dd2b.meanr, dd.meanr, rtol=1.e-3)
+    np.testing.assert_allclose(dd2b.meanlogr, dd.meanlogr, rtol=1.e-3)
+    np.testing.assert_allclose(dd2b.npairs, dd.npairs, rtol=1.e-3)
+    np.testing.assert_allclose(dd2b.tot, dd.tot, rtol=1.e-3)
+    np.testing.assert_allclose(dd2b.xi, dd.xi, rtol=1.e-3)
+    np.testing.assert_allclose(dd2b.varxi, dd.varxi, rtol=1.e-3)
+    assert dd2b.coords == dd.coords
+    assert dd2b.metric == dd.metric
+    assert dd2b.sep_units == dd.sep_units
+    assert dd2b.bin_type == dd.bin_type
 
     # Check the fits write option
     try:
@@ -1349,6 +1362,19 @@ def test_nn():
         assert dd2.sep_units == dd.sep_units
         assert dd2.bin_type == dd.bin_type
 
+        dd2b = treecorr.NNCorrelation.from_file(out_file_name1)
+        np.testing.assert_almost_equal(dd2b.logr, dd.logr)
+        np.testing.assert_almost_equal(dd2b.meanr, dd.meanr)
+        np.testing.assert_almost_equal(dd2b.meanlogr, dd.meanlogr)
+        np.testing.assert_almost_equal(dd2b.npairs, dd.npairs)
+        np.testing.assert_almost_equal(dd2b.tot, dd.tot)
+        np.testing.assert_almost_equal(dd2b.xi, dd.xi)
+        np.testing.assert_almost_equal(dd2b.varxi, dd.varxi)
+        assert dd2b.coords == dd.coords
+        assert dd2b.metric == dd.metric
+        assert dd2b.sep_units == dd.sep_units
+        assert dd2b.bin_type == dd.bin_type
+
         dd3 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
         dd3.read(out_file_name3)
         np.testing.assert_almost_equal(dd3.logr, dd.logr)
@@ -1363,6 +1389,19 @@ def test_nn():
         assert dd3.sep_units == dd.sep_units
         assert dd3.bin_type == dd.bin_type
 
+        dd3b = treecorr.NNCorrelation.from_file(out_file_name3)
+        np.testing.assert_almost_equal(dd3b.logr, dd.logr)
+        np.testing.assert_almost_equal(dd3b.meanr, dd.meanr)
+        np.testing.assert_almost_equal(dd3b.meanlogr, dd.meanlogr)
+        np.testing.assert_almost_equal(dd3b.npairs, dd.npairs)
+        np.testing.assert_almost_equal(dd3b.tot, dd.tot)
+        np.testing.assert_almost_equal(dd3b.xi, dd.xi)
+        np.testing.assert_almost_equal(dd3b.varxi, dd.varxi)
+        assert dd3b.coords == dd.coords
+        assert dd3b.metric == dd.metric
+        assert dd3b.sep_units == dd.sep_units
+        assert dd3b.bin_type == dd.bin_type
+
         dd4 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
         dd4.read(out_file_name5)
         np.testing.assert_almost_equal(dd4.logr, dd.logr)
@@ -1376,6 +1415,19 @@ def test_nn():
         assert dd4.metric == dd.metric
         assert dd4.sep_units == dd.sep_units
         assert dd4.bin_type == dd.bin_type
+
+        dd4b = treecorr.NNCorrelation.from_file(out_file_name5)
+        np.testing.assert_almost_equal(dd4b.logr, dd.logr)
+        np.testing.assert_almost_equal(dd4b.meanr, dd.meanr)
+        np.testing.assert_almost_equal(dd4b.meanlogr, dd.meanlogr)
+        np.testing.assert_almost_equal(dd4b.npairs, dd.npairs)
+        np.testing.assert_almost_equal(dd4b.tot, dd.tot)
+        assert not hasattr(dd4b,'xi')
+        assert not hasattr(dd4b,'varxi')
+        assert dd4b.coords == dd.coords
+        assert dd4b.metric == dd.metric
+        assert dd4b.sep_units == dd.sep_units
+        assert dd4b.bin_type == dd.bin_type
 
     # Check the hdf5 write option
     try:
@@ -1399,8 +1451,7 @@ def test_nn():
             assert 'RR' not in data
             assert 'DR' not in data
 
-        dd6 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
-        dd6.read(out_file_name6)
+        dd6 = treecorr.NNCorrelation.from_file(out_file_name6)
         np.testing.assert_almost_equal(dd6.logr, dd.logr)
         np.testing.assert_almost_equal(dd6.meanr, dd.meanr)
         np.testing.assert_almost_equal(dd6.meanlogr, dd.meanlogr)

@@ -184,6 +184,17 @@ def test_direct():
     # Check that the repr is minimal
     assert repr(tt3) == f'TTCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
+    # Simpler API using from_file:
+    tt3b = treecorr.TTCorrelation.from_file(ascii_name)
+    np.testing.assert_allclose(tt3b.npairs, tt.npairs)
+    np.testing.assert_allclose(tt3b.weight, tt.weight)
+    np.testing.assert_allclose(tt3b.meanr, tt.meanr)
+    np.testing.assert_allclose(tt3b.meanlogr, tt.meanlogr)
+    np.testing.assert_allclose(tt3b.xip, tt.xip)
+    np.testing.assert_allclose(tt3b.xip_im, tt.xip_im)
+    np.testing.assert_allclose(tt3b.xim, tt.xim)
+    np.testing.assert_allclose(tt3b.xim_im, tt.xim_im)
+
     try:
         import fitsio
     except ImportError:
@@ -201,6 +212,16 @@ def test_direct():
         np.testing.assert_allclose(tt4.xip_im, tt.xip_im)
         np.testing.assert_allclose(tt4.xim, tt.xim)
         np.testing.assert_allclose(tt4.xim_im, tt.xim_im)
+
+        tt4b = treecorr.TTCorrelation.from_file(fits_name)
+        np.testing.assert_allclose(tt4b.npairs, tt.npairs)
+        np.testing.assert_allclose(tt4b.weight, tt.weight)
+        np.testing.assert_allclose(tt4b.meanr, tt.meanr)
+        np.testing.assert_allclose(tt4b.meanlogr, tt.meanlogr)
+        np.testing.assert_allclose(tt4b.xip, tt.xip)
+        np.testing.assert_allclose(tt4b.xip_im, tt.xip_im)
+        np.testing.assert_allclose(tt4b.xim, tt.xim)
+        np.testing.assert_allclose(tt4b.xim_im, tt.xim_im)
 
     with assert_raises(TypeError):
         tt2 += config
@@ -487,8 +508,7 @@ def test_tt():
     np.testing.assert_allclose(data['npairs'], tt.npairs)
 
     # Check the read function
-    tt2 = treecorr.TTCorrelation(bin_size=0.1, min_sep=10., max_sep=100., sep_units='arcmin')
-    tt2.read(out_file_name)
+    tt2 = treecorr.TTCorrelation.from_file(out_file_name)
     np.testing.assert_allclose(tt2.logr, tt.logr)
     np.testing.assert_allclose(tt2.meanr, tt.meanr)
     np.testing.assert_allclose(tt2.meanlogr, tt.meanlogr)
@@ -504,6 +524,7 @@ def test_tt():
     assert tt2.metric == tt.metric
     assert tt2.sep_units == tt.sep_units
     assert tt2.bin_type == tt.bin_type
+
 
 @timer
 def test_spherical():
@@ -911,8 +932,7 @@ def test_jk():
     else:
         file_name = os.path.join('output','test_write_results_tt.fits')
         tt2.write(file_name, write_patch_results=True)
-        tt3 = treecorr.TTCorrelation(corr_params)
-        tt3.read(file_name)
+        tt3 = treecorr.TTCorrelation.from_file(file_name)
         cov3 = tt3.estimate_cov('jackknife')
         np.testing.assert_allclose(cov3, cov2)
 
@@ -1000,8 +1020,7 @@ def test_twod():
     else:
         fits_name = 'output/tt_twod.fits'
         tt.write(fits_name)
-        tt2 = treecorr.TTCorrelation(bin_size=2, nbins=nbins, bin_type='TwoD')
-        tt2.read(fits_name)
+        tt2 = treecorr.TTCorrelation.from_file(fits_name)
         np.testing.assert_allclose(tt2.npairs, tt.npairs)
         np.testing.assert_allclose(tt2.weight, tt.weight)
         np.testing.assert_allclose(tt2.meanr, tt.meanr)
@@ -1013,8 +1032,7 @@ def test_twod():
 
     ascii_name = 'output/tt_twod.txt'
     tt.write(ascii_name, precision=16)
-    tt3 = treecorr.TTCorrelation(bin_size=2, nbins=nbins, bin_type='TwoD')
-    tt3.read(ascii_name)
+    tt3 = treecorr.TTCorrelation.from_file(ascii_name)
     np.testing.assert_allclose(tt3.npairs, tt.npairs)
     np.testing.assert_allclose(tt3.weight, tt.weight)
     np.testing.assert_allclose(tt3.meanr, tt.meanr)

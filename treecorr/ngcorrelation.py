@@ -516,11 +516,39 @@ class NGCorrelation(Corr2):
         params['metric'] = self.metric
         return params
 
+    @classmethod
+    def from_file(cls, file_name, *, file_type=None, logger=None, rng=None):
+        """Create an NGCorrelation instance from an output file.
+
+        This should be a file that was written by TreeCorr.
+
+        Parameters:
+            file_name (str):    The name of the file to read in.
+            file_type (str):    The type of file ('ASCII', 'FITS', or 'HDF').  (default: determine
+                                the type automatically from the extension of file_name.)
+            logger (Logger):    If desired, a logger object to use for logging. (default: None)
+            rng (RandomState):  If desired, a numpy.random.RandomState instance to use for bootstrap
+                                random number generation. (default: None)
+
+        Returns:
+            corr: An NGCorrelation object, constructed from the information in the file.
+        """
+        if logger:
+            logger.info('Building NGCorrelation from %s',file_name)
+        with make_reader(file_name, file_type, logger) as reader:
+            name = 'main' if 'main' in reader else None
+            params = reader.read_params(ext=name)
+            kwargs = make_minimal_config(params, Corr2._valid_params)
+            corr = cls(**kwargs, logger=logger, rng=rng)
+            corr.logger.info('Reading NG correlations from %s',file_name)
+            corr._read(reader, name=name, params=params)
+        return corr
+
     def read(self, file_name, *, file_type=None):
         """Read in values from a file.
 
-        This should be a file that was written by TreeCorr, preferably a FITS file, so there
-        is no loss of information.
+        This should be a file that was written by TreeCorr, preferably a FITS or HDF5 file, so
+        there is no loss of information.
 
         .. warning::
 

@@ -160,6 +160,15 @@ def test_direct():
     # Check that the repr is minimal
     assert repr(kq3) == f'KQCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
+    # New in version 5.0 is a simpler API for reading
+    kq3b = treecorr.KQCorrelation.from_file(ascii_name)
+    np.testing.assert_allclose(kq3b.npairs, kq.npairs)
+    np.testing.assert_allclose(kq3b.weight, kq.weight)
+    np.testing.assert_allclose(kq3b.meanr, kq.meanr)
+    np.testing.assert_allclose(kq3b.meanlogr, kq.meanlogr)
+    np.testing.assert_allclose(kq3b.xi, kq.xi)
+    np.testing.assert_allclose(kq3b.xi_im, kq.xi_im)
+
     try:
         import fitsio
     except ImportError:
@@ -175,6 +184,14 @@ def test_direct():
         np.testing.assert_allclose(kq4.meanlogr, kq.meanlogr)
         np.testing.assert_allclose(kq4.xi, kq.xi)
         np.testing.assert_allclose(kq4.xi_im, kq.xi_im)
+
+        kq4b = treecorr.KQCorrelation.from_file(fits_name)
+        np.testing.assert_allclose(kq4b.npairs, kq.npairs)
+        np.testing.assert_allclose(kq4b.weight, kq.weight)
+        np.testing.assert_allclose(kq4b.meanr, kq.meanr)
+        np.testing.assert_allclose(kq4b.meanlogr, kq.meanlogr)
+        np.testing.assert_allclose(kq4b.xi, kq.xi)
+        np.testing.assert_allclose(kq4b.xi_im, kq.xi_im)
 
     with assert_raises(TypeError):
         kq2 += config
@@ -453,9 +470,9 @@ def test_kq():
     except ImportError:
         pass
     else:
-        out_file_name1 = os.path.join('output','kg_out1.fits')
-        kq.write(out_file_name1)
-        data = fitsio.read(out_file_name1)
+        out_file_name = os.path.join('output','kg_out.fits')
+        kq.write(out_file_name)
+        data = fitsio.read(out_file_name)
         np.testing.assert_almost_equal(data['r_nom'], np.exp(kq.logr))
         np.testing.assert_almost_equal(data['meanr'], kq.meanr)
         np.testing.assert_almost_equal(data['meanlogr'], kq.meanlogr)
@@ -466,8 +483,7 @@ def test_kq():
         np.testing.assert_almost_equal(data['npairs'], kq.npairs)
 
         # Check the read function
-        kq2 = treecorr.KQCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin')
-        kq2.read(out_file_name1)
+        kq2 = treecorr.KQCorrelation.from_file(out_file_name)
         np.testing.assert_almost_equal(kq2.logr, kq.logr)
         np.testing.assert_almost_equal(kq2.meanr, kq.meanr)
         np.testing.assert_almost_equal(kq2.meanlogr, kq.meanlogr)
@@ -711,8 +727,7 @@ def test_jk():
     else:
         file_name = os.path.join('output','test_write_results_kq.fits')
         kq2.write(file_name, write_patch_results=True)
-        kq5 = treecorr.KQCorrelation(corr_params)
-        kq5.read(file_name)
+        kq5 = treecorr.KQCorrelation.from_file(file_name)
         cov5 = kq5.estimate_cov('jackknife')
         np.testing.assert_allclose(cov5, cov2)
 

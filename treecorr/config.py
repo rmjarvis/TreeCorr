@@ -429,4 +429,4 @@ def make_minimal_config(config, valid_params):
     Returns:
         minimal_config  The dict without any default values.
     """
-    return { k:v for k,v in config.items() if v != valid_params[k][2] }
+    return { k:v for k,v in config.items() if k in valid_params and v != valid_params[k][2] }

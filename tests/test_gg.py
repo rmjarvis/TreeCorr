@@ -168,6 +168,17 @@ def test_direct():
     # Check that the repr is minimal
     assert repr(gg3) == f'GGCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
+    # New in version 5.0 is a simpler API for reading
+    gg3b = treecorr.GGCorrelation.from_file(ascii_name)
+    np.testing.assert_allclose(gg3b.npairs, gg.npairs)
+    np.testing.assert_allclose(gg3b.weight, gg.weight)
+    np.testing.assert_allclose(gg3b.meanr, gg.meanr)
+    np.testing.assert_allclose(gg3b.meanlogr, gg.meanlogr)
+    np.testing.assert_allclose(gg3b.xip, gg.xip)
+    np.testing.assert_allclose(gg3b.xip_im, gg.xip_im)
+    np.testing.assert_allclose(gg3b.xim, gg.xim)
+    np.testing.assert_allclose(gg3b.xim_im, gg.xim_im)
+
     try:
         import fitsio
     except ImportError:
@@ -185,6 +196,16 @@ def test_direct():
         np.testing.assert_allclose(gg4.xip_im, gg.xip_im)
         np.testing.assert_allclose(gg4.xim, gg.xim)
         np.testing.assert_allclose(gg4.xim_im, gg.xim_im)
+
+        gg4b = treecorr.GGCorrelation.from_file(fits_name)
+        np.testing.assert_allclose(gg4b.npairs, gg.npairs)
+        np.testing.assert_allclose(gg4b.weight, gg.weight)
+        np.testing.assert_allclose(gg4b.meanr, gg.meanr)
+        np.testing.assert_allclose(gg4b.meanlogr, gg.meanlogr)
+        np.testing.assert_allclose(gg4b.xip, gg.xip)
+        np.testing.assert_allclose(gg4b.xip_im, gg.xip_im)
+        np.testing.assert_allclose(gg4b.xim, gg.xim)
+        np.testing.assert_allclose(gg4b.xim_im, gg.xim_im)
 
     with assert_raises(TypeError):
         gg2 += config
@@ -569,8 +590,7 @@ def test_gg():
     np.testing.assert_allclose(data['npairs'], gg.npairs)
 
     # Check the read function
-    gg2 = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin')
-    gg2.read(out_file_name)
+    gg2 = treecorr.GGCorrelation.from_file(out_file_name)
     np.testing.assert_allclose(gg2.logr, gg.logr)
     np.testing.assert_allclose(gg2.meanr, gg.meanr)
     np.testing.assert_allclose(gg2.meanlogr, gg.meanlogr)

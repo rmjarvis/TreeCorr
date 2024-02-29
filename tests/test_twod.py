@@ -227,8 +227,7 @@ def test_twod():
     else:
         fits_name = 'output/gg_twod.fits'
         gg.write(fits_name)
-        gg2 = treecorr.GGCorrelation(bin_size=2, nbins=nbins, bin_type='TwoD')
-        gg2.read(fits_name)
+        gg2 = treecorr.GGCorrelation.from_file(fits_name)
         np.testing.assert_allclose(gg2.npairs, gg.npairs)
         np.testing.assert_allclose(gg2.weight, gg.weight)
         np.testing.assert_allclose(gg2.meanr, gg.meanr)
@@ -240,8 +239,7 @@ def test_twod():
 
     ascii_name = 'output/gg_twod.txt'
     gg.write(ascii_name, precision=16)
-    gg3 = treecorr.GGCorrelation(bin_size=2, nbins=nbins, bin_type='TwoD')
-    gg3.read(ascii_name)
+    gg3 = treecorr.GGCorrelation.from_file(ascii_name)
     np.testing.assert_allclose(gg3.npairs, gg.npairs)
     np.testing.assert_allclose(gg3.weight, gg.weight)
     np.testing.assert_allclose(gg3.meanr, gg.meanr)

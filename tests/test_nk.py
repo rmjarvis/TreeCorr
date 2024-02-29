@@ -149,6 +149,14 @@ def test_direct():
     # Check that the repr is minimal
     assert repr(nk3) == f'NKCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
+    # Simpler API using from_file:
+    nk3b = treecorr.NKCorrelation.from_file(ascii_name)
+    np.testing.assert_allclose(nk3b.npairs, nk.npairs)
+    np.testing.assert_allclose(nk3b.weight, nk.weight)
+    np.testing.assert_allclose(nk3b.meanr, nk.meanr)
+    np.testing.assert_allclose(nk3b.meanlogr, nk.meanlogr)
+    np.testing.assert_allclose(nk3b.xi, nk.xi)
+
     with assert_raises(TypeError):
         nk2 += config
     nk4 = treecorr.NKCorrelation(min_sep=min_sep/2, max_sep=max_sep, nbins=nbins)
@@ -175,6 +183,13 @@ def test_direct():
         np.testing.assert_allclose(nk4.meanr, nk.meanr)
         np.testing.assert_allclose(nk4.meanlogr, nk.meanlogr)
         np.testing.assert_allclose(nk4.xi, nk.xi)
+
+        nk4b = treecorr.NKCorrelation.from_file(fits_name)
+        np.testing.assert_allclose(nk4b.npairs, nk.npairs)
+        np.testing.assert_allclose(nk4b.weight, nk.weight)
+        np.testing.assert_allclose(nk4b.meanr, nk.meanr)
+        np.testing.assert_allclose(nk4b.meanlogr, nk.meanlogr)
+        np.testing.assert_allclose(nk4b.xi, nk.xi)
 
     with assert_raises(ValueError):
         nk.process(cat1, cat2, patch_method='nonlocal')
@@ -454,8 +469,7 @@ def test_nk():
         np.testing.assert_almost_equal(data['npairs'], nk.npairs)
 
         # Check the read function
-        nk2 = treecorr.NKCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin')
-        nk2.read(out_file_name2)
+        nk2 = treecorr.NKCorrelation.from_file(out_file_name2)
         np.testing.assert_almost_equal(nk2.logr, nk.logr)
         np.testing.assert_almost_equal(nk2.meanr, nk.meanr)
         np.testing.assert_almost_equal(nk2.meanlogr, nk.meanlogr)

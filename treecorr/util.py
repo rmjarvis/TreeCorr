@@ -109,7 +109,7 @@ def parse_file_type(file_type, file_name, output=False, logger=None):
 
     :param file_type:   The input file_type.  If None, then parse from file_name's extension.
     :param file_name:   The filename to use for parsing if necessary.
-    :param output:      Limit to output file types (FITS/ASCII)? (default: False)
+    :param output:      Limit to output file types (FITS/HDF/ASCII)? (default: False)
     :param logger:      A logger if desired. (default: None)
 
     :returns: The parsed file_type.

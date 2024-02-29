@@ -160,6 +160,15 @@ def test_direct():
     # Check that the repr is minimal
     assert repr(kv3) == f'KVCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
+    # Simpler API using from_file:
+    kv3b = treecorr.KVCorrelation.from_file(ascii_name)
+    np.testing.assert_allclose(kv3b.npairs, kv.npairs)
+    np.testing.assert_allclose(kv3b.weight, kv.weight)
+    np.testing.assert_allclose(kv3b.meanr, kv.meanr)
+    np.testing.assert_allclose(kv3b.meanlogr, kv.meanlogr)
+    np.testing.assert_allclose(kv3b.xi, kv.xi)
+    np.testing.assert_allclose(kv3b.xi_im, kv.xi_im)
+
     try:
         import fitsio
     except ImportError:
@@ -175,6 +184,14 @@ def test_direct():
         np.testing.assert_allclose(kv4.meanlogr, kv.meanlogr)
         np.testing.assert_allclose(kv4.xi, kv.xi)
         np.testing.assert_allclose(kv4.xi_im, kv.xi_im)
+
+        kv4b = treecorr.KVCorrelation.from_file(fits_name)
+        np.testing.assert_allclose(kv4b.npairs, kv.npairs)
+        np.testing.assert_allclose(kv4b.weight, kv.weight)
+        np.testing.assert_allclose(kv4b.meanr, kv.meanr)
+        np.testing.assert_allclose(kv4b.meanlogr, kv.meanlogr)
+        np.testing.assert_allclose(kv4b.xi, kv.xi)
+        np.testing.assert_allclose(kv4b.xi_im, kv.xi_im)
 
     with assert_raises(TypeError):
         kv2 += config
@@ -463,8 +480,7 @@ def test_kv():
         np.testing.assert_almost_equal(data['npairs'], kv.npairs)
 
         # Check the read function
-        kv2 = treecorr.KVCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin')
-        kv2.read(out_file_name1)
+        kv2 = treecorr.KVCorrelation.from_file(out_file_name1)
         np.testing.assert_almost_equal(kv2.logr, kv.logr)
         np.testing.assert_almost_equal(kv2.meanr, kv.meanr)
         np.testing.assert_almost_equal(kv2.meanlogr, kv.meanlogr)
@@ -720,8 +736,7 @@ def test_jk():
     else:
         file_name = os.path.join('output','test_write_results_kv.fits')
         kv2.write(file_name, write_patch_results=True)
-        kv5 = treecorr.KVCorrelation(corr_params)
-        kv5.read(file_name)
+        kv5 = treecorr.KVCorrelation.from_file(file_name)
         cov5 = kv5.estimate_cov('jackknife')
         np.testing.assert_allclose(cov5, cov2)
 

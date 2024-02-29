@@ -541,17 +541,31 @@ class FitsReader(object):
         ext = self._update_ext(ext)
         return self.file[ext][cols][s]
 
-    def read_params(self, ext=None):
+    def read_params(self, ext=None, clean=True):
         """Read the params in the given extension, if any.
 
         Parameters:
-            ext (str/int):      The FITS extension to use (default: 1)
+            ext (str/int):      The FITS extension to use. (default: 1)
+            clean (bool):       Whether to remove all FITS-specific things in the header and
+                                convert to a regular python dict. (default: True)
 
         Returns:
             params
         """
         ext = self._update_ext(ext)
         params = self.file[ext].read_header()
+        if clean:
+            # Convert to dict for convience downstream
+            # and remove all the standard FITS header keys while we're at it.
+            new_params = {}
+            for k in params:
+                if k in ['XTENSION', 'BITPIX', 'PCOUNT', 'GCOUNT', 'TFIELDS', 'EXTNAME']: continue
+                if k.startswith('NAXIS'): continue
+                if k.startswith('NAXIS'): continue
+                if k.startswith('TTYPE'): continue
+                if k.startswith('TFORM'): continue
+                new_params[k.lower()] = params[k]
+            params = new_params
         return params
 
     def read_data(self, ext=None, max_rows=None):

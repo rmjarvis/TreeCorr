@@ -160,6 +160,15 @@ def test_direct():
     # Check that the repr is minimal
     assert repr(kt3) == f'KTCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
+    # Simpler API using from_file:
+    kt3b = treecorr.KTCorrelation.from_file(ascii_name)
+    np.testing.assert_allclose(kt3b.npairs, kt.npairs)
+    np.testing.assert_allclose(kt3b.weight, kt.weight)
+    np.testing.assert_allclose(kt3b.meanr, kt.meanr)
+    np.testing.assert_allclose(kt3b.meanlogr, kt.meanlogr)
+    np.testing.assert_allclose(kt3b.xi, kt.xi)
+    np.testing.assert_allclose(kt3b.xi_im, kt.xi_im)
+
     try:
         import fitsio
     except ImportError:
@@ -175,6 +184,14 @@ def test_direct():
         np.testing.assert_allclose(kt4.meanlogr, kt.meanlogr)
         np.testing.assert_allclose(kt4.xi, kt.xi)
         np.testing.assert_allclose(kt4.xi_im, kt.xi_im)
+
+        kt4b = treecorr.KTCorrelation.from_file(fits_name)
+        np.testing.assert_allclose(kt4b.npairs, kt.npairs)
+        np.testing.assert_allclose(kt4b.weight, kt.weight)
+        np.testing.assert_allclose(kt4b.meanr, kt.meanr)
+        np.testing.assert_allclose(kt4b.meanlogr, kt.meanlogr)
+        np.testing.assert_allclose(kt4b.xi, kt.xi)
+        np.testing.assert_allclose(kt4b.xi_im, kt.xi_im)
 
     with assert_raises(TypeError):
         kt2 += config
@@ -452,9 +469,9 @@ def test_kt():
     except ImportError:
         pass
     else:
-        out_file_name1 = os.path.join('output','kg_out1.fits')
-        kt.write(out_file_name1)
-        data = fitsio.read(out_file_name1)
+        out_file_name = os.path.join('output','kg_out1.fits')
+        kt.write(out_file_name)
+        data = fitsio.read(out_file_name)
         np.testing.assert_almost_equal(data['r_nom'], np.exp(kt.logr))
         np.testing.assert_almost_equal(data['meanr'], kt.meanr)
         np.testing.assert_almost_equal(data['meanlogr'], kt.meanlogr)
@@ -465,8 +482,7 @@ def test_kt():
         np.testing.assert_almost_equal(data['npairs'], kt.npairs)
 
         # Check the read function
-        kt2 = treecorr.KTCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin')
-        kt2.read(out_file_name1)
+        kt2 = treecorr.KTCorrelation.from_file(out_file_name)
         np.testing.assert_almost_equal(kt2.logr, kt.logr)
         np.testing.assert_almost_equal(kt2.meanr, kt.meanr)
         np.testing.assert_almost_equal(kt2.meanlogr, kt.meanlogr)
@@ -710,8 +726,7 @@ def test_jk():
     else:
         file_name = os.path.join('output','test_write_results_kt.fits')
         kt2.write(file_name, write_patch_results=True)
-        kt5 = treecorr.KTCorrelation(corr_params)
-        kt5.read(file_name)
+        kt5 = treecorr.KTCorrelation.from_file(file_name)
         cov5 = kt5.estimate_cov('jackknife')
         np.testing.assert_allclose(cov5, cov2)
 

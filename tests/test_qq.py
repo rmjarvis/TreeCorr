@@ -185,6 +185,17 @@ def test_direct():
     # Check that the repr is minimal
     assert repr(qq3) == f'QQCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
+    # Simpler API using from_file:
+    qq3b = treecorr.QQCorrelation.from_file(ascii_name)
+    np.testing.assert_allclose(qq3b.npairs, qq.npairs)
+    np.testing.assert_allclose(qq3b.weight, qq.weight)
+    np.testing.assert_allclose(qq3b.meanr, qq.meanr)
+    np.testing.assert_allclose(qq3b.meanlogr, qq.meanlogr)
+    np.testing.assert_allclose(qq3b.xip, qq.xip)
+    np.testing.assert_allclose(qq3b.xip_im, qq.xip_im)
+    np.testing.assert_allclose(qq3b.xim, qq.xim)
+    np.testing.assert_allclose(qq3b.xim_im, qq.xim_im)
+
     try:
         import fitsio
     except ImportError:
@@ -202,6 +213,16 @@ def test_direct():
         np.testing.assert_allclose(qq4.xip_im, qq.xip_im)
         np.testing.assert_allclose(qq4.xim, qq.xim)
         np.testing.assert_allclose(qq4.xim_im, qq.xim_im)
+
+        qq4b = treecorr.QQCorrelation.from_file(fits_name)
+        np.testing.assert_allclose(qq4b.npairs, qq.npairs)
+        np.testing.assert_allclose(qq4b.weight, qq.weight)
+        np.testing.assert_allclose(qq4b.meanr, qq.meanr)
+        np.testing.assert_allclose(qq4b.meanlogr, qq.meanlogr)
+        np.testing.assert_allclose(qq4b.xip, qq.xip)
+        np.testing.assert_allclose(qq4b.xip_im, qq.xip_im)
+        np.testing.assert_allclose(qq4b.xim, qq.xim)
+        np.testing.assert_allclose(qq4b.xim_im, qq.xim_im)
 
     with assert_raises(TypeError):
         qq2 += config
@@ -487,8 +508,7 @@ def test_qq():
     np.testing.assert_allclose(data['npairs'], qq.npairs)
 
     # Check the read function
-    qq2 = treecorr.QQCorrelation(bin_size=0.1, min_sep=10., max_sep=100., sep_units='arcmin')
-    qq2.read(out_file_name)
+    qq2 = treecorr.QQCorrelation.from_file(out_file_name)
     np.testing.assert_allclose(qq2.logr, qq.logr)
     np.testing.assert_allclose(qq2.meanr, qq.meanr)
     np.testing.assert_allclose(qq2.meanlogr, qq.meanlogr)
@@ -504,6 +524,7 @@ def test_qq():
     assert qq2.metric == qq.metric
     assert qq2.sep_units == qq.sep_units
     assert qq2.bin_type == qq.bin_type
+
 
 @timer
 def test_spherical():
@@ -913,8 +934,7 @@ def test_jk():
     else:
         file_name = os.path.join('output','test_write_results_qq.fits')
         qq2.write(file_name, write_patch_results=True)
-        qq3 = treecorr.QQCorrelation(corr_params)
-        qq3.read(file_name)
+        qq3 = treecorr.QQCorrelation.from_file(file_name)
         cov3 = qq3.estimate_cov('jackknife')
         np.testing.assert_allclose(cov3, cov2)
 
@@ -1002,8 +1022,7 @@ def test_twod():
     else:
         fits_name = 'output/qq_twod.fits'
         qq.write(fits_name)
-        qq2 = treecorr.QQCorrelation(bin_size=2, nbins=nbins, bin_type='TwoD')
-        qq2.read(fits_name)
+        qq2 = treecorr.QQCorrelation.from_file(fits_name)
         np.testing.assert_allclose(qq2.npairs, qq.npairs)
         np.testing.assert_allclose(qq2.weight, qq.weight)
         np.testing.assert_allclose(qq2.meanr, qq.meanr)
@@ -1015,8 +1034,7 @@ def test_twod():
 
     ascii_name = 'output/qq_twod.txt'
     qq.write(ascii_name, precision=16)
-    qq3 = treecorr.QQCorrelation(bin_size=2, nbins=nbins, bin_type='TwoD')
-    qq3.read(ascii_name)
+    qq3 = treecorr.QQCorrelation.from_file(ascii_name)
     np.testing.assert_allclose(qq3.npairs, qq.npairs)
     np.testing.assert_allclose(qq3.weight, qq.weight)
     np.testing.assert_allclose(qq3.meanr, qq.meanr)

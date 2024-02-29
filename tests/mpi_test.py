@@ -344,14 +344,10 @@ def do_mpi_cov(comm, method, output=True):
 
     # Finally, read back in from the save file and redo the covariance.
     rng = np.random.default_rng(31415)
-    gg = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng)
-    ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng)
-    nn = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng)
-    rr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng)
-    gg.read(gg_save_file)
-    ng.read(ng_save_file)
-    nn.read(nn_save_file)
-    rr.read(rr_save_file)
+    gg = treecorr.GGCorrelation.from_file(gg_save_file, rng=rng)
+    ng = treecorr.NGCorrelation.from_file(ng_save_file, rng=rng)
+    nn = treecorr.NNCorrelation.from_file(nn_save_file, rng=rng)
+    rr = treecorr.NNCorrelation.from_file(rr_save_file, rng=rng)
 
     ng.calculateXi()
     nn.calculateXi(rr=rr)

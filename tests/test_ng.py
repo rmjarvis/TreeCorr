@@ -169,6 +169,15 @@ def test_direct():
     # Check that the repr is minimal
     assert repr(ng3) == f'NGCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
+    # Simpler API using from_file:
+    ng3b = treecorr.NGCorrelation.from_file(ascii_name)
+    np.testing.assert_allclose(ng3b.npairs, ng.npairs)
+    np.testing.assert_allclose(ng3b.weight, ng.weight)
+    np.testing.assert_allclose(ng3b.meanr, ng.meanr)
+    np.testing.assert_allclose(ng3b.meanlogr, ng.meanlogr)
+    np.testing.assert_allclose(ng3b.xi, ng.xi)
+    np.testing.assert_allclose(ng3b.xi_im, ng.xi_im)
+
     try:
         import fitsio
     except ImportError:
@@ -184,6 +193,14 @@ def test_direct():
         np.testing.assert_allclose(ng4.meanlogr, ng.meanlogr)
         np.testing.assert_allclose(ng4.xi, ng.xi)
         np.testing.assert_allclose(ng4.xi_im, ng.xi_im)
+
+        ng4b = treecorr.NGCorrelation.from_file(fits_name)
+        np.testing.assert_allclose(ng4b.npairs, ng.npairs)
+        np.testing.assert_allclose(ng4b.weight, ng.weight)
+        np.testing.assert_allclose(ng4b.meanr, ng.meanr)
+        np.testing.assert_allclose(ng4b.meanlogr, ng.meanlogr)
+        np.testing.assert_allclose(ng4b.xi, ng.xi)
+        np.testing.assert_allclose(ng4b.xi_im, ng.xi_im)
 
     with assert_raises(TypeError):
         ng2 += config
@@ -669,8 +686,7 @@ def test_ng():
         np.testing.assert_almost_equal(data['npairs'], ng.npairs)
 
         # Check the read function
-        ng2 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin')
-        ng2.read(out_file_name2)
+        ng2 = treecorr.NGCorrelation.from_file(out_file_name2)
         np.testing.assert_almost_equal(ng2.logr, ng.logr)
         np.testing.assert_almost_equal(ng2.meanr, ng.meanr)
         np.testing.assert_almost_equal(ng2.meanlogr, ng.meanlogr)

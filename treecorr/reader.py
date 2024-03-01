@@ -528,12 +528,12 @@ class FitsReader(object):
             raise ValueError("Invalid ext={} for file {} (Not a TableHDU)".format(
                              ext, self.file_name))
 
-    def _update_ext(self, ext):
+    def _update_ext(self, ext, default=1):
         # FITS extensions can be indexed by number or
         # string.  Try converting to an integer if the current
         # value is not found.  If not let the error be caught later.
         if ext is None:
-            ext = 1
+            ext = default
         if ext not in self.file:
             try:
                 ext = int(ext)
@@ -606,7 +606,7 @@ class FitsReader(object):
         Returns:
             array
         """
-        ext = self._update_ext(ext)
+        ext = self._update_ext(ext, 0)
         data = self.file[ext].read()
         assert data.shape == shape
         return data

@@ -117,6 +117,17 @@ def test_fits_reader():
     assert np.array_equal(data['KAPPA'], kappa)
     assert np.array_equal(data['MU'], mu)
 
+    # Test write_array, read_array
+    cov = np.random.normal(5, 1, size=(10,10))
+    with FitsWriter(os.path.join('output','test_fits_writer_ar.fits')) as w:
+        w.write_array(cov)
+        w.write_array(2*cov, ext='double')
+    with FitsReader(os.path.join('output','test_fits_writer_ar.fits')) as r:
+        cov1 = r.read_array(cov.shape)
+        cov2 = r.read_array(cov.shape, ext='double')
+    np.testing.assert_array_equal(cov1, cov)
+    np.testing.assert_array_equal(cov2, 2*cov)
+
     # Use make_writer, make_reader
     with make_writer(os.path.join('output','test_fits_writer.fits')) as w:
         w.write(['KAPPA', 'MU'], [kappa, mu], params={'test': True})
@@ -260,6 +271,17 @@ def test_hdf_reader():
     assert params['test']
     assert np.array_equal(data['KAPPA'], kappa)
     assert np.array_equal(data['MU'], mu)
+
+    # Test write_array, read_array
+    cov = np.random.normal(5, 1, size=(10,10))
+    with HdfWriter(os.path.join('output','test_fits_writer_ar.hdf')) as w:
+        w.write_array(cov)
+        w.write_array(2*cov, ext='double')
+    with HdfReader(os.path.join('output','test_fits_writer_ar.hdf')) as r:
+        cov1 = r.read_array(cov.shape)
+        cov2 = r.read_array(cov.shape, ext='double')
+    np.testing.assert_array_equal(cov1, cov)
+    np.testing.assert_array_equal(cov2, 2*cov)
 
     # Not allowed to write when not in with context
     w = HdfWriter(os.path.join('output','test_hdf_writer.hdf'))
@@ -484,6 +506,17 @@ def _test_ascii_reader(r, has_names=True):
     with AsciiReader(os.path.join('output','test_ascii_writer.dat')) as r:
         with assert_raises(OSError):
             params = r.read_params(ext='gg')
+
+    # Test write_array, read_array
+    cov = np.random.normal(5, 1, size=(10,10))
+    with AsciiWriter(os.path.join('output','test_fits_writer_ar.dat'), precision=16) as w:
+        w.write_array(cov)
+        w.write_array(2*cov, ext='double')
+    with AsciiReader(os.path.join('output','test_fits_writer_ar.dat')) as r:
+        cov1 = r.read_array(cov.shape)
+        cov2 = r.read_array(cov.shape, ext='double')
+    np.testing.assert_array_equal(cov1, cov)
+    np.testing.assert_array_equal(cov2, 2*cov)
 
     # Test no ext name
     with AsciiWriter(os.path.join('output','test_ascii_writer.dat'), precision=16) as w:

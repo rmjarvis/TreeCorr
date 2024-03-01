@@ -37,7 +37,7 @@ API Changes
 - Changed estimate_cov with method='shot' to only return the diagonal, rather than gratuitously
   making a full, mostly empty diagonal matrix. (#166)
 - Changed name of Catalog.write kwarg from cat_precision to just precision. (#169)
-- Output files had additional information in the header to enable ``from_file``. (#172)
+- Added additionaly information in the header of output files to enable ``from_file``. (#172)
 
 
 Performance improvements
@@ -84,6 +84,8 @@ New features
   so you no longer have to separately write files for them to recover the covariance. (#172)
 - Added :ref:`from_file <GGCorrlation.from_file>` class methods to construct a Correlation
   object from a file without needing to know the correct configuration parameters. (#172)
+- Added ``write_cov`` option to write functions to include the covariance in the output file.
+  (#172)
 
 
 Bug fixes

@@ -249,6 +249,11 @@ def test_kkk_logruv_jk():
         cov3 = kkk3.estimate_cov('jackknife')
         np.testing.assert_allclose(cov3, cov1)
 
+        # With write_cov=True, cov is serialized as well.
+        kkkp.write(file_name, write_patch_results=True, write_cov=True)
+        kkk3 = treecorr.KKKCorrelation.from_file(file_name)
+        np.testing.assert_allclose(kkk3.cov, kkkp.cov)
+
     # Also with ascii, since that works differeny.
     file_name = os.path.join('output','test_write_results_kkk.dat')
     kkkp.write(file_name, write_patch_results=True)
@@ -258,6 +263,10 @@ def test_kkk_logruv_jk():
     kkk4.read(file_name)
     cov4 = kkk4.estimate_cov('jackknife')
     np.testing.assert_allclose(cov4, cov1)
+
+    kkkp.write(file_name, write_patch_results=True, write_cov=True)
+    kkk4 = treecorr.KKKCorrelation.from_file(file_name)
+    np.testing.assert_allclose(kkk4.cov, kkkp.cov)
 
     # And also try to match the type if HDF
     try:
@@ -276,6 +285,10 @@ def test_kkk_logruv_jk():
         kkk5.read(file_name)
         cov5 = kkk5.estimate_cov('jackknife')
         np.testing.assert_allclose(cov5, cov1)
+
+        kkkp.write(file_name, write_patch_results=True, write_cov=True)
+        kkk5 = treecorr.KKKCorrelation.from_file(file_name)
+        np.testing.assert_allclose(kkk5.cov, kkkp.cov)
 
     # Now as a cross correlation with all 3 using the same patch catalog.
     print('with 3 patched catalogs:')
@@ -772,6 +785,10 @@ def test_ggg_logruv_jk():
         print('cov3 = ',cov3)
         np.testing.assert_allclose(cov3, cov1)
 
+        gggp.write(file_name, write_patch_results=True, write_cov=True)
+        ggg3 = treecorr.GGGCorrelation.from_file(file_name)
+        np.testing.assert_allclose(ggg3.cov, gggp.cov)
+
     # Also with ascii, since that works differeny.
     file_name = os.path.join('output','test_write_results_ggg.dat')
     gggp.write(file_name, write_patch_results=True)
@@ -781,6 +798,10 @@ def test_ggg_logruv_jk():
     ggg4.read(file_name)
     cov4 = ggg4.estimate_cov('jackknife', func=f)
     np.testing.assert_allclose(cov4, cov1)
+
+    gggp.write(file_name, write_patch_results=True, write_cov=True)
+    ggg4 = treecorr.GGGCorrelation.from_file(file_name)
+    np.testing.assert_allclose(ggg4.cov, gggp.cov)
 
     # And also try to match the type if HDF
     try:
@@ -799,6 +820,10 @@ def test_ggg_logruv_jk():
         ggg5.read(file_name)
         cov5 = ggg5.estimate_cov('jackknife', func=f)
         np.testing.assert_allclose(cov5, cov1)
+
+        gggp.write(file_name, write_patch_results=True, write_cov=True)
+        ggg5 = treecorr.GGGCorrelation.from_file(file_name)
+        np.testing.assert_allclose(ggg5.cov, gggp.cov)
 
     # Now as a cross correlation with all 3 using the same patch catalog.
     print('with 3 patched catalogs:')
@@ -1501,14 +1526,13 @@ def test_nnn_logruv_jk():
 
         # It should also work (now, as of version 5.0) from just the ddd output file.
         ddd3b = treecorr.NNNCorrelation.from_file(file_name)
-        print('ddd3.results = ',ddd3.results)
-        print('ddd3b.results = ',ddd3b.results)
-        print('ddd3._rrr = ',ddd3._rrr)
-        print('ddd3b._rrr = ',ddd3b._rrr)
-        print('ddd3._rrr.results = ',ddd3._rrr.results)
-        print('ddd3b._rrr.results = ',ddd3b._rrr.results)
         cov3b = ddd3b.estimate_cov('jackknife')
         np.testing.assert_allclose(cov3b, cov1)
+
+        # And with write_cov=True, the covariance matrix is serialized as well.
+        dddp.write(file_name, write_patch_results=True, write_cov=True)
+        ddd3c = treecorr.NNNCorrelation.from_file(file_name)
+        np.testing.assert_allclose(ddd3c.cov, dddp.cov)
 
     # Also with ascii, since that works differeny.
     file_name = os.path.join('output','test_write_results_ddd.dat')
@@ -1531,6 +1555,10 @@ def test_nnn_logruv_jk():
     ddd4b = treecorr.NNNCorrelation.from_file(file_name)
     cov4b = ddd4b.estimate_cov('jackknife')
     np.testing.assert_allclose(cov4b, cov1)
+
+    dddp.write(file_name, write_patch_results=True, write_cov=True)
+    ddd4c = treecorr.NNNCorrelation.from_file(file_name)
+    np.testing.assert_allclose(ddd4c.cov, dddp.cov)
 
     # And also try to match the type if HDF
     try:
@@ -1566,6 +1594,10 @@ def test_nnn_logruv_jk():
         ddd5b = treecorr.NNNCorrelation.from_file(file_name)
         cov5b = ddd5b.estimate_cov('jackknife')
         np.testing.assert_allclose(cov5b, cov1)
+
+        dddp.write(file_name, write_patch_results=True, write_cov=True)
+        ddd5c = treecorr.NNNCorrelation.from_file(file_name)
+        np.testing.assert_allclose(ddd5c.cov, dddp.cov)
 
     # Don't check LogSAS for accuracy.  Just make sure the code runs.
     print('LogSAS')

@@ -1399,7 +1399,10 @@ class Corr2(object):
     def _bootstrap_pairs(self, index):
         return self.BootstrapPairIterator(self.results, self.npatch1, self.npatch2, index, self._ok)
 
-    def _write(self, writer, name, write_patch_results, zero_tot=False):
+    def _write(self, writer, name, write_patch_results, write_cov=False, zero_tot=False):
+        if name is None and (write_patch_results or write_cov):
+            # HDF doesn't work right with multiple groups unless they all have non-empty names.
+            name = 'main'
         # These helper properties define what to write for each class.
         col_names = self._write_col_names
         data = self._write_data
@@ -1422,6 +1425,8 @@ class Corr2(object):
                         i += 1
                 params['num_zero_patch'] = i
             params['num_patch_pairs'] = num_patch_pairs
+        if write_cov:
+            params['cov_shape'] = self.cov.shape
 
         writer.write(col_names, data, params=params, ext=name)
         if write_patch_results:
@@ -1437,6 +1442,8 @@ class Corr2(object):
                 writer.write(col_names, data, params=params, ext=pp_name)
                 i += 1
             assert i == num_patch_pairs
+        if write_cov:
+            writer.write_array(self.cov, ext='cov')
 
     def _read(self, reader, name=None, params=None):
         name = 'main' if 'main' in reader and name is None else name
@@ -1445,6 +1452,7 @@ class Corr2(object):
         num_rows = params.get('num_rows', None)
         num_patch_pairs = params.get('num_patch_pairs', 0)
         num_zero_patch = params.get('num_zero_patch', 0)
+        cov_shape = params.get('cov_shape', None)
         name = 'main' if num_patch_pairs and name is None else name
         data = reader.read_data(max_rows=num_rows, ext=name)
 
@@ -1465,6 +1473,10 @@ class Corr2(object):
             corr._read_from_data(data, params)
             key = eval(params['key'])
             self.results[key] = corr
+        if cov_shape is not None:
+            if isinstance(cov_shape, str):
+                cov_shape = eval(cov_shape)
+            self._cov = reader.read_array(cov_shape, ext='cov')
 
 def estimate_multi_cov(corrs, method, *, func=None, comm=None):
     """Estimate the covariance matrix of multiple statistics.

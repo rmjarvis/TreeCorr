@@ -913,6 +913,11 @@ def test_gg_jk():
         covxip4 = gg4.estimate_cov('jackknife', func=lambda gg: gg.xip)
         np.testing.assert_allclose(covxip4, covxip)
 
+        # With write_cov=True, cov is serialized as well.
+        gg3.write(file_name, write_patch_results=True, write_cov=True)
+        gg4 = treecorr.GGCorrelation.from_file(file_name)
+        np.testing.assert_allclose(gg4.cov, gg3.cov)
+
     # Also with ascii, since that works differeny.
     file_name = os.path.join('output','test_write_results_gg.dat')
     gg3.write(file_name, write_patch_results=True)
@@ -921,6 +926,10 @@ def test_gg_jk():
     np.testing.assert_allclose(cov5, gg3.cov)
     covxip5 = gg5.estimate_cov('jackknife', func=lambda gg: gg.xip)
     np.testing.assert_allclose(covxip5, covxip)
+
+    gg3.write(file_name, write_patch_results=True, write_cov=True)
+    gg5 = treecorr.GGCorrelation.from_file(file_name)
+    np.testing.assert_allclose(gg5.cov, gg3.cov)
 
     # And also try to match the type if HDF
     try:
@@ -936,6 +945,10 @@ def test_gg_jk():
         np.testing.assert_allclose(cov6, gg3.cov)
         covxip6 = gg6.estimate_cov('jackknife', func=lambda gg: gg.xip)
         np.testing.assert_allclose(covxip6, covxip)
+
+        gg3.write(file_name, write_cov=True)
+        gg6 = treecorr.GGCorrelation.from_file(file_name)
+        np.testing.assert_allclose(gg6.cov, gg3.cov)
 
     # Check some invalid actions
     # Bad var_method
@@ -1226,12 +1239,21 @@ def test_ng_jk():
         cov4 = ng4.estimate_cov('jackknife')
         np.testing.assert_allclose(cov4, ng3.cov)
 
+        # With write_cov=True, cov is serialized as well.
+        ng3.write(file_name, write_patch_results=True, write_cov=True)
+        ng4 = treecorr.NGCorrelation.from_file(file_name)
+        np.testing.assert_allclose(ng4.cov, ng3.cov)
+
     # Also with ascii, since that works differeny.
     file_name = os.path.join('output','test_write_results_ng.dat')
     ng3.write(file_name, write_patch_results=True)
     ng5 = treecorr.NGCorrelation.from_file(file_name)
     cov5 = ng5.estimate_cov('jackknife')
     np.testing.assert_allclose(cov5, ng3.cov)
+
+    ng3.write(file_name, write_patch_results=True, write_cov=True)
+    ng5 = treecorr.NGCorrelation.from_file(file_name)
+    np.testing.assert_allclose(ng5.cov, ng3.cov)
 
     # And also try to match the type if HDF
     try:
@@ -1245,6 +1267,10 @@ def test_ng_jk():
         ng6 = treecorr.NGCorrelation.from_file(file_name)
         cov6 = ng6.estimate_cov('jackknife')
         np.testing.assert_allclose(cov6, ng3.cov)
+
+        ng3.write(file_name, write_patch_results=True, write_cov=True)
+        ng6 = treecorr.NGCorrelation.from_file(file_name)
+        np.testing.assert_allclose(ng6.cov, ng3.cov)
 
     # Use a random catalog
     # In this case the locations of the source catalog are fine to use as our random catalog,
@@ -1545,6 +1571,11 @@ def test_nn_jk():
         cov4 = nn4.estimate_cov('jackknife')
         np.testing.assert_allclose(cov4, nn3.cov)
 
+        # With write_cov=True, cov is serialized as well.
+        nn3.write(file_name, write_patch_results=True, write_cov=True)
+        nn4 = treecorr.NNCorrelation.from_file(file_name)
+        np.testing.assert_allclose(nn4.cov, nn3.cov)
+
     # Also with ascii, since that works differeny.
     file_name = os.path.join('output','test_write_results_dd.dat')
     rr_file_name = os.path.join('output','test_write_results_rr.dat')
@@ -1562,6 +1593,10 @@ def test_nn_jk():
     nn5 = treecorr.NNCorrelation.from_file(file_name)
     cov5 = nn5.estimate_cov('jackknife')
     np.testing.assert_allclose(cov5, nn3.cov)
+
+    nn3.write(file_name, write_patch_results=True, write_cov=True)
+    nn5 = treecorr.NNCorrelation.from_file(file_name)
+    np.testing.assert_allclose(nn5.cov, nn3.cov)
 
     # And also try to match the type if HDF
     try:
@@ -1586,6 +1621,10 @@ def test_nn_jk():
         nn6 = treecorr.NNCorrelation.from_file(file_name)
         cov6 = nn6.estimate_cov('jackknife')
         np.testing.assert_allclose(cov6, nn3.cov)
+
+        nn3.write(file_name, write_patch_results=True, write_cov=True)
+        nn6 = treecorr.NNCorrelation.from_file(file_name)
+        np.testing.assert_allclose(nn6.cov, nn3.cov)
 
     # Check NN cross-correlation and other combinations of dr, rd.
     rn3 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
@@ -1836,12 +1875,21 @@ def test_kappa_jk():
         cov4 = nk4.estimate_cov('jackknife')
         np.testing.assert_allclose(cov4, nk.cov)
 
+        # With write_cov=True, cov is serialized as well.
+        nk.write(file_name, write_patch_results=True, write_cov=True)
+        nk4 = treecorr.NKCorrelation.from_file(file_name)
+        np.testing.assert_allclose(nk4.cov, nk.cov)
+
     # Also with ascii, since that works differeny.
     file_name = os.path.join('output','test_write_results_nk.dat')
     nk.write(file_name, write_patch_results=True)
     nk5 = treecorr.NKCorrelation.from_file(file_name)
     cov5 = nk5.estimate_cov('jackknife')
     np.testing.assert_allclose(cov5, nk.cov)
+
+    nk.write(file_name, write_patch_results=True, write_cov=True)
+    nk5 = treecorr.NKCorrelation.from_file(file_name)
+    np.testing.assert_allclose(nk5.cov, nk.cov)
 
     # And also try to match the type if HDF
     try:
@@ -1855,6 +1903,10 @@ def test_kappa_jk():
         nk6 = treecorr.NKCorrelation.from_file(file_name)
         cov6 = nk6.estimate_cov('jackknife')
         np.testing.assert_allclose(cov6, nk.cov)
+
+        nk.write(file_name, write_patch_results=True, write_cov=True)
+        nk6 = treecorr.NKCorrelation.from_file(file_name)
+        np.testing.assert_allclose(nk6.cov, nk.cov)
 
     # Use a random catalog
     # In this case the locations of the source catalog are fine to use as our random catalog,
@@ -1923,12 +1975,20 @@ def test_kappa_jk():
         cov4 = kk4.estimate_cov('jackknife')
         np.testing.assert_allclose(cov4, kk.cov)
 
+        kk.write(file_name, write_patch_results=True, write_cov=True)
+        kk4 = treecorr.KKCorrelation.from_file(file_name)
+        np.testing.assert_allclose(kk4.cov, kk.cov)
+
     # Also with ascii, since that works differeny.
     file_name = os.path.join('output','test_write_results_kk.dat')
     kk.write(file_name, write_patch_results=True)
     kk5 = treecorr.KKCorrelation.from_file(file_name)
     cov5 = kk5.estimate_cov('jackknife')
     np.testing.assert_allclose(cov5, kk.cov)
+
+    kk.write(file_name, write_patch_results=True, write_cov=True)
+    kk5 = treecorr.KKCorrelation.from_file(file_name)
+    np.testing.assert_allclose(kk5.cov, kk.cov)
 
     # And also try to match the type if HDF
     try:
@@ -1942,6 +2002,10 @@ def test_kappa_jk():
         kk6 = treecorr.KKCorrelation.from_file(file_name)
         cov6 = kk6.estimate_cov('jackknife')
         np.testing.assert_allclose(cov6, kk.cov)
+
+        kk.write(file_name, write_patch_results=True, write_cov=True)
+        kk6 = treecorr.KKCorrelation.from_file(file_name)
+        np.testing.assert_allclose(kk6.cov, kk.cov)
 
     # KG
     # Same scales as we used for NG, which works fine with kappa as the "lens" too.
@@ -1976,12 +2040,20 @@ def test_kappa_jk():
         cov4 = kg4.estimate_cov('jackknife')
         np.testing.assert_allclose(cov4, kg.cov)
 
+        kg.write(file_name, write_patch_results=True, write_cov=True)
+        kg4 = treecorr.KGCorrelation.from_file(file_name)
+        np.testing.assert_allclose(kg4.cov, kg.cov)
+
     # Also with ascii, since that works differeny.
     file_name = os.path.join('output','test_write_results_kg.dat')
     kg.write(file_name, write_patch_results=True)
     kg5 = treecorr.KGCorrelation.from_file(file_name)
     cov5 = kg5.estimate_cov('jackknife')
     np.testing.assert_allclose(cov5, kg.cov)
+
+    kg.write(file_name, write_patch_results=True, write_cov=True)
+    kg5 = treecorr.KGCorrelation.from_file(file_name)
+    np.testing.assert_allclose(kg5.cov, kg.cov)
 
     # And also try to match the type if HDF
     try:
@@ -1995,6 +2067,10 @@ def test_kappa_jk():
         kg6 = treecorr.KGCorrelation.from_file(file_name)
         cov6 = kg6.estimate_cov('jackknife')
         np.testing.assert_allclose(cov6, kg.cov)
+
+        kg.write(file_name, write_patch_results=True, write_cov=True)
+        kg6 = treecorr.KGCorrelation.from_file(file_name)
+        np.testing.assert_allclose(kg6.cov, kg.cov)
 
     # Do a real multi-statistic covariance.
     t0 = time.time()

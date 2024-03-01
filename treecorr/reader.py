@@ -182,6 +182,20 @@ class AsciiReader(object):
         data = np.genfromtxt(self.file, names=self.col_names, max_rows=max_rows)
         return data
 
+    def read_array(self, shape, *, ext=None):
+        """Read an array from the file.
+
+        Parameters:
+            shape (tuple):      The expected shape of the array.
+            ext (str):          The extension. (ignored -- Ascii always reads the next group)
+
+        Returns:
+            array
+        """
+        data = np.genfromtxt(self.file, max_rows=shape[0])
+        assert data.shape == shape
+        return data
+
     def row_count(self, col=None, *, ext=None):
         """Count the number of rows in the file.
 
@@ -582,6 +596,21 @@ class FitsReader(object):
         data = self.file[ext].read()
         return data
 
+    def read_array(self, shape, *, ext=None):
+        """Read an array from the file.
+
+        Parameters:
+            shape (tuple):      The expected shape of the array.
+            ext (str):          The extension. (ignored -- Ascii always reads the next group)
+
+        Returns:
+            array
+        """
+        ext = self._update_ext(ext)
+        data = self.file[ext].read()
+        assert data.shape == shape
+        return data
+
     def row_count(self, col=None, *, ext=None):
         """Count the number of rows in the named extension
 
@@ -742,6 +771,21 @@ class HdfReader(object):
         for (name, col) in zip(col_names, col_vals):
             data[name] = col[:]
 
+        return data
+
+    def read_array(self, shape, *, ext=None):
+        """Read an array from the file.
+
+        Parameters:
+            shape (tuple):      The expected shape of the array.
+            ext (str):          The extension. (ignored -- Ascii always reads the next group)
+
+        Returns:
+            array
+        """
+        g = self._group(ext)
+        data = np.empty(shape)
+        data[:] = g['data']
         return data
 
     def row_count(self, col, *, ext=None):

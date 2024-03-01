@@ -142,7 +142,7 @@ def test_fits_reader():
     with make_writer(os.path.join('output','test_fits_writer.fits')) as w:
         w.write(['KAPPA', 'MU'], [kappa, mu])
     with make_reader(os.path.join('output','test_fits_writer.fits')) as r:
-        params = r.read_params(clean=False)
+        params = r.read_params()
         data = r.read_data()
     assert 'test' not in params   # The test key isn't in params
     assert params['naxis1'] == 16       # But there are all the regular fits header items.

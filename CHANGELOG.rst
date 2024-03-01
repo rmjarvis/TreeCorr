@@ -11,6 +11,7 @@ Dependency Change
 -----------------
 
 - Switched from cffi to pybind11 for the C++ bindings. (#155)
+- If using fitsio, it now must be version > 1.0.6. (#173)
 
 
 API Changes

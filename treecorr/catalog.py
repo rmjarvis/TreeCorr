@@ -1757,23 +1757,8 @@ class Catalog(object):
             # otherwise give the range explicitly.
             if self.start == 0 and self.end is None and self.every_nth == 1:
                 s = slice(None)
-            # fancy indexing in h5py is incredibly slow, so we explicitly
-            # check if we can slice or not.  This checks for the fitsio version in
-            # the fits case
-            elif reader.can_slice:
-                s = slice(self.start, self.end, self.every_nth)
             else:
-                # Note: this is a workaround for a bug in fitsio <= 1.0.6.
-                # cf. https://github.com/esheldon/fitsio/pull/286
-                # We should be able to always use s = slice(self.start, self.end, self.every_nth)
-                if x_col != '0':
-                    x_ext = get_from_list(self.config, 'x_ext', num, str, ext)
-                    col = x_col
-                else:
-                    x_ext = get_from_list(self.config, 'ra_ext', num, str, ext)
-                    col = ra_col
-                end = self.end if self.end is not None else reader.row_count(col, x_ext)
-                s = np.arange(self.start, end, self.every_nth)
+                s = slice(self.start, self.end, self.every_nth)
 
             all_cols = [x_col, y_col, z_col,
                         ra_col, dec_col, r_col,

@@ -60,9 +60,6 @@ def test_fits_reader():
         # Default ext is "in" reader
         assert 1 in r
 
-        # Probably can slice, but depends on installed fitsio version
-        assert r.can_slice == (fitsio.__version__ > '1.0.6')
-
         s = slice(0, 10, 2)
         for ext in [1, 'AARDWOLF']:
             data = r.read(['RA'], s, ext=ext)
@@ -160,13 +157,6 @@ def test_fits_reader():
     with assert_raises(RuntimeError):
         w.write(['KAPPA', 'MU'], [kappa, mu], params={'test': True}, ext='KM')
 
-    # Regardless of the system's fitsio version, check the two cases in code.
-    with mock.patch('fitsio.__version__', '1.0.6'):
-        with FitsReader(os.path.join('data','Aardvark.fit')) as r:
-            assert not r.can_slice
-    with mock.patch('fitsio.__version__', '1.1.0'):
-        with FitsReader(os.path.join('data','Aardvark.fit')) as r:
-            assert r.can_slice
     with mock.patch.dict(sys.modules, {'fitsio':None}):
         with CaptureLog() as cl:
             with assert_raises(ImportError):
@@ -216,9 +206,6 @@ def test_hdf_reader():
 
         # Default ext is "in" reader
         assert '/' in r
-
-        # Can always slice
-        assert r.can_slice
 
         s = slice(0, 10, 2)
         data = r.read(['RA'], s)
@@ -329,9 +316,6 @@ def test_parquet_reader():
         # Default ext is "in" reader
         assert None in r
 
-        # Can always slice
-        assert r.can_slice
-
         s = slice(0, 10, 2)
         data = r.read(['RA'], s)
         dec = r.read('DEC', s)
@@ -392,9 +376,6 @@ def _test_ascii_reader(r, has_names=True):
 
         # Default ext is "in" reader
         assert None in r
-
-        # Can always slice
-        assert r.can_slice
 
         # cols are: ra, dec, x, y, k, g1, g2, w, z, r, wpos, flag
         s = slice(0, 10, 2)

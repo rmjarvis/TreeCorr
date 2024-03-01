@@ -75,6 +75,18 @@ class AsciiWriter(object):
         self.file.write(header.encode())
         np.savetxt(self.file, data, fmt=self.fmt)
 
+    def write_array(self, data, *, ext=None):
+        """Write a (typically 2-d) numpy array to the output file.
+
+        Parameters:
+            data:           The array to write.
+            ext:            Optional ext name for these data. (default: None)
+        """
+        if ext is not None:
+            s = '## %s\n'%ext
+            self.file.write(s.encode())
+        np.savetxt(self.file, data, fmt=self.fmt)
+
     def __enter__(self):
         self._file = open(self.file_name, 'wb')
         return self
@@ -128,6 +140,15 @@ class FitsWriter(object):
         for (c, col) in zip(col_names, columns):
             data[c] = col
         self.file.write(data, header=params, extname=ext)
+
+    def write_array(self, data, *, ext=None):
+        """Write a (typically 2-d) numpy array to the output file.
+
+        Parameters:
+            data:           The array to write.
+            ext:            Optional ext name for these data. (default: None)
+        """
+        self.file.write(data, extname=ext)
 
     def __enter__(self):
         import fitsio
@@ -188,6 +209,19 @@ class HdfWriter(object):
             hdf.attrs.update(params)
         for (name, col) in zip(col_names, columns):
             hdf.create_dataset(name, data=col)
+
+    def write_array(self, data, *, ext=None):
+        """Write a (typically 2-d) numpy array to the output file.
+
+        Parameters:
+            data:           The array to write.
+            ext:            Optional ext name for these data. (default: None)
+        """
+        if ext is not None:
+            hdf = self.file.create_group(ext)
+        else:
+            hdf = self.file
+        hdf.create_dataset('data', data=data)
 
     def __enter__(self):
         import h5py

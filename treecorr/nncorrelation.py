@@ -667,7 +667,7 @@ class NNCorrelation(Corr2):
         self._rr_weight = denom
 
     def write(self, file_name, *, rr=None, dr=None, rd=None, file_type=None, precision=None,
-              write_patch_results=False):
+              write_patch_results=False, write_cov=False):
         r"""Write the correlation function to the file, file_name.
 
         rr is the `NNCorrelation` function for random points.
@@ -718,17 +718,17 @@ class NNCorrelation(Corr2):
                                     dict.)
             write_patch_results (bool): Whether to write the patch-based results as well.
                                         (default: False)
+            write_cov (bool):       Whether to write the covariance matrix as well. (default: False)
         """
         self.logger.info('Writing NN correlations to %s',file_name)
         # Temporary attributes, so the helper functions can access them.
         precision = self.config.get('precision', 4) if precision is None else precision
-        name = 'main' if write_patch_results else None
         self._write_rr = rr
         self._write_dr = dr
         self._write_rd = rd
         self._write_patch_results = write_patch_results
         with make_writer(file_name, precision, file_type, self.logger) as writer:
-            self._write(writer, name, write_patch_results, zero_tot=True)
+            self._write(writer, None, write_patch_results, write_cov=write_cov, zero_tot=True)
             if write_patch_results:
                 # Also write out rr, dr, rd, so covariances can be computed on round trip.
                 rr = rr or self._rr

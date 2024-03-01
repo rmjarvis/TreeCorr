@@ -447,7 +447,7 @@ class NVCorrelation(Corr2):
             self.xi -= self._rv.xi
 
     def write(self, file_name, *, rv=None, file_type=None, precision=None,
-              write_patch_results=False):
+              write_patch_results=False, write_cov=False):
         r"""Write the correlation function to the file, file_name.
 
         - If rv is None, the simple correlation function :math:`\langle v_R\rangle` is used.
@@ -487,13 +487,13 @@ class NVCorrelation(Corr2):
                                 this value can also be given in the constructor in the config dict.)
             write_patch_results (bool): Whether to write the patch-based results as well.
                                         (default: False)
+            write_cov (bool):   Whether to write the covariance matrix as well. (default: False)
         """
         self.logger.info('Writing NV correlations to %s',file_name)
         self.calculateXi(rv=rv)
         precision = self.config.get('precision', 4) if precision is None else precision
-        name = 'main' if write_patch_results else None
         with make_writer(file_name, precision, file_type, self.logger) as writer:
-            self._write(writer, name, write_patch_results)
+            self._write(writer, None, write_patch_results, write_cov=write_cov)
 
     @property
     def _write_col_names(self):

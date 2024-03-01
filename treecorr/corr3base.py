@@ -1869,7 +1869,9 @@ class Corr3(object):
                     [ (i,j,k) for i in indx for j in indx if i!=j
                               for k in indx if self._ok[i,j,k] and (i!=k and j!=k) ])
 
-    def _write(self, writer, name, write_patch_results, zero_tot=False):
+    def _write(self, writer, name, write_patch_results, write_cov=False, zero_tot=False):
+        if name is None and (write_patch_results or write_cov):
+            name = 'main'
         # These helper properties define what to write for each class.
         col_names = self._write_col_names
         data = self._write_data
@@ -1893,6 +1895,8 @@ class Corr3(object):
                         i += 1
                 params['num_zero_patch'] = i
             params['num_patch_tri'] = num_patch_tri
+        if write_cov:
+            params['cov_shape'] = self.cov.shape
 
         writer.write(col_names, data, params=params, ext=name)
         if write_patch_results:
@@ -1908,6 +1912,8 @@ class Corr3(object):
                 writer.write(col_names, data, params=params, ext=pp_name)
                 i += 1
             assert i == num_patch_tri
+        if write_cov:
+            writer.write_array(self.cov, ext='cov')
 
     def _read(self, reader, name=None, params=None):
         name = 'main' if 'main' in reader and name is None else name
@@ -1916,6 +1922,7 @@ class Corr3(object):
         num_rows = params.get('num_rows', None)
         num_patch_tri = params.get('num_patch_tri', 0)
         num_zero_patch = params.get('num_zero_patch', 0)
+        cov_shape = params.get('cov_shape', None)
         name = 'main' if num_patch_tri and name is None else name
         data = reader.read_data(max_rows=num_rows, ext=name)
 
@@ -1936,3 +1943,7 @@ class Corr3(object):
             corr._read_from_data(data, params)
             key = eval(params['key'])
             self.results[key] = corr
+        if cov_shape is not None:
+            if isinstance(cov_shape, str):
+                cov_shape = eval(cov_shape)
+            self._cov = reader.read_array(cov_shape, ext='cov')

@@ -31,7 +31,6 @@ import numpy as np
 class AsciiReader(object):
     """Reader interface for ASCII files using numpy.
     """
-    can_slice = True
     default_ext = None
 
     def __init__(self, file_name, *, delimiter=None, comment_marker='#', logger=None):
@@ -360,7 +359,6 @@ class PandasReader(AsciiReader):
 class ParquetReader():
     """Reader interface for Parquet files using pandas.
     """
-    can_slice = True
     default_ext = None
 
     def __init__(self, file_name, *, delimiter=None, comment_marker='#', logger=None):
@@ -476,18 +474,21 @@ class FitsReader(object):
         """
         try:
             import fitsio
+
         except ImportError:
             if logger:
                 logger.error("Unable to import fitsio.  Cannot read %s"%file_name)
             raise
 
+        else:
+            # There is a bug in earlier fitsio versions that prevents slicing.
+            # It you hit this assert, upgrade your fitsio version.
+            assert fitsio.__version__ > '1.0.6'
+
         self._file = None  # Only works inside a with block.
 
         # record file name to know what to open when entering
         self.file_name = file_name
-
-        # There is a bug in earlier fitsio versions that prevents slicing
-        self.can_slice = fitsio.__version__ > '1.0.6'
 
     @property
     def file(self):
@@ -643,8 +644,6 @@ class HdfReader(object):
     """Reader interface for HDF5 files.
     Uses h5py to read columns, etc.
     """
-    # h5py can always accept slices as indices
-    can_slice = True
     default_ext = '/'
 
     def __init__(self, file_name, *, logger=None):

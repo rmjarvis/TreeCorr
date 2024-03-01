@@ -17,7 +17,7 @@ import os
 import coord
 import time
 
-from test_helper import do_pickle, assert_raises, timer, is_ccw, is_ccw_3d
+from test_helper import do_pickle, assert_raises, timer, is_ccw, is_ccw_3d, CaptureLog
 
 @timer
 def test_direct_logruv():
@@ -200,7 +200,9 @@ def test_direct_logruv():
     np.testing.assert_allclose(kkk3.zeta, kkk.zeta)
 
     # New in version 5.0 is a simpler API for reading
-    kkk3b = treecorr.KKKCorrelation.from_file(ascii_name)
+    with CaptureLog() as cl:
+        kkk3b = treecorr.KKKCorrelation.from_file(ascii_name, logger=cl.logger)
+    assert ascii_name in cl.output
     np.testing.assert_allclose(kkk3b.ntri, kkk.ntri)
     np.testing.assert_allclose(kkk3b.weight, kkk.weight)
     np.testing.assert_allclose(kkk3b.meand1, kkk.meand1)

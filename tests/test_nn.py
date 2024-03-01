@@ -1260,7 +1260,9 @@ def test_nn():
     # Check that the repr is minimal
     assert repr(dd2) == f"NNCorrelation(bin_size=0.1, min_sep=1.0, max_sep=25.0, sep_units='arcmin')"
     # Simpler API using from_file:
-    dd2b = treecorr.NNCorrelation.from_file(out_file_name)
+    with CaptureLog() as cl:
+        dd2b = treecorr.NNCorrelation.from_file(out_file_name, logger=cl.logger)
+    assert out_file_name in cl.output
     np.testing.assert_allclose(dd2b.logr, dd.logr, rtol=1.e-3)
     np.testing.assert_allclose(dd2b.meanr, dd.meanr, rtol=1.e-3)
     np.testing.assert_allclose(dd2b.meanlogr, dd.meanlogr, rtol=1.e-3)

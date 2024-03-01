@@ -169,7 +169,9 @@ def test_direct():
     assert repr(nq3) == f'NQCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
     # Simpler API using from_file:
-    nq3b = treecorr.NQCorrelation.from_file(ascii_name)
+    with CaptureLog() as cl:
+        nq3b = treecorr.NQCorrelation.from_file(ascii_name, logger=cl.logger)
+    assert ascii_name in cl.output
     np.testing.assert_allclose(nq3b.npairs, nq.npairs)
     np.testing.assert_allclose(nq3b.weight, nq.weight)
     np.testing.assert_allclose(nq3b.meanr, nq.meanr)

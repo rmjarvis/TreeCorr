@@ -160,7 +160,9 @@ def test_direct():
     assert repr(kg3) == f'KGCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
     # New in version 5.0 is a simpler API for reading
-    kg3b = treecorr.KGCorrelation.from_file(ascii_name)
+    with CaptureLog() as cl:
+        kg3b = treecorr.KGCorrelation.from_file(ascii_name, logger=cl.logger)
+    assert ascii_name in cl.output
     np.testing.assert_allclose(kg3b.npairs, kg.npairs)
     np.testing.assert_allclose(kg3b.weight, kg.weight)
     np.testing.assert_allclose(kg3b.meanr, kg.meanr)

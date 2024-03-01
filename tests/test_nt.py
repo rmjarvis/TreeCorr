@@ -169,7 +169,9 @@ def test_direct():
     assert repr(nt3) == f'NTCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
     # Simpler API using from_file:
-    nt3b = treecorr.NTCorrelation.from_file(ascii_name)
+    with CaptureLog() as cl:
+        nt3b = treecorr.NTCorrelation.from_file(ascii_name, logger=cl.logger)
+    assert ascii_name in cl.output
     np.testing.assert_allclose(nt3b.npairs, nt.npairs)
     np.testing.assert_allclose(nt3b.weight, nt.weight)
     np.testing.assert_allclose(nt3b.meanr, nt.meanr)

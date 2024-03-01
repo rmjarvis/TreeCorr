@@ -161,7 +161,9 @@ def test_direct():
     assert repr(kv3) == f'KVCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
     # Simpler API using from_file:
-    kv3b = treecorr.KVCorrelation.from_file(ascii_name)
+    with CaptureLog() as cl:
+        kv3b = treecorr.KVCorrelation.from_file(ascii_name, logger=cl.logger)
+    assert ascii_name in cl.output
     np.testing.assert_allclose(kv3b.npairs, kv.npairs)
     np.testing.assert_allclose(kv3b.weight, kv.weight)
     np.testing.assert_allclose(kv3b.meanr, kv.meanr)

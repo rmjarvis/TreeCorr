@@ -161,7 +161,9 @@ def test_direct():
     assert repr(kq3) == f'KQCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
     # New in version 5.0 is a simpler API for reading
-    kq3b = treecorr.KQCorrelation.from_file(ascii_name)
+    with CaptureLog() as cl:
+        kq3b = treecorr.KQCorrelation.from_file(ascii_name, logger=cl.logger)
+    assert ascii_name in cl.output
     np.testing.assert_allclose(kq3b.npairs, kq.npairs)
     np.testing.assert_allclose(kq3b.weight, kq.weight)
     np.testing.assert_allclose(kq3b.meanr, kq.meanr)

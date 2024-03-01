@@ -170,7 +170,9 @@ def test_direct():
     assert repr(ng3) == f'NGCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
     # Simpler API using from_file:
-    ng3b = treecorr.NGCorrelation.from_file(ascii_name)
+    with CaptureLog() as cl:
+        ng3b = treecorr.NGCorrelation.from_file(ascii_name, logger=cl.logger)
+    assert ascii_name in cl.output
     np.testing.assert_allclose(ng3b.npairs, ng.npairs)
     np.testing.assert_allclose(ng3b.weight, ng.weight)
     np.testing.assert_allclose(ng3b.meanr, ng.meanr)

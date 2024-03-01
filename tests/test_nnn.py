@@ -19,7 +19,7 @@ import math
 import time
 
 from test_helper import get_script_name, do_pickle, assert_raises, CaptureLog, timer, assert_warns
-from test_helper import is_ccw, is_ccw_3d
+from test_helper import is_ccw, is_ccw_3d, CaptureLog
 
 @timer
 def test_logruv_binning():
@@ -1368,7 +1368,9 @@ def test_direct_logruv_auto():
     np.testing.assert_allclose(ddd3.meanv, ddd.meanv)
 
     # New in version 5.0 is a simpler API for reading
-    ddd3b = treecorr.NNNCorrelation.from_file(ascii_name)
+    with CaptureLog() as cl:
+        ddd3b = treecorr.NNNCorrelation.from_file(ascii_name, logger=cl.logger)
+    assert ascii_name in cl.output
     np.testing.assert_allclose(ddd3b.ntri, ddd.ntri)
     np.testing.assert_allclose(ddd3b.weight, ddd.weight)
     np.testing.assert_allclose(ddd3b.meand1, ddd.meand1)

@@ -161,7 +161,9 @@ def test_direct():
     assert repr(kt3) == f'KTCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
     # Simpler API using from_file:
-    kt3b = treecorr.KTCorrelation.from_file(ascii_name)
+    with CaptureLog() as cl:
+        kt3b = treecorr.KTCorrelation.from_file(ascii_name, logger=cl.logger)
+    assert ascii_name in cl.output
     np.testing.assert_allclose(kt3b.npairs, kt.npairs)
     np.testing.assert_allclose(kt3b.weight, kt.weight)
     np.testing.assert_allclose(kt3b.meanr, kt.meanr)

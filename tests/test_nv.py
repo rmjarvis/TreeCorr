@@ -169,7 +169,9 @@ def test_direct():
     assert repr(nv3) == f'NVCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
     # Simpler API using from_file:
-    nv3b = treecorr.NVCorrelation.from_file(ascii_name)
+    with CaptureLog() as cl:
+        nv3b = treecorr.NVCorrelation.from_file(ascii_name, logger=cl.logger)
+    assert ascii_name in cl.output
     np.testing.assert_allclose(nv3b.npairs, nv.npairs)
     np.testing.assert_allclose(nv3b.weight, nv.weight)
     np.testing.assert_allclose(nv3b.meanr, nv.meanr)

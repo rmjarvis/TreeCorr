@@ -18,7 +18,7 @@ import coord
 import time
 
 from test_helper import do_pickle, assert_raises, timer, is_ccw, is_ccw_3d
-from test_helper import get_from_wiki
+from test_helper import get_from_wiki, CaptureLog
 
 @timer
 def test_direct_logruv():
@@ -337,7 +337,9 @@ def test_direct_logruv():
     np.testing.assert_allclose(ggg3.gam3i, ggg.gam3i)
 
     # New in version 5.0 is a simpler API for reading
-    ggg3b = treecorr.GGGCorrelation.from_file(ascii_name)
+    with CaptureLog() as cl:
+        ggg3b = treecorr.GGGCorrelation.from_file(ascii_name, logger=cl.logger)
+    assert ascii_name in cl.output
     np.testing.assert_allclose(ggg3b.weight, ggg.weight)
     np.testing.assert_allclose(ggg3b.meand1, ggg.meand1)
     np.testing.assert_allclose(ggg3b.meand2, ggg.meand2)

@@ -186,7 +186,9 @@ def test_direct():
     assert repr(qq3) == f'QQCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
     # Simpler API using from_file:
-    qq3b = treecorr.QQCorrelation.from_file(ascii_name)
+    with CaptureLog() as cl:
+        qq3b = treecorr.QQCorrelation.from_file(ascii_name, logger=cl.logger)
+    assert ascii_name in cl.output
     np.testing.assert_allclose(qq3b.npairs, qq.npairs)
     np.testing.assert_allclose(qq3b.weight, qq.weight)
     np.testing.assert_allclose(qq3b.meanr, qq.meanr)

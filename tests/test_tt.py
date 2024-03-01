@@ -185,7 +185,9 @@ def test_direct():
     assert repr(tt3) == f'TTCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
     # Simpler API using from_file:
-    tt3b = treecorr.TTCorrelation.from_file(ascii_name)
+    with CaptureLog() as cl:
+        tt3b = treecorr.TTCorrelation.from_file(ascii_name, logger=cl.logger)
+    assert ascii_name in cl.output
     np.testing.assert_allclose(tt3b.npairs, tt.npairs)
     np.testing.assert_allclose(tt3b.weight, tt.weight)
     np.testing.assert_allclose(tt3b.meanr, tt.meanr)

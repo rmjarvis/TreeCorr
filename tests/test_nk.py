@@ -150,7 +150,9 @@ def test_direct():
     assert repr(nk3) == f'NKCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
     # Simpler API using from_file:
-    nk3b = treecorr.NKCorrelation.from_file(ascii_name)
+    with CaptureLog() as cl:
+        nk3b = treecorr.NKCorrelation.from_file(ascii_name, logger=cl.logger)
+    assert ascii_name in cl.output
     np.testing.assert_allclose(nk3b.npairs, nk.npairs)
     np.testing.assert_allclose(nk3b.weight, nk.weight)
     np.testing.assert_allclose(nk3b.meanr, nk.meanr)

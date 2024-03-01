@@ -137,7 +137,9 @@ def test_direct():
     assert repr(kk3) == f'KKCorrelation(min_sep={min_sep}, max_sep={max_sep}, nbins={nbins})'
 
     # New in version 5.0 is a simpler API for reading
-    kk3b = treecorr.KKCorrelation.from_file(ascii_name)
+    with CaptureLog() as cl:
+        kk3b = treecorr.KKCorrelation.from_file(ascii_name, logger=cl.logger)
+    assert ascii_name in cl.output
     np.testing.assert_allclose(kk3b.npairs, kk.npairs)
     np.testing.assert_allclose(kk3b.weight, kk.weight)
     np.testing.assert_allclose(kk3b.meanr, kk.meanr)

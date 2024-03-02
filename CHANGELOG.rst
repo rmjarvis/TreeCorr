@@ -60,6 +60,8 @@ New features
 ------------
 
 - Give a better error message when patch is given as an integer, but npatch is not provided. (#150)
+- Added ``x_eval``, ``y_eval``, etc. which let you calculate a derived quantity from an input
+  catalog using Python eval on columns in the file. (#151, #173)
 - Allow vark, varg, varv for a Catalog be specifiable on input, rather than calculated directly
   from the corresponding values. (#154)
 - Allow numpy.random.Generator for rng arguments (in addition to legacy RandomState). (#157)

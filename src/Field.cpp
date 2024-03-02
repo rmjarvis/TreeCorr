@@ -520,6 +520,19 @@ Field<GData,C>* BuildGField(
 }
 
 template <int C>
+Field<ZData,C>* BuildZField(
+    py::array_t<double>& x, py::array_t<double>& y, py::array_t<double>& z,
+    py::array_t<double>& z1, py::array_t<double>& z2,
+    py::array_t<double>& w, py::array_t<double>& wpos,
+    double minsize, double maxsize,
+    SplitMethod sm, long long seed, bool brute, int mintop, int maxtop)
+{
+    return BuildZField<ZData,C>(x, y, z, z1, z2, w, wpos,
+                                minsize, maxsize, sm, seed,
+                                brute, mintop, maxtop);
+}
+
+template <int C>
 Field<VData,C>* BuildVField(
     py::array_t<double>& x, py::array_t<double>& y, py::array_t<double>& z,
     py::array_t<double>& v1, py::array_t<double>& v2,
@@ -622,8 +635,9 @@ void WrapField(py::module& _treecorr, std::string Cstr)
 
     py::class_<Field<NData,C>, BaseField<C> > nfield(_treecorr, ("NField" + Cstr).c_str());
     py::class_<Field<KData,C>, BaseField<C> > kfield(_treecorr, ("KField" + Cstr).c_str());
-    py::class_<Field<GData,C>, BaseField<C> > gfield(_treecorr, ("GField" + Cstr).c_str());
+    py::class_<Field<ZData,C>, BaseField<C> > zfield(_treecorr, ("ZField" + Cstr).c_str());
     py::class_<Field<VData,C>, BaseField<C> > vfield(_treecorr, ("VField" + Cstr).c_str());
+    py::class_<Field<GData,C>, BaseField<C> > gfield(_treecorr, ("GField" + Cstr).c_str());
     py::class_<Field<TData,C>, BaseField<C> > tfield(_treecorr, ("TField" + Cstr).c_str());
     py::class_<Field<QData,C>, BaseField<C> > qfield(_treecorr, ("QField" + Cstr).c_str());
 
@@ -637,15 +651,21 @@ void WrapField(py::module& _treecorr, std::string Cstr)
         py::array_t<double>& k, py::array_t<double>& w, py::array_t<double>& wpos,
         double minsize, double maxsize,
         SplitMethod sm, long long seed, bool brute, int mintop, int maxtop);
-    typedef Field<GData,C>* (*gfield_type)(
+    typedef Field<ZData,C>* (*zfield_type)(
         py::array_t<double>& x, py::array_t<double>& y, py::array_t<double>& z,
-        py::array_t<double>& g1, py::array_t<double>& g2,
+        py::array_t<double>& z1, py::array_t<double>& z2,
         py::array_t<double>& w, py::array_t<double>& wpos,
         double minsize, double maxsize,
         SplitMethod sm, long long seed, bool brute, int mintop, int maxtop);
     typedef Field<VData,C>* (*vfield_type)(
         py::array_t<double>& x, py::array_t<double>& y, py::array_t<double>& z,
         py::array_t<double>& v1, py::array_t<double>& v2,
+        py::array_t<double>& w, py::array_t<double>& wpos,
+        double minsize, double maxsize,
+        SplitMethod sm, long long seed, bool brute, int mintop, int maxtop);
+    typedef Field<GData,C>* (*gfield_type)(
+        py::array_t<double>& x, py::array_t<double>& y, py::array_t<double>& z,
+        py::array_t<double>& g1, py::array_t<double>& g2,
         py::array_t<double>& w, py::array_t<double>& wpos,
         double minsize, double maxsize,
         SplitMethod sm, long long seed, bool brute, int mintop, int maxtop);
@@ -664,8 +684,9 @@ void WrapField(py::module& _treecorr, std::string Cstr)
 
     nfield.def(py::init(nfield_type(&BuildNField)));
     kfield.def(py::init(kfield_type(&BuildKField)));
-    gfield.def(py::init(gfield_type(&BuildGField)));
+    zfield.def(py::init(zfield_type(&BuildZField)));
     vfield.def(py::init(vfield_type(&BuildVField)));
+    gfield.def(py::init(gfield_type(&BuildGField)));
     tfield.def(py::init(tfield_type(&BuildTField)));
     qfield.def(py::init(qfield_type(&BuildQField)));
 }

@@ -241,6 +241,14 @@ void CellData<GData,Flat>::finishAverages(
 }
 
 template <>
+void CellData<ZData,Flat>::finishAverages(
+    const std::vector<std::pair<BaseCellData<Flat>*,WPosLeafInfo> >& vdata,
+    size_t start, size_t end)
+{
+    setWZ(SimpleSum<ZData>(vdata, start, end));
+}
+
+template <>
 void CellData<VData,Flat>::finishAverages(
     const std::vector<std::pair<BaseCellData<Flat>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end)
@@ -326,6 +334,22 @@ void CellData<GData,Sphere>::finishAverages(
     size_t start, size_t end)
 {
     setWG(ParallelTransportSum<GData>(vdata,_pos,start,end));
+}
+
+template <>
+void CellData<ZData,ThreeD>::finishAverages(
+    const std::vector<std::pair<BaseCellData<ThreeD>*,WPosLeafInfo> >& vdata,
+    size_t start, size_t end)
+{
+    setWZ(ParallelTransportSum<ZData>(vdata,_pos,start,end));
+}
+
+template <>
+void CellData<ZData,Sphere>::finishAverages(
+    const std::vector<std::pair<BaseCellData<Sphere>*,WPosLeafInfo> >& vdata,
+    size_t start, size_t end)
+{
+    setWZ(ParallelTransportSum<ZData>(vdata,_pos,start,end));
 }
 
 template <>
@@ -717,6 +741,7 @@ void BaseCell<C>::WriteTree(std::ostream& os, int indent) const
     InstD(NData,C); \
     InstD(KData,C); \
     InstD(GData,C); \
+    InstD(ZData,C); \
     InstD(VData,C); \
     InstD(TData,C); \
     InstD(QData,C); \

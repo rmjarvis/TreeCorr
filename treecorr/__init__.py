@@ -32,15 +32,18 @@ from .config import read_config
 from .util import set_omp_threads, get_omp_threads, set_max_omp_threads
 
 from .catalog import Catalog, read_catalogs
-from .catalog import calculateVarK, calculateVarG, calculateVarV, calculateVarT, calculateVarQ
+from .catalog import calculateVarK, calculateVarG, calculateVarZ
+from .catalog import calculateVarV, calculateVarT, calculateVarQ
 
 from .corr2base import Corr2, estimate_multi_cov, build_multi_cov_design_matrix
 from .corr3base import Corr3
-from .field import Field, NField, KField, VField, GField
+from .field import Field, NField, KField, ZField, VField, GField, TField, QField
 
 from .nncorrelation import NNCorrelation
 from .nkcorrelation import NKCorrelation
 from .kkcorrelation import KKCorrelation
+
+from .nzcorrelation import NZCorrelation
 
 from .nvcorrelation import NVCorrelation
 from .kvcorrelation import KVCorrelation

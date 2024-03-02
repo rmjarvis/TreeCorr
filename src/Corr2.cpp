@@ -399,6 +399,20 @@ struct DirectHelper2<1,NData,KData>
     { xi.xi[k] += c1.getW() * c2.getData().getWK(); }
 };
 
+template <>
+struct DirectHelper2<1,NData,ZData>
+{
+    template <int R, int C>
+    static void ProcessXi(
+        const Cell<NData,C>& c1, const Cell<ZData,C>& c2, const double ,
+        XiData<NData,ZData>& xi, int k, int )
+    {
+        std::complex<double> z2 = c1.getW() * c2.getData().getWZ();
+        xi.xi[k] += real(z2);
+        xi.xi_im[k] += imag(z2);
+    }
+};
+
 template <int D2>
 struct DirectHelper2<2,NData,D2>
 {
@@ -435,6 +449,60 @@ struct DirectHelper2<3,KData,KData>
     }
 };
 
+template <>
+struct DirectHelper2<3,KData,ZData>
+{
+    template <int R, int C>
+    static void ProcessXi(
+        const Cell<KData,C>& c1, const Cell<ZData,C>& c2, const double ,
+        XiData<KData,ZData>& xi, int k, int k2)
+    {
+        std::complex<double> wkz = c1.getData().getWK() * c2.getData().getWZ();
+        xi.xi[k] += real(wkz);
+        xi.xi_im[k] += imag(wkz);
+        if (R) {
+            xi.xi[k2] += real(wkz);
+            xi.xi_im[k2] += imag(wkz);
+        }
+    }
+};
+
+template <>
+struct DirectHelper2<3,ZData,ZData>
+{
+    template <int R, int C>
+    static void ProcessXi(
+        const Cell<ZData,C>& c1, const Cell<ZData,C>& c2, const double ,
+        XiData<ZData,ZData>& xi, int k, int k2)
+    {
+        std::complex<double> z1 = c1.getData().getWZ();
+        std::complex<double> z2 = c2.getData().getWZ();
+        ProjectHelper<C>::Project(c1,c2,z1,z2);
+
+        double z1rz2r = z1.real() * z2.real();
+        double z1rz2i = z1.real() * z2.imag();
+        double z1iz2r = z1.imag() * z2.real();
+        double z1iz2i = z1.imag() * z2.imag();
+
+        double z1z2cr = z1rz2r + z1iz2i;  // z1 * conj(z2)
+        double z1z2ci = z1iz2r - z1rz2i;
+        double z1z2r = z1rz2r - z1iz2i;   // z1 * z2
+        double z1z2i = z1iz2r + z1rz2i;
+
+        xi.xip[k] += z1z2cr;
+        xi.xip_im[k] += z1z2ci;
+        xi.xim[k] += z1z2r;
+        xi.xim_im[k] += z1z2i;
+
+        if (R) {
+            xi.xip[k2] += z1z2cr;
+            xi.xip_im[k2] += z1z2ci;
+            xi.xim[k2] += z1z2r;
+            xi.xim_im[k2] += z1z2i;
+        }
+    }
+};
+
 template <int D2>
 struct DirectHelper2<4,KData,D2>
 {
@@ -447,6 +515,23 @@ struct DirectHelper2<4,KData,D2>
         ProjectHelper<C>::Project(c1,c2,g2);
         if (D2 == GData) g2 *= -c1.getData().getWK();
         else g2 *= c1.getData().getWK();
+        xi.xi[k] += real(g2);
+        xi.xi_im[k] += imag(g2);
+    }
+};
+
+template <int D2>
+struct DirectHelper2<4,ZData,D2>
+{
+    template <int R, int C>
+    static void ProcessXi(
+        const Cell<ZData,C>& c1, const Cell<D2,C>& c2, const double rsq,
+        XiData<ZData,D2>& xi, int k, int )
+    {
+        std::complex<double> g2 = c2.getData().getWG();
+        ProjectHelper<C>::Project(c1,c2,g2);
+        if (D2 == GData) g2 *= -c1.getData().getWZ();
+        else g2 *= c1.getData().getWZ();
         xi.xi[k] += real(g2);
         xi.xi_im[k] += imag(g2);
     }
@@ -500,10 +585,10 @@ struct DirectHelper
     {
         const int algo =
             (D1 == NData && D2 == NData) ? 0 :
-            (D1 == NData && D2 == KData) ? 1 :
+            (D1 == NData && (D2==KData || D2==ZData)) ? 1 :
             (D1 == NData && D2 >= GData) ? 2 :
-            (D1 == KData && D2 == KData) ? 3 :
-            (D1 == KData && D2 >= GData) ? 4 :
+            ((D1==KData || D1==ZData) && (D2==KData || D2==ZData)) ? 3 :
+            ((D1==KData || D1==ZData) && D2 >= GData) ? 4 :
             (D1 >= GData && D2 >= GData) ? 5 : -1;
 
         DirectHelper2<algo,D1,D2>::template ProcessXi<R>(c1,c2,rsq,xi,k,k2);
@@ -1206,13 +1291,17 @@ void pyExportCorr2(py::module& _treecorr)
     WrapCorr2<NData,KData>(_treecorr, "NK");
     WrapCorr2<KData,KData>(_treecorr, "KK");
 
-    WrapCorr2<NData,GData>(_treecorr, "NG");
-    WrapCorr2<KData,GData>(_treecorr, "KG");
-    WrapCorr2<GData,GData>(_treecorr, "GG");
+    WrapCorr2<NData,ZData>(_treecorr, "NZ");
+    WrapCorr2<KData,ZData>(_treecorr, "KZ");
+    WrapCorr2<ZData,ZData>(_treecorr, "ZZ");
 
     WrapCorr2<NData,VData>(_treecorr, "NV");
     WrapCorr2<KData,VData>(_treecorr, "KV");
     WrapCorr2<VData,VData>(_treecorr, "VV");
+
+    WrapCorr2<NData,GData>(_treecorr, "NG");
+    WrapCorr2<KData,GData>(_treecorr, "KG");
+    WrapCorr2<GData,GData>(_treecorr, "GG");
 
     WrapCorr2<NData,TData>(_treecorr, "NT");
     WrapCorr2<KData,TData>(_treecorr, "KT");

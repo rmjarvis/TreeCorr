@@ -34,7 +34,7 @@ const double IOTA = 1.e-10;
 // NData means just count the point.
 // KData means use a scalar.  Nominally kappa, but works with any scalar (e.g. temperature).
 // GData means use a shear.
-enum DataType { NData=1 , KData=2 , GData=3, VData=4, TData=5, QData=6 };
+enum DataType { NData, KData, GData, ZData, VData, TData, QData };
 
 // Return a random number between 0 and 1.
 double urand(long long seed=0);
@@ -193,6 +193,32 @@ protected:
 template <int C>
 std::ostream& operator<<(std::ostream& os, const CellData<GData,C>& c)
 { return os << c.getPos() << " " << c.getWG() << " " << c.getW() << " " << c.getN(); }
+
+template <int C>
+class CellData<ZData,C> : public CellData<GData, C>
+{
+public:
+    CellData() {}
+
+    CellData(const Position<C>& pos, const std::complex<double>& v, double w) :
+        CellData<GData,C>(pos, v, w) {}
+
+    template <int C2>
+    CellData(const Position<C2>& pos, const std::complex<double>& v, double w) :
+        CellData<GData,C>(pos, v, w) {}
+
+    CellData(const std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >& vdata,
+             size_t start, size_t end) :
+        CellData<GData,C>(vdata, start, end) {}
+
+    // The above constructor just computes the mean pos, since sometimes that's all we
+    // need.  So this function will finish the rest of the construction when desired.
+    void finishAverages(const std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >&,
+                        size_t start, size_t end);
+
+    std::complex<double> getWZ() const { return this->getWG(); }
+    void setWZ(const std::complex<double>& wv) { this->setWG(wv); }
+};
 
 template <int C>
 class CellData<VData,C> : public CellData<GData, C>
@@ -369,7 +395,7 @@ public:
 };
 
 // The above is fine for NData, but K and G need a couple more methods.
-// (When we eventually do 3pt for V,T,Q, they will also need specializations.)
+// (When we eventually do 3pt for Z,V,T,Q, they will also need specializations.)
 template <int C>
 class Cell<KData,C> : public BaseCell<C>
 {

@@ -25,7 +25,7 @@ from . import _treecorr
 from .reader import FitsReader, HdfReader, AsciiReader, PandasReader, ParquetReader
 from .config import merge_config, setup_logger, get, get_from_list
 from .util import parse_file_type, LRU_Cache, make_writer, make_reader, set_omp_threads
-from .field import NField, KField, VField, GField, TField, QField
+from .field import NField, KField, ZField, VField, GField, TField, QField
 
 class Catalog(object):
     r"""A set of input data (positions and other quantities) to be correlated.
@@ -704,6 +704,8 @@ class Catalog(object):
                 'Whether to flip the sign of q2'),
         'vark': (float, True, None, None,
                 'Variance of k values to use, rather than calculate directly'),
+        'varz': (float, True, None, None,
+                'Variance of z values to use, rather than calculate directly'),
         'varv': (float, True, None, None,
                 'Variance of v values to use, rather than calculate directly'),
         'varg': (float, True, None, None,
@@ -791,6 +793,7 @@ class Catalog(object):
         self._sumw = None
         self._sumw2 = None
         self._vark = None
+        self._varz = None
         self._varv = None
         self._varg = None
         self._vart = None
@@ -2206,6 +2209,18 @@ class Catalog(object):
         return self._kfields
 
     @property
+    def zfields(self):
+        if not hasattr(self, '_zfields'):
+            def get_zfield(min_size, max_size, split_method, brute, min_top, max_top, coords,
+                           rng, logger=None):
+                return ZField(self, min_size=min_size, max_size=max_size,
+                              split_method=split_method, brute=brute,
+                              min_top=min_top, max_top=max_top, coords=coords,
+                              rng=rng, logger=logger)
+            self._zfields = LRU_Cache(get_zfield, 1)
+        return self._zfields
+
+    @property
     def vfields(self):
         if not hasattr(self, '_vfields'):
             def get_vfield(min_size, max_size, split_method, brute, min_top, max_top, coords,
@@ -2292,6 +2307,7 @@ class Catalog(object):
 
             >>> cat.nfields.resize(maxsize)
             >>> cat.kfields.resize(maxsize)
+            >>> cat.zfields.resize(maxsize)
             >>> cat.vfields.resize(maxsize)
             >>> cat.gfields.resize(maxsize)
             >>> cat.tfields.resize(maxsize)
@@ -2302,6 +2318,7 @@ class Catalog(object):
         """
         if hasattr(self, '_nfields'): self.nfields.resize(maxsize)
         if hasattr(self, '_kfields'): self.kfields.resize(maxsize)
+        if hasattr(self, '_zfields'): self.zfields.resize(maxsize)
         if hasattr(self, '_vfields'): self.vfields.resize(maxsize)
         if hasattr(self, '_gfields'): self.gfields.resize(maxsize)
         if hasattr(self, '_tfields'): self.tfields.resize(maxsize)
@@ -2331,6 +2348,7 @@ class Catalog(object):
 
             >>> cat.nfields.clear()
             >>> cat.kfields.clear()
+            >>> cat.zfields.clear()
             >>> cat.vfields.clear()
             >>> cat.gfields.clear()
             >>> cat.tfields.clear()
@@ -2338,6 +2356,7 @@ class Catalog(object):
         """
         if hasattr(self, '_nfields'): self.nfields.clear()
         if hasattr(self, '_kfields'): self.kfields.clear()
+        if hasattr(self, '_zfields'): self.zfields.clear()
         if hasattr(self, '_vfields'): self.vfields.clear()
         if hasattr(self, '_gfields'): self.gfields.clear()
         if hasattr(self, '_tfields'): self.tfields.clear()
@@ -3117,6 +3136,7 @@ class Catalog(object):
         d.pop('_field',None)
         d.pop('_nfields',None)
         d.pop('_kfields',None)
+        d.pop('_zfields',None)
         d.pop('_vfields',None)
         d.pop('_gfields',None)
         d.pop('_tfields',None)
@@ -3305,15 +3325,15 @@ def calculateVarZ(cat_list, *, low_mem=False):
     Parameters:
         cat_list:   A Catalog or a list of Catalogs for which to calculate the vector variance.
         low_mem:    Whether to try to conserve memory when cat is a list by unloading each
-                    catalog after getting its individual varv. [default: False]
+                    catalog after getting its individual varz. [default: False]
 
     Returns:
         The variance per component of the vector field.
     """
     if isinstance(cat_list, Catalog):
-        return cat_list.varv
+        return cat_list.varz
     elif len(cat_list) == 1:
-        return cat_list[0].varv
+        return cat_list[0].varz
     else:
         varz1 = _compute_var_multi_cat(cat_list, 'z1', low_mem)
         varz2 = _compute_var_multi_cat(cat_list, 'z2', low_mem)

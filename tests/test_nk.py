@@ -399,7 +399,7 @@ def test_nk():
     print('max diff = ',max(abs(nk.xi - true_k)))
     np.testing.assert_allclose(nk.xi, true_k, rtol=0.1, atol=2.e-3)
 
-    nrand = nlens * 13
+    nrand = nlens * 10
     xr = (rng.random_sample(nrand)-0.5) * L
     yr = (rng.random_sample(nrand)-0.5) * L
     rand_cat = treecorr.Catalog(x=xr, y=yr, x_units='arcmin', y_units='arcmin')

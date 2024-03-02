@@ -28,6 +28,7 @@
 //
 // D = NData for counts
 //     KData for kappa
+//     ZData for spin-0
 //     VData for vector
 //     GData for shear
 //     TData for spin-3

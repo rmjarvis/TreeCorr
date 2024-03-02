@@ -22,6 +22,7 @@ from .util import set_omp_threads
 from .nncorrelation import NNCorrelation
 from .nkcorrelation import NKCorrelation
 from .kkcorrelation import KKCorrelation
+from .nzcorrelation import NZCorrelation
 from .nvcorrelation import NVCorrelation
 from .kvcorrelation import KVCorrelation
 from .vvcorrelation import VVCorrelation
@@ -72,15 +73,21 @@ corr2_valid_params = {
     'nk_file_name' : (str, False, None, None,
             'The output filename for count-scalar correlation function.'),
     'nk_statistic' : (str, False, None, ['compensated', 'simple'],
-            'Which statistic to use for the xi estimator of the NK correlation function. ',
+            'Which statistic to use for the estimator of the NK correlation function. ',
             'The default is compensated if rand_files is given, otherwise simple'),
     'kk_file_name' : (str, False, None, None,
             'The output filename for scalar-scalar correlation function.'),
 
+    'nz_file_name' : (str, False, None, None,
+            'The output filename for point-spin-0 correlation function.'),
+    'nz_statistic' : (str, False, None, ['compensated', 'simple'],
+            'Which statistic to use for the estimator of the NZ correlation function. ',
+            'The default is compensated if rand_files is given, otherwise simple'),
+
     'nv_file_name' : (str, False, None, None,
             'The output filename for point-vector correlation function.'),
     'nv_statistic' : (str, False, None, ['compensated', 'simple'],
-            'Which statistic to use for the mean vector estimator of the NV correlation function. ',
+            'Which statistic to use for the estimator of the NV correlation function. ',
             'The default is compensated if rand_files is given, otherwise simple'),
     'kv_file_name' : (str, False, None, None,
             'The output filename for scalar-vector correlation function.'),
@@ -90,7 +97,7 @@ corr2_valid_params = {
     'ng_file_name' : (str, False, None, None,
             'The output filename for point-shear correlation function.'),
     'ng_statistic' : (str, False, None, ['compensated', 'simple'],
-            'Which statistic to use for the mean shear estimator of the NG correlation function. ',
+            'Which statistic to use for the estimator of the NG correlation function. ',
             'The default is compensated if rand_files is given, otherwise simple'),
     'kg_file_name' : (str, False, None, None,
             'The output filename for scalar-shear correlation function.'),
@@ -98,24 +105,24 @@ corr2_valid_params = {
             'The output filename for shear-shear correlation function.'),
 
     'nt_file_name' : (str, False, None, None,
-            'The output filename for point-shear correlation function.'),
+            'The output filename for point-spin-3 correlation function.'),
     'nt_statistic' : (str, False, None, ['compensated', 'simple'],
-            'Which statistic to use for the mean shear estimator of the NG correlation function. ',
+            'Which statistic to use for the estimator of the NT correlation function. ',
             'The default is compensated if rand_files is given, otherwise simple'),
     'kt_file_name' : (str, False, None, None,
-            'The output filename for scalar-shear correlation function.'),
+            'The output filename for scalar-spin-3 correlation function.'),
     'tt_file_name' : (str, False, None, None,
-            'The output filename for shear-shear correlation function.'),
+            'The output filename for spin-3-spin-3 correlation function.'),
 
     'nq_file_name' : (str, False, None, None,
-            'The output filename for point-shear correlation function.'),
+            'The output filename for point-spin-4 correlation function.'),
     'nq_statistic' : (str, False, None, ['compensated', 'simple'],
-            'Which statistic to use for the mean shear estimator of the NG correlation function. ',
+            'Which statistic to use for the estimator of the NQ correlation function. ',
             'The default is compensated if rand_files is given, otherwise simple'),
     'kq_file_name' : (str, False, None, None,
-            'The output filename for scalar-shear correlation function.'),
+            'The output filename for scalar-spin-4 correlation function.'),
     'qq_file_name' : (str, False, None, None,
-            'The output filename for shear-shear correlation function.'),
+            'The output filename for spin-4-spin-4 correlation function.'),
 
     # Derived output quantities
 
@@ -326,6 +333,29 @@ def corr2(config, logger=None):
         if 'm2_file_name' in config:
             gg.writeMapSq(config['m2_file_name'], m2_uform=config['m2_uform'])
             logger.warning("Wrote Mapsq values to %s",config['m2_file_name'])
+
+    # Do NZ correlation function if necessary
+    if 'nz_file_name' in config:
+        if cat2 is None:
+            raise '6'
+            raise TypeError("file_name2 is required for nz correlation")
+        logger.warning("Performing NZ calculations...")
+        nz = NZCorrelation(config, logger=logger)
+        nz.process(cat1,cat2)
+        logger.info("Done NZ calculation.")
+
+        # The default nz_statistic is compensated _iff_ rand files are given.
+        rz = None
+        if rand1 is None:
+            if config.get('nz_statistic',None) == 'compensated':
+                raise TypeError("rand_files is required for nz_statistic = compensated")
+        elif config.get('nz_statistic','compensated') == 'compensated':
+            rz = NZCorrelation(config, logger=logger)
+            rz.process(rand1,cat2)
+            logger.info("Done RZ calculation.")
+
+        nz.write(config['nz_file_name'], rz=rz)
+        logger.warning("Wrote NZ correlation to %s",config['nz_file_name'])
 
     # Do NV correlation function if necessary
     if 'nv_file_name' in config:

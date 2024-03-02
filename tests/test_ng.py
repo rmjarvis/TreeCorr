@@ -605,7 +605,7 @@ def test_ng():
     np.testing.assert_allclose(ng.xi, true_gt, rtol=0.1)
     np.testing.assert_allclose(ng.xi_im, 0, atol=5.e-3)
 
-    nrand = nlens * 3
+    nrand = nlens * 10
     xr = (rng.random_sample(nrand)-0.5) * L
     yr = (rng.random_sample(nrand)-0.5) * L
     rand_cat = treecorr.Catalog(x=xr, y=yr, x_units='arcmin', y_units='arcmin')

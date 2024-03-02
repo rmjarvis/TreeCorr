@@ -33,6 +33,10 @@ template <int s>
 std::complex<double> calculate_expmsialpha(const std::complex<double>& r);
 
 template <>
+inline std::complex<double> calculate_expmsialpha<0>(const std::complex<double>& r)
+{ return 1.; }
+
+template <>
 inline std::complex<double> calculate_expmsialpha<1>(const std::complex<double>& r)
 { return conj(r) / sqrt(safe_norm(r)); }
 
@@ -57,7 +61,8 @@ inline std::complex<double> calculate_expmsialpha<4>(const std::complex<double>&
 template <int D>
 inline std::complex<double> _expmsialpha(const std::complex<double>& r)
 {
-    const int s = (D==VData ? 1 :
+    const int s = (D==ZData ? 0 :
+                   D==VData ? 1 :
                    D==GData ? 2 :
                    D==TData ? 3 :
                    D==QData ? 4 : 0);

@@ -1970,9 +1970,7 @@ class Catalog(object):
                     x_eval = y_eval = z_eval = ra_eval = dec_eval = r_eval = None
                 use = self._get_patch_index(self._single_patch)
                 self.select(use)
-                if isinstance(s,np.ndarray):
-                    s = s[use]
-                elif s == slice(None):
+                if s == slice(None):
                     s = use
                 else:
                     end1 = np.max(use)*s.step+s.start+1

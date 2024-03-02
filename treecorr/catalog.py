@@ -416,6 +416,28 @@ class Catalog(object):
         wpos_ext (int/str): Which extension to use for the wpos values. (default: ext)
         flag_ext (int/str): Which extension to use for the flag values. (default: ext)
 
+        x_eval (str):       An eval string to use for the x values. (default: None)
+        y_eval (str):       An eval string to use for the y values. (default: None)
+        z_eval (str):       An eval string to use for the z values. (default: None)
+        ra_eval (str):      An eval string to use for the ra values. (default: None)
+        dec_eval (str):     An eval string to use for the dec values. (default: None)
+        r_eval (str):       An eval string to use for the r values. (default: None)
+        k_eval (str):       An eval string to use for the k values. (default: None)
+        v1_eval (str):      An eval string to use for the v1 values. (default: None)
+        v2_eval (str):      An eval string to use for the v2 values. (default: None)
+        g1_eval (str):      An eval string to use for the g1 values. (default: None)
+        g2_eval (str):      An eval string to use for the g2 values. (default: None)
+        t1_eval (str):      An eval string to use for the t1 values. (default: None)
+        t2_eval (str):      An eval string to use for the t2 values. (default: None)
+        q1_eval (str):      An eval string to use for the q1 values. (default: None)
+        q2_eval (str):      An eval string to use for the q2 values. (default: None)
+        patch_eval (str):   An eval string to use for the patch numbers. (default: None)
+        w_eval (str):       An eval string to use for the weight values. (default: None)
+        wpos_eval (str):    An eval string to use for the position weight values. (default: None)
+        flag_eval (str):    An eval string to use for the flag values. (default: None)
+        extra_cols (list):  A list of column names to read to be used for the quantities
+                            that are calculated with eval. (default: None)
+
         verbose (int):      If no logger is provided, this will optionally specify a logging level
                             to use.
 
@@ -568,6 +590,46 @@ class Catalog(object):
                 'Which extension to use for the wpos_col. default is the global ext value.'),
         'flag_ext': (str, True, None, None,
                 'Which extension to use for the flag_col. default is the global ext value.'),
+        'x_eval' : (str, True, None, None,
+                'An eval string to use for x.'),
+        'y_eval' : (str, True, None, None,
+                'An eval string to use for y.'),
+        'z_eval' : (str, True, None, None,
+                'An eval string to use for z.'),
+        'ra_eval' : (str, True, None, None,
+                'An eval string to use for ra.'),
+        'dec_eval' : (str, True, None, None,
+                'An eval string to use for dec.'),
+        'r_eval' : (str, True, None, None,
+                'An eval string to use for r.'),
+        'k_eval' : (str, True, None, None,
+                'An eval string to use for kappa.'),
+        'v1_eval' : (str, True, None, None,
+                'An eval string to use for v1.'),
+        'v2_eval' : (str, True, None, None,
+                'An eval string to use for v2.'),
+        'g1_eval' : (str, True, None, None,
+                'An eval string to use for g1.'),
+        'g2_eval' : (str, True, None, None,
+                'An eval string to use for g2.'),
+        't1_eval' : (str, True, None, None,
+                'An eval string to use for t1.'),
+        't2_eval' : (str, True, None, None,
+                'An eval string to use for t2.'),
+        'q1_eval' : (str, True, None, None,
+                'An eval string to use for q1.'),
+        'q2_eval' : (str, True, None, None,
+                'An eval string to use for q2.'),
+        'patch_eval' : (str, True, None, None,
+                'An eval string to use for patch numbers.'),
+        'w_eval' : (str, True, None, None,
+                'An eval string to use for weight.'),
+        'wpos_eval' : (str, True, None, None,
+                'An eval string to use for position weight.'),
+        'flag_eval' : (str, True, None, None,
+                'An eval string to use for flag.'),
+        'extra_cols': (list, False, None, None,
+                'A list of extra column names to read for the eval calculations'),
         'flip_v1' : (bool, True, False, None,
                 'Whether to flip the sign of v1'),
         'flip_v2' : (bool, True, False, None,
@@ -863,7 +925,8 @@ class Catalog(object):
             if ntot == 0:
                 raise ValueError("Input arrays have zero length")
 
-        if x is not None or self.config.get('x_col','0') not in [0,'0']:
+        if (x is not None or self.config.get('x_col','0') not in [0,'0']
+            or self.config.get('x_eval') is not None):
             if 'x_units' in self.config and 'y_units' not in self.config:
                 raise TypeError("x_units specified without specifying y_units")
             if 'y_units' in self.config and 'x_units' not in self.config:
@@ -873,7 +936,8 @@ class Catalog(object):
                 raise TypeError("x_units is invalid without x")
             if 'y_units' in self.config:
                 raise TypeError("y_units is invalid without y")
-        if ra is not None or self.config.get('ra_col','0') not in [0,'0']:
+        if (ra is not None or self.config.get('ra_col','0') not in [0,'0']
+            or self.config.get('ra_eval') is not None):
             if not self.config.get('ra_units',None):
                 raise TypeError("ra_units is required when using ra, dec")
             if not self.config.get('dec_units',None):
@@ -1511,57 +1575,76 @@ class Catalog(object):
         patch_col = get_from_list(self.config,'patch_col',num,str,'0')
         allow_xyz = self.config.get('allow_xyz', False)
 
-        if x_col != '0' or y_col != '0':
-            if x_col == '0':
+        x_eval = get_from_list(self.config,'x_eval',num,str,None)
+        y_eval = get_from_list(self.config,'y_eval',num,str,None)
+        z_eval = get_from_list(self.config,'z_eval',num,str,None)
+        ra_eval = get_from_list(self.config,'ra_eval',num,str,None)
+        dec_eval = get_from_list(self.config,'dec_eval',num,str,None)
+        r_eval = get_from_list(self.config,'r_eval',num,str,None)
+        w_eval = get_from_list(self.config,'w_eval',num,str,None)
+        wpos_eval = get_from_list(self.config,'wpos_eval',num,str,None)
+        flag_eval = get_from_list(self.config,'flag_eval',num,str,None)
+        k_eval = get_from_list(self.config,'k_eval',num,str,None)
+        v1_eval = get_from_list(self.config,'v1_eval',num,str,None)
+        v2_eval = get_from_list(self.config,'v2_eval',num,str,None)
+        g1_eval = get_from_list(self.config,'g1_eval',num,str,None)
+        g2_eval = get_from_list(self.config,'g2_eval',num,str,None)
+        t1_eval = get_from_list(self.config,'t1_eval',num,str,None)
+        t2_eval = get_from_list(self.config,'t2_eval',num,str,None)
+        q1_eval = get_from_list(self.config,'q1_eval',num,str,None)
+        q2_eval = get_from_list(self.config,'q2_eval',num,str,None)
+
+        if x_col != '0' or y_col != '0' or x_eval is not None or y_eval is not None:
+            if x_col == '0' and x_eval is None:
                 raise ValueError("x_col missing for file %s"%file_name)
-            if y_col == '0':
+            if y_col == '0' and y_eval is None:
                 raise ValueError("y_col missing for file %s"%file_name)
-            if ra_col != '0' and not allow_xyz:
+            if (ra_col != '0' or ra_eval is not None) and not allow_xyz:
                 raise ValueError("ra_col not allowed in conjunction with x/y cols")
-            if dec_col != '0' and not allow_xyz:
+            if (dec_col != '0' or dec_eval is not None) and not allow_xyz:
                 raise ValueError("dec_col not allowed in conjunction with x/y cols")
-            if r_col != '0' and not allow_xyz:
+            if (r_col != '0' or r_eval is not None) and not allow_xyz:
                 raise ValueError("r_col not allowed in conjunction with x/y cols")
-        elif ra_col != '0' or dec_col != '0':
-            if ra_col == '0':
+        elif ra_col != '0' or dec_col != '0' or ra_eval is not None or dec_eval is not None:
+            if ra_col == '0' and ra_eval is None:
                 raise ValueError("ra_col missing for file %s"%file_name)
-            if dec_col == '0':
+            if dec_col == '0' and dec_eval is None:
                 raise ValueError("dec_col missing for file %s"%file_name)
-            if z_col != '0' and not allow_xyz:
+            if (z_col != '0' or z_eval is not None) and not allow_xyz:
                 raise ValueError("z_col not allowed in conjunction with ra/dec cols")
         else:
             raise ValueError("No valid position columns specified for file %s"%file_name)
 
-        if k_col == '0' and isKColRequired(self.orig_config,num):
+        if k_col == '0' and k_eval is None and isKColRequired(self.orig_config,num):
             raise ValueError("k_col is missing for file %s"%file_name)
-        if v1_col == '0' and isVColRequired(self.orig_config,num):
+        if v1_col == '0' and v1_eval is None and isVColRequired(self.orig_config,num):
             raise ValueError("v1_col is missing for file %s"%file_name)
-        if v2_col == '0' and isVColRequired(self.orig_config,num):
+        if v2_col == '0' and v2_eval is None and isVColRequired(self.orig_config,num):
             raise ValueError("v2_col is missing for file %s"%file_name)
-        if g1_col == '0' and isGColRequired(self.orig_config,num):
+        if g1_col == '0' and g1_eval is None and isGColRequired(self.orig_config,num):
             raise ValueError("g1_col is missing for file %s"%file_name)
-        if g2_col == '0' and isGColRequired(self.orig_config,num):
+        if g2_col == '0' and g2_eval is None and isGColRequired(self.orig_config,num):
             raise ValueError("g2_col is missing for file %s"%file_name)
-        if t1_col == '0' and isTColRequired(self.orig_config,num):
+        if t1_col == '0' and t1_eval is None and isTColRequired(self.orig_config,num):
             raise ValueError("t1_col is missing for file %s"%file_name)
-        if t2_col == '0' and isTColRequired(self.orig_config,num):
+        if t2_col == '0' and t2_eval is None and isTColRequired(self.orig_config,num):
             raise ValueError("t2_col is missing for file %s"%file_name)
-        if q1_col == '0' and isQColRequired(self.orig_config,num):
+        if q1_col == '0' and q1_eval is None and isQColRequired(self.orig_config,num):
             raise ValueError("q1_col is missing for file %s"%file_name)
-        if q2_col == '0' and isQColRequired(self.orig_config,num):
+        if q2_col == '0' and q2_eval is None and isQColRequired(self.orig_config,num):
             raise ValueError("q2_col is missing for file %s"%file_name)
 
         # Either both shoudl be 0 or both != 0.
-        if (v1_col == '0') != (v2_col == '0'):
+        if (v1_col == '0' and v1_eval is None) != (v2_col == '0' and v1_eval is None):
             raise ValueError("v1_col, v2_col=(%s, %s) are invalid for file %s"%(
                         v1_col,v2_col,file_name))
-        if (g1_col == '0') != (g2_col == '0'):
+        if (g1_col == '0' and g1_eval is None) != (g2_col == '0' and g1_eval is None):
             raise ValueError("g1_col, g2_col=(%s, %s) are invalid for file %s"%(
                         g1_col,g2_col,file_name))
-        if (t1_col == '0') != (t2_col == '0'):
+        if (t1_col == '0' and t1_eval is None) != (t2_col == '0' and t1_eval is None):
             raise ValueError("t1_col, t2_col=(%s, %s) are invalid for file %s"%(
                         t1_col,t2_col,file_name))
-        if (q1_col == '0') != (q2_col == '0'):
+        if (q1_col == '0' and q1_eval is None) != (q2_col == '0' and q1_eval is None):
             raise ValueError("q1_col, q2_col=(%s, %s) are invalid for file %s"%(
                         q1_col,q2_col,file_name))
 
@@ -1573,9 +1656,11 @@ class Catalog(object):
             # Technically, this doesn't catch all possible errors.  If someone specifies
             # an invalid flag_ext or something, then they'll get the fitsio error message.
             # But this should probably catch the majorit of error cases.
+            # There are more possible errors using the eval options, but that's to be expected.
+            # Those will usually raise something appropriately descriptive later.
             reader.check_valid_ext(ext)
 
-            if x_col != '0':
+            if x_col != '0' and y_col != '0':
                 x_ext = get_from_list(self.config, 'x_ext', num, str, ext)
                 y_ext = get_from_list(self.config, 'y_ext', num, str, ext)
                 if x_col not in reader.names(ext=x_ext):
@@ -1586,7 +1671,7 @@ class Catalog(object):
                     z_ext = get_from_list(self.config, 'z_ext', num, str, ext)
                     if z_col not in reader.names(ext=z_ext):
                         raise ValueError("z_col=%s is invalid for file %s"%(z_col, file_name))
-            else:
+            elif ra_col != '0' and dec_col != '0':
                 ra_ext = get_from_list(self.config, 'ra_ext', num, str, ext)
                 dec_ext = get_from_list(self.config, 'dec_ext', num, str, ext)
                 if ra_col not in reader.names(ext=ra_ext):
@@ -1701,24 +1786,48 @@ class Catalog(object):
         Catalog._emitted_pandas_warning = True
 
     def _read_file(self, file_name, reader, num, is_rand):
-        # Helper functions for things we might do in one of two places.
-        def set_pos(data, x_col, y_col, z_col, ra_col, dec_col, r_col):
-            if x_col != '0' and x_col in data:
-                self._x = data[x_col].astype(float)
+        # Some helper functions for reading and setting individual values.
+
+        def math_eval(s, data):
+            gdict = globals().copy()
+            exec('import numpy', gdict)
+            exec('import numpy as np', gdict)
+            exec('import math', gdict)
+            exec('import coord', gdict)
+            gdict['data'] = data
+            for k in data:
+                if k in s:
+                    exec(f"{k} = data['{k}']", gdict)
+            return eval(s, gdict)
+
+        def parse_value(data, x_col, x_eval, dtype=float):
+            # Here x is any value name, not specifically x.  It's just a convenient letter.
+            if x_col != '0':
+                x = data[x_col]
+            else:
+                x = math_eval(x_eval, data)
+            return x.astype(dtype)
+
+        def set_pos(data, x_col, y_col, z_col, ra_col, dec_col, r_col,
+                    x_eval, y_eval, z_eval, ra_eval, dec_eval, r_eval):
+            if x_col != '0' or x_eval is not None:
+                self._x = parse_value(data, x_col, x_eval)
                 self.logger.debug('read x')
-                self._y = data[y_col].astype(float)
+                self._y = parse_value(data, y_col, y_eval)
                 self.logger.debug('read y')
-                if z_col != '0':
-                    self._z = data[z_col].astype(float)
+                if z_col != '0' or z_eval is not None:
+                    xyz = True
+                    self._z = parse_value(data, z_col, z_eval)
                     self.logger.debug('read z')
                 self._apply_xyz_units()
-            if ra_col != '0' and ra_col in data:
-                self._ra = data[ra_col].astype(float)
+
+            if ra_col != '0' or ra_eval is not None:
+                self._ra = parse_value(data, ra_col, ra_eval)
                 self.logger.debug('read ra')
-                self._dec = data[dec_col].astype(float)
+                self._dec = parse_value(data, dec_col, dec_eval)
                 self.logger.debug('read dec')
-                if r_col != '0':
-                    self._r = data[r_col].astype(float)
+                if r_col != '0' or r_eval is not None:
+                    self._r = parse_value(data, r_col, r_eval)
                     self.logger.debug('read r')
                 self._apply_radec_units()
 
@@ -1749,8 +1858,27 @@ class Catalog(object):
         q2_col = get_from_list(self.config,'q2_col',num,str,'0')
         patch_col = get_from_list(self.config,'patch_col',num,str,'0')
 
-        with reader:
+        x_eval = get_from_list(self.config,'x_eval',num,str,None)
+        y_eval = get_from_list(self.config,'y_eval',num,str,None)
+        z_eval = get_from_list(self.config,'z_eval',num,str,None)
+        ra_eval = get_from_list(self.config,'ra_eval',num,str,None)
+        dec_eval = get_from_list(self.config,'dec_eval',num,str,None)
+        r_eval = get_from_list(self.config,'r_eval',num,str,None)
+        w_eval = get_from_list(self.config,'w_eval',num,str,None)
+        wpos_eval = get_from_list(self.config,'wpos_eval',num,str,None)
+        flag_eval = get_from_list(self.config,'flag_eval',num,str,None)
+        k_eval = get_from_list(self.config,'k_eval',num,str,None)
+        v1_eval = get_from_list(self.config,'v1_eval',num,str,None)
+        v2_eval = get_from_list(self.config,'v2_eval',num,str,None)
+        g1_eval = get_from_list(self.config,'g1_eval',num,str,None)
+        g2_eval = get_from_list(self.config,'g2_eval',num,str,None)
+        t1_eval = get_from_list(self.config,'t1_eval',num,str,None)
+        t2_eval = get_from_list(self.config,'t2_eval',num,str,None)
+        q1_eval = get_from_list(self.config,'q1_eval',num,str,None)
+        q2_eval = get_from_list(self.config,'q2_eval',num,str,None)
+        extra_cols = get(self.config,'extra_cols',list,[])
 
+        with reader:
             ext = get_from_list(self.config, 'ext', num, str, reader.default_ext)
 
             # Figure out what slice to use.  If all rows, then None is faster,
@@ -1817,11 +1945,14 @@ class Catalog(object):
                         all_cols.remove(c)
                     for ext in all_exts:
                         use_cols1 = [c for c in pos_cols if col_by_ext[c] == ext]
+                        use_cols1 += [c for c in extra_cols if c in reader.names(ext=ext)]
                         data1 = reader.read(use_cols1, s, ext=ext)
                         for c in use_cols1:
                             data[c] = data1[c]
-                    set_pos(data, x_col, y_col, z_col, ra_col, dec_col, r_col)
+                    set_pos(data, x_col, y_col, z_col, ra_col, dec_col, r_col,
+                            x_eval, y_eval, z_eval, ra_eval, dec_eval, r_eval)
                     x_col = y_col = z_col = ra_col = dec_col = r_col = '0'
+                    x_eval = y_eval = z_eval = ra_eval = dec_eval = r_eval = None
                 use = self._get_patch_index(self._single_patch)
                 self.select(use)
                 if isinstance(s,np.ndarray):
@@ -1843,6 +1974,7 @@ class Catalog(object):
             for ext in all_exts:
                 use_cols1 = [c for c in all_cols
                              if col_by_ext[c] == ext and c in reader.names(ext=ext)]
+                use_cols1 += [c for c in extra_cols if c in reader.names(ext=ext)]
                 if len(use_cols1) == 0:
                     continue
                 data1 = reader.read(use_cols1, s, ext=ext)
@@ -1850,59 +1982,60 @@ class Catalog(object):
                     data[c] = data1[c]
 
             # Set position values
-            set_pos(data, x_col, y_col, z_col, ra_col, dec_col, r_col)
+            set_pos(data, x_col, y_col, z_col, ra_col, dec_col, r_col,
+                    x_eval, y_eval, z_eval, ra_eval, dec_eval, r_eval)
 
             # Set patch
             set_patch(data, patch_col)
 
             # Set w
-            if w_col != '0':
-                self._w = data[w_col].astype(float)
+            if w_col != '0' or w_eval is not None:
+                self._w = parse_value(data, w_col, w_eval)
                 self.logger.debug('read w')
 
             # Set wpos
-            if wpos_col != '0':
-                self._wpos = data[wpos_col].astype(float)
+            if wpos_col != '0' or wpos_eval is not None:
+                self._wpos = parse_value(data, wpos_col, wpos_eval)
                 self.logger.debug('read wpos')
 
             # Set flag
-            if flag_col != '0':
-                self._flag = data[flag_col].astype(int)
+            if flag_col != '0' or flag_eval is not None:
+                self._flag = parse_value(data, flag_col, flag_eval, int)
                 self.logger.debug('read flag')
 
             # Skip k,v,g,t,q if this file is a random catalog
             if not is_rand:
                 # Set k
-                if k_col in reader.names(ext=k_ext):
-                    self._k = data[k_col].astype(float)
+                if k_col in reader.names(ext=k_ext) or k_eval is not None:
+                    self._k = parse_value(data, k_col, k_eval)
                     self.logger.debug('read k')
 
                 # Set v1,v2
-                if v1_col in reader.names(ext=v1_ext):
-                    self._v1 = data[v1_col].astype(float)
+                if v1_col in reader.names(ext=v1_ext) or v1_eval is not None:
+                    self._v1 = parse_value(data, v1_col, v1_eval)
                     self.logger.debug('read v1')
-                    self._v2 = data[v2_col].astype(float)
+                    self._v2 = parse_value(data, v2_col, v2_eval)
                     self.logger.debug('read v2')
 
                 # Set g1,g2
-                if g1_col in reader.names(ext=g1_ext):
-                    self._g1 = data[g1_col].astype(float)
+                if g1_col in reader.names(ext=g1_ext) or g1_eval is not None:
+                    self._g1 = parse_value(data, g1_col, g1_eval)
                     self.logger.debug('read g1')
-                    self._g2 = data[g2_col].astype(float)
+                    self._g2 = parse_value(data, g2_col, g2_eval)
                     self.logger.debug('read g2')
 
                 # Set t1,t2
-                if t1_col in reader.names(ext=t1_ext):
-                    self._t1 = data[t1_col].astype(float)
+                if t1_col in reader.names(ext=t1_ext) or t1_eval is not None:
+                    self._t1 = parse_value(data, t1_col, t1_eval)
                     self.logger.debug('read t1')
-                    self._t2 = data[t2_col].astype(float)
+                    self._t2 = parse_value(data, t2_col, t2_eval)
                     self.logger.debug('read t2')
 
                 # Set q1,q2
-                if q1_col in reader.names(ext=q1_ext):
-                    self._q1 = data[q1_col].astype(float)
+                if q1_col in reader.names(ext=q1_ext) or q1_eval is not None:
+                    self._q1 = parse_value(data, q1_col, q1_eval)
                     self.logger.debug('read q1')
-                    self._q2 = data[q2_col].astype(float)
+                    self._q2 = parse_value(data, q2_col, q2_eval)
                     self.logger.debug('read q2')
 
     @property

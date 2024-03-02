@@ -318,6 +318,18 @@ def test_ascii():
     np.testing.assert_almost_equal(cat6b.ra, ra * (pi/12.))
     np.testing.assert_almost_equal(cat6b.dec, dec * (pi/180.))
 
+    # Check using eval feature to apply the units rather than ra_units/dec_units
+    del config_names['ra_col']
+    del config_names['dec_col']
+    config_names['ra_units'] = 'rad'
+    config_names['dec_units'] = 'rad'
+    config_names['ra_eval'] = 'ra * np.pi/12.'
+    config_names['dec_eval'] = 'dec * math.pi/180.'
+    config_names['extra_cols'] = ['ra', 'dec']
+    cat6c = treecorr.Catalog(file_name, config_names)
+    np.testing.assert_almost_equal(cat6c.ra, ra * (pi/12.))
+    np.testing.assert_almost_equal(cat6c.dec, dec * (pi/180.))
+
     assert_raises(ValueError, treecorr.Catalog, file_name, config, ra_col=-1)
     assert_raises(ValueError, treecorr.Catalog, file_name, config, ra_col=100)
     assert_raises(ValueError, treecorr.Catalog, file_name, config, ra_col='invalid')
@@ -764,6 +776,42 @@ def _test_aardvark(filename, file_type, ext):
     np.testing.assert_almost_equal(cat2.y[290333], 83.1579, decimal=4)
     np.testing.assert_almost_equal(cat2.w[46392], 0.)        # index = 1200379
     np.testing.assert_almost_equal(cat2.w[46393], 0.9995946) # index = 1200386
+
+    # Test some eval calculations
+    center_ra = np.mean(cat1.ra) * coord.radians
+    center_dec = np.mean(cat1.dec) * coord.radians
+    center = coord.CelestialCoord(center_ra, center_dec)
+    center_repr = repr(center)
+    ntot = cat1.ntot
+    cat3 = treecorr.Catalog(
+        file_name,
+        # tangent plane projection for ra,dec -> x,y
+        x_eval=f"{center_repr}.project_rad(RA*math.pi/180, DEC*math.pi/180)[0]",
+        y_eval=f"{center_repr}.project_rad(RA*math.pi/180, DEC*math.pi/180)[1]",
+        # distortion rather than shear
+        g1_eval="GAMMA1 * 2 / (1 + GAMMA1**2 + GAMMA2**2)",
+        g2_eval="GAMMA2 * 2 / (1 + GAMMA1**2 + GAMMA2**2)",
+        # random spin-3 directions with mu for the amplitude.  (This one is pretty contrived.)
+        t1_eval=f"KAPPA * np.random.default_rng(1234).normal(0,0.3,{ntot})",
+        t2_eval=f"KAPPA * np.random.default_rng(1235).normal(0,0.3,{ntot})",
+        extra_cols=['RA', 'DEC', 'GAMMA1', 'GAMMA2', 'KAPPA'])
+    print('made cat3')
+    print('cat3 = ',cat3)
+    print('x = ',cat3.x)
+    print('y = ',cat3.y)
+    print('g1 = ',cat3.g1)
+    print('g2 = ',cat3.g2)
+    print('t1 = ',cat3.t1)
+    print('t2 = ',cat3.t2)
+    x1, y1 = center.project_rad(cat1.ra, cat1.dec)
+    np.testing.assert_allclose(cat3.x, x1, atol=1.e-6)
+    np.testing.assert_allclose(cat3.y, y1, atol=1.e-6)
+    gsq = cat1.g1**2 + cat1.g2**2
+    np.testing.assert_allclose(cat3.g1, cat1.g1 * 2 / (1+gsq), rtol=1.e-6)
+    np.testing.assert_allclose(cat3.g2, cat1.g2 * 2 / (1+gsq), rtol=1.e-6)
+    np.testing.assert_allclose(np.mean(cat3.t1), 0., atol=1.e-3)
+    np.testing.assert_allclose(np.mean(cat3.t2), 0., atol=1.e-3)
+    np.testing.assert_allclose(np.std(cat3.t1), np.std(cat3.t2), rtol=0.1)
 
     assert_raises(ValueError, treecorr.Catalog, file_name, config, x_col='invalid')
     assert_raises(ValueError, treecorr.Catalog, file_name, config, y_col='invalid')

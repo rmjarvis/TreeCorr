@@ -73,6 +73,22 @@ class Catalog(object):
     for these, so x_col=1 would mean to use the first column as the x value. (0 means don't
     read that column.)
 
+    Sometimes the columns in the input file aren't quite what you want.  Rather you need to
+    do some simple calculation based on the input columns.  For instance, PSF rho statistics
+    generally entail taking the difference of the model and data g1,g2 columns.  To deal with
+    this, you can use e.g. ``g1_eval`` and ``g2_eval``, which use the Python eval function
+    to evaluate a string.  The string can use the names of columns in the input file, so long
+    as these columns are specified in the ``extra_cols`` parameter.  For instance::
+
+        >>> cat = treecorr.Catalog('data.fits', ra_col='ALPHA2000', dec_col='DELTA2000',
+        ...                        ra_units='deg', dec_units='deg',
+        ...                        g1_eval='G1_MODEL - G1_DATA', g2_eval='G2_MODEL - G2_DATA',
+        ...                        extra_cols=['G1_MODEL', 'G1_DATA', 'G2_MODEL', 'G2_DATA'])
+
+    The eval strings are allowed to use numpy, math or coord functions if desired.  If you
+    need additional modules, you can update the list ``treecorr.Catalog.eval_modules`` to
+    add the module(s) you need.
+
     Finally, you may store all the various parameters in a configuration dict
     and just pass the dict as an argument after the file name::
 
@@ -680,6 +696,7 @@ class Catalog(object):
         'cat_precision' : (int, False, 16, None,
                 'The number of digits after the decimal in the output.'),
     }
+    eval_modules = ['numpy', 'numpy as np', 'math', 'coord']
     _aliases = {}
     _emitted_pandas_warning = False  # Only emit the warning once.  Set to True once we have.
 
@@ -1790,10 +1807,8 @@ class Catalog(object):
 
         def math_eval(s, data):
             gdict = globals().copy()
-            exec('import numpy', gdict)
-            exec('import numpy as np', gdict)
-            exec('import math', gdict)
-            exec('import coord', gdict)
+            for mod in Catalog.eval_modules:
+                exec('import ' + mod, gdict)
             gdict['data'] = data
             for k in data:
                 if k in s:

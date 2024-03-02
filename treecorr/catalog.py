@@ -130,10 +130,12 @@ class Catalog(object):
         wpos:   The weights for position centroiding, as a numpy array, if given. (None otherwise,
                 which means that implicitly wpos = w.)
         k:      The scalar field, kappa, if defined, as a numpy array. (None otherwise)
-        v1:     The v1 component of the vector, if defined, as a numpy array. (None otherwise)
-        v2:     The v2 component of the vector, if defined, as a numpy array. (None otherwise)
-        g1:     The g1 component of the shear, if defined, as a numpy array. (None otherwise)
-        g2:     The g2 component of the shear, if defined, as a numpy array. (None otherwise)
+        z1:     The z1 component of a complex scalar, if defined, as a numpy array. (None otherwise)
+        z2:     The z2 component of a complex scalar, if defined, as a numpy array. (None otherwise)
+        v1:     The v1 component of a vector, if defined, as a numpy array. (None otherwise)
+        v2:     The v2 component of a vector, if defined, as a numpy array. (None otherwise)
+        g1:     The g1 component of a shear, if defined, as a numpy array. (None otherwise)
+        g2:     The g2 component of a shear, if defined, as a numpy array. (None otherwise)
         t1:     The 1st component of a spin-3 field, if defined, as a numpy array. (None otherwise)
         t2:     The 2nd component of a spin-3 field, if defined, as a numpy array. (None otherwise)
         q1:     The 1st component of a spin-4 field, if defined, as a numpy array. (None otherwise)
@@ -154,6 +156,16 @@ class Catalog(object):
                     It is only used for ``var_method='shot'``, where the noise estimate is this
                     value divided by the total weight per bin, so this is the right quantity
                     to use for that.
+
+        varz:   The variance per component of the complex scalar field (0 if z1,z2 are not defined)
+
+                .. note::
+
+                    If there are weights, this is really
+                    :math:`\sum(w^2 |z - \langle z \rangle|^2)/\sum(w)`,
+                    which is more like :math:`\langle w \rangle \mathrm{Var}(z)`.
+                    As for ``vark``, this is the right quantity to use for the ``'shot'``
+                    noise estimate.
 
         varv:   The variance per component of the vector field (0 if v1,v2 are not defined)
 
@@ -259,6 +271,8 @@ class Catalog(object):
                             of 0. (default: None)
         k (array):          The kappa values to use for scalar correlations. (This may represent
                             any scalar field.) (default: None)
+        z1 (array):         The z1 values to use for complex scalar correlations. (default: None)
+        z2 (array):         The z2 values to use for complex scalar correlations. (default: None)
         v1 (array):         The v1 values to use for vector correlations. (default: None)
         v2 (array):         The v2 values to use for vector correlations. (default: None)
         g1 (array):         The g1 values to use for shear correlations. (g1,g2 may represent any
@@ -356,6 +370,10 @@ class Catalog(object):
 
         k_col (str or int): The column to use for the kappa values. An integer is only allowed for
                             ASCII files. (default: '0', which means not to read in this column.)
+        z1_col (str or int): The column to use for the z1 values. An integer is only allowed for
+                            ASCII files. (default: '0', which means not to read in this column.)
+        z2_col (str or int): The column to use for the z2 values. An integer is only allowed for
+                            ASCII files. (default: '0', which means not to read in this column.)
         v1_col (str or int): The column to use for the v1 values. An integer is only allowed for
                             ASCII files. (default: '0', which means not to read in this column.)
         v2_col (str or int): The column to use for the v2 values. An integer is only allowed for
@@ -393,6 +411,8 @@ class Catalog(object):
                             can save time to input them, rather than calculate them using trig
                             functions. (default: False)
 
+        flip_z1 (bool):     Whether to flip the sign of the input z1 values. (default: False)
+        flip_z2 (bool):     Whether to flip the sign of the input z2 values. (default: False)
         flip_v1 (bool):     Whether to flip the sign of the input v1 values. (default: False)
         flip_v2 (bool):     Whether to flip the sign of the input v2 values. (default: False)
         flip_g1 (bool):     Whether to flip the sign of the input g1 values. (default: False)
@@ -419,6 +439,8 @@ class Catalog(object):
         dec_ext (int/str):  Which extension to use for the dec values. (default: ext)
         r_ext (int/str):    Which extension to use for the r values. (default: ext)
         k_ext (int/str):    Which extension to use for the k values. (default: ext)
+        z1_ext (int/str):   Which extension to use for the z1 values. (default: ext)
+        z2_ext (int/str):   Which extension to use for the z2 values. (default: ext)
         v1_ext (int/str):   Which extension to use for the v1 values. (default: ext)
         v2_ext (int/str):   Which extension to use for the v2 values. (default: ext)
         g1_ext (int/str):   Which extension to use for the g1 values. (default: ext)
@@ -439,6 +461,8 @@ class Catalog(object):
         dec_eval (str):     An eval string to use for the dec values. (default: None)
         r_eval (str):       An eval string to use for the r values. (default: None)
         k_eval (str):       An eval string to use for the k values. (default: None)
+        z1_eval (str):      An eval string to use for the z1 values. (default: None)
+        z2_eval (str):      An eval string to use for the z2 values. (default: None)
         v1_eval (str):      An eval string to use for the v1 values. (default: None)
         v2_eval (str):      An eval string to use for the v2 values. (default: None)
         g1_eval (str):      An eval string to use for the g1 values. (default: None)
@@ -535,6 +559,10 @@ class Catalog(object):
                 'The units of dec values. Required when using dec_col.'),
         'k_col' : (str, True, '0', None,
                 'Which column to use for kappa. Should be an integer for ASCII catalogs. '),
+        'z1_col' : (str, True, '0', None,
+                'Which column to use for z1. Should be an integer for ASCII catalogs.'),
+        'z2_col' : (str, True, '0', None,
+                'Which column to use for z2. Should be an integer for ASCII catalogs.'),
         'v1_col' : (str, True, '0', None,
                 'Which column to use for v1. Should be an integer for ASCII catalogs.'),
         'v2_col' : (str, True, '0', None,
@@ -582,6 +610,10 @@ class Catalog(object):
                 'Which extension to use for the r_col. default is the global ext value.'),
         'k_ext': (str, True, None, None,
                 'Which extension to use for the k_col. default is the global ext value.'),
+        'z1_ext': (str, True, None, None,
+                'Which extension to use for the z1_col. default is the global ext value.'),
+        'z2_ext': (str, True, None, None,
+                'Which extension to use for the z2_col. default is the global ext value.'),
         'v1_ext': (str, True, None, None,
                 'Which extension to use for the v1_col. default is the global ext value.'),
         'v2_ext': (str, True, None, None,
@@ -620,6 +652,10 @@ class Catalog(object):
                 'An eval string to use for r.'),
         'k_eval' : (str, True, None, None,
                 'An eval string to use for kappa.'),
+        'z1_eval' : (str, True, None, None,
+                'An eval string to use for z1.'),
+        'z2_eval' : (str, True, None, None,
+                'An eval string to use for z2.'),
         'v1_eval' : (str, True, None, None,
                 'An eval string to use for v1.'),
         'v2_eval' : (str, True, None, None,
@@ -646,6 +682,10 @@ class Catalog(object):
                 'An eval string to use for flag.'),
         'extra_cols': (list, False, None, None,
                 'A list of extra column names to read for the eval calculations'),
+        'flip_z1' : (bool, True, False, None,
+                'Whether to flip the sign of z1'),
+        'flip_z2' : (bool, True, False, None,
+                'Whether to flip the sign of z2'),
         'flip_v1' : (bool, True, False, None,
                 'Whether to flip the sign of v1'),
         'flip_v2' : (bool, True, False, None,
@@ -702,7 +742,8 @@ class Catalog(object):
 
     def __init__(self, file_name=None, config=None, *, num=0, logger=None, is_rand=False,
                  x=None, y=None, z=None, ra=None, dec=None, r=None, w=None, wpos=None, flag=None,
-                 k=None, v1=None, v2=None, g1=None, g2=None, t1=None, t2=None, q1=None, q2=None,
+                 k=None, z1=None, z2=None, v1=None, v2=None, g1=None, g2=None,
+                 t1=None, t2=None, q1=None, q2=None,
                  patch=None, patch_centers=None, rng=None, **kwargs):
 
         self.config = merge_config(config, kwargs, Catalog._valid_params, Catalog._aliases)
@@ -731,6 +772,8 @@ class Catalog(object):
         self._wpos = None
         self._flag = None
         self._k = None
+        self._z1 = None
+        self._z2 = None
         self._v1 = None
         self._v2 = None
         self._g1 = None
@@ -814,7 +857,7 @@ class Catalog(object):
         # First style -- read from a file
         if file_name is not None:
             if any([v is not None
-                    for v in [x,y,z,ra,dec,r,k,v1,v2,g1,g2,t1,t2,q1,q2,patch,w,wpos,flag]]):
+                    for v in [x,y,z,ra,dec,r,k,z1,z2,v1,v2,g1,g2,t1,t2,q1,q2,patch,w,wpos,flag]]):
                 raise TypeError("Vectors may not be provided when file_name is provided.")
             self.file_name = file_name
             self.name = file_name
@@ -860,6 +903,9 @@ class Catalog(object):
             if ra is not None or dec is not None:
                 if ra is None or dec is None:
                     raise TypeError("ra and dec must both be provided")
+            if z1 is not None or z2 is not None:
+                if z1 is None or z2 is None:
+                    raise TypeError("z1 and z2 must both be provided")
             if v1 is not None or v2 is not None:
                 if v1 is None or v2 is None:
                     raise TypeError("v1 and v2 must both be provided")
@@ -886,6 +932,8 @@ class Catalog(object):
             self._wpos = self.makeArray(wpos,'wpos')
             self._flag = self.makeArray(flag,'flag',int)
             self._k = self.makeArray(k,'k')
+            self._z1 = self.makeArray(z1,'z1')
+            self._z2 = self.makeArray(z2,'z2')
             self._v1 = self.makeArray(v1,'v1')
             self._v2 = self.makeArray(v2,'v2')
             self._g1 = self.makeArray(g1,'g1')
@@ -921,6 +969,10 @@ class Catalog(object):
                 raise ValueError("wpos has the wrong numbers of elements")
             if self._k is not None and len(self._k) != ntot:
                 raise ValueError("k has the wrong numbers of elements")
+            if self._z1 is not None and len(self._z1) != ntot:
+                raise ValueError("z1 has the wrong numbers of elements")
+            if self._z2 is not None and len(self._z2) != ntot:
+                raise ValueError("z2 has the wrong numbers of elements")
             if self._v1 is not None and len(self._v1) != ntot:
                 raise ValueError("v1 has the wrong numbers of elements")
             if self._v2 is not None and len(self._v2) != ntot:
@@ -969,6 +1021,10 @@ class Catalog(object):
             self._vark = self.config['vark']
             self._meank = 0.
             self._altmeank = 0.
+        if self.config.get('varz', None) is not None:
+            self._varz = self._varz1 = self._varz2 = self.config['varz']
+            self._meanz1 = self._meanz2 = 0.
+            self._altmeanz1 = self._altmeanz2 = 0.
         if self.config.get('varv', None) is not None:
             self._varv = self._varv1 = self._varv2 = self.config['varv']
             self._meanv1 = self._meanv2 = 0.
@@ -1042,6 +1098,16 @@ class Catalog(object):
     def k(self):
         self.load()
         return self._k
+
+    @property
+    def z1(self):
+        self.load()
+        return self._z1
+
+    @property
+    def z2(self):
+        self.load()
+        return self._z2
 
     @property
     def v1(self):
@@ -1126,6 +1192,14 @@ class Catalog(object):
         if self._vark is None:
             self._meank, self._altmeank, self._vark = self._calculate_weighted_var(self.k)
         return self._vark
+
+    @property
+    def varz(self):
+        if self._varz is None:
+            self._meanz1, self._altmeanz1, self._varz1 = self._calculate_weighted_var(self.z1)
+            self._meanz2, self._altmeanz2, self._varz2 = self._calculate_weighted_var(self.z2)
+            self._varz = (self._varz1 + self._varz2)/2
+        return self._varz
 
     @property
     def varv(self):
@@ -1222,6 +1296,15 @@ class Catalog(object):
         # Finish processing the data based on given inputs.
 
         # Apply flips if requested
+        flip_z1 = get_from_list(self.config,'flip_z1',self._num,bool,False)
+        flip_z2 = get_from_list(self.config,'flip_z2',self._num,bool,False)
+        if flip_z1:
+            self.logger.info("   Flipping sign of z1.")
+            self._z1 = -self._z1
+        if flip_z2:
+            self.logger.info("   Flipping sign of z2.")
+            self._z2 = -self._z2
+
         flip_v1 = get_from_list(self.config,'flip_v1',self._num,bool,False)
         flip_v2 = get_from_list(self.config,'flip_v2',self._num,bool,False)
         if flip_v1:
@@ -1281,6 +1364,8 @@ class Catalog(object):
         self.checkForNaN(self._dec,'dec')
         self.checkForNaN(self._r,'r')
         self.checkForNaN(self._k,'k')
+        self.checkForNaN(self._z1,'z1')
+        self.checkForNaN(self._z2,'z2')
         self.checkForNaN(self._v1,'v1')
         self.checkForNaN(self._v2,'v2')
         self.checkForNaN(self._g1,'g1')
@@ -1389,7 +1474,7 @@ class Catalog(object):
             kwargs['allow_xyz'] = True
         keys = []
         for key in ['x', 'y', 'z', 'ra', 'dec', 'r', 'w', 'wpos',
-                    'k', 'v1', 'v2', 'g1', 'g2', 't1', 't2', 'q1', 'q2']:
+                    'k', 'z1', 'z2', 'v1', 'v2', 'g1', 'g2', 't1', 't2', 'q1', 'q2']:
             if getattr(cat, key) is not None:
                 a = getattr(cat,key)
                 if mask_list is not None:
@@ -1514,6 +1599,8 @@ class Catalog(object):
         self._w = self._w[indx] if self._w is not None else None
         self._wpos = self._wpos[indx] if self._wpos is not None else None
         self._k = self._k[indx] if self._k is not None else None
+        self._z1 = self._z1[indx] if self._z1 is not None else None
+        self._z2 = self._z2[indx] if self._z2 is not None else None
         self._v1 = self._v1[indx] if self._v1 is not None else None
         self._v2 = self._v2[indx] if self._v2 is not None else None
         self._g1 = self._g1[indx] if self._g1 is not None else None
@@ -1581,6 +1668,8 @@ class Catalog(object):
         wpos_col = get_from_list(self.config,'wpos_col',num,str,'0')
         flag_col = get_from_list(self.config,'flag_col',num,str,'0')
         k_col = get_from_list(self.config,'k_col',num,str,'0')
+        z1_col = get_from_list(self.config,'z1_col',num,str,'0')
+        z2_col = get_from_list(self.config,'z2_col',num,str,'0')
         v1_col = get_from_list(self.config,'v1_col',num,str,'0')
         v2_col = get_from_list(self.config,'v2_col',num,str,'0')
         g1_col = get_from_list(self.config,'g1_col',num,str,'0')
@@ -1602,6 +1691,8 @@ class Catalog(object):
         wpos_eval = get_from_list(self.config,'wpos_eval',num,str,None)
         flag_eval = get_from_list(self.config,'flag_eval',num,str,None)
         k_eval = get_from_list(self.config,'k_eval',num,str,None)
+        z1_eval = get_from_list(self.config,'z1_eval',num,str,None)
+        z2_eval = get_from_list(self.config,'z2_eval',num,str,None)
         v1_eval = get_from_list(self.config,'v1_eval',num,str,None)
         v2_eval = get_from_list(self.config,'v2_eval',num,str,None)
         g1_eval = get_from_list(self.config,'g1_eval',num,str,None)
@@ -1634,6 +1725,10 @@ class Catalog(object):
 
         if k_col == '0' and k_eval is None and isKColRequired(self.orig_config,num):
             raise ValueError("k_col is missing for file %s"%file_name)
+        if z1_col == '0' and z1_eval is None and isZColRequired(self.orig_config,num):
+            raise ValueError("z1_col is missing for file %s"%file_name)
+        if z2_col == '0' and z2_eval is None and isZColRequired(self.orig_config,num):
+            raise ValueError("z2_col is missing for file %s"%file_name)
         if v1_col == '0' and v1_eval is None and isVColRequired(self.orig_config,num):
             raise ValueError("v1_col is missing for file %s"%file_name)
         if v2_col == '0' and v2_eval is None and isVColRequired(self.orig_config,num):
@@ -1652,6 +1747,9 @@ class Catalog(object):
             raise ValueError("q2_col is missing for file %s"%file_name)
 
         # Either both shoudl be 0 or both != 0.
+        if (z1_col == '0' and z1_eval is None) != (z2_col == '0' and z1_eval is None):
+            raise ValueError("z1_col, z2_col=(%s, %s) are invalid for file %s"%(
+                        z1_col,z2_col,file_name))
         if (v1_col == '0' and v1_eval is None) != (v2_col == '0' and v1_eval is None):
             raise ValueError("v1_col, v2_col=(%s, %s) are invalid for file %s"%(
                         v1_col,v2_col,file_name))
@@ -1732,6 +1830,21 @@ class Catalog(object):
                             "Warning: skipping k_col=%s for %s, num=%d "%(
                                 k_col, file_name, num) +
                             "because it is invalid, but unneeded.")
+
+            if z1_col != '0':
+                z1_ext = get_from_list(self.config, 'z1_ext', num, str, ext)
+                z2_ext = get_from_list(self.config, 'z2_ext', num, str, ext)
+                if (z1_col not in reader.names(ext=z1_ext) or
+                    z2_col not in reader.names(ext=z2_ext)):
+                    if isVColRequired(self.orig_config,num):
+                        raise ValueError(
+                            "z1_col, z2_col=(%s, %s) are invalid for file %s"%(
+                                z1_col, z2_col, file_name))
+                    else:
+                        self.logger.warning(
+                            "Warning: skipping z1_col, z2_col=(%s, %s) for %s, num=%d "%(
+                                z1_col, z2_col, file_name, num) +
+                            "because they are invalid, but unneeded.")
 
             if v1_col != '0':
                 v1_ext = get_from_list(self.config, 'v1_ext', num, str, ext)
@@ -1863,6 +1976,8 @@ class Catalog(object):
         wpos_col = get_from_list(self.config,'wpos_col',num,str,'0')
         flag_col = get_from_list(self.config,'flag_col',num,str,'0')
         k_col = get_from_list(self.config,'k_col',num,str,'0')
+        z1_col = get_from_list(self.config,'z1_col',num,str,'0')
+        z2_col = get_from_list(self.config,'z2_col',num,str,'0')
         v1_col = get_from_list(self.config,'v1_col',num,str,'0')
         v2_col = get_from_list(self.config,'v2_col',num,str,'0')
         g1_col = get_from_list(self.config,'g1_col',num,str,'0')
@@ -1883,6 +1998,8 @@ class Catalog(object):
         wpos_eval = get_from_list(self.config,'wpos_eval',num,str,None)
         flag_eval = get_from_list(self.config,'flag_eval',num,str,None)
         k_eval = get_from_list(self.config,'k_eval',num,str,None)
+        z1_eval = get_from_list(self.config,'z1_eval',num,str,None)
+        z2_eval = get_from_list(self.config,'z2_eval',num,str,None)
         v1_eval = get_from_list(self.config,'v1_eval',num,str,None)
         v2_eval = get_from_list(self.config,'v2_eval',num,str,None)
         g1_eval = get_from_list(self.config,'g1_eval',num,str,None)
@@ -1907,7 +2024,7 @@ class Catalog(object):
                         ra_col, dec_col, r_col,
                         patch_col,
                         w_col, wpos_col, flag_col,
-                        k_col, v1_col, v2_col, g1_col, g2_col,
+                        k_col, z1_col, z2_col, v1_col, v2_col, g1_col, g2_col,
                         t1_col, t2_col, q1_col, q2_col]
 
             # It's faster in FITS to read in all the columns in one read, rather than individually.
@@ -1928,6 +2045,8 @@ class Catalog(object):
             wpos_ext = get_from_list(self.config, 'wpos_ext', num, str, ext)
             flag_ext = get_from_list(self.config, 'flag_ext', num, str, ext)
             k_ext = get_from_list(self.config, 'k_ext', num, str, ext)
+            z1_ext = get_from_list(self.config, 'z1_ext', num, str, ext)
+            z2_ext = get_from_list(self.config, 'z2_ext', num, str, ext)
             v1_ext = get_from_list(self.config, 'v1_ext', num, str, ext)
             v2_ext = get_from_list(self.config, 'v2_ext', num, str, ext)
             g1_ext = get_from_list(self.config, 'g1_ext', num, str, ext)
@@ -1940,7 +2059,7 @@ class Catalog(object):
                         ra_ext, dec_ext, r_ext,
                         patch_ext,
                         w_ext, wpos_ext, flag_ext,
-                        k_ext, v1_ext, v2_ext, g1_ext, g2_ext,
+                        k_ext, z1_ext, z2_ext, v1_ext, v2_ext, g1_ext, g2_ext,
                         t1_ext, t2_ext, q1_ext, q2_ext]
             col_by_ext = dict(zip(all_cols,all_exts))
             all_exts = set(all_exts + [ext])
@@ -2022,6 +2141,13 @@ class Catalog(object):
                 if k_col in reader.names(ext=k_ext) or k_eval is not None:
                     self._k = parse_value(data, k_col, k_eval)
                     self.logger.debug('read k')
+
+                # Set z1,z2
+                if z1_col in reader.names(ext=z1_ext) or z1_eval is not None:
+                    self._z1 = parse_value(data, z1_col, z1_eval)
+                    self.logger.debug('read z1')
+                    self._z2 = parse_value(data, z2_col, z2_eval)
+                    self.logger.debug('read z2')
 
                 # Set v1,v2
                 if v1_col in reader.names(ext=v1_ext) or v1_eval is not None:
@@ -2290,6 +2416,41 @@ class Catalog(object):
         if logger is None:
             logger = self.logger
         field = self.kfields(min_size, max_size, split_method, brute, min_top, max_top, coords,
+                             rng=self._rng, logger=logger)
+        self._field = weakref.ref(field)
+        return field
+
+    def getZField(self, *, min_size=0, max_size=None, split_method=None, brute=False,
+                  min_top=None, max_top=10, coords=None, logger=None):
+        """Return a `VField` based on the z1,z2 values in this catalog.
+
+        The `VField` object is cached, so this is efficient to call multiple times.
+        cf. `resize_cache` and `clear_cache`.
+
+        Parameters:
+            min_size (float):   The minimum radius cell required (usually min_sep). (default: 0)
+            max_size (float):   The maximum radius cell required (usually max_sep). (default: None)
+            split_method (str): Which split method to use ('mean', 'median', 'middle', or 'random')
+                                (default: 'mean'; this value can also be given in the Catalog
+                                constructor in the config dict.)
+            brute (bool):       Whether to force traversal to the leaves. (default: False)
+            min_top (int):      The minimum number of top layers to use when setting up the
+                                field. (default: :math:`\\max(3, \\log_2(N_{\\rm cpu}))`)
+            max_top (int):      The maximum number of top layers to use when setting up the
+                                field. (default: 10)
+            coords (str):       The kind of coordinate system to use. (default self.coords)
+            logger:             A Logger object if desired (default: self.logger)
+
+        Returns:
+            A `VField` object
+        """
+        if split_method is None:
+            split_method = get(self.config,'split_method',str,'mean')
+        if self.z1 is None or self.z2 is None:
+            raise TypeError("z1,z2 are not defined.")
+        if logger is None:
+            logger = self.logger
+        field = self.zfields(min_size, max_size, split_method, brute, min_top, max_top, coords,
                              rng=self._rng, logger=logger)
         self._field = weakref.ref(field)
         return field
@@ -2591,6 +2752,8 @@ class Catalog(object):
             self._w = None
             self._wpos = None
             self._k = None
+            self._z1 = None
+            self._z2 = None
             self._v1 = None
             self._v2 = None
             self._g1 = None
@@ -2697,6 +2860,10 @@ class Catalog(object):
             kwargs['wpos_col'] = 'wpos'
         if self._k is not None or self.config.get('k_col','0') != '0':
             kwargs['k_col'] = 'k'
+        if self._z1 is not None or self.config.get('z1_col','0') != '0':
+            kwargs['z1_col'] = 'z1'
+        if self._z2 is not None or self.config.get('z2_col','0') != '0':
+            kwargs['z2_col'] = 'z2'
         if self._v1 is not None or self.config.get('v1_col','0') != '0':
             kwargs['v1_col'] = 'v1'
         if self._v2 is not None or self.config.get('v2_col','0') != '0':
@@ -2786,6 +2953,8 @@ class Catalog(object):
                 w=self.w[indx] if self.nontrivial_w else None
                 wpos=self.wpos[indx] if self.wpos is not None else None
                 k=self.k[indx] if self.k is not None else None
+                z1=self.z1[indx] if self.z1 is not None else None
+                z2=self.z2[indx] if self.z2 is not None else None
                 v1=self.v1[indx] if self.v1 is not None else None
                 v2=self.v2[indx] if self.v2 is not None else None
                 g1=self.g1[indx] if self.g1 is not None else None
@@ -2801,7 +2970,8 @@ class Catalog(object):
                     kwargs['dec_units'] = 'rad'
                     kwargs['allow_xyz'] = True
                 p = Catalog(x=x, y=y, z=z, ra=ra, dec=dec, r=r, w=w, wpos=wpos,
-                            k=k, v1=v1, v2=v2, g1=g1, g2=g2, t1=t1, t2=t2, q1=q1, q2=q2,
+                            k=k, z1=z1, z2=z2, v1=v1, v2=v2, g1=g1, g2=g2,
+                            t1=t1, t2=t2, q1=q1, q2=q2,
                             patch=i, npatch=self.npatch, **kwargs)
                 self._patches.append(p)
 
@@ -2842,6 +3012,8 @@ class Catalog(object):
         w             self.w if not None and self.nontrivial_w
         wpos          self.wpos if not None
         k             self.k if not None
+        z1            self.z1 if not None
+        z2            self.z2 if not None
         v1            self.v1 if not None
         v2            self.v2 if not None
         g1            self.g1 if not None
@@ -2892,6 +3064,12 @@ class Catalog(object):
         if self.k is not None:
             col_names.append('k')
             columns.append(self.k)
+        if self.z1 is not None:
+            col_names.append('z1')
+            columns.append(self.z1)
+        if self.z2 is not None:
+            col_names.append('z2')
+            columns.append(self.z2)
         if self.v1 is not None:
             col_names.append('v1')
             columns.append(self.v1)
@@ -2964,6 +3142,8 @@ class Catalog(object):
             if self.nontrivial_w: s += 'w='+repr(self.w)+','
             if self.wpos is not None: s += 'wpos='+repr(self.wpos)+','
             if self.k is not None: s += 'k='+repr(self.k)+','
+            if self.z1 is not None: s += 'z1='+repr(self.z1)+','
+            if self.z2 is not None: s += 'z2='+repr(self.z2)+','
             if self.v1 is not None: s += 'v1='+repr(self.v1)+','
             if self.v2 is not None: s += 'v2='+repr(self.v2)+','
             if self.g1 is not None: s += 'g1='+repr(self.g1)+','
@@ -2995,6 +3175,8 @@ class Catalog(object):
                 np.array_equal(self.w, other.w) and
                 np.array_equal(self.wpos, other.wpos) and
                 np.array_equal(self.k, other.k) and
+                np.array_equal(self.z1, other.z1) and
+                np.array_equal(self.z2, other.z2) and
                 np.array_equal(self.v1, other.v1) and
                 np.array_equal(self.v2, other.v2) and
                 np.array_equal(self.g1, other.g1) and
@@ -3114,6 +3296,29 @@ def calculateVarK(cat_list, *, low_mem=False):
         # unit tests have small enough N that this matters.
         return _compute_var_multi_cat(cat_list, 'k', low_mem)
 
+def calculateVarZ(cat_list, *, low_mem=False):
+    """Calculate the overall variance of the complex scalar field from a list of catalogs.
+
+    The catalogs are assumed to be equivalent, so this is just the average vector
+    variance (per component) weighted by the number of objects in each catalog.
+
+    Parameters:
+        cat_list:   A Catalog or a list of Catalogs for which to calculate the vector variance.
+        low_mem:    Whether to try to conserve memory when cat is a list by unloading each
+                    catalog after getting its individual varv. [default: False]
+
+    Returns:
+        The variance per component of the vector field.
+    """
+    if isinstance(cat_list, Catalog):
+        return cat_list.varv
+    elif len(cat_list) == 1:
+        return cat_list[0].varv
+    else:
+        varz1 = _compute_var_multi_cat(cat_list, 'z1', low_mem)
+        varz2 = _compute_var_multi_cat(cat_list, 'z2', low_mem)
+        return (varz1 + varz2)/2.
+
 def calculateVarV(cat_list, *, low_mem=False):
     """Calculate the overall variance of the vector field from a list of catalogs.
 
@@ -3221,12 +3426,31 @@ def isKColRequired(config, num):
         False if not.
 
     """
-    return config and ( 'kk_file_name' in config
-                        or (num==0 and 'kv_file_name' in config)
-                        or (num==0 and 'kg_file_name' in config)
-                        or (num==0 and 'kt_file_name' in config)
-                        or (num==0 and 'kq_file_name' in config)
-                        or (num==1 and 'nk_file_name' in config) )
+    return config and ('kk_file_name' in config
+                       or (num==0 and 'kv_file_name' in config)
+                       or (num==0 and 'kg_file_name' in config)
+                       or (num==0 and 'kt_file_name' in config)
+                       or (num==0 and 'kq_file_name' in config)
+                       or (num==1 and 'nk_file_name' in config))
+
+def isZColRequired(config, num):
+    """A quick helper function that checks whether we need to bother reading the z1,z2 columns.
+
+    The logic here is the same as for `isGColRequired`, but we check for output files that require
+    the z1,z2 columns rather than g1,g2.
+
+    Parameters:
+        config (dict):  The configuration file to check.
+        num (int):      Which number catalog are we working on.
+
+    Returns:
+        True if some output file requires this catalog to have valid z1/z2 columns,
+        False if not.
+
+    """
+    return config and ('zz_file_name' in config
+                       or (num==1 and 'nz_file_name' in config)
+                       or (num==1 and 'kz_file_name' in config))
 
 def isVColRequired(config, num):
     """A quick helper function that checks whether we need to bother reading the v1,v2 columns.
@@ -3243,9 +3467,9 @@ def isVColRequired(config, num):
         False if not.
 
     """
-    return config and ( 'vv_file_name' in config
-                        or (num==1 and 'nv_file_name' in config)
-                        or (num==1 and 'kv_file_name' in config) )
+    return config and ('vv_file_name' in config
+                       or (num==1 and 'nv_file_name' in config)
+                       or (num==1 and 'kv_file_name' in config))
 
 def isGColRequired(config, num):
     """A quick helper function that checks whether we need to bother reading the g1,g2 columns.
@@ -3271,12 +3495,12 @@ def isGColRequired(config, num):
         False if not.
 
     """
-    return config and ( 'gg_file_name' in config
-                        or 'm2_file_name' in config
-                        or (num==1 and 'norm_file_name' in config)
-                        or (num==1 and 'ng_file_name' in config)
-                        or (num==1 and 'nm_file_name' in config)
-                        or (num==1 and 'kg_file_name' in config) )
+    return config and ('gg_file_name' in config
+                       or 'm2_file_name' in config
+                       or (num==1 and 'norm_file_name' in config)
+                       or (num==1 and 'ng_file_name' in config)
+                       or (num==1 and 'nm_file_name' in config)
+                       or (num==1 and 'kg_file_name' in config))
 
 def isTColRequired(config, num):
     """A quick helper function that checks whether we need to bother reading the t1,t2 columns.
@@ -3292,9 +3516,9 @@ def isTColRequired(config, num):
         True if some output file requires this catalog to have valid t1/t2 columns,
         False if not.
     """
-    return config and ( 'tt_file_name' in config
-                        or (num==1 and 'nt_file_name' in config)
-                        or (num==1 and 'kt_file_name' in config) )
+    return config and ('tt_file_name' in config
+                       or (num==1 and 'nt_file_name' in config)
+                       or (num==1 and 'kt_file_name' in config))
 
 def isQColRequired(config, num):
     """A quick helper function that checks whether we need to bother reading the q1,q2 columns.
@@ -3310,6 +3534,6 @@ def isQColRequired(config, num):
         True if some output file requires this catalog to have valid q1/q2 columns,
         False if not.
     """
-    return config and ( 'qq_file_name' in config
-                        or (num==1 and 'nq_file_name' in config)
-                        or (num==1 and 'kq_file_name' in config) )
+    return config and ('qq_file_name' in config
+                       or (num==1 and 'nq_file_name' in config)
+                       or (num==1 and 'kq_file_name' in config))

@@ -23,6 +23,7 @@ from .nncorrelation import NNCorrelation
 from .nkcorrelation import NKCorrelation
 from .kkcorrelation import KKCorrelation
 from .nzcorrelation import NZCorrelation
+from .kzcorrelation import KZCorrelation
 from .nvcorrelation import NVCorrelation
 from .kvcorrelation import KVCorrelation
 from .vvcorrelation import VVCorrelation
@@ -83,6 +84,8 @@ corr2_valid_params = {
     'nz_statistic' : (str, False, None, ['compensated', 'simple'],
             'Which statistic to use for the estimator of the NZ correlation function. ',
             'The default is compensated if rand_files is given, otherwise simple'),
+    'kz_file_name' : (str, False, None, None,
+            'The output filename for scalar-spin-0 correlation function.'),
 
     'nv_file_name' : (str, False, None, None,
             'The output filename for point-vector correlation function.'),
@@ -337,7 +340,6 @@ def corr2(config, logger=None):
     # Do NZ correlation function if necessary
     if 'nz_file_name' in config:
         if cat2 is None:
-            raise '6'
             raise TypeError("file_name2 is required for nz correlation")
         logger.warning("Performing NZ calculations...")
         nz = NZCorrelation(config, logger=logger)
@@ -356,6 +358,17 @@ def corr2(config, logger=None):
 
         nz.write(config['nz_file_name'], rz=rz)
         logger.warning("Wrote NZ correlation to %s",config['nz_file_name'])
+
+    # Do KZ correlation function if necessary
+    if 'kz_file_name' in config:
+        if cat2 is None:
+            raise TypeError("file_name2 is required for kz correlation")
+        logger.warning("Performing KZ calculations...")
+        kz = KZCorrelation(config, logger=logger)
+        kz.process(cat1,cat2)
+        logger.info("Done KZ calculation.")
+        kz.write(config['kz_file_name'])
+        logger.warning("Wrote KZ correlation to %s",config['kz_file_name'])
 
     # Do NV correlation function if necessary
     if 'nv_file_name' in config:

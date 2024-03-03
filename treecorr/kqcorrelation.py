@@ -46,7 +46,7 @@ class KQCorrelation(Corr2):
                     If there are no pairs in a bin, then exp(logr) will be used instead.
         meanlogr:   The (weighted) mean value of log(r) for the pairs in each bin.
                     If there are no pairs in a bin, then logr will be used instead.
-        xi:         The correlation function, :math:`\xi(r) = \langle \kappa\, \q_R\rangle`.
+        xi:         The correlation function, :math:`\xi(r) = \langle \kappa\, q_R\rangle`.
         xi_im:      The imaginary part of :math:`\xi(r)`.
         varxi:      An estimate of the variance of :math:`\xi`
         weight:     The total weight in each bin.
@@ -364,7 +364,7 @@ class KQCorrelation(Corr2):
         meanlogr        The mean value :math:`\langle \log(r)\rangle` of pairs
                         that fell into each bin
         xi              The real part of the correlation function,
-                        :math:`xi(r) = \langle \kappa\, \q_R\rangle`.
+                        :math:`xi(r) = \langle \kappa\, q_R\rangle`.
         xi_im           The imaginary part of the correlation function.
         sigma           The sqrt of the variance estimate of both of these
         weight          The total weight contributing to each bin

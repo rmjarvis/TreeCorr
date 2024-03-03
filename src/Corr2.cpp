@@ -520,23 +520,6 @@ struct DirectHelper2<4,KData,D2>
     }
 };
 
-template <int D2>
-struct DirectHelper2<4,ZData,D2>
-{
-    template <int R, int C>
-    static void ProcessXi(
-        const Cell<ZData,C>& c1, const Cell<D2,C>& c2, const double rsq,
-        XiData<ZData,D2>& xi, int k, int )
-    {
-        std::complex<double> g2 = c2.getData().getWG();
-        ProjectHelper<C>::Project(c1,c2,g2);
-        if (D2 == GData) g2 *= -c1.getData().getWZ();
-        else g2 *= c1.getData().getWZ();
-        xi.xi[k] += real(g2);
-        xi.xi_im[k] += imag(g2);
-    }
-};
-
 template <int D1, int D2>
 struct DirectHelper2<5,D1,D2>
 {
@@ -587,8 +570,8 @@ struct DirectHelper
             (D1 == NData && D2 == NData) ? 0 :
             (D1 == NData && (D2==KData || D2==ZData)) ? 1 :
             (D1 == NData && D2 >= GData) ? 2 :
-            ((D1==KData || D1==ZData) && (D2==KData || D2==ZData)) ? 3 :
-            ((D1==KData || D1==ZData) && D2 >= GData) ? 4 :
+            (D1 == KData && (D2==KData || D2==ZData)) ? 3 :
+            (D1 == KData && D2 >= GData) ? 4 :
             (D1 >= GData && D2 >= GData) ? 5 : -1;
 
         DirectHelper2<algo,D1,D2>::template ProcessXi<R>(c1,c2,rsq,xi,k,k2);

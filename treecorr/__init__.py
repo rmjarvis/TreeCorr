@@ -44,6 +44,7 @@ from .nkcorrelation import NKCorrelation
 from .kkcorrelation import KKCorrelation
 
 from .nzcorrelation import NZCorrelation
+from .kzcorrelation import KZCorrelation
 
 from .nvcorrelation import NVCorrelation
 from .kvcorrelation import KVCorrelation

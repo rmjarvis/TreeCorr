@@ -1,0 +1,21 @@
+
+file_name: data/kz_lens.dat
+file_name2: data/kz_source.dat
+
+x_col: 1
+y_col: 2
+x_units: arcmin
+y_units: arcmin
+
+k_col: [3,0]
+z1_col: [0,3]
+z2_col: [0,4]
+
+verbose: 1
+
+min_sep: 1
+max_sep: 20
+bin_size: 0.10
+sep_units: arcmin
+
+kz_file_name: output/kz.out

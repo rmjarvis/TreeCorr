@@ -18,14 +18,14 @@
 import numpy as np
 
 from . import _treecorr
-from .catalog import calculateVarV, calculateVarK
+from .catalog import calculateVarZ, calculateVarK
 from .corr2base import Corr2
 from .util import make_writer, make_reader
 from .config import make_minimal_config
 
 
-class KVCorrelation(Corr2):
-    r"""This class handles the calculation and storage of a 2-point scalar-vector correlation
+class KZCorrelation(Corr2):
+    r"""This class handles the calculation and storage of a 2-point scalar-spin-0 correlation
     function.
 
     Ojects of this class holds the following attributes:
@@ -46,7 +46,7 @@ class KVCorrelation(Corr2):
                     If there are no pairs in a bin, then exp(logr) will be used instead.
         meanlogr:   The (weighted) mean value of log(r) for the pairs in each bin.
                     If there are no pairs in a bin, then logr will be used instead.
-        xi:         The correlation function, :math:`\xi(r) = \langle \kappa\, v_R\rangle`.
+        xi:         The correlation function, :math:`\xi(r) = \langle \kappa\, z\rangle`.
         xi_im:      The imaginary part of :math:`\xi(r)`.
         varxi:      An estimate of the variance of :math:`\xi`
         weight:     The total weight in each bin.
@@ -73,7 +73,7 @@ class KVCorrelation(Corr2):
 
     The typical usage pattern is as follows:
 
-        >>> kv = treecorr.KVCorrelation(config)
+        >>> kv = treecorr.KZCorrelation(config)
         >>> kv.process(cat1,cat2)   # Calculate the cross-correlation
         >>> kv.write(file_name)     # Write out to a file.
         >>> xi = kv.xi              # Or access the correlation function directly.
@@ -90,7 +90,7 @@ class KVCorrelation(Corr2):
                         arguments, which may be passed either directly or in the config dict.
     """
     def __init__(self, config=None, *, logger=None, **kwargs):
-        """Initialize `KVCorrelation`.  See class doc for details.
+        """Initialize `KZCorrelation`.  See class doc for details.
         """
         Corr2.__init__(self, config, logger=logger, **kwargs)
 
@@ -105,13 +105,13 @@ class KVCorrelation(Corr2):
         self._var_num = 0
         self._processed_cats1 = []
         self._processed_cats2 = []
-        self.logger.debug('Finished building KVCorr')
+        self.logger.debug('Finished building KZCorr')
 
     @property
     def corr(self):
         if self._corr is None:
             x = np.array([])
-            self._corr = _treecorr.KVCorr(self._bintype, self._min_sep, self._max_sep, self._nbins,
+            self._corr = _treecorr.KZCorr(self._bintype, self._min_sep, self._max_sep, self._nbins,
                                           self._bin_size, self.b, self.angle_slop,
                                           self.min_rpar, self.max_rpar,
                                           self.xperiod, self.yperiod, self.zperiod,
@@ -120,8 +120,8 @@ class KVCorrelation(Corr2):
         return self._corr
 
     def __eq__(self, other):
-        """Return whether two `KVCorrelation` instances are equal"""
-        return (isinstance(other, KVCorrelation) and
+        """Return whether two `KZCorrelation` instances are equal"""
+        return (isinstance(other, KZCorrelation) and
                 self.nbins == other.nbins and
                 self.bin_size == other.bin_size and
                 self.min_sep == other.min_sep and
@@ -146,7 +146,7 @@ class KVCorrelation(Corr2):
 
     def copy(self):
         """Make a copy"""
-        ret = KVCorrelation.__new__(KVCorrelation)
+        ret = KZCorrelation.__new__(KZCorrelation)
         for key, item in self.__dict__.items():
             if isinstance(item, np.ndarray):
                 # Only items that might change need to by deep copied.
@@ -163,7 +163,7 @@ class KVCorrelation(Corr2):
         return ret
 
     def __repr__(self):
-        return f'KVCorrelation({self._repr_kwargs})'
+        return f'KZCorrelation({self._repr_kwargs})'
 
     def process_cross(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation.
@@ -184,9 +184,9 @@ class KVCorrelation(Corr2):
                                 in the constructor in the config dict.)
         """
         if cat1.name == '' and cat2.name == '':
-            self.logger.info('Starting process KV cross-correlations')
+            self.logger.info('Starting process KZ cross-correlations')
         else:
-            self.logger.info('Starting process KV cross-correlations for cats %s, %s.',
+            self.logger.info('Starting process KZ cross-correlations for cats %s, %s.',
                              cat1.name, cat2.name)
 
         self._set_metric(metric, cat1.coords, cat2.coords)
@@ -198,7 +198,7 @@ class KVCorrelation(Corr2):
                             brute=self.brute is True or self.brute == 1,
                             min_top=self.min_top, max_top=self.max_top,
                             coords=self.coords)
-        f2 = cat2.getVField(min_size=min_size, max_size=max_size,
+        f2 = cat2.getZField(min_size=min_size, max_size=max_size,
                             split_method=self.split_method,
                             brute=self.brute is True or self.brute == 2,
                             min_top=self.min_top, max_top=self.max_top,
@@ -223,7 +223,7 @@ class KVCorrelation(Corr2):
         self.meanr[mask2] = self.rnom[mask2]
         self.meanlogr[mask2] = self.logr[mask2]
 
-    def finalize(self, vark, varv):
+    def finalize(self, vark, varz):
         """Finalize the calculation of the correlation function.
 
         The `process_cross` command accumulates values in each bin, so it can be called
@@ -232,10 +232,10 @@ class KVCorrelation(Corr2):
 
         Parameters:
             vark (float):   The variance of the scaler field.
-            varv (float):   The variance per component of the vector field.
+            varz (float):   The variance per component of the spin-0 field.
         """
         self._finalize()
-        self._var_num = vark * varv
+        self._var_num = vark * varz
 
     @property
     def varxi(self):
@@ -258,19 +258,19 @@ class KVCorrelation(Corr2):
         self._cov = None
 
     def __iadd__(self, other):
-        """Add a second `KVCorrelation`'s data to this one.
+        """Add a second `KZCorrelation`'s data to this one.
 
         .. note::
 
-            For this to make sense, both `KVCorrelation` objects should not have had `finalize`
+            For this to make sense, both `KZCorrelation` objects should not have had `finalize`
             called yet.  Then, after adding them together, you should call `finalize` on the sum.
         """
-        if not isinstance(other, KVCorrelation):
-            raise TypeError("Can only add another KVCorrelation object")
+        if not isinstance(other, KZCorrelation):
+            raise TypeError("Can only add another KZCorrelation object")
         if not (self._nbins == other._nbins and
                 self.min_sep == other.min_sep and
                 self.max_sep == other.max_sep):
-            raise ValueError("KVCorrelation to be added is not compatible with this one.")
+            raise ValueError("KZCorrelation to be added is not compatible with this one.")
 
         self._set_metric(other.metric, other.coords, other.coords)
         self.xi.ravel()[:] += other.xi.ravel()[:]
@@ -303,7 +303,7 @@ class KVCorrelation(Corr2):
 
         Parameters:
             cat1 (Catalog):     A catalog or list of catalogs for the K field.
-            cat2 (Catalog):     A catalog or list of catalogs for the V field.
+            cat2 (Catalog):     A catalog or list of catalogs for the Z field.
             metric (str):       Which metric to use.  See `Metrics` for details.
                                 (default: 'Euclidean'; this value can also be given in the
                                 constructor in the config dict.)
@@ -342,10 +342,10 @@ class KVCorrelation(Corr2):
         self._processed_cats2.extend(cat2)
         if finalize:
             vark = calculateVarK(self._processed_cats1, low_mem=low_mem)
-            varv = calculateVarV(self._processed_cats2, low_mem=low_mem)
+            varz = calculateVarZ(self._processed_cats2, low_mem=low_mem)
             self.logger.info("vark = %f: sig_k = %f",vark,math.sqrt(vark))
-            self.logger.info("varv = %f: sig_sn (per component) = %f",varv,math.sqrt(varv))
-            self.finalize(vark,varv)
+            self.logger.info("varz = %f: sig_sn (per component) = %f",varz,math.sqrt(varz))
+            self.finalize(vark,varz)
             self._processed_cats1.clear()
             self._processed_cats2.clear()
 
@@ -364,7 +364,7 @@ class KVCorrelation(Corr2):
         meanlogr        The mean value :math:`\langle \log(r)\rangle` of pairs
                         that fell into each bin
         xi              The real part of correlation function,
-                        :math:`xi(r) = \langle \kappa\, v_R\rangle`
+                        :math:`xi(r) = \langle \kappa\, z\rangle`
         xi_im           The imaginary part of correlation function.
         sigma           The sqrt of the variance estimate of both of these
         weight          The total weight contributing to each bin
@@ -385,7 +385,7 @@ class KVCorrelation(Corr2):
                                         (default: False)
             write_cov (bool):   Whether to write the covariance matrix as well. (default: False)
         """
-        self.logger.info('Writing KV correlations to %s',file_name)
+        self.logger.info('Writing KZ correlations to %s',file_name)
         precision = self.config.get('precision', 4) if precision is None else precision
         with make_writer(file_name, precision, file_type, self.logger) as writer:
             self._write(writer, None, write_patch_results, write_cov=write_cov)
@@ -412,7 +412,7 @@ class KVCorrelation(Corr2):
 
     @classmethod
     def from_file(cls, file_name, *, file_type=None, logger=None, rng=None):
-        """Create a KVCorrelation instance from an output file.
+        """Create a KZCorrelation instance from an output file.
 
         This should be a file that was written by TreeCorr.
 
@@ -425,16 +425,16 @@ class KVCorrelation(Corr2):
                                 random number generation. (default: None)
 
         Returns:
-            corr: A KVCorrelation object, constructed from the information in the file.
+            corr: A KZCorrelation object, constructed from the information in the file.
         """
         if logger:
-            logger.info('Building KVCorrelation from %s',file_name)
+            logger.info('Building KZCorrelation from %s',file_name)
         with make_reader(file_name, file_type, logger) as reader:
             name = 'main' if 'main' in reader else None
             params = reader.read_params(ext=name)
             kwargs = make_minimal_config(params, Corr2._valid_params)
             corr = cls(**kwargs, logger=logger, rng=rng)
-            corr.logger.info('Reading KV correlations from %s',file_name)
+            corr.logger.info('Reading KZ correlations from %s',file_name)
             corr._read(reader, name=name, params=params)
         return corr
 
@@ -446,7 +446,7 @@ class KVCorrelation(Corr2):
 
         .. warning::
 
-            The `KVCorrelation` object should be constructed with the same configuration
+            The `KZCorrelation` object should be constructed with the same configuration
             parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
             checked by the read function.
 
@@ -455,7 +455,7 @@ class KVCorrelation(Corr2):
             file_type (str):    The type of file ('ASCII' or 'FITS').  (default: determine the type
                                 automatically from the extension of file_name.)
         """
-        self.logger.info('Reading KV correlations from %s',file_name)
+        self.logger.info('Reading KZ correlations from %s',file_name)
         with make_reader(file_name, file_type, self.logger) as reader:
             self._read(reader)
 

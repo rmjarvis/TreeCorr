@@ -681,7 +681,6 @@ def test_pieces():
 def test_varxi():
     # Test that varxi is correct (or close) based on actual variance of many runs.
 
-    # Signal doesn't matter much.  Use the one from test_gg.
     z0 = 0.05 + 1j*0.05
     r0 = 10.
     L = 10 * r0

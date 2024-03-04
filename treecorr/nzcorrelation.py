@@ -25,7 +25,8 @@ from .config import make_minimal_config
 
 
 class BaseNZCorrelation(Corr2):
-    """This class is a base class for all the N?Correlation classes.
+    """This class is a base class for all the N?Correlation classes, where ? is one of the
+    complex fields of varying spin.
 
     A lot of the implementation is shared among those types, so whenever possible the shared
     implementation is done in this class.
@@ -273,8 +274,9 @@ class BaseNZCorrelation(Corr2):
 
         self._processed_cats.extend(cat2)
         if finalize:
-            varz = (self._calculateVarZ)(self._processed_cats, low_mem=low_mem)
-            self.logger.info("varz = %f: sig_sn (per component) = %f",varz,math.sqrt(varz))
+            varz = self._calculateVarZ(self._processed_cats, low_mem=low_mem)
+            self.logger.info("var%s = %f: sig_sn (per component) = %f",
+                             self._letter.lower(), varz, math.sqrt(varz))
             self.finalize(varz)
             self._processed_cats.clear()
 
@@ -381,7 +383,7 @@ class BaseNZCorrelation(Corr2):
             file_type (str):    The type of file ('ASCII' or 'FITS').  (default: determine the type
                                 automatically from the extension of file_name.)
         """
-        self.logger.info('Reading N%s correlations from %s',self._letter,file_name)
+        self.logger.info(f'Reading N{self._letter} correlations from %s',file_name)
         with make_reader(file_name, file_type, self.logger) as reader:
             self._read(reader)
 

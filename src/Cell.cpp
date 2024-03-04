@@ -176,15 +176,16 @@ void BuildCellData(
     double wp = vdata[start].second.wpos;
     pos = vdata[start].first->getPos();
     pos *= wp;
-    w = vdata[start].first->getW();
+    double ww = vdata[start].first->getW();
     double sumwp = wp;
     for(size_t i=start+1; i!=end; ++i) {
         const BaseCellData<C>& data = *vdata[i].first;
         wp = vdata[i].second.wpos;
         pos += data.getPos() * wp;
         sumwp += wp;
-        w += data.getW();
+        ww += data.getW();
     }
+    w = float(ww);
     if (sumwp != 0.) {
         pos /= sumwp;
         // If C == Sphere, the average position is no longer on the surface of the unit sphere.

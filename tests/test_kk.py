@@ -390,7 +390,7 @@ def test_kk():
     # The Fourier transform is: kappa~(k) = 2 pi A s^2 exp(-s^2 k^2/2) / L^2
     # P(k) = (1/2pi) <|kappa~(k)|^2> = 2 pi A^2 (s/L)^4 exp(-s^2 k^2)
     # xi(r) = (1/2pi) int( dk k P(k) J0(kr) )
-    #       = pi A^2 (s/L)^2 exp(-r^2/2s^2/4)
+    #       = pi A^2 (s/L)^2 exp(-r^2/4s^2)
     # Note: I'm not sure I handled the L factors correctly, but the units at the end need
     # to be kappa^2, so it needs to be (s/L)^2.
 
@@ -414,14 +414,13 @@ def test_kk():
     cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
     kk = treecorr.KKCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
                                 verbose=1)
-    kk.process(cat)
+    kk.process(cat, num_threads=1)
 
     # Using nbins=None rather than omiting nbins is equivalent.
     kk2 = treecorr.KKCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None,
                                  sep_units='arcmin')
     kk2.process(cat, num_threads=1)
-    kk.process(cat, num_threads=1)
-    assert kk2 == kk
+    assert kk2 == kk  # Only exactly == if num_threads == 1
 
     # log(<R>) != <logR>, but it should be close:
     print('meanlogr - log(meanr) = ',kk.meanlogr - np.log(kk.meanr))

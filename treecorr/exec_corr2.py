@@ -24,6 +24,7 @@ from .nkcorrelation import NKCorrelation
 from .kkcorrelation import KKCorrelation
 from .nzcorrelation import NZCorrelation
 from .kzcorrelation import KZCorrelation
+from .zzcorrelation import ZZCorrelation
 from .nvcorrelation import NVCorrelation
 from .kvcorrelation import KVCorrelation
 from .vvcorrelation import VVCorrelation
@@ -86,6 +87,8 @@ corr2_valid_params = {
             'The default is compensated if rand_files is given, otherwise simple'),
     'kz_file_name' : (str, False, None, None,
             'The output filename for scalar-spin-0 correlation function.'),
+    'zz_file_name' : (str, False, None, None,
+            'The output filename for spin-0-spin-0 correlation function.'),
 
     'nv_file_name' : (str, False, None, None,
             'The output filename for point-vector correlation function.'),
@@ -369,6 +372,15 @@ def corr2(config, logger=None):
         logger.info("Done KZ calculation.")
         kz.write(config['kz_file_name'])
         logger.warning("Wrote KZ correlation to %s",config['kz_file_name'])
+
+    # Do ZZ correlation function if necessary
+    if 'zz_file_name' in config:
+        logger.warning("Performing ZZ calculations...")
+        zz = ZZCorrelation(config, logger=logger)
+        zz.process(cat1,cat2)
+        logger.info("Done ZZ calculations.")
+        zz.write(config['zz_file_name'])
+        logger.warning("Wrote ZZ correlation to %s",config['zz_file_name'])
 
     # Do NV correlation function if necessary
     if 'nv_file_name' in config:

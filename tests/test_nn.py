@@ -1158,14 +1158,13 @@ def test_nn():
 
     cat = treecorr.Catalog(x=x, y=y, x_units='arcmin', y_units='arcmin')
     dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
-    dd.process(cat)
+    dd.process(cat, num_threads=1)
     print('dd.npairs = ',dd.npairs)
 
     # Using nbins=None rather than omitting nbins is equivalent.
     dd2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., nbins=None, sep_units='arcmin')
     dd2.process(cat, num_threads=1)
-    dd.process(cat, num_threads=1)
-    assert dd2 == dd
+    assert dd2 == dd  # Only exactly == if num_threads == 1
 
     # log(<R>) != <logR>, but it should be close:
     print('meanlogr - log(meanr) = ',dd.meanlogr - np.log(dd.meanr))

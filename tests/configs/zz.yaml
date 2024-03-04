@@ -1,0 +1,19 @@
+
+file_name: data/zz.dat
+
+x_col: 1
+y_col: 2
+x_units: arcmin
+y_units: arcmin
+
+z1_col: 3
+z2_col: 4
+
+verbose: 1
+
+min_sep: 1.
+max_sep: 100.
+bin_size: 0.10
+sep_units: arcmin
+
+zz_file_name: output/zz.out

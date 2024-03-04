@@ -478,7 +478,7 @@ Field<KData,C>* BuildKField(
 }
 
 template <int D, int C>
-Field<D,C>* BuildZField(
+Field<D,C>* BuildAnyZField(
     py::array_t<double>& xp, py::array_t<double>& yp, py::array_t<double>& zp,
     py::array_t<double>& d1p, py::array_t<double>& d2p,
     py::array_t<double>& wp, py::array_t<double>& wposp,
@@ -514,9 +514,9 @@ Field<GData,C>* BuildGField(
     double minsize, double maxsize,
     SplitMethod sm, long long seed, bool brute, int mintop, int maxtop)
 {
-    return BuildZField<GData,C>(x, y, z, g1, g2, w, wpos,
-                                minsize, maxsize, sm, seed,
-                                brute, mintop, maxtop);
+    return BuildAnyZField<GData,C>(x, y, z, g1, g2, w, wpos,
+                                   minsize, maxsize, sm, seed,
+                                   brute, mintop, maxtop);
 }
 
 template <int C>
@@ -527,9 +527,9 @@ Field<ZData,C>* BuildZField(
     double minsize, double maxsize,
     SplitMethod sm, long long seed, bool brute, int mintop, int maxtop)
 {
-    return BuildZField<ZData,C>(x, y, z, z1, z2, w, wpos,
-                                minsize, maxsize, sm, seed,
-                                brute, mintop, maxtop);
+    return BuildAnyZField<ZData,C>(x, y, z, z1, z2, w, wpos,
+                                   minsize, maxsize, sm, seed,
+                                   brute, mintop, maxtop);
 }
 
 template <int C>
@@ -540,9 +540,9 @@ Field<VData,C>* BuildVField(
     double minsize, double maxsize,
     SplitMethod sm, long long seed, bool brute, int mintop, int maxtop)
 {
-    return BuildZField<VData,C>(x, y, z, v1, v2, w, wpos,
-                                minsize, maxsize, sm, seed,
-                                brute, mintop, maxtop);
+    return BuildAnyZField<VData,C>(x, y, z, v1, v2, w, wpos,
+                                   minsize, maxsize, sm, seed,
+                                   brute, mintop, maxtop);
 }
 
 template <int C>
@@ -553,9 +553,9 @@ Field<TData,C>* BuildTField(
     double minsize, double maxsize,
     SplitMethod sm, long long seed, bool brute, int mintop, int maxtop)
 {
-    return BuildZField<TData,C>(x, y, z, t1, t2, w, wpos,
-                                minsize, maxsize, sm, seed,
-                                brute, mintop, maxtop);
+    return BuildAnyZField<TData,C>(x, y, z, t1, t2, w, wpos,
+                                   minsize, maxsize, sm, seed,
+                                   brute, mintop, maxtop);
 }
 
 template <int C>
@@ -566,9 +566,9 @@ Field<QData,C>* BuildQField(
     double minsize, double maxsize,
     SplitMethod sm, long long seed, bool brute, int mintop, int maxtop)
 {
-    return BuildZField<QData,C>(x, y, z, q1, q2, w, wpos,
-                                minsize, maxsize, sm, seed,
-                                brute, mintop, maxtop);
+    return BuildAnyZField<QData,C>(x, y, z, q1, q2, w, wpos,
+                                   minsize, maxsize, sm, seed,
+                                   brute, mintop, maxtop);
 }
 
 template <int C>
@@ -615,7 +615,7 @@ void WrapField(py::module& _treecorr, std::string Cstr)
     typedef void (*init_type)(BaseField<C>& field, py::array_t<double>& cenp, int npatch,
                               long long seed);
     typedef void (*run_type)(BaseField<C>& field, py::array_t<double>& cenp, int npatch,
-                            int max_iter, double tol, bool alt);
+                             int max_iter, double tol, bool alt);
     typedef void (*assign_type)(BaseField<C>& field, py::array_t<double>& cenp, int npatch,
                                 py::array_t<long>& pp);
 

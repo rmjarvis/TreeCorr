@@ -15,10 +15,19 @@ There are several kinds of `Field` classes.
     - `KField` holds both counts of objects and the mean "kappa" of those objects.
       It is used for correlations with a K in the name, including
       `KKCorrelation`, `NKCorrelation`, `KGCorrelation`, and `KKKCorrelation`.
+    - `ZField` holds both counts of objects and the mean complex spin-0 field of those objects.
+      It is used for correlations with a V in the name, including
+      `VVCorrelation`, `NVCorrelation`, and `KVCorrelation`.
+    - `VField` holds both counts of objects and the mean vector field of those objects.
+      It is used for correlations with a V in the name, including
+      `VVCorrelation`, `NVCorrelation`, and `KVCorrelation`.
     - `GField` holds both counts of objects and the mean shear of those objects.
       It is used for correlations with a G in the name, including
       `GGCorrelation`, `NGCorrelation`, `KGCorrelation`, and `GGGCorrelation`.
-    - `VField` holds both counts of objects and the mean velocity of those objects.
+    - `TField` holds both counts of objects and the mean spin-3 field of those objects.
+      It is used for correlations with a V in the name, including
+      `VVCorrelation`, `NVCorrelation`, and `KVCorrelation`.
+    - `QField` holds both counts of objects and the mean spin-4 field of those objects.
       It is used for correlations with a V in the name, including
       `VVCorrelation`, `NVCorrelation`, and `KVCorrelation`.
 
@@ -36,8 +45,17 @@ command do so for you.
 .. autoclass:: treecorr.KField
     :members:
 
-.. autoclass:: treecorr.GField
+.. autoclass:: treecorr.ZField
     :members:
 
 .. autoclass:: treecorr.VField
+    :members:
+
+.. autoclass:: treecorr.GField
+    :members:
+
+.. autoclass:: treecorr.TField
+    :members:
+
+.. autoclass:: treecorr.QField
     :members:

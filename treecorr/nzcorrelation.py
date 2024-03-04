@@ -25,8 +25,9 @@ from .config import make_minimal_config
 
 
 class NZCorrelation(Corr2):
-    r"""This class handles the calculation and storage of a 2-point count-vector correlation
-    function.
+    r"""This class handles the calculation and storage of a 2-point count-spin-0 correlation
+    function.  If the spin-0 field is real, you should instead use `NKCorrelation` as it will
+    be faster.  This class is intended for correlations of a complex spin-0 field.
 
     Ojects of this class holds the following attributes:
 

@@ -26,7 +26,8 @@ from .config import make_minimal_config
 
 class ZZCorrelation(Corr2):
     r"""This class handles the calculation and storage of a 2-point correlation function
-    of two spin-0 fields.
+    of two complex spin-0 fields.  If either spin-0 field is real, you should instead use
+    `KZCorrelation` as it will be faster, and if both are real, you should use `KKCorrelation`.
 
     To be consistent with the other spin correlation functions, we compute two quantities:
 
@@ -36,7 +37,7 @@ class ZZCorrelation(Corr2):
         \xi_- = \langle z_1 z_2 \rangle
 
     There is no projection along the line connecting the two points as there is for the other
-    complex fields.
+    complex fields, since spin-0 fields don't change with orientation.
 
     Ojects of this class holds the following attributes:
 

@@ -19,12 +19,12 @@ import numpy as np
 
 from . import _treecorr
 from .catalog import calculateVarT
-from .corr2base import Corr2
+from .nzcorrelation import BaseNZCorrelation
 from .util import make_writer, make_reader
 from .config import make_minimal_config
 
 
-class NTCorrelation(Corr2):
+class NTCorrelation(BaseNZCorrelation):
     r"""This class handles the calculation and storage of a 2-point count-spin-3 correlation
     function.
 
@@ -93,150 +93,17 @@ class NTCorrelation(Corr2):
         **kwargs:       See the documentation for `Corr2` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
+    _cls = 'NTCorrelation'
+    _letter = 'T'
+    _builder = _treecorr.NTCorr
+    _calculateVarZ = staticmethod(calculateVarT)
+    _zreal = 'tR'
+    _zimag = 'tR_im'
+
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `NTCorrelation`.  See class doc for details.
         """
-        Corr2.__init__(self, config, logger=logger, **kwargs)
-
-        self.xi = np.zeros_like(self.rnom, dtype=float)
-        self.xi_im = np.zeros_like(self.rnom, dtype=float)
-        self.meanr = np.zeros_like(self.rnom, dtype=float)
-        self.meanlogr = np.zeros_like(self.rnom, dtype=float)
-        self.weight = np.zeros_like(self.rnom, dtype=float)
-        self.npairs = np.zeros_like(self.rnom, dtype=float)
-        self.raw_xi = self.xi
-        self.raw_xi_im = self.xi_im
-        self._rt = None
-        self._raw_varxi = None
-        self._varxi = None
-        self._cov = None
-        self._var_num = 0
-        self._processed_cats = []
-        self.logger.debug('Finished building NTCorr')
-
-    @property
-    def corr(self):
-        if self._corr is None:
-            x = np.array([])
-            self._corr = _treecorr.NTCorr(self._bintype, self._min_sep, self._max_sep, self._nbins,
-                                          self._bin_size, self.b, self.angle_slop,
-                                          self.min_rpar, self.max_rpar,
-                                          self.xperiod, self.yperiod, self.zperiod,
-                                          self.raw_xi, self.raw_xi_im, x, x,
-                                          self.meanr, self.meanlogr, self.weight, self.npairs)
-        return self._corr
-
-    def __eq__(self, other):
-        """Return whether two `NTCorrelation` instances are equal"""
-        return (isinstance(other, NTCorrelation) and
-                self.nbins == other.nbins and
-                self.bin_size == other.bin_size and
-                self.min_sep == other.min_sep and
-                self.max_sep == other.max_sep and
-                self.sep_units == other.sep_units and
-                self.coords == other.coords and
-                self.bin_type == other.bin_type and
-                self.bin_slop == other.bin_slop and
-                self.angle_slop == other.angle_slop and
-                self.min_rpar == other.min_rpar and
-                self.max_rpar == other.max_rpar and
-                self.xperiod == other.xperiod and
-                self.yperiod == other.yperiod and
-                self.zperiod == other.zperiod and
-                np.array_equal(self.meanr, other.meanr) and
-                np.array_equal(self.meanlogr, other.meanlogr) and
-                np.array_equal(self.xi, other.xi) and
-                np.array_equal(self.xi_im, other.xi_im) and
-                np.array_equal(self.varxi, other.varxi) and
-                np.array_equal(self.weight, other.weight) and
-                np.array_equal(self.npairs, other.npairs))
-
-    def copy(self):
-        """Make a copy"""
-        ret = NTCorrelation.__new__(NTCorrelation)
-        for key, item in self.__dict__.items():
-            if isinstance(item, np.ndarray):
-                # Only items that might change need to by deep copied.
-                ret.__dict__[key] = item.copy()
-            else:
-                # For everything else, shallow copy is fine.
-                # In particular don't deep copy config or logger
-                # Most of the rest are scalars, which copy fine this way.
-                # And the read-only things are all in _ro.
-                # The results dict is trickier.  We rely on it being copied in places, but we
-                # never add more to it after the copy, so shallow copy is fine.
-                ret.__dict__[key] = item
-        ret._corr = None # We'll want to make a new one of these if we need it.
-        if self.xi is self.raw_xi:
-            ret.raw_xi = ret.xi
-            ret.raw_xi_im = ret.xi_im
-        else:
-            ret.raw_xi = self.raw_xi.copy()
-            ret.raw_xi_im = self.raw_xi_im.copy()
-        if self._rt is not None:
-            ret._rt = self._rt.copy()
-        return ret
-
-    def __repr__(self):
-        return f'NTCorrelation({self._repr_kwargs})'
-
-    def process_cross(self, cat1, cat2, *, metric=None, num_threads=None):
-        """Process a single pair of catalogs, accumulating the cross-correlation.
-
-        This accumulates the weighted sums into the bins, but does not finalize
-        the calculation by dividing by the total weight at the end.  After
-        calling this function as often as desired, the `finalize` command will
-        finish the calculation.
-
-        Parameters:
-            cat1 (Catalog):     The first catalog to process
-            cat2 (Catalog):     The second catalog to process
-            metric (str):       Which metric to use.  See `Metrics` for details.
-                                (default: 'Euclidean'; this value can also be given in the
-                                constructor in the config dict.)
-            num_threads (int):  How many OpenMP threads to use during the calculation.
-                                (default: use the number of cpu cores; this value can also be given
-                                in the constructor in the config dict.)
-        """
-        if cat1.name == '' and cat2.name == '':
-            self.logger.info('Starting process NT cross-correlations')
-        else:
-            self.logger.info('Starting process NT cross-correlations for cats %s, %s.',
-                             cat1.name, cat2.name)
-
-        self._set_metric(metric, cat1.coords, cat2.coords)
-        self._set_num_threads(num_threads)
-        min_size, max_size = self._get_minmax_size()
-
-        f1 = cat1.getNField(min_size=min_size, max_size=max_size,
-                            split_method=self.split_method,
-                            brute=self.brute is True or self.brute == 1,
-                            min_top=self.min_top, max_top=self.max_top,
-                            coords=self.coords)
-        f2 = cat2.getTField(min_size=min_size, max_size=max_size,
-                            split_method=self.split_method,
-                            brute=self.brute is True or self.brute == 2,
-                            min_top=self.min_top, max_top=self.max_top,
-                            coords=self.coords)
-
-        self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        self.corr.processCross(f1.data, f2.data, self.output_dots, self._metric)
-
-    def _finalize(self):
-        mask1 = self.weight != 0
-        mask2 = self.weight == 0
-
-        self.raw_xi[mask1] /= self.weight[mask1]
-        self.raw_xi_im[mask1] /= self.weight[mask1]
-        self.meanr[mask1] /= self.weight[mask1]
-        self.meanlogr[mask1] /= self.weight[mask1]
-
-        # Update the units of meanr, meanlogr
-        self._apply_units(mask1)
-
-        # Use meanr, meanlogr when available, but set to nominal when no pairs in bin.
-        self.meanr[mask2] = self.rnom[mask2]
-        self.meanlogr[mask2] = self.logr[mask2]
+        BaseNZCorrelation.__init__(self, config, logger=logger, **kwargs)
 
     def finalize(self, vart):
         """Finalize the calculation of the correlation function.
@@ -248,82 +115,7 @@ class NTCorrelation(Corr2):
         Parameters:
             vart (float):   The variance per component of the spin-3 field.
         """
-        self._finalize()
-        self._var_num = vart
-
-        self.xi = self.raw_xi
-        self.xi_im = self.raw_xi_im
-
-    @property
-    def raw_varxi(self):
-        if self._raw_varxi is None:
-            self._raw_varxi = np.zeros_like(self.rnom, dtype=float)
-            if self._var_num != 0:
-                self._raw_varxi.ravel()[:] = self.cov_diag
-        return self._raw_varxi
-
-    @property
-    def varxi(self):
-        if self._varxi is None:
-            self._varxi = self.raw_varxi
-        return self._varxi
-
-    def _clear(self):
-        """Clear the data vectors
-        """
-        self.raw_xi.ravel()[:] = 0
-        self.raw_xi_im.ravel()[:] = 0
-        self.meanr.ravel()[:] = 0
-        self.meanlogr.ravel()[:] = 0
-        self.weight.ravel()[:] = 0
-        self.npairs.ravel()[:] = 0
-        self.xi = self.raw_xi
-        self.xi_im = self.raw_xi_im
-        self._raw_varxi = None
-        self._varxi = None
-        self._cov = None
-
-    def __iadd__(self, other):
-        """Add a second `NTCorrelation`'s data to this one.
-
-        .. note::
-
-            For this to make sense, both `NTCorrelation` objects should not have had `finalize`
-            called yet.  Then, after adding them together, you should call `finalize` on the sum.
-        """
-        if not isinstance(other, NTCorrelation):
-            raise TypeError("Can only add another NTCorrelation object")
-        if not (self._nbins == other._nbins and
-                self.min_sep == other.min_sep and
-                self.max_sep == other.max_sep):
-            raise ValueError("NTCorrelation to be added is not compatible with this one.")
-
-        self._set_metric(other.metric, other.coords, other.coords)
-        self.raw_xi.ravel()[:] += other.raw_xi.ravel()[:]
-        self.raw_xi_im.ravel()[:] += other.raw_xi_im.ravel()[:]
-        self.meanr.ravel()[:] += other.meanr.ravel()[:]
-        self.meanlogr.ravel()[:] += other.meanlogr.ravel()[:]
-        self.weight.ravel()[:] += other.weight.ravel()[:]
-        self.npairs.ravel()[:] += other.npairs.ravel()[:]
-        return self
-
-    def _sum(self, others):
-        # Equivalent to the operation of:
-        #     self._clear()
-        #     for other in others:
-        #         self += other
-        # but no sanity checks and use numpy.sum for faster calculation.
-        np.sum([c.raw_xi for c in others], axis=0, out=self.raw_xi)
-        np.sum([c.raw_xi_im for c in others], axis=0, out=self.raw_xi_im)
-        np.sum([c.meanr for c in others], axis=0, out=self.meanr)
-        np.sum([c.meanlogr for c in others], axis=0, out=self.meanlogr)
-        np.sum([c.weight for c in others], axis=0, out=self.weight)
-        np.sum([c.npairs for c in others], axis=0, out=self.npairs)
-        self.xi = self.raw_xi
-        self.xi_im = self.raw_xi_im
-        self._raw_varxi = None
-        self._varxi = None
-        self._cov = None
+        BaseNZCorrelation.finalize(self, vart)
 
     def process(self, cat1, cat2, *, metric=None, num_threads=None, comm=None, low_mem=False,
                 initialize=True, finalize=True, patch_method='global'):
@@ -352,29 +144,8 @@ class NTCorrelation(Corr2):
                                 (default: True)
             patch_method (str): Which patch method to use. (default: 'global')
         """
-        import math
-        if initialize:
-            self.clear()
-            self._rt = None
-            self._processed_cats.clear()
-
-        if patch_method not in ['local', 'global']:
-            raise ValueError("Invalid patch_method %s"%patch_method)
-        local = patch_method == 'local'
-
-        if not isinstance(cat1,list):
-            cat1 = cat1.get_patches(low_mem=low_mem)
-        if not isinstance(cat2,list):
-            cat2 = cat2.get_patches(low_mem=low_mem)
-
-        self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem, local)
-
-        self._processed_cats.extend(cat2)
-        if finalize:
-            vart = calculateVarT(self._processed_cats, low_mem=low_mem)
-            self.logger.info("vart = %f: sig_sn (per component) = %f",vart,math.sqrt(vart))
-            self.finalize(vart)
-            self._processed_cats.clear()
+        BaseNZCorrelation.process(self, cat1, cat2, metric, num_threads, comm, low_mem,
+                                  initialize, finalize, patch_method)
 
     def calculateXi(self, *, rt=None):
         r"""Calculate the correlation function possibly given another correlation function
@@ -402,50 +173,7 @@ class NTCorrelation(Corr2):
                 - xi_im = array of the imaginary part of :math:`\xi(R)`
                 - varxi = array of the variance estimates of the above values
         """
-        if rt is not None:
-            self.xi = self.raw_xi - rt.xi
-            self.xi_im = self.raw_xi_im - rt.xi_im
-            self._rt = rt
-
-            if rt.npatch1 not in (1,self.npatch1) or rt.npatch2 != self.npatch2:
-                raise RuntimeError("RT must be run with the same patches as DT")
-
-            if len(self.results) > 0:
-                # If there are any rt patch pairs that aren't in results (e.g. due to different
-                # edge effects among the various pairs in consideration), then we need to add
-                # some dummy results to make sure all the right pairs are computed when we make
-                # the vectors for the covariance matrix.
-                template = next(iter(self.results.values()))  # Just need something to copy.
-                for ij in rt.results:
-                    if ij in self.results: continue
-                    new_cij = template.copy()
-                    new_cij.xi.ravel()[:] = 0
-                    new_cij.weight.ravel()[:] = 0
-                    self.results[ij] = new_cij
-
-                self._cov = self.estimate_cov(self.var_method)
-                self._varxi = np.zeros_like(self.rnom, dtype=float)
-                self._varxi.ravel()[:] = self.cov_diag
-            else:
-                self._varxi = self.raw_varxi + rt.varxi
-        else:
-            self.xi = self.raw_xi
-            self.xi_im = self.raw_xi_im
-            self._varxi = self.raw_varxi
-
-        return self.xi, self.xi_im, self.varxi
-
-    def _calculate_xi_from_pairs(self, pairs):
-        self._sum([self.results[ij] for ij in pairs])
-        self._finalize()
-        if self._rt is not None:
-            # If rt has npatch1 = 1, adjust pairs appropriately
-            if self._rt.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
-                pairs = [(0,ij[1]) for ij in pairs if ij[0] == ij[1]]
-            # Make sure all ij are in the rt results (some might be missing, which is ok)
-            pairs = [ij for ij in pairs if self._rt._ok[ij[0],ij[1]]]
-            self._rt._calculate_xi_from_pairs(pairs)
-            self.xi -= self._rt.xi
+        return BaseNZCorrelation.calculateXi(self, rz=rt)
 
     def write(self, file_name, *, rt=None, file_type=None, precision=None,
               write_patch_results=False, write_cov=False):
@@ -491,30 +219,8 @@ class NTCorrelation(Corr2):
                                         (default: False)
             write_cov (bool):   Whether to write the covariance matrix as well. (default: False)
         """
-        self.logger.info('Writing NT correlations to %s',file_name)
-        self.calculateXi(rt=rt)
-        precision = self.config.get('precision', 4) if precision is None else precision
-        with make_writer(file_name, precision, file_type, self.logger) as writer:
-            self._write(writer, None, write_patch_results, write_cov=write_cov)
-
-    @property
-    def _write_col_names(self):
-        return ['r_nom','meanr','meanlogr','tR','tR_im','sigma','weight','npairs']
-
-    @property
-    def _write_data(self):
-        data = [ self.rnom, self.meanr, self.meanlogr,
-                 self.xi, self.xi_im, np.sqrt(self.varxi), self.weight, self.npairs ]
-        data = [ col.flatten() for col in data ]
-        return data
-
-    @property
-    def _write_params(self):
-        params = make_minimal_config(self.config, Corr2._valid_params)
-        # Add in a couple other things we want to preserve that aren't construction kwargs.
-        params['coords'] = self.coords
-        params['metric'] = self.metric
-        return params
+        BaseNZCorrelation.write(self, file_name, rt, file_type, precision,
+                                write_patch_results, write_cov)
 
     @classmethod
     def from_file(cls, file_name, *, file_type=None, logger=None, rng=None):
@@ -533,51 +239,4 @@ class NTCorrelation(Corr2):
         Returns:
             corr: An NTCorrelation object, constructed from the information in the file.
         """
-        if logger:
-            logger.info('Building NTCorrelation from %s',file_name)
-        with make_reader(file_name, file_type, logger) as reader:
-            name = 'main' if 'main' in reader else None
-            params = reader.read_params(ext=name)
-            kwargs = make_minimal_config(params, Corr2._valid_params)
-            corr = cls(**kwargs, logger=logger, rng=rng)
-            corr.logger.info('Reading NT correlations from %s',file_name)
-            corr._read(reader, name=name, params=params)
-        return corr
-
-    def read(self, file_name, *, file_type=None):
-        """Read in values from a file.
-
-        This should be a file that was written by TreeCorr, preferably a FITS or HDF5 file, so
-        there is no loss of information.
-
-        .. warning::
-
-            The `NTCorrelation` object should be constructed with the same configuration
-            parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
-            checked by the read function.
-
-        Parameters:
-            file_name (str):    The name of the file to read in.
-            file_type (str):    The type of file ('ASCII' or 'FITS').  (default: determine the type
-                                automatically from the extension of file_name.)
-        """
-        self.logger.info('Reading NT correlations from %s',file_name)
-        with make_reader(file_name, file_type, self.logger) as reader:
-            self._read(reader)
-
-    def _read_from_data(self, data, params):
-        s = self.logr.shape
-        self.meanr = data['meanr'].reshape(s)
-        self.meanlogr = data['meanlogr'].reshape(s)
-        self.xi = data['tR'].reshape(s)
-        self.xi_im = data['tR_im'].reshape(s)
-        self._varxi = data['sigma'].reshape(s)**2
-        self.weight = data['weight'].reshape(s)
-        self.npairs = data['npairs'].reshape(s)
-        self.coords = params['coords'].strip()
-        self.metric = params['metric'].strip()
-        self.raw_xi = self.xi
-        self.raw_xi_im = self.xi_im
-        self._raw_varxi = self._varxi
-        self.npatch1 = params.get('npatch1', 1)
-        self.npatch2 = params.get('npatch2', 1)
+        return BaseNZCorrelation.from_file(cls, file_name, file_type, logger, rng)

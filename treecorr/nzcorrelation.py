@@ -24,79 +24,13 @@ from .util import make_writer, make_reader
 from .config import make_minimal_config
 
 
-class NZCorrelation(Corr2):
-    r"""This class handles the calculation and storage of a 2-point count-spin-0 correlation
-    function.  If the spin-0 field is real, you should instead use `NKCorrelation` as it will
-    be faster.  This class is intended for correlations of a complex spin-0 field.
+class BaseNZCorrelation(Corr2):
+    """This class is a base class for all the N?Correlation classes.
 
-    Ojects of this class holds the following attributes:
-
-    Attributes:
-        nbins:     The number of bins in logr
-        bin_size:  The size of the bins in logr
-        min_sep:   The minimum separation being considered
-        max_sep:   The maximum separation being considered
-
-    In addition, the following attributes are numpy arrays of length (nbins):
-
-    Attributes:
-        logr:       The nominal center of the bin in log(r) (the natural logarithm of r).
-        rnom:       The nominal center of the bin converted to regular distance.
-                    i.e. r = exp(logr).
-        meanr:      The (weighted) mean value of r for the pairs in each bin.
-                    If there are no pairs in a bin, then exp(logr) will be used instead.
-        meanlogr:   The (weighted) mean value of log(r) for the pairs in each bin.
-                    If there are no pairs in a bin, then logr will be used instead.
-        xi:         The correlation function, :math:`\xi(r) = \langle v_R\rangle`.
-        xi_im:      The imaginary part of :math:`\xi(r)`.
-        varxi:      An estimate of the variance of :math:`\xi`
-        weight:     The total weight in each bin.
-        npairs:     The number of pairs going into each bin (including pairs where one or
-                    both objects have w=0).
-        cov:        An estimate of the full covariance matrix.
-        raw_xi:     The raw value of xi, uncorrected by an RZ calculation. cf. `calculateXi`
-        raw_xi_im:  The raw value of xi_im, uncorrected by an RZ calculation. cf. `calculateXi`
-        raw_varxi:  The raw value of varxi, uncorrected by an RZ calculation. cf. `calculateXi`
-
-    .. note::
-
-        The default method for estimating the variance and covariance attributes (``varxi``,
-        and ``cov``) is 'shot', which only includes the shape noise propagated into
-        the final correlation.  This does not include sample variance, so it is always an
-        underestimate of the actual variance.  To get better estimates, you need to set
-        ``var_method`` to something else and use patches in the input catalog(s).
-        cf. `Covariance Estimates`.
-
-    If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances
-    will all be in these units.
-
-    .. note::
-
-        If you separate out the steps of the `process` command and use `process_cross`,
-        then the units will not be applied to ``meanr`` or ``meanlogr`` until the `finalize`
-        function is called.
-
-    The typical usage pattern is as follows:
-
-        >>> nv = treecorr.NZCorrelation(config)
-        >>> nv.process(cat1,cat2)   # Compute the cross-correlation.
-        >>> nv.write(file_name)     # Write out to a file.
-        >>> xi = nv.xi              # Or access the correlation function directly.
-
-    Parameters:
-        config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
-                        in `Corr2`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
-                        one will be built according to the config dict's verbose level.)
-
-    Keyword Arguments:
-        **kwargs:       See the documentation for `Corr2` for the list of allowed keyword
-                        arguments, which may be passed either directly or in the config dict.
+    A lot of the implementation is shared among those types, so whenever possible the shared
+    implementation is done in this class.
     """
     def __init__(self, config=None, *, logger=None, **kwargs):
-        """Initialize `NZCorrelation`.  See class doc for details.
-        """
         Corr2.__init__(self, config, logger=logger, **kwargs)
 
         self.xi = np.zeros_like(self.rnom, dtype=float)
@@ -113,23 +47,23 @@ class NZCorrelation(Corr2):
         self._cov = None
         self._var_num = 0
         self._processed_cats = []
-        self.logger.debug('Finished building NZCorr')
+        self.logger.debug('Finished building %s', self._cls)
 
     @property
     def corr(self):
         if self._corr is None:
             x = np.array([])
-            self._corr = _treecorr.NZCorr(self._bintype, self._min_sep, self._max_sep, self._nbins,
-                                          self._bin_size, self.b, self.angle_slop,
-                                          self.min_rpar, self.max_rpar,
-                                          self.xperiod, self.yperiod, self.zperiod,
-                                          self.raw_xi, self.raw_xi_im, x, x,
-                                          self.meanr, self.meanlogr, self.weight, self.npairs)
+            self._corr = self._builder(self._bintype, self._min_sep, self._max_sep, self._nbins,
+                                       self._bin_size, self.b, self.angle_slop,
+                                       self.min_rpar, self.max_rpar,
+                                       self.xperiod, self.yperiod, self.zperiod,
+                                       self.raw_xi, self.raw_xi_im, x, x,
+                                       self.meanr, self.meanlogr, self.weight, self.npairs)
         return self._corr
 
     def __eq__(self, other):
-        """Return whether two `NZCorrelation` instances are equal"""
-        return (isinstance(other, NZCorrelation) and
+        """Return whether two Correlation objects are equal"""
+        return (isinstance(other, self.__class__) and
                 self.nbins == other.nbins and
                 self.bin_size == other.bin_size and
                 self.min_sep == other.min_sep and
@@ -154,7 +88,7 @@ class NZCorrelation(Corr2):
 
     def copy(self):
         """Make a copy"""
-        ret = NZCorrelation.__new__(NZCorrelation)
+        ret = self.__class__.__new__(self.__class__)
         for key, item in self.__dict__.items():
             if isinstance(item, np.ndarray):
                 # Only items that might change need to by deep copied.
@@ -179,7 +113,7 @@ class NZCorrelation(Corr2):
         return ret
 
     def __repr__(self):
-        return f'NZCorrelation({self._repr_kwargs})'
+        return f'{self._cls}({self._repr_kwargs})'
 
     def process_cross(self, cat1, cat2, *, metric=None, num_threads=None):
         """Process a single pair of catalogs, accumulating the cross-correlation.
@@ -200,10 +134,10 @@ class NZCorrelation(Corr2):
                                 in the constructor in the config dict.)
         """
         if cat1.name == '' and cat2.name == '':
-            self.logger.info('Starting process NZ cross-correlations')
+            self.logger.info('Starting process N%s cross-correlations', self._letter)
         else:
-            self.logger.info('Starting process NZ cross-correlations for cats %s, %s.',
-                             cat1.name, cat2.name)
+            self.logger.info('Starting process N%s cross-correlations for cats %s, %s.',
+                             self._letter, cat1.name, cat2.name)
 
         self._set_metric(metric, cat1.coords, cat2.coords)
         self._set_num_threads(num_threads)
@@ -214,11 +148,12 @@ class NZCorrelation(Corr2):
                             brute=self.brute is True or self.brute == 1,
                             min_top=self.min_top, max_top=self.max_top,
                             coords=self.coords)
-        f2 = cat2.getZField(min_size=min_size, max_size=max_size,
-                            split_method=self.split_method,
-                            brute=self.brute is True or self.brute == 2,
-                            min_top=self.min_top, max_top=self.max_top,
-                            coords=self.coords)
+        getZField = getattr(cat2, f"get{self._letter}Field")
+        f2 = getZField(min_size=min_size, max_size=max_size,
+                       split_method=self.split_method,
+                       brute=self.brute is True or self.brute == 2,
+                       min_top=self.min_top, max_top=self.max_top,
+                       coords=self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         self.corr.processCross(f1.data, f2.data, self.output_dots, self._metric)
@@ -240,15 +175,6 @@ class NZCorrelation(Corr2):
         self.meanlogr[mask2] = self.logr[mask2]
 
     def finalize(self, varz):
-        """Finalize the calculation of the correlation function.
-
-        The `process_cross` command accumulates values in each bin, so it can be called
-        multiple times if appropriate.  Afterwards, this command finishes the calculation
-        by dividing each column by the total weight.
-
-        Parameters:
-            varz (float):   The variance per component of the field.
-        """
         self._finalize()
         self._var_num = varz
 
@@ -285,19 +211,19 @@ class NZCorrelation(Corr2):
         self._cov = None
 
     def __iadd__(self, other):
-        """Add a second `NZCorrelation`'s data to this one.
+        """Add a second Correlation object's data to this one.
 
         .. note::
 
-            For this to make sense, both `NZCorrelation` objects should not have had `finalize`
-            called yet.  Then, after adding them together, you should call `finalize` on the sum.
+            For this to make sense, both objects should not have had `finalize` called yet.
+            Then, after adding them together, you should call `finalize` on the sum.
         """
-        if not isinstance(other, NZCorrelation):
-            raise TypeError("Can only add another NZCorrelation object")
+        if not isinstance(other, self.__class__):
+            raise TypeError(f"Can only add another N{self._letter}Correlation object")
         if not (self._nbins == other._nbins and
                 self.min_sep == other.min_sep and
                 self.max_sep == other.max_sep):
-            raise ValueError("NZCorrelation to be added is not compatible with this one.")
+            raise ValueError(f"{self._cls} to be added is not compatible with this one.")
 
         self._set_metric(other.metric, other.coords, other.coords)
         self.raw_xi.ravel()[:] += other.raw_xi.ravel()[:]
@@ -326,33 +252,8 @@ class NZCorrelation(Corr2):
         self._varxi = None
         self._cov = None
 
-    def process(self, cat1, cat2, *, metric=None, num_threads=None, comm=None, low_mem=False,
+    def process(self, cat1, cat2, metric=None, num_threads=None, comm=None, low_mem=False,
                 initialize=True, finalize=True, patch_method='global'):
-        """Compute the correlation function.
-
-        Both arguments may be lists, in which case all items in the list are used
-        for that element of the correlation.
-
-        Parameters:
-            cat1 (Catalog):     A catalog or list of catalogs for the N field.
-            cat2 (Catalog):     A catalog or list of catalogs for the Z field.
-            metric (str):       Which metric to use.  See `Metrics` for details.
-                                (default: 'Euclidean'; this value can also be given in the
-                                constructor in the config dict.)
-            num_threads (int):  How many OpenMP threads to use during the calculation.
-                                (default: use the number of cpu cores; this value can also be given
-                                in the constructor in the config dict.)
-            comm (mpi4py.Comm): If running MPI, an mpi4py Comm object to communicate between
-                                processes.  If used, the rank=0 process will have the final
-                                computation. This only works if using patches. (default: None)
-            low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
-                                This only works if using patches. (default: False)
-            initialize (bool):  Whether to begin the calculation with a call to
-                                `Corr2.clear`.  (default: True)
-            finalize (bool):    Whether to complete the calculation with a call to `finalize`.
-                                (default: True)
-            patch_method (str): Which patch method to use. (default: 'global')
-        """
         import math
         if initialize:
             self.clear()
@@ -372,43 +273,19 @@ class NZCorrelation(Corr2):
 
         self._processed_cats.extend(cat2)
         if finalize:
-            varz = calculateVarZ(self._processed_cats, low_mem=low_mem)
+            varz = (self._calculateVarZ)(self._processed_cats, low_mem=low_mem)
             self.logger.info("varz = %f: sig_sn (per component) = %f",varz,math.sqrt(varz))
             self.finalize(varz)
             self._processed_cats.clear()
 
-    def calculateXi(self, *, rz=None):
-        r"""Calculate the correlation function possibly given another correlation function
-        that uses random points for the foreground objects.
-
-        - If rz is None, the simple correlation function :math:`\langle v_R\rangle` is
-          returned.
-        - If rz is not None, then a compensated calculation is done:
-          :math:`\langle v_R\rangle = (DZ - RZ)`, where DZ represents the mean field value
-          around the data points and RZ represents the mean value around random points.
-
-        After calling this function, the attributes ``xi``, ``xi_im``, ``varxi``, and ``cov`` will
-        correspond to the compensated values (if rz is provided).  The raw, uncompensated values
-        are available as ``rawxi``, ``raw_xi_im``, and ``raw_varxi``.
-
-        Parameters:
-            rz (NZCorrelation): The cross-correlation using random locations as the lenses
-                                (RZ), if desired.  (default: None)
-
-        Returns:
-            Tuple containing
-
-                - xi = array of the real part of :math:`\xi(R)`
-                - xi_im = array of the imaginary part of :math:`\xi(R)`
-                - varxi = array of the variance estimates of the above values
-        """
+    def calculateXi(self, rz=None):
         if rz is not None:
             self.xi = self.raw_xi - rz.xi
             self.xi_im = self.raw_xi_im - rz.xi_im
             self._rz = rz
 
             if rz.npatch1 not in (1,self.npatch1) or rz.npatch2 != self.npatch2:
-                raise RuntimeError("RZ must be run with the same patches as DZ")
+                raise RuntimeError(f"R{self._letter} must be run with the same patches as D{self._letter}")
 
             if len(self.results) > 0:
                 # If there are any rz patch pairs that aren't in results (e.g. due to different
@@ -447,13 +324,242 @@ class NZCorrelation(Corr2):
             self._rz._calculate_xi_from_pairs(pairs)
             self.xi -= self._rz.xi
 
+    def write(self, file_name, rz=None, file_type=None, precision=None,
+              write_patch_results=False, write_cov=False):
+        self.logger.info(f'Writing N{self._letter} correlations to %s',file_name)
+        BaseNZCorrelation.calculateXi(self, rz)
+        precision = self.config.get('precision', 4) if precision is None else precision
+        with make_writer(file_name, precision, file_type, self.logger) as writer:
+            self._write(writer, None, write_patch_results, write_cov=write_cov)
+
+    @property
+    def _write_col_names(self):
+        return ['r_nom','meanr','meanlogr',self._zreal,self._zimag,'sigma','weight','npairs']
+
+    @property
+    def _write_data(self):
+        data = [ self.rnom, self.meanr, self.meanlogr,
+                 self.xi, self.xi_im, np.sqrt(self.varxi), self.weight, self.npairs ]
+        data = [ col.flatten() for col in data ]
+        return data
+
+    @property
+    def _write_params(self):
+        params = make_minimal_config(self.config, Corr2._valid_params)
+        # Add in a couple other things we want to preserve that aren't construction kwargs.
+        params['coords'] = self.coords
+        params['metric'] = self.metric
+        return params
+
+    @staticmethod
+    def from_file(cls, file_name, file_type=None, logger=None, rng=None):
+        if logger:
+            logger.info('Building N%sCorrelation from %s',cls._letter,file_name)
+        with make_reader(file_name, file_type, logger) as reader:
+            name = 'main' if 'main' in reader else None
+            params = reader.read_params(ext=name)
+            kwargs = make_minimal_config(params, Corr2._valid_params)
+            corr = cls(**kwargs, logger=logger, rng=rng)
+            corr.logger.info('Reading N%s correlations from %s',cls._letter,file_name)
+            corr._read(reader, name=name, params=params)
+        return corr
+
+    def read(self, file_name, *, file_type=None):
+        """Read in values from a file.
+
+        This should be a file that was written by TreeCorr, preferably a FITS or HDF5 file, so
+        there is no loss of information.
+
+        .. warning::
+
+            The current object should be constructed with the same configuration parameters as
+            the one being read.  e.g. the same min_sep, max_sep, etc.  This is not checked by
+            the read function.
+
+        Parameters:
+            file_name (str):    The name of the file to read in.
+            file_type (str):    The type of file ('ASCII' or 'FITS').  (default: determine the type
+                                automatically from the extension of file_name.)
+        """
+        self.logger.info('Reading N%s correlations from %s',self._letter,file_name)
+        with make_reader(file_name, file_type, self.logger) as reader:
+            self._read(reader)
+
+    def _read_from_data(self, data, params):
+        s = self.logr.shape
+        self.meanr = data['meanr'].reshape(s)
+        self.meanlogr = data['meanlogr'].reshape(s)
+        self.xi = data[self._zreal].reshape(s)
+        self.xi_im = data[self._zimag].reshape(s)
+        self._varxi = data['sigma'].reshape(s)**2
+        self.weight = data['weight'].reshape(s)
+        self.npairs = data['npairs'].reshape(s)
+        self.coords = params['coords'].strip()
+        self.metric = params['metric'].strip()
+        self.raw_xi = self.xi
+        self.raw_xi_im = self.xi_im
+        self._raw_varxi = self._varxi
+        self.npatch1 = params.get('npatch1', 1)
+        self.npatch2 = params.get('npatch2', 1)
+
+class NZCorrelation(BaseNZCorrelation):
+    r"""This class handles the calculation and storage of a 2-point count-spin-0 correlation
+    function.  If the spin-0 field is real, you should instead use `NKCorrelation` as it will
+    be faster.  This class is intended for correlations of a complex spin-0 field.
+
+    Ojects of this class holds the following attributes:
+
+    Attributes:
+        nbins:     The number of bins in logr
+        bin_size:  The size of the bins in logr
+        min_sep:   The minimum separation being considered
+        max_sep:   The maximum separation being considered
+
+    In addition, the following attributes are numpy arrays of length (nbins):
+
+    Attributes:
+        logr:       The nominal center of the bin in log(r) (the natural logarithm of r).
+        rnom:       The nominal center of the bin converted to regular distance.
+                    i.e. r = exp(logr).
+        meanr:      The (weighted) mean value of r for the pairs in each bin.
+                    If there are no pairs in a bin, then exp(logr) will be used instead.
+        meanlogr:   The (weighted) mean value of log(r) for the pairs in each bin.
+                    If there are no pairs in a bin, then logr will be used instead.
+        xi:         The correlation function, :math:`\xi(r) = \langle z\rangle`.
+        xi_im:      The imaginary part of :math:`\xi(r)`.
+        varxi:      An estimate of the variance of :math:`\xi`
+        weight:     The total weight in each bin.
+        npairs:     The number of pairs going into each bin (including pairs where one or
+                    both objects have w=0).
+        cov:        An estimate of the full covariance matrix.
+        raw_xi:     The raw value of xi, uncorrected by an RZ calculation. cf. `calculateXi`
+        raw_xi_im:  The raw value of xi_im, uncorrected by an RZ calculation. cf. `calculateXi`
+        raw_varxi:  The raw value of varxi, uncorrected by an RZ calculation. cf. `calculateXi`
+
+    .. note::
+
+        The default method for estimating the variance and covariance attributes (``varxi``,
+        and ``cov``) is 'shot', which only includes the shape noise propagated into
+        the final correlation.  This does not include sample variance, so it is always an
+        underestimate of the actual variance.  To get better estimates, you need to set
+        ``var_method`` to something else and use patches in the input catalog(s).
+        cf. `Covariance Estimates`.
+
+    If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances
+    will all be in these units.
+
+    .. note::
+
+        If you separate out the steps of the `process` command and use `process_cross`,
+        then the units will not be applied to ``meanr`` or ``meanlogr`` until the `finalize`
+        function is called.
+
+    The typical usage pattern is as follows:
+
+        >>> nz = treecorr.NZCorrelation(config)
+        >>> nz.process(cat1,cat2)   # Compute the cross-correlation.
+        >>> nz.write(file_name)     # Write out to a file.
+        >>> xi = nz.xi              # Or access the correlation function directly.
+
+    Parameters:
+        config (dict):  A configuration dict that can be used to pass in kwargs if desired.
+                        This dict is allowed to have addition entries besides those listed
+                        in `Corr2`, which are ignored here. (default: None)
+        logger:         If desired, a logger object for logging. (default: None, in which case
+                        one will be built according to the config dict's verbose level.)
+
+    Keyword Arguments:
+        **kwargs:       See the documentation for `Corr2` for the list of allowed keyword
+                        arguments, which may be passed either directly or in the config dict.
+    """
+    _cls = 'NZCorrelation'
+    _letter = 'Z'
+    _builder = _treecorr.NZCorr
+    _calculateVarZ = staticmethod(calculateVarZ)
+    _zreal = 'z_real'
+    _zimag = 'z_imag'
+
+    def __init__(self, config=None, *, logger=None, **kwargs):
+        """Initialize `NZCorrelation`.  See class doc for details.
+        """
+        BaseNZCorrelation.__init__(self, config, logger=logger, **kwargs)
+
+    def finalize(self, varz):
+        """Finalize the calculation of the correlation function.
+
+        The `process_cross` command accumulates values in each bin, so it can be called
+        multiple times if appropriate.  Afterwards, this command finishes the calculation
+        by dividing each column by the total weight.
+
+        Parameters:
+            varz (float):   The variance per component of the spin-0 field.
+        """
+        BaseNZCorrelation.finalize(self, varz)
+
+    def process(self, cat1, cat2, *, metric=None, num_threads=None, comm=None, low_mem=False,
+                initialize=True, finalize=True, patch_method='global'):
+        """Compute the correlation function.
+
+        Both arguments may be lists, in which case all items in the list are used
+        for that element of the correlation.
+
+        Parameters:
+            cat1 (Catalog):     A catalog or list of catalogs for the N field.
+            cat2 (Catalog):     A catalog or list of catalogs for the Z field.
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
+            comm (mpi4py.Comm): If running MPI, an mpi4py Comm object to communicate between
+                                processes.  If used, the rank=0 process will have the final
+                                computation. This only works if using patches. (default: None)
+            low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
+                                This only works if using patches. (default: False)
+            initialize (bool):  Whether to begin the calculation with a call to
+                                `Corr2.clear`.  (default: True)
+            finalize (bool):    Whether to complete the calculation with a call to `finalize`.
+                                (default: True)
+            patch_method (str): Which patch method to use. (default: 'global')
+        """
+        BaseNZCorrelation.process(self, cat1, cat2, metric, num_threads, comm, low_mem,
+                                  initialize, finalize, patch_method)
+
+    def calculateXi(self, *, rz=None):
+        r"""Calculate the correlation function possibly given another correlation function
+        that uses random points for the foreground objects.
+
+        - If rz is None, the simple correlation function :math:`\langle z\rangle` is
+          returned.
+        - If rz is not None, then a compensated calculation is done:
+          :math:`\langle z\rangle = (DZ - RZ)`, where DZ represents the mean field value
+          around the data points and RZ represents the mean value around random points.
+
+        After calling this function, the attributes ``xi``, ``xi_im``, ``varxi``, and ``cov`` will
+        correspond to the compensated values (if rz is provided).  The raw, uncompensated values
+        are available as ``rawxi``, ``raw_xi_im``, and ``raw_varxi``.
+
+        Parameters:
+            rz (NZCorrelation): The cross-correlation using random locations as the lenses
+                                (RZ), if desired.  (default: None)
+
+        Returns:
+            Tuple containing
+
+                - xi = array of the real part of :math:`\xi(R)`
+                - xi_im = array of the imaginary part of :math:`\xi(R)`
+                - varxi = array of the variance estimates of the above values
+        """
+        return BaseNZCorrelation.calculateXi(self, rz=rz)
+
     def write(self, file_name, *, rz=None, file_type=None, precision=None,
               write_patch_results=False, write_cov=False):
         r"""Write the correlation function to the file, file_name.
 
-        - If rz is None, the simple correlation function :math:`\langle v_R\rangle` is used.
+        - If rz is None, the simple correlation function :math:`\langle z\rangle` is used.
         - If rz is not None, then a compensated calculation is done:
-          :math:`\langle v_R\rangle = (DZ - RZ)`, where DZ represents the mean field value
+          :math:`\langle z\rangle = (DZ - RZ)`, where DZ represents the mean field value
           around the data points and RZ represents the mean value around random points.
 
         The output file will include the following columns:
@@ -489,30 +595,8 @@ class NZCorrelation(Corr2):
                                         (default: False)
             write_cov (bool):   Whether to write the covariance matrix as well. (default: False)
         """
-        self.logger.info('Writing NZ correlations to %s',file_name)
-        self.calculateXi(rz=rz)
-        precision = self.config.get('precision', 4) if precision is None else precision
-        with make_writer(file_name, precision, file_type, self.logger) as writer:
-            self._write(writer, None, write_patch_results, write_cov=write_cov)
-
-    @property
-    def _write_col_names(self):
-        return ['r_nom','meanr','meanlogr','z_real','z_imag','sigma','weight','npairs']
-
-    @property
-    def _write_data(self):
-        data = [ self.rnom, self.meanr, self.meanlogr,
-                 self.xi, self.xi_im, np.sqrt(self.varxi), self.weight, self.npairs ]
-        data = [ col.flatten() for col in data ]
-        return data
-
-    @property
-    def _write_params(self):
-        params = make_minimal_config(self.config, Corr2._valid_params)
-        # Add in a couple other things we want to preserve that aren't construction kwargs.
-        params['coords'] = self.coords
-        params['metric'] = self.metric
-        return params
+        BaseNZCorrelation.write(self, file_name, rz, file_type, precision,
+                                write_patch_results, write_cov)
 
     @classmethod
     def from_file(cls, file_name, *, file_type=None, logger=None, rng=None):
@@ -531,51 +615,4 @@ class NZCorrelation(Corr2):
         Returns:
             corr: An NZCorrelation object, constructed from the information in the file.
         """
-        if logger:
-            logger.info('Building NZCorrelation from %s',file_name)
-        with make_reader(file_name, file_type, logger) as reader:
-            name = 'main' if 'main' in reader else None
-            params = reader.read_params(ext=name)
-            kwargs = make_minimal_config(params, Corr2._valid_params)
-            corr = cls(**kwargs, logger=logger, rng=rng)
-            corr.logger.info('Reading NZ correlations from %s',file_name)
-            corr._read(reader, name=name, params=params)
-        return corr
-
-    def read(self, file_name, *, file_type=None):
-        """Read in values from a file.
-
-        This should be a file that was written by TreeCorr, preferably a FITS or HDF5 file, so
-        there is no loss of information.
-
-        .. warning::
-
-            The `NZCorrelation` object should be constructed with the same configuration
-            parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
-            checked by the read function.
-
-        Parameters:
-            file_name (str):    The name of the file to read in.
-            file_type (str):    The type of file ('ASCII' or 'FITS').  (default: determine the type
-                                automatically from the extension of file_name.)
-        """
-        self.logger.info('Reading NZ correlations from %s',file_name)
-        with make_reader(file_name, file_type, self.logger) as reader:
-            self._read(reader)
-
-    def _read_from_data(self, data, params):
-        s = self.logr.shape
-        self.meanr = data['meanr'].reshape(s)
-        self.meanlogr = data['meanlogr'].reshape(s)
-        self.xi = data['z_real'].reshape(s)
-        self.xi_im = data['z_imag'].reshape(s)
-        self._varxi = data['sigma'].reshape(s)**2
-        self.weight = data['weight'].reshape(s)
-        self.npairs = data['npairs'].reshape(s)
-        self.coords = params['coords'].strip()
-        self.metric = params['metric'].strip()
-        self.raw_xi = self.xi
-        self.raw_xi_im = self.xi_im
-        self._raw_varxi = self._varxi
-        self.npatch1 = params.get('npatch1', 1)
-        self.npatch2 = params.get('npatch2', 1)
+        return BaseNZCorrelation.from_file(cls, file_name, file_type, logger, rng)

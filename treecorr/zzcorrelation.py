@@ -24,7 +24,414 @@ from .util import make_writer, make_reader
 from .config import make_minimal_config
 
 
-class ZZCorrelation(Corr2):
+class BaseZZCorrelation(Corr2):
+    """This class is a base class for all the ??Correlation classes, where both ?'s are one of the
+    complex fields of varying spin.
+
+    A lot of the implementation is shared among those types, so whenever possible the shared
+    implementation is done in this class.
+    """
+    def __init__(self, config=None, *, logger=None, **kwargs):
+        Corr2.__init__(self, config, logger=logger, **kwargs)
+
+        self.xip = np.zeros_like(self.rnom, dtype=float)
+        self.xim = np.zeros_like(self.rnom, dtype=float)
+        self.xip_im = np.zeros_like(self.rnom, dtype=float)
+        self.xim_im = np.zeros_like(self.rnom, dtype=float)
+        self.meanr = np.zeros_like(self.rnom, dtype=float)
+        self.meanlogr = np.zeros_like(self.rnom, dtype=float)
+        self.weight = np.zeros_like(self.rnom, dtype=float)
+        self.npairs = np.zeros_like(self.rnom, dtype=float)
+        self._varxip = None
+        self._varxim = None
+        self._cov = None
+        self._var_num = 0
+        self._processed_cats1 = []
+        self._processed_cats2 = []
+        self.logger.debug('Finished building %s', self._cls)
+
+    @property
+    def corr(self):
+        if self._corr is None:
+            self._corr = self._builder(self._bintype, self._min_sep, self._max_sep, self._nbins,
+                                       self._bin_size, self.b, self.angle_slop,
+                                       self.min_rpar, self.max_rpar,
+                                       self.xperiod, self.yperiod, self.zperiod,
+                                       self.xip, self.xip_im, self.xim, self.xim_im,
+                                       self.meanr, self.meanlogr, self.weight, self.npairs)
+        return self._corr
+
+    def __eq__(self, other):
+        """Return whether two Correlation instances are equal"""
+        return (isinstance(other, self.__class__) and
+                self.nbins == other.nbins and
+                self.bin_size == other.bin_size and
+                self.min_sep == other.min_sep and
+                self.max_sep == other.max_sep and
+                self.sep_units == other.sep_units and
+                self.coords == other.coords and
+                self.bin_type == other.bin_type and
+                self.bin_slop == other.bin_slop and
+                self.angle_slop == other.angle_slop and
+                self.min_rpar == other.min_rpar and
+                self.max_rpar == other.max_rpar and
+                self.xperiod == other.xperiod and
+                self.yperiod == other.yperiod and
+                self.zperiod == other.zperiod and
+                np.array_equal(self.meanr, other.meanr) and
+                np.array_equal(self.meanlogr, other.meanlogr) and
+                np.array_equal(self.xip, other.xip) and
+                np.array_equal(self.xim, other.xim) and
+                np.array_equal(self.xip_im, other.xip_im) and
+                np.array_equal(self.xim_im, other.xim_im) and
+                np.array_equal(self.varxip, other.varxip) and
+                np.array_equal(self.varxim, other.varxim) and
+                np.array_equal(self.weight, other.weight) and
+                np.array_equal(self.npairs, other.npairs))
+
+    def copy(self):
+        """Make a copy"""
+        ret = self.__class__.__new__(self.__class__)
+        for key, item in self.__dict__.items():
+            if isinstance(item, np.ndarray):
+                # Only items that might change need to by deep copied.
+                ret.__dict__[key] = item.copy()
+            else:
+                # For everything else, shallow copy is fine.
+                # In particular don't deep copy config or logger
+                # Most of the rest are scalars, which copy fine this way.
+                # And the read-only things are all in _ro.
+                # The results dict is trickier.  We rely on it being copied in places, but we
+                # never add more to it after the copy, so shallow copy is fine.
+                ret.__dict__[key] = item
+        ret._corr = None # We'll want to make a new one of these if we need it.
+        return ret
+
+    def __repr__(self):
+        return f'{self._cls}({self._repr_kwargs})'
+
+    def process_auto(self, cat, *, metric=None, num_threads=None):
+        """Process a single catalog, accumulating the auto-correlation.
+
+        This accumulates the weighted sums into the bins, but does not finalize
+        the calculation by dividing by the total weight at the end.  After
+        calling this function as often as desired, the `finalize` command will
+        finish the calculation.
+
+        Parameters:
+            cat (Catalog):      The catalog to process
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
+        """
+        if cat.name == '':
+            self.logger.info(f'Starting process {self._letters} auto-correlations')
+        else:
+            self.logger.info('Starting process %s auto-correlations for cat %s.',
+                             self._letters, cat.name)
+
+        self._set_metric(metric, cat.coords)
+        self._set_num_threads(num_threads)
+        min_size, max_size = self._get_minmax_size()
+
+        getZField = getattr(cat, f"get{self._letter}Field")
+        field = getZField(min_size=min_size, max_size=max_size,
+                          split_method=self.split_method,
+                          brute=bool(self.brute),
+                          min_top=self.min_top, max_top=self.max_top,
+                          coords=self.coords)
+
+        self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
+        self.corr.processAuto(field.data, self.output_dots, self._metric)
+
+    def process_cross(self, cat1, cat2, *, metric=None, num_threads=None):
+        """Process a single pair of catalogs, accumulating the cross-correlation.
+
+        This accumulates the weighted sums into the bins, but does not finalize
+        the calculation by dividing by the total weight at the end.  After
+        calling this function as often as desired, the `finalize` command will
+        finish the calculation.
+
+        Parameters:
+            cat1 (Catalog):     The first catalog to process
+            cat2 (Catalog):     The second catalog to process
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
+        """
+        if cat1.name == '' and cat2.name == '':
+            self.logger.info(f'Starting process {self._letters} cross-correlations')
+        else:
+            self.logger.info('Starting process %s cross-correlations for cats %s, %s.',
+                             self._letters, cat1.name, cat2.name)
+
+        self._set_metric(metric, cat1.coords, cat2.coords)
+        self._set_num_threads(num_threads)
+        min_size, max_size = self._get_minmax_size()
+
+        getZField1 = getattr(cat1, f"get{self._letter}Field")
+        getZField2 = getattr(cat2, f"get{self._letter}Field")
+        f1 = getZField1(min_size=min_size, max_size=max_size,
+                        split_method=self.split_method,
+                        brute=self.brute is True or self.brute == 1,
+                        min_top=self.min_top, max_top=self.max_top,
+                        coords=self.coords)
+        f2 = getZField2(min_size=min_size, max_size=max_size,
+                        split_method=self.split_method,
+                        brute=self.brute is True or self.brute == 2,
+                        min_top=self.min_top, max_top=self.max_top,
+                        coords=self.coords)
+
+        self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
+        self.corr.processCross(f1.data, f2.data, self.output_dots, self._metric)
+
+    def getStat(self):
+        """The standard statistic for the current correlation object as a 1-d array.
+
+        In this case, this is the concatenation of self.xip and self.xim (raveled if necessary).
+        """
+        return np.concatenate([self.xip.ravel(), self.xim.ravel()])
+
+    def getWeight(self):
+        """The weight array for the current correlation object as a 1-d array.
+
+        This is the weight array corresponding to `getStat`. In this case, the weight is
+        duplicated to account for both xip and xim returned as part of getStat().
+        """
+        return np.concatenate([self.weight.ravel(), self.weight.ravel()])
+
+    def _finalize(self):
+        mask1 = self.weight != 0
+        mask2 = self.weight == 0
+
+        self.xip[mask1] /= self.weight[mask1]
+        self.xim[mask1] /= self.weight[mask1]
+        self.xip_im[mask1] /= self.weight[mask1]
+        self.xim_im[mask1] /= self.weight[mask1]
+        self.meanr[mask1] /= self.weight[mask1]
+        self.meanlogr[mask1] /= self.weight[mask1]
+
+        # Update the units of meanr, meanlogr
+        self._apply_units(mask1)
+
+        # Use meanr, meanlogr when available, but set to nominal when no pairs in bin.
+        self.meanr[mask2] = self.rnom[mask2]
+        self.meanlogr[mask2] = self.logr[mask2]
+
+    def finalize(self, varz1, varz2):
+        """Finalize the calculation of the correlation function.
+
+        The `process_auto` and `process_cross` commands accumulate values in each bin,
+        so they can be called multiple times if appropriate.  Afterwards, this command
+        finishes the calculation by dividing each column by the total weight.
+
+        Parameters:
+            varz1 (float):  The variance per component of the first field.
+            varz2 (float):  The variance per component of the second field.
+        """
+        self._finalize()
+        self._var_num = 2. * varz1 * varz2
+
+    @property
+    def varxip(self):
+        if self._varxip is None:
+            self._varxip = np.zeros_like(self.rnom, dtype=float)
+            if self._var_num != 0:
+                self._varxip.ravel()[:] = self.cov_diag[:self._nbins]
+        return self._varxip
+
+    @property
+    def varxim(self):
+        if self._varxim is None:
+            self._varxim = np.zeros_like(self.rnom, dtype=float)
+            if self._var_num != 0:
+                self._varxim.ravel()[:] = self.cov_diag[self._nbins:]
+        return self._varxim
+
+    def _clear(self):
+        """Clear the data vectors
+        """
+        self.xip.ravel()[:] = 0
+        self.xim.ravel()[:] = 0
+        self.xip_im.ravel()[:] = 0
+        self.xim_im.ravel()[:] = 0
+        self.meanr.ravel()[:] = 0
+        self.meanlogr.ravel()[:] = 0
+        self.weight.ravel()[:] = 0
+        self.npairs.ravel()[:] = 0
+        self._varxip = None
+        self._varxim = None
+        self._cov = None
+
+    def __iadd__(self, other):
+        """Add a second Correlation object's data to this one.
+
+        .. note::
+
+            For this to make sense, both objects should not have had `finalize` called yet.
+            Then, after adding them together, you should call `finalize` on the sum.
+        """
+        if not isinstance(other, self.__class__):
+            raise TypeError(f"Can only add another {self._cls} object")
+        if not (self._nbins == other._nbins and
+                self.min_sep == other.min_sep and
+                self.max_sep == other.max_sep):
+            raise ValueError(f"{self._cls} to be added is not compatible with this one.")
+
+        self._set_metric(other.metric, other.coords, other.coords)
+        self.xip.ravel()[:] += other.xip.ravel()[:]
+        self.xim.ravel()[:] += other.xim.ravel()[:]
+        self.xip_im.ravel()[:] += other.xip_im.ravel()[:]
+        self.xim_im.ravel()[:] += other.xim_im.ravel()[:]
+        self.meanr.ravel()[:] += other.meanr.ravel()[:]
+        self.meanlogr.ravel()[:] += other.meanlogr.ravel()[:]
+        self.weight.ravel()[:] += other.weight.ravel()[:]
+        self.npairs.ravel()[:] += other.npairs.ravel()[:]
+        return self
+
+    def _sum(self, others):
+        # Equivalent to the operation of:
+        #     self._clear()
+        #     for other in others:
+        #         self += other
+        # but no sanity checks and use numpy.sum for faster calculation.
+        np.sum([c.xip for c in others], axis=0, out=self.xip)
+        np.sum([c.xim for c in others], axis=0, out=self.xim)
+        np.sum([c.xip_im for c in others], axis=0, out=self.xip_im)
+        np.sum([c.xim_im for c in others], axis=0, out=self.xim_im)
+        np.sum([c.meanr for c in others], axis=0, out=self.meanr)
+        np.sum([c.meanlogr for c in others], axis=0, out=self.meanlogr)
+        np.sum([c.weight for c in others], axis=0, out=self.weight)
+        np.sum([c.npairs for c in others], axis=0, out=self.npairs)
+
+    def process(self, cat1, cat2=None, metric=None, num_threads=None, comm=None, low_mem=False,
+                initialize=True, finalize=True, patch_method='global'):
+        import math
+        if initialize:
+            self.clear()
+            self._processed_cats1.clear()
+            self._processed_cats2.clear()
+
+        if patch_method not in ['local', 'global']:
+            raise ValueError("Invalid patch_method %s"%patch_method)
+        local = patch_method == 'local'
+
+        if not isinstance(cat1,list):
+            cat1 = cat1.get_patches(low_mem=low_mem)
+        if cat2 is not None and not isinstance(cat2,list):
+            cat2 = cat2.get_patches(low_mem=low_mem)
+
+        if cat2 is None:
+            self._process_all_auto(cat1, metric, num_threads, comm, low_mem, local)
+        else:
+            self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem, local)
+
+        self._processed_cats1.extend(cat1)
+        if cat2 is not None:
+            self._processed_cats2.extend(cat2)
+        if finalize:
+            if cat2 is None:
+                varz1 = self._calculateVarZ(self._processed_cats1, low_mem=low_mem)
+                varz2 = varz1
+                self.logger.info("varv = %f: sig_sn (per component) = %f",varz1,math.sqrt(varz1))
+            else:
+                varz1 = self._calculateVarZ(self._processed_cats1, low_mem=low_mem)
+                varz2 = self._calculateVarZ(self._processed_cats2, low_mem=low_mem)
+                self.logger.info("varz1 = %f: sig_sn (per component) = %f",varz1,math.sqrt(varz1))
+                self.logger.info("varz2 = %f: sig_sn (per component) = %f",varz2,math.sqrt(varz2))
+            self.finalize(varz1,varz2)
+            self._processed_cats1.clear()
+            self._processed_cats2.clear()
+
+    def write(self, file_name, file_type=None, precision=None, write_patch_results=False,
+              write_cov=False):
+        self.logger.info(f'Writing {self._letters} correlations to %s',file_name)
+        precision = self.config.get('precision', 4) if precision is None else precision
+        with make_writer(file_name, precision, file_type, self.logger) as writer:
+            self._write(writer, None, write_patch_results, write_cov=write_cov)
+
+    @property
+    def _write_col_names(self):
+        return ['r_nom', 'meanr', 'meanlogr', 'xip', 'xim', 'xip_im', 'xim_im',
+                'sigma_xip', 'sigma_xim', 'weight', 'npairs']
+
+    @property
+    def _write_data(self):
+        data = [ self.rnom, self.meanr, self.meanlogr,
+                 self.xip, self.xim, self.xip_im, self.xim_im,
+                 np.sqrt(self.varxip), np.sqrt(self.varxim),
+                 self.weight, self.npairs ]
+        data = [ col.flatten() for col in data ]
+        return data
+
+    @property
+    def _write_params(self):
+        params = make_minimal_config(self.config, Corr2._valid_params)
+        # Add in a couple other things we want to preserve that aren't construction kwargs.
+        params['coords'] = self.coords
+        params['metric'] = self.metric
+        return params
+
+    @staticmethod
+    def from_file(cls, file_name, file_type=None, logger=None, rng=None):
+        if logger:
+            logger.info(f'Building {cls._cls} from %s',file_name)
+        with make_reader(file_name, file_type, logger) as reader:
+            name = 'main' if 'main' in reader else None
+            params = reader.read_params(ext=name)
+            kwargs = make_minimal_config(params, Corr2._valid_params)
+            corr = cls(**kwargs, logger=logger, rng=rng)
+            corr.logger.info(f'Reading {cls._letters} correlations from %s',file_name)
+            corr._read(reader, name=name, params=params)
+        return corr
+
+    def read(self, file_name, *, file_type=None):
+        """Read in values from a file.
+
+        This should be a file that was written by TreeCorr, preferably a FITS or HDF5 file, so
+        there is no loss of information.
+
+        .. warning::
+
+            The current object should be constructed with the same configuration parameters as
+            the one being read.  e.g. the same min_sep, max_sep, etc.  This is not checked by
+            the read function.
+
+        Parameters:
+            file_name (str):    The name of the file to read in.
+            file_type (str):    The type of file ('ASCII' or 'FITS').  (default: determine the type
+                                automatically from the extension of file_name.)
+        """
+        self.logger.info(f'Reading {self._letters} correlations from %s',file_name)
+        with make_reader(file_name, file_type, self.logger) as reader:
+            self._read(reader)
+
+    # Helper function used by _read
+    def _read_from_data(self, data, params):
+        s = self.logr.shape
+        self.meanr = data['meanr'].reshape(s)
+        self.meanlogr = data['meanlogr'].reshape(s)
+        self.xip = data['xip'].reshape(s)
+        self.xim = data['xim'].reshape(s)
+        self.xip_im = data['xip_im'].reshape(s)
+        self.xim_im = data['xim_im'].reshape(s)
+        # Read old output files without error.
+        self._varxip = data['sigma_xip'].reshape(s)**2
+        self._varxim = data['sigma_xim'].reshape(s)**2
+        self.weight = data['weight'].reshape(s)
+        self.npairs = data['npairs'].reshape(s)
+        self.coords = params['coords'].strip()
+        self.metric = params['metric'].strip()
+        self.npatch1 = params.get('npatch1', 1)
+        self.npatch2 = params.get('npatch2', 1)
+
+class ZZCorrelation(BaseZZCorrelation):
     r"""This class handles the calculation and storage of a 2-point correlation function
     of two complex spin-0 fields.  If either spin-0 field is real, you should instead use
     `KZCorrelation` as it will be faster, and if both are real, you should use `KKCorrelation`.
@@ -107,197 +514,16 @@ class ZZCorrelation(Corr2):
         **kwargs:       See the documentation for `Corr2` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
+    _cls = 'ZZCorrelation'
+    _letter = 'Z'
+    _letters = 'ZZ'
+    _builder = _treecorr.ZZCorr
+    _calculateVarZ = staticmethod(calculateVarZ)
+
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `ZZCorrelation`.  See class doc for details.
         """
-        Corr2.__init__(self, config, logger=logger, **kwargs)
-
-        self.xip = np.zeros_like(self.rnom, dtype=float)
-        self.xim = np.zeros_like(self.rnom, dtype=float)
-        self.xip_im = np.zeros_like(self.rnom, dtype=float)
-        self.xim_im = np.zeros_like(self.rnom, dtype=float)
-        self.meanr = np.zeros_like(self.rnom, dtype=float)
-        self.meanlogr = np.zeros_like(self.rnom, dtype=float)
-        self.weight = np.zeros_like(self.rnom, dtype=float)
-        self.npairs = np.zeros_like(self.rnom, dtype=float)
-        self._varxip = None
-        self._varxim = None
-        self._cov = None
-        self._var_num = 0
-        self._processed_cats1 = []
-        self._processed_cats2 = []
-        self.logger.debug('Finished building ZZCorr')
-
-    @property
-    def corr(self):
-        if self._corr is None:
-            self._corr = _treecorr.ZZCorr(self._bintype, self._min_sep, self._max_sep, self._nbins,
-                                          self._bin_size, self.b, self.angle_slop,
-                                          self.min_rpar, self.max_rpar,
-                                          self.xperiod, self.yperiod, self.zperiod,
-                                          self.xip, self.xip_im, self.xim, self.xim_im,
-                                          self.meanr, self.meanlogr, self.weight, self.npairs)
-        return self._corr
-
-    def __eq__(self, other):
-        """Return whether two `ZZCorrelation` instances are equal"""
-        return (isinstance(other, ZZCorrelation) and
-                self.nbins == other.nbins and
-                self.bin_size == other.bin_size and
-                self.min_sep == other.min_sep and
-                self.max_sep == other.max_sep and
-                self.sep_units == other.sep_units and
-                self.coords == other.coords and
-                self.bin_type == other.bin_type and
-                self.bin_slop == other.bin_slop and
-                self.angle_slop == other.angle_slop and
-                self.min_rpar == other.min_rpar and
-                self.max_rpar == other.max_rpar and
-                self.xperiod == other.xperiod and
-                self.yperiod == other.yperiod and
-                self.zperiod == other.zperiod and
-                np.array_equal(self.meanr, other.meanr) and
-                np.array_equal(self.meanlogr, other.meanlogr) and
-                np.array_equal(self.xip, other.xip) and
-                np.array_equal(self.xim, other.xim) and
-                np.array_equal(self.xip_im, other.xip_im) and
-                np.array_equal(self.xim_im, other.xim_im) and
-                np.array_equal(self.varxip, other.varxip) and
-                np.array_equal(self.varxim, other.varxim) and
-                np.array_equal(self.weight, other.weight) and
-                np.array_equal(self.npairs, other.npairs))
-
-    def copy(self):
-        """Make a copy"""
-        ret = ZZCorrelation.__new__(ZZCorrelation)
-        for key, item in self.__dict__.items():
-            if isinstance(item, np.ndarray):
-                # Only items that might change need to by deep copied.
-                ret.__dict__[key] = item.copy()
-            else:
-                # For everything else, shallow copy is fine.
-                # In particular don't deep copy config or logger
-                # Most of the rest are scalars, which copy fine this way.
-                # And the read-only things are all in _ro.
-                # The results dict is trickier.  We rely on it being copied in places, but we
-                # never add more to it after the copy, so shallow copy is fine.
-                ret.__dict__[key] = item
-        ret._corr = None # We'll want to make a new one of these if we need it.
-        return ret
-
-    def __repr__(self):
-        return f'ZZCorrelation({self._repr_kwargs})'
-
-    def process_auto(self, cat, *, metric=None, num_threads=None):
-        """Process a single catalog, accumulating the auto-correlation.
-
-        This accumulates the weighted sums into the bins, but does not finalize
-        the calculation by dividing by the total weight at the end.  After
-        calling this function as often as desired, the `finalize` command will
-        finish the calculation.
-
-        Parameters:
-            cat (Catalog):      The catalog to process
-            metric (str):       Which metric to use.  See `Metrics` for details.
-                                (default: 'Euclidean'; this value can also be given in the
-                                constructor in the config dict.)
-            num_threads (int):  How many OpenMP threads to use during the calculation.
-                                (default: use the number of cpu cores; this value can also be given
-                                in the constructor in the config dict.)
-        """
-        if cat.name == '':
-            self.logger.info('Starting process ZZ auto-correlations')
-        else:
-            self.logger.info('Starting process ZZ auto-correlations for cat %s.',cat.name)
-
-        self._set_metric(metric, cat.coords)
-        self._set_num_threads(num_threads)
-        min_size, max_size = self._get_minmax_size()
-
-        field = cat.getZField(min_size=min_size, max_size=max_size,
-                              split_method=self.split_method,
-                              brute=bool(self.brute),
-                              min_top=self.min_top, max_top=self.max_top,
-                              coords=self.coords)
-
-        self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        self.corr.processAuto(field.data, self.output_dots, self._metric)
-
-
-    def process_cross(self, cat1, cat2, *, metric=None, num_threads=None):
-        """Process a single pair of catalogs, accumulating the cross-correlation.
-
-        This accumulates the weighted sums into the bins, but does not finalize
-        the calculation by dividing by the total weight at the end.  After
-        calling this function as often as desired, the `finalize` command will
-        finish the calculation.
-
-        Parameters:
-            cat1 (Catalog):     The first catalog to process
-            cat2 (Catalog):     The second catalog to process
-            metric (str):       Which metric to use.  See `Metrics` for details.
-                                (default: 'Euclidean'; this value can also be given in the
-                                constructor in the config dict.)
-            num_threads (int):  How many OpenMP threads to use during the calculation.
-                                (default: use the number of cpu cores; this value can also be given
-                                in the constructor in the config dict.)
-        """
-        if cat1.name == '' and cat2.name == '':
-            self.logger.info('Starting process ZZ cross-correlations')
-        else:
-            self.logger.info('Starting process ZZ cross-correlations for cats %s, %s.',
-                             cat1.name, cat2.name)
-
-        self._set_metric(metric, cat1.coords, cat2.coords)
-        self._set_num_threads(num_threads)
-        min_size, max_size = self._get_minmax_size()
-
-        f1 = cat1.getZField(min_size=min_size, max_size=max_size,
-                            split_method=self.split_method,
-                            brute=self.brute is True or self.brute == 1,
-                            min_top=self.min_top, max_top=self.max_top,
-                            coords=self.coords)
-        f2 = cat2.getZField(min_size=min_size, max_size=max_size,
-                            split_method=self.split_method,
-                            brute=self.brute is True or self.brute == 2,
-                            min_top=self.min_top, max_top=self.max_top,
-                            coords=self.coords)
-
-        self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        self.corr.processCross(f1.data, f2.data, self.output_dots, self._metric)
-
-    def getStat(self):
-        """The standard statistic for the current correlation object as a 1-d array.
-
-        In this case, this is the concatenation of self.xip and self.xim (raveled if necessary).
-        """
-        return np.concatenate([self.xip.ravel(), self.xim.ravel()])
-
-    def getWeight(self):
-        """The weight array for the current correlation object as a 1-d array.
-
-        This is the weight array corresponding to `getStat`. In this case, the weight is
-        duplicated to account for both xip and xim returned as part of getStat().
-        """
-        return np.concatenate([self.weight.ravel(), self.weight.ravel()])
-
-    def _finalize(self):
-        mask1 = self.weight != 0
-        mask2 = self.weight == 0
-
-        self.xip[mask1] /= self.weight[mask1]
-        self.xim[mask1] /= self.weight[mask1]
-        self.xip_im[mask1] /= self.weight[mask1]
-        self.xim_im[mask1] /= self.weight[mask1]
-        self.meanr[mask1] /= self.weight[mask1]
-        self.meanlogr[mask1] /= self.weight[mask1]
-
-        # Update the units of meanr, meanlogr
-        self._apply_units(mask1)
-
-        # Use meanr, meanlogr when available, but set to nominal when no pairs in bin.
-        self.meanr[mask2] = self.rnom[mask2]
-        self.meanlogr[mask2] = self.logr[mask2]
+        BaseZZCorrelation.__init__(self, config, logger=logger, **kwargs)
 
     def finalize(self, varz1, varz2):
         """Finalize the calculation of the correlation function.
@@ -310,80 +536,7 @@ class ZZCorrelation(Corr2):
             varz1 (float):  The variance per component of the first vector field.
             varz2 (float):  The variance per component of the second vector field.
         """
-        self._finalize()
-        self._var_num = 2. * varz1 * varz2
-
-    @property
-    def varxip(self):
-        if self._varxip is None:
-            self._varxip = np.zeros_like(self.rnom, dtype=float)
-            if self._var_num != 0:
-                self._varxip.ravel()[:] = self.cov_diag[:self._nbins]
-        return self._varxip
-
-    @property
-    def varxim(self):
-        if self._varxim is None:
-            self._varxim = np.zeros_like(self.rnom, dtype=float)
-            if self._var_num != 0:
-                self._varxim.ravel()[:] = self.cov_diag[self._nbins:]
-        return self._varxim
-
-    def _clear(self):
-        """Clear the data vectors
-        """
-        self.xip.ravel()[:] = 0
-        self.xim.ravel()[:] = 0
-        self.xip_im.ravel()[:] = 0
-        self.xim_im.ravel()[:] = 0
-        self.meanr.ravel()[:] = 0
-        self.meanlogr.ravel()[:] = 0
-        self.weight.ravel()[:] = 0
-        self.npairs.ravel()[:] = 0
-        self._varxip = None
-        self._varxim = None
-        self._cov = None
-
-    def __iadd__(self, other):
-        """Add a second `ZZCorrelation`'s data to this one.
-
-        .. note::
-
-            For this to make sense, both `ZZCorrelation` objects should not have had `finalize`
-            called yet.  Then, after adding them together, you should call `finalize` on the sum.
-        """
-        if not isinstance(other, ZZCorrelation):
-            raise TypeError("Can only add another ZZCorrelation object")
-        if not (self._nbins == other._nbins and
-                self.min_sep == other.min_sep and
-                self.max_sep == other.max_sep):
-            raise ValueError("ZZCorrelation to be added is not compatible with this one.")
-
-        self._set_metric(other.metric, other.coords, other.coords)
-        self.xip.ravel()[:] += other.xip.ravel()[:]
-        self.xim.ravel()[:] += other.xim.ravel()[:]
-        self.xip_im.ravel()[:] += other.xip_im.ravel()[:]
-        self.xim_im.ravel()[:] += other.xim_im.ravel()[:]
-        self.meanr.ravel()[:] += other.meanr.ravel()[:]
-        self.meanlogr.ravel()[:] += other.meanlogr.ravel()[:]
-        self.weight.ravel()[:] += other.weight.ravel()[:]
-        self.npairs.ravel()[:] += other.npairs.ravel()[:]
-        return self
-
-    def _sum(self, others):
-        # Equivalent to the operation of:
-        #     self._clear()
-        #     for other in others:
-        #         self += other
-        # but no sanity checks and use numpy.sum for faster calculation.
-        np.sum([c.xip for c in others], axis=0, out=self.xip)
-        np.sum([c.xim for c in others], axis=0, out=self.xim)
-        np.sum([c.xip_im for c in others], axis=0, out=self.xip_im)
-        np.sum([c.xim_im for c in others], axis=0, out=self.xim_im)
-        np.sum([c.meanr for c in others], axis=0, out=self.meanr)
-        np.sum([c.meanlogr for c in others], axis=0, out=self.meanlogr)
-        np.sum([c.weight for c in others], axis=0, out=self.weight)
-        np.sum([c.npairs for c in others], axis=0, out=self.npairs)
+        BaseZZCorrelation.finalize(self, varz1, varz2)
 
     def process(self, cat1, cat2=None, *, metric=None, num_threads=None, comm=None, low_mem=False,
                 initialize=True, finalize=True, patch_method='global'):
@@ -416,42 +569,8 @@ class ZZCorrelation(Corr2):
                                 (default: True)
             patch_method (str): Which patch method to use. (default: 'global')
         """
-        import math
-        if initialize:
-            self.clear()
-            self._processed_cats1.clear()
-            self._processed_cats2.clear()
-
-        if patch_method not in ['local', 'global']:
-            raise ValueError("Invalid patch_method %s"%patch_method)
-        local = patch_method == 'local'
-
-        if not isinstance(cat1,list):
-            cat1 = cat1.get_patches(low_mem=low_mem)
-        if cat2 is not None and not isinstance(cat2,list):
-            cat2 = cat2.get_patches(low_mem=low_mem)
-
-        if cat2 is None:
-            self._process_all_auto(cat1, metric, num_threads, comm, low_mem, local)
-        else:
-            self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem, local)
-
-        self._processed_cats1.extend(cat1)
-        if cat2 is not None:
-            self._processed_cats2.extend(cat2)
-        if finalize:
-            if cat2 is None:
-                varz1 = calculateVarZ(self._processed_cats1, low_mem=low_mem)
-                varz2 = varz1
-                self.logger.info("varv = %f: sig_sn (per component) = %f",varz1,math.sqrt(varz1))
-            else:
-                varz1 = calculateVarZ(self._processed_cats1, low_mem=low_mem)
-                varz2 = calculateVarZ(self._processed_cats2, low_mem=low_mem)
-                self.logger.info("varz1 = %f: sig_sn (per component) = %f",varz1,math.sqrt(varz1))
-                self.logger.info("varz2 = %f: sig_sn (per component) = %f",varz2,math.sqrt(varz2))
-            self.finalize(varz1,varz2)
-            self._processed_cats1.clear()
-            self._processed_cats2.clear()
+        BaseZZCorrelation.process(self, cat1, cat2, metric, num_threads, comm, low_mem,
+                                  initialize, finalize, patch_method)
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
@@ -462,7 +581,7 @@ class ZZCorrelation(Corr2):
         =========       ========================================================
         Column          Description
         =========       ========================================================
-        r_nom           The nominal center of the bin in r
+       r_nom           The nominal center of the bin in r
         meanr           The mean value :math:`\langle r \rangle` of pairs that
                         fell into each bin
         meanlogr        The mean value :math:`\langle \log(r) \rangle` of pairs
@@ -491,32 +610,8 @@ class ZZCorrelation(Corr2):
                                         (default: False)
             write_cov (bool):   Whether to write the covariance matrix as well. (default: False)
         """
-        self.logger.info('Writing ZZ correlations to %s',file_name)
-        precision = self.config.get('precision', 4) if precision is None else precision
-        with make_writer(file_name, precision, file_type, self.logger) as writer:
-            self._write(writer, None, write_patch_results, write_cov=write_cov)
-
-    @property
-    def _write_col_names(self):
-        return ['r_nom', 'meanr', 'meanlogr', 'xip', 'xim', 'xip_im', 'xim_im',
-                'sigma_xip', 'sigma_xim', 'weight', 'npairs']
-
-    @property
-    def _write_data(self):
-        data = [ self.rnom, self.meanr, self.meanlogr,
-                 self.xip, self.xim, self.xip_im, self.xim_im,
-                 np.sqrt(self.varxip), np.sqrt(self.varxim),
-                 self.weight, self.npairs ]
-        data = [ col.flatten() for col in data ]
-        return data
-
-    @property
-    def _write_params(self):
-        params = make_minimal_config(self.config, Corr2._valid_params)
-        # Add in a couple other things we want to preserve that aren't construction kwargs.
-        params['coords'] = self.coords
-        params['metric'] = self.metric
-        return params
+        BaseZZCorrelation.write(self, file_name, file_type, precision, write_patch_results,
+                                write_cov)
 
     @classmethod
     def from_file(cls, file_name, *, file_type=None, logger=None, rng=None):
@@ -535,53 +630,4 @@ class ZZCorrelation(Corr2):
         Returns:
             corr: A ZZCorrelation object, constructed from the information in the file.
         """
-        if logger:
-            logger.info('Building ZZCorrelation from %s',file_name)
-        with make_reader(file_name, file_type, logger) as reader:
-            name = 'main' if 'main' in reader else None
-            params = reader.read_params(ext=name)
-            kwargs = make_minimal_config(params, Corr2._valid_params)
-            corr = cls(**kwargs, logger=logger, rng=rng)
-            corr.logger.info('Reading ZZ correlations from %s',file_name)
-            corr._read(reader, name=name, params=params)
-        return corr
-
-    def read(self, file_name, *, file_type=None):
-        """Read in values from a file.
-
-        This should be a file that was written by TreeCorr, preferably a FITS or HDF5 file, so
-        there is no loss of information.
-
-        .. warning::
-
-            The `ZZCorrelation` object should be constructed with the same configuration
-            parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
-            checked by the read function.
-
-        Parameters:
-            file_name (str):    The name of the file to read in.
-            file_type (str):    The type of file ('ASCII' or 'FITS').  (default: determine the type
-                                automatically from the extension of file_name.)
-        """
-        self.logger.info('Reading ZZ correlations from %s',file_name)
-        with make_reader(file_name, file_type, self.logger) as reader:
-            self._read(reader)
-
-    # Helper function used by _read
-    def _read_from_data(self, data, params):
-        s = self.logr.shape
-        self.meanr = data['meanr'].reshape(s)
-        self.meanlogr = data['meanlogr'].reshape(s)
-        self.xip = data['xip'].reshape(s)
-        self.xim = data['xim'].reshape(s)
-        self.xip_im = data['xip_im'].reshape(s)
-        self.xim_im = data['xim_im'].reshape(s)
-        # Read old output files without error.
-        self._varxip = data['sigma_xip'].reshape(s)**2
-        self._varxim = data['sigma_xim'].reshape(s)**2
-        self.weight = data['weight'].reshape(s)
-        self.npairs = data['npairs'].reshape(s)
-        self.coords = params['coords'].strip()
-        self.metric = params['metric'].strip()
-        self.npatch1 = params.get('npatch1', 1)
-        self.npatch2 = params.get('npatch2', 1)
+        return BaseZZCorrelation.from_file(cls, file_name, file_type, logger, rng)

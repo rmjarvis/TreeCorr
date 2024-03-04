@@ -1339,7 +1339,7 @@ def test_matrix_r():
     #
     # I.e. r is a spin-0 quantity, and q is a spin-4 quantity.
     # So we can compute the properly rotated Sum_k R_k by converting the R matrices into
-    # r and q complex numbers and computing NK and NQ correlation functions of those.
+    # r and q complex numbers and computing NZ and NQ correlation functions of those.
     # This realization was in fact the impetus to add spin-4 correlations to TreeCorr.
     #
     # The following test confirms that this calculation is equivalent to doing the direct
@@ -1442,43 +1442,35 @@ def test_matrix_r():
     r = (R11 + R22)/2 + 1j * (R12 - R21)/2
     q = (R11 - R22)/2 + 1j * (R12 + R21)/2
 
-    # cat2 = sources for everything but imag(r), which we need to do separately.
-    # Of course, BFD doesn't need that, so for BFD, would just have cat2 for the sources.
-    # TODO: Might be nice to allow k to be complex and include it in cat2...
+    # cat2 = sources
+    # Note: BFD can use k, rather than z1,z2, since r is real in that use case.
+    # And would use NKCorrelation below rather than NZ.
     cat2 = treecorr.Catalog(x=x, y=y, w=w, g1=Q1, g2=Q2,
-                            k=np.real(r), q1=np.real(q), q2=np.imag(q))
-    cat2b = treecorr.Catalog(x=x, y=y, w=w, k=np.imag(r))
+                            z1=np.real(r), z2=np.imag(r), q1=np.real(q), q2=np.imag(q))
 
     # Perform all the correlations
     ng = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
     ng.process(cat1, cat2)
-    nk = treecorr.NKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
-    nk.process(cat1, cat2)
-    # Note: BFD can skip nki, since r is real in that use case.
-    nki = treecorr.NKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
-    nki.process(cat1, cat2b)
+    nz = treecorr.NZCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
+    nz.process(cat1, cat2)
     nq = treecorr.NQCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
     nq.process(cat1, cat2)
 
     # First check that the raw outputs match the matrix calculation.
     print('true_npairs = ',true_npairs)
     print('diff ng = ',ng.npairs - true_npairs)
-    print('diff nk = ',nk.npairs - true_npairs)
-    print('diff nki = ',nki.npairs - true_npairs)
+    print('diff nz = ',nz.npairs - true_npairs)
     print('diff nq = ',nq.npairs - true_npairs)
     np.testing.assert_array_equal(ng.npairs, true_npairs)
-    np.testing.assert_array_equal(nk.npairs, true_npairs)
-    np.testing.assert_array_equal(nki.npairs, true_npairs)
+    np.testing.assert_array_equal(nz.npairs, true_npairs)
     np.testing.assert_array_equal(nq.npairs, true_npairs)
 
     print('true_weight = ',true_weight)
     print('diff ng = ',ng.weight - true_weight)
-    print('diff nk = ',nk.weight - true_weight)
-    print('diff nki = ',nki.weight - true_weight)
+    print('diff nz = ',nz.weight - true_weight)
     print('diff nq = ',nq.weight - true_weight)
     np.testing.assert_allclose(ng.weight, true_weight)
-    np.testing.assert_allclose(nk.weight, true_weight)
-    np.testing.assert_allclose(nki.weight, true_weight)
+    np.testing.assert_allclose(nz.weight, true_weight)
     np.testing.assert_allclose(nq.weight, true_weight)
 
     print('true_Qt = ',true_Qt)
@@ -1489,21 +1481,20 @@ def test_matrix_r():
     np.testing.assert_allclose(ng.xi_im, true_Qx, atol=1.e-8)
 
     print('true_Rtt = ',true_Rtt)
-    print('nk.xi + nq.xi = ',nk.xi + nq.xi)
-    np.testing.assert_allclose(nk.xi + nq.xi, true_Rtt, atol=1.e-8)
+    print('nz.xi + nq.xi = ',nz.xi + nq.xi)
+    np.testing.assert_allclose(nz.xi + nq.xi, true_Rtt, atol=1.e-8)
     print('true_Rtx = ',true_Rtx)
-    print('nki.xi + nq.xi_im = ',nki.xi + nq.xi_im)
-    np.testing.assert_allclose(nki.xi + nq.xi_im, true_Rtx, atol=1.e-8)
+    np.testing.assert_allclose(nz.xi_im + nq.xi_im, true_Rtx, atol=1.e-8)
     print('true_Rxt = ',true_Rxt)
-    print('-nki.xi + nq.xi_im = ',-nki.xi + nq.xi_im)
-    np.testing.assert_allclose(-nki.xi + nq.xi_im, true_Rxt, atol=1.e-8)
+    print('-nz.xi_im + nq.xi_im = ',-nz.xi_im + nq.xi_im)
+    np.testing.assert_allclose(-nz.xi_im + nq.xi_im, true_Rxt, atol=1.e-8)
     print('true_Rxx = ',true_Rxx)
-    print('nk.xi - nq.xi = ',nk.xi - nq.xi)
-    np.testing.assert_allclose(nk.xi - nq.xi, true_Rxx, atol=1.e-8)
+    print('nz.xi - nq.xi = ',nz.xi - nq.xi)
+    np.testing.assert_allclose(nz.xi - nq.xi, true_Rxx, atol=1.e-8)
 
     # Now finish the calculation using r,q.
     # g = (rQ - qQ*) / (|r|^2-|q|^2)
-    r = nk.xi + 1j * nki.xi    # Again, for BFD, r = nk.xi, since nki is 0.
+    r = nz.xi + 1j * nz.xi_im    # Again, for BFD, r = nz.xi, since nz_im is 0.
     q = nq.xi + 1j * nq.xi_im
     Q = ng.xi + 1j * ng.xi_im
     g = (r * Q - q * np.conj(Q)) / (np.abs(r)**2 - np.abs(q)**2)

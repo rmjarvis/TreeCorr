@@ -504,15 +504,14 @@ def test_gg():
     gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin',
                                 verbose=1)
     t0 = time.time()
-    gg.process(cat)
+    gg.process(cat, num_threads=1)
     t1 = time.time()
     print('Time for gg process = ',t1-t0)
 
     # Using nbins=None rather than omiting nbins is equivalent.
     gg2 = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., nbins=None, sep_units='arcmin')
     gg2.process(cat, num_threads=1)
-    gg.process(cat, num_threads=1)
-    assert gg2 == gg
+    assert gg2 == gg  # Only exactly == if num_threads == 1
 
     # log(<R>) != <logR>, but it should be close:
     np.testing.assert_allclose(gg.meanlogr, np.log(gg.meanr), atol=1.e-3)

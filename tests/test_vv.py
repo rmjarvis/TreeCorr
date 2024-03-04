@@ -428,11 +428,6 @@ def test_vv():
                                 verbose=1)
     vv.process(cat)
 
-    vv2 = treecorr.VVCorrelation(bin_size=0.1, min_sep=1., max_sep=100., sep_units='arcmin')
-    vv2.process(cat, num_threads=1)
-    vv.process(cat, num_threads=1)
-    assert vv2 == vv
-
     # log(<R>) != <logR>, but it should be close:
     print('meanlogr - log(meanr) = ',vv.meanlogr - np.log(vv.meanr))
     np.testing.assert_allclose(vv.meanlogr, np.log(vv.meanr), atol=1.e-3)

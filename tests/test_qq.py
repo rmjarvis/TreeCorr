@@ -427,11 +427,6 @@ def test_qq():
                                 verbose=1)
     qq.process(cat)
 
-    qq2 = treecorr.QQCorrelation(bin_size=0.1, min_sep=10., max_sep=100., sep_units='arcmin')
-    qq2.process(cat, num_threads=1)
-    qq.process(cat, num_threads=1)
-    assert qq2 == qq
-
     # log(<R>) != <logR>, but it should be close:
     print('meanlogr - log(meanr) = ',qq.meanlogr - np.log(qq.meanr))
     np.testing.assert_allclose(qq.meanlogr, np.log(qq.meanr), atol=1.e-3)

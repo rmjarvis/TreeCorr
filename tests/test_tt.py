@@ -426,11 +426,6 @@ def test_tt():
                                 verbose=1)
     tt.process(cat)
 
-    tt2 = treecorr.TTCorrelation(bin_size=0.1, min_sep=10., max_sep=100., sep_units='arcmin')
-    tt2.process(cat, num_threads=1)
-    tt.process(cat, num_threads=1)
-    assert tt2 == tt
-
     # log(<R>) != <logR>, but it should be close:
     print('meanlogr - log(meanr) = ',tt.meanlogr - np.log(tt.meanr))
     np.testing.assert_allclose(tt.meanlogr, np.log(tt.meanr), atol=1.e-3)

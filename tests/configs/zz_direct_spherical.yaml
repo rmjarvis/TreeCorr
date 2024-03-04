@@ -1,0 +1,22 @@
+file_name: data/zz_direct_sph_cat1.fits
+file_name2: data/zz_direct_sph_cat2.fits
+
+ra_col: ra
+dec_col: dec
+ra_units: radians
+dec_units: radians
+
+z1_col: z1
+z2_col: z2
+w_col: w
+
+verbose: 1
+
+min_sep: 1.
+max_sep: 10.
+nbins: 50
+sep_units: degrees
+bin_slop: 0
+brute: true
+
+zz_file_name: output/zz_direct_sph.fits

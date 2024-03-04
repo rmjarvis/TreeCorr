@@ -10,6 +10,9 @@ correlation functions:
     nn
     nk
     kk
+    nz
+    kz
+    vz
     nv
     kv
     vv

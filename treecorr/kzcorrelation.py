@@ -26,7 +26,9 @@ from .config import make_minimal_config
 
 class KZCorrelation(Corr2):
     r"""This class handles the calculation and storage of a 2-point scalar-spin-0 correlation
-    function.
+    function.  If the spin-0 field is real, you should instead use `KKCorrelation` as it will
+    be faster.  This class is intended for correlations of a real scalar field with a complex
+    spin-0 field.
 
     Ojects of this class holds the following attributes:
 
@@ -48,7 +50,7 @@ class KZCorrelation(Corr2):
                     If there are no pairs in a bin, then logr will be used instead.
         xi:         The correlation function, :math:`\xi(r) = \langle \kappa\, z\rangle`.
         xi_im:      The imaginary part of :math:`\xi(r)`.
-        varxi:      An estimate of the variance of :math:`\xi`
+        varxi:      An estimate of the variance of each component of :math:`\xi`
         weight:     The total weight in each bin.
         npairs:     The number of pairs going into each bin (including pairs where one or
                     both objects have w=0).

@@ -237,13 +237,14 @@ Parameters about the input file(s)
     need to flip the sign of g1 or g2, you may do that with ``flip_g1`` or ``flip_g2``
     (or both).
 
+:flip_z1: (bool, default=False) Whether to flip the sign of z1.
+:flip_z2: (bool, default=False) Whether to flip the sign of z2.
 :flip_v1: (bool, default=False) Whether to flip the sign of v1.
 :flip_v2: (bool, default=False) Whether to flip the sign of v2.
-
-    Sometimes there are issues with the sign conventions of gamma.  If you
-    need to flip the sign of v1 or v2, you may do that with ``flip_v1`` or ``flip_v2``
-    (or both).
-
+:flip_t1: (bool, default=False) Whether to flip the sign of t1.
+:flip_t2: (bool, default=False) Whether to flip the sign of t2.
+:flip_q1: (bool, default=False) Whether to flip the sign of q1.
+:flip_q2: (bool, default=False) Whether to flip the sign of q2.
 :vark: (float) Variance of the scalar field to use. (Default is to calculate it directly.)
 :varg: (float) Variance of the shear field to use. (Default is to calculate it directly.)
 :varv: (float) Variance of the velocity field to use. (Default is to calculate it directly.)
@@ -379,7 +380,7 @@ about the output columns.
     - ``DR`` (if ``nn_statistic=compensated``) = The cross terms between data and random.
     - ``RD`` (if ``nn_statistic=compensated`` cross-correlation) = The cross term between random and data, which for a cross-correlation is not equivalent to ``DR``.
 
-:nn_statistic: (str, default='compensated') Which statistic to use for xi as the estimator of the NN correlation function.
+:nn_statistic: (str, default='compensated') Which statistic to use for estimator of the NN correlation function.
 
     Options are (D = data catalog, R = random catalog)
 
@@ -401,7 +402,7 @@ about the output columns.
     - ``weight`` = The total weight of the pairs in each bin.
     - ``npairs`` = The total number of pairs in each bin.
 
-:nk_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which statistic to use for the mean shear as the estimator of the NK correlation function.
+:nk_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which statistic to use for the estimator of the NK correlation function.
 
     Options are:
 
@@ -427,6 +428,135 @@ about the output columns.
     - ``weight`` = The total weight of the pairs in each bin.
     - ``npairs`` = The total number of pairs in each bin.
 
+:nz_file_name: (str) The output filename for count-spin-0 correlation function.
+
+    The output columns are:
+
+    - ``R_nom`` = The center of the bin
+    - ``meanR`` = The mean separation of the points that went into the bin.
+    - ``meanlogR`` = The mean log(R) of the points that went into the bin.
+    - ``z_real`` = The mean real components of z.
+    - ``z_imag`` = The mean imaginary components of z.
+    - ``sigma`` = The 1-sigma error bar for ``vR`` and ``vT``.
+    - ``weight`` = The total weight of the pairs in each bin.
+    - ``npairs`` = The total number of pairs in each bin.
+
+:nz_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which statistic to use for the estimator of the NZ correlation function.
+
+    Options are:
+
+    - 'compensated' is simiar to the Landy-Szalay statistic:
+      Define:
+
+      - NZ = Sum(z around data points)
+      - RZ = Sum(z around random points), scaled to be equivalent in effective number as the number of pairs in NZ.
+      - npairs = number of pairs in NZ.
+
+      Then this statistic is <z> = (NZ-RZ)/npairs
+    - 'simple' is the normal version: <z> = NZ/npairs
+
+:kz_file_name: (str) The output filename for scalar-spin-0 correlation function.
+
+    The output columns are:
+
+    - ``R_nom`` = The center of the bin
+    - ``meanR`` = The mean separation of the points that went into the bin.
+    - ``meanlogR`` = The mean log(R) of the points that went into the bin.
+    - ``xi`` = The real component of the correlations function xi.
+    - ``xi_im`` = The imaginary component of the correlation function.
+    - ``sigma`` = The 1-sigma error bar for exch component of xi.
+    - ``weight`` = The total weight of the pairs in each bin.
+    - ``npairs`` = The total number of pairs in each bin.
+
+:zz_file_name: (str) The output filename for spin-0-spin-0 correlation function.
+
+    The output columns are:
+
+    - ``R_nom`` = The center of the bin
+    - ``meanR`` = The mean separation of the points that went into the bin.
+    - ``meanlogR`` = The mean log(R) of the points that went into the bin.
+    - ``xip`` = <z1 z1 + z2 z2> or Re(<z z*>)
+    - ``xim`` = <z1 z1 - z2 z2> or Re(<z z>)
+    - ``xip_im`` = <z2 z1 - z1 z2> or Im(<z z*>)
+
+        This should normally be consistent with zero, especially for an
+        auto-correlation, because if every pair were counted twice to
+        get each galaxy in both positions, then this would come out
+        exactly zero.
+
+    - ``xim_im`` = <z2 z1 + z1 z2> or Im(<z z>)
+    - ``sigma_xip`` = The 1-sigma error bar for each component of xi+.
+    - ``sigma_xim`` = The 1-sigma error bar for each component of xi-.
+    - ``weight`` = The total weight of the pairs in each bin.
+    - ``npairs`` = The total number of pairs in each bin.
+
+:nv_file_name: (str) The output filename for count-vector correlation function.
+
+    The output columns are:
+
+    - ``R_nom`` = The center of the bin
+    - ``meanR`` = The mean separation of the points that went into the bin.
+    - ``meanlogR`` = The mean log(R) of the points that went into the bin.
+    - ``vR`` = The mean radial vector with respect to the point in question.
+    - ``vT`` = The mean counter-clockwise tangential vector with respect to the point in questin.
+    - ``sigma`` = The 1-sigma error bar for ``vR`` and ``vT``.
+    - ``weight`` = The total weight of the pairs in each bin.
+    - ``npairs`` = The total number of pairs in each bin.
+
+:nv_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which statistic to use for the estimator of the NV correlation function.
+
+    Options are:
+
+    - 'compensated' is simiar to the Landy-Szalay statistic:
+      Define:
+
+      - NV = Sum(v around data points)
+      - RV = Sum(v around random points), scaled to be equivalent in effective number as the number of pairs in NG.
+      - npairs = number of pairs in NV.
+
+      Then this statistic is vR = (NV-RV)/npairs
+    - 'simple' is the normal version: vR = NV/npairs
+
+:kv_file_name: (str) The output filename for scalar-vector correlation function.
+
+    The output columns are:
+
+    - ``R_nom`` = The center of the bin
+    - ``meanR`` = The mean separation of the points that went into the bin.
+    - ``meanlogR`` = The mean log(R) of the points that went into the bin.
+    - ``xi`` = The real comonent of the correlation function, xi(R).
+    - ``xi`` = The imaginary comonent of the correlation function, xi(R).
+    - ``sigma`` = The 1-sigma error bar for each component of xi.
+    - ``weight`` = The total weight of the pairs in each bin.
+    - ``npairs`` = The total number of pairs in each bin.
+
+:vv_file_name: (str) The output filename for vector-vector correlation function.
+
+    The output columns are:
+
+    - ``R_nom`` = The center of the bin
+    - ``meanR`` = The mean separation of the points that went into the bin.
+    - ``meanlogR`` = The mean log(R) of the points that went into the bin.
+    - ``xip`` = <v1 v1 + v2 v2> where v1 and v2 are measured with respect to the line joining the two points, where p1 is on the left and p2 is on the right.
+    - ``xim`` = <v1 v1 - v2 v2> where v1 and v2 are measured with respect to the line joining the two points, where p1 is on the left and p2 is on the right.
+    - ``xip_im`` = <v2 v1 - v1 v2>.
+
+        In the formulation of xi+ using complex numbers, this is the imaginary component.
+        It should normally be consistent with zero, especially for an
+        auto-correlation, because if every pair were counted twice to
+        get each galaxy in both positions, then this would come out
+        exactly zero.
+
+    - ``xim_im`` = <v2 v1 + v1 v2>.
+
+        In the formulation of xi- using complex numbers, this is the imaginary component.
+        It should be consistent with zero for parity invariant vector fields.
+
+    - ``sigma_xip`` = The 1-sigma error bar for xi+.
+    - ``sigma_xim`` = The 1-sigma error bar for xi-.
+    - ``weight`` = The total weight of the pairs in each bin.
+    - ``npairs`` = The total number of pairs in each bin.
+
 :ng_file_name: (str) The output filename for count-shear correlation function.
 
     This is the count-shear correlation function, often called galaxy-galaxy
@@ -443,7 +573,7 @@ about the output columns.
     - ``weight`` = The total weight of the pairs in each bin.
     - ``npairs`` = The total number of pairs in each bin.
 
-:ng_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which statistic to use for the mean shear as the estimator of the NG correlation function.
+:ng_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which statistic to use for the estimator of the NG correlation function.
 
     Options are:
 
@@ -503,56 +633,56 @@ about the output columns.
     - ``weight`` = The total weight of the pairs in each bin.
     - ``npairs`` = The total number of pairs in each bin.
 
-:nv_file_name: (str) The output filename for count-vector correlation function.
+:nt_file_name: (str) The output filename for count-spin-3 correlation function.
 
     The output columns are:
 
     - ``R_nom`` = The center of the bin
     - ``meanR`` = The mean separation of the points that went into the bin.
     - ``meanlogR`` = The mean log(R) of the points that went into the bin.
-    - ``vR`` = The mean radial vector with respect to the point in question.
-    - ``vT`` = The mean counter-clockwise tangential vector with respect to the point in questin.
-    - ``sigma`` = The 1-sigma error bar for ``vR`` and ``vT``.
+    - ``tR`` = The mean real component of the spin-3 field relative to the center points.
+    - ``tR_im`` = The mean imaginary component of the spin-3 field relative to the center points.
+    - ``sigma`` = The 1-sigma error bar for ``tR`` and ``tR_im``.
     - ``weight`` = The total weight of the pairs in each bin.
     - ``npairs`` = The total number of pairs in each bin.
 
-:nv_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which statistic to use for the mean vector as the estimator of the NV correlation function.
+:nt_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which statistic to use for the estimator of the NT correlation function.
 
     Options are:
 
     - 'compensated' is simiar to the Landy-Szalay statistic:
       Define:
 
-      - NV = Sum(gamma around data points)
-      - RV = Sum(gamma around random points), scaled to be equivalent in effective number as the number of pairs in NG.
-      - npairs = number of pairs in NV.
+      - NT = Sum(t around data points)
+      - RT = Sum(t around random points), scaled to be equivalent in effective number as the number of pairs in NG.
+      - npairs = number of pairs in NT.
 
-      Then this statistic is vR = (NV-RV)/npairs
-    - 'simple' is the normal version: vR = NV/npairs
+      Then this statistic is tR = (NT-RT)/npairs
+    - 'simple' is the normal version: tR = NT/npairs
 
-:kv_file_name: (str) The output filename for scalar-vector correlation function.
+:kt_file_name: (str) The output filename for scalar-spin-3 correlation function.
 
     The output columns are:
 
     - ``R_nom`` = The center of the bin
     - ``meanR`` = The mean separation of the points that went into the bin.
     - ``meanlogR`` = The mean log(R) of the points that went into the bin.
-    - ``kvR`` = The kappa-scaled mean radial vector.
-    - ``kvT`` = The kappa-scaled mean counter-clockwise tangential vector.
-    - ``sigma`` = The 1-sigma error bar for ``kvR`` and ``kvT``.
+    - ``xi`` = The real component of the correlation function, xi.
+    - ``xi_im`` = The imaginary component of the correlation function, xi.
+    - ``sigma`` = The 1-sigma error bar for each component of xi.
     - ``weight`` = The total weight of the pairs in each bin.
     - ``npairs`` = The total number of pairs in each bin.
 
-:vv_file_name: (str) The output filename for vector-vector correlation function.
+:tt_file_name: (str) The output filename for spin-3-spin-3 correlation function.
 
     The output columns are:
 
     - ``R_nom`` = The center of the bin
     - ``meanR`` = The mean separation of the points that went into the bin.
     - ``meanlogR`` = The mean log(R) of the points that went into the bin.
-    - ``xip`` = <v1 v1 + v2 v2> where v1 and v2 are measured with respect to the line joining the two points, where p1 is on the left and p2 is on the right.
-    - ``xim`` = <v1 v1 - v2 v2> where v1 and v2 are measured with respect to the line joining the two points, where p1 is on the left and p2 is on the right.
-    - ``xip_im`` = <v2 v1 - v1 v2>.
+    - ``xip`` = <t1 t1 + t2 t2> where t1 and t2 are measured with respect to the line joining the two points, where p1 is on the left and p2 is on the right.
+    - ``xim`` = <t1 t1 - t2 t2> where t1 and t2 are measured with respect to the line joining the two points, where p1 is on the left and p2 is on the right.
+    - ``xip_im`` = <t2 t1 - t1 t2>.
 
         In the formulation of xi+ using complex numbers, this is the imaginary component.
         It should normally be consistent with zero, especially for an
@@ -560,10 +690,77 @@ about the output columns.
         get each galaxy in both positions, then this would come out
         exactly zero.
 
-    - ``xim_im`` = <v2 v1 + v1 v2>.
+    - ``xim_im`` = <t2 t1 + t1 t2>.
 
         In the formulation of xi- using complex numbers, this is the imaginary component.
-        It should be consistent with zero for parity invariant vector fields.
+        It should be consistent with zero for parity invariant fields.
+
+    - ``sigma_xip`` = The 1-sigma error bar for xi+.
+    - ``sigma_xim`` = The 1-sigma error bar for xi-.
+    - ``weight`` = The total weight of the pairs in each bin.
+    - ``npairs`` = The total number of pairs in each bin.
+
+:nq_file_name: (str) The output filename for count-spin-4 correlation function.
+
+    The output columns are:
+
+    - ``R_nom`` = The center of the bin
+    - ``meanR`` = The mean separation of the points that went into the bin.
+    - ``meanlogR`` = The mean log(R) of the points that went into the bin.
+    - ``qR`` = The mean real component of the spin-4 field relative to the center points.
+    - ``qR_im`` = The mean imaginary component of the spin-4 field relative to the center points.
+    - ``sigma`` = The 1-sigma error bar for ``qR`` and ``qR_im``.
+    - ``weight`` = The total weight of the pairs in each bin.
+    - ``npairs`` = The total number of pairs in each bin.
+
+:nq_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which statistic to use for the estimator of the NQ correlation function.
+
+    Options are:
+
+    - 'compensated' is simiar to the Landy-Szalay statistic:
+      Define:
+
+      - NQ = Sum(q around data points)
+      - RQ = Sum(q around random points), scaled to be equivalent in effective number as the number of pairs in NG.
+      - npairs = number of pairs in NQ.
+
+      Then this statistic is qR = (NQ-RQ)/npairs
+    - 'simple' is the normal version: qR = NQ/npairs
+
+:kq_file_name: (str) The output filename for scalar-spin-4 correlation function.
+
+    The output columns are:
+
+    - ``R_nom`` = The center of the bin
+    - ``meanR`` = The mean separation of the points that went into the bin.
+    - ``meanlogR`` = The mean log(R) of the points that went into the bin.
+    - ``xi`` = The real component of the correlation function, xi.
+    - ``xi_im`` = The imaginary component of the correlation function, xi.
+    - ``sigma`` = The 1-sigma error bar for each component of xi.
+    - ``weight`` = The total weight of the pairs in each bin.
+    - ``npairs`` = The total number of pairs in each bin.
+
+:qq_file_name: (str) The output filename for spin-4-spin-4 correlation function.
+
+    The output columns are:
+
+    - ``R_nom`` = The center of the bin
+    - ``meanR`` = The mean separation of the points that went into the bin.
+    - ``meanlogR`` = The mean log(R) of the points that went into the bin.
+    - ``xip`` = <q1 q1 + q2 q2> where q1 and q2 are measured with respect to the line joining the two points.
+    - ``xim`` = <q1 q1 - q2 q2> where q1 and q2 are measured with respect to the line joining the two points.
+    - ``xip_im`` = <q2 q1 - q1 q2>.
+
+        In the formulation of xi+ using complex numbers, this is the imaginary component.
+        It should normally be consistent with zero, especially for an
+        auto-correlation, because if every pair were counted twice to
+        get each galaxy in both positions, then this would come out
+        exactly zero.
+
+    - ``xim_im`` = <q2 q1 + q1 q2>.
+
+        In the formulation of xi- using complex numbers, this is the imaginary component.
+        It should be consistent with zero for parity invariant fields.
 
     - ``sigma_xip`` = The 1-sigma error bar for xi+.
     - ``sigma_xim`` = The 1-sigma error bar for xi-.
@@ -590,7 +787,7 @@ about the output columns.
     - ``DDD``, ``RRR`` = The raw numbers of triangles for the data and randoms
     - ``DDR``, ``DRD``, ``RDD``, ``DRR``, ``RDR``, ``RRD`` (if ``nn_statistic=compensated``) = The cross terms between data and random.
 
-:nnn_statistic: (str, default='compensated') Which statistic to use for xi as the estimator of the NNN correlation function.
+:nnn_statistic: (str, default='compensated') Which statistic to use for the estimator of the NNN correlation function.
 
     Options are:
 
@@ -617,14 +814,14 @@ about the output columns.
     - ``meanlogd2`` = The mean value of log(d2) for the triangles in each bin
     - ``meand3`` = The mean value of d3 for the triangles in each bin
     - ``meanlogd3`` = The mean value of log(d3) for the triangles in each bin
-    - ``gam0r`` = The real part of Gamma_0.
-    - ``gam0i`` = The imag part of Gamma_0.
-    - ``gam1r`` = The real part of Gamma_1.
-    - ``gam1i`` = The imag part of Gamma_1.
-    - ``gam2r`` = The real part of Gamma_2.
-    - ``gam2i`` = The imag part of Gamma_2.
-    - ``gam3r`` = The real part of Gamma_3.
-    - ``gam3i`` = The imag part of Gamma_3.
+    - ``gam0r`` = The real component of Gamma_0.
+    - ``gam0i`` = The imag component of Gamma_0.
+    - ``gam1r`` = The real component of Gamma_1.
+    - ``gam1i`` = The imag component of Gamma_1.
+    - ``gam2r`` = The real component of Gamma_2.
+    - ``gam2i`` = The imag component of Gamma_2.
+    - ``gam3r`` = The real component of Gamma_3.
+    - ``gam3i`` = The imag component of Gamma_3.
     - ``sigma_gam`` = The 1-sigma error bar for the Gamma values.
     - ``weight`` = The total weight of the triangles in each bin.
     - ``ntri`` = The total number of triangles in each bin.

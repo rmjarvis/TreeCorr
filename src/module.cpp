@@ -1,11 +1,6 @@
-/* -*- c++ -*-
- * Copyright (c) 2012-2022 by the GalSim developers team on GitHub
- * https://github.com/GalSim-developers
+/* Copyright (c) 2003-2024 by Mike Jarvis
  *
- * This file is part of GalSim: The modular galaxy image simulation toolkit.
- * https://github.com/GalSim-developers/GalSim
- *
- * GalSim is free software: redistribution and use in source and binary forms,
+ * TreeCorr is free software: redistribution and use in source and binary forms,
  * with or without modification, are permitted provided that the following
  * conditions are met:
  *

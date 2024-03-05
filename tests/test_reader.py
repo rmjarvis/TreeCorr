@@ -14,6 +14,7 @@
 import os
 import sys
 import numpy as np
+import warnings
 from unittest import mock
 
 from treecorr.reader import FitsReader, HdfReader, PandasReader, AsciiReader, ParquetReader
@@ -26,6 +27,8 @@ def test_fits_reader():
     try:
         import fitsio
     except ImportError:
+        # Just once emit a real warning, so it shows up when running pytest.
+        warnings.warn("Skipping some tests because fitsio is not installed.")
         print('Skip test_fits_reader, since fitsio not installed')
         return
 
@@ -172,6 +175,7 @@ def test_hdf_reader():
     try:
         import h5py  # noqa: F401
     except ImportError:
+        warnings.warn("Skipping some tests because h5py is not installed.")
         print('Skipping HdfReader tests, since h5py not installed.')
         return
 
@@ -282,6 +286,7 @@ def test_parquet_reader():
         import pandas  # noqa: F401
         import pyarrow # noqa: F401
     except ImportError:
+        warnings.warn("Skipping some tests because pyarrow is not installed.")
         print('Skipping ParquetReader tests, since pandas or pyarrow not installed.')
         return
 
@@ -547,6 +552,7 @@ def test_pandas_reader():
     try:
         import pandas  # noqa: F401
     except ImportError:
+        warnings.warn("Skipping some tests because pandas is not installed.")
         print('Skipping PandasReader tests, since pandas not installed.')
         return
 

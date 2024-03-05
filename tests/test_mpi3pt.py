@@ -12,15 +12,16 @@
 #    and/or other materials provided with the distribution.
 
 import sys
-from mockmpi import mock_mpiexec
 
 from test_helper import timer
 from mpi_test3pt import *
 
 try:
     import fitsio
+    from mockmpi import mock_mpiexec
 except ImportError:
     # All the mpi tests use Aardvark.fit, so skip them when fitsio isn't installed.
+    # Also skip if mockmpi is not installed.
     skip=True
 else:
     skip=False

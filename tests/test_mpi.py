@@ -12,18 +12,26 @@
 #    and/or other materials provided with the distribution.
 
 import sys
-from mockmpi import mock_mpiexec
+import warnings
 
 from test_helper import timer
 from mpi_test import setup, do_mpi_gg, do_mpi_ng, do_mpi_nk, do_mpi_nn, do_mpi_kk, do_mpi_kg, do_mpi_cov
+
+skip=False
 
 try:
     import fitsio
 except ImportError:
     # All the mpi tests use Aardvark.fit, so skip them when fitsio isn't installed.
     skip=True
-else:
-    skip=False
+
+try:
+    from mockmpi import mock_mpiexec
+except ImportError:
+    # Also skip if mockmpi is not installed.
+    # And warn about it so it shows up in pytest runs
+    warnings.warn("Skipping some tests because mockmpi is not installed.")
+    skip = True
 
 @timer
 def test_mpi_gg():

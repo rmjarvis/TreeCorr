@@ -32,7 +32,7 @@ class BaseNZCorrelation(Corr2):
     implementation is done in this class.
     """
     def __init__(self, config=None, *, logger=None, **kwargs):
-        Corr2.__init__(self, config, logger=logger, **kwargs)
+        super().__init__(config, logger=logger, **kwargs)
 
         self.xi = np.zeros_like(self.rnom, dtype=float)
         self.xi_im = np.zeros_like(self.rnom, dtype=float)
@@ -353,7 +353,7 @@ class BaseNZCorrelation(Corr2):
         params['metric'] = self.metric
         return params
 
-    @staticmethod
+    @classmethod
     def from_file(cls, file_name, file_type=None, logger=None, rng=None):
         if logger:
             logger.info('Building N%sCorrelation from %s',cls._letter,file_name)
@@ -484,7 +484,7 @@ class NZCorrelation(BaseNZCorrelation):
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `NZCorrelation`.  See class doc for details.
         """
-        BaseNZCorrelation.__init__(self, config, logger=logger, **kwargs)
+        super().__init__(config, logger=logger, **kwargs)
 
     def finalize(self, varz):
         """Finalize the calculation of the correlation function.
@@ -496,7 +496,7 @@ class NZCorrelation(BaseNZCorrelation):
         Parameters:
             varz (float):   The variance per component of the spin-0 field.
         """
-        BaseNZCorrelation.finalize(self, varz)
+        super().finalize(varz)
 
     def process(self, cat1, cat2, *, metric=None, num_threads=None, comm=None, low_mem=False,
                 initialize=True, finalize=True, patch_method='global'):
@@ -525,8 +525,8 @@ class NZCorrelation(BaseNZCorrelation):
                                 (default: True)
             patch_method (str): Which patch method to use. (default: 'global')
         """
-        BaseNZCorrelation.process(self, cat1, cat2, metric, num_threads, comm, low_mem,
-                                  initialize, finalize, patch_method)
+        super().process(cat1, cat2, metric, num_threads, comm, low_mem,
+                        initialize, finalize, patch_method)
 
     def calculateXi(self, *, rz=None):
         r"""Calculate the correlation function possibly given another correlation function
@@ -553,7 +553,7 @@ class NZCorrelation(BaseNZCorrelation):
                 - xi_im = array of the imaginary part of :math:`\xi(R)`
                 - varxi = array of the variance estimates of the above values
         """
-        return BaseNZCorrelation.calculateXi(self, rz=rz)
+        return super().calculateXi(rz=rz)
 
     def write(self, file_name, *, rz=None, file_type=None, precision=None,
               write_patch_results=False, write_cov=False):
@@ -597,8 +597,7 @@ class NZCorrelation(BaseNZCorrelation):
                                         (default: False)
             write_cov (bool):   Whether to write the covariance matrix as well. (default: False)
         """
-        BaseNZCorrelation.write(self, file_name, rz, file_type, precision,
-                                write_patch_results, write_cov)
+        super().write(file_name, rz, file_type, precision, write_patch_results, write_cov)
 
     @classmethod
     def from_file(cls, file_name, *, file_type=None, logger=None, rng=None):
@@ -617,4 +616,4 @@ class NZCorrelation(BaseNZCorrelation):
         Returns:
             corr: An NZCorrelation object, constructed from the information in the file.
         """
-        return BaseNZCorrelation.from_file(cls, file_name, file_type, logger, rng)
+        return super().from_file(file_name, file_type, logger, rng)

@@ -105,7 +105,7 @@ class QQCorrelation(BaseZZCorrelation):
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `QQCorrelation`.  See class doc for details.
         """
-        BaseZZCorrelation.__init__(self, config, logger=logger, **kwargs)
+        super().__init__(config, logger=logger, **kwargs)
 
     def finalize(self, varq1, varq2):
         """Finalize the calculation of the correlation function.
@@ -118,7 +118,7 @@ class QQCorrelation(BaseZZCorrelation):
             varq1 (float):  The variance per component of the first spin-4 field.
             varq2 (float):  The variance per component of the second spin-4 field.
         """
-        BaseZZCorrelation.finalize(self, varq1, varq2)
+        super().finalize(varq1, varq2)
 
     def process(self, cat1, cat2=None, *, metric=None, num_threads=None, comm=None, low_mem=False,
                 initialize=True, finalize=True, patch_method='global'):
@@ -151,8 +151,8 @@ class QQCorrelation(BaseZZCorrelation):
                                 (default: True)
             patch_method (str): Which patch method to use. (default: 'global')
         """
-        BaseZZCorrelation.process(self, cat1, cat2, metric, num_threads, comm, low_mem,
-                                  initialize, finalize, patch_method)
+        super().process(cat1, cat2, metric, num_threads, comm, low_mem,
+                        initialize, finalize, patch_method)
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
@@ -192,8 +192,7 @@ class QQCorrelation(BaseZZCorrelation):
                                         (default: False)
             write_cov (bool):   Whether to write the covariance matrix as well. (default: False)
         """
-        BaseZZCorrelation.write(self, file_name, file_type, precision, write_patch_results,
-                                write_cov)
+        super().write(file_name, file_type, precision, write_patch_results, write_cov)
 
     @classmethod
     def from_file(cls, file_name, *, file_type=None, logger=None, rng=None):
@@ -212,4 +211,4 @@ class QQCorrelation(BaseZZCorrelation):
         Returns:
             corr: A QQCorrelation object, constructed from the information in the file.
         """
-        return BaseZZCorrelation.from_file(cls, file_name, file_type, logger, rng)
+        return super().from_file(file_name, file_type, logger, rng)

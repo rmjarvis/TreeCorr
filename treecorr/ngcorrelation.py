@@ -104,7 +104,7 @@ class NGCorrelation(BaseNZCorrelation):
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `NGCorrelation`.  See class doc for details.
         """
-        BaseNZCorrelation.__init__(self, config, logger=logger, **kwargs)
+        super().__init__(config, logger=logger, **kwargs)
 
     def finalize(self, varg):
         """Finalize the calculation of the correlation function.
@@ -116,7 +116,7 @@ class NGCorrelation(BaseNZCorrelation):
         Parameters:
             varg (float):   The variance per component of the shear field.
         """
-        BaseNZCorrelation.finalize(self, varg)
+        super().finalize(varg)
 
     def process(self, cat1, cat2, *, metric=None, num_threads=None, comm=None, low_mem=False,
                 initialize=True, finalize=True, patch_method='global'):
@@ -145,8 +145,8 @@ class NGCorrelation(BaseNZCorrelation):
                                 (default: True)
             patch_method (str): Which patch method to use. (default: 'global')
         """
-        BaseNZCorrelation.process(self, cat1, cat2, metric, num_threads, comm, low_mem,
-                                  initialize, finalize, patch_method)
+        super().process(cat1, cat2, metric, num_threads, comm, low_mem,
+                             initialize, finalize, patch_method)
 
     def calculateXi(self, *, rg=None):
         r"""Calculate the correlation function possibly given another correlation function
@@ -173,7 +173,7 @@ class NGCorrelation(BaseNZCorrelation):
                 - xi_im = array of the imaginary part of :math:`\xi(R)`
                 - varxi = array of the variance estimates of the above values
         """
-        return BaseNZCorrelation.calculateXi(self, rz=rg)
+        return super().calculateXi(rz=rg)
 
     def write(self, file_name, *, rg=None, file_type=None, precision=None,
               write_patch_results=False, write_cov=False):
@@ -219,8 +219,7 @@ class NGCorrelation(BaseNZCorrelation):
                                         (default: False)
             write_cov (bool):   Whether to write the covariance matrix as well. (default: False)
         """
-        BaseNZCorrelation.write(self, file_name, rg, file_type, precision,
-                                write_patch_results, write_cov)
+        super().write(file_name, rg, file_type, precision, write_patch_results, write_cov)
 
     @classmethod
     def from_file(cls, file_name, *, file_type=None, logger=None, rng=None):
@@ -239,7 +238,7 @@ class NGCorrelation(BaseNZCorrelation):
         Returns:
             corr: An NGCorrelation object, constructed from the information in the file.
         """
-        return BaseNZCorrelation.from_file(cls, file_name, file_type, logger, rng)
+        return super().from_file(file_name, file_type, logger, rng)
 
     def calculateNMap(self, *, R=None, rg=None, m2_uform=None):
         r"""Calculate the aperture mass statistics from the correlation function.

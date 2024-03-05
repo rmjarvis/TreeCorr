@@ -103,6 +103,8 @@ class KKCorrelation(Corr2):
     _builder = _treecorr.KKCorr
     _calculateVar1 = staticmethod(calculateVarK)
     _calculateVar2 = staticmethod(calculateVarK)
+    _sig1 = 'sig_k'
+    _sig2 = 'sig_k'
     # The angles are not important for accuracy of KK correlations.
     _default_angle_slop = 1
 

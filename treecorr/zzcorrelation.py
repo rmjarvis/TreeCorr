@@ -31,6 +31,9 @@ class BaseZZCorrelation(Corr2):
     A lot of the implementation is shared among those types, so whenever possible the shared
     implementation is done in this class.
     """
+    _sig1 = 'sig_sn (per component)'
+    _sig2 = 'sig_sn (per component)'
+
     def __init__(self, config=None, *, logger=None, **kwargs):
         super().__init__(config, logger=logger, **kwargs)
 

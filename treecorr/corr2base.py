@@ -1135,22 +1135,22 @@ class Corr2(object):
             if cat2 is None:
                 var1 = var2 = self._calculateVar1(self._processed_cats1, low_mem=low_mem)
                 if var1 is not None:
-                    self.logger.info("var%s = %f: sig_k = %f",
+                    self.logger.info(f"var%s = %f: {self._sig1} = %f",
                                      self._letter1.lower(), var1, math.sqrt(var1))
             else:
                 var1 = self._calculateVar1(self._processed_cats1, low_mem=low_mem)
                 var2 = self._calculateVar2(self._processed_cats2, low_mem=low_mem)
                 if self._letter1 == self._letter2:
                     if var1 is not None:
-                        self.logger.info("var%s1 = %f: sig_k = %f",
+                        self.logger.info(f"var%s1 = %f: {self._sig1} = %f",
                                          self._letter1, var1, math.sqrt(var1))
-                        self.logger.info("var%s2 = %f: sig_k = %f",
+                        self.logger.info(f"var%s2 = %f: {self._sig2} = %f",
                                          self._letter2, var2, math.sqrt(var2))
                 else:
                     if var1 is not None:
-                        self.logger.info("var%s = %f: sig_k = %f",
+                        self.logger.info(f"var%s = %f: {self._sig1} = %f",
                                          self._letter1, var1, math.sqrt(var1))
-                    self.logger.info("var%s = %f: sig_k = %f",
+                    self.logger.info(f"var%s = %f: {self._sig2} = %f",
                                      self._letter2, var2, math.sqrt(var2))
             if var1 is None:
                 if var2 is None:

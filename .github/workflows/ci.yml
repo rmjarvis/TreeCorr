@@ -162,7 +162,7 @@ jobs:
                 cd ..
 
             - name: Test Tutorial notebook
-              if: matrix.py == 3.11
+              if: matrix.py == "3.10"
               run: |
                 cd tests
                 pytest --nbval Tutorial.ipynb --sanitize-with sanitize.cfg --current-env

@@ -1096,7 +1096,7 @@ def test_jk():
         import fitsio
         patch_dir = 'output'
         low_mem = True
-    except:
+    except ImportError:
         # If we cannot write to a fits file, skip the save_patch_dir tests.
         patch_dir = None
         low_mem = False

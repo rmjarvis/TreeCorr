@@ -3857,6 +3857,12 @@ def test_map3_logsas():
     # on the more precise output.
     # The code to make the output file is present here, but disabled normally.
 
+    try:
+        import fitsio
+    except ImportError:
+        print('Skip test_map3_logsas, since fitsio not installed.')
+        return
+
     gamma0 = 0.05
     r0 = 10.
     L = 20.*r0
@@ -4355,14 +4361,15 @@ def test_direct_logmultipole_auto():
     do_pickle(ggg)
 
     # Check that running via the corr3 script works correctly.
-    config = treecorr.config.read_config('configs/ggg_direct_logmultipole.yaml')
-    cat.write(config['file_name'])
-    treecorr.corr3(config)
     try:
         import fitsio
     except ImportError:
         pass
     else:
+        config = treecorr.config.read_config('configs/ggg_direct_logmultipole.yaml')
+        cat.write(config['file_name'])
+        treecorr.corr3(config)
+
         data = fitsio.read(config['ggg_file_name'])
         np.testing.assert_allclose(data['d2_nom'], ggg.d2nom.flatten(), rtol=1.e-4)
         np.testing.assert_allclose(data['d3_nom'], ggg.d3nom.flatten(), rtol=1.e-4)
@@ -4878,6 +4885,12 @@ def test_direct_logmultipole_cross12():
 @timer
 def test_map3_logmultipole():
     # Same as test_map3_logsas, but use multipole algorithm and toSAS.
+
+    try:
+        import fitsio
+    except ImportError:
+        print('Skip test_map3_logmultipole, since fitsio not installed.')
+        return
 
     gamma0 = 0.05
     r0 = 10.

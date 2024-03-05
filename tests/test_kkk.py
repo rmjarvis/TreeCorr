@@ -2394,14 +2394,15 @@ def test_direct_logmultipole_auto():
     do_pickle(kkk)
 
     # Check that running via the corr3 script works correctly.
-    config = treecorr.config.read_config('configs/kkk_direct_logmultipole.yaml')
-    cat.write(config['file_name'])
-    treecorr.corr3(config)
     try:
         import fitsio
     except ImportError:
         pass
     else:
+        config = treecorr.config.read_config('configs/kkk_direct_logmultipole.yaml')
+        cat.write(config['file_name'])
+        treecorr.corr3(config)
+
         data = fitsio.read(config['kkk_file_name'])
         np.testing.assert_allclose(data['d2_nom'], kkk.d2nom.flatten(), rtol=1.e-4)
         np.testing.assert_allclose(data['d3_nom'], kkk.d3nom.flatten(), rtol=1.e-4)

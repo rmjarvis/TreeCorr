@@ -32,10 +32,7 @@ def get_from_wiki(file_name, host=None):
         host = 'https://github.com/rmjarvis/TreeCorr/wiki/'
     url = host + file_name
     if not os.path.isfile(local_file_name):
-        try:
-            from urllib.request import urlopen
-        except ImportError:
-            from urllib import urlopen
+        from urllib.request import urlopen
         import shutil
         import ssl
 
@@ -127,16 +124,13 @@ class CaptureLog(object):
 
     """
     def __init__(self, level=3):
+        from io import StringIO
         logging_levels = { 0: logging.CRITICAL,
                            1: logging.WARNING,
                            2: logging.INFO,
                            3: logging.DEBUG }
         self.logger = logging.getLogger('CaptureLog')
         self.logger.setLevel(logging_levels[level])
-        try:
-            from StringIO import StringIO
-        except ImportError:
-            from io import StringIO
         self.stream = StringIO()
         self.handler = logging.StreamHandler(self.stream)
         self.logger.addHandler(self.handler)
@@ -215,10 +209,7 @@ class profile(object):
 def do_pickle(obj1, func=lambda x : x):
     """Check that the object is picklable.  Also that it has basic == and != functionality.
     """
-    try:
-        import cPickle as pickle
-    except ImportError:
-        import pickle
+    import pickle
     import copy
     print('Try pickling ',str(obj1))
 

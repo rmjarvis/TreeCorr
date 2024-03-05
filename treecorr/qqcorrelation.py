@@ -97,10 +97,12 @@ class QQCorrelation(BaseZZCorrelation):
                         arguments, which may be passed either directly or in the config dict.
     """
     _cls = 'QQCorrelation'
-    _letter = 'Q'
+    _letter1 = 'Q'
+    _letter2 = 'Q'
     _letters = 'QQ'
     _builder = _treecorr.QQCorr
-    _calculateVarZ = staticmethod(calculateVarQ)
+    _calculateVar1 = staticmethod(calculateVarQ)
+    _calculateVar2 = staticmethod(calculateVarQ)
 
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `QQCorrelation`.  See class doc for details.
@@ -119,40 +121,6 @@ class QQCorrelation(BaseZZCorrelation):
             varq2 (float):  The variance per component of the second spin-4 field.
         """
         super().finalize(varq1, varq2)
-
-    def process(self, cat1, cat2=None, *, metric=None, num_threads=None, comm=None, low_mem=False,
-                initialize=True, finalize=True, patch_method='global'):
-        """Compute the correlation function.
-
-        - If only 1 argument is given, then compute an auto-correlation function.
-        - If 2 arguments are given, then compute a cross-correlation function.
-
-        Both arguments may be lists, in which case all items in the list are used
-        for that element of the correlation.
-
-        Parameters:
-            cat1 (Catalog):     A catalog or list of catalogs for the first Q field.
-            cat2 (Catalog):     A catalog or list of catalogs for the second Q field, if any.
-                                (default: None)
-            metric (str):       Which metric to use.  See `Metrics` for details.
-                                (default: 'Euclidean'; this value can also be given in the
-                                constructor in the config dict.)
-            num_threads (int):  How many OpenMP threads to use during the calculation.
-                                (default: use the number of cpu cores; this value can also be given
-                                in the constructor in the config dict.)
-            comm (mpi4py.Comm): If running MPI, an mpi4py Comm object to communicate between
-                                processes.  If used, the rank=0 process will have the final
-                                computation. This only works if using patches. (default: None)
-            low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
-                                This only works if using patches. (default: False)
-            initialize (bool):  Whether to begin the calculation with a call to
-                                `Corr2.clear`.  (default: True)
-            finalize (bool):    Whether to complete the calculation with a call to `finalize`.
-                                (default: True)
-            patch_method (str): Which patch method to use. (default: 'global')
-        """
-        super().process(cat1, cat2, metric, num_threads, comm, low_mem,
-                        initialize, finalize, patch_method)
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
@@ -193,22 +161,3 @@ class QQCorrelation(BaseZZCorrelation):
             write_cov (bool):   Whether to write the covariance matrix as well. (default: False)
         """
         super().write(file_name, file_type, precision, write_patch_results, write_cov)
-
-    @classmethod
-    def from_file(cls, file_name, *, file_type=None, logger=None, rng=None):
-        """Create a QQCorrelation instance from an output file.
-
-        This should be a file that was written by TreeCorr.
-
-        Parameters:
-            file_name (str):    The name of the file to read in.
-            file_type (str):    The type of file ('ASCII', 'FITS', or 'HDF').  (default: determine
-                                the type automatically from the extension of file_name.)
-            logger (Logger):    If desired, a logger object to use for logging. (default: None)
-            rng (RandomState):  If desired, a numpy.random.RandomState instance to use for bootstrap
-                                random number generation. (default: None)
-
-        Returns:
-            corr: A QQCorrelation object, constructed from the information in the file.
-        """
-        return super().from_file(file_name, file_type, logger, rng)

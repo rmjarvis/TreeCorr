@@ -106,7 +106,7 @@ class KGCorrelation(BaseKZCorrelation):
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `KGCorrelation`.  See class doc for details.
         """
-        BaseKZCorrelation.__init__(self, config, logger=logger, **kwargs)
+        super().__init__(config, logger=logger, **kwargs)
 
     def finalize(self, vark, varg):
         """Finalize the calculation of the correlation function.
@@ -119,7 +119,7 @@ class KGCorrelation(BaseKZCorrelation):
             vark (float):   The variance of the scaler field.
             varg (float):   The variance per component of the shear field.
         """
-        BaseKZCorrelation.finalize(self, vark, varg)
+        super().finalize(vark, varg)
 
     def process(self, cat1, cat2, *, metric=None, num_threads=None, comm=None, low_mem=False,
                 initialize=True, finalize=True, patch_method='global'):
@@ -148,8 +148,8 @@ class KGCorrelation(BaseKZCorrelation):
                                 (default: True)
             patch_method (str): Which patch method to use. (default: 'global')
         """
-        BaseKZCorrelation.process(self, cat1, cat2, metric, num_threads, comm, low_mem,
-                                  initialize, finalize, patch_method)
+        super().process(cat1, cat2, metric, num_threads, comm, low_mem,
+                        initialize, finalize, patch_method)
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
@@ -187,8 +187,7 @@ class KGCorrelation(BaseKZCorrelation):
                                         (default: False)
             write_cov (bool):   Whether to write the covariance matrix as well. (default: False)
         """
-        BaseKZCorrelation.write(self, file_name, file_type, precision,
-                                write_patch_results, write_cov)
+        super().write(file_name, file_type, precision, write_patch_results, write_cov)
 
     @classmethod
     def from_file(cls, file_name, *, file_type=None, logger=None, rng=None):
@@ -207,4 +206,4 @@ class KGCorrelation(BaseKZCorrelation):
         Returns:
             corr: A KGCorrelation object, constructed from the information in the file.
         """
-        return BaseKZCorrelation.from_file(cls, file_name, file_type, logger, rng)
+        return super().from_file(file_name, file_type, logger, rng)

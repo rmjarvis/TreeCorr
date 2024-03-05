@@ -103,7 +103,7 @@ class NVCorrelation(BaseNZCorrelation):
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `NVCorrelation`.  See class doc for details.
         """
-        BaseNZCorrelation.__init__(self, config, logger=logger, **kwargs)
+        super().__init__(config, logger=logger, **kwargs)
 
     def finalize(self, varv):
         """Finalize the calculation of the correlation function.
@@ -115,7 +115,7 @@ class NVCorrelation(BaseNZCorrelation):
         Parameters:
             varv (float):   The variance per component of the vector field.
         """
-        BaseNZCorrelation.finalize(self, varv)
+        super().finalize(varv)
 
     def process(self, cat1, cat2, *, metric=None, num_threads=None, comm=None, low_mem=False,
                 initialize=True, finalize=True, patch_method='global'):
@@ -144,8 +144,8 @@ class NVCorrelation(BaseNZCorrelation):
                                 (default: True)
             patch_method (str): Which patch method to use. (default: 'global')
         """
-        BaseNZCorrelation.process(self, cat1, cat2, metric, num_threads, comm, low_mem,
-                                  initialize, finalize, patch_method)
+        super().process(cat1, cat2, metric, num_threads, comm, low_mem,
+                        initialize, finalize, patch_method)
 
     def calculateXi(self, *, rv=None):
         r"""Calculate the correlation function possibly given another correlation function
@@ -172,7 +172,7 @@ class NVCorrelation(BaseNZCorrelation):
                 - xi_im = array of the imaginary part of :math:`\xi(R)`
                 - varxi = array of the variance estimates of the above values
         """
-        return BaseNZCorrelation.calculateXi(self, rz=rv)
+        return super().calculateXi(rz=rv)
 
     def write(self, file_name, *, rv=None, file_type=None, precision=None,
               write_patch_results=False, write_cov=False):
@@ -217,8 +217,7 @@ class NVCorrelation(BaseNZCorrelation):
                                         (default: False)
             write_cov (bool):   Whether to write the covariance matrix as well. (default: False)
         """
-        BaseNZCorrelation.write(self, file_name, rv, file_type, precision,
-                                write_patch_results, write_cov)
+        super().write(file_name, rv, file_type, precision, write_patch_results, write_cov)
 
     @classmethod
     def from_file(cls, file_name, *, file_type=None, logger=None, rng=None):
@@ -237,4 +236,4 @@ class NVCorrelation(BaseNZCorrelation):
         Returns:
             corr: An NVCorrelation object, constructed from the information in the file.
         """
-        return BaseNZCorrelation.from_file(cls, file_name, file_type, logger, rng)
+        return super().from_file(file_name, file_type, logger, rng)

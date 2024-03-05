@@ -89,19 +89,22 @@ class NNCorrelation(Corr2):
         **kwargs:       See the documentation for `Corr2` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
+    _cls = 'NNCorrelation'
+    _letter1 = 'N'
+    _letter2 = 'N'
+    _letters = 'NN'
+    _builder = _treecorr.NNCorr
+    _calculateVar1 = lambda *args, **kwargs: None
+    _calculateVar2 = lambda *args, **kwargs: None
     # The angles are not important for accuracy of NN correlations.
     _default_angle_slop = 1
 
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `NNCorrelation`.  See class doc for details.
         """
-        Corr2.__init__(self, config, logger=logger, **kwargs)
-
-        self.meanr = np.zeros_like(self.rnom, dtype=float)
-        self.meanlogr = np.zeros_like(self.rnom, dtype=float)
-        self.weight = np.zeros_like(self.rnom, dtype=float)
-        self.npairs = np.zeros_like(self.rnom, dtype=float)
+        super().__init__(config, logger=logger, **kwargs)
         self.tot = 0.
+        self._xi1 = self._xi2 = self._xi3 = self._xi4 = np.array([])
         self._rr_weight = None  # Marker that calculateXi hasn't been called yet.
         self._rr = None
         self._dr = None
@@ -110,61 +113,11 @@ class NNCorrelation(Corr2):
         self._write_dr = None
         self._write_rd = None
         self._write_patch_results = False
-        self._cov = None
-        self._var_num = 0
         self.logger.debug('Finished building NNCorr')
-
-    @property
-    def corr(self):
-        if self._corr is None:
-            x = np.array([])
-            self._corr = _treecorr.NNCorr(self._bintype, self._min_sep, self._max_sep, self._nbins,
-                                          self._bin_size, self.b, self.angle_slop,
-                                          self.min_rpar, self.max_rpar,
-                                          self.xperiod, self.yperiod, self.zperiod,
-                                          x, x, x, x,
-                                          self.meanr, self.meanlogr, self.weight, self.npairs)
-        return self._corr
-
-    def __eq__(self, other):
-        """Return whether two `NNCorrelation` instances are equal"""
-        return (isinstance(other, NNCorrelation) and
-                self.nbins == other.nbins and
-                self.bin_size == other.bin_size and
-                self.min_sep == other.min_sep and
-                self.max_sep == other.max_sep and
-                self.sep_units == other.sep_units and
-                self.coords == other.coords and
-                self.bin_type == other.bin_type and
-                self.bin_slop == other.bin_slop and
-                self.angle_slop == other.angle_slop and
-                self.min_rpar == other.min_rpar and
-                self.max_rpar == other.max_rpar and
-                self.xperiod == other.xperiod and
-                self.yperiod == other.yperiod and
-                self.zperiod == other.zperiod and
-                self.tot == other.tot and
-                np.array_equal(self.meanr, other.meanr) and
-                np.array_equal(self.meanlogr, other.meanlogr) and
-                np.array_equal(self.weight, other.weight) and
-                np.array_equal(self.npairs, other.npairs))
 
     def copy(self):
         """Make a copy"""
-        ret = NNCorrelation.__new__(NNCorrelation)
-        for key, item in self.__dict__.items():
-            if isinstance(item, np.ndarray):
-                # Only items that might change need to by deep copied.
-                ret.__dict__[key] = item.copy()
-            else:
-                # For everything else, shallow copy is fine.
-                # In particular don't deep copy config or logger
-                # Most of the rest are scalars, which copy fine this way.
-                # And the read-only things are all in _ro.
-                # The results dict is trickier.  We rely on it being copied in places, but we
-                # never add more to it after the copy, so shallow copy is fine.
-                ret.__dict__[key] = item
-        ret._corr = None # We'll want to make a new one of these if we need it.
+        ret = super().copy()
         # True is possible during read before we finish reading in these attributes.
         if self._rr is not None and self._rr is not True:
             ret._rr = self._rr.copy()
@@ -172,8 +125,6 @@ class NNCorrelation(Corr2):
             ret._dr = self._dr.copy()
         if self._rd is not None and self._rd is not True:
             ret._rd = self._rd.copy()
-        if self._cov is not None:
-            ret._cov = self._cov.copy()
         return ret
 
     @lazy_property
@@ -205,9 +156,6 @@ class NNCorrelation(Corr2):
         setattr(ret, '_nonzero', False)
         return ret
 
-    def __repr__(self):
-        return f'NNCorrelation({self._repr_kwargs})'
-
     def process_auto(self, cat, *, metric=None, num_threads=None):
         """Process a single catalog, accumulating the auto-correlation.
 
@@ -224,22 +172,7 @@ class NNCorrelation(Corr2):
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
         """
-        if cat.name == '':
-            self.logger.info('Starting process NN auto-correlations')
-        else:
-            self.logger.info('Starting process NN auto-correlations for cat %s.', cat.name)
-
-        self._set_metric(metric, cat.coords)
-        self._set_num_threads(num_threads)
-        min_size, max_size = self._get_minmax_size()
-
-        field = cat.getNField(min_size=min_size, max_size=max_size,
-                              split_method=self.split_method, brute=bool(self.brute),
-                              min_top=self.min_top, max_top=self.max_top,
-                              coords=self.coords)
-
-        self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        self.corr.processAuto(field.data, self.output_dots, self._metric)
+        super()._process_auto(cat, metric, num_threads)
         self.tot += 0.5 * cat.sumw**2
 
     def process_cross(self, cat1, cat2, *, metric=None, num_threads=None):
@@ -259,44 +192,8 @@ class NNCorrelation(Corr2):
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
         """
-        if cat1.name == '' and cat2.name == '':
-            self.logger.info('Starting process NN cross-correlations')
-        else:
-            self.logger.info('Starting process NN cross-correlations for cats %s, %s.',
-                             cat1.name, cat2.name)
-
-        self._set_metric(metric, cat1.coords, cat2.coords)
-        self._set_num_threads(num_threads)
-        min_size, max_size = self._get_minmax_size()
-
-        f1 = cat1.getNField(min_size=min_size, max_size=max_size,
-                            split_method=self.split_method,
-                            brute=self.brute is True or self.brute == 1,
-                            min_top=self.min_top, max_top=self.max_top,
-                            coords=self.coords)
-        f2 = cat2.getNField(min_size=min_size, max_size=max_size,
-                            split_method=self.split_method,
-                            brute=self.brute is True or self.brute == 2,
-                            min_top=self.min_top, max_top=self.max_top,
-                            coords=self.coords)
-
-        self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        self.corr.processCross(f1.data, f2.data, self.output_dots, self._metric)
-        self.tot += cat1.sumw*cat2.sumw
-
-    def _finalize(self):
-        mask1 = self.weight != 0
-        mask2 = self.weight == 0
-
-        self.meanr[mask1] /= self.weight[mask1]
-        self.meanlogr[mask1] /= self.weight[mask1]
-
-        # Update the units of meanr, meanlogr
-        self._apply_units(mask1)
-
-        # Use meanr, meanlogr when available, but set to nominal when no pairs in bin.
-        self.meanr[mask2] = self.rnom[mask2]
-        self.meanlogr[mask2] = self.logr[mask2]
+        super().process_cross(cat1, cat2, metric=metric, num_threads=num_threads)
+        self.tot += cat1.sumw * cat2.sumw
 
     def finalize(self):
         """Finalize the calculation of the correlation function.
@@ -315,32 +212,18 @@ class NNCorrelation(Corr2):
     def _clear(self):
         """Clear the data vectors
         """
-        self.meanr.ravel()[:] = 0.
-        self.meanlogr.ravel()[:] = 0.
-        self.weight.ravel()[:] = 0.
-        self.npairs.ravel()[:] = 0.
+        super()._clear()
         self.tot = 0.
 
     def __iadd__(self, other):
-        """Add a second `NNCorrelation`'s data to this one.
+        """Add a second Correlation object's data to this one.
 
         .. note::
 
-            For this to make sense, both `NNCorrelation` objects should not have had `finalize`
-            called yet.  Then, after adding them together, you should call `finalize` on the sum.
+            For this to make sense, both objects should not have had `finalize` called yet.
+            Then, after adding them together, you should call `finalize` on the sum.
         """
-        if not isinstance(other, NNCorrelation):
-            raise TypeError("Can only add another NNCorrelation object")
-        if not (self._nbins == other._nbins and
-                self.min_sep == other.min_sep and
-                self.max_sep == other.max_sep):
-            raise ValueError("NNCorrelation to be added is not compatible with this one.")
-
-        self._set_metric(other.metric, other.coords, other.coords)
-        self.meanr.ravel()[:] += other.meanr.ravel()[:]
-        self.meanlogr.ravel()[:] += other.meanlogr.ravel()[:]
-        self.weight.ravel()[:] += other.weight.ravel()[:]
-        self.npairs.ravel()[:] += other.npairs.ravel()[:]
+        super().__iadd__(other)
         self.tot += other.tot
         return self
 
@@ -373,57 +256,6 @@ class NNCorrelation(Corr2):
         # the resulting weight is zero.  But use a minimal copy with just the necessary fields
         # to save some time.
         self.results[ij] = self._zero_copy(tot)
-
-    def process(self, cat1, cat2=None, *, metric=None, num_threads=None, comm=None, low_mem=False,
-                initialize=True, finalize=True, patch_method='global'):
-        """Compute the correlation function.
-
-        - If only 1 argument is given, then compute an auto-correlation function.
-        - If 2 arguments are given, then compute a cross-correlation function.
-
-        Both arguments may be lists, in which case all items in the list are used
-        for that element of the correlation.
-
-        Parameters:
-            cat1 (Catalog):     A catalog or list of catalogs for the first N field.
-            cat2 (Catalog):     A catalog or list of catalogs for the second N field, if any.
-                                (default: None)
-            metric (str):       Which metric to use.  See `Metrics` for details.
-                                (default: 'Euclidean'; this value can also be given in the
-                                constructor in the config dict.)
-            num_threads (int):  How many OpenMP threads to use during the calculation.
-                                (default: use the number of cpu cores; this value can also be given
-                                in the constructor in the config dict.)
-            comm (mpi4py.Comm): If running MPI, an mpi4py Comm object to communicate between
-                                processes.  If used, the rank=0 process will have the final
-                                computation. This only works if using patches. (default: None)
-            low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
-                                This only works if using patches. (default: False)
-            initialize (bool):  Whether to begin the calculation with a call to
-                                `Corr2.clear`.  (default: True)
-            finalize (bool):    Whether to complete the calculation with a call to `finalize`.
-                                (default: True)
-            patch_method (str): Which patch method to use. (default: 'global')
-        """
-        if initialize:
-            self.clear()
-
-        if patch_method not in ['local', 'global']:
-            raise ValueError("Invalid patch_method %s"%patch_method)
-        local = patch_method == 'local'
-
-        if not isinstance(cat1,list):
-            cat1 = cat1.get_patches(low_mem=low_mem)
-        if cat2 is not None and not isinstance(cat2,list):
-            cat2 = cat2.get_patches(low_mem=low_mem)
-
-        if cat2 is None or len(cat2) == 0:
-            self._process_all_auto(cat1, metric, num_threads, comm, low_mem, local)
-        else:
-            self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem, local)
-
-        if finalize:
-            self.finalize()
 
     def _mean_weight(self):
         mean_np = np.mean(self.npairs)
@@ -793,11 +625,8 @@ class NNCorrelation(Corr2):
 
     @property
     def _write_params(self):
-        params = make_minimal_config(self.config, Corr2._valid_params)
-        # Add in a couple other things we want to preserve that aren't construction kwargs.
+        params = super()._write_params
         params['tot'] = self.tot
-        params['coords'] = self.coords
-        params['metric'] = self.metric
         if self._write_patch_results:
             params['_rr'] = bool(self._rr)
             params['_dr'] = bool(self._dr)
@@ -869,19 +698,13 @@ class NNCorrelation(Corr2):
             self._rd = rd
 
     def _read_from_data(self, data, params):
+        super()._read_from_data(data, params)
         s = self.logr.shape
-        self.meanr = data['meanr'].reshape(s)
-        self.meanlogr = data['meanlogr'].reshape(s)
         self.weight = data['DD'].reshape(s)
-        self.npairs = data['npairs'].reshape(s)
         self.tot = params['tot']
-        self.coords = params['coords'].strip()
-        self.metric = params['metric'].strip()
         if 'xi' in data.dtype.names:
             self.xi = data['xi'].reshape(s)
             self.varxi = data['sigma_xi'].reshape(s)**2
-        self.npatch1 = params.get('npatch1', 1)
-        self.npatch2 = params.get('npatch2', 1)
         # Note: "or None" turns False -> None
         self._rr = params.get('_rr', None) or None
         self._dr = params.get('_dr', None) or None

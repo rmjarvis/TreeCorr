@@ -20,7 +20,7 @@ import numpy as np
 from . import _treecorr
 from .catalog import calculateVarK
 from .corr2base import Corr2
-from .util import make_writer, make_reader
+from .util import make_writer
 from .config import make_minimal_config
 
 
@@ -96,82 +96,29 @@ class KKCorrelation(Corr2):
         **kwargs:       See the documentation for `Corr2` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
+    _cls = 'KKCorrelation'
+    _letter1 = 'K'
+    _letter2 = 'K'
+    _letters = 'KK'
+    _builder = _treecorr.KKCorr
+    _calculateVar1 = staticmethod(calculateVarK)
+    _calculateVar2 = staticmethod(calculateVarK)
     # The angles are not important for accuracy of KK correlations.
     _default_angle_slop = 1
 
     def __init__(self, config=None, *, logger=None, **kwargs):
         """Initialize `KKCorrelation`.  See class doc for details.
         """
-        Corr2.__init__(self, config, logger=logger, **kwargs)
+        super().__init__(config, logger=logger, **kwargs)
 
-        self.xi = np.zeros_like(self.rnom, dtype=float)
-        self.meanr = np.zeros_like(self.rnom, dtype=float)
-        self.meanlogr = np.zeros_like(self.rnom, dtype=float)
-        self.weight = np.zeros_like(self.rnom, dtype=float)
-        self.npairs = np.zeros_like(self.rnom, dtype=float)
+        self._xi1 = np.zeros_like(self.rnom, dtype=float)
+        self._xi2 = self._xi3 = self._xi4 = np.array([])
         self._varxi = None
-        self._cov = None
-        self._var_num = 0
-        self._processed_cats1 = []
-        self._processed_cats2 = []
         self.logger.debug('Finished building KKCorr')
 
     @property
-    def corr(self):
-        if self._corr is None:
-            x = np.array([])
-            self._corr = _treecorr.KKCorr(self._bintype, self._min_sep, self._max_sep, self._nbins,
-                                          self._bin_size, self.b, self.angle_slop,
-                                          self.min_rpar, self.max_rpar,
-                                          self.xperiod, self.yperiod, self.zperiod,
-                                          self.xi, x, x, x,
-                                          self.meanr, self.meanlogr, self.weight, self.npairs)
-        return self._corr
-
-    def __eq__(self, other):
-        """Return whether two `KKCorrelation` instances are equal"""
-        return (isinstance(other, KKCorrelation) and
-                self.nbins == other.nbins and
-                self.bin_size == other.bin_size and
-                self.min_sep == other.min_sep and
-                self.max_sep == other.max_sep and
-                self.sep_units == other.sep_units and
-                self.coords == other.coords and
-                self.bin_type == other.bin_type and
-                self.bin_slop == other.bin_slop and
-                self.angle_slop == other.angle_slop and
-                self.min_rpar == other.min_rpar and
-                self.max_rpar == other.max_rpar and
-                self.xperiod == other.xperiod and
-                self.yperiod == other.yperiod and
-                self.zperiod == other.zperiod and
-                np.array_equal(self.meanr, other.meanr) and
-                np.array_equal(self.meanlogr, other.meanlogr) and
-                np.array_equal(self.xi, other.xi) and
-                np.array_equal(self.varxi, other.varxi) and
-                np.array_equal(self.weight, other.weight) and
-                np.array_equal(self.npairs, other.npairs))
-
-    def copy(self):
-        """Make a copy"""
-        ret = KKCorrelation.__new__(KKCorrelation)
-        for key, item in self.__dict__.items():
-            if isinstance(item, np.ndarray):
-                # Only items that might change need to by deep copied.
-                ret.__dict__[key] = item.copy()
-            else:
-                # For everything else, shallow copy is fine.
-                # In particular don't deep copy config or logger
-                # Most of the rest are scalars, which copy fine this way.
-                # And the read-only things are all in _ro.
-                # The results dict is trickier.  We rely on it being copied in places, but we
-                # never add more to it after the copy, so shallow copy is fine.
-                ret.__dict__[key] = item
-        ret._corr = None # We'll want to make a new one of these if we need it.
-        return ret
-
-    def __repr__(self):
-        return f'KKCorrelation({self._repr_kwargs})'
+    def xi(self):
+        return self._xi1
 
     def process_auto(self, cat, *, metric=None, num_threads=None):
         """Process a single catalog, accumulating the auto-correlation.
@@ -190,79 +137,7 @@ class KKCorrelation(Corr2):
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
         """
-        if cat.name == '':
-            self.logger.info('Starting process KK auto-correlations')
-        else:
-            self.logger.info('Starting process KK auto-correlations for cat %s.', cat.name)
-
-        self._set_metric(metric, cat.coords)
-        self._set_num_threads(num_threads)
-        min_size, max_size = self._get_minmax_size()
-
-        field = cat.getKField(min_size=min_size, max_size=max_size,
-                              split_method=self.split_method, brute=bool(self.brute),
-                              min_top=self.min_top, max_top=self.max_top,
-                              coords=self.coords)
-
-        self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        self.corr.processAuto(field.data, self.output_dots, self._metric)
-
-    def process_cross(self, cat1, cat2, *, metric=None, num_threads=None):
-        """Process a single pair of catalogs, accumulating the cross-correlation.
-
-        This accumulates the weighted sums into the bins, but does not finalize
-        the calculation by dividing by the total weight at the end.  After
-        calling this function as often as desired, the `finalize` command will
-        finish the calculation.
-
-        Parameters:
-            cat1 (Catalog):     The first catalog to process
-            cat2 (Catalog):     The second catalog to process
-            metric (str):       Which metric to use.  See `Metrics` for details.
-                                (default: 'Euclidean'; this value can also be given in the
-                                constructor in the config dict.)
-            num_threads (int):  How many OpenMP threads to use during the calculation.
-                                (default: use the number of cpu cores; this value can also be given
-                                in the constructor in the config dict.)
-        """
-        if cat1.name == '' and cat2.name == '':
-            self.logger.info('Starting process KK cross-correlations')
-        else:
-            self.logger.info('Starting process KK cross-correlations for cats %s, %s.',
-                             cat1.name, cat2.name)
-
-        self._set_metric(metric, cat1.coords, cat2.coords)
-        self._set_num_threads(num_threads)
-        min_size, max_size = self._get_minmax_size()
-
-        f1 = cat1.getKField(min_size=min_size, max_size=max_size,
-                            split_method=self.split_method,
-                            brute=self.brute is True or self.brute == 1,
-                            min_top=self.min_top, max_top=self.max_top,
-                            coords=self.coords)
-        f2 = cat2.getKField(min_size=min_size, max_size=max_size,
-                            split_method=self.split_method,
-                            brute=self.brute is True or self.brute == 1,
-                            min_top=self.min_top, max_top=self.max_top,
-                            coords=self.coords)
-
-        self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        self.corr.processCross(f1.data, f2.data, self.output_dots, self._metric)
-
-    def _finalize(self):
-        mask1 = self.weight != 0
-        mask2 = self.weight == 0
-
-        self.xi[mask1] /= self.weight[mask1]
-        self.meanr[mask1] /= self.weight[mask1]
-        self.meanlogr[mask1] /= self.weight[mask1]
-
-        # Update the units of meanlogr
-        self._apply_units(mask1)
-
-        # Use meanlogr when available, but set to nominal when no pairs in bin.
-        self.meanr[mask2] = self.rnom[mask2]
-        self.meanlogr[mask2] = self.logr[mask2]
+        super()._process_auto(cat, metric, num_threads)
 
     def finalize(self, vark1, vark2):
         """Finalize the calculation of the correlation function.
@@ -289,116 +164,8 @@ class KKCorrelation(Corr2):
     def _clear(self):
         """Clear the data vectors
         """
-        self.xi.ravel()[:] = 0
-        self.meanr.ravel()[:] = 0
-        self.meanlogr.ravel()[:] = 0
-        self.weight.ravel()[:] = 0
-        self.npairs.ravel()[:] = 0
+        super()._clear()
         self._varxi = None
-        self._cov = None
-
-    def __iadd__(self, other):
-        """Add a second `KKCorrelation`'s data to this one.
-
-        .. note::
-
-            For this to make sense, both `KKCorrelation` objects should not have had `finalize`
-            called yet.  Then, after adding them together, you should call `finalize` on the sum.
-        """
-        if not isinstance(other, KKCorrelation):
-            raise TypeError("Can only add another KKCorrelation object")
-        if not (self._nbins == other._nbins and
-                self.min_sep == other.min_sep and
-                self.max_sep == other.max_sep):
-            raise ValueError("KKCorrelation to be added is not compatible with this one.")
-
-        self._set_metric(other.metric, other.coords, other.coords)
-        self.xi.ravel()[:] += other.xi.ravel()[:]
-        self.meanr.ravel()[:] += other.meanr.ravel()[:]
-        self.meanlogr.ravel()[:] += other.meanlogr.ravel()[:]
-        self.weight.ravel()[:] += other.weight.ravel()[:]
-        self.npairs.ravel()[:] += other.npairs.ravel()[:]
-        return self
-
-    def _sum(self, others):
-        # Equivalent to the operation of:
-        #     self._clear()
-        #     for other in others:
-        #         self += other
-        # but no sanity checks and use numpy.sum for faster calculation.
-        np.sum([c.xi for c in others], axis=0, out=self.xi)
-        np.sum([c.meanr for c in others], axis=0, out=self.meanr)
-        np.sum([c.meanlogr for c in others], axis=0, out=self.meanlogr)
-        np.sum([c.weight for c in others], axis=0, out=self.weight)
-        np.sum([c.npairs for c in others], axis=0, out=self.npairs)
-
-    def process(self, cat1, cat2=None, *, metric=None, num_threads=None, comm=None, low_mem=False,
-                initialize=True, finalize=True, patch_method='global'):
-        """Compute the correlation function.
-
-        - If only 1 argument is given, then compute an auto-correlation function.
-        - If 2 arguments are given, then compute a cross-correlation function.
-
-        Both arguments may be lists, in which case all items in the list are used
-        for that element of the correlation.
-
-        Parameters:
-            cat1 (Catalog):     A catalog or list of catalogs for the first K field.
-            cat2 (Catalog):     A catalog or list of catalogs for the second K field, if any.
-                                (default: None)
-            metric (str):       Which metric to use.  See `Metrics` for details.
-                                (default: 'Euclidean'; this value can also be given in the
-                                constructor in the config dict.)
-            num_threads (int):  How many OpenMP threads to use during the calculation.
-                                (default: use the number of cpu cores; this value can also be given
-                                in the constructor in the config dict.)
-            comm (mpi4py.Comm): If running MPI, an mpi4py Comm object to communicate between
-                                processes.  If used, the rank=0 process will have the final
-                                computation. This only works if using patches. (default: None)
-            low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
-                                This only works if using patches. (default: False)
-            initialize (bool):  Whether to begin the calculation with a call to
-                                `Corr2.clear`.  (default: True)
-            finalize (bool):    Whether to complete the calculation with a call to `finalize`.
-                                (default: True)
-            patch_method (str): Which patch method to use. (default: 'global')
-        """
-        import math
-        if initialize:
-            self.clear()
-            self._processed_cats1.clear()
-            self._processed_cats2.clear()
-
-        if patch_method not in ['local', 'global']:
-            raise ValueError("Invalid patch_method %s"%patch_method)
-        local = patch_method == 'local'
-
-        if not isinstance(cat1,list):
-            cat1 = cat1.get_patches(low_mem=low_mem)
-        if cat2 is not None and not isinstance(cat2,list):
-            cat2 = cat2.get_patches(low_mem=low_mem)
-
-        if cat2 is None:
-            self._process_all_auto(cat1, metric, num_threads, comm, low_mem, local)
-        else:
-            self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem, local)
-
-        self._processed_cats1.extend(cat1)
-        if cat2 is not None:
-            self._processed_cats2.extend(cat2)
-        if finalize:
-            if cat2 is None:
-                vark1 = calculateVarK(self._processed_cats1, low_mem=low_mem)
-                vark2 = vark1
-                self.logger.info("vark = %f: sig_k = %f",vark1,math.sqrt(vark1))
-            else:
-                vark1 = calculateVarK(self._processed_cats1, low_mem=low_mem)
-                vark2 = calculateVarK(self._processed_cats2, low_mem=low_mem)
-                self.logger.info("vark1 = %f: sig_k = %f",vark1,math.sqrt(vark1))
-                self.logger.info("vark2 = %f: sig_k = %f",vark2,math.sqrt(vark2))
-            self.finalize(vark1,vark2)
-            self._processed_cats1.clear()
-            self._processed_cats2.clear()
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
@@ -450,72 +217,9 @@ class KKCorrelation(Corr2):
         data = [ col.flatten() for col in data ]
         return data
 
-    @property
-    def _write_params(self):
-        params = make_minimal_config(self.config, Corr2._valid_params)
-        # Add in a couple other things we want to preserve that aren't construction kwargs.
-        params['coords'] = self.coords
-        params['metric'] = self.metric
-        return params
-
-    @classmethod
-    def from_file(cls, file_name, *, file_type=None, logger=None, rng=None):
-        """Create a KKCorrelation instance from an output file.
-
-        This should be a file that was written by TreeCorr.
-
-        Parameters:
-            file_name (str):    The name of the file to read in.
-            file_type (str):    The type of file ('ASCII', 'FITS', or 'HDF').  (default: determine
-                                the type automatically from the extension of file_name.)
-            logger (Logger):    If desired, a logger object to use for logging. (default: None)
-            rng (RandomState):  If desired, a numpy.random.RandomState instance to use for bootstrap
-                                random number generation. (default: None)
-
-        Returns:
-            corr: A KKCorrelation object, constructed from the information in the file.
-        """
-        if logger:
-            logger.info('Building KKCorrelation from %s',file_name)
-        with make_reader(file_name, file_type, logger) as reader:
-            name = 'main' if 'main' in reader else None
-            params = reader.read_params(ext=name)
-            kwargs = make_minimal_config(params, Corr2._valid_params)
-            corr = cls(**kwargs, logger=logger, rng=rng)
-            corr.logger.info('Reading KK correlations from %s',file_name)
-            corr._read(reader, name=name, params=params)
-        return corr
-
-    def read(self, file_name, *, file_type=None):
-        """Read in values from a file.
-
-        This should be a file that was written by TreeCorr, preferably a FITS or HDF5 file, so
-        there is no loss of information.
-
-        .. warning::
-
-            The `KKCorrelation` object should be constructed with the same configuration
-            parameters as the one being read.  e.g. the same min_sep, max_sep, etc.  This is not
-            checked by the read function.
-
-        Parameters:
-            file_name (str):    The name of the file to read in.
-            file_type (str):    The type of file ('ASCII' or 'FITS').  (default: determine the type
-                                automatically from the extension of file_name.)
-        """
-        self.logger.info('Reading KK correlations from %s',file_name)
-        with make_reader(file_name, file_type, self.logger) as reader:
-            self._read(reader)
-
     def _read_from_data(self, data, params):
+        super()._read_from_data(data, params)
         s = self.logr.shape
-        self.meanr = data['meanr'].reshape(s)
-        self.meanlogr = data['meanlogr'].reshape(s)
-        self.xi = data['xi'].reshape(s)
-        self._varxi = data['sigma_xi'].reshape(s)**2
         self.weight = data['weight'].reshape(s)
-        self.npairs = data['npairs'].reshape(s)
-        self.coords = params['coords'].strip()
-        self.metric = params['metric'].strip()
-        self.npatch1 = params.get('npatch1', 1)
-        self.npatch2 = params.get('npatch2', 1)
+        self._xi1 = data['xi'].reshape(s)
+        self._varxi = data['sigma_xi'].reshape(s)**2

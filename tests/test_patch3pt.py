@@ -16,10 +16,7 @@ import os
 import coord
 import time
 import treecorr
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+import pickle
 
 from test_helper import assert_raises, do_pickle, timer, get_from_wiki, CaptureLog, clear_save
 from test_helper import profile

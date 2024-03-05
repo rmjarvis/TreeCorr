@@ -106,6 +106,8 @@ class NKCorrelation(Corr2):
     _builder = _treecorr.NKCorr
     _calculateVar1 = lambda *args, **kwargs: None
     _calculateVar2 = staticmethod(calculateVarK)
+    _sig1 = None
+    _sig2 = 'sig_k'
     # The angles are not important for accuracy of NK correlations.
     _default_angle_slop = 1
 

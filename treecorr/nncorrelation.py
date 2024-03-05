@@ -96,6 +96,8 @@ class NNCorrelation(Corr2):
     _builder = _treecorr.NNCorr
     _calculateVar1 = lambda *args, **kwargs: None
     _calculateVar2 = lambda *args, **kwargs: None
+    _sigk1 = None
+    _sigk2 = None
     # The angles are not important for accuracy of NN correlations.
     _default_angle_slop = 1
 

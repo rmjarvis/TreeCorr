@@ -1,4 +1,7 @@
 fitsio>=1.2
-pandas>=0.20
+pandas>=2.0
 scipy>=1.2
 mockmpi>=0.8
+pyarrow>=15.0
+h5py>=3.10
+halotools>=0.8.2

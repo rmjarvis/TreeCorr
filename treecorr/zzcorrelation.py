@@ -132,8 +132,44 @@ class BaseZZCorrelation(Corr2):
         self._varxip = None
         self._varxim = None
 
-    def write(self, file_name, file_type=None, precision=None, write_patch_results=False,
+    def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
+        r"""Write the correlation function to the file, file_name.
+
+        The output file will include the following columns:
+
+        =========       ========================================================
+        Column          Description
+        =========       ========================================================
+        r_nom           The nominal center of the bin in r
+        meanr           The mean value :math:`\langle r \rangle` of pairs that
+                        fell into each bin
+        meanlogr        The mean value :math:`\langle \log(r) \rangle` of pairs
+                        that fell into each bin
+        xip             The real part of the :math:`\xi_+` correlation function
+        xim             The real part of the :math:`\xi_-` correlation function
+        xip_im          The imag part of the :math:`\xi_+` correlation function
+        xim_im          The imag part of the :math:`\xi_-` correlation function
+        sigma_xip       The sqrt of the variance estimate of :math:`\xi_+`
+        sigma_xim       The sqrt of the variance estimate of :math:`\xi_-`
+        weight          The total weight contributing to each bin
+        npairs          The total number of pairs in each bin
+        =========       ========================================================
+
+        If ``sep_units`` was given at construction, then the distances will all be in these units.
+        Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
+        radians (for spherical coordinates).
+
+        Parameters:
+            file_name (str):    The name of the file to write to.
+            file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
+                                the type automatically from the extension of file_name.)
+            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
+                                this value can also be given in the constructor in the config dict.)
+            write_patch_results (bool): Whether to write the patch-based results as well.
+                                        (default: False)
+            write_cov (bool):   Whether to write the covariance matrix as well. (default: False)
+        """
         self.logger.info(f'Writing {self._letters} correlations to %s',file_name)
         precision = self.config.get('precision', 4) if precision is None else precision
         with make_writer(file_name, precision, file_type, self.logger) as writer:
@@ -274,42 +310,4 @@ class ZZCorrelation(BaseZZCorrelation):
         """
         super().finalize(varz1, varz2)
 
-    def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
-              write_cov=False):
-        r"""Write the correlation function to the file, file_name.
 
-        The output file will include the following columns:
-
-        =========       ========================================================
-        Column          Description
-        =========       ========================================================
-       r_nom           The nominal center of the bin in r
-        meanr           The mean value :math:`\langle r \rangle` of pairs that
-                        fell into each bin
-        meanlogr        The mean value :math:`\langle \log(r) \rangle` of pairs
-                        that fell into each bin
-        xip             The real part of the :math:`\xi_+` correlation function
-        xim             The real part of the :math:`\xi_-` correlation function
-        xip_im          The imag part of the :math:`\xi_+` correlation function
-        xim_im          The imag part of the :math:`\xi_-` correlation function
-        sigma_xip       The sqrt of the variance estimate of :math:`\xi_+`
-        sigma_xim       The sqrt of the variance estimate of :math:`\xi_-`
-        weight          The total weight contributing to each bin
-        npairs          The total number of pairs in each bin
-        =========       ========================================================
-
-        If ``sep_units`` was given at construction, then the distances will all be in these units.
-        Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
-        radians (for spherical coordinates).
-
-        Parameters:
-            file_name (str):    The name of the file to write to.
-            file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
-                                the type automatically from the extension of file_name.)
-            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
-                                this value can also be given in the constructor in the config dict.)
-            write_patch_results (bool): Whether to write the patch-based results as well.
-                                        (default: False)
-            write_cov (bool):   Whether to write the covariance matrix as well. (default: False)
-        """
-        super().write(file_name, file_type, precision, write_patch_results, write_cov)

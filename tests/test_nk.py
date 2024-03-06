@@ -170,6 +170,8 @@ def test_direct():
     nk6 = treecorr.NKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins*2)
     with assert_raises(ValueError):
         nk2 += nk6
+    with assert_raises(TypeError):
+        nk.process(cat1)
 
     try:
         import fitsio

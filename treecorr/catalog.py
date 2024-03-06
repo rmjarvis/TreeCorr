@@ -1826,7 +1826,7 @@ class Catalog(object):
             if k_col != '0':
                 k_ext = get_from_list(self.config, 'k_ext', num, str, ext)
                 if k_col not in reader.names(ext=k_ext):
-                    if isKColRequired(self.orig_config,num):
+                    if isKColRequired(self.orig_config,num) or 'corr2' not in self.orig_config:
                         raise ValueError("k_col=%s is invalid for file %s"%(k_col, file_name))
                     else:
                         self.logger.warning(
@@ -1839,7 +1839,7 @@ class Catalog(object):
                 z2_ext = get_from_list(self.config, 'z2_ext', num, str, ext)
                 if (z1_col not in reader.names(ext=z1_ext) or
                     z2_col not in reader.names(ext=z2_ext)):
-                    if isVColRequired(self.orig_config,num):
+                    if isZColRequired(self.orig_config,num) or 'corr2' not in self.orig_config:
                         raise ValueError(
                             "z1_col, z2_col=(%s, %s) are invalid for file %s"%(
                                 z1_col, z2_col, file_name))
@@ -1854,7 +1854,7 @@ class Catalog(object):
                 v2_ext = get_from_list(self.config, 'v2_ext', num, str, ext)
                 if (v1_col not in reader.names(ext=v1_ext) or
                     v2_col not in reader.names(ext=v2_ext)):
-                    if isVColRequired(self.orig_config,num):
+                    if isVColRequired(self.orig_config,num) or 'corr2' not in self.orig_config:
                         raise ValueError(
                             "v1_col, v2_col=(%s, %s) are invalid for file %s"%(
                                 v1_col, v2_col, file_name))
@@ -1869,7 +1869,7 @@ class Catalog(object):
                 g2_ext = get_from_list(self.config, 'g2_ext', num, str, ext)
                 if (g1_col not in reader.names(ext=g1_ext) or
                     g2_col not in reader.names(ext=g2_ext)):
-                    if isGColRequired(self.orig_config,num):
+                    if isGColRequired(self.orig_config,num) or 'corr2' not in self.orig_config:
                         raise ValueError(
                             "g1_col, g2_col=(%s, %s) are invalid for file %s"%(
                                 g1_col, g2_col, file_name))
@@ -1884,7 +1884,7 @@ class Catalog(object):
                 t2_ext = get_from_list(self.config, 't2_ext', num, str, ext)
                 if (t1_col not in reader.names(ext=t1_ext) or
                     t2_col not in reader.names(ext=t2_ext)):
-                    if isTColRequired(self.orig_config,num):
+                    if isTColRequired(self.orig_config,num) or 'corr2' not in self.orig_config:
                         raise ValueError(
                             "t1_col, t2_col=(%s, %s) are invalid for file %s"%(
                                 t1_col, t2_col, file_name))
@@ -1899,7 +1899,7 @@ class Catalog(object):
                 q2_ext = get_from_list(self.config, 'q2_ext', num, str, ext)
                 if (q1_col not in reader.names(ext=q1_ext) or
                     q2_col not in reader.names(ext=q2_ext)):
-                    if isQColRequired(self.orig_config,num):
+                    if isQColRequired(self.orig_config,num) or 'corr2' not in self.orig_config:
                         raise ValueError(
                             "q1_col, q2_col=(%s, %s) are invalid for file %s"%(
                                 q1_col, q2_col, file_name))

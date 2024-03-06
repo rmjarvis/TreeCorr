@@ -104,6 +104,10 @@ def test_direct():
         np.testing.assert_allclose(data['gamT'], ng.xi)
         np.testing.assert_allclose(data['gamX'], ng.xi_im)
 
+        # When not using corr2, it's invalid to specify invalid g1_col
+        with assert_raises(ValueError):
+            cat = treecorr.Catalog(config['file_name'], config)
+
         # Invalid with only one file_name
         del config['file_name2']
         with assert_raises(TypeError):

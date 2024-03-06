@@ -170,6 +170,9 @@ def corr2(config, logger=None):
     # Also convert the given parameters to the correct type, etc.
     config = check_config(config, corr2_valid_params, corr2_aliases, logger)
 
+    # Mark that we are running the corr2 function.
+    config['corr2'] = True
+
     import pprint
     logger.debug('Using configuration dict:\n%s',pprint.pformat(config))
 

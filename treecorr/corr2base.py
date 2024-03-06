@@ -1223,24 +1223,6 @@ class Corr2(object):
         self.npairs[:] += other.npairs
         return self
 
-    def _sum(self, others):
-        # Equivalent to the operation of:
-        #     self._clear()
-        #     for other in others:
-        #         self += other
-        # but no sanity checks and use numpy.sum for faster calculation.
-        np.sum([c._xi1 for c in others], axis=0, out=self._xi1)
-        if len(self._xi2) > 0:
-            np.sum([c._xi2 for c in others], axis=0, out=self._xi2)
-        if len(self._xi3) > 0:
-            np.sum([c._xi3 for c in others], axis=0, out=self._xi3)
-            np.sum([c._xi4 for c in others], axis=0, out=self._xi4)
-        np.sum([c.meanr for c in others], axis=0, out=self.meanr)
-        np.sum([c.meanlogr for c in others], axis=0, out=self.meanlogr)
-        np.sum([c.weight for c in others], axis=0, out=self.weight)
-        np.sum([c.npairs for c in others], axis=0, out=self.npairs)
-        self._cov = None
-
     def estimate_cov(self, method, *, func=None, comm=None):
         """Estimate the covariance matrix based on the data
 

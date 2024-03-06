@@ -748,6 +748,7 @@ def _test_aardvark(filename, file_type, ext):
     config['gg_file_name'] = 'gg.out'
     include_v = (file_type != 'Parquet')  # Parquet cannot handle duplicated names.
     if include_v:
+        config['zz_file_name'] = 'zz.out'
         config['vv_file_name'] = 'vv.out'
         config['tt_file_name'] = 'tt.out'
         config['qq_file_name'] = 'qq.out'
@@ -1725,15 +1726,18 @@ def test_var():
         varq = (np.var(q1, ddof=0) + np.var(q2, ddof=0))/2
         cat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, k=k, z1=z1, z2=z2,
                                v1=v1, v2=v2, t1=t1, t2=t2, q1=q1, q2=q2,
-                               vark=3*vark, varg=5*varg, varv=7*varv,
+                               vark=3*vark, varz=vark, varg=5*varg, varv=7*varv,
                                vart=4*vart, varq=8*varq)
         assert np.isclose(cat.vark, 3*vark)
+        assert np.isclose(cat.varz, vark)
         assert np.isclose(cat.varg, 5*varg)
         assert np.isclose(cat.varv, 7*varv)
         assert np.isclose(cat.vart, 4*vart)
         assert np.isclose(cat.varq, 8*varq)
         assert np.isclose(treecorr.calculateVarK(cat), 3*vark)
         assert np.isclose(treecorr.calculateVarK([cat]), 3*vark)
+        assert np.isclose(treecorr.calculateVarZ(cat), vark)
+        assert np.isclose(treecorr.calculateVarZ([cat]), vark)
         assert np.isclose(treecorr.calculateVarG(cat), 5*varg)
         assert np.isclose(treecorr.calculateVarG([cat]), 5*varg)
         assert np.isclose(treecorr.calculateVarV(cat), 7*varv)
@@ -2401,6 +2405,29 @@ def test_field():
     assert kfield2b is kfield2
     assert kfield3b is kfield3
     print('kfield: ',t1-t0,t2-t1)
+    if platform.python_implementation() != 'PyPy':
+        assert t2-t1 <= t1-t0
+
+    t0 = time.time()
+    zfield1 = cat1.getZField()
+    zfield2 = cat2.getZField(min_size=0.01, max_size=1)
+    zfield3 = cat3.getZField(min_size=1, max_size=300, logger=logger)
+    t1 = time.time()
+    zfield1b = cat1.getZField()
+    zfield2b = cat2.getZField(min_size=0.01, max_size=1)
+    zfield3b = cat3.getZField(min_size=1, max_size=300, logger=logger)
+    t2 = time.time()
+    assert_raises(TypeError, cat4.getZField)
+    assert cat1.zfields.count == 1
+    assert cat2.zfields.count == 1
+    assert cat3.zfields.count == 1
+    assert cat1.field is zfield1
+    assert cat2.field is zfield2
+    assert cat3.field is zfield3
+    assert zfield1b is zfield1
+    assert zfield2b is zfield2
+    assert zfield3b is zfield3
+    print('zfield: ',t1-t0,t2-t1)
     if platform.python_implementation() != 'PyPy':
         assert t2-t1 <= t1-t0
 

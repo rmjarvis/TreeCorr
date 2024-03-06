@@ -1229,8 +1229,7 @@ class Corr2(object):
         #     for other in others:
         #         self += other
         # but no sanity checks and use numpy.sum for faster calculation.
-        if len(self._xi1) > 0:
-            np.sum([c._xi1 for c in others], axis=0, out=self._xi1)
+        np.sum([c._xi1 for c in others], axis=0, out=self._xi1)
         if len(self._xi2) > 0:
             np.sum([c._xi2 for c in others], axis=0, out=self._xi2)
         if len(self._xi3) > 0:

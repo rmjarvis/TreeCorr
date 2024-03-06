@@ -132,6 +132,24 @@ class BaseZZCorrelation(Corr2):
         self._varxip = None
         self._varxim = None
 
+    def _sum(self, others):
+        # Equivalent to the operation of:
+        #     self._clear()
+        #     for other in others:
+        #         self += other
+        # but no sanity checks and use numpy.sum for faster calculation.
+        np.sum([c._xi1 for c in others], axis=0, out=self._xi1)
+        np.sum([c._xi2 for c in others], axis=0, out=self._xi2)
+        np.sum([c._xi3 for c in others], axis=0, out=self._xi3)
+        np.sum([c._xi4 for c in others], axis=0, out=self._xi4)
+        np.sum([c.meanr for c in others], axis=0, out=self.meanr)
+        np.sum([c.meanlogr for c in others], axis=0, out=self.meanlogr)
+        np.sum([c.weight for c in others], axis=0, out=self.weight)
+        np.sum([c.npairs for c in others], axis=0, out=self.npairs)
+        self._varxip = None
+        self._varxim = None
+        self._cov = None
+
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
         r"""Write the correlation function to the file, file_name.

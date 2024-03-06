@@ -1817,10 +1817,10 @@ class Catalog(object):
 
         def parse_value(data, x_col, x_eval, dtype=float):
             # Here x is any value name, not specifically x.  It's just a convenient letter.
-            if x_col != '0':
-                x = data[x_col]
-            else:
+            if x_eval is not None:
                 x = math_eval(x_eval, data)
+            else:
+                x = data[x_col]
             return x.astype(dtype)
 
         def set_pos(data, x_col, y_col, z_col, ra_col, dec_col, r_col,

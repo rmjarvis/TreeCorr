@@ -319,14 +319,19 @@ def test_ascii():
     np.testing.assert_almost_equal(cat6b.dec, dec * (pi/180.))
 
     # Check using eval feature to apply the units rather than ra_units/dec_units
-    del config_names['ra_col']
-    del config_names['dec_col']
     config_names['ra_units'] = 'rad'
     config_names['dec_units'] = 'rad'
     config_names['ra_eval'] = 'ra * np.pi/12.'
     config_names['dec_eval'] = 'dec * math.pi/180.'
-    config_names['extra_cols'] = ['ra', 'dec']
     cat6c = treecorr.Catalog(file_name, config_names)
+    np.testing.assert_almost_equal(cat6c.ra, ra * (pi/12.))
+    np.testing.assert_almost_equal(cat6c.dec, dec * (pi/180.))
+
+    # Can also skip ra_col, dec_col and specify them in extra_cols.
+    del config_names['ra_col']
+    del config_names['dec_col']
+    config_names['extra_cols'] = ['ra', 'dec']
+    cat6d = treecorr.Catalog(file_name, config_names)
     np.testing.assert_almost_equal(cat6c.ra, ra * (pi/12.))
     np.testing.assert_almost_equal(cat6c.dec, dec * (pi/180.))
 

@@ -98,6 +98,10 @@ def test_direct():
         np.testing.assert_allclose(data['weight'], nk.weight)
         np.testing.assert_allclose(data['kappa'], nk.xi)
 
+        # When not using corr2, it's invalid to specify invalid g1_col, g2_col
+        with assert_raises(ValueError):
+            cat = treecorr.Catalog(config['file_name'], config)
+
         # Invalid with only one file_name
         del config['file_name2']
         with assert_raises(TypeError):

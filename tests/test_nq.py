@@ -104,6 +104,10 @@ def test_direct():
         np.testing.assert_allclose(data['qR'], nq.xi)
         np.testing.assert_allclose(data['qR_im'], nq.xi_im)
 
+        # When not using corr2, it's invalid to specify invalid q1_col, q2_col
+        with assert_raises(ValueError):
+            cat = treecorr.Catalog(config['file_name'], config)
+
         # Invalid with only one file_name
         del config['file_name2']
         with assert_raises(TypeError):

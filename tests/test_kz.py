@@ -170,6 +170,17 @@ def test_direct():
     np.testing.assert_allclose(kz3b.xi, kz.xi)
     np.testing.assert_allclose(kz3b.xi_im, kz.xi_im)
 
+    # or using the Corr2 base class
+    with CaptureLog() as cl:
+        kz3c = treecorr.Corr2.from_file(ascii_name, logger=cl.logger)
+    assert ascii_name in cl.output
+    np.testing.assert_allclose(kz3c.npairs, kz.npairs)
+    np.testing.assert_allclose(kz3c.weight, kz.weight)
+    np.testing.assert_allclose(kz3c.meanr, kz.meanr)
+    np.testing.assert_allclose(kz3c.meanlogr, kz.meanlogr)
+    np.testing.assert_allclose(kz3c.xi, kz.xi)
+    np.testing.assert_allclose(kz3c.xi_im, kz.xi_im)
+
     try:
         import fitsio
     except ImportError:

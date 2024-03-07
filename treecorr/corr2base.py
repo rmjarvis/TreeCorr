@@ -230,6 +230,9 @@ class Corr2(object):
     # this is unnecessary, so we override it in those classes.
     _default_angle_slop = 0.1
 
+    # A dict pointing from _letters to cls.  E.g. _lookup_dict['GG'] = GGCorrelation
+    _lookup_dict = {}
+
     _valid_params = {
         'nbins' : (int, False, None, None,
                 'The number of output bins to use.'),
@@ -516,6 +519,11 @@ class Corr2(object):
         self._var_num = 0
         self._processed_cats1 = []
         self._processed_cats2 = []
+
+    def __init_subclass__(cls):
+        super().__init_subclass__()
+        if hasattr(cls, '_letters'):
+            Corr2._lookup_dict[cls._letters] = cls
 
     @property
     def rng(self):
@@ -1701,6 +1709,7 @@ class Corr2(object):
         col_names = self._write_col_names
         data = self._write_data
         params = self._write_params
+        params['corr'] = self._letters
 
         if write_patch_results:
             # Note: Only include npatch1, npatch2 in serialization if we are also serializing
@@ -1809,6 +1818,15 @@ class Corr2(object):
 
         This should be a file that was written by TreeCorr.
 
+        .. note::
+
+            This classmethod may be called either using the base class or the class type that
+            wrote the file.  E.g. if the file was written by `GGCorrelation`, then either
+            of the following would work and be equivalent:
+
+                >>> gg = treecorr.GGCorrelation.from_file(file_name)
+                >>> gg = treecorr.Corr2.from_file(file_name)
+
         Parameters:
             file_name (str):    The name of the file to read in.
             file_type (str):    The type of file ('ASCII', 'FITS', or 'HDF').  (default: determine
@@ -1820,11 +1838,27 @@ class Corr2(object):
         Returns:
             corr: A Correlation object, constructed from the information in the file.
         """
+        if cls is Corr2:
+            # Then need to figure out what class to make first.
+            with make_reader(file_name, file_type, logger) as reader:
+                name = 'main' if 'main' in reader else None
+                params = reader.read_params(ext=name)
+                letters = params.get('corr', None)
+                if letters not in Corr2._lookup_dict:
+                    raise OSError("%s does not seem to be a valid treecorr output file."%file_name)
+                cls = Corr2._lookup_dict[letters]
+                return cls.from_file(file_name, file_type=file_type, logger=logger, rng=rng)
         if logger:
             logger.info(f'Building {cls._cls} from %s', file_name)
         with make_reader(file_name, file_type, logger) as reader:
             name = 'main' if 'main' in reader else None
             params = reader.read_params(ext=name)
+            letters = params.get('corr', None)
+            if letters not in Corr2._lookup_dict:
+                raise OSError("%s does not seem to be a valid treecorr output file."%file_name)
+            if params['corr'] != cls._letters:
+                raise OSError("Trying to read a %sCorrelation output file with %s"%(
+                                params['corr'], cls.__name__))
             kwargs = make_minimal_config(params, Corr2._valid_params)
             corr = cls(**kwargs, logger=logger, rng=rng)
             corr.logger.info(f'Reading {cls._letters} correlations from %s', file_name)

@@ -181,6 +181,32 @@ def test_direct():
     np.testing.assert_allclose(gg3b.xim, gg.xim)
     np.testing.assert_allclose(gg3b.xim_im, gg.xim_im)
 
+    # or using the Corr2 base class
+    with CaptureLog() as cl:
+        gg3c = treecorr.Corr2.from_file(ascii_name, logger=cl.logger)
+    assert ascii_name in cl.output
+    np.testing.assert_allclose(gg3c.npairs, gg.npairs)
+    np.testing.assert_allclose(gg3c.weight, gg.weight)
+    np.testing.assert_allclose(gg3c.meanr, gg.meanr)
+    np.testing.assert_allclose(gg3c.meanlogr, gg.meanlogr)
+    np.testing.assert_allclose(gg3c.xip, gg.xip)
+    np.testing.assert_allclose(gg3c.xip_im, gg.xip_im)
+    np.testing.assert_allclose(gg3c.xim, gg.xim)
+    np.testing.assert_allclose(gg3c.xim_im, gg.xim_im)
+
+    # But cannot use a different class
+    with assert_raises(OSError):
+        treecorr.NGCorrelation.from_file(ascii_name)
+    # And gives error if not a valid treecorr output file.
+    with assert_raises(OSError):
+        treecorr.Corr2.from_file(config['file_name'])
+    with assert_raises(OSError):
+        treecorr.GGCorrelation.from_file(config['file_name'])
+    with assert_raises(OSError):
+        treecorr.Corr2.from_file('invalid_file')
+    with assert_raises(OSError):
+        treecorr.GGCorrelation.from_file('invalid_file')
+
     try:
         import fitsio
     except ImportError:

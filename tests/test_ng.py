@@ -184,6 +184,17 @@ def test_direct():
     np.testing.assert_allclose(ng3b.xi, ng.xi)
     np.testing.assert_allclose(ng3b.xi_im, ng.xi_im)
 
+    # or using the Corr2 base class
+    with CaptureLog() as cl:
+        ng3c = treecorr.Corr2.from_file(ascii_name, logger=cl.logger)
+    assert ascii_name in cl.output
+    np.testing.assert_allclose(ng3c.npairs, ng.npairs)
+    np.testing.assert_allclose(ng3c.weight, ng.weight)
+    np.testing.assert_allclose(ng3c.meanr, ng.meanr)
+    np.testing.assert_allclose(ng3c.meanlogr, ng.meanlogr)
+    np.testing.assert_allclose(ng3c.xi, ng.xi)
+    np.testing.assert_allclose(ng3c.xi_im, ng.xi_im)
+
     try:
         import fitsio
     except ImportError:

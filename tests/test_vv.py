@@ -197,6 +197,19 @@ def test_direct():
     np.testing.assert_allclose(vv3b.xim, vv.xim)
     np.testing.assert_allclose(vv3b.xim_im, vv.xim_im)
 
+    # or using the Corr2 base class
+    with CaptureLog() as cl:
+        vv3c = treecorr.Corr2.from_file(ascii_name, logger=cl.logger)
+    assert ascii_name in cl.output
+    np.testing.assert_allclose(vv3c.npairs, vv.npairs)
+    np.testing.assert_allclose(vv3c.weight, vv.weight)
+    np.testing.assert_allclose(vv3c.meanr, vv.meanr)
+    np.testing.assert_allclose(vv3c.meanlogr, vv.meanlogr)
+    np.testing.assert_allclose(vv3c.xip, vv.xip)
+    np.testing.assert_allclose(vv3c.xip_im, vv.xip_im)
+    np.testing.assert_allclose(vv3c.xim, vv.xim)
+    np.testing.assert_allclose(vv3c.xim_im, vv.xim_im)
+
     try:
         import fitsio
     except ImportError:

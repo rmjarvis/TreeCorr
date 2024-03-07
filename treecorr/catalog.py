@@ -222,7 +222,7 @@ class Catalog(object):
 
         field:  If any of the `get?Field <Catalog.getNField>` methods have been called to construct
                 a field from this catalog (either explicitly or implicitly via a `corr.process()
-                <NNCorrelation.process>` command, then this attribute will hold the most recent
+                <Corr2.process>` command, then this attribute will hold the most recent
                 field to have been constructed.
 
                 .. note::

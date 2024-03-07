@@ -77,9 +77,9 @@ The corr3 function from python
 Other utilities related to corr2 and corr3
 ------------------------------------------
 
-.. autofunction:: treecorr.corr2ex.print_corr2_params
+.. autofunction:: treecorr.exec_corr2.print_corr2_params
 
-.. autofunction:: treecorr.corr3ex.print_corr3_params
+.. autofunction:: treecorr.exec_corr3.print_corr3_params
 
 
 Utilities related to the configuration dict

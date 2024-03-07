@@ -1042,7 +1042,7 @@ class Corr2(object):
 
         This accumulates the weighted sums into the bins, but does not finalize
         the calculation by dividing by the total weight at the end.  After
-        calling this function as often as desired, the `finalize` command will
+        calling this function as often as desired, the ``finalize`` command will
         finish the calculation.
 
         Parameters:
@@ -1109,7 +1109,7 @@ class Corr2(object):
                                 This only works if using patches. (default: False)
             initialize (bool):  Whether to begin the calculation with a call to
                                 `Corr2.clear`.  (default: True)
-            finalize (bool):    Whether to complete the calculation with a call to `finalize`.
+            finalize (bool):    Whether to complete the calculation with a call to finalize.
                                 (default: True)
             patch_method (str): Which patch method to use. (default: 'global')
         """
@@ -1210,8 +1210,8 @@ class Corr2(object):
 
         .. note::
 
-            For this to make sense, both objects should not have had `finalize` called yet.
-            Then, after adding them together, you should call `finalize` on the sum.
+            For this to make sense, both objects should not have had ``finalize`` called yet.
+            Then, after adding them together, you should call ``finalize`` on the sum.
         """
         if not isinstance(other, self.__class__):
             raise TypeError(f"Can only add another {self._cls} object")

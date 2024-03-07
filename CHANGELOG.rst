@@ -85,8 +85,8 @@ New features
   multipole algorithm or the old triangle algorithm. (#171)
 - Added serialization of rr, dr, etc. when writing with write_patch_results=True option,
   so you no longer have to separately write files for them to recover the covariance. (#172)
-- Added :ref:`from_file <GGCorrlation.from_file>` class methods to construct a Correlation
-  object from a file without needing to know the correct configuration parameters. (#172)
+- Added `Corr2.from_file` class methods to construct a Correlation object from a file without
+  needing to know the correct configuration parameters. (#172)
 - Added ``write_cov`` option to write functions to include the covariance in the output file.
   (#172)
 - Added complex, spin-0 correlations using the letter Z, including `NZCorrelation`,

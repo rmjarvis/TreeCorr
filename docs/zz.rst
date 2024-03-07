@@ -7,4 +7,7 @@ ZZCorrelation: Spin-0-spin-0 correlations
     :special-members:
     :show-inheritance:
 
-
+.. autoclass:: treecorr.BaseZZCorrelation
+    :members:
+    :special-members:
+    :show-inheritance:

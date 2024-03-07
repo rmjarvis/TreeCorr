@@ -7,4 +7,7 @@ KZCorrelation: Scalar-spin-0 correlations
     :special-members:
     :show-inheritance:
 
-
+.. autoclass:: treecorr.BaseKZCorrelation
+    :members:
+    :special-members:
+    :show-inheritance:

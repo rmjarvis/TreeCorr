@@ -157,7 +157,7 @@ class KZCorrelation(BaseKZCorrelation):
 
     .. note::
 
-        If you separate out the steps of the `process` command and use `process_cross`,
+        If you separate out the steps of the `Corr2.process` command and use `Corr2.process_cross`,
         then the units will not be applied to ``meanr`` or ``meanlogr`` until the `finalize`
         function is called.
 
@@ -197,7 +197,7 @@ class KZCorrelation(BaseKZCorrelation):
     def finalize(self, vark, varz):
         """Finalize the calculation of the correlation function.
 
-        The `process_cross` command accumulates values in each bin, so it can be called
+        The `Corr2.process_cross` command accumulates values in each bin, so it can be called
         multiple times if appropriate.  Afterwards, this command finishes the calculation
         by dividing each column by the total weight.
 

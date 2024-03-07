@@ -226,7 +226,7 @@ These correlations do not suffer as much from masking effects,
 so the compensation is not as necessary.  However, it does produce a slightly better estimate
 of the correlation function if you are able to use a random catalog.
 
-Furthermore, the `process <GGCorrelation.process>` functions can take lists of Catalogs if desired,
+Furthermore, the `process <Corr2.process>` functions can take lists of Catalogs if desired,
 in which case it will
 do all the possible combinations.  This is especially relevant for doing randoms,
 since the statistics get better if you generate several randoms and do all the correlations to beat down the noise::
@@ -244,7 +244,7 @@ Manually accumulating the correlation function
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For even more control over the calculation, you can break up the steps in the
-`process <GGCorrelation.process>` functions.  There are typically three steps:
+`process <Corr2.process>` functions.  There are typically three steps:
 
 1. Calculate the variance of the field as needed (i.e. for anything but NN correlations).
 2. Accumulate the correlations into the bins for each auto-correlation and cross-correlation desired.
@@ -261,9 +261,9 @@ function, you could write the following::
         ng.process_cross(c1,c2)
     ng.finalize(varg)
 
-In addition to `process_cross <NGCorrelation.process_cross>`,
+In addition to `process_cross <Corr2.process_cross>`,
 classes that allow auto-correlations have a
-`process_auto <GGCorrelation.process_auto>` method for manually processing
+`process_auto <BaseZZCorrelation.process_auto>` method for manually processing
 auto-correlations.  See the doc strings for these methods for more information.
 
 Breaking up the calculation manually like this is probably not often necessary anymore.

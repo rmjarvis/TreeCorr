@@ -273,7 +273,7 @@ The overall procedure for doing this is as follows:
 4. Make sure not to do anything that requires the catalog be loaded from disk.
    TreeCorr will delay doing the actual load until it needs to do so.
    Here, we want to make sure it never loads the full data.
-5. Run the `process <NNCorrelation.process>` function (for whichever correlation
+5. Run the `process <Corr2.process>` function (for whichever correlation
    type you need) using the ``low_mem=True`` option.
 
 Here are some worked examples.  First, an auto-correlation of a
@@ -336,7 +336,7 @@ Another use case that is enabled by using patches is
 to divide up the work of calculating a correlation function
 over multiple machines with MPI using `mpi4py <https://mpi4py.readthedocs.io/en/stable/>`_.
 
-For this usage, the `process <NNCorrelation.process>` functions take an optional ``comm``
+For this usage, the `process <Corr2.process>` functions take an optional ``comm``
 parameter.  When running in an MPI job, you can pass in ``comm=MPI.COMM_WORLD``,
 and TreeCorr will divide up the work among however many nodes you are using.
 The results will be sent back the the rank 0 node and combined to produce the

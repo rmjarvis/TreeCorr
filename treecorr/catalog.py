@@ -2807,7 +2807,7 @@ class Catalog(object):
         """Write the patches to disk as separate files.
 
         This can be used in conjunction with ``low_mem=True`` option of `get_patches` (and
-        implicitly by the various `process <GGCorrelation.process>` methods) to only keep
+        implicitly by the various `process <Corr2.process>` methods) to only keep
         at most two patches in memory at a time.
 
         Parameters:

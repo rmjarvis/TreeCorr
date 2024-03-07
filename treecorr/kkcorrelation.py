@@ -73,9 +73,9 @@ class KKCorrelation(Corr2):
 
     .. note::
 
-        If you separate out the steps of the `process` command and use `process_auto` and/or
-        `process_cross`, then the units will not be applied to ``meanr`` or ``meanlogr`` until
-        the `finalize` function is called.
+        If you separate out the steps of the `Corr2.process` command and use `process_auto`
+        and/or `Corr2.process_cross`, then the units will not be applied to ``meanr`` or
+        ``meanlogr`` until the `finalize` function is called.
 
     The typical usage pattern is as follows:
 
@@ -144,7 +144,7 @@ class KKCorrelation(Corr2):
     def finalize(self, vark1, vark2):
         """Finalize the calculation of the correlation function.
 
-        The `process_auto` and `process_cross` commands accumulate values in each bin,
+        The `process_auto` and `Corr2.process_cross` commands accumulate values in each bin,
         so they can be called multiple times if appropriate.  Afterwards, this command
         finishes the calculation by dividing each column by the total weight.
 

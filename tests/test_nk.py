@@ -163,6 +163,16 @@ def test_direct():
     np.testing.assert_allclose(nk3b.meanlogr, nk.meanlogr)
     np.testing.assert_allclose(nk3b.xi, nk.xi)
 
+    # or using the Corr2 base class
+    with CaptureLog() as cl:
+        nk3c = treecorr.Corr2.from_file(ascii_name, logger=cl.logger)
+    assert ascii_name in cl.output
+    np.testing.assert_allclose(nk3c.npairs, nk.npairs)
+    np.testing.assert_allclose(nk3c.weight, nk.weight)
+    np.testing.assert_allclose(nk3c.meanr, nk.meanr)
+    np.testing.assert_allclose(nk3c.meanlogr, nk.meanlogr)
+    np.testing.assert_allclose(nk3c.xi, nk.xi)
+
     with assert_raises(TypeError):
         nk2 += config
     nk4 = treecorr.NKCorrelation(min_sep=min_sep/2, max_sep=max_sep, nbins=nbins)

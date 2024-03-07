@@ -38,7 +38,7 @@ API Changes
 - Changed estimate_cov with method='shot' to only return the diagonal, rather than gratuitously
   making a full, mostly empty diagonal matrix. (#166)
 - Changed name of Catalog.write kwarg from cat_precision to just precision. (#169)
-- Added additionaly information in the header of output files to enable ``from_file``. (#172)
+- Added additionaly information in the header of output files to enable `Corr2.from_file`. (#172)
 
 
 Performance improvements

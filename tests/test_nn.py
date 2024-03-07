@@ -1274,6 +1274,18 @@ def test_nn():
     assert dd2b.sep_units == dd.sep_units
     assert dd2b.bin_type == dd.bin_type
 
+    # or using the Corr2 base class
+    with CaptureLog() as cl:
+        dd2c = treecorr.Corr2.from_file(out_file_name, logger=cl.logger)
+    assert out_file_name in cl.output
+    np.testing.assert_allclose(dd2c.logr, dd.logr, rtol=1.e-3)
+    np.testing.assert_allclose(dd2c.meanr, dd.meanr, rtol=1.e-3)
+    np.testing.assert_allclose(dd2c.meanlogr, dd.meanlogr, rtol=1.e-3)
+    np.testing.assert_allclose(dd2c.npairs, dd.npairs, rtol=1.e-3)
+    np.testing.assert_allclose(dd2c.tot, dd.tot, rtol=1.e-3)
+    np.testing.assert_allclose(dd2c.xi, dd.xi, rtol=1.e-3)
+    np.testing.assert_allclose(dd2c.varxi, dd.varxi, rtol=1.e-3)
+
     # Check the fits write option
     try:
         import fitsio

@@ -6,9 +6,3 @@ KKKCorrelation: Scalar-scalar-scalar correlations
     :members:
     :special-members:
     :show-inheritance:
-
-.. autoclass:: treecorr.KKKCrossCorrelation
-    :members:
-    :special-members:
-    :show-inheritance:
-

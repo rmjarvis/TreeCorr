@@ -12,7 +12,7 @@ correlation functions:
     kk
     nz
     kz
-    vz
+    zz
     nv
     kv
     vv
@@ -21,10 +21,10 @@ correlation functions:
     gg
     nt
     kt
-    gt
+    tt
     nq
     kq
-    gq
+    qq
 
 Each of the above classes is a sub-class of the base class Corr2, so they have a number of
 features in common about how they are constructed.  The common features are documented here.

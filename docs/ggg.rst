@@ -6,9 +6,3 @@ GGGCorrelation: Shear-shear-shear correlations
     :members:
     :special-members:
     :show-inheritance:
-
-.. autoclass:: treecorr.GGGCrossCorrelation
-    :members:
-    :special-members:
-    :show-inheritance:
-

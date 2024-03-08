@@ -36,6 +36,8 @@ functions.
   Jarvis, Bernstein, & Jain, 2004, MNRAS, 352, 338**
   (I'm working on new paper about TreeCorr, including some of the improvements
   I've made since then, but this will suffice as a reference for now.)
+- If you use the three-point multipole functionality of TreeCorr, please also
+  reference **Porth et al, 2023, arXiv:2309.08601**
 - Record on the Astrophyics Source Code Library: http://ascl.net/1508.007
 - Developed by Mike Jarvis.  Fee free to contact me with questions or comments
   at mikejarvis17 at gmail.  Or post an issue (see below) if you have any

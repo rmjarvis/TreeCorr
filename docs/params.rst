@@ -428,7 +428,7 @@ about the output columns.
     - ``weight`` = The total weight of the pairs in each bin.
     - ``npairs`` = The total number of pairs in each bin.
 
-:nz_file_name: (str) The output filename for count-spin-0 correlation function.
+:nz_file_name: (str) The output filename for count-complex correlation function.
 
     The output columns are:
 
@@ -455,7 +455,7 @@ about the output columns.
       Then this statistic is <z> = (NZ-RZ)/npairs
     - 'simple' is the normal version: <z> = NZ/npairs
 
-:kz_file_name: (str) The output filename for scalar-spin-0 correlation function.
+:kz_file_name: (str) The output filename for scalar-complex correlation function.
 
     The output columns are:
 
@@ -468,7 +468,7 @@ about the output columns.
     - ``weight`` = The total weight of the pairs in each bin.
     - ``npairs`` = The total number of pairs in each bin.
 
-:zz_file_name: (str) The output filename for spin-0-spin-0 correlation function.
+:zz_file_name: (str) The output filename for complex-complex correlation function.
 
     The output columns are:
 
@@ -633,15 +633,15 @@ about the output columns.
     - ``weight`` = The total weight of the pairs in each bin.
     - ``npairs`` = The total number of pairs in each bin.
 
-:nt_file_name: (str) The output filename for count-spin-3 correlation function.
+:nt_file_name: (str) The output filename for count-trefoil correlation function.
 
     The output columns are:
 
     - ``R_nom`` = The center of the bin
     - ``meanR`` = The mean separation of the points that went into the bin.
     - ``meanlogR`` = The mean log(R) of the points that went into the bin.
-    - ``tR`` = The mean real component of the spin-3 field relative to the center points.
-    - ``tR_im`` = The mean imaginary component of the spin-3 field relative to the center points.
+    - ``tR`` = The mean real component of the trefoil field relative to the center points.
+    - ``tR_im`` = The mean imaginary component of the trefoil field relative to the center points.
     - ``sigma`` = The 1-sigma error bar for ``tR`` and ``tR_im``.
     - ``weight`` = The total weight of the pairs in each bin.
     - ``npairs`` = The total number of pairs in each bin.
@@ -660,7 +660,7 @@ about the output columns.
       Then this statistic is tR = (NT-RT)/npairs
     - 'simple' is the normal version: tR = NT/npairs
 
-:kt_file_name: (str) The output filename for scalar-spin-3 correlation function.
+:kt_file_name: (str) The output filename for scalar-trefoil correlation function.
 
     The output columns are:
 
@@ -673,7 +673,7 @@ about the output columns.
     - ``weight`` = The total weight of the pairs in each bin.
     - ``npairs`` = The total number of pairs in each bin.
 
-:tt_file_name: (str) The output filename for spin-3-spin-3 correlation function.
+:tt_file_name: (str) The output filename for trefoil-trefoil correlation function.
 
     The output columns are:
 
@@ -700,15 +700,15 @@ about the output columns.
     - ``weight`` = The total weight of the pairs in each bin.
     - ``npairs`` = The total number of pairs in each bin.
 
-:nq_file_name: (str) The output filename for count-spin-4 correlation function.
+:nq_file_name: (str) The output filename for count-quatrefoil correlation function.
 
     The output columns are:
 
     - ``R_nom`` = The center of the bin
     - ``meanR`` = The mean separation of the points that went into the bin.
     - ``meanlogR`` = The mean log(R) of the points that went into the bin.
-    - ``qR`` = The mean real component of the spin-4 field relative to the center points.
-    - ``qR_im`` = The mean imaginary component of the spin-4 field relative to the center points.
+    - ``qR`` = The mean real component of the quatrefoil field relative to the center points.
+    - ``qR_im`` = The mean imaginary component of the quatrefoil field relative to the center points.
     - ``sigma`` = The 1-sigma error bar for ``qR`` and ``qR_im``.
     - ``weight`` = The total weight of the pairs in each bin.
     - ``npairs`` = The total number of pairs in each bin.
@@ -727,7 +727,7 @@ about the output columns.
       Then this statistic is qR = (NQ-RQ)/npairs
     - 'simple' is the normal version: qR = NQ/npairs
 
-:kq_file_name: (str) The output filename for scalar-spin-4 correlation function.
+:kq_file_name: (str) The output filename for scalar-quatrefoil correlation function.
 
     The output columns are:
 
@@ -740,7 +740,7 @@ about the output columns.
     - ``weight`` = The total weight of the pairs in each bin.
     - ``npairs`` = The total number of pairs in each bin.
 
-:qq_file_name: (str) The output filename for spin-4-spin-4 correlation function.
+:qq_file_name: (str) The output filename for quatrefoil-quatrefoil correlation function.
 
     The output columns are:
 

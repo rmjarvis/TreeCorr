@@ -1,6 +1,6 @@
 
-NZCorrelation: Count-spin-0 correlations
-----------------------------------------
+NZCorrelation: Count-complex correlations
+-----------------------------------------
 
 .. autoclass:: treecorr.NZCorrelation
     :members:

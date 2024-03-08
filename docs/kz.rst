@@ -1,6 +1,6 @@
 
-KZCorrelation: Scalar-spin-0 correlations
------------------------------------------
+KZCorrelation: Scalar-complex correlations
+------------------------------------------
 
 .. autoclass:: treecorr.KZCorrelation
     :members:

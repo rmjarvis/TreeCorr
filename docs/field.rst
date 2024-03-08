@@ -15,19 +15,19 @@ There are several kinds of `Field` classes.
     - `KField` holds both counts of objects and the mean "kappa" of those objects.
       It is used for correlations with a K in the name, including
       `KKCorrelation`, `NKCorrelation`, `KGCorrelation`, and `KKKCorrelation`.
-    - `ZField` holds both counts of objects and the mean complex spin-0 field of those objects.
-      It is used for correlations with a V in the name, including
-      `VVCorrelation`, `NVCorrelation`, and `KVCorrelation`.
+    - `ZField` holds both counts of objects and the mean value of the complex field of those
+      objects.  It is used for correlations with a Z in the name, including
+      `ZZCorrelation`, `NZCorrelation`, and `KZCorrelation`.
     - `VField` holds both counts of objects and the mean vector field of those objects.
       It is used for correlations with a V in the name, including
       `VVCorrelation`, `NVCorrelation`, and `KVCorrelation`.
     - `GField` holds both counts of objects and the mean shear of those objects.
       It is used for correlations with a G in the name, including
       `GGCorrelation`, `NGCorrelation`, `KGCorrelation`, and `GGGCorrelation`.
-    - `TField` holds both counts of objects and the mean spin-3 field of those objects.
+    - `TField` holds both counts of objects and the mean trefoil field of those objects.
       It is used for correlations with a V in the name, including
       `VVCorrelation`, `NVCorrelation`, and `KVCorrelation`.
-    - `QField` holds both counts of objects and the mean spin-4 field of those objects.
+    - `QField` holds both counts of objects and the mean quatrefoil field of those objects.
       It is used for correlations with a V in the name, including
       `VVCorrelation`, `NVCorrelation`, and `KVCorrelation`.
 

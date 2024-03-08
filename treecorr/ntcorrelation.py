@@ -25,8 +25,8 @@ from .config import make_minimal_config
 
 
 class NTCorrelation(BaseNZCorrelation):
-    r"""This class handles the calculation and storage of a 2-point count-spin-3 correlation
-    function.
+    r"""This class handles the calculation and storage of a 2-point count-trefoil correlation
+    function, where a trefoil is any field with spin-3 rotational properties.
 
     Ojects of this class holds the following attributes:
 
@@ -116,7 +116,7 @@ class NTCorrelation(BaseNZCorrelation):
         by dividing each column by the total weight.
 
         Parameters:
-            vart (float):   The variance per component of the spin-3 field.
+            vart (float):   The variance per component of the trefoil field.
         """
         super().finalize(vart)
 
@@ -127,8 +127,8 @@ class NTCorrelation(BaseNZCorrelation):
         - If rt is None, the simple correlation function :math:`\langle t_R\rangle` is
           returned.
         - If rt is not None, then a compensated calculation is done:
-          :math:`\langle t_R\rangle = (DT - RT)`, where DT represents the mean radial spin-3
-          field around the data points and RT represents the mean radial spin-3 field around
+          :math:`\langle t_R\rangle = (DT - RT)`, where DT represents the mean radial trefoil
+          field around the data points and RT represents the mean radial trefoil field around
           random points.
 
         After calling this function, the attributes ``xi``, ``xi_im``, ``varxi``, and ``cov`` will
@@ -154,8 +154,8 @@ class NTCorrelation(BaseNZCorrelation):
 
         - If rt is None, the simple correlation function :math:`\langle t_R\rangle` is used.
         - If rt is not None, then a compensated calculation is done:
-          :math:`\langle t_R\rangle = (DT - RT)`, where DT represents the mean spin-3 field
-          around the data points and RT represents the mean spin-3 field around random points.
+          :math:`\langle t_R\rangle = (DT - RT)`, where DT represents the mean trefoil field
+          around the data points and RT represents the mean trefoil field around random points.
 
         The output file will include the following columns:
 
@@ -167,9 +167,9 @@ class NTCorrelation(BaseNZCorrelation):
                         into each bin
         meanlogr        The mean value :math:`\langle \log(r) \rangle` of pairs that
                         fell into each bin
-        tR              The mean real part of the spin-3 field relative to the
+        tR              The mean real part of the trefoil field relative to the
                         center points.
-        tR_im           The mean imaginary part of the spin-3 field relative to the
+        tR_im           The mean imaginary part of the trefoil field relative to the
                         center points.
         sigma           The sqrt of the variance estimate of either of these
         weight          The total weight contributing to each bin

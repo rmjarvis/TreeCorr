@@ -113,10 +113,11 @@ class BaseKZCorrelation(Corr2):
 
 
 class KZCorrelation(BaseKZCorrelation):
-    r"""This class handles the calculation and storage of a 2-point scalar-spin-0 correlation
-    function.  If the spin-0 field is real, you should instead use `KKCorrelation` as it will
-    be faster.  This class is intended for correlations of a real scalar field with a complex
-    spin-0 field.
+    r"""This class handles the calculation and storage of a 2-point scalar-complex correlation
+    function, where the complex field is taken to have spin-0 rotational properties.  If the
+    spin-0 field is real, you should instead use `KKCorrelation` as it will be faster.
+    This class is intended for correlations of a scalar field with a complex values that
+    don't change with orientation.
 
     Ojects of this class holds the following attributes:
 
@@ -203,7 +204,7 @@ class KZCorrelation(BaseKZCorrelation):
 
         Parameters:
             vark (float):   The variance of the scaler field.
-            varz (float):   The variance per component of the spin-0 field.
+            varz (float):   The variance per component of the complex field.
         """
         super().finalize(vark, varz)
 

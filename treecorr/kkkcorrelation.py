@@ -686,8 +686,8 @@ class KKKCorrelation(Corr3):
                         The default phi binning is [0,pi] with nphi_bins = self.max_n.
 
         Returns:
-            sas:        A KKKCorrelation object with bin_type=LogSAS containing the
-                        same information as this object, but with the SAS binning.
+            A KKKCorrelation object with bin_type=LogSAS containing the
+            same information as this object, but with the SAS binning.
         """
         if self.bin_type != 'LogMultipole':
             raise TypeError("toSAS is invalid for bin_type = %s"%self.bin_type)
@@ -916,7 +916,7 @@ class KKKCorrelation(Corr3):
                                 random number generation. (default: None)
 
         Returns:
-            corr: A KKKCorrelation object, constructed from the information in the file.
+            A KKKCorrelation object, constructed from the information in the file.
         """
         if logger:
             logger.info('Building KKKCorrelation from %s',file_name)

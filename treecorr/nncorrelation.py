@@ -650,7 +650,7 @@ class NNCorrelation(Corr2):
                                 random number generation. (default: None)
 
         Returns:
-            corr: An NNCorrelation object, constructed from the information in the file.
+            An NNCorrelation object, constructed from the information in the file.
         """
         if logger:
             logger.info('Building NNCorrelation from %s',file_name)

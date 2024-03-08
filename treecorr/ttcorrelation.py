@@ -25,8 +25,8 @@ from .config import make_minimal_config
 
 
 class TTCorrelation(BaseZZCorrelation):
-    r"""This class handles the calculation and storage of a 2-point spin-3-spin-3 correlation
-    function.
+    r"""This class handles the calculation and storage of a 2-point trefoil-trefoil correlation
+    function, where a trefoil is any field with spin-3 rotational properties.
 
     Ojects of this class holds the following attributes:
 
@@ -117,7 +117,7 @@ class TTCorrelation(BaseZZCorrelation):
         finishes the calculation by dividing each column by the total weight.
 
         Parameters:
-            vart1 (float):  The variance per component of the first spin-3 field.
-            vart2 (float):  The variance per component of the second spin-3 field.
+            vart1 (float):  The variance per component of the first trefoil field.
+            vart2 (float):  The variance per component of the second trefoil field.
         """
         super().finalize(vart1, vart2)

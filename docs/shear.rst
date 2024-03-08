@@ -1,8 +1,8 @@
 Shear Conventions
 =================
 
-A shear field (or in general an arbitrary spin-2 complex field, also known as a "spinor")
-is described by two real numbers in the input `Catalog`, called :math:`g_1` and :math:`g_2`.
+A shear field (or in general an arbitrary spin-2 complex field) is described by two real numbers
+in the input `Catalog`, called :math:`g_1` and :math:`g_2`.
 The complex-valued :math:`g` is defined as:
 
 .. math::
@@ -75,8 +75,8 @@ the g1 values.  Similarly, ``flip_g2=True`` will flip the sign of all the g2 val
 Vectors
 -------
 
-All of the above discussion applies equally to vector field.
-A vector field is a spin-1 complex field:
+All of the above discussion applies equally to the fields that have rotational properties with
+other spin values.  For instance, a vector field is a spin-1 complex field:
 
 .. math::
 

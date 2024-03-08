@@ -733,8 +733,8 @@ class NNNCorrelation(Corr3):
                         The default phi binning is [0,pi] with nphi_bins = self.max_n.
 
         Returns:
-            sas:        An NNNCorrelation object with bin_type=LogSAS containing the
-                        same information as this object, but with the SAS binning.
+            An NNNCorrelation object with bin_type=LogSAS containing the
+            same information as this object, but with the SAS binning.
         """
         if self.bin_type != 'LogMultipole':
             raise TypeError("toSAS is invalid for bin_type = %s"%self.bin_type)
@@ -1271,7 +1271,7 @@ class NNNCorrelation(Corr3):
                                 random number generation. (default: None)
 
         Returns:
-            corr: An NNNCorrelation object, constructed from the information in the file.
+            An NNNCorrelation object, constructed from the information in the file.
         """
         if logger:
             logger.info('Building NNNCorrelation from %s',file_name)

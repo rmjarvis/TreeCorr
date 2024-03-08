@@ -25,8 +25,8 @@ from .config import make_minimal_config
 
 
 class NQCorrelation(BaseNZCorrelation):
-    r"""This class handles the calculation and storage of a 2-point count-spin-4 correlation
-    function.
+    r"""This class handles the calculation and storage of a 2-point count-quatrefoil correlation
+    function, where a quatrefoil is any field with spin-4 rotational properties.
 
     Ojects of this class holds the following attributes:
 
@@ -116,7 +116,7 @@ class NQCorrelation(BaseNZCorrelation):
         by dividing each column by the total weight.
 
         Parameters:
-            varq (float):   The variance per component of the spin-4 field.
+            varq (float):   The variance per component of the quatrefoil field.
         """
         super().finalize(varq)
 
@@ -127,8 +127,8 @@ class NQCorrelation(BaseNZCorrelation):
         - If rq is None, the simple correlation function :math:`\langle q_R\rangle` is
           returned.
         - If rq is not None, then a compensated calculation is done:
-          :math:`\langle q_R\rangle = (DQ - RQ)`, where DQ represents the mean radial spin-3
-          field around the data points and RQ represents the mean radial spin-3 field around
+          :math:`\langle q_R\rangle = (DQ - RQ)`, where DQ represents the mean radial quatrefoil
+          field around the data points and RQ represents the mean radial quatrefoil field around
           random points.
 
         After calling this function, the attributes ``xi``, ``xi_im``, ``varxi``, and ``cov`` will
@@ -154,8 +154,8 @@ class NQCorrelation(BaseNZCorrelation):
 
         - If rq is None, the simple correlation function :math:`\langle q_R\rangle` is used.
         - If rq is not None, then a compensated calculation is done:
-          :math:`\langle q_R\rangle = (DQ - RQ)`, where DQ represents the mean spin-3 field.
-          around the data points and RQ represents the mean spin-3 field around random points.
+          :math:`\langle q_R\rangle = (DQ - RQ)`, where DQ represents the mean quatrefoil field.
+          around the data points and RQ represents the mean quatrefoil field around random points.
 
         The output file will include the following columns:
 
@@ -167,9 +167,9 @@ class NQCorrelation(BaseNZCorrelation):
                         into each bin
         meanlogr        The mean value :math:`\langle \log(r) \rangle` of pairs that
                         fell into each bin
-        qR              The mean real part of the spin-4 field relative to the
+        qR              The mean real part of the quatrefoil field relative to the
                         center points
-        qR_im           The mean imaginary part of the spin-4 field relative to the
+        qR_im           The mean imaginary part of the quatrefoil field relative to the
                         center points
         sigma           The sqrt of the variance estimate of either of these
         weight          The total weight contributing to each bin

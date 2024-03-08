@@ -42,18 +42,21 @@ class Corr2(object):
     - `NNCorrelation` handles count-count correlation functions
     - `NKCorrelation` handles count-scalar correlation functions
     - `KKCorrelation` handles scalar-scalar correlation functions
+    - `NZCorrelation` handles count-complex correlation functions
+    - `KZCorrelation` handles scalar-complex correlation functions
+    - `ZZCorrelation` handles complex-complex correlation functions
     - `NVCorrelation` handles count-vector correlation functions
     - `KVCorrelation` handles scalar-vector correlation functions
-    - `VVCorrelation` handles count-vector correlation functions
+    - `VVCorrelation` handles vector-vector correlation functions
     - `NGCorrelation` handles count-shear correlation functions
     - `KGCorrelation` handles scalar-shear correlation functions
     - `GGCorrelation` handles shear-shear correlation functions
-    - `NTCorrelation` handles count-spin-3 correlation functions
-    - `KTCorrelation` handles scalar-spin-3 correlation functions
-    - `TTCorrelation` handles spin-3-spin-3 correlation functions
-    - `NQCorrelation` handles count-spin-4 correlation functions
-    - `KQCorrelation` handles scalar-spin-4 correlation functions
-    - `QQCorrelation` handles spin-4-spin-4 correlation functions
+    - `NTCorrelation` handles count-trefoil correlation functions
+    - `KTCorrelation` handles scalar-trefoil correlation functions
+    - `TTCorrelation` handles trefoil-trefoil correlation functions
+    - `NQCorrelation` handles count-quatrefoil correlation functions
+    - `KQCorrelation` handles scalar-quatrefoil correlation functions
+    - `QQCorrelation` handles quatrefoil-quatrefoil correlation functions
 
     .. note::
 
@@ -61,11 +64,6 @@ class Corr2(object):
         scalar quantities nominally refers to the weak lesing kappa field.
         But in fact any scalar quantity may be used here.
         (CMB temperature fluctuations for example.)
-
-        The spin-3 and spin-4 correlations use T and Q for those fields.  Nominally these
-        stand for trefoil and quatrefoil, since these have the right spin properties.
-        But as usual, any field with the appropriate transformation properties can be
-        used for these.
 
     The constructor for all derived classes take a config dict as the first argument,
     since this is often how we keep track of parameters, but if you don't want to
@@ -1836,7 +1834,7 @@ class Corr2(object):
                                 random number generation. (default: None)
 
         Returns:
-            corr: A Correlation object, constructed from the information in the file.
+            A Correlation object, constructed from the information in the file.
         """
         if cls is Corr2:
             # Then need to figure out what class to make first.

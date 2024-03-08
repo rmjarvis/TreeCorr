@@ -80,12 +80,12 @@ class Field(object):
           cells keep track of the mean (complex) value in the given region.
         - `VField` describes a field of points sampling a vector (spin-1) field.  In addition
           to the above values, cells keep track of the mean (complex) vector in the given region.
-        - `GField` describes a field of points sampling a spinor (spin-2) field (e.g. gamma in the
+        - `GField` describes a field of points sampling a shear (spin-2) field (e.g. gamma in the
           weak lensing context).  In addition to the above values, cells keep track of
           the mean (complex) gamma value in the given region.
-        - `TField` describes a field of points sampling a spin-3 field.  In addition
+        - `TField` describes a field of points sampling a trefoil (spin-3) field.  In addition
           to the above values, cells keep track of the mean (complex) value in the given region.
-        - `QField` describes a field of points sampling a spin-4 field.  In addition
+        - `QField` describes a field of points sampling a quatrefoil (spin-4) field.  In addition
           to the above values, cells keep track of the mean (complex) value in the given region.
     """
     def __init__(self):
@@ -762,7 +762,7 @@ class VField(Field):
 
 
 class GField(Field):
-    r"""This class stores the values of a spinor field (gamma in the weak lensing context) in a
+    r"""This class stores the values of a shear field (gamma in the weak lensing context) in a
     tree structure from which it is efficient to compute correlation functions.
 
     A GField is typically created from a Catalog object using
@@ -825,8 +825,8 @@ class GField(Field):
 
 
 class TField(Field):
-    r"""This class stores the values of a spin-3 field in a tree structure from which it is
-    efficient to compute correlation functions.
+    r"""This class stores the values of a trefoil (spin-3) field in a tree structure from which it
+    is efficient to compute correlation functions.
 
     A TField is typically created from a Catalog object using
 
@@ -887,8 +887,8 @@ class TField(Field):
             logger.debug('Finished building TField (%s)',self.coords)
 
 class QField(Field):
-    r"""This class stores the values of a spin-4 field in a tree structure from which it is
-    efficient to compute correlation functions.
+    r"""This class stores the values of a quatrefoil (spin-4) field in a tree structure from which
+    it is efficient to compute correlation functions.
 
     A QField is typically created from a Catalog object using
 

@@ -223,6 +223,8 @@ class ZZCorrelation(BaseZZCorrelation):
     r"""This class handles the calculation and storage of a 2-point correlation function
     of two complex spin-0 fields.  If either spin-0 field is real, you should instead use
     `KZCorrelation` as it will be faster, and if both are real, you should use `KKCorrelation`.
+    This class is intended for correlations of scalar fields with a complex values that
+    don't change with orientation.
 
     To be consistent with the other spin correlation functions, we compute two quantities:
 
@@ -232,7 +234,7 @@ class ZZCorrelation(BaseZZCorrelation):
         \xi_- = \langle z_1 z_2 \rangle
 
     There is no projection along the line connecting the two points as there is for the other
-    complex fields, since spin-0 fields don't change with orientation.
+    complex fields, since the field values don't change with orientation.
 
     Ojects of this class holds the following attributes:
 

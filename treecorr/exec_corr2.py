@@ -81,14 +81,14 @@ corr2_valid_params = {
             'The output filename for scalar-scalar correlation function.'),
 
     'nz_file_name' : (str, False, None, None,
-            'The output filename for point-spin-0 correlation function.'),
+            'The output filename for point-complex correlation function.'),
     'nz_statistic' : (str, False, None, ['compensated', 'simple'],
             'Which statistic to use for the estimator of the NZ correlation function. ',
             'The default is compensated if rand_files is given, otherwise simple'),
     'kz_file_name' : (str, False, None, None,
-            'The output filename for scalar-spin-0 correlation function.'),
+            'The output filename for scalar-complex correlation function.'),
     'zz_file_name' : (str, False, None, None,
-            'The output filename for spin-0-spin-0 correlation function.'),
+            'The output filename for complex-complex correlation function.'),
 
     'nv_file_name' : (str, False, None, None,
             'The output filename for point-vector correlation function.'),
@@ -111,24 +111,24 @@ corr2_valid_params = {
             'The output filename for shear-shear correlation function.'),
 
     'nt_file_name' : (str, False, None, None,
-            'The output filename for point-spin-3 correlation function.'),
+            'The output filename for point-trefoil correlation function.'),
     'nt_statistic' : (str, False, None, ['compensated', 'simple'],
             'Which statistic to use for the estimator of the NT correlation function. ',
             'The default is compensated if rand_files is given, otherwise simple'),
     'kt_file_name' : (str, False, None, None,
-            'The output filename for scalar-spin-3 correlation function.'),
+            'The output filename for scalar-trefoil correlation function.'),
     'tt_file_name' : (str, False, None, None,
-            'The output filename for spin-3-spin-3 correlation function.'),
+            'The output filename for trefoil-trefoil correlation function.'),
 
     'nq_file_name' : (str, False, None, None,
-            'The output filename for point-spin-4 correlation function.'),
+            'The output filename for point-quatrefoil correlation function.'),
     'nq_statistic' : (str, False, None, ['compensated', 'simple'],
             'Which statistic to use for the estimator of the NQ correlation function. ',
             'The default is compensated if rand_files is given, otherwise simple'),
     'kq_file_name' : (str, False, None, None,
-            'The output filename for scalar-spin-4 correlation function.'),
+            'The output filename for scalar-quatrefoil correlation function.'),
     'qq_file_name' : (str, False, None, None,
-            'The output filename for spin-4-spin-4 correlation function.'),
+            'The output filename for quatrefoil-quatrefoil correlation function.'),
 
     # Derived output quantities
 

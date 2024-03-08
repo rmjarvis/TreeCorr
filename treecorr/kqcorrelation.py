@@ -25,8 +25,8 @@ from .config import make_minimal_config
 
 
 class KQCorrelation(BaseKZCorrelation):
-    r"""This class handles the calculation and storage of a 2-point scalar-spin-4 correlation
-    function.
+    r"""This class handles the calculation and storage of a 2-point scalar-quatrefoil correlation
+    function, where a quatrefoil is any field with spin-4 rotational properties.
 
     Ojects of this class holds the following attributes:
 
@@ -113,7 +113,7 @@ class KQCorrelation(BaseKZCorrelation):
 
         Parameters:
             vark (float):   The variance of the scaler field.
-            varq (float):   The variance per component of the spin-4 field.
+            varq (float):   The variance per component of the quatrefoil field.
         """
         super().finalize(vark, varq)
 

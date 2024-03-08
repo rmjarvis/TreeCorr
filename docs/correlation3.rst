@@ -3,9 +3,10 @@ Three-point Correlation Functions
 =================================
 
 There are currently 3 differenct classes for calculating the different possible three-point
-auto-correlation functions:
+correlation functions:
 
 .. toctree::
+    :maxdepth: 1
 
     nnn
     ggg

@@ -40,7 +40,7 @@ the chord distance becomes significant.  The conversion formula is
 
 TreeCorr applies this formula at the end as part of the `finalize <GGCorrelation.finalize>`
 function, so the ``meanr`` and ``meanlogr`` attributes
-will be in terms of great circle distances.  However, they will not necessarily be spaced
+will be in terms of great circle distances.  However, they will not be spaced
 precisely uniformly in log(r), since the original bin spacing will have been set up in terms
 of the chord distances.
 

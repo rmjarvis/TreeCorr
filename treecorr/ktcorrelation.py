@@ -25,8 +25,8 @@ from .config import make_minimal_config
 
 
 class KTCorrelation(BaseKZCorrelation):
-    r"""This class handles the calculation and storage of a 2-point scalar-spin-3 correlation
-    function.
+    r"""This class handles the calculation and storage of a 2-point scalar-trefoil correlation
+    function, where a trefoil is any field with spin-3 rotational properties.
 
     Ojects of this class holds the following attributes:
 
@@ -113,7 +113,7 @@ class KTCorrelation(BaseKZCorrelation):
 
         Parameters:
             vark (float):   The variance of the scaler field.
-            vart (float):   The variance per component of the spin-3 field.
+            vart (float):   The variance per component of the trefoil field.
         """
         super().finalize(vark, vart)
 

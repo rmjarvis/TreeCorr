@@ -38,7 +38,7 @@ class Catalog(object):
     .. note::
 
         See `Shear Conventions` for some discussion of the conventions used in TreeCorr
-        for the orientation of the spin-2 shear values.
+        for the orientation of the shear values.
 
     The simplest way to build a Catalog is to simply pass in numpy arrays for each
     piece of information you want included.  For instance::
@@ -136,10 +136,12 @@ class Catalog(object):
         v2:     The v2 component of a vector, if defined, as a numpy array. (None otherwise)
         g1:     The g1 component of a shear, if defined, as a numpy array. (None otherwise)
         g2:     The g2 component of a shear, if defined, as a numpy array. (None otherwise)
-        t1:     The 1st component of a spin-3 field, if defined, as a numpy array. (None otherwise)
-        t2:     The 2nd component of a spin-3 field, if defined, as a numpy array. (None otherwise)
-        q1:     The 1st component of a spin-4 field, if defined, as a numpy array. (None otherwise)
-        q2:     The 2nd component of a spin-4 field, if defined, as a numpy array. (None otherwise)
+        t1:     The 1st component of a trefoil field, if defined, as a numpy array. (None otherwise)
+        t2:     The 2nd component of a trefoil field, if defined, as a numpy array. (None otherwise)
+        q1:     The 1st component of a quatrefoil field, if defined, as a numpy array.
+                (None otherwise)
+        q2:     The 2nd component of a quatrefoil field, if defined, as a numpy array.
+                (None otherwise)
         patch:  The patch number of each object, if patches are being used. (None otherwise)
                 If the entire catalog is a single patch, then ``patch`` may be an int.
         ntot:   The total number of objects (including those with zero weight if
@@ -188,7 +190,7 @@ class Catalog(object):
                     As for ``vark``, this is the right quantity to use for the ``'shot'``
                     noise estimate.
 
-        vart:   The variance per component of the spin-3 field (0 if g1,g2 are not defined)
+        vart:   The variance per component of the trefoil field (0 if g1,g2 are not defined)
 
                 .. note::
 
@@ -198,7 +200,7 @@ class Catalog(object):
                     As for ``vark``, this is the right quantity to use for the ``'shot'``
                     noise estimate.
 
-        varq:   The variance per component of the spin-4 field (0 if g1,g2 are not defined)
+        varq:   The variance per component of the quatrefoil field (0 if g1,g2 are not defined)
 
                 .. note::
 
@@ -276,13 +278,15 @@ class Catalog(object):
         v1 (array):         The v1 values to use for vector correlations. (default: None)
         v2 (array):         The v2 values to use for vector correlations. (default: None)
         g1 (array):         The g1 values to use for shear correlations. (g1,g2 may represent any
-                            spinor field.) (default: None)
+                            spin-2 field.) (default: None)
         g2 (array):         The g2 values to use for shear correlations. (g1,g2 may represent any
-                            spinor field.) (default: None)
-        t1 (array):         The t1 values to use for spin-3 correlations. (default: None)
-        t2 (array):         The t2 values to use for spin-3 correlations. (default: None)
-        q1 (array):         The q1 values to use for spin-4 correlations. (default: None)
-        q2 (array):         The q2 values to use for spin-4 correlations. (default: None)
+                            spin-2 field.) (default: None)
+        t1 (array):         The t1 values to use for trefoil (spin-3) correlations. (default: None)
+        t2 (array):         The t2 values to use for trefoil (spin-3) correlations. (default: None)
+        q1 (array):         The q1 values to use for quatrefoil (spin-4) correlations.
+                            (default: None)
+        q2 (array):         The q2 values to use for quatrefoil (spin-4) correlations.
+                            (default: None)
         patch (array or int): Optionally, patch numbers to use for each object. (default: None)
 
                             .. note::
@@ -2461,7 +2465,7 @@ class Catalog(object):
             logger:             A Logger object if desired (default: self.logger)
 
         Returns:
-            A `VField` object
+            A `ZField` object
         """
         if split_method is None:
             split_method = get(self.config,'split_method',str,'mean')
@@ -3386,7 +3390,7 @@ def calculateVarG(cat_list, *, low_mem=False):
         return (varg1 + varg2)/2.
 
 def calculateVarT(cat_list, *, low_mem=False):
-    """Calculate the overall variance of the spin-3 field from a list of catalogs.
+    """Calculate the overall variance of the trefoil field from a list of catalogs.
 
     The catalogs are assumed to be equivalent, so this is just the average
     variance (per component) weighted by the number of objects in each catalog.
@@ -3397,7 +3401,7 @@ def calculateVarT(cat_list, *, low_mem=False):
                     catalog after getting its individual varg. [default: False]
 
     Returns:
-        The variance per component of the spin-3 field.
+        The variance per component of the trefoil field.
     """
     if isinstance(cat_list, Catalog):
         return cat_list.vart
@@ -3409,7 +3413,7 @@ def calculateVarT(cat_list, *, low_mem=False):
         return (vart1 + vart2)/2.
 
 def calculateVarQ(cat_list, *, low_mem=False):
-    """Calculate the overall variance of the spin-4 field from a list of catalogs.
+    """Calculate the overall variance of the quatrefoil field from a list of catalogs.
 
     The catalogs are assumed to be equivalent, so this is just the average
     variance (per component) weighted by the number of objects in each catalog.
@@ -3420,7 +3424,7 @@ def calculateVarQ(cat_list, *, low_mem=False):
                     catalog after getting its individual varg. [default: False]
 
     Returns:
-        The variance per component of the spin-4 field.
+        The variance per component of the quatrefoil field.
     """
     if isinstance(cat_list, Catalog):
         return cat_list.varq

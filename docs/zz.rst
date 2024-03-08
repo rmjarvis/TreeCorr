@@ -1,6 +1,6 @@
 
-ZZCorrelation: Spin-0-spin-0 correlations
------------------------------------------
+ZZCorrelation: Complex-complex correlations
+-------------------------------------------
 
 .. autoclass:: treecorr.ZZCorrelation
     :members:

@@ -25,8 +25,8 @@ from .config import make_minimal_config
 
 
 class QQCorrelation(BaseZZCorrelation):
-    r"""This class handles the calculation and storage of a 2-point spin-4-spin-4 correlation
-    function.
+    r"""This class handles the calculation and storage of a 2-point quatrefoil-quatrefoil
+    correlation function, where a quatrefoil is any field with spin-4 rotational properties.
 
     Ojects of this class holds the following attributes:
 
@@ -117,7 +117,7 @@ class QQCorrelation(BaseZZCorrelation):
         finishes the calculation by dividing each column by the total weight.
 
         Parameters:
-            varq1 (float):  The variance per component of the first spin-4 field.
-            varq2 (float):  The variance per component of the second spin-4 field.
+            varq1 (float):  The variance per component of the first quatrefoil field.
+            varq2 (float):  The variance per component of the second quatrefoil field.
         """
         super().finalize(varq1, varq2)

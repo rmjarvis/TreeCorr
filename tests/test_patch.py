@@ -2761,13 +2761,9 @@ def test_lowmem():
     if __name__ == '__main__':
         ngal = 2000000
         npatch = 64
-        himem = 1.e8   # These are empirical of course.  The point is himem >> lomem.
-        lomem = 4.e6
     else:
         ngal = 100000
         npatch = 16
-        himem = 5.e6
-        lomem = 4.e5
     rng = np.random.RandomState(8675309)
     x = rng.uniform(-20,20, (ngal,) )
     y = rng.uniform(80,120, (ngal,) )  # Put everything at large y, so smallish angle on sky
@@ -2805,9 +2801,12 @@ def test_lowmem():
     s0 = hp.heap().size if hp else 0
     dd.process(full_cat)
     t1 = time.time()
-    s1 = hp.heap().size if hp else 2*himem
+    s1 = hp.heap().size if hp else 200
     print('regular: ',s1, t1-t0, s1-s0)
-    assert s1-s0 > himem  # This version uses a lot of memory.
+    # This version typically uses a lot of memory.  However, the exact amount varies a fair
+    # bit among systems.  So rather than compare the memory to a specific number, we just check
+    # that the lowmem versions use less memory than this.
+    ref = s1-s0
 
     npairs1 = dd.npairs
 
@@ -2826,7 +2825,7 @@ def test_lowmem():
     t1 = time.time()
     s1 = hp.heap().size if hp else 0
     print('lomem: ',s1, t1-t0, s1-s0)
-    assert s1-s0 < lomem  # This version uses a lot less memory
+    assert s1-s0 < ref  # This version uses a lot less memory
     npairs2 = dd.npairs
     np.testing.assert_array_equal(npairs1, npairs2)
 
@@ -2838,7 +2837,7 @@ def test_lowmem():
     t1 = time.time()
     s1 = hp.heap().size if hp else 0
     print('lomem x: ',s1, t1-t0, s1-s0)
-    assert s1-s0 < lomem
+    assert s1-s0 < ref
     npairs3 = dd.npairs
     np.testing.assert_array_equal(npairs3, npairs2)
 

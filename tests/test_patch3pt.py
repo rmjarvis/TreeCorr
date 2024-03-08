@@ -2143,17 +2143,13 @@ def test_lowmem():
         return
 
     if __name__ == '__main__':
+        nsource = 100000
+        nhalo = 100
+        npatch = 64
+    else:
         nsource = 10000
         nhalo = 100
-        npatch = 4
-        himem = 7.e5
-        lomem = 9.e4
-    else:
-        nsource = 1000
-        nhalo = 100
-        npatch = 4
-        himem = 1.4e5
-        lomem = 1.e5
+        npatch = 16
 
     rng = np.random.RandomState(8675309)
     x, y, g1, g2, k = generate_shear_field(nsource, nhalo, rng)
@@ -2175,17 +2171,18 @@ def test_lowmem():
                                 x_col='x', y_col='y', g1_col='g1', g2_col='g2', k_col='k',
                                 patch_centers=patch_centers)
 
-    kkk = treecorr.KKKCorrelation(nbins=1, min_sep=280., max_sep=300.,
-                                  min_u=0.95, max_u=1.0, nubins=1,
-                                  min_v=0., max_v=0.05, nvbins=1, bin_type='LogRUV')
+    kkk = treecorr.KKKCorrelation(nbins=5, min_sep=200., max_sep=300., nphi_bins=20)
 
     t0 = time.time()
     s0 = hp.heap().size if hp else 0
     kkk.process(full_cat)
     t1 = time.time()
-    s1 = hp.heap().size if hp else 2*himem
+    s1 = hp.heap().size if hp else 200
     print('regular: ',s1, t1-t0, s1-s0)
-    assert s1-s0 > himem  # This version uses a lot of memory.
+    # This version typically uses a lot of memory.  However, the exact amount varies a fair
+    # bit among systems.  So rather than compare the memory to a specific number, we just check
+    # that the lowmem versions use less memory than this.
+    ref = s1-s0
 
     ntri1 = kkk.ntri
     zeta1 = kkk.zeta
@@ -2200,15 +2197,13 @@ def test_lowmem():
 
     t0 = time.time()
     s0 = hp.heap().size if hp else 0
-    kkk.process(save_cat, low_mem=True, finalize=False)
+    kkk.process(save_cat, low_mem=True)
     t1 = time.time()
     s1 = hp.heap().size if hp else 0
     print('lomem 1: ',s1, t1-t0, s1-s0)
-    assert s1-s0 < lomem  # This version uses a lot less memory
+    assert s1-s0 < ref  # This version uses a lot less memory
     ntri2 = kkk.ntri
     zeta2 = kkk.zeta
-    print('ntri1 = ',ntri1)
-    print('zeta1 = ',zeta1)
     np.testing.assert_array_equal(ntri2, ntri1)
     np.testing.assert_array_equal(zeta2, zeta1)
 
@@ -2220,7 +2215,7 @@ def test_lowmem():
     t1 = time.time()
     s1 = hp.heap().size if hp else 0
     print('lomem 2: ',s1, t1-t0, s1-s0)
-    assert s1-s0 < lomem
+    assert s1-s0 < ref
     ntri3 = kkk.ntri
     zeta3 = kkk.zeta
     np.testing.assert_array_equal(ntri3, ntri1)
@@ -2234,7 +2229,7 @@ def test_lowmem():
     t1 = time.time()
     s1 = hp.heap().size if hp else 0
     print('lomem 3: ',s1, t1-t0, s1-s0)
-    assert s1-s0 < lomem
+    assert s1-s0 < ref
     ntri4 = kkk.ntri
     zeta4 = kkk.zeta
     np.testing.assert_array_equal(ntri4, ntri1)
@@ -2248,7 +2243,7 @@ def test_lowmem():
     t1 = time.time()
     s1 = hp.heap().size if hp else 0
     print('lomem 4: ',s1, t1-t0, s1-s0)
-    assert s1-s0 < lomem
+    assert s1-s0 < ref
     ntri5 = kkk.ntri
     zeta5 = kkk.zeta
     np.testing.assert_array_equal(ntri5, ntri1)

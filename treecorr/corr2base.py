@@ -529,12 +529,6 @@ class Corr2(object):
             self._rng = np.random.default_rng()
         return self._rng
 
-    # Helper for making a nice repr that doesn't list all params that are just defaults.
-    @property
-    def _repr_kwargs(self):
-        kwargs = make_minimal_config(self.config, Corr2._valid_params)
-        return ', '.join(f'{k}={v!r}' for k,v in kwargs.items())
-
     # Properties for all the read-only attributes ("ro" stands for "read-only")
     @property
     def output_dots(self): return self._ro.output_dots
@@ -691,7 +685,9 @@ class Corr2(object):
         return ret
 
     def __repr__(self):
-        return f'{self._cls}({self._repr_kwargs})'
+        kwargs = make_minimal_config(self.config, Corr2._valid_params)
+        kwargs_str = ', '.join(f'{k}={v!r}' for k,v in kwargs.items())
+        return f'{self._cls}({kwargs_str})'
 
     def __getstate__(self):
         d = self.__dict__.copy()
@@ -1193,14 +1189,14 @@ class Corr2(object):
     def _clear(self):
         """Clear the data vectors
         """
-        self._xi1.ravel()[:] = 0
-        self._xi2.ravel()[:] = 0
-        self._xi3.ravel()[:] = 0
-        self._xi4.ravel()[:] = 0
-        self.meanr.ravel()[:] = 0
-        self.meanlogr.ravel()[:] = 0
-        self.weight.ravel()[:] = 0
-        self.npairs.ravel()[:] = 0
+        self._xi1[:] = 0
+        self._xi2[:] = 0
+        self._xi3[:] = 0
+        self._xi4[:] = 0
+        self.meanr[:] = 0
+        self.meanlogr[:] = 0
+        self.weight[:] = 0
+        self.npairs[:] = 0
         self._cov = None
 
     def __iadd__(self, other):
@@ -1219,6 +1215,7 @@ class Corr2(object):
             raise ValueError(f"{self._cls} to be added is not compatible with this one.")
 
         self._set_metric(other.metric, other.coords, other.coords)
+        if not other.nonzero: return self
         self._xi1[:] += other._xi1
         self._xi2[:] += other._xi2
         self._xi3[:] += other._xi3
@@ -1697,6 +1694,7 @@ class Corr2(object):
         # Add in a couple other things we want to preserve that aren't construction kwargs.
         params['coords'] = self.coords
         params['metric'] = self.metric
+        params['corr'] = self._letters
         return params
 
     def _write(self, writer, name, write_patch_results, write_cov=False, zero_tot=False):
@@ -1707,7 +1705,6 @@ class Corr2(object):
         col_names = self._write_col_names
         data = self._write_data
         params = self._write_params
-        params['corr'] = self._letters
 
         if write_patch_results:
             # Note: Only include npatch1, npatch2 in serialization if we are also serializing
@@ -1783,6 +1780,10 @@ class Corr2(object):
         s = self.logr.shape
         self.meanr = data['meanr'].reshape(s)
         self.meanlogr = data['meanlogr'].reshape(s)
+        if 'weight' in data.dtype.names:
+            # NN calls this DD rather than weight.  Let that class handle it.
+            # But here, don't error if weight is missing.
+            self.weight = data['weight'].reshape(s)
         self.npairs = data['npairs'].reshape(s)
         self.coords = params['coords'].strip()
         self.metric = params['metric'].strip()

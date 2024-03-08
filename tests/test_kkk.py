@@ -215,6 +215,33 @@ def test_direct_logruv():
     np.testing.assert_allclose(kkk3b.meanv, kkk.meanv)
     np.testing.assert_allclose(kkk3b.zeta, kkk.zeta)
 
+    # or using the Corr3 base class
+    with CaptureLog() as cl:
+        kkk3c = treecorr.Corr3.from_file(ascii_name, logger=cl.logger)
+    assert ascii_name in cl.output
+    np.testing.assert_allclose(kkk3c.ntri, kkk.ntri)
+    np.testing.assert_allclose(kkk3c.weight, kkk.weight)
+    np.testing.assert_allclose(kkk3c.meand1, kkk.meand1)
+    np.testing.assert_allclose(kkk3c.meand2, kkk.meand2)
+    np.testing.assert_allclose(kkk3c.meand3, kkk.meand3)
+    np.testing.assert_allclose(kkk3c.meanlogd1, kkk.meanlogd1)
+    np.testing.assert_allclose(kkk3c.meanlogd2, kkk.meanlogd2)
+    np.testing.assert_allclose(kkk3c.meanlogd3, kkk.meanlogd3)
+    np.testing.assert_allclose(kkk3c.meanu, kkk.meanu)
+    np.testing.assert_allclose(kkk3c.meanv, kkk.meanv)
+    np.testing.assert_allclose(kkk3c.zeta, kkk.zeta)
+
+    # But cannot use a different class
+    with assert_raises(OSError):
+        treecorr.NNNCorrelation.from_file(ascii_name)
+    with assert_raises(OSError):
+        treecorr.GGGCorrelation.from_file(ascii_name)
+    # And gives error if not a valid treecorr output file.
+    with assert_raises(OSError):
+        treecorr.KKKCorrelation.from_file(config['file_name'])
+    with assert_raises(OSError):
+        treecorr.KKKCorrelation.from_file('invalid_file')
+
     try:
         import fitsio
     except ImportError:

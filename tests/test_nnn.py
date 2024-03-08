@@ -1382,6 +1382,32 @@ def test_direct_logruv_auto():
     np.testing.assert_allclose(ddd3b.meanu, ddd.meanu)
     np.testing.assert_allclose(ddd3b.meanv, ddd.meanv)
 
+    # or using the Corr3 base class
+    with CaptureLog() as cl:
+        ddd3c = treecorr.Corr3.from_file(ascii_name, logger=cl.logger)
+    assert ascii_name in cl.output
+    np.testing.assert_allclose(ddd3c.ntri, ddd.ntri)
+    np.testing.assert_allclose(ddd3c.weight, ddd.weight)
+    np.testing.assert_allclose(ddd3c.meand1, ddd.meand1)
+    np.testing.assert_allclose(ddd3c.meand2, ddd.meand2)
+    np.testing.assert_allclose(ddd3c.meand3, ddd.meand3)
+    np.testing.assert_allclose(ddd3c.meanlogd1, ddd.meanlogd1)
+    np.testing.assert_allclose(ddd3c.meanlogd2, ddd.meanlogd2)
+    np.testing.assert_allclose(ddd3c.meanlogd3, ddd.meanlogd3)
+    np.testing.assert_allclose(ddd3c.meanu, ddd.meanu)
+    np.testing.assert_allclose(ddd3c.meanv, ddd.meanv)
+
+    # But cannot use a different class
+    with assert_raises(OSError):
+        treecorr.GGGCorrelation.from_file(ascii_name)
+    with assert_raises(OSError):
+        treecorr.KKKCorrelation.from_file(ascii_name)
+    # And gives error if not a valid treecorr output file.
+    with assert_raises(OSError):
+        treecorr.NNNCorrelation.from_file(config['file_name'])
+    with assert_raises(OSError):
+        treecorr.NNNCorrelation.from_file('invalid_file')
+
     with assert_raises(TypeError):
         ddd2 += config
     ddd4 = treecorr.NNNCorrelation(min_sep=min_sep/2, max_sep=max_sep, nbins=nbins,
@@ -3927,6 +3953,12 @@ def test_nnn_logsas():
     # Error if non-Multipole calls toSAS
     with assert_raises(TypeError):
         ddds.toSAS()
+    # Error to give a target with a different class
+    with assert_raises(ValueError):
+        ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                      min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                      sep_units='arcmin', verbose=1, bin_type='LogSAS')
+        dddm.toSAS(target=ggg)
     # Also can't do calculateZeta for Multipole binning
     with assert_raises(TypeError):
         dddm.calculateZeta(rrr=dddm)

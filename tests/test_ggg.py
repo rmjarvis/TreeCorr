@@ -358,6 +358,43 @@ def test_direct_logruv():
     np.testing.assert_allclose(ggg3b.gam3r, ggg.gam3r)
     np.testing.assert_allclose(ggg3b.gam3i, ggg.gam3i)
 
+    # or using the Corr3 base class
+    with CaptureLog() as cl:
+        ggg3c = treecorr.Corr3.from_file(ascii_name, logger=cl.logger)
+    assert ascii_name in cl.output
+    np.testing.assert_allclose(ggg3c.weight, ggg.weight)
+    np.testing.assert_allclose(ggg3c.meand1, ggg.meand1)
+    np.testing.assert_allclose(ggg3c.meand2, ggg.meand2)
+    np.testing.assert_allclose(ggg3c.meand3, ggg.meand3)
+    np.testing.assert_allclose(ggg3c.meanlogd1, ggg.meanlogd1)
+    np.testing.assert_allclose(ggg3c.meanlogd2, ggg.meanlogd2)
+    np.testing.assert_allclose(ggg3c.meanlogd3, ggg.meanlogd3)
+    np.testing.assert_allclose(ggg3c.meanu, ggg.meanu)
+    np.testing.assert_allclose(ggg3c.meanv, ggg.meanv)
+    np.testing.assert_allclose(ggg3c.gam0r, ggg.gam0r)
+    np.testing.assert_allclose(ggg3c.gam0i, ggg.gam0i)
+    np.testing.assert_allclose(ggg3c.gam1r, ggg.gam1r)
+    np.testing.assert_allclose(ggg3c.gam1i, ggg.gam1i)
+    np.testing.assert_allclose(ggg3c.gam2r, ggg.gam2r)
+    np.testing.assert_allclose(ggg3c.gam2i, ggg.gam2i)
+    np.testing.assert_allclose(ggg3c.gam3r, ggg.gam3r)
+    np.testing.assert_allclose(ggg3c.gam3i, ggg.gam3i)
+
+    # But cannot use a different class
+    with assert_raises(OSError):
+        treecorr.NNNCorrelation.from_file(ascii_name)
+    with assert_raises(OSError):
+        treecorr.KKKCorrelation.from_file(ascii_name)
+    # And gives error if not a valid treecorr output file.
+    with assert_raises(OSError):
+        treecorr.Corr3.from_file(config['file_name'])
+    with assert_raises(OSError):
+        treecorr.GGGCorrelation.from_file(config['file_name'])
+    with assert_raises(OSError):
+        treecorr.Corr3.from_file('invalid_file')
+    with assert_raises(OSError):
+        treecorr.GGGCorrelation.from_file('invalid_file')
+
     try:
         import fitsio
     except ImportError:
@@ -1747,14 +1784,14 @@ def test_map3_logruv():
                   + (8./9. * r0**4 * (nq1 * nq2 * q3**2)/(q1**2 * q2**2 * nq3) *
                      (2.*q3**2 - q1**2 - q2**2)) ))
 
-    ggg.gam0r = true_gam0.real
-    ggg.gam1r = true_gam1.real
-    ggg.gam2r = true_gam2.real
-    ggg.gam3r = true_gam3.real
-    ggg.gam0i = true_gam0.imag
-    ggg.gam1i = true_gam1.imag
-    ggg.gam2i = true_gam2.imag
-    ggg.gam3i = true_gam3.imag
+    ggg._z1 = true_gam0.real
+    ggg._z2 = true_gam0.imag
+    ggg._z3 = true_gam1.real
+    ggg._z4 = true_gam1.imag
+    ggg._z5 = true_gam2.real
+    ggg._z6 = true_gam2.imag
+    ggg._z7 = true_gam3.real
+    ggg._z8 = true_gam3.imag
 
     # Directly calculate Map(u,v) across the region as:
     # Map(u,v) = int( g(x,y) * ((u-x) -I(v-y))^2 / ((u-x)^2 + (v-y)^2) * Q(u-x, v-y) )
@@ -1901,14 +1938,14 @@ def test_map3_logruv():
     true_mapmx2 = temp * gamma0.real * gamma0.imag**2
     true_mx3 = temp * gamma0.imag**3
 
-    ggg.gam0r = true_gam0.real
-    ggg.gam1r = true_gam1.real
-    ggg.gam2r = true_gam2.real
-    ggg.gam3r = true_gam3.real
-    ggg.gam0i = true_gam0.imag
-    ggg.gam1i = true_gam1.imag
-    ggg.gam2i = true_gam2.imag
-    ggg.gam3i = true_gam3.imag
+    ggg._z1 = true_gam0.real
+    ggg._z2 = true_gam0.imag
+    ggg._z3 = true_gam1.real
+    ggg._z4 = true_gam1.imag
+    ggg._z5 = true_gam2.real
+    ggg._z6 = true_gam2.imag
+    ggg._z7 = true_gam3.real
+    ggg._z8 = true_gam3.imag
 
     ggg_map3 = ggg.calculateMap3()
 
@@ -3939,14 +3976,14 @@ def test_map3_logsas():
                   + (8./9. * r0**4 * (nq1 * nq2 * q3**2)/(q1**2 * q2**2 * nq3) *
                      (2.*q3**2 - q1**2 - q2**2)) ))
 
-    ggg.gam0r = true_gam0.real
-    ggg.gam1r = true_gam1.real
-    ggg.gam2r = true_gam2.real
-    ggg.gam3r = true_gam3.real
-    ggg.gam0i = true_gam0.imag
-    ggg.gam1i = true_gam1.imag
-    ggg.gam2i = true_gam2.imag
-    ggg.gam3i = true_gam3.imag
+    ggg._z1 = true_gam0.real
+    ggg._z2 = true_gam0.imag
+    ggg._z3 = true_gam1.real
+    ggg._z4 = true_gam1.imag
+    ggg._z5 = true_gam2.real
+    ggg._z6 = true_gam2.imag
+    ggg._z7 = true_gam3.real
+    ggg._z8 = true_gam3.imag
     print('gam0r = ',ggg.gam0r.ravel())
     print('gam0i = ',ggg.gam0i.ravel())
     print('gam1r = ',ggg.gam1r.ravel())
@@ -4113,14 +4150,14 @@ def test_map3_logsas():
     true_mapmx2 = temp * gamma0.real * gamma0.imag**2
     true_mx3 = temp * gamma0.imag**3
 
-    ggg.gam0r = true_gam0.real
-    ggg.gam1r = true_gam1.real
-    ggg.gam2r = true_gam2.real
-    ggg.gam3r = true_gam3.real
-    ggg.gam0i = true_gam0.imag
-    ggg.gam1i = true_gam1.imag
-    ggg.gam2i = true_gam2.imag
-    ggg.gam3i = true_gam3.imag
+    ggg._z1 = true_gam0.real
+    ggg._z2 = true_gam0.imag
+    ggg._z3 = true_gam1.real
+    ggg._z4 = true_gam1.imag
+    ggg._z5 = true_gam2.real
+    ggg._z6 = true_gam2.imag
+    ggg._z7 = true_gam3.real
+    ggg._z8 = true_gam3.imag
 
     ggg_map3 = ggg.calculateMap3(R=r)
 

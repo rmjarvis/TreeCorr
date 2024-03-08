@@ -197,6 +197,8 @@ def test_direct():
     # But cannot use a different class
     with assert_raises(OSError):
         treecorr.NGCorrelation.from_file(ascii_name)
+    with assert_raises(OSError):
+        treecorr.NNCorrelation.from_file(ascii_name)
     # And gives error if not a valid treecorr output file.
     with assert_raises(OSError):
         treecorr.Corr2.from_file(config['file_name'])

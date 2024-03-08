@@ -130,9 +130,9 @@ class NNNCorrelation(Corr3):
 
     .. note::
 
-        If you separate out the steps of the `process` command and use `process_auto` and/or
-        `process_cross`, then the units will not be applied to ``meanr`` or ``meanlogr`` until
-        the `finalize` function is called.
+        If you separate out the steps of the `Corr3.process` command and use `process_auto` and/or
+        `Corr3.process_cross`, then the units will not be applied to ``meanr`` or ``meanlogr``
+        until the `finalize` function is called.
 
     The typical usage pattern is as follows:
 
@@ -155,6 +155,18 @@ class NNNCorrelation(Corr3):
         **kwargs:       See the documentation for `Corr3` for the list of allowed keyword
                         arguments, which may be passed either directly or in the config dict.
     """
+    _cls = 'NNNCorrelation'
+    _letter1 = 'N'
+    _letter2 = 'N'
+    _letter3 = 'N'
+    _letters = 'NNN'
+    _builder = _treecorr.NNNCorr
+    _calculateVar1 = lambda *args, **kwargs: None
+    _calculateVar2 = lambda *args, **kwargs: None
+    _calculateVar3 = lambda *args, **kwargs: None
+    _sig1 = None
+    _sig2 = None
+    _sig3 = None
     _default_angle_slop = 1
 
     def __init__(self, config=None, *, logger=None, **kwargs):
@@ -162,13 +174,6 @@ class NNNCorrelation(Corr3):
         """
         Corr3.__init__(self, config, logger=logger, **kwargs)
 
-        shape = self.data_shape
-        self.ntri = np.zeros(shape, dtype=float)
-        self.weightr = np.zeros(shape, dtype=float)
-        if self.bin_type == 'LogMultipole':
-            self.weighti = np.zeros(shape, dtype=float)
-        else:
-            self.weighti = np.array([])
         self.tot = 0.
         self._rrr_weight = None
         self._rrr = None
@@ -179,59 +184,14 @@ class NNNCorrelation(Corr3):
         self._write_rdd = None
         self._write_patch_results = False
         self.zeta = None
-        self._cov = None
-        self._var_num = 0
+        x = np.array([])
+        self._z1 = self._z2 = self._z3 = self._z4 = x
+        self._z5 = self._z6 = self._z7 = self._z8 = x
         self.logger.debug('Finished building NNNCorr')
-
-    @property
-    def weight(self):
-        if self.weighti.size:
-            return self.weightr + 1j * self.weighti
-        else:
-            return self.weightr
-
-    @property
-    def corr(self):
-        if self._corr is None:
-            x = np.array([])
-            self._corr = _treecorr.NNNCorr(
-                    self._bintype,
-                    self._min_sep,self._max_sep,self.nbins,self._bin_size,self.b,
-                    self.angle_slop,
-                    self._ro.min_u,self._ro.max_u,self._ro.nubins,self._ro.ubin_size,self.bu,
-                    self._ro.min_v,self._ro.max_v,self._ro.nvbins,self._ro.vbin_size,self.bv,
-                    self.xperiod, self.yperiod, self.zperiod,
-                    x, x, x, x, x, x, x, x,
-                    self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
-                    self.meand3, self.meanlogd3, self.meanu, self.meanv,
-                    self.weightr, self.weighti, self.ntri)
-        return self._corr
-
-    def __eq__(self, other):
-        """Return whether two `NNNCorrelation` instances are equal"""
-        return (isinstance(other, NNNCorrelation) and
-                self._equal_binning(other) and
-                self._equal_bin_data(other) and
-                self.tot == other.tot and
-                np.array_equal(self.weight, other.weight) and
-                np.array_equal(self.ntri, other.ntri))
 
     def copy(self):
         """Make a copy"""
-        ret = NNNCorrelation.__new__(NNNCorrelation)
-        for key, item in self.__dict__.items():
-            if isinstance(item, np.ndarray):
-                # Only items that might change need to by deep copied.
-                ret.__dict__[key] = item.copy()
-            else:
-                # For everything else, shallow copy is fine.
-                # In particular don't deep copy config or logger
-                # Most of the rest are scalars, which copy fine this way.
-                # And the read-only things are all in _ro.
-                # The results dict is trickier.  We rely on it being copied in places, but we
-                # never add more to it after the copy, so shallow copy is fine.
-                ret.__dict__[key] = item
-        ret._corr = None # We'll want to make a new one of these if we need it.
+        ret = super().copy()
         # True is possible during read before we finish reading in these attributes.
         if self._rrr is not None and self._rrr is not True:
             ret._rrr = self._rrr.copy()
@@ -239,8 +199,6 @@ class NNNCorrelation(Corr3):
             ret._drr = self._drr.copy()
         if self._rdd is not None and self._rdd is not True:
             ret._rdd = self._rdd.copy()
-        if self._cov is not None:
-            ret._cov = self._cov.copy()
         return ret
 
     def _zero_copy(self, tot):
@@ -275,9 +233,6 @@ class NNNCorrelation(Corr3):
         setattr(ret, '_nonzero', False)
         return ret
 
-    def __repr__(self):
-        return f'NNNCorrelation({self._repr_kwargs})'
-
     def process_auto(self, cat, *, metric=None, num_threads=None):
         """Process a single catalog, accumulating the auto-correlation.
 
@@ -294,22 +249,7 @@ class NNNCorrelation(Corr3):
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
         """
-        if cat.name == '':
-            self.logger.info('Starting process NNN auto-correlations')
-        else:
-            self.logger.info('Starting process NNN auto-correlations for cat %s.', cat.name)
-
-        self._set_metric(metric, cat.coords)
-        self._set_num_threads(num_threads)
-        min_size, max_size = self._get_minmax_size()
-
-        field = cat.getNField(min_size=min_size, max_size=max_size,
-                              split_method=self.split_method, brute=bool(self.brute),
-                              min_top=self.min_top, max_top=self.max_top,
-                              coords=self.coords)
-
-        self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        self.corr.processAuto(field.data, self.output_dots, self._metric)
+        super()._process_auto(cat, metric, num_threads)
         self.tot += (1./6.) * cat.sumw**3
 
     def process_cross12(self, cat1, cat2, *, metric=None, ordered=True, num_threads=None):
@@ -335,31 +275,8 @@ class NNNCorrelation(Corr3):
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
         """
-        if cat1.name == '' and cat2.name == '':
-            self.logger.info('Starting process NNN (1-2) cross-correlations')
-        else:
-            self.logger.info('Starting process NNN (1-2) cross-correlations for cats %s, %s.',
-                             cat1.name, cat2.name)
-
-        self._set_metric(metric, cat1.coords, cat2.coords)
-        self._set_num_threads(num_threads)
-        min_size, max_size = self._get_minmax_size()
-
-        f1 = cat1.getNField(min_size=min_size, max_size=max_size,
-                            split_method=self.split_method,
-                            brute=self.brute is True or self.brute == 1,
-                            min_top=self.min_top, max_top=self.max_top,
-                            coords=self.coords)
-        f2 = cat2.getNField(min_size=min_size, max_size=max_size,
-                            split_method=self.split_method,
-                            brute=self.brute is True or self.brute == 2,
-                            min_top=self.min_top, max_top=self.max_top,
-                            coords=self.coords)
-
-        self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        self.corr.processCross12(f1.data, f2.data, (1 if ordered else 0),
-                                 self.output_dots, self._metric)
-        self.tot += cat1.sumw * cat2.sumw**2 / 2.
+        super()._process_cross12(cat1, cat2, metric, ordered, num_threads)
+        self.tot += 0.5 * cat1.sumw * cat2.sumw**2
 
     def process_cross(self, cat1, cat2, cat3, *, metric=None, ordered=True, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
@@ -377,98 +294,14 @@ class NNNCorrelation(Corr3):
                                 (default: 'Euclidean'; this value can also be given in the
                                 constructor in the config dict.)
             ordered (bool):     Whether to fix the order of the triangle vertices to match the
-                                catalogs. (default: True; Note: ordered=1 will fix cat1 in the
-                                first location, but let 2 and 3 swap.)
+                                catalogs. (default: True)
             num_threads (int):  How many OpenMP threads to use during the calculation.
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
         """
-        if cat1.name == '' and cat2.name == '' and cat3.name == '':
-            self.logger.info('Starting process NNN cross-correlations')
-        else:
-            self.logger.info('Starting process NNN cross-correlations for cats %s, %s, %s.',
-                             cat1.name, cat2.name, cat3.name)
-
-        self._set_metric(metric, cat1.coords, cat2.coords, cat3.coords)
-        self._set_num_threads(num_threads)
-        min_size, max_size = self._get_minmax_size()
-
-        f1 = cat1.getNField(min_size=min_size, max_size=max_size,
-                            split_method=self.split_method,
-                            brute=self.brute is True or self.brute == 1,
-                            min_top=self.min_top, max_top=self.max_top,
-                            coords=self.coords)
-        f2 = cat2.getNField(min_size=min_size, max_size=max_size,
-                            split_method=self.split_method,
-                            brute=self.brute is True or self.brute == 2,
-                            min_top=self.min_top, max_top=self.max_top,
-                            coords=self.coords)
-        f3 = cat3.getNField(min_size=min_size, max_size=max_size,
-                            split_method=self.split_method,
-                            brute=self.brute is True or self.brute == 3,
-                            min_top=self.min_top, max_top=self.max_top,
-                            coords=self.coords)
-
-        self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        self.corr.processCross(f1.data, f2.data, f3.data,
-                               (3 if ordered is True else 1 if ordered == 1 else 0),
-                               self.output_dots, self._metric)
+        super().process_cross(cat1, cat2, cat3, metric=metric, ordered=ordered,
+                              num_threads=num_threads)
         self.tot += cat1.sumw * cat2.sumw * cat3.sumw
-
-    def _finalize(self):
-        mask1 = self.weightr != 0
-        mask2 = self.weightr == 0
-
-        self.meand2[mask1] /= self.weightr[mask1]
-        self.meanlogd2[mask1] /= self.weightr[mask1]
-        self.meand3[mask1] /= self.weightr[mask1]
-        self.meanlogd3[mask1] /= self.weightr[mask1]
-        if self.bin_type != 'LogMultipole':
-            self.meand1[mask1] /= self.weightr[mask1]
-            self.meanlogd1[mask1] /= self.weightr[mask1]
-            self.meanu[mask1] /= self.weightr[mask1]
-        if self.bin_type == 'LogRUV':
-            self.meanv[mask1] /= self.weightr[mask1]
-
-        # Update the units
-        self._apply_units(mask1)
-
-        # Set to nominal when no triangles in bin.
-        if self.bin_type == 'LogRUV':
-            self.meand2[mask2] = self.rnom[mask2]
-            self.meanlogd2[mask2] = self.logr[mask2]
-            self.meanu[mask2] = self.u[mask2]
-            self.meanv[mask2] = self.v[mask2]
-            self.meand3[mask2] = self.u[mask2] * self.meand2[mask2]
-            self.meanlogd3[mask2] = np.log(self.meand3[mask2])
-            self.meand1[mask2] = np.abs(self.v[mask2]) * self.meand3[mask2] + self.meand2[mask2]
-            self.meanlogd1[mask2] = np.log(self.meand1[mask2])
-        else:
-            self.meand2[mask2] = self.d2nom[mask2]
-            self.meanlogd2[mask2] = self.logd2[mask2]
-            self.meand3[mask2] = self.d3nom[mask2]
-            self.meanlogd3[mask2] = self.logd3[mask2]
-            if self.bin_type == 'LogSAS':
-                self.meanu[mask2] = self.phi[mask2]
-                self.meand1[mask2] = np.sqrt(self.d2nom[mask2]**2 + self.d3nom[mask2]**2
-                                             - 2*self.d2nom[mask2]*self.d3nom[mask2]*
-                                             np.cos(self.phi[mask2]))
-                self.meanlogd1[mask2] = np.log(self.meand1[mask2])
-            else:
-                self.meanu[mask2] = 0.
-                self.meand1[mask2] = 0.
-                self.meanlogd1[mask2] = 0.
-
-        if self.bin_type == 'LogMultipole':
-            # Multipole only sets the meand values at [i,j,max_n].
-            # (This is also where the complex weight is just a scalar = sum(www),
-            # so the above normalizations are correct.)
-            # Broadcast those to the rest of the values in the third dimension.
-            self.ntri[:,:,:] = self.ntri[:,:,self.max_n][:,:,np.newaxis]
-            self.meand2[:,:,:] = self.meand2[:,:,self.max_n][:,:,np.newaxis]
-            self.meanlogd2[:,:,:] = self.meanlogd2[:,:,self.max_n][:,:,np.newaxis]
-            self.meand3[:,:,:] = self.meand3[:,:,self.max_n][:,:,np.newaxis]
-            self.meanlogd3[:,:,:] = self.meanlogd3[:,:,self.max_n][:,:,np.newaxis]
 
     def finalize(self):
         """Finalize the calculation of meand1, meanlogd1, etc.
@@ -485,23 +318,8 @@ class NNNCorrelation(Corr3):
         return self.nonzero
 
     def _clear(self):
-        """Clear the data vectors
-        """
-        self.meand1[:,:,:] = 0.
-        self.meanlogd1[:,:,:] = 0.
-        self.meand2[:,:,:] = 0.
-        self.meanlogd2[:,:,:] = 0.
-        self.meand3[:,:,:] = 0.
-        self.meanlogd3[:,:,:] = 0.
-        self.meanu[:,:,:] = 0.
-        if self.bin_type == 'LogRUV':
-            self.meanv[:,:,:] = 0.
-        self.ntri[:,:,:] = 0.
-        self.weightr[:,:,:] = 0.
-        if self.bin_type == 'LogMultipole':
-            self.weighti[:,:,:] = 0.
+        super()._clear()
         self.tot = 0.
-        self._cov = None
 
     def _sum(self, others):
         # Equivalent to the operation of:
@@ -545,155 +363,16 @@ class NNNCorrelation(Corr3):
         self.results[ijk] = self._zero_copy(tot)
 
     def __iadd__(self, other):
-        """Add a second `NNNCorrelation`'s data to this one.
+        """Add a second Correlation object's data to this one.
 
         .. note::
 
-            For this to make sense, both `NNNCorrelation` objects should not have had `finalize`
-            called yet.  Then, after adding them together, you should call `finalize` on the sum.
+            For this to make sense, both objects should not have had `finalize` called yet.
+            Then, after adding them together, you should call `finalize` on the sum.
         """
-        if not isinstance(other, NNNCorrelation):
-            raise TypeError("Can only add another NNNCorrelation object")
-        if not self._equal_binning(other, brief=True):
-            raise ValueError("NNNCorrelation to be added is not compatible with this one.")
-
-        self._set_metric(other.metric, other.coords, other.coords, other.coords)
+        super().__iadd__(other)
         self.tot += other.tot
-
-        # If other is empty, then we're done now.
-        if not other.nonzero:
-            return self
-
-        self.meand1[:] += other.meand1[:]
-        self.meanlogd1[:] += other.meanlogd1[:]
-        self.meand2[:] += other.meand2[:]
-        self.meanlogd2[:] += other.meanlogd2[:]
-        self.meand3[:] += other.meand3[:]
-        self.meanlogd3[:] += other.meanlogd3[:]
-        self.meanu[:] += other.meanu[:]
-        if self.bin_type == 'LogRUV':
-            self.meanv[:] += other.meanv[:]
-        self.ntri[:] += other.ntri[:]
-        self.weightr[:] += other.weightr[:]
-        if self.bin_type == 'LogMultipole':
-            self.weighti[:] += other.weighti[:]
         return self
-
-    def process(self, cat1, cat2=None, cat3=None, *, metric=None, ordered=True, num_threads=None,
-                comm=None, low_mem=False, initialize=True, finalize=True,
-                patch_method=None, algo=None, max_n=None):
-        """Accumulate the 3pt correlation of the points in the given Catalog(s).
-
-        - If only 1 argument is given, then compute an auto-correlation function.
-        - If 2 arguments are given, then compute a cross-correlation function with the
-          first catalog taking one corner of the triangles, and the second taking two corners.
-        - If 3 arguments are given, then compute a three-way cross-correlation.
-
-        For cross correlations, the default behavior is to use cat1 for the first vertex (P1),
-        cat2 for the second vertex (P2), and cat3 for the third vertex (P3).  If only two
-        catalogs are given, vertices P2 and P3 both come from cat2.  The sides d1, d2, d3,
-        used to define the binning, are taken to be opposte P1, P2, P3 respectively.
-
-        However, if you want to accumulate triangles where objects from each catalog can take
-        any position in the triangles, you can set ``ordered=False``.  In this case,
-        triangles will be formed where P1, P2 and P3 can come any input catalog, so long as there
-        is one from cat1, one from cat2, and one from cat3 (or two from cat2 if cat3 is None).
-        This is particularly appropriate when doing random cross correlations so e.g. DRR, RDR
-        and RRD cross-correlations are all accumulated into a single NNNCorrelation instance.
-
-        All arguments may be lists, in which case all items in the list are used
-        for that element of the correlation.
-
-        Parameters:
-            cat1 (Catalog):     A catalog or list of catalogs for the first N field.
-            cat2 (Catalog):     A catalog or list of catalogs for the second N field.
-                                (default: None)
-            cat3 (Catalog):     A catalog or list of catalogs for the third N field.
-                                (default: None)
-            metric (str):       Which metric to use.  See `Metrics` for details.
-                                (default: 'Euclidean'; this value can also be given in the
-                                constructor in the config dict.)
-            ordered (bool):     Whether to fix the order of the triangle vertices to match the
-                                catalogs. (see above; default: True)
-            num_threads (int):  How many OpenMP threads to use during the calculation.
-                                (default: use the number of cpu cores; this value can also be given
-                                in the constructor in the config dict.)
-            comm (mpi4py.Comm): If running MPI, an mpi4py Comm object to communicate between
-                                processes.  If used, the rank=0 process will have the final
-                                computation. This only works if using patches. (default: None)
-            low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
-                                This only works if using patches. (default: False)
-            initialize (bool):  Whether to begin the calculation with a call to
-                                `Corr3.clear`.  (default: True)
-            finalize (bool):    Whether to complete the calculation with a call to `finalize`.
-                                (default: True)
-            patch_method (str): Which patch method to use. (default is to use 'local' if
-                                bin_type=LogMultipole, and 'global' otherwise)
-            algo (str):         Which accumulation algorithm to use. (options are 'triangle' or
-                                'multipole'; default is 'multipole' unless bin_type is 'LogRUV',
-                                which can only use 'triangle')
-            max_n (int):        If using the multpole algorithm, and this is not directly using
-                                bin_type='LogMultipole', then this is the value of max_n to use
-                                for the multipole part of the calculation. (default is to use
-                                2pi/phi_bin_size; this value can also be given in the constructor
-                                in the config dict.)
-        """
-        if algo is None:
-            multipole = (self.bin_type != 'LogRUV')
-        else:
-            if algo not in ['triangle', 'multipole']:
-                raise ValueError("Invalid algo %s"%algo)
-            multipole = (algo == 'multipole')
-            if multipole and self.bin_type == 'LogRUV':
-                raise ValueError("LogRUV binning cannot use algo='multipole'")
-
-        if multipole and self.bin_type != 'LogMultipole':
-            config = self.config.copy()
-            config['bin_type'] = 'LogMultipole'
-            if max_n is None:
-                max_n = 2.*np.pi / self.phi_bin_size
-                # If max_n was given in constructor, use that instead.
-                max_n = config.get('max_n', max_n)
-            for key in ['min_phi', 'max_phi', 'nphi_bins', 'phi_bin_size']:
-                config.pop(key, None)
-            corr = NNNCorrelation(config, max_n=max_n)
-            corr.process(cat1, cat2, cat3,
-                         metric=metric, ordered=ordered, num_threads=num_threads,
-                         comm=comm, low_mem=low_mem, initialize=initialize, finalize=finalize,
-                         patch_method=patch_method, algo='multipole')
-            corr.toSAS(target=self)
-            return
-
-        if patch_method is None:
-            local = (self.bin_type == 'LogMultipole')
-        else:
-            if patch_method not in ['local', 'global']:
-                raise ValueError("Invalid patch_method %s"%patch_method)
-            local = (patch_method == 'local')
-            if not local and self.bin_type == 'LogMultipole':
-                raise ValueError("LogMultipole binning cannot use patch_method='global'")
-
-        if not isinstance(cat1,list):
-            cat1 = cat1.get_patches(low_mem=low_mem)
-        if cat2 is not None and not isinstance(cat2,list):
-            cat2 = cat2.get_patches(low_mem=low_mem)
-        if cat3 is not None and not isinstance(cat3,list):
-            cat3 = cat3.get_patches(low_mem=low_mem)
-
-        if initialize:
-            self.clear()
-
-        if cat2 is None:
-            if cat3 is not None:
-                raise ValueError("For two catalog case, use cat1,cat2, not cat1,cat3")
-            self._process_all_auto(cat1, metric, num_threads, comm, low_mem, local)
-        elif cat3 is None:
-            self._process_all_cross12(cat1, cat2, metric, ordered, num_threads, comm, low_mem, local)
-        else:
-            self._process_all_cross(cat1, cat2, cat3, metric, ordered, num_threads, comm, low_mem, local)
-
-        if finalize:
-            self.finalize()
 
     def _mean_weight(self):
         mean_ntri = np.mean(self.ntri)
@@ -736,73 +415,11 @@ class NNNCorrelation(Corr3):
             An NNNCorrelation object with bin_type=LogSAS containing the
             same information as this object, but with the SAS binning.
         """
-        if self.bin_type != 'LogMultipole':
-            raise TypeError("toSAS is invalid for bin_type = %s"%self.bin_type)
+        sas = super().toSAS(target=target, **kwargs)
 
-        if target is None:
-            config = self.config.copy()
-            config['bin_type'] = 'LogSAS'
-            max_n = config.pop('max_n')
-            if 'nphi_bins' not in kwargs and 'phi_bin_size' not in kwargs:
-                config['nphi_bins'] = max_n
-            sas = NNNCorrelation(config, **kwargs)
-        else:
-            sas = target
-            sas.clear()
-        if not np.array_equal(sas.rnom1d, self.rnom1d):
-            raise ValueError("toSAS cannot change sep parameters")
-
-        # Copy these over
         sas.tot = self.tot
-        sas.meand2[:,:,:] = self.meand2[:,:,0][:,:,None]
-        sas.meanlogd2[:,:,:] = self.meanlogd2[:,:,0][:,:,None]
-        sas.meand3[:,:,:] = self.meand3[:,:,0][:,:,None]
-        sas.meanlogd3[:,:,:] = self.meanlogd3[:,:,0][:,:,None]
-        sas.npatch1 = self.npatch1
-        sas.npatch2 = self.npatch2
-        sas.npatch3 = self.npatch3
-        sas.coords = self.coords
-        sas.metric = self.metric
-
-        # Use nominal for meanphi
-        sas.meanu[:] = sas.phi / sas._phi_units
-        # Compute d1 from actual d2,d3 and nominal phi
-        sas.meand1[:] = np.sqrt(sas.meand2**2 + sas.meand3**2
-                                - 2*sas.meand2 * sas.meand3 * np.cos(sas.phi))
-        sas.meanlogd1[:] = np.log(sas.meand1)
-
-        # Eqn 26 of Porth et al, 2023
-        # N(d2,d3,phi) = 1/2pi sum_n N_n(d2,d3) exp(i n phi)
-        expiphi = np.exp(1j * self.n1d[:,None] * sas.phi1d)
-        sas.weightr[:] = np.real(self.weight.dot(expiphi)) / (2*np.pi) * sas.phi_bin_size
-
-        # For ntri, we recorded the total ntri for each pair of d2,d3.
-        # Allocate those proportionally to the weights.
-        # Note: Multipole counts the weight for all 0 < phi < 2pi.
-        # We reduce this by the fraction of this covered by [min_phi, max_phi].
-        # (Typically 1/2, since usually [0,pi].)
-        phi_frac = (sas.max_phi - sas.min_phi) / (2*np.pi)
-        denom = np.sum(sas.weight, axis=2)
-        denom[denom==0] = 1  # Don't divide by 0
-        ratio = self.ntri[:,:,0] / denom * phi_frac
-        sas.ntri[:] = sas.weight * ratio[:,:,None]
-
         for k,v in self.results.items():
-            temp = sas.copy()
-            temp.weightr[:] = np.real(v.weight.dot(expiphi)) / (2*np.pi) * sas.phi_bin_size
-            temp.tot = v.tot
-            temp.ntri[:] = temp.weight * ratio[:,:,None]
-
-            # Undo the normalization of the d arrays.
-            temp.meand1 *= temp.weightr
-            temp.meand2 *= temp.weightr
-            temp.meand3 *= temp.weightr
-            temp.meanlogd1 *= temp.weightr
-            temp.meanlogd2 *= temp.weightr
-            temp.meanlogd3 *= temp.weightr
-            temp.meanu *= temp.weightr
-
-            sas.results[k] = temp
+            sas.results[k].tot = v.tot
 
         return sas
 
@@ -1245,11 +862,8 @@ class NNNCorrelation(Corr3):
 
     @property
     def _write_params(self):
-        params = make_minimal_config(self.config, Corr3._valid_params)
-        # Add in a couple other things we want to preserve that aren't construction kwargs.
+        params = super()._write_params
         params['tot'] = self.tot
-        params['coords'] = self.coords
-        params['metric'] = self.metric
         if self._write_patch_results:
             params['_rrr'] = bool(self._rrr)
             params['_drr'] = bool(self._drr)
@@ -1278,6 +892,12 @@ class NNNCorrelation(Corr3):
         with make_reader(file_name, file_type, logger) as reader:
             name = 'main' if 'main' in reader else None
             params = reader.read_params(ext=name)
+            letters = params.get('corr', None)
+            if letters not in Corr3._lookup_dict:
+                raise OSError("%s does not seem to be a valid treecorr output file."%file_name)
+            if params['corr'] != cls._letters:
+                raise OSError("Trying to read a %sCorrelation output file with %s"%(
+                              params['corr'], cls.__name__))
             kwargs = make_minimal_config(params, Corr3._valid_params)
             corr = cls(**kwargs, logger=logger, rng=rng)
             corr.logger.info('Reading NNN correlations from %s',file_name)
@@ -1321,33 +941,14 @@ class NNNCorrelation(Corr3):
             self._rdd = rdd
 
     def _read_from_data(self, data, params):
+        super()._read_from_data(data, params)
         s = self.data_shape
-        self.meand1 = data['meand1'].reshape(s)
-        self.meanlogd1 = data['meanlogd1'].reshape(s)
-        self.meand2 = data['meand2'].reshape(s)
-        self.meanlogd2 = data['meanlogd2'].reshape(s)
-        self.meand3 = data['meand3'].reshape(s)
-        self.meanlogd3 = data['meanlogd3'].reshape(s)
-        if self.bin_type == 'LogRUV':
-            self.meanu = data['meanu'].reshape(s)
-            self.meanv = data['meanv'].reshape(s)
-        elif self.bin_type == 'LogSAS':
-            self.meanu = data['meanphi'].reshape(s)
         if 'zeta' in data.dtype.names:
             self.zeta = data['zeta'].reshape(s)
             self.varzeta = data['sigma_zeta'].reshape(s)**2
-        if self.bin_type == 'LogMultipole':
-            self.weightr = data['weight_re'].reshape(s)
-            self.weighti = data['weight_im'].reshape(s)
-        else:
+        if self.bin_type != 'LogMultipole':
             self.weightr = data['DDD'].reshape(s)
-        self.ntri = data['ntri'].reshape(s)
         self.tot = params['tot']
-        self.coords = params['coords'].strip()
-        self.metric = params['metric'].strip()
-        self.npatch1 = params.get('npatch1', 1)
-        self.npatch2 = params.get('npatch2', 1)
-        self.npatch3 = params.get('npatch3', 1)
         # Note: "or None" turns False -> None
         self._rrr = params.get('_rrr', None) or None
         self._drr = params.get('_drr', None) or None

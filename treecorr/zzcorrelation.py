@@ -126,8 +126,6 @@ class BaseZZCorrelation(Corr2):
         return self._varxim
 
     def _clear(self):
-        """Clear the data vectors
-        """
         super()._clear()
         self._varxip = None
         self._varxim = None
@@ -210,7 +208,6 @@ class BaseZZCorrelation(Corr2):
     def _read_from_data(self, data, params):
         super()._read_from_data(data, params)
         s = self.logr.shape
-        self.weight = data['weight'].reshape(s)
         self._xi1 = data['xip'].reshape(s)
         self._xi2 = data['xip_im'].reshape(s)
         self._xi3 = data['xim'].reshape(s)

@@ -289,6 +289,9 @@ class Corr3(object):
     """
     _default_angle_slop = 0.1
 
+    # A dict pointing from _letters to cls.  E.g. _lookup_dict['GGG'] = GGGCorrelation
+    _lookup_dict = {}
+
     _valid_params = {
         'nbins' : (int, False, None, None,
                 'The number of output bins to use for sep dimension.'),
@@ -710,6 +713,15 @@ class Corr3(object):
         self.meand3 = np.zeros(self.data_shape, dtype=float)
         self.meanlogd3 = np.zeros(self.data_shape, dtype=float)
 
+        self.weightr = np.zeros(self.data_shape, dtype=float)
+        if self.bin_type == 'LogMultipole':
+            self.weighti = np.zeros(self.data_shape, dtype=float)
+        else:
+            self.weighti = np.array([])
+        self.ntri = np.zeros(self.data_shape, dtype=float)
+        self._cov = None
+        self._var_num = 0
+
         self._ro.brute = get(self.config,'brute',bool,False)
         if self.brute:
             self.logger.info("Doing brute force calculation.",)
@@ -726,17 +738,15 @@ class Corr3(object):
         self.npatch1 = self.npatch2 = self.npatch3 = 1
         self._rng = rng
 
+    def __init_subclass__(cls):
+        super().__init_subclass__()
+        Corr3._lookup_dict[cls._letters] = cls
+
     @property
     def rng(self):
         if self._rng is None:
             self._rng = np.random.default_rng()
         return self._rng
-
-    # Helper for making a nice repr that doesn't list all params that are just defaults.
-    @property
-    def _repr_kwargs(self):
-        kwargs = make_minimal_config(self.config, Corr3._valid_params)
-        return ', '.join(f'{k}={v!r}' for k,v in kwargs.items())
 
     # Properties for all the read-only attributes ("ro" stands for "read-only")
     @property
@@ -888,6 +898,90 @@ class Corr3(object):
         assert self.bin_type == 'LogMultipole'
         return self._ro.n
 
+    @property
+    def _bintype(self): return self._ro._bintype
+    @property
+    def _nbins(self): return self._ro._nbins
+    @property
+    def _min_sep(self): return self._ro._min_sep
+    @property
+    def _max_sep(self): return self._ro._max_sep
+    @property
+    def _bin_size(self): return self._ro._bin_size
+    @property
+    def split_method(self): return self._ro.split_method
+    @property
+    def min_top(self): return self._ro.min_top
+    @property
+    def max_top(self): return self._ro.max_top
+    @property
+    def bin_slop(self): return self._ro.bin_slop
+    @property
+    def angle_slop(self): return self._ro.angle_slop
+    @property
+    def b(self): return self._ro.b
+    @property
+    def brute(self): return self._ro.brute
+    @property
+    def xperiod(self): return self._ro.xperiod
+    @property
+    def yperiod(self): return self._ro.yperiod
+    @property
+    def zperiod(self): return self._ro.zperiod
+    @property
+    def var_method(self): return self._ro.var_method
+    @property
+    def num_bootstrap(self): return self._ro.num_bootstrap
+
+    @property
+    def weight(self):
+        if self.weighti.size:
+            return self.weightr + 1j * self.weighti
+        else:
+            return self.weightr
+
+    @property
+    def cov(self):
+        """The estimated covariance matrix
+        """
+        if self._cov is None:
+            self._cov = self.estimate_cov(self.var_method)
+        if self._cov.ndim == 1:
+            return np.diag(self._cov)
+        else:
+            return self._cov
+
+    @property
+    def cov_diag(self):
+        """A possibly more efficient way to access just the diagonal of the covariance matrix.
+
+        If var_method == 'shot', then this won't make the full covariance matrix, just to
+        then pull out the diagonal.
+        """
+        if self._cov is None:
+            self._cov = self.estimate_cov(self.var_method)
+        if self._cov.ndim == 1:
+            return self._cov
+        else:
+            return self._cov.diagonal()
+
+    @property
+    def corr(self):
+        if self._corr is None:
+            self._corr = self._builder(
+                    self._bintype,
+                    self._min_sep, self._max_sep, self.nbins, self._bin_size, self.b,
+                    self.angle_slop,
+                    self._ro.min_u,self._ro.max_u,self._ro.nubins,self._ro.ubin_size,self.bu,
+                    self._ro.min_v,self._ro.max_v,self._ro.nvbins,self._ro.vbin_size,self.bv,
+                    self.xperiod, self.yperiod, self.zperiod,
+                    self._z1, self._z2, self._z3, self._z4,
+                    self._z5, self._z6, self._z7, self._z8,
+                    self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
+                    self.meand3, self.meanlogd3, self.meanu, self.meanv,
+                    self.weightr, self.weighti, self.ntri)
+        return self._corr
+
     def _equal_binning(self, other, brief=False):
         # A helper function to test if two Corr3 objects have the same binning parameters
         if self.bin_type == 'LogRUV':
@@ -948,65 +1042,41 @@ class Corr3(object):
             # LogMultipole
             return (other.bin_type == 'LogMultipole' and equal_d)
 
-    @property
-    def _bintype(self): return self._ro._bintype
-    @property
-    def _nbins(self): return self._ro._nbins
-    @property
-    def _min_sep(self): return self._ro._min_sep
-    @property
-    def _max_sep(self): return self._ro._max_sep
-    @property
-    def _bin_size(self): return self._ro._bin_size
-    @property
-    def split_method(self): return self._ro.split_method
-    @property
-    def min_top(self): return self._ro.min_top
-    @property
-    def max_top(self): return self._ro.max_top
-    @property
-    def bin_slop(self): return self._ro.bin_slop
-    @property
-    def angle_slop(self): return self._ro.angle_slop
-    @property
-    def b(self): return self._ro.b
-    @property
-    def brute(self): return self._ro.brute
-    @property
-    def xperiod(self): return self._ro.xperiod
-    @property
-    def yperiod(self): return self._ro.yperiod
-    @property
-    def zperiod(self): return self._ro.zperiod
-    @property
-    def var_method(self): return self._ro.var_method
-    @property
-    def num_bootstrap(self): return self._ro.num_bootstrap
+    def __eq__(self, other):
+        """Return whether two Correlation instances are equal"""
+        return (isinstance(other, self.__class__) and
+                self._equal_binning(other) and
+                self._equal_bin_data(other) and
+                np.array_equal(self.weight, other.weight) and
+                np.array_equal(self.ntri, other.ntri) and
+                np.array_equal(self._z1, other._z1) and
+                np.array_equal(self._z2, other._z2) and
+                np.array_equal(self._z3, other._z3) and
+                np.array_equal(self._z4, other._z4) and
+                np.array_equal(self._z5, other._z5) and
+                np.array_equal(self._z6, other._z6) and
+                np.array_equal(self._z7, other._z7) and
+                np.array_equal(self._z8, other._z8))
 
-    @property
-    def cov(self):
-        """The estimated covariance matrix
-        """
-        if self._cov is None:
-            self._cov = self.estimate_cov(self.var_method)
-        if self._cov.ndim == 1:
-            return np.diag(self._cov)
-        else:
-            return self._cov
+    def copy(self):
+        """Make a copy"""
+        ret = self.__class__.__new__(self.__class__)
+        for key, item in self.__dict__.items():
+            if isinstance(item, np.ndarray):
+                # Only items that might change need to by deep copied.
+                ret.__dict__[key] = item.copy()
+            else:
+                # For everything else, shallow copy is fine.
+                # In particular don't deep copy config or logger
+                # Most of the rest are scalars, which copy fine this way.
+                ret.__dict__[key] = item
+        ret._corr = None # We'll want to make a new one of these if we need it.
+        return ret
 
-    @property
-    def cov_diag(self):
-        """A possibly more efficient way to access just the diagonal of the covariance matrix.
-
-        If var_method == 'shot', then this won't make the full covariance matrix, just to
-        then pull out the diagonal.
-        """
-        if self._cov is None:
-            self._cov = self.estimate_cov(self.var_method)
-        if self._cov.ndim == 1:
-            return self._cov
-        else:
-            return self._cov.diagonal()
+    def __repr__(self):
+        kwargs = make_minimal_config(self.config, Corr3._valid_params)
+        kwargs_str = ', '.join(f'{k}={v!r}' for k,v in kwargs.items())
+        return f'{self._cls}({kwargs_str})'
 
     def __getstate__(self):
         d = self.__dict__.copy()
@@ -1483,6 +1553,480 @@ class Corr3(object):
         # but for LogMultipole, the absolute value is what we want.
         return np.abs(self.weight.ravel())
 
+    def _process_auto(self, cat, metric=None, num_threads=None):
+        # The implementation is the same for all classes that can call this.
+        if cat.name == '':
+            self.logger.info(f'Starting process {self._letters} auto-correlations')
+        else:
+            self.logger.info(f'Starting process {self._letters} auto-correlations for cat %s.',
+                             cat.name)
+
+        self._set_metric(metric, cat.coords)
+        self._set_num_threads(num_threads)
+        min_size, max_size = self._get_minmax_size()
+
+        getField = getattr(cat, f"get{self._letter1}Field")
+        field = getField(min_size=min_size, max_size=max_size,
+                         split_method=self.split_method, brute=bool(self.brute),
+                         min_top=self.min_top, max_top=self.max_top,
+                         coords=self.coords)
+
+        self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
+        self.corr.processAuto(field.data, self.output_dots, self._metric)
+
+    def _process_cross12(self, cat1, cat2, metric=None, ordered=True, num_threads=None):
+        if cat1.name == '' and cat2.name == '':
+            self.logger.info('Starting process %s (1-2) cross-correlations', self._letters)
+        else:
+            self.logger.info('Starting process %s (1-2) cross-correlations for cats %s, %s.',
+                             self._letters, cat1.name, cat2.name)
+
+        self._set_metric(metric, cat1.coords, cat2.coords)
+        self._set_num_threads(num_threads)
+        min_size, max_size = self._get_minmax_size()
+
+        getField1 = getattr(cat1, f"get{self._letter1}Field")
+        getField2 = getattr(cat2, f"get{self._letter2}Field")
+        f1 = getField1(min_size=min_size, max_size=max_size,
+                       split_method=self.split_method,
+                       brute=self.brute is True or self.brute == 1,
+                       min_top=self.min_top, max_top=self.max_top,
+                       coords=self.coords)
+        f2 = getField2(min_size=min_size, max_size=max_size,
+                       split_method=self.split_method,
+                       brute=self.brute is True or self.brute == 2,
+                       min_top=self.min_top, max_top=self.max_top,
+                       coords=self.coords)
+
+        self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
+        # Note: all 3 correlation objects are the same.  Thus, all triangles will be placed
+        # into self.corr, whichever way the three catalogs are permuted for each triangle.
+        self.corr.processCross12(f1.data, f2.data, (1 if ordered else 0),
+                                 self.output_dots, self._metric)
+
+    def process_cross(self, cat1, cat2, cat3, *, metric=None, ordered=True, num_threads=None):
+        """Process a set of three catalogs, accumulating the 3pt cross-correlation.
+
+        This accumulates the cross-correlation for the given catalogs as part of a larger
+        auto- or cross-correlation calculation.  E.g. when splitting up a large catalog into
+        patches, this is appropriate to use for the cross correlation between different patches
+        as part of the complete auto-correlation of the full catalog.
+
+        Parameters:
+            cat1 (Catalog):     The first catalog to process
+            cat2 (Catalog):     The second catalog to process
+            cat3 (Catalog):     The third catalog to process
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            ordered (bool):     Whether to fix the order of the triangle vertices to match the
+                                catalogs. (default: True)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
+        """
+        if cat1.name == '' and cat2.name == '' and cat3.name == '':
+            self.logger.info('Starting process %s cross-correlations', self._letters)
+        else:
+            self.logger.info('Starting process %s cross-correlations for cats %s, %s, %s.',
+                             self._letters, cat1.name, cat2.name, cat3.name)
+
+        self._set_metric(metric, cat1.coords, cat2.coords, cat3.coords)
+        self._set_num_threads(num_threads)
+        min_size, max_size = self._get_minmax_size()
+
+        getField1 = getattr(cat1, f"get{self._letter1}Field")
+        getField2 = getattr(cat2, f"get{self._letter2}Field")
+        getField3 = getattr(cat3, f"get{self._letter3}Field")
+        f1 = getField1(min_size=min_size, max_size=max_size,
+                       split_method=self.split_method,
+                       brute=self.brute is True or self.brute == 1,
+                       min_top=self.min_top, max_top=self.max_top,
+                       coords=self.coords)
+        f2 = getField2(min_size=min_size, max_size=max_size,
+                       split_method=self.split_method,
+                       brute=self.brute is True or self.brute == 2,
+                       min_top=self.min_top, max_top=self.max_top,
+                       coords=self.coords)
+        f3 = getField3(min_size=min_size, max_size=max_size,
+                       split_method=self.split_method,
+                       brute=self.brute is True or self.brute == 3,
+                       min_top=self.min_top, max_top=self.max_top,
+                       coords=self.coords)
+
+        self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
+        # Note: all 6 correlation objects are the same.  Thus, all triangles will be placed
+        # into self.corr, whichever way the three catalogs are permuted for each triangle.
+        self.corr.processCross(f1.data, f2.data, f3.data,
+                               (3 if ordered is True else 1 if ordered == 1 else 0),
+                               self.output_dots, self._metric)
+
+    def process(self, cat1, cat2=None, cat3=None, *, metric=None, ordered=True, num_threads=None,
+                comm=None, low_mem=False, initialize=True, finalize=True,
+                patch_method=None, algo=None, max_n=None):
+        """Compute the 3pt correlation function.
+
+        - If only 1 argument is given, then compute an auto-correlation function.
+        - If 2 arguments are given, then compute a cross-correlation function with the
+          first catalog taking one corner of the triangles, and the second taking two corners.
+        - If 3 arguments are given, then compute a three-way cross-correlation function.
+
+        For cross correlations, the default behavior is to use cat1 for the first vertex (P1),
+        cat2 for the second vertex (P2), and cat3 for the third vertex (P3).  If only two
+        catalogs are given, vertices P2 and P3 both come from cat2.  The sides d1, d2, d3,
+        used to define the binning, are taken to be opposte P1, P2, P3 respectively.
+
+        However, if you want to accumulate triangles where objects from each catalog can take
+        any position in the triangles, you can set ``ordered=False``.  In this case,
+        triangles will be formed where P1, P2 and P3 can come any input catalog, so long as there
+        is one from cat1, one from cat2, and one from cat3 (or two from cat2 if cat3 is None).
+
+        All arguments may be lists, in which case all items in the list are used
+        for that element of the correlation.
+
+        Parameters:
+            cat1 (Catalog):     A catalog or list of catalogs for the first field.
+            cat2 (Catalog):     A catalog or list of catalogs for the second field.
+                                (default: None)
+            cat3 (Catalog):     A catalog or list of catalogs for the third field.
+                                (default: None)
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            ordered (bool):     Whether to fix the order of the triangle vertices to match the
+                                catalogs. (see above; default: True)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
+            comm (mpi4py.Comm): If running MPI, an mpi4py Comm object to communicate between
+                                processes.  If used, the rank=0 process will have the final
+                                computation. This only works if using patches. (default: None)
+            low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
+                                This only works if using patches. (default: False)
+            initialize (bool):  Whether to begin the calculation with a call to
+                                `Corr3.clear`.  (default: True)
+            finalize (bool):    Whether to complete the calculation with a call to finalize.
+                                (default: True)
+            patch_method (str): Which patch method to use. (default is to use 'local' if
+                                bin_type=LogMultipole, and 'global' otherwise)
+            algo (str):         Which accumulation algorithm to use. (options are 'triangle' or
+                                'multipole'; default is 'multipole' unless bin_type is 'LogRUV',
+                                which can only use 'triangle')
+            max_n (int):        If using the multpole algorithm, and this is not directly using
+                                bin_type='LogMultipole', then this is the value of max_n to use
+                                for the multipole part of the calculation. (default is to use
+                                2pi/phi_bin_size; this value can also be given in the constructor
+                                in the config dict.)
+        """
+        import math
+
+        if algo is None:
+            multipole = (self.bin_type != 'LogRUV')
+        else:
+            if algo not in ['triangle', 'multipole']:
+                raise ValueError("Invalid algo %s"%algo)
+            multipole = (algo == 'multipole')
+            if multipole and self.bin_type == 'LogRUV':
+                raise ValueError("LogRUV binning cannot use algo='multipole'")
+
+        if multipole and self.bin_type != 'LogMultipole':
+            config = self.config.copy()
+            config['bin_type'] = 'LogMultipole'
+            if max_n is None:
+                max_n = 2.*np.pi / self.phi_bin_size
+                # If max_n was given in constructor, use that instead.
+                max_n = config.get('max_n', max_n)
+            for key in ['min_phi', 'max_phi', 'nphi_bins', 'phi_bin_size']:
+                config.pop(key, None)
+            corr = self.__class__(config, max_n=max_n)
+            corr.process(cat1, cat2, cat3,
+                         metric=metric, ordered=ordered, num_threads=num_threads,
+                         comm=comm, low_mem=low_mem, initialize=initialize, finalize=finalize,
+                         patch_method=patch_method, algo='multipole')
+            corr.toSAS(target=self)
+            return
+
+        if patch_method is None:
+            local = (self.bin_type == 'LogMultipole')
+        else:
+            if patch_method not in ['local', 'global']:
+                raise ValueError("Invalid patch_method %s"%patch_method)
+            local = (patch_method == 'local')
+            if not local and self.bin_type == 'LogMultipole':
+                raise ValueError("LogMultipole binning cannot use patch_method='global'")
+
+        if not isinstance(cat1,list):
+            cat1 = cat1.get_patches(low_mem=low_mem)
+        if cat2 is not None and not isinstance(cat2,list):
+            cat2 = cat2.get_patches(low_mem=low_mem)
+        if cat3 is not None and not isinstance(cat3,list):
+            cat3 = cat3.get_patches(low_mem=low_mem)
+
+        if initialize:
+            self.clear()
+
+        if cat2 is None:
+            if cat3 is not None:
+                raise ValueError("For two catalog case, use cat1,cat2, not cat1,cat3")
+            self._process_all_auto(cat1, metric, num_threads, comm, low_mem, local)
+        elif cat3 is None:
+            self._process_all_cross12(cat1, cat2, metric, ordered, num_threads, comm, low_mem,
+                                      local)
+        else:
+            self._process_all_cross(cat1, cat2, cat3, metric, ordered, num_threads, comm, low_mem,
+                                    local)
+
+        if finalize:
+            if cat2 is None:
+                var1 = var2 = var3 = self._calculateVar1(cat1, low_mem=low_mem)
+                if var1 is not None:
+                    self.logger.info(f"var%s = %f: {self._sig1} = %f",
+                                     self._letter1.lower(), var1, math.sqrt(var1))
+            elif cat3 is None:
+                var1 = self._calculateVar1(cat1, low_mem=low_mem)
+                var2 = var3 = self._calculateVar2(cat2, low_mem=low_mem)
+                # For now, only the letter1 == letter2 case until we add cross type 3pt.
+                if var1 is not None:
+                    self.logger.info(f"var%s1 = %f: {self._sig1} = %f",
+                                     self._letter1, var1, math.sqrt(var1))
+                    self.logger.info(f"var%s2 = %f: {self._sig2} = %f",
+                                     self._letter2, var2, math.sqrt(var2))
+            else:
+                var1 = self._calculateVar1(cat1, low_mem=low_mem)
+                var2 = self._calculateVar2(cat2, low_mem=low_mem)
+                var3 = self._calculateVar3(cat3, low_mem=low_mem)
+                if var1 is not None:
+                    self.logger.info(f"var%s1 = %f: {self._sig1} = %f",
+                                     self._letter1, var1, math.sqrt(var1))
+                    self.logger.info(f"var%s2 = %f: {self._sig2} = %f",
+                                     self._letter2, var2, math.sqrt(var2))
+                    self.logger.info(f"var%s3 = %f: {self._sig3} = %f",
+                                     self._letter3, var3, math.sqrt(var3))
+            if var1 is None:
+                self.finalize()
+            else:
+                self.finalize(var1, var2, var3)
+
+    def _finalize(self):
+        mask1 = self.weightr != 0
+        mask2 = self.weightr == 0
+
+        self.meand2[mask1] /= self.weightr[mask1]
+        self.meanlogd2[mask1] /= self.weightr[mask1]
+        self.meand3[mask1] /= self.weightr[mask1]
+        self.meanlogd3[mask1] /= self.weightr[mask1]
+        if self.bin_type != 'LogMultipole':
+            if len(self._z1) > 0:
+                self._z1[mask1] /= self.weightr[mask1]
+            if len(self._z2) > 0:
+                self._z2[mask1] /= self.weightr[mask1]
+            if len(self._z3) > 0:
+                self._z3[mask1] /= self.weightr[mask1]
+                self._z4[mask1] /= self.weightr[mask1]
+                self._z5[mask1] /= self.weightr[mask1]
+                self._z6[mask1] /= self.weightr[mask1]
+                self._z7[mask1] /= self.weightr[mask1]
+                self._z8[mask1] /= self.weightr[mask1]
+            self.meand1[mask1] /= self.weightr[mask1]
+            self.meanlogd1[mask1] /= self.weightr[mask1]
+            self.meanu[mask1] /= self.weightr[mask1]
+        if self.bin_type == 'LogRUV':
+            self.meanv[mask1] /= self.weightr[mask1]
+
+        # Update the units
+        self._apply_units(mask1)
+
+        # Set to nominal when no triangles in bin.
+        if self.bin_type == 'LogRUV':
+            self.meand2[mask2] = self.rnom[mask2]
+            self.meanlogd2[mask2] = self.logr[mask2]
+            self.meanu[mask2] = self.u[mask2]
+            self.meanv[mask2] = self.v[mask2]
+            self.meand3[mask2] = self.u[mask2] * self.meand2[mask2]
+            self.meanlogd3[mask2] = np.log(self.meand3[mask2])
+            self.meand1[mask2] = np.abs(self.v[mask2]) * self.meand3[mask2] + self.meand2[mask2]
+            self.meanlogd1[mask2] = np.log(self.meand1[mask2])
+        else:
+            self.meand2[mask2] = self.d2nom[mask2]
+            self.meanlogd2[mask2] = self.logd2[mask2]
+            self.meand3[mask2] = self.d3nom[mask2]
+            self.meanlogd3[mask2] = self.logd3[mask2]
+            if self.bin_type == 'LogSAS':
+                self.meanu[mask2] = self.phi[mask2]
+                self.meand1[mask2] = np.sqrt(self.d2nom[mask2]**2 + self.d3nom[mask2]**2
+                                             - 2*self.d2nom[mask2]*self.d3nom[mask2]*
+                                             np.cos(self.phi[mask2]))
+                self.meanlogd1[mask2] = np.log(self.meand1[mask2])
+            else:
+                self.meanu[mask2] = 0
+                self.meand1[mask2] = 0
+                self.meanlogd1[mask2] = 0
+
+        if self.bin_type == 'LogMultipole':
+            # Multipole only sets the meand values at [i,j,max_n].
+            # (This is also where the complex weight is just a scalar = sum(www),
+            # so the above normalizations are correct.)
+            # Broadcast those to the rest of the values in the third dimension.
+            self.ntri[:,:,:] = self.ntri[:,:,self.max_n][:,:,np.newaxis]
+            self.meand2[:,:,:] = self.meand2[:,:,self.max_n][:,:,np.newaxis]
+            self.meanlogd2[:,:,:] = self.meanlogd2[:,:,self.max_n][:,:,np.newaxis]
+            self.meand3[:,:,:] = self.meand3[:,:,self.max_n][:,:,np.newaxis]
+            self.meanlogd3[:,:,:] = self.meanlogd3[:,:,self.max_n][:,:,np.newaxis]
+
+    def _clear(self):
+        """Clear the data vectors
+        """
+        self._z1[:] = 0.
+        self._z2[:] = 0.
+        self._z3[:] = 0.
+        self._z4[:] = 0.
+        self._z5[:] = 0.
+        self._z6[:] = 0.
+        self._z7[:] = 0.
+        self._z8[:] = 0.
+        self.meand1[:] = 0.
+        self.meanlogd1[:] = 0.
+        self.meand2[:] = 0.
+        self.meanlogd2[:] = 0.
+        self.meand3[:] = 0.
+        self.meanlogd3[:] = 0.
+        self.meanu[:] = 0.
+        if self.bin_type == 'LogRUV':
+            self.meanv[:] = 0.
+        self.weightr[:] = 0.
+        if self.bin_type == 'LogMultipole':
+            self.weighti[:] = 0.
+        self.ntri[:] = 0.
+        self._cov = None
+
+    def __iadd__(self, other):
+        """Add a second Correlation object's data to this one.
+
+        .. note::
+
+            For this to make sense, both objects should not have had ``finalize`` called yet.
+            Then, after adding them together, you should call ``finalize`` on the sum.
+        """
+        if not isinstance(other, self.__class__):
+            raise TypeError(f"Can only add another {self._cls} object")
+        if not self._equal_binning(other, brief=True):
+            raise ValueError(f"{self._cls} to be added is not compatible with this one.")
+
+        self._set_metric(other.metric, other.coords, other.coords, other.coords)
+        if not other.nonzero: return self
+        self._z1[:] += other._z1[:]
+        self._z2[:] += other._z2[:]
+        self._z3[:] += other._z3[:]
+        self._z4[:] += other._z4[:]
+        self._z5[:] += other._z5[:]
+        self._z6[:] += other._z6[:]
+        self._z7[:] += other._z7[:]
+        self._z8[:] += other._z8[:]
+        self.meand1[:] += other.meand1[:]
+        self.meanlogd1[:] += other.meanlogd1[:]
+        self.meand2[:] += other.meand2[:]
+        self.meanlogd2[:] += other.meanlogd2[:]
+        self.meand3[:] += other.meand3[:]
+        self.meanlogd3[:] += other.meanlogd3[:]
+        self.meanu[:] += other.meanu[:]
+        if self.bin_type == 'LogRUV':
+            self.meanv[:] += other.meanv[:]
+        self.weightr[:] += other.weightr[:]
+        if self.bin_type == 'LogMultipole':
+            self.weighti[:] += other.weighti[:]
+        self.ntri[:] += other.ntri[:]
+        return self
+
+    def toSAS(self, *, target=None, **kwargs):
+        """Convert a multipole-binned correlation to the corresponding SAS binning.
+
+        This is only valid for bin_type == LogMultipole.
+
+        Keyword Arguments:
+            target:     A target Correlation object with LogSAS binning to write to.
+                        If this is not given, a new object will be created based on the
+                        configuration paramters of the current object. (default: None)
+            **kwargs:   Any kwargs that you want to use to configure the returned object.
+                        Typically, might include min_phi, max_phi, nphi_bins, phi_bin_size.
+                        The default phi binning is [0,pi] with nphi_bins = self.max_n.
+
+        Returns:
+            An object with bin_type=LogSAS containing the same information as this object,
+            but with the SAS binning.
+        """
+        # Each class will add a bit to this.  The implemenation here is the common code
+        # that applies to all the different classes.
+
+        if self.bin_type != 'LogMultipole':
+            raise TypeError("toSAS is invalid for bin_type = %s"%self.bin_type)
+
+        if target is None:
+            config = self.config.copy()
+            config['bin_type'] = 'LogSAS'
+            max_n = config.pop('max_n')
+            if 'nphi_bins' not in kwargs and 'phi_bin_size' not in kwargs:
+                config['nphi_bins'] = max_n
+            sas = self.__class__(config, **kwargs)
+        else:
+            if not isinstance(target, self.__class__):
+                raise ValueError(f"target must be an instance of {self.__class__}")
+            sas = target
+            sas.clear()
+        if not np.array_equal(sas.rnom1d, self.rnom1d):
+            raise ValueError("toSAS cannot change sep parameters")
+
+        # Copy these over
+        sas.meand2[:,:,:] = self.meand2[:,:,0][:,:,None]
+        sas.meanlogd2[:,:,:] = self.meanlogd2[:,:,0][:,:,None]
+        sas.meand3[:,:,:] = self.meand3[:,:,0][:,:,None]
+        sas.meanlogd3[:,:,:] = self.meanlogd3[:,:,0][:,:,None]
+        sas.npatch1 = self.npatch1
+        sas.npatch2 = self.npatch2
+        sas.npatch3 = self.npatch3
+        sas.coords = self.coords
+        sas.metric = self.metric
+
+        # Use nominal for meanphi
+        sas.meanu[:] = sas.phi / sas._phi_units
+        # Compute d1 from actual d2,d3 and nominal phi
+        sas.meand1[:] = np.sqrt(sas.meand2**2 + sas.meand3**2
+                                - 2*sas.meand2 * sas.meand3 * np.cos(sas.phi))
+        sas.meanlogd1[:] = np.log(sas.meand1)
+
+        # Eqn 26 of Porth et al, 2023
+        # N(d2,d3,phi) = 1/2pi sum_n N_n(d2,d3) exp(i n phi)
+        expiphi = np.exp(1j * self.n1d[:,None] * sas.phi1d)
+        sas.weightr[:] = np.real(self.weight.dot(expiphi)) / (2*np.pi) * sas.phi_bin_size
+
+        # For ntri, we recorded the total ntri for each pair of d2,d3.
+        # Allocate those proportionally to the weights.
+        # Note: Multipole counts the weight for all 0 < phi < 2pi.
+        # We reduce this by the fraction of this covered by [min_phi, max_phi].
+        # (Typically 1/2, since usually [0,pi].)
+        phi_frac = (sas.max_phi - sas.min_phi) / (2*np.pi)
+        denom = np.sum(sas.weight, axis=2)
+        denom[denom==0] = 1  # Don't divide by 0
+        ratio = self.ntri[:,:,0] / denom * phi_frac
+        sas.ntri[:] = sas.weight * ratio[:,:,None]
+
+        for k,v in self.results.items():
+            temp = sas.copy()
+            temp.weightr[:] = np.real(v.weight.dot(expiphi)) / (2*np.pi) * sas.phi_bin_size
+            temp.ntri[:] = temp.weight * ratio[:,:,None]
+
+            # Undo the normalization of the d arrays.
+            temp.meand1 *= temp.weightr
+            temp.meand2 *= temp.weightr
+            temp.meand3 *= temp.weightr
+            temp.meanlogd1 *= temp.weightr
+            temp.meanlogd2 *= temp.weightr
+            temp.meanlogd3 *= temp.weightr
+            temp.meanu *= temp.weightr
+
+            sas.results[k] = temp
+
+        return sas
+
     def estimate_cov(self, method, *, func=None, comm=None):
         """Estimate the covariance matrix based on the data
 
@@ -1869,6 +2413,15 @@ class Corr3(object):
                     [ (i,j,k) for i in indx for j in indx if i!=j
                               for k in indx if self._ok[i,j,k] and (i!=k and j!=k) ])
 
+    @property
+    def _write_params(self):
+        params = make_minimal_config(self.config, Corr3._valid_params)
+        # Add in a couple other things we want to preserve that aren't construction kwargs.
+        params['coords'] = self.coords
+        params['metric'] = self.metric
+        params['corr'] = self._letters
+        return params
+
     def _write(self, writer, name, write_patch_results, write_cov=False, zero_tot=False):
         if name is None and (write_patch_results or write_cov):
             name = 'main'
@@ -1876,7 +2429,6 @@ class Corr3(object):
         col_names = self._write_col_names
         data = self._write_data
         params = self._write_params
-        params['num_rows'] = self._nbins
 
         if write_patch_results:
             # Note: Only include npatch1, npatch2 in serialization if we are also serializing
@@ -1884,6 +2436,7 @@ class Corr3(object):
             params['npatch1'] = self.npatch1
             params['npatch2'] = self.npatch2
             params['npatch3'] = self.npatch3
+            params['num_rows'] = self._nbins
             num_patch_tri = len(self.results)
             if zero_tot:
                 i = 0
@@ -1947,3 +2500,105 @@ class Corr3(object):
             if isinstance(cov_shape, str):
                 cov_shape = eval(cov_shape)
             self._cov = reader.read_array(cov_shape, ext='cov')
+
+    def _read_from_data(self, data, params):
+        s = self.data_shape
+        self.meand1 = data['meand1'].reshape(s)
+        self.meanlogd1 = data['meanlogd1'].reshape(s)
+        self.meand2 = data['meand2'].reshape(s)
+        self.meanlogd2 = data['meanlogd2'].reshape(s)
+        self.meand3 = data['meand3'].reshape(s)
+        self.meanlogd3 = data['meanlogd3'].reshape(s)
+        if self.bin_type == 'LogRUV':
+            self.meanu = data['meanu'].reshape(s)
+            self.meanv = data['meanv'].reshape(s)
+        elif self.bin_type == 'LogSAS':
+            self.meanu = data['meanphi'].reshape(s)
+        if self.bin_type == 'LogMultipole':
+            self.weightr = data['weight_re'].reshape(s)
+            self.weighti = data['weight_im'].reshape(s)
+        else:
+            if 'weight' in data.dtype.names:
+                # NNN calls this DDD, rather than weight.  Let that class handle it.
+                # But here, don't error if weight is missing.
+                self.weightr = data['weight'].reshape(s)
+        self.ntri = data['ntri'].reshape(s)
+        self.coords = params['coords'].strip()
+        self.metric = params['metric'].strip()
+        self.npatch1 = params.get('npatch1', 1)
+        self.npatch2 = params.get('npatch2', 1)
+        self.npatch3 = params.get('npatch3', 1)
+
+    def read(self, file_name, *, file_type=None):
+        """Read in values from a file.
+
+        This should be a file that was written by TreeCorr, preferably a FITS or HDF5 file, so
+        there is no loss of information.
+
+        .. warning::
+
+            The current object should be constructed with the same configuration parameters as
+            the one being read.  e.g. the same min_sep, max_sep, etc.  This is not checked by
+            the read function.
+
+        Parameters:
+            file_name (str):    The name of the file to read in.
+            file_type (str):    The type of file ('ASCII' or 'FITS').  (default: determine the type
+                                automatically from the extension of file_name.)
+        """
+        self.logger.info(f'Reading {self._letters} correlations from %s',file_name)
+        with make_reader(file_name, file_type, self.logger) as reader:
+            self._read(reader)
+
+    @classmethod
+    def from_file(cls, file_name, *, file_type=None, logger=None, rng=None):
+        """Create a new instance from an output file.
+
+        This should be a file that was written by TreeCorr.
+
+        .. note::
+
+            This classmethod may be called either using the base class or the class type that
+            wrote the file.  E.g. if the file was written by `GGGCorrelation`, then either
+            of the following would work and be equivalent:
+
+                >>> ggg = treecorr.GGGCorrelation.from_file(file_name)
+                >>> ggg = treecorr.Corr3.from_file(file_name)
+
+        Parameters:
+            file_name (str):    The name of the file to read in.
+            file_type (str):    The type of file ('ASCII', 'FITS', or 'HDF').  (default: determine
+                                the type automatically from the extension of file_name.)
+            logger (Logger):    If desired, a logger object to use for logging. (default: None)
+            rng (RandomState):  If desired, a numpy.random.RandomState instance to use for bootstrap
+                                random number generation. (default: None)
+
+        Returns:
+            A Correlation object, constructed from the information in the file.
+        """
+        if cls is Corr3:
+            # Then need to figure out what class to make first.
+            with make_reader(file_name, file_type, logger) as reader:
+                name = 'main' if 'main' in reader else None
+                params = reader.read_params(ext=name)
+                letters = params.get('corr', None)
+                if letters not in Corr3._lookup_dict:
+                    raise OSError("%s does not seem to be a valid treecorr output file."%file_name)
+                cls = Corr3._lookup_dict[letters]
+                return cls.from_file(file_name, file_type=file_type, logger=logger, rng=rng)
+        if logger:
+            logger.info(f'Building {cls._cls} from %s',file_name)
+        with make_reader(file_name, file_type, logger) as reader:
+            name = 'main' if 'main' in reader else None
+            params = reader.read_params(ext=name)
+            letters = params.get('corr', None)
+            if letters not in Corr3._lookup_dict:
+                raise OSError("%s does not seem to be a valid treecorr output file."%file_name)
+            if params['corr'] != cls._letters:
+                raise OSError("Trying to read a %sCorrelation output file with %s"%(
+                              params['corr'], cls.__name__))
+            kwargs = make_minimal_config(params, Corr3._valid_params)
+            corr = cls(**kwargs, logger=logger, rng=rng)
+            corr.logger.info(f'Reading {cls._letters} correlations from %s', file_name)
+            corr._read(reader, name=name, params=params)
+        return corr

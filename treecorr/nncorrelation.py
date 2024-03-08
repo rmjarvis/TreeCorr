@@ -96,8 +96,8 @@ class NNCorrelation(Corr2):
     _builder = _treecorr.NNCorr
     _calculateVar1 = lambda *args, **kwargs: None
     _calculateVar2 = lambda *args, **kwargs: None
-    _sigk1 = None
-    _sigk2 = None
+    _sig1 = None
+    _sig2 = None
     # The angles are not important for accuracy of NN correlations.
     _default_angle_slop = 1
 
@@ -657,6 +657,12 @@ class NNCorrelation(Corr2):
         with make_reader(file_name, file_type, logger) as reader:
             name = 'main' if 'main' in reader else None
             params = reader.read_params(ext=name)
+            letters = params.get('corr', None)
+            if letters not in Corr2._lookup_dict:
+                raise OSError("%s does not seem to be a valid treecorr output file."%file_name)
+            if params['corr'] != cls._letters:
+                raise OSError("Trying to read a %sCorrelation output file with %s"%(
+                                params['corr'], cls.__name__))
             kwargs = make_minimal_config(params, Corr2._valid_params)
             corr = cls(**kwargs, logger=logger, rng=rng)
             corr.logger.info('Reading NN correlations from %s',file_name)

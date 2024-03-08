@@ -1286,6 +1286,19 @@ def test_nn():
     np.testing.assert_allclose(dd2c.xi, dd.xi, rtol=1.e-3)
     np.testing.assert_allclose(dd2c.varxi, dd.varxi, rtol=1.e-3)
 
+    # But cannot use a different class
+    with assert_raises(OSError):
+        treecorr.NGCorrelation.from_file(out_file_name)
+    # And gives error if not a valid treecorr output file.
+    with assert_raises(OSError):
+        treecorr.Corr2.from_file(config['file_name'])
+    with assert_raises(OSError):
+        treecorr.NNCorrelation.from_file(config['file_name'])
+    with assert_raises(OSError):
+        treecorr.Corr2.from_file('invalid_file')
+    with assert_raises(OSError):
+        treecorr.NNCorrelation.from_file('invalid_file')
+
     # Check the fits write option
     try:
         import fitsio

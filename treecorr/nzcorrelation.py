@@ -182,7 +182,6 @@ class BaseNZCorrelation(Corr2):
     def _read_from_data(self, data, params):
         super()._read_from_data(data, params)
         s = self.logr.shape
-        self.weight = data['weight'].reshape(s)
         self._xi1 = data[self._zreal].reshape(s)
         self._xi2 = data[self._zimag].reshape(s)
         self._varxi = data['sigma'].reshape(s)**2

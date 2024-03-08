@@ -11,7 +11,7 @@ parameter in `Corr2`.
 
 The default way to bin the results in TreeCorr is uniformly in log(r),
 where r is defined according to the specified metric
-(cf. `Metrics`).  This corresponds to ``bin_type`` = "Log", although
+(cf. `Metrics`).  This corresponds to ``bin_type = "Log"``, although
 one normally omits this, as it is the default.
 
 For most correlation functions, which tend to be approximately power laws, this
@@ -39,7 +39,7 @@ output array is ``int(log(r) - log(min_sep))/bin_size)``.
 For use cases where the scales of interest span only a relatively small range of distances,
 it may be more convenient to use linear binning rather than logarithmic.  A notable
 example of this is BAO investigations, where the interesting region is near the BAO peak.
-In these cases, using ``bin_type`` = "Linear" may be preferred.
+In these cases, using ``bin_type = "Linear"`` may be preferred.
 
 As with "Log", the binning may be specified using any 3 of the following 4 parameters:
 
@@ -59,7 +59,7 @@ output array is ``int((r - min_sep)/bin_size)``.
 "TwoD"
 ------
 
-To bin the correlation in two dimensions, (x,y), you can use ``bin_type`` = "TwoD".
+To bin the correlation in two dimensions, (x,y), you can use ``bin_type = "TwoD"``.
 This will keep track of not only the distance between two points, but also the
 direction.  The results are then binned linearly in both the delta x and delta y values.
 
@@ -185,7 +185,7 @@ Larger ``bin_slop`` allows for more overlap (and is thus faster), while smaller 
 gets closer to putting each pair perfectly into the bin it belongs in.
 
 The default ``bin_slop`` for the "Log" bin type is such that ``bin_slop * bin_size``
-is 0.1.  Or if ``bin_size < 0.1``, then we use ``bin_slop`` = 1.  This has been
+is 0.1.  Or if ``bin_size < 0.1``, then we use ``bin_slop = 1``.  This has been
 found to give fairly good accuracy across a variety of applications.  However,
 for high precision measurements, it may be appropriate to use a smaller value than
 this.  Especially if your bins are fairly large.
@@ -197,13 +197,13 @@ then your original ``bin_slop`` was too large.
 
 To understand the impact of the ``bin_slop`` parameter, it helps to start by thinking
 about when it is set to 0.
-If ``bin_slop`` = 0, then TreeCorr does essentially a brute-force calculation,
+If ``bin_slop = 0``, then TreeCorr does essentially a brute-force calculation,
 where each pair of points is always placed into the correct bin.
 
-But if ``bin_slop`` > 0, then any given pair is allowed to be placed in the wrong bin
+But if ``bin_slop > 0``, then any given pair is allowed to be placed in the wrong bin
 so long as the true separation is within this fraction of a bin from the edge.
 For example, if a bin nominally goes from 10 to 20 arcmin (with linear binning),
-then with ``bin_slop`` = 0.05,
+then with ``bin_slop = 0.05``,
 TreeCorr will accumulate pairs with separations ranging from 9.5 to 20.5 arcmin into this
 bin.  (I.e. the slop is 0.05 of the bin width on each side.)
 Note that some of the pairs with separations from 9.5 to 10.5 would possibly fall into the
@@ -228,7 +228,7 @@ angle_slop
 ^^^^^^^^^^
 
 For some calculations, the angular orientation of the line between two points is relevant
-to the correlation.  For any complex quantity (e.g. shear), the value used in the correlation
+to the correlation.  For most complex quantities (e.g. shear), the value used in the correlation
 has to be projected onto the the line between the two points (for two-point correlations) or
 the centroid of the triangle (for three-point correlations).  Even for scalar quantities,
 three-point correlations using the multipole method also use the angular direction of the
@@ -241,10 +241,10 @@ any two of their consituent points.  If the line connecting some pair has a dire
 than ``angle_slop`` radians different from the cell pair direction, then the cells will be split
 further, even if they would pass the ``bin_slop`` criterion.
 
-This parameter allows one to use fairly large bins for shear (or other non-spin-0) correlations
-and tune the accuracy of the projections without worrying that some pairs of cells will have
-large projection errors because the range of separations for a pair of cells happen to fit
-precisely into a single bin.
+This parameter allows one to use fairly large bins for shear (or other non-spin-0 complex field)
+correlations and tune the accuracy of the projections without worrying that some pairs of cells
+will have large projection errors because the range of separations for a pair of cells happen to
+fit precisely into a single bin.
 
 
 brute
@@ -258,20 +258,20 @@ development of the faster algorithms.  Some science cases also use comparison to
 force results to confirm that they are not significantly impacted by using non-zero
 ``bin_slop``.
 
-Setting ``brute`` = True is roughly equivalent to setting ``bin_slop`` = 0.  However,
+Setting ``brute = True`` is roughly equivalent to setting ``bin_slop = 0``.  However,
 there is a distinction between these two cases.
 Internally, the former will *always* traverse the tree all the way to the leaves.  So
 every pair will be calculated individually.  This really is the brute force calculation.
 
-However, ``bin_slop`` = 0 will allow for the traversal to stop early if all possible pairs in a
+However, ``bin_slop = 0`` will allow for the traversal to stop early if all possible pairs in a
 given pair of cells fall into the same bin.  This can be quite a large speedup in some cases.
 And especially for NN correlations, there is no disadvantage to doing so.
 
-For shear correlations, there can be a slight difference between using ``bin_slop`` = 0 and
-``brute`` = True because the shear projections won't be precisely equal in the two cases.
+For shear correlations, there can be a slight difference between using ``bin_slop = 0`` and
+``brute = True`` because the shear projections won't be precisely equal in the two cases.
 Shear correlations require parallel transporting the shear values to the centers of
 the cells, and then when accumulating pairs, the shears are projected onto the line joining
-the two points.  Both of these lead to slight differences in the results of a ``bin_slop`` = 0
+the two points.  Both of these lead to slight differences in the results of a ``bin_slop = 0``
 calculation compared to the true brute force calculation.
 If the difference is seen to matter for you, then the above ``angle_slop`` parameter can be used
 to increase the accuracy of the projections, separate from the ``bin_slop`` considerations.
@@ -279,5 +279,5 @@ to increase the accuracy of the projections, separate from the ``bin_slop`` cons
 Additionally, there is one other way to use the ``brute`` parameter.  If you set
 ``brute`` to 1 or 2, rather than True or False, then the forced traversal to the
 leaf cells will only apply to ``cat1`` or ``cat2`` respectively.  The cells for the other
-catalog will use the normal criterion based on the ``bin_slop`` parameter to decide whether
-it is acceptable to use a non-leaf cell or to continue traversing the tree.
+catalog will use the normal criterion based on the ``bin_slop`` and ``angle_slop`` parameters
+to decide whether it is acceptable to use a non-leaf cell or to continue traversing the tree.

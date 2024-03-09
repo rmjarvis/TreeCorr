@@ -1,7 +1,46 @@
 Changes from version 4.3 to 5.0
 ===============================
 
-See the listing below for the complete list of new features and changes.
+This is a major version update to TreeCorr, since it contains a number of non-backwards-
+compatible changes to the API.
+
+The most important change involves the three-point correlations.  TreeCorr now implements
+the multipole algorithm of Porth et al, 2023 (arXiv:2309.08601), which is much faster than the
+previous 3-cell recursion over triangles.  Enough so that I don't anticipate people ever wanting
+to use the old algorithm.  However, this algorithm requires a different binning than we
+used to use -- it requires binning according to two sides of the triangle and the angle
+between them, rather than the three side lengths (using a somewhat awkward formulation
+in terms of ratios of side lengths).
+
+The new three-point binning scheme is called ``bin_type="LogSAS"``.  This is now the default
+binning for all three-point correlation classes.  Furthermore, the default algorithm is
+``algo="multipole"``, which first computes the multipole version of the correlation function
+using the Porth et al algorithm.  Then it converts back to regular configuration space
+the the LogSAS binning.
+
+The old versions are still available in case there are use cases for which they are superior
+in some way.  I do use them in the test suite still for comparison purposes.  To use the
+old binning, you now need to explicitly specify ``bin_type="LogRUV"`` in the Correlation class,
+and to use the old algorithm of accumulating triangle directly, use ``algo="triangle"``
+when calling `Corr3.process`.
+
+I also changed how three-point cross correlations are handled, since I wasn't very happy with
+my old implementation.  Now, you can indicate whether or not you want the three points
+to keep their ordering in the triangle with the parameter ``ordered`` in the `Corr3.process`
+function.  If ``ordered=False``, then points from the (2 or 3) catalogs are allowed to take
+any position in the triangle.  If ``ordered=True`` (the default), then points from the first
+catalog will only for point P1 in the triangle, points from the second catalog will only be at P2,
+and points from the third will only be at P3.  This seems to be a more intuitive way to control
+this than the old ``CrossCorrelation`` classes.
+
+Another big change in this release is the addition of more fields for the two-point correlations.
+TreeCorr now implements correlations of spin-1 vector fields, as well as complex-valued
+fields with spin=0, 3, or 4.  (TreeCorr had already implemented spin-2 of course.)
+The letters for each of these are V, Z, T, and Q respectively.  I only did the pairings of each of
+these with itself, counts (N), and real scalar fields (K).  However, it would not be too hard
+to add more if someone has a use case for a pairing of two complex fields with different spins.
+
+A complete list of all new features and changes is given below.
 `Relevant PRs and Issues,
 <https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+4.4%22+is%3Aclosed>`_
 whose issue numbers are listed below for the relevant items.
@@ -59,14 +98,14 @@ Performance improvements
 New features
 ------------
 
+- Added spin-1 correlations using the letter V (for Vector), including `NVCorrelation`,
+  `KVCorrelation` and `VVCorrelation`. (#81, #158)
 - Give a better error message when patch is given as an integer, but npatch is not provided. (#150)
 - Added ``x_eval``, ``y_eval``, etc. which let you calculate a derived quantity from an input
   catalog using Python eval on columns in the file. (#151, #173)
 - Allow vark, varg, varv for a Catalog be specifiable on input, rather than calculated directly
-  from the corresponding values. (#154)
+  from the corresponding values. (#154, #159)
 - Allow numpy.random.Generator for rng arguments (in addition to legacy RandomState). (#157)
-- Added spin-1 correlations using the letter V (for Vector), including `NVCorrelation`,
-  `KVCorrelation` and `VVCorrelation`. (#158)
 - Added spin-3 and spin-4 correlations using the letters T (for Trefoil) and Q (for Quatrefoil)
   respectively, including `NTCorrelation`, `KTCorrelation`, `TTCorrelation`, `NQCorrelation`,
   `KQCorrelation` and `QQCorrelation`. (#160)
@@ -74,8 +113,10 @@ New features
 - Added ``ordered=True`` option to the 3pt ``process`` methods for keeping the order of the
   catalogs fixed in the triangle orientation. (#165)
 - Added ``bin_type='LogSAS'`` for 3pt correlations. (#165)
-- Added ``bin_type='LogMultipole'`` for 3pt correlations and method `GGGCorrelation.toSAS` to
+- Added ``bin_type='LogMultipole'`` for 3pt correlations and method `Corr3.toSAS` to
   convert from this format to the LogSAS binning if desired. (#167)
+- Added serialization of rr, dr, etc. when writing with write_patch_results=True option,
+  so you no longer have to separately write files for them to recover the covariance. (#168, #172)
 - Added ``patch_method`` option to ``process``, and specifically a "local" option.  This is
   not particularly recommended for most use cases, but it is required for the multipole
   three-point method, for which it is the default. (#169)
@@ -83,8 +124,6 @@ New features
   irrespective of the binning. (#170)
 - Added ``algo`` option to 3-point ``process`` functions to conrol whether to use new
   multipole algorithm or the old triangle algorithm. (#171)
-- Added serialization of rr, dr, etc. when writing with write_patch_results=True option,
-  so you no longer have to separately write files for them to recover the covariance. (#172)
 - Added `Corr2.from_file` class methods to construct a Correlation object from a file without
   needing to know the correct configuration parameters. (#172)
 - Added ``write_cov`` option to write functions to include the covariance in the output file.

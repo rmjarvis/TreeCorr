@@ -42,7 +42,7 @@ to add more if someone has a use case for a pairing of two complex fields with d
 
 A complete list of all new features and changes is given below.
 `Relevant PRs and Issues,
-<https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+4.4%22+is%3Aclosed>`_
+<https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+5.0%22+is%3Aclosed>`_
 whose issue numbers are listed below for the relevant items.
 
 

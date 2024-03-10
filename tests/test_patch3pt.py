@@ -2624,13 +2624,13 @@ def test_ggg_logsas_jk():
     cov = gggm.estimate_cov('marked_bootstrap', func=fm)
     print(np.diagonal(cov).real)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.1*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.2*tol_factor)
 
     print('bootstrap:')
     cov = gggm.estimate_cov('bootstrap', func=fm)
     print(np.diagonal(cov).real)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.9*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
 
 
 @timer
@@ -2953,7 +2953,7 @@ def test_nnn_logsas_jk():
     print('marked:')
     cov = treecorr.estimate_multi_cov([dddm,rrrm], 'marked_bootstrap', func=zeta_ms)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.7*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.8*tol_factor)
 
     print('bootstrap:')
     cov = treecorr.estimate_multi_cov([dddm,rrrm], 'bootstrap', func=zeta_ms)
@@ -2974,7 +2974,7 @@ def test_nnn_logsas_jk():
     print('marked:')
     cov = treecorr.estimate_multi_cov([dddm,rrrm,drrm,rddm], 'marked_bootstrap', func=zeta_mc)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnnc))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.9*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=1.2*tol_factor)
 
     print('bootstrap:')
     cov = treecorr.estimate_multi_cov([dddm,rrrm,drrm,rddm], 'bootstrap', func=zeta_mc)

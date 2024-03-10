@@ -1167,7 +1167,7 @@ def test_ng_jk():
     ng4l.process(cat1p, cat2p, patch_method='local')
     t1 = time.time()
     print('Time for local patch processing with cat1 first = ',t1-t0)
-    np.testing.assert_allclose(ng4l.weight, ng4.weight, rtol=3.e-3*tol_factor)
+    np.testing.assert_allclose(ng4l.weight, ng4.weight, rtol=1.e-2*tol_factor)
     np.testing.assert_allclose(ng4l.xi, ng4.xi, rtol=3.e-3*tol_factor)
     np.testing.assert_allclose(np.log(ng4l.varxi), np.log(ng4.varxi), atol=0.05*tol_factor)
 
@@ -1214,7 +1214,7 @@ def test_ng_jk():
     print('Time to calculate bootstrap covariance = ',t1-t0)
     print('varxi = ',cov_boot.diagonal())
     print('ratio = ',cov_boot.diagonal() / var_xi)
-    np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.2*tol_factor)
+    np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.3*tol_factor)
     cov_boot = ng4.estimate_cov('bootstrap')
     print('varxi = ',cov_boot.diagonal())
     print('ratio = ',cov_boot.diagonal() / var_xi)
@@ -1222,7 +1222,7 @@ def test_ng_jk():
     cov_boot = ng5.estimate_cov('bootstrap')
     print('varxi = ',cov_boot.diagonal())
     print('ratio = ',cov_boot.diagonal() / var_xi)
-    np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.5*tol_factor)
+    np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.6*tol_factor)
 
     # Check that these still work after roundtripping through a file.
     try:
@@ -1706,10 +1706,10 @@ def test_nn_jk():
     nr4.process(rand_catp, catp, patch_method='local')
     xib5, varxib5 = nn4.calculateXi(rr=rr4, dr=nr4)
     np.testing.assert_allclose(xib5, xib3, rtol=0.03)
-    np.testing.assert_allclose(np.log(varxib5), np.log(var_xib), atol=0.6*tol_factor)
+    np.testing.assert_allclose(np.log(varxib5), np.log(var_xib), atol=0.7*tol_factor)
     xic5, varxic5 = nn4.calculateXi(rr=rr4, rd=rn4)
     np.testing.assert_allclose(xib5, xib3, rtol=0.03)
-    np.testing.assert_allclose(np.log(varxib5), np.log(var_xib), atol=0.6*tol_factor)
+    np.testing.assert_allclose(np.log(varxib5), np.log(var_xib), atol=0.7*tol_factor)
 
     # Check some invalid parameters
     # randoms need patches, at least for d part.

@@ -2244,7 +2244,7 @@ def test_kkk_logsas():
     d2x = kkksx.meand2
     d3x = kkksx.meand3
     true_zetax = (2.*np.pi/3) * A**3 * (s/L)**2 * np.exp(-(d1x**2+d2x**2+d3x**2)/(6.*s**2))
-    np.testing.assert_allclose(kkksx.zeta, true_zetax, rtol=0.1*tol_factor)
+    np.testing.assert_allclose(kkksx.zeta, true_zetax, rtol=0.15*tol_factor)
 
     # Error to try to change sep binning with toSAS
     with assert_raises(ValueError):

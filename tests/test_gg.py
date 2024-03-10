@@ -669,7 +669,8 @@ def test_mapsq():
     out_name = os.path.join('data','gg_map.out')
     gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=1, nbins=47, sep_units='arcmin',
                                 verbose=1)
-    if __name__ == "__main__":
+
+    if not os.path.exists(out_name):
         ngal = 1000000
 
         rng = np.random.RandomState(8675309)
@@ -683,8 +684,8 @@ def test_mapsq():
         cat.write(cat_name)
         gg.process(cat)
         gg.write(out_name, precision=16)
-    else:
-        gg.read(out_name)
+
+    gg.read(out_name)
 
     # Check MapSq calculation:
     # cf. http://adsabs.harvard.edu/abs/2004MNRAS.352..338J

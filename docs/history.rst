@@ -2,6 +2,9 @@
 Previous History
 ================
 
+`Changes from version 4.3 to 5.0
+<https://github.com/rmjarvis/TreeCorr/blob/releases/5.0/CHANGELOG.rst>`_
+
 `Changes from version 4.2 to 4.3
 <https://github.com/rmjarvis/TreeCorr/blob/releases/4.3/CHANGELOG.rst>`_
 

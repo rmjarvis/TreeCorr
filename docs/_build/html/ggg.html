@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GGGCorrelation: Shear-shear-shear correlations &mdash; TreeCorr 5.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="KKKCorrelation: Scalar-scalar-scalar correlations" href="kkk.html" />
+    <link rel="prev" title="NNNCorrelation: Count-count-count correlations" href="nnn.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            TreeCorr
+          </a>
+              <div class="version">
+                5.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="nnn.html">NNNCorrelation: Count-count-count correlations</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">GGGCorrelation: Shear-shear-shear correlations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.GGGCorrelation"><code class="docutils literal notranslate"><span class="pre">GGGCorrelation</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#treecorr.GGGCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">GGGCorrelation.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#treecorr.GGGCorrelation.calculateMap3"><code class="docutils literal notranslate"><span class="pre">GGGCorrelation.calculateMap3()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#treecorr.GGGCorrelation.finalize"><code class="docutils literal notranslate"><span class="pre">GGGCorrelation.finalize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#treecorr.GGGCorrelation.getStat"><code class="docutils literal notranslate"><span class="pre">GGGCorrelation.getStat()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#treecorr.GGGCorrelation.getWeight"><code class="docutils literal notranslate"><span class="pre">GGGCorrelation.getWeight()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#treecorr.GGGCorrelation.process_auto"><code class="docutils literal notranslate"><span class="pre">GGGCorrelation.process_auto()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#treecorr.GGGCorrelation.process_cross12"><code class="docutils literal notranslate"><span class="pre">GGGCorrelation.process_cross12()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#treecorr.GGGCorrelation.toSAS"><code class="docutils literal notranslate"><span class="pre">GGGCorrelation.toSAS()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#treecorr.GGGCorrelation.write"><code class="docutils literal notranslate"><span class="pre">GGGCorrelation.write()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#treecorr.GGGCorrelation.writeMap3"><code class="docutils literal notranslate"><span class="pre">GGGCorrelation.writeMap3()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="kkk.html">KKKCorrelation: Scalar-scalar-scalar correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="correlation3.html#treecorr.Corr3"><code class="docutils literal notranslate"><span class="pre">Corr3</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shear.html">Shear Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.3 to 5.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">TreeCorr</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="correlation3.html">Three-point Correlation Functions</a></li>
+      <li class="breadcrumb-item active">GGGCorrelation: Shear-shear-shear correlations</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/ggg.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="gggcorrelation-shear-shear-shear-correlations">
+<h1>GGGCorrelation: Shear-shear-shear correlations<a class="headerlink" href="#gggcorrelation-shear-shear-shear-correlations" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="treecorr.GGGCorrelation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">GGGCorrelation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/gggcorrelation.html#GGGCorrelation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.GGGCorrelation" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.corr3base.Corr3"><code class="xref py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a></p>
+<p>This class handles the calculation and storage of a 3-point shear-shear-shear correlation
+function.</p>
+<p>We use the “natural components” of the shear 3-point function described by Schneider &amp;
+Lombardi (2003) [Astron.Astrophys. 397 (2003) 809-818].  In this paradigm, the shears
+are projected relative to some point defined by the geometry of the triangle.  They
+give several reasonable choices for this point.  We choose the triangle’s centroid as the
+“most natural” point, as many simple shear fields have purely real <span class="math notranslate nohighlight">\(\Gamma_0\)</span> using
+this definition.  It is also a fairly simple point to calculate in the code compared to
+some of the other options they offer, so projections relative to it are fairly efficient.</p>
+<p>There are 4 complex-valued 3-point shear corrletion functions defined for triples of shear
+values projected relative to the line joining the location of the shear to the cenroid of
+the triangle:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\Gamma_0 &amp;= \langle \gamma(\mathbf{x1}) \gamma(\mathbf{x2}) \gamma(\mathbf{x3}) \rangle \\
+\Gamma_1 &amp;= \langle \gamma(\mathbf{x1})^* \gamma(\mathbf{x2}) \gamma(\mathbf{x3}) \rangle \\
+\Gamma_2 &amp;= \langle \gamma(\mathbf{x1}) \gamma(\mathbf{x2})^* \gamma(\mathbf{x3}) \rangle \\
+\Gamma_3 &amp;= \langle \gamma(\mathbf{x1}) \gamma(\mathbf{x2}) \gamma(\mathbf{x3})^* \rangle \\\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathbf{x1}, \mathbf{x2}, \mathbf{x3}\)</span> are the corners of the triange opposite
+sides d1, d2, d3 respectively, where d1 &gt; d2 &gt; d3, and <span class="math notranslate nohighlight">\({}^*\)</span> indicates complex
+conjugation.</p>
+<p>See the doc string of <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a> for a description of how the triangles
+are binned.</p>
+<p>Ojects of this class holds the following attributes:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nbins</strong> – The number of bins in logr where r = d2.</p></li>
+<li><p><strong>bin_size</strong> – The size of the bins in logr.</p></li>
+<li><p><strong>min_sep</strong> – The minimum separation being considered.</p></li>
+<li><p><strong>max_sep</strong> – The maximum separation being considered.</p></li>
+<li><p><strong>logr1d</strong> – The nominal centers of the nbins bins in log(r).</p></li>
+</ul>
+</dd>
+</dl>
+<p>If the bin_type is LogRUV, then it will have these attributes:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nubins</strong> – The number of bins in u where u = d3/d2.</p></li>
+<li><p><strong>ubin_size</strong> – The size of the bins in u.</p></li>
+<li><p><strong>min_u</strong> – The minimum u being considered.</p></li>
+<li><p><strong>max_u</strong> – The maximum u being considered.</p></li>
+<li><p><strong>nvbins</strong> – The number of bins in v where v = +-(d1-d2)/d3.</p></li>
+<li><p><strong>vbin_size</strong> – The size of the bins in v.</p></li>
+<li><p><strong>min_v</strong> – The minimum v being considered.</p></li>
+<li><p><strong>max_v</strong> – The maximum v being considered.</p></li>
+<li><p><strong>u1d</strong> – The nominal centers of the nubins bins in u.</p></li>
+<li><p><strong>v1d</strong> – The nominal centers of the nvbins bins in v.</p></li>
+</ul>
+</dd>
+</dl>
+<p>If the bin_type is LogSAS, then it will have these attributes:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nphi_bins</strong> – The number of bins in phi.</p></li>
+<li><p><strong>phi_bin_size</strong> – The size of the bins in phi.</p></li>
+<li><p><strong>min_phi</strong> – The minimum phi being considered.</p></li>
+<li><p><strong>max_phi</strong> – The maximum phi being considered.</p></li>
+<li><p><strong>phi1d</strong> – The nominal centers of the nphi_bins bins in phi.</p></li>
+</ul>
+</dd>
+</dl>
+<p>If the bin_type is LogMultipole, then it will have these attributes:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>max_n</strong> – The maximum multipole index n being stored.</p></li>
+<li><p><strong>n1d</strong> – The multipole index n in the 2*max_n+1 bins of the third bin direction.</p></li>
+</ul>
+</dd>
+</dl>
+<p>In addition, the following attributes are numpy arrays whose shape is:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>(nbins, nubins, nvbins) if bin_type is LogRUV</p></li>
+<li><p>(nbins, nbins, nphi_bins) if bin_type is LogSAS</p></li>
+<li><p>(nbins, nbins, 2*max_n+1) if bin_type is LogMultipole</p></li>
+</ul>
+</div></blockquote>
+<p>If bin_type is LogRUV:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>logr</strong> – The nominal center of each bin in log(r).</p></li>
+<li><p><strong>rnom</strong> – The nominal center of each bin converted to regular distance.
+i.e. r = exp(logr).</p></li>
+<li><p><strong>u</strong> – The nominal center of each bin in u.</p></li>
+<li><p><strong>v</strong> – The nominal center of each bin in v.</p></li>
+<li><p><strong>meanu</strong> – The (weighted) mean value of u for the triangles in each bin.</p></li>
+<li><p><strong>meanv</strong> – The (weighted) mean value of v for the triangles in each bin.</p></li>
+</ul>
+</dd>
+</dl>
+<p>If bin_type is LogSAS:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>logd2</strong> – The nominal center of each bin in log(d2).</p></li>
+<li><p><strong>d2nom</strong> – The nominal center of each bin converted to regular d2 distance.
+i.e. d2 = exp(logd2).</p></li>
+<li><p><strong>logd3</strong> – The nominal center of each bin in log(d3).</p></li>
+<li><p><strong>d3nom</strong> – The nominal center of each bin converted to regular d3 distance.
+i.e. d3 = exp(logd3).</p></li>
+<li><p><strong>phi</strong> – The nominal center of each angular bin.</p></li>
+<li><p><strong>meanphi</strong> – The (weighted) mean value of phi for the triangles in each bin.</p></li>
+</ul>
+</dd>
+</dl>
+<p>If bin_type is LogMultipole:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>logd2</strong> – The nominal center of each bin in log(d2).</p></li>
+<li><p><strong>d2nom</strong> – The nominal center of each bin converted to regular d2 distance.
+i.e. d2 = exp(logd2).</p></li>
+<li><p><strong>logd3</strong> – The nominal center of each bin in log(d3).</p></li>
+<li><p><strong>d3nom</strong> – The nominal center of each bin converted to regular d3 distance.
+i.e. d3 = exp(logd3).</p></li>
+<li><p><strong>n</strong> – The multipole index n for each bin.</p></li>
+</ul>
+</dd>
+</dl>
+<p>For any bin_type:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gam0</strong> – The 0th “natural” correlation function, <span class="math notranslate nohighlight">\(\Gamma_0\)</span>.</p></li>
+<li><p><strong>gam1</strong> – The 1st “natural” correlation function, <span class="math notranslate nohighlight">\(\Gamma_1\)</span>.</p></li>
+<li><p><strong>gam2</strong> – The 2nd “natural” correlation function, <span class="math notranslate nohighlight">\(\Gamma_2\)</span>.</p></li>
+<li><p><strong>gam3</strong> – The 3rd “natural” correlation function, <span class="math notranslate nohighlight">\(\Gamma_3\)</span>.</p></li>
+<li><p><strong>vargam0</strong> – The variance of <span class="math notranslate nohighlight">\(\Gamma_0\)</span>, only including the shot noise
+propagated into the final correlation.  This (and the related values for
+1,2,3) does not include sample variance, so it is always an underestimate
+of the actual variance.</p></li>
+<li><p><strong>vargam1</strong> – The variance of <span class="math notranslate nohighlight">\(\Gamma_1\)</span>.</p></li>
+<li><p><strong>vargam2</strong> – The variance of <span class="math notranslate nohighlight">\(\Gamma_2\)</span>.</p></li>
+<li><p><strong>vargam3</strong> – The variance of <span class="math notranslate nohighlight">\(\Gamma_3\)</span>.</p></li>
+<li><p><strong>meand1</strong> – The (weighted) mean value of d1 for the triangles in each bin.</p></li>
+<li><p><strong>meanlogd1</strong> – The (weighted) mean value of log(d1) for the triangles in each bin.</p></li>
+<li><p><strong>meand2</strong> – The (weighted) mean value of d2 for the triangles in each bin.</p></li>
+<li><p><strong>meanlogd2</strong> – The (weighted) mean value of log(d2) for the triangles in each bin.</p></li>
+<li><p><strong>meand3</strong> – The (weighted) mean value of d3 for the triangles in each bin.</p></li>
+<li><p><strong>meanlogd3</strong> – The (weighted) mean value of log(d3) for the triangles in each bin.</p></li>
+<li><p><strong>weight</strong> – The total weight in each bin.</p></li>
+<li><p><strong>ntri</strong> – The number of triangles going into each bin (including those where one or
+more objects have w=0).</p></li>
+</ul>
+</dd>
+</dl>
+<p>If <code class="docutils literal notranslate"><span class="pre">sep_units</span></code> are given (either in the config dict or as a named kwarg) then the distances
+will all be in these units.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you separate out the steps of the <a class="reference internal" href="correlation3.html#treecorr.Corr3.process" title="treecorr.Corr3.process"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Corr3.process</span></code></a> command and use <a class="reference internal" href="#treecorr.GGGCorrelation.process_auto" title="treecorr.GGGCorrelation.process_auto"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_auto</span></code></a> and/or
+<a class="reference internal" href="correlation3.html#treecorr.Corr3.process_cross" title="treecorr.Corr3.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Corr3.process_cross</span></code></a>, then the units will not be applied to <code class="docutils literal notranslate"><span class="pre">meanr</span></code> or <code class="docutils literal notranslate"><span class="pre">meanlogr</span></code> until
+the <a class="reference internal" href="#treecorr.GGGCorrelation.finalize" title="treecorr.GGGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> function is called.</p>
+</div>
+<p>The typical usage pattern is as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ggg</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">GGGCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ggg</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat</span><span class="p">)</span>              <span class="c1"># For auto-correlation.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ggg</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span><span class="n">cat2</span><span class="p">,</span><span class="n">cat3</span><span class="p">)</span>   <span class="c1"># For cross-correlation.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ggg</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>          <span class="c1"># Write out to a file.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gam0</span> <span class="o">=</span> <span class="n">ggg</span><span class="o">.</span><span class="n">gam0</span><span class="p">,</span> <span class="n">etc</span><span class="o">.</span>         <span class="c1"># To access gamma values directly.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gam0r</span> <span class="o">=</span> <span class="n">ggg</span><span class="o">.</span><span class="n">gam0r</span>             <span class="c1"># You can also access real and imag parts separately.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gam0i</span> <span class="o">=</span> <span class="n">ggg</span><span class="o">.</span><span class="n">gam0i</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>dict</em>) – A configuration dict that can be used to pass in kwargs if desired.
+This dict is allowed to have addition entries besides those listed
+in <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a>, which are ignored here. (default: None)</p></li>
+<li><p><strong>logger</strong> – If desired, a logger object for logging. (default: None, in which case
+one will be built according to the config dict’s verbose level.)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>**kwargs</strong> – See the documentation for <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a> for the list of allowed keyword
+arguments, which may be passed either directly or in the config dict.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.GGGCorrelation.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/gggcorrelation.html#GGGCorrelation.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.GGGCorrelation.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Initialize <a class="reference internal" href="#treecorr.GGGCorrelation" title="treecorr.GGGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGGCorrelation</span></code></a>.  See class doc for details.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.GGGCorrelation.calculateMap3">
+<span class="sig-name descname"><span class="pre">calculateMap3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k3</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/gggcorrelation.html#GGGCorrelation.calculateMap3"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.GGGCorrelation.calculateMap3" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the skewness of the aperture mass from the correlation function.</p>
+<p>The equations for this come from Jarvis, Bernstein &amp; Jain (2004, MNRAS, 352).
+See their section 3, especially equations 51 and 52 for the <span class="math notranslate nohighlight">\(T_i\)</span> functions,
+equations 60 and 61 for the calculation of <span class="math notranslate nohighlight">\(\langle \cal M^3 \rangle\)</span> and
+<span class="math notranslate nohighlight">\(\langle \cal M^2 M^* \rangle\)</span>, and equations 55-58 for how to convert
+these to the return values.</p>
+<p>If k2 or k3 != 1, then this routine calculates the generalization of the skewness
+proposed by Schneider, Kilbinger &amp; Lombardi (2005, A&amp;A, 431):
+<span class="math notranslate nohighlight">\(\langle M_{ap}^3(R, k_2 R, k_3 R)\rangle\)</span> and related values.</p>
+<p>If k2 = k3 = 1 (the default), then there are only 4 combinations of Map and Mx
+that are relevant:</p>
+<ul class="simple">
+<li><p>map3 = <span class="math notranslate nohighlight">\(\langle M_{ap}^3(R)\rangle\)</span></p></li>
+<li><p>map2mx = <span class="math notranslate nohighlight">\(\langle M_{ap}^2(R) M_\times(R)\rangle\)</span>,</p></li>
+<li><p>mapmx2 = <span class="math notranslate nohighlight">\(\langle M_{ap}(R) M_\times(R)\rangle\)</span></p></li>
+<li><p>mx3 = <span class="math notranslate nohighlight">\(\langle M_{\rm \times}^3(R)\rangle\)</span></p></li>
+</ul>
+<p>However, if k2 or k3 != 1, then there are 8 combinations:</p>
+<ul class="simple">
+<li><p>map3 = <span class="math notranslate nohighlight">\(\langle M_{ap}(R) M_{ap}(k_2 R) M_{ap}(k_3 R)\rangle\)</span></p></li>
+<li><p>mapmapmx = <span class="math notranslate nohighlight">\(\langle M_{ap}(R) M_{ap}(k_2 R) M_\times(k_3 R)\rangle\)</span></p></li>
+<li><p>mapmxmap = <span class="math notranslate nohighlight">\(\langle M_{ap}(R) M_\times(k_2 R) M_{ap}(k_3 R)\rangle\)</span></p></li>
+<li><p>mxmapmap = <span class="math notranslate nohighlight">\(\langle M_\times(R) M_{ap}(k_2 R) M_{ap}(k_3 R)\rangle\)</span></p></li>
+<li><p>mxmxmap = <span class="math notranslate nohighlight">\(\langle M_\times(R) M_\times(k_2 R) M_{ap}(k_3 R)\rangle\)</span></p></li>
+<li><p>mxmapmx = <span class="math notranslate nohighlight">\(\langle M_\times(R) M_{ap}(k_2 R) M_\times(k_3 R)\rangle\)</span></p></li>
+<li><p>mapmxmx = <span class="math notranslate nohighlight">\(\langle M_{ap}(R) M_\times(k_2 R) M_\times(k_3 R)\rangle\)</span></p></li>
+<li><p>mx3 = <span class="math notranslate nohighlight">\(\langle M_\times(R) M_\times(k_2 R) M_\times(k_3 R)\rangle\)</span></p></li>
+</ul>
+<p>To accommodate this full generality, we always return all 8 values, along with the
+estimated variance (which is equal for each), even when k2 = k3 = 1.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The formulae for the <code class="docutils literal notranslate"><span class="pre">m2_uform</span></code> = ‘Schneider’ definition of the aperture mass,
+described in the documentation of <a class="reference internal" href="gg.html#treecorr.GGCorrelation.calculateMapSq" title="treecorr.GGCorrelation.calculateMapSq"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">calculateMapSq</span></code></a>, are not known, so that is not an
+option here.  The calculations here use the definition that corresponds to
+<code class="docutils literal notranslate"><span class="pre">m2_uform</span></code> = ‘Crittenden’.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>R</strong> (<em>array</em>) – The R values at which to calculate the aperture mass statistics.
+(default: None, which means use self.rnom1d)</p></li>
+<li><p><strong>k2</strong> (<em>float</em>) – If given, the ratio R2/R1 in the SKL formulae. (default: 1)</p></li>
+<li><p><strong>k3</strong> (<em>float</em>) – If given, the ratio R3/R1 in the SKL formulae. (default: 1)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>map3 = array of <span class="math notranslate nohighlight">\(\langle M_{ap}(R) M_{ap}(k_2 R) M_{ap}(k_3 R)\rangle\)</span></p></li>
+<li><p>mapmapmx = array of <span class="math notranslate nohighlight">\(\langle M_{ap}(R) M_{ap}(k_2 R) M_\times(k_3 R)\rangle\)</span></p></li>
+<li><p>mapmxmap = array of <span class="math notranslate nohighlight">\(\langle M_{ap}(R) M_\times(k_2 R) M_{ap}(k_3 R)\rangle\)</span></p></li>
+<li><p>mxmapmap = array of <span class="math notranslate nohighlight">\(\langle M_\times(R) M_{ap}(k_2 R) M_{ap}(k_3 R)\rangle\)</span></p></li>
+<li><p>mxmxmap = array of <span class="math notranslate nohighlight">\(\langle M_\times(R) M_\times(k_2 R) M_{ap}(k_3 R)\rangle\)</span></p></li>
+<li><p>mxmapmx = array of <span class="math notranslate nohighlight">\(\langle M_\times(R) M_{ap}(k_2 R) M_\times(k_3 R)\rangle\)</span></p></li>
+<li><p>mapmxmx = array of <span class="math notranslate nohighlight">\(\langle M_{ap}(R) M_\times(k_2 R) M_\times(k_3 R)\rangle\)</span></p></li>
+<li><p>mx3 = array of <span class="math notranslate nohighlight">\(\langle M_\times(R) M_\times(k_2 R) M_\times(k_3 R)\rangle\)</span></p></li>
+<li><p>varmap3 = array of variance estimates of the above values</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple containing</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.GGGCorrelation.finalize">
+<span class="sig-name descname"><span class="pre">finalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">varg1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varg2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varg3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/gggcorrelation.html#GGGCorrelation.finalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.GGGCorrelation.finalize" title="Permalink to this definition"></a></dt>
+<dd><p>Finalize the calculation of the correlation function.</p>
+<p>The <a class="reference internal" href="#treecorr.GGGCorrelation.process_auto" title="treecorr.GGGCorrelation.process_auto"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_auto</span></code></a>, <a class="reference internal" href="#treecorr.GGGCorrelation.process_cross12" title="treecorr.GGGCorrelation.process_cross12"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross12</span></code></a> and <a class="reference internal" href="correlation3.html#treecorr.Corr3.process_cross" title="treecorr.Corr3.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Corr3.process_cross</span></code></a> commands accumulate values
+in each bin, so they can be called multiple times if appropriate.  Afterwards, this command
+finishes the calculation by dividing by the total weight.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>varg1</strong> (<em>float</em>) – The variance per component of the first shear field.</p></li>
+<li><p><strong>varg2</strong> (<em>float</em>) – The variance per component of the second shear field.</p></li>
+<li><p><strong>varg3</strong> (<em>float</em>) – The variance per component of the third shear field.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.GGGCorrelation.getStat">
+<span class="sig-name descname"><span class="pre">getStat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/gggcorrelation.html#GGGCorrelation.getStat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.GGGCorrelation.getStat" title="Permalink to this definition"></a></dt>
+<dd><p>The standard statistic for the current correlation object as a 1-d array.</p>
+<p>In this case, the concatenation of gam0.ravel(), gam1.ravel(), gam2.ravel(), gam3.ravel().</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This is a complex array, unlike most other statistics.
+The computed covariance matrix will be complex, although since it is Hermitian the
+diagonal is real, so the resulting vargam0, etc. will all be real arrays.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.GGGCorrelation.getWeight">
+<span class="sig-name descname"><span class="pre">getWeight</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/gggcorrelation.html#GGGCorrelation.getWeight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.GGGCorrelation.getWeight" title="Permalink to this definition"></a></dt>
+<dd><p>The weight array for the current correlation object as a 1-d array.</p>
+<p>In this case, 4 copies of self.weight.ravel().</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.GGGCorrelation.process_auto">
+<span class="sig-name descname"><span class="pre">process_auto</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/gggcorrelation.html#GGGCorrelation.process_auto"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.GGGCorrelation.process_auto" title="Permalink to this definition"></a></dt>
+<dd><p>Process a single catalog, accumulating the auto-correlation.</p>
+<p>This accumulates the auto-correlation for the given catalog.  After
+calling this function as often as desired, the <a class="reference internal" href="#treecorr.GGGCorrelation.finalize" title="treecorr.GGGCorrelation.finalize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">finalize</span></code></a> command will
+finish the calculation of meand1, meanlogd1, etc.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The catalog to process</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+(default: ‘Euclidean’; this value can also be given in the
+constructor in the config dict.)</p></li>
+<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+(default: use the number of cpu cores; this value can also be given
+in the constructor in the config dict.)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.GGGCorrelation.process_cross12">
+<span class="sig-name descname"><span class="pre">process_cross12</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat2</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/gggcorrelation.html#GGGCorrelation.process_cross12"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.GGGCorrelation.process_cross12" title="Permalink to this definition"></a></dt>
+<dd><p>Process two catalogs, accumulating the 3pt cross-correlation, where one of the
+points in each triangle come from the first catalog, and two come from the second.</p>
+<p>This accumulates the cross-correlation for the given catalogs as part of a larger
+auto- or cross-correlation calculation.  E.g. when splitting up a large catalog into
+patches, this is appropriate to use for the cross correlation between different patches
+as part of the complete auto-correlation of the full catalog.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The first catalog to process. (1 point in each triangle will come
+from this catalog.)</p></li>
+<li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The second catalog to process. (2 points in each triangle will come
+from this catalog.)</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+(default: ‘Euclidean’; this value can also be given in the
+constructor in the config dict.)</p></li>
+<li><p><strong>ordered</strong> (<em>bool</em>) – Whether to fix the order of the triangle vertices to match the
+catalogs. (default: True)</p></li>
+<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+(default: use the number of cpu cores; this value can also be given
+in the constructor in the config dict.)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.GGGCorrelation.toSAS">
+<span class="sig-name descname"><span class="pre">toSAS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/gggcorrelation.html#GGGCorrelation.toSAS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.GGGCorrelation.toSAS" title="Permalink to this definition"></a></dt>
+<dd><p>Convert a multipole-binned correlation to the corresponding SAS binning.</p>
+<p>This is only valid for bin_type == LogMultipole.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>target</strong> – A target GGGCorrelation object with LogSAS binning to write to.
+If this is not given, a new object will be created based on the
+configuration paramters of the current object. (default: None)</p></li>
+<li><p><strong>**kwargs</strong> – Any kwargs that you want to use to configure the returned object.
+Typically, might include min_phi, max_phi, nphi_bins, phi_bin_size.
+The default phi binning is [0,pi] with nphi_bins = self.max_n.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A GGGCorrelation object with bin_type=LogSAS containing the
+same information as this object, but with the SAS binning.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.GGGCorrelation.write">
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_patch_results</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_cov</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/gggcorrelation.html#GGGCorrelation.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.GGGCorrelation.write" title="Permalink to this definition"></a></dt>
+<dd><p>Write the correlation function to the file, file_name.</p>
+<p>As described in the doc string for <a class="reference internal" href="#treecorr.GGGCorrelation" title="treecorr.GGGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGGCorrelation</span></code></a>, we use the “natural components” of
+the shear 3-point function described by Schneider &amp; Lombardi (2003) using the triangle
+centroid as the projection point.  There are 4 complex-valued natural components, so there
+are 8 columns in the output file.</p>
+<p>For bin_type = LogRUV, the output file will include the following columns:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>r_nom</p></td>
+<td><p>The nominal center of the bin in r = d2 where d1 &gt; d2 &gt; d3</p></td>
+</tr>
+<tr class="row-odd"><td><p>u_nom</p></td>
+<td><p>The nominal center of the bin in u = d3/d2</p></td>
+</tr>
+<tr class="row-even"><td><p>v_nom</p></td>
+<td><p>The nominal center of the bin in v = +-(d1-d2)/d3</p></td>
+</tr>
+<tr class="row-odd"><td><p>meanu</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle u\rangle\)</span> of triangles that fell
+into each bin</p></td>
+</tr>
+<tr class="row-even"><td><p>meanv</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle v\rangle\)</span> of triangles that fell
+into each bin</p></td>
+</tr>
+</tbody>
+</table>
+<p>For bin_type = LogSAS, the output file will include the following columns:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>d2_nom</p></td>
+<td><p>The nominal center of the bin in d2</p></td>
+</tr>
+<tr class="row-odd"><td><p>d3_nom</p></td>
+<td><p>The nominal center of the bin in d3</p></td>
+</tr>
+<tr class="row-even"><td><p>phi_nom</p></td>
+<td><p>The nominal center of the bin in phi, the opening angle between
+d2 and d3 in the counter-clockwise direction</p></td>
+</tr>
+<tr class="row-odd"><td><p>meanphi</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle phi\rangle\)</span> of triangles that fell
+into each bin</p></td>
+</tr>
+</tbody>
+</table>
+<p>For bin_type = LogMultipole, the output file will include the following columns:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>d2_nom</p></td>
+<td><p>The nominal center of the bin in d2</p></td>
+</tr>
+<tr class="row-odd"><td><p>d3_nom</p></td>
+<td><p>The nominal center of the bin in d3</p></td>
+</tr>
+<tr class="row-even"><td><p>n</p></td>
+<td><p>The multipole index n</p></td>
+</tr>
+</tbody>
+</table>
+<p>In addition, all bin types include the following columns:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>meand1</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle d1\rangle\)</span> of triangles that fell
+into each bin</p></td>
+</tr>
+<tr class="row-odd"><td><p>meanlogd1</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle \log(d1)\rangle\)</span> of triangles that
+fell into each bin</p></td>
+</tr>
+<tr class="row-even"><td><p>meand2</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle d2\rangle\)</span> of triangles that fell
+into each bin</p></td>
+</tr>
+<tr class="row-odd"><td><p>meanlogd2</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle \log(d2)\rangle\)</span> of triangles that
+fell into each bin</p></td>
+</tr>
+<tr class="row-even"><td><p>meand3</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle d3\rangle\)</span> of triangles that fell
+into each bin</p></td>
+</tr>
+<tr class="row-odd"><td><p>meanlogd3</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle \log(d3)\rangle\)</span> of triangles that
+fell into each bin</p></td>
+</tr>
+<tr class="row-even"><td><p>gam0r</p></td>
+<td><p>The real part of the estimator of <span class="math notranslate nohighlight">\(\Gamma_0\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>gam0i</p></td>
+<td><p>The imag part of the estimator of <span class="math notranslate nohighlight">\(\Gamma_0\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>gam1r</p></td>
+<td><p>The real part of the estimator of <span class="math notranslate nohighlight">\(\Gamma_1\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>gam1i</p></td>
+<td><p>The imag part of the estimator of <span class="math notranslate nohighlight">\(\Gamma_1\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>gam2r</p></td>
+<td><p>The real part of the estimator of <span class="math notranslate nohighlight">\(\Gamma_2\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>gam2i</p></td>
+<td><p>The imag part of the estimator of <span class="math notranslate nohighlight">\(\Gamma_2\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>gam3r</p></td>
+<td><p>The real part of the estimator of <span class="math notranslate nohighlight">\(\Gamma_3\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>gam3i</p></td>
+<td><p>The imag part of the estimator of <span class="math notranslate nohighlight">\(\Gamma_3\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>sigma_gam0</p></td>
+<td><p>The sqrt of the variance estimate of <span class="math notranslate nohighlight">\(\Gamma_0\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>sigma_gam1</p></td>
+<td><p>The sqrt of the variance estimate of <span class="math notranslate nohighlight">\(\Gamma_1\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>sigma_gam2</p></td>
+<td><p>The sqrt of the variance estimate of <span class="math notranslate nohighlight">\(\Gamma_2\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>sigma_gam3</p></td>
+<td><p>The sqrt of the variance estimate of <span class="math notranslate nohighlight">\(\Gamma_3\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>weight</p></td>
+<td><p>The total weight of triangles contributing to each bin.
+(For LogMultipole, this is split into real and imaginary parts,
+weight_re and weight_im.)</p></td>
+</tr>
+<tr class="row-odd"><td><p>ntri</p></td>
+<td><p>The number of triangles contributing to each bin</p></td>
+</tr>
+</tbody>
+</table>
+<p>If <code class="docutils literal notranslate"><span class="pre">sep_units</span></code> was given at construction, then the distances will all be in these units.
+Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
+radians (for spherical coordinates).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to write to.</p></li>
+<li><p><strong>file_type</strong> (<em>str</em>) – The type of file to write (‘ASCII’ or ‘FITS’).  (default: determine
+the type automatically from the extension of file_name.)</p></li>
+<li><p><strong>precision</strong> (<em>int</em>) – For ASCII output catalogs, the desired precision. (default: 4;
+this value can also be given in the constructor in the config dict.)</p></li>
+<li><p><strong>write_patch_results</strong> (<em>bool</em>) – Whether to write the patch-based results as well.
+(default: False)</p></li>
+<li><p><strong>write_cov</strong> (<em>bool</em>) – Whether to write the covariance matrix as well. (default: False)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.GGGCorrelation.writeMap3">
+<span class="sig-name descname"><span class="pre">writeMap3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/gggcorrelation.html#GGGCorrelation.writeMap3"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.GGGCorrelation.writeMap3" title="Permalink to this definition"></a></dt>
+<dd><p>Write the aperture mass skewness based on the correlation function to the
+file, file_name.</p>
+<p>The output file will include the following columns:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>R</p></td>
+<td><p>The aperture radius</p></td>
+</tr>
+<tr class="row-odd"><td><p>Map3</p></td>
+<td><p>An estimate of <span class="math notranslate nohighlight">\(\langle M_{ap}^3\rangle(R)\)</span>
+(cf. <a class="reference internal" href="#treecorr.GGGCorrelation.calculateMap3" title="treecorr.GGGCorrelation.calculateMap3"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">calculateMap3</span></code></a>)</p></td>
+</tr>
+<tr class="row-even"><td><p>Map2Mx</p></td>
+<td><p>An estimate of <span class="math notranslate nohighlight">\(\langle M_{ap}^2 M_\times\rangle(R)\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>MapMx2</p></td>
+<td><p>An estimate of <span class="math notranslate nohighlight">\(\langle M_{ap} M_\times^2\rangle(R)\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>Mx3</p></td>
+<td><p>An estimate of <span class="math notranslate nohighlight">\(\langle M_\times^3\rangle(R)\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>sig_map</p></td>
+<td><p>The sqrt of the variance estimate of each of these</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to write to.</p></li>
+<li><p><strong>R</strong> (<em>array</em>) – The R values at which to calculate the statistics.
+(default: None, which means use self.rnom)</p></li>
+<li><p><strong>file_type</strong> (<em>str</em>) – The type of file to write (‘ASCII’ or ‘FITS’).  (default: determine
+the type automatically from the extension of file_name.)</p></li>
+<li><p><strong>precision</strong> (<em>int</em>) – For ASCII output catalogs, the desired precision. (default: 4;
+this value can also be given in the constructor in the config dict.)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="nnn.html" class="btn btn-neutral float-left" title="NNNCorrelation: Count-count-count correlations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="kkk.html" class="btn btn-neutral float-right" title="KKKCorrelation: Scalar-scalar-scalar correlations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Mike Jarvis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

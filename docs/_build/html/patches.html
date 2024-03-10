@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Patches &mdash; TreeCorr 5.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Covariance Estimates" href="cov.html" />
+    <link rel="prev" title="Shear Conventions" href="shear.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            TreeCorr
+          </a>
+              <div class="version">
+                5.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shear.html">Shear Conventions</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Patches</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#defining-patches-on-input">Defining Patches on Input</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-k-means">Running K-Means</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-patch-centers">Using Patch Centers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reducing-memory-use">Reducing Memory Use</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-mpi">Using MPI</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.3 to 5.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">TreeCorr</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Patches</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/patches.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="patches">
+<h1>Patches<a class="headerlink" href="#patches" title="Permalink to this heading"></a></h1>
+<p>Normally, TreeCorr is used to compute the auto-correlation function
+of data in a single input <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a> or the cross-correlation of data
+from two <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalogs</span></code></a>.
+However, there are a number of reasons that it might make sense to
+divide up a region into several smaller patches for computing the
+correlation function:</p>
+<ol class="arabic simple">
+<li><p>To compute a more accurate covariance matrix.
+There are a number of ways to compute more accurate covariance estimates
+from the data than the default method.  All of them require dividing
+up the data into patches and doing different things with the
+patch-to-patch correlations.  See <a class="reference internal" href="cov.html#covariance-estimates"><span class="std std-ref">Covariance Estimates</span></a> for details.</p></li>
+<li><p>To save memory.
+The entire data set might be too large to fit in memory, so you might
+want to divide it up so less data is required to be in memory at a time.
+See <a class="reference internal" href="#reducing-memory-use"><span class="std std-ref">Reducing Memory Use</span></a> below.</p></li>
+<li><p>To split the job among multiple machines.
+TreeCorr does a good job of utilizing many cores on a single machine
+using OpenMP.  However, for very large jobs, you may want to also
+split the work among more than one node on a cluster.  The most
+effective way to do this is to split the data into patches.
+See <a class="reference internal" href="#using-mpi"><span class="std std-ref">Using MPI</span></a> below.</p></li>
+<li><p>To run k-means on some data set for non-correlation reasons.
+TreeCorr happens to have an extremely efficient implementation of the
+k-means algorithm.  So if you want to perform k-means clustering on
+some data that can be represnted in a TreeCorr <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a> (i.e.
+only 2 or 3 spatial dimensions), then using TreeCorr may be a
+particularly efficient way to do the clustering.
+See <a class="reference internal" href="#running-k-means"><span class="std std-ref">Running K-Means</span></a> below.</p></li>
+</ol>
+<p>Below we describe how to split up an input <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a> into patches and
+a few things you can do with it once you have done so.</p>
+<section id="defining-patches-on-input">
+<h2>Defining Patches on Input<a class="headerlink" href="#defining-patches-on-input" title="Permalink to this heading"></a></h2>
+<p>The most straightforward way to define which object goes in which patch
+is to just tell TreeCorr the patch number for each object explicitly.</p>
+<p>If passing in numpy arrays for everything, then just pass in a <code class="docutils literal notranslate"><span class="pre">patch</span></code>
+parameter with integer values indicating the patch number.</p>
+<p>If reading in data from a file, then set a <code class="docutils literal notranslate"><span class="pre">patch_col</span></code> to use which
+should have these values.</p>
+<p>The next simplest way to define the patches is to tell TreeCorr how many
+patches you want using <code class="docutils literal notranslate"><span class="pre">npatch</span></code>.
+TreeCorr will then run the K-Means algorithm to split up the full area
+into this many patches.
+See <a class="reference internal" href="#running-k-means"><span class="std std-ref">Running K-Means</span></a> below for more details.</p>
+<p>Finally, to make sure multiple catalogs are using the same definition for
+where patches are on the sky, you would probably want to have a single
+set of patch centers and have all of your catalogs use that via
+the <code class="docutils literal notranslate"><span class="pre">patch_centers</span></code> option.  See <a class="reference internal" href="#using-patch-centers"><span class="std std-ref">Using Patch Centers</span></a> below for details.</p>
+</section>
+<section id="running-k-means">
+<h2>Running K-Means<a class="headerlink" href="#running-k-means" title="Permalink to this heading"></a></h2>
+<p>One standard way to split up a set of objects into roughly equal area
+patches is an algorithm called
+<a class="reference external" href="https://en.wikipedia.org/wiki/K-means_clustering">k-means clustering</a>.</p>
+<p>The basic idea of the algorithm is to divide the points <span class="math notranslate nohighlight">\(\vec x_j\)</span> into
+<span class="math notranslate nohighlight">\(k\)</span> patches, <span class="math notranslate nohighlight">\(S_i\)</span>, such that the total “inertia” is minimized.
+Inertia <span class="math notranslate nohighlight">\(I_i\)</span> of each patch is defined as follows:</p>
+<div class="math notranslate nohighlight">
+\[I_i = \sum_{j \in S_i} \left| \vec x_j - \vec \mu_i \right|^2,\]</div>
+<p>where <span class="math notranslate nohighlight">\(\vec \mu_i\)</span> is the center of each patch:</p>
+<div class="math notranslate nohighlight">
+\[\vec \mu_i \equiv \frac{\sum_{j \in S_i} \vec x_j}{N_i},\]</div>
+<p>and <span class="math notranslate nohighlight">\(N_i\)</span> is the number of points assigned to patch <span class="math notranslate nohighlight">\(S_i\)</span>.
+The k-means algorithm finds a solution that is a local minimum in the total inertia,
+<span class="math notranslate nohighlight">\(\sum_i I_i\)</span>, or equivalently the mean inertia <span class="math notranslate nohighlight">\(\langle I_i \rangle\)</span>
+of all the patches.</p>
+<p>This definition of inertia is a relatively good proxy for area on the
+sky that has objects, so this algorithm is a good choice for dividing up a
+catalog of astronomical objects into fairly uniform patches.</p>
+<p>To use the TreeCorr implementation of k-means, simply
+set the <code class="docutils literal notranslate"><span class="pre">npatch</span></code> parameter in the <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a> constructor to specifiy
+how many patches you want TreeCorr to split the data into.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If the input catalog has (ra, dec, r) positions, then the patches will
+be made using only the ra,dec location on the sky, not the full 3-D
+positions.  This is usually what you want for making patches over an
+astronomical survey area.  If you really want to make patches according
+to 3-D clustering of points, then you should input x,y,z values instead.</p>
+</div>
+<p>There are also two additional options which can affect how the k-means
+algorithm runs:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">kmeans_init</span></code> specifies what procedure to use for the initialization
+of the patches.  Options are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>‘random’ = Choose initial centers randomly from among the input points.
+This is the traditional k-means initialization algorithm.</p></li>
+<li><p>‘kmeans++’ = Use <a class="reference external" href="https://en.wikipedia.org/wiki/K-means%2B%2B">k-means++</a>,
+an improved algorithm by Arthur and Vassilvitskii
+with a provable upper bound for how close the final result will
+be to the global minimum possible total inertia.</p></li>
+<li><p>‘tree’ = Use the upper layers of the TreeCorr ball tree to define
+the initial centers.  This is the default, and in practice,
+it will almost always yield the best final patches.
+(See <a class="reference internal" href="#comparison"><span class="std std-ref">Comparison with other implementations</span></a> below.)</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kmeans_alt</span></code> specifies whether to use an alternate iteration algorithm
+similar to k-means, which often produces somewhat more uniform patches.</p>
+<p>This alternate algorithm specifically targets minimizing the standard deviation
+of the inertia rather than the mean inertia, so it tends to lead to patches that
+have a smaller final size variation than the regular k-means algorithm.</p>
+<p>This is not the default algorithm because it is not provably (at least by
+me) stable.  It is possible that the iteration can get into a failure mode
+where one patch will end up with zero objects.  The regular k-means
+provably cannot fail in this way.</p>
+<p>So if you care especially about having very uniform patch sizes, you might
+want to try this option, but be careful about inspecting the results that
+they don’t look crazy.</p>
+</li>
+</ul>
+<p>See also <a class="reference internal" href="field.html#treecorr.Field.run_kmeans" title="treecorr.Field.run_kmeans"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Field.run_kmeans</span></code></a>, which has more information about these options,
+where these parameters are called simply <code class="docutils literal notranslate"><span class="pre">init</span></code> and <code class="docutils literal notranslate"><span class="pre">alt</span></code> respectively.</p>
+<div class="admonition-comparison-with-other-implementations admonition" id="comparison">
+<p class="admonition-title">Comparison with other implementations</p>
+<p>Before implementing k-means in TreeCorr, I investigated what other options
+there were in the Python landscape.  I found the following implementations:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.vq.kmeans.html">scipy.cluster.vq.kmeans</a></p></li>
+<li><p><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.vq.kmeans2.html#scipy.cluster.vq.kmeans2">scipy.cluster.vq.kmeans2</a></p></li>
+<li><p><a class="reference external" href="https://github.com/esheldon/kmeans_radec">kmeans_radec</a></p></li>
+<li><p><a class="reference external" href="https://pyclustering.github.io/docs/0.8.2/html/da/d97/namespacepyclustering_1_1cluster_1_1kmeans.html">pyclustering.cluster.kmeans</a></p></li>
+<li><p><a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html#sklearn.cluster.KMeans">sklearn.cluster.KMeans</a></p></li>
+<li><p><a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.cluster.MiniBatchKMeans.html#sklearn.cluster.MiniBatchKMeans">sklearn.cluster.MiniBatchKMeans</a></p></li>
+</ul>
+<p>I made a <a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/main/devel/kmeans.ipynb">notebook</a>
+comparing the different algorithms using a random million galaxies from the DES SV
+(Dark Energy Survey, Science Verification) footprint, chosen because it is a
+real-life use case that has some ratty edges to deal with, so it seemed like it would
+provide a reasonable challenge without being crazy.</p>
+<p>The ideal patches would be essentially uniform in size according to some measure of the
+effective area of the patch. To make things simple, I just used the inertia as my
+proxy for area, since that’s the thing that k-means algorithms natively work with.</p>
+<p>However, we don’t really care about the total inertia being minimized.  For most purposes
+here, we really want the patches to be all close to the <em>same</em> size.  So rather than
+the total inertia, my metric for quality was the rms variation of the intertia
+(aka the standard deviation).</p>
+<p>Fortunately, the process of minimizing the total inertia does tend to select patches with
+small rms variation as well, but it is worth noting that this is not directly targeted by the
+normal k-means algorithm. And furthermore, the k-means algorithm almost never finds the true
+global minimum inertia. The quality of the local minimum depends pretty strongly on the
+choice of initial centers to seed the iterative part of the algorithm.</p>
+<p>Comparing the results of the various k-means implementations, I found that they all tend
+to be either fairly slow, taking a minute or more for just 1 million objects, or they have
+very high rms variation in the inertia.
+I reran each code multiple times using a different random million objects selected from the original
+catalog (of around 16 million objects). Here is a scatter plot of the time vs rms variation
+in the inertia for the various codes.</p>
+<img alt="https://user-images.githubusercontent.com/623887/57647337-ac6bd800-7590-11e9-80bc-900bda3bf66b.png" src="https://user-images.githubusercontent.com/623887/57647337-ac6bd800-7590-11e9-80bc-900bda3bf66b.png" />
+<p>Since there was no existing implementation I was particularly happy with,
+I implemented it myself in TreeCorr. It turns out (not surprisingly) that the ball tree
+data structure that TreeCorr uses for efficient calculation of correlation functions
+also enables a very efficient implementation of the k-means iteration step.
+Furthermore, the quality of the k-means result is pretty dependent
+on the choice of the initial centers, and using the ball tree for the initialization turns
+out to produce reliably better results than the initialization methods used by other packages.</p>
+<p>The big red dots in the lower left corner are the TreeCorr implementation of the standard
+k-means clustering algorithm. It typically takes about 1 or 2 seconds to classify these
+1 million points into 40 patches, and the rms variation is usually less than any other
+implementation.</p>
+<p>The <a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/main/devel/kmeans.ipynb">notebook</a> also
+includes plots of total inertia, variation in size according to the mean d^2 rather than
+sum, and variation in the counts. The TreeCorr algorithm tends to be the best k-means
+implementation according to any of these metrics.</p>
+<p>In addition, you can see some slightly smaller orange dots, which have even lower rms
+variation but take very slightly longer to run. These are the alternate algorithm I mentioned
+above.  This alternate algorithm is similar to k-means, but it penalizes patches with a
+larger-than-average inertia, so they give up some of their outer points to patches with
+smaller inertia. In other words, it explicitly targets making the rms variation as small as
+possible.  But in practice, it is not much worse in terms of total inertia either.</p>
+<p>The alternate algorithm is available using <code class="docutils literal notranslate"><span class="pre">alt=True</span></code> in <a class="reference internal" href="field.html#treecorr.Field.run_kmeans" title="treecorr.Field.run_kmeans"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Field.run_kmeans</span></code></a>.
+I left this as a non-default option for two reasons. First, it’s not actually the real
+k-means, so I didn’t want to confuse people who just want to use this for regular k-means
+clustering. But second, I’m not completely sure that it is always stable. There is a free
+parameter in the penalty function I chose, which I set to 3. Setting it to 4 gave even better
+results (slightly), but at 5 the algorithm broke down with neighboring patches trading
+escalating numbers of points between each other until one of them had no points left.</p>
+<p>I couldn’t convince myself that 4 was actually a magic number and not just the particular
+value for this data set. So 3 might be safe, or there might be data sets where that also
+leads to this runaway trading failure mode. I know the regular k-means algorithm can’t get
+into this mode, so it’s always safe. Therefore, I think it’s better to force the user to
+intentionally select the alternate algorithm if they really care about having a low rms
+size variation, with the normal algorithm being the backup if the alternate one fails for them.</p>
+</div>
+</section>
+<section id="using-patch-centers">
+<h2>Using Patch Centers<a class="headerlink" href="#using-patch-centers" title="Permalink to this heading"></a></h2>
+<p>If you are doing a cross correlation, and you want to use patches for computing
+a jackknife covariance for instance, you cannot
+just set <code class="docutils literal notranslate"><span class="pre">npatch</span></code> in both and expect it to work properly.  The two catalogs
+would end up with patches arranged very differently on the sky.  Patch 2
+for one catalog would not be in the same place as patch 2 in the other one.
+Thus, the jackknife calculation would be messed up.</p>
+<p>Instead, you should define the patches using one of the two (or more)
+catalogs you want to work with,
+and then use its <code class="docutils literal notranslate"><span class="pre">patch</span> <span class="pre">centers</span></code> attribute as the <code class="docutils literal notranslate"><span class="pre">patch_centers</span></code>
+parameter when building the other catalog(s):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cat1</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">cat_file1</span><span class="p">,</span> <span class="n">config1</span><span class="p">,</span> <span class="n">npatch</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cat2</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">cat_file2</span><span class="p">,</span> <span class="n">config2</span><span class="p">,</span> <span class="n">patch_centers</span><span class="o">=</span><span class="n">cat1</span><span class="o">.</span><span class="n">patch_centers</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can also save the patches to a file using <a class="reference internal" href="catalog.html#treecorr.Catalog.write_patch_centers" title="treecorr.Catalog.write_patch_centers"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Catalog.write_patch_centers</span></code></a>
+and use that file name as the <code class="docutils literal notranslate"><span class="pre">patch_centers</span></code> parameter:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cat1</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">cat_file1</span><span class="p">,</span> <span class="n">config1</span><span class="p">,</span> <span class="n">npatch</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cat1</span><span class="o">.</span><span class="n">write_patch_centers</span><span class="p">(</span><span class="n">cen_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cat2</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">cat_file2</span><span class="p">,</span> <span class="n">config2</span><span class="p">,</span> <span class="n">patch_centers</span><span class="o">=</span><span class="n">cen_file</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>With either method, cat2 will have patches assigned according to which patch
+center each object is closest to.</p>
+</section>
+<section id="reducing-memory-use">
+<h2>Reducing Memory Use<a class="headerlink" href="#reducing-memory-use" title="Permalink to this heading"></a></h2>
+<p>One reason you might want to use patches is if the full <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a> doesn’t fit
+in memory.  (Or possibly by itself it fits, but when performing the correlation function,
+the additional memory from building the tree overflows the memory.)
+Then you can potentially perform the calculation over patches
+with less data loaded into memory at any given time.
+The overall procedure for doing this is as follows:</p>
+<ol class="arabic simple">
+<li><p>First define your patch centers using some smaller <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a>, which
+does fit in memory.  This could be a catalog over the same survey
+geometry, which is intrinsically sparser (say a catalog of red sequence
+galaxies or clusters or even stars).  Or it could be the large catalog
+you want to use, but sampled using the <code class="docutils literal notranslate"><span class="pre">every_nth</span></code> option to read
+in only a fraction of the rows.  Run k-means on the smaller catalog
+and write the patch_centers to a file, as describe <a class="reference internal" href="#using-patch-centers"><span class="std std-ref">above</span></a>.</p></li>
+<li><p>Set up a directory somewhere that TreeCorr can use as temporary
+space for writing the individual patch files.</p></li>
+<li><p>Define the full <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a>, specifying to use the above centers file for the
+<code class="docutils literal notranslate"><span class="pre">patch_centers</span></code> and the temp directory as <code class="docutils literal notranslate"><span class="pre">save_patch_dir</span></code>.</p></li>
+<li><p>Make sure not to do anything that requires the catalog be loaded from disk.
+TreeCorr will delay doing the actual load until it needs to do so.
+Here, we want to make sure it never loads the full data.</p></li>
+<li><p>Run the <a class="reference internal" href="correlation2.html#treecorr.Corr2.process" title="treecorr.Corr2.process"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process</span></code></a> function (for whichever correlation
+type you need) using the <code class="docutils literal notranslate"><span class="pre">low_mem=True</span></code> option.</p></li>
+</ol>
+<p>Here are some worked examples.  First, an auto-correlation of a
+single large shear catalog:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">small_cat</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">cat_file</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">every_nth</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">npatch</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">small_cat</span><span class="o">.</span><span class="n">write_patch_centers</span><span class="p">(</span><span class="n">cen_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">small_cat</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">full_cat</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">cat_file</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">patch_centers</span><span class="o">=</span><span class="n">cen_file</span><span class="p">,</span>
+<span class="gp">... </span>                            <span class="n">save_patch_dir</span><span class="o">=</span><span class="n">tmp_dir</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gg</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">GGCorrelation</span><span class="p">(</span><span class="n">ggconfig</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gg</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">full_cat</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Second, a cross-correlation, where the lens catalog is small enough not to
+be a problem, but the source catalog is too large to hold in memory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lens_cat</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">lens_file</span><span class="p">,</span> <span class="n">lens_config</span><span class="p">,</span> <span class="n">npatch</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">source_cat</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">source_file</span><span class="p">,</span> <span class="n">source_config</span><span class="p">,</span>
+<span class="gp">... </span>                              <span class="n">patch_centers</span><span class="o">=</span><span class="n">lens_cat</span><span class="o">.</span><span class="n">patch_centers</span><span class="p">,</span>
+<span class="gp">... </span>                              <span class="n">save_patch_dir</span><span class="o">=</span><span class="n">tmp_dir</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ng</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NGCorrelation</span><span class="p">(</span><span class="n">ngconfig</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ng</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">lens_cat</span><span class="p">,</span> <span class="n">source_cat</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In both cases, the result should be equivalent to what you would get if you could
+hold the catalogs fully in memory, but the peak memory will be much lower.
+The downside is that this usage will generally take somewhat longer –
+probably something like a factor of 2 for typical scenarios, but this of course
+depends heavily on the nature of your calculation, how fast your disk I/O is
+compared to your CPUs, and how many cores you are using.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Technically, the <code class="docutils literal notranslate"><span class="pre">save_patch_dir</span></code> parameter is not required, but it is
+recommended.  The first time a given patch is loaded, it will find the right
+rows in the full catalog and load the ones you need.  If you give it a
+directory, then it will write these data to disk, which will make subsequent
+reads of that patch much faster.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>One caveat with respect to the <code class="docutils literal notranslate"><span class="pre">save_patch_dir</span></code> parameter is that if there
+are already files present in the directory with the right names, then it
+will go ahead and use them, rather than make new patch files.  This is usually
+an efficiency gain, since repeated runs with the same data will already have
+the right patch files present.  However, if you use the same file name and
+save directory for a different data set, or if you make new patches for the
+same input file, then TreeCorr won’t notice.</p>
+<p>To get TreeCorr to make new patch files, you can either manually delete
+everything in the save directory before starting, or (easier) call:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span><span class="o">.</span><span class="n">write_patch_files</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>which will overwrite any existing files that may be there with the same names.</p>
+</div>
+</section>
+<section id="using-mpi">
+<h2>Using MPI<a class="headerlink" href="#using-mpi" title="Permalink to this heading"></a></h2>
+<p>Another use case that is enabled by using patches is
+to divide up the work of calculating a correlation function
+over multiple machines with MPI using <a class="reference external" href="https://mpi4py.readthedocs.io/en/stable/">mpi4py</a>.</p>
+<p>For this usage, the <a class="reference internal" href="correlation2.html#treecorr.Corr2.process" title="treecorr.Corr2.process"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process</span></code></a> functions take an optional <code class="docutils literal notranslate"><span class="pre">comm</span></code>
+parameter.  When running in an MPI job, you can pass in <code class="docutils literal notranslate"><span class="pre">comm=MPI.COMM_WORLD</span></code>,
+and TreeCorr will divide up the work among however many nodes you are using.
+The results will be sent back the the rank 0 node and combined to produce the
+complete answer:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="c1"># File name: run_with_mpi.py</span>
+<span class="linenos"> 2</span><span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span>
+<span class="linenos"> 3</span><span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+<span class="linenos"> 4</span><span class="n">rank</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
+<span class="linenos"> 5</span>
+<span class="linenos"> 6</span><span class="c1"># Define stuff</span>
+<span class="linenos"> 7</span><span class="n">fname</span> <span class="o">=</span> <span class="o">...</span>
+<span class="linenos"> 8</span><span class="n">centers_file</span> <span class="o">=</span> <span class="o">...</span>
+<span class="linenos"> 9</span><span class="n">config</span> <span class="o">=</span> <span class="o">...</span>
+<span class="linenos">10</span><span class="n">ggconfig</span> <span class="o">=</span> <span class="o">...</span>
+<span class="linenos">11</span>
+<span class="linenos">12</span><span class="c1"># All machines read the catalog</span>
+<span class="linenos">13</span><span class="n">cat</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">patch_centers</span><span class="o">=</span><span class="n">centers_file</span><span class="p">)</span>
+<span class="linenos">14</span>
+<span class="linenos">15</span><span class="c1"># All machines define the same correlation object</span>
+<span class="linenos">16</span><span class="n">gg</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">GGCorrelation</span><span class="p">(</span><span class="n">ggconfig</span><span class="p">)</span>
+<span class="linenos">17</span>
+<span class="linenos">18</span><span class="c1"># Pass the comm object to the process function</span>
+<span class="linenos">19</span><span class="n">gg</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">)</span>
+<span class="linenos">20</span>
+<span class="linenos">21</span><span class="c1"># rank 0 has the completed result.</span>
+<span class="linenos">22</span><span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<span class="linenos">23</span>    <span class="c1"># Probably do something more interesting with this now...</span>
+<span class="linenos">24</span>    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;xip = &#39;</span><span class="p">,</span><span class="n">gg</span><span class="o">.</span><span class="n">xip</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You would then run this script using (e.g. with 4 processes):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ mpiexec -n 4 python run_with_mpi.py
+</pre></div>
+</div>
+<p>The file defining the patch centers should already be written to make sure
+that each machine is using the same patch definitions.  There is some level of
+randomness in the k-means calculation, so if you use <code class="docutils literal notranslate"><span class="pre">npatch=N</span></code>, then each
+machine may end up with different patch definitions, which would definitely
+mess things up.</p>
+<p>If you wanted to have it all run in a single script, you should have only
+the rank 0 process define the patches.  Then send <code class="docutils literal notranslate"><span class="pre">cat.patch_centers</span></code> to the
+other ranks, who can build their catalogs using this.
+But it’s probably easier to just precompute the centers and save them to a file
+before starting the MPI run.</p>
+<p>A more complete worked example is
+<a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/main/devel/mpi_example.py">available</a>
+in the TreeCorr devel directory.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="shear.html" class="btn btn-neutral float-left" title="Shear Conventions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="cov.html" class="btn btn-neutral float-right" title="Covariance Estimates" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Mike Jarvis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

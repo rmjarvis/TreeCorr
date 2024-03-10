@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Covariance Estimates &mdash; TreeCorr 5.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Fields" href="field.html" />
+    <link rel="prev" title="Patches" href="patches.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            TreeCorr
+          </a>
+              <div class="version">
+                5.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shear.html">Shear Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Covariance Estimates</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#variance-methods">Variance Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#shot">“shot”</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#jackknife">“jackknife”</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sample">“sample”</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bootstrap">“bootstrap”</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#marked-bootstrap">“marked_bootstrap”</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#covariance-matrix">Covariance Matrix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#covariance-of-derived-quantities">Covariance of Derived Quantities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#random-catalogs">Random Catalogs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.3 to 5.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">TreeCorr</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Covariance Estimates</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/cov.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="covariance-estimates">
+<h1>Covariance Estimates<a class="headerlink" href="#covariance-estimates" title="Permalink to this heading"></a></h1>
+<p>In addition to calculating the correlation function, TreeCorr can also
+estimate the variance of the resulting array of values, or even the
+covariance matrix.</p>
+<p>This simplest estimate of the variance involves propagating the shot noise
+of the individual measurements into the final results.  For shear (G) mesurements,
+this includes the so-called “shape noise”. For scalar (K) measurements, this
+includes the point variance of the k values. For count (N) measurements,
+it comes from the Poisson statistics of counting. This variance estimate is the
+default if you don’t specify something different, and it will be recorded as
+<code class="docutils literal notranslate"><span class="pre">varxi</span></code> for most types of correlations.  For GG, there are two quantities,
+<code class="docutils literal notranslate"><span class="pre">varxip</span></code> and <code class="docutils literal notranslate"><span class="pre">varxim</span></code>, which give the variance of <code class="docutils literal notranslate"><span class="pre">xip</span></code> and <code class="docutils literal notranslate"><span class="pre">xim</span></code>
+respectively.</p>
+<p>However, this kind of variance estimate does not capture the sample variance.
+This is the fact that the signal has real variation across the field, which
+tends to dominate the total variance at large scales.  To estimate this
+component of the total variance from the data, one typically needs to split
+the field into patches and use the variation in the measurement among the
+patches to estimate the overall sample variance.</p>
+<p>See <a class="reference internal" href="patches.html#patches"><span class="std std-ref">Patches</span></a> for information on defining the patches to use for your input <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a>.</p>
+<section id="variance-methods">
+<h2>Variance Methods<a class="headerlink" href="#variance-methods" title="Permalink to this heading"></a></h2>
+<p>To get one of the patch-based variance estimates for the <code class="docutils literal notranslate"><span class="pre">varxi</span></code> or similar
+attribute, you can set the <code class="docutils literal notranslate"><span class="pre">var_method</span></code> parameter in the constructor.  e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ng</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NGCorrelation</span><span class="p">(</span><span class="n">nbins</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">min_sep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_sep</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">var_method</span><span class="o">=</span><span class="s1">&#39;jackknife&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This tells TreeCorr to use the jackknife algorithm for computing the covariance matrix.
+Then <code class="docutils literal notranslate"><span class="pre">varxi</span></code> is taken as the diagonal of this covariance matrix.
+The full covariance matrix is also recorded at the <code class="docutils literal notranslate"><span class="pre">cov</span></code> attribute.</p>
+<p>The following variance methods are implemented:</p>
+<section id="shot">
+<h3>“shot”<a class="headerlink" href="#shot" title="Permalink to this heading"></a></h3>
+<p>This is the default shot-noise estimate of the covariance. It includes the Poisson
+counts of points for N statistics, shape noise for G statistics, and the observed
+scatter in the values for K statistics.  In this case, the covariance matrix will
+be diagonal, since there is no way to estimate the off-diagonal terms.</p>
+</section>
+<section id="jackknife">
+<h3>“jackknife”<a class="headerlink" href="#jackknife" title="Permalink to this heading"></a></h3>
+<p>This is the classic jackknife estimate of the covariance matrix.  It computes the
+correlation function that would have been measured if one patch at a time is excluded
+from the sample.  Then the covariance matrix is estimated as</p>
+<div class="math notranslate nohighlight">
+\[C = \frac{N_\mathrm{patch} - 1}{N_\mathrm{patch}} \sum_i (\xi_i - \bar\xi)^T (\xi_i-\bar\xi)\]</div>
+</section>
+<section id="sample">
+<h3>“sample”<a class="headerlink" href="#sample" title="Permalink to this heading"></a></h3>
+<p>This is the simplest patch-based covariance estimate estimate.  It computes the
+correlation function for each patch, where at least one of the two points falls in
+that patch.  Then the estimated covariance matrix is simply the sample covariance
+of these vectors, scaled by the relative total weight in each patch.</p>
+<div class="math notranslate nohighlight">
+\[C = \frac{1}{N_\mathrm{patch} - 1} \sum_i w_i (\xi_i - \bar\xi)^T (\xi_i-\bar\xi)\]</div>
+<p>For <span class="math notranslate nohighlight">\(w_i\)</span>, we use the total weight in the correlation measurement for each patch
+divided by the total weight in all patches.  This is roughly equal to
+<span class="math notranslate nohighlight">\(1/N_\mathrm{patch}\)</span> but captures somewhat any patch-to-patch variation in area
+that might be present.</p>
+</section>
+<section id="bootstrap">
+<h3>“bootstrap”<a class="headerlink" href="#bootstrap" title="Permalink to this heading"></a></h3>
+<p>This estimate implements a bootstrap resampling of the patches as follows:</p>
+<ol class="arabic">
+<li><p>Select <span class="math notranslate nohighlight">\(N_\mathrm{patch}\)</span> patch numbers at random from the full list
+<span class="math notranslate nohighlight">\([0 \dots N_\mathrm{patch}{-}1]\)</span> with replacement, so some patch numbers
+will appear more than once, and some will be missing.</p></li>
+<li><p>Calculate the total correlation function that would have been computed
+from these patches rather than the original patches.</p></li>
+<li><p>The auto-correlations are included at the selected repetition for the bootstrap
+samples.  So if a patch number is repeated, its auto-correlation is included that
+many times.</p></li>
+<li><p>Cross-correlations between patches are included only if the two patches
+aren’t actually the same patch (i.e. it’s not actually an auto-correlation).
+This prevents extra auto-correlations (where most of the signal typically occurs)
+from being included in the sum.</p></li>
+<li><p>Repeat steps 1-4 a total of <span class="math notranslate nohighlight">\(N_\mathrm{bootstrap}\)</span> times to build up a large
+set of resampled correlation functions, <span class="math notranslate nohighlight">\(\{\xi_i\}\)</span>.</p></li>
+<li><p>Then the covariance estimate is the sample variance of these resampled results:</p>
+<blockquote>
+<div><div class="math notranslate nohighlight">
+\[C = \frac{1}{N_\mathrm{bootstrap}-1} \sum_i (\xi_i - \bar\xi)^T (\xi_i-\bar\xi)\]</div>
+</div></blockquote>
+</li>
+</ol>
+<p>The default number of bootstrap resamplings is 500, but you can change this in the
+Correlation constructor using the parameter <code class="docutils literal notranslate"><span class="pre">num_bootstrap</span></code>.</p>
+</section>
+<section id="marked-bootstrap">
+<h3>“marked_bootstrap”<a class="headerlink" href="#marked-bootstrap" title="Permalink to this heading"></a></h3>
+<p>This estimate is based on a “marked-point” bootstrap resampling of the patches.
+Specifically, we follow the method described in
+<em>A valid and Fast Spatial Bootstrap for Correlation Functions</em>
+by Ji Meng Loh, 2008.  cf. <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/">https://ui.adsabs.harvard.edu/abs/2008ApJ…681..726L/</a>.</p>
+<p>This method starts out the same as the “sample” method.  It computes the correlation
+function for each patch where at least one of the two points falls in that patch.
+However, it keeps track of the numerator and denominator separately.
+These are the “marks” in Loh, 2008.</p>
+<p>Then these marks are resampled in the normal bootstrap manner (random with replacement)
+to produce mock results.  The correlation function for each bootstrap resampling is
+the sum of the numerator marks divided by the sum of the denominator marks.</p>
+<p>Then the covariance estimate is the sample variance of these resampled results:</p>
+<div class="math notranslate nohighlight">
+\[C = \frac{1}{N_\mathrm{bootstrap}-1} \sum_i (\xi_i - \bar\xi)^T (\xi_i-\bar\xi)\]</div>
+<p>The default number of bootstrap resamplings is 500, but you can change this in the
+Correlation constructor using the parameter <code class="docutils literal notranslate"><span class="pre">num_bootstrap</span></code>.</p>
+</section>
+</section>
+<section id="covariance-matrix">
+<h2>Covariance Matrix<a class="headerlink" href="#covariance-matrix" title="Permalink to this heading"></a></h2>
+<p>As mentioned above, the covariance matrix corresponding to the specified <code class="docutils literal notranslate"><span class="pre">var_method</span></code>
+will be saved as the <code class="docutils literal notranslate"><span class="pre">cov</span></code> attribute of the correlation instance after processing
+is complete.</p>
+<p>However, if the processing was done using patches, then you can also compute the
+covariance matrix for any of the above methods without redoing the processing
+using <a class="reference internal" href="correlation2.html#treecorr.Corr2.estimate_cov" title="treecorr.Corr2.estimate_cov"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Corr2.estimate_cov</span></code></a> or <a class="reference internal" href="correlation3.html#treecorr.Corr3.estimate_cov" title="treecorr.Corr3.estimate_cov"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Corr3.estimate_cov</span></code></a>.  E.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ng</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NGCorrelation</span><span class="p">(</span><span class="n">nbins</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">min_sep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_sep</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ng</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">lens_cat</span><span class="p">,</span> <span class="n">source_cat</span><span class="p">)</span>  <span class="c1"># At least one of these needs to have patches set.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov_jk</span> <span class="o">=</span> <span class="n">ng</span><span class="o">.</span><span class="n">estimate_cov</span><span class="p">(</span><span class="s1">&#39;jackknife&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov_boot</span> <span class="o">=</span> <span class="n">ng</span><span class="o">.</span><span class="n">estimate_cov</span><span class="p">(</span><span class="s1">&#39;bootstrap&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Additionally, you can compute the joint covariance matrix for a number of statistics
+that were processed using the same patches with <a class="reference internal" href="correlation2.html#treecorr.estimate_multi_cov" title="treecorr.estimate_multi_cov"><code class="xref any py py-func docutils literal notranslate"><span class="pre">treecorr.estimate_multi_cov</span></code></a>.  E.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ng</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NGCorrelation</span><span class="p">(</span><span class="n">nbins</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">min_sep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_sep</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ng</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">lens_cat</span><span class="p">,</span> <span class="n">source_cat</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gg</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">GGCorrelation</span><span class="p">(</span><span class="n">nbins</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">min_sep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_sep</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gg</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">source_cat</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">estimate_multi_cov</span><span class="p">([</span><span class="n">ng</span><span class="p">,</span><span class="n">gg</span><span class="p">],</span> <span class="s1">&#39;jackknife&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This will calculate an estimate of the covariance matrix for the full data vector
+with <code class="docutils literal notranslate"><span class="pre">ng.xi</span></code> followed by <code class="docutils literal notranslate"><span class="pre">gg.xip</span></code> and then <code class="docutils literal notranslate"><span class="pre">gg.xim</span></code>.</p>
+</section>
+<section id="covariance-of-derived-quantities">
+<h2>Covariance of Derived Quantities<a class="headerlink" href="#covariance-of-derived-quantities" title="Permalink to this heading"></a></h2>
+<p>Sometimes your data vector of interest might not be just the raw correlation function,
+or even a list of several correlation functions.  Rather, it might be some derived
+quantity. E.g.</p>
+<ul class="simple">
+<li><p>The ratio or difference of two correlation functions such as <code class="docutils literal notranslate"><span class="pre">nk1.xi</span> <span class="pre">/</span> <span class="pre">nk2.xi</span></code>.</p></li>
+<li><p>The aperture mass variance computed by <a class="reference internal" href="gg.html#treecorr.GGCorrelation.calculateMapSq" title="treecorr.GGCorrelation.calculateMapSq"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">GGCorrelation.calculateMapSq</span></code></a>.</p></li>
+<li><p>One of the other ancillary products such as <code class="docutils literal notranslate"><span class="pre">ng.xi_im</span></code>.</p></li>
+<li><p>A reordering of the data vector, such as putting several <code class="docutils literal notranslate"><span class="pre">gg.xip</span></code> first for multiple
+tomographic bins and then the <code class="docutils literal notranslate"><span class="pre">gg.xim</span></code> for each after that.</p></li>
+</ul>
+<p>These are just examples of what kind of thing you might want. In fact, we enable
+any kind of post-processing you want to do on either a single correlation object
+(using <a class="reference internal" href="correlation2.html#treecorr.Corr2.estimate_cov" title="treecorr.Corr2.estimate_cov"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Corr2.estimate_cov</span></code></a> or <a class="reference internal" href="correlation3.html#treecorr.Corr3.estimate_cov" title="treecorr.Corr3.estimate_cov"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Corr3.estimate_cov</span></code></a>) or a list of
+correlation objects (using <a class="reference internal" href="correlation2.html#treecorr.estimate_multi_cov" title="treecorr.estimate_multi_cov"><code class="xref any py py-func docutils literal notranslate"><span class="pre">treecorr.estimate_multi_cov</span></code></a>).</p>
+<p>These functions take an optional <code class="docutils literal notranslate"><span class="pre">func</span></code> parameter, which can be any user-defined
+function that calculates the desired data vector from the given correlation(s).
+For instance, in the first case, where the desired data vector is the ratio of
+two NK correlations, you could find the corresponding covariance matrix as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">corrs</span><span class="p">:</span> <span class="n">corrs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">xi</span> <span class="o">/</span> <span class="n">corrs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">xi</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nk1</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NKCorrelation</span><span class="p">(</span><span class="n">nbins</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">min_sep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_sep</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nk2</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NKCorrelation</span><span class="p">(</span><span class="n">nbins</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">min_sep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_sep</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nk1</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1a</span><span class="p">,</span> <span class="n">cat1b</span><span class="p">)</span>  <span class="c1"># Ideally, all of these use the same patches.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nk2</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat2a</span><span class="p">,</span> <span class="n">cat2b</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">corrs</span> <span class="o">=</span> <span class="p">[</span><span class="n">nk1</span><span class="p">,</span> <span class="n">nk2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ratio</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">corrs</span><span class="p">)</span>  <span class="c1"># = nk1.xi / nk2.xi</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">estimate_multi_cov</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="s1">&#39;jackknife&#39;</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The resulting covariance matrix, <code class="docutils literal notranslate"><span class="pre">cov</span></code>, will be the jackknife estimate for the derived
+data vector, <code class="docutils literal notranslate"><span class="pre">ratio</span></code>.</p>
+</section>
+<section id="random-catalogs">
+<h2>Random Catalogs<a class="headerlink" href="#random-catalogs" title="Permalink to this heading"></a></h2>
+<p>There are a few adjustements to the above prescription when using random
+catalogs, which of course are required when doing an NN correlation.</p>
+<ol class="arabic simple">
+<li><p>It is not necessarily required to use patches for the random catalog.
+The random is supposed to be dense enough that it doesn’t materially contribute
+to the noise in the correlation measurement.  In particular, it doesn’t have
+any sample variance itself, and the shot noise component should be small
+compared to the shot noise in the data.</p></li>
+<li><p>If you do use patches for the random catalog, then you need to make sure
+that you use the same patch definitions for both the data and the randoms.
+Using patches for the randoms probably leads to slightly better covariance
+estimates in most cases, but the difference in the two results is usually small.
+(Note: This seems to be less true for 3pt NNN correlations than 2pt NN.
+Using patches for the randoms gives significantly better covariance estimates
+in that case than not doing so.)</p></li>
+<li><p>The covariance calculation cannot happen until you call
+<a class="reference internal" href="nn.html#treecorr.NNCorrelation.calculateXi" title="treecorr.NNCorrelation.calculateXi"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">calculateXi</span></code></a>
+to let TreeCorr know what the RR and DR (if using that) results are.</p></li>
+<li><p>After calling <a class="reference internal" href="nn.html#treecorr.NNCorrelation.calculateXi" title="treecorr.NNCorrelation.calculateXi"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">dd.calculateXi</span></code></a>, <code class="docutils literal notranslate"><span class="pre">dd</span></code>
+will have <code class="docutils literal notranslate"><span class="pre">varxi</span></code> and <code class="docutils literal notranslate"><span class="pre">cov</span></code> attributes calculated according
+to whatever <code class="docutils literal notranslate"><span class="pre">var_method</span></code> you specified.</p></li>
+<li><p>It also allows you to call <a class="reference internal" href="correlation2.html#treecorr.Corr2.estimate_cov" title="treecorr.Corr2.estimate_cov"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">dd.estimate_cov</span></code></a>
+with any different method you want.
+And you can include <code class="docutils literal notranslate"><span class="pre">dd</span></code> in a list of correlation
+objects passed to <a class="reference internal" href="correlation2.html#treecorr.estimate_multi_cov" title="treecorr.estimate_multi_cov"><code class="xref any py py-func docutils literal notranslate"><span class="pre">treecorr.estimate_multi_cov</span></code></a>.</p></li>
+</ol>
+<p>Here is a worked example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">npatch</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rand</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">rand_config</span><span class="p">,</span> <span class="n">patch_centers</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">patch_centers</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dd</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NNCorrelation</span><span class="p">(</span><span class="n">nn_config</span><span class="p">,</span> <span class="n">var_method</span><span class="o">=</span><span class="s1">&#39;jackknife&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dr</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NNCorrelation</span><span class="p">(</span><span class="n">nn_config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rr</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NNCorrelation</span><span class="p">(</span><span class="n">nn_config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dd</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">rand</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">rand</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dd</span><span class="o">.</span><span class="n">calculateXi</span><span class="p">(</span><span class="n">rr</span><span class="o">=</span><span class="n">rr</span><span class="p">,</span> <span class="n">dr</span><span class="o">=</span><span class="n">dr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dd_cov</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">cov</span>  <span class="c1"># Can access covariance now.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dd_cov_bs</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">estimate_cov</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;bootstrap&#39;</span><span class="p">)</span> <span class="c1"># Or calculate a different one.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">txcov</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">estimate_multi_cov</span><span class="p">([</span><span class="n">ng</span><span class="p">,</span><span class="n">gg</span><span class="p">,</span><span class="n">dd</span><span class="p">],</span> <span class="s1">&#39;bootstrap&#39;</span><span class="p">)</span> <span class="c1"># Or include in multi_cov</span>
+</pre></div>
+</div>
+<p>As mentioned above, using <code class="docutils literal notranslate"><span class="pre">patch_centers</span></code> is optional for <code class="docutils literal notranslate"><span class="pre">rand</span></code>, but probably recommended.
+In the last line, it would be required that <code class="docutils literal notranslate"><span class="pre">ng</span></code> and <code class="docutils literal notranslate"><span class="pre">gg</span></code> were also made using catalogs
+with the same patch centers that <code class="docutils literal notranslate"><span class="pre">dd</span></code> used.</p>
+<p>The use pattern for <a class="reference internal" href="nnn.html#treecorr.NNNCorrelation" title="treecorr.NNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNNCorrelation</span></code></a> is analogous, where <a class="reference internal" href="nnn.html#treecorr.NNNCorrelation.calculateZeta" title="treecorr.NNNCorrelation.calculateZeta"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">NNNCorrelation.calculateZeta</span></code></a>
+needs to be run to get the covariance estimate, after which it may be used in a list
+past to <a class="reference internal" href="correlation2.html#treecorr.estimate_multi_cov" title="treecorr.estimate_multi_cov"><code class="xref any py py-func docutils literal notranslate"><span class="pre">treecorr.estimate_multi_cov</span></code></a>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="patches.html" class="btn btn-neutral float-left" title="Patches" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="field.html" class="btn btn-neutral float-right" title="Fields" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Mike Jarvis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

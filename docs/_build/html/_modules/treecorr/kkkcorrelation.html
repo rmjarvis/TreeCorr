@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>treecorr.kkkcorrelation &mdash; TreeCorr 5.0.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            TreeCorr
+          </a>
+              <div class="version">
+                5.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../catalog.html">Input Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../correlation2.html">Two-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../shear.html">Shear Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cov.html">Covariance Estimates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Using configuration files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 4.3 to 5.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TreeCorr</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">treecorr.kkkcorrelation</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for treecorr.kkkcorrelation</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2003-2024 by Mike Jarvis</span>
+<span class="c1">#</span>
+<span class="c1"># TreeCorr is free software: redistribution and use in source and binary forms,</span>
+<span class="c1"># with or without modification, are permitted provided that the following</span>
+<span class="c1"># conditions are met:</span>
+<span class="c1">#</span>
+<span class="c1"># 1. Redistributions of source code must retain the above copyright notice, this</span>
+<span class="c1">#    list of conditions, and the disclaimer given in the accompanying LICENSE</span>
+<span class="c1">#    file.</span>
+<span class="c1"># 2. Redistributions in binary form must reproduce the above copyright notice,</span>
+<span class="c1">#    this list of conditions, and the disclaimer given in the documentation</span>
+<span class="c1">#    and/or other materials provided with the distribution.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: nnncorrelation</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_treecorr</span>
+<span class="kn">from</span> <span class="nn">.catalog</span> <span class="kn">import</span> <span class="n">calculateVarK</span>
+<span class="kn">from</span> <span class="nn">.corr3base</span> <span class="kn">import</span> <span class="n">Corr3</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">make_writer</span><span class="p">,</span> <span class="n">make_reader</span>
+<span class="kn">from</span> <span class="nn">.config</span> <span class="kn">import</span> <span class="n">make_minimal_config</span>
+
+
+<div class="viewcode-block" id="KKKCorrelation"><a class="viewcode-back" href="../../kkk.html#treecorr.KKKCorrelation">[docs]</a><span class="k">class</span> <span class="nc">KKKCorrelation</span><span class="p">(</span><span class="n">Corr3</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;This class handles the calculation and storage of a 3-point scalar-scalar-scalar correlation</span>
+<span class="sd">    function.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        While we use the term kappa (:math:`\kappa`) here and the letter K in various places,</span>
+<span class="sd">        in fact any scalar field will work here.  For example, you can use this to compute</span>
+<span class="sd">        correlations of the CMB temperature fluctuations, where &quot;kappa&quot; would really be</span>
+<span class="sd">        :math:`\Delta T`.</span>
+
+<span class="sd">    See the doc string of `Corr3` for a description of how the triangles are binned.</span>
+
+<span class="sd">    Ojects of this class holds the following attributes:</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        nbins:      The number of bins in logr where r = d2.</span>
+<span class="sd">        bin_size:   The size of the bins in logr.</span>
+<span class="sd">        min_sep:    The minimum separation being considered.</span>
+<span class="sd">        max_sep:    The maximum separation being considered.</span>
+<span class="sd">        logr1d:     The nominal centers of the nbins bins in log(r).</span>
+
+<span class="sd">    If the bin_type is LogRUV, then it will have these attributes:</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        nubins:     The number of bins in u where u = d3/d2.</span>
+<span class="sd">        ubin_size:  The size of the bins in u.</span>
+<span class="sd">        min_u:      The minimum u being considered.</span>
+<span class="sd">        max_u:      The maximum u being considered.</span>
+<span class="sd">        nvbins:     The number of bins in v where v = +-(d1-d2)/d3.</span>
+<span class="sd">        vbin_size:  The size of the bins in v.</span>
+<span class="sd">        min_v:      The minimum v being considered.</span>
+<span class="sd">        max_v:      The maximum v being considered.</span>
+<span class="sd">        u1d:        The nominal centers of the nubins bins in u.</span>
+<span class="sd">        v1d:        The nominal centers of the nvbins bins in v.</span>
+
+<span class="sd">    If the bin_type is LogSAS, then it will have these attributes:</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        nphi_bins:  The number of bins in phi.</span>
+<span class="sd">        phi_bin_size: The size of the bins in phi.</span>
+<span class="sd">        min_phi:    The minimum phi being considered.</span>
+<span class="sd">        max_phi:    The maximum phi being considered.</span>
+<span class="sd">        phi1d:      The nominal centers of the nphi_bins bins in phi.</span>
+
+<span class="sd">    If the bin_type is LogMultipole, then it will have these attributes:</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        max_n:      The maximum multipole index n being stored.</span>
+<span class="sd">        n1d:        The multipole index n in the 2*max_n+1 bins of the third bin direction.</span>
+
+<span class="sd">    In addition, the following attributes are numpy arrays whose shape is:</span>
+
+<span class="sd">        * (nbins, nubins, nvbins) if bin_type is LogRUV</span>
+<span class="sd">        * (nbins, nbins, nphi_bins) if bin_type is LogSAS</span>
+<span class="sd">        * (nbins, nbins, 2*max_n+1) if bin_type is LogMultipole</span>
+
+<span class="sd">    If bin_type is LogRUV:</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        logr:       The nominal center of each bin in log(r).</span>
+<span class="sd">        rnom:       The nominal center of each bin converted to regular distance.</span>
+<span class="sd">                    i.e. r = exp(logr).</span>
+<span class="sd">        u:          The nominal center of each bin in u.</span>
+<span class="sd">        v:          The nominal center of each bin in v.</span>
+<span class="sd">        meanu:      The (weighted) mean value of u for the triangles in each bin.</span>
+<span class="sd">        meanv:      The (weighted) mean value of v for the triangles in each bin.</span>
+
+<span class="sd">    If bin_type is LogSAS:</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        logd2:      The nominal center of each bin in log(d2).</span>
+<span class="sd">        d2nom:      The nominal center of each bin converted to regular d2 distance.</span>
+<span class="sd">                    i.e. d2 = exp(logd2).</span>
+<span class="sd">        logd3:      The nominal center of each bin in log(d3).</span>
+<span class="sd">        d3nom:      The nominal center of each bin converted to regular d3 distance.</span>
+<span class="sd">                    i.e. d3 = exp(logd3).</span>
+<span class="sd">        phi:        The nominal center of each angular bin.</span>
+<span class="sd">        meanphi:    The (weighted) mean value of phi for the triangles in each bin.</span>
+
+<span class="sd">    If bin_type is LogMultipole:</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        logd2:      The nominal center of each bin in log(d2).</span>
+<span class="sd">        d2nom:      The nominal center of each bin converted to regular d2 distance.</span>
+<span class="sd">                    i.e. d2 = exp(logd2).</span>
+<span class="sd">        logd3:      The nominal center of each bin in log(d3).</span>
+<span class="sd">        d3nom:      The nominal center of each bin converted to regular d3 distance.</span>
+<span class="sd">                    i.e. d3 = exp(logd3).</span>
+<span class="sd">        n:          The multipole index n for each bin.</span>
+
+<span class="sd">    For any bin_type:</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        zeta:       The correlation function, :math:`\zeta`.</span>
+<span class="sd">        varzeta:    The variance of :math:`\zeta`, only including the shot noise propagated into</span>
+<span class="sd">                    the final correlation.  This does not include sample variance, so it is always</span>
+<span class="sd">                    an underestimate of the actual variance.</span>
+<span class="sd">        meand1:     The (weighted) mean value of d1 for the triangles in each bin.</span>
+<span class="sd">        meanlogd1:  The (weighted) mean value of log(d1) for the triangles in each bin.</span>
+<span class="sd">        meand2:     The (weighted) mean value of d2 (aka r) for the triangles in each bin.</span>
+<span class="sd">        meanlogd2:  The (weighted) mean value of log(d2) for the triangles in each bin.</span>
+<span class="sd">        meand3:     The (weighted) mean value of d3 for the triangles in each bin.</span>
+<span class="sd">        meanlogd3:  The (weighted) mean value of log(d3) for the triangles in each bin.</span>
+<span class="sd">        weight:     The total weight in each bin.</span>
+<span class="sd">        ntri:       The number of triangles going into each bin (including those where one or</span>
+<span class="sd">                    more objects have w=0).</span>
+
+<span class="sd">    If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances</span>
+<span class="sd">    will all be in these units.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        If you separate out the steps of the `Corr3.process` command and use `process_auto` and/or</span>
+<span class="sd">        `Corr3.process_cross`, then the units will not be applied to ``meanr`` or ``meanlogr`` until</span>
+<span class="sd">        the `finalize` function is called.</span>
+
+<span class="sd">    The typical usage pattern is as follows:</span>
+
+<span class="sd">        &gt;&gt;&gt; kkk = treecorr.KKKCorrelation(config)</span>
+<span class="sd">        &gt;&gt;&gt; kkk.process(cat)              # For auto-correlation.</span>
+<span class="sd">        &gt;&gt;&gt; kkk.process(cat1,cat2,cat3)   # For cross-correlation.</span>
+<span class="sd">        &gt;&gt;&gt; kkk.write(file_name)          # Write out to a file.</span>
+<span class="sd">        &gt;&gt;&gt; zeta = kkk.zeta               # To access zeta directly.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        config (dict):  A configuration dict that can be used to pass in kwargs if desired.</span>
+<span class="sd">                        This dict is allowed to have addition entries besides those listed</span>
+<span class="sd">                        in `Corr3`, which are ignored here. (default: None)</span>
+<span class="sd">        logger:         If desired, a logger object for logging. (default: None, in which case</span>
+<span class="sd">                        one will be built according to the config dict&#39;s verbose level.)</span>
+
+<span class="sd">    Keyword Arguments:</span>
+<span class="sd">        **kwargs:       See the documentation for `Corr3` for the list of allowed keyword</span>
+<span class="sd">                        arguments, which may be passed either directly or in the config dict.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_cls</span> <span class="o">=</span> <span class="s1">&#39;KKKCorrelation&#39;</span>
+    <span class="n">_letter1</span> <span class="o">=</span> <span class="s1">&#39;K&#39;</span>
+    <span class="n">_letter2</span> <span class="o">=</span> <span class="s1">&#39;K&#39;</span>
+    <span class="n">_letter3</span> <span class="o">=</span> <span class="s1">&#39;K&#39;</span>
+    <span class="n">_letters</span> <span class="o">=</span> <span class="s1">&#39;KKK&#39;</span>
+    <span class="n">_builder</span> <span class="o">=</span> <span class="n">_treecorr</span><span class="o">.</span><span class="n">KKKCorr</span>
+    <span class="n">_calculateVar1</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">calculateVarK</span><span class="p">)</span>
+    <span class="n">_calculateVar2</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">calculateVarK</span><span class="p">)</span>
+    <span class="n">_calculateVar3</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">calculateVarK</span><span class="p">)</span>
+    <span class="n">_sig1</span> <span class="o">=</span> <span class="s1">&#39;sig_k&#39;</span>
+    <span class="n">_sig2</span> <span class="o">=</span> <span class="s1">&#39;sig_k&#39;</span>
+    <span class="n">_sig3</span> <span class="o">=</span> <span class="s1">&#39;sig_k&#39;</span>
+    <span class="n">_default_angle_slop</span> <span class="o">=</span> <span class="mi">1</span>
+
+<div class="viewcode-block" id="KKKCorrelation.__init__"><a class="viewcode-back" href="../../kkk.html#treecorr.KKKCorrelation.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize `KKKCorrelation`.  See class doc for details.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Corr3</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_z1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">==</span> <span class="s1">&#39;LogMultipole&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_z2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_z2</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_varzeta</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_z3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z4</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z5</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z6</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z7</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z8</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building KKKCorr&#39;</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">zeta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z2</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z1</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z1</span>
+
+<div class="viewcode-block" id="KKKCorrelation.process_auto"><a class="viewcode-back" href="../../kkk.html#treecorr.KKKCorrelation.process_auto">[docs]</a>    <span class="k">def</span> <span class="nf">process_auto</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process a single catalog, accumulating the auto-correlation.</span>
+
+<span class="sd">        This accumulates the auto-correlation for the given catalog.  After</span>
+<span class="sd">        calling this function as often as desired, the `finalize` command will</span>
+<span class="sd">        finish the calculation of meand1, meanlogd1, etc.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            cat (Catalog):      The catalog to process</span>
+<span class="sd">            metric (str):       Which metric to use.  See `Metrics` for details.</span>
+<span class="sd">                                (default: &#39;Euclidean&#39;; this value can also be given in the</span>
+<span class="sd">                                constructor in the config dict.)</span>
+<span class="sd">            num_threads (int):  How many OpenMP threads to use during the calculation.</span>
+<span class="sd">                                (default: use the number of cpu cores; this value can also be given</span>
+<span class="sd">                                in the constructor in the config dict.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_process_auto</span><span class="p">(</span><span class="n">cat</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="KKKCorrelation.process_cross12"><a class="viewcode-back" href="../../kkk.html#treecorr.KKKCorrelation.process_cross12">[docs]</a>    <span class="k">def</span> <span class="nf">process_cross12</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process two catalogs, accumulating the 3pt cross-correlation, where one of the</span>
+<span class="sd">        points in each triangle come from the first catalog, and two come from the second.</span>
+
+<span class="sd">        This accumulates the cross-correlation for the given catalogs as part of a larger</span>
+<span class="sd">        auto- or cross-correlation calculation.  E.g. when splitting up a large catalog into</span>
+<span class="sd">        patches, this is appropriate to use for the cross correlation between different patches</span>
+<span class="sd">        as part of the complete auto-correlation of the full catalog.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            cat1 (Catalog):     The first catalog to process. (1 point in each triangle will come</span>
+<span class="sd">                                from this catalog.)</span>
+<span class="sd">            cat2 (Catalog):     The second catalog to process. (2 points in each triangle will come</span>
+<span class="sd">                                from this catalog.)</span>
+<span class="sd">            metric (str):       Which metric to use.  See `Metrics` for details.</span>
+<span class="sd">                                (default: &#39;Euclidean&#39;; this value can also be given in the</span>
+<span class="sd">                                constructor in the config dict.)</span>
+<span class="sd">            ordered (bool):     Whether to fix the order of the triangle vertices to match the</span>
+<span class="sd">                                catalogs. (default: True)</span>
+<span class="sd">            num_threads (int):  How many OpenMP threads to use during the calculation.</span>
+<span class="sd">                                (default: use the number of cpu cores; this value can also be given</span>
+<span class="sd">                                in the constructor in the config dict.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_process_cross12</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">ordered</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="KKKCorrelation.finalize"><a class="viewcode-back" href="../../kkk.html#treecorr.KKKCorrelation.finalize">[docs]</a>    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vark1</span><span class="p">,</span> <span class="n">vark2</span><span class="p">,</span> <span class="n">vark3</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Finalize the calculation of the correlation function.</span>
+
+<span class="sd">        The `process_auto`, `process_cross12` and `Corr3.process_cross` commands accumulate values</span>
+<span class="sd">        in each bin, so they can be called multiple times if appropriate.  Afterwards, this command</span>
+<span class="sd">        finishes the calculation by dividing by the total weight.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            vark1 (float):  The variance of the first scalar field.</span>
+<span class="sd">            vark2 (float):  The variance of the second scalar field.</span>
+<span class="sd">            vark3 (float):  The variance of the third scalar field.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_finalize</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_var_num</span> <span class="o">=</span> <span class="n">vark1</span> <span class="o">*</span> <span class="n">vark2</span> <span class="o">*</span> <span class="n">vark3</span>
+
+        <span class="c1"># I don&#39;t really understand why the variance is coming out 2x larger than the normal</span>
+        <span class="c1"># formula for LogSAS.  But with just Gaussian noise, I need to multiply the numerator</span>
+        <span class="c1"># by two to get the variance estimates to come out right.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;LogSAS&#39;</span><span class="p">,</span> <span class="s1">&#39;LogMultipole&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_var_num</span> <span class="o">*=</span> <span class="mi">2</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">varzeta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_varzeta</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_varzeta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_shape</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var_num</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_varzeta</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cov_diag</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_varzeta</span>
+
+    <span class="k">def</span> <span class="nf">_clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_varzeta</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">_sum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">others</span><span class="p">):</span>
+        <span class="c1"># Equivalent to the operation of:</span>
+        <span class="c1">#     self._clear()</span>
+        <span class="c1">#     for other in others:</span>
+        <span class="c1">#         self += other</span>
+        <span class="c1"># but no sanity checks and use numpy.sum for faster calculation.</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">meand1</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">others</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">meand1</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">meanlogd1</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">others</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">meanlogd1</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">meand2</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">others</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">meand2</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">meanlogd2</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">others</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">meanlogd2</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">meand3</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">others</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">meand3</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">meanlogd3</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">others</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">meanlogd3</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">meanu</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">others</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">meanu</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">==</span> <span class="s1">&#39;LogRUV&#39;</span><span class="p">:</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">meanv</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">others</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">meanv</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">_z1</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">others</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_z1</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">weightr</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">others</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">weightr</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">==</span> <span class="s1">&#39;LogMultipole&#39;</span><span class="p">:</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">_z2</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">others</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_z2</span><span class="p">)</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">weighti</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">others</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">weighti</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">ntri</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">others</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ntri</span><span class="p">)</span>
+
+<div class="viewcode-block" id="KKKCorrelation.toSAS"><a class="viewcode-back" href="../../kkk.html#treecorr.KKKCorrelation.toSAS">[docs]</a>    <span class="k">def</span> <span class="nf">toSAS</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert a multipole-binned correlation to the corresponding SAS binning.</span>
+
+<span class="sd">        This is only valid for bin_type == LogMultipole.</span>
+
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">            target:     A target KKKCorrelation object with LogSAS binning to write to.</span>
+<span class="sd">                        If this is not given, a new object will be created based on the</span>
+<span class="sd">                        configuration paramters of the current object. (default: None)</span>
+<span class="sd">            **kwargs:   Any kwargs that you want to use to configure the returned object.</span>
+<span class="sd">                        Typically, might include min_phi, max_phi, nphi_bins, phi_bin_size.</span>
+<span class="sd">                        The default phi binning is [0,pi] with nphi_bins = self.max_n.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A KKKCorrelation object with bin_type=LogSAS containing the</span>
+<span class="sd">            same information as this object, but with the SAS binning.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sas</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">toSAS</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">target</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">sas</span><span class="o">.</span><span class="n">_var_num</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var_num</span>
+
+        <span class="c1"># Z(d2,d3,phi) = 1/2pi sum_n Z_n(d2,d3) exp(i n phi)</span>
+        <span class="n">expiphi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n1d</span><span class="p">[:,</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">sas</span><span class="o">.</span><span class="n">phi1d</span><span class="p">)</span>
+        <span class="n">sas</span><span class="o">.</span><span class="n">_z1</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zeta</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">expiphi</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">*</span> <span class="n">sas</span><span class="o">.</span><span class="n">phi_bin_size</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">sas</span><span class="o">.</span><span class="n">weightr</span> <span class="o">!=</span> <span class="mi">0</span>
+        <span class="n">sas</span><span class="o">.</span><span class="n">_z1</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">/=</span> <span class="n">sas</span><span class="o">.</span><span class="n">weightr</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">sas</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">_z1</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">zeta</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">expiphi</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">*</span> <span class="n">sas</span><span class="o">.</span><span class="n">phi_bin_size</span>
+
+        <span class="k">return</span> <span class="n">sas</span></div>
+
+<div class="viewcode-block" id="KKKCorrelation.write"><a class="viewcode-back" href="../../kkk.html#treecorr.KKKCorrelation.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+              <span class="n">write_cov</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Write the correlation function to the file, file_name.</span>
+
+<span class="sd">        For bin_type = LogRUV, the output file will include the following columns:</span>
+
+<span class="sd">        ==========      ================================================================</span>
+<span class="sd">        Column          Description</span>
+<span class="sd">        ==========      ================================================================</span>
+<span class="sd">        r_nom           The nominal center of the bin in r = d2 where d1 &gt; d2 &gt; d3</span>
+<span class="sd">        u_nom           The nominal center of the bin in u = d3/d2</span>
+<span class="sd">        v_nom           The nominal center of the bin in v = +-(d1-d2)/d3</span>
+<span class="sd">        meanu           The mean value :math:`\langle u\rangle` of triangles that fell</span>
+<span class="sd">                        into each bin</span>
+<span class="sd">        meanv           The mean value :math:`\langle v\rangle` of triangles that fell</span>
+<span class="sd">                        into each bin</span>
+<span class="sd">        ==========      ================================================================</span>
+
+<span class="sd">        For bin_type = LogSAS, the output file will include the following columns:</span>
+
+<span class="sd">        ==========      ================================================================</span>
+<span class="sd">        Column          Description</span>
+<span class="sd">        ==========      ================================================================</span>
+<span class="sd">        d2_nom          The nominal center of the bin in d2</span>
+<span class="sd">        d3_nom          The nominal center of the bin in d3</span>
+<span class="sd">        phi_nom         The nominal center of the bin in phi, the opening angle between</span>
+<span class="sd">                        d2 and d3 in the counter-clockwise direction</span>
+<span class="sd">        meanphi         The mean value :math:`\langle phi\rangle` of triangles that fell</span>
+<span class="sd">                        into each bin</span>
+<span class="sd">        ==========      ================================================================</span>
+
+<span class="sd">        For bin_type = LogMultipole, the output file will include the following columns:</span>
+
+<span class="sd">        ==========      ================================================================</span>
+<span class="sd">        Column          Description</span>
+<span class="sd">        ==========      ================================================================</span>
+<span class="sd">        d2_nom          The nominal center of the bin in d2</span>
+<span class="sd">        d3_nom          The nominal center of the bin in d3</span>
+<span class="sd">        n               The multipole index n (from -max_n .. max_n)</span>
+<span class="sd">        ==========      ================================================================</span>
+
+<span class="sd">        In addition, all bin types include the following columns:</span>
+
+<span class="sd">        ==========      ================================================================</span>
+<span class="sd">        Column          Description</span>
+<span class="sd">        ==========      ================================================================</span>
+<span class="sd">        meand1          The mean value :math:`\langle d1\rangle` of triangles that fell</span>
+<span class="sd">                        into each bin</span>
+<span class="sd">        meanlogd1       The mean value :math:`\langle \log(d1)\rangle` of triangles that</span>
+<span class="sd">                        fell into each bin</span>
+<span class="sd">        meand2          The mean value :math:`\langle d2\rangle` of triangles that fell</span>
+<span class="sd">                        into each bin</span>
+<span class="sd">        meanlogd2       The mean value :math:`\langle \log(d2)\rangle` of triangles that</span>
+<span class="sd">                        fell into each bin</span>
+<span class="sd">        meand3          The mean value :math:`\langle d3\rangle` of triangles that fell</span>
+<span class="sd">                        into each bin</span>
+<span class="sd">        meanlogd3       The mean value :math:`\langle \log(d3)\rangle` of triangles that</span>
+<span class="sd">                        fell into each bin</span>
+<span class="sd">        zeta            The estimator of :math:`\zeta` (For LogMultipole, this is split</span>
+<span class="sd">                        into real and imaginary parts, zeta_re and zeta_im.)</span>
+<span class="sd">        sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`</span>
+<span class="sd">                        (if rrr is given)</span>
+<span class="sd">        weight          The total weight of triangles contributing to each bin.</span>
+<span class="sd">                        (For LogMultipole, this is split into real and imaginary parts,</span>
+<span class="sd">                        weight_re and weight_im.)</span>
+<span class="sd">        ntri            The number of triangles contributing to each bin</span>
+<span class="sd">        ==========      ================================================================</span>
+
+<span class="sd">        If ``sep_units`` was given at construction, then the distances will all be in these units.</span>
+<span class="sd">        Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or</span>
+<span class="sd">        radians (for spherical coordinates).</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            file_name (str):    The name of the file to write to.</span>
+<span class="sd">            file_type (str):    The type of file to write (&#39;ASCII&#39; or &#39;FITS&#39;).  (default: determine</span>
+<span class="sd">                                the type automatically from the extension of file_name.)</span>
+<span class="sd">            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;</span>
+<span class="sd">                                this value can also be given in the constructor in the config dict.)</span>
+<span class="sd">            write_patch_results (bool): Whether to write the patch-based results as well.</span>
+<span class="sd">                                        (default: False)</span>
+<span class="sd">            write_cov (bool):   Whether to write the covariance matrix as well. (default: False)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Writing KKK correlations to </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">file_name</span><span class="p">)</span>
+        <span class="n">precision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;precision&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span> <span class="k">if</span> <span class="n">precision</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">precision</span>
+        <span class="k">with</span> <span class="n">make_writer</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">file_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="p">,</span> <span class="n">write_cov</span><span class="o">=</span><span class="n">write_cov</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_write_col_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">==</span> <span class="s1">&#39;LogRUV&#39;</span><span class="p">:</span>
+            <span class="n">col_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;r_nom&#39;</span><span class="p">,</span> <span class="s1">&#39;u_nom&#39;</span><span class="p">,</span> <span class="s1">&#39;v_nom&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;meand1&#39;</span><span class="p">,</span> <span class="s1">&#39;meanlogd1&#39;</span><span class="p">,</span> <span class="s1">&#39;meand2&#39;</span><span class="p">,</span> <span class="s1">&#39;meanlogd2&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;meand3&#39;</span><span class="p">,</span> <span class="s1">&#39;meanlogd3&#39;</span><span class="p">,</span> <span class="s1">&#39;meanu&#39;</span><span class="p">,</span> <span class="s1">&#39;meanv&#39;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">==</span> <span class="s1">&#39;LogSAS&#39;</span><span class="p">:</span>
+            <span class="n">col_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;d2_nom&#39;</span><span class="p">,</span> <span class="s1">&#39;d3_nom&#39;</span><span class="p">,</span> <span class="s1">&#39;phi_nom&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;meand1&#39;</span><span class="p">,</span> <span class="s1">&#39;meanlogd1&#39;</span><span class="p">,</span> <span class="s1">&#39;meand2&#39;</span><span class="p">,</span> <span class="s1">&#39;meanlogd2&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;meand3&#39;</span><span class="p">,</span> <span class="s1">&#39;meanlogd3&#39;</span><span class="p">,</span> <span class="s1">&#39;meanphi&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">col_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;d2_nom&#39;</span><span class="p">,</span> <span class="s1">&#39;d3_nom&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;meand1&#39;</span><span class="p">,</span> <span class="s1">&#39;meanlogd1&#39;</span><span class="p">,</span> <span class="s1">&#39;meand2&#39;</span><span class="p">,</span> <span class="s1">&#39;meanlogd2&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;meand3&#39;</span><span class="p">,</span> <span class="s1">&#39;meanlogd3&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">==</span> <span class="s1">&#39;LogMultipole&#39;</span><span class="p">:</span>
+            <span class="n">col_names</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;zeta_re&#39;</span><span class="p">,</span> <span class="s1">&#39;zeta_im&#39;</span><span class="p">,</span> <span class="s1">&#39;sigma_zeta&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_re&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_im&#39;</span><span class="p">,</span> <span class="s1">&#39;ntri&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">col_names</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;zeta&#39;</span><span class="p">,</span> <span class="s1">&#39;sigma_zeta&#39;</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">,</span> <span class="s1">&#39;ntri&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">col_names</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_write_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">==</span> <span class="s1">&#39;LogRUV&#39;</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">v</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">meand1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meand2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd2</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">meand3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanv</span> <span class="p">]</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">==</span> <span class="s1">&#39;LogSAS&#39;</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">d2nom</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d3nom</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">meand1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meand2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd2</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">meand3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanphi</span> <span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">d2nom</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d3nom</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">meand1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meand2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd2</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">meand3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanlogd3</span> <span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">==</span> <span class="s1">&#39;LogMultipole&#39;</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">+=</span> <span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">varzeta</span><span class="p">),</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">weightr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weighti</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ntri</span> <span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">+=</span> <span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">zeta</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">varzeta</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ntri</span> <span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">[</span> <span class="n">col</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">data</span> <span class="p">]</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="k">def</span> <span class="nf">_read_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_read_from_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_shape</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">==</span> <span class="s1">&#39;LogMultipole&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_z1</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;zeta_re&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_z2</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;zeta_im&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_z1</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;zeta&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_varzeta</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sigma_zeta&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Mike Jarvis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fields &mdash; TreeCorr 5.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Using configuration files" href="scripts.html" />
+    <link rel="prev" title="Covariance Estimates" href="cov.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            TreeCorr
+          </a>
+              <div class="version">
+                5.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shear.html">Shear Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Fields</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#treecorr.Field"><code class="docutils literal notranslate"><span class="pre">Field</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.Field.cat"><code class="docutils literal notranslate"><span class="pre">Field.cat</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.Field.count_near"><code class="docutils literal notranslate"><span class="pre">Field.count_near()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.Field.get_near"><code class="docutils literal notranslate"><span class="pre">Field.get_near()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.Field.kmeans_assign_patches"><code class="docutils literal notranslate"><span class="pre">Field.kmeans_assign_patches()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.Field.kmeans_initialize_centers"><code class="docutils literal notranslate"><span class="pre">Field.kmeans_initialize_centers()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.Field.kmeans_refine_centers"><code class="docutils literal notranslate"><span class="pre">Field.kmeans_refine_centers()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.Field.nTopLevelNodes"><code class="docutils literal notranslate"><span class="pre">Field.nTopLevelNodes</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.Field.run_kmeans"><code class="docutils literal notranslate"><span class="pre">Field.run_kmeans()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#treecorr.NField"><code class="docutils literal notranslate"><span class="pre">NField</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#treecorr.KField"><code class="docutils literal notranslate"><span class="pre">KField</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#treecorr.ZField"><code class="docutils literal notranslate"><span class="pre">ZField</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#treecorr.VField"><code class="docutils literal notranslate"><span class="pre">VField</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#treecorr.GField"><code class="docutils literal notranslate"><span class="pre">GField</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#treecorr.TField"><code class="docutils literal notranslate"><span class="pre">TField</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#treecorr.QField"><code class="docutils literal notranslate"><span class="pre">QField</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.3 to 5.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">TreeCorr</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Fields</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/field.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="fields">
+<h1>Fields<a class="headerlink" href="#fields" title="Permalink to this heading"></a></h1>
+<p>The <a class="reference internal" href="#treecorr.Field" title="treecorr.Field"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Field</span></code></a> class and its subclasses repackage the information from a <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a>
+into a ball tree data structure, allowing for fast calcaulation of the correlation
+functions.</p>
+<p>There are several kinds of <a class="reference internal" href="#treecorr.Field" title="treecorr.Field"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Field</span></code></a> classes.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#treecorr.Field" title="treecorr.Field"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Field</span></code></a> itself is an abstract base class of the other kinds of fields, and has a
+few methods that are available for all <a class="reference internal" href="#treecorr.Field" title="treecorr.Field"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Field</span></code></a> types.</p></li>
+<li><p><a class="reference internal" href="#treecorr.NField" title="treecorr.NField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NField</span></code></a> holds counts of objects and is used for correlations with an N in the name,
+including <a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNCorrelation</span></code></a>, <a class="reference internal" href="ng.html#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NGCorrelation</span></code></a>, <a class="reference internal" href="nk.html#treecorr.NKCorrelation" title="treecorr.NKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKCorrelation</span></code></a>, and <a class="reference internal" href="nnn.html#treecorr.NNNCorrelation" title="treecorr.NNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNNCorrelation</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="#treecorr.KField" title="treecorr.KField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KField</span></code></a> holds both counts of objects and the mean “kappa” of those objects.
+It is used for correlations with a K in the name, including
+<a class="reference internal" href="kk.html#treecorr.KKCorrelation" title="treecorr.KKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKCorrelation</span></code></a>, <a class="reference internal" href="nk.html#treecorr.NKCorrelation" title="treecorr.NKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKCorrelation</span></code></a>, <a class="reference internal" href="kg.html#treecorr.KGCorrelation" title="treecorr.KGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KGCorrelation</span></code></a>, and <a class="reference internal" href="kkk.html#treecorr.KKKCorrelation" title="treecorr.KKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCorrelation</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="#treecorr.ZField" title="treecorr.ZField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">ZField</span></code></a> holds both counts of objects and the mean value of the complex field of those
+objects.  It is used for correlations with a Z in the name, including
+<a class="reference internal" href="zz.html#treecorr.ZZCorrelation" title="treecorr.ZZCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">ZZCorrelation</span></code></a>, <a class="reference internal" href="nz.html#treecorr.NZCorrelation" title="treecorr.NZCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NZCorrelation</span></code></a>, and <a class="reference internal" href="kz.html#treecorr.KZCorrelation" title="treecorr.KZCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KZCorrelation</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="#treecorr.VField" title="treecorr.VField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">VField</span></code></a> holds both counts of objects and the mean vector field of those objects.
+It is used for correlations with a V in the name, including
+<a class="reference internal" href="vv.html#treecorr.VVCorrelation" title="treecorr.VVCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">VVCorrelation</span></code></a>, <a class="reference internal" href="nv.html#treecorr.NVCorrelation" title="treecorr.NVCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NVCorrelation</span></code></a>, and <a class="reference internal" href="kv.html#treecorr.KVCorrelation" title="treecorr.KVCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KVCorrelation</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="#treecorr.GField" title="treecorr.GField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GField</span></code></a> holds both counts of objects and the mean shear of those objects.
+It is used for correlations with a G in the name, including
+<a class="reference internal" href="gg.html#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a>, <a class="reference internal" href="ng.html#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NGCorrelation</span></code></a>, <a class="reference internal" href="kg.html#treecorr.KGCorrelation" title="treecorr.KGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KGCorrelation</span></code></a>, and <a class="reference internal" href="ggg.html#treecorr.GGGCorrelation" title="treecorr.GGGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGGCorrelation</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="#treecorr.TField" title="treecorr.TField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">TField</span></code></a> holds both counts of objects and the mean trefoil field of those objects.
+It is used for correlations with a V in the name, including
+<a class="reference internal" href="vv.html#treecorr.VVCorrelation" title="treecorr.VVCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">VVCorrelation</span></code></a>, <a class="reference internal" href="nv.html#treecorr.NVCorrelation" title="treecorr.NVCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NVCorrelation</span></code></a>, and <a class="reference internal" href="kv.html#treecorr.KVCorrelation" title="treecorr.KVCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KVCorrelation</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="#treecorr.QField" title="treecorr.QField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">QField</span></code></a> holds both counts of objects and the mean quatrefoil field of those objects.
+It is used for correlations with a V in the name, including
+<a class="reference internal" href="vv.html#treecorr.VVCorrelation" title="treecorr.VVCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">VVCorrelation</span></code></a>, <a class="reference internal" href="nv.html#treecorr.NVCorrelation" title="treecorr.NVCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NVCorrelation</span></code></a>, and <a class="reference internal" href="kv.html#treecorr.KVCorrelation" title="treecorr.KVCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KVCorrelation</span></code></a>.</p></li>
+</ul>
+</div></blockquote>
+<p>Typically, one would not create any of these objects directly, but would instead
+use Catalog methods <a class="reference internal" href="catalog.html#treecorr.Catalog.getNField" title="treecorr.Catalog.getNField"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getNField</span></code></a>, <a class="reference internal" href="catalog.html#treecorr.Catalog.getKField" title="treecorr.Catalog.getKField"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getKField</span></code></a>, <a class="reference internal" href="catalog.html#treecorr.Catalog.getGField" title="treecorr.Catalog.getGField"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getGField</span></code></a>, <a class="reference internal" href="catalog.html#treecorr.Catalog.getVField" title="treecorr.Catalog.getVField"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getVField</span></code></a>.
+Or indeed, usually, one does not even do that, and just lets the relevant <code class="docutils literal notranslate"><span class="pre">process</span></code>
+command do so for you.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="treecorr.Field">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">Field</span></span><a class="reference internal" href="_modules/treecorr/field.html#Field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Field" title="Permalink to this definition"></a></dt>
+<dd><p>A Field in TreeCorr is the object that stores the tree structure we use for efficient
+calculation of the correlation functions.</p>
+<p>The root “cell” in the tree has information about the whole field, including the total
+number of points, the total weight, the mean position, the size (by which we mean the
+maximum distance of any point from the mean position), and possibly more information depending
+on which kind of field we have.</p>
+<p>It also points to two sub-cells which each describe about half the points.  These are commonly
+referred to as “daughter cells”.  They in turn point to two more cells each, and so on until
+we get to cells that are considered “small enough” according to the <code class="docutils literal notranslate"><span class="pre">min_size</span></code> parameter given
+in the constructor.  These lowest level cells are referred to as “leaves”.</p>
+<p>Technically, a Field doesn’t have just one of these trees.  To make parallel computation
+more efficient, we actually skip the first few layers of the tree as described above and
+store a list of root cells.  The three parameters that determine how many of these there
+will be are <code class="docutils literal notranslate"><span class="pre">max_size</span></code>, <code class="docutils literal notranslate"><span class="pre">min_top</span></code>, and <code class="docutils literal notranslate"><span class="pre">max_top</span></code>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">max_size</span></code> sets the maximum size cell that we want to make sure we have in the trees,
+so the root cells will be at least this large.  The default is None, which means
+we care about all sizes, so there may be only one root cell (but typically more
+because of <code class="docutils literal notranslate"><span class="pre">min_top</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">min_top</span></code> sets the minimum number of initial levels to skip.  The default is either 3
+or <span class="math notranslate nohighlight">\(\log_2(N_{cpu})\)</span>, whichever is larger.  This means there will be at least 8
+(or <span class="math notranslate nohighlight">\(N_{cpu}\)</span>) root cells (assuming ntot is at least this large of course).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_top</span></code> sets the maximum number of initial levels to skip.  The default is 10,
+which means there could be up to 1024 root cells.</p></li>
+</ul>
+</div></blockquote>
+<p>Finally, the <code class="docutils literal notranslate"><span class="pre">split_method</span></code> parameter sets how the points in a cell should be divided
+when forming the two daughter cells.  The split is always done according to whichever
+dimension has the largest extent.  E.g. if max(|x - meanx|) is larger than max(|y - meany|)
+and (for 3d) max(|z - meanz|), then it will split according to the x values.  But then
+it may split in different ways according to <code class="docutils literal notranslate"><span class="pre">split_method</span></code>.  The allowed values are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>‘mean’ means to divide the points at the average (mean) value of x, y or z.</p></li>
+<li><p>‘median’ means to divide the points at the median value of x, y, or z.</p></li>
+<li><p>‘middle’ means to divide the points at midpoint between the minimum and maximum values.</p></li>
+<li><p>‘random’ means to divide the points randomly somewhere between the 40th and 60th
+percentile locations in the sorted list.</p></li>
+</ul>
+</div></blockquote>
+<p>Field itself is an abstract base class for the specific types of field classes.
+As such, it cannot be constructed directly.  You should make one of the concrete subclasses:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#treecorr.NField" title="treecorr.NField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NField</span></code></a> describes a field of objects to be counted only.</p></li>
+<li><p><a class="reference internal" href="#treecorr.KField" title="treecorr.KField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KField</span></code></a> describes a field of points sampling a scalar field (e.g. kappa in the
+weak lensing context).  In addition to the above values, cells keep track of
+the mean value in the given region.</p></li>
+<li><p><a class="reference internal" href="#treecorr.ZField" title="treecorr.ZField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">ZField</span></code></a> describes a complex scalar (spin-0) field.  In addition to the above values,
+cells keep track of the mean (complex) value in the given region.</p></li>
+<li><p><a class="reference internal" href="#treecorr.VField" title="treecorr.VField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">VField</span></code></a> describes a field of points sampling a vector (spin-1) field.  In addition
+to the above values, cells keep track of the mean (complex) vector in the given region.</p></li>
+<li><p><a class="reference internal" href="#treecorr.GField" title="treecorr.GField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GField</span></code></a> describes a field of points sampling a shear (spin-2) field (e.g. gamma in the
+weak lensing context).  In addition to the above values, cells keep track of
+the mean (complex) gamma value in the given region.</p></li>
+<li><p><a class="reference internal" href="#treecorr.TField" title="treecorr.TField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">TField</span></code></a> describes a field of points sampling a trefoil (spin-3) field.  In addition
+to the above values, cells keep track of the mean (complex) value in the given region.</p></li>
+<li><p><a class="reference internal" href="#treecorr.QField" title="treecorr.QField"><code class="xref any py py-class docutils literal notranslate"><span class="pre">QField</span></code></a> describes a field of points sampling a quatrefoil (spin-4) field.  In addition
+to the above values, cells keep track of the mean (complex) value in the given region.</p></li>
+</ul>
+</div></blockquote>
+<dl class="py property">
+<dt class="sig sig-object py" id="treecorr.Field.cat">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cat</span></span><a class="headerlink" href="#treecorr.Field.cat" title="Permalink to this definition"></a></dt>
+<dd><p>The catalog from which this field was constructed.</p>
+<p>It is stored as a weakref, so if the Catalog has already been garbage collected, this
+might be None.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.Field.count_near">
+<span class="sig-name descname"><span class="pre">count_near</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#Field.count_near"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Field.count_near" title="Permalink to this definition"></a></dt>
+<dd><p>Count how many points are near a given coordinate.</p>
+<p>Use the existing tree structure to count how many points are within some given separation
+of a target coordinate.</p>
+<p>There are several options for how to specify the reference coordinate, which depends
+on the type of coordinate system this field implements.</p>
+<ol class="arabic simple">
+<li><p>For flat 2-dimensional coordinates:</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em>) – The x coordinate of the target location</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – The y coordinate of the target location</p></li>
+<li><p><strong>sep</strong> (<em>float</em>) – The separation distance</p></li>
+</ul>
+</dd>
+</dl>
+<ol class="arabic simple" start="2">
+<li><p>For 3-dimensional Cartesian coordinates:</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em>) – The x coordinate of the target location</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – The y coordinate of the target location</p></li>
+<li><p><strong>z</strong> (<em>float</em>) – The z coordinate of the target location</p></li>
+<li><p><strong>sep</strong> (<em>float</em>) – The separation distance</p></li>
+</ul>
+</dd>
+</dl>
+<ol class="arabic simple" start="3">
+<li><p>For spherical coordinates:</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ra</strong> (<em>float</em><em> or </em><em>Angle</em>) – The right ascension of the target location</p></li>
+<li><p><strong>dec</strong> (<em>float</em><em> or </em><em>Angle</em>) – The declination of the target location</p></li>
+<li><p><strong>c</strong> (<em>CelestialCorod</em>) – A <code class="docutils literal notranslate"><span class="pre">coord.CelestialCoord</span></code> object in lieu of (ra, dec)</p></li>
+<li><p><strong>sep</strong> (<em>float</em><em> or </em><em>Angle</em>) – The separation distance</p></li>
+<li><p><strong>ra_units</strong> (<em>str</em>) – The units of ra if given as a float</p></li>
+<li><p><strong>dec_units</strong> (<em>str</em>) – The units of dec if given as a float</p></li>
+<li><p><strong>sep_units</strong> (<em>str</em>) – The units of sep if given as a float</p></li>
+</ul>
+</dd>
+</dl>
+<ol class="arabic simple" start="4">
+<li><p>For spherical coordinates with distances:</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ra</strong> (<em>float</em><em> or </em><em>Angle</em>) – The right ascension of the target location</p></li>
+<li><p><strong>dec</strong> (<em>float</em><em> or </em><em>Angle</em>) – The declination of the target location</p></li>
+<li><p><strong>c</strong> (<em>CelestialCorod</em>) – A <code class="docutils literal notranslate"><span class="pre">coord.CelestialCoord</span></code> object in lieu of (ra, dec)</p></li>
+<li><p><strong>r</strong> (<em>float</em>) – The distance to the target location</p></li>
+<li><p><strong>sep</strong> (<em>float</em>) – The separation distance</p></li>
+<li><p><strong>ra_units</strong> (<em>str</em>) – The units of ra if given as a float</p></li>
+<li><p><strong>dec_units</strong> (<em>str</em>) – The units of dec if given as a float</p></li>
+</ul>
+</dd>
+</dl>
+<p>In all cases, for parameters that are angles (ra, dec, sep for ‘spherical’), you may either
+provide this quantity as a <code class="docutils literal notranslate"><span class="pre">coord.Angle</span></code> instance, or you may provide ra_units, dec_units
+or sep_units respectively to specify which angular units are providing.</p>
+<p>Finally, in cases where ra, dec are allowed, you may instead provide a
+<code class="docutils literal notranslate"><span class="pre">coord.CelestialCoord</span></code> instance as the first argument to specify both RA and Dec.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.Field.get_near">
+<span class="sig-name descname"><span class="pre">get_near</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#Field.get_near"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Field.get_near" title="Permalink to this definition"></a></dt>
+<dd><p>Get the indices of points near a given coordinate.</p>
+<p>Use the existing tree structure to find the points that are within some given separation
+of a target coordinate.</p>
+<p>There are several options for how to specify the reference coordinate, which depends
+on the type of coordinate system this field implements.</p>
+<ol class="arabic simple">
+<li><p>For flat 2-dimensional coordinates:</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em>) – The x coordinate of the target location</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – The y coordinate of the target location</p></li>
+<li><p><strong>sep</strong> (<em>float</em>) – The separation distance</p></li>
+</ul>
+</dd>
+</dl>
+<ol class="arabic simple" start="2">
+<li><p>For 3-dimensional Cartesian coordinates:</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em>) – The x coordinate of the target location</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – The y coordinate of the target location</p></li>
+<li><p><strong>z</strong> (<em>float</em>) – The z coordinate of the target location</p></li>
+<li><p><strong>sep</strong> (<em>float</em>) – The separation distance</p></li>
+</ul>
+</dd>
+</dl>
+<ol class="arabic simple" start="3">
+<li><p>For spherical coordinates:</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ra</strong> (<em>float</em><em> or </em><em>Angle</em>) – The right ascension of the target location</p></li>
+<li><p><strong>dec</strong> (<em>float</em><em> or </em><em>Angle</em>) – The declination of the target location</p></li>
+<li><p><strong>c</strong> (<em>CelestialCorod</em>) – A <code class="docutils literal notranslate"><span class="pre">coord.CelestialCoord</span></code> object in lieu of (ra, dec)</p></li>
+<li><p><strong>sep</strong> (<em>float</em><em> or </em><em>Angle</em>) – The separation distance</p></li>
+<li><p><strong>ra_units</strong> (<em>str</em>) – The units of ra if given as a float</p></li>
+<li><p><strong>dec_units</strong> (<em>str</em>) – The units of dec if given as a float</p></li>
+<li><p><strong>sep_units</strong> (<em>str</em>) – The units of sep if given as a float</p></li>
+</ul>
+</dd>
+</dl>
+<ol class="arabic simple" start="4">
+<li><p>For spherical coordinates with distances:</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ra</strong> (<em>float</em><em> or </em><em>Angle</em>) – The right ascension of the target location</p></li>
+<li><p><strong>dec</strong> (<em>float</em><em> or </em><em>Angle</em>) – The declination of the target location</p></li>
+<li><p><strong>c</strong> (<em>CelestialCorod</em>) – A <code class="docutils literal notranslate"><span class="pre">coord.CelestialCoord</span></code> object in lieu of (ra, dec)</p></li>
+<li><p><strong>r</strong> (<em>float</em>) – The distance to the target location</p></li>
+<li><p><strong>sep</strong> (<em>float</em>) – The separation distance</p></li>
+<li><p><strong>ra_units</strong> (<em>str</em>) – The units of ra if given as a float</p></li>
+<li><p><strong>dec_units</strong> (<em>str</em>) – The units of dec if given as a float</p></li>
+</ul>
+</dd>
+</dl>
+<p>In all cases, for parameters that are angles (ra, dec, sep for ‘spherical’), you may either
+provide this quantity as a <code class="docutils literal notranslate"><span class="pre">coord.Angle</span></code> instance, or you may provide ra_units, dec_units
+or sep_units respectively to specify which angular units are providing.</p>
+<p>Finally, in cases where ra, dec are allowed, you may instead provide a
+<code class="docutils literal notranslate"><span class="pre">coord.CelestialCoord</span></code> instance as the first argument to specify both RA and Dec.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.Field.kmeans_assign_patches">
+<span class="sig-name descname"><span class="pre">kmeans_assign_patches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">centers</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#Field.kmeans_assign_patches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Field.kmeans_assign_patches" title="Permalink to this definition"></a></dt>
+<dd><p>Assign patch numbers to each point according to the given centers.</p>
+<p>This is final step in the full K-Means algorithm.  It assignes patch numbers to each
+point in the field according to which center is closest.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>centers</strong> (<em>array</em>) – An array of center coordinates.
+Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
+spherical geometries.  In the latter case, the centers represent
+(x,y,z) coordinates on the unit sphere.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An array of patch labels, all integers from 0..npatch-1.  Size is self.ntot.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.Field.kmeans_initialize_centers">
+<span class="sig-name descname"><span class="pre">kmeans_initialize_centers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">npatch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tree'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#Field.kmeans_initialize_centers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Field.kmeans_initialize_centers" title="Permalink to this definition"></a></dt>
+<dd><p>Use the field’s tree structure to assign good initial centers for a K-Means run.</p>
+<p>The classic K-Means algorithm involves starting with random points as the initial
+centers of the patches.  This has a tendency to result in rather poor results in
+terms of having similar sized patches at the end.  Specifically, the standard deviation
+of the inertia at the local minimum that the K-Means algorithm settles into tends to be
+fairly high for typical geometries.</p>
+<p>A better approach is to use the existing tree structure to start out with centers that
+are fairly evenly spread out through the field.  This algorithm traverses the tree
+until we get to a level that has enough cells for the requested number of patches.
+Then it uses the centroids of these cells as the initial patch centers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>npatch</strong> (<em>int</em>) – How many patches to generate initial centers for</p></li>
+<li><p><strong>init</strong> (<em>str</em>) – <p>Initialization method. Options are:</p>
+<ul>
+<li><p>’tree’ (default) =  Use the normal tree structure of the
+field, traversing down to a level where there are npatch
+cells, and use the centroids of these cells as the initial
+centers.  This is almost always the best choice.</p></li>
+<li><p>’random’ =  Use npatch random points as the intial centers.</p></li>
+<li><p>’kmeans++’ =  Use the k-means++ algorithm.
+cf. <a class="reference external" href="https://en.wikipedia.org/wiki/K-means%2B%2B">https://en.wikipedia.org/wiki/K-means%2B%2B</a></p></li>
+</ul>
+</p></li>
+<li><p><strong>rng</strong> (<em>RandomState</em>) – If desired, a numpy.random.RandomState instance to use for random
+number generation. (default: None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An array of center coordinates.
+Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
+spherical geometries.  In the latter case, the centers represent
+(x,y,z) coordinates on the unit sphere.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.Field.kmeans_refine_centers">
+<span class="sig-name descname"><span class="pre">kmeans_refine_centers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">centers</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#Field.kmeans_refine_centers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Field.kmeans_refine_centers" title="Permalink to this definition"></a></dt>
+<dd><p>Fast implementation of the K-Means algorithm</p>
+<p>The standard K-Means algorithm is as follows
+(cf. <a class="reference external" href="https://en.wikipedia.org/wiki/K-means_clustering">https://en.wikipedia.org/wiki/K-means_clustering</a>):</p>
+<ol class="arabic simple">
+<li><p>Choose centers somehow.  Traditionally, this is done by just selecting npatch random
+points from the full set, but we do this more smartly in <a class="reference internal" href="#treecorr.Field.kmeans_initialize_centers" title="treecorr.Field.kmeans_initialize_centers"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">kmeans_initialize_centers</span></code></a>.</p></li>
+<li><p>For each point, measure the distance to each current patch center, and assign it to the
+patch that has the closest center.</p></li>
+<li><p>Update all the centers to be the centroid of the points assigned to each patch.</p></li>
+<li><p>Repeat 2, 3 until the rms shift in the centers is less than some tolerance or the
+maximum number of iterations is reached.</p></li>
+<li><p>Assign the corresponding patch label to each point (<a class="reference internal" href="#treecorr.Field.kmeans_assign_patches" title="treecorr.Field.kmeans_assign_patches"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">kmeans_assign_patches</span></code></a>).</p></li>
+</ol>
+<p>In TreeCorr, we use the tree structure to massively increase the speed of steps 2 and 3.
+For a given cell, we know both its center and its size, so we can quickly check whether
+all the points in the cell are closer to one center than another.  This lets us quickly
+cull centers from consideration as we traverse the tree.  Once we get to a cell where only
+one center can be closest for any of the points in it, we stop traversing and assign the
+whole cell to that patch.</p>
+<p>Further, it is also fast to update the new centroid, since the sum of all the positions
+for a cell is just N times the cell’s centroid.</p>
+<p>As a result, this algorithm typically takes a fraction of a second for ~a million points.
+Indeed most of the time spent in the full kmeans calculation is in building the tree
+in the first place, rather than actually running the kmeans code.  With the alternate
+algorithm (<code class="docutils literal notranslate"><span class="pre">alt=True</span></code>), the time is only slightly slower from having to calculate
+the sizes at each step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>centers</strong> (<em>array</em>) – An array of center coordinates. (modified by this function)
+Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
+spherical geometries.  In the latter case, the centers represent
+(x,y,z) coordinates on the unit sphere.</p></li>
+<li><p><strong>max_iter</strong> (<em>int</em>) – How many iterations at most to run. (default: 200)</p></li>
+<li><p><strong>tol</strong> (<em>float</em>) – Tolerance in the rms centroid shift to consider as converged
+as a fraction of the total field size. (default: 1.e-5)</p></li>
+<li><p><strong>alt</strong> (<em>bool</em>) – Use the alternate assignment algorithm to minimize the standard
+deviation of the inertia rather than the total inertia (aka WCSS).
+(default: False)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="treecorr.Field.nTopLevelNodes">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nTopLevelNodes</span></span><a class="headerlink" href="#treecorr.Field.nTopLevelNodes" title="Permalink to this definition"></a></dt>
+<dd><p>The number of top-level nodes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.Field.run_kmeans">
+<span class="sig-name descname"><span class="pre">run_kmeans</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">npatch</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tree'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#Field.run_kmeans"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Field.run_kmeans" title="Permalink to this definition"></a></dt>
+<dd><p>Use k-means algorithm to set patch labels for a field.</p>
+<p>The k-means algorithm (cf. <a class="reference external" href="https://en.wikipedia.org/wiki/K-means_clustering">https://en.wikipedia.org/wiki/K-means_clustering</a>) identifies
+a center position for each patch.  Each point is then assigned to the patch whose center
+is closest.  The centers are then updated to be the mean position of all the points
+assigned to the patch.  This process is repeated until the center locations have converged.</p>
+<p>The process tends to converge relatively quickly.  The convergence criterion we use
+is a tolerance on the rms shift in the centroid positions as a fraction of the overall
+size of the whole field.  This is settable as <code class="docutils literal notranslate"><span class="pre">tol</span></code> (default 1.e-5).  You can also
+set the maximum number of iterations to allow as <code class="docutils literal notranslate"><span class="pre">max_iter</span></code> (default 200).</p>
+<p>The upshot of the k-means process is to minimize the total within-cluster sum of squares
+(WCSS), also known as the “inertia” of each patch.  This tends to produce patches with
+more or less similar inertia, which make them useful for jackknife or other sampling
+estimates of the errors in the correlation functions.</p>
+<p>More specifically, if the points <span class="math notranslate nohighlight">\(j\)</span> have vector positions <span class="math notranslate nohighlight">\(\vec x_j\)</span>,
+and we define patches <span class="math notranslate nohighlight">\(S_i\)</span> to comprise disjoint subsets of the <span class="math notranslate nohighlight">\(j\)</span>
+values, then the inertia <span class="math notranslate nohighlight">\(I_i\)</span> of each patch is defined as:</p>
+<div class="math notranslate nohighlight">
+\[I_i = \sum_{j \in S_i} \left| \vec x_j - \vec \mu_i \right|^2,\]</div>
+<p>where <span class="math notranslate nohighlight">\(\vec \mu_i\)</span> is the center of each patch:</p>
+<div class="math notranslate nohighlight">
+\[\vec \mu_i \equiv \frac{\sum_{j \in S_i} \vec x_j}{N_i},\]</div>
+<p>and <span class="math notranslate nohighlight">\(N_i\)</span> is the number of points assigned to patch <span class="math notranslate nohighlight">\(S_i\)</span>.
+The k-means algorithm finds a solution that is a local minimum in the total inertia,
+<span class="math notranslate nohighlight">\(\sum_i I_i\)</span>.</p>
+<p>In addition to the normal k-means algorithm, we also offer an alternate algorithm, which
+can produce slightly better patches for the purpose of patch-based covariance estimation.
+The ideal patch definition for such use would be to minimize the standard deviation (std)
+of the inertia of each patch, not the total (or mean) inertia.  It turns out that it is
+difficult to devise an algorithm that literally does this, since it has a tendancy to
+become unstable and not converge.</p>
+<p>However, adding a penalty term to the patch assignment step of the normal k-means
+algorithm turns out to work reasonably well.  The penalty term we use is <span class="math notranslate nohighlight">\(f I_i\)</span>,
+where <span class="math notranslate nohighlight">\(f\)</span> is a scaling constant (see below).  When doing the assignment step we assign
+each point <span class="math notranslate nohighlight">\(j\)</span> to the patch <span class="math notranslate nohighlight">\(i\)</span> that gives the minimum penalized distance</p>
+<div class="math notranslate nohighlight">
+\[d_{ij}^{\prime\;\! 2} = \left| \vec x_j - \mu_i \right|^2 + f I_i.\]</div>
+<p>The penalty term means that patches with less inertia get more points on the next
+iteration, and vice versa, which tends to equalize the inertia values somewhat.
+The resulting patches have significantly lower std inertia, but typically only slightly
+higher total inertia.</p>
+<p>For the scaling constant, <span class="math notranslate nohighlight">\(f\)</span>, we chose</p>
+<div class="math notranslate nohighlight">
+\[f = \frac{3}{\langle N_i\rangle},\]</div>
+<p>three times the inverse of the mean number of points in each patch.</p>
+<p>The <span class="math notranslate nohighlight">\(1/\langle N_i\rangle\)</span> factor makes the two terms of comparable magnitude
+near the edges of the patches, so patches still get most of the points near their previous
+centers, even if they already have larger than average inertia, but some of the points in
+the outskirts of the patch might switch to a nearby patch with smaller inertia.  The
+factor of 3 is purely empirical, and was found to give good results in terms of std
+inertia on some test data (the DES SV field).</p>
+<p>The alternate algorithm is available by specifying <code class="docutils literal notranslate"><span class="pre">alt=True</span></code>.  Despite it typically
+giving better patch centers than the standard algorithm, we don’t make it the default,
+because it may be possible for the iteration to become unstable, leading to some patches
+with no points in them. (This happened in our tests when the arbitrary factor in the
+scaling constant was 5 instead of 3, but I could not prove that 3 would always avoid this
+failure mode.) If this happens for you, your best bet is probably to switch to the
+standard algorithm, which can never suffer from this problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>npatch</strong> (<em>int</em>) – How many patches to generate</p></li>
+<li><p><strong>max_iter</strong> (<em>int</em>) – How many iterations at most to run. (default: 200)</p></li>
+<li><p><strong>tol</strong> (<em>float</em>) – Tolerance in the rms centroid shift to consider as converged
+as a fraction of the total field size. (default: 1.e-5)</p></li>
+<li><p><strong>init</strong> (<em>str</em>) – <p>Initialization method. Options are:</p>
+<ul>
+<li><p>’tree’ (default) =  Use the normal tree structure of the
+field, traversing down to a level where there are npatch
+cells, and use the centroids of these cells as the initial
+centers.  This is almost always the best choice.</p></li>
+<li><p>’random’ =  Use npatch random points as the intial centers.</p></li>
+<li><p>’kmeans++’ =  Use the k-means++ algorithm.
+cf. <a class="reference external" href="https://en.wikipedia.org/wiki/K-means%2B%2B">https://en.wikipedia.org/wiki/K-means%2B%2B</a></p></li>
+</ul>
+</p></li>
+<li><p><strong>alt</strong> (<em>bool</em>) – Use the alternate assignment algorithm to minimize the standard
+deviation of the inertia rather than the total inertia (aka WCSS).
+(default: False)</p></li>
+<li><p><strong>rng</strong> (<em>RandomState</em>) – If desired, a numpy.random.RandomState instance to use for random
+number generation. (default: None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>Tuple containing</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>patches (array): An array of patch labels, all integers from 0..npatch-1.
+Size is self.ntot.</p></li>
+<li><p>centers (array): An array of center coordinates used to make the patches.
+Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
+spherical geometries.  In the latter case, the centers represent
+(x,y,z) coordinates on the unit sphere.</p></li>
+</ul>
+</div></blockquote>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="treecorr.NField">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">NField</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">brute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_top</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_top</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#NField"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NField" title="Permalink to this definition"></a></dt>
+<dd><p>This class stores the positions and number of objects in a tree structure from which it is
+efficient to compute correlation functions.</p>
+<p>An NField is typically created from a Catalog object using</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nfield</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">getNField</span><span class="p">(</span><span class="n">min_size</span><span class="o">=</span><span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="n">max_size</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The catalog from which to make the field.</p></li>
+<li><p><strong>min_size</strong> (<em>float</em>) – The minimum radius cell required (usually min_sep). (default: 0)</p></li>
+<li><p><strong>max_size</strong> (<em>float</em>) – The maximum radius cell required (usually max_sep). (default: None)</p></li>
+<li><p><strong>split_method</strong> (<em>str</em>) – Which split method to use (‘mean’, ‘median’, ‘middle’, or ‘random’).
+(default: ‘mean’)</p></li>
+<li><p><strong>brute</strong> (<em>bool</em>) – Whether to force traversal to the leaves for this field.
+(default: False)</p></li>
+<li><p><strong>min_top</strong> (<em>int</em>) – The minimum number of top layers to use when setting up the field.
+(default: <span class="math notranslate nohighlight">\(\max(3, \log_2(N_{\rm cpu}))\)</span>)</p></li>
+<li><p><strong>max_top</strong> (<em>int</em>) – The maximum number of top layers to use when setting up the field.
+(default: 10)</p></li>
+<li><p><strong>coords</strong> (<em>str</em>) – The kind of coordinate system to use. (default: cat.coords)</p></li>
+<li><p><strong>rng</strong> (<em>RandomState</em>) – If desired, a numpy.random.RandomState instance to use for random
+number generation. (default: None)</p></li>
+<li><p><strong>logger</strong> (<em>Logger</em>) – A logger file if desired. (default: None)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="treecorr.KField">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">KField</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">brute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_top</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_top</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#KField"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KField" title="Permalink to this definition"></a></dt>
+<dd><p>This class stores the values of a scalar field (e.g. kappa in the weak lensing context)
+in a tree structure from which it is efficient to compute correlation functions.</p>
+<p>A KField is typically created from a Catalog object using</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">kfield</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">getKField</span><span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The catalog from which to make the field.</p></li>
+<li><p><strong>min_size</strong> (<em>float</em>) – The minimum radius cell required (usually min_sep). (default: 0)</p></li>
+<li><p><strong>max_size</strong> (<em>float</em>) – The maximum radius cell required (usually max_sep). (default: None)</p></li>
+<li><p><strong>split_method</strong> (<em>str</em>) – Which split method to use (‘mean’, ‘median’, ‘middle’, or ‘random’).
+(default: ‘mean’)</p></li>
+<li><p><strong>brute</strong> (<em>bool</em>) – Whether to force traversal to the leaves for this field.
+(default: False)</p></li>
+<li><p><strong>min_top</strong> (<em>int</em>) – The minimum number of top layers to use when setting up the field.
+(default: <span class="math notranslate nohighlight">\(\max(3, \log_2(N_{\rm cpu}))\)</span>)</p></li>
+<li><p><strong>max_top</strong> (<em>int</em>) – The maximum number of top layers to use when setting up the field.
+(default: 10)</p></li>
+<li><p><strong>coords</strong> (<em>str</em>) – The kind of coordinate system to use. (default: cat.coords)</p></li>
+<li><p><strong>rng</strong> (<em>RandomState</em>) – If desired, a numpy.random.RandomState instance to use for random
+number generation. (default: None)</p></li>
+<li><p><strong>logger</strong> (<em>Logger</em>) – A logger file if desired. (default: None)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="treecorr.ZField">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">ZField</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">brute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_top</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_top</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#ZField"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.ZField" title="Permalink to this definition"></a></dt>
+<dd><p>This class stores the values of a complex scalar (spin-0) field in a tree structure
+from which it is efficient to compute correlation functions.</p>
+<p>A ZField is typically created from a Catalog object using</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">zfield</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">getZField</span><span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The catalog from which to make the field.</p></li>
+<li><p><strong>min_size</strong> (<em>float</em>) – The minimum radius cell required (usually min_sep). (default: 0)</p></li>
+<li><p><strong>max_size</strong> (<em>float</em>) – The maximum radius cell required (usually max_sep). (default: None)</p></li>
+<li><p><strong>split_method</strong> (<em>str</em>) – Which split method to use (‘mean’, ‘median’, ‘middle’, or ‘random’).
+(default: ‘mean’)</p></li>
+<li><p><strong>brute</strong> (<em>bool</em>) – Whether to force traversal to the leaves for this field.
+(default: False)</p></li>
+<li><p><strong>min_top</strong> (<em>int</em>) – The minimum number of top layers to use when setting up the field.
+(default: <span class="math notranslate nohighlight">\(\max(3, \log_2(N_{\rm cpu}))\)</span>)</p></li>
+<li><p><strong>max_top</strong> (<em>int</em>) – The maximum number of top layers to use when setting up the field.
+(default: 10)</p></li>
+<li><p><strong>coords</strong> (<em>str</em>) – The kind of coordinate system to use. (default: cat.coords)</p></li>
+<li><p><strong>rng</strong> (<em>RandomState</em>) – If desired, a numpy.random.RandomState instance to use for random
+number generation. (default: None)</p></li>
+<li><p><strong>logger</strong> (<em>Logger</em>) – A logger file if desired. (default: None)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="treecorr.VField">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">VField</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">brute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_top</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_top</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#VField"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.VField" title="Permalink to this definition"></a></dt>
+<dd><p>This class stores the values of a vector field in a tree structure from which it is
+efficient to compute correlation functions.</p>
+<p>A VField is typically created from a Catalog object using</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">vfield</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">getVField</span><span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The catalog from which to make the field.</p></li>
+<li><p><strong>min_size</strong> (<em>float</em>) – The minimum radius cell required (usually min_sep). (default: 0)</p></li>
+<li><p><strong>max_size</strong> (<em>float</em>) – The maximum radius cell required (usually max_sep). (default: None)</p></li>
+<li><p><strong>split_method</strong> (<em>str</em>) – Which split method to use (‘mean’, ‘median’, ‘middle’, or ‘random’).
+(default: ‘mean’)</p></li>
+<li><p><strong>brute</strong> (<em>bool</em>) – Whether to force traversal to the leaves for this field.
+(default: False)</p></li>
+<li><p><strong>min_top</strong> (<em>int</em>) – The minimum number of top layers to use when setting up the field.
+(default: <span class="math notranslate nohighlight">\(\max(3, \log_2(N_{\rm cpu}))\)</span>)</p></li>
+<li><p><strong>max_top</strong> (<em>int</em>) – The maximum number of top layers to use when setting up the field.
+(default: 10)</p></li>
+<li><p><strong>coords</strong> (<em>str</em>) – The kind of coordinate system to use. (default: cat.coords)</p></li>
+<li><p><strong>rng</strong> (<em>RandomState</em>) – If desired, a numpy.random.RandomState instance to use for random
+number generation. (default: None)</p></li>
+<li><p><strong>logger</strong> (<em>Logger</em>) – A logger file if desired. (default: None)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="treecorr.GField">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">GField</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">brute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_top</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_top</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#GField"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.GField" title="Permalink to this definition"></a></dt>
+<dd><p>This class stores the values of a shear field (gamma in the weak lensing context) in a
+tree structure from which it is efficient to compute correlation functions.</p>
+<p>A GField is typically created from a Catalog object using</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gfield</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">getGField</span><span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The catalog from which to make the field.</p></li>
+<li><p><strong>min_size</strong> (<em>float</em>) – The minimum radius cell required (usually min_sep). (default: 0)</p></li>
+<li><p><strong>max_size</strong> (<em>float</em>) – The maximum radius cell required (usually max_sep). (default: None)</p></li>
+<li><p><strong>split_method</strong> (<em>str</em>) – Which split method to use (‘mean’, ‘median’, ‘middle’, or ‘random’).
+(default: ‘mean’)</p></li>
+<li><p><strong>brute</strong> (<em>bool</em>) – Whether to force traversal to the leaves for this field.
+(default: False)</p></li>
+<li><p><strong>min_top</strong> (<em>int</em>) – The minimum number of top layers to use when setting up the field.
+(default: <span class="math notranslate nohighlight">\(\max(3, \log_2(N_{\rm cpu}))\)</span>)</p></li>
+<li><p><strong>max_top</strong> (<em>int</em>) – The maximum number of top layers to use when setting up the field.
+(default: 10)</p></li>
+<li><p><strong>coords</strong> (<em>str</em>) – The kind of coordinate system to use. (default: cat.coords)</p></li>
+<li><p><strong>rng</strong> (<em>RandomState</em>) – If desired, a numpy.random.RandomState instance to use for random
+number generation. (default: None)</p></li>
+<li><p><strong>logger</strong> (<em>Logger</em>) – A logger file if desired. (default: None)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="treecorr.TField">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">TField</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">brute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_top</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_top</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#TField"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.TField" title="Permalink to this definition"></a></dt>
+<dd><p>This class stores the values of a trefoil (spin-3) field in a tree structure from which it
+is efficient to compute correlation functions.</p>
+<p>A TField is typically created from a Catalog object using</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tfield</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">getTField</span><span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The catalog from which to make the field.</p></li>
+<li><p><strong>min_size</strong> (<em>float</em>) – The minimum radius cell required (usually min_sep). (default: 0)</p></li>
+<li><p><strong>max_size</strong> (<em>float</em>) – The maximum radius cell required (usually max_sep). (default: None)</p></li>
+<li><p><strong>split_method</strong> (<em>str</em>) – Which split method to use (‘mean’, ‘median’, ‘middle’, or ‘random’).
+(default: ‘mean’)</p></li>
+<li><p><strong>brute</strong> (<em>bool</em>) – Whether to force traversal to the leaves for this field.
+(default: False)</p></li>
+<li><p><strong>min_top</strong> (<em>int</em>) – The minimum number of top layers to use when setting up the field.
+(default: <span class="math notranslate nohighlight">\(\max(3, \log_2(N_{\rm cpu}))\)</span>)</p></li>
+<li><p><strong>max_top</strong> (<em>int</em>) – The maximum number of top layers to use when setting up the field.
+(default: 10)</p></li>
+<li><p><strong>coords</strong> (<em>str</em>) – The kind of coordinate system to use. (default: cat.coords)</p></li>
+<li><p><strong>rng</strong> (<em>RandomState</em>) – If desired, a numpy.random.RandomState instance to use for random
+number generation. (default: None)</p></li>
+<li><p><strong>logger</strong> (<em>Logger</em>) – A logger file if desired. (default: None)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="treecorr.QField">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">QField</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">brute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_top</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_top</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/field.html#QField"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.QField" title="Permalink to this definition"></a></dt>
+<dd><p>This class stores the values of a quatrefoil (spin-4) field in a tree structure from which
+it is efficient to compute correlation functions.</p>
+<p>A QField is typically created from a Catalog object using</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">qfield</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">getQField</span><span class="p">(</span><span class="n">min_size</span><span class="p">,</span> <span class="n">max_size</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The catalog from which to make the field.</p></li>
+<li><p><strong>min_size</strong> (<em>float</em>) – The minimum radius cell required (usually min_sep). (default: 0)</p></li>
+<li><p><strong>max_size</strong> (<em>float</em>) – The maximum radius cell required (usually max_sep). (default: None)</p></li>
+<li><p><strong>split_method</strong> (<em>str</em>) – Which split method to use (‘mean’, ‘median’, ‘middle’, or ‘random’).
+(default: ‘mean’)</p></li>
+<li><p><strong>brute</strong> (<em>bool</em>) – Whether to force traversal to the leaves for this field.
+(default: False)</p></li>
+<li><p><strong>min_top</strong> (<em>int</em>) – The minimum number of top layers to use when setting up the field.
+(default: <span class="math notranslate nohighlight">\(\max(3, \log_2(N_{\rm cpu}))\)</span>)</p></li>
+<li><p><strong>max_top</strong> (<em>int</em>) – The maximum number of top layers to use when setting up the field.
+(default: 10)</p></li>
+<li><p><strong>coords</strong> (<em>str</em>) – The kind of coordinate system to use. (default: cat.coords)</p></li>
+<li><p><strong>rng</strong> (<em>RandomState</em>) – If desired, a numpy.random.RandomState instance to use for random
+number generation. (default: None)</p></li>
+<li><p><strong>logger</strong> (<em>Logger</em>) – A logger file if desired. (default: None)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="cov.html" class="btn btn-neutral float-left" title="Covariance Estimates" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="scripts.html" class="btn btn-neutral float-right" title="Using configuration files" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Mike Jarvis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

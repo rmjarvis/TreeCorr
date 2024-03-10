@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Changes from version 4.3 to 5.0 &mdash; TreeCorr 5.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Previous History" href="history.html" />
+    <link rel="prev" title="Getting Started Guide" href="guide.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            TreeCorr
+          </a>
+              <div class="version">
+                5.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shear.html">Shear Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Changes from version 4.3 to 5.0</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#dependency-change">Dependency Change</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#api-changes">API Changes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#performance-improvements">Performance improvements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#new-features">New features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bug-fixes">Bug fixes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">TreeCorr</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Changes from version 4.3 to 5.0</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/changes.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="changes-from-version-4-3-to-5-0">
+<h1>Changes from version 4.3 to 5.0<a class="headerlink" href="#changes-from-version-4-3-to-5-0" title="Permalink to this heading"></a></h1>
+<p>This is a major version update to TreeCorr, since it contains a number of non-backwards-
+compatible changes to the API.</p>
+<p>The most important change involves the three-point correlations.  TreeCorr now implements
+the multipole algorithm of Porth et al, 2023 (arXiv:2309.08601), which is much faster than the
+previous 3-cell recursion over triangles.  Enough so that I don’t anticipate people ever wanting
+to use the old algorithm.  However, this algorithm requires a different binning than we
+used to use – it requires binning according to two sides of the triangle and the angle
+between them, rather than the three side lengths (using a somewhat awkward formulation
+in terms of ratios of side lengths).</p>
+<p>The new three-point binning scheme is called <code class="docutils literal notranslate"><span class="pre">bin_type=&quot;LogSAS&quot;</span></code>.  This is now the default
+binning for all three-point correlation classes.  Furthermore, the default algorithm is
+<code class="docutils literal notranslate"><span class="pre">algo=&quot;multipole&quot;</span></code>, which first computes the multipole version of the correlation function
+using the Porth et al algorithm.  Then it converts back to regular configuration space
+the the LogSAS binning.</p>
+<p>The old versions are still available in case there are use cases for which they are superior
+in some way.  I do use them in the test suite still for comparison purposes.  To use the
+old binning, you now need to explicitly specify <code class="docutils literal notranslate"><span class="pre">bin_type=&quot;LogRUV&quot;</span></code> in the Correlation class,
+and to use the old algorithm of accumulating triangle directly, use <code class="docutils literal notranslate"><span class="pre">algo=&quot;triangle&quot;</span></code>
+when calling <a class="reference internal" href="correlation3.html#treecorr.Corr3.process" title="treecorr.Corr3.process"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Corr3.process</span></code></a>.</p>
+<p>I also changed how three-point cross correlations are handled, since I wasn’t very happy with
+my old implementation.  Now, you can indicate whether or not you want the three points
+to keep their ordering in the triangle with the parameter <code class="docutils literal notranslate"><span class="pre">ordered</span></code> in the <a class="reference internal" href="correlation3.html#treecorr.Corr3.process" title="treecorr.Corr3.process"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Corr3.process</span></code></a>
+function.  If <code class="docutils literal notranslate"><span class="pre">ordered=False</span></code>, then points from the (2 or 3) catalogs are allowed to take
+any position in the triangle.  If <code class="docutils literal notranslate"><span class="pre">ordered=True</span></code> (the default), then points from the first
+catalog will only for point P1 in the triangle, points from the second catalog will only be at P2,
+and points from the third will only be at P3.  This seems to be a more intuitive way to control
+this than the old <code class="docutils literal notranslate"><span class="pre">CrossCorrelation</span></code> classes.</p>
+<p>Another big change in this release is the addition of more fields for the two-point correlations.
+TreeCorr now implements correlations of spin-1 vector fields, as well as complex-valued
+fields with spin=0, 3, or 4.  (TreeCorr had already implemented spin-2 of course.)
+The letters for each of these are V, Z, T, and Q respectively.  I only did the pairings of each of
+these with itself, counts (N), and real scalar fields (K).  However, it would not be too hard
+to add more if someone has a use case for a pairing of two complex fields with different spins.</p>
+<p>A complete list of all new features and changes is given below.
+<a class="reference external" href="https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+4.4%22+is%3Aclosed">Relevant PRs and Issues,</a>
+whose issue numbers are listed below for the relevant items.</p>
+<section id="dependency-change">
+<h2>Dependency Change<a class="headerlink" href="#dependency-change" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>Switched from cffi to pybind11 for the C++ bindings. (#155)</p></li>
+<li><p>If using fitsio, it now must be version &gt; 1.0.6. (#173)</p></li>
+</ul>
+</section>
+<section id="api-changes">
+<h2>API Changes<a class="headerlink" href="#api-changes" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>When making a <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a>, if <code class="docutils literal notranslate"><span class="pre">patch</span></code> is an integer, <code class="docutils literal notranslate"><span class="pre">npatch</span></code> is now required.  This used to
+be usually required implicitly in how TreeCorr expected things to be set up downstream, but
+there were some use cases where a user could get away with not providing <code class="docutils literal notranslate"><span class="pre">npatch</span></code> and things
+would nonetheless still work.  But now we explicitly check for it, so those use cases do
+require passing <code class="docutils literal notranslate"><span class="pre">npatch</span></code> now.  (#150)</p></li>
+<li><p>Renamed the base classes BinnedCorr2 -&gt; <a class="reference internal" href="correlation2.html#treecorr.Corr2" title="treecorr.Corr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr2</span></code></a> and BinnedCorr3 -&gt; <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a>.  These are not
+normally used directly by users, so it shouldn’t be noticeable in user code. (#155)</p></li>
+<li><p>Removed all deprecations from the 4.x series. (#156)</p></li>
+<li><p>Removed support for reading back in output files from the 3.x series. (#165)</p></li>
+<li><p>Removed the 3pt CrossCorrelation classes, which used to be the way to get ordered three-point
+correlations.  But they were rather unwieldy and not very intuitive.  The new <code class="docutils literal notranslate"><span class="pre">ordered</span></code>
+option to the three-point <code class="docutils literal notranslate"><span class="pre">process</span></code> methods is much simpler and more efficient for the common
+case of only wanting a single order for the catalogs. (#165)</p></li>
+<li><p>Switched the default behavior of 3pt cross-correlations to respect the order of the catalogs
+in the triangle definitions.  That is, points from cat1 will be at P1 in the triangle,
+points from cat2 at P2, and points from cat3 at P3.  To recover the old behavior, you may
+use the new <code class="docutils literal notranslate"><span class="pre">ordered=False</span></code> option. (#166)</p></li>
+<li><p>Switched the default binning for three-point correlations to LogSAS, rather than LogRUV. (#166)</p></li>
+<li><p>Changed estimate_cov with method=’shot’ to only return the diagonal, rather than gratuitously
+making a full, mostly empty diagonal matrix. (#166)</p></li>
+<li><p>Changed name of Catalog.write kwarg from cat_precision to just precision. (#169)</p></li>
+<li><p>Added additionaly information in the header of output files to enable <a class="reference internal" href="correlation2.html#treecorr.Corr2.from_file" title="treecorr.Corr2.from_file"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Corr2.from_file</span></code></a>. (#172)</p></li>
+</ul>
+</section>
+<section id="performance-improvements">
+<h2>Performance improvements<a class="headerlink" href="#performance-improvements" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>Reduced the compiled library size, and refactored things so the new correlation types would not
+add nearly as much to the compiled size as they would have previously. (#157)</p></li>
+<li><p>Made a small (~5-10%) improvment in speed of most 2pt correlation runs. (#157)</p></li>
+<li><p>Made variance calculations more efficient when using var_method=’shot’.  Now it doesn’t
+gratuitiously make a full covariance matrix, only to then extract the diagonal. (#166)</p></li>
+<li><p>Added the multipole algorithm for three-point correlations, descibed in Porth et al (2023)
+for GGG, and previously in Chen &amp; Szapudi (2005), Slepian &amp; Eisenstein (2015) and Philcox et al
+(2022) for NNN and KKK.  This algorithm is much, much faster than the 3 point calculation that
+TreeCorr had done, so it is now the default.  However, this algorithm only works with SAS
+binning, so LogSAS is now the default binning for three-point correlations. (#167, #171)</p></li>
+</ul>
+</section>
+<section id="new-features">
+<h2>New features<a class="headerlink" href="#new-features" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>Added spin-1 correlations using the letter V (for Vector), including <a class="reference internal" href="nv.html#treecorr.NVCorrelation" title="treecorr.NVCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NVCorrelation</span></code></a>,
+<a class="reference internal" href="kv.html#treecorr.KVCorrelation" title="treecorr.KVCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KVCorrelation</span></code></a> and <a class="reference internal" href="vv.html#treecorr.VVCorrelation" title="treecorr.VVCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">VVCorrelation</span></code></a>. (#81, #158)</p></li>
+<li><p>Give a better error message when patch is given as an integer, but npatch is not provided. (#150)</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">x_eval</span></code>, <code class="docutils literal notranslate"><span class="pre">y_eval</span></code>, etc. which let you calculate a derived quantity from an input
+catalog using Python eval on columns in the file. (#151, #173)</p></li>
+<li><p>Allow vark, varg, varv for a Catalog be specifiable on input, rather than calculated directly
+from the corresponding values. (#154, #159)</p></li>
+<li><p>Allow numpy.random.Generator for rng arguments (in addition to legacy RandomState). (#157)</p></li>
+<li><p>Added spin-3 and spin-4 correlations using the letters T (for Trefoil) and Q (for Quatrefoil)
+respectively, including <a class="reference internal" href="nt.html#treecorr.NTCorrelation" title="treecorr.NTCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NTCorrelation</span></code></a>, <a class="reference internal" href="kt.html#treecorr.KTCorrelation" title="treecorr.KTCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KTCorrelation</span></code></a>, <a class="reference internal" href="tt.html#treecorr.TTCorrelation" title="treecorr.TTCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">TTCorrelation</span></code></a>, <a class="reference internal" href="nq.html#treecorr.NQCorrelation" title="treecorr.NQCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NQCorrelation</span></code></a>,
+<a class="reference internal" href="kq.html#treecorr.KQCorrelation" title="treecorr.KQCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KQCorrelation</span></code></a> and <a class="reference internal" href="qq.html#treecorr.QQCorrelation" title="treecorr.QQCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">QQCorrelation</span></code></a>. (#160)</p></li>
+<li><p>Automatically recognize .h5 as an HDF5 suffix in file names. (#161)</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">ordered=True</span></code> option to the 3pt <code class="docutils literal notranslate"><span class="pre">process</span></code> methods for keeping the order of the
+catalogs fixed in the triangle orientation. (#165)</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">bin_type='LogSAS'</span></code> for 3pt correlations. (#165)</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">bin_type='LogMultipole'</span></code> for 3pt correlations and method <a class="reference internal" href="correlation3.html#treecorr.Corr3.toSAS" title="treecorr.Corr3.toSAS"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Corr3.toSAS</span></code></a> to
+convert from this format to the LogSAS binning if desired. (#167)</p></li>
+<li><p>Added serialization of rr, dr, etc. when writing with write_patch_results=True option,
+so you no longer have to separately write files for them to recover the covariance. (#168, #172)</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">patch_method</span></code> option to <code class="docutils literal notranslate"><span class="pre">process</span></code>, and specifically a “local” option.  This is
+not particularly recommended for most use cases, but it is required for the multipole
+three-point method, for which it is the default. (#169)</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">angle_slop</span></code> option to separately tune the allowed angular slop from using cells,
+irrespective of the binning. (#170)</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">algo</span></code> option to 3-point <code class="docutils literal notranslate"><span class="pre">process</span></code> functions to conrol whether to use new
+multipole algorithm or the old triangle algorithm. (#171)</p></li>
+<li><p>Added <a class="reference internal" href="correlation2.html#treecorr.Corr2.from_file" title="treecorr.Corr2.from_file"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Corr2.from_file</span></code></a> class methods to construct a Correlation object from a file without
+needing to know the correct configuration parameters. (#172)</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">write_cov</span></code> option to write functions to include the covariance in the output file.
+(#172)</p></li>
+<li><p>Added complex, spin-0 correlations using the letter Z, including <a class="reference internal" href="nz.html#treecorr.NZCorrelation" title="treecorr.NZCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NZCorrelation</span></code></a>,
+<a class="reference internal" href="kz.html#treecorr.KZCorrelation" title="treecorr.KZCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KZCorrelation</span></code></a>, and <a class="reference internal" href="zz.html#treecorr.ZZCorrelation" title="treecorr.ZZCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">ZZCorrelation</span></code></a>. (#174)</p></li>
+</ul>
+</section>
+<section id="bug-fixes">
+<h2>Bug fixes<a class="headerlink" href="#bug-fixes" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fixed a rare potential bug in TwoD binning. (#157)</p></li>
+<li><p>Allowed both lens and random catalogs to have only 1 patch when source catalog has patches
+for NG, NK correlations. (#158)</p></li>
+<li><p>Fixed slight error in the variance calculation when using initialize/finalize options of
+process functions. (#158)</p></li>
+<li><p>Fixed bug that could cause <a class="reference internal" href="catalog.html#treecorr.Catalog.write_patches" title="treecorr.Catalog.write_patches"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Catalog.write_patches</span></code></a> to not work correctly if patch files were
+already written in the <code class="docutils literal notranslate"><span class="pre">save_patch_dir</span></code>. (#158)</p></li>
+<li><p>Fixed slight error in the shot-noise variance for G correlations.  It used to assume that the
+mean shear is 0, which is often very close to true.  Now it uses the actual mean. (#159)</p></li>
+<li><p>Fixed a very slight error in the parallel transport code, which is probably only noticeable
+for fields extremely close to a pole. (#160)</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="guide.html" class="btn btn-neutral float-left" title="Getting Started Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="history.html" class="btn btn-neutral float-right" title="Previous History" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Mike Jarvis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Using configuration files &mdash; TreeCorr 5.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Configuration Parameters" href="params.html" />
+    <link rel="prev" title="Fields" href="field.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            TreeCorr
+          </a>
+              <div class="version">
+                5.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shear.html">Shear Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Using configuration files</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-corr2-and-corr3-executables">The corr2 and corr3 executables</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="params.html">Configuration Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#the-corr2-function-from-python">The corr2 function from python</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.corr2"><code class="docutils literal notranslate"><span class="pre">corr2()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#the-corr3-function-from-python">The corr3 function from python</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.corr3"><code class="docutils literal notranslate"><span class="pre">corr3()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#other-utilities-related-to-corr2-and-corr3">Other utilities related to corr2 and corr3</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.exec_corr2.print_corr2_params"><code class="docutils literal notranslate"><span class="pre">print_corr2_params()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.exec_corr3.print_corr3_params"><code class="docutils literal notranslate"><span class="pre">print_corr3_params()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-treecorr.config">Utilities related to the configuration dict</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.config.check_config"><code class="docutils literal notranslate"><span class="pre">check_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.config.convert"><code class="docutils literal notranslate"><span class="pre">convert()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.config.get"><code class="docutils literal notranslate"><span class="pre">get()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.config.get_from_list"><code class="docutils literal notranslate"><span class="pre">get_from_list()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.config.make_minimal_config"><code class="docutils literal notranslate"><span class="pre">make_minimal_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.config.merge_config"><code class="docutils literal notranslate"><span class="pre">merge_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.config.parse"><code class="docutils literal notranslate"><span class="pre">parse()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.config.parse_bool"><code class="docutils literal notranslate"><span class="pre">parse_bool()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.config.parse_unit"><code class="docutils literal notranslate"><span class="pre">parse_unit()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.config.parse_variable"><code class="docutils literal notranslate"><span class="pre">parse_variable()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.config.print_params"><code class="docutils literal notranslate"><span class="pre">print_params()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.config.read_config"><code class="docutils literal notranslate"><span class="pre">read_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.config.setup_logger"><code class="docutils literal notranslate"><span class="pre">setup_logger()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#file-writers">File Writers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.writer.FitsWriter"><code class="docutils literal notranslate"><span class="pre">FitsWriter</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#treecorr.writer.FitsWriter.write"><code class="docutils literal notranslate"><span class="pre">FitsWriter.write()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#treecorr.writer.FitsWriter.write_array"><code class="docutils literal notranslate"><span class="pre">FitsWriter.write_array()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.writer.HdfWriter"><code class="docutils literal notranslate"><span class="pre">HdfWriter</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#treecorr.writer.HdfWriter.write"><code class="docutils literal notranslate"><span class="pre">HdfWriter.write()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#treecorr.writer.HdfWriter.write_array"><code class="docutils literal notranslate"><span class="pre">HdfWriter.write_array()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.writer.AsciiWriter"><code class="docutils literal notranslate"><span class="pre">AsciiWriter</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#treecorr.writer.AsciiWriter.write"><code class="docutils literal notranslate"><span class="pre">AsciiWriter.write()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#treecorr.writer.AsciiWriter.write_array"><code class="docutils literal notranslate"><span class="pre">AsciiWriter.write_array()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.3 to 5.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">TreeCorr</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Using configuration files</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/scripts.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="using-configuration-files">
+<h1>Using configuration files<a class="headerlink" href="#using-configuration-files" title="Permalink to this heading"></a></h1>
+<p>Most of the TreeCorr classes can take a <code class="docutils literal notranslate"><span class="pre">config</span></code> parameter in lieu
+of a set of keyword arguments.  This is not necessarily incredibly
+useful when driving the code from Python; however, it enables running
+the code from some executable scripts, described below.</p>
+<p>Specifically, the parameters defined in the configuration file are
+loaded into a Python dict, which is passed to each of the classes
+as needed.  The advantage of this is that TreeCorr will only use the
+parameters it actually needs when initializing each object.
+Any additional parameters (e.g. those
+that are relevant to a different class) are ignored.</p>
+<section id="the-corr2-and-corr3-executables">
+<h2>The corr2 and corr3 executables<a class="headerlink" href="#the-corr2-and-corr3-executables" title="Permalink to this heading"></a></h2>
+<p>Along with the installed Python library, TreeCorr also includes
+two executable scripts, called <code class="docutils literal notranslate"><span class="pre">corr2</span></code> and <code class="docutils literal notranslate"><span class="pre">corr3</span></code>.
+The scripts takes one required command-line argument, which
+is the name of a configuration file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">corr2</span> <span class="n">config</span><span class="o">.</span><span class="n">yaml</span>
+<span class="n">corr3</span> <span class="n">config</span><span class="o">.</span><span class="n">yaml</span>
+</pre></div>
+</div>
+<p>A sample configuration file is provided, called sample_config.yaml.</p>
+<p>For the complete documentation about the allowed parameters, see:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="params.html">Configuration Parameters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="params.html#parameters-about-the-input-file-s">Parameters about the input file(s)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="params.html#parameters-about-the-binned-correlation-function-to-be-calculated">Parameters about the binned correlation function to be calculated</a></li>
+<li class="toctree-l2"><a class="reference internal" href="params.html#parameters-about-the-output-file-s">Parameters about the output file(s)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="params.html#derived-output-quantities">Derived output quantities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="params.html#miscellaneous-parameters">Miscellaneous parameters</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<p>YAML is the recommended format for the configuration file, but we
+also allow JSON files if you prefer, or a legacy format, which is
+like an .ini file, but without the section headings, consisting of
+key = value lines.  The three formats are normally distinguished
+by their extensions (.yaml, .json, or .params respectively), but
+you can also give the file type explicitly with the -f option. E.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">corr2</span> <span class="n">my_config_file</span><span class="o">.</span><span class="n">txt</span> <span class="o">-</span><span class="n">f</span> <span class="n">params</span>
+</pre></div>
+</div>
+<p>would specify that the configuration file <code class="docutils literal notranslate"><span class="pre">my_config_file.txt</span></code> uses
+the legacy “params” format.</p>
+<p>You can also specify parameters on the command line after the name of
+the configuration file. e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">corr2</span> <span class="n">config</span><span class="o">.</span><span class="n">yaml</span> <span class="n">file_name</span><span class="o">=</span><span class="n">file1</span><span class="o">.</span><span class="n">dat</span> <span class="n">gg_file_name</span><span class="o">=</span><span class="n">file1</span><span class="o">.</span><span class="n">out</span>
+<span class="n">corr2</span> <span class="n">config</span><span class="o">.</span><span class="n">yaml</span> <span class="n">file_name</span><span class="o">=</span><span class="n">file2</span><span class="o">.</span><span class="n">dat</span> <span class="n">gg_file_name</span><span class="o">=</span><span class="n">file2</span><span class="o">.</span><span class="n">out</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>This can be useful when running the program from a script for lots of input
+files.</p>
+</section>
+<section id="the-corr2-function-from-python">
+<h2>The corr2 function from python<a class="headerlink" href="#the-corr2-function-from-python" title="Permalink to this heading"></a></h2>
+<p>The same functionality that you have from the <code class="docutils literal notranslate"><span class="pre">corr2</span></code> executable is available in python via the
+<a class="reference internal" href="#treecorr.corr2" title="treecorr.corr2"><code class="xref any py py-func docutils literal notranslate"><span class="pre">corr2</span></code></a> function:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">treecorr</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">read_config</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
+<span class="n">config</span><span class="p">[</span><span class="s1">&#39;file_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;catalog.dat&#39;</span>
+<span class="n">config</span><span class="p">[</span><span class="s1">&#39;gg_file_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;gg.out&#39;</span>
+<span class="n">treecorr</span><span class="o">.</span><span class="n">corr2</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="treecorr.corr2">
+<span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">corr2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/exec_corr2.html#corr2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.corr2" title="Permalink to this definition"></a></dt>
+<dd><p>Run the full two-point correlation function code based on the parameters in the
+given config dict.</p>
+<p>The function <a class="reference internal" href="#treecorr.exec_corr2.print_corr2_params" title="treecorr.exec_corr2.print_corr2_params"><code class="xref any py py-func docutils literal notranslate"><span class="pre">print_corr2_params</span></code></a> will output information about the valid parameters
+that are expected to be in the config dict.</p>
+<p>Optionally a logger parameter maybe given, in which case it is used for logging.
+If not given, the logging will be based on the verbose and log_file parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> – The configuration dict which defines what to do.</p></li>
+<li><p><strong>logger</strong> – If desired, a logger object for logging. (default: None, in which case
+one will be built according to the config dict’s verbose level.)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="the-corr3-function-from-python">
+<h2>The corr3 function from python<a class="headerlink" href="#the-corr3-function-from-python" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="treecorr.corr3">
+<span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">corr3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/exec_corr3.html#corr3"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.corr3" title="Permalink to this definition"></a></dt>
+<dd><p>Run the full three-point correlation function code based on the parameters in the
+given config dict.</p>
+<p>The function <a class="reference internal" href="#treecorr.exec_corr3.print_corr3_params" title="treecorr.exec_corr3.print_corr3_params"><code class="xref any py py-func docutils literal notranslate"><span class="pre">print_corr3_params</span></code></a> will output information about the valid parameters
+that are expected to be in the config dict.</p>
+<p>Optionally a logger parameter maybe given, in which case it is used for logging.
+If not given, the logging will be based on the verbose and log_file parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> – The configuration dict which defines what to do.</p></li>
+<li><p><strong>logger</strong> – If desired, a logger object for logging. (default: None, in which case
+one will be built according to the config dict’s verbose level.)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="other-utilities-related-to-corr2-and-corr3">
+<h2>Other utilities related to corr2 and corr3<a class="headerlink" href="#other-utilities-related-to-corr2-and-corr3" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="treecorr.exec_corr2.print_corr2_params">
+<span class="sig-prename descclassname"><span class="pre">treecorr.exec_corr2.</span></span><span class="sig-name descname"><span class="pre">print_corr2_params</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/exec_corr2.html#print_corr2_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.exec_corr2.print_corr2_params" title="Permalink to this definition"></a></dt>
+<dd><p>Print information about the valid parameters that may be given to the <a class="reference internal" href="#treecorr.corr2" title="treecorr.corr2"><code class="xref any py py-func docutils literal notranslate"><span class="pre">corr2</span></code></a> function.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treecorr.exec_corr3.print_corr3_params">
+<span class="sig-prename descclassname"><span class="pre">treecorr.exec_corr3.</span></span><span class="sig-name descname"><span class="pre">print_corr3_params</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/exec_corr3.html#print_corr3_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.exec_corr3.print_corr3_params" title="Permalink to this definition"></a></dt>
+<dd><p>Print information about the valid parameters that may be given to the <a class="reference internal" href="#treecorr.corr3" title="treecorr.corr3"><code class="xref any py py-func docutils literal notranslate"><span class="pre">corr3</span></code></a> function.</p>
+</dd></dl>
+
+</section>
+<section id="module-treecorr.config">
+<span id="utilities-related-to-the-configuration-dict"></span><h2>Utilities related to the configuration dict<a class="headerlink" href="#module-treecorr.config" title="Permalink to this heading"></a></h2>
+<span class="target" id="module-config"></span><dl class="py function">
+<dt class="sig sig-object py" id="treecorr.config.check_config">
+<span class="sig-prename descclassname"><span class="pre">treecorr.config.</span></span><span class="sig-name descname"><span class="pre">check_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aliases</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#check_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.config.check_config" title="Permalink to this definition"></a></dt>
+<dd><p>Check (and update) a config dict to conform to the given parameter rules.
+The params dict has an entry for each valid config parameter whose value is a tuple
+with the following items:</p>
+<ul class="simple">
+<li><p>type</p></li>
+<li><p>can be a list?</p></li>
+<li><p>default value</p></li>
+<li><p>valid values</p></li>
+<li><p>description (Multiple entries here are allowed for longer strings)</p></li>
+</ul>
+<p>The file corr2.py has a list of parameters for the corr2 program.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> – The config dict to check.</p></li>
+<li><p><strong>params</strong> – A dict of valid parameters with information about each one.</p></li>
+<li><p><strong>aliases</strong> – A dict of deprecated parameters that are still aliases for new names.
+(default: None)</p></li>
+<li><p><strong>logger</strong> – If desired, a logger object for logging any warnings here. (default: None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The updated config dict.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treecorr.config.convert">
+<span class="sig-prename descclassname"><span class="pre">treecorr.config.</span></span><span class="sig-name descname"><span class="pre">convert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#convert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.config.convert" title="Permalink to this definition"></a></dt>
+<dd><p>Convert the given value to the given type.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">key</span></code> helps determine what kind of conversion should be performed.
+Specifically if ‘unit’ is in the <code class="docutils literal notranslate"><span class="pre">key</span></code> value, then a unit conversion is done.
+Otherwise, it just parses the <code class="docutils literal notranslate"><span class="pre">value</span></code> according to the <code class="docutils literal notranslate"><span class="pre">value_type</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – The input value to be converted.  Usually a string.</p></li>
+<li><p><strong>value_type</strong> – The type to convert to.</p></li>
+<li><p><strong>key</strong> – The key for this value.  Only used to see if it includes ‘unit’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The converted value.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treecorr.config.get">
+<span class="sig-prename descclassname"><span class="pre">treecorr.config.</span></span><span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_type=&lt;class</span> <span class="pre">'str'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default=None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.config.get" title="Permalink to this definition"></a></dt>
+<dd><p>A helper function to get a key from config converting to a particular type</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> – The configuration dict from which to get the key value.</p></li>
+<li><p><strong>key</strong> – Which key to get from config.</p></li>
+<li><p><strong>value_type</strong> – Which type should the value be converted to. (default: str)</p></li>
+<li><p><strong>default</strong> – What value should be used if the key is not in the config dict,
+or the value corresponding to the key is None.
+(default: None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The specified value, converted as needed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treecorr.config.get_from_list">
+<span class="sig-prename descclassname"><span class="pre">treecorr.config.</span></span><span class="sig-name descname"><span class="pre">get_from_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_type=&lt;class</span> <span class="pre">'str'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default=None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#get_from_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.config.get_from_list" title="Permalink to this definition"></a></dt>
+<dd><p>A helper function to get a key from config that is allowed to be a list</p>
+<p>Some of the config values are allowed to be lists of values, in which case we take the
+<code class="docutils literal notranslate"><span class="pre">num</span></code> item from the list.  If they are not a list, then the given value is used for
+all values of <code class="docutils literal notranslate"><span class="pre">num</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> – The configuration dict from which to get the key value.</p></li>
+<li><p><strong>key</strong> – What key to get from config.</p></li>
+<li><p><strong>num</strong> – Which number element to use if the item is a list.</p></li>
+<li><p><strong>value_type</strong> – What type should the value be converted to. (default: str)</p></li>
+<li><p><strong>default</strong> – What value should be used if the key is not in the config dict,
+or the value corresponding to the key is None.
+(default: None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The specified value, converted as needed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treecorr.config.make_minimal_config">
+<span class="sig-prename descclassname"><span class="pre">treecorr.config.</span></span><span class="sig-name descname"><span class="pre">make_minimal_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">valid_params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#make_minimal_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.config.make_minimal_config" title="Permalink to this definition"></a></dt>
+<dd><p>Make a minimal version of a config dict, excluding any values that are the default.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>dict</em>) – The source config (will not be modified)</p></li>
+<li><p><strong>valid_params</strong> (<em>dict</em>) – A dict of valid parameters that are allowed for this usage.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>minimal_config  The dict without any default values.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treecorr.config.merge_config">
+<span class="sig-prename descclassname"><span class="pre">treecorr.config.</span></span><span class="sig-name descname"><span class="pre">merge_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">valid_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aliases</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#merge_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.config.merge_config" title="Permalink to this definition"></a></dt>
+<dd><p>Merge in the values from kwargs into config.</p>
+<p>If either of these is None, then the other one is returned.
+If they are both dicts, then the values in kwargs take precedence over ones in config
+if there are any keys that are in both.  Also, the kwargs dict will be modified in this case.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> – The root config (will not be modified)</p></li>
+<li><p><strong>kwargs</strong> – A second dict with more or updated values</p></li>
+<li><p><strong>valid_params</strong> – A dict of valid parameters that are allowed for this usage.
+The config dict is allowed to have extra items, but kwargs is not.</p></li>
+<li><p><strong>aliases</strong> – An optional dict of aliases. (default: None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The merged dict, including only items that are in valid_params.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treecorr.config.parse">
+<span class="sig-prename descclassname"><span class="pre">treecorr.config.</span></span><span class="sig-name descname"><span class="pre">parse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#parse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.config.parse" title="Permalink to this definition"></a></dt>
+<dd><p>Parse the input value as the given type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – The value to parse.</p></li>
+<li><p><strong>value_type</strong> – The type expected for this.</p></li>
+<li><p><strong>name</strong> – The name of this value. Only used for error reporting.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>value</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treecorr.config.parse_bool">
+<span class="sig-prename descclassname"><span class="pre">treecorr.config.</span></span><span class="sig-name descname"><span class="pre">parse_bool</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#parse_bool"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.config.parse_bool" title="Permalink to this definition"></a></dt>
+<dd><p>Parse a value as a boolean.</p>
+<p>Valid string values for True are: ‘true’, ‘yes’, ‘t’, ‘y’
+Valid string values for False are: ‘false’, ‘no’, ‘f’, ‘n’, ‘none’
+Capitalization is ignored.</p>
+<p>If value is a number, it is converted to a bool in the usual way.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> – The value to parse.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The value converted to a bool.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treecorr.config.parse_unit">
+<span class="sig-prename descclassname"><span class="pre">treecorr.config.</span></span><span class="sig-name descname"><span class="pre">parse_unit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#parse_unit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.config.parse_unit" title="Permalink to this definition"></a></dt>
+<dd><p>Parse the input value as a string that should be one of the valid angle units in
+coord.AngleUnit.valid_names.</p>
+<p>The value is allowed to merely start with one of the unit names.  So ‘deg’, ‘degree’,
+‘degrees’ all convert to ‘deg’ which is the name in coord.AngleUnit.valid_names.
+The return value in this case would be coord.AngleUnit.from_name(‘deg’).value,
+which has the value pi/180.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> – The unit as a string value to parse.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The given unit in radians.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treecorr.config.parse_variable">
+<span class="sig-prename descclassname"><span class="pre">treecorr.config.</span></span><span class="sig-name descname"><span class="pre">parse_variable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#parse_variable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.config.parse_variable" title="Permalink to this definition"></a></dt>
+<dd><p>Parse a configuration variable from a string that should look like ‘key = value’
+and write that value to config[key].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> – The configuration dict to wich to write the key,value pair</p></li>
+<li><p><strong>v</strong> – A string of the form ‘key = value’</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treecorr.config.print_params">
+<span class="sig-prename descclassname"><span class="pre">treecorr.config.</span></span><span class="sig-name descname"><span class="pre">print_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#print_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.config.print_params" title="Permalink to this definition"></a></dt>
+<dd><p>Print the information about the valid parameters, given by the given params dict.
+See check_config for the structure of the params dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>params</strong> – A dict of valid parameters with information about each one.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treecorr.config.read_config">
+<span class="sig-prename descclassname"><span class="pre">treecorr.config.</span></span><span class="sig-name descname"><span class="pre">read_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#read_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.config.read_config" title="Permalink to this definition"></a></dt>
+<dd><p>Read a configuration dict from a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_name</strong> – The file name from which the configuration dict should be read.</p></li>
+<li><p><strong>file_type</strong> – The type of config file.  Options are ‘auto’, ‘yaml’, ‘json’, ‘params’.
+(default: ‘auto’, which tries to determine the type from the extension)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A config dict built from the configuration file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="treecorr.config.setup_logger">
+<span class="sig-prename descclassname"><span class="pre">treecorr.config.</span></span><span class="sig-name descname"><span class="pre">setup_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/config.html#setup_logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.config.setup_logger" title="Permalink to this definition"></a></dt>
+<dd><p>Parse the integer verbosity level from the command line args into a logging_level string</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>verbose</strong> – An integer indicating what verbosity level to use.</p></li>
+<li><p><strong>log_file</strong> – If given, a file name to which to write the logging output.
+If omitted or None, then output to stdout.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The logging.Logger object to use.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="file-writers">
+<h2>File Writers<a class="headerlink" href="#file-writers" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="treecorr.writer.FitsWriter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.writer.</span></span><span class="sig-name descname"><span class="pre">FitsWriter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/writer.html#FitsWriter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.writer.FitsWriter" title="Permalink to this definition"></a></dt>
+<dd><p>Writer interface for FITS files.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.writer.FitsWriter.write">
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">col_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/writer.html#FitsWriter.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.writer.FitsWriter.write" title="Permalink to this definition"></a></dt>
+<dd><p>Write some columns to an output ASCII file with the given column names.</p>
+<p>If name is not None, then it is used as the name of the extension for these data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>col_names</strong> – A list of columns names for the given columns.</p></li>
+<li><p><strong>columns</strong> – A list of numpy arrays with the data to write.</p></li>
+<li><p><strong>params</strong> – A dict of extra parameters to write at the top of the output file.</p></li>
+<li><p><strong>ext</strong> – Optional ext name for these data. (default: None)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.writer.FitsWriter.write_array">
+<span class="sig-name descname"><span class="pre">write_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/writer.html#FitsWriter.write_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.writer.FitsWriter.write_array" title="Permalink to this definition"></a></dt>
+<dd><p>Write a (typically 2-d) numpy array to the output file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – The array to write.</p></li>
+<li><p><strong>ext</strong> – Optional ext name for these data. (default: None)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="treecorr.writer.HdfWriter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.writer.</span></span><span class="sig-name descname"><span class="pre">HdfWriter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/writer.html#HdfWriter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.writer.HdfWriter" title="Permalink to this definition"></a></dt>
+<dd><p>Writer interface for HDF5 files.
+Uses h5py to read columns, etc.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.writer.HdfWriter.write">
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">col_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/writer.html#HdfWriter.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.writer.HdfWriter.write" title="Permalink to this definition"></a></dt>
+<dd><p>Write some columns to an output ASCII file with the given column names.</p>
+<p>If name is not None, then it is used as the name of the extension for these data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>col_names</strong> – A list of columns names for the given columns.</p></li>
+<li><p><strong>columns</strong> – A list of numpy arrays with the data to write.</p></li>
+<li><p><strong>params</strong> – A dict of extra parameters to write at the top of the output file.</p></li>
+<li><p><strong>ext</strong> – Optional group name for these data. (default: None)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.writer.HdfWriter.write_array">
+<span class="sig-name descname"><span class="pre">write_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/writer.html#HdfWriter.write_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.writer.HdfWriter.write_array" title="Permalink to this definition"></a></dt>
+<dd><p>Write a (typically 2-d) numpy array to the output file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – The array to write.</p></li>
+<li><p><strong>ext</strong> – Optional ext name for these data. (default: None)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="treecorr.writer.AsciiWriter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.writer.</span></span><span class="sig-name descname"><span class="pre">AsciiWriter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/writer.html#AsciiWriter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.writer.AsciiWriter" title="Permalink to this definition"></a></dt>
+<dd><p>Write data to an ASCII (text) file.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.writer.AsciiWriter.write">
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">col_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/writer.html#AsciiWriter.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.writer.AsciiWriter.write" title="Permalink to this definition"></a></dt>
+<dd><p>Write some columns to an output ASCII file with the given column names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>col_names</strong> – A list of columns names for the given columns. These will be written
+in a header comment line at the top of the output file.</p></li>
+<li><p><strong>columns</strong> – A list of numpy arrays with the data to write.</p></li>
+<li><p><strong>params</strong> – A dict of extra parameters to write at the top of the output file.</p></li>
+<li><p><strong>ext</strong> – Optional ext name for these data. (default: None)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.writer.AsciiWriter.write_array">
+<span class="sig-name descname"><span class="pre">write_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/writer.html#AsciiWriter.write_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.writer.AsciiWriter.write_array" title="Permalink to this definition"></a></dt>
+<dd><p>Write a (typically 2-d) numpy array to the output file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – The array to write.</p></li>
+<li><p><strong>ext</strong> – Optional ext name for these data. (default: None)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="field.html" class="btn btn-neutral float-left" title="Fields" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="params.html" class="btn btn-neutral float-right" title="Configuration Parameters" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Mike Jarvis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

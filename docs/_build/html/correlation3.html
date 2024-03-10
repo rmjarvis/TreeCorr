@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Three-point Correlation Functions &mdash; TreeCorr 5.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="NNNCorrelation: Count-count-count correlations" href="nnn.html" />
+    <link rel="prev" title="QQCorrelation: Quatrefoil-quatrefoil correlations" href="qq.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            TreeCorr
+          </a>
+              <div class="version">
+                5.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Three-point Correlation Functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="nnn.html">NNNCorrelation: Count-count-count correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ggg.html">GGGCorrelation: Shear-shear-shear correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kkk.html">KKKCorrelation: Scalar-scalar-scalar correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#treecorr.Corr3"><code class="docutils literal notranslate"><span class="pre">Corr3</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.Corr3.build_cov_design_matrix"><code class="docutils literal notranslate"><span class="pre">Corr3.build_cov_design_matrix()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.Corr3.clear"><code class="docutils literal notranslate"><span class="pre">Corr3.clear()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.Corr3.copy"><code class="docutils literal notranslate"><span class="pre">Corr3.copy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.Corr3.cov"><code class="docutils literal notranslate"><span class="pre">Corr3.cov</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.Corr3.cov_diag"><code class="docutils literal notranslate"><span class="pre">Corr3.cov_diag</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.Corr3.estimate_cov"><code class="docutils literal notranslate"><span class="pre">Corr3.estimate_cov()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.Corr3.from_file"><code class="docutils literal notranslate"><span class="pre">Corr3.from_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.Corr3.getStat"><code class="docutils literal notranslate"><span class="pre">Corr3.getStat()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.Corr3.getWeight"><code class="docutils literal notranslate"><span class="pre">Corr3.getWeight()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.Corr3.nonzero"><code class="docutils literal notranslate"><span class="pre">Corr3.nonzero</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.Corr3.process"><code class="docutils literal notranslate"><span class="pre">Corr3.process()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.Corr3.process_cross"><code class="docutils literal notranslate"><span class="pre">Corr3.process_cross()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.Corr3.read"><code class="docutils literal notranslate"><span class="pre">Corr3.read()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.Corr3.toSAS"><code class="docutils literal notranslate"><span class="pre">Corr3.toSAS()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shear.html">Shear Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.3 to 5.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">TreeCorr</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Three-point Correlation Functions</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/correlation3.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="three-point-correlation-functions">
+<h1>Three-point Correlation Functions<a class="headerlink" href="#three-point-correlation-functions" title="Permalink to this heading"></a></h1>
+<p>There are currently 3 differenct classes for calculating the different possible three-point
+correlation functions:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="nnn.html">NNNCorrelation: Count-count-count correlations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ggg.html">GGGCorrelation: Shear-shear-shear correlations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="kkk.html">KKKCorrelation: Scalar-scalar-scalar correlations</a></li>
+</ul>
+</div>
+<p>Each of the above classes is a sub-class of the base class Corr3, so they have a number of
+features in common about how they are constructed.  The common features are documented here.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="treecorr.Corr3">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">Corr3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3" title="Permalink to this definition"></a></dt>
+<dd><p>This class stores the results of a 3-point correlation calculation, along with some
+ancillary data.</p>
+<p>This is a base class that is not intended to be constructed directly.  But it has a few
+helper functions that derived classes can use to help perform their calculations.  See
+the derived classes for more details:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="nnn.html#treecorr.NNNCorrelation" title="treecorr.NNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNNCorrelation</span></code></a> handles count-count-count correlation functions</p></li>
+<li><p><a class="reference internal" href="kkk.html#treecorr.KKKCorrelation" title="treecorr.KKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCorrelation</span></code></a> handles scalar-scalar-scalar correlation functions</p></li>
+<li><p><a class="reference internal" href="ggg.html#treecorr.GGGCorrelation" title="treecorr.GGGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGGCorrelation</span></code></a> handles shear-shear-shear correlation functions</p></li>
+</ul>
+<p>Three-point correlations are a bit more complicated than two-point, since the data need
+to be binned in triangles, not just the separation between two points.</p>
+<p>There are currenlty three different ways to quantify the triangle shapes.</p>
+<ol class="arabic">
+<li><p>The triangle can be defined by its three side lengths (i.e. SSS congruence).
+In this case, we characterize the triangles according to the following three parameters
+based on the three side lengths with d1 &gt;= d2 &gt;= d3.</p>
+<blockquote>
+<div><div class="math notranslate nohighlight">
+\[\begin{split}r &amp;= d2 \\
+u &amp;= \frac{d3}{d2} \\
+v &amp;= \pm \frac{(d1 - d2)}{d3} \\\end{split}\]</div>
+<p>The orientation of the triangle is specified by the sign of v.
+Positive v triangles have the three sides d1,d2,d3 in counter-clockwise orientation.
+Negative v triangles have the three sides d1,d2,d3 in clockwise orientation.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We always bin the same way for positive and negative v values, and the binning
+specification for v should just be for the positive values.  E.g. if you specify
+min_v=0.2, max_v=0.6, then TreeCorr will also accumulate triangles with
+-0.6 &lt; v &lt; -0.2 in addition to those with 0.2 &lt; v &lt; 0.6.</p>
+</div>
+</div></blockquote>
+</li>
+<li><p>The triangle can be defined by two of the sides and the angle between them (i.e. SAS
+congruence).  The vertex point between the two sides is considered point “1” (P1), so
+the two sides (opposite points 2 and 3) are called d2 and d3.  The angle between them is
+called phi, and it is measured in radians.</p>
+<p>The orientation is defined such that 0 &lt;= phi &lt;= pi is the angle sweeping from d2 to d3
+counter-clockwise.</p>
+<p>Unlike the SSS definition where every triangle is uniquely placed in a single bin, this
+definition forms a triangle with each object at the central vertex, P1, so for
+auto-correlations, each triangle is placed in bins three times.  For cross-correlations,
+the order of the points is such that objects in the first catalog are at the central
+vertex, P1, objects in the second catalog are at P2, which is opposite d2 (i.e.
+at the end of line segment d3 from P1), and objects in the third catalog are at P3,
+opposite d3 (i.e. at the end of d2 from P1).</p>
+</li>
+<li><p>The third option is a multipole expansion of the SAS description.  This idea was initially
+developed by Chen &amp; Szapudi (2005, ApJ, 635, 743) and then further refined by
+Slepian &amp; Eisenstein (2015, MNRAS, 454, 4142), Philcox et al (2022, MNRAS, 509, 2457),
+and Porth et al (arXiv:2309.08601).  The latter in particular showed how to use this
+method for non-spin-0 correlations (GGG in particular).</p>
+<p>The basic idea is to do a Fourier transform of the phi binning to convert the phi
+bins into n bins.</p>
+<div class="math notranslate nohighlight">
+\[\zeta(d_2, d_3, \phi) = \frac{1}{2\pi} \sum_n \mathcal{Z}_n(d_2,d_3) e^{i n \phi}\]</div>
+<p>Formally, this is exact if the sum goes from <span class="math notranslate nohighlight">\(-\infty .. \infty\)</span>.  Truncating this
+sum at <span class="math notranslate nohighlight">\(\pm n_\mathrm{max}\)</span> is similar to binning in theta with this many bins
+for <span class="math notranslate nohighlight">\(\phi\)</span> within the range <span class="math notranslate nohighlight">\(0 &lt;= \phi &lt;= \pi\)</span>.</p>
+<p>The above papers show that this multipole expansion allows for a much more efficient
+calculation, since it can be done with a kind of 2-point calculation.
+We provide methods to convert the multipole output into the SAS binning if desired, since
+that is often more convenient in practice.</p>
+</li>
+</ol>
+<p>The constructor for all derived classes take a config dict as the first argument,
+since this is often how we keep track of parameters, but if you don’t want to
+use one or if you want to change some parameters from what are in a config dict,
+then you can use normal kwargs, which take precedence over anything in the config dict.</p>
+<p>There are three implemented definitions for the <code class="docutils literal notranslate"><span class="pre">metric</span></code>, which defines how to calculate
+the distance between two points, for three-point corretions:</p>
+<blockquote>
+<div><ul>
+<li><p>‘Euclidean’ = straight line Euclidean distance between two points.  For spherical
+coordinates (ra,dec without r), this is the chord distance between points on the
+unit sphere.</p></li>
+<li><p>‘Arc’ = the true great circle distance for spherical coordinates.</p></li>
+<li><p>‘Periodic’ = Like Euclidean, but with periodic boundaries.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The triangles for three-point correlations can become ambiguous if a triangle
+side length d &gt; period/2, which means for the SSS triangle definition, max_sep
+(the maximum d2) should be less than period/4, and for SAS, max_sep should be less
+than period/2.  This is not enforced.</p>
+</div>
+</li>
+</ul>
+</div></blockquote>
+<p>There are three allowed value for the <code class="docutils literal notranslate"><span class="pre">bin_type</span></code> for three-point correlations.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>‘LogRUV’ uses the SSS description given above converted to r,u,v. The bin steps will be
+uniform in log(r) from log(min_sep) .. log(max_sep).  The u and v values are binned
+linearly from min_u .. max_u and min_v .. max_v.</p></li>
+<li><p>‘LogSAS’ uses the SAS description given above. The bin steps will be uniform in log(d)
+for both d2 and d3 from log(min_sep) .. log(max_sep).  The phi values are binned
+linearly from min_phi .. max_phi.  This is the default.</p></li>
+<li><p>‘LogMultipole’ uses the multipole description given above. The bin steps will be uniform
+in log(d) for both d2 and d3 from log(min_sep) .. log(max_sep), and the n value range
+from -max_n .. max_n, inclusive.</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>dict</em>) – A configuration dict that can be used to pass in the below kwargs if
+desired.  This dict is allowed to have addition entries in addition
+to those listed below, which are ignored here. (default: None)</p></li>
+<li><p><strong>logger</strong> – If desired, a logger object for logging. (default: None, in which case
+one will be built according to the config dict’s verbose level.)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>nbins</strong> (<em>int</em>) – How many bins to use. (Exactly three of nbins, bin_size, min_sep,
+max_sep are required. If nbins is not given or set to None, it will be
+calculated from the values of the other three, rounding up to the next
+highest integer. In this case, bin_size will be readjusted to account
+for this rounding up.)</p></li>
+<li><p><strong>bin_size</strong> (<em>float</em>) – The width of the bins in log(separation). (Exactly three of nbins,
+bin_size, min_sep, max_sep are required.  If bin_size is not given or
+set to None, it will be calculated from the values of the other three.)</p></li>
+<li><p><strong>min_sep</strong> (<em>float</em>) – The minimum separation in units of sep_units, if relevant. (Exactly
+three of nbins, bin_size, min_sep, max_sep are required.  If min_sep is
+not given or set to None, it will be calculated from the values of the
+other three.)</p></li>
+<li><p><strong>max_sep</strong> (<em>float</em>) – The maximum separation in units of sep_units, if relevant. (Exactly
+three of nbins, bin_size, min_sep, max_sep are required.  If max_sep is
+not given or set to None, it will be calculated from the values of the
+other three.)</p></li>
+<li><p><strong>sep_units</strong> (<em>str</em>) – The units to use for the separation values, given as a string.  This
+includes both min_sep and max_sep above, as well as the units of the
+output distance values.  Valid options are arcsec, arcmin, degrees,
+hours, radians.  (default: radians if angular units make sense, but for
+3-d or flat 2-d positions, the default will just match the units of
+x,y[,z] coordinates)</p></li>
+<li><p><strong>bin_slop</strong> (<em>float</em>) – How much slop to allow in the placement of triangles in the bins.
+If bin_slop = 1, then the bin into which a particular pair is placed
+may be incorrect by at most 1.0 bin widths.  (default: None, which
+means to use a bin_slop that gives a maximum error of 10% on any bin,
+which has been found to yield good results for most application.</p></li>
+<li><p><strong>angle_slop</strong> (<em>float</em>) – How much slop to allow in the angular direction. This works very
+similarly to bin_slop, but applies to the projection angle of a pair
+of cells. The projection angle for any two objects in a pair of cells
+will differ by no more than angle_slop radians from the projection
+angle defined by the centers of the cells. (default: 0.1)</p></li>
+<li><p><strong>brute</strong> (<em>bool</em>) – <p>Whether to use the “brute force” algorithm.  (default: False) Options
+are:</p>
+<blockquote>
+<div><ul>
+<li><p>False (the default): Stop at non-leaf cells whenever the error in
+the separation is compatible with the given bin_slop and angle_slop.</p></li>
+<li><p>True: Go to the leaves for both catalogs.</p></li>
+<li><p>1: Always go to the leaves for cat1, but stop at non-leaf cells of
+cat2 when the error is compatible with the given slop values.</p></li>
+<li><p>2: Always go to the leaves for cat2, but stop at non-leaf cells of
+cat1 when the error is compatible with the given slop values.</p></li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>nphi_bins</strong> (<em>int</em>) – Analogous to nbins for the phi values when bin_type=LogSAS.  (The
+default is to calculate from phi_bin_size = bin_size, min_phi = 0,
+max_u = np.pi, but this can be overridden by specifying up to 3 of
+these four parametes.)</p></li>
+<li><p><strong>phi_bin_size</strong> (<em>float</em>) – Analogous to bin_size for the phi values. (default: bin_size)</p></li>
+<li><p><strong>min_phi</strong> (<em>float</em>) – Analogous to min_sep for the phi values. (default: 0)</p></li>
+<li><p><strong>max_phi</strong> (<em>float</em>) – Analogous to max_sep for the phi values. (default: np.pi)</p></li>
+<li><p><strong>phi_units</strong> (<em>str</em>) – The units to use for the phi values, given as a string.  This
+includes both min_phi and max_phi above, as well as the units of the
+output meanphi values.  Valid options are arcsec, arcmin, degrees,
+hours, radians.  (default: radians)</p></li>
+<li><p><strong>max_n</strong> (<em>int</em>) – The maximum value of n to store for the multipole binning.
+(required if bin_type=LogMultipole)</p></li>
+<li><p><strong>nubins</strong> (<em>int</em>) – Analogous to nbins for the u values when bin_type=LogRUV.  (The default
+is to calculate from ubin_size = bin_size, min_u = 0, max_u = 1, but
+this can be overridden by specifying up to 3 of these four parametes.)</p></li>
+<li><p><strong>ubin_size</strong> (<em>float</em>) – Analogous to bin_size for the u values. (default: bin_size)</p></li>
+<li><p><strong>min_u</strong> (<em>float</em>) – Analogous to min_sep for the u values. (default: 0)</p></li>
+<li><p><strong>max_u</strong> (<em>float</em>) – Analogous to max_sep for the u values. (default: 1)</p></li>
+<li><p><strong>nvbins</strong> (<em>int</em>) – Analogous to nbins for the positive v values when bin__type=LogRUV.
+(The default is to calculate from vbin_size = bin_size, min_v = 0,
+max_v = 1, but this can be overridden by specifying up to 3 of these
+four parametes.)</p></li>
+<li><p><strong>vbin_size</strong> (<em>float</em>) – Analogous to bin_size for the v values. (default: bin_size)</p></li>
+<li><p><strong>min_v</strong> (<em>float</em>) – Analogous to min_sep for the positive v values. (default: 0)</p></li>
+<li><p><strong>max_v</strong> (<em>float</em>) – Analogous to max_sep for the positive v values. (default: 1)</p></li>
+<li><p><strong>verbose</strong> (<em>int</em>) – <p>If no logger is provided, this will optionally specify a logging level
+to use:</p>
+<blockquote>
+<div><ul>
+<li><p>0 means no logging output</p></li>
+<li><p>1 means to output warnings only (default)</p></li>
+<li><p>2 means to output various progress information</p></li>
+<li><p>3 means to output extensive debugging information</p></li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>log_file</strong> (<em>str</em>) – If no logger is provided, this will specify a file to write the logging
+output.  (default: None; i.e. output to standard output)</p></li>
+<li><p><strong>output_dots</strong> (<em>bool</em>) – Whether to output progress dots during the calcualtion of the
+correlation function. (default: False unless verbose is given and &gt;= 2,
+in which case True)</p></li>
+<li><p><strong>split_method</strong> (<em>str</em>) – <p>How to split the cells in the tree when building the tree structure.
+Options are:</p>
+<ul>
+<li><p>mean = Use the arithmetic mean of the coordinate being split.
+(default)</p></li>
+<li><p>median = Use the median of the coordinate being split.</p></li>
+<li><p>middle = Use the middle of the range; i.e. the average of the minimum
+and maximum value.</p></li>
+<li><p>random: Use a random point somewhere in the middle two quartiles of
+the range.</p></li>
+</ul>
+</p></li>
+<li><p><strong>min_top</strong> (<em>int</em>) – The minimum number of top layers to use when setting up the field.
+(default: <span class="math notranslate nohighlight">\(\max(3, \log_2(N_{\rm cpu}))\)</span>)</p></li>
+<li><p><strong>max_top</strong> (<em>int</em>) – The maximum number of top layers to use when setting up the field.
+The top-level cells are where each calculation job starts. There will
+typically be of order <span class="math notranslate nohighlight">\(2^{\rm max\_top}\)</span> top-level cells.
+(default: 10)</p></li>
+<li><p><strong>precision</strong> (<em>int</em>) – The precision to use for the output values. This specifies how many
+digits to write. (default: 4)</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use for distance measurements.  Options are listed
+above.  (default: ‘Euclidean’)</p></li>
+<li><p><strong>bin_type</strong> (<em>str</em>) – What type of binning should be used.  Only one option currently.
+(default: ‘LogSAS’)</p></li>
+<li><p><strong>period</strong> (<em>float</em>) – For the ‘Periodic’ metric, the period to use in all directions.
+(default: None)</p></li>
+<li><p><strong>xperiod</strong> (<em>float</em>) – For the ‘Periodic’ metric, the period to use in the x direction.
+(default: period)</p></li>
+<li><p><strong>yperiod</strong> (<em>float</em>) – For the ‘Periodic’ metric, the period to use in the y direction.
+(default: period)</p></li>
+<li><p><strong>zperiod</strong> (<em>float</em>) – For the ‘Periodic’ metric, the period to use in the z direction.
+(default: period)</p></li>
+<li><p><strong>var_method</strong> (<em>str</em>) – Which method to use for estimating the variance. Options are:
+‘shot’, ‘jackknife’, ‘sample’, ‘bootstrap’, ‘marked_bootstrap’.
+(default: ‘shot’)</p></li>
+<li><p><strong>num_bootstrap</strong> (<em>int</em>) – How many bootstrap samples to use for the ‘bootstrap’ and
+‘marked_bootstrap’ var_methods.  (default: 500)</p></li>
+<li><p><strong>rng</strong> (<em>RandomState</em>) – If desired, a numpy.random.RandomState instance to use for bootstrap
+random number generation. (default: None)</p></li>
+<li><p><strong>num_threads</strong> (<em>int</em>) – <p>How many OpenMP threads to use during the calculation.
+(default: use the number of cpu cores; this value can also be given in
+the constructor in the config dict.)</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This won’t work if the system’s C compiler cannot use OpenMP
+(e.g. clang prior to version 3.7.)</p>
+</div>
+</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.Corr3.build_cov_design_matrix">
+<span class="sig-name descname"><span class="pre">build_cov_design_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.build_cov_design_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.build_cov_design_matrix" title="Permalink to this definition"></a></dt>
+<dd><p>Build the design matrix that is used for estimating the covariance matrix.</p>
+<p>The design matrix for patch-based covariance estimates is a matrix where each row
+corresponds to a different estimate of the data vector, <span class="math notranslate nohighlight">\(\zeta_i\)</span> (or
+<span class="math notranslate nohighlight">\(f(\zeta_i)\)</span> if using the optional <code class="docutils literal notranslate"><span class="pre">func</span></code> parameter).</p>
+<p>The different of rows in the matrix for each valid <code class="docutils literal notranslate"><span class="pre">method</span></code> are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>‘shot’: This method is not valid here.</p></li>
+<li><p>‘jackknife’: The data vector when excluding a single patch.</p></li>
+<li><p>‘sample’: The data vector using only a single patch for the first catalog.</p></li>
+<li><p>‘bootstrap’: The data vector for a random resampling of the patches keeping the
+sample total number, but allowing some to repeat.  Cross terms from repeated patches
+are excluded (since they are really auto terms).</p></li>
+<li><p>‘marked_bootstrap’: The data vector for a random resampling of patches in the first
+catalog, using all patches for the second catalog.  Based on the algorithm in
+Loh(2008).</p></li>
+</ul>
+</div></blockquote>
+<p>See <a class="reference internal" href="#treecorr.Corr3.estimate_cov" title="treecorr.Corr3.estimate_cov"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">estimate_cov</span></code></a> for more details.</p>
+<p>The return value includes both the design matrix and a vector of weights (the total weight
+array in the computed correlation functions).  The weights are used for the sample method
+when estimating the covariance matrix.  The other methods ignore them, but they are provided
+here in case they are useful.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>method</strong> (<em>str</em>) – Which method to use to estimate the covariance matrix.</p></li>
+<li><p><strong>func</strong> (<em>function</em>) – A unary function that takes the list <code class="docutils literal notranslate"><span class="pre">corrs</span></code> and returns the
+desired full data vector. [default: None, which is equivalent to
+<code class="docutils literal notranslate"><span class="pre">lambda</span> <span class="pre">corrs:</span> <span class="pre">np.concatenate([c.getStat()</span> <span class="pre">for</span> <span class="pre">c</span> <span class="pre">in</span> <span class="pre">corrs])</span></code>]</p></li>
+<li><p><strong>comm</strong> (<em>mpi comm</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>numpy arrays with the design matrix and weights respectively.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A, w</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.Corr3.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.clear" title="Permalink to this definition"></a></dt>
+<dd><p>Clear all data vectors, the results dict, and any related values.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.Corr3.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.copy" title="Permalink to this definition"></a></dt>
+<dd><p>Make a copy</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="treecorr.Corr3.cov">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cov</span></span><a class="headerlink" href="#treecorr.Corr3.cov" title="Permalink to this definition"></a></dt>
+<dd><p>The estimated covariance matrix</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="treecorr.Corr3.cov_diag">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cov_diag</span></span><a class="headerlink" href="#treecorr.Corr3.cov_diag" title="Permalink to this definition"></a></dt>
+<dd><p>A possibly more efficient way to access just the diagonal of the covariance matrix.</p>
+<p>If var_method == ‘shot’, then this won’t make the full covariance matrix, just to
+then pull out the diagonal.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.Corr3.estimate_cov">
+<span class="sig-name descname"><span class="pre">estimate_cov</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.estimate_cov"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.estimate_cov" title="Permalink to this definition"></a></dt>
+<dd><p>Estimate the covariance matrix based on the data</p>
+<p>This function will calculate an estimate of the covariance matrix according to the
+given method.</p>
+<p>Options for <code class="docutils literal notranslate"><span class="pre">method</span></code> include:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>‘shot’ = The variance based on “shot noise” only.  This includes the Poisson
+counts of points for N statistics, shape noise for G statistics, and the observed
+scatter in the values for K statistics.  In this case, the returned value will
+only be the diagonal.  Use np.diagonal(cov) if you actually want a full
+matrix from this.</p></li>
+<li><p>‘jackknife’ = A jackknife estimate of the covariance matrix based on the scatter
+in the measurement when excluding one patch at a time.</p></li>
+<li><p>‘sample’ = An estimate based on the sample covariance of a set of samples,
+taken as the patches of the input catalog.</p></li>
+<li><p>‘bootstrap’ = A bootstrap covariance estimate. It selects patches at random with
+replacement and then generates the statistic using all the auto-correlations at
+their selected repetition plus all the cross terms that aren’t actually auto terms.</p></li>
+<li><p>‘marked_bootstrap’ = An estimate based on a marked-point bootstrap resampling of the
+patches.  Similar to bootstrap, but only samples the patches of the first catalog and
+uses all patches from the second catalog that correspond to each patch selection of
+the first catalog.  cf. <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/">https://ui.adsabs.harvard.edu/abs/2008ApJ…681..726L/</a></p></li>
+</ul>
+</div></blockquote>
+<p>Both ‘bootstrap’ and ‘marked_bootstrap’ use the num_bootstrap parameter, which can be set on
+construction.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For most classes, there is only a single statistic, <code class="docutils literal notranslate"><span class="pre">zeta</span></code>, so this calculates a
+covariance matrix for that vector.  <a class="reference internal" href="ggg.html#treecorr.GGGCorrelation" title="treecorr.GGGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGGCorrelation</span></code></a> has four: <code class="docutils literal notranslate"><span class="pre">gam0</span></code>, <code class="docutils literal notranslate"><span class="pre">gam1</span></code>,
+<code class="docutils literal notranslate"><span class="pre">gam2</span></code>, and <code class="docutils literal notranslate"><span class="pre">gam3</span></code>, so in this case the full data vector is <code class="docutils literal notranslate"><span class="pre">gam0</span></code> followed by
+<code class="docutils literal notranslate"><span class="pre">gam1</span></code>, then <code class="docutils literal notranslate"><span class="pre">gam2</span></code>, then <code class="docutils literal notranslate"><span class="pre">gam3</span></code>, and this calculates the covariance matrix for
+that full vector including both statistics.  The helper function <a class="reference internal" href="#treecorr.Corr3.getStat" title="treecorr.Corr3.getStat"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getStat</span></code></a> returns the
+relevant statistic in all cases.</p>
+</div>
+<p>In all cases, the relevant processing needs to already have been completed and finalized.
+And for all methods other than ‘shot’, the processing should have involved an appropriate
+number of patches – preferably more patches than the length of the vector for your
+statistic, although this is not checked.</p>
+<p>The default data vector to use for the covariance matrix is given by the method
+<a class="reference internal" href="#treecorr.Corr3.getStat" title="treecorr.Corr3.getStat"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getStat</span></code></a>.  As noted above, this is usually just self.zeta.  However, there is an option
+to compute the covariance of some other function of the correlation object by providing
+an arbitrary function, <code class="docutils literal notranslate"><span class="pre">func</span></code>, which should act on the current correlation object
+and return the data vector of interest.</p>
+<p>For instance, for an <a class="reference internal" href="ggg.html#treecorr.GGGCorrelation" title="treecorr.GGGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGGCorrelation</span></code></a>, you might want to compute the covariance of just
+gam0 and ignore the others.  In this case you could use</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">ggg</span><span class="p">:</span> <span class="n">ggg</span><span class="o">.</span><span class="n">gam0</span>
+</pre></div>
+</div>
+<p>The return value from this func should be a single numpy array. (This is not directly
+checked, but you’ll probably get some kind of exception if it doesn’t behave as expected.)</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The optional <code class="docutils literal notranslate"><span class="pre">func</span></code> parameter is not valid in conjunction with <code class="docutils literal notranslate"><span class="pre">method='shot'</span></code>.
+It only works for the methods that are based on patch combinations.</p>
+</div>
+<p>This function can be parallelized by passing the comm argument as an mpi4py communicator
+to parallelize using that.  For MPI, all processes should have the same inputs.
+If method == “shot” then parallelization has no effect.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>method</strong> (<em>str</em>) – Which method to use to estimate the covariance matrix.</p></li>
+<li><p><strong>func</strong> (<em>function</em>) – A unary function that acts on the current correlation object and
+returns the desired data vector. [default: None, which is
+equivalent to <code class="docutils literal notranslate"><span class="pre">lambda</span> <span class="pre">corr:</span> <span class="pre">corr.getStat()</span></code>.</p></li>
+<li><p><strong>comm</strong> (<em>mpi comm</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A numpy array with the estimated covariance matrix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.Corr3.from_file">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.from_file" title="Permalink to this definition"></a></dt>
+<dd><p>Create a new instance from an output file.</p>
+<p>This should be a file that was written by TreeCorr.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This classmethod may be called either using the base class or the class type that
+wrote the file.  E.g. if the file was written by <a class="reference internal" href="ggg.html#treecorr.GGGCorrelation" title="treecorr.GGGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGGCorrelation</span></code></a>, then either
+of the following would work and be equivalent:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ggg</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">GGGCorrelation</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ggg</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Corr3</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to read in.</p></li>
+<li><p><strong>file_type</strong> (<em>str</em>) – The type of file (‘ASCII’, ‘FITS’, or ‘HDF’).  (default: determine
+the type automatically from the extension of file_name.)</p></li>
+<li><p><strong>logger</strong> (<em>Logger</em>) – If desired, a logger object to use for logging. (default: None)</p></li>
+<li><p><strong>rng</strong> (<em>RandomState</em>) – If desired, a numpy.random.RandomState instance to use for bootstrap
+random number generation. (default: None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A Correlation object, constructed from the information in the file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.Corr3.getStat">
+<span class="sig-name descname"><span class="pre">getStat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.getStat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.getStat" title="Permalink to this definition"></a></dt>
+<dd><p>The standard statistic for the current correlation object as a 1-d array.</p>
+<p>Usually, this is just self.zeta.  But in case we have a multi-dimensional array
+at some point (like TwoD for 2pt), use self.zeta.ravel().</p>
+<p>And for <a class="reference internal" href="ggg.html#treecorr.GGGCorrelation" title="treecorr.GGGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGGCorrelation</span></code></a>, it is the concatenation of the four different correlations
+[gam0.ravel(), gam1.ravel(), gam2.ravel(), gam3.ravel()].</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.Corr3.getWeight">
+<span class="sig-name descname"><span class="pre">getWeight</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.getWeight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.getWeight" title="Permalink to this definition"></a></dt>
+<dd><p>The weight array for the current correlation object as a 1-d array.</p>
+<p>This is the weight array corresponding to <a class="reference internal" href="#treecorr.Corr3.getStat" title="treecorr.Corr3.getStat"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getStat</span></code></a>. Usually just self.weight.ravel(),
+but duplicated for GGGCorrelation to match what <a class="reference internal" href="#treecorr.Corr3.getStat" title="treecorr.Corr3.getStat"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getStat</span></code></a> does in that case.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="treecorr.Corr3.nonzero">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nonzero</span></span><a class="headerlink" href="#treecorr.Corr3.nonzero" title="Permalink to this definition"></a></dt>
+<dd><p>Return if there are any values accumulated yet.  (i.e. ntri &gt; 0)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.Corr3.process">
+<span class="sig-name descname"><span class="pre">process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat3</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">low_mem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initialize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.process" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the 3pt correlation function.</p>
+<ul class="simple">
+<li><p>If only 1 argument is given, then compute an auto-correlation function.</p></li>
+<li><p>If 2 arguments are given, then compute a cross-correlation function with the
+first catalog taking one corner of the triangles, and the second taking two corners.</p></li>
+<li><p>If 3 arguments are given, then compute a three-way cross-correlation function.</p></li>
+</ul>
+<p>For cross correlations, the default behavior is to use cat1 for the first vertex (P1),
+cat2 for the second vertex (P2), and cat3 for the third vertex (P3).  If only two
+catalogs are given, vertices P2 and P3 both come from cat2.  The sides d1, d2, d3,
+used to define the binning, are taken to be opposte P1, P2, P3 respectively.</p>
+<p>However, if you want to accumulate triangles where objects from each catalog can take
+any position in the triangles, you can set <code class="docutils literal notranslate"><span class="pre">ordered=False</span></code>.  In this case,
+triangles will be formed where P1, P2 and P3 can come any input catalog, so long as there
+is one from cat1, one from cat2, and one from cat3 (or two from cat2 if cat3 is None).</p>
+<p>All arguments may be lists, in which case all items in the list are used
+for that element of the correlation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the first field.</p></li>
+<li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the second field.
+(default: None)</p></li>
+<li><p><strong>cat3</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the third field.
+(default: None)</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+(default: ‘Euclidean’; this value can also be given in the
+constructor in the config dict.)</p></li>
+<li><p><strong>ordered</strong> (<em>bool</em>) – Whether to fix the order of the triangle vertices to match the
+catalogs. (see above; default: True)</p></li>
+<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+(default: use the number of cpu cores; this value can also be given
+in the constructor in the config dict.)</p></li>
+<li><p><strong>comm</strong> (<em>mpi4py.Comm</em>) – If running MPI, an mpi4py Comm object to communicate between
+processes.  If used, the rank=0 process will have the final
+computation. This only works if using patches. (default: None)</p></li>
+<li><p><strong>low_mem</strong> (<em>bool</em>) – Whether to sacrifice a little speed to try to reduce memory usage.
+This only works if using patches. (default: False)</p></li>
+<li><p><strong>initialize</strong> (<em>bool</em>) – Whether to begin the calculation with a call to
+<a class="reference internal" href="#treecorr.Corr3.clear" title="treecorr.Corr3.clear"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Corr3.clear</span></code></a>.  (default: True)</p></li>
+<li><p><strong>finalize</strong> (<em>bool</em>) – Whether to complete the calculation with a call to finalize.
+(default: True)</p></li>
+<li><p><strong>patch_method</strong> (<em>str</em>) – Which patch method to use. (default is to use ‘local’ if
+bin_type=LogMultipole, and ‘global’ otherwise)</p></li>
+<li><p><strong>algo</strong> (<em>str</em>) – Which accumulation algorithm to use. (options are ‘triangle’ or
+‘multipole’; default is ‘multipole’ unless bin_type is ‘LogRUV’,
+which can only use ‘triangle’)</p></li>
+<li><p><strong>max_n</strong> (<em>int</em>) – If using the multpole algorithm, and this is not directly using
+bin_type=’LogMultipole’, then this is the value of max_n to use
+for the multipole part of the calculation. (default is to use
+2pi/phi_bin_size; this value can also be given in the constructor
+in the config dict.)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.Corr3.process_cross">
+<span class="sig-name descname"><span class="pre">process_cross</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat3</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.process_cross"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.process_cross" title="Permalink to this definition"></a></dt>
+<dd><p>Process a set of three catalogs, accumulating the 3pt cross-correlation.</p>
+<p>This accumulates the cross-correlation for the given catalogs as part of a larger
+auto- or cross-correlation calculation.  E.g. when splitting up a large catalog into
+patches, this is appropriate to use for the cross correlation between different patches
+as part of the complete auto-correlation of the full catalog.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The first catalog to process</p></li>
+<li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The second catalog to process</p></li>
+<li><p><strong>cat3</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The third catalog to process</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+(default: ‘Euclidean’; this value can also be given in the
+constructor in the config dict.)</p></li>
+<li><p><strong>ordered</strong> (<em>bool</em>) – Whether to fix the order of the triangle vertices to match the
+catalogs. (default: True)</p></li>
+<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+(default: use the number of cpu cores; this value can also be given
+in the constructor in the config dict.)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.Corr3.read">
+<span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.read" title="Permalink to this definition"></a></dt>
+<dd><p>Read in values from a file.</p>
+<p>This should be a file that was written by TreeCorr, preferably a FITS or HDF5 file, so
+there is no loss of information.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The current object should be constructed with the same configuration parameters as
+the one being read.  e.g. the same min_sep, max_sep, etc.  This is not checked by
+the read function.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to read in.</p></li>
+<li><p><strong>file_type</strong> (<em>str</em>) – The type of file (‘ASCII’ or ‘FITS’).  (default: determine the type
+automatically from the extension of file_name.)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.Corr3.toSAS">
+<span class="sig-name descname"><span class="pre">toSAS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.toSAS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.toSAS" title="Permalink to this definition"></a></dt>
+<dd><p>Convert a multipole-binned correlation to the corresponding SAS binning.</p>
+<p>This is only valid for bin_type == LogMultipole.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>target</strong> – A target Correlation object with LogSAS binning to write to.
+If this is not given, a new object will be created based on the
+configuration paramters of the current object. (default: None)</p></li>
+<li><p><strong>**kwargs</strong> – Any kwargs that you want to use to configure the returned object.
+Typically, might include min_phi, max_phi, nphi_bins, phi_bin_size.
+The default phi binning is [0,pi] with nphi_bins = self.max_n.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An object with bin_type=LogSAS containing the same information as this object,
+but with the SAS binning.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="qq.html" class="btn btn-neutral float-left" title="QQCorrelation: Quatrefoil-quatrefoil correlations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="nnn.html" class="btn btn-neutral float-right" title="NNNCorrelation: Count-count-count correlations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Mike Jarvis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

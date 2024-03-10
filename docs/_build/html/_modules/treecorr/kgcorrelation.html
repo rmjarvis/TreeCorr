@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>treecorr.kgcorrelation &mdash; TreeCorr 5.0.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            TreeCorr
+          </a>
+              <div class="version">
+                5.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../catalog.html">Input Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../correlation2.html">Two-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../shear.html">Shear Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cov.html">Covariance Estimates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Using configuration files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 4.3 to 5.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TreeCorr</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">treecorr.kgcorrelation</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for treecorr.kgcorrelation</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2003-2024 by Mike Jarvis</span>
+<span class="c1">#</span>
+<span class="c1"># TreeCorr is free software: redistribution and use in source and binary forms,</span>
+<span class="c1"># with or without modification, are permitted provided that the following</span>
+<span class="c1"># conditions are met:</span>
+<span class="c1">#</span>
+<span class="c1"># 1. Redistributions of source code must retain the above copyright notice, this</span>
+<span class="c1">#    list of conditions, and the disclaimer given in the accompanying LICENSE</span>
+<span class="c1">#    file.</span>
+<span class="c1"># 2. Redistributions in binary form must reproduce the above copyright notice,</span>
+<span class="c1">#    this list of conditions, and the disclaimer given in the documentation</span>
+<span class="c1">#    and/or other materials provided with the distribution.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: kgcorrelation</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_treecorr</span>
+<span class="kn">from</span> <span class="nn">.catalog</span> <span class="kn">import</span> <span class="n">calculateVarG</span><span class="p">,</span> <span class="n">calculateVarK</span>
+<span class="kn">from</span> <span class="nn">.kzcorrelation</span> <span class="kn">import</span> <span class="n">BaseKZCorrelation</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">make_writer</span><span class="p">,</span> <span class="n">make_reader</span>
+<span class="kn">from</span> <span class="nn">.config</span> <span class="kn">import</span> <span class="n">make_minimal_config</span>
+
+
+<div class="viewcode-block" id="KGCorrelation"><a class="viewcode-back" href="../../kg.html#treecorr.KGCorrelation">[docs]</a><span class="k">class</span> <span class="nc">KGCorrelation</span><span class="p">(</span><span class="n">BaseKZCorrelation</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;This class handles the calculation and storage of a 2-point scalar-shear correlation</span>
+<span class="sd">    function.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        While we use the term kappa (:math:`\kappa`) here and the letter K in various places,</span>
+<span class="sd">        in fact any scalar field will work here.  For example, you can use this to compute</span>
+<span class="sd">        correlations of some survey property, such as seeing, with shear, where &quot;kappa&quot; would</span>
+<span class="sd">        really be the measured property, e.g. the observed sizes of the stars.</span>
+
+<span class="sd">    Ojects of this class holds the following attributes:</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        nbins:     The number of bins in logr</span>
+<span class="sd">        bin_size:  The size of the bins in logr</span>
+<span class="sd">        min_sep:   The minimum separation being considered</span>
+<span class="sd">        max_sep:   The maximum separation being considered</span>
+
+<span class="sd">    In addition, the following attributes are numpy arrays of length (nbins):</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        logr:       The nominal center of the bin in log(r) (the natural logarithm of r).</span>
+<span class="sd">        rnom:       The nominal center of the bin converted to regular distance.</span>
+<span class="sd">                    i.e. r = exp(logr).</span>
+<span class="sd">        meanr:      The (weighted) mean value of r for the pairs in each bin.</span>
+<span class="sd">                    If there are no pairs in a bin, then exp(logr) will be used instead.</span>
+<span class="sd">        meanlogr:   The (weighted) mean value of log(r) for the pairs in each bin.</span>
+<span class="sd">                    If there are no pairs in a bin, then logr will be used instead.</span>
+<span class="sd">        xi:         The correlation function, :math:`\xi(r) = \langle \kappa\, \gamma_T\rangle`.</span>
+<span class="sd">        xi_im:      The imaginary part of :math:`\xi(r)`.</span>
+<span class="sd">        varxi:      An estimate of the variance of :math:`\xi`</span>
+<span class="sd">        weight:     The total weight in each bin.</span>
+<span class="sd">        npairs:     The number of pairs going into each bin (including pairs where one or</span>
+<span class="sd">                    both objects have w=0).</span>
+<span class="sd">        cov:        An estimate of the full covariance matrix.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        The default method for estimating the variance and covariance attributes (``varxi``,</span>
+<span class="sd">        and ``cov``) is &#39;shot&#39;, which only includes the shape noise propagated into the final</span>
+<span class="sd">        correlation.  This does not include sample variance, so it is always an underestimate of</span>
+<span class="sd">        the actual variance.  To get better estimates, you need to set ``var_method`` to something</span>
+<span class="sd">        else and use patches in the input catalog(s).  cf. `Covariance Estimates`.</span>
+
+<span class="sd">    If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances</span>
+<span class="sd">    will all be in these units.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        If you separate out the steps of the `Corr2.process` command and use `Corr2.process_cross`,</span>
+<span class="sd">        then the units will not be applied to ``meanr`` or ``meanlogr`` until the `finalize`</span>
+<span class="sd">        function is called.</span>
+
+<span class="sd">    The typical usage pattern is as follows:</span>
+
+<span class="sd">        &gt;&gt;&gt; kg = treecorr.KGCorrelation(config)</span>
+<span class="sd">        &gt;&gt;&gt; kg.process(cat1,cat2)   # Calculate the cross-correlation</span>
+<span class="sd">        &gt;&gt;&gt; kg.write(file_name)     # Write out to a file.</span>
+<span class="sd">        &gt;&gt;&gt; xi = kg.xi              # Or access the correlation function directly.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        config (dict):  A configuration dict that can be used to pass in kwargs if desired.</span>
+<span class="sd">                        This dict is allowed to have addition entries besides those listed</span>
+<span class="sd">                        in `Corr2`, which are ignored here. (default: None)</span>
+<span class="sd">        logger:         If desired, a logger object for logging. (default: None, in which case</span>
+<span class="sd">                        one will be built according to the config dict&#39;s verbose level.)</span>
+
+<span class="sd">    Keyword Arguments:</span>
+<span class="sd">        **kwargs:       See the documentation for `Corr2` for the list of allowed keyword</span>
+<span class="sd">                        arguments, which may be passed either directly or in the config dict.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_cls</span> <span class="o">=</span> <span class="s1">&#39;KGCorrelation&#39;</span>
+    <span class="n">_letter1</span> <span class="o">=</span> <span class="s1">&#39;K&#39;</span>
+    <span class="n">_letter2</span> <span class="o">=</span> <span class="s1">&#39;G&#39;</span>
+    <span class="n">_letters</span> <span class="o">=</span> <span class="s1">&#39;KG&#39;</span>
+    <span class="n">_builder</span> <span class="o">=</span> <span class="n">_treecorr</span><span class="o">.</span><span class="n">KGCorr</span>
+    <span class="n">_calculateVar1</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">calculateVarK</span><span class="p">)</span>
+    <span class="n">_calculateVar2</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">calculateVarG</span><span class="p">)</span>
+    <span class="n">_xireal</span> <span class="o">=</span> <span class="s1">&#39;kgamT&#39;</span>
+    <span class="n">_xiimag</span> <span class="o">=</span> <span class="s1">&#39;kgamX&#39;</span>
+
+<div class="viewcode-block" id="KGCorrelation.__init__"><a class="viewcode-back" href="../../kg.html#treecorr.KGCorrelation.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize `KGCorrelation`.  See class doc for details.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="KGCorrelation.finalize"><a class="viewcode-back" href="../../kg.html#treecorr.KGCorrelation.finalize">[docs]</a>    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vark</span><span class="p">,</span> <span class="n">varg</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Finalize the calculation of the correlation function.</span>
+
+<span class="sd">        The `Corr2.process_cross` command accumulates values in each bin, so it can be called</span>
+<span class="sd">        multiple times if appropriate.  Afterwards, this command finishes the calculation</span>
+<span class="sd">        by dividing each column by the total weight.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            vark (float):   The variance of the scaler field.</span>
+<span class="sd">            varg (float):   The variance per component of the shear field.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">finalize</span><span class="p">(</span><span class="n">vark</span><span class="p">,</span> <span class="n">varg</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="KGCorrelation.write"><a class="viewcode-back" href="../../kg.html#treecorr.KGCorrelation.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+              <span class="n">write_cov</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Write the correlation function to the file, file_name.</span>
+
+<span class="sd">        The output file will include the following columns:</span>
+
+<span class="sd">        ==========      ========================================================</span>
+<span class="sd">        Column          Description</span>
+<span class="sd">        ==========      ========================================================</span>
+<span class="sd">        r_nom           The nominal center of the bin in r</span>
+<span class="sd">        meanr           The mean value :math:`\langle r\rangle` of pairs that</span>
+<span class="sd">                        fell into each bin</span>
+<span class="sd">        meanlogr        The mean value :math:`\langle \log(r)\rangle` of pairs</span>
+<span class="sd">                        that fell into each bin</span>
+<span class="sd">        kgamT           The real part of the correlation function,</span>
+<span class="sd">                        :math:`\langle \kappa\, \gamma_T\rangle`</span>
+<span class="sd">        kgamX           The imaginary part of the correlation function.</span>
+<span class="sd">        sigma           The sqrt of the variance estimate of both of these</span>
+<span class="sd">        weight          The total weight contributing to each bin</span>
+<span class="sd">        npairs          The total number of pairs in each bin</span>
+<span class="sd">        ==========      ========================================================</span>
+
+<span class="sd">        If ``sep_units`` was given at construction, then the distances will all be in these units.</span>
+<span class="sd">        Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or</span>
+<span class="sd">        radians (for spherical coordinates).</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            file_name (str):    The name of the file to write to.</span>
+<span class="sd">            file_type (str):    The type of file to write (&#39;ASCII&#39; or &#39;FITS&#39;).  (default: determine</span>
+<span class="sd">                                the type automatically from the extension of file_name.)</span>
+<span class="sd">            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;</span>
+<span class="sd">                                this value can also be given in the constructor in the config dict.)</span>
+<span class="sd">            write_patch_results (bool): Whether to write the patch-based results as well.</span>
+<span class="sd">                                        (default: False)</span>
+<span class="sd">            write_cov (bool):   Whether to write the covariance matrix as well. (default: False)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">file_type</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="p">,</span> <span class="n">write_cov</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Mike Jarvis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -8,10 +8,8 @@
 # It is normally only done once before a release.  Not for every commit or even PR.
 
 python='python'
-# In case you want to use something else. Like python3.4. Or e.g. on folio I need the following:
-#python=/data3/DECAM/global/Python-2.7.3/bin/python
+# In case you want to use something else. Like python3. Or maybe an explicit path.
 
-/bin/rm -rf data/*.dat data/*.fit data/*.txt data/*.png data/*.csv
 /bin/rm -rf output/*
 
 time $python test_catalog.py || exit
@@ -22,9 +20,28 @@ time $python test_nk.py || exit
 time $python test_gg.py || exit
 time $python test_kk.py || exit
 time $python test_kg.py || exit
+time $python test_nz.py || exit
+time $python test_kz.py || exit
+time $python test_zz.py || exit
+time $python test_nv.py || exit
+time $python test_kv.py || exit
+time $python test_vv.py || exit
+time $python test_nt.py || exit
+time $python test_kt.py || exit
+time $python test_tt.py || exit
+time $python test_nq.py || exit
+time $python test_kq.py || exit
+time $python test_qq.py || exit
 time $python test_ggg.py || exit
 time $python test_kkk.py || exit
 time $python test_nnn.py || exit
 time $python test_index.py || exit
 time $python test_twod.py || exit
+time $python test_rperp.py || exit
+time $python test_kmeans.py || exit
+time $python test_reader.py || exit
 time $python test_periodic.py || exit
+time $python test_patch.py || exit
+time $python test_patch3pt.py || exit
+time $python test_mpi.py || exit
+time $python test_mpi3pt.py || exit

@@ -209,7 +209,8 @@ This software is able to compute a variety of two-point correlations:
 :KG:  Cross-correlation of convergence with shear.  Like the NG calculation, but
       weighting the pairs by the kappa values the foreground points.
 
-See `Two-point Correlation Functions
+There are also additional combinations involving complex fields with different spin
+than 2 (shear is a spin-2 field).  See `Two-point Correlation Functions
 <https://rmjarvis.github.io/TreeCorr/_build/html/correlation2.html>`_ for more details.
 
 Three-point Correlations

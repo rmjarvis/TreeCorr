@@ -58,7 +58,6 @@
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 4.3 to 5.0</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-5-0-0-to-5-0-1">Changes from version 5.0.0 to 5.0.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
 
@@ -91,13 +90,7 @@
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="overview.html#installation">Installation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="overview.html#download-treecorr">1. Download TreeCorr</a></li>
-<li class="toctree-l3"><a class="reference internal" href="overview.html#install-dependencies">2. Install dependencies</a></li>
-<li class="toctree-l3"><a class="reference internal" href="overview.html#install">3. Install</a></li>
-<li class="toctree-l3"><a class="reference internal" href="overview.html#run-tests-optional">4. Run Tests (optional)</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#installation">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="overview.html#two-point-correlations">Two-point Correlations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="overview.html#three-point-correlations">Three-point Correlations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="overview.html#running-corr2-and-corr3">Running corr2 and corr3</a></li>
@@ -107,315 +100,31 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="catalog.html#the-catalog-class">The Catalog class</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="catalog.html#treecorr.Catalog"><code class="docutils literal notranslate"><span class="pre">Catalog</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.Catalog.checkForNaN"><code class="docutils literal notranslate"><span class="pre">Catalog.checkForNaN()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.Catalog.clear_cache"><code class="docutils literal notranslate"><span class="pre">Catalog.clear_cache()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.Catalog.combine"><code class="docutils literal notranslate"><span class="pre">Catalog.combine()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.Catalog.copy"><code class="docutils literal notranslate"><span class="pre">Catalog.copy()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.Catalog.getGField"><code class="docutils literal notranslate"><span class="pre">Catalog.getGField()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.Catalog.getKField"><code class="docutils literal notranslate"><span class="pre">Catalog.getKField()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.Catalog.getNField"><code class="docutils literal notranslate"><span class="pre">Catalog.getNField()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.Catalog.getQField"><code class="docutils literal notranslate"><span class="pre">Catalog.getQField()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.Catalog.getTField"><code class="docutils literal notranslate"><span class="pre">Catalog.getTField()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.Catalog.getVField"><code class="docutils literal notranslate"><span class="pre">Catalog.getVField()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.Catalog.getZField"><code class="docutils literal notranslate"><span class="pre">Catalog.getZField()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.Catalog.get_patch_centers"><code class="docutils literal notranslate"><span class="pre">Catalog.get_patch_centers()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.Catalog.get_patch_file_names"><code class="docutils literal notranslate"><span class="pre">Catalog.get_patch_file_names()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.Catalog.get_patches"><code class="docutils literal notranslate"><span class="pre">Catalog.get_patches()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.Catalog.load"><code class="docutils literal notranslate"><span class="pre">Catalog.load()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.Catalog.makeArray"><code class="docutils literal notranslate"><span class="pre">Catalog.makeArray()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.Catalog.read_patch_centers"><code class="docutils literal notranslate"><span class="pre">Catalog.read_patch_centers()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.Catalog.read_patches"><code class="docutils literal notranslate"><span class="pre">Catalog.read_patches()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.Catalog.resize_cache"><code class="docutils literal notranslate"><span class="pre">Catalog.resize_cache()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.Catalog.select"><code class="docutils literal notranslate"><span class="pre">Catalog.select()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.Catalog.unload"><code class="docutils literal notranslate"><span class="pre">Catalog.unload()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.Catalog.write"><code class="docutils literal notranslate"><span class="pre">Catalog.write()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.Catalog.write_patch_centers"><code class="docutils literal notranslate"><span class="pre">Catalog.write_patch_centers()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.Catalog.write_patches"><code class="docutils literal notranslate"><span class="pre">Catalog.write_patches()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="catalog.html#other-utilities-related-to-catalogs">Other utilities related to catalogs</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="catalog.html#treecorr.read_catalogs"><code class="docutils literal notranslate"><span class="pre">read_catalogs()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="catalog.html#treecorr.calculateVarK"><code class="docutils literal notranslate"><span class="pre">calculateVarK()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="catalog.html#treecorr.calculateVarZ"><code class="docutils literal notranslate"><span class="pre">calculateVarZ()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="catalog.html#treecorr.calculateVarV"><code class="docutils literal notranslate"><span class="pre">calculateVarV()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="catalog.html#treecorr.calculateVarG"><code class="docutils literal notranslate"><span class="pre">calculateVarG()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="catalog.html#treecorr.calculateVarT"><code class="docutils literal notranslate"><span class="pre">calculateVarT()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="catalog.html#treecorr.calculateVarQ"><code class="docutils literal notranslate"><span class="pre">calculateVarQ()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="catalog.html#treecorr.catalog.calculateVarQ"><code class="docutils literal notranslate"><span class="pre">calculateVarQ()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="catalog.html#treecorr.catalog.isGColRequired"><code class="docutils literal notranslate"><span class="pre">isGColRequired()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="catalog.html#treecorr.catalog.isKColRequired"><code class="docutils literal notranslate"><span class="pre">isKColRequired()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="catalog.html#treecorr.catalog.isQColRequired"><code class="docutils literal notranslate"><span class="pre">isQColRequired()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="catalog.html#treecorr.catalog.isTColRequired"><code class="docutils literal notranslate"><span class="pre">isTColRequired()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="catalog.html#treecorr.catalog.isVColRequired"><code class="docutils literal notranslate"><span class="pre">isVColRequired()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="catalog.html#treecorr.catalog.isZColRequired"><code class="docutils literal notranslate"><span class="pre">isZColRequired()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="catalog.html#file-readers">File Readers</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="catalog.html#treecorr.reader.FitsReader"><code class="docutils literal notranslate"><span class="pre">FitsReader</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.FitsReader.check_valid_ext"><code class="docutils literal notranslate"><span class="pre">FitsReader.check_valid_ext()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.FitsReader.names"><code class="docutils literal notranslate"><span class="pre">FitsReader.names()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.FitsReader.read"><code class="docutils literal notranslate"><span class="pre">FitsReader.read()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.FitsReader.read_array"><code class="docutils literal notranslate"><span class="pre">FitsReader.read_array()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.FitsReader.read_data"><code class="docutils literal notranslate"><span class="pre">FitsReader.read_data()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.FitsReader.read_params"><code class="docutils literal notranslate"><span class="pre">FitsReader.read_params()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.FitsReader.row_count"><code class="docutils literal notranslate"><span class="pre">FitsReader.row_count()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="catalog.html#treecorr.reader.HdfReader"><code class="docutils literal notranslate"><span class="pre">HdfReader</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.HdfReader.check_valid_ext"><code class="docutils literal notranslate"><span class="pre">HdfReader.check_valid_ext()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.HdfReader.names"><code class="docutils literal notranslate"><span class="pre">HdfReader.names()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.HdfReader.read"><code class="docutils literal notranslate"><span class="pre">HdfReader.read()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.HdfReader.read_array"><code class="docutils literal notranslate"><span class="pre">HdfReader.read_array()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.HdfReader.read_data"><code class="docutils literal notranslate"><span class="pre">HdfReader.read_data()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.HdfReader.read_params"><code class="docutils literal notranslate"><span class="pre">HdfReader.read_params()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.HdfReader.row_count"><code class="docutils literal notranslate"><span class="pre">HdfReader.row_count()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="catalog.html#treecorr.reader.AsciiReader"><code class="docutils literal notranslate"><span class="pre">AsciiReader</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.AsciiReader.check_valid_ext"><code class="docutils literal notranslate"><span class="pre">AsciiReader.check_valid_ext()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.AsciiReader.names"><code class="docutils literal notranslate"><span class="pre">AsciiReader.names()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.AsciiReader.read"><code class="docutils literal notranslate"><span class="pre">AsciiReader.read()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.AsciiReader.read_array"><code class="docutils literal notranslate"><span class="pre">AsciiReader.read_array()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.AsciiReader.read_data"><code class="docutils literal notranslate"><span class="pre">AsciiReader.read_data()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.AsciiReader.read_params"><code class="docutils literal notranslate"><span class="pre">AsciiReader.read_params()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.AsciiReader.row_count"><code class="docutils literal notranslate"><span class="pre">AsciiReader.row_count()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="catalog.html#treecorr.reader.PandasReader"><code class="docutils literal notranslate"><span class="pre">PandasReader</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.PandasReader.read"><code class="docutils literal notranslate"><span class="pre">PandasReader.read()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="catalog.html#treecorr.reader.ParquetReader"><code class="docutils literal notranslate"><span class="pre">ParquetReader</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.ParquetReader.check_valid_ext"><code class="docutils literal notranslate"><span class="pre">ParquetReader.check_valid_ext()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.ParquetReader.names"><code class="docutils literal notranslate"><span class="pre">ParquetReader.names()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.ParquetReader.read"><code class="docutils literal notranslate"><span class="pre">ParquetReader.read()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="catalog.html#treecorr.reader.ParquetReader.row_count"><code class="docutils literal notranslate"><span class="pre">ParquetReader.row_count()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="catalog.html#the-catalog-class">The Catalog class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="catalog.html#other-utilities-related-to-catalogs">Other utilities related to catalogs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="catalog.html#file-readers">File Readers</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="nn.html">NNCorrelation: Count-count correlations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="nn.html#treecorr.NNCorrelation"><code class="docutils literal notranslate"><span class="pre">NNCorrelation</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="nn.html#treecorr.NNCorrelation.__iadd__"><code class="docutils literal notranslate"><span class="pre">NNCorrelation.__iadd__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nn.html#treecorr.NNCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">NNCorrelation.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nn.html#treecorr.NNCorrelation.calculateNapSq"><code class="docutils literal notranslate"><span class="pre">NNCorrelation.calculateNapSq()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nn.html#treecorr.NNCorrelation.calculateXi"><code class="docutils literal notranslate"><span class="pre">NNCorrelation.calculateXi()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nn.html#treecorr.NNCorrelation.copy"><code class="docutils literal notranslate"><span class="pre">NNCorrelation.copy()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nn.html#treecorr.NNCorrelation.finalize"><code class="docutils literal notranslate"><span class="pre">NNCorrelation.finalize()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nn.html#treecorr.NNCorrelation.from_file"><code class="docutils literal notranslate"><span class="pre">NNCorrelation.from_file()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nn.html#treecorr.NNCorrelation.getStat"><code class="docutils literal notranslate"><span class="pre">NNCorrelation.getStat()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nn.html#treecorr.NNCorrelation.getWeight"><code class="docutils literal notranslate"><span class="pre">NNCorrelation.getWeight()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nn.html#treecorr.NNCorrelation.process_auto"><code class="docutils literal notranslate"><span class="pre">NNCorrelation.process_auto()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nn.html#treecorr.NNCorrelation.process_cross"><code class="docutils literal notranslate"><span class="pre">NNCorrelation.process_cross()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nn.html#treecorr.NNCorrelation.read"><code class="docutils literal notranslate"><span class="pre">NNCorrelation.read()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nn.html#treecorr.NNCorrelation.write"><code class="docutils literal notranslate"><span class="pre">NNCorrelation.write()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="nk.html">NKCorrelation: Count-scalar correlations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="nk.html#treecorr.NKCorrelation"><code class="docutils literal notranslate"><span class="pre">NKCorrelation</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="nk.html#treecorr.NKCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">NKCorrelation.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nk.html#treecorr.NKCorrelation.calculateXi"><code class="docutils literal notranslate"><span class="pre">NKCorrelation.calculateXi()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nk.html#treecorr.NKCorrelation.copy"><code class="docutils literal notranslate"><span class="pre">NKCorrelation.copy()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nk.html#treecorr.NKCorrelation.finalize"><code class="docutils literal notranslate"><span class="pre">NKCorrelation.finalize()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nk.html#treecorr.NKCorrelation.write"><code class="docutils literal notranslate"><span class="pre">NKCorrelation.write()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="kk.html">KKCorrelation: Scalar-scalar correlations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="kk.html#treecorr.KKCorrelation"><code class="docutils literal notranslate"><span class="pre">KKCorrelation</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="kk.html#treecorr.KKCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">KKCorrelation.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kk.html#treecorr.KKCorrelation.finalize"><code class="docutils literal notranslate"><span class="pre">KKCorrelation.finalize()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kk.html#treecorr.KKCorrelation.process_auto"><code class="docutils literal notranslate"><span class="pre">KKCorrelation.process_auto()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kk.html#treecorr.KKCorrelation.write"><code class="docutils literal notranslate"><span class="pre">KKCorrelation.write()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="nz.html">NZCorrelation: Count-complex correlations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="nz.html#treecorr.NZCorrelation"><code class="docutils literal notranslate"><span class="pre">NZCorrelation</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="nz.html#treecorr.NZCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">NZCorrelation.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nz.html#treecorr.NZCorrelation.calculateXi"><code class="docutils literal notranslate"><span class="pre">NZCorrelation.calculateXi()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nz.html#treecorr.NZCorrelation.finalize"><code class="docutils literal notranslate"><span class="pre">NZCorrelation.finalize()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nz.html#treecorr.NZCorrelation.write"><code class="docutils literal notranslate"><span class="pre">NZCorrelation.write()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="nz.html#treecorr.BaseNZCorrelation"><code class="docutils literal notranslate"><span class="pre">BaseNZCorrelation</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="nz.html#treecorr.BaseNZCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">BaseNZCorrelation.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nz.html#treecorr.BaseNZCorrelation.copy"><code class="docutils literal notranslate"><span class="pre">BaseNZCorrelation.copy()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="kz.html">KZCorrelation: Scalar-complex correlations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="kz.html#treecorr.KZCorrelation"><code class="docutils literal notranslate"><span class="pre">KZCorrelation</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="kz.html#treecorr.KZCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">KZCorrelation.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kz.html#treecorr.KZCorrelation.finalize"><code class="docutils literal notranslate"><span class="pre">KZCorrelation.finalize()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kz.html#treecorr.KZCorrelation.write"><code class="docutils literal notranslate"><span class="pre">KZCorrelation.write()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="kz.html#treecorr.BaseKZCorrelation"><code class="docutils literal notranslate"><span class="pre">BaseKZCorrelation</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="kz.html#treecorr.BaseKZCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">BaseKZCorrelation.__init__()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="zz.html">ZZCorrelation: Complex-complex correlations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="zz.html#treecorr.ZZCorrelation"><code class="docutils literal notranslate"><span class="pre">ZZCorrelation</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="zz.html#treecorr.ZZCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">ZZCorrelation.__init__()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="zz.html#treecorr.BaseZZCorrelation"><code class="docutils literal notranslate"><span class="pre">BaseZZCorrelation</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="zz.html#treecorr.BaseZZCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">BaseZZCorrelation.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="zz.html#treecorr.BaseZZCorrelation.finalize"><code class="docutils literal notranslate"><span class="pre">BaseZZCorrelation.finalize()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="zz.html#treecorr.BaseZZCorrelation.getStat"><code class="docutils literal notranslate"><span class="pre">BaseZZCorrelation.getStat()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="zz.html#treecorr.BaseZZCorrelation.getWeight"><code class="docutils literal notranslate"><span class="pre">BaseZZCorrelation.getWeight()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="zz.html#treecorr.BaseZZCorrelation.process_auto"><code class="docutils literal notranslate"><span class="pre">BaseZZCorrelation.process_auto()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="zz.html#treecorr.BaseZZCorrelation.write"><code class="docutils literal notranslate"><span class="pre">BaseZZCorrelation.write()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="nv.html">NVCorrelation: Count-vector correlations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="nv.html#treecorr.NVCorrelation"><code class="docutils literal notranslate"><span class="pre">NVCorrelation</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="nv.html#treecorr.NVCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">NVCorrelation.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nv.html#treecorr.NVCorrelation.calculateXi"><code class="docutils literal notranslate"><span class="pre">NVCorrelation.calculateXi()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nv.html#treecorr.NVCorrelation.finalize"><code class="docutils literal notranslate"><span class="pre">NVCorrelation.finalize()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nv.html#treecorr.NVCorrelation.write"><code class="docutils literal notranslate"><span class="pre">NVCorrelation.write()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="kv.html">KVCorrelation: Scalar-vector correlations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="kv.html#treecorr.KVCorrelation"><code class="docutils literal notranslate"><span class="pre">KVCorrelation</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="kv.html#treecorr.KVCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">KVCorrelation.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kv.html#treecorr.KVCorrelation.finalize"><code class="docutils literal notranslate"><span class="pre">KVCorrelation.finalize()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kv.html#treecorr.KVCorrelation.write"><code class="docutils literal notranslate"><span class="pre">KVCorrelation.write()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vv.html">VVCorrelation: Vector-vector correlations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vv.html#treecorr.VVCorrelation"><code class="docutils literal notranslate"><span class="pre">VVCorrelation</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vv.html#treecorr.VVCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">VVCorrelation.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vv.html#treecorr.VVCorrelation.finalize"><code class="docutils literal notranslate"><span class="pre">VVCorrelation.finalize()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="ng.html">NGCorrelation: Count-shear correlations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="ng.html#treecorr.NGCorrelation"><code class="docutils literal notranslate"><span class="pre">NGCorrelation</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="ng.html#treecorr.NGCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">NGCorrelation.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="ng.html#treecorr.NGCorrelation.calculateNMap"><code class="docutils literal notranslate"><span class="pre">NGCorrelation.calculateNMap()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="ng.html#treecorr.NGCorrelation.calculateXi"><code class="docutils literal notranslate"><span class="pre">NGCorrelation.calculateXi()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="ng.html#treecorr.NGCorrelation.finalize"><code class="docutils literal notranslate"><span class="pre">NGCorrelation.finalize()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="ng.html#treecorr.NGCorrelation.write"><code class="docutils literal notranslate"><span class="pre">NGCorrelation.write()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="ng.html#treecorr.NGCorrelation.writeNMap"><code class="docutils literal notranslate"><span class="pre">NGCorrelation.writeNMap()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="ng.html#treecorr.NGCorrelation.writeNorm"><code class="docutils literal notranslate"><span class="pre">NGCorrelation.writeNorm()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="kg.html">KGCorrelation: Scalar-shear correlations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="kg.html#treecorr.KGCorrelation"><code class="docutils literal notranslate"><span class="pre">KGCorrelation</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="kg.html#treecorr.KGCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">KGCorrelation.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kg.html#treecorr.KGCorrelation.finalize"><code class="docutils literal notranslate"><span class="pre">KGCorrelation.finalize()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kg.html#treecorr.KGCorrelation.write"><code class="docutils literal notranslate"><span class="pre">KGCorrelation.write()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="gg.html">GGCorrelation: Shear-shear correlations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="gg.html#treecorr.GGCorrelation"><code class="docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="gg.html#treecorr.GGCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">GGCorrelation.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="gg.html#treecorr.GGCorrelation.calculateGamSq"><code class="docutils literal notranslate"><span class="pre">GGCorrelation.calculateGamSq()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="gg.html#treecorr.GGCorrelation.calculateMapSq"><code class="docutils literal notranslate"><span class="pre">GGCorrelation.calculateMapSq()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="gg.html#treecorr.GGCorrelation.finalize"><code class="docutils literal notranslate"><span class="pre">GGCorrelation.finalize()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="gg.html#treecorr.GGCorrelation.writeMapSq"><code class="docutils literal notranslate"><span class="pre">GGCorrelation.writeMapSq()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="nt.html">NTCorrelation: Count-trefoil correlations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="nt.html#treecorr.NTCorrelation"><code class="docutils literal notranslate"><span class="pre">NTCorrelation</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="nt.html#treecorr.NTCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">NTCorrelation.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nt.html#treecorr.NTCorrelation.calculateXi"><code class="docutils literal notranslate"><span class="pre">NTCorrelation.calculateXi()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nt.html#treecorr.NTCorrelation.finalize"><code class="docutils literal notranslate"><span class="pre">NTCorrelation.finalize()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nt.html#treecorr.NTCorrelation.write"><code class="docutils literal notranslate"><span class="pre">NTCorrelation.write()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="kt.html">KTCorrelation: Scalar-trefoil correlations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="kt.html#treecorr.KTCorrelation"><code class="docutils literal notranslate"><span class="pre">KTCorrelation</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="kt.html#treecorr.KTCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">KTCorrelation.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kt.html#treecorr.KTCorrelation.finalize"><code class="docutils literal notranslate"><span class="pre">KTCorrelation.finalize()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kt.html#treecorr.KTCorrelation.write"><code class="docutils literal notranslate"><span class="pre">KTCorrelation.write()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="tt.html">TTCorrelation: Trefoil-trefoil correlations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="tt.html#treecorr.TTCorrelation"><code class="docutils literal notranslate"><span class="pre">TTCorrelation</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="tt.html#treecorr.TTCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">TTCorrelation.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tt.html#treecorr.TTCorrelation.finalize"><code class="docutils literal notranslate"><span class="pre">TTCorrelation.finalize()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="nq.html">NQCorrelation: Count-quatrefoil correlations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="nq.html#treecorr.NQCorrelation"><code class="docutils literal notranslate"><span class="pre">NQCorrelation</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="nq.html#treecorr.NQCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">NQCorrelation.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nq.html#treecorr.NQCorrelation.calculateXi"><code class="docutils literal notranslate"><span class="pre">NQCorrelation.calculateXi()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nq.html#treecorr.NQCorrelation.finalize"><code class="docutils literal notranslate"><span class="pre">NQCorrelation.finalize()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nq.html#treecorr.NQCorrelation.write"><code class="docutils literal notranslate"><span class="pre">NQCorrelation.write()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="kq.html">KQCorrelation: Scalar-quatrefoil correlations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="kq.html#treecorr.KQCorrelation"><code class="docutils literal notranslate"><span class="pre">KQCorrelation</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="kq.html#treecorr.KQCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">KQCorrelation.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kq.html#treecorr.KQCorrelation.finalize"><code class="docutils literal notranslate"><span class="pre">KQCorrelation.finalize()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kq.html#treecorr.KQCorrelation.write"><code class="docutils literal notranslate"><span class="pre">KQCorrelation.write()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="qq.html">QQCorrelation: Quatrefoil-quatrefoil correlations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="qq.html#treecorr.QQCorrelation"><code class="docutils literal notranslate"><span class="pre">QQCorrelation</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="qq.html#treecorr.QQCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">QQCorrelation.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="qq.html#treecorr.QQCorrelation.finalize"><code class="docutils literal notranslate"><span class="pre">QQCorrelation.finalize()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="correlation2.html#treecorr.Corr2"><code class="docutils literal notranslate"><span class="pre">Corr2</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="correlation2.html#treecorr.Corr2.build_cov_design_matrix"><code class="docutils literal notranslate"><span class="pre">Corr2.build_cov_design_matrix()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation2.html#treecorr.Corr2.clear"><code class="docutils literal notranslate"><span class="pre">Corr2.clear()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation2.html#treecorr.Corr2.copy"><code class="docutils literal notranslate"><span class="pre">Corr2.copy()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation2.html#treecorr.Corr2.cov"><code class="docutils literal notranslate"><span class="pre">Corr2.cov</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation2.html#treecorr.Corr2.cov_diag"><code class="docutils literal notranslate"><span class="pre">Corr2.cov_diag</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation2.html#treecorr.Corr2.estimate_cov"><code class="docutils literal notranslate"><span class="pre">Corr2.estimate_cov()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation2.html#treecorr.Corr2.from_file"><code class="docutils literal notranslate"><span class="pre">Corr2.from_file()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation2.html#treecorr.Corr2.getStat"><code class="docutils literal notranslate"><span class="pre">Corr2.getStat()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation2.html#treecorr.Corr2.getWeight"><code class="docutils literal notranslate"><span class="pre">Corr2.getWeight()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation2.html#treecorr.Corr2.nonzero"><code class="docutils literal notranslate"><span class="pre">Corr2.nonzero</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation2.html#treecorr.Corr2.process"><code class="docutils literal notranslate"><span class="pre">Corr2.process()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation2.html#treecorr.Corr2.process_cross"><code class="docutils literal notranslate"><span class="pre">Corr2.process_cross()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation2.html#treecorr.Corr2.read"><code class="docutils literal notranslate"><span class="pre">Corr2.read()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation2.html#treecorr.Corr2.sample_pairs"><code class="docutils literal notranslate"><span class="pre">Corr2.sample_pairs()</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="nn.html">NNCorrelation: Count-count correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nk.html">NKCorrelation: Count-scalar correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kk.html">KKCorrelation: Scalar-scalar correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nz.html">NZCorrelation: Count-complex correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kz.html">KZCorrelation: Scalar-complex correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="zz.html">ZZCorrelation: Complex-complex correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nv.html">NVCorrelation: Count-vector correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kv.html">KVCorrelation: Scalar-vector correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vv.html">VVCorrelation: Vector-vector correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ng.html">NGCorrelation: Count-shear correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kg.html">KGCorrelation: Scalar-shear correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gg.html">GGCorrelation: Shear-shear correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nt.html">NTCorrelation: Count-trefoil correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kt.html">KTCorrelation: Scalar-trefoil correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tt.html">TTCorrelation: Trefoil-trefoil correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nq.html">NQCorrelation: Count-quatrefoil correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kq.html">KQCorrelation: Scalar-quatrefoil correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qq.html">QQCorrelation: Quatrefoil-quatrefoil correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="correlation2.html#treecorr.Corr2"><code class="docutils literal notranslate"><span class="pre">Corr2</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="correlation2.html#treecorr.estimate_multi_cov"><code class="docutils literal notranslate"><span class="pre">estimate_multi_cov()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="correlation2.html#treecorr.build_multi_cov_design_matrix"><code class="docutils literal notranslate"><span class="pre">build_multi_cov_design_matrix()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="correlation2.html#treecorr.set_max_omp_threads"><code class="docutils literal notranslate"><span class="pre">set_max_omp_threads()</span></code></a></li>
@@ -424,71 +133,10 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="nnn.html">NNNCorrelation: Count-count-count correlations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="nnn.html#treecorr.NNNCorrelation"><code class="docutils literal notranslate"><span class="pre">NNNCorrelation</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="nnn.html#treecorr.NNNCorrelation.__iadd__"><code class="docutils literal notranslate"><span class="pre">NNNCorrelation.__iadd__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nnn.html#treecorr.NNNCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">NNNCorrelation.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nnn.html#treecorr.NNNCorrelation.calculateZeta"><code class="docutils literal notranslate"><span class="pre">NNNCorrelation.calculateZeta()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nnn.html#treecorr.NNNCorrelation.copy"><code class="docutils literal notranslate"><span class="pre">NNNCorrelation.copy()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nnn.html#treecorr.NNNCorrelation.finalize"><code class="docutils literal notranslate"><span class="pre">NNNCorrelation.finalize()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nnn.html#treecorr.NNNCorrelation.from_file"><code class="docutils literal notranslate"><span class="pre">NNNCorrelation.from_file()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nnn.html#treecorr.NNNCorrelation.getStat"><code class="docutils literal notranslate"><span class="pre">NNNCorrelation.getStat()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nnn.html#treecorr.NNNCorrelation.getWeight"><code class="docutils literal notranslate"><span class="pre">NNNCorrelation.getWeight()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nnn.html#treecorr.NNNCorrelation.process_auto"><code class="docutils literal notranslate"><span class="pre">NNNCorrelation.process_auto()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nnn.html#treecorr.NNNCorrelation.process_cross"><code class="docutils literal notranslate"><span class="pre">NNNCorrelation.process_cross()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nnn.html#treecorr.NNNCorrelation.process_cross12"><code class="docutils literal notranslate"><span class="pre">NNNCorrelation.process_cross12()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nnn.html#treecorr.NNNCorrelation.read"><code class="docutils literal notranslate"><span class="pre">NNNCorrelation.read()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nnn.html#treecorr.NNNCorrelation.toSAS"><code class="docutils literal notranslate"><span class="pre">NNNCorrelation.toSAS()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nnn.html#treecorr.NNNCorrelation.write"><code class="docutils literal notranslate"><span class="pre">NNNCorrelation.write()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="ggg.html">GGGCorrelation: Shear-shear-shear correlations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="ggg.html#treecorr.GGGCorrelation"><code class="docutils literal notranslate"><span class="pre">GGGCorrelation</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="ggg.html#treecorr.GGGCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">GGGCorrelation.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="ggg.html#treecorr.GGGCorrelation.calculateMap3"><code class="docutils literal notranslate"><span class="pre">GGGCorrelation.calculateMap3()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="ggg.html#treecorr.GGGCorrelation.finalize"><code class="docutils literal notranslate"><span class="pre">GGGCorrelation.finalize()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="ggg.html#treecorr.GGGCorrelation.getStat"><code class="docutils literal notranslate"><span class="pre">GGGCorrelation.getStat()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="ggg.html#treecorr.GGGCorrelation.getWeight"><code class="docutils literal notranslate"><span class="pre">GGGCorrelation.getWeight()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="ggg.html#treecorr.GGGCorrelation.process_auto"><code class="docutils literal notranslate"><span class="pre">GGGCorrelation.process_auto()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="ggg.html#treecorr.GGGCorrelation.process_cross12"><code class="docutils literal notranslate"><span class="pre">GGGCorrelation.process_cross12()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="ggg.html#treecorr.GGGCorrelation.toSAS"><code class="docutils literal notranslate"><span class="pre">GGGCorrelation.toSAS()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="ggg.html#treecorr.GGGCorrelation.write"><code class="docutils literal notranslate"><span class="pre">GGGCorrelation.write()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="ggg.html#treecorr.GGGCorrelation.writeMap3"><code class="docutils literal notranslate"><span class="pre">GGGCorrelation.writeMap3()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="kkk.html">KKKCorrelation: Scalar-scalar-scalar correlations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="kkk.html#treecorr.KKKCorrelation"><code class="docutils literal notranslate"><span class="pre">KKKCorrelation</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="kkk.html#treecorr.KKKCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">KKKCorrelation.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kkk.html#treecorr.KKKCorrelation.finalize"><code class="docutils literal notranslate"><span class="pre">KKKCorrelation.finalize()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kkk.html#treecorr.KKKCorrelation.process_auto"><code class="docutils literal notranslate"><span class="pre">KKKCorrelation.process_auto()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kkk.html#treecorr.KKKCorrelation.process_cross12"><code class="docutils literal notranslate"><span class="pre">KKKCorrelation.process_cross12()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kkk.html#treecorr.KKKCorrelation.toSAS"><code class="docutils literal notranslate"><span class="pre">KKKCorrelation.toSAS()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="kkk.html#treecorr.KKKCorrelation.write"><code class="docutils literal notranslate"><span class="pre">KKKCorrelation.write()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="correlation3.html#treecorr.Corr3"><code class="docutils literal notranslate"><span class="pre">Corr3</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="correlation3.html#treecorr.Corr3.build_cov_design_matrix"><code class="docutils literal notranslate"><span class="pre">Corr3.build_cov_design_matrix()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation3.html#treecorr.Corr3.clear"><code class="docutils literal notranslate"><span class="pre">Corr3.clear()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation3.html#treecorr.Corr3.copy"><code class="docutils literal notranslate"><span class="pre">Corr3.copy()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation3.html#treecorr.Corr3.cov"><code class="docutils literal notranslate"><span class="pre">Corr3.cov</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation3.html#treecorr.Corr3.cov_diag"><code class="docutils literal notranslate"><span class="pre">Corr3.cov_diag</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation3.html#treecorr.Corr3.estimate_cov"><code class="docutils literal notranslate"><span class="pre">Corr3.estimate_cov()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation3.html#treecorr.Corr3.from_file"><code class="docutils literal notranslate"><span class="pre">Corr3.from_file()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation3.html#treecorr.Corr3.getStat"><code class="docutils literal notranslate"><span class="pre">Corr3.getStat()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation3.html#treecorr.Corr3.getWeight"><code class="docutils literal notranslate"><span class="pre">Corr3.getWeight()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation3.html#treecorr.Corr3.nonzero"><code class="docutils literal notranslate"><span class="pre">Corr3.nonzero</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation3.html#treecorr.Corr3.process"><code class="docutils literal notranslate"><span class="pre">Corr3.process()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation3.html#treecorr.Corr3.process_cross"><code class="docutils literal notranslate"><span class="pre">Corr3.process_cross()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation3.html#treecorr.Corr3.read"><code class="docutils literal notranslate"><span class="pre">Corr3.read()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="correlation3.html#treecorr.Corr3.toSAS"><code class="docutils literal notranslate"><span class="pre">Corr3.toSAS()</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="nnn.html">NNNCorrelation: Count-count-count correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ggg.html">GGGCorrelation: Shear-shear-shear correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kkk.html">KKKCorrelation: Scalar-scalar-scalar correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="correlation3.html#treecorr.Corr3"><code class="docutils literal notranslate"><span class="pre">Corr3</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a><ul>
@@ -506,13 +154,7 @@
 <li class="toctree-l2"><a class="reference internal" href="binning.html#linear">“Linear”</a></li>
 <li class="toctree-l2"><a class="reference internal" href="binning.html#twod">“TwoD”</a></li>
 <li class="toctree-l2"><a class="reference internal" href="binning.html#output-quantities">Output quantities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="binning.html#other-options-for-binning">Other options for binning</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="binning.html#sep-units">sep_units</a></li>
-<li class="toctree-l3"><a class="reference internal" href="binning.html#bin-slop">bin_slop</a></li>
-<li class="toctree-l3"><a class="reference internal" href="binning.html#angle-slop">angle_slop</a></li>
-<li class="toctree-l3"><a class="reference internal" href="binning.html#brute">brute</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="binning.html#other-options-for-binning">Other options for binning</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="shear.html">Shear Conventions</a><ul>
@@ -531,31 +173,14 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="cov.html#variance-methods">Variance Methods</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="cov.html#shot">“shot”</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cov.html#jackknife">“jackknife”</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cov.html#sample">“sample”</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cov.html#bootstrap">“bootstrap”</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cov.html#marked-bootstrap">“marked_bootstrap”</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="cov.html#variance-methods">Variance Methods</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cov.html#covariance-matrix">Covariance Matrix</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cov.html#covariance-of-derived-quantities">Covariance of Derived Quantities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cov.html#random-catalogs">Random Catalogs</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="field.html#treecorr.Field"><code class="docutils literal notranslate"><span class="pre">Field</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="field.html#treecorr.Field.cat"><code class="docutils literal notranslate"><span class="pre">Field.cat</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="field.html#treecorr.Field.count_near"><code class="docutils literal notranslate"><span class="pre">Field.count_near()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="field.html#treecorr.Field.get_near"><code class="docutils literal notranslate"><span class="pre">Field.get_near()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="field.html#treecorr.Field.kmeans_assign_patches"><code class="docutils literal notranslate"><span class="pre">Field.kmeans_assign_patches()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="field.html#treecorr.Field.kmeans_initialize_centers"><code class="docutils literal notranslate"><span class="pre">Field.kmeans_initialize_centers()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="field.html#treecorr.Field.kmeans_refine_centers"><code class="docutils literal notranslate"><span class="pre">Field.kmeans_refine_centers()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="field.html#treecorr.Field.nTopLevelNodes"><code class="docutils literal notranslate"><span class="pre">Field.nTopLevelNodes</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="field.html#treecorr.Field.run_kmeans"><code class="docutils literal notranslate"><span class="pre">Field.run_kmeans()</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="field.html#treecorr.Field"><code class="docutils literal notranslate"><span class="pre">Field</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="field.html#treecorr.NField"><code class="docutils literal notranslate"><span class="pre">NField</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="field.html#treecorr.KField"><code class="docutils literal notranslate"><span class="pre">KField</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="field.html#treecorr.ZField"><code class="docutils literal notranslate"><span class="pre">ZField</span></code></a></li>
@@ -566,64 +191,12 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="scripts.html#the-corr2-and-corr3-executables">The corr2 and corr3 executables</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="params.html">Configuration Parameters</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="params.html#parameters-about-the-input-file-s">Parameters about the input file(s)</a></li>
-<li class="toctree-l4"><a class="reference internal" href="params.html#parameters-about-the-binned-correlation-function-to-be-calculated">Parameters about the binned correlation function to be calculated</a></li>
-<li class="toctree-l4"><a class="reference internal" href="params.html#parameters-about-the-output-file-s">Parameters about the output file(s)</a></li>
-<li class="toctree-l4"><a class="reference internal" href="params.html#derived-output-quantities">Derived output quantities</a></li>
-<li class="toctree-l4"><a class="reference internal" href="params.html#miscellaneous-parameters">Miscellaneous parameters</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="scripts.html#the-corr2-function-from-python">The corr2 function from python</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="scripts.html#treecorr.corr2"><code class="docutils literal notranslate"><span class="pre">corr2()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="scripts.html#the-corr3-function-from-python">The corr3 function from python</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="scripts.html#treecorr.corr3"><code class="docutils literal notranslate"><span class="pre">corr3()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="scripts.html#other-utilities-related-to-corr2-and-corr3">Other utilities related to corr2 and corr3</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="scripts.html#treecorr.exec_corr2.print_corr2_params"><code class="docutils literal notranslate"><span class="pre">print_corr2_params()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="scripts.html#treecorr.exec_corr3.print_corr3_params"><code class="docutils literal notranslate"><span class="pre">print_corr3_params()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="scripts.html#module-treecorr.config">Utilities related to the configuration dict</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="scripts.html#treecorr.config.check_config"><code class="docutils literal notranslate"><span class="pre">check_config()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="scripts.html#treecorr.config.convert"><code class="docutils literal notranslate"><span class="pre">convert()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="scripts.html#treecorr.config.get"><code class="docutils literal notranslate"><span class="pre">get()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="scripts.html#treecorr.config.get_from_list"><code class="docutils literal notranslate"><span class="pre">get_from_list()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="scripts.html#treecorr.config.make_minimal_config"><code class="docutils literal notranslate"><span class="pre">make_minimal_config()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="scripts.html#treecorr.config.merge_config"><code class="docutils literal notranslate"><span class="pre">merge_config()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="scripts.html#treecorr.config.parse"><code class="docutils literal notranslate"><span class="pre">parse()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="scripts.html#treecorr.config.parse_bool"><code class="docutils literal notranslate"><span class="pre">parse_bool()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="scripts.html#treecorr.config.parse_unit"><code class="docutils literal notranslate"><span class="pre">parse_unit()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="scripts.html#treecorr.config.parse_variable"><code class="docutils literal notranslate"><span class="pre">parse_variable()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="scripts.html#treecorr.config.print_params"><code class="docutils literal notranslate"><span class="pre">print_params()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="scripts.html#treecorr.config.read_config"><code class="docutils literal notranslate"><span class="pre">read_config()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="scripts.html#treecorr.config.setup_logger"><code class="docutils literal notranslate"><span class="pre">setup_logger()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="scripts.html#file-writers">File Writers</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="scripts.html#treecorr.writer.FitsWriter"><code class="docutils literal notranslate"><span class="pre">FitsWriter</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="scripts.html#treecorr.writer.FitsWriter.write"><code class="docutils literal notranslate"><span class="pre">FitsWriter.write()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="scripts.html#treecorr.writer.FitsWriter.write_array"><code class="docutils literal notranslate"><span class="pre">FitsWriter.write_array()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="scripts.html#treecorr.writer.HdfWriter"><code class="docutils literal notranslate"><span class="pre">HdfWriter</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="scripts.html#treecorr.writer.HdfWriter.write"><code class="docutils literal notranslate"><span class="pre">HdfWriter.write()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="scripts.html#treecorr.writer.HdfWriter.write_array"><code class="docutils literal notranslate"><span class="pre">HdfWriter.write_array()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="scripts.html#treecorr.writer.AsciiWriter"><code class="docutils literal notranslate"><span class="pre">AsciiWriter</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="scripts.html#treecorr.writer.AsciiWriter.write"><code class="docutils literal notranslate"><span class="pre">AsciiWriter.write()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="scripts.html#treecorr.writer.AsciiWriter.write_array"><code class="docutils literal notranslate"><span class="pre">AsciiWriter.write_array()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="scripts.html#the-corr2-and-corr3-executables">The corr2 and corr3 executables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scripts.html#the-corr2-function-from-python">The corr2 function from python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scripts.html#the-corr3-function-from-python">The corr3 function from python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scripts.html#other-utilities-related-to-corr2-and-corr3">Other utilities related to corr2 and corr3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scripts.html#module-treecorr.config">Utilities related to the configuration dict</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scripts.html#file-writers">File Writers</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a><ul>
@@ -644,10 +217,7 @@
 <li class="toctree-l2"><a class="reference internal" href="changes.html#performance-improvements">Performance improvements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changes.html#new-features">New features</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changes.html#bug-fixes">Bug fixes</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="changes.html#changes-from-version-5-0-0-to-5-0-1">Changes from version 5.0.0 to 5.0.1</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#bug-fix">Bug fix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#changes-from-version-5-0-0-to-5-0-1">Changes from version 5.0.0 to 5.0.1</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>

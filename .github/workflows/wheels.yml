@@ -21,9 +21,11 @@ jobs:
           CIBW_SKIP: cp36* pp*
           CIBW_BEFORE_ALL_LINUX: yum install -y libffi-devel || true
 
-      - uses: actions/upload-artifact@v3
+      - name: Upload manylinux wheels
+        uses: actions/upload-artifact@v4
         with:
           path: ./wheelhouse/*.whl
+          name: whl-manylinux
 
   build_musl_wheels:
     name: Build wheels on musl linux
@@ -39,9 +41,11 @@ jobs:
           # I think musl always uses apk, but it doesn't seem to need ffi installed, so this works.
           CIBW_BEFORE_ALL_LINUX: yum install -y libffi-devel || true
 
-      - uses: actions/upload-artifact@v3
+      - name: Upload musllinux wheels
+        uses: actions/upload-artifact@v4
         with:
           path: ./wheelhouse/*.whl
+          name: whl-musllinux
 
   build_macosx_wheels:
     name: Build wheels on macosx
@@ -56,9 +60,11 @@ jobs:
           CIBW_SKIP: cp36* pp*
           CIBW_BEFORE_ALL_MACOS: brew install libffi || true
 
-      - uses: actions/upload-artifact@v3
+      - name: Upload macosx wheels
+        uses: actions/upload-artifact@v4
         with:
           path: ./wheelhouse/*.whl
+          name: whl-macosx
 
   build_sdist:
     name: Build sdist and upload to PyPI
@@ -80,9 +86,11 @@ jobs:
           pip install -U -r requirements.txt
 
       - name: Download wheels
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: ./wheels
+          pattern: whl-*
+          merge-multiple: true
 
       - name: Build sdist
         run: |

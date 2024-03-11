@@ -102,9 +102,7 @@ jobs:
         run: |
           echo ls -l wheels
           ls -l wheels
-          echo ls -l wheels/artifact
-          ls -l wheels/artifact
-          cp wheels/artifact/*.whl dist
+          cp wheels/*.whl dist
           echo ls -l dist
           ls -l dist
 

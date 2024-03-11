@@ -12,16 +12,16 @@ jobs:
     name: Build wheels on standard linux
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.9.0
+        uses: pypa/cibuildwheel@v2.16.5
         env:
           CIBW_BUILD: "*manylinux*"
           CIBW_SKIP: cp36* pp*
           CIBW_BEFORE_ALL_LINUX: yum install -y libffi-devel || true
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           path: ./wheelhouse/*.whl
 
@@ -29,17 +29,17 @@ jobs:
     name: Build wheels on musl linux
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.9.0
+        uses: pypa/cibuildwheel@v2.16.5
         env:
           CIBW_BUILD: "*musllinux*"
           CIBW_SKIP: cp36* pp*
           # I think musl always uses apk, but it doesn't seem to need ffi installed, so this works.
           CIBW_BEFORE_ALL_LINUX: yum install -y libffi-devel || true
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           path: ./wheelhouse/*.whl
 
@@ -47,16 +47,16 @@ jobs:
     name: Build wheels on macosx
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.9.0
+        uses: pypa/cibuildwheel@v2.16.5
         env:
           CIBW_BUILD: "*macosx*"
           CIBW_SKIP: cp36* pp*
           CIBW_BEFORE_ALL_MACOS: brew install libffi || true
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           path: ./wheelhouse/*.whl
 
@@ -67,9 +67,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 

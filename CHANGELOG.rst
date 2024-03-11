@@ -148,9 +148,6 @@ Bug fixes
   for fields extremely close to a pole. (#160)
 
 Changes from version 5.0.0 to 5.0.1
-===================================
-
-Bug fix
--------
+-----------------------------------
 
 - Fixed a build error that showed up in conda installation script.

@@ -109,7 +109,7 @@ in terms of ratios of side lengths).</p>
 binning for all three-point correlation classes.  Furthermore, the default algorithm is
 <code class="docutils literal notranslate"><span class="pre">algo=&quot;multipole&quot;</span></code>, which first computes the multipole version of the correlation function
 using the Porth et al algorithm.  Then it converts back to regular configuration space
-the the LogSAS binning.</p>
+wth the LogSAS binning.</p>
 <p>The old versions are still available in case there are use cases for which they are superior
 in some way.  I do use them in the test suite still for comparison purposes.  To use the
 old binning, you now need to explicitly specify <code class="docutils literal notranslate"><span class="pre">bin_type=&quot;LogRUV&quot;</span></code> in the Correlation class,
@@ -120,18 +120,18 @@ my old implementation.  Now, you can indicate whether or not you want the three 
 to keep their ordering in the triangle with the parameter <code class="docutils literal notranslate"><span class="pre">ordered</span></code> in the <a class="reference internal" href="correlation3.html#treecorr.Corr3.process" title="treecorr.Corr3.process"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Corr3.process</span></code></a>
 function.  If <code class="docutils literal notranslate"><span class="pre">ordered=False</span></code>, then points from the (2 or 3) catalogs are allowed to take
 any position in the triangle.  If <code class="docutils literal notranslate"><span class="pre">ordered=True</span></code> (the default), then points from the first
-catalog will only for point P1 in the triangle, points from the second catalog will only be at P2,
-and points from the third will only be at P3.  This seems to be a more intuitive way to control
-this than the old <code class="docutils literal notranslate"><span class="pre">CrossCorrelation</span></code> classes.</p>
-<p>Another big change in this release is the addition of more fields for the two-point correlations.
-TreeCorr now implements correlations of spin-1 vector fields, as well as complex-valued
-fields with spin=0, 3, or 4.  (TreeCorr had already implemented spin-2 of course.)
+catalog will only be used for point P1 in the triangle, points from the second catalog will only
+be at P2, and points from the third will only be at P3.  This is a significantly more intuitive
+way to control this than the old CrossCorrelation classes.</p>
+<p>Another big change in this release is the addition of more kinds of fields for the two-point
+correlations.  TreeCorr now implements correlations of spin-1 vector fields, as well as
+complex-valued fields with spin 0, 3, or 4.  (TreeCorr had already implemented spin-2 of course.)
 The letters for each of these are V, Z, T, and Q respectively.  I only did the pairings of each of
 these with itself, counts (N), and real scalar fields (K).  However, it would not be too hard
 to add more if someone has a use case for a pairing of two complex fields with different spins.</p>
 <p>A complete list of all new features and changes is given below.
 <a class="reference external" href="https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+5.0%22+is%3Aclosed">Relevant PRs and Issues,</a>
-whose issue numbers are listed below for the relevant items.</p>
+are listed below by number for the relevant items.</p>
 <section id="dependency-change">
 <h2>Dependency Change<a class="headerlink" href="#dependency-change" title="Permalink to this heading"></a></h2>
 <ul class="simple">

@@ -16,7 +16,7 @@ The new three-point binning scheme is called ``bin_type="LogSAS"``.  This is now
 binning for all three-point correlation classes.  Furthermore, the default algorithm is
 ``algo="multipole"``, which first computes the multipole version of the correlation function
 using the Porth et al algorithm.  Then it converts back to regular configuration space
-the the LogSAS binning.
+wth the LogSAS binning.
 
 The old versions are still available in case there are use cases for which they are superior
 in some way.  I do use them in the test suite still for comparison purposes.  To use the
@@ -29,13 +29,13 @@ my old implementation.  Now, you can indicate whether or not you want the three 
 to keep their ordering in the triangle with the parameter ``ordered`` in the `Corr3.process`
 function.  If ``ordered=False``, then points from the (2 or 3) catalogs are allowed to take
 any position in the triangle.  If ``ordered=True`` (the default), then points from the first
-catalog will only for point P1 in the triangle, points from the second catalog will only be at P2,
-and points from the third will only be at P3.  This seems to be a more intuitive way to control
-this than the old ``CrossCorrelation`` classes.
+catalog will only be used for point P1 in the triangle, points from the second catalog will only
+be at P2, and points from the third will only be at P3.  This is a significantly more intuitive
+way to control this than the old CrossCorrelation classes.
 
-Another big change in this release is the addition of more fields for the two-point correlations.
-TreeCorr now implements correlations of spin-1 vector fields, as well as complex-valued
-fields with spin=0, 3, or 4.  (TreeCorr had already implemented spin-2 of course.)
+Another big change in this release is the addition of more kinds of fields for the two-point
+correlations.  TreeCorr now implements correlations of spin-1 vector fields, as well as
+complex-valued fields with spin 0, 3, or 4.  (TreeCorr had already implemented spin-2 of course.)
 The letters for each of these are V, Z, T, and Q respectively.  I only did the pairings of each of
 these with itself, counts (N), and real scalar fields (K).  However, it would not be too hard
 to add more if someone has a use case for a pairing of two complex fields with different spins.
@@ -43,7 +43,7 @@ to add more if someone has a use case for a pairing of two complex fields with d
 A complete list of all new features and changes is given below.
 `Relevant PRs and Issues,
 <https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+5.0%22+is%3Aclosed>`_
-whose issue numbers are listed below for the relevant items.
+are listed below by number for the relevant items.
 
 
 Dependency Change

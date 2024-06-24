@@ -771,7 +771,7 @@ class HdfReader(object):
         """
         g = self._group(ext)
         data = np.empty(shape)
-        data[:] = g['data']
+        data[:] = np.asarray(g['data'])
         return data
 
     def row_count(self, col, *, ext=None):

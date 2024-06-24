@@ -121,13 +121,6 @@ jobs:
               run: |
                 pip install -U matplotlib nbval ipykernel scipy pandas guppy3 h5py pyarrow mpi4py
 
-            - name: Install halotools
-              # halotools is currently (3/2024) broken on 3.7, 3.8, 3.12
-              # Just run on the ones we know it works.
-              if: ((matrix.py == '3.9') || (matrix.py == '3.10') || (matrix.py == '3.11')) && (matrix.os != 'windows-latest')
-              run: |
-                pip install -U halotools
-
             - name: Install fitsio everywhere but Windows
               if: matrix.os != 'windows-latest'
               run: |

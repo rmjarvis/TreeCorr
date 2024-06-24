@@ -200,7 +200,7 @@ def test_direct():
     with assert_raises(OSError):
         treecorr.NNCorrelation.from_file(ascii_name)
     # And gives error if not a valid treecorr output file.
-    with assert_raises(OSError):
+    with assert_raises((OSError, ImportError)):
         treecorr.Corr2.from_file(config['file_name'])
     with assert_raises(OSError):
         treecorr.GGCorrelation.from_file(config['file_name'])

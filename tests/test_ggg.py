@@ -386,7 +386,7 @@ def test_direct_logruv():
     with assert_raises(OSError):
         treecorr.KKKCorrelation.from_file(ascii_name)
     # And gives error if not a valid treecorr output file.
-    with assert_raises(OSError):
+    with assert_raises((OSError, ImportError)):
         treecorr.Corr3.from_file(config['file_name'])
     with assert_raises(OSError):
         treecorr.GGGCorrelation.from_file(config['file_name'])

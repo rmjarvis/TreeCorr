@@ -410,7 +410,11 @@ class my_builder( build_ext ):
         super().finalize_options()
 
         self.include_dirs.append('include')
-        self.library_dirs.append(sysconfig.get_config_var('LIBDIR'))
+
+        # Add the system libdir if it exists.
+        libdir = sysconfig.get_config_var('LIBDIR')
+        if libdir is not None:
+            self.library_dirs.append(libdir)
 
         # Add pybind11's include dir
         # GalSim has a whole long thing for this.

@@ -2097,6 +2097,74 @@ def test_linear_binslop():
             print('rel diff = ',(dd1.npairs - dd0.npairs)/dd0.npairs)
             np.testing.assert_allclose(dd1.npairs, dd0.npairs, rtol=3*bin_slop)
 
+def test_rr_linear():
+    # RR in a reasonably sized field should scale basically as RR ~ sep.
+    # Issue #162 revealed a bug in Linear binning whose most obvious consequence is
+    # that the RR values bounced around a lot more than they should.  Indeed for many
+    # reasonable use cases, there were 0's in the RR output, which is definitely wrong.
+
+    # The specific ra,dec ranges here match those from akritiasto in issue #162.
+    rng = np.random.default_rng(1234)
+    ra = rng.uniform(319, 361, size=int(1.e4))
+    dec = rng.uniform(-2.1, 2.1, size=int(1.e4))
+    cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='deg', dec_units='deg')
+
+    # Start with the brute force result, which we know is accurate.
+    rr = treecorr.NNCorrelation(nbins=40, min_sep=0.01, max_sep=4000, sep_units='arcsec',
+                                bin_type='Linear', brute=True)
+    rr.process(cat)
+
+    # RR/theta isn't perfectly constant, since the geometry does matter a bit, but it's
+    # relatively flat.
+    print(rr.npairs / rr.meanr)
+    print(np.mean(rr.npairs/rr.meanr))
+    print(np.min(rr.npairs/rr.meanr))
+    print(np.max(rr.npairs/rr.meanr))
+    print(np.std(rr.npairs/rr.meanr))
+    # This results is our truth, so this is really setting what values we should expect
+    # for the later tests.
+    assert np.isclose(np.mean(rr.npairs/rr.meanr), 12.33, rtol=0.001)
+    assert np.isclose(np.min(rr.npairs/rr.meanr), 10.98, rtol=0.001)
+    assert np.isclose(np.max(rr.npairs/rr.meanr), 13.48, rtol=0.001)
+    assert np.isclose(np.std(rr.npairs/rr.meanr), 0.663, rtol=0.001)
+
+    # Next a very low bin_slop, which also used to work fine.
+    rr = treecorr.NNCorrelation(nbins=40, min_sep=0.01, max_sep=4000, sep_units='arcsec',
+                                bin_type='Linear', bin_slop=1.e-8)
+    rr.process(cat)
+
+    print(rr.npairs / rr.meanr)
+    print(np.mean(rr.npairs/rr.meanr))
+    print(np.min(rr.npairs/rr.meanr))
+    print(np.max(rr.npairs/rr.meanr))
+    print(np.std(rr.npairs/rr.meanr))
+    assert np.isclose(np.mean(rr.npairs/rr.meanr), 12.33, rtol=0.003)
+    assert np.isclose(np.min(rr.npairs/rr.meanr), 10.98, rtol=0.003)
+    assert np.isclose(np.max(rr.npairs/rr.meanr), 13.48, rtol=0.003)
+    assert np.isclose(np.std(rr.npairs/rr.meanr), 0.663, rtol=0.003)
+
+    # Now repeat with the default bin_slop.  It shouldn't change very much.
+    # Prior to version 5.01, it used to be extremely wrong.
+    # Some bins were even 0.
+    rr = treecorr.NNCorrelation(nbins=40, min_sep=0.01, max_sep=4000, sep_units='arcsec',
+                                bin_type='Linear')
+    rr.process(cat)
+
+    print(rr.npairs / rr.meanr)
+    print(np.mean(rr.npairs/rr.meanr))
+    print(np.min(rr.npairs/rr.meanr))
+    print(np.max(rr.npairs/rr.meanr))
+    print(np.std(rr.npairs/rr.meanr))
+    print(rr.rnom)
+    print(rr.bin_slop)
+    print(rr.b)
+    assert np.isclose(np.mean(rr.npairs/rr.meanr), 12.33, rtol=0.01)
+    assert np.isclose(np.min(rr.npairs/rr.meanr), 10.98, rtol=0.01)
+    assert np.isclose(np.max(rr.npairs/rr.meanr), 13.48, rtol=0.01)
+    assert np.isclose(np.std(rr.npairs/rr.meanr), 0.663, rtol=0.01)
+
+
+
 
 if __name__ == '__main__':
     test_log_binning()

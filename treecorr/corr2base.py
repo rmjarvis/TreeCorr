@@ -473,7 +473,7 @@ class Corr2(object):
         self._ro.angle_slop = get(self.config,'angle_slop',float,self._default_angle_slop)
         if self.bin_slop < 0.0:
             self._ro.bin_slop = min(max_good_slop, 1.0)
-        self._ro.b = self.bin_size * self.bin_slop
+        self._ro.b = self._bin_size * self.bin_slop
         if self.bin_slop > max_good_slop + 0.0001 and self.angle_slop > 0.1:
             self.logger.warning(
                 "Using bin_slop = %g, angle_slop = %g, bin_size = %g (b = %g).\n"%(

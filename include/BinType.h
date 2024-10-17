@@ -201,7 +201,7 @@ struct BinTypeHelper<Linear>
                           double minsep, double maxsep, double logminsep,
                           int& ik, double& r, double& logr)
     {
-        xdbg<<"singleBin: "<<rsq<<"  "<<s1ps2<<std::endl;
+        xdbg<<"singleBin: "<<rsq<<"  "<<s1ps2<<"  "<<b<<"  "<<a<<std::endl;
 
         // Check for angle being too large.
         if (SQR(s1ps2) > asq*rsq) return false;

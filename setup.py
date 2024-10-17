@@ -405,9 +405,12 @@ def fix_compiler(compiler):
 class my_builder( build_ext ):
 
     def finalize_options(self):
+        from distutils import sysconfig
+
         super().finalize_options()
 
         self.include_dirs.append('include')
+        self.library_dirs.append(sysconfig.get_config_var('LIBDIR'))
 
         # Add pybind11's include dir
         # GalSim has a whole long thing for this.

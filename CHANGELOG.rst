@@ -151,3 +151,9 @@ Changes from version 5.0.0 to 5.0.1
 -----------------------------------
 
 - Fixed a build error that showed up in conda installation script.
+
+Changes from version 5.0.1 to 5.0.2
+-----------------------------------
+
+- Fixed an error in the binning calculation for bin_type=Linear when sep_units are used.
+  (#162, #176)

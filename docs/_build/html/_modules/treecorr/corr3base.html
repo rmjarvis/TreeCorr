@@ -345,7 +345,7 @@
 
 <span class="sd">        metric (str):       Which metric to use for distance measurements.  Options are listed</span>
 <span class="sd">                            above.  (default: &#39;Euclidean&#39;)</span>
-<span class="sd">        bin_type (str):     What type of binning should be used.  Only one option currently.</span>
+<span class="sd">        bin_type (str):     What type of binning should be used.  Options are listed above.</span>
 <span class="sd">                            (default: &#39;LogSAS&#39;)</span>
 <span class="sd">        period (float):     For the &#39;Periodic&#39; metric, the period to use in all directions.</span>
 <span class="sd">                            (default: None)</span>
@@ -698,7 +698,7 @@
                 <span class="c1"># LogMultipole</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_ro</span><span class="o">.</span><span class="n">bu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ro</span><span class="o">.</span><span class="n">bv</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_ro</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_slop</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ro</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bin_size</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_slop</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">==</span> <span class="s1">&#39;LogRUV&#39;</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_ro</span><span class="o">.</span><span class="n">bu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ubin_size</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_slop</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_ro</span><span class="o">.</span><span class="n">bv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vbin_size</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_slop</span>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>treecorr.corr2base &mdash; TreeCorr 5.0.1 documentation</title>
+  <title>treecorr.corr2base &mdash; TreeCorr 5.0.2 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -559,7 +559,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_ro</span><span class="o">.</span><span class="n">angle_slop</span> <span class="o">=</span> <span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;angle_slop&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_default_angle_slop</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_slop</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_ro</span><span class="o">.</span><span class="n">bin_slop</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">max_good_slop</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ro</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_slop</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ro</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bin_size</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_slop</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_slop</span> <span class="o">&gt;</span> <span class="n">max_good_slop</span> <span class="o">+</span> <span class="mf">0.0001</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">angle_slop</span> <span class="o">&gt;</span> <span class="mf">0.1</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="s2">&quot;Using bin_slop = </span><span class="si">%g</span><span class="s2">, angle_slop = </span><span class="si">%g</span><span class="s2">, bin_size = </span><span class="si">%g</span><span class="s2"> (b = </span><span class="si">%g</span><span class="s2">).</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span>

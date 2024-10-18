@@ -259,7 +259,7 @@ class Corr3(object):
 
         metric (str):       Which metric to use for distance measurements.  Options are listed
                             above.  (default: 'Euclidean')
-        bin_type (str):     What type of binning should be used.  Only one option currently.
+        bin_type (str):     What type of binning should be used.  Options are listed above.
                             (default: 'LogSAS')
         period (float):     For the 'Periodic' metric, the period to use in all directions.
                             (default: None)

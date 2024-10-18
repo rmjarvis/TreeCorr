@@ -612,7 +612,7 @@ class Corr3(object):
                 # LogMultipole
                 self._ro.bu = self._ro.bv = 0
         else:
-            self._ro.b = self.bin_size * self.bin_slop
+            self._ro.b = self._bin_size * self.bin_slop
             if self.bin_type == 'LogRUV':
                 self._ro.bu = self.ubin_size * self.bin_slop
                 self._ro.bv = self.vbin_size * self.bin_slop

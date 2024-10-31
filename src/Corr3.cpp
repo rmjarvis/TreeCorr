@@ -1363,11 +1363,96 @@ void Corr3<D1,D2,D3>::calculateGn(
         mp.sumwwlogr[k] += wsq * logr;
     }
 
-    DirectHelper<D1,D2,D3>::CalculateGn(
-        static_cast<const Cell<D1,C>&>(c1),
-        static_cast<const Cell<D2,C>&>(c2),
-        rsq, r, k, _nubins, w,
-        static_cast<MultipoleScratch<D1, D2>&>(mp));
+    mp.calculateGn(c1, c2, rsq, r, k, _nubins, w);
+}
+
+template <int C>
+void MultipoleScratch<NData>::calculateGn(
+    const BaseCell<C>& c1, const Cell<NData,C>& c2,
+    double rsq, double r, int k, int maxn, double w)
+{
+    std::complex<double> z = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), r);
+    int index = k*(maxn+1);
+    Wn[index] += w;
+    std::complex<double> wztothen = w;
+    for (int n=1; n<=maxn; ++n) {
+        wztothen *= z;
+        Wn[index + n] += wztothen;
+    }
+}
+
+template <int C>
+void MultipoleScratch<KData>::calculateGn(
+    const BaseCell<C>& c1, const Cell<KData,C>& c2,
+    double rsq, double r, int k, int maxn, double w)
+{
+    double wk = c2.getWK();
+    if (ww) {
+        sumwwkk[k] += c2.calculateSumWKSq();
+    }
+    std::complex<double> z = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), r);
+    int index = k*(maxn+1);
+    Wn[index] += w;
+    Gn[index] += wk;
+    std::complex<double> wztothen = w;
+    std::complex<double> wkztothen = wk;
+    for (int n=1; n<=maxn; ++n) {
+        wztothen *= z;
+        wkztothen *= z;
+        Wn[index + n] += wztothen;
+        Gn[index + n] += wkztothen;
+    }
+}
+
+template <int C>
+void MultipoleScratch<GData>::calculateGn(
+    const BaseCell<C>& c1, const Cell<GData,C>& c2,
+    double rsq, double r, int k, int maxn, double w)
+{
+    std::complex<double> wg = c2.getWZ();
+    std::complex<double> z = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), r);
+
+    // The projection is not quite how Porth et al do it, but it's necessary to get
+    // it to work properly with spherical coordinates, since the shear at c2 doesn't
+    // rotate with the same phase as the shear at c1.  So we apply the correct phase
+    // now onto g2, and then only use the multipole to apply to g1.
+
+    if (ww) {
+        std::complex<double> wgsq = c2.calculateSumWZSq();
+        ProjectHelper<C>::template ProjectWithSq(c1, c2, wg, wgsq);
+        std::complex<double> abswgsq = c2.calculateSumAbsWZSq();
+        std::complex<double> zsq = z * z;
+        sumwwgg0[k] += wgsq * std::conj(zsq);
+        sumwwgg1[k] += wgsq * zsq;
+        sumwwgg2[k] += abswgsq * std::conj(zsq);
+    } else {
+        ProjectHelper<C>::template Project<GData>(c1, c2, wg);
+    }
+
+    int iw = k*(maxn+1);
+    Wn[iw] += w;
+    std::complex<double> wztothen = w;
+    for (int n=1; n<=maxn; ++n) {
+        wztothen *= z;
+        Wn[iw + n] += wztothen;
+    }
+
+    // Note: we'll need Gn values from -maxn-1 <= n <= maxn+1
+    // So the size of Gn is nbins * (2*maxn + 3).
+    // And ig is set to the index for n=0.
+    int ig = k*(2*maxn+3)+maxn+1;
+    Gn[ig] += wg;
+    std::complex<double> wgztothen = wg;
+    for (int n=1; n<=maxn+1; ++n) {
+        wgztothen *= z;
+        Gn[ig + n] += wgztothen;
+    }
+    // Repeat for -n, since +/- n is not symmetric, as g is complex.
+    wgztothen = wg;   // Now this is really wg conj(z)^n
+    for (int n=1; n<=maxn+1; ++n) {
+        wgztothen *= std::conj(z);
+        Gn[ig - n] += wgztothen;
+    }
 }
 
 template <int D1, int D2, int D3> template <int C>
@@ -1421,7 +1506,7 @@ void Corr3<D1,D2,D3>::calculateZeta(const BaseCell<C>& c1, BaseMultipoleScratch&
     // The version for KKK is obvious from these.
     DirectHelper<D1,D2,D3>::CalculateZeta(
         static_cast<const Cell<D1,C>&>(c1),
-        static_cast<MultipoleScratch<D1, D2>&>(mp), kstart, mink_zeta,
+        static_cast<MultipoleScratch<D2>&>(mp), kstart, mink_zeta,
         _weight, _weight_im, _zeta, _nbins, _nubins);
 }
 
@@ -1487,8 +1572,8 @@ void Corr3<D1,D2,D3>::calculateZeta(
     // Finish the calculation for Zeta_n(d1,d2) using G_n(d).
     DirectHelper<D1,D2,D3>::CalculateZeta(
         static_cast<const Cell<D1,C>&>(c1), ordered,
-        static_cast<MultipoleScratch<D1,D2>&>(mp2),
-        static_cast<MultipoleScratch<D1,D3>&>(mp3), kstart, mink_zeta,
+        static_cast<MultipoleScratch<D2>&>(mp2),
+        static_cast<MultipoleScratch<D3>&>(mp3), kstart, mink_zeta,
         _weight, _weight_im, _zeta, _nbins, _nubins);
 }
 
@@ -1524,24 +1609,8 @@ struct DirectHelper<NData,NData,NData>
     }
 
     template <int C>
-    static void CalculateGn(
-        const Cell<NData,C>& c1, const Cell<NData,C>& c2,
-        double rsq, double r, int k, int maxn, double w,
-        MultipoleScratch<NData, NData>& mp)
-    {
-        std::complex<double> z = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), r);
-        int index = k*(maxn+1);
-        mp.Wn[index] += w;
-        std::complex<double> wztothen = w;
-        for (int n=1; n <= maxn; ++n) {
-            wztothen *= z;
-            mp.Wn[index + n] += wztothen;
-        }
-    }
-
-    template <int C>
     static void CalculateZeta(const Cell<NData,C>& c1,
-                              MultipoleScratch<NData, NData>& mp,
+                              MultipoleScratch<NData>& mp,
                               int kstart, int mink_zeta,
                               double* weight, double* weight_im,
                               ZetaData<NData,NData,NData>& zeta, int nbins, int maxn)
@@ -1606,8 +1675,8 @@ struct DirectHelper<NData,NData,NData>
 
     template <int C>
     static void CalculateZeta(const Cell<NData,C>& c1, int ordered,
-                              MultipoleScratch<NData, NData>& mp2,
-                              MultipoleScratch<NData, NData>& mp3,
+                              MultipoleScratch<NData>& mp2,
+                              MultipoleScratch<NData>& mp3,
                               int kstart, int mink_zeta,
                               double* weight, double* weight_im,
                               ZetaData<NData,NData,NData>& zeta, int nbins, int maxn)
@@ -1695,32 +1764,8 @@ struct DirectHelper<KData,KData,KData>
     }
 
     template <int C>
-    static void CalculateGn(
-        const Cell<KData,C>& c1, const Cell<KData,C>& c2,
-        double rsq, double r, int k, int maxn, double w,
-        MultipoleScratch<KData, KData>& mp)
-    {
-        double wk = c2.getWK();
-        if (mp.ww) {
-            mp.sumwwkk[k] += c2.calculateSumWKSq();
-        }
-        std::complex<double> z = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), r);
-        int index = k*(maxn+1);
-        mp.Wn[index] += w;
-        mp.Gn[index] += wk;
-        std::complex<double> wztothen = w;
-        std::complex<double> wkztothen = wk;
-        for (int n=1; n <= maxn; ++n) {
-            wztothen *= z;
-            wkztothen *= z;
-            mp.Wn[index + n] += wztothen;
-            mp.Gn[index + n] += wkztothen;
-        }
-    }
-
-    template <int C>
     static void CalculateZeta(const Cell<KData,C>& c1,
-                              MultipoleScratch<KData, KData>& mp,
+                              MultipoleScratch<KData>& mp,
                               int kstart, int mink_zeta,
                               double* weight, double* weight_im,
                               ZetaData<KData,KData,KData>& zeta, int nbins, int maxn)
@@ -1798,8 +1843,8 @@ struct DirectHelper<KData,KData,KData>
 
     template <int C>
     static void CalculateZeta(const Cell<KData,C>& c1, int ordered,
-                              MultipoleScratch<KData, KData>& mp2,
-                              MultipoleScratch<KData, KData>& mp3,
+                              MultipoleScratch<KData>& mp2,
+                              MultipoleScratch<KData>& mp3,
                               int kstart, int mink_zeta,
                               double* weight, double* weight_im,
                               ZetaData<KData,KData,KData>& zeta, int nbins, int maxn)
@@ -1978,60 +2023,8 @@ struct DirectHelper<GData,GData,GData>
     }
 
     template <int C>
-    static void CalculateGn(
-        const Cell<GData,C>& c1, const Cell<GData,C>& c2,
-        double rsq, double r, int k, int maxn, double w,
-        MultipoleScratch<GData, GData>& mp)
-    {
-        std::complex<double> wg = c2.getWZ();
-        std::complex<double> z = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), r);
-
-        // The projection is not quite how Porth et al do it, but it's necessary to get
-        // it to work properly with spherical coordinates, since the shear at c2 doesn't
-        // rotate with the same phase as the shear at c1.  So we apply the correct phase
-        // now onto g2, and then only use the multipole to apply to g1.
-
-        if (mp.ww) {
-            std::complex<double> wgsq = c2.calculateSumWZSq();
-            ProjectHelper<C>::template ProjectWithSq<GData>(c1, c2, wg, wgsq);
-            std::complex<double> abswgsq = c2.calculateSumAbsWZSq();
-            std::complex<double> zsq = z * z;
-            mp.sumwwgg0[k] += wgsq * std::conj(zsq);
-            mp.sumwwgg1[k] += wgsq * zsq;
-            mp.sumwwgg2[k] += abswgsq * std::conj(zsq);
-        } else {
-            ProjectHelper<C>::template Project<GData>(c1, c2, wg);
-        }
-
-        int iw = k*(maxn+1);
-        mp.Wn[iw] += w;
-        std::complex<double> wztothen = w;
-        for (int n=1; n <= maxn; ++n) {
-            wztothen *= z;
-            mp.Wn[iw + n] += wztothen;
-        }
-
-        // Note: we'll need Gn values from -maxn-1 <= n <= maxn+1
-        // So the size of Gn is nbins * (2*maxn + 3).
-        // And ig is set to the index for n=0.
-        int ig = k*(2*maxn+3)+maxn+1;
-        mp.Gn[ig] += wg;
-        std::complex<double> wgztothen = wg;
-        for (int n=1; n <= maxn+1; ++n) {
-            wgztothen *= z;
-            mp.Gn[ig + n] += wgztothen;
-        }
-        // Repeat for -n, since +/- n is not symmetric, as g is complex.
-        wgztothen = wg;   // Now this is really wg conj(z)^n
-        for (int n=1; n <= maxn+1; ++n) {
-            wgztothen *= std::conj(z);
-            mp.Gn[ig - n] += wgztothen;
-        }
-    }
-
-    template <int C>
     static void CalculateZeta(const Cell<GData,C>& c1,
-                              MultipoleScratch<GData, GData>& mp,
+                              MultipoleScratch<GData>& mp,
                               int kstart, int mink_zeta,
                               double* weight, double* weight_im,
                               ZetaData<GData,GData,GData>& zeta, int nbins, int maxn)
@@ -2327,8 +2320,8 @@ struct DirectHelper<GData,GData,GData>
 
     template <int C>
     static void CalculateZeta(const Cell<GData,C>& c1, int ordered,
-                              MultipoleScratch<GData, GData>& mp2,
-                              MultipoleScratch<GData, GData>& mp3,
+                              MultipoleScratch<GData>& mp2,
+                              MultipoleScratch<GData>& mp3,
                               int kstart, int mink_zeta,
                               double* weight, double* weight_im,
                               ZetaData<GData,GData,GData>& zeta, int nbins, int maxn)
@@ -2581,11 +2574,11 @@ void Corr3<D1,D2,D3>::finishProcessMP(
 // this distinction might be relevant.
 template <int D1, int D2, int D3>
 std::unique_ptr<BaseMultipoleScratch> Corr3<D1,D2,D3>::getMP2(bool use_ww)
-{ return make_unique<MultipoleScratch<D1,D2> >(_nbins, _nubins, use_ww); }
+{ return make_unique<MultipoleScratch<D2> >(_nbins, _nubins, use_ww); }
 
 template <int D1, int D2, int D3>
 std::unique_ptr<BaseMultipoleScratch> Corr3<D1,D2,D3>::getMP3(bool use_ww)
-{ return make_unique<MultipoleScratch<D1,D3> >(_nbins, _nubins, use_ww); }
+{ return make_unique<MultipoleScratch<D3> >(_nbins, _nubins, use_ww); }
 
 template <int D1, int D2, int D3>
 void Corr3<D1,D2,D3>::operator=(const Corr3<D1,D2,D3>& rhs)

@@ -507,19 +507,6 @@ Field<D,C>* BuildAnyZField(
 }
 
 template <int C>
-Field<GData,C>* BuildGField(
-    py::array_t<double>& x, py::array_t<double>& y, py::array_t<double>& z,
-    py::array_t<double>& g1, py::array_t<double>& g2,
-    py::array_t<double>& w, py::array_t<double>& wpos,
-    double minsize, double maxsize,
-    SplitMethod sm, long long seed, bool brute, int mintop, int maxtop)
-{
-    return BuildAnyZField<GData,C>(x, y, z, g1, g2, w, wpos,
-                                   minsize, maxsize, sm, seed,
-                                   brute, mintop, maxtop);
-}
-
-template <int C>
 Field<ZData,C>* BuildZField(
     py::array_t<double>& x, py::array_t<double>& y, py::array_t<double>& z,
     py::array_t<double>& z1, py::array_t<double>& z2,
@@ -541,6 +528,19 @@ Field<VData,C>* BuildVField(
     SplitMethod sm, long long seed, bool brute, int mintop, int maxtop)
 {
     return BuildAnyZField<VData,C>(x, y, z, v1, v2, w, wpos,
+                                   minsize, maxsize, sm, seed,
+                                   brute, mintop, maxtop);
+}
+
+template <int C>
+Field<GData,C>* BuildGField(
+    py::array_t<double>& x, py::array_t<double>& y, py::array_t<double>& z,
+    py::array_t<double>& g1, py::array_t<double>& g2,
+    py::array_t<double>& w, py::array_t<double>& wpos,
+    double minsize, double maxsize,
+    SplitMethod sm, long long seed, bool brute, int mintop, int maxtop)
+{
+    return BuildAnyZField<GData,C>(x, y, z, g1, g2, w, wpos,
                                    minsize, maxsize, sm, seed,
                                    brute, mintop, maxtop);
 }

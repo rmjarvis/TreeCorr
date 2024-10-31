@@ -151,20 +151,20 @@ double Cell<KData,C>::calculateSumWKSq() const
     else return this->getLeft()->calculateSumWKSq() + this->getRight()->calculateSumWKSq();
 }
 
-template <int C>
-std::complex<double> Cell<GData,C>::calculateSumWGSq() const
+template <int D, int C>
+std::complex<double> Cell<D,C>::calculateSumWZSq() const
 {
-    if (this->getSize() == 0.) return SQR(getWG());
-    else if (this->getN() == 1) return SQR(getWG());
-    else return this->getLeft()->calculateSumWGSq() + this->getRight()->calculateSumWGSq();
+    if (this->getSize() == 0.) return SQR(getWZ());
+    else if (this->getN() == 1) return SQR(getWZ());
+    else return this->getLeft()->calculateSumWZSq() + this->getRight()->calculateSumWZSq();
 }
 
-template <int C>
-double Cell<GData,C>::calculateSumAbsWGSq() const
+template <int D, int C>
+double Cell<D,C>::calculateSumAbsWZSq() const
 {
-    if (this->getSize() == 0.) return std::norm(getWG());
-    else if (this->getN() == 1) return std::norm(getWG());
-    else return this->getLeft()->calculateSumAbsWGSq() + this->getRight()->calculateSumAbsWGSq();
+    if (this->getSize() == 0.) return std::norm(getWZ());
+    else if (this->getN() == 1) return std::norm(getWZ());
+    else return this->getLeft()->calculateSumAbsWZSq() + this->getRight()->calculateSumAbsWZSq();
 }
 
 template <int C>

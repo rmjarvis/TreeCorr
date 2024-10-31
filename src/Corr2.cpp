@@ -396,7 +396,7 @@ struct DirectHelper2<1,NData,KData>
     static void ProcessXi(
         const Cell<NData,C>& c1, const Cell<KData,C>& c2, const double ,
         XiData<NData,KData>& xi, int k, int )
-    { xi.xi[k] += c1.getW() * c2.getData().getWK(); }
+    { xi.xi[k] += c1.getW() * c2.getWK(); }
 };
 
 template <>
@@ -407,7 +407,7 @@ struct DirectHelper2<1,NData,ZData>
         const Cell<NData,C>& c1, const Cell<ZData,C>& c2, const double ,
         XiData<NData,ZData>& xi, int k, int )
     {
-        std::complex<double> z2 = c1.getW() * c2.getData().getWZ();
+        std::complex<double> z2 = c1.getW() * c2.getWZ();
         xi.xi[k] += real(z2);
         xi.xi_im[k] += imag(z2);
     }
@@ -421,7 +421,7 @@ struct DirectHelper2<2,NData,D2>
         const Cell<NData,C>& c1, const Cell<D2,C>& c2, const double rsq,
         XiData<NData,D2>& xi, int k, int )
     {
-        std::complex<double> g2 = c2.getData().getWZ();
+        std::complex<double> g2 = c2.getWZ();
         ProjectHelper<C>::Project(c1,c2,g2);
         // For GData only, we multiply by -1, because the standard thing to accumulate is
         // the tangential shear, rather than radial.  Everyone else accumulates the radial
@@ -441,7 +441,7 @@ struct DirectHelper2<3,KData,KData>
         const Cell<KData,C>& c1, const Cell<KData,C>& c2, const double ,
         XiData<KData,KData>& xi, int k, int k2)
     {
-        double wkk = c1.getData().getWK() * c2.getData().getWK();
+        double wkk = c1.getWK() * c2.getWK();
         xi.xi[k] += wkk;
         if (R) {
             xi.xi[k2] += wkk;
@@ -457,7 +457,7 @@ struct DirectHelper2<3,KData,ZData>
         const Cell<KData,C>& c1, const Cell<ZData,C>& c2, const double ,
         XiData<KData,ZData>& xi, int k, int k2)
     {
-        std::complex<double> wkz = c1.getData().getWK() * c2.getData().getWZ();
+        std::complex<double> wkz = c1.getWK() * c2.getWZ();
         xi.xi[k] += real(wkz);
         xi.xi_im[k] += imag(wkz);
         if (R) {
@@ -475,8 +475,8 @@ struct DirectHelper2<3,ZData,ZData>
         const Cell<ZData,C>& c1, const Cell<ZData,C>& c2, const double ,
         XiData<ZData,ZData>& xi, int k, int k2)
     {
-        std::complex<double> z1 = c1.getData().getWZ();
-        std::complex<double> z2 = c2.getData().getWZ();
+        std::complex<double> z1 = c1.getWZ();
+        std::complex<double> z2 = c2.getWZ();
         ProjectHelper<C>::Project(c1,c2,z1,z2);
 
         double z1rz2r = z1.real() * z2.real();
@@ -511,10 +511,10 @@ struct DirectHelper2<4,KData,D2>
         const Cell<KData,C>& c1, const Cell<D2,C>& c2, const double rsq,
         XiData<KData,D2>& xi, int k, int )
     {
-        std::complex<double> g2 = c2.getData().getWZ();
+        std::complex<double> g2 = c2.getWZ();
         ProjectHelper<C>::Project(c1,c2,g2);
-        if (D2 == GData) g2 *= -c1.getData().getWK();
-        else g2 *= c1.getData().getWK();
+        if (D2 == GData) g2 *= -c1.getWK();
+        else g2 *= c1.getWK();
         xi.xi[k] += real(g2);
         xi.xi_im[k] += imag(g2);
     }
@@ -528,8 +528,8 @@ struct DirectHelper2<5,D1,D2>
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double rsq,
         XiData<D1,D2>& xi, int k, int k2)
     {
-        std::complex<double> g1 = c1.getData().getWZ();
-        std::complex<double> g2 = c2.getData().getWZ();
+        std::complex<double> g1 = c1.getWZ();
+        std::complex<double> g2 = c2.getWZ();
         ProjectHelper<C>::Project(c1,c2,g1,g2);
 
         // The complex products g1 g2 and g1 g2* share most of the calculations,

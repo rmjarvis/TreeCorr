@@ -422,7 +422,7 @@ struct ProjectHelper<ThreeD>
         Position<Sphere> p2(c2.getPos());
         Position<Sphere> p3(c3.getPos());
         // Use the Sphere implementation with these positions.
-        ProjectHelper<Sphere>::ProjectX<D>(p1,p2,p3,z1,z3,z3);
+        ProjectHelper<Sphere>::ProjectX<D>(p1,p2,p3,z1,z2,z3);
     }
 
     static std::complex<double> ExpIPhi(

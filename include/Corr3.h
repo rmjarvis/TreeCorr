@@ -34,7 +34,8 @@ class BaseCorr3
 {
 public:
 
-    BaseCorr3(BinType bin_type, double minsep, double maxsep, int nbins, double binsize,
+    BaseCorr3(BinType bin_type, int d1, int d2, int d3,
+              double minsep, double maxsep, int nbins, double binsize,
               double b, double a,
               double minu, double maxu, int nubins, double ubinsize, double bu,
               double minv, double maxv, int nvbins, double vbinsize, double bv,
@@ -48,6 +49,11 @@ public:
     virtual void writeZeta(std::ostream& os, int n) const = 0;
 
     virtual void addData(const BaseCorr3& rhs) =0;
+
+    template <int C>
+    bool validCellTypes(
+        const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3)
+    { return _d1 == c1.getD() && _d2 == c2.getD() && _d3 == c3.getD(); }
 
     template <int B, int M, int C>
     void process(const BaseField<C>& field, bool dots);
@@ -220,6 +226,9 @@ protected:
 protected:
 
     BinType _bin_type;
+    int _d1;
+    int _d2;
+    int _d3;
     double _minsep;
     double _maxsep;
     int _nbins;

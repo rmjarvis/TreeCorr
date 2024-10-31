@@ -319,6 +319,8 @@ public:
     double getW() const { return _data->getW(); }
     long getN() const { return _data->getN(); }
 
+    virtual int getD() const=0;
+
     double getSize() const { return _size; }
     double calculateInertia() const;
     double calculateSumWSq() const;
@@ -372,6 +374,8 @@ public:
     Cell(CellData<D,C>* data, double size, Cell<D,C>* l, Cell<D,C>* r) :
         BaseCell<C>(data, size, l, r) {}
 
+    int getD() const { return D; }
+
     const CellData<D,C>& getData() const
     { return static_cast<const CellData<D,C>&>(BaseCell<C>::getData()); }
 
@@ -399,6 +403,8 @@ public:
     Cell(CellData<NData,C>* data, double size, Cell<NData,C>* l, Cell<NData,C>* r) :
         BaseCell<C>(data, size, l, r) {}
 
+    int getD() const { return NData; }
+
     const CellData<NData,C>& getData() const
     { return static_cast<const CellData<NData,C>&>(BaseCell<C>::getData()); }
 
@@ -421,6 +427,8 @@ public:
 
     Cell(CellData<KData,C>* data, double size, Cell<KData,C>* l, Cell<KData,C>* r) :
         BaseCell<C>(data, size, l, r) {}
+
+    int getD() const { return KData; }
 
     const CellData<KData,C>& getData() const
     { return static_cast<const CellData<KData,C>&>(BaseCell<C>::getData()); }

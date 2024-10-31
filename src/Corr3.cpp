@@ -68,12 +68,13 @@ template <int C> std::string indices(const BaseCell<C>& c) { return ""; }
 
 
 BaseCorr3::BaseCorr3(
-    BinType bin_type, double minsep, double maxsep, int nbins, double binsize,
+    BinType bin_type, int d1, int d2, int d3,
+    double minsep, double maxsep, int nbins, double binsize,
     double b, double a,
     double minu, double maxu, int nubins, double ubinsize, double bu,
     double minv, double maxv, int nvbins, double vbinsize, double bv,
     double xp, double yp, double zp):
-    _bin_type(bin_type),
+    _bin_type(bin_type), _d1(d1), _d2(d2), _d3(d3),
     _minsep(minsep), _maxsep(maxsep), _nbins(nbins), _binsize(binsize), _b(b), _a(a),
     _minu(minu), _maxu(maxu), _nubins(nubins), _ubinsize(ubinsize), _bu(bu),
     _minv(minv), _maxv(maxv), _nvbins(nvbins), _vbinsize(vbinsize), _bv(bv),
@@ -135,7 +136,8 @@ Corr3<D1,D2,D3>::Corr3(
     double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
     double* meand3, double* meanlogd3, double* meanu, double* meanv,
     double* weight, double* weight_im, double* ntri) :
-    BaseCorr3(bin_type, minsep, maxsep, nbins, binsize, b, a,
+    BaseCorr3(bin_type, D1, D2, D3,
+              minsep, maxsep, nbins, binsize, b, a,
               minu, maxu, nubins, ubinsize, bu,
               minv, maxv, nvbins, vbinsize, bv,
               xp, yp, zp),
@@ -147,7 +149,7 @@ Corr3<D1,D2,D3>::Corr3(
 {}
 
 BaseCorr3::BaseCorr3(const BaseCorr3& rhs):
-    _bin_type(rhs._bin_type),
+    _bin_type(rhs._bin_type), _d1(rhs._d1), _d2(rhs._d2), _d3(rhs._d3),
     _minsep(rhs._minsep), _maxsep(rhs._maxsep), _nbins(rhs._nbins),
     _binsize(rhs._binsize), _b(rhs._b), _a(rhs._a),
     _minu(rhs._minu), _maxu(rhs._maxu), _nubins(rhs._nubins),
@@ -699,6 +701,11 @@ void BaseCorr3::process111Sorted(
                                     d1, d2, d3, u, v))
     {
         xdbg<<"Drop into single bin.\n";
+
+        if (!validCellTypes(c1,c2,c3)) {
+            xdbg<<ws()<<"Invalid type combination.  Skip.\n";
+            return;
+        }
 
         // These get set if triangle is in range.
         double logd1, logd2, logd3;
@@ -1577,8 +1584,12 @@ void Corr3<D1,D2,D3>::calculateZeta(
         _weight, _weight_im, _zeta, _nbins, _nubins);
 }
 
+template <int algo, int D1, int D2, int D3>
+struct DirectHelper3;
+
+// 0 = NNN
 template <>
-struct DirectHelper<NData,NData,NData>
+struct DirectHelper3<0,NData,NData,NData>
 {
     template <int C>
     static void ProcessZeta(
@@ -1599,7 +1610,7 @@ struct DirectHelper<NData,NData,NData>
         std::complex<double> z(cosphi, -sinphi);
         weight[index] += www;
         std::complex<double> wwwztothen = www;
-        for (int n=1; n <= maxn; ++n) {
+        for (int n=1; n<=maxn; ++n) {
             wwwztothen *= z;
             weight[index + n] += wwwztothen.real();
             weight_im[index + n] += wwwztothen.imag();
@@ -1724,8 +1735,15 @@ struct DirectHelper<NData,NData,NData>
     }
 };
 
+// 1 = NNK
+// 2 = NNG
+// 3 = NKK
+// 4 = NKG
+// 5 = NGG
+
+// 6 = KKK
 template <>
-struct DirectHelper<KData,KData,KData>
+struct DirectHelper3<6,KData,KData,KData>
 {
     template <int C>
     static void ProcessZeta(
@@ -1749,7 +1767,7 @@ struct DirectHelper<KData,KData,KData>
         zeta.zeta[index] += wk;
         std::complex<double> wwwztothen = www;
         std::complex<double> wkztothen = wk;
-        for (int n=1; n <= maxn; ++n) {
+        for (int n=1; n<=maxn; ++n) {
             wwwztothen *= z;
             wkztothen *= z;
             weight[index + n] += wwwztothen.real();
@@ -1898,8 +1916,128 @@ struct DirectHelper<KData,KData,KData>
     }
 };
 
+// 7 = KKG
+template <int D3>
+struct DirectHelper3<7,KData,KData,D3>
+{
+    template <int C>
+    static void ProcessZeta(
+        const Cell<KData,C>& c1, const Cell<KData,C>& c2, const Cell<D3,C>& c3,
+        ZetaData<KData,KData,D3>& zeta, int index)
+    {
+        std::complex<double> g3 = c3.getWZ();
+        ProjectHelper<C>::Project(c1, c2, c3, g3);
+        zeta.zeta[index] += c1.getWK() * c2.getWK() * g3.real();
+        zeta.zeta_im[index] += c1.getWK() * c2.getWK() * g3.imag();
+    }
+
+    template <int C>
+    static void ProcessMultipole(
+        const Cell<KData,C>& c1, const Cell<KData,C>& c2, const Cell<D3,C>& c3,
+        double d1, double d2, double d3, double sinphi, double cosphi, double www,
+        double* weight, double* weight_im,
+        ZetaData<KData,KData,D3>& zeta, int index, int maxn)
+    {
+        std::complex<double> g3 = c3.getWZ();
+        ProjectHelper<C>::ProjectX(c1, c2, c3, d1, d2, d3, g3);
+        std::complex<double> wk = c1.getWK() * c2.getWK() * g3;
+
+        zeta.zeta_im[index] += wk.imag();
+
+        std::complex<double> z(cosphi, -sinphi);
+        weight[index] += www;
+        zeta.zeta[index] += wk.real();
+        zeta.zeta_im[index] += wk.imag();
+        std::complex<double> wwwztothen = www;
+        std::complex<double> wkztothen = wk;
+        for (int n=1; n<=maxn; ++n) {
+            wwwztothen *= z;
+            wkztothen *= z;
+            weight[index + n] += wwwztothen.real();
+            weight_im[index + n] += wwwztothen.imag();
+            weight[index - n] += wwwztothen.real();
+            weight_im[index - n] -= wwwztothen.imag();
+            zeta.zeta[index + n] += wkztothen.real();
+            zeta.zeta_im[index + n] += wkztothen.imag();
+        }
+
+        wkztothen = wk;
+        for (int n=1; n<=maxn; ++n) {
+            wkztothen *= std::conj(z);
+            zeta.zeta[index - n] += wkztothen.real();
+            zeta.zeta_im[index - n] -= wkztothen.imag();
+        }
+    }
+
+    template <int C>
+    static void CalculateZeta(const Cell<KData,C>& c1,
+                              MultipoleScratch<KData>& mp,
+                              int kstart, int mink_zeta,
+                              double* weight, double* weight_im,
+                              ZetaData<KData,KData,D3>& zeta, int nbins, int maxn)
+    {
+        XAssert(false);
+    }
+    template <int C>
+    static void CalculateZeta(const Cell<KData,C>& c1, int ordered,
+                              MultipoleScratch<KData>& mp2,
+                              MultipoleScratch<D3>& mp3,
+                              int kstart, int mink_zeta,
+                              double* weight, double* weight_im,
+                              ZetaData<KData,KData,D3>& zeta, int nbins, int maxn)
+    {
+        const double w1 = c1.getW();
+        const double wk1 = c1.getWK();
+        const int step = 2*maxn+1;
+        int iz = maxn;
+        XAssert(ordered == 3);
+        iz += kstart * nbins * step;
+        for (int k2=kstart; k2<nbins; ++k2) {
+            const int iw2 = k2*(maxn+1);
+            const int ig2 = k2*(2*maxn+3) + maxn+1;
+            const int k3end = k2 < mink_zeta ? nbins : mink_zeta;
+            iz += kstart * step;
+            for (int k3=kstart; k3<k3end; ++k3, iz+=step) {
+                const int iw3 = k3*(maxn+1);
+                const int ig3 = k3*(2*maxn+3) + maxn+1;
+
+                std::complex<double> www = w1 * mp3.Wn[iw2] * std::conj(mp2.Wn[iw3]);
+                weight[iz] += www.real();
+                weight_im[iz] += www.imag();
+
+                for (int n=1; n<=maxn; ++n) {
+                    std::complex<double> www = w1 * mp3.Wn[iw2+n] * std::conj(mp2.Wn[iw3+n]);
+                    weight[iz+n] += www.real();
+                    weight_im[iz+n] += www.imag();
+                    weight[iz-n] += www.real();
+                    weight_im[iz-n] -= www.imag();
+                }
+
+                // n=0
+                std::complex<double> wwwk = wk1 * mp3.Gn[ig2] * std::conj(mp2.Gn[ig3]);
+                zeta.zeta[iz] += wwwk.real();
+                zeta.zeta_im[iz] += wwwk.imag();
+
+                for (int n=1; n<=maxn; ++n) {
+                    std::complex<double> wwwkp = wk1 * mp3.Gn[ig2+n] * std::conj(mp2.Gn[ig3+n]);
+                    zeta.zeta[iz+n] += wwwkp.real();
+                    zeta.zeta_im[iz+n] += wwwkp.imag();
+
+                    std::complex<double> wwwkm = wk1 * mp3.Gn[ig2-n] * mp2.Gn[ig3+n];
+                    zeta.zeta[iz-n] += wwwkm.real();
+                    zeta.zeta_im[iz-n] -= wwwkm.imag();
+                }
+            }
+            iz += (nbins - k3end) * step;
+        }
+    }
+};
+
+// 8 = KGG
+
+// 9 = GGG
 template <>
-struct DirectHelper<GData,GData,GData>
+struct DirectHelper3<9,GData,GData,GData>
 {
     template <int C>
     static void ProcessZeta(
@@ -1981,7 +2119,7 @@ struct DirectHelper<GData,GData,GData>
         std::complex<double> gam1ztothen = gam1;
         std::complex<double> gam2ztothen = gam2;
         std::complex<double> gam3ztothen = gam3;
-        for (int n=1; n <= maxn; ++n) {
+        for (int n=1; n<=maxn; ++n) {
             wwwztothen *= z;
             gam0ztothen *= z;
             gam1ztothen *= z;
@@ -2006,7 +2144,7 @@ struct DirectHelper<GData,GData,GData>
         gam1ztothen = gam1;
         gam2ztothen = gam2;
         gam3ztothen = gam3;
-        for (int n=1; n <= maxn; ++n) {
+        for (int n=1; n<=maxn; ++n) {
             gam0ztothen *= std::conj(z);
             gam1ztothen *= std::conj(z);
             gam2ztothen *= std::conj(z);
@@ -2498,6 +2636,62 @@ struct DirectHelper<GData,GData,GData>
     }
 };
 
+template <int D1, int D2, int D3>
+struct DirectHelper
+{
+    enum { algo =
+            (D1 == NData ?
+                (D2 == NData ?
+                    (D3 == NData ? 0 : D3 == KData ? 1 : 2) :
+                 D2 == KData ?
+                    (D3 == KData ? 3 : 4) : 5) :
+             D1 == KData ?
+                (D2 == KData ?
+                    (D3 == KData ? 6 : 7) : 8) :
+             9) };
+
+    template <int C>
+    static void ProcessZeta(
+        const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
+        ZetaData<D1,D2,D3>& zeta, int index)
+    {
+        DirectHelper3<algo,D1,D2,D3>::ProcessZeta(c1,c2,c3,zeta,index);
+    }
+
+    template <int C>
+    static void ProcessMultipole(
+        const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
+        double d1, double d2, double d3, double sinphi, double cosphi, double www,
+        double* weight, double* weight_im,
+        ZetaData<D1,D2,D3>& zeta, int index, int maxn)
+    {
+        DirectHelper3<algo,D1,D2,D3>::ProcessMultipole(
+            c1,c2,c3,d1,d2,d3,sinphi,cosphi,www,weight,weight_im,zeta,index,maxn);
+    }
+
+    template <int C>
+    static void CalculateZeta(const Cell<D1,C>& c1,
+                              MultipoleScratch<D2>& mp,
+                              int kstart, int mink_zeta,
+                              double* weight, double* weight_im,
+                              ZetaData<D1,D2,D3>& zeta, int nbins, int maxn)
+    {
+        DirectHelper3<algo,D1,D2,D3>::CalculateZeta(
+            c1,mp,kstart,mink_zeta,weight,weight_im,zeta,nbins,maxn);
+    }
+
+    template <int C>
+    static void CalculateZeta(const Cell<D1,C>& c1, int ordered,
+                              MultipoleScratch<D2>& mp2,
+                              MultipoleScratch<D3>& mp3,
+                              int kstart, int mink_zeta,
+                              double* weight, double* weight_im,
+                              ZetaData<D1,D2,D3>& zeta, int nbins, int maxn)
+    {
+        DirectHelper3<algo,D1,D2,D3>::CalculateZeta(
+            c1,ordered,mp2,mp3,kstart,mink_zeta,weight,weight_im,zeta,nbins,maxn);
+    }
+};
 
 template <int B, int C>
 void BaseCorr3::directProcess111(
@@ -2664,8 +2858,6 @@ Corr3<D1,D2,D3>* BuildCorr3(
     double* ntri = static_cast<double*>(ntrip.mutable_data());
 
     dbg<<"Start BuildCorr3 "<<D1<<" "<<D2<<" "<<D3<<" "<<bin_type<<std::endl;
-    Assert(D2 == D1);
-    Assert(D3 == D1);
 
     return new Corr3<D1,D2,D3>(
             bin_type, minsep, maxsep, nbins, binsize, b, a,
@@ -2950,4 +3142,5 @@ void pyExportCorr3(py::module& _treecorr)
     WrapCorr3<NData,NData,NData>(_treecorr, "NNN");
     WrapCorr3<KData,KData,KData>(_treecorr, "KKK");
     WrapCorr3<GData,GData,GData>(_treecorr, "GGG");
+    WrapCorr3<KData,KData,GData>(_treecorr, "KKG");
 }

@@ -24,8 +24,8 @@ from .config import make_minimal_config
 
 
 class NNNCorrelation(Corr3):
-    """This class handles the calculation and storage of a 2-point count-count correlation
-    function.  i.e. the regular density correlation function.
+    """This class handles the calculation and storage of a 3-point count-count-count correlation
+    function.
 
     See the doc string of `Corr3` for a description of how the triangles can be binned.
 

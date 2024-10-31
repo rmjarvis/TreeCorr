@@ -1363,7 +1363,8 @@ class Corr3(object):
                     # So in this case, we need to repeat with c2 in the first spot.
                     for ii,c2 in enumerate(cat2):
                         i = c2._single_patch if c2._single_patch is not None else ii
-                        if is_my_job(my_indices, i, i, i, n1, n2):
+                        if (is_my_job(my_indices, i, i, i, n1, n2)
+                                and self._letter1 == self._letter2):
                             c1e = self._make_expanded_patch(c2, cat1, metric, low_mem)
                             c2e = self._make_expanded_patch(c2, cat2, metric, low_mem)
                             self.logger.info('Process patch %d from cat2 with surrounding local patches',i)
@@ -1483,7 +1484,8 @@ class Corr3(object):
                     # So in this case, we need to repeat with c2 and c3 in the first spot.
                     for ii,c2 in enumerate(cat2):
                         i = c2._single_patch if c2._single_patch is not None else ii
-                        if is_my_job(my_indices, i, i, i, n1, n2, n3):
+                        if (is_my_job(my_indices, i, i, i, n1, n2, n3)
+                                and self._letter1 == self._letter2):
                             c1e = self._make_expanded_patch(c2, cat1, metric, low_mem)
                             c3e = self._make_expanded_patch(c2, cat3, metric, low_mem)
                             self.logger.info('Process patch %d from cat2 with surrounding local patches',i)
@@ -1493,11 +1495,12 @@ class Corr3(object):
                                 c2.unload()
                     for ii,c3 in enumerate(cat3):
                         i = c3._single_patch if c3._single_patch is not None else ii
-                        if is_my_job(my_indices, i, i, i, n1, n2, n3):
+                        if (is_my_job(my_indices, i, i, i, n1, n2, n3)
+                                and self._letter1 == self._letter3):
                             c1e = self._make_expanded_patch(c3, cat1, metric, low_mem)
                             c2e = self._make_expanded_patch(c3, cat2, metric, low_mem)
                             self.logger.info('Process patch %d from cat3 with surrounding local patches',i)
-                            self._single_process123(c3, c1e, c2e, (i,i,i), metric, 1,
+                            self._single_process123(c3, c2e, c1e, (i,i,i), metric, 1,
                                                     num_threads, temp, True)
                             if low_mem:
                                 c3.unload()

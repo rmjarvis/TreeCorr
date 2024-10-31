@@ -380,10 +380,35 @@ public:
 
     const Cell<D,C>* getRight() const
     { return static_cast<const Cell<D,C>*>(BaseCell<C>::getRight()); }
+
+    std::complex<double> getWZ() const { return getData().getWZ(); }
+    std::complex<double> calculateSumWZSq() const;
+    double calculateSumAbsWZSq() const;
 };
 
-// The above is fine for NData, but K and G need a couple more methods.
-// (When we eventually do 3pt for Z,V,T,Q, they will also need specializations.)
+template <int C>
+class Cell<NData,C> : public BaseCell<C>
+{
+public:
+    Cell(CellData<NData,C>* data, const LeafInfo& info) :
+        BaseCell<C>(data, info) {}
+
+    Cell(CellData<NData,C>* data, const ListLeafInfo& listinfo) :
+        BaseCell<C>(data, listinfo) {}
+
+    Cell(CellData<NData,C>* data, double size, Cell<NData,C>* l, Cell<NData,C>* r) :
+        BaseCell<C>(data, size, l, r) {}
+
+    const CellData<NData,C>& getData() const
+    { return static_cast<const CellData<NData,C>&>(BaseCell<C>::getData()); }
+
+    const Cell<NData,C>* getLeft() const
+    { return static_cast<const Cell<NData,C>*>(BaseCell<C>::getLeft()); }
+
+    const Cell<NData,C>* getRight() const
+    { return static_cast<const Cell<NData,C>*>(BaseCell<C>::getRight()); }
+};
+
 template <int C>
 class Cell<KData,C> : public BaseCell<C>
 {
@@ -408,33 +433,6 @@ public:
 
     double getWK() const { return getData().getWK(); }
     double calculateSumWKSq() const;
-};
-
-template <int C>
-class Cell<GData, C> : public BaseCell<C>
-{
-public:
-    Cell(CellData<GData,C>* data, const LeafInfo& info) :
-        BaseCell<C>(data, info) {}
-
-    Cell(CellData<GData,C>* data, const ListLeafInfo& listinfo) :
-        BaseCell<C>(data, listinfo) {}
-
-    Cell(CellData<GData,C>* data, double size, Cell<GData,C>* l, Cell<GData,C>* r) :
-        BaseCell<C>(data, size, l, r) {}
-
-    const CellData<GData,C>& getData() const
-    { return static_cast<const CellData<GData,C>&>(BaseCell<C>::getData()); }
-
-    const Cell<GData,C>* getLeft() const
-    { return static_cast<const Cell<GData,C>*>(BaseCell<C>::getLeft()); }
-
-    const Cell<GData,C>* getRight() const
-    { return static_cast<const Cell<GData,C>*>(BaseCell<C>::getRight()); }
-
-    std::complex<double> getWG() const { return getData().getWG(); }
-    std::complex<double> calculateSumWGSq() const;
-    double calculateSumAbsWGSq() const;
 };
 
 template <int C>

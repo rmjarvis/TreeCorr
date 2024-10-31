@@ -76,6 +76,12 @@ struct BaseMultipoleScratch
 
     virtual std::unique_ptr<BaseMultipoleScratch> duplicate() = 0;
 
+    template <int C>
+    void calculateGn(
+        const BaseCell<C>& c1, const BaseCell<C>& c2,
+        double rsq, double r, int k, int maxn, double w)
+    { doCalculateGn(c1, c2, rsq, r, k, maxn, w); }
+
     const bool ww;
     const int n;
     const int Wnsize;
@@ -88,15 +94,28 @@ struct BaseMultipoleScratch
     std::vector<double> sumww;
     std::vector<double> sumwwr;
     std::vector<double> sumwwlogr;
+
+protected:
+
+    virtual void doCalculateGn(
+        const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
+        double rsq, double r, int k, int maxn, double w) = 0;
+    virtual void doCalculateGn(
+        const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
+        double rsq, double r, int k, int maxn, double w) = 0;
+    virtual void doCalculateGn(
+        const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
+        double rsq, double r, int k, int maxn, double w) = 0;
+
 };
 
-template <int D1, int D2> struct MultipoleScratch;
+template <int D> struct MultipoleScratch;
 
 // Specializations for different DataTypes:
 //
-// NData, NData doesn't need Gn at all, so the base class does everything already.
+// NData doesn't need Gn at all, so the base class does everything already.
 template <>
-struct MultipoleScratch<NData, NData> : public BaseMultipoleScratch
+struct MultipoleScratch<NData> : public BaseMultipoleScratch
 {
     MultipoleScratch(int nbins, int nubins, bool use_ww) :
         BaseMultipoleScratch(nbins, nubins, use_ww)
@@ -106,11 +125,30 @@ struct MultipoleScratch<NData, NData> : public BaseMultipoleScratch
     {
         return make_unique<MultipoleScratch>(*this);
     }
+
+    template <int C>
+    void calculateGn(
+        const BaseCell<C>& c1, const Cell<NData,C>& c2,
+        double rsq, double r, int k, int maxn, double w);
+
+protected:
+    void doCalculateGn(
+        const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
+        double rsq, double r, int k, int maxn, double w)
+    { calculateGn(c1, static_cast<const Cell<NData,Flat>&>(c2), rsq, r, k, maxn, w); }
+    void doCalculateGn(
+        const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
+        double rsq, double r, int k, int maxn, double w)
+    { calculateGn(c1, static_cast<const Cell<NData,Sphere>&>(c2), rsq, r, k, maxn, w); }
+    void doCalculateGn(
+        const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
+        double rsq, double r, int k, int maxn, double w)
+    { calculateGn(c1, static_cast<const Cell<NData,ThreeD>&>(c2), rsq, r, k, maxn, w); }
 };
 
-// KData, KData needs Gn and sumwwkk
+// KData needs Gn and sumwwkk
 template <>
-struct MultipoleScratch<KData, KData> : public BaseMultipoleScratch
+struct MultipoleScratch<KData> : public BaseMultipoleScratch
 {
     MultipoleScratch(int nbins, int nubins, bool use_ww) :
         BaseMultipoleScratch(nbins, nubins, use_ww),
@@ -139,11 +177,30 @@ struct MultipoleScratch<KData, KData> : public BaseMultipoleScratch
 
     std::vector<std::complex<double> > Gn;
     std::vector<double> sumwwkk;
+
+    template <int C>
+    void calculateGn(
+        const BaseCell<C>& c1, const Cell<KData,C>& c2,
+        double rsq, double r, int k, int maxn, double w);
+
+protected:
+    void doCalculateGn(
+        const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
+        double rsq, double r, int k, int maxn, double w)
+    { calculateGn(c1, static_cast<const Cell<KData,Flat>&>(c2), rsq, r, k, maxn, w); }
+    void doCalculateGn(
+        const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
+        double rsq, double r, int k, int maxn, double w)
+    { calculateGn(c1, static_cast<const Cell<KData,Sphere>&>(c2), rsq, r, k, maxn, w); }
+    void doCalculateGn(
+        const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
+        double rsq, double r, int k, int maxn, double w)
+    { calculateGn(c1, static_cast<const Cell<KData,ThreeD>&>(c2), rsq, r, k, maxn, w); }
 };
 
-// GData, GData needs a bigger Gn and several extra ww arrays.
+// GData needs a bigger Gn and several extra ww arrays.
 template <>
-struct MultipoleScratch<GData, GData> : public BaseMultipoleScratch
+struct MultipoleScratch<GData> : public BaseMultipoleScratch
 {
     MultipoleScratch(int nbins, int nubins, bool use_ww) :
         BaseMultipoleScratch(nbins, nubins, use_ww),
@@ -179,13 +236,32 @@ struct MultipoleScratch<GData, GData> : public BaseMultipoleScratch
             }
         }
     }
- 
+
     const int Gnsize;
 
     std::vector<std::complex<double> > Gn;
     std::vector<std::complex<double> > sumwwgg0;
     std::vector<std::complex<double> > sumwwgg1;
     std::vector<std::complex<double> > sumwwgg2;
+
+    template <int C>
+    void calculateGn(
+        const BaseCell<C>& c1, const Cell<GData,C>& c2,
+        double rsq, double r, int k, int maxn, double w);
+
+protected:
+    void doCalculateGn(
+        const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
+        double rsq, double r, int k, int maxn, double w)
+    { calculateGn(c1, static_cast<const Cell<GData,Flat>&>(c2), rsq, r, k, maxn, w); }
+    void doCalculateGn(
+        const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
+        double rsq, double r, int k, int maxn, double w)
+    { calculateGn(c1, static_cast<const Cell<GData,Sphere>&>(c2), rsq, r, k, maxn, w); }
+    void doCalculateGn(
+        const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
+        double rsq, double r, int k, int maxn, double w)
+    { calculateGn(c1, static_cast<const Cell<GData,ThreeD>&>(c2), rsq, r, k, maxn, w); }
 };
 
 #endif

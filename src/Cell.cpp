@@ -228,17 +228,9 @@ std::complex<double> SimpleSum(
     for(size_t i=start;i<end;++i) {
         const CellData<D,Flat>* vdata_g =
             static_cast<const CellData<D,Flat>*>(vdata[i].first);
-        sum_wg += vdata_g->getWG();
+        sum_wg += vdata_g->getWZ();
     }
     return sum_wg;
-}
-
-template <>
-void CellData<GData,Flat>::finishAverages(
-    const std::vector<std::pair<BaseCellData<Flat>*,WPosLeafInfo> >& vdata,
-    size_t start, size_t end)
-{
-    setWG(SimpleSum<GData>(vdata, start, end));
 }
 
 template <>
@@ -250,11 +242,19 @@ void CellData<ZData,Flat>::finishAverages(
 }
 
 template <>
+void CellData<GData,Flat>::finishAverages(
+    const std::vector<std::pair<BaseCellData<Flat>*,WPosLeafInfo> >& vdata,
+    size_t start, size_t end)
+{
+    setWZ(SimpleSum<GData>(vdata, start, end));
+}
+
+template <>
 void CellData<VData,Flat>::finishAverages(
     const std::vector<std::pair<BaseCellData<Flat>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end)
 {
-    setWV(SimpleSum<VData>(vdata, start, end));
+    setWZ(SimpleSum<VData>(vdata, start, end));
 }
 
 template <>
@@ -262,7 +262,7 @@ void CellData<TData,Flat>::finishAverages(
     const std::vector<std::pair<BaseCellData<Flat>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end)
 {
-    setWT(SimpleSum<TData>(vdata, start, end));
+    setWZ(SimpleSum<TData>(vdata, start, end));
 }
 
 template <>
@@ -270,7 +270,7 @@ void CellData<QData,Flat>::finishAverages(
     const std::vector<std::pair<BaseCellData<Flat>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end)
 {
-    setWQ(SimpleSum<QData>(vdata, start, end));
+    setWZ(SimpleSum<QData>(vdata, start, end));
 }
 
 // C here is either ThreeD or Sphere
@@ -285,8 +285,8 @@ std::complex<double> ParallelTransportSum(
     std::complex<double> sum_wg=0.;
     Position<Sphere> cen(center);
     for(size_t i=start;i<end;++i) {
-        const CellData<GData,C>* vdata_g = static_cast<const CellData<GData,C>*>(vdata[i].first);
-        xxdbg<<"Project shear "<<(vdata_g->getWG()/vdata_g->getW())<<
+        const CellData<D,C>* vdata_g = static_cast<const CellData<D,C>*>(vdata[i].first);
+        xxdbg<<"Project shear "<<(vdata_g->getWZ()/vdata_g->getW())<<
             " at point "<<vdata_g->getPos()<<std::endl;
         // This is a lot like the ProjectHelper<Sphere>::calculate_direction function.
         // The difference is that here, we just rotate the single shear by
@@ -300,7 +300,7 @@ std::complex<double> ParallelTransportSum(
         if (dsq < 1.e-12) {
             // i.e. d < 1.e-6 radians = 0.2 arcsec
             // Then this point is at the center, no need to project.
-            sum_wg += vdata_g->getWG();
+            sum_wg += vdata_g->getWZ();
         } else {
             double cosA = (z1 - z2) + 0.5 * z2 * dsq;
             double sinA = cen.getY()*pi.getX() - cen.getX()*pi.getY();
@@ -314,29 +314,13 @@ std::complex<double> ParallelTransportSum(
             double sinbeta = sinA * cosB + cosA * sinB;
             std::complex<double> expibeta(cosbeta, sinbeta);
             std::complex<double> expmsibeta = _expmsialpha<D>(expibeta);
-            sum_wg += vdata_g->getWG() * expmsibeta;
+            sum_wg += vdata_g->getWZ() * expmsibeta;
         }
     }
     return sum_wg;
 }
 
 // These two need to do the same thing, so pull it out into the above function.
-template <>
-void CellData<GData,ThreeD>::finishAverages(
-    const std::vector<std::pair<BaseCellData<ThreeD>*,WPosLeafInfo> >& vdata,
-    size_t start, size_t end)
-{
-    setWG(ParallelTransportSum<GData>(vdata,_pos,start,end));
-}
-
-template <>
-void CellData<GData,Sphere>::finishAverages(
-    const std::vector<std::pair<BaseCellData<Sphere>*,WPosLeafInfo> >& vdata,
-    size_t start, size_t end)
-{
-    setWG(ParallelTransportSum<GData>(vdata,_pos,start,end));
-}
-
 template <>
 void CellData<ZData,ThreeD>::finishAverages(
     const std::vector<std::pair<BaseCellData<ThreeD>*,WPosLeafInfo> >& vdata,
@@ -354,11 +338,27 @@ void CellData<ZData,Sphere>::finishAverages(
 }
 
 template <>
+void CellData<GData,ThreeD>::finishAverages(
+    const std::vector<std::pair<BaseCellData<ThreeD>*,WPosLeafInfo> >& vdata,
+    size_t start, size_t end)
+{
+    setWZ(ParallelTransportSum<GData>(vdata,_pos,start,end));
+}
+
+template <>
+void CellData<GData,Sphere>::finishAverages(
+    const std::vector<std::pair<BaseCellData<Sphere>*,WPosLeafInfo> >& vdata,
+    size_t start, size_t end)
+{
+    setWZ(ParallelTransportSum<GData>(vdata,_pos,start,end));
+}
+
+template <>
 void CellData<VData,ThreeD>::finishAverages(
     const std::vector<std::pair<BaseCellData<ThreeD>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end)
 {
-    setWV(ParallelTransportSum<VData>(vdata,_pos,start,end));
+    setWZ(ParallelTransportSum<VData>(vdata,_pos,start,end));
 }
 
 template <>
@@ -366,7 +366,7 @@ void CellData<VData,Sphere>::finishAverages(
     const std::vector<std::pair<BaseCellData<Sphere>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end)
 {
-    setWV(ParallelTransportSum<VData>(vdata,_pos,start,end));
+    setWZ(ParallelTransportSum<VData>(vdata,_pos,start,end));
 }
 
 template <>
@@ -374,7 +374,7 @@ void CellData<TData,ThreeD>::finishAverages(
     const std::vector<std::pair<BaseCellData<ThreeD>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end)
 {
-    setWT(ParallelTransportSum<TData>(vdata,_pos,start,end));
+    setWZ(ParallelTransportSum<TData>(vdata,_pos,start,end));
 }
 
 template <>
@@ -382,7 +382,7 @@ void CellData<TData,Sphere>::finishAverages(
     const std::vector<std::pair<BaseCellData<Sphere>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end)
 {
-    setWT(ParallelTransportSum<TData>(vdata,_pos,start,end));
+    setWZ(ParallelTransportSum<TData>(vdata,_pos,start,end));
 }
 
 template <>
@@ -390,7 +390,7 @@ void CellData<QData,ThreeD>::finishAverages(
     const std::vector<std::pair<BaseCellData<ThreeD>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end)
 {
-    setWQ(ParallelTransportSum<QData>(vdata,_pos,start,end));
+    setWZ(ParallelTransportSum<QData>(vdata,_pos,start,end));
 }
 
 template <>
@@ -398,7 +398,7 @@ void CellData<QData,Sphere>::finishAverages(
     const std::vector<std::pair<BaseCellData<Sphere>*,WPosLeafInfo> >& vdata,
     size_t start, size_t end)
 {
-    setWQ(ParallelTransportSum<QData>(vdata,_pos,start,end));
+    setWZ(ParallelTransportSum<QData>(vdata,_pos,start,end));
 }
 
 

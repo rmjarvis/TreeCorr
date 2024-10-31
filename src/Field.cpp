@@ -134,11 +134,11 @@ struct CellDataHelper
             C==Flat ? (
                 D == NData ? 0 :
                 D == KData ? 1 :
-                D >= GData ? 2 : -1 )
+                D >= ZData ? 2 : -1 )
             : (
                 D == NData ? 3 :
                 D == KData ? 4 :
-                D >= GData ? 5 : -1 );
+                D >= ZData ? 5 : -1 );
         return CellDataHelper2<algo,D,C>::build(x,y,z,d1,d2,w);
     }
 };

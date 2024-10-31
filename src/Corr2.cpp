@@ -421,7 +421,7 @@ struct DirectHelper2<2,NData,D2>
         const Cell<NData,C>& c1, const Cell<D2,C>& c2, const double rsq,
         XiData<NData,D2>& xi, int k, int )
     {
-        std::complex<double> g2 = c2.getData().getWG();
+        std::complex<double> g2 = c2.getData().getWZ();
         ProjectHelper<C>::Project(c1,c2,g2);
         // For GData only, we multiply by -1, because the standard thing to accumulate is
         // the tangential shear, rather than radial.  Everyone else accumulates the radial
@@ -511,7 +511,7 @@ struct DirectHelper2<4,KData,D2>
         const Cell<KData,C>& c1, const Cell<D2,C>& c2, const double rsq,
         XiData<KData,D2>& xi, int k, int )
     {
-        std::complex<double> g2 = c2.getData().getWG();
+        std::complex<double> g2 = c2.getData().getWZ();
         ProjectHelper<C>::Project(c1,c2,g2);
         if (D2 == GData) g2 *= -c1.getData().getWK();
         else g2 *= c1.getData().getWK();
@@ -528,8 +528,8 @@ struct DirectHelper2<5,D1,D2>
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double rsq,
         XiData<D1,D2>& xi, int k, int k2)
     {
-        std::complex<double> g1 = c1.getData().getWG();
-        std::complex<double> g2 = c2.getData().getWG();
+        std::complex<double> g1 = c1.getData().getWZ();
+        std::complex<double> g2 = c2.getData().getWZ();
         ProjectHelper<C>::Project(c1,c2,g1,g2);
 
         // The complex products g1 g2 and g1 g2* share most of the calculations,
@@ -569,10 +569,10 @@ struct DirectHelper
         const int algo =
             (D1 == NData && D2 == NData) ? 0 :
             (D1 == NData && (D2==KData || D2==ZData)) ? 1 :
-            (D1 == NData && D2 >= GData) ? 2 :
+            (D1 == NData && D2 >= VData) ? 2 :
             (D1 == KData && (D2==KData || D2==ZData)) ? 3 :
-            (D1 == KData && D2 >= GData) ? 4 :
-            (D1 >= GData && D2 >= GData) ? 5 : -1;
+            (D1 == KData && D2 >= VData) ? 4 :
+            (D1 >= ZData && D2 >= ZData) ? 5 : -1;
 
         DirectHelper2<algo,D1,D2>::template ProcessXi<R>(c1,c2,rsq,xi,k,k2);
     }

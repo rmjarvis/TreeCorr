@@ -1143,6 +1143,26 @@ class Corr3(object):
             # NNNCorrelation needs to add the tot value
             self._add_tot(ijj, c1, c2, c2)
 
+    def _single_process21(self, c1, c2, iij, metric, ordered, num_threads, temp, force_write):
+        # Helper function for _process_all_cross21, etc. for doing 21 cross pairs
+        temp._clear()
+
+        if c1 is not None and not self._trivially_zero(c1,c1,c2):
+            self.logger.info('Process patches %s cross21',iij)
+            temp.process_cross21(c1, c2, metric=metric, ordered=ordered, num_threads=num_threads)
+        else:
+            self.logger.info('Skipping %s pair, which are too far apart ' +
+                             'for this set of separations',iij)
+        if temp.nonzero or force_write:
+            if iij in self.results and self.results[iij].nonzero:
+                self.results[iij] += temp
+            else:
+                self.results[iij] = temp.copy()
+            self += temp
+        else:
+            # NNNCorrelation needs to add the tot value
+            self._add_tot(iij, c1, c1, c2)
+
     def _single_process123(self, c1, c2, c3, ijk, metric, ordered, num_threads, temp, force_write):
         # Helper function for _process_all_auto, etc. for doing 123 cross triples
         temp._clear()
@@ -1407,6 +1427,116 @@ class Corr3(object):
                         self += temp
                         self.results.update(temp.results)
 
+    def _process_all_cross21(self, cat1, cat2, metric, ordered, num_threads, comm, low_mem, local):
+
+        def is_my_job(my_indices, i, j, k, n1, n2):
+            # Helper function to figure out if a given (i,j,k) job should be done on the
+            # current process.
+
+            # Always my job if not using MPI.
+            if my_indices is None:
+                return True
+
+            # If n1 is n, then this can be simple.  Just split according to i.
+            n = max(n1,n2)
+            if n1 == n:
+                if i in my_indices:
+                    self.logger.info("Rank %d: Job (%d,%d,%d) is mine.",rank,i,j,k)
+                    return True
+                else:
+                    return False
+
+            # If not, then this looks like the decision for 2pt auto using j,k.
+            if j in my_indices and k in my_indices:
+                self.logger.info("Rank %d: Job (%d,%d,%d) is mine.",rank,i,j,k)
+                return True
+
+            if j not in my_indices and k not in my_indices:
+                return False
+
+            if k-j < n//2:
+                ret = j % 2 == (0 if j in my_indices else 1)
+            else:
+                ret = k % 2 == (0 if k in my_indices else 1)
+            if ret:
+                self.logger.info("Rank %d: Job (%d,%d,%d) is mine.",rank,i,j,k)
+            return ret
+
+        if len(cat1) == 1 and len(cat2) == 1 and cat1[0].npatch == 1 and cat2[0].npatch == 1:
+            self.process_cross21(cat1[0], cat2[0], metric=metric, ordered=ordered,
+                                 num_threads=num_threads)
+        else:
+            # When patch processing, keep track of the pair-wise results.
+            if self.npatch1 == 1:
+                self.npatch1 = cat1[0].npatch if cat1[0].npatch != 1 else len(cat1)
+                self.npatch2 = self.npatch1
+            if self.npatch3 == 1:
+                self.npatch3 = cat2[0].npatch if cat2[0].npatch != 1 else len(cat2)
+            if self.npatch1 != self.npatch3 and self.npatch1 != 1 and self.npatch3 != 1:
+                raise RuntimeError("Cross correlation requires both catalogs use the same patches.")
+
+            # Setup for deciding when this is my job.
+            n1 = self.npatch1
+            n2 = self.npatch3
+            if comm:
+                size = comm.Get_size()
+                rank = comm.Get_rank()
+                n = max(n1,n2)
+                my_indices = np.arange(n * rank // size, n * (rank+1) // size)
+                self.logger.info("Rank %d: My indices are %s",rank,my_indices)
+            else:
+                my_indices = None
+
+            self._set_metric(metric, cat1[0].coords)
+            temp = self.copy()
+            temp.results = {}
+            ordered1 = 2 if (ordered or self._letter1 != self._letter3) else 0
+
+            if local:
+                for kk,c3 in enumerate(cat2):
+                    k = c3._single_patch if c3._single_patch is not None else kk
+                    if is_my_job(my_indices, k, k, k, n1, n2):
+                        c1e = self._make_expanded_patch(c3, cat1, metric, low_mem)
+                        self.logger.info('Process patch %d with surrounding local patches',k)
+                        self._single_process21(c1e, c3, (k,k,k), metric, 2,
+                                               num_threads, temp, True)
+                        if low_mem:
+                            c3.unload()
+            else:
+                for ii,c1 in enumerate(cat1):
+                    i = c1._single_patch if c1._single_patch is not None else ii
+                    for kk,c3 in enumerate(cat2):
+                        k = c3._single_patch if c3._single_patch is not None else kk
+                        if is_my_job(my_indices, i, i, k, n1, n2):
+                            self._single_process21(c1, c3, (i,i,k), metric, ordered,
+                                                   num_threads, temp,
+                                                   (i==k or n1==1 or n2==1))
+                        # One point in each of c1, c2, c3
+                        for jj,c2 in list(enumerate(cat1))[::-1]:
+                            j = c2._single_patch if c2._single_patch is not None else jj
+                            if i < j and is_my_job(my_indices, i, j, k, n1, n2):
+                                self._single_process123(c1, c2, c3, (i,j,k), metric, ordered1,
+                                                        num_threads, temp, False)
+                                if low_mem and jj != ii+1:
+                                    # Don't unload i+1, since that's the next one we'll need.
+                                    c2.unload()
+                        if low_mem:
+                            c3.unload()
+                    if low_mem:
+                        c1.unload()
+            if comm is not None:
+                rank = comm.Get_rank()
+                size = comm.Get_size()
+                self.logger.info("Rank %d: Completed jobs %s",rank,list(self.results.keys()))
+                # Send all the results back to rank 0 process.
+                if rank > 0:
+                    comm.send(self, dest=0)
+                else:
+                    for p in range(1,size):
+                        temp = comm.recv(source=p)
+                        self += temp
+                        self.results.update(temp.results)
+
     def _process_all_cross(self, cat1, cat2, cat3, metric, ordered, num_threads, comm, low_mem,
                            local):
 
@@ -1558,6 +1688,7 @@ class Corr3(object):
 
     def _process_auto(self, cat, metric=None, num_threads=None):
         # The implementation is the same for all classes that can call this.
+        assert self._letter1 == self._letter2 == self._letter3
         if cat.name == '':
             self.logger.info(f'Starting process {self._letters} auto-correlations')
         else:
@@ -1578,6 +1709,7 @@ class Corr3(object):
         self.corr.processAuto(field.data, self.output_dots, self._metric)
 
     def _process_cross12(self, cat1, cat2, metric=None, ordered=True, num_threads=None):
+        assert self._letter2 == self._letter3
         if cat1.name == '' and cat2.name == '':
             self.logger.info('Starting process %s (1-2) cross-correlations', self._letters)
         else:
@@ -1589,7 +1721,7 @@ class Corr3(object):
         min_size, max_size = self._get_minmax_size()
 
         getField1 = getattr(cat1, f"get{self._letter1}Field")
-        getField2 = getattr(cat2, f"get{self._letter2}Field")
+        getField2 = getattr(cat2, f"get{self._letter3}Field")
         f1 = getField1(min_size=min_size, max_size=max_size,
                        split_method=self.split_method,
                        brute=self.brute is True or self.brute == 1,
@@ -1602,10 +1734,37 @@ class Corr3(object):
                        coords=self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        # Note: all 3 correlation objects are the same.  Thus, all triangles will be placed
-        # into self.corr, whichever way the three catalogs are permuted for each triangle.
-        self.corr.processCross12(f1.data, f2.data, (1 if ordered else 0),
-                                 self.output_dots, self._metric)
+        ocode = 1 if ordered or self._letter1 != self._letter2 else 0
+        self.corr.processCross12(f1.data, f2.data, ocode, self.output_dots, self._metric)
+
+    def _process_cross21(self, cat1, cat2, metric=None, ordered=True, num_threads=None):
+        assert self._letter1 == self._letter2
+        if cat1.name == '' and cat2.name == '':
+            self.logger.info('Starting process %s (2-1) cross-correlations', self._letters)
+        else:
+            self.logger.info('Starting process %s (2-1) cross-correlations for cats %s, %s.',
+                             self._letters, cat1.name, cat2.name)
+
+        self._set_metric(metric, cat1.coords, cat2.coords)
+        self._set_num_threads(num_threads)
+        min_size, max_size = self._get_minmax_size()
+
+        getField1 = getattr(cat1, f"get{self._letter1}Field")
+        getField2 = getattr(cat2, f"get{self._letter3}Field")
+        f1 = getField1(min_size=min_size, max_size=max_size,
+                       split_method=self.split_method,
+                       brute=self.brute is True or self.brute == 1,
+                       min_top=self.min_top, max_top=self.max_top,
+                       coords=self.coords)
+        f2 = getField2(min_size=min_size, max_size=max_size,
+                       split_method=self.split_method,
+                       brute=self.brute is True or self.brute == 2,
+                       min_top=self.min_top, max_top=self.max_top,
+                       coords=self.coords)
+
+        self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
+        ocode = 2 if ordered or self._letter2 != self._letter3 else 0
+        self.corr.processCross21(f1.data, f2.data, ocode, self.output_dots, self._metric)
 
     def process_cross(self, cat1, cat2, cat3, *, metric=None, ordered=True, num_threads=None):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
@@ -1658,8 +1817,6 @@ class Corr3(object):
                        coords=self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        # Note: all 6 correlation objects are the same.  Thus, all triangles will be placed
-        # into self.corr, whichever way the three catalogs are permuted for each triangle.
         self.corr.processCross(f1.data, f2.data, f3.data,
                                (3 if ordered is True else 1 if ordered == 1 else 0),
                                self.output_dots, self._metric)
@@ -1769,12 +1926,20 @@ class Corr3(object):
             self.clear()
 
         if cat2 is None:
+            if not self._letter1 == self._letter2 == self._letter3:
+                raise ValueError("{} cannot use one catalog version of process".format(self._letters))
             if cat3 is not None:
                 raise ValueError("For two catalog case, use cat1,cat2, not cat1,cat3")
             self._process_all_auto(cat1, metric, num_threads, comm, low_mem, local)
         elif cat3 is None:
-            self._process_all_cross12(cat1, cat2, metric, ordered, num_threads, comm, low_mem,
-                                      local)
+            if self._letter2 == self._letter3:
+                self._process_all_cross12(cat1, cat2, metric, ordered, num_threads, comm, low_mem,
+                                          local)
+            elif self._letter1 == self._letter2:
+                self._process_all_cross21(cat1, cat2, metric, ordered, num_threads, comm, low_mem,
+                                          local)
+            else:
+                raise ValueError("{} cannot use two catalog version of process".format(self._letters))
         else:
             self._process_all_cross(cat1, cat2, cat3, metric, ordered, num_threads, comm, low_mem,
                                     local)

@@ -215,7 +215,7 @@ class KKGCorrelation(Corr3):
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
         """
-        super()._process_cross12(cat1, cat2, metric, ordered, num_threads)
+        super()._process_cross21(cat1, cat2, metric, ordered, num_threads)
 
     def finalize(self, vark1, vark2, varg):
         """Finalize the calculation of the correlation function.

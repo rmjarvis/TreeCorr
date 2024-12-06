@@ -56,12 +56,14 @@ public:
     { return _d1 == c1.getD() && _d2 == c2.getD() && _d3 == c3.getD(); }
 
     template <int B, int M, int C>
-    void process(const BaseField<C>& field, bool dots);
+    void process3(const BaseField<C>& field, bool dots);
     template <int B, int O, int M, int C>
-    void process(const BaseField<C>& field1, const BaseField<C>& field2, bool dots);
+    void process12(const BaseField<C>& field1, const BaseField<C>& field2, bool dots);
     template <int B, int O, int M, int C>
-    void process(const BaseField<C>& field1, const BaseField<C>& field2,
-                 const BaseField<C>& field3, bool dots);
+    void process21(const BaseField<C>& field1, const BaseField<C>& field2, bool dots);
+    template <int B, int O, int M, int C>
+    void process111(const BaseField<C>& field1, const BaseField<C>& field2,
+                    const BaseField<C>& field3, bool dots);
 
     template <int B, int M, int C>
     void multipole(const BaseField<C>& field, bool dots);
@@ -77,6 +79,8 @@ public:
 
     template <int B, int O, int M, int C>
     void process12(const BaseCell<C>& c1, const BaseCell<C>& c2, const MetricHelper<M,0>& metric);
+    template <int B, int O, int M, int C>
+    void process21(const BaseCell<C>& c1, const BaseCell<C>& c2, const MetricHelper<M,0>& metric);
 
     template <int B, int orderd, int M, int C>
     void process111(const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,

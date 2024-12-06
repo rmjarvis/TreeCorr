@@ -287,9 +287,8 @@ def test_direct_logruv_cross():
 
 
 @timer
-def test_direct_logruv_cross12():
-    # Check the 1-2 cross correlation
-    return()
+def test_direct_logruv_cross21():
+    # Check the 2-1 cross correlation
 
     ngal = 50
     s = 10.
@@ -304,9 +303,8 @@ def test_direct_logruv_cross12():
     x2 = rng.normal(0,s, (ngal,) )
     y2 = rng.normal(0,s, (ngal,) )
     w2 = rng.random_sample(ngal)
-    g1_2 = rng.normal(0,sig_gam, (ngal,) )
-    g2_2 = rng.normal(0,sig_gam, (ngal,) )
-    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2)
+    k2 = rng.normal(0,sig_gam, (ngal,) )
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2)
 
     min_sep = 1.
     bin_size = 0.2
@@ -322,9 +320,8 @@ def test_direct_logruv_cross12():
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   brute=True, bin_type='LogRUV')
-    kkg.process(cat1, cat2, num_threads=2)
+    kkg.process(cat2, cat2, cat1, num_threads=1)
 
-    # Figure out the correct answer for each permutation
     true_ntri_122 = np.zeros((nrbins, nubins, 2*nvbins))
     true_ntri_212 = np.zeros((nrbins, nubins, 2*nvbins))
     true_ntri_221 = np.zeros((nrbins, nubins, 2*nvbins))
@@ -355,14 +352,8 @@ def test_direct_logruv_cross12():
 
                 expmialpha1 = (x1[i]-cenx) - 1j*(y1[i]-ceny)
                 expmialpha1 /= abs(expmialpha1)
-                expmialpha2 = (x2[j]-cenx) - 1j*(y2[j]-ceny)
-                expmialpha2 /= abs(expmialpha2)
-                expmialpha3 = (x2[k]-cenx) - 1j*(y2[k]-ceny)
-                expmialpha3 /= abs(expmialpha3)
 
                 g1p = (g1_1[i] + 1j*g2_1[i]) * expmialpha1**2
-                g2p = (g1_2[j] + 1j*g2_2[j]) * expmialpha2**2
-                g3p = (g1_2[k] + 1j*g2_2[k]) * expmialpha3**2
 
                 if dij < dik:
                     if dik < djk:
@@ -372,34 +363,29 @@ def test_direct_logruv_cross12():
                         true_weight = true_weight_122
                     elif dij < djk:
                         d3 = dij; d2 = djk; d1 = dik
-                        g1p, g2p, g3p = g2p, g1p, g3p
                         true_ntri = true_ntri_212
                         true_zeta = true_zeta_212
                         true_weight = true_weight_212
                         ccw = not ccw
                     else:
                         d3 = djk; d2 = dij; d1 = dik
-                        g1p, g2p, g3p = g2p, g3p, g1p
                         true_ntri = true_ntri_221
                         true_zeta = true_zeta_221
                         true_weight = true_weight_221
                 else:
                     if dij < djk:
                         d3 = dik; d2 = dij; d1 = djk
-                        g1p, g2p, g3p = g1p, g3p, g2p
                         true_ntri = true_ntri_122
                         true_zeta = true_zeta_122
                         true_weight = true_weight_122
                         ccw = not ccw
                     elif dik < djk:
                         d3 = dik; d2 = djk; d1 = dij
-                        g1p, g2p, g3p = g3p, g1p, g2p
                         true_ntri = true_ntri_212
                         true_zeta = true_zeta_212
                         true_weight = true_weight_212
                     else:
                         d3 = djk; d2 = dik; d1 = dij
-                        g1p, g2p, g3p = g3p, g2p, g1p
                         true_ntri = true_ntri_221
                         true_zeta = true_zeta_221
                         true_weight = true_weight_221
@@ -424,50 +410,30 @@ def test_direct_logruv_cross12():
                 assert 0 <= kv < 2*nvbins
 
                 www = w1[i] * w2[j] * w2[k]
-                zeta = www * g1p * g2p * g3p
+                zeta = www * g1p * k2[j] * k2[k]
 
                 true_ntri[kr,ku,kv] += 1
                 true_weight[kr,ku,kv] += www
                 true_zeta[kr,ku,kv] += zeta
 
-    n_list = [true_ntri_122, true_ntri_212, true_ntri_221]
-    w_list = [true_weight_122, true_weight_212, true_weight_221]
-    g0_list = [true_zeta_122, true_zeta_212, true_zeta_221]
+    pos = true_weight_221 > 0
+    true_zeta_221[pos] /= true_weight_221[pos]
 
-    true_ntri_sum = sum(n_list)
-    true_weight_sum = sum(w_list)
-    true_zeta_sum = sum(g0_list)
-    pos = true_weight_sum > 0
-    true_zeta_sum[pos] /= true_weight_sum[pos]
-
-    # Now normalize each one individually.
-    for w,g0,g1,g2,g3 in zip(w_list, g0_list, g1_list, g2_list, g3_list):
-        pos = w > 0
-        g0[pos] /= w[pos]
-        g1[pos] /= w[pos]
-        g2[pos] /= w[pos]
-        g3[pos] /= w[pos]
-
-    # With ordered=True we get just the ones in the given order.
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_122)
-    np.testing.assert_allclose(kkg.weight, true_weight_122, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_122, rtol=1.e-5)
-    kkg.process(cat2, cat1, cat2)
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_212)
-    np.testing.assert_allclose(kkg.weight, true_weight_212, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_212, rtol=1.e-5)
-    kkg.process(cat2, cat2, cat1)
     np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
     np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
 
-    # With ordered=False, we end up with the sum of all permutations.
-    kkg.process(cat1, cat2, ordered=False)
-    #print('true_ntri = ',true_ntri_sum)
-    #print('diff = ',kkg.ntri - true_ntri_sum)
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_sum)
-    np.testing.assert_allclose(kkg.weight, true_weight_sum, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_sum, rtol=1.e-5)
+    # Repeat with only 2 cat arguments
+    kkg.process(cat2, cat1)
+    np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
+    np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
+
+    # ordered=False doesn't do anything different, since there is no other valid order.
+    kkg.process(cat2, cat1, ordered=False)
+    np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
+    np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
 
     # Repeat with binslop = 0
     kkg = treecorr.KKGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
@@ -475,15 +441,15 @@ def test_direct_logruv_cross12():
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=0, verbose=1, bin_type='LogRUV')
 
-    kkg.process(cat1, cat2, ordered=True)
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_122)
-    np.testing.assert_allclose(kkg.weight, true_weight_122, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_122, rtol=1.e-5)
+    kkg.process(cat2, cat1, ordered=True)
+    np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
+    np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
 
-    kkg.process(cat1, cat2, ordered=False)
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_sum)
-    np.testing.assert_allclose(kkg.weight, true_weight_sum, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_sum, rtol=1.e-5)
+    kkg.process(cat2, cat1, ordered=False)
+    np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
+    np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
 
     # And again with no top-level recursion
     kkg = treecorr.KKGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
@@ -491,39 +457,39 @@ def test_direct_logruv_cross12():
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=0, verbose=1, max_top=0, bin_type='LogRUV')
 
-    kkg.process(cat1, cat2, ordered=True)
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_122)
-    np.testing.assert_allclose(kkg.weight, true_weight_122, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_122, rtol=1.e-5)
+    kkg.process(cat2, cat1, ordered=True)
+    np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
+    np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
 
-    kkg.process(cat1, cat2, ordered=False)
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_sum)
-    np.testing.assert_allclose(kkg.weight, true_weight_sum, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_sum, rtol=1.e-5)
+    kkg.process(cat2, cat1, ordered=False)
+    np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
+    np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
 
     # Split into patches to test the list-based version of the code.
     cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=3, rng=rng)
-    cat2p = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2, patch_centers=cat1p.patch_centers)
+    cat2p = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2, patch_centers=cat1p.patch_centers)
 
-    kkg.process(cat1p, cat2p, ordered=True)
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_122)
-    np.testing.assert_allclose(kkg.weight, true_weight_122, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_122, rtol=1.e-5)
+    kkg.process(cat2p, cat1p, ordered=True)
+    np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
+    np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
 
-    kkg.process(cat1p, cat2p, ordered=False)
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_sum)
-    np.testing.assert_allclose(kkg.weight, true_weight_sum, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_sum, rtol=1.e-5)
+    kkg.process(cat2p, cat1p, ordered=False)
+    np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
+    np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
 
-    kkg.process(cat1p, cat2p, ordered=True, patch_method='local')
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_122)
-    np.testing.assert_allclose(kkg.weight, true_weight_122, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_122, rtol=1.e-5)
+    kkg.process(cat2p, cat1p, ordered=True, patch_method='local')
+    np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
+    np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
 
-    kkg.process(cat1p, cat2p, ordered=False, patch_method='local')
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_sum)
-    np.testing.assert_allclose(kkg.weight, true_weight_sum, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_sum, rtol=1.e-5)
+    kkg.process(cat2p, cat1p, ordered=False, patch_method='local')
+    np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
+    np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
 
 
 @timer
@@ -900,7 +866,7 @@ def test_direct_logsas_cross():
 
 
 @timer
-def test_direct_logsas_cross12():
+def test_direct_logsas_cross21():
     # Check the 2-1 cross correlation
     return()
 
@@ -931,15 +897,15 @@ def test_direct_logsas_cross12():
     kkg.process(cat1, cat2, num_threads=2, algo='triangle')
 
     # Figure out the correct answer for each permutation
-    true_ntri_122 = np.zeros((nbins, nbins, nphi_bins))
-    true_ntri_212 = np.zeros((nbins, nbins, nphi_bins))
-    true_ntri_221 = np.zeros((nbins, nbins, nphi_bins))
-    true_zeta_122 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
-    true_zeta_212 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
-    true_zeta_221 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
-    true_weight_122 = np.zeros((nbins, nbins, nphi_bins))
-    true_weight_212 = np.zeros((nbins, nbins, nphi_bins))
-    true_weight_221 = np.zeros((nbins, nbins, nphi_bins))
+    true_ntri_112 = np.zeros((nbins, nbins, nphi_bins))
+    true_ntri_211 = np.zeros((nbins, nbins, nphi_bins))
+    true_ntri_121 = np.zeros((nbins, nbins, nphi_bins))
+    true_zeta_112 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
+    true_zeta_211 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
+    true_zeta_121 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
+    true_weight_112 = np.zeros((nbins, nbins, nphi_bins))
+    true_weight_211 = np.zeros((nbins, nbins, nphi_bins))
+    true_weight_121 = np.zeros((nbins, nbins, nphi_bins))
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
     bin_size = (log_max_sep - log_min_sep) / nbins
@@ -949,9 +915,9 @@ def test_direct_logsas_cross12():
         for j in range(ngal):
             for k in range(ngal):
                 if j == k: continue
-                d1 = np.sqrt((x2[j]-x2[k])**2 + (y2[j]-y2[k])**2)
+                d1 = np.sqrt((x1[j]-x2[k])**2 + (y1[j]-y2[k])**2)
                 d2 = np.sqrt((x1[i]-x2[k])**2 + (y1[i]-y2[k])**2)
-                d3 = np.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2)
+                d3 = np.sqrt((x1[i]-x1[j])**2 + (y1[i]-y1[j])**2)
                 if d1 == 0.: continue
                 if d2 == 0.: continue
                 if d3 == 0.: continue
@@ -961,19 +927,17 @@ def test_direct_logsas_cross12():
                 kr3 = int(np.floor( (np.log(d3)-log_min_sep) / bin_size ))
 
                 # Rotate shears to coordinates where line connecting to center is horizontal.
-                cenx = (x1[i] + x2[j] + x2[k])/3.
-                ceny = (y1[i] + y2[j] + y2[k])/3.
+                cenx = (x1[i] + x1[j] + x2[k])/3.
+                ceny = (y1[i] + y1[j] + y2[k])/3.
 
                 expmialpha1 = (x1[i]-cenx) - 1j*(y1[i]-ceny)
                 expmialpha1 /= abs(expmialpha1)
-                expmialpha2 = (x2[j]-cenx) - 1j*(y2[j]-ceny)
+                expmialpha2 = (x1[j]-cenx) - 1j*(y1[j]-ceny)
                 expmialpha2 /= abs(expmialpha2)
                 expmialpha3 = (x2[k]-cenx) - 1j*(y2[k]-ceny)
                 expmialpha3 /= abs(expmialpha3)
 
                 www = w1[i] * w2[j] * w2[k]
-                g1p = (g1_1[i] + 1j*g2_1[i]) * expmialpha1**2
-                g2p = (g1_2[j] + 1j*g2_2[j]) * expmialpha2**2
                 g3p = (g1_2[k] + 1j*g2_2[k]) * expmialpha3**2
                 zeta = www * g1p * g2p * g3p
 
@@ -1353,11 +1317,10 @@ def test_varzeta():
 
 
 if __name__ == '__main__':
-    test_direct_logruv_cross()
-    quit()
-    test_direct_logruv_cross12()
+    #test_direct_logruv_cross()
+    test_direct_logruv_cross21()
     test_varzeta_logruv()
     test_direct_logsas_cross()
-    test_direct_logsas_cross12()
+    test_direct_logsas_cross21()
     test_direct_logmultipole_cross()
     test_varzeta()

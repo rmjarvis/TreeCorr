@@ -231,7 +231,7 @@ void Corr3<D1,D2,D3>::clear()
 }
 
 template <int B, int M, int C>
-void BaseCorr3::process(const BaseField<C>& field, bool dots)
+void BaseCorr3::process3(const BaseField<C>& field, bool dots)
 {
     dbg<<"Start process auto\n";
     reset_ws();
@@ -292,8 +292,8 @@ void BaseCorr3::process(const BaseField<C>& field, bool dots)
 }
 
 template <int B, int O, int M, int C>
-void BaseCorr3::process(const BaseField<C>& field1, const BaseField<C>& field2,
-                        bool dots)
+void BaseCorr3::process12(const BaseField<C>& field1, const BaseField<C>& field2,
+                          bool dots)
 {
     dbg<<"Start process cross12\n";
     reset_ws();
@@ -358,8 +358,74 @@ void BaseCorr3::process(const BaseField<C>& field1, const BaseField<C>& field2,
 }
 
 template <int B, int O, int M, int C>
-void BaseCorr3::process(const BaseField<C>& field1, const BaseField<C>& field2,
-                        const BaseField<C>& field3, bool dots)
+void BaseCorr3::process21(const BaseField<C>& field1, const BaseField<C>& field2,
+                           bool dots)
+{
+    dbg<<"Start process cross21\n";
+    reset_ws();
+    xdbg<<"_coords = "<<_coords<<std::endl;
+    xdbg<<"C = "<<C<<std::endl;
+    Assert(_coords == -1 || _coords == C);
+    _coords = C;
+    const long n1 = field1.getNTopLevel();
+    const long n2 = field2.getNTopLevel();
+    dbg<<"field1 has "<<n1<<" top level nodes\n";
+    dbg<<"field2 has "<<n2<<" top level nodes\n";
+    Assert(n1 > 0);
+    Assert(n2 > 0);
+
+    MetricHelper<M,0> metric(0, 0, _xp, _yp, _zp);
+
+    const std::vector<const BaseCell<C>*>& c1list = field1.getCells();
+    const std::vector<const BaseCell<C>*>& c2list = field2.getCells();
+
+#ifdef _OPENMP
+#pragma omp parallel
+    {
+        // Give each thread their own copy of the data vector to fill in.
+        std::shared_ptr<BaseCorr3> corrp = duplicate();
+        BaseCorr3& corr = *corrp;
+#else
+        BaseCorr3& corr = *this;
+#endif
+
+#ifdef _OPENMP
+#pragma omp for schedule(dynamic)
+#endif
+        for (long k=0;k<n2;++k) {
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+            {
+                if (dots) std::cout<<'.'<<std::flush;
+#ifdef _OPENMP
+                dbg<<omp_get_thread_num()<<" "<<k<<std::endl;
+#endif
+            }
+            const BaseCell<C>& c3 = *c2list[k];
+            for (long i=0;i<n1;++i) {
+                const BaseCell<C>& c1 = *c1list[i];
+                corr.template process21<B,O>(c1, c3, metric);
+                for (long j=i+1;j<n1;++j) {
+                    const BaseCell<C>& c2 = *c1list[j];
+                    corr.template process111<B,O>(c1, c2, c3, metric);
+                }
+            }
+        }
+#ifdef _OPENMP
+        // Accumulate the results
+#pragma omp critical
+        {
+            addData(corr);
+        }
+    }
+#endif
+    if (dots) std::cout<<std::endl;
+}
+
+template <int B, int O, int M, int C>
+void BaseCorr3::process111(const BaseField<C>& field1, const BaseField<C>& field2,
+                           const BaseField<C>& field3, bool dots)
 {
     dbg<<"Start process cross full\n";
     reset_ws();
@@ -529,6 +595,82 @@ void BaseCorr3::process12(const BaseCell<C>& c1, const BaseCell<C>& c2,
 }
 
 template <int B, int O, int M, int C>
+void BaseCorr3::process21(const BaseCell<C>& c1, const BaseCell<C>& c2,
+                          const MetricHelper<M,0>& metric)
+{
+    // Does all triangles with two points in c1 and the other point in c2
+    xdbg<<ws()<<"Process21: c1: "<<c1.getSize()<<"  "<<c1.getW()<<"  c2: "<<c2.getSize()<<"  "<<c2.getW()<<std::endl;
+    xdbg<<"Process21: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getN()<<std::endl;
+    xdbg<<"           c2  = "<<c2.getPos()<<"  "<<c2.getSize()<<"  "<<c2.getN()<<std::endl;
+    xdbg<<ws()<<"Process21: c1 = "<<indices(c1)<<"  c2 = "<<indices(c2)<<"  ordered="<<O<<"\n";
+
+    // ordered=0 means that we don't care which point is called c1, c2, or c3 at the end.
+    // ordered=1 means that c1 must be from the given c1 cell.
+    xdbg<<"ordered = "<<O<<std::endl;
+
+    // Some trivial stoppers:
+    if (c1.getW() == 0) {
+        xdbg<<ws()<<"    w1 == 0.  return\n";
+        return;
+    }
+    if (c2.getW() == 0) {
+        xdbg<<ws()<<"    w2 == 0.  return\n";
+        return;
+    }
+    double s1 = c1.getSize();
+    if (BinTypeHelper<B>::tooSmallS2(s1, _halfminsep, _minu, _minv))
+    {
+        xdbg<<ws()<<"    s1 smaller than minimum triangle side.  return\n";
+        return;
+    }
+
+    double s2 = c2.getSize();
+    double rsq = metric.DistSq(c1.getPos(), c2.getPos(), s1, s2);
+    double s1ps2 = s1 + s2;
+
+    // If all possible triangles will have d2 < minsep, then abort the recursion here.
+    // i.e. if d + s1 + s2 < minsep
+    if (BinTypeHelper<B>::tooSmallDist(rsq, s1ps2, _minsep, _minsepsq)) {
+        xdbg<<ws()<<"    d2 cannot be as large as minsep\n";
+        return;
+    }
+
+    // Similarly, we can abort if all possible triangles will have d > maxsep.
+    // i.e. if  d - s1 - s2 >= maxsep
+    if (BinTypeHelper<B>::tooLargeDist(rsq, s1ps2, _maxsep, _maxsepsq)) {
+        xdbg<<ws()<<"    d cannot be as small as maxsep\n";
+        return;
+    }
+
+    // Depending on the binning, we may be able to stop due to allowed angles.
+    if (BinTypeHelper<B>::template noAllowedAngles<O>(rsq, s1ps2, s2, s1, _halfminsep,
+                                                      _minu, _minusq, _maxu, _maxusq,
+                                                      _minv, _minvsq, _maxv, _maxvsq)) {
+        xdbg<<ws()<<"    No possible triangles with allowed angles\n";
+        return;
+    }
+
+    inc_ws();
+    Assert(c1.getLeft());
+    Assert(c1.getRight());
+    if (s2 > s1) {
+        Assert(c1.getLeft());
+        Assert(c1.getRight());
+        process21<B,O>(*c1.getLeft(), *c2.getLeft(), metric);
+        process21<B,O>(*c1.getLeft(), *c2.getRight(), metric);
+        process21<B,O>(*c1.getRight(), *c2.getLeft(), metric);
+        process21<B,O>(*c1.getRight(), *c2.getRight(), metric);
+        process111<B,O>(*c1.getLeft(), *c1.getRight(), *c2.getLeft(), metric);
+        process111<B,O>(*c1.getLeft(), *c1.getRight(), *c2.getRight(), metric);
+    } else {
+        process21<B,O>(*c1.getLeft(), c2, metric);
+        process21<B,O>(*c1.getRight(), c2, metric);
+        process111<B,O>(*c1.getLeft(), *c1.getRight(), c2, metric);
+    }
+    dec_ws();
+}
+
+template <int B, int O, int M, int C>
 void BaseCorr3::process111(
     const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
     const MetricHelper<M,0>& metric, double d1sq, double d2sq, double d3sq)
@@ -538,6 +680,7 @@ void BaseCorr3::process111(
 
     // ordered=0 means that we don't care which point is called c1, c2, or c3 at the end.
     // ordered=1 means that c1 must be from the given c1 cell.
+    // ordered=2 means that c3 must be from the given c3 cell.
     // ordered=3 means that c1, c2, c3 must be from the given c1,c2,c3 cells respectively.
     xdbg<<"ordered = "<<O<<std::endl;
 
@@ -656,6 +799,23 @@ void BaseCorr3::process111(
             // If can't swap 23, do both ways and switch ordered to 3.
             process111Sorted<B,3>(c1, c2, c3, metric, d1sq, d2sq, d3sq);
             process111Sorted<B,3>(c1, c3, c2, metric, d1sq, d3sq, d2sq);
+        }
+    } else if (O == 2) {
+        if (BinTypeHelper<B>::sort_d123) {
+            // If the BinType allows sorting, but we have c3 fixed, then just check d1,d2.
+            if (d1sq > d2sq) {
+                xdbg<<"123\n";
+                // 123 -> 123
+                process111Sorted<B,O>(c1, c2, c3, metric, d1sq, d2sq, d3sq);
+            } else {
+                xdbg<<"213\n";
+                // 213 -> 123
+                process111Sorted<B,O>(c2, c1, c3, metric, d2sq, d1sq, d3sq);
+            }
+        } else {
+            // If can't swap 12, do both ways and switch ordered to 3.
+            process111Sorted<B,3>(c1, c2, c3, metric, d1sq, d2sq, d3sq);
+            process111Sorted<B,3>(c2, c1, c3, metric, d2sq, d1sq, d3sq);
         }
     } else {
         xdbg<<":nosort\n";
@@ -1927,6 +2087,7 @@ struct DirectHelper3<7,KData,KData,D3>
     {
         std::complex<double> g3 = c3.getWZ();
         ProjectHelper<C>::Project(c1, c2, c3, g3);
+        dbg<<ws()<<"zeta = "<<c1.getWK() * c2.getWK() * g3<<std::endl;
         zeta.zeta[index] += c1.getWK() * c2.getWK() * g3.real();
         zeta.zeta_im[index] += c1.getWK() * c2.getWK() * g3.imag();
     }
@@ -2714,9 +2875,11 @@ void Corr3<D1,D2,D3>::finishProcess(
 {
     double nnn = double(c1.getN()) * c2.getN() * c3.getN();
     _ntri[index] += nnn;
-    xdbg<<ws()<<"Index = "<<index<<", nnn = "<<nnn<<" => "<<_ntri[index]<<std::endl;
+    dbg<<ws()<<"Index = "<<index<<", nnn = "<<nnn<<" => "<<_ntri[index]<<std::endl;
+    dbg<<ws()<<"d = "<<d1<<"  "<<d2<<"  "<<d3<<std::endl;
 
     double www = c1.getW() * c2.getW() * c3.getW();
+    dbg<<ws()<<"www = "<<www<<std::endl;
     _meand1[index] += www * d1;
     _meanlogd1[index] += www * logd1;
     _meand2[index] += www * d2;
@@ -2883,7 +3046,7 @@ void ProcessAutob(BaseCorr3& corr, BaseField<C>& field, bool dots)
         corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(field, dots);
     } else {
 #endif
-        corr.template process<B,ValidMC<M,C>::_M>(field, dots);
+        corr.template process3<B,ValidMC<M,C>::_M>(field, dots);
 #ifndef DIRECT_MULTIPOLE
     }
 #endif
@@ -2950,10 +3113,10 @@ void ProcessCross12b(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2
 #endif
         switch(ordered) {
           case 0:
-               corr.template process<B,0,ValidMC<M,C>::_M>(field1, field2, dots);
+               corr.template process12<B,0,ValidMC<M,C>::_M>(field1, field2, dots);
                break;
           case 1:
-               corr.template process<B,1,ValidMC<M,C>::_M>(field1, field2, dots);
+               corr.template process12<B,1,ValidMC<M,C>::_M>(field1, field2, dots);
                break;
           default:
                Assert(false);
@@ -3003,6 +3166,87 @@ void ProcessCross12(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2,
 }
 
 template <int B, int M, int C>
+void ProcessCross21b(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2,
+                     int ordered, bool dots)
+{
+    Assert((ValidMC<M,C>::_M == M));
+#ifndef DIRECT_MULTIPOLE
+    if (B == LogMultipole) {
+        switch(ordered) {
+          case 0:
+               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+                   field1, field2, field1, dots, 1);
+               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+                   field2, field1, field1, dots, 1);
+               // Drop through.
+          case 2:
+          case 3:
+               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+                   field1, field1, field2, dots, 1);
+               break;
+          default:
+               Assert(false);
+        }
+    } else {
+#endif
+        switch(ordered) {
+          case 0:
+               corr.template process21<B,0,ValidMC<M,C>::_M>(field1, field2, dots);
+               break;
+          case 2:
+               corr.template process21<B,2,ValidMC<M,C>::_M>(field1, field2, dots);
+               break;
+          case 3:
+               corr.template process21<B,3,ValidMC<M,C>::_M>(field1, field2, dots);
+               break;
+          default:
+               Assert(false);
+        }
+#ifndef DIRECT_MULTIPOLE
+    }
+#endif
+}
+
+template <int B, int C>
+void ProcessCross21a(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2,
+                     int ordered, bool dots, Metric metric)
+{
+    switch(metric) {
+      case Euclidean:
+           ProcessCross21b<B,Euclidean>(corr, field1, field2, ordered, dots);
+           break;
+      case Arc:
+           ProcessCross21b<B,Arc>(corr, field1, field2, ordered, dots);
+           break;
+      case Periodic:
+           ProcessCross21b<B,Periodic>(corr, field1, field2, ordered, dots);
+           break;
+      default:
+           Assert(false);
+    }
+}
+
+template <int C>
+void ProcessCross21(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2,
+                    int ordered, bool dots, Metric metric)
+{
+    dbg<<"Start ProcessCross21 "<<corr.getBinType()<<" "<<ordered<<"  "<<metric<<std::endl;
+    switch(corr.getBinType()) {
+      case LogRUV:
+           ProcessCross21a<LogRUV>(corr, field1, field2, ordered, dots, metric);
+           break;
+      case LogSAS:
+           ProcessCross21a<LogSAS>(corr, field1, field2, ordered, dots, metric);
+           break;
+      case LogMultipole:
+           ProcessCross21a<LogMultipole>(corr, field1, field2, ordered, dots, metric);
+           break;
+      default:
+           Assert(false);
+    }
+}
+
+template <int B, int M, int C>
 void ProcessCrossb(BaseCorr3& corr,
                    BaseField<C>& field1, BaseField<C>& field2, BaseField<C>& field3,
                    int ordered, bool dots)
@@ -3032,13 +3276,16 @@ void ProcessCrossb(BaseCorr3& corr,
 #endif
         switch(ordered) {
           case 0:
-               corr.template process<B,0,ValidMC<M,C>::_M>(field1, field2, field3, dots);
+               corr.template process111<B,0,ValidMC<M,C>::_M>(field1, field2, field3, dots);
                break;
           case 1:
-               corr.template process<B,1,ValidMC<M,C>::_M>(field1, field2, field3, dots);
+               corr.template process111<B,1,ValidMC<M,C>::_M>(field1, field2, field3, dots);
+               break;
+          case 2:
+               corr.template process111<B,2,ValidMC<M,C>::_M>(field1, field2, field3, dots);
                break;
           case 3:
-               corr.template process<B,3,ValidMC<M,C>::_M>(field1, field2, field3, dots);
+               corr.template process111<B,3,ValidMC<M,C>::_M>(field1, field2, field3, dots);
                break;
           default:
                Assert(false);
@@ -3098,12 +3345,15 @@ void WrapProcess(py::module& _treecorr, W& base_corr3)
                               bool dots, Metric metric);
     typedef void (*cross12_type)(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2,
                                  int ordered, bool dots, Metric metric);
+    typedef void (*cross21_type)(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2,
+                                 int ordered, bool dots, Metric metric);
     typedef void (*cross_type)(BaseCorr3& corr,
                                BaseField<C>& field1, BaseField<C>& field2, BaseField<C>& field3,
                                int ordered, bool dots, Metric metric);
 
     base_corr3.def("processAuto", auto_type(&ProcessAuto));
     base_corr3.def("processCross12", cross12_type(&ProcessCross12));
+    base_corr3.def("processCross21", cross21_type(&ProcessCross21));
     base_corr3.def("processCross", cross_type(&ProcessCross));
 }
 

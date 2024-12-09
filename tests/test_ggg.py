@@ -1784,14 +1784,10 @@ def test_map3_logruv():
                   + (8./9. * r0**4 * (nq1 * nq2 * q3**2)/(q1**2 * q2**2 * nq3) *
                      (2.*q3**2 - q1**2 - q2**2)) ))
 
-    ggg._z1 = true_gam0.real
-    ggg._z2 = true_gam0.imag
-    ggg._z3 = true_gam1.real
-    ggg._z4 = true_gam1.imag
-    ggg._z5 = true_gam2.real
-    ggg._z6 = true_gam2.imag
-    ggg._z7 = true_gam3.real
-    ggg._z8 = true_gam3.imag
+    ggg._z = [true_gam0.real, true_gam0.imag,
+              true_gam1.real, true_gam1.imag,
+              true_gam2.real, true_gam2.imag,
+              true_gam3.real, true_gam3.imag]
 
     # Directly calculate Map(u,v) across the region as:
     # Map(u,v) = int( g(x,y) * ((u-x) -I(v-y))^2 / ((u-x)^2 + (v-y)^2) * Q(u-x, v-y) )
@@ -1938,14 +1934,10 @@ def test_map3_logruv():
     true_mapmx2 = temp * gamma0.real * gamma0.imag**2
     true_mx3 = temp * gamma0.imag**3
 
-    ggg._z1 = true_gam0.real
-    ggg._z2 = true_gam0.imag
-    ggg._z3 = true_gam1.real
-    ggg._z4 = true_gam1.imag
-    ggg._z5 = true_gam2.real
-    ggg._z6 = true_gam2.imag
-    ggg._z7 = true_gam3.real
-    ggg._z8 = true_gam3.imag
+    ggg._z = [true_gam0.real, true_gam0.imag,
+              true_gam1.real, true_gam1.imag,
+              true_gam2.real, true_gam2.imag,
+              true_gam3.real, true_gam3.imag]
 
     ggg_map3 = ggg.calculateMap3()
 
@@ -3976,14 +3968,10 @@ def test_map3_logsas():
                   + (8./9. * r0**4 * (nq1 * nq2 * q3**2)/(q1**2 * q2**2 * nq3) *
                      (2.*q3**2 - q1**2 - q2**2)) ))
 
-    ggg._z1 = true_gam0.real
-    ggg._z2 = true_gam0.imag
-    ggg._z3 = true_gam1.real
-    ggg._z4 = true_gam1.imag
-    ggg._z5 = true_gam2.real
-    ggg._z6 = true_gam2.imag
-    ggg._z7 = true_gam3.real
-    ggg._z8 = true_gam3.imag
+    ggg._z = [true_gam0.real, true_gam0.imag,
+              true_gam1.real, true_gam1.imag,
+              true_gam2.real, true_gam2.imag,
+              true_gam3.real, true_gam3.imag]
     print('gam0r = ',ggg.gam0r.ravel())
     print('gam0i = ',ggg.gam0i.ravel())
     print('gam1r = ',ggg.gam1r.ravel())
@@ -4150,14 +4138,10 @@ def test_map3_logsas():
     true_mapmx2 = temp * gamma0.real * gamma0.imag**2
     true_mx3 = temp * gamma0.imag**3
 
-    ggg._z1 = true_gam0.real
-    ggg._z2 = true_gam0.imag
-    ggg._z3 = true_gam1.real
-    ggg._z4 = true_gam1.imag
-    ggg._z5 = true_gam2.real
-    ggg._z6 = true_gam2.imag
-    ggg._z7 = true_gam3.real
-    ggg._z8 = true_gam3.imag
+    ggg._z = [true_gam0.real, true_gam0.imag,
+              true_gam1.real, true_gam1.imag,
+              true_gam2.real, true_gam2.imag,
+              true_gam3.real, true_gam3.imag]
 
     ggg_map3 = ggg.calculateMap3(R=r)
 

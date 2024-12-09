@@ -35,111 +35,17 @@ class KKKCorrelation(Corr3):
         correlations of the CMB temperature fluctuations, where "kappa" would really be
         :math:`\Delta T`.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned.
+    See the doc string of `Corr3` for a description of how the triangles are binned along
+    with the attributes related to the different binning options.
 
-    Ojects of this class holds the following attributes:
-
-    Attributes:
-        nbins:      The number of bins in logr where r = d2.
-        bin_size:   The size of the bins in logr.
-        min_sep:    The minimum separation being considered.
-        max_sep:    The maximum separation being considered.
-        logr1d:     The nominal centers of the nbins bins in log(r).
-
-    If the bin_type is LogRUV, then it will have these attributes:
-
-    Attributes:
-        nubins:     The number of bins in u where u = d3/d2.
-        ubin_size:  The size of the bins in u.
-        min_u:      The minimum u being considered.
-        max_u:      The maximum u being considered.
-        nvbins:     The number of bins in v where v = +-(d1-d2)/d3.
-        vbin_size:  The size of the bins in v.
-        min_v:      The minimum v being considered.
-        max_v:      The maximum v being considered.
-        u1d:        The nominal centers of the nubins bins in u.
-        v1d:        The nominal centers of the nvbins bins in v.
-
-    If the bin_type is LogSAS, then it will have these attributes:
-
-    Attributes:
-        nphi_bins:  The number of bins in phi.
-        phi_bin_size: The size of the bins in phi.
-        min_phi:    The minimum phi being considered.
-        max_phi:    The maximum phi being considered.
-        phi1d:      The nominal centers of the nphi_bins bins in phi.
-
-    If the bin_type is LogMultipole, then it will have these attributes:
-
-    Attributes:
-        max_n:      The maximum multipole index n being stored.
-        n1d:        The multipole index n in the 2*max_n+1 bins of the third bin direction.
-
-    In addition, the following attributes are numpy arrays whose shape is:
-
-        * (nbins, nubins, nvbins) if bin_type is LogRUV
-        * (nbins, nbins, nphi_bins) if bin_type is LogSAS
-        * (nbins, nbins, 2*max_n+1) if bin_type is LogMultipole
-
-    If bin_type is LogRUV:
-
-    Attributes:
-        logr:       The nominal center of each bin in log(r).
-        rnom:       The nominal center of each bin converted to regular distance.
-                    i.e. r = exp(logr).
-        u:          The nominal center of each bin in u.
-        v:          The nominal center of each bin in v.
-        meanu:      The (weighted) mean value of u for the triangles in each bin.
-        meanv:      The (weighted) mean value of v for the triangles in each bin.
-
-    If bin_type is LogSAS:
-
-    Attributes:
-        logd2:      The nominal center of each bin in log(d2).
-        d2nom:      The nominal center of each bin converted to regular d2 distance.
-                    i.e. d2 = exp(logd2).
-        logd3:      The nominal center of each bin in log(d3).
-        d3nom:      The nominal center of each bin converted to regular d3 distance.
-                    i.e. d3 = exp(logd3).
-        phi:        The nominal center of each angular bin.
-        meanphi:    The (weighted) mean value of phi for the triangles in each bin.
-
-    If bin_type is LogMultipole:
-
-    Attributes:
-        logd2:      The nominal center of each bin in log(d2).
-        d2nom:      The nominal center of each bin converted to regular d2 distance.
-                    i.e. d2 = exp(logd2).
-        logd3:      The nominal center of each bin in log(d3).
-        d3nom:      The nominal center of each bin converted to regular d3 distance.
-                    i.e. d3 = exp(logd3).
-        n:          The multipole index n for each bin.
-
-    For any bin_type:
+    In addition to the attributes common to all `Corr3` subclasses, objects of this class
+    hold the following attributes:
 
     Attributes:
         zeta:       The correlation function, :math:`\zeta`.
         varzeta:    The variance of :math:`\zeta`, only including the shot noise propagated into
                     the final correlation.  This does not include sample variance, so it is always
                     an underestimate of the actual variance.
-        meand1:     The (weighted) mean value of d1 for the triangles in each bin.
-        meanlogd1:  The (weighted) mean value of log(d1) for the triangles in each bin.
-        meand2:     The (weighted) mean value of d2 (aka r) for the triangles in each bin.
-        meanlogd2:  The (weighted) mean value of log(d2) for the triangles in each bin.
-        meand3:     The (weighted) mean value of d3 for the triangles in each bin.
-        meanlogd3:  The (weighted) mean value of log(d3) for the triangles in each bin.
-        weight:     The total weight in each bin.
-        ntri:       The number of triangles going into each bin (including those where one or
-                    more objects have w=0).
-
-    If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances
-    will all be in these units.
-
-    .. note::
-
-        If you separate out the steps of the `Corr3.process` command and use `process_auto` and/or
-        `Corr3.process_cross`, then the units will not be applied to ``meanr`` or ``meanlogr`` until
-        the `finalize` function is called.
 
     The typical usage pattern is as follows:
 
@@ -180,22 +86,18 @@ class KKKCorrelation(Corr3):
         Corr3.__init__(self, config, logger=logger, **kwargs)
 
         shape = self.data_shape
-        self._z1 = np.zeros(shape, dtype=float)
-        x = np.array([])
+        self._z[0] = np.zeros(shape, dtype=float)
         if self.bin_type == 'LogMultipole':
-            self._z2 = np.zeros(shape, dtype=float)
-        else:
-            self._z2 = x
+            self._z[1] = np.zeros(shape, dtype=float)
         self._varzeta = None
-        self._z3 = self._z4 = self._z5 = self._z6 = self._z7 = self._z8 = x
         self.logger.debug('Finished building KKKCorr')
 
     @property
     def zeta(self):
-        if self._z2.size:
-            return self._z1 + 1j * self._z2
+        if self._z[1].size:
+            return self._z[0] + 1j * self._z[1]
         else:
-            return self._z1
+            return self._z[0]
 
     def process_auto(self, cat, *, metric=None, num_threads=None):
         """Process a single catalog, accumulating the auto-correlation.
@@ -288,10 +190,10 @@ class KKKCorrelation(Corr3):
         np.sum([c.meanu for c in others], axis=0, out=self.meanu)
         if self.bin_type == 'LogRUV':
             np.sum([c.meanv for c in others], axis=0, out=self.meanv)
-        np.sum([c._z1 for c in others], axis=0, out=self._z1)
+        np.sum([c._z[0] for c in others], axis=0, out=self._z[0])
         np.sum([c.weightr for c in others], axis=0, out=self.weightr)
         if self.bin_type == 'LogMultipole':
-            np.sum([c._z2 for c in others], axis=0, out=self._z2)
+            np.sum([c._z[1] for c in others], axis=0, out=self._z[1])
             np.sum([c.weighti for c in others], axis=0, out=self.weighti)
         np.sum([c.ntri for c in others], axis=0, out=self.ntri)
 
@@ -318,12 +220,12 @@ class KKKCorrelation(Corr3):
 
         # Z(d2,d3,phi) = 1/2pi sum_n Z_n(d2,d3) exp(i n phi)
         expiphi = np.exp(1j * self.n1d[:,None] * sas.phi1d)
-        sas._z1[:] = np.real(self.zeta.dot(expiphi)) / (2*np.pi) * sas.phi_bin_size
+        sas._z[0][:] = np.real(self.zeta.dot(expiphi)) / (2*np.pi) * sas.phi_bin_size
         mask = sas.weightr != 0
-        sas._z1[mask] /= sas.weightr[mask]
+        sas._z[0][mask] /= sas.weightr[mask]
 
         for k,v in self.results.items():
-            sas.results[k]._z1[:] = np.real(v.zeta.dot(expiphi)) / (2*np.pi) * sas.phi_bin_size
+            sas.results[k]._z[0][:] = np.real(v.zeta.dot(expiphi)) / (2*np.pi) * sas.phi_bin_size
 
         return sas
 
@@ -449,7 +351,7 @@ class KKKCorrelation(Corr3):
                      self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
                      self.meand3, self.meanlogd3 ]
         if self.bin_type == 'LogMultipole':
-            data += [ self._z1, self._z2, np.sqrt(self.varzeta),
+            data += [ self._z[0], self._z[1], np.sqrt(self.varzeta),
                       self.weightr, self.weighti, self.ntri ]
         else:
             data += [ self.zeta, np.sqrt(self.varzeta), self.weight, self.ntri ]
@@ -460,8 +362,8 @@ class KKKCorrelation(Corr3):
         super()._read_from_data(data, params)
         s = self.data_shape
         if self.bin_type == 'LogMultipole':
-            self._z1 = data['zeta_re'].reshape(s)
-            self._z2 = data['zeta_im'].reshape(s)
+            self._z[0] = data['zeta_re'].reshape(s)
+            self._z[1] = data['zeta_im'].reshape(s)
         else:
-            self._z1 = data['zeta'].reshape(s)
+            self._z[0] = data['zeta'].reshape(s)
         self._varzeta = data['sigma_zeta'].reshape(s)**2

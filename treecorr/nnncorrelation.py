@@ -27,112 +27,8 @@ class NNNCorrelation(Corr3):
     """This class handles the calculation and storage of a 3-point count-count-count correlation
     function.
 
-    See the doc string of `Corr3` for a description of how the triangles can be binned.
-
-    Ojects of this class holds the following attributes:
-
-    Attributes:
-        nbins:      The number of bins in logr where r = d2
-        bin_size:   The size of the bins in logr
-        min_sep:    The minimum separation being considered
-        max_sep:    The maximum separation being considered
-        logr1d:     The nominal centers of the nbins bins in log(r).
-        tot:        The total number of triangles processed, which is used to normalize
-                    the randoms if they have a different number of triangles.
-
-    If the bin_type is LogRUV, then it will have these attributes:
-
-    Attributes:
-        nubins:     The number of bins in u where u = d3/d2
-        ubin_size:  The size of the bins in u
-        min_u:      The minimum u being considered
-        max_u:      The maximum u being considered
-        nvbins:     The number of bins in v where v = +-(d1-d2)/d3
-        vbin_size:  The size of the bins in v
-        min_v:      The minimum v being considered
-        max_v:      The maximum v being considered
-        u1d:        The nominal centers of the nubins bins in u.
-        v1d:        The nominal centers of the nvbins bins in v.
-
-    If the bin_type is LogSAS, then it will have these attributes:
-
-    Attributes:
-        nphi_bins:  The number of bins in phi where v = +-(d1-d2)/d3.
-        phi_bin_size: The size of the bins in phi.
-        min_phi:    The minimum phi being considered.
-        max_phi:    The maximum phi being considered.
-        phi1d:      The nominal centers of the nphi_bins bins in phi.
-
-    If the bin_type is LogMultipole, then it will have these attributes:
-
-    Attributes:
-        max_n:      The maximum multipole index n being stored.
-        n1d:        The multipole index n in the 2*max_n+1 bins of the third bin direction.
-
-    In addition, the following attributes are numpy arrays whose shape is:
-
-        * (nbins, nubins, nvbins) if bin_type is LogRUV
-        * (nbins, nbins, nphi_bins) if bin_type is LogSAS
-        * (nbins, nbins, 2*max_n+1) if bin_type is LogMultipole
-
-    If bin_type is LogRUV:
-
-    Attributes:
-        logr:       The nominal center of each bin in log(r).
-        rnom:       The nominal center of each bin converted to regular distance.
-                    i.e. r = exp(logr).
-        u:          The nominal center of each bin in u.
-        v:          The nominal center of each bin in v.
-        meanu:      The mean value of u for the triangles in each bin.
-        meanv:      The mean value of v for the triangles in each bin.
-        weight:     The total weight in each bin.
-        ntri:       The number of triangles going into each bin (including those where one or
-                    more objects have w=0).
-
-    If bin_type is LogSAS:
-
-    Attributes:
-        logd2:      The nominal center of each bin in log(d2).
-        d2nom:      The nominal center of each bin converted to regular d2 distance.
-                    i.e. d2 = exp(logd2).
-        logd3:      The nominal center of each bin in log(d3).
-        d3nom:      The nominal center of each bin converted to regular d3 distance.
-                    i.e. d3 = exp(logd3).
-        phi:        The nominal center of each angular bin.
-        meanphi:    The (weighted) mean value of phi for the triangles in each bin.
-
-    If bin_type is LogMultipole:
-
-    Attributes:
-        logd2:      The nominal center of each bin in log(d2).
-        d2nom:      The nominal center of each bin converted to regular d2 distance.
-                    i.e. d2 = exp(logd2).
-        logd3:      The nominal center of each bin in log(d3).
-        d3nom:      The nominal center of each bin converted to regular d3 distance.
-                    i.e. d3 = exp(logd3).
-        n:          The multipole index n for each bin.
-
-    For any bin_type:
-
-    Attributes:
-        meand1:     The (weighted) mean value of d1 for the triangles in each bin.
-        meanlogd1:  The mean value of log(d1) for the triangles in each bin.
-        meand2:     The (weighted) mean value of d2 for the triangles in each bin.
-        meanlogd2:  The mean value of log(d2) for the triangles in each bin.
-        meand3:     The (weighted) mean value of d3 for the triangles in each bin.
-        meanlogd3:  The mean value of log(d3) for the triangles in each bin.
-        weight:     The total weight in each bin.
-        ntri:       The number of triangles going into each bin (including those where one or
-                    more objects have w=0).
-
-    If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances
-    will all be in these units.
-
-    .. note::
-
-        If you separate out the steps of the `Corr3.process` command and use `process_auto` and/or
-        `Corr3.process_cross`, then the units will not be applied to ``meanr`` or ``meanlogr``
-        until the `finalize` function is called.
+    See the doc string of `Corr3` for a description of how the triangles are binned along
+    with the attributes related to the different binning options.
 
     The typical usage pattern is as follows:
 
@@ -170,8 +66,6 @@ class NNNCorrelation(Corr3):
     _default_angle_slop = 1
 
     def __init__(self, config=None, *, logger=None, **kwargs):
-        """Initialize `NNNCorrelation`.  See class doc for details.
-        """
         Corr3.__init__(self, config, logger=logger, **kwargs)
 
         self.tot = 0.
@@ -184,13 +78,9 @@ class NNNCorrelation(Corr3):
         self._write_rdd = None
         self._write_patch_results = False
         self.zeta = None
-        x = np.array([])
-        self._z1 = self._z2 = self._z3 = self._z4 = x
-        self._z5 = self._z6 = self._z7 = self._z8 = x
         self.logger.debug('Finished building NNNCorr')
 
     def copy(self):
-        """Make a copy"""
         ret = super().copy()
         # True is possible during read before we finish reading in these attributes.
         if self._rrr is not None and self._rrr is not True:

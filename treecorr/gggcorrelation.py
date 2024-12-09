@@ -205,14 +205,7 @@ class GGGCorrelation(Corr3):
         Corr3.__init__(self, config, logger=logger, **kwargs)
 
         shape = self.data_shape
-        self._z1 = np.zeros(shape, dtype=float)
-        self._z2 = np.zeros(shape, dtype=float)
-        self._z3 = np.zeros(shape, dtype=float)
-        self._z4 = np.zeros(shape, dtype=float)
-        self._z5 = np.zeros(shape, dtype=float)
-        self._z6 = np.zeros(shape, dtype=float)
-        self._z7 = np.zeros(shape, dtype=float)
-        self._z8 = np.zeros(shape, dtype=float)
+        self._z = [np.zeros(shape, dtype=float) for _ in range(8)]
         self._vargam0 = None
         self._vargam1 = None
         self._vargam2 = None
@@ -221,51 +214,51 @@ class GGGCorrelation(Corr3):
 
     @property
     def gam0(self):
-        return self._z1 + 1j * self._z2
+        return self._z[0] + 1j * self._z[1]
 
     @property
     def gam1(self):
-        return self._z3 + 1j * self._z4
+        return self._z[2] + 1j * self._z[3]
 
     @property
     def gam2(self):
-        return self._z5 + 1j * self._z6
+        return self._z[4] + 1j * self._z[5]
 
     @property
     def gam3(self):
-        return self._z7 + 1j * self._z8
+        return self._z[6] + 1j * self._z[7]
 
     @property
     def gam0r(self):
-        return self._z1
+        return self._z[0]
 
     @property
     def gam0i(self):
-        return self._z2
+        return self._z[1]
 
     @property
     def gam1r(self):
-        return self._z3
+        return self._z[2]
 
     @property
     def gam1i(self):
-        return self._z4
+        return self._z[3]
 
     @property
     def gam2r(self):
-        return self._z5
+        return self._z[4]
 
     @property
     def gam2i(self):
-        return self._z6
+        return self._z[5]
 
     @property
     def gam3r(self):
-        return self._z7
+        return self._z[6]
 
     @property
     def gam3i(self):
-        return self._z8
+        return self._z[7]
 
     def process_auto(self, cat, *, metric=None, num_threads=None):
         """Process a single catalog, accumulating the auto-correlation.
@@ -684,14 +677,14 @@ class GGGCorrelation(Corr3):
     def _read_from_data(self, data, params):
         super()._read_from_data(data, params)
         s = self.data_shape
-        self._z1 = data['gam0r'].reshape(s)
-        self._z2 = data['gam0i'].reshape(s)
-        self._z3 = data['gam1r'].reshape(s)
-        self._z4 = data['gam1i'].reshape(s)
-        self._z5 = data['gam2r'].reshape(s)
-        self._z6 = data['gam2i'].reshape(s)
-        self._z7 = data['gam3r'].reshape(s)
-        self._z8 = data['gam3i'].reshape(s)
+        self._z[0] = data['gam0r'].reshape(s)
+        self._z[1] = data['gam0i'].reshape(s)
+        self._z[2] = data['gam1r'].reshape(s)
+        self._z[3] = data['gam1i'].reshape(s)
+        self._z[4] = data['gam2r'].reshape(s)
+        self._z[5] = data['gam2i'].reshape(s)
+        self._z[6] = data['gam3r'].reshape(s)
+        self._z[7] = data['gam3i'].reshape(s)
         self._vargam0 = data['sigma_gam0'].reshape(s)**2
         self._vargam1 = data['sigma_gam1'].reshape(s)**2
         self._vargam2 = data['sigma_gam2'].reshape(s)**2

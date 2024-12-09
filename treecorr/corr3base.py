@@ -139,6 +139,106 @@ class Corr3(object):
           in log(d) for both d2 and d3 from log(min_sep) .. log(max_sep), and the n value range
           from -max_n .. max_n, inclusive.
 
+    Objects of any `Corr3` subclass hold the following attributes:
+
+    Attributes:
+        nbins:      The number of bins in logr where r = d2.
+        bin_size:   The size of the bins in logr.
+        min_sep:    The minimum separation being considered.
+        max_sep:    The maximum separation being considered.
+        logr1d:     The nominal centers of the nbins bins in log(r).
+
+    If the bin_type is LogRUV, then it will have these attributes:
+
+    Attributes:
+        nubins:     The number of bins in u where u = d3/d2.
+        ubin_size:  The size of the bins in u.
+        min_u:      The minimum u being considered.
+        max_u:      The maximum u being considered.
+        nvbins:     The number of bins in v where v = +-(d1-d2)/d3.
+        vbin_size:  The size of the bins in v.
+        min_v:      The minimum v being considered.
+        max_v:      The maximum v being considered.
+        u1d:        The nominal centers of the nubins bins in u.
+        v1d:        The nominal centers of the nvbins bins in v.
+
+    If the bin_type is LogSAS, then it will have these attributes:
+
+    Attributes:
+        nphi_bins:  The number of bins in phi.
+        phi_bin_size: The size of the bins in phi.
+        min_phi:    The minimum phi being considered.
+        max_phi:    The maximum phi being considered.
+        phi1d:      The nominal centers of the nphi_bins bins in phi.
+
+    If the bin_type is LogMultipole, then it will have these attributes:
+
+    Attributes:
+        max_n:      The maximum multipole index n being stored.
+        n1d:        The multipole index n in the 2*max_n+1 bins of the third bin direction.
+
+    In addition, the following attributes are numpy arrays whose shape is:
+
+        * (nbins, nubins, nvbins) if bin_type is LogRUV
+        * (nbins, nbins, nphi_bins) if bin_type is LogSAS
+        * (nbins, nbins, 2*max_n+1) if bin_type is LogMultipole
+
+    If bin_type is LogRUV:
+
+    Attributes:
+        logr:       The nominal center of each bin in log(r).
+        rnom:       The nominal center of each bin converted to regular distance.
+                    i.e. r = exp(logr).
+        u:          The nominal center of each bin in u.
+        v:          The nominal center of each bin in v.
+        meanu:      The (weighted) mean value of u for the triangles in each bin.
+        meanv:      The (weighted) mean value of v for the triangles in each bin.
+
+    If bin_type is LogSAS:
+
+    Attributes:
+        logd2:      The nominal center of each bin in log(d2).
+        d2nom:      The nominal center of each bin converted to regular d2 distance.
+                    i.e. d2 = exp(logd2).
+        logd3:      The nominal center of each bin in log(d3).
+        d3nom:      The nominal center of each bin converted to regular d3 distance.
+                    i.e. d3 = exp(logd3).
+        phi:        The nominal center of each angular bin.
+        meanphi:    The (weighted) mean value of phi for the triangles in each bin.
+
+    If bin_type is LogMultipole:
+
+    Attributes:
+        logd2:      The nominal center of each bin in log(d2).
+        d2nom:      The nominal center of each bin converted to regular d2 distance.
+                    i.e. d2 = exp(logd2).
+        logd3:      The nominal center of each bin in log(d3).
+        d3nom:      The nominal center of each bin converted to regular d3 distance.
+                    i.e. d3 = exp(logd3).
+        n:          The multipole index n for each bin.
+
+    For any bin_type:
+
+    Attributes:
+        meand1:     The (weighted) mean value of d1 for the triangles in each bin.
+        meanlogd1:  The (weighted) mean value of log(d1) for the triangles in each bin.
+        meand2:     The (weighted) mean value of d2 (aka r) for the triangles in each bin.
+        meanlogd2:  The (weighted) mean value of log(d2) for the triangles in each bin.
+        meand3:     The (weighted) mean value of d3 for the triangles in each bin.
+        meanlogd3:  The (weighted) mean value of log(d3) for the triangles in each bin.
+        weight:     The total weight in each bin.
+        ntri:       The number of triangles going into each bin (including those where one or
+                    more objects have w=0).
+
+    If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances
+    will all be in these units.
+
+    .. note::
+
+        If you separate out the steps of the `Corr3.process` command and use `process_auto` and/or
+        `Corr3.process_cross`, then the units will not be applied to ``meanr`` or ``meanlogr`` until
+        the `finalize` function is called.
+
     Parameters:
         config (dict):      A configuration dict that can be used to pass in the below kwargs if
                             desired.  This dict is allowed to have addition entries in addition
@@ -722,6 +822,9 @@ class Corr3(object):
         self._cov = None
         self._var_num = 0
 
+        # Sub-classes will allocate space for the ones we actually need.
+        self._z = [np.array([]) for _ in range(8)]
+
         self._ro.brute = get(self.config,'brute',bool,False)
         if self.brute:
             self.logger.info("Doing brute force calculation.",)
@@ -975,12 +1078,24 @@ class Corr3(object):
                     self._ro.min_u,self._ro.max_u,self._ro.nubins,self._ro.ubin_size,self.bu,
                     self._ro.min_v,self._ro.max_v,self._ro.nvbins,self._ro.vbin_size,self.bv,
                     self.xperiod, self.yperiod, self.zperiod,
-                    self._z1, self._z2, self._z3, self._z4,
-                    self._z5, self._z6, self._z7, self._z8,
+                    self._z[0], self._z[1], self._z[2], self._z[3],
+                    self._z[4], self._z[5], self._z[6], self._z[7],
                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
                     self.meand3, self.meanlogd3, self.meanu, self.meanv,
                     self.weightr, self.weighti, self.ntri)
         return self._corr
+
+    @property
+    def _zetas(self):
+        zetas = []
+        if self._z[0].size:
+            zetas += [self._z[0] + 1j*self._z[1]]
+        if self._z[2].size:
+            zetas += [self._z[2] + 1j*self._z[3]]
+        if self._z[4].size:
+            zetas += [self._z[4] + 1j*self._z[5]]
+            zetas += [self._z[6] + 1j*self._z[7]]
+        return zetas
 
     def _equal_binning(self, other, brief=False):
         # A helper function to test if two Corr3 objects have the same binning parameters
@@ -1049,14 +1164,14 @@ class Corr3(object):
                 self._equal_bin_data(other) and
                 np.array_equal(self.weight, other.weight) and
                 np.array_equal(self.ntri, other.ntri) and
-                np.array_equal(self._z1, other._z1) and
-                np.array_equal(self._z2, other._z2) and
-                np.array_equal(self._z3, other._z3) and
-                np.array_equal(self._z4, other._z4) and
-                np.array_equal(self._z5, other._z5) and
-                np.array_equal(self._z6, other._z6) and
-                np.array_equal(self._z7, other._z7) and
-                np.array_equal(self._z8, other._z8))
+                np.array_equal(self._z[0], other._z[0]) and
+                np.array_equal(self._z[1], other._z[1]) and
+                np.array_equal(self._z[2], other._z[2]) and
+                np.array_equal(self._z[3], other._z[3]) and
+                np.array_equal(self._z[4], other._z[4]) and
+                np.array_equal(self._z[5], other._z[5]) and
+                np.array_equal(self._z[6], other._z[6]) and
+                np.array_equal(self._z[7], other._z[7]))
 
     def copy(self):
         """Make a copy"""
@@ -1070,6 +1185,7 @@ class Corr3(object):
                 # In particular don't deep copy config or logger
                 # Most of the rest are scalars, which copy fine this way.
                 ret.__dict__[key] = item
+        ret._z = [zi.copy() for zi in self._z]
         ret._corr = None # We'll want to make a new one of these if we need it.
         return ret
 
@@ -1984,17 +2100,13 @@ class Corr3(object):
         self.meand3[mask1] /= self.weightr[mask1]
         self.meanlogd3[mask1] /= self.weightr[mask1]
         if self.bin_type != 'LogMultipole':
-            if len(self._z1) > 0:
-                self._z1[mask1] /= self.weightr[mask1]
-            if len(self._z2) > 0:
-                self._z2[mask1] /= self.weightr[mask1]
-            if len(self._z3) > 0:
-                self._z3[mask1] /= self.weightr[mask1]
-                self._z4[mask1] /= self.weightr[mask1]
-                self._z5[mask1] /= self.weightr[mask1]
-                self._z6[mask1] /= self.weightr[mask1]
-                self._z7[mask1] /= self.weightr[mask1]
-                self._z8[mask1] /= self.weightr[mask1]
+            if self._z[0].size:
+                self._z[0][mask1] /= self.weightr[mask1]
+            if self._z[1].size:
+                self._z[1][mask1] /= self.weightr[mask1]
+            if self._z[2].size:
+                for i in range(2,8):
+                    self._z[i][mask1] /= self.weightr[mask1]
             self.meand1[mask1] /= self.weightr[mask1]
             self.meanlogd1[mask1] /= self.weightr[mask1]
             self.meanu[mask1] /= self.weightr[mask1]
@@ -2044,14 +2156,8 @@ class Corr3(object):
     def _clear(self):
         """Clear the data vectors
         """
-        self._z1[:] = 0.
-        self._z2[:] = 0.
-        self._z3[:] = 0.
-        self._z4[:] = 0.
-        self._z5[:] = 0.
-        self._z6[:] = 0.
-        self._z7[:] = 0.
-        self._z8[:] = 0.
+        for i in range(8):
+            self._z[i][:] = 0.
         self.meand1[:] = 0.
         self.meanlogd1[:] = 0.
         self.meand2[:] = 0.
@@ -2082,14 +2188,8 @@ class Corr3(object):
 
         self._set_metric(other.metric, other.coords, other.coords, other.coords)
         if not other.nonzero: return self
-        self._z1[:] += other._z1[:]
-        self._z2[:] += other._z2[:]
-        self._z3[:] += other._z3[:]
-        self._z4[:] += other._z4[:]
-        self._z5[:] += other._z5[:]
-        self._z6[:] += other._z6[:]
-        self._z7[:] += other._z7[:]
-        self._z8[:] += other._z8[:]
+        for i in range(8):
+            self._z[i][:] += other._z[i][:]
         self.meand1[:] += other.meand1[:]
         self.meanlogd1[:] += other.meanlogd1[:]
         self.meand2[:] += other.meand2[:]

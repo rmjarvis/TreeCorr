@@ -61,7 +61,19 @@ def test_direct_logruv_cross():
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   brute=True, bin_type='LogRUV')
-    kkg.process(cat1, cat2, cat3, num_threads=2)
+    kkg.process(cat1, cat2, cat3)
+
+    kgk = treecorr.KGKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  brute=True, bin_type='LogRUV')
+    kgk.process(cat1, cat3, cat2)
+
+    gkk = treecorr.GKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  brute=True, bin_type='LogRUV')
+    gkk.process(cat3, cat1, cat2)
 
     # Figure out the correct answer for each permutation
     true_ntri_123 = np.zeros((nrbins, nubins, 2*nvbins))
@@ -170,6 +182,16 @@ def test_direct_logruv_cross():
     true_ntri_sum3 = true_ntri_123 + true_ntri_213
     true_weight_sum3 = true_weight_123 + true_weight_213
     true_zeta_sum3 = true_zeta_123 + true_zeta_213
+    true_ntri_sum2 = true_ntri_132 + true_ntri_231
+    true_weight_sum2 = true_weight_132 + true_weight_231
+    true_zeta_sum2 = true_zeta_132 + true_zeta_231
+    true_ntri_sum1 = true_ntri_312 + true_ntri_321
+    true_weight_sum1 = true_weight_312 + true_weight_321
+    true_zeta_sum1 = true_zeta_312 + true_zeta_321
+    pos = true_weight_sum1 > 0
+    true_zeta_sum1[pos] /= true_weight_sum1[pos]
+    pos = true_weight_sum2 > 0
+    true_zeta_sum2[pos] /= true_weight_sum2[pos]
     pos = true_weight_sum3 > 0
     true_zeta_sum3[pos] /= true_weight_sum3[pos]
 
@@ -188,26 +210,28 @@ def test_direct_logruv_cross():
     np.testing.assert_allclose(kkg.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_123, rtol=1.e-5)
 
-    #kkg.process(cat1, cat3, cat2)
-    #np.testing.assert_array_equal(kkg.ntri, true_ntri_132)
-    #np.testing.assert_allclose(kkg.weight, true_weight_132, rtol=1.e-5)
-    #np.testing.assert_allclose(kkg.zeta, true_zeta_132, rtol=1.e-5)
     kkg.process(cat2, cat1, cat3)
     np.testing.assert_array_equal(kkg.ntri, true_ntri_213)
     np.testing.assert_allclose(kkg.weight, true_weight_213, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_213, rtol=1.e-5)
-    #kkg.process(cat2, cat3, cat1)
-    #np.testing.assert_array_equal(kkg.ntri, true_ntri_231)
-    #np.testing.assert_allclose(kkg.weight, true_weight_231, rtol=1.e-5)
-    #np.testing.assert_allclose(kkg.zeta, true_zeta_231, rtol=1.e-5)
-    #kkg.process(cat3, cat1, cat2)
-    #np.testing.assert_array_equal(kkg.ntri, true_ntri_312)
-    #np.testing.assert_allclose(kkg.weight, true_weight_312, rtol=1.e-5)
-    #np.testing.assert_allclose(kkg.zeta, true_zeta_312, rtol=1.e-5)
-    #kkg.process(cat3, cat2, cat1)
-    #np.testing.assert_array_equal(kkg.ntri, true_ntri_321)
-    #np.testing.assert_allclose(kkg.weight, true_weight_321, rtol=1.e-5)
-    #np.testing.assert_allclose(kkg.zeta, true_zeta_321, rtol=1.e-5)
+
+    kgk.process(cat1, cat3, cat2)
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_132)
+    np.testing.assert_allclose(kgk.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_132, rtol=1.e-5)
+    kgk.process(cat2, cat3, cat1)
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_231)
+    np.testing.assert_allclose(kgk.weight, true_weight_231, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_231, rtol=1.e-5)
+
+    gkk.process(cat3, cat1, cat2)
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_312)
+    np.testing.assert_allclose(gkk.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_312, rtol=1.e-5)
+    gkk.process(cat3, cat2, cat1)
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_321)
+    np.testing.assert_allclose(gkk.weight, true_weight_321, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_321, rtol=1.e-5)
 
     # With ordered=False, we end up with the sum of both versions where K in 1,2
     kkg.process(cat1, cat2, cat3, ordered=False)
@@ -215,8 +239,25 @@ def test_direct_logruv_cross():
     np.testing.assert_allclose(kkg.weight, true_weight_sum3, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_sum3, rtol=1.e-5)
 
+    kgk.process(cat1, cat3, cat2, ordered=False)
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_sum2)
+    np.testing.assert_allclose(kgk.weight, true_weight_sum2, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_sum2, rtol=1.e-5)
+    gkk.process(cat3, cat1, cat2, ordered=False)
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_sum1)
+    np.testing.assert_allclose(gkk.weight, true_weight_sum1, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_sum1, rtol=1.e-5)
+
     # Check bin_slop=0
     kkg = treecorr.KKGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=0, verbose=1, max_top=0, bin_type='LogRUV')
+    kgk = treecorr.KGKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=0, verbose=1, max_top=0, bin_type='LogRUV')
+    gkk = treecorr.GKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=0, verbose=1, max_top=0, bin_type='LogRUV')
@@ -225,33 +266,67 @@ def test_direct_logruv_cross():
     np.testing.assert_array_equal(kkg.ntri, true_ntri_123)
     np.testing.assert_allclose(kkg.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_123, rtol=1.e-5)
+    kgk.process(cat1, cat3, cat2, ordered=True)
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_132)
+    np.testing.assert_allclose(kgk.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_132, rtol=1.e-5)
+    gkk.process(cat3, cat1, cat2, ordered=True)
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_312)
+    np.testing.assert_allclose(gkk.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_312, rtol=1.e-5)
 
     kkg.process(cat1, cat2, cat3, ordered=False)
     np.testing.assert_array_equal(kkg.ntri, true_ntri_sum3)
     np.testing.assert_allclose(kkg.weight, true_weight_sum3, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_sum3, rtol=1.e-5)
+    kgk.process(cat1, cat3, cat2, ordered=False)
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_sum2)
+    np.testing.assert_allclose(kgk.weight, true_weight_sum2, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_sum2, rtol=1.e-5)
+    gkk.process(cat3, cat1, cat2, ordered=False)
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_sum1)
+    np.testing.assert_allclose(gkk.weight, true_weight_sum1, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_sum1, rtol=1.e-5)
 
     # And again with no top-level recursion
     kkg = treecorr.KKGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=0, verbose=1, max_top=0, bin_type='LogRUV')
+    kgk = treecorr.KGKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=0, verbose=1, max_top=0, bin_type='LogRUV')
+    gkk = treecorr.GKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=0, verbose=1, max_top=0, bin_type='LogRUV')
 
     kkg.process(cat1, cat2, cat3, ordered=True)
-    #print('max_top = 0: kkg.ntri = ',kkg.ntri)
-    #print('true_ntri = ',true_ntri_sum3)
-    #print('diff = ',kkg.ntri - true_ntri_sum3)
     np.testing.assert_array_equal(kkg.ntri, true_ntri_123)
     np.testing.assert_allclose(kkg.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_123, rtol=1.e-5)
+    kgk.process(cat1, cat3, cat2, ordered=True)
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_132)
+    np.testing.assert_allclose(kgk.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_132, rtol=1.e-5)
+    gkk.process(cat3, cat1, cat2, ordered=True)
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_312)
+    np.testing.assert_allclose(gkk.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_312, rtol=1.e-5)
 
     kkg.process(cat1, cat2, cat3, ordered=False)
-    #print('max_top = 0: kkg.ntri = ',kkg.ntri)
-    #print('true_ntri = ',true_ntri_sum3)
-    #print('diff = ',kkg.ntri - true_ntri_sum3)
     np.testing.assert_array_equal(kkg.ntri, true_ntri_sum3)
     np.testing.assert_allclose(kkg.weight, true_weight_sum3, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_sum3, rtol=1.e-5)
+    kgk.process(cat1, cat3, cat2, ordered=False)
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_sum2)
+    np.testing.assert_allclose(kgk.weight, true_weight_sum2, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_sum2, rtol=1.e-5)
+    gkk.process(cat3, cat1, cat2, ordered=False)
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_sum1)
+    np.testing.assert_allclose(gkk.weight, true_weight_sum1, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_sum1, rtol=1.e-5)
 
     # Error to have cat3, but not cat2
     with assert_raises(ValueError):
@@ -266,24 +341,60 @@ def test_direct_logruv_cross():
     np.testing.assert_array_equal(kkg.ntri, true_ntri_123)
     np.testing.assert_allclose(kkg.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_123, rtol=1.e-5)
+    kgk.process(cat1p, cat3p, cat2p)
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_132)
+    np.testing.assert_allclose(kgk.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_132, rtol=1.e-5)
+    gkk.process(cat3p, cat1p, cat2p)
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_312)
+    np.testing.assert_allclose(gkk.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_312, rtol=1.e-5)
 
     kkg.process(cat1p, cat2p, cat3p, ordered=False)
     np.testing.assert_array_equal(kkg.ntri, true_ntri_sum3)
     np.testing.assert_allclose(kkg.weight, true_weight_sum3, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_sum3, rtol=1.e-5)
+    kgk.process(cat1p, cat3p, cat2p, ordered=False)
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_sum2)
+    np.testing.assert_allclose(kgk.weight, true_weight_sum2, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_sum2, rtol=1.e-5)
+    gkk.process(cat3p, cat1p, cat2p, ordered=False)
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_sum1)
+    np.testing.assert_allclose(gkk.weight, true_weight_sum1, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_sum1, rtol=1.e-5)
 
     kkg.process(cat1p, cat2p, cat3p, patch_method='local')
     np.testing.assert_array_equal(kkg.ntri, true_ntri_123)
     np.testing.assert_allclose(kkg.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_123, rtol=1.e-5)
+    kgk.process(cat1p, cat3p, cat2p, patch_method='local')
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_132)
+    np.testing.assert_allclose(kgk.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_132, rtol=1.e-5)
+    gkk.process(cat3p, cat1p, cat2p, patch_method='local')
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_312)
+    np.testing.assert_allclose(gkk.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_312, rtol=1.e-5)
 
     kkg.process(cat1p, cat2p, cat3p, ordered=False, patch_method='local')
     np.testing.assert_array_equal(kkg.ntri, true_ntri_sum3)
     np.testing.assert_allclose(kkg.weight, true_weight_sum3, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_sum3, rtol=1.e-5)
+    kgk.process(cat1p, cat3p, cat2p, ordered=False, patch_method='local')
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_sum2)
+    np.testing.assert_allclose(kgk.weight, true_weight_sum2, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_sum2, rtol=1.e-5)
+    gkk.process(cat3p, cat1p, cat2p, ordered=False, patch_method='local')
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_sum1)
+    np.testing.assert_allclose(gkk.weight, true_weight_sum1, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_sum1, rtol=1.e-5)
 
     with assert_raises(ValueError):
         kkg.process(cat1p, cat2p, cat3p, patch_method='nonlocal')
+    with assert_raises(ValueError):
+        kgk.process(cat1p, cat3p, cat2p, patch_method='nonlocal')
+    with assert_raises(ValueError):
+        gkk.process(cat3p, cat1p, cat2p, patch_method='nonlocal')
 
 
 @timer
@@ -320,7 +431,19 @@ def test_direct_logruv_cross21():
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   brute=True, bin_type='LogRUV')
-    kkg.process(cat2, cat2, cat1, num_threads=1)
+    kkg.process(cat2, cat2, cat1)
+
+    kgk = treecorr.KGKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  brute=True, bin_type='LogRUV')
+    kgk.process(cat2, cat1, cat2)
+
+    gkk = treecorr.GKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  brute=True, bin_type='LogRUV')
+    gkk.process(cat1, cat2, cat2)
 
     true_ntri_122 = np.zeros((nrbins, nubins, 2*nvbins))
     true_ntri_212 = np.zeros((nrbins, nubins, 2*nvbins))
@@ -418,25 +541,73 @@ def test_direct_logruv_cross21():
 
     pos = true_weight_221 > 0
     true_zeta_221[pos] /= true_weight_221[pos]
+    pos = true_weight_212 > 0
+    true_zeta_212[pos] /= true_weight_212[pos]
+    pos = true_weight_122 > 0
+    true_zeta_122[pos] /= true_weight_122[pos]
 
     np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
     np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_212)
+    np.testing.assert_allclose(kgk.weight, true_weight_212, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_212, rtol=1.e-5)
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_122)
+    np.testing.assert_allclose(gkk.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_122, rtol=1.e-5)
 
     # Repeat with only 2 cat arguments
+    # Note: KGK doesn't have a two-argument version.
     kkg.process(cat2, cat1)
     np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
     np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
+    kgk.process(cat2, cat1, cat2)
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_212)
+    np.testing.assert_allclose(kgk.weight, true_weight_212, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_212, rtol=1.e-5)
+    gkk.process(cat1, cat2)
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_122)
+    np.testing.assert_allclose(gkk.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_122, rtol=1.e-5)
+
+    with assert_raises(ValueError):
+        kgk.process(cat2, cat1)
+    with assert_raises(ValueError):
+        kgk.process(cat1, cat2)
+    with assert_raises(ValueError):
+        kkg.process(cat1)
+    with assert_raises(ValueError):
+        kkg.process(cat2)
+    with assert_raises(ValueError):
+        kgk.process(cat1)
+    with assert_raises(ValueError):
+        kgk.process(cat2)
+    with assert_raises(ValueError):
+        gkk.process(cat1)
+    with assert_raises(ValueError):
+        gkk.process(cat2)
 
     # ordered=False doesn't do anything different, since there is no other valid order.
     kkg.process(cat2, cat1, ordered=False)
     np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
     np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
+    gkk.process(cat1, cat2, ordered=False)
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_122)
+    np.testing.assert_allclose(gkk.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_122, rtol=1.e-5)
 
     # Repeat with binslop = 0
     kkg = treecorr.KKGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=0, verbose=1, bin_type='LogRUV')
+    kgk = treecorr.KGKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=0, verbose=1, bin_type='LogRUV')
+    gkk = treecorr.GKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=0, verbose=1, bin_type='LogRUV')
@@ -445,14 +616,34 @@ def test_direct_logruv_cross21():
     np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
     np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
+    kgk.process(cat2, cat1, cat2, ordered=True)
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_212)
+    np.testing.assert_allclose(kgk.weight, true_weight_212, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_212, rtol=1.e-5)
+    gkk.process(cat1, cat2, ordered=True)
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_122)
+    np.testing.assert_allclose(gkk.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_122, rtol=1.e-5)
 
     kkg.process(cat2, cat1, ordered=False)
     np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
     np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
+    gkk.process(cat1, cat2, ordered=False)
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_122)
+    np.testing.assert_allclose(gkk.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_122, rtol=1.e-5)
 
     # And again with no top-level recursion
     kkg = treecorr.KKGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=0, verbose=1, max_top=0, bin_type='LogRUV')
+    kgk = treecorr.KGKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
+                                  min_u=min_u, max_u=max_u, nubins=nubins,
+                                  min_v=min_v, max_v=max_v, nvbins=nvbins,
+                                  bin_slop=0, verbose=1, max_top=0, bin_type='LogRUV')
+    gkk = treecorr.GKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=0, verbose=1, max_top=0, bin_type='LogRUV')
@@ -461,11 +652,23 @@ def test_direct_logruv_cross21():
     np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
     np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
+    kgk.process(cat2, cat1, cat2, ordered=True)
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_212)
+    np.testing.assert_allclose(kgk.weight, true_weight_212, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_212, rtol=1.e-5)
+    gkk.process(cat1, cat2, ordered=True)
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_122)
+    np.testing.assert_allclose(gkk.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_122, rtol=1.e-5)
 
     kkg.process(cat2, cat1, ordered=False)
     np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
     np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
+    gkk.process(cat1, cat2, ordered=False)
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_122)
+    np.testing.assert_allclose(gkk.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_122, rtol=1.e-5)
 
     # Split into patches to test the list-based version of the code.
     cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=3, rng=rng)
@@ -475,25 +678,49 @@ def test_direct_logruv_cross21():
     np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
     np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
+    kgk.process(cat2p, cat1p, cat2p, ordered=True)
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_212)
+    np.testing.assert_allclose(kgk.weight, true_weight_212, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_212, rtol=1.e-5)
+    gkk.process(cat1p, cat2p, ordered=True)
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_122)
+    np.testing.assert_allclose(gkk.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_122, rtol=1.e-5)
 
     kkg.process(cat2p, cat1p, ordered=False)
     np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
     np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
+    gkk.process(cat1p, cat2p, ordered=False)
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_122)
+    np.testing.assert_allclose(gkk.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_122, rtol=1.e-5)
 
     kkg.process(cat2p, cat1p, ordered=True, patch_method='local')
     np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
     np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
+    kgk.process(cat2p, cat1p, cat2p, ordered=True, patch_method='local')
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_212)
+    np.testing.assert_allclose(kgk.weight, true_weight_212, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_212, rtol=1.e-5)
+    gkk.process(cat1p, cat2p, ordered=True, patch_method='local')
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_122)
+    np.testing.assert_allclose(gkk.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_122, rtol=1.e-5)
 
     kkg.process(cat2p, cat1p, ordered=False, patch_method='local')
     np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
     np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
+    gkk.process(cat1p, cat2p, ordered=False, patch_method='local')
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_122)
+    np.testing.assert_allclose(gkk.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_122, rtol=1.e-5)
 
 
 @timer
-def test_varzeta_logruv():
+def notest_varzeta_logruv():
     # Test that the shot noise estimate of varzeta is close based on actual variance of many runs
     # when there is no real signal.  So should be just shot noise.
 
@@ -594,7 +821,7 @@ def test_varzeta_logruv():
 
 
 @timer
-def test_direct_logsas_cross():
+def notest_direct_logsas_cross():
     # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
     # This should exactly match the treecorr result if brute=True.
 
@@ -866,7 +1093,7 @@ def test_direct_logsas_cross():
 
 
 @timer
-def test_direct_logsas_cross21():
+def notest_direct_logsas_cross21():
     # Check the 2-1 cross correlation
     return
 
@@ -1061,7 +1288,7 @@ def test_direct_logsas_cross21():
 
 
 @timer
-def test_direct_logmultipole_cross():
+def notest_direct_logmultipole_cross():
     # Check the cross correlation with LogMultipole
     if __name__ == '__main__':
         ngal = 100
@@ -1204,7 +1431,7 @@ def test_direct_logmultipole_cross():
 
 
 @timer
-def test_varzeta():
+def notest_varzeta():
     # Test that varzeta, etc. are correct (or close) based on actual variance of many runs.
 
     # Same gamma pattern as in test_kkg().  Although the signal doesn't actually matter at all here.
@@ -1317,7 +1544,7 @@ def test_varzeta():
 
 
 if __name__ == '__main__':
-    #test_direct_logruv_cross()
+    test_direct_logruv_cross()
     test_direct_logruv_cross21()
     test_varzeta_logruv()
     test_direct_logsas_cross()

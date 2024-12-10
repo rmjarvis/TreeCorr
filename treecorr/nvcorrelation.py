@@ -103,11 +103,6 @@ class NVCorrelation(BaseNZCorrelation):
     _zreal = 'vR'
     _zimag = 'vT'
 
-    def __init__(self, config=None, *, logger=None, **kwargs):
-        """Initialize `NVCorrelation`.  See class doc for details.
-        """
-        super().__init__(config, logger=logger, **kwargs)
-
     def finalize(self, varv):
         """Finalize the calculation of the correlation function.
 

@@ -99,11 +99,6 @@ class KQCorrelation(BaseKZCorrelation):
     _xireal = 'xi'
     _xiimag = 'xi_im'
 
-    def __init__(self, config=None, *, logger=None, **kwargs):
-        """Initialize `KQCorrelation`.  See class doc for details.
-        """
-        super().__init__(config, logger=logger, **kwargs)
-
     def finalize(self, vark, varq):
         """Finalize the calculation of the correlation function.
 

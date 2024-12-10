@@ -23,7 +23,7 @@ import coord
 from . import _treecorr
 from .config import merge_config, setup_logger, get, make_minimal_config
 from .util import parse_metric, metric_enum, coord_enum, set_omp_threads, lazy_property
-from .util import make_reader
+from .util import make_writer, make_reader, spin_by_letter
 from .corr2base import estimate_multi_cov, build_multi_cov_design_matrix, Corr2
 from .catalog import Catalog
 
@@ -235,9 +235,9 @@ class Corr3(object):
 
     .. note::
 
-        If you separate out the steps of the `Corr3.process` command and use `process_auto` and/or
-        `Corr3.process_cross`, then the units will not be applied to ``meanr`` or ``meanlogr`` until
-        the `finalize` function is called.
+        If you separate out the steps of the `process` command and use `process_auto`
+        and/or `process_cross`, then the units will not be applied to ``meanr`` or
+        ``meanlogr`` until the `finalize` function is called.
 
     Parameters:
         config (dict):      A configuration dict that can be used to pass in the below kwargs if
@@ -1802,7 +1802,25 @@ class Corr3(object):
         # but for LogMultipole, the absolute value is what we want.
         return np.abs(self.weight.ravel())
 
-    def _process_auto(self, cat, metric=None, num_threads=None):
+    def process_auto(self, cat, *, metric=None, num_threads=None):
+        """Process a single catalog, accumulating the auto-correlation.
+
+        This accumulates the auto-correlation for the given catalog.  After
+        calling this function as often as desired, the `finalize` command will
+        finish the calculation of meand1, meanlogd1, etc.
+
+        This method is only valid for classes that have the same type of value in all
+        three triangle vertices.  (E.g. NNN, GGG, KKK)
+
+        Parameters:
+            cat (Catalog):      The catalog to process
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
+        """
         # The implementation is the same for all classes that can call this.
         assert self._letter1 == self._letter2 == self._letter3
         if cat.name == '':
@@ -1824,7 +1842,32 @@ class Corr3(object):
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
         self.corr.processAuto(field.data, self.output_dots, self._metric)
 
-    def _process_cross12(self, cat1, cat2, metric=None, ordered=True, num_threads=None):
+    def process_cross12(self, cat1, cat2, *, metric=None, ordered=True, num_threads=None):
+        """Process two catalogs, accumulating the 3pt cross-correlation, where one of the
+        points in each triangle come from the first catalog, and two come from the second.
+
+        This accumulates the cross-correlation for the given catalogs as part of a larger
+        auto- or cross-correlation calculation.  E.g. when splitting up a large catalog into
+        patches, this is appropriate to use for the cross correlation between different patches
+        as part of the complete auto-correlation of the full catalog.
+
+        This method is only valid for classes that have the same type of value in vertices
+        2 and 3.  (E.g. KKK, KGG, NKK)
+
+        Parameters:
+            cat1 (Catalog):     The first catalog to process. (1 point in each triangle will come
+                                from this catalog.)
+            cat2 (Catalog):     The second catalog to process. (2 points in each triangle will come
+                                from this catalog.)
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            ordered (bool):     Whether to fix the order of the triangle vertices to match the
+                                catalogs. (default: True)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
+        """
         assert self._letter2 == self._letter3
         if cat1.name == '' and cat2.name == '':
             self.logger.info('Starting process %s (1-2) cross-correlations', self._letters)
@@ -1853,7 +1896,32 @@ class Corr3(object):
         ocode = 1 if ordered or self._letter1 != self._letter2 else 0
         self.corr.processCross12(f1.data, f2.data, ocode, self.output_dots, self._metric)
 
-    def _process_cross21(self, cat1, cat2, metric=None, ordered=True, num_threads=None):
+    def process_cross21(self, cat1, cat2, *, metric=None, ordered=True, num_threads=None):
+        """Process two catalogs, accumulating the 3pt cross-correlation, where two of the
+        points in each triangle come from the first catalog, and one comes from the second.
+
+        This accumulates the cross-correlation for the given catalogs as part of a larger
+        auto- or cross-correlation calculation.  E.g. when splitting up a large catalog into
+        patches, this is appropriate to use for the cross correlation between different patches
+        as part of the complete auto-correlation of the full catalog.
+
+        This method is only valid for classes that have the same type of value in vertices
+        1 and 2.  (E.g. KKK, KKG, NNK)
+
+        Parameters:
+            cat1 (Catalog):     The first catalog to process. (2 points in each triangle will come
+                                from this catalog.)
+            cat2 (Catalog):     The second catalog to process. (1 point in each triangle will come
+                                from this catalog.)
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            ordered (bool):     Whether to fix the order of the triangle vertices to match the
+                                catalogs. (default: True)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
+        """
         assert self._letter1 == self._letter2
         if cat1.name == '' and cat2.name == '':
             self.logger.info('Starting process %s (2-1) cross-correlations', self._letters)
@@ -2178,8 +2246,8 @@ class Corr3(object):
 
         .. note::
 
-            For this to make sense, both objects should not have had ``finalize`` called yet.
-            Then, after adding them together, you should call ``finalize`` on the sum.
+            For this to make sense, both objects should not have had `finalize` called yet.
+            Then, after adding them together, you should call `finalize` on the sum.
         """
         if not isinstance(other, self.__class__):
             raise TypeError(f"Can only add another {self._cls} object")
@@ -2204,6 +2272,40 @@ class Corr3(object):
             self.weighti[:] += other.weighti[:]
         self.ntri[:] += other.ntri[:]
         return self
+
+    def _sum(self, others):
+        # Equivalent to the operation of:
+        #     self._clear()
+        #     for other in others:
+        #         self += other
+        # but no sanity checks and use numpy.sum for faster calculation.
+        np.sum([c.meand1 for c in others], axis=0, out=self.meand1)
+        np.sum([c.meanlogd1 for c in others], axis=0, out=self.meanlogd1)
+        np.sum([c.meand2 for c in others], axis=0, out=self.meand2)
+        np.sum([c.meanlogd2 for c in others], axis=0, out=self.meanlogd2)
+        np.sum([c.meand3 for c in others], axis=0, out=self.meand3)
+        np.sum([c.meanlogd3 for c in others], axis=0, out=self.meanlogd3)
+        np.sum([c.meanu for c in others], axis=0, out=self.meanu)
+        if self.bin_type == 'LogRUV':
+            np.sum([c.meanv for c in others], axis=0, out=self.meanv)
+        if self._z[0].size:
+            np.sum([c._z[0] for c in others], axis=0, out=self._z[0])
+        if self._z[1].size:
+            np.sum([c._z[1] for c in others], axis=0, out=self._z[1])
+        if self._z[2].size:
+            for i in range(2,8):
+                np.sum([c._z[i] for c in others], axis=0, out=self._z[i])
+        np.sum([c.weightr for c in others], axis=0, out=self.weightr)
+        if self.bin_type == 'LogMultipole':
+            np.sum([c.weighti for c in others], axis=0, out=self.weighti)
+        np.sum([c.ntri for c in others], axis=0, out=self.ntri)
+
+    def _calculate_varzeta(self, vz, i1=0, i2=None):
+        if vz is None:
+            vz = np.zeros(self.data_shape)
+            if self._var_num != 0:
+                vz.ravel()[:] = self.cov_diag[i1:i2].real
+        return vz
 
     def toSAS(self, *, target=None, **kwargs):
         """Convert a multipole-binned correlation to the corresponding SAS binning.
@@ -2292,6 +2394,102 @@ class Corr3(object):
             temp.meanu *= temp.weightr
 
             sas.results[k] = temp
+
+        if hasattr(self, '_var_num'):
+            sas._var_num = self._var_num
+
+        if self._z[0].size == 0:
+            # NNN doesn't have a zeta to compute
+            return sas
+
+        # Z(d2,d3,phi) = 1/2pi sum_n Z_n(d2,d3) exp(i n phi)
+        expiphi = np.exp(1j * self.n1d[:,None] * sas.phi1d)
+
+        zetas = [z.dot(expiphi) / (2*np.pi) * sas.phi_bin_size for z in self._zetas]
+
+        # We leave the gam_mu unnormalized in the Multipole class, so after the FT,
+        # we still need to divide by weight.
+        mask = sas.weightr != 0
+        for z in zetas:
+            z[mask] /= sas.weightr[mask]
+
+        phase = [1] * len(zetas)
+        if len(set('VGTQ') & set(self._letters)) > 0:
+            # Now fix the projection.
+            # The multipole algorithm uses the Porth et al x projection.
+            # We need to switch that to the canoical centroid projection.
+
+            # (Comments here are for GGG, but we can use this for any class
+            # that has at least one non-spin 0 value needing a projection.)
+
+            # Define some complex "vectors" where p1 is at the origin and
+            # p3 is on the x axis:
+            # s = p3 - p1
+            # t = p2 - p1
+            # u = angle bisector of s, t
+            # q1 = (s+t)/3.  (this is the centroid)
+            # q2 = q1-t
+            # q3 = q1-s
+            s = sas.meand2
+            t = sas.meand3 * np.exp(1j * sas.meanphi * sas._phi_units)
+            u = (1 + t/np.abs(t))/2
+            q1 = (s+t)/3.
+            q2 = q1-t
+            q3 = q1-s
+
+            # Currently the projection is as follows:
+            # g1 is projected along u
+            # g2 is projected along t
+            # g3 is projected along s
+            #
+            # We want to have
+            # g1 projected along q1
+            # g2 projected along q2
+            # g3 projected along q3
+            #
+            # The phases to multiply by are exp(2iphi_current) * exp(-2iphi_target). I.e.
+            # g1phase = (u conj(q1))**2 / |u conj(q1)|**2
+            # g2phase = (t conj(q2))**2 / |t conj(q2)|**2
+            # g3phase = (s conj(q3))**2 / |s conj(q3)|**2
+            g1phase = (u * np.conj(q1))**spin_by_letter(self._letter1)
+            g2phase = (t * np.conj(q2))**spin_by_letter(self._letter2)
+            g3phase = (s * np.conj(q3))**spin_by_letter(self._letter3)
+            g1phase /= np.abs(g1phase)
+            g2phase /= np.abs(g2phase)
+            g3phase /= np.abs(g3phase)
+
+            # Now just multiply each gam by the appropriate combination of phases.
+            phase[0] = g1phase * g2phase * g3phase
+            zetas[0] *= phase[0]
+
+            if len(zetas) > 2:
+                phase[1] = np.conj(g1phase) * g2phase * g3phase
+                phase[2] = g1phase * np.conj(g2phase) * g3phase
+                phase[3] = g1phase * g2phase * np.conj(g3phase)
+                zetas[1] *= phase[1]
+                zetas[2] *= phase[2]
+                zetas[3] *= phase[3]
+            elif len(zetas) == 2:
+                # This one is a little tricky.  It means there are two spinny vertices.
+                # Need to figure out which one to conjugate.
+                # TODO
+                phase[1] = np.conj(g1phase) * g2phase * g3phase
+                zetas[1] *= phase[1]
+
+        for i in range(len(zetas)):
+            sas._z[2*i][:] = np.real(zetas[i])
+            if sas._z[2*i+1].size:
+                # KKK for instance has real zeta, so no z[1]
+                sas._z[2*i+1][:] = np.imag(zetas[i])
+
+        for k,v in self.results.items():
+            temp = sas.results[k]
+            zetas = [z.dot(expiphi) / (2*np.pi) * sas.phi_bin_size for z in v._zetas]
+            for i in range(len(zetas)):
+                zetas[i] *= phase[i]
+                temp._z[2*i][:] = np.real(zetas[i])
+                if sas._z[2*i+1].size:
+                    temp._z[2*i+1][:] = np.imag(zetas[i])
 
         return sas
 
@@ -2690,6 +2888,49 @@ class Corr3(object):
         params['corr'] = self._letters
         return params
 
+    @property
+    def _write_col_names(self):
+        if self.bin_type == 'LogRUV':
+            col_names = ['r_nom', 'u_nom', 'v_nom',
+                         'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
+                         'meand3', 'meanlogd3', 'meanu', 'meanv']
+        elif self.bin_type == 'LogSAS':
+            col_names = ['d2_nom', 'd3_nom', 'phi_nom',
+                         'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
+                         'meand3', 'meanlogd3', 'meanphi']
+        else:
+            col_names = ['d2_nom', 'd3_nom', 'n',
+                         'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
+                         'meand3', 'meanlogd3']
+        col_names += self._write_class_col_names
+        if self.bin_type == 'LogMultipole':
+            col_names += ['weight_re', 'weight_im', 'ntri']
+        else:
+            col_names += ['weight', 'ntri']
+        return col_names
+
+    @property
+    def _write_data(self):
+        if self.bin_type == 'LogRUV':
+            data = [ self.rnom, self.u, self.v,
+                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
+                     self.meand3, self.meanlogd3, self.meanu, self.meanv ]
+        elif self.bin_type == 'LogSAS':
+            data = [ self.d2nom, self.d3nom, self.phi,
+                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
+                     self.meand3, self.meanlogd3, self.meanphi ]
+        else:
+            data = [ self.d2nom, self.d3nom, self.n,
+                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
+                     self.meand3, self.meanlogd3 ]
+        data += self._write_class_data
+        if self.bin_type == 'LogMultipole':
+            data += [ self.weightr, self.weighti, self.ntri ]
+        else:
+            data += [ self.weight, self.ntri ]
+        data = [ col.flatten() for col in data ]
+        return data
+
     def _write(self, writer, name, write_patch_results, write_cov=False, zero_tot=False):
         if name is None and (write_patch_results or write_cov):
             name = 'main'
@@ -2735,6 +2976,89 @@ class Corr3(object):
             assert i == num_patch_tri
         if write_cov:
             writer.write_array(self.cov, ext='cov')
+
+    def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
+              write_cov=False):
+        r"""Write the correlation function to the file, file_name.
+
+        For bin_type = LogRUV, the output file will include the following columns:
+
+        ==========      ================================================================
+        Column          Description
+        ==========      ================================================================
+        r_nom           The nominal center of the bin in r = d2 where d1 > d2 > d3
+        u_nom           The nominal center of the bin in u = d3/d2
+        v_nom           The nominal center of the bin in v = +-(d1-d2)/d3
+        meanu           The mean value :math:`\langle u\rangle` of triangles that fell
+                        into each bin
+        meanv           The mean value :math:`\langle v\rangle` of triangles that fell
+                        into each bin
+        ==========      ================================================================
+
+        For bin_type = LogSAS, the output file will include the following columns:
+
+        ==========      ================================================================
+        Column          Description
+        ==========      ================================================================
+        d2_nom          The nominal center of the bin in d2
+        d3_nom          The nominal center of the bin in d3
+        phi_nom         The nominal center of the bin in phi, the opening angle between
+                        d2 and d3 in the counter-clockwise direction
+        meanphi         The mean value :math:`\langle phi\rangle` of triangles that fell
+                        into each bin
+        ==========      ================================================================
+
+        For bin_type = LogMultipole, the output file will include the following columns:
+
+        ==========      ================================================================
+        Column          Description
+        ==========      ================================================================
+        d2_nom          The nominal center of the bin in d2
+        d3_nom          The nominal center of the bin in d3
+        n               The multipole index n
+        ==========      ================================================================
+
+        In addition, all bin types include the following columns:
+
+        ==========      ================================================================
+        Column          Description
+        ==========      ================================================================
+        meand1          The mean value :math:`\langle d1\rangle` of triangles that fell
+                        into each bin
+        meanlogd1       The mean value :math:`\langle \log(d1)\rangle` of triangles that
+                        fell into each bin
+        meand2          The mean value :math:`\langle d2\rangle` of triangles that fell
+                        into each bin
+        meanlogd2       The mean value :math:`\langle \log(d2)\rangle` of triangles that
+                        fell into each bin
+        meand3          The mean value :math:`\langle d3\rangle` of triangles that fell
+                        into each bin
+        meanlogd3       The mean value :math:`\langle \log(d3)\rangle` of triangles that
+                        fell into each bin {}
+        weight          The total weight of triangles contributing to each bin.
+                        (For LogMultipole, this is split into real and imaginary parts,
+                        weight_re and weight_im.)
+        ntri            The number of triangles contributing to each bin
+        ==========      ================================================================
+
+        If ``sep_units`` was given at construction, then the distances will all be in these units.
+        Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
+        radians (for spherical coordinates).
+
+        Parameters:
+            file_name (str):    The name of the file to write to.
+            file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
+                                the type automatically from the extension of file_name.)
+            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
+                                this value can also be given in the constructor in the config dict.)
+            write_patch_results (bool): Whether to write the patch-based results as well.
+                                        (default: False)
+            write_cov (bool):   Whether to write the covariance matrix as well. (default: False)
+        """
+        self.logger.info(f'Writing {self._letters} correlations to {file_name}')
+        precision = self.config.get('precision', 4) if precision is None else precision
+        with make_writer(file_name, precision, file_type, self.logger) as writer:
+            self._write(writer, None, write_patch_results, write_cov=write_cov)
 
     def _read(self, reader, name=None, params=None):
         name = 'main' if 'main' in reader and name is None else name

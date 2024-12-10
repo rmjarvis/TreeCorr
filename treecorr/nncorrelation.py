@@ -102,8 +102,6 @@ class NNCorrelation(Corr2):
     _default_angle_slop = 1
 
     def __init__(self, config=None, *, logger=None, **kwargs):
-        """Initialize `NNCorrelation`.  See class doc for details.
-        """
         super().__init__(config, logger=logger, **kwargs)
         self.tot = 0.
         self._xi1 = self._xi2 = self._xi3 = self._xi4 = np.array([])

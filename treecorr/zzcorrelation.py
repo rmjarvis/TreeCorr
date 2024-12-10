@@ -309,8 +309,3 @@ class ZZCorrelation(BaseZZCorrelation):
     _builder = _treecorr.ZZCorr
     _calculateVar1 = staticmethod(calculateVarZ)
     _calculateVar2 = staticmethod(calculateVarZ)
-
-    def __init__(self, config=None, *, logger=None, **kwargs):
-        """Initialize `ZZCorrelation`.  See class doc for details.
-        """
-        super().__init__(config, logger=logger, **kwargs)

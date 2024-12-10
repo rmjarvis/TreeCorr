@@ -271,11 +271,6 @@ class NZCorrelation(BaseNZCorrelation):
     _zreal = 'z_real'
     _zimag = 'z_imag'
 
-    def __init__(self, config=None, *, logger=None, **kwargs):
-        """Initialize `NZCorrelation`.  See class doc for details.
-        """
-        super().__init__(config, logger=logger, **kwargs)
-
     def finalize(self, varz):
         """Finalize the calculation of the correlation function.
 

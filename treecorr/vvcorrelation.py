@@ -104,11 +104,6 @@ class VVCorrelation(BaseZZCorrelation):
     _calculateVar1 = staticmethod(calculateVarV)
     _calculateVar2 = staticmethod(calculateVarV)
 
-    def __init__(self, config=None, *, logger=None, **kwargs):
-        """Initialize `VVCorrelation`.  See class doc for details.
-        """
-        super().__init__(config, logger=logger, **kwargs)
-
     def finalize(self, varv1, varv2):
         """Finalize the calculation of the correlation function.
 

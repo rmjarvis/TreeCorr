@@ -106,11 +106,6 @@ class KGCorrelation(BaseKZCorrelation):
     _xireal = 'kgamT'
     _xiimag = 'kgamX'
 
-    def __init__(self, config=None, *, logger=None, **kwargs):
-        """Initialize `KGCorrelation`.  See class doc for details.
-        """
-        super().__init__(config, logger=logger, **kwargs)
-
     def finalize(self, vark, varg):
         """Finalize the calculation of the correlation function.
 

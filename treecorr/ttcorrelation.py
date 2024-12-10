@@ -104,11 +104,6 @@ class TTCorrelation(BaseZZCorrelation):
     _calculateVar1 = staticmethod(calculateVarT)
     _calculateVar2 = staticmethod(calculateVarT)
 
-    def __init__(self, config=None, *, logger=None, **kwargs):
-        """Initialize `TTCorrelation`.  See class doc for details.
-        """
-        super().__init__(config, logger=logger, **kwargs)
-
     def finalize(self, vart1, vart2):
         """Finalize the calculation of the correlation function.
 

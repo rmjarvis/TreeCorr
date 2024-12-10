@@ -104,11 +104,6 @@ class NGCorrelation(BaseNZCorrelation):
     _zreal = 'gamT'
     _zimag = 'gamX'
 
-    def __init__(self, config=None, *, logger=None, **kwargs):
-        """Initialize `NGCorrelation`.  See class doc for details.
-        """
-        super().__init__(config, logger=logger, **kwargs)
-
     def finalize(self, varg):
         """Finalize the calculation of the correlation function.
 

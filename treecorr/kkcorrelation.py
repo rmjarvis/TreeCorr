@@ -109,8 +109,6 @@ class KKCorrelation(Corr2):
     _default_angle_slop = 1
 
     def __init__(self, config=None, *, logger=None, **kwargs):
-        """Initialize `KKCorrelation`.  See class doc for details.
-        """
         super().__init__(config, logger=logger, **kwargs)
 
         self._xi1 = np.zeros_like(self.rnom, dtype=float)

@@ -104,11 +104,6 @@ class QQCorrelation(BaseZZCorrelation):
     _calculateVar1 = staticmethod(calculateVarQ)
     _calculateVar2 = staticmethod(calculateVarQ)
 
-    def __init__(self, config=None, *, logger=None, **kwargs):
-        """Initialize `QQCorrelation`.  See class doc for details.
-        """
-        super().__init__(config, logger=logger, **kwargs)
-
     def finalize(self, varq1, varq2):
         """Finalize the calculation of the correlation function.
 

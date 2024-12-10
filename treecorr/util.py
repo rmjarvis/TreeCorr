@@ -612,3 +612,13 @@ class lazy_property(object):
         value = self.fget(obj)
         setattr(obj, self.func_name, value)
         return value
+
+def spin_by_letter(letter):
+    d = {'N' : 0,
+         'K': 0,
+         'Z': 0,
+         'V': 1,
+         'G': 2,
+         'T': 3,
+         'Q': 4}
+    return d[letter]

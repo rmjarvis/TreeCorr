@@ -103,11 +103,6 @@ class NQCorrelation(BaseNZCorrelation):
     _zreal = 'qR'
     _zimag = 'qR_im'
 
-    def __init__(self, config=None, *, logger=None, **kwargs):
-        """Initialize `NQCorrelation`.  See class doc for details.
-        """
-        super().__init__(config, logger=logger, **kwargs)
-
     def finalize(self, varq):
         """Finalize the calculation of the correlation function.
 

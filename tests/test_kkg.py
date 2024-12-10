@@ -868,7 +868,7 @@ def test_direct_logsas_cross():
 @timer
 def test_direct_logsas_cross21():
     # Check the 2-1 cross correlation
-    return()
+    return
 
     ngal = 50
     s = 10.

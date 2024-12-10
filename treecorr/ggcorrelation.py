@@ -104,11 +104,6 @@ class GGCorrelation(BaseZZCorrelation):
     _calculateVar1 = staticmethod(calculateVarG)
     _calculateVar2 = staticmethod(calculateVarG)
 
-    def __init__(self, config=None, *, logger=None, **kwargs):
-        """Initialize `GGCorrelation`.  See class doc for details.
-        """
-        super().__init__(config, logger=logger, **kwargs)
-
     def finalize(self, varg1, varg2):
         """Finalize the calculation of the correlation function.
 

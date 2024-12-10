@@ -66,7 +66,7 @@ class NNNCorrelation(Corr3):
     _default_angle_slop = 1
 
     def __init__(self, config=None, *, logger=None, **kwargs):
-        Corr3.__init__(self, config, logger=logger, **kwargs)
+        super().__init__(config, logger=logger, **kwargs)
 
         self.tot = 0.
         self._rrr_weight = None
@@ -124,82 +124,19 @@ class NNNCorrelation(Corr3):
         return ret
 
     def process_auto(self, cat, *, metric=None, num_threads=None):
-        """Process a single catalog, accumulating the auto-correlation.
-
-        This accumulates the auto-correlation for the given catalog.  After
-        calling this function as often as desired, the `finalize` command will
-        finish the calculation of meand1, meanlogd1, etc.
-
-        Parameters:
-            cat (Catalog):      The catalog to process
-            metric (str):       Which metric to use.  See `Metrics` for details.
-                                (default: 'Euclidean'; this value can also be given in the
-                                constructor in the config dict.)
-            num_threads (int):  How many OpenMP threads to use during the calculation.
-                                (default: use the number of cpu cores; this value can also be given
-                                in the constructor in the config dict.)
-        """
-        super()._process_auto(cat, metric, num_threads)
+        super().process_auto(cat, metric=metric, num_threads=num_threads)
         self.tot += (1./6.) * cat.sumw**3
 
     def process_cross12(self, cat1, cat2, *, metric=None, ordered=True, num_threads=None):
-        """Process two catalogs, accumulating the 3pt cross-correlation, where one of the
-        points in each triangle come from the first catalog, and two come from the second.
-
-        This accumulates the cross-correlation for the given catalogs as part of a larger
-        auto- or cross-correlation calculation.  E.g. when splitting up a large catalog into
-        patches, this is appropriate to use for the cross correlation between different patches
-        as part of the complete auto-correlation of the full catalog.
-
-        Parameters:
-            cat1 (Catalog):     The first catalog to process. (1 point in each triangle will come
-                                from this catalog.)
-            cat2 (Catalog):     The second catalog to process. (2 points in each triangle will come
-                                from this catalog.)
-            metric (str):       Which metric to use.  See `Metrics` for details.
-                                (default: 'Euclidean'; this value can also be given in the
-                                constructor in the config dict.)
-            ordered (bool):     Whether to fix the order of the triangle vertices to match the
-                                catalogs. (default: True)
-            num_threads (int):  How many OpenMP threads to use during the calculation.
-                                (default: use the number of cpu cores; this value can also be given
-                                in the constructor in the config dict.)
-        """
-        super()._process_cross12(cat1, cat2, metric, ordered, num_threads)
+        super().process_cross12(cat1, cat2, metric=metric, ordered=ordered, num_threads=num_threads)
         self.tot += 0.5 * cat1.sumw * cat2.sumw**2
 
     def process_cross(self, cat1, cat2, cat3, *, metric=None, ordered=True, num_threads=None):
-        """Process a set of three catalogs, accumulating the 3pt cross-correlation.
-
-        This accumulates the cross-correlation for the given catalogs as part of a larger
-        auto- or cross-correlation calculation.  E.g. when splitting up a large catalog into
-        patches, this is appropriate to use for the cross correlation between different patches
-        as part of the complete auto-correlation of the full catalog.
-
-        Parameters:
-            cat1 (Catalog):     The first catalog to process
-            cat2 (Catalog):     The second catalog to process
-            cat3 (Catalog):     The third catalog to process
-            metric (str):       Which metric to use.  See `Metrics` for details.
-                                (default: 'Euclidean'; this value can also be given in the
-                                constructor in the config dict.)
-            ordered (bool):     Whether to fix the order of the triangle vertices to match the
-                                catalogs. (default: True)
-            num_threads (int):  How many OpenMP threads to use during the calculation.
-                                (default: use the number of cpu cores; this value can also be given
-                                in the constructor in the config dict.)
-        """
         super().process_cross(cat1, cat2, cat3, metric=metric, ordered=ordered,
                               num_threads=num_threads)
         self.tot += cat1.sumw * cat2.sumw * cat3.sumw
 
     def finalize(self):
-        """Finalize the calculation of meand1, meanlogd1, etc.
-
-        The `process_auto`, `process_cross12` and `process_cross` commands accumulate values in
-        each bin, so they can be called multiple times if appropriate.  Afterwards, this command
-        finishes the calculation of meand1, meand2, etc. by dividing by the total weight.
-        """
         self._finalize()
 
     @lazy_property
@@ -223,19 +160,7 @@ class NNNCorrelation(Corr3):
         if len(others) == 0:
             self._clear()
         else:
-            np.sum([c.meand1 for c in others], axis=0, out=self.meand1)
-            np.sum([c.meanlogd1 for c in others], axis=0, out=self.meanlogd1)
-            np.sum([c.meand2 for c in others], axis=0, out=self.meand2)
-            np.sum([c.meanlogd2 for c in others], axis=0, out=self.meanlogd2)
-            np.sum([c.meand3 for c in others], axis=0, out=self.meand3)
-            np.sum([c.meanlogd3 for c in others], axis=0, out=self.meanlogd3)
-            np.sum([c.meanu for c in others], axis=0, out=self.meanu)
-            if self.bin_type == 'LogRUV':
-                np.sum([c.meanv for c in others], axis=0, out=self.meanv)
-            np.sum([c.ntri for c in others], axis=0, out=self.ntri)
-            np.sum([c.weightr for c in others], axis=0, out=self.weightr)
-            if self.bin_type == 'LogMultipole':
-                np.sum([c.weighti for c in others], axis=0, out=self.weighti)
+            super()._sum(others)
         self.tot = tot
 
     def _add_tot(self, ijk, c1, c2, c3):
@@ -289,22 +214,6 @@ class NNNCorrelation(Corr3):
             return self.tot
 
     def toSAS(self, *, target=None, **kwargs):
-        """Convert a multipole-binned correlation to the corresponding SAS binning.
-
-        This is only valid for bin_type == LogMultipole.
-
-        Keyword Arguments:
-            target:     A target NNNCorrelation object with LogSAS binning to write to.
-                        If this is not given, a new object will be created based on the
-                        configuration paramters of the current object. (default: None)
-            **kwargs:   Any kwargs that you want to use to configure the returned object.
-                        Typically, might include min_phi, max_phi, nphi_bins, phi_bin_size.
-                        The default phi binning is [0,pi] with nphi_bins = self.max_n.
-
-        Returns:
-            An NNNCorrelation object with bin_type=LogSAS containing the
-            same information as this object, but with the SAS binning.
-        """
         sas = super().toSAS(target=target, **kwargs)
 
         sas.tot = self.tot

@@ -51,88 +51,11 @@ class GGGCorrelation(Corr3):
     sides d1, d2, d3 respectively, where d1 > d2 > d3, and :math:`{}^*` indicates complex
     conjugation.
 
-    See the doc string of `Corr3` for a description of how the triangles
-    are binned.
+    See the doc string of `Corr3` for a description of how the triangles are binned along
+    with the attributes related to the different binning options.
 
-    Ojects of this class holds the following attributes:
-
-    Attributes:
-        nbins:      The number of bins in logr where r = d2.
-        bin_size:   The size of the bins in logr.
-        min_sep:    The minimum separation being considered.
-        max_sep:    The maximum separation being considered.
-        logr1d:     The nominal centers of the nbins bins in log(r).
-
-    If the bin_type is LogRUV, then it will have these attributes:
-
-    Attributes:
-        nubins:     The number of bins in u where u = d3/d2.
-        ubin_size:  The size of the bins in u.
-        min_u:      The minimum u being considered.
-        max_u:      The maximum u being considered.
-        nvbins:     The number of bins in v where v = +-(d1-d2)/d3.
-        vbin_size:  The size of the bins in v.
-        min_v:      The minimum v being considered.
-        max_v:      The maximum v being considered.
-        u1d:        The nominal centers of the nubins bins in u.
-        v1d:        The nominal centers of the nvbins bins in v.
-
-    If the bin_type is LogSAS, then it will have these attributes:
-
-    Attributes:
-        nphi_bins:  The number of bins in phi.
-        phi_bin_size: The size of the bins in phi.
-        min_phi:    The minimum phi being considered.
-        max_phi:    The maximum phi being considered.
-        phi1d:      The nominal centers of the nphi_bins bins in phi.
-
-    If the bin_type is LogMultipole, then it will have these attributes:
-
-    Attributes:
-        max_n:      The maximum multipole index n being stored.
-        n1d:        The multipole index n in the 2*max_n+1 bins of the third bin direction.
-
-    In addition, the following attributes are numpy arrays whose shape is:
-
-        * (nbins, nubins, nvbins) if bin_type is LogRUV
-        * (nbins, nbins, nphi_bins) if bin_type is LogSAS
-        * (nbins, nbins, 2*max_n+1) if bin_type is LogMultipole
-
-    If bin_type is LogRUV:
-
-    Attributes:
-        logr:       The nominal center of each bin in log(r).
-        rnom:       The nominal center of each bin converted to regular distance.
-                    i.e. r = exp(logr).
-        u:          The nominal center of each bin in u.
-        v:          The nominal center of each bin in v.
-        meanu:      The (weighted) mean value of u for the triangles in each bin.
-        meanv:      The (weighted) mean value of v for the triangles in each bin.
-
-    If bin_type is LogSAS:
-
-    Attributes:
-        logd2:      The nominal center of each bin in log(d2).
-        d2nom:      The nominal center of each bin converted to regular d2 distance.
-                    i.e. d2 = exp(logd2).
-        logd3:      The nominal center of each bin in log(d3).
-        d3nom:      The nominal center of each bin converted to regular d3 distance.
-                    i.e. d3 = exp(logd3).
-        phi:        The nominal center of each angular bin.
-        meanphi:    The (weighted) mean value of phi for the triangles in each bin.
-
-    If bin_type is LogMultipole:
-
-    Attributes:
-        logd2:      The nominal center of each bin in log(d2).
-        d2nom:      The nominal center of each bin converted to regular d2 distance.
-                    i.e. d2 = exp(logd2).
-        logd3:      The nominal center of each bin in log(d3).
-        d3nom:      The nominal center of each bin converted to regular d3 distance.
-                    i.e. d3 = exp(logd3).
-        n:          The multipole index n for each bin.
-
-    For any bin_type:
+    In addition to the attributes common to all `Corr3` subclasses, objects of this class
+    hold the following attributes:
 
     Attributes:
         gam0:       The 0th "natural" correlation function, :math:`\Gamma_0`.
@@ -146,24 +69,6 @@ class GGGCorrelation(Corr3):
         vargam1:    The variance of :math:`\Gamma_1`.
         vargam2:    The variance of :math:`\Gamma_2`.
         vargam3:    The variance of :math:`\Gamma_3`.
-        meand1:     The (weighted) mean value of d1 for the triangles in each bin.
-        meanlogd1:  The (weighted) mean value of log(d1) for the triangles in each bin.
-        meand2:     The (weighted) mean value of d2 for the triangles in each bin.
-        meanlogd2:  The (weighted) mean value of log(d2) for the triangles in each bin.
-        meand3:     The (weighted) mean value of d3 for the triangles in each bin.
-        meanlogd3:  The (weighted) mean value of log(d3) for the triangles in each bin.
-        weight:     The total weight in each bin.
-        ntri:       The number of triangles going into each bin (including those where one or
-                    more objects have w=0).
-
-    If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances
-    will all be in these units.
-
-    .. note::
-
-        If you separate out the steps of the `Corr3.process` command and use `process_auto` and/or
-        `Corr3.process_cross`, then the units will not be applied to ``meanr`` or ``meanlogr`` until
-        the `finalize` function is called.
 
     The typical usage pattern is as follows::
 
@@ -200,9 +105,7 @@ class GGGCorrelation(Corr3):
     _sig3 = 'sig_sn (per component)'
 
     def __init__(self, config=None, *, logger=None, **kwargs):
-        """Initialize `GGGCorrelation`.  See class doc for details.
-        """
-        Corr3.__init__(self, config, logger=logger, **kwargs)
+        super().__init__(config, logger=logger, **kwargs)
 
         shape = self.data_shape
         self._z = [np.zeros(shape, dtype=float) for _ in range(8)]
@@ -260,55 +163,8 @@ class GGGCorrelation(Corr3):
     def gam3i(self):
         return self._z[7]
 
-    def process_auto(self, cat, *, metric=None, num_threads=None):
-        """Process a single catalog, accumulating the auto-correlation.
-
-        This accumulates the auto-correlation for the given catalog.  After
-        calling this function as often as desired, the `finalize` command will
-        finish the calculation of meand1, meanlogd1, etc.
-
-        Parameters:
-            cat (Catalog):      The catalog to process
-            metric (str):       Which metric to use.  See `Metrics` for details.
-                                (default: 'Euclidean'; this value can also be given in the
-                                constructor in the config dict.)
-            num_threads (int):  How many OpenMP threads to use during the calculation.
-                                (default: use the number of cpu cores; this value can also be given
-                                in the constructor in the config dict.)
-        """
-        super()._process_auto(cat, metric, num_threads)
-
-    def process_cross12(self, cat1, cat2, *, metric=None, ordered=True, num_threads=None):
-        """Process two catalogs, accumulating the 3pt cross-correlation, where one of the
-        points in each triangle come from the first catalog, and two come from the second.
-
-        This accumulates the cross-correlation for the given catalogs as part of a larger
-        auto- or cross-correlation calculation.  E.g. when splitting up a large catalog into
-        patches, this is appropriate to use for the cross correlation between different patches
-        as part of the complete auto-correlation of the full catalog.
-
-        Parameters:
-            cat1 (Catalog):     The first catalog to process. (1 point in each triangle will come
-                                from this catalog.)
-            cat2 (Catalog):     The second catalog to process. (2 points in each triangle will come
-                                from this catalog.)
-            metric (str):       Which metric to use.  See `Metrics` for details.
-                                (default: 'Euclidean'; this value can also be given in the
-                                constructor in the config dict.)
-            ordered (bool):     Whether to fix the order of the triangle vertices to match the
-                                catalogs. (default: True)
-            num_threads (int):  How many OpenMP threads to use during the calculation.
-                                (default: use the number of cpu cores; this value can also be given
-                                in the constructor in the config dict.)
-        """
-        super()._process_cross12(cat1, cat2, metric, ordered, num_threads)
-
     def finalize(self, varg1, varg2, varg3):
         """Finalize the calculation of the correlation function.
-
-        The `process_auto`, `process_cross12` and `Corr3.process_cross` commands accumulate values
-        in each bin, so they can be called multiple times if appropriate.  Afterwards, this command
-        finishes the calculation by dividing by the total weight.
 
         Parameters:
             varg1 (float):  The variance per component of the first shear field.
@@ -316,8 +172,6 @@ class GGGCorrelation(Corr3):
             varg3 (float):  The variance per component of the third shear field.
         """
         self._finalize()
-        mask1 = self.weightr != 0
-        mask2 = self.weightr == 0
         self._var_num = 4 * varg1 * varg2 * varg3
 
         # I don't really understand why the variance is coming out 2x larger than the normal
@@ -329,33 +183,25 @@ class GGGCorrelation(Corr3):
     @property
     def vargam0(self):
         if self._vargam0 is None:
-            self._vargam0 = np.zeros(self.data_shape)
-            if self._var_num != 0:
-                self._vargam0.ravel()[:] = self.cov_diag[0:self._nbins].real
+            self._vargam0 = self._calculate_varzeta(self._vargam0, 0, self._nbins)
         return self._vargam0
 
     @property
     def vargam1(self):
         if self._vargam1 is None:
-            self._vargam1 = np.zeros(self.data_shape)
-            if self._var_num != 0:
-                self._vargam1.ravel()[:] = self.cov_diag[self._nbins:2*self._nbins].real
+            self._vargam1 = self._calculate_varzeta(self._vargam1, self._nbins, 2*self._nbins)
         return self._vargam1
 
     @property
     def vargam2(self):
         if self._vargam2 is None:
-            self._vargam2 = np.zeros(self.data_shape)
-            if self._var_num != 0:
-                self._vargam2.ravel()[:] = self.cov_diag[2*self._nbins:3*self._nbins].real
+            self._vargam2 = self._calculate_varzeta(self._vargam2, 2*self._nbins, 3*self._nbins)
         return self._vargam2
 
     @property
     def vargam3(self):
         if self._vargam3 is None:
-            self._vargam3 = np.zeros(self.data_shape)
-            if self._var_num != 0:
-                self._vargam3.ravel()[:] = self.cov_diag[3*self._nbins:4*self._nbins].real
+            self._vargam3 = self._calculate_varzeta(self._vargam3, 3*self._nbins, 4*self._nbins)
         return self._vargam3
 
     def _clear(self):
@@ -364,34 +210,6 @@ class GGGCorrelation(Corr3):
         self._vargam1 = None
         self._vargam2 = None
         self._vargam3 = None
-
-    def _sum(self, others):
-        # Equivalent to the operation of:
-        #     self._clear()
-        #     for other in others:
-        #         self += other
-        # but no sanity checks and use numpy.sum for faster calculation.
-        np.sum([c.gam0r for c in others], axis=0, out=self.gam0r)
-        np.sum([c.gam0i for c in others], axis=0, out=self.gam0i)
-        np.sum([c.gam1r for c in others], axis=0, out=self.gam1r)
-        np.sum([c.gam1i for c in others], axis=0, out=self.gam1i)
-        np.sum([c.gam2r for c in others], axis=0, out=self.gam2r)
-        np.sum([c.gam2i for c in others], axis=0, out=self.gam2i)
-        np.sum([c.gam3r for c in others], axis=0, out=self.gam3r)
-        np.sum([c.gam3i for c in others], axis=0, out=self.gam3i)
-        np.sum([c.meand1 for c in others], axis=0, out=self.meand1)
-        np.sum([c.meanlogd1 for c in others], axis=0, out=self.meanlogd1)
-        np.sum([c.meand2 for c in others], axis=0, out=self.meand2)
-        np.sum([c.meanlogd2 for c in others], axis=0, out=self.meanlogd2)
-        np.sum([c.meand3 for c in others], axis=0, out=self.meand3)
-        np.sum([c.meanlogd3 for c in others], axis=0, out=self.meanlogd3)
-        np.sum([c.meanu for c in others], axis=0, out=self.meanu)
-        if self.bin_type == 'LogRUV':
-            np.sum([c.meanv for c in others], axis=0, out=self.meanv)
-        np.sum([c.weightr for c in others], axis=0, out=self.weightr)
-        if self.bin_type == 'LogMultipole':
-            np.sum([c.weighti for c in others], axis=0, out=self.weighti)
-        np.sum([c.ntri for c in others], axis=0, out=self.ntri)
 
     def getStat(self):
         """The standard statistic for the current correlation object as a 1-d array.
@@ -414,181 +232,13 @@ class GGGCorrelation(Corr3):
         """
         return np.concatenate([np.abs(self.weight.ravel())] * 4)
 
-    def toSAS(self, *, target=None, **kwargs):
-        """Convert a multipole-binned correlation to the corresponding SAS binning.
-
-        This is only valid for bin_type == LogMultipole.
-
-        Keyword Arguments:
-            target:     A target GGGCorrelation object with LogSAS binning to write to.
-                        If this is not given, a new object will be created based on the
-                        configuration paramters of the current object. (default: None)
-            **kwargs:   Any kwargs that you want to use to configure the returned object.
-                        Typically, might include min_phi, max_phi, nphi_bins, phi_bin_size.
-                        The default phi binning is [0,pi] with nphi_bins = self.max_n.
-
-        Returns:
-            A GGGCorrelation object with bin_type=LogSAS containing the
-            same information as this object, but with the SAS binning.
-        """
-        sas = super().toSAS(target=target, **kwargs)
-
-        sas._var_num = self._var_num
-
-        # Z(d2,d3,phi) = 1/2pi sum_n Z_n(d2,d3) exp(i n phi)
-        expiphi = np.exp(1j * self.n1d[:,None] * sas.phi1d)
-        gam0 = self.gam0.dot(expiphi) / (2*np.pi) * sas.phi_bin_size
-        gam1 = self.gam1.dot(expiphi) / (2*np.pi) * sas.phi_bin_size
-        gam2 = self.gam2.dot(expiphi) / (2*np.pi) * sas.phi_bin_size
-        gam3 = self.gam3.dot(expiphi) / (2*np.pi) * sas.phi_bin_size
-
-        # We leave the gam_mu unnormalized in the Multipole class, so after the FT,
-        # we still need to divide by weight.
-        mask = sas.weightr != 0
-        gam0[mask] /= sas.weightr[mask]
-        gam1[mask] /= sas.weightr[mask]
-        gam2[mask] /= sas.weightr[mask]
-        gam3[mask] /= sas.weightr[mask]
-
-        # Now fix the projection.
-        # The multipole algorithm uses the Porth et al x projection.
-        # We need to switch that to the canoical centroid projection.
-
-        # Define some complex "vectors" where p1 is at the origin and
-        # p3 is on the x axis:
-        # s = p3 - p1
-        # t = p2 - p1
-        # u = angle bisector of s, t
-        # q1 = (s+t)/3.  (this is the centroid)
-        # q2 = q1-t
-        # q3 = q1-s
-        s = sas.meand2
-        t = sas.meand3 * np.exp(1j * sas.meanphi * sas._phi_units)
-        u = (1 + t/np.abs(t))/2
-        q1 = (s+t)/3.
-        q2 = q1-t
-        q3 = q1-s
-
-        # Currently the projection is as follows:
-        # g1 is projected along u
-        # g2 is projected along t
-        # g3 is projected along s
-        #
-        # We want to have
-        # g1 projected along q1
-        # g2 projected along q2
-        # g3 projected along q3
-        #
-        # The phases to multiply by are exp(2iphi_current) * exp(-2iphi_target). I.e.
-        # g1phase = (u conj(q1))**2 / |u conj(q1)|**2
-        # g2phase = (t conj(q2))**2 / |t conj(q2)|**2
-        # g3phase = (s conj(q3))**2 / |s conj(q3)|**2
-        g1phase = (u * np.conj(q1))**2
-        g2phase = (t * np.conj(q2))**2
-        g3phase = (s * np.conj(q3))**2
-        g1phase /= np.abs(g1phase)
-        g2phase /= np.abs(g2phase)
-        g3phase /= np.abs(g3phase)
-
-        # Now just multiply each gam by the appropriate combination of phases.
-        gam0phase = g1phase * g2phase * g3phase
-        gam1phase = np.conj(g1phase) * g2phase * g3phase
-        gam2phase = g1phase * np.conj(g2phase) * g3phase
-        gam3phase = g1phase * g2phase * np.conj(g3phase)
-        gam0 *= gam0phase
-        gam1 *= gam1phase
-        gam2 *= gam2phase
-        gam3 *= gam3phase
-
-        sas.gam0r[:] = np.real(gam0)
-        sas.gam0i[:] = np.imag(gam0)
-        sas.gam1r[:] = np.real(gam1)
-        sas.gam1i[:] = np.imag(gam1)
-        sas.gam2r[:] = np.real(gam2)
-        sas.gam2i[:] = np.imag(gam2)
-        sas.gam3r[:] = np.real(gam3)
-        sas.gam3i[:] = np.imag(gam3)
-
-        for k,v in self.results.items():
-            temp = sas.results[k]
-            gam0 = v.gam0.dot(expiphi) / (2*np.pi) * sas.phi_bin_size * gam0phase
-            gam1 = v.gam1.dot(expiphi) / (2*np.pi) * sas.phi_bin_size * gam1phase
-            gam2 = v.gam2.dot(expiphi) / (2*np.pi) * sas.phi_bin_size * gam2phase
-            gam3 = v.gam3.dot(expiphi) / (2*np.pi) * sas.phi_bin_size * gam3phase
-            temp.gam0r[:] = np.real(gam0)
-            temp.gam0i[:] = np.imag(gam0)
-            temp.gam1r[:] = np.real(gam1)
-            temp.gam1i[:] = np.imag(gam1)
-            temp.gam2r[:] = np.real(gam2)
-            temp.gam2i[:] = np.imag(gam2)
-            temp.gam3r[:] = np.real(gam3)
-            temp.gam3i[:] = np.imag(gam3)
-
-        return sas
-
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
-        r"""Write the correlation function to the file, file_name.
+        super().write(file_name, file_type=file_type, precision=precision,
+                      write_patch_results=write_patch_results, write_cov=write_cov)
 
-        As described in the doc string for `GGGCorrelation`, we use the "natural components" of
-        the shear 3-point function described by Schneider & Lombardi (2003) using the triangle
-        centroid as the projection point.  There are 4 complex-valued natural components, so there
-        are 8 columns in the output file.
-
-        For bin_type = LogRUV, the output file will include the following columns:
-
-        ==========      ================================================================
-        Column          Description
-        ==========      ================================================================
-        r_nom           The nominal center of the bin in r = d2 where d1 > d2 > d3
-        u_nom           The nominal center of the bin in u = d3/d2
-        v_nom           The nominal center of the bin in v = +-(d1-d2)/d3
-        meanu           The mean value :math:`\langle u\rangle` of triangles that fell
-                        into each bin
-        meanv           The mean value :math:`\langle v\rangle` of triangles that fell
-                        into each bin
-        ==========      ================================================================
-
-        For bin_type = LogSAS, the output file will include the following columns:
-
-        ==========      ================================================================
-        Column          Description
-        ==========      ================================================================
-        d2_nom          The nominal center of the bin in d2
-        d3_nom          The nominal center of the bin in d3
-        phi_nom         The nominal center of the bin in phi, the opening angle between
-                        d2 and d3 in the counter-clockwise direction
-        meanphi         The mean value :math:`\langle phi\rangle` of triangles that fell
-                        into each bin
-        ==========      ================================================================
-
-        For bin_type = LogMultipole, the output file will include the following columns:
-
-        ==========      ================================================================
-        Column          Description
-        ==========      ================================================================
-        d2_nom          The nominal center of the bin in d2
-        d3_nom          The nominal center of the bin in d3
-        n               The multipole index n
-        ==========      ================================================================
-
-        In addition, all bin types include the following columns:
-
-        ==========      ================================================================
-        Column          Description
-        ==========      ================================================================
-        meand1          The mean value :math:`\langle d1\rangle` of triangles that fell
-                        into each bin
-        meanlogd1       The mean value :math:`\langle \log(d1)\rangle` of triangles that
-                        fell into each bin
-        meand2          The mean value :math:`\langle d2\rangle` of triangles that fell
-                        into each bin
-        meanlogd2       The mean value :math:`\langle \log(d2)\rangle` of triangles that
-                        fell into each bin
-        meand3          The mean value :math:`\langle d3\rangle` of triangles that fell
-                        into each bin
-        meanlogd3       The mean value :math:`\langle \log(d3)\rangle` of triangles that
-                        fell into each bin
+    write.__doc__ = Corr3.write.__doc__.format(
+        r"""
         gam0r           The real part of the estimator of :math:`\Gamma_0`
         gam0i           The imag part of the estimator of :math:`\Gamma_0`
         gam1r           The real part of the estimator of :math:`\Gamma_1`
@@ -601,78 +251,21 @@ class GGGCorrelation(Corr3):
         sigma_gam1      The sqrt of the variance estimate of :math:`\Gamma_1`
         sigma_gam2      The sqrt of the variance estimate of :math:`\Gamma_2`
         sigma_gam3      The sqrt of the variance estimate of :math:`\Gamma_3`
-        weight          The total weight of triangles contributing to each bin.
-                        (For LogMultipole, this is split into real and imaginary parts,
-                        weight_re and weight_im.)
-        ntri            The number of triangles contributing to each bin
-        ==========      ================================================================
+        """)
 
-        If ``sep_units`` was given at construction, then the distances will all be in these units.
-        Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
-        radians (for spherical coordinates).
-
-        Parameters:
-            file_name (str):    The name of the file to write to.
-            file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
-                                the type automatically from the extension of file_name.)
-            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
-                                this value can also be given in the constructor in the config dict.)
-            write_patch_results (bool): Whether to write the patch-based results as well.
-                                        (default: False)
-            write_cov (bool):   Whether to write the covariance matrix as well. (default: False)
-        """
-        self.logger.info('Writing GGG correlations to %s',file_name)
-        precision = self.config.get('precision', 4) if precision is None else precision
-        with make_writer(file_name, precision, file_type, self.logger) as writer:
-            self._write(writer, None, write_patch_results, write_cov=write_cov)
+    # These properties just include the class-specific info.
+    @property
+    def _write_class_col_names(self):
+        return ['gam0r', 'gam0i', 'gam1r', 'gam1i',
+                'gam2r', 'gam2i', 'gam3r', 'gam3i',
+                'sigma_gam0', 'sigma_gam1', 'sigma_gam2', 'sigma_gam3']
 
     @property
-    def _write_col_names(self):
-        if self.bin_type == 'LogRUV':
-            col_names = ['r_nom', 'u_nom', 'v_nom',
-                         'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
-                         'meand3', 'meanlogd3', 'meanu', 'meanv']
-        elif self.bin_type == 'LogSAS':
-            col_names = ['d2_nom', 'd3_nom', 'phi_nom',
-                         'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
-                         'meand3', 'meanlogd3', 'meanphi']
-        else:
-            col_names = ['d2_nom', 'd3_nom', 'n',
-                         'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
-                         'meand3', 'meanlogd3']
-        col_names += ['gam0r', 'gam0i', 'gam1r', 'gam1i',
-                      'gam2r', 'gam2i', 'gam3r', 'gam3i',
-                      'sigma_gam0', 'sigma_gam1', 'sigma_gam2', 'sigma_gam3']
-        if self.bin_type == 'LogMultipole':
-            col_names += ['weight_re', 'weight_im', 'ntri']
-        else:
-            col_names += ['weight', 'ntri']
-        return col_names
-
-    @property
-    def _write_data(self):
-        if self.bin_type == 'LogRUV':
-            data = [ self.rnom, self.u, self.v,
-                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
-                     self.meand3, self.meanlogd3, self.meanu, self.meanv ]
-        elif self.bin_type == 'LogSAS':
-            data = [ self.d2nom, self.d3nom, self.phi,
-                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
-                     self.meand3, self.meanlogd3, self.meanphi ]
-        else:
-            data = [ self.d2nom, self.d3nom, self.n,
-                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
-                     self.meand3, self.meanlogd3 ]
-        data += [ self.gam0r, self.gam0i, self.gam1r, self.gam1i,
-                  self.gam2r, self.gam2i, self.gam3r, self.gam3i,
-                  np.sqrt(self.vargam0), np.sqrt(self.vargam1),
-                  np.sqrt(self.vargam2), np.sqrt(self.vargam3) ]
-        if self.bin_type == 'LogMultipole':
-            data += [ self.weightr, self.weighti, self.ntri ]
-        else:
-            data += [ self.weight, self.ntri ]
-        data = [ col.flatten() for col in data ]
-        return data
+    def _write_class_data(self):
+        return [self.gam0r, self.gam0i, self.gam1r, self.gam1i,
+                self.gam2r, self.gam2i, self.gam3r, self.gam3i,
+                np.sqrt(self.vargam0), np.sqrt(self.vargam1),
+                np.sqrt(self.vargam2), np.sqrt(self.vargam3) ]
 
     def _read_from_data(self, data, params):
         super()._read_from_data(data, params)

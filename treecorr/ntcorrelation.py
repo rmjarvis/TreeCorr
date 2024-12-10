@@ -103,11 +103,6 @@ class NTCorrelation(BaseNZCorrelation):
     _zreal = 'tR'
     _zimag = 'tR_im'
 
-    def __init__(self, config=None, *, logger=None, **kwargs):
-        """Initialize `NTCorrelation`.  See class doc for details.
-        """
-        super().__init__(config, logger=logger, **kwargs)
-
     def finalize(self, vart):
         """Finalize the calculation of the correlation function.
 

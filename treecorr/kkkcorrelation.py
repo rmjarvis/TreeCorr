@@ -20,7 +20,6 @@ import numpy as np
 from . import _treecorr
 from .catalog import calculateVarK
 from .corr3base import Corr3
-from .util import make_writer, make_reader
 from .config import make_minimal_config
 
 
@@ -81,9 +80,7 @@ class KKKCorrelation(Corr3):
     _default_angle_slop = 1
 
     def __init__(self, config=None, *, logger=None, **kwargs):
-        """Initialize `KKKCorrelation`.  See class doc for details.
-        """
-        Corr3.__init__(self, config, logger=logger, **kwargs)
+        super().__init__(config, logger=logger, **kwargs)
 
         shape = self.data_shape
         self._z[0] = np.zeros(shape, dtype=float)
@@ -99,55 +96,8 @@ class KKKCorrelation(Corr3):
         else:
             return self._z[0]
 
-    def process_auto(self, cat, *, metric=None, num_threads=None):
-        """Process a single catalog, accumulating the auto-correlation.
-
-        This accumulates the auto-correlation for the given catalog.  After
-        calling this function as often as desired, the `finalize` command will
-        finish the calculation of meand1, meanlogd1, etc.
-
-        Parameters:
-            cat (Catalog):      The catalog to process
-            metric (str):       Which metric to use.  See `Metrics` for details.
-                                (default: 'Euclidean'; this value can also be given in the
-                                constructor in the config dict.)
-            num_threads (int):  How many OpenMP threads to use during the calculation.
-                                (default: use the number of cpu cores; this value can also be given
-                                in the constructor in the config dict.)
-        """
-        super()._process_auto(cat, metric, num_threads)
-
-    def process_cross12(self, cat1, cat2, *, metric=None, ordered=True, num_threads=None):
-        """Process two catalogs, accumulating the 3pt cross-correlation, where one of the
-        points in each triangle come from the first catalog, and two come from the second.
-
-        This accumulates the cross-correlation for the given catalogs as part of a larger
-        auto- or cross-correlation calculation.  E.g. when splitting up a large catalog into
-        patches, this is appropriate to use for the cross correlation between different patches
-        as part of the complete auto-correlation of the full catalog.
-
-        Parameters:
-            cat1 (Catalog):     The first catalog to process. (1 point in each triangle will come
-                                from this catalog.)
-            cat2 (Catalog):     The second catalog to process. (2 points in each triangle will come
-                                from this catalog.)
-            metric (str):       Which metric to use.  See `Metrics` for details.
-                                (default: 'Euclidean'; this value can also be given in the
-                                constructor in the config dict.)
-            ordered (bool):     Whether to fix the order of the triangle vertices to match the
-                                catalogs. (default: True)
-            num_threads (int):  How many OpenMP threads to use during the calculation.
-                                (default: use the number of cpu cores; this value can also be given
-                                in the constructor in the config dict.)
-        """
-        super()._process_cross12(cat1, cat2, metric, ordered, num_threads)
-
     def finalize(self, vark1, vark2, vark3):
         """Finalize the calculation of the correlation function.
-
-        The `process_auto`, `process_cross12` and `Corr3.process_cross` commands accumulate values
-        in each bin, so they can be called multiple times if appropriate.  Afterwards, this command
-        finishes the calculation by dividing by the total weight.
 
         Parameters:
             vark1 (float):  The variance of the first scalar field.
@@ -166,197 +116,39 @@ class KKKCorrelation(Corr3):
     @property
     def varzeta(self):
         if self._varzeta is None:
-            self._varzeta = np.zeros(self.data_shape)
-            if self._var_num != 0:
-                self._varzeta.ravel()[:] = self.cov_diag
+            self._varzeta = self._calculate_varzeta(self._varzeta)
         return self._varzeta
 
     def _clear(self):
         super()._clear()
         self._varzeta = None
 
-    def _sum(self, others):
-        # Equivalent to the operation of:
-        #     self._clear()
-        #     for other in others:
-        #         self += other
-        # but no sanity checks and use numpy.sum for faster calculation.
-        np.sum([c.meand1 for c in others], axis=0, out=self.meand1)
-        np.sum([c.meanlogd1 for c in others], axis=0, out=self.meanlogd1)
-        np.sum([c.meand2 for c in others], axis=0, out=self.meand2)
-        np.sum([c.meanlogd2 for c in others], axis=0, out=self.meanlogd2)
-        np.sum([c.meand3 for c in others], axis=0, out=self.meand3)
-        np.sum([c.meanlogd3 for c in others], axis=0, out=self.meanlogd3)
-        np.sum([c.meanu for c in others], axis=0, out=self.meanu)
-        if self.bin_type == 'LogRUV':
-            np.sum([c.meanv for c in others], axis=0, out=self.meanv)
-        np.sum([c._z[0] for c in others], axis=0, out=self._z[0])
-        np.sum([c.weightr for c in others], axis=0, out=self.weightr)
-        if self.bin_type == 'LogMultipole':
-            np.sum([c._z[1] for c in others], axis=0, out=self._z[1])
-            np.sum([c.weighti for c in others], axis=0, out=self.weighti)
-        np.sum([c.ntri for c in others], axis=0, out=self.ntri)
-
-    def toSAS(self, *, target=None, **kwargs):
-        """Convert a multipole-binned correlation to the corresponding SAS binning.
-
-        This is only valid for bin_type == LogMultipole.
-
-        Keyword Arguments:
-            target:     A target KKKCorrelation object with LogSAS binning to write to.
-                        If this is not given, a new object will be created based on the
-                        configuration paramters of the current object. (default: None)
-            **kwargs:   Any kwargs that you want to use to configure the returned object.
-                        Typically, might include min_phi, max_phi, nphi_bins, phi_bin_size.
-                        The default phi binning is [0,pi] with nphi_bins = self.max_n.
-
-        Returns:
-            A KKKCorrelation object with bin_type=LogSAS containing the
-            same information as this object, but with the SAS binning.
-        """
-        sas = super().toSAS(target=target, **kwargs)
-
-        sas._var_num = self._var_num
-
-        # Z(d2,d3,phi) = 1/2pi sum_n Z_n(d2,d3) exp(i n phi)
-        expiphi = np.exp(1j * self.n1d[:,None] * sas.phi1d)
-        sas._z[0][:] = np.real(self.zeta.dot(expiphi)) / (2*np.pi) * sas.phi_bin_size
-        mask = sas.weightr != 0
-        sas._z[0][mask] /= sas.weightr[mask]
-
-        for k,v in self.results.items():
-            sas.results[k]._z[0][:] = np.real(v.zeta.dot(expiphi)) / (2*np.pi) * sas.phi_bin_size
-
-        return sas
-
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
-        r"""Write the correlation function to the file, file_name.
+        super().write(file_name, file_type=file_type, precision=precision,
+                      write_patch_results=write_patch_results, write_cov=write_cov)
 
-        For bin_type = LogRUV, the output file will include the following columns:
-
-        ==========      ================================================================
-        Column          Description
-        ==========      ================================================================
-        r_nom           The nominal center of the bin in r = d2 where d1 > d2 > d3
-        u_nom           The nominal center of the bin in u = d3/d2
-        v_nom           The nominal center of the bin in v = +-(d1-d2)/d3
-        meanu           The mean value :math:`\langle u\rangle` of triangles that fell
-                        into each bin
-        meanv           The mean value :math:`\langle v\rangle` of triangles that fell
-                        into each bin
-        ==========      ================================================================
-
-        For bin_type = LogSAS, the output file will include the following columns:
-
-        ==========      ================================================================
-        Column          Description
-        ==========      ================================================================
-        d2_nom          The nominal center of the bin in d2
-        d3_nom          The nominal center of the bin in d3
-        phi_nom         The nominal center of the bin in phi, the opening angle between
-                        d2 and d3 in the counter-clockwise direction
-        meanphi         The mean value :math:`\langle phi\rangle` of triangles that fell
-                        into each bin
-        ==========      ================================================================
-
-        For bin_type = LogMultipole, the output file will include the following columns:
-
-        ==========      ================================================================
-        Column          Description
-        ==========      ================================================================
-        d2_nom          The nominal center of the bin in d2
-        d3_nom          The nominal center of the bin in d3
-        n               The multipole index n (from -max_n .. max_n)
-        ==========      ================================================================
-
-        In addition, all bin types include the following columns:
-
-        ==========      ================================================================
-        Column          Description
-        ==========      ================================================================
-        meand1          The mean value :math:`\langle d1\rangle` of triangles that fell
-                        into each bin
-        meanlogd1       The mean value :math:`\langle \log(d1)\rangle` of triangles that
-                        fell into each bin
-        meand2          The mean value :math:`\langle d2\rangle` of triangles that fell
-                        into each bin
-        meanlogd2       The mean value :math:`\langle \log(d2)\rangle` of triangles that
-                        fell into each bin
-        meand3          The mean value :math:`\langle d3\rangle` of triangles that fell
-                        into each bin
-        meanlogd3       The mean value :math:`\langle \log(d3)\rangle` of triangles that
-                        fell into each bin
+    write.__doc__ = Corr3.write.__doc__.format(
+        r"""
         zeta            The estimator of :math:`\zeta` (For LogMultipole, this is split
                         into real and imaginary parts, zeta_re and zeta_im.)
         sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`
                         (if rrr is given)
-        weight          The total weight of triangles contributing to each bin.
-                        (For LogMultipole, this is split into real and imaginary parts,
-                        weight_re and weight_im.)
-        ntri            The number of triangles contributing to each bin
-        ==========      ================================================================
-
-        If ``sep_units`` was given at construction, then the distances will all be in these units.
-        Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
-        radians (for spherical coordinates).
-
-        Parameters:
-            file_name (str):    The name of the file to write to.
-            file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
-                                the type automatically from the extension of file_name.)
-            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
-                                this value can also be given in the constructor in the config dict.)
-            write_patch_results (bool): Whether to write the patch-based results as well.
-                                        (default: False)
-            write_cov (bool):   Whether to write the covariance matrix as well. (default: False)
-        """
-        self.logger.info('Writing KKK correlations to %s',file_name)
-        precision = self.config.get('precision', 4) if precision is None else precision
-        with make_writer(file_name, precision, file_type, self.logger) as writer:
-            self._write(writer, None, write_patch_results, write_cov=write_cov)
+        """)
 
     @property
-    def _write_col_names(self):
-        if self.bin_type == 'LogRUV':
-            col_names = ['r_nom', 'u_nom', 'v_nom',
-                         'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
-                         'meand3', 'meanlogd3', 'meanu', 'meanv']
-        elif self.bin_type == 'LogSAS':
-            col_names = ['d2_nom', 'd3_nom', 'phi_nom',
-                         'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
-                         'meand3', 'meanlogd3', 'meanphi']
-        else:
-            col_names = ['d2_nom', 'd3_nom', 'n',
-                         'meand1', 'meanlogd1', 'meand2', 'meanlogd2',
-                         'meand3', 'meanlogd3']
+    def _write_class_col_names(self):
         if self.bin_type == 'LogMultipole':
-            col_names += ['zeta_re', 'zeta_im', 'sigma_zeta', 'weight_re', 'weight_im', 'ntri']
+            return ['zeta_re', 'zeta_im', 'sigma_zeta']
         else:
-            col_names += ['zeta', 'sigma_zeta', 'weight', 'ntri']
-        return col_names
+            return ['zeta', 'sigma_zeta']
 
     @property
-    def _write_data(self):
-        if self.bin_type == 'LogRUV':
-            data = [ self.rnom, self.u, self.v,
-                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
-                     self.meand3, self.meanlogd3, self.meanu, self.meanv ]
-        elif self.bin_type == 'LogSAS':
-            data = [ self.d2nom, self.d3nom, self.phi,
-                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
-                     self.meand3, self.meanlogd3, self.meanphi ]
-        else:
-            data = [ self.d2nom, self.d3nom, self.n,
-                     self.meand1, self.meanlogd1, self.meand2, self.meanlogd2,
-                     self.meand3, self.meanlogd3 ]
+    def _write_class_data(self):
         if self.bin_type == 'LogMultipole':
-            data += [ self._z[0], self._z[1], np.sqrt(self.varzeta),
-                      self.weightr, self.weighti, self.ntri ]
+            return [self._z[0], self._z[1], np.sqrt(self.varzeta) ]
         else:
-            data += [ self.zeta, np.sqrt(self.varzeta), self.weight, self.ntri ]
-        data = [ col.flatten() for col in data ]
-        return data
+            return [self.zeta, np.sqrt(self.varzeta)]
 
     def _read_from_data(self, data, params):
         super()._read_from_data(data, params)

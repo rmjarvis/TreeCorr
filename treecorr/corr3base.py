@@ -2135,14 +2135,23 @@ class Corr3(object):
                     self.logger.info(f"var%s = %f: {self._sig1} = %f",
                                      self._letter1.lower(), var1, math.sqrt(var1))
             elif cat3 is None:
-                var1 = self._calculateVar1(cat1, low_mem=low_mem)
-                var2 = var3 = self._calculateVar2(cat2, low_mem=low_mem)
-                # For now, only the letter1 == letter2 case until we add cross type 3pt.
-                if var1 is not None:
-                    self.logger.info(f"var%s1 = %f: {self._sig1} = %f",
-                                     self._letter1, var1, math.sqrt(var1))
-                    self.logger.info(f"var%s2 = %f: {self._sig2} = %f",
-                                     self._letter2, var2, math.sqrt(var2))
+                if self._letter2 == self._letter3:
+                    var1 = self._calculateVar1(cat1, low_mem=low_mem)
+                    var2 = var3 = self._calculateVar2(cat2, low_mem=low_mem)
+                    if var1 is not None:
+                        self.logger.info(f"var%s1 = %f: {self._sig1} = %f",
+                                         self._letter1, var1, math.sqrt(var1))
+                        self.logger.info(f"var%s2 = %f: {self._sig2} = %f",
+                                         self._letter2, var2, math.sqrt(var2))
+                else:
+                    assert self._letter1 == self._letter2
+                    var1 = var2 = self._calculateVar1(cat1, low_mem=low_mem)
+                    var3 = self._calculateVar3(cat2, low_mem=low_mem)
+                    if var1 is not None:
+                        self.logger.info(f"var%s1 = %f: {self._sig1} = %f",
+                                         self._letter1, var1, math.sqrt(var1))
+                        self.logger.info(f"var%s2 = %f: {self._sig2} = %f",
+                                         self._letter2, var3, math.sqrt(var3))
             else:
                 var1 = self._calculateVar1(cat1, low_mem=low_mem)
                 var2 = self._calculateVar2(cat2, low_mem=low_mem)

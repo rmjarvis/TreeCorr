@@ -1606,18 +1606,20 @@ class Corr3(object):
             self._set_metric(metric, cat1[0].coords)
             temp = self.copy()
             temp.results = {}
-            ordered1 = 2 if (ordered or self._letter1 != self._letter3) else 0
+            ordered2 = 2 if (ordered or self._letter1 != self._letter3) else 0
 
             if local:
-                for kk,c3 in enumerate(cat2):
-                    k = c3._single_patch if c3._single_patch is not None else kk
-                    if is_my_job(my_indices, k, k, k, n1, n2):
-                        c1e = self._make_expanded_patch(c3, cat1, metric, low_mem)
-                        self.logger.info('Process patch %d with surrounding local patches',k)
-                        self._single_process21(c1e, c3, (k,k,k), metric, 2,
-                                               num_threads, temp, True)
+                for ii,c1 in enumerate(cat1):
+                    i = c1._single_patch if c1._single_patch is not None else ii
+                    if is_my_job(my_indices, i, i, i, n1, n2):
+                        c2e = self._make_expanded_patch(c1, cat1, metric, low_mem)
+                        c3e = self._make_expanded_patch(c1, cat2, metric, low_mem)
+                        self.logger.info('Process patch %d with surrounding local patches',i)
+                        self._single_process123(c1, c2e, c3e, (i,i,i), metric,
+                                                1 if not ordered else 3,
+                                                num_threads, temp, True)
                         if low_mem:
-                            c3.unload()
+                            c1.unload()
             else:
                 for ii,c1 in enumerate(cat1):
                     i = c1._single_patch if c1._single_patch is not None else ii
@@ -1631,7 +1633,7 @@ class Corr3(object):
                         for jj,c2 in list(enumerate(cat1))[::-1]:
                             j = c2._single_patch if c2._single_patch is not None else jj
                             if i < j and is_my_job(my_indices, i, j, k, n1, n2):
-                                self._single_process123(c1, c2, c3, (i,j,k), metric, ordered1,
+                                self._single_process123(c1, c2, c3, (i,j,k), metric, ordered2,
                                                         num_threads, temp, False)
                                 if low_mem and jj != ii+1:
                                     # Don't unload i+1, since that's the next one we'll need.
@@ -2001,8 +2003,8 @@ class Corr3(object):
                        coords=self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        self.corr.processCross(f1.data, f2.data, f3.data,
-                               (3 if ordered is True else 1 if ordered == 1 else 0),
+        ocode = 3 if ordered is True else 0 if ordered is False else ordered
+        self.corr.processCross(f1.data, f2.data, f3.data, ocode,
                                self.output_dots, self._metric)
 
     def process(self, cat1, cat2=None, cat3=None, *, metric=None, ordered=True, num_threads=None,

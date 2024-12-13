@@ -61,19 +61,16 @@ def test_direct_logruv_cross():
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   brute=True, bin_type='LogRUV')
-    kkg.process(cat1, cat2, cat3)
 
     kgk = treecorr.KGKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   brute=True, bin_type='LogRUV')
-    kgk.process(cat1, cat3, cat2)
 
     gkk = treecorr.GKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   brute=True, bin_type='LogRUV')
-    gkk.process(cat3, cat1, cat2)
 
     # Figure out the correct answer for each permutation
     true_ntri_123 = np.zeros((nrbins, nubins, 2*nvbins))
@@ -206,6 +203,7 @@ def test_direct_logruv_cross():
         pos = w > 0
         z[pos] /= w[pos]
 
+    kkg.process(cat1, cat2, cat3)
     np.testing.assert_array_equal(kkg.ntri, true_ntri_123)
     np.testing.assert_allclose(kkg.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_123, rtol=1.e-5)
@@ -431,19 +429,16 @@ def test_direct_logruv_cross21():
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   brute=True, bin_type='LogRUV')
-    kkg.process(cat2, cat2, cat1)
 
     kgk = treecorr.KGKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   brute=True, bin_type='LogRUV')
-    kgk.process(cat2, cat1, cat2)
 
     gkk = treecorr.GKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   brute=True, bin_type='LogRUV')
-    gkk.process(cat1, cat2, cat2)
 
     true_ntri_122 = np.zeros((nrbins, nubins, 2*nvbins))
     true_ntri_212 = np.zeros((nrbins, nubins, 2*nvbins))
@@ -546,12 +541,15 @@ def test_direct_logruv_cross21():
     pos = true_weight_122 > 0
     true_zeta_122[pos] /= true_weight_122[pos]
 
+    kkg.process(cat2, cat2, cat1)
     np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
     np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
+    kgk.process(cat2, cat1, cat2)
     np.testing.assert_array_equal(kgk.ntri, true_ntri_212)
     np.testing.assert_allclose(kgk.weight, true_weight_212, rtol=1.e-5)
     np.testing.assert_allclose(kgk.zeta, true_zeta_212, rtol=1.e-5)
+    gkk.process(cat1, cat2, cat2)
     np.testing.assert_array_equal(gkk.ntri, true_ntri_122)
     np.testing.assert_allclose(gkk.weight, true_weight_122, rtol=1.e-5)
     np.testing.assert_allclose(gkk.zeta, true_zeta_122, rtol=1.e-5)
@@ -562,10 +560,6 @@ def test_direct_logruv_cross21():
     np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
     np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
-    kgk.process(cat2, cat1, cat2)
-    np.testing.assert_array_equal(kgk.ntri, true_ntri_212)
-    np.testing.assert_allclose(kgk.weight, true_weight_212, rtol=1.e-5)
-    np.testing.assert_allclose(kgk.zeta, true_zeta_212, rtol=1.e-5)
     gkk.process(cat1, cat2)
     np.testing.assert_array_equal(gkk.ntri, true_ntri_122)
     np.testing.assert_allclose(gkk.weight, true_weight_122, rtol=1.e-5)
@@ -926,7 +920,7 @@ def test_varzeta_logruv():
 
 
 @timer
-def notest_direct_logsas_cross():
+def test_direct_logsas_cross():
     # If the catalogs are small enough, we can do a direct calculation to see if comes out right.
     # This should exactly match the treecorr result if brute=True.
 
@@ -936,15 +930,13 @@ def notest_direct_logsas_cross():
     x1 = rng.normal(0,s, (ngal,) )
     y1 = rng.normal(0,s, (ngal,) )
     w1 = rng.random_sample(ngal).astype(np.float32)
-    g1_1 = rng.normal(0,0.2, (ngal,) )
-    g2_1 = rng.normal(0,0.2, (ngal,) )
-    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1)
+    k1 = rng.normal(0,0.2, (ngal,) )
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1)
     x2 = rng.normal(0,s, (ngal,) )
     y2 = rng.normal(0,s, (ngal,) )
     w2 = rng.random_sample(ngal).astype(np.float32)
-    g1_2 = rng.normal(0,0.2, (ngal,) )
-    g2_2 = rng.normal(0,0.2, (ngal,) )
-    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2)
+    k2 = rng.normal(0,0.2, (ngal,) )
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2)
     x3 = rng.normal(0,s, (ngal,) )
     y3 = rng.normal(0,s, (ngal,) )
     w3 = rng.random_sample(ngal).astype(np.float32)
@@ -957,10 +949,17 @@ def notest_direct_logsas_cross():
     nbins = 2
     nphi_bins = 2
 
+    # In this test set, we use the slow triangle algorithm.
+    # We'll test the multipole algorithm below.
     kkg = treecorr.KKGCorrelation(min_sep=min_sep, max_sep=max_sep,
                                   nbins=nbins, nphi_bins=nphi_bins,
                                   brute=True, bin_type='LogSAS')
-    kkg.process(cat1, cat2, cat3, num_threads=2, algo='triangle')
+    kgk = treecorr.KGKCorrelation(min_sep=min_sep, max_sep=max_sep,
+                                  nbins=nbins, nphi_bins=nphi_bins,
+                                  brute=True, bin_type='LogSAS')
+    gkk = treecorr.GKKCorrelation(min_sep=min_sep, max_sep=max_sep,
+                                  nbins=nbins, nphi_bins=nphi_bins,
+                                  brute=True, bin_type='LogSAS')
 
     # Figure out the correct answer for each permutation
     true_ntri_123 = np.zeros((nbins, nbins, nphi_bins))
@@ -1004,18 +1003,12 @@ def notest_direct_logsas_cross():
                 cenx = (x1[i] + x2[j] + x3[k])/3.
                 ceny = (y1[i] + y2[j] + y3[k])/3.
 
-                expmialpha1 = (x1[i]-cenx) - 1j*(y1[i]-ceny)
-                expmialpha1 /= abs(expmialpha1)
-                expmialpha2 = (x2[j]-cenx) - 1j*(y2[j]-ceny)
-                expmialpha2 /= abs(expmialpha2)
                 expmialpha3 = (x3[k]-cenx) - 1j*(y3[k]-ceny)
                 expmialpha3 /= abs(expmialpha3)
 
                 www = w1[i] * w2[j] * w3[k]
-                g1p = (g1_1[i] + 1j*g2_1[i]) * expmialpha1**2
-                g2p = (g1_2[j] + 1j*g2_2[j]) * expmialpha2**2
                 g3p = (g1_3[k] + 1j*g2_3[k]) * expmialpha3**2
-                zeta = www * g1p * g2p * g3p
+                zeta = www * k1[i] * k2[j] * g3p
 
                 if d2 >= min_sep and d2 < max_sep and d3 >= min_sep and d3 < max_sep:
                     assert 0 <= kr2 < nbins
@@ -1085,122 +1078,229 @@ def notest_direct_logsas_cross():
                         true_weight_321[kr2,kr1,kphi] += www
                         true_zeta_321[kr2,kr1,kphi] += zeta
 
+    true_ntri_sum3 = true_ntri_123 + true_ntri_213
+    true_weight_sum3 = true_weight_123 + true_weight_213
+    true_zeta_sum3 = true_zeta_123 + true_zeta_213
+    true_ntri_sum2 = true_ntri_132 + true_ntri_231
+    true_weight_sum2 = true_weight_132 + true_weight_231
+    true_zeta_sum2 = true_zeta_132 + true_zeta_231
+    true_ntri_sum1 = true_ntri_312 + true_ntri_321
+    true_weight_sum1 = true_weight_312 + true_weight_321
+    true_zeta_sum1 = true_zeta_312 + true_zeta_321
+    pos = true_weight_sum1 > 0
+    true_zeta_sum1[pos] /= true_weight_sum1[pos]
+    pos = true_weight_sum2 > 0
+    true_zeta_sum2[pos] /= true_weight_sum2[pos]
+    pos = true_weight_sum3 > 0
+    true_zeta_sum3[pos] /= true_weight_sum3[pos]
+
+    # Now normalize each one individually.
     n_list = [true_ntri_123, true_ntri_132, true_ntri_213, true_ntri_231,
               true_ntri_312, true_ntri_321]
     w_list = [true_weight_123, true_weight_132, true_weight_213, true_weight_231,
               true_weight_312, true_weight_321]
-    g0_list = [true_zeta_123, true_zeta_132, true_zeta_213, true_zeta_231,
-               true_zeta_312, true_zeta_321]
-
-    true_ntri_sum = sum(n_list)
-    true_weight_sum = sum(w_list)
-    true_zeta_sum = sum(g0_list)
-    pos = true_weight_sum > 0
-    true_zeta_sum[pos] /= true_weight_sum[pos]
-
-    # Now normalize each one individually.
-    for w,g0,g1,g2,g3 in zip(w_list, g0_list, g1_list, g2_list, g3_list):
+    z_list = [true_zeta_123, true_zeta_132, true_zeta_213, true_zeta_231,
+              true_zeta_312, true_zeta_321]
+    for w,z in zip(w_list, z_list):
         pos = w > 0
-        g0[pos] /= w[pos]
-        g1[pos] /= w[pos]
-        g2[pos] /= w[pos]
-        g3[pos] /= w[pos]
+        z[pos] /= w[pos]
 
-    # With ordered=True we get just the ones in the given order.
+    kkg.process(cat1, cat2, cat3, algo='triangle')
     np.testing.assert_array_equal(kkg.ntri, true_ntri_123)
     np.testing.assert_allclose(kkg.weight, true_weight_123, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_123, rtol=1.e-4, atol=1.e-6)
-    kkg.process(cat1, cat3, cat2, algo='triangle')
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_132)
-    np.testing.assert_allclose(kkg.weight, true_weight_132, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_132, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_123, rtol=1.e-5)
+
     kkg.process(cat2, cat1, cat3, algo='triangle')
     np.testing.assert_array_equal(kkg.ntri, true_ntri_213)
     np.testing.assert_allclose(kkg.weight, true_weight_213, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_213, rtol=1.e-4, atol=1.e-6)
-    kkg.process(cat2, cat3, cat1, algo='triangle')
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_231)
-    np.testing.assert_allclose(kkg.weight, true_weight_231, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_231, rtol=1.e-4, atol=1.e-6)
-    kkg.process(cat3, cat1, cat2, algo='triangle')
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_312)
-    np.testing.assert_allclose(kkg.weight, true_weight_312, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_312, rtol=1.e-4, atol=1.e-6)
-    kkg.process(cat3, cat2, cat1, algo='triangle')
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_321)
-    np.testing.assert_allclose(kkg.weight, true_weight_321, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_321, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_213, rtol=1.e-5)
 
-    # With ordered=False, we end up with the sum of all permutations.
+    kgk.process(cat1, cat3, cat2, algo='triangle')
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_132)
+    np.testing.assert_allclose(kgk.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_132, rtol=1.e-5)
+
+    kgk.process(cat2, cat3, cat1, algo='triangle')
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_231)
+    np.testing.assert_allclose(kgk.weight, true_weight_231, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_231, rtol=1.e-5)
+
+    gkk.process(cat3, cat1, cat2, algo='triangle')
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_312)
+    np.testing.assert_allclose(gkk.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_312, rtol=1.e-5)
+
+    gkk.process(cat3, cat2, cat1, algo='triangle')
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_321)
+    np.testing.assert_allclose(gkk.weight, true_weight_321, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_321, rtol=1.e-5)
+
+    # With ordered=False, we end up with the sum of both versions where K is in 1,2
     kkg.process(cat1, cat2, cat3, ordered=False, algo='triangle')
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_sum)
-    np.testing.assert_allclose(kkg.weight, true_weight_sum, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_sum, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_array_equal(kkg.ntri, true_ntri_sum3)
+    np.testing.assert_allclose(kkg.weight, true_weight_sum3, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_sum3, rtol=1.e-4)
 
-    # Repeat with binslop = 0
+    kgk.process(cat1, cat3, cat2, ordered=False, algo='triangle')
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_sum2)
+    np.testing.assert_allclose(kgk.weight, true_weight_sum2, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_sum2, rtol=1.e-5)
+
+    gkk.process(cat3, cat1, cat2, ordered=False, algo='triangle')
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_sum1)
+    np.testing.assert_allclose(gkk.weight, true_weight_sum1, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_sum1, rtol=1.e-5)
+
+    # Check binslop = 0
     kkg = treecorr.KKGCorrelation(min_sep=min_sep, max_sep=max_sep,
+                                  nbins=nbins, nphi_bins=nphi_bins,
+                                  bin_slop=0, bin_type='LogSAS')
+    kgk = treecorr.KGKCorrelation(min_sep=min_sep, max_sep=max_sep,
+                                  nbins=nbins, nphi_bins=nphi_bins,
+                                  bin_slop=0, bin_type='LogSAS')
+    gkk = treecorr.GKKCorrelation(min_sep=min_sep, max_sep=max_sep,
                                   nbins=nbins, nphi_bins=nphi_bins,
                                   bin_slop=0, bin_type='LogSAS')
 
     kkg.process(cat1, cat2, cat3, ordered=True, algo='triangle')
     np.testing.assert_array_equal(kkg.ntri, true_ntri_123)
     np.testing.assert_allclose(kkg.weight, true_weight_123, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_123, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_123, rtol=1.e-5)
+    kgk.process(cat1, cat3, cat2, ordered=True, algo='triangle')
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_132)
+    np.testing.assert_allclose(kgk.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_132, rtol=1.e-5)
+    gkk.process(cat3, cat1, cat2, ordered=True, algo='triangle')
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_312)
+    np.testing.assert_allclose(gkk.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_312, rtol=1.e-5)
 
     kkg.process(cat1, cat2, cat3, ordered=False, algo='triangle')
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_sum)
-    np.testing.assert_allclose(kkg.weight, true_weight_sum, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_sum, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_array_equal(kkg.ntri, true_ntri_sum3)
+    np.testing.assert_allclose(kkg.weight, true_weight_sum3, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_sum3, rtol=1.e-5)
+    kgk.process(cat1, cat3, cat2, ordered=False, algo='triangle')
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_sum2)
+    np.testing.assert_allclose(kgk.weight, true_weight_sum2, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_sum2, rtol=1.e-5)
+    gkk.process(cat3, cat1, cat2, ordered=False, algo='triangle')
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_sum1)
+    np.testing.assert_allclose(gkk.weight, true_weight_sum1, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_sum1, rtol=1.e-5)
 
     # And again with no top-level recursion
     kkg = treecorr.KKGCorrelation(min_sep=min_sep, max_sep=max_sep,
+                                  nbins=nbins, nphi_bins=nphi_bins,
+                                  bin_slop=0, max_top=0, bin_type='LogSAS')
+    kgk = treecorr.KGKCorrelation(min_sep=min_sep, max_sep=max_sep,
+                                  nbins=nbins, nphi_bins=nphi_bins,
+                                  bin_slop=0, max_top=0, bin_type='LogSAS')
+    gkk = treecorr.GKKCorrelation(min_sep=min_sep, max_sep=max_sep,
                                   nbins=nbins, nphi_bins=nphi_bins,
                                   bin_slop=0, max_top=0, bin_type='LogSAS')
 
     kkg.process(cat1, cat2, cat3, ordered=True, algo='triangle')
     np.testing.assert_array_equal(kkg.ntri, true_ntri_123)
     np.testing.assert_allclose(kkg.weight, true_weight_123, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_123, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_123, rtol=1.e-5)
+    kgk.process(cat1, cat3, cat2, ordered=True, algo='triangle')
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_132)
+    np.testing.assert_allclose(kgk.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_132, rtol=1.e-5)
+    gkk.process(cat3, cat1, cat2, ordered=True, algo='triangle')
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_312)
+    np.testing.assert_allclose(gkk.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_312, rtol=1.e-5)
 
     kkg.process(cat1, cat2, cat3, ordered=False, algo='triangle')
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_sum)
-    np.testing.assert_allclose(kkg.weight, true_weight_sum, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_sum, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_array_equal(kkg.ntri, true_ntri_sum3)
+    np.testing.assert_allclose(kkg.weight, true_weight_sum3, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_sum3, rtol=1.e-5)
+    kgk.process(cat1, cat3, cat2, ordered=False, algo='triangle')
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_sum2)
+    np.testing.assert_allclose(kgk.weight, true_weight_sum2, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_sum2, rtol=1.e-5)
+    gkk.process(cat3, cat1, cat2, ordered=False, algo='triangle')
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_sum1)
+    np.testing.assert_allclose(gkk.weight, true_weight_sum1, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_sum1, rtol=1.e-5)
 
     # Error to have cat3, but not cat2
     with assert_raises(ValueError):
         kkg.process(cat1, cat3=cat3, algo='triangle')
+    with assert_raises(ValueError):
+        kgk.process(cat1, cat3=cat1, algo='triangle')
+    with assert_raises(ValueError):
+        gkk.process(cat3, cat3=cat1, algo='triangle')
 
     # Split into patches to test the list-based version of the code.
-    cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=3, rng=rng)
-    cat2p = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2, patch_centers=cat1p.patch_centers)
+    cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=3, rng=rng)
+    cat2p = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2, patch_centers=cat1p.patch_centers)
     cat3p = treecorr.Catalog(x=x3, y=y3, w=w3, g1=g1_3, g2=g2_3, patch_centers=cat1p.patch_centers)
 
     kkg.process(cat1p, cat2p, cat3p, algo='triangle')
     np.testing.assert_array_equal(kkg.ntri, true_ntri_123)
     np.testing.assert_allclose(kkg.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_123, rtol=1.e-5)
+    kgk.process(cat1p, cat3p, cat2p, algo='triangle')
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_132)
+    np.testing.assert_allclose(kgk.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_132, rtol=1.e-5)
+    gkk.process(cat3p, cat1p, cat2p, algo='triangle')
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_312)
+    np.testing.assert_allclose(gkk.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_312, rtol=1.e-5)
 
     kkg.process(cat1p, cat2p, cat3p, ordered=False, algo='triangle')
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_sum)
-    np.testing.assert_allclose(kkg.weight, true_weight_sum, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_sum, rtol=1.e-5)
+    np.testing.assert_array_equal(kkg.ntri, true_ntri_sum3)
+    np.testing.assert_allclose(kkg.weight, true_weight_sum3, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_sum3, rtol=1.e-5)
+    kgk.process(cat1p, cat3p, cat2p, ordered=False, algo='triangle')
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_sum2)
+    np.testing.assert_allclose(kgk.weight, true_weight_sum2, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_sum2, rtol=1.e-5)
+    gkk.process(cat3p, cat1p, cat2p, ordered=False, algo='triangle')
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_sum1)
+    np.testing.assert_allclose(gkk.weight, true_weight_sum1, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_sum1, rtol=1.e-5)
 
     kkg.process(cat1p, cat2p, cat3p, patch_method='local', algo='triangle')
     np.testing.assert_array_equal(kkg.ntri, true_ntri_123)
     np.testing.assert_allclose(kkg.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_123, rtol=1.e-5)
+    kgk.process(cat1p, cat3p, cat2p, patch_method='local', algo='triangle')
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_132)
+    np.testing.assert_allclose(kgk.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_132, rtol=1.e-5)
+    gkk.process(cat3p, cat1p, cat2p, patch_method='local', algo='triangle')
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_312)
+    np.testing.assert_allclose(gkk.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_312, rtol=1.e-5)
 
     kkg.process(cat1p, cat2p, cat3p, ordered=False, patch_method='local', algo='triangle')
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_sum)
-    np.testing.assert_allclose(kkg.weight, true_weight_sum, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_sum, rtol=1.e-5)
+    np.testing.assert_array_equal(kkg.ntri, true_ntri_sum3)
+    np.testing.assert_allclose(kkg.weight, true_weight_sum3, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_sum3, rtol=1.e-5)
+    kgk.process(cat1p, cat3p, cat2p, ordered=False, patch_method='local', algo='triangle')
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_sum2)
+    np.testing.assert_allclose(kgk.weight, true_weight_sum2, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_sum2, rtol=1.e-5)
+    gkk.process(cat3p, cat1p, cat2p, ordered=False, patch_method='local', algo='triangle')
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_sum1)
+    np.testing.assert_allclose(gkk.weight, true_weight_sum1, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_sum1, rtol=1.e-5)
+
+    with assert_raises(ValueError):
+        kkg.process(cat1p, cat2p, cat3p, patch_method='nonlocal', algo='triangle')
+    with assert_raises(ValueError):
+        kgk.process(cat1p, cat3p, cat2p, patch_method='nonlocal', algo='triangle')
+    with assert_raises(ValueError):
+        gkk.process(cat3p, cat1p, cat2p, patch_method='nonlocal', algo='triangle')
 
 
 @timer
-def notest_direct_logsas_cross21():
+def test_direct_logsas_cross21():
     # Check the 2-1 cross correlation
-    return
 
     ngal = 50
     s = 10.
@@ -1214,30 +1314,34 @@ def notest_direct_logsas_cross21():
     x2 = rng.normal(0,s, (ngal,) )
     y2 = rng.normal(0,s, (ngal,) )
     w2 = rng.random_sample(ngal)
-    g1_2 = rng.normal(0,0.2, (ngal,) )
-    g2_2 = rng.normal(0,0.2, (ngal,) )
-    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2)
+    k2 = rng.normal(0,0.2, (ngal,) )
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2)
 
     min_sep = 1.
     max_sep = 10.
-    nbins = 10
-    nphi_bins = 10
+    nbins = 2
+    nphi_bins = 3
 
     kkg = treecorr.KKGCorrelation(min_sep=min_sep, max_sep=max_sep,
                                   nbins=nbins, nphi_bins=nphi_bins,
                                   bin_slop=0, bin_type='LogSAS')
-    kkg.process(cat1, cat2, num_threads=2, algo='triangle')
+    kgk = treecorr.KGKCorrelation(min_sep=min_sep, max_sep=max_sep,
+                                  nbins=nbins, nphi_bins=nphi_bins,
+                                  bin_slop=0, bin_type='LogSAS')
+    gkk = treecorr.GKKCorrelation(min_sep=min_sep, max_sep=max_sep,
+                                  nbins=nbins, nphi_bins=nphi_bins,
+                                  bin_slop=0, bin_type='LogSAS')
 
     # Figure out the correct answer for each permutation
-    true_ntri_112 = np.zeros((nbins, nbins, nphi_bins))
-    true_ntri_211 = np.zeros((nbins, nbins, nphi_bins))
-    true_ntri_121 = np.zeros((nbins, nbins, nphi_bins))
-    true_zeta_112 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
-    true_zeta_211 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
-    true_zeta_121 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
-    true_weight_112 = np.zeros((nbins, nbins, nphi_bins))
-    true_weight_211 = np.zeros((nbins, nbins, nphi_bins))
-    true_weight_121 = np.zeros((nbins, nbins, nphi_bins))
+    true_ntri_122 = np.zeros((nbins, nbins, nphi_bins))
+    true_ntri_212 = np.zeros((nbins, nbins, nphi_bins))
+    true_ntri_221 = np.zeros((nbins, nbins, nphi_bins))
+    true_zeta_122 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
+    true_zeta_212 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
+    true_zeta_221 = np.zeros((nbins, nbins, nphi_bins), dtype=complex)
+    true_weight_122 = np.zeros((nbins, nbins, nphi_bins))
+    true_weight_212 = np.zeros((nbins, nbins, nphi_bins))
+    true_weight_221 = np.zeros((nbins, nbins, nphi_bins))
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
     bin_size = (log_max_sep - log_min_sep) / nbins
@@ -1247,9 +1351,9 @@ def notest_direct_logsas_cross21():
         for j in range(ngal):
             for k in range(ngal):
                 if j == k: continue
-                d1 = np.sqrt((x1[j]-x2[k])**2 + (y1[j]-y2[k])**2)
+                d1 = np.sqrt((x2[j]-x2[k])**2 + (y2[j]-y2[k])**2)
                 d2 = np.sqrt((x1[i]-x2[k])**2 + (y1[i]-y2[k])**2)
-                d3 = np.sqrt((x1[i]-x1[j])**2 + (y1[i]-y1[j])**2)
+                d3 = np.sqrt((x1[i]-x2[j])**2 + (y1[i]-y2[j])**2)
                 if d1 == 0.: continue
                 if d2 == 0.: continue
                 if d3 == 0.: continue
@@ -1259,19 +1363,15 @@ def notest_direct_logsas_cross21():
                 kr3 = int(np.floor( (np.log(d3)-log_min_sep) / bin_size ))
 
                 # Rotate shears to coordinates where line connecting to center is horizontal.
-                cenx = (x1[i] + x1[j] + x2[k])/3.
-                ceny = (y1[i] + y1[j] + y2[k])/3.
+                cenx = (x1[i] + x2[j] + x2[k])/3.
+                ceny = (y1[i] + y2[j] + y2[k])/3.
 
                 expmialpha1 = (x1[i]-cenx) - 1j*(y1[i]-ceny)
                 expmialpha1 /= abs(expmialpha1)
-                expmialpha2 = (x1[j]-cenx) - 1j*(y1[j]-ceny)
-                expmialpha2 /= abs(expmialpha2)
-                expmialpha3 = (x2[k]-cenx) - 1j*(y2[k]-ceny)
-                expmialpha3 /= abs(expmialpha3)
 
                 www = w1[i] * w2[j] * w2[k]
-                g3p = (g1_2[k] + 1j*g2_2[k]) * expmialpha3**2
-                zeta = www * g1p * g2p * g3p
+                g1p = (g1_1[i] + 1j*g2_1[i]) * expmialpha1**2
+                zeta = www * g1p * k2[j] * k2[k]
 
                 # 123
                 if d2 >= min_sep and d2 < max_sep and d3 >= min_sep and d3 < max_sep:
@@ -1317,79 +1417,109 @@ def notest_direct_logsas_cross21():
 
     n_list = [true_ntri_122, true_ntri_212, true_ntri_221]
     w_list = [true_weight_122, true_weight_212, true_weight_221]
-    g0_list = [true_zeta_122, true_zeta_212, true_zeta_221]
-
-    true_ntri_sum = sum(n_list)
-    true_weight_sum = sum(w_list)
-    true_zeta_sum = sum(g0_list)
-    pos = true_weight_sum > 0
-    true_zeta_sum[pos] /= true_weight_sum[pos]
-
-    # Now normalize each one individually.
-    for w,g0,g1,g2,g3 in zip(w_list, g0_list, g1_list, g2_list, g3_list):
+    z_list = [true_zeta_122, true_zeta_212, true_zeta_221]
+    for w,z in zip(w_list, z_list):
         pos = w > 0
-        g0[pos] /= w[pos]
-        g1[pos] /= w[pos]
-        g2[pos] /= w[pos]
-        g3[pos] /= w[pos]
+        z[pos] /= w[pos]
 
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_122)
-    np.testing.assert_allclose(kkg.weight, true_weight_122, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_122, rtol=1.e-4, atol=1.e-6)
-    kkg.process(cat2, cat1, cat2, algo='triangle')
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_212)
-    np.testing.assert_allclose(kkg.weight, true_weight_212, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_212, rtol=1.e-4, atol=1.e-6)
     kkg.process(cat2, cat2, cat1, algo='triangle')
     np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
     np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-4, atol=1.e-6)
+    kkg.process(cat2, cat1, algo='triangle')
+    np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
+    np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-4, atol=1.e-6)
 
-    # With ordered=False, we end up with the sum of all permutations.
-    kkg.process(cat1, cat2, ordered=False, algo='triangle')
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_sum)
-    np.testing.assert_allclose(kkg.weight, true_weight_sum, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_sum, rtol=1.e-4, atol=1.e-6)
+    kgk.process(cat2, cat1, cat2, algo='triangle')
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_212)
+    np.testing.assert_allclose(kgk.weight, true_weight_212, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_212, rtol=1.e-4, atol=1.e-6)
+
+    gkk.process(cat1, cat2, cat2, algo='triangle')
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_122)
+    np.testing.assert_allclose(gkk.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_122, rtol=1.e-4, atol=1.e-6)
+    gkk.process(cat1, cat2, algo='triangle')
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_122)
+    np.testing.assert_allclose(gkk.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_122, rtol=1.e-4, atol=1.e-6)
+
+    with assert_raises(ValueError):
+        kgk.process(cat2, cat1)
+    with assert_raises(ValueError):
+        kgk.process(cat1, cat2)
+    with assert_raises(ValueError):
+        kkg.process(cat1)
+    with assert_raises(ValueError):
+        kkg.process(cat2)
+    with assert_raises(ValueError):
+        kgk.process(cat1)
+    with assert_raises(ValueError):
+        kgk.process(cat2)
+    with assert_raises(ValueError):
+        gkk.process(cat1)
+    with assert_raises(ValueError):
+        gkk.process(cat2)
+
+    # With ordered=False, doesn't do anything difference, since there is no other valid order.
+    kkg.process(cat2, cat1, ordered=False, algo='triangle')
+    np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
+    np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
+
+    gkk.process(cat1, cat2, ordered=False, algo='triangle')
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_122)
+    np.testing.assert_allclose(gkk.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_122, rtol=1.e-5)
 
     # Split into patches to test the list-based version of the code.
     cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=4, rng=rng)
-    cat2p = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2, patch_centers=cat1p.patch_centers)
+    cat2p = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2, patch_centers=cat1p.patch_centers)
 
-    kkg.process(cat1p, cat2p, algo='triangle')
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_122)
-    np.testing.assert_allclose(kkg.weight, true_weight_122, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_122, rtol=1.e-4, atol=1.e-6)
-    kkg.process(cat2p, cat1p, cat2p, algo='triangle')
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_212)
-    np.testing.assert_allclose(kkg.weight, true_weight_212, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_212, rtol=1.e-4, atol=1.e-6)
-    kkg.process(cat2p, cat2p, cat1p, algo='triangle')
+    kkg.process(cat2p, cat1p, algo='triangle')
     np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
     np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
+    kgk.process(cat2p, cat1p, cat2p, algo='triangle')
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_212)
+    np.testing.assert_allclose(kgk.weight, true_weight_212, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_212, rtol=1.e-5)
+    gkk.process(cat1p, cat2p, algo='triangle')
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_122)
+    np.testing.assert_allclose(gkk.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_122, rtol=1.e-5)
 
-    kkg.process(cat1p, cat2p, ordered=False, num_threads=2, algo='triangle')
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_sum)
-    np.testing.assert_allclose(kkg.weight, true_weight_sum, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_sum, rtol=1.e-4, atol=1.e-6)
-
-    kkg.process(cat1p, cat2p, patch_method='local', algo='triangle')
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_122)
-    np.testing.assert_allclose(kkg.weight, true_weight_122, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_122, rtol=1.e-4, atol=1.e-6)
-    kkg.process(cat2p, cat1p, cat2p, patch_method='local', algo='triangle')
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_212)
-    np.testing.assert_allclose(kkg.weight, true_weight_212, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_212, rtol=1.e-4, atol=1.e-6)
-    kkg.process(cat2p, cat2p, cat1p, patch_method='local', algo='triangle')
+    kkg.process(cat2p, cat1p, ordered=False, algo='triangle')
     np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
     np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
+    gkk.process(cat1p, cat2p, ordered=False, algo='triangle')
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_122)
+    np.testing.assert_allclose(gkk.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_122, rtol=1.e-5)
 
-    kkg.process(cat1p, cat2p, ordered=False, num_threads=2, patch_method='local', algo='triangle')
-    np.testing.assert_array_equal(kkg.ntri, true_ntri_sum)
-    np.testing.assert_allclose(kkg.weight, true_weight_sum, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_sum, rtol=1.e-4, atol=1.e-6)
+    kkg.process(cat2p, cat1p, patch_method='local', algo='triangle')
+    np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
+    np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
+    kgk.process(cat2p, cat1p, cat2p, patch_method='local', algo='triangle')
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_212)
+    np.testing.assert_allclose(kgk.weight, true_weight_212, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_212, rtol=1.e-5)
+    gkk.process(cat1p, cat2p, patch_method='local', algo='triangle')
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_122)
+    np.testing.assert_allclose(gkk.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_122, rtol=1.e-5)
+
+    kkg.process(cat2p, cat1p, ordered=False, patch_method='local', algo='triangle')
+    np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
+    np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_221, rtol=1.e-5)
+    gkk.process(cat1p, cat2p, ordered=False, patch_method='local', algo='triangle')
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_122)
+    np.testing.assert_allclose(gkk.weight, true_weight_122, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_122, rtol=1.e-5)
 
 
 @timer
@@ -1428,7 +1558,7 @@ def notest_direct_logmultipole_cross():
 
     kkg = treecorr.KKGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
                                   brute=True, bin_type='LogMultipole')
-    kkg.process(cat1, cat2, cat3, num_threads=1)
+    kkg.process(cat1, cat2, cat3)
 
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)

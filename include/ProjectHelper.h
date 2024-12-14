@@ -152,9 +152,9 @@ struct ProjectHelper<Flat>
         z3 *= _expmsialpha<D>(r3);
     }
 
-    template <int D>
+    template <int D1, int D2, int D3>
     static void ProjectX(
-        const Cell<D,Flat>& c1, const Cell<D,Flat>& c2, const Cell<D,Flat>& c3,
+        const Cell<D1,Flat>& c1, const Cell<D2,Flat>& c2, const Cell<D3,Flat>& c3,
         double d1, double d2, double d3,
         std::complex<double>& z1, std::complex<double>& z2, std::complex<double>& z3)
     {
@@ -169,9 +169,9 @@ struct ProjectHelper<Flat>
         std::complex<double> r3 = p3 - p1;
         r3 /= d2;
         std::complex<double> r1 = r2 + r3;
-        std::complex<double> proj1 = _expmsialpha<D>(r1);
-        std::complex<double> proj2 = _expmsialpha<D>(r2);
-        std::complex<double> proj3 = _expmsialpha<D>(r3);
+        std::complex<double> proj1 = _expmsialpha<D1>(r1);
+        std::complex<double> proj2 = _expmsialpha<D2>(r2);
+        std::complex<double> proj3 = _expmsialpha<D3>(r3);
 
         z1 *= proj1;
         z2 *= proj2;
@@ -196,9 +196,9 @@ struct ProjectHelper<Flat>
         z3 *= proj3;
     }
 
-    template <int D>
+    template <int D2, int D3>
     static void ProjectX(
-        const BaseCell<Flat>& c1, const Cell<D,Flat>& c2, const Cell<D,Flat>& c3,
+        const BaseCell<Flat>& c1, const Cell<D2,Flat>& c2, const Cell<D3,Flat>& c3,
         double d1, double d2, double d3,
         std::complex<double>& z2, std::complex<double>& z3)
     {
@@ -212,8 +212,8 @@ struct ProjectHelper<Flat>
         r2 /= d3;
         std::complex<double> r3 = p3 - p1;
         r3 /= d2;
-        std::complex<double> proj2 = _expmsialpha<D>(r2);
-        std::complex<double> proj3 = _expmsialpha<D>(r3);
+        std::complex<double> proj2 = _expmsialpha<D2>(r2);
+        std::complex<double> proj3 = _expmsialpha<D3>(r3);
 
         z2 *= proj2;
         z3 *= proj3;
@@ -384,9 +384,9 @@ struct ProjectHelper<Sphere>
         z3 *= _expmsialpha<D>(calculate_direction(cen,p3));
     }
 
-    template <int D>
+    template <int D1, int D2, int D3>
     static void ProjectX(
-        const Cell<D,Sphere>& c1, const Cell<D,Sphere>& c2, const Cell<D,Sphere>& c3,
+        const Cell<D1,Sphere>& c1, const Cell<D2,Sphere>& c2, const Cell<D3,Sphere>& c3,
         double d1, double d2, double d3,
         std::complex<double>& z1, std::complex<double>& z2, std::complex<double>& z3)
     {
@@ -397,7 +397,7 @@ struct ProjectHelper<Sphere>
         const Position<Sphere>& p2 = c2.getPos();
         const Position<Sphere>& p3 = c3.getPos();
         // The rest is also needed by the ThreeD version, so break it out as its own function.
-        ProjectX<D>(p1,p2,p3,z1,z2,z3);
+        ProjectX<D1,D2,D3>(p1,p2,p3,z1,z2,z3);
     }
 
     template <int D>
@@ -416,9 +416,9 @@ struct ProjectHelper<Sphere>
         ProjectX<D>(p1,p2,p3,z3);
     }
 
-    template <int D>
+    template <int D2, int D3>
     static void ProjectX(
-        const BaseCell<Sphere>& c1, const Cell<D,Sphere>& c2, const Cell<D,Sphere>& c3,
+        const BaseCell<Sphere>& c1, const Cell<D2,Sphere>& c2, const Cell<D3,Sphere>& c3,
         double d1, double d2, double d3,
         std::complex<double>& z2, std::complex<double>& z3)
     {
@@ -429,18 +429,18 @@ struct ProjectHelper<Sphere>
         const Position<Sphere>& p2 = c2.getPos();
         const Position<Sphere>& p3 = c3.getPos();
         // The rest is also needed by the ThreeD version, so break it out as its own function.
-        ProjectX<D>(p1,p2,p3,z2,z3);
+        ProjectX<D2,D3>(p1,p2,p3,z2,z3);
     }
 
-    template <int D>
+    template <int D1, int D2, int D3>
     static void ProjectX(
         const Position<Sphere>& p1, const Position<Sphere>& p2, const Position<Sphere>& p3,
         std::complex<double>& z1, std::complex<double>& z2, std::complex<double>& z3)
     {
         std::complex<double> r2 = calculate_direction(p1,p2);
-        std::complex<double> proj2 = _expmsialpha<D>(r2);
+        std::complex<double> proj2 = _expmsialpha<D2>(r2);
         std::complex<double> r3 = calculate_direction(p1,p3);
-        std::complex<double> proj3 = _expmsialpha<D>(r3);
+        std::complex<double> proj3 = _expmsialpha<D3>(r3);
 
         // In spherical geometry, the projection directions are not symmetric.
         // We also need to calculate the directions at p1 to each of the other two.
@@ -449,7 +449,7 @@ struct ProjectHelper<Sphere>
         std::complex<double> r13 = calculate_direction(p3,p1);
         r13 /= sqrt(safe_norm(r13));
         std::complex<double> r1 = r12 + r13;
-        std::complex<double> proj1 = _expmsialpha<D>(r1);
+        std::complex<double> proj1 = _expmsialpha<D1>(r1);
 
         z1 *= proj1;
         z2 *= proj2;
@@ -467,15 +467,15 @@ struct ProjectHelper<Sphere>
         z3 *= proj3;
     }
 
-    template <int D>
+    template <int D2, int D3>
     static void ProjectX(
         const Position<Sphere>& p1, const Position<Sphere>& p2, const Position<Sphere>& p3,
         std::complex<double>& z2, std::complex<double>& z3)
     {
         std::complex<double> r2 = calculate_direction(p1,p2);
-        std::complex<double> proj2 = _expmsialpha<D>(r2);
+        std::complex<double> proj2 = _expmsialpha<D2>(r2);
         std::complex<double> r3 = calculate_direction(p1,p3);
-        std::complex<double> proj3 = _expmsialpha<D>(r3);
+        std::complex<double> proj3 = _expmsialpha<D3>(r3);
 
         z2 *= proj2;
         z3 *= proj3;
@@ -595,9 +595,9 @@ struct ProjectHelper<ThreeD>
         z3 *= _expmsialpha<D>(ProjectHelper<Sphere>::calculate_direction(cen,sp3));
     }
 
-    template <int D>
+    template <int D1, int D2, int D3>
     static void ProjectX(
-        const Cell<D,ThreeD>& c1, const Cell<D,ThreeD>& c2, const Cell<D,ThreeD>& c3,
+        const Cell<D1,ThreeD>& c1, const Cell<D2,ThreeD>& c2, const Cell<D3,ThreeD>& c3,
         double d1, double d2, double d3,
         std::complex<double>& z1, std::complex<double>& z2, std::complex<double>& z3)
     {
@@ -608,7 +608,7 @@ struct ProjectHelper<ThreeD>
         Position<Sphere> p2(c2.getPos());
         Position<Sphere> p3(c3.getPos());
         // Use the Sphere implementation with these positions.
-        ProjectHelper<Sphere>::ProjectX<D>(p1,p2,p3,z1,z2,z3);
+        ProjectHelper<Sphere>::ProjectX<D1,D2,D3>(p1,p2,p3,z1,z2,z3);
     }
 
     template <int D>
@@ -627,9 +627,9 @@ struct ProjectHelper<ThreeD>
         ProjectHelper<Sphere>::ProjectX<D>(p1,p2,p3,z3);
     }
 
-    template <int D>
+    template <int D2, int D3>
     static void ProjectX(
-        const BaseCell<ThreeD>& c1, const Cell<D,ThreeD>& c2, const Cell<D,ThreeD>& c3,
+        const BaseCell<ThreeD>& c1, const Cell<D2,ThreeD>& c2, const Cell<D3,ThreeD>& c3,
         double d1, double d2, double d3,
         std::complex<double>& z2, std::complex<double>& z3)
     {
@@ -640,7 +640,7 @@ struct ProjectHelper<ThreeD>
         Position<Sphere> p2(c2.getPos());
         Position<Sphere> p3(c3.getPos());
         // Use the Sphere implementation with these positions.
-        ProjectHelper<Sphere>::ProjectX<D>(p1,p2,p3,z2,z3);
+        ProjectHelper<Sphere>::ProjectX<D2,D3>(p1,p2,p3,z2,z3);
     }
 
     static std::complex<double> ExpIPhi(

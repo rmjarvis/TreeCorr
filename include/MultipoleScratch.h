@@ -117,7 +117,7 @@ template <int D> struct MultipoleScratch;
 template <>
 struct MultipoleScratch<NData> : public BaseMultipoleScratch
 {
-    MultipoleScratch(int nbins, int nubins, bool use_ww) :
+    MultipoleScratch(int nbins, int nubins, bool use_ww, int buffer) :
         BaseMultipoleScratch(nbins, nubins, use_ww)
     {}
 
@@ -150,13 +150,14 @@ protected:
 template <>
 struct MultipoleScratch<KData> : public BaseMultipoleScratch
 {
-    MultipoleScratch(int nbins, int nubins, bool use_ww) :
-        BaseMultipoleScratch(nbins, nubins, use_ww),
-        Gn(Wnsize), sumwwkk(n)
+    MultipoleScratch(int nbins, int nubins, bool use_ww, int _buffer) :
+        BaseMultipoleScratch(nbins, nubins, use_ww), buffer(_buffer),
+        Gnsize(nbins * (nubins+1+buffer)),
+        Gn(Gnsize), sumwwkk(n)
     {}
 
     MultipoleScratch(const MultipoleScratch& rhs) :
-        BaseMultipoleScratch(rhs),
+        BaseMultipoleScratch(rhs), buffer(rhs.buffer),
         Gn(rhs.Gn), sumwwkk(rhs.sumwwkk)
     {}
 
@@ -169,12 +170,13 @@ struct MultipoleScratch<KData> : public BaseMultipoleScratch
     void clear()
     {
         BaseMultipoleScratch::clear();
-        for (int i=0; i<Wnsize; ++i) Gn[i] = 0.;
+        for (int i=0; i<Gnsize; ++i) Gn[i] = 0.;
         if (ww) {
             for (int i=0; i<n; ++i) sumwwkk[i] = 0.;
         }
     }
 
+    int buffer, Gnsize;
     std::vector<std::complex<double> > Gn;
     std::vector<double> sumwwkk;
 
@@ -202,9 +204,9 @@ protected:
 template <>
 struct MultipoleScratch<GData> : public BaseMultipoleScratch
 {
-    MultipoleScratch(int nbins, int nubins, bool use_ww) :
-        BaseMultipoleScratch(nbins, nubins, use_ww),
-        Gnsize(nbins * (2*nubins+3)), Gn(Gnsize)
+    MultipoleScratch(int nbins, int nubins, bool use_ww, int _buffer) :
+        BaseMultipoleScratch(nbins, nubins, use_ww), buffer(_buffer),
+        Gnsize(nbins * (2*nubins+1+2*buffer)), Gn(Gnsize)
     {
         if (ww) {
             sumwwgg0.resize(n);
@@ -214,7 +216,7 @@ struct MultipoleScratch<GData> : public BaseMultipoleScratch
     }
 
     MultipoleScratch(const MultipoleScratch& rhs) :
-        BaseMultipoleScratch(rhs),
+        BaseMultipoleScratch(rhs), buffer(rhs.buffer),
         Gnsize(rhs.Gnsize), Gn(rhs.Gn),
         sumwwgg0(rhs.sumwwgg0), sumwwgg1(rhs.sumwwgg1), sumwwgg2(rhs.sumwwgg2)
     {}
@@ -237,6 +239,7 @@ struct MultipoleScratch<GData> : public BaseMultipoleScratch
         }
     }
 
+    int buffer;
     const int Gnsize;
 
     std::vector<std::complex<double> > Gn;

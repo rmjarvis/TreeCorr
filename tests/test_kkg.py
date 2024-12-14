@@ -335,6 +335,47 @@ def test_direct_logruv_cross():
     cat2p = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2, patch_centers=cat1p.patch_centers)
     cat3p = treecorr.Catalog(x=x3, y=y3, w=w3, g1=g1_3, g2=g2_3, patch_centers=cat1p.patch_centers)
 
+    # First test with just one catalog using patches
+    kkg.process(cat1p, cat2, cat3)
+    np.testing.assert_array_equal(kkg.ntri, true_ntri_123)
+    np.testing.assert_allclose(kkg.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_123, rtol=1.e-5)
+    kgk.process(cat1p, cat3, cat2)
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_132)
+    np.testing.assert_allclose(kgk.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_132, rtol=1.e-5)
+    gkk.process(cat3p, cat1, cat2)
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_312)
+    np.testing.assert_allclose(gkk.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_312, rtol=1.e-5)
+
+    kkg.process(cat1, cat2p, cat3)
+    np.testing.assert_array_equal(kkg.ntri, true_ntri_123)
+    np.testing.assert_allclose(kkg.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_123, rtol=1.e-5)
+    kgk.process(cat1, cat3p, cat2)
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_132)
+    np.testing.assert_allclose(kgk.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_132, rtol=1.e-5)
+    gkk.process(cat3, cat1p, cat2)
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_312)
+    np.testing.assert_allclose(gkk.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_312, rtol=1.e-5)
+
+    kkg.process(cat1, cat2, cat3p)
+    np.testing.assert_array_equal(kkg.ntri, true_ntri_123)
+    np.testing.assert_allclose(kkg.weight, true_weight_123, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_123, rtol=1.e-5)
+    kgk.process(cat1, cat3, cat2p)
+    np.testing.assert_array_equal(kgk.ntri, true_ntri_132)
+    np.testing.assert_allclose(kgk.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_132, rtol=1.e-5)
+    gkk.process(cat3, cat1, cat2p)
+    np.testing.assert_array_equal(gkk.ntri, true_ntri_312)
+    np.testing.assert_allclose(gkk.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_312, rtol=1.e-5)
+
+    # Now all three patched
     kkg.process(cat1p, cat2p, cat3p)
     np.testing.assert_array_equal(kkg.ntri, true_ntri_123)
     np.testing.assert_allclose(kkg.weight, true_weight_123, rtol=1.e-5)
@@ -348,6 +389,7 @@ def test_direct_logruv_cross():
     np.testing.assert_allclose(gkk.weight, true_weight_312, rtol=1.e-5)
     np.testing.assert_allclose(gkk.zeta, true_zeta_312, rtol=1.e-5)
 
+    # Unordered
     kkg.process(cat1p, cat2p, cat3p, ordered=False)
     np.testing.assert_array_equal(kkg.ntri, true_ntri_sum3)
     np.testing.assert_allclose(kkg.weight, true_weight_sum3, rtol=1.e-5)
@@ -361,6 +403,7 @@ def test_direct_logruv_cross():
     np.testing.assert_allclose(gkk.weight, true_weight_sum1, rtol=1.e-5)
     np.testing.assert_allclose(gkk.zeta, true_zeta_sum1, rtol=1.e-5)
 
+    # patch_method=local
     kkg.process(cat1p, cat2p, cat3p, patch_method='local')
     np.testing.assert_array_equal(kkg.ntri, true_ntri_123)
     np.testing.assert_allclose(kkg.weight, true_weight_123, rtol=1.e-5)
@@ -1523,27 +1566,25 @@ def test_direct_logsas_cross21():
 
 
 @timer
-def notest_direct_logmultipole_cross():
+def test_direct_logmultipole_cross():
     # Check the cross correlation with LogMultipole
     if __name__ == '__main__':
         ngal = 100
     else:
-        ngal = 50
+        ngal = 30
 
     s = 10.
     rng = np.random.RandomState(8675309)
     x1 = rng.normal(0,s, (ngal,) )
     y1 = rng.normal(0,s, (ngal,) )
     w1 = rng.uniform(1,3, (ngal,))
-    g1_1 = rng.normal(0,0.2, (ngal,))
-    g2_1 = rng.normal(0,0.2, (ngal,))
-    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1)
+    k1 = rng.normal(0,0.2, (ngal,))
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1)
     x2 = rng.normal(0,s, (ngal,) )
     y2 = rng.normal(0,s, (ngal,) )
     w2 = rng.uniform(1,3, (ngal,))
-    g1_2 = rng.normal(0,0.2, (ngal,))
-    g2_2 = rng.normal(0,0.2, (ngal,))
-    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2)
+    k2 = rng.normal(0,0.2, (ngal,))
+    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2)
     x3 = rng.normal(0,s, (ngal,) )
     y3 = rng.normal(0,s, (ngal,) )
     w3 = rng.uniform(1,3, (ngal,))
@@ -1554,11 +1595,14 @@ def notest_direct_logmultipole_cross():
     min_sep = 1.
     max_sep = 100.
     nbins = 5
-    max_n = 20
+    max_n = 10
 
     kkg = treecorr.KKGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
                                   brute=True, bin_type='LogMultipole')
-    kkg.process(cat1, cat2, cat3)
+    kgk = treecorr.KGKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
+                                  brute=True, bin_type='LogMultipole')
+    gkk = treecorr.GKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
+                                  brute=True, bin_type='LogMultipole')
 
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
@@ -1568,9 +1612,18 @@ def notest_direct_logmultipole_cross():
     true_zeta_132 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
     true_weight_132 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
     true_ntri_132 = np.zeros((nbins, nbins, 2*max_n+1))
-    # Skip all the ones with 2 or 3 first.
-    # It's too annoying to get all the shear projections right for each,
-    # and the unordered code is well enough tested with KKK and NNN tests.
+    true_zeta_213 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_weight_213 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_ntri_213 = np.zeros((nbins, nbins, 2*max_n+1))
+    true_zeta_231 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_weight_231 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_ntri_231 = np.zeros((nbins, nbins, 2*max_n+1))
+    true_zeta_312 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_weight_312 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_ntri_312 = np.zeros((nbins, nbins, 2*max_n+1))
+    true_zeta_321 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_weight_321 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_ntri_321 = np.zeros((nbins, nbins, 2*max_n+1))
     bin_size = (log_max_sep - log_min_sep) / nbins
     n1d = np.arange(-max_n, max_n+1)
     for i in range(ngal):
@@ -1587,25 +1640,16 @@ def notest_direct_logmultipole_cross():
                 kr2 = int(np.floor( (np.log(d2)-log_min_sep) / bin_size ))
                 kr3 = int(np.floor( (np.log(d3)-log_min_sep) / bin_size ))
 
-                # Rotate shears according to the x projection.  See Porth et al, Figure 1.
-                # g2 is projected to the line from c1 to c2.
-                # g3 is projected to the line from c1 to c3.
-                # g1 is projected to the average of these two lines.
-                expmialpha2 = (x2[j]-x1[i]) - 1j*(y2[j]-y1[i])
-                expmialpha2 /= abs(expmialpha2)
-                expmialpha3 = (x3[k]-x1[i]) - 1j*(y3[k]-y1[i])
-                expmialpha3 /= abs(expmialpha3)
-                expmialpha1 = expmialpha2 + expmialpha3
-                expmialpha1 /= abs(expmialpha1)
-
                 www = w1[i] * w2[j] * w3[k]
-                g1p = (g1_1[i] + 1j*g2_1[i]) * expmialpha1**2
-                g2p = (g1_2[j] + 1j*g2_2[j]) * expmialpha2**2
-                g3p = (g1_3[k] + 1j*g2_3[k]) * expmialpha3**2
-                zeta = www * g1p * g2p * g3p
 
                 # 123, 132
                 if d2 >= min_sep and d2 < max_sep and d3 >= min_sep and d3 < max_sep:
+                    # g3 is projected to the line from c1 to c3.
+                    expmialpha3 = (x3[k]-x1[i]) - 1j*(y3[k]-y1[i])
+                    expmialpha3 /= abs(expmialpha3)
+                    g3p = (g1_3[k] + 1j*g2_3[k]) * expmialpha3**2
+                    zeta = www * k1[i] * k2[j] * g3p
+
                     assert 0 <= kr2 < nbins
                     assert 0 <= kr3 < nbins
                     phi = np.arccos((d2**2 + d3**2 - d1**2)/(2*d2*d3))
@@ -1618,51 +1662,177 @@ def notest_direct_logmultipole_cross():
                     true_weight_132[kr3,kr2,:] += www * np.exp(1j * n1d * phi)
                     true_ntri_132[kr3,kr2,:] += 1
 
+                # 213, 231
+                if d1 >= min_sep and d1 < max_sep and d3 >= min_sep and d3 < max_sep:
+                    # g3 is projected to the line from c2 to c3.
+                    expmialpha3 = (x3[k]-x2[j]) - 1j*(y3[k]-y2[j])
+                    expmialpha3 /= abs(expmialpha3)
+                    g3p = (g1_3[k] + 1j*g2_3[k]) * expmialpha3**2
+                    zeta = www * k1[i] * k2[j] * g3p
+
+                    assert 0 <= kr1 < nbins
+                    assert 0 <= kr3 < nbins
+                    phi = np.arccos((d1**2 + d3**2 - d2**2)/(2*d1*d3))
+                    if not is_ccw(x1[i],y1[i],x3[k],y3[k],x2[j],y2[j]):
+                        phi = -phi
+                    true_zeta_231[kr3,kr1,:] += zeta * np.exp(-1j * n1d * phi)
+                    true_weight_231[kr3,kr1,:] += www * np.exp(-1j * n1d * phi)
+                    true_ntri_231[kr3,kr1,:] += 1
+                    true_zeta_213[kr1,kr3,:] += zeta * np.exp(1j * n1d * phi)
+                    true_weight_213[kr1,kr3,:] += www * np.exp(1j * n1d * phi)
+                    true_ntri_213[kr1,kr3,:] += 1
+
+                # 312, 321
+                if d1 >= min_sep and d1 < max_sep and d2 >= min_sep and d2 < max_sep:
+                    # g3 is projected to the average of lines from c3 to c1 and c3 to c2.
+                    expmialpha1 = (x3[k]-x1[i]) - 1j*(y3[k]-y1[i])
+                    expmialpha1 /= abs(expmialpha1)
+                    expmialpha2 = (x3[k]-x2[j]) - 1j*(y3[k]-y2[j])
+                    expmialpha2 /= abs(expmialpha2)
+                    expmialpha3 = expmialpha1 + expmialpha2
+                    expmialpha3 /= abs(expmialpha3)
+                    g3p = (g1_3[k] + 1j*g2_3[k]) * expmialpha3**2
+                    zeta = www * k1[i] * k2[j] * g3p
+
+                    assert 0 <= kr1 < nbins
+                    assert 0 <= kr2 < nbins
+                    phi = np.arccos((d1**2 + d2**2 - d3**2)/(2*d1*d2))
+                    if not is_ccw(x1[i],y1[i],x3[k],y3[k],x2[j],y2[j]):
+                        phi = -phi
+                    true_zeta_312[kr1,kr2,:] += zeta * np.exp(-1j * n1d * phi)
+                    true_weight_312[kr1,kr2,:] += www * np.exp(-1j * n1d * phi)
+                    true_ntri_312[kr1,kr2,:] += 1
+                    true_zeta_321[kr2,kr1,:] += zeta * np.exp(1j * n1d * phi)
+                    true_weight_321[kr2,kr1,:] += www * np.exp(1j * n1d * phi)
+                    true_ntri_321[kr2,kr1,:] += 1
+
+    kkg.process(cat1, cat2, cat3)
     np.testing.assert_allclose(kkg.ntri, true_ntri_123, rtol=1.e-5)
     np.testing.assert_allclose(kkg.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_123, rtol=1.e-4)
+    kkg.process(cat2, cat1, cat3)
+    np.testing.assert_allclose(kkg.ntri, true_ntri_213, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.weight, true_weight_213, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_213, rtol=1.e-4)
+    kgk.process(cat1, cat3, cat2)
+    np.testing.assert_allclose(kgk.ntri, true_ntri_132, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_132, rtol=1.e-4)
+    kgk.process(cat2, cat3, cat1)
+    np.testing.assert_allclose(kgk.ntri, true_ntri_231, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.weight, true_weight_231, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_231, rtol=1.e-4)
+    gkk.process(cat3, cat1, cat2)
+    np.testing.assert_allclose(gkk.ntri, true_ntri_312, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_312, rtol=1.e-4)
+    gkk.process(cat3, cat2, cat1)
+    np.testing.assert_allclose(gkk.ntri, true_ntri_321, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.weight, true_weight_321, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_321, rtol=1.e-4)
 
     # Repeat with binslop = 0
     kkg = treecorr.KKGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
+                                  bin_slop=0, angle_slop=0, max_top=2, bin_type='LogMultipole')
+    kgk = treecorr.KGKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
+                                  bin_slop=0, angle_slop=0, max_top=2, bin_type='LogMultipole')
+    gkk = treecorr.GKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
                                   bin_slop=0, angle_slop=0, max_top=2, bin_type='LogMultipole')
     kkg.process(cat1, cat2, cat3)
     np.testing.assert_allclose(kkg.ntri, true_ntri_123, rtol=1.e-5)
     np.testing.assert_allclose(kkg.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_123, rtol=1.e-4)
+    kkg.process(cat2, cat1, cat3)
+    np.testing.assert_allclose(kkg.ntri, true_ntri_213, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.weight, true_weight_213, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_213, rtol=1.e-4)
 
-    kkg.process(cat1, cat3, cat2)
-    np.testing.assert_allclose(kkg.ntri, true_ntri_132, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.weight, true_weight_132, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_132, rtol=1.e-4)
+    kgk.process(cat1, cat3, cat2)
+    np.testing.assert_allclose(kgk.ntri, true_ntri_132, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_132, rtol=1.e-4)
+    kgk.process(cat2, cat3, cat1)
+    np.testing.assert_allclose(kgk.ntri, true_ntri_231, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.weight, true_weight_231, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_231, rtol=1.e-4)
+
+    gkk.process(cat3, cat1, cat2)
+    np.testing.assert_allclose(gkk.ntri, true_ntri_312, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_312, rtol=1.e-4)
+    gkk.process(cat3, cat2, cat1)
+    np.testing.assert_allclose(gkk.ntri, true_ntri_321, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.weight, true_weight_321, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_321, rtol=1.e-4)
 
     # Split into patches to test the list-based version of the code.
-    # First with just one catalog with patches
-    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=10, rng=rng)
+    cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=2, rng=rng)
+    cat2p = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2, patch_centers=cat1.patch_centers)
+    cat3p = treecorr.Catalog(x=x3, y=y3, w=w3, g1=g1_3, g2=g2_3, patch_centers=cat1.patch_centers)
 
-    kkg.process(cat1, cat2, cat3)
+    # First test with just one catalog using patches
+    kkg.process(cat1p, cat2, cat3)
+    np.testing.assert_allclose(kkg.ntri, true_ntri_123, rtol=1.e-5)
     np.testing.assert_allclose(kkg.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_123, rtol=1.e-4)
-    kkg.process(cat1, cat3, cat2)
-    np.testing.assert_allclose(kkg.weight, true_weight_132, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_132, rtol=1.e-4)
+    kkg.process(cat2p, cat1, cat3)
+    np.testing.assert_allclose(kkg.ntri, true_ntri_213, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.weight, true_weight_213, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_213, rtol=1.e-4)
 
-    # Now with all 3 patched.
-    cat2 = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2, patch_centers=cat1.patch_centers)
-    cat3 = treecorr.Catalog(x=x3, y=y3, w=w3, g1=g1_3, g2=g2_3, patch_centers=cat1.patch_centers)
+    kgk.process(cat1p, cat3, cat2)
+    np.testing.assert_allclose(kgk.ntri, true_ntri_132, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_132, rtol=1.e-4)
+    kgk.process(cat2p, cat3, cat1)
+    np.testing.assert_allclose(kgk.ntri, true_ntri_231, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.weight, true_weight_231, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_231, rtol=1.e-4)
 
-    kkg.process(cat1, cat2, cat3, patch_method='local')
+    gkk.process(cat3p, cat1, cat2)
+    np.testing.assert_allclose(gkk.ntri, true_ntri_312, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_312, rtol=1.e-4)
+    gkk.process(cat3p, cat2, cat1)
+    np.testing.assert_allclose(gkk.ntri, true_ntri_321, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.weight, true_weight_321, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_321, rtol=1.e-4)
+
+    # Now use all three patched
+    kkg.process(cat1p, cat2p, cat3p)
+    np.testing.assert_allclose(kkg.ntri, true_ntri_123, rtol=1.e-5)
     np.testing.assert_allclose(kkg.weight, true_weight_123, rtol=1.e-5)
     np.testing.assert_allclose(kkg.zeta, true_zeta_123, rtol=1.e-4)
-    kkg.process(cat1, cat3, cat2, patch_method='local')
-    np.testing.assert_allclose(kkg.weight, true_weight_132, rtol=1.e-5)
-    np.testing.assert_allclose(kkg.zeta, true_zeta_132, rtol=1.e-4)
+    kkg.process(cat2p, cat1p, cat3p)
+    np.testing.assert_allclose(kkg.ntri, true_ntri_213, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.weight, true_weight_213, rtol=1.e-5)
+    np.testing.assert_allclose(kkg.zeta, true_zeta_213, rtol=1.e-4)
 
-    # No tests of accuracy yet, but make sure patch-based covariance works.
-    cov = kkg.estimate_cov('sample')
-    cov = kkg.estimate_cov('jackknife')
+    kgk.process(cat1p, cat3p, cat2p)
+    np.testing.assert_allclose(kgk.ntri, true_ntri_132, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.weight, true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_132, rtol=1.e-4)
+    kgk.process(cat2p, cat3p, cat1p)
+    np.testing.assert_allclose(kgk.ntri, true_ntri_231, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.weight, true_weight_231, rtol=1.e-5)
+    np.testing.assert_allclose(kgk.zeta, true_zeta_231, rtol=1.e-4)
 
+    gkk.process(cat3p, cat1p, cat2p)
+    np.testing.assert_allclose(gkk.ntri, true_ntri_312, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_312, rtol=1.e-4)
+    gkk.process(cat3p, cat2p, cat1p)
+    np.testing.assert_allclose(gkk.ntri, true_ntri_321, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.weight, true_weight_321, rtol=1.e-5)
+    np.testing.assert_allclose(gkk.zeta, true_zeta_321, rtol=1.e-4)
+
+    # local is default, and here global is not allowed.
     with assert_raises(ValueError):
-        kkg.process(cat1, cat2, cat3, patch_method='global')
+        kkg.process(cat1p, cat2p, cat3p, patch_method='global')
+    with assert_raises(ValueError):
+        kgk.process(cat1p, cat3p, cat2p, patch_method='global')
+    with assert_raises(ValueError):
+        gkk.process(cat3p, cat1p, cat2p, patch_method='global')
 
 
 @timer

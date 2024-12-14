@@ -1558,16 +1558,24 @@ void MultipoleScratch<KData>::calculateGn(
         sumwwkk[k] += c2.calculateSumWKSq();
     }
     std::complex<double> z = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), r);
-    int index = k*(maxn+1);
-    Wn[index] += w;
-    Gn[index] += wk;
+    int iw = k*(maxn+1);
+    int ig = k*(maxn+1+buffer);
+    Wn[iw] += w;
+    Gn[ig] += wk;
     std::complex<double> wztothen = w;
     std::complex<double> wkztothen = wk;
     for (int n=1; n<=maxn; ++n) {
         wztothen *= z;
         wkztothen *= z;
-        Wn[index + n] += wztothen;
-        Gn[index + n] += wkztothen;
+        XAssert(iw+n < Wn.size());
+        XAssert(ig+n < Gn.size());
+        Wn[iw + n] += wztothen;
+        Gn[ig + n] += wkztothen;
+    }
+    for (int n=maxn+1; n<=maxn+buffer; ++n) {
+        wkztothen *= z;
+        XAssert(ig+n < Gn.size());
+        Gn[ig + n] += wkztothen;
     }
 }
 
@@ -1601,23 +1609,28 @@ void MultipoleScratch<GData>::calculateGn(
     std::complex<double> wztothen = w;
     for (int n=1; n<=maxn; ++n) {
         wztothen *= z;
+        XAssert(iw+n < Wn.size());
         Wn[iw + n] += wztothen;
     }
 
     // Note: we'll need Gn values from -maxn-1 <= n <= maxn+1
     // So the size of Gn is nbins * (2*maxn + 3).
     // And ig is set to the index for n=0.
-    int ig = k*(2*maxn+3)+maxn+1;
+    int ig = k*(2*maxn+1+2*buffer)+maxn+buffer;
+    XAssert(ig < Gn.size());
     Gn[ig] += wg;
     std::complex<double> wgztothen = wg;
-    for (int n=1; n<=maxn+1; ++n) {
+    for (int n=1; n<=maxn+buffer; ++n) {
         wgztothen *= z;
+        XAssert(ig+n < Gn.size());
         Gn[ig + n] += wgztothen;
     }
     // Repeat for -n, since +/- n is not symmetric, as g is complex.
     wgztothen = wg;   // Now this is really wg conj(z)^n
-    for (int n=1; n<=maxn+1; ++n) {
+    for (int n=1; n<=maxn+buffer; ++n) {
         wgztothen *= std::conj(z);
+        XAssert(ig-n < Gn.size());
+        XAssert(ig-n >= 0);
         Gn[ig - n] += wgztothen;
     }
 }
@@ -2103,8 +2116,6 @@ struct DirectHelper3<7,KData,KData,D3>
         ProjectHelper<C>::ProjectX(c1, c2, c3, d1, d2, d3, g3);
         std::complex<double> wk = c1.getWK() * c2.getWK() * g3;
 
-        zeta.zeta_im[index] += wk.imag();
-
         std::complex<double> z(cosphi, -sinphi);
         weight[index] += www;
         zeta.zeta[index] += wk.real();
@@ -2126,7 +2137,7 @@ struct DirectHelper3<7,KData,KData,D3>
         for (int n=1; n<=maxn; ++n) {
             wkztothen *= std::conj(z);
             zeta.zeta[index - n] += wkztothen.real();
-            zeta.zeta_im[index - n] -= wkztothen.imag();
+            zeta.zeta_im[index - n] += wkztothen.imag();
         }
     }
 
@@ -2152,15 +2163,17 @@ struct DirectHelper3<7,KData,KData,D3>
         const int step = 2*maxn+1;
         int iz = maxn;
         XAssert(ordered == 3);
+        XAssert(mp2.buffer == 0);
+        XAssert(mp3.buffer == 0);
         iz += kstart * nbins * step;
         for (int k2=kstart; k2<nbins; ++k2) {
             const int iw2 = k2*(maxn+1);
-            const int ig2 = k2*(2*maxn+3) + maxn+1;
+            const int ig2 = k2*(2*maxn+1) + maxn;
             const int k3end = k2 < mink_zeta ? nbins : mink_zeta;
             iz += kstart * step;
             for (int k3=kstart; k3<k3end; ++k3, iz+=step) {
                 const int iw3 = k3*(maxn+1);
-                const int ig3 = k3*(2*maxn+3) + maxn+1;
+                const int ig3 = k3*(maxn+1);
 
                 std::complex<double> www = w1 * mp3.Wn[iw2] * std::conj(mp2.Wn[iw3]);
                 weight[iz] += www.real();
@@ -2174,19 +2187,23 @@ struct DirectHelper3<7,KData,KData,D3>
                     weight_im[iz-n] -= www.imag();
                 }
 
-                // n=0
-                std::complex<double> wwwk = wk1 * mp3.Gn[ig2] * std::conj(mp2.Gn[ig3]);
+                XAssert(ig3 < mp2.Gn.size());
+                XAssert(ig2 < mp3.Gn.size());
+                std::complex<double> wwwk = wk1 * mp3.Gn[ig2] * mp2.Gn[ig3];
                 zeta.zeta[iz] += wwwk.real();
                 zeta.zeta_im[iz] += wwwk.imag();
 
                 for (int n=1; n<=maxn; ++n) {
+                    XAssert(ig3+n < mp2.Gn.size());
+                    XAssert(ig2+n < mp3.Gn.size());
+                    XAssert(ig2-n >= 0);
                     std::complex<double> wwwkp = wk1 * mp3.Gn[ig2+n] * std::conj(mp2.Gn[ig3+n]);
                     zeta.zeta[iz+n] += wwwkp.real();
                     zeta.zeta_im[iz+n] += wwwkp.imag();
 
                     std::complex<double> wwwkm = wk1 * mp3.Gn[ig2-n] * mp2.Gn[ig3+n];
                     zeta.zeta[iz-n] += wwwkm.real();
-                    zeta.zeta_im[iz-n] -= wwwkm.imag();
+                    zeta.zeta_im[iz-n] += wwwkm.imag();
                 }
             }
             iz += (nbins - k3end) * step;
@@ -2216,10 +2233,8 @@ struct DirectHelper3<7,KData,D3,KData>
         ZetaData<KData,D3,KData>& zeta, int index, int maxn)
     {
         std::complex<double> g2 = c2.getWZ();
-        ProjectHelper<C>::ProjectX(c3, c1, c2, d3, d1, d2, g2);
+        ProjectHelper<C>::ProjectX(c1, c3, c2, d1, d3, d2, g2);
         std::complex<double> wk = c1.getWK() * c3.getWK() * g2;
-
-        zeta.zeta_im[index] += wk.imag();
 
         std::complex<double> z(cosphi, -sinphi);
         weight[index] += www;
@@ -2242,7 +2257,7 @@ struct DirectHelper3<7,KData,D3,KData>
         for (int n=1; n<=maxn; ++n) {
             wkztothen *= std::conj(z);
             zeta.zeta[index - n] += wkztothen.real();
-            zeta.zeta_im[index - n] -= wkztothen.imag();
+            zeta.zeta_im[index - n] += wkztothen.imag();
         }
     }
 
@@ -2268,16 +2283,17 @@ struct DirectHelper3<7,KData,D3,KData>
         const int step = 2*maxn+1;
         int iz = maxn;
         XAssert(ordered == 3);
+        XAssert(mp2.buffer == 0);
+        XAssert(mp3.buffer == 0);
         iz += kstart * nbins * step;
-        // TODO...
         for (int k2=kstart; k2<nbins; ++k2) {
             const int iw2 = k2*(maxn+1);
-            const int ig2 = k2*(2*maxn+3) + maxn+1;
+            const int ig2 = k2*(maxn+1);
             const int k3end = k2 < mink_zeta ? nbins : mink_zeta;
             iz += kstart * step;
             for (int k3=kstart; k3<k3end; ++k3, iz+=step) {
                 const int iw3 = k3*(maxn+1);
-                const int ig3 = k3*(2*maxn+3) + maxn+1;
+                const int ig3 = k3*(2*maxn+1) + maxn;
 
                 std::complex<double> www = w1 * mp3.Wn[iw2] * std::conj(mp2.Wn[iw3]);
                 weight[iz] += www.real();
@@ -2292,18 +2308,18 @@ struct DirectHelper3<7,KData,D3,KData>
                 }
 
                 // n=0
-                std::complex<double> wwwk = wk1 * mp3.Gn[ig2] * std::conj(mp2.Gn[ig3]);
+                std::complex<double> wwwk = wk1 * mp3.Gn[ig2] * mp2.Gn[ig3];
                 zeta.zeta[iz] += wwwk.real();
                 zeta.zeta_im[iz] += wwwk.imag();
 
                 for (int n=1; n<=maxn; ++n) {
-                    std::complex<double> wwwkp = wk1 * mp3.Gn[ig2+n] * std::conj(mp2.Gn[ig3+n]);
+                    std::complex<double> wwwkp = wk1 * mp3.Gn[ig2+n] * mp2.Gn[ig3-n];
                     zeta.zeta[iz+n] += wwwkp.real();
                     zeta.zeta_im[iz+n] += wwwkp.imag();
 
-                    std::complex<double> wwwkm = wk1 * mp3.Gn[ig2-n] * mp2.Gn[ig3+n];
+                    std::complex<double> wwwkm = wk1 * std::conj(mp3.Gn[ig2+n]) * mp2.Gn[ig3+n];
                     zeta.zeta[iz-n] += wwwkm.real();
-                    zeta.zeta_im[iz-n] -= wwwkm.imag();
+                    zeta.zeta_im[iz-n] += wwwkm.imag();
                 }
             }
             iz += (nbins - k3end) * step;
@@ -2333,10 +2349,10 @@ struct DirectHelper3<7,D3,KData,KData>
         ZetaData<D3,KData,KData>& zeta, int index, int maxn)
     {
         std::complex<double> g1 = c1.getWZ();
-        ProjectHelper<C>::ProjectX(c2, c3, c1, d2, d3, d1, g1);
+        std::complex<double> g2 = 0.;
+        std::complex<double> g3 = 0.;
+        ProjectHelper<C>::ProjectX(c1, c2, c3, d1, d2, d3, g1, g2, g3);
         std::complex<double> wk = c2.getWK() * c3.getWK() * g1;
-
-        zeta.zeta_im[index] += wk.imag();
 
         std::complex<double> z(cosphi, -sinphi);
         weight[index] += www;
@@ -2359,7 +2375,7 @@ struct DirectHelper3<7,D3,KData,KData>
         for (int n=1; n<=maxn; ++n) {
             wkztothen *= std::conj(z);
             zeta.zeta[index - n] += wkztothen.real();
-            zeta.zeta_im[index - n] -= wkztothen.imag();
+            zeta.zeta_im[index - n] += wkztothen.imag();
         }
     }
 
@@ -2380,21 +2396,22 @@ struct DirectHelper3<7,D3,KData,KData>
                               double* weight, double* weight_im,
                               ZetaData<D3,KData,KData>& zeta, int nbins, int maxn)
     {
-        // TODO...
         const double w1 = c1.getW();
         std::complex<double> g1 = c1.getWZ();
         const int step = 2*maxn+1;
         int iz = maxn;
         XAssert(ordered == 3);
+        XAssert(mp2.buffer == 1);
+        XAssert(mp3.buffer == 1);
         iz += kstart * nbins * step;
         for (int k2=kstart; k2<nbins; ++k2) {
             const int iw2 = k2*(maxn+1);
-            const int ig2 = k2*(2*maxn+3) + maxn+1;
+            const int ig2 = k2*(maxn+2);
             const int k3end = k2 < mink_zeta ? nbins : mink_zeta;
             iz += kstart * step;
             for (int k3=kstart; k3<k3end; ++k3, iz+=step) {
                 const int iw3 = k3*(maxn+1);
-                const int ig3 = k3*(2*maxn+3) + maxn+1;
+                const int ig3 = k3*(maxn+2);
 
                 std::complex<double> www = w1 * mp3.Wn[iw2] * std::conj(mp2.Wn[iw3]);
                 weight[iz] += www.real();
@@ -2409,18 +2426,18 @@ struct DirectHelper3<7,D3,KData,KData>
                 }
 
                 // n=0
-                std::complex<double> wwwk = g1 * mp3.Gn[ig2] * std::conj(mp2.Gn[ig3]);
+                std::complex<double> wwwk = g1 * std::conj(mp3.Gn[ig2+1]) * std::conj(mp2.Gn[ig3+1]);
                 zeta.zeta[iz] += wwwk.real();
                 zeta.zeta_im[iz] += wwwk.imag();
 
                 for (int n=1; n<=maxn; ++n) {
-                    std::complex<double> wwwkp = g1 * mp3.Gn[ig2+n] * std::conj(mp2.Gn[ig3+n]);
+                    std::complex<double> wwwkp = g1 * mp3.Gn[ig2+n-1] * std::conj(mp2.Gn[ig3+n+1]);
                     zeta.zeta[iz+n] += wwwkp.real();
                     zeta.zeta_im[iz+n] += wwwkp.imag();
 
-                    std::complex<double> wwwkm = g1 * mp3.Gn[ig2-n] * mp2.Gn[ig3+n];
+                    std::complex<double> wwwkm = g1 * std::conj(mp3.Gn[ig2+n+1]) * mp2.Gn[ig3+n-1];
                     zeta.zeta[iz-n] += wwwkm.real();
-                    zeta.zeta_im[iz-n] -= wwwkm.imag();
+                    zeta.zeta_im[iz-n] += wwwkm.imag();
                 }
             }
             iz += (nbins - k3end) * step;
@@ -3188,15 +3205,21 @@ void Corr3<D1,D2,D3>::finishProcessMP(
         sinphi, cosphi, www, _weight, _weight_im, _zeta, index, _nubins);
 }
 
-// We don't currently have any code with D2 != D3, but if we eventually do,
-// this distinction might be relevant.
 template <int D1, int D2, int D3>
 std::unique_ptr<BaseMultipoleScratch> Corr3<D1,D2,D3>::getMP2(bool use_ww)
-{ return make_unique<MultipoleScratch<D2> >(_nbins, _nubins, use_ww); }
+{
+    int buffer = (D1 == NData || D1 == KData) ? 0 : 1;
+    xdbg<<"Make MP2 with buffer="<<buffer<<std::endl;
+    return make_unique<MultipoleScratch<D2> >(_nbins, _nubins, use_ww, buffer);
+}
 
 template <int D1, int D2, int D3>
 std::unique_ptr<BaseMultipoleScratch> Corr3<D1,D2,D3>::getMP3(bool use_ww)
-{ return make_unique<MultipoleScratch<D3> >(_nbins, _nubins, use_ww); }
+{
+    int buffer = (D1 == NData || D1 == KData) ? 0 : 1;
+    xdbg<<"Make MP3 with buffer="<<buffer<<std::endl;
+    return make_unique<MultipoleScratch<D3> >(_nbins, _nubins, use_ww, buffer);
+}
 
 template <int D1, int D2, int D3>
 void Corr3<D1,D2,D3>::operator=(const Corr3<D1,D2,D3>& rhs)

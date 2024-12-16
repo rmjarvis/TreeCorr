@@ -1554,10 +1554,14 @@ void MultipoleScratch<KData>::calculateGn(
     double rsq, double r, int k, int maxn, double w)
 {
     double wk = c2.getWK();
-    if (ww) {
-        sumwwkk[k] += c2.calculateSumWKSq();
-    }
     std::complex<double> z = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), r);
+    if (ww) {
+        double wwkk = c2.calculateSumWKSq();
+        sumwwkk[k] += wwkk;
+        if (buffer >= 1) {
+            sumwwkk2[k] += wwkk * std::conj(z*z);
+        }
+    }
     int iw = k*(maxn+1);
     int ig = k*(maxn+1+buffer);
     Wn[iw] += w;
@@ -2386,7 +2390,107 @@ struct DirectHelper3<7,D3,KData,KData>
                               double* weight, double* weight_im,
                               ZetaData<D3,KData,KData>& zeta, int nbins, int maxn)
     {
-        XAssert(false);
+        const double w1 = c1.getW();
+        const std::complex<double> wg1 = c1.getWZ();
+        const int step23 = 2*maxn+1;
+        const int step32 = nbins * step23;
+        const int step22 = step32 + step23;
+        int iz22 = maxn;
+        XAssert(mp.buffer == 1);
+        iz22 += kstart * step22;
+        for (int k2=kstart; k2<mink_zeta; ++k2, iz22+=step22) {
+            // Do the k2=k3 bins.
+
+            // iw2, ig2 are the indices in the Wn, Gn arrays (respectively) for n=0.
+            const int iw2 = k2*(maxn+1);
+            const int ig2 = k2*(maxn+2);
+
+            // n=0
+            weight[iz22] += w1 * (std::norm(mp.Wn[iw2]) - mp.sumww[k2]);
+            const std::complex<double> g1wwkk = wg1 * mp.sumwwkk2[k2];
+            const std::complex<double> wwwk = wg1 * SQR(std::conj(mp.Gn[ig2+1])) - g1wwkk;
+            zeta.zeta[iz22] += wwwk.real();
+            zeta.zeta_im[iz22] += wwwk.imag();
+
+            for (int n=1; n<=maxn; ++n) {
+                double www = w1 * (std::norm(mp.Wn[iw2+n]) - mp.sumww[k2]);
+                weight[iz22+n] += www;
+                weight[iz22-n] += www;
+            }
+
+            for (int n=1; n<=maxn; ++n) {
+                const std::complex<double> G2mm = std::conj(mp.Gn[ig2+n+1]);
+                const std::complex<double> G2pm = mp.Gn[ig2+n-1];
+
+                const std::complex<double> wwwk = wg1 * G2mm * G2pm - g1wwkk;
+
+                zeta.zeta[iz22+n] += wwwk.real();
+                zeta.zeta_im[iz22+n] += wwwk.imag();
+                zeta.zeta[iz22-n] += wwwk.real();
+                zeta.zeta_im[iz22-n] += wwwk.imag();
+            }
+
+            // Now k2 != k3
+            int iz23 = iz22 + step23;
+            int iz32 = iz22 + step32;
+            for (int k3=k2+1; k3<nbins; ++k3, iz23+=step23, iz32+=step32) {
+                XAssert(iz23 == (k2 * nbins + k3) * (2*maxn+1) + maxn);
+                XAssert(iz32 == (k3 * nbins + k2) * (2*maxn+1) + maxn);
+                const int iw3 = k3*(maxn+1);
+                const int ig3 = k3*(maxn+2);
+
+                // n=0
+                const std::complex<double> www = w1 * mp.Wn[iw2] * std::conj(mp.Wn[iw3]);
+                weight[iz23] += www.real();
+                weight_im[iz23] += www.imag();
+                weight[iz32] += www.real();
+                weight_im[iz32] -= www.imag();
+
+                for (int n=1; n<=maxn; ++n) {
+                    const std::complex<double> www = w1 * mp.Wn[iw2+n] * std::conj(mp.Wn[iw3+n]);
+                    weight[iz23+n] += www.real();
+                    weight_im[iz23+n] += www.imag();
+                    weight[iz32+n] += www.real();
+                    weight_im[iz32+n] -= www.imag();
+
+                    weight[iz23-n] += www.real();
+                    weight_im[iz23-n] -= www.imag();
+                    weight[iz32-n] += www.real();
+                    weight_im[iz32-n] += www.imag();
+                }
+
+                // n=0:
+                const std::complex<double> G2m = std::conj(mp.Gn[ig2+1]);
+                const std::complex<double> G3m = std::conj(mp.Gn[ig3+1]);
+                const std::complex<double> wwwk = wg1 * G2m * G3m;
+
+                zeta.zeta[iz23] += wwwk.real();
+                zeta.zeta_im[iz23] += wwwk.imag();
+                zeta.zeta[iz32] += wwwk.real();
+                zeta.zeta_im[iz32] += wwwk.imag();
+
+                // Now do +-n for n>0
+                for (int n=1; n<=maxn; ++n) {
+                    const std::complex<double> G2pm = mp.Gn[ig2+n-1];
+                    const std::complex<double> G2mm = std::conj(mp.Gn[ig2+n+1]);
+                    const std::complex<double> G3pm = mp.Gn[ig3+n-1];
+                    const std::complex<double> G3mm = std::conj(mp.Gn[ig3+n+1]);
+
+                    const std::complex<double> wwwkp = wg1 * G2pm * G3mm;
+                    const std::complex<double> wwwkm = wg1 * G2mm * G3pm;
+
+                    zeta.zeta[iz23+n] += wwwkp.real();
+                    zeta.zeta_im[iz23+n] += wwwkp.imag();
+                    zeta.zeta[iz23-n] += wwwkm.real();
+                    zeta.zeta_im[iz23-n] += wwwkm.imag();
+
+                    zeta.zeta[iz32-n] += wwwkp.real();
+                    zeta.zeta_im[iz32-n] += wwwkp.imag();
+                    zeta.zeta[iz32+n] += wwwkm.real();
+                    zeta.zeta_im[iz32+n] += wwwkm.imag();
+                }
+            }
+        }
     }
     template <int C>
     static void CalculateZeta(const Cell<D3,C>& c1, int ordered,
@@ -3459,14 +3563,15 @@ void ProcessCross21b(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2
         switch(ordered) {
           case 0:
                corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+                   field2, field1, field1, dots, 1);
+               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
                    field1, field2, field1, dots, 1);
                corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
-                   field2, field1, field1, dots, 1);
-               // Drop through.
-          case 2:
-          case 3:
-               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
                    field1, field1, field2, dots, 1);
+               break;
+          case 2:
+               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+                   field1, field1, field2, dots, 3);
                break;
           default:
                Assert(false);

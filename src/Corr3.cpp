@@ -1582,13 +1582,13 @@ void Corr3<D1,D2,D3>::calculateGn(
         mp.sumwwlogr[k] += wsq * logr;
     }
 
-    mp.calculateGn(c1, c2, rsq, r, k, _nubins, w);
+    mp.calculateGn(c1, c2, rsq, r, k, w);
 }
 
 template <int C>
 void MultipoleScratch<NData>::calculateGn(
     const BaseCell<C>& c1, const Cell<NData,C>& c2,
-    double rsq, double r, int k, int maxn, double w)
+    double rsq, double r, int k, double w)
 {
     std::complex<double> z = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), r);
     int index = k*(maxn+1);
@@ -1603,42 +1603,43 @@ void MultipoleScratch<NData>::calculateGn(
 template <int C>
 void MultipoleScratch<KData>::calculateGn(
     const BaseCell<C>& c1, const Cell<KData,C>& c2,
-    double rsq, double r, int k, int maxn, double w)
+    double rsq, double r, int k, double w)
 {
     double wk = c2.getWK();
     std::complex<double> z = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), r);
     if (ww) {
-        double wwkk = c2.calculateSumWKSq();
-        sumwwkk[k] += wwkk;
-        if (buffer >= 1) {
-            sumwwkk2[k] += wwkk * std::conj(z*z);
+        std::complex<double> wwkk = c2.calculateSumWKSq();
+        if (buffer) {
+            XAssert(buffer == 1);  // Need to think more about this when not limited to N,K,G.
+            wwkk *= std::conj(z*z);
         }
+        sumwwkk[k] += wwkk;
     }
-    int iw = k*(maxn+1);
-    int ig = k*(maxn+1+buffer);
+    int iw = Windex(k);
+    int ig = Gindex(k);
     Wn[iw] += w;
-    Gn[ig] += wk;
+    _Gn[ig] += wk;
     std::complex<double> wztothen = w;
     std::complex<double> wkztothen = wk;
     for (int n=1; n<=maxn; ++n) {
         wztothen *= z;
         wkztothen *= z;
         XAssert(iw+n < Wn.size());
-        XAssert(ig+n < Gn.size());
+        XAssert(ig+n < _Gn.size());
         Wn[iw + n] += wztothen;
-        Gn[ig + n] += wkztothen;
+        _Gn[ig + n] += wkztothen;
     }
     for (int n=maxn+1; n<=maxn+buffer; ++n) {
         wkztothen *= z;
-        XAssert(ig+n < Gn.size());
-        Gn[ig + n] += wkztothen;
+        XAssert(ig+n < _Gn.size());
+        _Gn[ig + n] += wkztothen;
     }
 }
 
 template <int C>
 void MultipoleScratch<GData>::calculateGn(
     const BaseCell<C>& c1, const Cell<GData,C>& c2,
-    double rsq, double r, int k, int maxn, double w)
+    double rsq, double r, int k, double w)
 {
     std::complex<double> wg = c2.getWZ();
     std::complex<double> z = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), r);
@@ -1660,7 +1661,7 @@ void MultipoleScratch<GData>::calculateGn(
         ProjectHelper<C>::template Project<GData>(c1, c2, wg);
     }
 
-    int iw = k*(maxn+1);
+    int iw = Windex(k);
     Wn[iw] += w;
     std::complex<double> wztothen = w;
     for (int n=1; n<=maxn; ++n) {
@@ -1672,14 +1673,14 @@ void MultipoleScratch<GData>::calculateGn(
     // Note: we'll need Gn values from -maxn-1 <= n <= maxn+1
     // So the size of Gn is nbins * (2*maxn + 3).
     // And ig is set to the index for n=0.
-    int ig = k*(2*maxn+1+2*buffer)+maxn+buffer;
+    int ig = Gindex(k);
     XAssert(ig < Gn.size());
-    Gn[ig] += wg;
+    _Gn[ig] += wg;
     std::complex<double> wgztothen = wg;
     for (int n=1; n<=maxn+buffer; ++n) {
         wgztothen *= z;
         XAssert(ig+n < Gn.size());
-        Gn[ig + n] += wgztothen;
+        _Gn[ig + n] += wgztothen;
     }
     // Repeat for -n, since +/- n is not symmetric, as g is complex.
     wgztothen = wg;   // Now this is really wg conj(z)^n
@@ -1687,7 +1688,7 @@ void MultipoleScratch<GData>::calculateGn(
         wgztothen *= std::conj(z);
         XAssert(ig-n < Gn.size());
         XAssert(ig-n >= 0);
-        Gn[ig - n] += wgztothen;
+        _Gn[ig - n] += wgztothen;
     }
 }
 
@@ -1760,7 +1761,7 @@ void Corr3<D1,D2,D3>::calculateZeta(const BaseCell<C>& c1, BaseMultipoleScratch&
         // We don't want these in the usm, So we need to subtract them off.
         // sumww has been storing Sum (w_k)^2, which is the amount to subtract in each bin.
 
-        const int iw2 = k2*(maxn+1);
+        const int iw2 = mp.Windex(k2);
         _weight[iz22] += w1 * (std::norm(mp.Wn[iw2]) - mp.sumww[k2]);
         for (int n=1; n<=maxn; ++n) {
             double www = w1 * (std::norm(mp.Wn[iw2+n]) - mp.sumww[k2]);
@@ -1770,9 +1771,7 @@ void Corr3<D1,D2,D3>::calculateZeta(const BaseCell<C>& c1, BaseMultipoleScratch&
         int iz23 = iz22 + step23;
         int iz32 = iz22 + step32;
         for (int k3=k2+1; k3<_nbins; ++k3, iz23+=step23, iz32+=step32) {
-            XAssert(iz23 == (k2 * _nbins + k3) * (2*maxn+1) + maxn);
-            XAssert(iz32 == (k3 * _nbins + k2) * (2*maxn+1) + maxn);
-            const int iw3 = k3*(maxn+1);
+            const int iw3 = mp.Windex(k3);
 
             // n=0
             const std::complex<double> www = w1 * mp.Wn[iw2] * std::conj(mp.Wn[iw3]);
@@ -1803,8 +1802,7 @@ void Corr3<D1,D2,D3>::calculateZeta(const BaseCell<C>& c1, BaseMultipoleScratch&
     // In Porth et al, this is eqs. 21, 23, 24, 25 for GGG.
     // The version for KKK is obvious from these.
     MultipoleHelper<D1,D2,D3>::CalculateZeta(
-        static_cast<const Cell<D1,C>&>(c1),
-        static_cast<MultipoleScratch<D2>&>(mp),
+        static_cast<const Cell<D1,C>&>(c1), mp,
         kstart, mink_zeta, _zeta, _nbins, maxn);
 }
 
@@ -1875,11 +1873,11 @@ void Corr3<D1,D2,D3>::calculateZeta(
     const bool swap23 = (ordered == 1);
     iz += kstart * _nbins * step;
     for (int k2=kstart; k2<_nbins; ++k2) {
-        const int iw2 = k2*(maxn+1);
+        const int iw2 = mp3.Windex(k2);
         const int k3end = k2 < mink_zeta ? _nbins : mink_zeta;
         iz += kstart * step;
         for (int k3=kstart; k3<k3end; ++k3, iz+=step) {
-            const int iw3 = k3*(maxn+1);
+            const int iw3 = mp2.Windex(k3);
 
             // n=0
             std::complex<double> www = w1 * mp3.Wn[iw2] * std::conj(mp2.Wn[iw3]);
@@ -1910,9 +1908,7 @@ void Corr3<D1,D2,D3>::calculateZeta(
 
     // Finish the calculation for Zeta_n(d1,d2) using G_n(d).
     MultipoleHelper<D1,D2,D3>::CalculateZeta(
-        static_cast<const Cell<D1,C>&>(c1), ordered,
-        static_cast<MultipoleScratch<D2>&>(mp2),
-        static_cast<MultipoleScratch<D3>&>(mp3),
+        static_cast<const Cell<D1,C>&>(c1), ordered, mp2, mp3,
         kstart, mink_zeta, _zeta, _nbins, maxn);
 }
 
@@ -1921,14 +1917,14 @@ struct MultipoleHelper<NData,NData,NData>
 {
     template <int C>
     static void CalculateZeta(const Cell<NData,C>& c1,
-                              MultipoleScratch<NData>& mp,
+                              BaseMultipoleScratch& mp,
                               int kstart, int mink_zeta,
                               ZetaData<NData,NData,NData>& zeta, int nbins, int maxn)
     {}
     template <int C>
     static void CalculateZeta(const Cell<NData,C>& c1, int ordered,
-                              MultipoleScratch<NData>& mp2,
-                              MultipoleScratch<NData>& mp3,
+                              BaseMultipoleScratch& mp2,
+                              BaseMultipoleScratch& mp3,
                               int kstart, int mink_zeta,
                               ZetaData<NData,NData,NData>& zeta, int nbins, int maxn)
     {}
@@ -1939,7 +1935,7 @@ struct MultipoleHelper<KData,KData,KData>
 {
     template <int C>
     static void CalculateZeta(const Cell<KData,C>& c1,
-                              MultipoleScratch<KData>& mp,
+                              BaseMultipoleScratch& mp,
                               int kstart, int mink_zeta,
                               ZetaData<KData,KData,KData>& zeta, int nbins, int maxn)
     {
@@ -1954,32 +1950,28 @@ struct MultipoleHelper<KData,KData,KData>
             // As for NNN, we subtract off the sum of w_k^2 when k2=k3.
             // We also subtract off the sum of (w_k kappa_k)^2 for the same reason.
 
-            const int ig2 = k2*(maxn+1);
-
-            // n=0
-            zeta.zeta[iz22] += wk1 * (std::norm(mp.Gn[ig2]) - mp.sumwwkk[k2]);
+            const int ig2 = mp.Gindex(k2);
+            zeta.zeta[iz22] += wk1 * (std::norm(mp.Gn(ig2)) - mp.correction0r(k2));
 
             for (int n=1; n<=maxn; ++n) {
-                double wwwk = wk1 * (std::norm(mp.Gn[ig2+n]) - mp.sumwwkk[k2]);
+                double wwwk = wk1 * (std::norm(mp.Gn(ig2,n)) - mp.correction0r(k2));
                 zeta.zeta[iz22+n] += wwwk;
                 zeta.zeta[iz22-n] += wwwk;
             }
+
+            // Now k2 != k3
             int iz23 = iz22 + step23;
             int iz32 = iz22 + step32;
             for (int k3=k2+1; k3<nbins; ++k3, iz23+=step23, iz32+=step32) {
-                XAssert(iz23 == (k2 * nbins + k3) * (2*maxn+1) + maxn);
-                XAssert(iz32 == (k3 * nbins + k2) * (2*maxn+1) + maxn);
-                const int ig3 = k3*(maxn+1);
-
-                // n=0
-                const std::complex<double> wwwk = wk1 * mp.Gn[ig2] * std::conj(mp.Gn[ig3]);
+                const int ig3 = mp.Gindex(k3);
+                const std::complex<double> wwwk = wk1 * mp.Gn(ig2) * mp.Gn(ig3);
                 zeta.zeta[iz23] += wwwk.real();
                 zeta.zeta_im[iz23] += wwwk.imag();
                 zeta.zeta[iz32] += wwwk.real();
                 zeta.zeta_im[iz32] -= wwwk.imag();
 
                 for (int n=1; n<=maxn; ++n) {
-                    const std::complex<double> wwwk = wk1 * mp.Gn[ig2+n] * std::conj(mp.Gn[ig3+n]);
+                    const std::complex<double> wwwk = wk1 * mp.Gn(ig2,n) * mp.Gn(ig3,-n);
                     zeta.zeta[iz23+n] += wwwk.real();
                     zeta.zeta_im[iz23+n] += wwwk.imag();
                     zeta.zeta[iz32+n] += wwwk.real();
@@ -1996,8 +1988,8 @@ struct MultipoleHelper<KData,KData,KData>
 
     template <int C>
     static void CalculateZeta(const Cell<KData,C>& c1, int ordered,
-                              MultipoleScratch<KData>& mp2,
-                              MultipoleScratch<KData>& mp3,
+                              BaseMultipoleScratch& mp2,
+                              BaseMultipoleScratch& mp3,
                               int kstart, int mink_zeta,
                               ZetaData<KData,KData,KData>& zeta, int nbins, int maxn)
     {
@@ -2008,24 +2000,22 @@ struct MultipoleHelper<KData,KData,KData>
         const bool swap23 = (ordered == 1);
         iz += kstart * nbins * step;
         for (int k2=kstart; k2<nbins; ++k2) {
-            const int ig2 = k2*(maxn+1);
+            const int ig2 = mp3.Gindex(k2);
             const int k3end = k2 < mink_zeta ? nbins : mink_zeta;
             iz += kstart * step;
             for (int k3=kstart; k3<k3end; ++k3, iz+=step) {
-                const int ig3 = k3*(maxn+1);
-
-                // n=0
-                std::complex<double> wwwk = wk1 * mp3.Gn[ig2] * std::conj(mp2.Gn[ig3]);
+                const int ig3 = mp2.Gindex(k3);
+                std::complex<double> wwwk = wk1 * mp3.Gn(ig2) * mp2.Gn(ig3);
                 if (swap23) {
-                    wwwk += wk1 * mp2.Gn[ig2] * std::conj(mp3.Gn[ig3]);
+                    wwwk += wk1 * mp2.Gn(ig2) * mp3.Gn(ig3);
                 }
                 zeta.zeta[iz] += wwwk.real();
                 zeta.zeta_im[iz] += wwwk.imag();
 
                 for (int n=1; n<=maxn; ++n) {
-                    std::complex<double> wwwk = wk1 * mp3.Gn[ig2+n] * std::conj(mp2.Gn[ig3+n]);
+                    std::complex<double> wwwk = wk1 * mp3.Gn(ig2,n) * mp2.Gn(ig3,-n);
                     if (swap23) {
-                        wwwk += wk1 * mp2.Gn[ig2+n] * std::conj(mp3.Gn[ig3+n]);
+                        wwwk += wk1 * mp2.Gn(ig2,n) * mp3.Gn(ig3,-n);
                     }
                     zeta.zeta[iz+n] += wwwk.real();
                     zeta.zeta_im[iz+n] += wwwk.imag();
@@ -2043,7 +2033,7 @@ struct MultipoleHelper<KData,KData,D3>
 {
     template <int C>
     static void CalculateZeta(const Cell<KData,C>& c1,
-                              MultipoleScratch<KData>& mp,
+                              BaseMultipoleScratch& mp,
                               int kstart, int mink_zeta,
                               ZetaData<KData,KData,D3>& zeta, int nbins, int maxn)
     {
@@ -2051,8 +2041,8 @@ struct MultipoleHelper<KData,KData,D3>
     }
     template <int C>
     static void CalculateZeta(const Cell<KData,C>& c1, int ordered,
-                              MultipoleScratch<KData>& mp2,
-                              MultipoleScratch<D3>& mp3,
+                              BaseMultipoleScratch& mp2,
+                              BaseMultipoleScratch& mp3,
                               int kstart, int mink_zeta,
                               ZetaData<KData,KData,D3>& zeta, int nbins, int maxn)
     {
@@ -2060,31 +2050,23 @@ struct MultipoleHelper<KData,KData,D3>
         const int step = 2*maxn+1;
         int iz = maxn;
         XAssert(ordered == 3);
-        XAssert(mp2.buffer == 0);
-        XAssert(mp3.buffer == 0);
         iz += kstart * nbins * step;
         for (int k2=kstart; k2<nbins; ++k2) {
-            const int ig2 = k2*(2*maxn+1) + maxn;
+            const int ig2 = mp3.Gindex(k2);
             const int k3end = k2 < mink_zeta ? nbins : mink_zeta;
             iz += kstart * step;
             for (int k3=kstart; k3<k3end; ++k3, iz+=step) {
-                const int ig3 = k3*(maxn+1);
-
-                XAssert(ig3 < mp2.Gn.size());
-                XAssert(ig2 < mp3.Gn.size());
-                std::complex<double> wwwk = wk1 * mp3.Gn[ig2] * mp2.Gn[ig3];
+                const int ig3 = mp2.Gindex(k3);
+                std::complex<double> wwwk = wk1 * mp3.Gn(ig2) * mp2.Gn(ig3);
                 zeta.zeta[iz] += wwwk.real();
                 zeta.zeta_im[iz] += wwwk.imag();
 
                 for (int n=1; n<=maxn; ++n) {
-                    XAssert(ig3+n < mp2.Gn.size());
-                    XAssert(ig2+n < mp3.Gn.size());
-                    XAssert(ig2-n >= 0);
-                    std::complex<double> wwwkp = wk1 * mp3.Gn[ig2+n] * std::conj(mp2.Gn[ig3+n]);
+                    std::complex<double> wwwkp = wk1 * mp3.Gn(ig2,n) * mp2.Gn(ig3,-n);
                     zeta.zeta[iz+n] += wwwkp.real();
                     zeta.zeta_im[iz+n] += wwwkp.imag();
 
-                    std::complex<double> wwwkm = wk1 * mp3.Gn[ig2-n] * mp2.Gn[ig3+n];
+                    std::complex<double> wwwkm = wk1 * mp3.Gn(ig2,-n) * mp2.Gn(ig3,n);
                     zeta.zeta[iz-n] += wwwkm.real();
                     zeta.zeta_im[iz-n] += wwwkm.imag();
                 }
@@ -2099,7 +2081,7 @@ struct MultipoleHelper<KData,D3,KData>
 {
     template <int C>
     static void CalculateZeta(const Cell<KData,C>& c1,
-                              MultipoleScratch<D3>& mp,
+                              BaseMultipoleScratch& mp,
                               int kstart, int mink_zeta,
                               ZetaData<KData,D3,KData>& zeta, int nbins, int maxn)
     {
@@ -2107,8 +2089,8 @@ struct MultipoleHelper<KData,D3,KData>
     }
     template <int C>
     static void CalculateZeta(const Cell<KData,C>& c1, int ordered,
-                              MultipoleScratch<D3>& mp2,
-                              MultipoleScratch<KData>& mp3,
+                              BaseMultipoleScratch& mp2,
+                              BaseMultipoleScratch& mp3,
                               int kstart, int mink_zeta,
                               ZetaData<KData,D3,KData>& zeta, int nbins, int maxn)
     {
@@ -2116,27 +2098,25 @@ struct MultipoleHelper<KData,D3,KData>
         const int step = 2*maxn+1;
         int iz = maxn;
         XAssert(ordered == 3);
-        XAssert(mp2.buffer == 0);
-        XAssert(mp3.buffer == 0);
         iz += kstart * nbins * step;
         for (int k2=kstart; k2<nbins; ++k2) {
-            const int ig2 = k2*(maxn+1);
+            const int ig2 = mp3.Gindex(k2);
             const int k3end = k2 < mink_zeta ? nbins : mink_zeta;
             iz += kstart * step;
             for (int k3=kstart; k3<k3end; ++k3, iz+=step) {
-                const int ig3 = k3*(2*maxn+1) + maxn;
+                const int ig3 = mp2.Gindex(k3);
 
                 // n=0
-                std::complex<double> wwwk = wk1 * mp3.Gn[ig2] * mp2.Gn[ig3];
+                std::complex<double> wwwk = wk1 * mp3.Gn(ig2) * mp2.Gn(ig3);
                 zeta.zeta[iz] += wwwk.real();
                 zeta.zeta_im[iz] += wwwk.imag();
 
                 for (int n=1; n<=maxn; ++n) {
-                    std::complex<double> wwwkp = wk1 * mp3.Gn[ig2+n] * mp2.Gn[ig3-n];
+                    std::complex<double> wwwkp = wk1 * mp3.Gn(ig2,n) * mp2.Gn(ig3,-n);
                     zeta.zeta[iz+n] += wwwkp.real();
                     zeta.zeta_im[iz+n] += wwwkp.imag();
 
-                    std::complex<double> wwwkm = wk1 * std::conj(mp3.Gn[ig2+n]) * mp2.Gn[ig3+n];
+                    std::complex<double> wwwkm = wk1 * mp3.Gn(ig2,-n) * mp2.Gn(ig3,n);
                     zeta.zeta[iz-n] += wwwkm.real();
                     zeta.zeta_im[iz-n] += wwwkm.imag();
                 }
@@ -2151,7 +2131,7 @@ struct MultipoleHelper<D3,KData,KData>
 {
     template <int C>
     static void CalculateZeta(const Cell<D3,C>& c1,
-                              MultipoleScratch<KData>& mp,
+                              BaseMultipoleScratch& mp,
                               int kstart, int mink_zeta,
                               ZetaData<D3,KData,KData>& zeta, int nbins, int maxn)
     {
@@ -2160,23 +2140,18 @@ struct MultipoleHelper<D3,KData,KData>
         const int step32 = nbins * step23;
         const int step22 = step32 + step23;
         int iz22 = maxn;
-        XAssert(mp.buffer == 1);
         iz22 += kstart * step22;
         for (int k2=kstart; k2<mink_zeta; ++k2, iz22+=step22) {
             // Do the k2=k3 bins.
-
-            // ig2 is the indices in the Gn array for n=0.
-            const int ig2 = k2*(maxn+2);
-
-            // n=0
-            const std::complex<double> g1wwkk = wg1 * mp.sumwwkk2[k2];
-            const std::complex<double> wwwk = wg1 * SQR(std::conj(mp.Gn[ig2+1])) - g1wwkk;
+            const int ig2 = mp.Gindex(k2);
+            const std::complex<double> g1wwkk = wg1 * mp.correction0(k2);
+            const std::complex<double> wwwk = wg1 * SQR(mp.Gn(ig2,-1)) - g1wwkk;
             zeta.zeta[iz22] += wwwk.real();
             zeta.zeta_im[iz22] += wwwk.imag();
 
             for (int n=1; n<=maxn; ++n) {
-                const std::complex<double> G2mm = std::conj(mp.Gn[ig2+n+1]);
-                const std::complex<double> G2pm = mp.Gn[ig2+n-1];
+                const std::complex<double> G2mm = mp.Gn(ig2,-n-1);
+                const std::complex<double> G2pm = mp.Gn(ig2,n-1);
 
                 const std::complex<double> wwwk = wg1 * G2mm * G2pm - g1wwkk;
 
@@ -2190,13 +2165,9 @@ struct MultipoleHelper<D3,KData,KData>
             int iz23 = iz22 + step23;
             int iz32 = iz22 + step32;
             for (int k3=k2+1; k3<nbins; ++k3, iz23+=step23, iz32+=step32) {
-                XAssert(iz23 == (k2 * nbins + k3) * (2*maxn+1) + maxn);
-                XAssert(iz32 == (k3 * nbins + k2) * (2*maxn+1) + maxn);
-                const int ig3 = k3*(maxn+2);
-
-                // n=0:
-                const std::complex<double> G2m = std::conj(mp.Gn[ig2+1]);
-                const std::complex<double> G3m = std::conj(mp.Gn[ig3+1]);
+                const int ig3 = mp.Gindex(k3);
+                const std::complex<double> G2m = mp.Gn(ig2,-1);
+                const std::complex<double> G3m = mp.Gn(ig3,-1);
                 const std::complex<double> wwwk = wg1 * G2m * G3m;
 
                 zeta.zeta[iz23] += wwwk.real();
@@ -2204,12 +2175,11 @@ struct MultipoleHelper<D3,KData,KData>
                 zeta.zeta[iz32] += wwwk.real();
                 zeta.zeta_im[iz32] += wwwk.imag();
 
-                // Now do +-n for n>0
                 for (int n=1; n<=maxn; ++n) {
-                    const std::complex<double> G2pm = mp.Gn[ig2+n-1];
-                    const std::complex<double> G2mm = std::conj(mp.Gn[ig2+n+1]);
-                    const std::complex<double> G3pm = mp.Gn[ig3+n-1];
-                    const std::complex<double> G3mm = std::conj(mp.Gn[ig3+n+1]);
+                    const std::complex<double> G2pm = mp.Gn(ig2,n-1);
+                    const std::complex<double> G2mm = mp.Gn(ig2,-n-1);
+                    const std::complex<double> G3pm = mp.Gn(ig3,n-1);
+                    const std::complex<double> G3mm = mp.Gn(ig3,-n-1);
 
                     const std::complex<double> wwwkp = wg1 * G2pm * G3mm;
                     const std::complex<double> wwwkm = wg1 * G2mm * G3pm;
@@ -2229,8 +2199,8 @@ struct MultipoleHelper<D3,KData,KData>
     }
     template <int C>
     static void CalculateZeta(const Cell<D3,C>& c1, int ordered,
-                              MultipoleScratch<KData>& mp2,
-                              MultipoleScratch<KData>& mp3,
+                              BaseMultipoleScratch& mp2,
+                              BaseMultipoleScratch& mp3,
                               int kstart, int mink_zeta,
                               ZetaData<D3,KData,KData>& zeta, int nbins, int maxn)
     {
@@ -2238,27 +2208,25 @@ struct MultipoleHelper<D3,KData,KData>
         const int step = 2*maxn+1;
         int iz = maxn;
         XAssert(ordered == 3);
-        XAssert(mp2.buffer == 1);
-        XAssert(mp3.buffer == 1);
         iz += kstart * nbins * step;
         for (int k2=kstart; k2<nbins; ++k2) {
-            const int ig2 = k2*(maxn+2);
+            const int ig2 = mp3.Gindex(k2);
             const int k3end = k2 < mink_zeta ? nbins : mink_zeta;
             iz += kstart * step;
             for (int k3=kstart; k3<k3end; ++k3, iz+=step) {
-                const int ig3 = k3*(maxn+2);
+                const int ig3 = mp2.Gindex(k3);
 
                 // n=0
-                std::complex<double> wwwk = g1 * std::conj(mp3.Gn[ig2+1]) * std::conj(mp2.Gn[ig3+1]);
+                std::complex<double> wwwk = g1 * mp3.Gn(ig2,-1) * mp2.Gn(ig3,-1);
                 zeta.zeta[iz] += wwwk.real();
                 zeta.zeta_im[iz] += wwwk.imag();
 
                 for (int n=1; n<=maxn; ++n) {
-                    std::complex<double> wwwkp = g1 * mp3.Gn[ig2+n-1] * std::conj(mp2.Gn[ig3+n+1]);
+                    std::complex<double> wwwkp = g1 * mp3.Gn(ig2,n-1) * mp2.Gn(ig3,-n-1);
                     zeta.zeta[iz+n] += wwwkp.real();
                     zeta.zeta_im[iz+n] += wwwkp.imag();
 
-                    std::complex<double> wwwkm = g1 * std::conj(mp3.Gn[ig2+n+1]) * mp2.Gn[ig3+n-1];
+                    std::complex<double> wwwkm = g1 * mp3.Gn(ig2,-n-1) * mp2.Gn(ig3,n-1);
                     zeta.zeta[iz-n] += wwwkm.real();
                     zeta.zeta_im[iz-n] += wwwkm.imag();
                 }
@@ -2273,7 +2241,7 @@ struct MultipoleHelper<GData,GData,GData>
 {
     template <int C>
     static void CalculateZeta(const Cell<GData,C>& c1,
-                              MultipoleScratch<GData>& mp,
+                              BaseMultipoleScratch& mp,
                               int kstart, int mink_zeta,
                               ZetaData<GData,GData,GData>& zeta, int nbins, int maxn)
     {
@@ -2291,10 +2259,11 @@ struct MultipoleHelper<GData,GData,GData>
             // Gamma_1 includes sum_k wg_k^2 z^2
             // Gamma_2 includes sum_k |wg_k|^2 z^-2
             // Gamma_3 includes sum_k |wg_k|^2 z^-2
-            // These are called sumwwgg0, sumwwgg1, sumwwgg2, respectively.
+            // These are called sumwwgg0, sumwwgg1, sumwwgg2, respectively,
+            // accessed via correction0, correction1, correction2.
 
             // ig2 is the indices in the Gn array for n=0.
-            const int ig2 = k2*(2*maxn+3)+maxn+1;
+            const int ig2 = mp.Gindex(k2);
 
 #if 0
             for (int n=-maxn; n<=maxn; ++n) {
@@ -2302,13 +2271,13 @@ struct MultipoleHelper<GData,GData,GData>
                 // Rather than rely on n-3 to rotate shears 2 and 3, we have already applied
                 // the right rotation when making Gn.  Now we just need n-1 to rotate g1.
                 std::complex<double> gam0 =
-                    wg1 * (mp.Gn[ig2+n-1] * mp.Gn[ig2-n-1] - mp.sumwwgg0[k2]);
+                    wg1 * (mp.Gn(ig2,n-1) * mp.Gn(ig2,-n-1) - mp.correction0(k2));
                 std::complex<double> gam1 =
-                    std::conj(wg1) * (mp.Gn[ig2+n+1] * mp.Gn[ig2-n+1] - mp.sumwwgg1[k2]);
+                    std::conj(wg1) * (mp.Gn(ig2,n+1) * mp.Gn(ig2,-n+1) - mp.correction1(k2));
                 std::complex<double> gam2 =
-                    wg1 * (mp.Gn[ig2+n-1] * std::conj(mp.Gn[ig2+n+1]) - mp.sumwwgg2[k2]);
+                    wg1 * (mp.Gn(ig2,n-1) * std::conj(mp.Gn(ig2,n+1)) - mp.correction2(k2));
                 std::complex<double> gam3 =
-                    wg1 * (std::conj(mp.Gn[ig2-n+1]) * mp.Gn[ig2-n-1] - mp.sumwwgg2[k2]);
+                    wg1 * (std::conj(mp.Gn(ig2,-n+1)) * mp.Gn(ig2,-n-1) - mp.correction2(k2));
                 zeta.gam0r[iz22+n] += gam0.real();
                 zeta.gam0i[iz22+n] += gam0.imag();
                 zeta.gam1r[iz22+n] += gam1.real();
@@ -2324,16 +2293,16 @@ struct MultipoleHelper<GData,GData,GData>
             // the right rotation when making Gn.  Now we just need n-1 to rotate g1.
 
             // First n=0
-            const std::complex<double> g1wwgg0 = wg1 * mp.sumwwgg0[k2];
-            const std::complex<double> g1cwwgg1 = std::conj(wg1) * mp.sumwwgg1[k2];
-            const std::complex<double> g1wwgg2 = wg1 * mp.sumwwgg2[k2];
+            const std::complex<double> g1wwgg0 = wg1 * mp.correction0(k2);
+            const std::complex<double> g1cwwgg1 = std::conj(wg1) * mp.correction1(k2);
+            const std::complex<double> g1wwgg2 = wg1 * mp.correction2(k2);
 
-            const std::complex<double> g1G2m = wg1 * mp.Gn[ig2-1];
-            const std::complex<double> g1cG2p = std::conj(wg1) * mp.Gn[ig2+1];
+            const std::complex<double> g1G2m = wg1 * mp.Gn(ig2,-1);
+            const std::complex<double> g1cG2p = std::conj(wg1) * mp.Gn(ig2,1);
 
-            const std::complex<double> gam0 = g1G2m * mp.Gn[ig2-1] - g1wwgg0;
-            const std::complex<double> gam1 = g1cG2p * mp.Gn[ig2+1] - g1cwwgg1;
-            const std::complex<double> gam2 = g1G2m * std::conj(mp.Gn[ig2+1]) - g1wwgg2;
+            const std::complex<double> gam0 = g1G2m * mp.Gn(ig2,-1) - g1wwgg0;
+            const std::complex<double> gam1 = g1cG2p * mp.Gn(ig2,+1) - g1cwwgg1;
+            const std::complex<double> gam2 = g1G2m * std::conj(mp.Gn(ig2,+1)) - g1wwgg2;
 
             zeta.gam0r[iz22] += gam0.real();
             zeta.gam0i[iz22] += gam0.imag();
@@ -2345,10 +2314,10 @@ struct MultipoleHelper<GData,GData,GData>
             zeta.gam3i[iz22] += gam2.imag();
 
             for (int n=1; n<=maxn; ++n) {
-                const std::complex<double> G2pp = mp.Gn[ig2+n+1];
-                const std::complex<double> G2pm = mp.Gn[ig2+n-1];
-                const std::complex<double> G2mp = mp.Gn[ig2-n+1];
-                const std::complex<double> G2mm = mp.Gn[ig2-n-1];
+                const std::complex<double> G2pp = mp.Gn(ig2,n+1);
+                const std::complex<double> G2pm = mp.Gn(ig2,n-1);
+                const std::complex<double> G2mp = mp.Gn(ig2,-n+1);
+                const std::complex<double> G2mm = mp.Gn(ig2,-n-1);
 
                 const std::complex<double> g1G2mm = wg1 * G2mm;
                 const std::complex<double> g1cG2pp = std::conj(wg1) * G2pp;
@@ -2381,9 +2350,6 @@ struct MultipoleHelper<GData,GData,GData>
             int iz23 = iz22 + step23;
             int iz32 = iz22 + step32;
             for (int k3=k2+1; k3<nbins; ++k3, iz23+=step23, iz32+=step32) {
-                XAssert(iz23 == (k2 * nbins + k3) * (2*maxn+1) + maxn);
-                XAssert(iz32 == (k3 * nbins + k2) * (2*maxn+1) + maxn);
-                const int ig3 = k3*(2*maxn+3) + maxn+1;
 
                 // W_-n = conj(W_n), so we have only been storing n>=0.
                 // But G_n does not have that property, so use the actual n<0 index.
@@ -2400,10 +2366,10 @@ struct MultipoleHelper<GData,GData,GData>
 #if 0
                 // Since this is not symmetric w.r.t +/-n, loop from -maxn to maxn for these.
                 for (int n=-maxn; n<=maxn; ++n) {
-                    std::complex<double> gam0 = wg1 * mp.Gn[ig2+n-1] * mp.Gn[ig3-n-1];
-                    std::complex<double> gam1 = std::conj(wg1) * mp.Gn[ig2+n+1] * mp.Gn[ig3-n+1];
-                    std::complex<double> gam2 = wg1 * mp.Gn[ig2+n-1] * std::conj(mp.Gn[ig3+n+1]);
-                    std::complex<double> gam3 = wg1 * std::conj(mp.Gn[ig2-n+1]) * mp.Gn[ig3-n-1];
+                    std::complex<double> gam0 = wg1 * mp.Gn(ig2,n-1) * mp.Gn(ig3,-n-1);
+                    std::complex<double> gam1 = std::conj(wg1) * mp.Gn(ig2,n+1) * mp.Gn(ig3,-n+1);
+                    std::complex<double> gam2 = wg1 * mp.Gn(ig2,n-1) * std::conj(mp.Gn(ig3,n+1));
+                    std::complex<double> gam3 = wg1 * std::conj(mp.Gn(ig2,-n+1)) * mp.Gn(ig3,-n-1);
                     zeta.gam0r[iz23+n] += gam0.real();
                     zeta.gam0i[iz23+n] += gam0.imag();
                     zeta.gam1r[iz23+n] += gam1.real();
@@ -2415,10 +2381,10 @@ struct MultipoleHelper<GData,GData,GData>
 
                     // This time there is nothing symmetrical to exploit between the
                     // 2,3 and 3,2 terms.  Just recaulculate Gamma values for k3, k2.
-                    gam0 = wg1 * mp.Gn[ig3+n-1] * mp.Gn[ig2-n-1];
-                    gam1 = std::conj(wg1) * mp.Gn[ig3+n+1] * mp.Gn[ig2-n+1];
-                    gam2 = wg1 * mp.Gn[ig3+n-1] * std::conj(mp.Gn[ig2+n+1]);
-                    gam3 = wg1 * std::conj(mp.Gn[ig3-n+1]) * mp.Gn[ig2-n-1];
+                    gam0 = wg1 * mp.Gn(ig3,n-1) * mp.Gn(ig2,-n-1);
+                    gam1 = std::conj(wg1) * mp.Gn(ig3,n+1) * mp.Gn(ig2,-n+1);
+                    gam2 = wg1 * mp.Gn(ig3,n-1) * std::conj(mp.Gn(ig2,n+1));
+                    gam3 = wg1 * std::conj(mp.Gn(ig3,-n+1)) * mp.Gn(ig2,-n-1);
                     zeta.gam0r[iz32+n] += gam0.real();
                     zeta.gam0i[iz32+n] += gam0.imag();
                     zeta.gam1r[iz32+n] += gam1.real();
@@ -2429,15 +2395,16 @@ struct MultipoleHelper<GData,GData,GData>
                     zeta.gam3i[iz32+n] += gam3.imag();
                 }
 #else
-                // The above is the most straightforward way to do the calculation.
+                // The above is a more straightforward way to do the calculation.
                 // However, there are some repeated bits in the complex multiplications that
                 // we can optimize by doing things out by hand.
 
                 // First n=0:
-                const std::complex<double> G2p = mp.Gn[ig2+1];
-                const std::complex<double> G2m = mp.Gn[ig2-1];
-                const std::complex<double> G3p = mp.Gn[ig3+1];
-                const std::complex<double> G3m = mp.Gn[ig3-1];
+                const int ig3 = mp.Gindex(k3);
+                const std::complex<double> G2p = mp.Gn(ig2,1);
+                const std::complex<double> G2m = mp.Gn(ig2,-1);
+                const std::complex<double> G3p = mp.Gn(ig3,1);
+                const std::complex<double> G3m = mp.Gn(ig3,-1);
 
                 const std::complex<double> g1G2m = wg1 * G2m;
                 const std::complex<double> g1cG2p = std::conj(wg1) * G2p;
@@ -2467,14 +2434,14 @@ struct MultipoleHelper<GData,GData,GData>
 
                 // Now do +-n for n>0
                 for (int n=1; n<=maxn; ++n) {
-                    const std::complex<double> G2pp = mp.Gn[ig2+n+1];
-                    const std::complex<double> G2pm = mp.Gn[ig2+n-1];
-                    const std::complex<double> G2mp = mp.Gn[ig2-n+1];
-                    const std::complex<double> G2mm = mp.Gn[ig2-n-1];
-                    const std::complex<double> G3pp = mp.Gn[ig3+n+1];
-                    const std::complex<double> G3pm = mp.Gn[ig3+n-1];
-                    const std::complex<double> G3mp = mp.Gn[ig3-n+1];
-                    const std::complex<double> G3mm = mp.Gn[ig3-n-1];
+                    const std::complex<double> G2pp = mp.Gn(ig2,n+1);
+                    const std::complex<double> G2pm = mp.Gn(ig2,n-1);
+                    const std::complex<double> G2mp = mp.Gn(ig2,-n+1);
+                    const std::complex<double> G2mm = mp.Gn(ig2,-n-1);
+                    const std::complex<double> G3pp = mp.Gn(ig3,n+1);
+                    const std::complex<double> G3pm = mp.Gn(ig3,n-1);
+                    const std::complex<double> G3mp = mp.Gn(ig3,-n+1);
+                    const std::complex<double> G3mm = mp.Gn(ig3,-n-1);
 
                     const std::complex<double> g1G2pm = wg1 * G2pm;
                     const std::complex<double> g1cG2pp = std::conj(wg1) * G2pp;
@@ -2536,8 +2503,8 @@ struct MultipoleHelper<GData,GData,GData>
 
     template <int C>
     static void CalculateZeta(const Cell<GData,C>& c1, int ordered,
-                              MultipoleScratch<GData>& mp2,
-                              MultipoleScratch<GData>& mp3,
+                              BaseMultipoleScratch& mp2,
+                              BaseMultipoleScratch& mp3,
                               int kstart, int mink_zeta,
                               ZetaData<GData,GData,GData>& zeta, int nbins, int maxn)
     {
@@ -2548,23 +2515,23 @@ struct MultipoleHelper<GData,GData,GData>
         const bool swap23 = (ordered == 1);
         iz += kstart * nbins * step;
         for (int k2=kstart; k2<nbins; ++k2) {
-            const int ig2 = k2*(2*maxn+3) + maxn+1;
+            const int ig2 = mp2.Gindex(k2);
             const int k3end = k2 < mink_zeta ? nbins : mink_zeta;
             iz += kstart * step;
             for (int k3=kstart; k3<k3end; ++k3, iz+=step) {
-                const int ig3 = k3*(2*maxn+3) + maxn+1;
+                const int ig3 = mp2.Gindex(k3);
 
 #if 0
                 for (int n=-maxn; n<=maxn; ++n) {
-                    std::complex<double> gam0 = wg1 * mp3.Gn[ig2+n-1] * mp2.Gn[ig3-n-1];
-                    std::complex<double> gam1 = std::conj(wg1) * mp3.Gn[ig2+n+1] * mp2.Gn[ig3-n+1];
-                    std::complex<double> gam2 = wg1 * mp3.Gn[ig2+n-1] * std::conj(mp2.Gn[ig3+n+1]);
-                    std::complex<double> gam3 = wg1 * std::conj(mp3.Gn[ig2-n+1]) * mp2.Gn[ig3-n-1];
+                    std::complex<double> gam0 = wg1 * mp3.Gn(ig2,n-1) * mp2.Gn(ig3,-n-1);
+                    std::complex<double> gam1 = std::conj(wg1) * mp3.Gn(ig2,n+1) * mp2.Gn(ig3,-n+1);
+                    std::complex<double> gam2 = wg1 * mp3.Gn(ig2,n-1) * std::conj(mp2.Gn(ig3,n+1));
+                    std::complex<double> gam3 = wg1 * std::conj(mp3.Gn(ig2,-n+1)) * mp2.Gn(ig3,-n-1);
                     if (swap23) {
-                        gam0 += wg1 * mp2.Gn[ig2+n-1] * mp3.Gn[ig3-n-1];
-                        gam1 += std::conj(wg1) * mp2.Gn[ig2+n+1] * mp3.Gn[ig3-n+1];
-                        gam2 += wg1 * mp2.Gn[ig2+n-1] * std::conj(mp3.Gn[ig3+n+1]);
-                        gam3 += wg1 * std::conj(mp2.Gn[ig2-n+1]) * mp3.Gn[ig3-n-1];
+                        gam0 += wg1 * mp2.Gn(ig2,n-1) * mp3.Gn(ig3,-n-1);
+                        gam1 += std::conj(wg1) * mp2.Gn(ig2,n+1) * mp3.Gn(ig3,-n+1);
+                        gam2 += wg1 * mp2.Gn(ig2,n-1) * std::conj(mp3.Gn(ig3,n+1));
+                        gam3 += wg1 * std::conj(mp2.Gn(ig2,-n+1)) * mp3.Gn(ig3,-n-1);
                     }
                     zeta.gam0r[iz+n] += gam0.real();
                     zeta.gam0i[iz+n] += gam0.imag();
@@ -2580,10 +2547,10 @@ struct MultipoleHelper<GData,GData,GData>
                 // Gn arrays, but there are a few intermediate values we can reuse.
 
                 // First n=0 case
-                const std::complex<double> G32p = mp3.Gn[ig2+1];
-                const std::complex<double> G32m = mp3.Gn[ig2-1];
-                const std::complex<double> G23p = mp2.Gn[ig3+1];
-                const std::complex<double> G23m = mp2.Gn[ig3-1];
+                const std::complex<double> G32p = mp3.Gn(ig2,1);
+                const std::complex<double> G32m = mp3.Gn(ig2,-1);
+                const std::complex<double> G23p = mp2.Gn(ig3,1);
+                const std::complex<double> G23m = mp2.Gn(ig3,-1);
 
                 const std::complex<double> g1G32m = wg1 * G32m;
                 const std::complex<double> g1cG32p = std::conj(wg1) * G32p;
@@ -2594,10 +2561,10 @@ struct MultipoleHelper<GData,GData,GData>
                 std::complex<double> gam3 = std::conj(g1cG32p) * G23m;
 
                 if (swap23) {
-                    const std::complex<double> G22p = mp2.Gn[ig2+1];
-                    const std::complex<double> G22m = mp2.Gn[ig2-1];
-                    const std::complex<double> G33p = mp3.Gn[ig3+1];
-                    const std::complex<double> G33m = mp3.Gn[ig3-1];
+                    const std::complex<double> G22p = mp2.Gn(ig2,1);
+                    const std::complex<double> G22m = mp2.Gn(ig2,-1);
+                    const std::complex<double> G33p = mp3.Gn(ig3,1);
+                    const std::complex<double> G33m = mp3.Gn(ig3,-1);
 
                     const std::complex<double> g1G22m = wg1 * G22m;
                     const std::complex<double> g1cG22p = std::conj(wg1) * G22p;
@@ -2618,14 +2585,14 @@ struct MultipoleHelper<GData,GData,GData>
 
                 // Now +-n for the rest
                 for (int n=1; n<=maxn; ++n) {
-                    const std::complex<double> G32pp = mp3.Gn[ig2+n+1];
-                    const std::complex<double> G32pm = mp3.Gn[ig2+n-1];
-                    const std::complex<double> G32mp = mp3.Gn[ig2-n+1];
-                    const std::complex<double> G32mm = mp3.Gn[ig2-n-1];
-                    const std::complex<double> G23pp = mp2.Gn[ig3+n+1];
-                    const std::complex<double> G23pm = mp2.Gn[ig3+n-1];
-                    const std::complex<double> G23mp = mp2.Gn[ig3-n+1];
-                    const std::complex<double> G23mm = mp2.Gn[ig3-n-1];
+                    const std::complex<double> G32pp = mp3.Gn(ig2,n+1);
+                    const std::complex<double> G32pm = mp3.Gn(ig2,n-1);
+                    const std::complex<double> G32mp = mp3.Gn(ig2,-n+1);
+                    const std::complex<double> G32mm = mp3.Gn(ig2,-n-1);
+                    const std::complex<double> G23pp = mp2.Gn(ig3,n+1);
+                    const std::complex<double> G23pm = mp2.Gn(ig3,n-1);
+                    const std::complex<double> G23mp = mp2.Gn(ig3,-n+1);
+                    const std::complex<double> G23mm = mp2.Gn(ig3,-n-1);
 
                     const std::complex<double> g1G32pm = wg1 * G32pm;
                     const std::complex<double> g1cG32pp = std::conj(wg1) * G32pp;
@@ -2643,14 +2610,14 @@ struct MultipoleHelper<GData,GData,GData>
                     std::complex<double> gam3m = std::conj(g1cG32pp) * G23pm;
 
                     if (swap23) {
-                        const std::complex<double> G22pp = mp2.Gn[ig2+n+1];
-                        const std::complex<double> G22pm = mp2.Gn[ig2+n-1];
-                        const std::complex<double> G22mp = mp2.Gn[ig2-n+1];
-                        const std::complex<double> G22mm = mp2.Gn[ig2-n-1];
-                        const std::complex<double> G33pp = mp3.Gn[ig3+n+1];
-                        const std::complex<double> G33pm = mp3.Gn[ig3+n-1];
-                        const std::complex<double> G33mp = mp3.Gn[ig3-n+1];
-                        const std::complex<double> G33mm = mp3.Gn[ig3-n-1];
+                        const std::complex<double> G22pp = mp2.Gn(ig2,n+1);
+                        const std::complex<double> G22pm = mp2.Gn(ig2,n-1);
+                        const std::complex<double> G22mp = mp2.Gn(ig2,-n+1);
+                        const std::complex<double> G22mm = mp2.Gn(ig2,-n-1);
+                        const std::complex<double> G33pp = mp3.Gn(ig3,n+1);
+                        const std::complex<double> G33pm = mp3.Gn(ig3,n-1);
+                        const std::complex<double> G33mp = mp3.Gn(ig3,-n+1);
+                        const std::complex<double> G33mm = mp3.Gn(ig3,-n-1);
 
                         const std::complex<double> g1G22pm = wg1 * G22pm;
                         const std::complex<double> g1cG22pp = std::conj(wg1) * G22pp;

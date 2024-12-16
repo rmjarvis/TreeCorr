@@ -152,13 +152,19 @@ struct MultipoleScratch<KData> : public BaseMultipoleScratch
 {
     MultipoleScratch(int nbins, int nubins, bool use_ww, int _buffer) :
         BaseMultipoleScratch(nbins, nubins, use_ww), buffer(_buffer),
-        Gnsize(nbins * (nubins+1+buffer)),
-        Gn(Gnsize), sumwwkk(n)
-    {}
+        Gnsize(nbins * (nubins+1+buffer)), Gn(Gnsize)
+    {
+        if (ww) {
+            sumwwkk.resize(n);
+            if (buffer > 0) {
+                sumwwkk2.resize(n);
+            }
+        }
+    }
 
     MultipoleScratch(const MultipoleScratch& rhs) :
         BaseMultipoleScratch(rhs), buffer(rhs.buffer),
-        Gn(rhs.Gn), sumwwkk(rhs.sumwwkk)
+        Gn(rhs.Gn), sumwwkk(rhs.sumwwkk), sumwwkk2(rhs.sumwwkk2)
     {}
 
 
@@ -173,12 +179,16 @@ struct MultipoleScratch<KData> : public BaseMultipoleScratch
         for (int i=0; i<Gnsize; ++i) Gn[i] = 0.;
         if (ww) {
             for (int i=0; i<n; ++i) sumwwkk[i] = 0.;
+            if (buffer > 0) {
+                for (int i=0; i<n; ++i) sumwwkk2[i] = 0.;
+            }
         }
     }
 
     int buffer, Gnsize;
     std::vector<std::complex<double> > Gn;
     std::vector<double> sumwwkk;
+    std::vector<std::complex<double> > sumwwkk2;
 
     template <int C>
     void calculateGn(

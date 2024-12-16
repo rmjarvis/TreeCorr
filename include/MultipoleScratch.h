@@ -35,19 +35,19 @@ std::unique_ptr<T> make_unique(Args&&... args)
 // Anything related to K or G values is in the relevant derived classes.
 struct BaseMultipoleScratch
 {
-    BaseMultipoleScratch(int nbins, int nubins, bool use_ww) :
-        ww(use_ww), n(nbins), Wnsize(nbins * (nubins+1)),
-        Wn(Wnsize), npairs(n), sumw(n), sumwr(n), sumwlogr(n)
+    BaseMultipoleScratch(int _nbins, int _maxn, bool use_ww) :
+        ww(use_ww), nbins(_nbins), maxn(_maxn), Wnsize(nbins * (maxn+1)),
+        Wn(Wnsize), npairs(nbins), sumw(nbins), sumwr(nbins), sumwlogr(nbins)
     {
         if (ww) {
-            sumww.resize(n);
-            sumwwr.resize(n);
-            sumwwlogr.resize(n);
+            sumww.resize(nbins);
+            sumwwr.resize(nbins);
+            sumwwlogr.resize(nbins);
         }
     }
 
     BaseMultipoleScratch(const BaseMultipoleScratch& rhs) :
-        ww(rhs.ww), n(rhs.n), Wnsize(rhs.Wnsize),
+        ww(rhs.ww), nbins(rhs.nbins), maxn(rhs.maxn), Wnsize(rhs.Wnsize),
         Wn(rhs.Wn), npairs(rhs.npairs), sumw(rhs.sumw), sumwr(rhs.sumwr), sumwlogr(rhs.sumwlogr),
         sumww(rhs.sumww), sumwwr(rhs.sumwwr), sumwwlogr(rhs.sumwwlogr)
     {}
@@ -58,7 +58,7 @@ struct BaseMultipoleScratch
     {
         for (int i=0; i<Wnsize; ++i) Wn[i] = 0.;
 
-        for (int i=0; i<n; ++i) {
+        for (int i=0; i<nbins; ++i) {
             npairs[i] = 0.;
             sumw[i] = 0.;
             sumwr[i] = 0.;
@@ -66,7 +66,7 @@ struct BaseMultipoleScratch
         }
 
         if (ww) {
-            for (int i=0; i<n; ++i) {
+            for (int i=0; i<nbins; ++i) {
                 sumww[i] = 0.;
                 sumwwr[i] = 0.;
                 sumwwlogr[i] = 0.;
@@ -76,14 +76,27 @@ struct BaseMultipoleScratch
 
     virtual std::unique_ptr<BaseMultipoleScratch> duplicate() = 0;
 
+    inline int Windex(int k, int n=0)
+    { return k * (maxn+1) + n; }
+
+    virtual int Gindex(int k, int n=0) = 0;
+
+    virtual std::complex<double> Gn(int index, int n=0) = 0;
+
+    virtual double correction0r(int k) = 0;
+    virtual std::complex<double> correction0(int k) = 0;
+    virtual std::complex<double> correction1(int k) = 0;
+    virtual std::complex<double> correction2(int k) = 0;
+
     template <int C>
     void calculateGn(
         const BaseCell<C>& c1, const BaseCell<C>& c2,
-        double rsq, double r, int k, int maxn, double w)
-    { doCalculateGn(c1, c2, rsq, r, k, maxn, w); }
+        double rsq, double r, int k, double w)
+    { doCalculateGn(c1, c2, rsq, r, k, w); }
 
     const bool ww;
-    const int n;
+    const int nbins;
+    const int maxn;
     const int Wnsize;
 
     std::vector<std::complex<double> > Wn;
@@ -99,13 +112,13 @@ protected:
 
     virtual void doCalculateGn(
         const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
-        double rsq, double r, int k, int maxn, double w) = 0;
+        double rsq, double r, int k, double w) = 0;
     virtual void doCalculateGn(
         const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
-        double rsq, double r, int k, int maxn, double w) = 0;
+        double rsq, double r, int k, double w) = 0;
     virtual void doCalculateGn(
         const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
-        double rsq, double r, int k, int maxn, double w) = 0;
+        double rsq, double r, int k, double w) = 0;
 
 };
 
@@ -117,8 +130,8 @@ template <int D> struct MultipoleScratch;
 template <>
 struct MultipoleScratch<NData> : public BaseMultipoleScratch
 {
-    MultipoleScratch(int nbins, int nubins, bool use_ww, int buffer) :
-        BaseMultipoleScratch(nbins, nubins, use_ww)
+    MultipoleScratch(int nbins, int maxn, bool use_ww, int buffer) :
+        BaseMultipoleScratch(nbins, maxn, use_ww)
     {}
 
     std::unique_ptr<BaseMultipoleScratch> duplicate()
@@ -126,45 +139,60 @@ struct MultipoleScratch<NData> : public BaseMultipoleScratch
         return make_unique<MultipoleScratch>(*this);
     }
 
+    int Gindex(int k, int n=0)
+    { return Windex(k, n); }
+
+    std::complex<double> Gn(int index, int n=0)
+    { return n >= 0 ? Wn[index+n] : std::conj(Wn[index-n]); }
+
+    double correction0r(int k)
+    { return sumww[k]; }
+
+    std::complex<double> correction0(int k)
+    { return sumww[k]; }
+
+    std::complex<double> correction1(int k)
+    { XAssert(false); return sumww[k]; }
+
+    std::complex<double> correction2(int k)
+    { XAssert(false); return sumww[k]; }
+
     template <int C>
     void calculateGn(
         const BaseCell<C>& c1, const Cell<NData,C>& c2,
-        double rsq, double r, int k, int maxn, double w);
+        double rsq, double r, int k, double w);
 
 protected:
     void doCalculateGn(
         const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
-        double rsq, double r, int k, int maxn, double w)
-    { calculateGn(c1, static_cast<const Cell<NData,Flat>&>(c2), rsq, r, k, maxn, w); }
+        double rsq, double r, int k, double w)
+    { calculateGn(c1, static_cast<const Cell<NData,Flat>&>(c2), rsq, r, k, w); }
     void doCalculateGn(
         const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
-        double rsq, double r, int k, int maxn, double w)
-    { calculateGn(c1, static_cast<const Cell<NData,Sphere>&>(c2), rsq, r, k, maxn, w); }
+        double rsq, double r, int k, double w)
+    { calculateGn(c1, static_cast<const Cell<NData,Sphere>&>(c2), rsq, r, k, w); }
     void doCalculateGn(
         const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
-        double rsq, double r, int k, int maxn, double w)
-    { calculateGn(c1, static_cast<const Cell<NData,ThreeD>&>(c2), rsq, r, k, maxn, w); }
+        double rsq, double r, int k, double w)
+    { calculateGn(c1, static_cast<const Cell<NData,ThreeD>&>(c2), rsq, r, k, w); }
 };
 
 // KData needs Gn and sumwwkk
 template <>
 struct MultipoleScratch<KData> : public BaseMultipoleScratch
 {
-    MultipoleScratch(int nbins, int nubins, bool use_ww, int _buffer) :
-        BaseMultipoleScratch(nbins, nubins, use_ww), buffer(_buffer),
-        Gnsize(nbins * (nubins+1+buffer)), Gn(Gnsize)
+    MultipoleScratch(int nbins, int maxn, bool use_ww, int _buffer) :
+        BaseMultipoleScratch(nbins, maxn, use_ww), buffer(_buffer),
+        Gnsize(nbins * (maxn+1+buffer)), _Gn(Gnsize)
     {
         if (ww) {
-            sumwwkk.resize(n);
-            if (buffer > 0) {
-                sumwwkk2.resize(n);
-            }
+            sumwwkk.resize(nbins);
         }
     }
 
     MultipoleScratch(const MultipoleScratch& rhs) :
         BaseMultipoleScratch(rhs), buffer(rhs.buffer),
-        Gn(rhs.Gn), sumwwkk(rhs.sumwwkk), sumwwkk2(rhs.sumwwkk2)
+        _Gn(rhs._Gn), sumwwkk(rhs.sumwwkk)
     {}
 
 
@@ -176,58 +204,72 @@ struct MultipoleScratch<KData> : public BaseMultipoleScratch
     void clear()
     {
         BaseMultipoleScratch::clear();
-        for (int i=0; i<Gnsize; ++i) Gn[i] = 0.;
+        for (int i=0; i<Gnsize; ++i) _Gn[i] = 0.;
         if (ww) {
-            for (int i=0; i<n; ++i) sumwwkk[i] = 0.;
-            if (buffer > 0) {
-                for (int i=0; i<n; ++i) sumwwkk2[i] = 0.;
-            }
+            for (int i=0; i<nbins; ++i) sumwwkk[i] = 0.;
         }
     }
 
+    int Gindex(int k, int n=0)
+    { return k * (maxn+1+buffer) + n; }
+
+    std::complex<double> Gn(int index, int n=0)
+    { return n >= 0 ? _Gn[index+n] : std::conj(_Gn[index-n]); }
+
+    double correction0r(int k)
+    { return sumwwkk[k].real(); }
+
+    std::complex<double> correction0(int k)
+    { return sumwwkk[k]; }
+
+    std::complex<double> correction1(int k)
+    { XAssert(false); return sumwwkk[k]; }
+
+    std::complex<double> correction2(int k)
+    { XAssert(false); return sumwwkk[k]; }
+
     int buffer, Gnsize;
-    std::vector<std::complex<double> > Gn;
-    std::vector<double> sumwwkk;
-    std::vector<std::complex<double> > sumwwkk2;
+    std::vector<std::complex<double> > _Gn;
+    std::vector<std::complex<double> > sumwwkk;
 
     template <int C>
     void calculateGn(
         const BaseCell<C>& c1, const Cell<KData,C>& c2,
-        double rsq, double r, int k, int maxn, double w);
+        double rsq, double r, int k, double w);
 
 protected:
     void doCalculateGn(
         const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
-        double rsq, double r, int k, int maxn, double w)
-    { calculateGn(c1, static_cast<const Cell<KData,Flat>&>(c2), rsq, r, k, maxn, w); }
+        double rsq, double r, int k, double w)
+    { calculateGn(c1, static_cast<const Cell<KData,Flat>&>(c2), rsq, r, k, w); }
     void doCalculateGn(
         const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
-        double rsq, double r, int k, int maxn, double w)
-    { calculateGn(c1, static_cast<const Cell<KData,Sphere>&>(c2), rsq, r, k, maxn, w); }
+        double rsq, double r, int k, double w)
+    { calculateGn(c1, static_cast<const Cell<KData,Sphere>&>(c2), rsq, r, k, w); }
     void doCalculateGn(
         const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
-        double rsq, double r, int k, int maxn, double w)
-    { calculateGn(c1, static_cast<const Cell<KData,ThreeD>&>(c2), rsq, r, k, maxn, w); }
+        double rsq, double r, int k, double w)
+    { calculateGn(c1, static_cast<const Cell<KData,ThreeD>&>(c2), rsq, r, k, w); }
 };
 
 // GData needs a bigger Gn and several extra ww arrays.
 template <>
 struct MultipoleScratch<GData> : public BaseMultipoleScratch
 {
-    MultipoleScratch(int nbins, int nubins, bool use_ww, int _buffer) :
-        BaseMultipoleScratch(nbins, nubins, use_ww), buffer(_buffer),
-        Gnsize(nbins * (2*nubins+1+2*buffer)), Gn(Gnsize)
+    MultipoleScratch(int nbins, int maxn, bool use_ww, int _buffer) :
+        BaseMultipoleScratch(nbins, maxn, use_ww), buffer(_buffer),
+        Gnsize(nbins * (2*(maxn+buffer)+1)), _Gn(Gnsize)
     {
         if (ww) {
-            sumwwgg0.resize(n);
-            sumwwgg1.resize(n);
-            sumwwgg2.resize(n);
+            sumwwgg0.resize(nbins);
+            sumwwgg1.resize(nbins);
+            sumwwgg2.resize(nbins);
         }
     }
 
     MultipoleScratch(const MultipoleScratch& rhs) :
         BaseMultipoleScratch(rhs), buffer(rhs.buffer),
-        Gnsize(rhs.Gnsize), Gn(rhs.Gn),
+        Gnsize(rhs.Gnsize), _Gn(rhs._Gn),
         sumwwgg0(rhs.sumwwgg0), sumwwgg1(rhs.sumwwgg1), sumwwgg2(rhs.sumwwgg2)
     {}
 
@@ -239,9 +281,9 @@ struct MultipoleScratch<GData> : public BaseMultipoleScratch
     void clear()
     {
         BaseMultipoleScratch::clear();
-        for (int i=0; i<Gnsize; ++i) Gn[i] = 0.;
+        for (int i=0; i<Gnsize; ++i) _Gn[i] = 0.;
         if (ww) {
-            for (int i=0; i<n; ++i) {
+            for (int i=0; i<nbins; ++i) {
                 sumwwgg0[i] = 0.;
                 sumwwgg1[i] = 0.;
                 sumwwgg2[i] = 0.;
@@ -249,10 +291,29 @@ struct MultipoleScratch<GData> : public BaseMultipoleScratch
         }
     }
 
+    int Gindex(int k, int n=0)
+    { return (2*k+1)*(maxn+buffer) + k + n; }
+    // 2*k*maxn + 2*k*buffer + maxn + buffer + k
+
+    std::complex<double> Gn(int index, int n=0)
+    { return _Gn[index+n]; }
+
+    double correction0r(int k)
+    { XAssert(false); return sumwwgg0[k].real(); }
+
+    std::complex<double> correction0(int k)
+    { return sumwwgg0[k]; }
+
+    std::complex<double> correction1(int k)
+    { return sumwwgg1[k]; }
+
+    std::complex<double> correction2(int k)
+    { return sumwwgg2[k]; }
+
     int buffer;
     const int Gnsize;
 
-    std::vector<std::complex<double> > Gn;
+    std::vector<std::complex<double> > _Gn;
     std::vector<std::complex<double> > sumwwgg0;
     std::vector<std::complex<double> > sumwwgg1;
     std::vector<std::complex<double> > sumwwgg2;
@@ -260,21 +321,21 @@ struct MultipoleScratch<GData> : public BaseMultipoleScratch
     template <int C>
     void calculateGn(
         const BaseCell<C>& c1, const Cell<GData,C>& c2,
-        double rsq, double r, int k, int maxn, double w);
+        double rsq, double r, int k, double w);
 
 protected:
     void doCalculateGn(
         const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
-        double rsq, double r, int k, int maxn, double w)
-    { calculateGn(c1, static_cast<const Cell<GData,Flat>&>(c2), rsq, r, k, maxn, w); }
+        double rsq, double r, int k, double w)
+    { calculateGn(c1, static_cast<const Cell<GData,Flat>&>(c2), rsq, r, k, w); }
     void doCalculateGn(
         const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
-        double rsq, double r, int k, int maxn, double w)
-    { calculateGn(c1, static_cast<const Cell<GData,Sphere>&>(c2), rsq, r, k, maxn, w); }
+        double rsq, double r, int k, double w)
+    { calculateGn(c1, static_cast<const Cell<GData,Sphere>&>(c2), rsq, r, k, w); }
     void doCalculateGn(
         const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
-        double rsq, double r, int k, int maxn, double w)
-    { calculateGn(c1, static_cast<const Cell<GData,ThreeD>&>(c2), rsq, r, k, maxn, w); }
+        double rsq, double r, int k, double w)
+    { calculateGn(c1, static_cast<const Cell<GData,ThreeD>&>(c2), rsq, r, k, w); }
 };
 
 #endif

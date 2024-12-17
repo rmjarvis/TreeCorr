@@ -2029,6 +2029,211 @@ def test_direct_logmultipole_cross21():
 
 
 @timer
+def test_kkg_logsas():
+    # Use gamma_t(r) = gamma0 r^2/r0^2 exp(-r^2/2r0^2)
+    # i.e. gamma(r) = -gamma0 exp(-r^2/2r0^2) (x+iy)^2 / r0^2
+    # And kappa(r) = kappa0 exp(-r^2/2r0^2)
+    #
+    # Doing the direct integral yields
+    # zeta = int(int( g(x+x1,y+y1) k(x+x2,y+y2) k(x-x1-x2,y-y1-y2) (x1-Iy1)^2/(x1^2+y1^2) ))
+    #      = -2pi/3 kappa0^2 gamma0 |q1|^2 exp(-(|q1|^2+|q2|^2+|q3|^2)/2r0^2)
+    #
+    # where the positions are measured relative to the centroid (x,y).
+    # If we call the positions relative to the centroid:
+    #    q1 = x1 + I y1
+    #    q2 = x2 + I y2
+    #    q3 = -(x1+x2) - I (y1+y2)
+    #
+
+    gamma0 = 0.05
+    kappa0 = 0.07
+    r0 = 10.
+    if __name__ == '__main__':
+        ngal = 200000
+        L = 30. * r0
+        tol_factor = 1
+    else:
+        # Looser tests that don't take so long to run.
+        ngal = 5000
+        L = 10. * r0
+        tol_factor = 3
+
+    rng = np.random.RandomState(8675309)
+    x = (rng.random_sample(ngal)-0.5) * L
+    y = (rng.random_sample(ngal)-0.5) * L
+    r2 = (x**2 + y**2)/r0**2
+    g1 = -gamma0 * np.exp(-r2/2.) * (x**2-y**2)/r0**2
+    g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
+    k = kappa0 * np.exp(-r2/2.)
+
+    min_sep = 10.
+    max_sep = 13.
+    nbins = 3
+    min_phi = 45
+    max_phi = 90
+    nphi_bins = 5
+
+    cat = treecorr.Catalog(x=x, y=y, k=k, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
+    kkg = treecorr.KKGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                  sep_units='arcmin', phi_units='degrees', bin_type='LogSAS')
+    kgk = treecorr.KGKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                  sep_units='arcmin', phi_units='degrees', bin_type='LogSAS')
+    gkk = treecorr.GKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
+                                  min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                  sep_units='arcmin', phi_units='degrees', bin_type='LogSAS')
+
+    for name, corr in zip(['kkg', 'kgk', 'gkk'], [kkg, kgk, gkk]):
+        t0 = time.time()
+        if name == 'kgk':
+            corr.process(cat, cat, cat, algo='triangle')
+        else:
+            corr.process(cat, cat, algo='triangle')
+        t1 = time.time()
+        print(name,'process time = ',t1-t0)
+
+        # Compute true zeta based on measured d1,d2,d3 in correlation
+        d1 = corr.meand1
+        d2 = corr.meand2
+        d3 = corr.meand3
+        s = d2
+        t = d3 * np.exp(1j * corr.meanphi * np.pi/180.)
+        q1 = (s + t)/3.
+        q2 = q1 - t
+        q3 = q1 - s
+        nq1 = np.abs(q1)**2
+        nq2 = np.abs(q2)**2
+        nq3 = np.abs(q3)**2
+
+        L = L - (np.abs(q1) + np.abs(q2) + np.abs(q3))/3.
+
+        true_zeta = (-2.*np.pi * gamma0 * kappa0**2)/(3*L**2) * np.exp(-(nq1+nq2+nq3)/(2.*r0**2))
+
+        if name == 'kkg':
+            true_zeta *= nq3
+        elif name == 'kgk':
+            true_zeta *= nq2
+        else:
+            true_zeta *= nq1
+
+        print('ntri = ',corr.ntri)
+        print('zeta = ',corr.zeta)
+        print('true_zeta = ',true_zeta)
+        print('ratio = ',corr.zeta / true_zeta)
+        print('diff = ',corr.zeta - true_zeta)
+        print('max rel diff = ',np.max(np.abs((corr.zeta - true_zeta)/true_zeta)))
+        np.testing.assert_allclose(corr.zeta, true_zeta, rtol=0.2 * tol_factor, atol=1.e-7)
+        np.testing.assert_allclose(np.log(np.abs(corr.zeta)),
+                                   np.log(np.abs(true_zeta)), atol=0.2 * tol_factor)
+
+        # Repeat this using Multipole and then convert to SAS:
+        if name == 'kkg':
+            cls = treecorr.KKGCorrelation
+        elif name == 'kgk':
+            cls = treecorr.KGKCorrelation
+        else:
+            cls = treecorr.GKKCorrelation
+        corrm = cls(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=80,
+                    sep_units='arcmin', bin_type='LogMultipole')
+        t0 = time.time()
+        if name == 'kgk':
+            corrm.process(cat, cat, cat)
+        else:
+            corrm.process(cat, cat)
+        corrs = corrm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins, phi_units='deg')
+        t1 = time.time()
+        print('time for multipole corr:', t1-t0)
+
+        print('zeta mean ratio = ',np.mean(corrs.zeta / corr.zeta))
+        print('zeta mean diff = ',np.mean(corrs.zeta - corr.zeta))
+        # Some of the individual values are a little ratty, but on average, they are quite close.
+        np.testing.assert_allclose(corrs.zeta, corr.zeta, rtol=0.2*tol_factor)
+        np.testing.assert_allclose(np.mean(corrs.zeta / corr.zeta), 1., rtol=0.02*tol_factor)
+        np.testing.assert_allclose(np.std(corrs.zeta / corr.zeta), 0., atol=0.08*tol_factor)
+        np.testing.assert_allclose(corrs.ntri, corr.ntri, rtol=0.03*tol_factor)
+        np.testing.assert_allclose(corrs.meanlogd1, corr.meanlogd1, rtol=0.03*tol_factor)
+        np.testing.assert_allclose(corrs.meanlogd2, corr.meanlogd2, rtol=0.03*tol_factor)
+        np.testing.assert_allclose(corrs.meanlogd3, corr.meanlogd3, rtol=0.03*tol_factor)
+        np.testing.assert_allclose(corrs.meanphi, corr.meanphi, rtol=0.03*tol_factor)
+
+        # Error to try to change sep binning with toSAS
+        with assert_raises(ValueError):
+            corrs = corrm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                              phi_units='deg', min_sep=5)
+        with assert_raises(ValueError):
+            corrs = corrm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                              phi_units='deg', max_sep=25)
+        with assert_raises(ValueError):
+            corrs = corrm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                              phi_units='deg', nbins=20)
+        with assert_raises(ValueError):
+            corrs = corrm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                              phi_units='deg', bin_size=0.01, nbins=None)
+        # Error if non-Multipole calls toSAS
+        with assert_raises(TypeError):
+            corrs.toSAS()
+
+        # All of the above is the default algorithm if process doesn't set algo='triangle'.
+        # Check the automatic use of the multipole algorithm from LogSAS.
+        corr3 = corr.copy()
+        if name == 'kgk':
+            corr3.process(cat, cat, cat, algo='multipole', max_n=80)
+        else:
+            corr3.process(cat, cat, algo='multipole', max_n=80)
+        np.testing.assert_allclose(corr3.weight, corrs.weight)
+        np.testing.assert_allclose(corr3.zeta, corrs.zeta)
+
+
+        # Check the fits write option
+        try:
+            import fitsio
+        except ImportError:
+            pass
+        else:
+            out_file_name = os.path.join('output','corr_out_logsas.fits')
+            corr.write(out_file_name)
+            data = fitsio.read(out_file_name)
+            np.testing.assert_allclose(data['d2_nom'], np.exp(corr.logd2).flatten())
+            np.testing.assert_allclose(data['d3_nom'], np.exp(corr.logd3).flatten())
+            np.testing.assert_allclose(data['phi_nom'], corr.phi.flatten())
+            np.testing.assert_allclose(data['meand1'], corr.meand1.flatten())
+            np.testing.assert_allclose(data['meanlogd1'], corr.meanlogd1.flatten())
+            np.testing.assert_allclose(data['meand2'], corr.meand2.flatten())
+            np.testing.assert_allclose(data['meanlogd2'], corr.meanlogd2.flatten())
+            np.testing.assert_allclose(data['meand3'], corr.meand3.flatten())
+            np.testing.assert_allclose(data['meanlogd3'], corr.meanlogd3.flatten())
+            np.testing.assert_allclose(data['meanphi'], corr.meanphi.flatten())
+            np.testing.assert_allclose(data['zetar'], corr.zeta.real.flatten())
+            np.testing.assert_allclose(data['zetai'], corr.zeta.imag.flatten())
+            np.testing.assert_allclose(data['sigma_zeta'], np.sqrt(corr.varzeta.flatten()))
+            np.testing.assert_allclose(data['weight'], corr.weight.flatten())
+            np.testing.assert_allclose(data['ntri'], corr.ntri.flatten())
+
+            # Check the read function
+            # Note: These don't need the flatten.
+            # The read function should reshape them to the right shape.
+            corr2 = treecorr.Corr3.from_file(out_file_name)
+            np.testing.assert_allclose(corr2.logd2, corr.logd2)
+            np.testing.assert_allclose(corr2.logd3, corr.logd3)
+            np.testing.assert_allclose(corr2.phi, corr.phi)
+            np.testing.assert_allclose(corr2.meand1, corr.meand1)
+            np.testing.assert_allclose(corr2.meanlogd1, corr.meanlogd1)
+            np.testing.assert_allclose(corr2.meand2, corr.meand2)
+            np.testing.assert_allclose(corr2.meanlogd2, corr.meanlogd2)
+            np.testing.assert_allclose(corr2.meand3, corr.meand3)
+            np.testing.assert_allclose(corr2.meanlogd3, corr.meanlogd3)
+            np.testing.assert_allclose(corr2.meanphi, corr.meanphi)
+            np.testing.assert_allclose(corr2.zeta, corr.zeta)
+            np.testing.assert_allclose(corr2.varzeta, corr.varzeta)
+            np.testing.assert_allclose(corr2.weight, corr.weight)
+            np.testing.assert_allclose(corr2.ntri, corr.ntri)
+            assert corr2.coords == corr.coords
+            assert corr2.metric == corr.metric
+            assert corr2.sep_units == corr.sep_units
+            assert corr2.bin_type == corr.bin_type
+
+@timer
 def notest_varzeta():
     # Test that varzeta, etc. are correct (or close) based on actual variance of many runs.
 
@@ -2149,4 +2354,5 @@ if __name__ == '__main__':
     test_direct_logsas_cross21()
     test_direct_logmultipole_cross()
     test_direct_logmultipole_cross21()
+    test_kkg_logsas()
     test_varzeta()

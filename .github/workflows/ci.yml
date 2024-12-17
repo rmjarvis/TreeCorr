@@ -82,6 +82,11 @@ jobs:
                 sudo -H apt-get -qq update
                 sudo -H apt-get install -y openmpi-bin libopenmpi-dev
 
+            - name: Install libbz2
+              # fitsio needs bz2, which GHA no longer seems to have natively
+              if: matrix.os == 'ubuntu-latest'
+              run: sudo -H apt-get install -y libbz2-dev
+
             - name: Install gcc-11
               if: matrix.CC == 'gcc-11'
               run: |

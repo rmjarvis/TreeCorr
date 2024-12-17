@@ -120,11 +120,17 @@ jobs:
                 # Note: I'd rather include h5py here, but I can't get it to install properly
                 # on GHA for pypy3.  So only do that for regular py3.
 
-            - name: Install py3.x dependencies
+            - name: Install test dependencies
               # They are slow to install on pypy, where some are installed from scratch.
               if: matrix.py > 3.0
               run: |
-                pip install -U matplotlib nbval ipykernel scipy pandas guppy3 h5py pyarrow mpi4py
+                pip install -U matplotlib nbval ipykernel scipy pandas h5py pyarrow mpi4py
+
+            - name: Install other test dependencies
+              # guppy3 not available on 3.13 yet.
+              if: matrix.py > 3.0 && matrix.py < 3.13
+              run: |
+                pip install -U guppy3
 
             - name: Install fitsio everywhere but Windows
               if: matrix.os != 'windows-latest'

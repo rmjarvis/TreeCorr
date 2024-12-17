@@ -1692,7 +1692,7 @@ void MultipoleScratch<GData>::calculateGn(
     }
 }
 
-template <int D1, int D2, int D3>
+template <int algo>
 struct MultipoleHelper;
 
 template <int D1, int D2, int D3> template <int C>
@@ -1798,10 +1798,32 @@ void Corr3<D1,D2,D3>::calculateZeta(const BaseCell<C>& c1, BaseMultipoleScratch&
         }
     }
 
+    enum { algo = (
+            D1 == NData && D2 == NData && D3 == NData ? 0 :  // NNN
+            D1 == NData && D2 == NData && D3 == KData ? 1 :  // NNK
+            D1 == NData && D2 == KData && D3 == NData ? 1 :  // NKN
+            D1 == NData && D2 == KData && D3 == KData ? 1 :  // NKK
+            D1 == NData ?                               2 :  // NZZ, etc.
+            D1 == KData && D2 == KData && D3 == KData ? 3 :  // KKK
+            D1 == KData && D2 == NData && D3 == KData ? 3 :  // KNK
+            D1 == KData && D2 == KData && D3 == NData ? 3 :  // KKN
+            D1 == KData && D2 == NData && D3 == NData ? 3 :  // KNN
+            D1 == KData ?                               4 :  // KZZ, KKZ, KZK, etc.
+            D2 == KData && D3 == KData ?                5 :  // ZNN
+            D2 == KData && D3 == KData ?                5 :  // ZNK
+            D2 == KData && D3 == KData ?                5 :  // ZKN
+            D2 == KData && D3 == KData ?                5 :  // ZKK
+            D2 == NData ?                               6 :  // ZNZ
+            D2 == NData ?                               6 :  // ZKZ
+            D3 == NData ?                               6 :  // ZZN
+            D3 == NData ?                               6 :  // ZZK
+                                                        7    // ZZZ
+    ) };
+
     // Finish the calculation for Zeta_n(d1,d2) using G_n(d).
     // In Porth et al, this is eqs. 21, 23, 24, 25 for GGG.
     // The version for KKK is obvious from these.
-    MultipoleHelper<D1,D2,D3>::CalculateZeta(
+    MultipoleHelper<algo>::CalculateZeta(
         static_cast<const Cell<D1,C>&>(c1), mp,
         kstart, mink_zeta, _zeta, _nbins, maxn);
 }
@@ -1906,40 +1928,63 @@ void Corr3<D1,D2,D3>::calculateZeta(
         iz += (_nbins - k3end) * step;
     }
 
+    enum { algo = (
+            D1 == NData && D2 == NData && D3 == NData ? 0 :  // NNN
+            D1 == NData && D2 == NData && D3 == KData ? 1 :  // NNK
+            D1 == NData && D2 == KData && D3 == NData ? 1 :  // NKN
+            D1 == NData && D2 == KData && D3 == KData ? 1 :  // NKK
+            D1 == NData ?                               2 :  // NZZ, etc.
+            D1 == KData && D2 == KData && D3 == KData ? 3 :  // KKK
+            D1 == KData && D2 == NData && D3 == KData ? 3 :  // KNK
+            D1 == KData && D2 == KData && D3 == NData ? 3 :  // KKN
+            D1 == KData && D2 == NData && D3 == NData ? 3 :  // KNN
+            D1 == KData ?                               4 :  // KZZ, KKZ, KZK, etc.
+            D2 == KData && D3 == KData ?                5 :  // ZNN
+            D2 == KData && D3 == KData ?                5 :  // ZNK
+            D2 == KData && D3 == KData ?                5 :  // ZKN
+            D2 == KData && D3 == KData ?                5 :  // ZKK
+            D2 == NData ?                               6 :  // ZNZ
+            D2 == NData ?                               6 :  // ZKZ
+            D3 == NData ?                               6 :  // ZZN
+            D3 == NData ?                               6 :  // ZZK
+                                                        7    // ZZZ
+    ) };
+
     // Finish the calculation for Zeta_n(d1,d2) using G_n(d).
-    MultipoleHelper<D1,D2,D3>::CalculateZeta(
+    MultipoleHelper<algo>::CalculateZeta(
         static_cast<const Cell<D1,C>&>(c1), ordered, mp2, mp3,
         kstart, mink_zeta, _zeta, _nbins, maxn);
 }
 
+// NNN
 template <>
-struct MultipoleHelper<NData,NData,NData>
+struct MultipoleHelper<0>
 {
-    template <int C>
+    template <int C, typename Z>
     static void CalculateZeta(const Cell<NData,C>& c1,
                               BaseMultipoleScratch& mp,
                               int kstart, int mink_zeta,
-                              ZetaData<NData,NData,NData>& zeta, int nbins, int maxn)
+                              Z& zeta, int nbins, int maxn)
     {}
-    template <int C>
+    template <int C, typename Z>
     static void CalculateZeta(const Cell<NData,C>& c1, int ordered,
                               BaseMultipoleScratch& mp2,
                               BaseMultipoleScratch& mp3,
                               int kstart, int mink_zeta,
-                              ZetaData<NData,NData,NData>& zeta, int nbins, int maxn)
+                              Z& zeta, int nbins, int maxn)
     {}
 };
 
+// KKK or other real product with K first
 template <>
-struct MultipoleHelper<KData,KData,KData>
+struct MultipoleHelper<3>
 {
-    template <int C>
-    static void CalculateZeta(const Cell<KData,C>& c1,
+    template <typename Z>
+    static void CalculateZeta(double wk1,
                               BaseMultipoleScratch& mp,
                               int kstart, int mink_zeta,
-                              ZetaData<KData,KData,KData>& zeta, int nbins, int maxn)
+                              Z& zeta, int nbins, int maxn)
     {
-        const double wk1 = c1.getWK();
         const int step23 = 2*maxn+1;
         const int step32 = nbins * step23;
         const int step22 = step32 + step23;
@@ -1985,15 +2030,20 @@ struct MultipoleHelper<KData,KData,KData>
             }
         }
     }
+    template <int C, typename Z>
+    static void CalculateZeta(const Cell<KData,C>& c1,
+                              BaseMultipoleScratch& mp,
+                              int kstart, int mink_zeta,
+                              Z& zeta, int nbins, int maxn)
+    { CalculateZeta(c1.getWK(), mp, kstart, mink_zeta, zeta, nbins, maxn); }
 
-    template <int C>
-    static void CalculateZeta(const Cell<KData,C>& c1, int ordered,
+    template <typename Z>
+    static void CalculateZeta(double wk1, int ordered,
                               BaseMultipoleScratch& mp2,
                               BaseMultipoleScratch& mp3,
                               int kstart, int mink_zeta,
-                              ZetaData<KData,KData,KData>& zeta, int nbins, int maxn)
+                              Z& zeta, int nbins, int maxn)
     {
-        const double wk1 = c1.getWK();
         const int step = 2*maxn+1;
         int iz = maxn;
         // If ordered == 1, then also count contribution from swapping cats 2,3
@@ -2026,27 +2076,34 @@ struct MultipoleHelper<KData,KData,KData>
             iz += (nbins - k3end) * step;
         }
     }
-};
-
-template <int D3>
-struct MultipoleHelper<KData,KData,D3>
-{
-    template <int C>
-    static void CalculateZeta(const Cell<KData,C>& c1,
-                              BaseMultipoleScratch& mp,
-                              int kstart, int mink_zeta,
-                              ZetaData<KData,KData,D3>& zeta, int nbins, int maxn)
-    {
-        XAssert(false);
-    }
-    template <int C>
+    template <int C, typename Z>
     static void CalculateZeta(const Cell<KData,C>& c1, int ordered,
                               BaseMultipoleScratch& mp2,
                               BaseMultipoleScratch& mp3,
                               int kstart, int mink_zeta,
-                              ZetaData<KData,KData,D3>& zeta, int nbins, int maxn)
+                              Z& zeta, int nbins, int maxn)
+    { CalculateZeta(c1.getWK(), ordered, mp2, mp3, kstart, mink_zeta, zeta, nbins, maxn); }
+};
+
+// KKZ, KZZ, KZK, etc.  Anything with K first, but complex product
+template <>
+struct MultipoleHelper<4>
+{
+    template <int C, typename Z>
+    static void CalculateZeta(const Cell<KData,C>& c1,
+                              BaseMultipoleScratch& mp,
+                              int kstart, int mink_zeta,
+                              Z& zeta, int nbins, int maxn)
     {
-        const double wk1 = c1.getWK();
+        XAssert(false);
+    }
+    template <typename Z>
+    static void CalculateZeta(double wk1, int ordered,
+                              BaseMultipoleScratch& mp2,
+                              BaseMultipoleScratch& mp3,
+                              int kstart, int mink_zeta,
+                              Z& zeta, int nbins, int maxn)
+    {
         const int step = 2*maxn+1;
         int iz = maxn;
         XAssert(ordered == 3);
@@ -2074,68 +2131,25 @@ struct MultipoleHelper<KData,KData,D3>
             iz += (nbins - k3end) * step;
         }
     }
-};
-
-template <int D3>
-struct MultipoleHelper<KData,D3,KData>
-{
-    template <int C>
-    static void CalculateZeta(const Cell<KData,C>& c1,
-                              BaseMultipoleScratch& mp,
-                              int kstart, int mink_zeta,
-                              ZetaData<KData,D3,KData>& zeta, int nbins, int maxn)
-    {
-        XAssert(false);
-    }
-    template <int C>
+    template <int C, typename Z>
     static void CalculateZeta(const Cell<KData,C>& c1, int ordered,
                               BaseMultipoleScratch& mp2,
                               BaseMultipoleScratch& mp3,
                               int kstart, int mink_zeta,
-                              ZetaData<KData,D3,KData>& zeta, int nbins, int maxn)
-    {
-        const double wk1 = c1.getWK();
-        const int step = 2*maxn+1;
-        int iz = maxn;
-        XAssert(ordered == 3);
-        iz += kstart * nbins * step;
-        for (int k2=kstart; k2<nbins; ++k2) {
-            const int ig2 = mp3.Gindex(k2);
-            const int k3end = k2 < mink_zeta ? nbins : mink_zeta;
-            iz += kstart * step;
-            for (int k3=kstart; k3<k3end; ++k3, iz+=step) {
-                const int ig3 = mp2.Gindex(k3);
-
-                // n=0
-                std::complex<double> wwwk = wk1 * mp3.Gn(ig2) * mp2.Gn(ig3);
-                zeta.zeta[iz] += wwwk.real();
-                zeta.zeta_im[iz] += wwwk.imag();
-
-                for (int n=1; n<=maxn; ++n) {
-                    std::complex<double> wwwkp = wk1 * mp3.Gn(ig2,n) * mp2.Gn(ig3,-n);
-                    zeta.zeta[iz+n] += wwwkp.real();
-                    zeta.zeta_im[iz+n] += wwwkp.imag();
-
-                    std::complex<double> wwwkm = wk1 * mp3.Gn(ig2,-n) * mp2.Gn(ig3,n);
-                    zeta.zeta[iz-n] += wwwkm.real();
-                    zeta.zeta_im[iz-n] += wwwkm.imag();
-                }
-            }
-            iz += (nbins - k3end) * step;
-        }
-    }
+                              Z& zeta, int nbins, int maxn)
+    { CalculateZeta(c1.getWK(), ordered, mp2, mp3, kstart, mink_zeta, zeta, nbins, maxn); }
 };
 
-template <int D3>
-struct MultipoleHelper<D3,KData,KData>
+// ZKK, ZNN, etc.  Z first, others real
+template <>
+struct MultipoleHelper<5>
 {
-    template <int C>
-    static void CalculateZeta(const Cell<D3,C>& c1,
+    template <typename Z>
+    static void CalculateZeta(std::complex<double> wg1,
                               BaseMultipoleScratch& mp,
                               int kstart, int mink_zeta,
-                              ZetaData<D3,KData,KData>& zeta, int nbins, int maxn)
+                              Z& zeta, int nbins, int maxn)
     {
-        const std::complex<double> wg1 = c1.getWZ();
         const int step23 = 2*maxn+1;
         const int step32 = nbins * step23;
         const int step22 = step32 + step23;
@@ -2197,14 +2211,20 @@ struct MultipoleHelper<D3,KData,KData>
             }
         }
     }
-    template <int C>
-    static void CalculateZeta(const Cell<D3,C>& c1, int ordered,
+    template <int D, int C, typename Z>
+    static void CalculateZeta(const Cell<D,C>& c1,
+                              BaseMultipoleScratch& mp,
+                              int kstart, int mink_zeta,
+                              Z& zeta, int nbins, int maxn)
+    { CalculateZeta(c1.getWZ(), mp, kstart, mink_zeta, zeta, nbins, maxn); }
+
+    template <typename Z>
+    static void CalculateZeta(std::complex<double> wg1, int ordered,
                               BaseMultipoleScratch& mp2,
                               BaseMultipoleScratch& mp3,
                               int kstart, int mink_zeta,
-                              ZetaData<D3,KData,KData>& zeta, int nbins, int maxn)
+                              Z& zeta, int nbins, int maxn)
     {
-        std::complex<double> g1 = c1.getWZ();
         const int step = 2*maxn+1;
         int iz = maxn;
         XAssert(ordered == 3);
@@ -2217,16 +2237,16 @@ struct MultipoleHelper<D3,KData,KData>
                 const int ig3 = mp2.Gindex(k3);
 
                 // n=0
-                std::complex<double> wwwk = g1 * mp3.Gn(ig2,-1) * mp2.Gn(ig3,-1);
+                std::complex<double> wwwk = wg1 * mp3.Gn(ig2,-1) * mp2.Gn(ig3,-1);
                 zeta.zeta[iz] += wwwk.real();
                 zeta.zeta_im[iz] += wwwk.imag();
 
                 for (int n=1; n<=maxn; ++n) {
-                    std::complex<double> wwwkp = g1 * mp3.Gn(ig2,n-1) * mp2.Gn(ig3,-n-1);
+                    std::complex<double> wwwkp = wg1 * mp3.Gn(ig2,n-1) * mp2.Gn(ig3,-n-1);
                     zeta.zeta[iz+n] += wwwkp.real();
                     zeta.zeta_im[iz+n] += wwwkp.imag();
 
-                    std::complex<double> wwwkm = g1 * mp3.Gn(ig2,-n-1) * mp2.Gn(ig3,n-1);
+                    std::complex<double> wwwkm = wg1 * mp3.Gn(ig2,-n-1) * mp2.Gn(ig3,n-1);
                     zeta.zeta[iz-n] += wwwkm.real();
                     zeta.zeta_im[iz-n] += wwwkm.imag();
                 }
@@ -2234,18 +2254,25 @@ struct MultipoleHelper<D3,KData,KData>
             iz += (nbins - k3end) * step;
         }
     }
+    template <int D, int C, typename Z>
+    static void CalculateZeta(const Cell<D,C>& c1, int ordered,
+                              BaseMultipoleScratch& mp2,
+                              BaseMultipoleScratch& mp3,
+                              int kstart, int mink_zeta,
+                              Z& zeta, int nbins, int maxn)
+    { CalculateZeta(c1.getWZ(), ordered, mp2, mp3, kstart, mink_zeta, zeta, nbins, maxn); }
 };
 
+// GGG, all three complex, so use gam0, gam1, gam2, gam3
 template <>
-struct MultipoleHelper<GData,GData,GData>
+struct MultipoleHelper<7>
 {
-    template <int C>
-    static void CalculateZeta(const Cell<GData,C>& c1,
+    template <typename Z>
+    static void CalculateZeta(std::complex<double> wg1,
                               BaseMultipoleScratch& mp,
                               int kstart, int mink_zeta,
-                              ZetaData<GData,GData,GData>& zeta, int nbins, int maxn)
+                              Z& zeta, int nbins, int maxn)
     {
-        const std::complex<double> wg1 = c1.getWZ();
         const int step23 = 2*maxn+1;
         const int step32 = nbins * step23;
         const int step22 = step32 + step23;
@@ -2500,15 +2527,20 @@ struct MultipoleHelper<GData,GData,GData>
             }
         }
     }
+    template <int D, int C, typename Z>
+    static void CalculateZeta(const Cell<D,C>& c1,
+                              BaseMultipoleScratch& mp,
+                              int kstart, int mink_zeta,
+                              Z& zeta, int nbins, int maxn)
+    { CalculateZeta(c1.getWZ(), mp, kstart, mink_zeta, zeta, nbins, maxn); }
 
-    template <int C>
-    static void CalculateZeta(const Cell<GData,C>& c1, int ordered,
+    template <typename Z>
+    static void CalculateZeta(std::complex<double> wg1, int ordered,
                               BaseMultipoleScratch& mp2,
                               BaseMultipoleScratch& mp3,
                               int kstart, int mink_zeta,
-                              ZetaData<GData,GData,GData>& zeta, int nbins, int maxn)
+                              Z& zeta, int nbins, int maxn)
     {
-        const std::complex<double> wg1 = c1.getWZ();
         const int step = 2*maxn+1;
         int iz = maxn;
         // If ordered == 1, then also count contribution from swapping cats 2,3
@@ -2658,6 +2690,13 @@ struct MultipoleHelper<GData,GData,GData>
             iz += (nbins - k3end) * step;
         }
     }
+    template <int D, int C, typename Z>
+    static void CalculateZeta(const Cell<D,C>& c1, int ordered,
+                              BaseMultipoleScratch& mp2,
+                              BaseMultipoleScratch& mp3,
+                              int kstart, int mink_zeta,
+                              Z& zeta, int nbins, int maxn)
+    { CalculateZeta(c1.getWZ(), ordered, mp2, mp3, kstart, mink_zeta, zeta, nbins, maxn); }
 };
 
 template <int B, int C>

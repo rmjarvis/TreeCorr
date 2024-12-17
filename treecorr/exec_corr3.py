@@ -22,6 +22,7 @@ from .util import set_omp_threads
 from .nnncorrelation import NNNCorrelation
 from .kkkcorrelation import KKKCorrelation
 from .gggcorrelation import GGGCorrelation
+from .kkgcorrelation import KKGCorrelation, KGKCorrelation, GKKCorrelation
 
 
 # Dict describing the valid parameters, what types they are, and a description:
@@ -37,6 +38,10 @@ corr3_valid_params = {
 
     'file_name' : (str, True, None, None,
             'The file(s) with the galaxy data.'),
+    'file_name2' : (str, True, None, None,
+            'The file(s) to use for the second field for a cross-correlation.'),
+    'file_name3' : (str, True, None, None,
+            'The file(s) to use for the third field for a cross-correlation.'),
     'rand_file_name' : (str, True, None, None,
             'For NNN correlations, a list of random files.'),
     'file_list' : (str, False, None, None,
@@ -54,6 +59,12 @@ corr3_valid_params = {
             'The output filename for scalar-scalar-scalar correlation function.'),
     'ggg_file_name' : (str, False, None, None,
             'The output filename for shear-shear-shear correlation function.'),
+    'kkg_file_name' : (str, False, None, None,
+            'The output filename for scalar-scalar-shear correlation function.'),
+    'kgk_file_name' : (str, False, None, None,
+            'The output filename for scalar-shear-scalar correlation function.'),
+    'gkk_file_name' : (str, False, None, None,
+            'The output filename for shear-scalar-scalar correlation function.'),
 
     # Derived output quantities
 
@@ -107,18 +118,23 @@ def corr3(config, logger=None):
 
     # Read in the input files.  Each of these is a list.
     cat1 = read_catalogs(config, 'file_name', 'file_list', num=0, logger=logger)
-    # TODO: when giving file_name2, file_name3, should now do the real CrossCorrelation process.
+    cat2 = read_catalogs(config, 'file_name2', 'file_list2', num=1, logger=logger)
+    cat3 = read_catalogs(config, 'file_name3', 'file_list3', num=2, logger=logger)
     rand1 = read_catalogs(config, 'rand_file_name', 'rand_file_list', num=0, logger=logger)
     if len(cat1) == 0:
         raise TypeError("Either file_name or file_list is required")
+    if len(cat2) == 0: cat2 = None
+    if len(cat3) == 0: cat3 = None
     if len(rand1) == 0: rand1 = None
+    if cat2 is None and cat3 is not None:
+        raise TypeError("file_name3 is invalid without file_name2")
     logger.info("Done creating input catalogs")
 
     # Do GGG correlation function if necessary
     if 'ggg_file_name' in config or 'm3_file_name' in config:
         logger.warning("Performing GGG calculations...")
         ggg = GGGCorrelation(config, logger=logger)
-        ggg.process(cat1)
+        ggg.process(cat1, cat2, cat3)
         logger.info("Done GGG calculations.")
         if 'ggg_file_name' in config:
             ggg.write(config['ggg_file_name'])
@@ -131,7 +147,7 @@ def corr3(config, logger=None):
     if 'nnn_file_name' in config:
         logger.warning("Performing DDD calculations...")
         ddd = NNNCorrelation(config, logger=logger)
-        ddd.process(cat1)
+        ddd.process(cat1, cat2, cat3)
         logger.info("Done DDD calculations.")
 
         drr = None
@@ -140,6 +156,7 @@ def corr3(config, logger=None):
             logger.warning("No random catalogs given.  Only doing ntri calculation.")
             rrr = None
         else:
+            # TODO: I haven't don't all the options correcly with cat2, cat3 yet.
             logger.warning("Performing RRR calculations...")
             rrr = NNNCorrelation(config, logger=logger)
             rrr.process(rand1)
@@ -161,10 +178,37 @@ def corr3(config, logger=None):
     if 'kkk_file_name' in config:
         logger.warning("Performing KKK calculations...")
         kkk = KKKCorrelation(config, logger=logger)
-        kkk.process(cat1)
+        kkk.process(cat1, cat2, cat3)
         logger.info("Done KKK calculations.")
         kkk.write(config['kkk_file_name'])
         logger.warning("Wrote KKK correlation to %s",config['kkk_file_name'])
+
+    # Do KKG correlation function if necessary
+    if 'kkg_file_name' in config:
+        logger.warning("Performing KKG calculations...")
+        kkg = KKGCorrelation(config, logger=logger)
+        kkg.process(cat1, cat2, cat3)
+        logger.info("Done KKG calculations.")
+        kkg.write(config['kkg_file_name'])
+        logger.warning("Wrote KKG correlation to %s",config['kkg_file_name'])
+
+    # Do KGK correlation function if necessary
+    if 'kgk_file_name' in config:
+        logger.warning("Performing KGK calculations...")
+        kgk = KGKCorrelation(config, logger=logger)
+        kgk.process(cat1, cat2, cat3)
+        logger.info("Done KGK calculations.")
+        kgk.write(config['kgk_file_name'])
+        logger.warning("Wrote KGK correlation to %s",config['kgk_file_name'])
+
+    # Do GKK correlation function if necessary
+    if 'gkk_file_name' in config:
+        logger.warning("Performing GKK calculations...")
+        gkk = GKKCorrelation(config, logger=logger)
+        gkk.process(cat1, cat2, cat3)
+        logger.info("Done GKK calculations.")
+        gkk.write(config['gkk_file_name'])
+        logger.warning("Wrote GKK correlation to %s",config['gkk_file_name'])
 
 
 def print_corr3_params():

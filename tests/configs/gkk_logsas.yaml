@@ -1,0 +1,26 @@
+
+file_name: data/gkk_data_logsas.dat
+file_name2: data/gkk_data_logsas.dat
+
+x_col: 1
+y_col: 2
+x_units: arcmin
+y_units: arcmin
+k_col: 3
+g1_col: 4
+g2_col: 5
+
+verbose: 1
+
+min_sep: 10.
+max_sep: 13.
+nbins: 3
+sep_units: arcmin
+min_phi: 45
+max_phi: 90
+phi_units: deg
+nphi_bins: 5
+bin_type: LogSAS
+max_n: 80
+
+gkk_file_name: output/gkk_logsas.out

@@ -2184,6 +2184,29 @@ def test_kkg_logsas():
         np.testing.assert_allclose(corr3.weight, corrs.weight)
         np.testing.assert_allclose(corr3.zeta, corrs.zeta)
 
+        # Check that we get the same result using the corr3 functin:
+        # (This implicitly uses the multipole algorithm.)
+        cat.write(os.path.join('data',name+'_data_logsas.dat'))
+        config = treecorr.config.read_config('configs/'+name+'_logsas.yaml')
+        config['verbose'] = 0
+        treecorr.corr3(config)
+        corr3_output = np.genfromtxt(os.path.join('output',name+'_logsas.out'),
+                                     names=True, skip_header=1)
+        np.testing.assert_allclose(corr3_output['zetar'], corr3.zetar.flatten(), rtol=1.e-3, atol=0)
+        np.testing.assert_allclose(corr3_output['zetai'], corr3.zetai.flatten(), rtol=1.e-3,
+                                   atol=0)
+
+        if name == 'kgk':
+            # Invalid to omit file_name2
+            del config['file_name2']
+            with assert_raises(TypeError):
+                treecorr.corr3(config)
+        else:
+            # Invalid to call cat2 file_name2 rather than file_name2
+            config['file_name3'] = config['file_name2']
+            del config['file_name2']
+            with assert_raises(TypeError):
+                treecorr.corr3(config)
 
         # Check the fits write option
         try:

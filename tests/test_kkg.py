@@ -2257,25 +2257,27 @@ def test_kkg_logsas():
             assert corr2.bin_type == corr.bin_type
 
 @timer
-def notest_varzeta():
-    # Test that varzeta, etc. are correct (or close) based on actual variance of many runs.
+def test_varzeta():
+    # Test that the shot noise estimate of varzeta is close based on actual variance of many runs
+    # when there is no real signal.  So should be just shot noise.
 
-    # Same gamma pattern as in test_kkg().  Although the signal doesn't actually matter at all here.
+    # Put in a nominal pattern for g1,g2, but this pattern doesn't have much 3pt correlation.
     gamma0 = 0.05
     r0 = 10.
     L = 50.*r0
     rng = np.random.RandomState(8675309)
 
-    # Note: to get a good estimate of var(gam), you need a lot of runs.  The number of
+    # Note: to get a good estimate of var(xi), you need a lot of runs.  The number of
     # runs matters much more than the number of galaxies for getting this to pass.
     ngal = 5000
     nruns = 50000
 
     file_name = 'data/test_varzeta_kkg.npz'
+    print(file_name)
     if not os.path.isfile(file_name):
-        print(file_name)
-        all_zeta = []
-        all_varzeta = []
+        all_kkgs = []
+        all_kgks = []
+        all_gkks = []
 
         for run in range(nruns):
             print(f'{run}/{nruns}')
@@ -2287,52 +2289,104 @@ def notest_varzeta():
             r2 = (x**2 + y**2)/r0**2
             g1 = -gamma0 * np.exp(-r2/2.) * (x**2-y**2)/r0**2
             g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
-            # This time, add some shape noise (different each run).
+            k = gamma0 * np.exp(-r2/2.)
             g1 += rng.normal(0, 0.3, size=ngal)
             g2 += rng.normal(0, 0.3, size=ngal)
+            k += rng.normal(0, 0.2, size=ngal)
 
-            cat = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2)
-            kkg = treecorr.KKGCorrelation(nbins=2, min_sep=30., max_sep=50., nphi_bins=20)
-            kkg.process(cat)
-            all_zeta.append(kkg.zeta)
-            all_varzeta.append(kkg.varzeta)
+            cat = treecorr.Catalog(x=x, y=y, w=w, k=k, g1=g1, g2=g2)
+            kkg = treecorr.KKGCorrelation(nbins=3, min_sep=30., max_sep=50., nphi_bins=20)
+            kgk = treecorr.KGKCorrelation(nbins=3, min_sep=30., max_sep=50., nphi_bins=20)
+            gkk = treecorr.GKKCorrelation(nbins=3, min_sep=30., max_sep=50., nphi_bins=20)
+            kkg.process(cat, cat)
+            kgk.process(cat, cat, cat)
+            gkk.process(cat, cat)
+            all_kkgs.append(kkg)
+            all_kgks.append(kgk)
+            all_gkks.append(gkk)
 
-        mean_zeta = np.mean(all_zeta, axis=0)
-        var_zetar = np.var(np.real(all_zeta), axis=0)
-        var_zetai = np.var(np.imag(all_zeta), axis=0)
-        mean_varzeta = np.mean(all_varzeta, axis=0)
+        mean_kkg_zetar = np.mean([kkg.zetar for kkg in all_kkgs], axis=0)
+        mean_kkg_zetai = np.mean([kkg.zetai for kkg in all_kkgs], axis=0)
+        var_kkg_zetar = np.var([kkg.zetar for kkg in all_kkgs], axis=0)
+        var_kkg_zetai = np.var([kkg.zetai for kkg in all_kkgs], axis=0)
+        mean_kkg_varzeta = np.mean([kkg.varzeta for kkg in all_kkgs], axis=0)
+        mean_kgk_zetar = np.mean([kgk.zetar for kgk in all_kgks], axis=0)
+        mean_kgk_zetai = np.mean([kgk.zetai for kgk in all_kgks], axis=0)
+        var_kgk_zetar = np.var([kgk.zetar for kgk in all_kgks], axis=0)
+        var_kgk_zetai = np.var([kgk.zetai for kgk in all_kgks], axis=0)
+        mean_kgk_varzeta = np.mean([kgk.varzeta for kgk in all_kgks], axis=0)
+        mean_gkk_zetar = np.mean([gkk.zetar for gkk in all_gkks], axis=0)
+        mean_gkk_zetai = np.mean([gkk.zetai for gkk in all_gkks], axis=0)
+        var_gkk_zetar = np.var([gkk.zetar for gkk in all_gkks], axis=0)
+        var_gkk_zetai = np.var([gkk.zetai for gkk in all_gkks], axis=0)
+        mean_gkk_varzeta = np.mean([gkk.varzeta for gkk in all_gkks], axis=0)
 
         np.savez(file_name,
-                 mean_zeta=mean_zeta, var_zetar=var_zetar,
-                 var_zetai=var_zetai, mean_varzeta=mean_varzeta)
+                 mean_kkg_zetar=mean_kkg_zetar,
+                 mean_kkg_zetai=mean_kkg_zetai,
+                 var_kkg_zetar=var_kkg_zetar,
+                 var_kkg_zetai=var_kkg_zetai,
+                 mean_kkg_varzeta=mean_kkg_varzeta,
+                 mean_kgk_zetar=mean_kgk_zetar,
+                 mean_kgk_zetai=mean_kgk_zetai,
+                 var_kgk_zetar=var_kgk_zetar,
+                 var_kgk_zetai=var_kgk_zetai,
+                 mean_kgk_varzeta=mean_kgk_varzeta,
+                 mean_gkk_zetar=mean_gkk_zetar,
+                 mean_gkk_zetai=mean_gkk_zetai,
+                 var_gkk_zetar=var_gkk_zetar,
+                 var_gkk_zetai=var_gkk_zetai,
+                 mean_gkk_varzeta=mean_gkk_varzeta)
 
     data = np.load(file_name)
-    mean_zeta = data['mean_zeta']
-    var_zetar = data['var_zetar']
-    var_zetai = data['var_zetai']
-    mean_varzeta = data['mean_varzeta']
-
     print('nruns = ',nruns)
-    print('mean_zeta = ',mean_zeta)
-    print('mean_varzeta = ',mean_varzeta)
-    print('var_zeta = ',var_zetar,var_zetai)
-    print('ratio = ',mean_varzeta / var_zetar)
-    print('max relerr = ',np.max(np.abs((var_zetar - mean_varzeta)/var_zetar)))
-    np.testing.assert_allclose(mean_varzeta, var_zetar, rtol=0.4)
-    np.testing.assert_allclose(mean_varzeta, var_zetai, rtol=0.4)
 
-    # The shot noise variance estimate is actually pretty good everywhere except at equilateral
-    # triangles.  The problem is that equilateral triangles get counted multiple times with
-    # each point at the primary vertex, but all with the same value.  So they have a higher
-    # actual variance than you would estimate from the nominal weight.  If we exclude those
-    # triangles we get agreement at much lower rtol.
-    i,j,k = np.meshgrid(range(2), range(2), range(20))
-    k_eq = int(60/180 * 20)
-    noneq = ~((i==j) & (k==k_eq))
-    print('noneq ratio = ', mean_varzeta[noneq] / var_zetar[noneq])
-    print('max relerr = ',np.max(np.abs((var_zetar[noneq] - mean_varzeta[noneq])/var_zetar[noneq])))
-    np.testing.assert_allclose(mean_varzeta[noneq], var_zetar[noneq], rtol=0.1)
-    np.testing.assert_allclose(mean_varzeta[noneq], var_zetai[noneq], rtol=0.1)
+    mean_kkg_zetar = data['mean_kkg_zetar']
+    mean_kkg_zetai = data['mean_kkg_zetai']
+    var_kkg_zetar = data['var_kkg_zetar']
+    var_kkg_zetai = data['var_kkg_zetai']
+    mean_kkg_varzeta = data['mean_kkg_varzeta']
+    mean_kgk_zetar = data['mean_kgk_zetar']
+    mean_kgk_zetai = data['mean_kgk_zetai']
+    var_kgk_zetar = data['var_kgk_zetar']
+    var_kgk_zetai = data['var_kgk_zetai']
+    mean_kgk_varzeta = data['mean_kgk_varzeta']
+    mean_gkk_zetar = data['mean_gkk_zetar']
+    mean_gkk_zetai = data['mean_gkk_zetai']
+    var_gkk_zetar = data['var_gkk_zetar']
+    var_gkk_zetai = data['var_gkk_zetai']
+    mean_gkk_varzeta = data['mean_gkk_varzeta']
+
+    print('var_kkg_zetar = ',var_kkg_zetar)
+    print('mean kkg_varzeta = ',mean_kkg_varzeta)
+    print('ratio = ',var_kkg_zetar.ravel() / mean_kkg_varzeta.ravel())
+    print('var_kgk_zetar = ',var_kgk_zetar)
+    print('mean kgk_varzeta = ',mean_kgk_varzeta)
+    print('ratio = ',var_kgk_zetar.ravel() / mean_kgk_varzeta.ravel())
+    print('var_gkk_zetar = ',var_gkk_zetar)
+    print('mean gkk_varzeta = ',mean_gkk_varzeta)
+    print('ratio = ',var_gkk_zetar.ravel() / mean_gkk_varzeta.ravel())
+
+    print('max relerr for kkg zetar = ',
+          np.max(np.abs((var_kkg_zetar - mean_kkg_varzeta)/var_kkg_zetar)))
+    print('max relerr for kkg zetai = ',
+          np.max(np.abs((var_kkg_zetai - mean_kkg_varzeta)/var_kkg_zetai)))
+    np.testing.assert_allclose(mean_kkg_varzeta, var_kkg_zetar, rtol=0.1)
+    np.testing.assert_allclose(mean_kkg_varzeta, var_kkg_zetai, rtol=0.1)
+
+    print('max relerr for kgk zetar = ',
+          np.max(np.abs((var_kgk_zetar - mean_kgk_varzeta)/var_kgk_zetar)))
+    print('max relerr for kgk zetai = ',
+          np.max(np.abs((var_kgk_zetai - mean_kgk_varzeta)/var_kgk_zetai)))
+    np.testing.assert_allclose(mean_kgk_varzeta, var_kgk_zetar, rtol=0.1)
+    np.testing.assert_allclose(mean_kgk_varzeta, var_kgk_zetai, rtol=0.1)
+
+    print('max relerr for gkk zetar = ',
+          np.max(np.abs((var_gkk_zetar - mean_gkk_varzeta)/var_gkk_zetar)))
+    print('max relerr for gkk zetai = ',
+          np.max(np.abs((var_gkk_zetai - mean_gkk_varzeta)/var_gkk_zetai)))
+    np.testing.assert_allclose(mean_gkk_varzeta, var_gkk_zetar, rtol=0.1)
+    np.testing.assert_allclose(mean_gkk_varzeta, var_gkk_zetai, rtol=0.1)
 
     # Now the actual test that's based on current code, not just from the saved file.
     # There is a bit more noise on a singe run, so the tolerance needs to be somewhat higher.
@@ -2343,30 +2397,56 @@ def notest_varzeta():
     r2 = (x**2 + y**2)/r0**2
     g1 = -gamma0 * np.exp(-r2/2.) * (x**2-y**2)/r0**2
     g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
-    # This time, add some shape noise (different each run).
+    k = gamma0 * np.exp(-r2/2.)
     g1 += rng.normal(0, 0.3, size=ngal)
     g2 += rng.normal(0, 0.3, size=ngal)
+    k += rng.normal(0, 0.2, size=ngal)
 
-    cat = treecorr.Catalog(x=x, y=y, w=w, g1=g1, g2=g2)
-    kkg = treecorr.KKGCorrelation(nbins=2, min_sep=30., max_sep=50., nphi_bins=20)
+    cat = treecorr.Catalog(x=x, y=y, w=w, k=k, g1=g1, g2=g2)
+    kkg = treecorr.KKGCorrelation(nbins=3, min_sep=30., max_sep=50., nphi_bins=20)
+    kgk = treecorr.KGKCorrelation(nbins=3, min_sep=30., max_sep=50., nphi_bins=20)
+    gkk = treecorr.GKKCorrelation(nbins=3, min_sep=30., max_sep=50., nphi_bins=20)
 
-    # Before running process, varxi and cov area allowed, but all 0.
+    # Before running process, varzeta and cov area allowed, but all 0.
     np.testing.assert_array_equal(kkg.cov, 0)
     np.testing.assert_array_equal(kkg.varzeta, 0)
+    np.testing.assert_array_equal(kgk.cov, 0)
+    np.testing.assert_array_equal(kgk.varzeta, 0)
+    np.testing.assert_array_equal(gkk.cov, 0)
+    np.testing.assert_array_equal(gkk.varzeta, 0)
 
-    kkg.process(cat)
-    print('single run:')
-    print('zeta ratio = ',kkg.varzeta/var_zetar)
-    print('max relerr for zeta = ',np.max(np.abs((kkg.varzeta[noneq] - var_zetar[noneq])/var_zetar[noneq])))
-    np.testing.assert_allclose(kkg.varzeta[noneq], var_zetar[noneq], rtol=0.1)
-    np.testing.assert_allclose(kkg.varzeta[noneq], var_zetai[noneq], rtol=0.1)
+    kkg.process(cat, cat)
+    print('KKG single run:')
+    print('max relerr for zetar = ',np.max(np.abs((kkg.varzeta - var_kkg_zetar)/var_kkg_zetar)))
+    print('ratio = ',kkg.varzeta / var_kkg_zetar)
+    print('max relerr for zetai = ',np.max(np.abs((kkg.varzeta - var_kkg_zetai)/var_kkg_zetai)))
+    print('ratio = ',kkg.varzeta / var_kkg_zetai)
+    print('var_num = ',kkg._var_num)
+    print('ntri = ',kkg.ntri)
+    np.testing.assert_allclose(kkg.varzeta, var_kkg_zetar, rtol=0.2)
+    np.testing.assert_allclose(kkg.varzeta, var_kkg_zetai, rtol=0.2)
+    np.testing.assert_allclose(kkg.cov.diagonal(), kkg.varzeta.ravel())
 
-    kkg.process(cat, algo='triangle')
-    print('single run with algo=triangle:')
-    print('zeta ratio = ',kkg.varzeta/var_zetar)
-    print('max relerr for zeta = ',np.max(np.abs((kkg.varzeta[noneq] - var_zetar[noneq])/var_zetar[noneq])))
-    np.testing.assert_allclose(kkg.varzeta[noneq], var_zetar[noneq], rtol=0.2)
-    np.testing.assert_allclose(kkg.varzeta[noneq], var_zetai[noneq], rtol=0.2)
+    kgk.process(cat, cat, cat)
+    print('KGK single run:')
+    print('max relerr for zetar = ',np.max(np.abs((kgk.varzeta - var_kgk_zetar)/var_kgk_zetar)))
+    print('ratio = ',kgk.varzeta / var_kgk_zetar)
+    print('max relerr for zetai = ',np.max(np.abs((kgk.varzeta - var_kgk_zetai)/var_kgk_zetai)))
+    print('ratio = ',kgk.varzeta / var_kgk_zetai)
+    np.testing.assert_allclose(kgk.varzeta, var_kgk_zetar, rtol=0.2)
+    np.testing.assert_allclose(kgk.varzeta, var_kgk_zetai, rtol=0.2)
+    np.testing.assert_allclose(kgk.cov.diagonal(), kgk.varzeta.ravel())
+
+    gkk.process(cat, cat)
+    print('GKK single run:')
+    print('max relerr for zetar = ',np.max(np.abs((gkk.varzeta - var_gkk_zetar)/var_gkk_zetar)))
+    print('ratio = ',gkk.varzeta / var_gkk_zetar)
+    print('max relerr for zetai = ',np.max(np.abs((gkk.varzeta - var_gkk_zetai)/var_gkk_zetai)))
+    print('ratio = ',gkk.varzeta / var_gkk_zetai)
+    np.testing.assert_allclose(gkk.varzeta, var_gkk_zetar, rtol=0.2)
+    np.testing.assert_allclose(gkk.varzeta, var_gkk_zetai, rtol=0.2)
+    np.testing.assert_allclose(gkk.cov.diagonal(), gkk.varzeta.ravel())
+
 
 
 if __name__ == '__main__':

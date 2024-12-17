@@ -24,7 +24,7 @@
 #include "Metric.h"
 #include "MultipoleScratch.h"
 
-template <int D1, int D2, int D3>
+template <int Z>
 struct ZetaData;
 
 // Things that don't need to access the data vectors can live in the base class.
@@ -406,7 +406,15 @@ protected:
 
     // The different correlation functions have different numbers of arrays for zeta,
     // so encapsulate that difference with a templated ZetaData class.
-    ZetaData<D1,D2,D3> _zeta;
+    enum { Z = (
+            D1 == NData && D2 == NData && D3 == NData          ? 0 : // NNN
+            D1 <= KData && D2 <= KData && D3 <= KData          ? 1 : // NNK, NKK, etc. (all real)
+            (D1 <= KData) + (D2 <= KData) + (D3 <= KData) == 2 ? 2 : // KKG, etc. (1 complex)
+            (D1 <= KData) + (D2 <= KData) + (D3 <= KData) == 1 ? 3 : // KGG, etc. (2 complex)
+                                                                 4   // GGG, etc. (3 complex)
+    ) };
+
+    ZetaData<Z> _zeta;
     double* _meand1;
     double* _meanlogd1;
     double* _meand2;
@@ -420,8 +428,28 @@ protected:
     double* _ntri;
 };
 
-template <int D1, int D2, int D3>
-struct ZetaData // This works for NNK, NKK, KKK
+template <int Z>
+struct ZetaData;
+
+template <int Z>
+inline std::ostream& operator<<(std::ostream& os, const ZetaData<Z>& zeta)
+{ zeta.write(os); return os; }
+
+template <>
+struct ZetaData<0> // NNN
+{
+    ZetaData(double* , double* , double*, double*, double*, double*, double*, double*) {}
+    void new_data(int n) {}
+    void delete_data() {}
+    void copy(const ZetaData<0>& rhs, int n) {}
+    void add(const ZetaData<0>& rhs, int n) {}
+    void clear(int n) {}
+    void write(std::ostream& os) const {}
+    void write_full(std::ostream& os, int n) const {}
+};
+
+template <>
+struct ZetaData<1> // NNK, NKK, KKK -- all real
 {
     ZetaData(double* z0, double* z1, double*, double*, double*, double*, double*, double*) :
         zeta(z0), zeta_im(z1), is_complex(z1 != nullptr)
@@ -437,14 +465,14 @@ struct ZetaData // This works for NNK, NKK, KKK
         delete [] zeta; zeta = 0;
         if (is_complex) { delete [] zeta_im; zeta_im = 0; }
     }
-    void copy(const ZetaData<D1,D2,D3>& rhs, int n)
+    void copy(const ZetaData<1>& rhs, int n)
     {
         for (int i=0; i<n; ++i) zeta[i] = rhs.zeta[i];
         if (is_complex) {
             for (int i=0; i<n; ++i) zeta_im[i] = rhs.zeta_im[i];
         }
     }
-    void add(const ZetaData<D1,D2,D3>& rhs, int n)
+    void add(const ZetaData<1>& rhs, int n)
     {
         for (int i=0; i<n; ++i) zeta[i] += rhs.zeta[i];
         if (is_complex) {
@@ -471,12 +499,8 @@ struct ZetaData // This works for NNK, NKK, KKK
     bool is_complex;
 };
 
-template <int D1, int D2, int D3>
-inline std::ostream& operator<<(std::ostream& os, const ZetaData<D1,D2,D3>& zeta)
-{ zeta.write(os); return os; }
-
-template <int D1, int D2>
-struct ZetaData<D1,D2,GData> // This works for NNG, NKG, KKG
+template <>
+struct ZetaData<2> // NNG, NKG, KKG, etc.  1 complex
 {
     ZetaData(double* z0, double* z1, double*, double*, double*, double*, double*, double*) :
         zeta(z0), zeta_im(z1) {}
@@ -491,12 +515,12 @@ struct ZetaData<D1,D2,GData> // This works for NNG, NKG, KKG
         delete [] zeta; zeta = 0;
         delete [] zeta_im; zeta_im = 0;
     }
-    void copy(const ZetaData<D1,D2,GData>& rhs, int n)
+    void copy(const ZetaData<2>& rhs, int n)
     {
         for (int i=0; i<n; ++i) zeta[i] = rhs.zeta[i];
         for (int i=0; i<n; ++i) zeta_im[i] = rhs.zeta_im[i];
     }
-    void add(const ZetaData<D1,D2,GData>& rhs, int n)
+    void add(const ZetaData<2>& rhs, int n)
     {
         for (int i=0; i<n; ++i) zeta[i] += rhs.zeta[i];
         for (int i=0; i<n; ++i) zeta_im[i] += rhs.zeta_im[i];
@@ -515,8 +539,8 @@ struct ZetaData<D1,D2,GData> // This works for NNG, NKG, KKG
     double* zeta_im;
 };
 
-template <int D1>
-struct ZetaData<D1,GData,GData> // This works for NGG, KGG
+template <>
+struct ZetaData<3> // NGG, KGG, etc. -- 2 complex
 {
     ZetaData(double* z0, double* z1, double* z2, double* z3, double*, double*, double*, double*,
              bool) :
@@ -536,14 +560,14 @@ struct ZetaData<D1,GData,GData> // This works for NGG, KGG
         delete [] zetam; zetam = 0;
         delete [] zetam_im; zetam_im = 0;
     }
-    void copy(const ZetaData<D1,GData,GData>& rhs, int n)
+    void copy(const ZetaData<3>& rhs, int n)
     {
         for (int i=0; i<n; ++i) zetap[i] = rhs.zetap[i];
         for (int i=0; i<n; ++i) zetap_im[i] = rhs.zetap_im[i];
         for (int i=0; i<n; ++i) zetam[i] = rhs.zetam[i];
         for (int i=0; i<n; ++i) zetam_im[i] = rhs.zetam_im[i];
     }
-    void add(const ZetaData<D1,GData,GData>& rhs, int n)
+    void add(const ZetaData<3>& rhs, int n)
     {
         for (int i=0; i<n; ++i) zetap[i] += rhs.zetap[i];
         for (int i=0; i<n; ++i) zetap_im[i] += rhs.zetap_im[i];
@@ -569,7 +593,7 @@ struct ZetaData<D1,GData,GData> // This works for NGG, KGG
 };
 
 template <>
-struct ZetaData<GData, GData, GData>
+struct ZetaData<4> // all complex
 {
     ZetaData(double* z0, double* z1, double* z2, double* z3,
              double* z4, double* z5, double* z6, double* z7) :
@@ -598,7 +622,7 @@ struct ZetaData<GData, GData, GData>
         delete [] gam3r; gam3r = 0;
         delete [] gam3i; gam3i = 0;
     }
-    void copy(const ZetaData<GData,GData,GData>& rhs, int n)
+    void copy(const ZetaData<4>& rhs, int n)
     {
         for (int i=0; i<n; ++i) gam0r[i] = rhs.gam0r[i];
         for (int i=0; i<n; ++i) gam0i[i] = rhs.gam0i[i];
@@ -609,7 +633,7 @@ struct ZetaData<GData, GData, GData>
         for (int i=0; i<n; ++i) gam3r[i] = rhs.gam3r[i];
         for (int i=0; i<n; ++i) gam3i[i] = rhs.gam3i[i];
     }
-    void add(const ZetaData<GData,GData,GData>& rhs, int n)
+    void add(const ZetaData<4>& rhs, int n)
     {
         for (int i=0; i<n; ++i) gam0r[i] += rhs.gam0r[i];
         for (int i=0; i<n; ++i) gam0i[i] += rhs.gam0i[i];
@@ -647,19 +671,6 @@ struct ZetaData<GData, GData, GData>
     double* gam2i;
     double* gam3r;
     double* gam3i;
-};
-
-template <>
-struct ZetaData<NData, NData, NData>
-{
-    ZetaData(double* , double* , double*, double*, double*, double*, double*, double*) {}
-    void new_data(int n) {}
-    void delete_data() {}
-    void copy(const ZetaData<NData, NData, NData>& rhs, int n) {}
-    void add(const ZetaData<NData, NData, NData>& rhs, int n) {}
-    void clear(int n) {}
-    void write(std::ostream& os) const {}
-    void write_full(std::ostream& os, int n) const {}
 };
 
 #endif

@@ -1960,18 +1960,18 @@ void Corr3<D1,D2,D3>::calculateZeta(
 template <>
 struct MultipoleHelper<0>
 {
-    template <int C, typename Z>
+    template <int C>
     static void CalculateZeta(const Cell<NData,C>& c1,
                               BaseMultipoleScratch& mp,
                               int kstart, int mink_zeta,
-                              Z& zeta, int nbins, int maxn)
+                              ZetaData<0>& zeta, int nbins, int maxn)
     {}
-    template <int C, typename Z>
+    template <int C>
     static void CalculateZeta(const Cell<NData,C>& c1, int ordered,
                               BaseMultipoleScratch& mp2,
                               BaseMultipoleScratch& mp3,
                               int kstart, int mink_zeta,
-                              Z& zeta, int nbins, int maxn)
+                              ZetaData<0>& zeta, int nbins, int maxn)
     {}
 };
 
@@ -1979,11 +1979,10 @@ struct MultipoleHelper<0>
 template <>
 struct MultipoleHelper<3>
 {
-    template <typename Z>
     static void CalculateZeta(double wk1,
                               BaseMultipoleScratch& mp,
                               int kstart, int mink_zeta,
-                              Z& zeta, int nbins, int maxn)
+                              ZetaData<1>& zeta, int nbins, int maxn)
     {
         const int step23 = 2*maxn+1;
         const int step32 = nbins * step23;
@@ -2030,19 +2029,18 @@ struct MultipoleHelper<3>
             }
         }
     }
-    template <int C, typename Z>
+    template <int C>
     static void CalculateZeta(const Cell<KData,C>& c1,
                               BaseMultipoleScratch& mp,
                               int kstart, int mink_zeta,
-                              Z& zeta, int nbins, int maxn)
+                              ZetaData<1>& zeta, int nbins, int maxn)
     { CalculateZeta(c1.getWK(), mp, kstart, mink_zeta, zeta, nbins, maxn); }
 
-    template <typename Z>
     static void CalculateZeta(double wk1, int ordered,
                               BaseMultipoleScratch& mp2,
                               BaseMultipoleScratch& mp3,
                               int kstart, int mink_zeta,
-                              Z& zeta, int nbins, int maxn)
+                              ZetaData<1>& zeta, int nbins, int maxn)
     {
         const int step = 2*maxn+1;
         int iz = maxn;
@@ -2076,33 +2074,32 @@ struct MultipoleHelper<3>
             iz += (nbins - k3end) * step;
         }
     }
-    template <int C, typename Z>
+    template <int C>
     static void CalculateZeta(const Cell<KData,C>& c1, int ordered,
                               BaseMultipoleScratch& mp2,
                               BaseMultipoleScratch& mp3,
                               int kstart, int mink_zeta,
-                              Z& zeta, int nbins, int maxn)
+                              ZetaData<1>& zeta, int nbins, int maxn)
     { CalculateZeta(c1.getWK(), ordered, mp2, mp3, kstart, mink_zeta, zeta, nbins, maxn); }
 };
 
-// KKZ, KZZ, KZK, etc.  Anything with K first, but complex product
+// KKZ, KZK, KZN, etc.  Anything with K first and one complex value
 template <>
 struct MultipoleHelper<4>
 {
-    template <int C, typename Z>
+    template <int C>
     static void CalculateZeta(const Cell<KData,C>& c1,
                               BaseMultipoleScratch& mp,
                               int kstart, int mink_zeta,
-                              Z& zeta, int nbins, int maxn)
+                              ZetaData<2>& zeta, int nbins, int maxn)
     {
         XAssert(false);
     }
-    template <typename Z>
     static void CalculateZeta(double wk1, int ordered,
                               BaseMultipoleScratch& mp2,
                               BaseMultipoleScratch& mp3,
                               int kstart, int mink_zeta,
-                              Z& zeta, int nbins, int maxn)
+                              ZetaData<2>& zeta, int nbins, int maxn)
     {
         const int step = 2*maxn+1;
         int iz = maxn;
@@ -2131,12 +2128,12 @@ struct MultipoleHelper<4>
             iz += (nbins - k3end) * step;
         }
     }
-    template <int C, typename Z>
+    template <int C>
     static void CalculateZeta(const Cell<KData,C>& c1, int ordered,
                               BaseMultipoleScratch& mp2,
                               BaseMultipoleScratch& mp3,
                               int kstart, int mink_zeta,
-                              Z& zeta, int nbins, int maxn)
+                              ZetaData<2>& zeta, int nbins, int maxn)
     { CalculateZeta(c1.getWK(), ordered, mp2, mp3, kstart, mink_zeta, zeta, nbins, maxn); }
 };
 
@@ -2144,11 +2141,10 @@ struct MultipoleHelper<4>
 template <>
 struct MultipoleHelper<5>
 {
-    template <typename Z>
     static void CalculateZeta(std::complex<double> wg1,
                               BaseMultipoleScratch& mp,
                               int kstart, int mink_zeta,
-                              Z& zeta, int nbins, int maxn)
+                              ZetaData<2>& zeta, int nbins, int maxn)
     {
         const int step23 = 2*maxn+1;
         const int step32 = nbins * step23;
@@ -2211,19 +2207,18 @@ struct MultipoleHelper<5>
             }
         }
     }
-    template <int D, int C, typename Z>
+    template <int D, int C>
     static void CalculateZeta(const Cell<D,C>& c1,
                               BaseMultipoleScratch& mp,
                               int kstart, int mink_zeta,
-                              Z& zeta, int nbins, int maxn)
+                              ZetaData<2>& zeta, int nbins, int maxn)
     { CalculateZeta(c1.getWZ(), mp, kstart, mink_zeta, zeta, nbins, maxn); }
 
-    template <typename Z>
     static void CalculateZeta(std::complex<double> wg1, int ordered,
                               BaseMultipoleScratch& mp2,
                               BaseMultipoleScratch& mp3,
                               int kstart, int mink_zeta,
-                              Z& zeta, int nbins, int maxn)
+                              ZetaData<2>& zeta, int nbins, int maxn)
     {
         const int step = 2*maxn+1;
         int iz = maxn;
@@ -2254,12 +2249,12 @@ struct MultipoleHelper<5>
             iz += (nbins - k3end) * step;
         }
     }
-    template <int D, int C, typename Z>
+    template <int D, int C>
     static void CalculateZeta(const Cell<D,C>& c1, int ordered,
                               BaseMultipoleScratch& mp2,
                               BaseMultipoleScratch& mp3,
                               int kstart, int mink_zeta,
-                              Z& zeta, int nbins, int maxn)
+                              ZetaData<2>& zeta, int nbins, int maxn)
     { CalculateZeta(c1.getWZ(), ordered, mp2, mp3, kstart, mink_zeta, zeta, nbins, maxn); }
 };
 
@@ -2267,11 +2262,10 @@ struct MultipoleHelper<5>
 template <>
 struct MultipoleHelper<7>
 {
-    template <typename Z>
     static void CalculateZeta(std::complex<double> wg1,
                               BaseMultipoleScratch& mp,
                               int kstart, int mink_zeta,
-                              Z& zeta, int nbins, int maxn)
+                              ZetaData<4>& zeta, int nbins, int maxn)
     {
         const int step23 = 2*maxn+1;
         const int step32 = nbins * step23;
@@ -2527,19 +2521,18 @@ struct MultipoleHelper<7>
             }
         }
     }
-    template <int D, int C, typename Z>
+    template <int D, int C>
     static void CalculateZeta(const Cell<D,C>& c1,
                               BaseMultipoleScratch& mp,
                               int kstart, int mink_zeta,
-                              Z& zeta, int nbins, int maxn)
+                              ZetaData<4>& zeta, int nbins, int maxn)
     { CalculateZeta(c1.getWZ(), mp, kstart, mink_zeta, zeta, nbins, maxn); }
 
-    template <typename Z>
     static void CalculateZeta(std::complex<double> wg1, int ordered,
                               BaseMultipoleScratch& mp2,
                               BaseMultipoleScratch& mp3,
                               int kstart, int mink_zeta,
-                              Z& zeta, int nbins, int maxn)
+                              ZetaData<4>& zeta, int nbins, int maxn)
     {
         const int step = 2*maxn+1;
         int iz = maxn;
@@ -2690,12 +2683,12 @@ struct MultipoleHelper<7>
             iz += (nbins - k3end) * step;
         }
     }
-    template <int D, int C, typename Z>
+    template <int D, int C>
     static void CalculateZeta(const Cell<D,C>& c1, int ordered,
                               BaseMultipoleScratch& mp2,
                               BaseMultipoleScratch& mp3,
                               int kstart, int mink_zeta,
-                              Z& zeta, int nbins, int maxn)
+                              ZetaData<4>& zeta, int nbins, int maxn)
     { CalculateZeta(c1.getWZ(), ordered, mp2, mp3, kstart, mink_zeta, zeta, nbins, maxn); }
 };
 
@@ -2795,13 +2788,13 @@ struct DirectHelper<NData, NData, NData>
     template <int C>
     static void ProcessZeta(
         const Cell<NData,C>& , const Cell<NData,C>& , const Cell<NData,C>&,
-        ZetaData<NData, NData, NData>& , int )
+        ZetaData<0>& , int )
     {}
     template <int C>
     static void ProcessMultipole(
         const Cell<NData,C>& c1, const Cell<NData,C>& c2, const Cell<NData,C>& c3,
         double d1, double d2, double d3, const std::complex<double>& z,
-        ZetaData<NData, NData, NData>& zeta, int index, int maxn)
+        ZetaData<0>& zeta, int index, int maxn)
     {}
 };
 
@@ -2811,7 +2804,7 @@ struct DirectHelper<KData, KData, KData>
     template <int C>
     static void ProcessZeta(
         const Cell<KData,C>& c1, const Cell<KData,C>& c2, const Cell<KData,C>& c3,
-        ZetaData<KData, KData, KData>& zeta, int index)
+        ZetaData<1>& zeta, int index)
     {
         zeta.zeta[index] += c1.getWK() * c2.getWK() * c3.getWK();
     }
@@ -2819,7 +2812,7 @@ struct DirectHelper<KData, KData, KData>
     static void ProcessMultipole(
         const Cell<KData,C>& c1, const Cell<KData,C>& c2, const Cell<KData,C>& c3,
         double d1, double d2, double d3, const std::complex<double>& z,
-        ZetaData<KData,KData,KData>& zeta, int index, int maxn)
+        ZetaData<1>& zeta, int index, int maxn)
     {
         double wk = c1.getWK() * c2.getWK() * c3.getWK();
         zeta.zeta[index] += wk;
@@ -2834,16 +2827,14 @@ struct DirectHelper<KData, KData, KData>
     }
 };
 
-template <typename Z>
-void ProcessZetaKKZ(Z& zeta, int index, const std::complex<double>& wk)
+void ProcessZetaKKZ(ZetaData<2>& zeta, int index, const std::complex<double>& wk)
 {
     zeta.zeta[index] += wk.real();
     zeta.zeta_im[index] += wk.imag();
 }
 
-template <typename Z>
 void ProcessMultipoleKKZ(
-    Z& zeta, int index, int maxn,
+    ZetaData<2>& zeta, int index, int maxn,
     const std::complex<double>& z, const std::complex<double>& wk)
 {
     zeta.zeta[index] += wk.real();
@@ -2865,10 +2856,10 @@ void ProcessMultipoleKKZ(
 template <int D3>
 struct DirectHelper<KData, KData, D3>
 {
-    template <int C, typename Z>
+    template <int C>
     static void ProcessZeta(
         const Cell<KData,C>& c1, const Cell<KData,C>& c2, const Cell<D3,C>& c3,
-        Z& zeta, int index)
+        ZetaData<2>& zeta, int index)
     {
         std::complex<double> g3 = c3.getWZ();
         ProjectHelper<C>::Project(c1, c2, c3, g3);
@@ -2879,7 +2870,7 @@ struct DirectHelper<KData, KData, D3>
     static void ProcessMultipole(
         const Cell<KData,C>& c1, const Cell<KData,C>& c2, const Cell<D3,C>& c3,
         double d1, double d2, double d3, const std::complex<double>& z,
-        ZetaData<KData, KData, D3>& zeta, int index, int maxn)
+        ZetaData<2>& zeta, int index, int maxn)
     {
         std::complex<double> g3 = c3.getWZ();
         ProjectHelper<C>::ProjectX(c1, c2, c3, d1, d2, d3, g3);
@@ -2894,7 +2885,7 @@ struct DirectHelper<KData, D2, KData>
     template <int C>
     static void ProcessZeta(
         const Cell<KData,C>& c1, const Cell<D2,C>& c2, const Cell<KData,C>& c3,
-        ZetaData<KData, D2, KData>& zeta, int index)
+        ZetaData<2>& zeta, int index)
     {
         std::complex<double> g2 = c2.getWZ();
         ProjectHelper<C>::Project(c3, c1, c2, g2);
@@ -2904,7 +2895,7 @@ struct DirectHelper<KData, D2, KData>
     static void ProcessMultipole(
         const Cell<KData,C>& c1, const Cell<D2,C>& c2, const Cell<KData,C>& c3,
         double d1, double d2, double d3, const std::complex<double>& z,
-        ZetaData<KData,D2,KData>& zeta, int index, int maxn)
+        ZetaData<2>& zeta, int index, int maxn)
     {
         std::complex<double> g2 = c2.getWZ();
         ProjectHelper<C>::ProjectX(c3, c1, c2, d3, d1, d2, g2);
@@ -2919,7 +2910,7 @@ struct DirectHelper<D1, KData, KData>
     template <int C>
     static void ProcessZeta(
         const Cell<D1,C>& c1, const Cell<KData,C>& c2, const Cell<KData,C>& c3,
-        ZetaData<D1, KData, KData>& zeta, int index)
+        ZetaData<2>& zeta, int index)
     {
         std::complex<double> g1 = c1.getWZ();
         ProjectHelper<C>::Project(c2, c3, c1, g1);
@@ -2929,7 +2920,7 @@ struct DirectHelper<D1, KData, KData>
     static void ProcessMultipole(
         const Cell<D1,C>& c1, const Cell<KData,C>& c2, const Cell<KData,C>& c3,
         double d1, double d2, double d3, const std::complex<double>& z,
-        ZetaData<D1,KData,KData>& zeta, int index, int maxn)
+        ZetaData<2>& zeta, int index, int maxn)
     {
         std::complex<double> g1 = c1.getWZ();
         std::complex<double> g2 = 0.;
@@ -2940,8 +2931,7 @@ struct DirectHelper<D1, KData, KData>
     }
 };
 
-template <typename Z>
-void ProcessZetaZZZ(Z& zeta, int index,
+void ProcessZetaZZZ(ZetaData<4>& zeta, int index,
                     const std::complex<double>& g1,
                     const std::complex<double>& g2,
                     const std::complex<double>& g3)
@@ -2984,9 +2974,8 @@ void ProcessZetaZZZ(Z& zeta, int index,
     zeta.gam3i[index] += -g1g2rg3i + g1g2ig3r;
 }
 
-template <typename Z>
 void ProcessMultipoleZZZ(
-    Z& zeta, int index, int maxn,
+    ZetaData<4>& zeta, int index, int maxn,
     const std::complex<double>& z,
     const std::complex<double>& g1,
     const std::complex<double>& g2,
@@ -3051,7 +3040,7 @@ struct DirectHelper<GData, GData, GData>
     template <int C>
     static void ProcessZeta(
         const Cell<GData,C>& c1, const Cell<GData,C>& c2, const Cell<GData,C>& c3,
-        ZetaData<GData,GData,GData>& zeta, int index)
+        ZetaData<4>& zeta, int index)
     {
         std::complex<double> g1 = c1.getWZ();
         std::complex<double> g2 = c2.getWZ();
@@ -3063,7 +3052,7 @@ struct DirectHelper<GData, GData, GData>
     static void ProcessMultipole(
         const Cell<GData,C>& c1, const Cell<GData,C>& c2, const Cell<GData,C>& c3,
         double d1, double d2, double d3, const std::complex<double>& z,
-        ZetaData<GData,GData,GData>& zeta, int index, int maxn)
+        ZetaData<4>& zeta, int index, int maxn)
     {
         std::complex<double> g1 = c1.getWZ();
         std::complex<double> g2 = c2.getWZ();

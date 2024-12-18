@@ -46,8 +46,17 @@ def test_mpi_kkk2():
     output = __name__ == '__main__'
     mock_mpiexec(4, do_mpi_kkk2, output)
 
+@timer
+def test_mpi_kkg():
+    if skip: return
+    output = __name__ == '__main__'
+    mock_mpiexec(1, do_mpi_kkg, output)
+    mock_mpiexec(4, do_mpi_kkg, output)
+
+
 if __name__ == '__main__':
     setup()
     test_mpi_ggg()
     test_mpi_kkk()
     test_mpi_kkk2()
+    test_mpi_kkg()

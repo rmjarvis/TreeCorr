@@ -249,6 +249,23 @@ def do_mpi_kkk2(comm, output=True):
     do_mpi_corr2(comm, treecorr.KKKCorrelation, 5, ['ntri', 'zeta'], output, 'local', True)
     do_mpi_corr2(comm, treecorr.KKKCorrelation, 6, ['ntri', 'zeta'], output, 'local', True)
 
+def do_mpi_kkg(comm, output=True):
+    do_mpi_corr(comm, treecorr.KKGCorrelation, 1, ['ntri', 'zeta'], output)
+    do_mpi_corr(comm, treecorr.KKGCorrelation, 1, ['ntri', 'zeta'], output, 'local')
+    do_mpi_corr(comm, treecorr.KKGCorrelation, 1, ['ntri', 'zeta'], output, 'global', True)
+    do_mpi_corr(comm, treecorr.KKGCorrelation, 1, ['ntri', 'zeta'], output, 'local', True)
+    do_mpi_corr2(comm, treecorr.KKGCorrelation, 1, ['ntri', 'zeta'], output)
+    do_mpi_corr(comm, treecorr.KGKCorrelation, 2, ['ntri', 'zeta'], output)
+    do_mpi_corr(comm, treecorr.KGKCorrelation, 2, ['ntri', 'zeta'], output, 'local')
+    do_mpi_corr(comm, treecorr.KGKCorrelation, 2, ['ntri', 'zeta'], output, 'global', True)
+    do_mpi_corr(comm, treecorr.KGKCorrelation, 2, ['ntri', 'zeta'], output, 'local', True)
+    do_mpi_corr2(comm, treecorr.KGKCorrelation, 2, ['ntri', 'zeta'], output)
+    do_mpi_corr(comm, treecorr.GKKCorrelation, 1, ['ntri', 'zeta'], output)
+    do_mpi_corr(comm, treecorr.GKKCorrelation, 1, ['ntri', 'zeta'], output, 'local')
+    do_mpi_corr(comm, treecorr.GKKCorrelation, 1, ['ntri', 'zeta'], output, 'global', True)
+    do_mpi_corr(comm, treecorr.GKKCorrelation, 1, ['ntri', 'zeta'], output, 'local', True)
+    do_mpi_corr2(comm, treecorr.GKKCorrelation, 1, ['ntri', 'zeta'], output)
+
 if __name__ == '__main__':
     from mpi4py import MPI
     from mpi_helper import NiceComm

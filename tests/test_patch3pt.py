@@ -51,12 +51,11 @@ def generate_shear_field(npos, nhalo, rng=None):
         j = (iblock+1)*64
         dx = x[:,np.newaxis]-xc[np.newaxis,i:j]
         dy = y[:,np.newaxis]-yc[np.newaxis,i:j]
-        dx[dx==0] = 1  # Avoid division by zero.
-        dy[dy==0] = 1
         dx /= scale[i:j]
         dy /= scale[i:j]
         rsq = dx**2 + dy**2
         r = rsq**0.5
+        r[r==0] = 1  # Avoid division by zero.
         k = mass[i:j] / r  # "Mass" here is really just a dimensionless normalization propto mass.
         kappa += np.sum(k, axis=1)
 

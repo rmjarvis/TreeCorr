@@ -19,6 +19,7 @@ import time
 
 from test_helper import do_pickle, assert_raises, timer, is_ccw, is_ccw_3d
 from test_helper import get_from_wiki, CaptureLog
+from test_patch3pt import generate_shear_field
 
 
 @timer
@@ -2447,6 +2448,214 @@ def test_varzeta():
     np.testing.assert_allclose(gkk.varzeta, var_gkk_zetai, rtol=0.2)
     np.testing.assert_allclose(gkk.cov.diagonal(), gkk.varzeta.ravel())
 
+@timer
+def test_kkg_logsas_jk():
+    # Test jackknife covariance estimates for kkg correlations with LogSAS binning.
+
+    if __name__ == '__main__':
+        nhalo = 1000
+        nsource = 100000
+        npatch = 32
+        tol_factor = 1
+    else:
+        nhalo = 500
+        nsource = 10000
+        npatch = 12
+        tol_factor = 4
+
+    # This test is pretty fragile with respect to the choice of these parameters.
+    # It was hard to find a combination where JK worked reasonably well with the size of
+    # data set that is feasible for a unit test.  Mostly there need to be not many bins
+    # and near-equilateral triangles seem to work better, since they have higher snr.
+    # Also, it turned out to be important for the K and G catalogs to not use the same
+    # points; I think so there are no degenerate triangles, but I'm not sure exactly what
+    # the problem with them is in this case.
+
+    nbins = 2
+    min_sep = 10
+    max_sep = 16
+    nphi_bins = 2
+    min_phi = 30
+    max_phi = 90
+
+    file_name = 'data/test_kkg_logsas_jk_{}.npz'.format(nsource)
+    print(file_name)
+    if not os.path.isfile(file_name):
+        nruns = 1000
+        all_kkg = []
+        all_kgk = []
+        all_gkk = []
+        rng1 = np.random.default_rng()
+        for run in range(nruns):
+            # It doesn't work as well if the same points are in both, so make a single field
+            # with both k and g, but take half the points for k, and the other half for g.
+            x, y, g1, g2, k = generate_shear_field(2*nsource, nhalo, rng1)
+            x1 = x[::2]
+            y1 = y[::2]
+            g1 = g1[::2]
+            g2 = g2[::2]
+            x2 = x[1::2]
+            y2 = y[1::2]
+            k = k[1::2]
+            print(run,': ',np.mean(k),np.std(k),np.std(g1),np.std(g2))
+            gcat = treecorr.Catalog(x=x1, y=y1, g1=g1, g2=g2)
+            kcat = treecorr.Catalog(x=x2, y=y2, k=k)
+            kkg = treecorr.KKGCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep,
+                                          min_phi=min_phi, max_phi=max_phi, phi_units='deg',
+                                          nphi_bins=nphi_bins, bin_type='LogSAS', max_n=40)
+            kkg.process(kcat, gcat)
+            all_kkg.append(kkg.zeta.ravel())
+
+            kgk = treecorr.KGKCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep,
+                                          min_phi=min_phi, max_phi=max_phi, phi_units='deg',
+                                          nphi_bins=nphi_bins, bin_type='LogSAS', max_n=40)
+            kgk.process(kcat, gcat, kcat)
+            all_kgk.append(kgk.zeta.ravel())
+
+            gkk = treecorr.GKKCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep,
+                                          min_phi=min_phi, max_phi=max_phi, phi_units='deg',
+                                          nphi_bins=nphi_bins, bin_type='LogSAS', max_n=40)
+            gkk.process(gcat, kcat)
+            all_gkk.append(gkk.zeta.ravel())
+
+        mean_kkg = np.mean([zeta for zeta in all_kkg], axis=0)
+        var_kkg = np.var([zeta for zeta in all_kkg], axis=0)
+        mean_kgk = np.mean([zeta for zeta in all_kgk], axis=0)
+        var_kgk = np.var([zeta for zeta in all_kgk], axis=0)
+        mean_gkk = np.mean([zeta for zeta in all_gkk], axis=0)
+        var_gkk = np.var([zeta for zeta in all_gkk], axis=0)
+
+        np.savez(file_name,
+                 mean_kkg=mean_kkg, var_kkg=var_kkg,
+                 mean_kgk=mean_kgk, var_kgk=var_kgk,
+                 mean_gkk=mean_gkk, var_gkk=var_gkk)
+
+    data = np.load(file_name)
+    mean_kkg = data['mean_kkg']
+    var_kkg = data['var_kkg']
+    mean_kgk = data['mean_kgk']
+    var_kgk = data['var_kgk']
+    mean_gkk = data['mean_gkk']
+    var_gkk = data['var_gkk']
+    print('mean kkg = ',mean_kkg)
+    print('var kkg = ',var_kkg)
+    print('mean kgk = ',mean_kgk)
+    print('var kgk = ',var_kgk)
+    print('mean gkk = ',mean_gkk)
+    print('var gkk = ',var_gkk)
+
+    rng = np.random.default_rng(1234)
+    x, y, g1, g2, k = generate_shear_field(2*nsource, nhalo, rng)
+    x1 = x[::2]
+    y1 = y[::2]
+    g1 = g1[::2]
+    g2 = g2[::2]
+    x2 = x[1::2]
+    y2 = y[1::2]
+    k = k[1::2]
+    gcat = treecorr.Catalog(x=x1, y=y1, g1=g1, g2=g2, npatch=npatch, rng=rng)
+    kcat = treecorr.Catalog(x=x2, y=y2, k=k, rng=rng, patch_centers=gcat.patch_centers)
+
+    # First check calculate_xi with all pairs in results dict.
+    kkg = treecorr.KKGCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep,
+                                  min_phi=min_phi, max_phi=max_phi, phi_units='deg',
+                                  nphi_bins=nphi_bins, bin_type='LogSAS', max_n=40)
+    kkg.process(kcat, gcat)
+    kkg2 = kkg.copy()
+    kkg2._calculate_xi_from_pairs(list(kkg.results.keys()))
+    np.testing.assert_allclose(kkg2.ntri, kkg.ntri, rtol=0.01)
+    np.testing.assert_allclose(kkg2.zeta, kkg.zeta, rtol=0.01)
+    np.testing.assert_allclose(kkg2.varzeta, kkg.varzeta, rtol=0.01)
+
+    kgk = treecorr.KGKCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep,
+                                  min_phi=min_phi, max_phi=max_phi, phi_units='deg',
+                                  nphi_bins=nphi_bins, bin_type='LogSAS', max_n=40)
+    kgk.process(kcat, gcat, kcat)
+    kgk2 = kgk.copy()
+    kgk2._calculate_xi_from_pairs(list(kgk.results.keys()))
+    np.testing.assert_allclose(kgk2.ntri, kgk.ntri, rtol=0.01)
+    np.testing.assert_allclose(kgk2.zeta, kgk.zeta, rtol=0.01)
+    np.testing.assert_allclose(kgk2.varzeta, kgk.varzeta, rtol=0.01)
+
+    gkk = treecorr.GKKCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep,
+                                  min_phi=min_phi, max_phi=max_phi, phi_units='deg',
+                                  nphi_bins=nphi_bins, bin_type='LogSAS', max_n=40)
+    gkk.process(gcat, kcat)
+    gkk2 = gkk.copy()
+    gkk2._calculate_xi_from_pairs(list(gkk.results.keys()))
+    np.testing.assert_allclose(gkk2.ntri, gkk.ntri, rtol=0.01)
+    np.testing.assert_allclose(gkk2.zeta, gkk.zeta, rtol=0.01)
+    np.testing.assert_allclose(gkk2.varzeta, gkk.varzeta, rtol=0.01)
+
+    # Next check jackknife covariance estimate
+    cov_kkg = kkg.estimate_cov('jackknife')
+    print('kkg var ratio = ',np.diagonal(cov_kkg)/var_kkg)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_kkg))-np.log(var_kkg))))
+    np.testing.assert_allclose(np.diagonal(cov_kkg), var_kkg, rtol=0.4 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov_kkg)), np.log(var_kkg), atol=0.5*tol_factor)
+
+    cov_kgk = kgk.estimate_cov('jackknife')
+    print('kgk var ratio = ',np.diagonal(cov_kgk)/var_kgk)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_kgk))-np.log(var_kgk))))
+    np.testing.assert_allclose(np.diagonal(cov_kgk), var_kgk, rtol=0.4 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov_kgk)), np.log(var_kgk), atol=0.5*tol_factor)
+
+    cov_gkk = gkk.estimate_cov('jackknife')
+    print('gkk var ratio = ',np.diagonal(cov_gkk)/var_gkk)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_gkk))-np.log(var_gkk))))
+    np.testing.assert_allclose(np.diagonal(cov_gkk), var_gkk, rtol=0.5 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov_gkk)), np.log(var_gkk), atol=0.7*tol_factor)
+
+    # Check that these still work after roundtripping through a file.
+    file_name = os.path.join('output','test_write_results_kkg.dat')
+    kkg.write(file_name, write_patch_results=True)
+    kkg2 = treecorr.Corr3.from_file(file_name)
+    cov2 = kkg2.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov2, cov_kkg)
+
+    file_name = os.path.join('output','test_write_results_kgk.dat')
+    kgk.write(file_name, write_patch_results=True)
+    kgk2 = treecorr.Corr3.from_file(file_name)
+    cov2 = kgk2.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov2, cov_kgk)
+
+    file_name = os.path.join('output','test_write_results_gkk.dat')
+    gkk.write(file_name, write_patch_results=True)
+    gkk2 = treecorr.Corr3.from_file(file_name)
+    cov2 = gkk2.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov2, cov_gkk)
+
+    # Check jackknife using LogMultipole
+    print('Using LogMultipole:')
+    kkgm = treecorr.KKGCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep, max_n=40,
+                                   rng=rng, bin_type='LogMultipole')
+    kkgm.process(kcat, gcat)
+    fm = lambda kkg: kkg.toSAS(min_phi=min_phi, max_phi=max_phi, phi_units='deg',
+                               nphi_bins=nphi_bins).zeta.ravel()
+    cov = kkgm.estimate_cov('jackknife', func=fm)
+    print('kkg max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkg))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kkg, rtol=0.4 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkg), atol=0.5*tol_factor)
+
+    kgkm = treecorr.KGKCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep, max_n=40,
+                                   rng=rng, bin_type='LogMultipole')
+    kgkm.process(kcat, gcat, kcat)
+    fm = lambda kgk: kgk.toSAS(min_phi=min_phi, max_phi=max_phi, phi_units='deg',
+                               nphi_bins=nphi_bins).zeta.ravel()
+    cov = kgkm.estimate_cov('jackknife', func=fm)
+    print('kgkm max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kgk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_kgk, rtol=0.4 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kgk), atol=0.5*tol_factor)
+
+    gkkm = treecorr.GKKCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep, max_n=40,
+                                   rng=rng, bin_type='LogMultipole')
+    gkkm.process(gcat, kcat)
+    fm = lambda gkk: gkk.toSAS(min_phi=min_phi, max_phi=max_phi, phi_units='deg',
+                               nphi_bins=nphi_bins).zeta.ravel()
+    cov = gkkm.estimate_cov('jackknife', func=fm)
+    print('gkkm max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_gkk))))
+    np.testing.assert_allclose(np.diagonal(cov), var_gkk, rtol=0.5 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_gkk), atol=0.7*tol_factor)
 
 
 if __name__ == '__main__':
@@ -2459,3 +2668,4 @@ if __name__ == '__main__':
     test_direct_logmultipole_cross21()
     test_kkg_logsas()
     test_varzeta()
+    test_kkg_logsas_jk()

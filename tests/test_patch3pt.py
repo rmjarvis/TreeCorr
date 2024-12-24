@@ -1848,7 +1848,7 @@ def test_finalize_false():
     else:
         nsource = 80
         nhalo = 50
-        npatch = 4
+        npatch = 8
 
     # Make three independent data sets
     rng = np.random.RandomState(8675309)
@@ -2130,6 +2130,58 @@ def test_finalize_false():
     np.testing.assert_allclose(nnn1.meand1, nnn2.meand1)
     np.testing.assert_allclose(nnn1.meand2, nnn2.meand2)
     np.testing.assert_allclose(nnn1.meand3, nnn2.meand3)
+
+    # Finally just do KKG to exercise the cross21 possibility
+    kkg1 = treecorr.KKGCorrelation(nbins=3, min_sep=30., max_sep=100., brute=True,
+                                   min_u=0.8, max_u=1.0, nubins=1,
+                                   min_v=0., max_v=0.2, nvbins=1, bin_type='LogRUV')
+    kkg1.process(cat23, cat1)
+
+    kkg2 = treecorr.KKGCorrelation(nbins=3, min_sep=30., max_sep=100., brute=True,
+                                   min_u=0.8, max_u=1.0, nubins=1,
+                                   min_v=0., max_v=0.2, nvbins=1, bin_type='LogRUV')
+    kkg1.process(cat23, cat1, ordered=False)
+    kkg2.process(cat2, cat1, ordered=False, initialize=True, finalize=False)
+    kkg2.process(cat3, cat1, ordered=False, initialize=False, finalize=False)
+    kkg2.process(cat2, cat3, cat1, ordered=False, initialize=False, finalize=True)
+
+    np.testing.assert_allclose(kkg1.ntri, kkg2.ntri)
+    np.testing.assert_allclose(kkg1.weight, kkg2.weight)
+    np.testing.assert_allclose(kkg1.meand1, kkg2.meand1)
+    np.testing.assert_allclose(kkg1.meand2, kkg2.meand2)
+    np.testing.assert_allclose(kkg1.meand3, kkg2.meand3)
+    np.testing.assert_allclose(kkg1.zeta, kkg2.zeta)
+
+    # KKG cross21 ordered
+    kkg1.process(cat23, cat1, ordered=True)
+    kkg2.process(cat2, cat1, ordered=True, initialize=True, finalize=False)
+    kkg2.process(cat3, cat1, ordered=True, initialize=False, finalize=False)
+    kkg2.process(cat2, cat3, cat1, ordered=True, initialize=False, finalize=False)
+    kkg2.process(cat3, cat2, cat1, ordered=True, initialize=False, finalize=True)
+
+    np.testing.assert_allclose(kkg1.ntri, kkg2.ntri)
+    np.testing.assert_allclose(kkg1.weight, kkg2.weight)
+    np.testing.assert_allclose(kkg1.meand1, kkg2.meand1)
+    np.testing.assert_allclose(kkg1.meand2, kkg2.meand2)
+    np.testing.assert_allclose(kkg1.meand3, kkg2.meand3)
+    np.testing.assert_allclose(kkg1.zeta, kkg2.zeta)
+
+    catq = treecorr.Catalog(x=np.concatenate([x_1, x_2, x_3]),
+                            y=np.concatenate([y_1, y_2, y_3]),
+                            g1=np.concatenate([g1_1, g1_2, g1_3]),
+                            g2=np.concatenate([g2_1, g2_2, g2_3]),
+                            k=np.concatenate([k_1, k_2, k_3]),
+                            npatch=2*npatch, rng=rng)
+    with assert_raises(RuntimeError):
+        kkg1.process(catq, cat)
+    with assert_raises(RuntimeError):
+        kkg1.process(cat, catq)
+    with assert_raises(RuntimeError):
+        kkg1.process(cat, cat, catq)
+    with assert_raises(RuntimeError):
+        kkg1.process(cat, catq, cat)
+    with assert_raises(RuntimeError):
+        kkg1.process(catq, cat, cat)
 
 
 @timer

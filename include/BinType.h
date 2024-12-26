@@ -475,7 +475,7 @@ struct BinTypeHelper<LogRUV>
             // d1 cannot be the largest or d3 cannot be the smallest.
 
             // (d2 + s1+s3) < (d3 - s1-s2)
-            if (O == 3 && d3sq > SQR(d2 + 2*s1+s2+s3)) {
+            if (O == 4 && d3sq > SQR(d2 + 2*s1+s2+s3)) {
                 xdbg<<"d2 cannot be larger than d3\n";
                 return true;
             }

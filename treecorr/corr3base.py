@@ -1599,7 +1599,7 @@ class Corr3(object):
             self._set_metric(metric, cat1[0].coords)
             temp = self.copy()
             temp.results = {}
-            ordered2 = 2 if (ordered or self._letter1 != self._letter3) else 0
+            ordered3 = 3 if (ordered or self._letter1 != self._letter3) else 0
 
             if local:
                 for ii,c1 in enumerate(cat1):
@@ -1609,7 +1609,7 @@ class Corr3(object):
                         c3e = self._make_expanded_patch(c1, cat2, metric, low_mem)
                         self.logger.info('Process patch %d with surrounding local patches',i)
                         self._single_process123(c1, c2e, c3e, (i,i,i), metric,
-                                                1 if not ordered else 3,
+                                                1 if not ordered else 4,
                                                 num_threads, temp, True)
                         if low_mem:
                             c1.unload()
@@ -1626,7 +1626,7 @@ class Corr3(object):
                         for jj,c2 in list(enumerate(cat1))[::-1]:
                             j = c2._single_patch if c2._single_patch is not None else jj
                             if i < j and is_my_job(my_indices, i, j, k, n1, n2):
-                                self._single_process123(c1, c2, c3, (i,j,k), metric, ordered2,
+                                self._single_process123(c1, c2, c3, (i,j,k), metric, ordered3,
                                                         num_threads, temp, False)
                                 if low_mem and jj != ii+1:
                                     # Don't unload i+1, since that's the next one we'll need.
@@ -1942,7 +1942,7 @@ class Corr3(object):
                        coords=self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        ocode = 2 if ordered or self._letter2 != self._letter3 else 0
+        ocode = 3 if ordered or self._letter2 != self._letter3 else 0
         self.corr.processCross21(f1.data, f2.data, ocode, self.output_dots, self._metric)
 
     def process_cross(self, cat1, cat2, cat3, *, metric=None, ordered=True, num_threads=None):
@@ -1996,9 +1996,8 @@ class Corr3(object):
                        coords=self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        ocode = 3 if ordered is True else 0 if ordered is False else ordered
-        self.corr.processCross(f1.data, f2.data, f3.data, ocode,
-                               self.output_dots, self._metric)
+        ocode = 4 if ordered is True else 0 if ordered is False else ordered
+        self.corr.processCross(f1.data, f2.data, f3.data, ocode, self.output_dots, self._metric)
 
     def process(self, cat1, cat2=None, cat3=None, *, metric=None, ordered=True, num_threads=None,
                 comm=None, low_mem=False, initialize=True, finalize=True,

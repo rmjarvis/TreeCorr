@@ -1707,6 +1707,9 @@ class Corr3(object):
             temp = self.copy()
             temp.results = {}
 
+            # Convert bool into corresponding int
+            ordered = 0 if ordered is False else 4 if ordered is True else ordered
+
             if local:
                 for ii,c1 in enumerate(cat1):
                     i = c1._single_patch if c1._single_patch is not None else ii
@@ -1715,13 +1718,13 @@ class Corr3(object):
                         c3e = self._make_expanded_patch(c1, cat3, metric, low_mem)
                         self.logger.info('Process patch %d with surrounding local patches',i)
                         self._single_process123(c1, c2e, c3e, (i,i,i), metric,
-                                                1 if not ordered else ordered,
+                                                1 if ordered in (0,1) else 4,
                                                 num_threads, temp, True)
                         if low_mem:
                             c1.unload()
-                if not ordered:
+                if ordered in (0,3):
                     # local method doesn't do unordered properly as is.
-                    # It can only handle ordered=1 or 3.
+                    # It can only handle ordered=1 or 4.
                     # So in this case, we need to repeat with c2 and c3 in the first spot.
                     for ii,c2 in enumerate(cat2):
                         i = c2._single_patch if c2._single_patch is not None else ii
@@ -1730,10 +1733,12 @@ class Corr3(object):
                             c1e = self._make_expanded_patch(c2, cat1, metric, low_mem)
                             c3e = self._make_expanded_patch(c2, cat3, metric, low_mem)
                             self.logger.info('Process patch %d from cat2 with surrounding local patches',i)
-                            self._single_process123(c2, c1e, c3e, (i,i,i), metric, 1,
+                            self._single_process123(c2, c1e, c3e, (i,i,i), metric,
+                                                    1 if ordered == 0 else 4,
                                                     num_threads, temp, True)
                             if low_mem:
                                 c2.unload()
+                if ordered in (0,2):
                     for ii,c3 in enumerate(cat3):
                         i = c3._single_patch if c3._single_patch is not None else ii
                         if (is_my_job(my_indices, i, i, i, n1, n2, n3)
@@ -1741,7 +1746,8 @@ class Corr3(object):
                             c1e = self._make_expanded_patch(c3, cat1, metric, low_mem)
                             c2e = self._make_expanded_patch(c3, cat2, metric, low_mem)
                             self.logger.info('Process patch %d from cat3 with surrounding local patches',i)
-                            self._single_process123(c3, c2e, c1e, (i,i,i), metric, 1,
+                            self._single_process123(c3, c2e, c1e, (i,i,i), metric,
+                                                    1 if ordered == 0 else 4,
                                                     num_threads, temp, True)
                             if low_mem:
                                 c3.unload()
@@ -2022,6 +2028,14 @@ class Corr3(object):
         All arguments may be lists, in which case all items in the list are used
         for that element of the correlation.
 
+        .. note::
+
+            In addition to ordered = True or False, you may also set ordered to 1, 2 or 3
+            which means that the catalog in that position is fixed, but the other two
+            vertices are unordered.  E.g. if ordered=3, then P3 will always come from cat3,
+            but P1 and P2 will each come from one of cat1 or cat2 in either order.
+            This option is only valid when all three catalogs (cat1, cat2, cat3) are given.
+
         Parameters:
             cat1 (Catalog):     A catalog or list of catalogs for the first field.
             cat2 (Catalog):     A catalog or list of catalogs for the second field.
@@ -2108,8 +2122,12 @@ class Corr3(object):
                 raise ValueError("{} cannot use one catalog version of process".format(self._letters))
             if cat3 is not None:
                 raise ValueError("For two catalog case, use cat1,cat2, not cat1,cat3")
+            if not (ordered is True or ordered is False):
+                raise ValueError("The integer options for ordered are only valid with 3 catalogs")
             self._process_all_auto(cat1, metric, num_threads, comm, low_mem, local)
         elif cat3 is None:
+            if not (ordered is True or ordered is False):
+                raise ValueError("The integer options for ordered are only valid with 3 catalogs")
             if self._letter2 == self._letter3:
                 self._process_all_cross12(cat1, cat2, metric, ordered, num_threads, comm, low_mem,
                                           local)

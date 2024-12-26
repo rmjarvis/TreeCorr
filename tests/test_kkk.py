@@ -321,6 +321,13 @@ def test_direct_logruv():
     with assert_raises(ValueError):
         kkk.process(cat, algo='multipole')
 
+    # Error to use integer order with 1 or 2 catalogs
+    with assert_raises(ValueError):
+        kkk.process(cat, ordered=1)
+    with assert_raises(ValueError):
+        kkk.process(cat, cat, ordered=1)
+    with assert_raises(ValueError):
+        kkk.process(cat, cat, ordered=2)
 
 @timer
 def test_direct_logruv_spherical():
@@ -643,6 +650,30 @@ def test_direct_logruv_cross():
     np.testing.assert_array_equal(kkk.ntri, true_ntri_sum)
     np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-5)
+
+    def combine2(z1,w1,z2,w2):
+        w12 = w1 + w2
+        w12[w12==0] = 1
+        return (z1*w1 + z2*w2) / w12
+
+    # Test ordered = 1,2,3 options
+    kkk.process(cat1, cat2, cat3, ordered=1)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_123 + true_ntri_132)
+    np.testing.assert_allclose(kkk.weight, true_weight_123 + true_weight_132, rtol=1.e-5)
+    zeta_1 = combine2(true_zeta_123, true_weight_123, true_zeta_132, true_weight_132)
+    np.testing.assert_allclose(kkk.zeta, zeta_1, rtol=1.e-5)
+
+    kkk.process(cat1, cat2, cat3, ordered=2)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_123 + true_ntri_321)
+    np.testing.assert_allclose(kkk.weight, true_weight_123 + true_weight_321, rtol=1.e-5)
+    zeta_2 = combine2(true_zeta_123, true_weight_123, true_zeta_321, true_weight_321)
+    np.testing.assert_allclose(kkk.zeta, zeta_2, rtol=1.e-5, atol=1.e-6)
+
+    kkk.process(cat1, cat2, cat3, ordered=3)
+    np.testing.assert_array_equal(kkk.ntri, true_ntri_123 + true_ntri_213)
+    np.testing.assert_allclose(kkk.weight, true_weight_123 + true_weight_213, rtol=1.e-5)
+    zeta_3 = combine2(true_zeta_123, true_weight_123, true_zeta_213, true_weight_213)
+    np.testing.assert_allclose(kkk.zeta, zeta_3, rtol=1.e-5)
 
     # Error to have cat3, but not cat2
     with assert_raises(ValueError):
@@ -2787,6 +2818,19 @@ def test_direct_logmultipole_cross():
     np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4)
 
+    # Test ordered = 1,2,3 options
+    kkk.process(cat1, cat2, cat3, ordered=1)
+    np.testing.assert_allclose(kkk.weight, true_weight_123 + true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_123 + true_zeta_132, rtol=1.e-5, atol=1.e-6)
+
+    kkk.process(cat1, cat2, cat3, ordered=2)
+    np.testing.assert_allclose(kkk.weight, true_weight_123 + true_weight_321, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_123 + true_zeta_321, rtol=1.e-5, atol=1.e-6)
+
+    kkk.process(cat1, cat2, cat3, ordered=3)
+    np.testing.assert_allclose(kkk.weight, true_weight_123 + true_weight_213, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_123 + true_zeta_213, rtol=1.e-5, atol=1.e-6)
+
     # Split into patches to test the list-based version of the code.
     # First with just one catalog with patches
     cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=8, rng=rng)
@@ -2838,6 +2882,19 @@ def test_direct_logmultipole_cross():
     kkk.process(cat1, cat2, cat3, ordered=False, patch_method='local')
     np.testing.assert_allclose(kkk.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(kkk.zeta, true_zeta_sum, rtol=1.e-4)
+
+    # Test ordered = 1,2,3 options
+    kkk.process(cat1, cat2, cat3, ordered=1)
+    np.testing.assert_allclose(kkk.weight, true_weight_123 + true_weight_132, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_123 + true_zeta_132, rtol=1.e-5, atol=1.e-6)
+
+    kkk.process(cat1, cat2, cat3, ordered=2)
+    np.testing.assert_allclose(kkk.weight, true_weight_123 + true_weight_321, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_123 + true_zeta_321, rtol=1.e-5, atol=1.e-6)
+
+    kkk.process(cat1, cat2, cat3, ordered=3)
+    np.testing.assert_allclose(kkk.weight, true_weight_123 + true_weight_213, rtol=1.e-5)
+    np.testing.assert_allclose(kkk.zeta, true_zeta_123 + true_zeta_213, rtol=1.e-5, atol=1.e-6)
 
     # No tests of accuracy yet, but make sure patch-based covariance works.
     cov = kkk.estimate_cov('sample')

@@ -840,6 +840,23 @@ void BaseCorr3::process111(
             process111Sorted<B,4>(c1, c2, c3, metric, d1sq, d2sq, d3sq);
             process111Sorted<B,4>(c1, c3, c2, metric, d1sq, d3sq, d2sq);
         }
+    } else if (O == 2) {
+        if (BinTypeHelper<B>::sort_d123) {
+            // If the BinType allows sorting, but we have c3 fixed, then just check d1,d2.
+            if (d1sq > d3sq) {
+                xdbg<<"123\n";
+                // 123 -> 123
+                process111Sorted<B,O>(c1, c2, c3, metric, d1sq, d2sq, d3sq);
+            } else {
+                xdbg<<"321\n";
+                // 321 -> 123
+                process111Sorted<B,O>(c3, c2, c1, metric, d3sq, d2sq, d1sq);
+            }
+        } else {
+            // If can't swap 12, do both ways and switch ordered to 4.
+            process111Sorted<B,4>(c1, c2, c3, metric, d1sq, d2sq, d3sq);
+            process111Sorted<B,4>(c3, c2, c1, metric, d3sq, d2sq, d1sq);
+        }
     } else if (O == 3) {
         if (BinTypeHelper<B>::sort_d123) {
             // If the BinType allows sorting, but we have c3 fixed, then just check d1,d2.
@@ -3180,6 +3197,7 @@ template <int B, int M, int C>
 void ProcessCross12b(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2,
                      int ordered, bool dots)
 {
+    Assert(ordered == 0 || ordered == 1);
     Assert((ValidMC<M,C>::_M == M));
 #ifndef DIRECT_MULTIPOLE
     if (B == LogMultipole) {
@@ -3255,6 +3273,7 @@ template <int B, int M, int C>
 void ProcessCross21b(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2,
                      int ordered, bool dots)
 {
+    Assert(ordered == 0 || ordered == 3);
     Assert((ValidMC<M,C>::_M == M));
 #ifndef DIRECT_MULTIPOLE
     if (B == LogMultipole) {
@@ -3338,6 +3357,7 @@ void ProcessCrossb(BaseCorr3& corr,
                    BaseField<C>& field1, BaseField<C>& field2, BaseField<C>& field3,
                    int ordered, bool dots)
 {
+    Assert(ordered >= 0 && ordered <= 4);
     Assert((ValidMC<M,C>::_M == M));
 #ifndef DIRECT_MULTIPOLE
     if (B == LogMultipole) {
@@ -3351,6 +3371,18 @@ void ProcessCrossb(BaseCorr3& corr,
           case 1:
                corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
                    field1, field2, field3, dots, 1);
+               break;
+          case 2:
+               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+                   field1, field2, field3, dots, 4);
+               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+                   field3, field2, field1, dots, 4);
+               break;
+          case 3:
+               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+                   field1, field2, field3, dots, 4);
+               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+                   field2, field1, field3, dots, 4);
                break;
           case 4:
                corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
@@ -3367,6 +3399,9 @@ void ProcessCrossb(BaseCorr3& corr,
                break;
           case 1:
                corr.template process111<B,1,ValidMC<M,C>::_M>(field1, field2, field3, dots);
+               break;
+          case 2:
+               corr.template process111<B,2,ValidMC<M,C>::_M>(field1, field2, field3, dots);
                break;
           case 3:
                corr.template process111<B,3,ValidMC<M,C>::_M>(field1, field2, field3, dots);

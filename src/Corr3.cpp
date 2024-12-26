@@ -804,13 +804,13 @@ void BaseCorr3::process111(
             }
         } else {
             // If can't swap 23, and we are unordered, do all the combinations,
-            // and switch ordered to 3.
-            process111Sorted<B,3>(c1, c3, c2, metric, d1sq, d3sq, d2sq);
-            process111Sorted<B,3>(c1, c2, c3, metric, d1sq, d2sq, d3sq);
-            process111Sorted<B,3>(c2, c1, c3, metric, d2sq, d1sq, d3sq);
-            process111Sorted<B,3>(c2, c3, c1, metric, d2sq, d3sq, d1sq);
-            process111Sorted<B,3>(c3, c2, c1, metric, d3sq, d2sq, d1sq);
-            process111Sorted<B,3>(c3, c1, c2, metric, d3sq, d1sq, d2sq);
+            // and switch ordered to 4.
+            process111Sorted<B,4>(c1, c3, c2, metric, d1sq, d3sq, d2sq);
+            process111Sorted<B,4>(c1, c2, c3, metric, d1sq, d2sq, d3sq);
+            process111Sorted<B,4>(c2, c1, c3, metric, d2sq, d1sq, d3sq);
+            process111Sorted<B,4>(c2, c3, c1, metric, d2sq, d3sq, d1sq);
+            process111Sorted<B,4>(c3, c2, c1, metric, d3sq, d2sq, d1sq);
+            process111Sorted<B,4>(c3, c1, c2, metric, d3sq, d1sq, d2sq);
         }
     } else if (O == 1) {
         if (BinTypeHelper<B>::sort_d123) {
@@ -836,11 +836,11 @@ void BaseCorr3::process111(
                 process111Sorted<B,O>(c1, c2, c3, metric, d1sq, d2sq, d3sq);
             }
         } else {
-            // If can't swap 23, do both ways and switch ordered to 3.
-            process111Sorted<B,3>(c1, c2, c3, metric, d1sq, d2sq, d3sq);
-            process111Sorted<B,3>(c1, c3, c2, metric, d1sq, d3sq, d2sq);
+            // If can't swap 23, do both ways and switch ordered to 4.
+            process111Sorted<B,4>(c1, c2, c3, metric, d1sq, d2sq, d3sq);
+            process111Sorted<B,4>(c1, c3, c2, metric, d1sq, d3sq, d2sq);
         }
-    } else if (O == 2) {
+    } else if (O == 3) {
         if (BinTypeHelper<B>::sort_d123) {
             // If the BinType allows sorting, but we have c3 fixed, then just check d1,d2.
             if (d1sq > d2sq) {
@@ -853,11 +853,12 @@ void BaseCorr3::process111(
                 process111Sorted<B,O>(c2, c1, c3, metric, d2sq, d1sq, d3sq);
             }
         } else {
-            // If can't swap 12, do both ways and switch ordered to 3.
-            process111Sorted<B,3>(c1, c2, c3, metric, d1sq, d2sq, d3sq);
-            process111Sorted<B,3>(c2, c1, c3, metric, d2sq, d1sq, d3sq);
+            // If can't swap 12, do both ways and switch ordered to 4.
+            process111Sorted<B,4>(c1, c2, c3, metric, d1sq, d2sq, d3sq);
+            process111Sorted<B,4>(c2, c1, c3, metric, d2sq, d1sq, d3sq);
         }
     } else {
+        Assert(O == 4);
         xdbg<<":nosort\n";
         process111Sorted<B,O>(c1, c2, c3, metric, d1sq, d2sq, d3sq);
     }
@@ -1841,7 +1842,7 @@ void Corr3<D1,D2,D3>::calculateZeta(
     const int maxn = _nubins;
     const int nnbins = 2*maxn+1;
     int i=maxn;
-    if (ordered == 3) {
+    if (ordered == 4) {
         // Keep track of locations p2 and p3 separately.
         i += kstart * nnbins * _nbins;
         for (int k2=kstart; k2<_nbins; ++k2) {
@@ -2103,7 +2104,7 @@ struct MultipoleHelper<4>
     {
         const int step = 2*maxn+1;
         int iz = maxn;
-        XAssert(ordered == 3);
+        XAssert(ordered == 4);
         iz += kstart * nbins * step;
         for (int k2=kstart; k2<nbins; ++k2) {
             const int ig2 = mp3.Gindex(k2);
@@ -2222,7 +2223,7 @@ struct MultipoleHelper<5>
     {
         const int step = 2*maxn+1;
         int iz = maxn;
-        XAssert(ordered == 3);
+        XAssert(ordered == 4);
         iz += kstart * nbins * step;
         for (int k2=kstart; k2<nbins; ++k2) {
             const int ig2 = mp3.Gindex(k2);
@@ -3266,9 +3267,9 @@ void ProcessCross21b(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2
                corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
                    field1, field1, field2, dots, 1);
                break;
-          case 2:
+          case 3:
                corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
-                   field1, field1, field2, dots, 3);
+                   field1, field1, field2, dots, 4);
                break;
           default:
                Assert(false);
@@ -3279,11 +3280,11 @@ void ProcessCross21b(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2
           case 0:
                corr.template process21<B,0,ValidMC<M,C>::_M>(field1, field2, dots);
                break;
-          case 2:
-               corr.template process21<B,2,ValidMC<M,C>::_M>(field1, field2, dots);
-               break;
           case 3:
                corr.template process21<B,3,ValidMC<M,C>::_M>(field1, field2, dots);
+               break;
+          case 4:
+               corr.template process21<B,4,ValidMC<M,C>::_M>(field1, field2, dots);
                break;
           default:
                Assert(false);
@@ -3351,9 +3352,9 @@ void ProcessCrossb(BaseCorr3& corr,
                corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
                    field1, field2, field3, dots, 1);
                break;
-          case 3:
+          case 4:
                corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
-                   field1, field2, field3, dots, 3);
+                   field1, field2, field3, dots, 4);
                break;
           default:
                Assert(false);
@@ -3367,11 +3368,11 @@ void ProcessCrossb(BaseCorr3& corr,
           case 1:
                corr.template process111<B,1,ValidMC<M,C>::_M>(field1, field2, field3, dots);
                break;
-          case 2:
-               corr.template process111<B,2,ValidMC<M,C>::_M>(field1, field2, field3, dots);
-               break;
           case 3:
                corr.template process111<B,3,ValidMC<M,C>::_M>(field1, field2, field3, dots);
+               break;
+          case 4:
+               corr.template process111<B,4,ValidMC<M,C>::_M>(field1, field2, field3, dots);
                break;
           default:
                Assert(false);

@@ -298,10 +298,10 @@ struct MetricHelper<OldRperp, P>
         // decreasing it for the farther one.
 
         if (r1sq < r2sq) {
-            if (s1 != 0. && s1 < std::numeric_limits<double>::infinity())
+            if (s1 != 0. && s1 < std::numeric_limits<double>::max())
                 s1 *= (1. + 0.25 * (r2sq-r1sq)/r1sq);
         } else {
-            if (s2 != 0. && s2 < std::numeric_limits<double>::infinity())
+            if (s2 != 0. && s2 < std::numeric_limits<double>::max())
                 s2 *= (1. + 0.25 * (r1sq-r2sq)/r2sq);
         }
 

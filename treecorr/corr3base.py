@@ -2417,7 +2417,7 @@ class Corr3(object):
         for z in zetas:
             z[mask] /= sas.weightr[mask]
 
-        phase = [1] * len(zetas)
+        phase = [None] * len(zetas)
         if len(set('VGTQ') & set(self._letters)) > 0:
             # Now fix the projection.
             # The multipole algorithm uses the Porth et al x projection.
@@ -2466,7 +2466,7 @@ class Corr3(object):
             phase[0] = g1phase * g2phase * g3phase
             zetas[0] *= phase[0]
 
-            if len(zetas) > 2:
+            if len(zetas) == 4:
                 phase[1] = np.conj(g1phase) * g2phase * g3phase
                 phase[2] = g1phase * np.conj(g2phase) * g3phase
                 phase[3] = g1phase * g2phase * np.conj(g3phase)
@@ -2474,9 +2474,10 @@ class Corr3(object):
                 zetas[2] *= phase[2]
                 zetas[3] *= phase[3]
             elif len(zetas) == 2:  # pragma: no cover
-                # TODO
                 # This one is a little tricky.  It means there are two spinny vertices.
                 # Need to figure out which one to conjugate.
+                # TODO
+                assert False
                 phase[1] = np.conj(g1phase) * g2phase * g3phase
                 zetas[1] *= phase[1]
 
@@ -2490,7 +2491,8 @@ class Corr3(object):
             temp = sas.results[k]
             zetas = [z.dot(expiphi) / (2*np.pi) * sas.phi_bin_size for z in v._zetas]
             for i in range(len(zetas)):
-                zetas[i] *= phase[i]
+                if phase[i] is not None:
+                    zetas[i] *= phase[i]
                 temp._z[2*i][:] = np.real(zetas[i])
                 if sas._z[2*i+1].size:
                     temp._z[2*i+1][:] = np.imag(zetas[i])

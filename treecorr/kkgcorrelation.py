@@ -112,9 +112,6 @@ class KKGCorrelation(Corr3):
         mask2 = self.weightr == 0
         self._var_num = vark1 * vark2 * varg
 
-        # I don't really understand why the variance is coming out 2x larger than the normal
-        # formula for LogSAS.  But with just Gaussian noise, I need to multiply the numerator
-        # by two to get the variance estimates to come out right.
         if self.bin_type in ['LogSAS', 'LogMultipole']:
             self._var_num *= 2
 
@@ -244,9 +241,6 @@ class KGKCorrelation(Corr3):
         mask2 = self.weightr == 0
         self._var_num = vark1 * vark2 * varg
 
-        # I don't really understand why the variance is coming out 2x larger than the normal
-        # formula for LogSAS.  But with just Gaussian noise, I need to multiply the numerator
-        # by two to get the variance estimates to come out right.
         if self.bin_type in ['LogSAS', 'LogMultipole']:
             self._var_num *= 2
 
@@ -376,9 +370,6 @@ class GKKCorrelation(Corr3):
         mask2 = self.weightr == 0
         self._var_num = vark1 * vark2 * varg
 
-        # I don't really understand why the variance is coming out 2x larger than the normal
-        # formula for LogSAS.  But with just Gaussian noise, I need to multiply the numerator
-        # by two to get the variance estimates to come out right.
         if self.bin_type in ['LogSAS', 'LogMultipole']:
             self._var_num *= 2
 

@@ -1164,14 +1164,7 @@ class Corr3(object):
                 self._equal_bin_data(other) and
                 np.array_equal(self.weight, other.weight) and
                 np.array_equal(self.ntri, other.ntri) and
-                np.array_equal(self._z[0], other._z[0]) and
-                np.array_equal(self._z[1], other._z[1]) and
-                np.array_equal(self._z[2], other._z[2]) and
-                np.array_equal(self._z[3], other._z[3]) and
-                np.array_equal(self._z[4], other._z[4]) and
-                np.array_equal(self._z[5], other._z[5]) and
-                np.array_equal(self._z[6], other._z[6]) and
-                np.array_equal(self._z[7], other._z[7]))
+                all(np.array_equal(self._z[i], other._z[i]) for i in range(8)))
 
     def copy(self):
         """Make a copy"""

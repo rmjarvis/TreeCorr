@@ -591,8 +591,8 @@ Cell<D,C>* BuildCell(std::vector<std::pair<BaseCellData<C>*,WPosLeafInfo> >& vda
     xdbg<<"sizesq = "<<sizesq<<" cf. "<<minsizesq<<", brute="<<brute<<std::endl;
     if (sizesq > minsizesq) {
         // If size is large enough, recurse to leaves.
-        double size = brute ? std::numeric_limits<double>::infinity() : sqrt(sizesq);
-        if (brute) sizesq = std::numeric_limits<double>::infinity();
+        double size = brute ? std::numeric_limits<double>::max() : sqrt(sizesq);
+        if (brute) sizesq = std::numeric_limits<double>::max();
         xdbg<<"size,sizesq = "<<size<<","<<sizesq<<std::endl;
         size_t mid = SplitData<C,SM>(vdata,start,end,data->getPos());
         Cell<D,C>* l = BuildCell<D,C,SM>(vdata,minsizesq,brute,start,mid);

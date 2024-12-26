@@ -554,7 +554,7 @@ void FindCellsInPatches(const std::vector<Position<C> >& centers,
     xdbg<<"cell = "<<cell_center<<"  "<<s<<"  "<<cell->getN()<<std::endl;
 
     // Start with a guess that the closest one is in the first position.
-    double closest_i = patches[0];
+    long closest_i = patches[0];
     double min_dsq = (cell_center - centers[closest_i]).normSq();
     saved_dsq[0] = min_dsq;
     if (inertia) {

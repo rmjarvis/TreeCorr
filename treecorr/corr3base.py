@@ -1875,7 +1875,7 @@ class Corr3(object):
         min_size, max_size = self._get_minmax_size()
 
         getField1 = getattr(cat1, f"get{self._letter1}Field")
-        getField2 = getattr(cat2, f"get{self._letter3}Field")
+        getField2 = getattr(cat2, f"get{self._letter2}Field")
         f1 = getField1(min_size=min_size, max_size=max_size,
                        split_method=self.split_method,
                        brute=self.brute is True or self.brute == 1,

@@ -2321,11 +2321,10 @@ class Corr3(object):
             np.sum([c.weighti for c in others], axis=0, out=self.weighti)
         np.sum([c.ntri for c in others], axis=0, out=self.ntri)
 
-    def _calculate_varzeta(self, vz, i1=0, i2=None):
-        if vz is None:
-            vz = np.zeros(self.data_shape)
-            if self._var_num != 0:
-                vz.ravel()[:] = self.cov_diag[i1:i2].real
+    def _calculate_varzeta(self, i1=0, i2=None):
+        vz = np.zeros(self.data_shape)
+        if self._var_num != 0:
+            vz.ravel()[:] = self.cov_diag[i1:i2].real
         return vz
 
     def toSAS(self, *, target=None, **kwargs):
@@ -2376,6 +2375,7 @@ class Corr3(object):
         sas.npatch3 = self.npatch3
         sas.coords = self.coords
         sas.metric = self.metric
+        sas._var_num = self._var_num
 
         # Use nominal for meanphi
         sas.meanu[:] = sas.phi / sas._phi_units
@@ -2415,9 +2415,6 @@ class Corr3(object):
             temp.meanu *= temp.weightr
 
             sas.results[k] = temp
-
-        if hasattr(self, '_var_num'):
-            sas._var_num = self._var_num
 
         if self._z[0].size == 0:
             # NNN doesn't have a zeta to compute

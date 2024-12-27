@@ -116,7 +116,7 @@ class KKKCorrelation(Corr3):
     @property
     def varzeta(self):
         if self._varzeta is None:
-            self._varzeta = self._calculate_varzeta(self._varzeta)
+            self._varzeta = self._calculate_varzeta()
         return self._varzeta
 
     def _clear(self):

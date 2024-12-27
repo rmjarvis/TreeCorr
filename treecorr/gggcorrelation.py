@@ -183,25 +183,25 @@ class GGGCorrelation(Corr3):
     @property
     def vargam0(self):
         if self._vargam0 is None:
-            self._vargam0 = self._calculate_varzeta(self._vargam0, 0, self._nbins)
+            self._vargam0 = self._calculate_varzeta(0, self._nbins)
         return self._vargam0
 
     @property
     def vargam1(self):
         if self._vargam1 is None:
-            self._vargam1 = self._calculate_varzeta(self._vargam1, self._nbins, 2*self._nbins)
+            self._vargam1 = self._calculate_varzeta(self._nbins, 2*self._nbins)
         return self._vargam1
 
     @property
     def vargam2(self):
         if self._vargam2 is None:
-            self._vargam2 = self._calculate_varzeta(self._vargam2, 2*self._nbins, 3*self._nbins)
+            self._vargam2 = self._calculate_varzeta(2*self._nbins, 3*self._nbins)
         return self._vargam2
 
     @property
     def vargam3(self):
         if self._vargam3 is None:
-            self._vargam3 = self._calculate_varzeta(self._vargam3, 3*self._nbins, 4*self._nbins)
+            self._vargam3 = self._calculate_varzeta(3*self._nbins, 4*self._nbins)
         return self._vargam3
 
     def _clear(self):

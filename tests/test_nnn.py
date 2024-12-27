@@ -49,6 +49,7 @@ def test_logruv_binning():
         np.testing.assert_equal(nnn.v.shape, (nnn.nbins, nnn.nubins, 2*nnn.nvbins) )
         np.testing.assert_almost_equal(nnn.v[0,0,:], nnn.v1d)
         np.testing.assert_almost_equal(nnn.v[-1,-1,:], nnn.v1d)
+        assert nnn._zetas == []
 
     def check_defaultuv(nnn):
         assert nnn.min_u == 0.

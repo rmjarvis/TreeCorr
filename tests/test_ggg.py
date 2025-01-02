@@ -4652,9 +4652,30 @@ def test_direct_logmultipole_cross():
     true_gam3_132 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
     true_weight_132 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
     true_ntri_132 = np.zeros((nbins, nbins, 2*max_n+1))
-    # Skip all the ones with 2 or 3 first.
-    # It's too annoying to get all the shear projections right for each,
-    # and the unordered code is well enough tested with KKK and NNN tests.
+    true_gam0_231 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_gam1_231 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_gam2_231 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_gam3_231 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_weight_231 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_ntri_231 = np.zeros((nbins, nbins, 2*max_n+1))
+    true_gam0_213 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_gam1_213 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_gam2_213 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_gam3_213 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_weight_213 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_ntri_213 = np.zeros((nbins, nbins, 2*max_n+1))
+    true_gam0_312 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_gam1_312 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_gam2_312 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_gam3_312 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_weight_312 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_ntri_312 = np.zeros((nbins, nbins, 2*max_n+1))
+    true_gam0_321 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_gam1_321 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_gam2_321 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_gam3_321 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_weight_321 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_ntri_321 = np.zeros((nbins, nbins, 2*max_n+1))
     bin_size = (log_max_sep - log_min_sep) / nbins
     n1d = np.arange(-max_n, max_n+1)
     for i in range(ngal):
@@ -4671,28 +4692,30 @@ def test_direct_logmultipole_cross():
                 kr2 = int(np.floor( (np.log(d2)-log_min_sep) / bin_size ))
                 kr3 = int(np.floor( (np.log(d3)-log_min_sep) / bin_size ))
 
-                # Rotate shears according to the x projection.  See Porth et al, Figure 1.
-                # g2 is projected to the line from c1 to c2.
-                # g3 is projected to the line from c1 to c3.
-                # g1 is projected to the average of these two lines.
-                expmialpha2 = (x2[j]-x1[i]) - 1j*(y2[j]-y1[i])
-                expmialpha2 /= abs(expmialpha2)
-                expmialpha3 = (x3[k]-x1[i]) - 1j*(y3[k]-y1[i])
-                expmialpha3 /= abs(expmialpha3)
-                expmialpha1 = expmialpha2 + expmialpha3
-                expmialpha1 /= abs(expmialpha1)
-
                 www = w1[i] * w2[j] * w3[k]
-                g1p = (g1_1[i] + 1j*g2_1[i]) * expmialpha1**2
-                g2p = (g1_2[j] + 1j*g2_2[j]) * expmialpha2**2
-                g3p = (g1_3[k] + 1j*g2_3[k]) * expmialpha3**2
-                gam0 = www * g1p * g2p * g3p
-                gam1 = www * np.conjugate(g1p) * g2p * g3p
-                gam2 = www * g1p * np.conjugate(g2p) * g3p
-                gam3 = www * g1p * g2p * np.conjugate(g3p)
 
                 # 123, 132
                 if d2 >= min_sep and d2 < max_sep and d3 >= min_sep and d3 < max_sep:
+                    # Rotate shears according to the x projection.  See Porth et al, Figure 1.
+                    # g2 is projected to the line from c1 to c2.
+                    # g3 is projected to the line from c1 to c3.
+                    # g1 is projected to the average of these two lines.
+                    expmialpha2 = (x2[j]-x1[i]) - 1j*(y2[j]-y1[i])
+                    expmialpha2 /= abs(expmialpha2)
+                    expmialpha3 = (x3[k]-x1[i]) - 1j*(y3[k]-y1[i])
+                    expmialpha3 /= abs(expmialpha3)
+                    expmialpha1 = expmialpha2 + expmialpha3
+                    expmialpha1 /= abs(expmialpha1)
+
+                    g1p = (g1_1[i] + 1j*g2_1[i]) * expmialpha1**2
+                    g2p = (g1_2[j] + 1j*g2_2[j]) * expmialpha2**2
+                    g3p = (g1_3[k] + 1j*g2_3[k]) * expmialpha3**2
+
+                    gam0 = www * g1p * g2p * g3p
+                    gam1 = www * np.conjugate(g1p) * g2p * g3p
+                    gam2 = www * g1p * np.conjugate(g2p) * g3p
+                    gam3 = www * g1p * g2p * np.conjugate(g3p)
+
                     assert 0 <= kr2 < nbins
                     assert 0 <= kr3 < nbins
                     phi = np.arccos((d2**2 + d3**2 - d1**2)/(2*d2*d3))
@@ -4710,6 +4733,84 @@ def test_direct_logmultipole_cross():
                     true_gam3_132[kr3,kr2,:] += gam2 * np.exp(1j * n1d * phi)
                     true_weight_132[kr3,kr2,:] += www * np.exp(1j * n1d * phi)
                     true_ntri_132[kr3,kr2,:] += 1
+
+                # 231, 213
+                if d1 >= min_sep and d1 < max_sep and d3 >= min_sep and d3 < max_sep:
+                    # g1 is projected to the line from c2 to c1.
+                    # g3 is projected to the line from c2 to c3.
+                    # g2 is projected to the average of these two lines.
+                    expmialpha1 = (x2[j]-x1[i]) - 1j*(y2[j]-y1[i])
+                    expmialpha1 /= abs(expmialpha1)
+                    expmialpha3 = (x2[j]-x3[k]) - 1j*(y2[j]-y3[k])
+                    expmialpha3 /= abs(expmialpha3)
+                    expmialpha2 = expmialpha1 + expmialpha3
+                    expmialpha2 /= abs(expmialpha2)
+
+                    g1p = (g1_1[i] + 1j*g2_1[i]) * expmialpha1**2
+                    g2p = (g1_2[j] + 1j*g2_2[j]) * expmialpha2**2
+                    g3p = (g1_3[k] + 1j*g2_3[k]) * expmialpha3**2
+
+                    gam0 = www * g2p * g3p * g1p
+                    gam1 = www * np.conjugate(g2p) * g3p * g1p
+                    gam2 = www * g2p * np.conjugate(g3p) * g1p
+                    gam3 = www * g2p * g3p * np.conjugate(g1p)
+
+                    assert 0 <= kr3 < nbins
+                    assert 0 <= kr1 < nbins
+                    phi = np.arccos((d1**2 + d3**2 - d2**2)/(2*d1*d3))
+                    if not is_ccw(x1[i],y1[i],x3[k],y3[k],x2[j],y2[j]):
+                        phi = -phi
+                    true_gam0_231[kr3,kr1,:] += gam0 * np.exp(-1j * n1d * phi)
+                    true_gam1_231[kr3,kr1,:] += gam1 * np.exp(-1j * n1d * phi)
+                    true_gam2_231[kr3,kr1,:] += gam2 * np.exp(-1j * n1d * phi)
+                    true_gam3_231[kr3,kr1,:] += gam3 * np.exp(-1j * n1d * phi)
+                    true_weight_231[kr3,kr1,:] += www * np.exp(-1j * n1d * phi)
+                    true_ntri_231[kr3,kr1,:] += 1
+                    true_gam0_213[kr1,kr3,:] += gam0 * np.exp(1j * n1d * phi)
+                    true_gam1_213[kr1,kr3,:] += gam1 * np.exp(1j * n1d * phi)
+                    true_gam2_213[kr1,kr3,:] += gam3 * np.exp(1j * n1d * phi)
+                    true_gam3_213[kr1,kr3,:] += gam2 * np.exp(1j * n1d * phi)
+                    true_weight_213[kr1,kr3,:] += www * np.exp(1j * n1d * phi)
+                    true_ntri_213[kr1,kr3,:] += 1
+
+                # 312, 321
+                if d1 >= min_sep and d1 < max_sep and d2 >= min_sep and d2 < max_sep:
+                    # g1 is projected to the line from c3 to c1.
+                    # g2 is projected to the line from c3 to c2.
+                    # g3 is projected to the average of these two lines.
+                    expmialpha1 = (x3[k]-x1[i]) - 1j*(y3[k]-y1[i])
+                    expmialpha1 /= abs(expmialpha1)
+                    expmialpha2 = (x3[k]-x2[j]) - 1j*(y3[k]-y2[j])
+                    expmialpha2 /= abs(expmialpha2)
+                    expmialpha3 = expmialpha1 + expmialpha2
+                    expmialpha3 /= abs(expmialpha3)
+
+                    g1p = (g1_1[i] + 1j*g2_1[i]) * expmialpha1**2
+                    g2p = (g1_2[j] + 1j*g2_2[j]) * expmialpha2**2
+                    g3p = (g1_3[k] + 1j*g2_3[k]) * expmialpha3**2
+
+                    gam0 = www * g3p * g1p * g2p
+                    gam1 = www * np.conjugate(g3p) * g1p * g2p
+                    gam2 = www * g3p * np.conjugate(g1p) * g2p
+                    gam3 = www * g3p * g1p * np.conjugate(g2p)
+
+                    assert 0 <= kr1 < nbins
+                    assert 0 <= kr2 < nbins
+                    phi = np.arccos((d1**2 + d2**2 - d3**2)/(2*d1*d2))
+                    if not is_ccw(x1[i],y1[i],x3[k],y3[k],x2[j],y2[j]):
+                        phi = -phi
+                    true_gam0_312[kr1,kr2,:] += gam0 * np.exp(-1j * n1d * phi)
+                    true_gam1_312[kr1,kr2,:] += gam1 * np.exp(-1j * n1d * phi)
+                    true_gam2_312[kr1,kr2,:] += gam2 * np.exp(-1j * n1d * phi)
+                    true_gam3_312[kr1,kr2,:] += gam3 * np.exp(-1j * n1d * phi)
+                    true_weight_312[kr1,kr2,:] += www * np.exp(-1j * n1d * phi)
+                    true_ntri_312[kr1,kr2,:] += 1
+                    true_gam0_321[kr2,kr1,:] += gam0 * np.exp(1j * n1d * phi)
+                    true_gam1_321[kr2,kr1,:] += gam1 * np.exp(1j * n1d * phi)
+                    true_gam2_321[kr2,kr1,:] += gam3 * np.exp(1j * n1d * phi)
+                    true_gam3_321[kr2,kr1,:] += gam2 * np.exp(1j * n1d * phi)
+                    true_weight_321[kr2,kr1,:] += www * np.exp(1j * n1d * phi)
+                    true_ntri_321[kr2,kr1,:] += 1
 
     np.testing.assert_allclose(ggg.ntri, true_ntri_123, rtol=1.e-5)
     np.testing.assert_allclose(ggg.weight, true_weight_123, rtol=1.e-5)
@@ -4737,6 +4838,38 @@ def test_direct_logmultipole_cross():
     np.testing.assert_allclose(ggg.gam2, true_gam2_132, rtol=1.e-4)
     np.testing.assert_allclose(ggg.gam3, true_gam3_132, rtol=1.e-4)
 
+    ggg.process(cat2, cat3, cat1)
+    np.testing.assert_allclose(ggg.ntri, true_ntri_231, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.weight, true_weight_231, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_231, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_231, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_231, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_231, rtol=1.e-4)
+
+    ggg.process(cat2, cat1, cat3)
+    np.testing.assert_allclose(ggg.ntri, true_ntri_213, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.weight, true_weight_213, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_213, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_213, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_213, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_213, rtol=1.e-4)
+
+    ggg.process(cat3, cat1, cat2)
+    np.testing.assert_allclose(ggg.ntri, true_ntri_312, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_312, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_312, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_312, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_312, rtol=1.e-4)
+
+    ggg.process(cat3, cat2, cat1)
+    np.testing.assert_allclose(ggg.ntri, true_ntri_321, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.weight, true_weight_321, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_321, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_321, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_321, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_321, rtol=1.e-4)
+
     # Split into patches to test the list-based version of the code.
     # First with just one catalog with patches
     cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=10, rng=rng)
@@ -4747,6 +4880,7 @@ def test_direct_logmultipole_cross():
     np.testing.assert_allclose(ggg.gam1, true_gam1_123, rtol=1.e-4)
     np.testing.assert_allclose(ggg.gam2, true_gam2_123, rtol=1.e-4)
     np.testing.assert_allclose(ggg.gam3, true_gam3_123, rtol=1.e-4)
+
     ggg.process(cat1, cat3, cat2)
     np.testing.assert_allclose(ggg.weight, true_weight_132, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_132, rtol=1.e-4)
@@ -4764,12 +4898,41 @@ def test_direct_logmultipole_cross():
     np.testing.assert_allclose(ggg.gam1, true_gam1_123, rtol=1.e-4)
     np.testing.assert_allclose(ggg.gam2, true_gam2_123, rtol=1.e-4)
     np.testing.assert_allclose(ggg.gam3, true_gam3_123, rtol=1.e-4)
+
     ggg.process(cat1, cat3, cat2, patch_method='local')
     np.testing.assert_allclose(ggg.weight, true_weight_132, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_132, rtol=1.e-4)
     np.testing.assert_allclose(ggg.gam1, true_gam1_132, rtol=1.e-4)
     np.testing.assert_allclose(ggg.gam2, true_gam2_132, rtol=1.e-4)
     np.testing.assert_allclose(ggg.gam3, true_gam3_132, rtol=1.e-4)
+
+    ggg.process(cat2, cat3, cat1, patch_method='local')
+    np.testing.assert_allclose(ggg.weight, true_weight_231, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_231, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_231, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_231, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_231, rtol=1.e-4)
+
+    ggg.process(cat2, cat1, cat3, patch_method='local')
+    np.testing.assert_allclose(ggg.weight, true_weight_213, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_213, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_213, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_213, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_213, rtol=1.e-4)
+
+    ggg.process(cat3, cat1, cat2, patch_method='local')
+    np.testing.assert_allclose(ggg.weight, true_weight_312, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_312, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_312, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_312, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_312, rtol=1.e-4)
+
+    ggg.process(cat3, cat2, cat1, patch_method='local')
+    np.testing.assert_allclose(ggg.weight, true_weight_321, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_321, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_321, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_321, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_321, rtol=1.e-4)
 
     # No tests of accuracy yet, but make sure patch-based covariance works.
     cov = ggg.estimate_cov('sample')
@@ -4809,7 +4972,6 @@ def test_direct_logmultipole_cross12():
 
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
                                   bin_slop=0, angle_slop=0, max_top=2, bin_type='LogMultipole')
-    ggg.process(cat1, cat2)
 
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
@@ -4819,6 +4981,18 @@ def test_direct_logmultipole_cross12():
     true_gam3_122 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
     true_weight_122 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
     true_ntri_122 = np.zeros((nbins, nbins, 2*max_n+1))
+    true_gam0_212 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_gam1_212 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_gam2_212 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_gam3_212 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_weight_212 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_ntri_212 = np.zeros((nbins, nbins, 2*max_n+1))
+    true_gam0_221 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_gam1_221 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_gam2_221 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_gam3_221 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_weight_221 = np.zeros((nbins, nbins, 2*max_n+1), dtype=complex)
+    true_ntri_221 = np.zeros((nbins, nbins, 2*max_n+1))
     bin_size = (log_max_sep - log_min_sep) / nbins
     n1d = np.arange(-max_n, max_n+1)
     for i in range(ngal):
@@ -4836,29 +5010,29 @@ def test_direct_logmultipole_cross12():
                 kr2 = int(np.floor( (np.log(d2)-log_min_sep) / bin_size ))
                 kr3 = int(np.floor( (np.log(d3)-log_min_sep) / bin_size ))
 
-                # Rotate shears according to the x projection.  See Porth et al, Figure 1.
-                # g2 is projected to the line from c1 to c2.
-                # g3 is projected to the line from c1 to c3.
-                # g1 is projected to the average of these two lines.
-                expmialpha2 = (x2[j]-x1[i]) - 1j*(y2[j]-y1[i])
-                expmialpha2 /= abs(expmialpha2)
-                expmialpha3 = (x2[k]-x1[i]) - 1j*(y2[k]-y1[i])
-                expmialpha3 /= abs(expmialpha3)
-                expmialpha1 = expmialpha2 + expmialpha3
-                expmialpha1 /= abs(expmialpha1)
-                expmialpha3 /= abs(expmialpha3)
-
                 www = w1[i] * w2[j] * w2[k]
-                g1p = (g1_1[i] + 1j*g2_1[i]) * expmialpha1**2
-                g2p = (g1_2[j] + 1j*g2_2[j]) * expmialpha2**2
-                g3p = (g1_2[k] + 1j*g2_2[k]) * expmialpha3**2
-                gam0 = www * g1p * g2p * g3p
-                gam1 = www * np.conjugate(g1p) * g2p * g3p
-                gam2 = www * g1p * np.conjugate(g2p) * g3p
-                gam3 = www * g1p * g2p * np.conjugate(g3p)
 
                 # 122
                 if d2 >= min_sep and d2 < max_sep and d3 >= min_sep and d3 < max_sep:
+                    # Rotate shears according to the x projection.  See Porth et al, Figure 1.
+                    # g2 is projected to the line from c1 to c2.
+                    # g3 is projected to the line from c1 to c3.
+                    # g1 is projected to the average of these two lines.
+                    expmialpha2 = (x2[j]-x1[i]) - 1j*(y2[j]-y1[i])
+                    expmialpha2 /= abs(expmialpha2)
+                    expmialpha3 = (x2[k]-x1[i]) - 1j*(y2[k]-y1[i])
+                    expmialpha3 /= abs(expmialpha3)
+                    expmialpha1 = expmialpha2 + expmialpha3
+                    expmialpha1 /= abs(expmialpha1)
+
+                    g1p = (g1_1[i] + 1j*g2_1[i]) * expmialpha1**2
+                    g2p = (g1_2[j] + 1j*g2_2[j]) * expmialpha2**2
+                    g3p = (g1_2[k] + 1j*g2_2[k]) * expmialpha3**2
+                    gam0 = www * g1p * g2p * g3p
+                    gam1 = www * np.conjugate(g1p) * g2p * g3p
+                    gam2 = www * g1p * np.conjugate(g2p) * g3p
+                    gam3 = www * g1p * g2p * np.conjugate(g3p)
+
                     assert 0 <= kr2 < nbins
                     assert 0 <= kr3 < nbins
                     phi = np.arccos((d2**2 + d3**2 - d1**2)/(2*d2*d3))
@@ -4871,12 +5045,93 @@ def test_direct_logmultipole_cross12():
                     true_gam3_122[kr2,kr3,:] += gam3 * np.exp(-1j * n1d * phi)
                     true_ntri_122[kr2,kr3,:] += 1.
 
+                # 221
+                if d3 >= min_sep and d3 < max_sep and d1 >= min_sep and d1 < max_sep:
+                    # g3 is projected to the line from c2 to c3.
+                    # g1 is projected to the line from c2 to c1.
+                    # g2 is projected to the average of these two lines.
+                    expmialpha3 = (x2[j]-x2[k]) - 1j*(y2[j]-y2[k])
+                    expmialpha3 /= abs(expmialpha3)
+                    expmialpha1 = (x2[j]-x1[i]) - 1j*(y2[j]-y1[i])
+                    expmialpha1 /= abs(expmialpha1)
+                    expmialpha2 = expmialpha1 + expmialpha3
+                    expmialpha2 /= abs(expmialpha2)
+
+                    g1p = (g1_1[i] + 1j*g2_1[i]) * expmialpha1**2
+                    g2p = (g1_2[j] + 1j*g2_2[j]) * expmialpha2**2
+                    g3p = (g1_2[k] + 1j*g2_2[k]) * expmialpha3**2
+                    gam0 = www * g2p * g3p * g1p
+                    gam1 = www * np.conjugate(g2p) * g3p * g1p
+                    gam2 = www * g2p * np.conjugate(g3p) * g1p
+                    gam3 = www * g2p * g3p * np.conjugate(g1p)
+
+                    assert 0 <= kr3 < nbins
+                    assert 0 <= kr1 < nbins
+                    phi = np.arccos((d1**2 + d3**2 - d2**2)/(2*d1*d3))
+                    if not is_ccw(x1[i],y1[i],x2[k],y2[k],x2[j],y2[j]):
+                        phi = -phi
+                    true_weight_221[kr3,kr1,:] += www * np.exp(-1j * n1d * phi)
+                    true_gam0_221[kr3,kr1,:] += gam0 * np.exp(-1j * n1d * phi)
+                    true_gam1_221[kr3,kr1,:] += gam1 * np.exp(-1j * n1d * phi)
+                    true_gam2_221[kr3,kr1,:] += gam2 * np.exp(-1j * n1d * phi)
+                    true_gam3_221[kr3,kr1,:] += gam3 * np.exp(-1j * n1d * phi)
+                    true_ntri_221[kr3,kr1,:] += 1.
+
+                # 212
+                if d1 >= min_sep and d1 < max_sep and d2 >= min_sep and d2 < max_sep:
+                    # g1 is projected to the line from c3 to c1.
+                    # g2 is projected to the line from c3 to c2.
+                    # g3 is projected to the average of these two lines.
+                    expmialpha1 = (x2[k]-x1[i]) - 1j*(y2[k]-y1[i])
+                    expmialpha1 /= abs(expmialpha1)
+                    expmialpha2 = (x2[k]-x2[j]) - 1j*(y2[k]-y2[j])
+                    expmialpha2 /= abs(expmialpha2)
+                    expmialpha3 = expmialpha1 + expmialpha2
+                    expmialpha3 /= abs(expmialpha3)
+
+                    g1p = (g1_1[i] + 1j*g2_1[i]) * expmialpha1**2
+                    g2p = (g1_2[j] + 1j*g2_2[j]) * expmialpha2**2
+                    g3p = (g1_2[k] + 1j*g2_2[k]) * expmialpha3**2
+                    gam0 = www * g3p * g1p * g2p
+                    gam1 = www * np.conjugate(g3p) * g1p * g2p
+                    gam2 = www * g3p * np.conjugate(g1p) * g2p
+                    gam3 = www * g3p * g1p * np.conjugate(g2p)
+
+                    assert 0 <= kr1 < nbins
+                    assert 0 <= kr2 < nbins
+                    phi = np.arccos((d1**2 + d2**2 - d3**2)/(2*d1*d2))
+                    if not is_ccw(x1[i],y1[i],x2[k],y2[k],x2[j],y2[j]):
+                        phi = -phi
+                    true_weight_212[kr1,kr2,:] += www * np.exp(-1j * n1d * phi)
+                    true_gam0_212[kr1,kr2,:] += gam0 * np.exp(-1j * n1d * phi)
+                    true_gam1_212[kr1,kr2,:] += gam1 * np.exp(-1j * n1d * phi)
+                    true_gam2_212[kr1,kr2,:] += gam2 * np.exp(-1j * n1d * phi)
+                    true_gam3_212[kr1,kr2,:] += gam3 * np.exp(-1j * n1d * phi)
+                    true_ntri_212[kr1,kr2,:] += 1.
+
+    ggg.process(cat1, cat2)
     np.testing.assert_array_equal(ggg.ntri, true_ntri_122)
     np.testing.assert_allclose(ggg.weight, true_weight_122, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_122, rtol=1.e-4)
     np.testing.assert_allclose(ggg.gam1, true_gam1_122, rtol=1.e-4)
     np.testing.assert_allclose(ggg.gam2, true_gam2_122, rtol=1.e-4)
     np.testing.assert_allclose(ggg.gam3, true_gam3_122, rtol=1.e-4)
+
+    ggg.process(cat2, cat2, cat1)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_221)
+    np.testing.assert_allclose(ggg.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_221, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_221, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_221, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_221, rtol=1.e-4)
+
+    ggg.process(cat2, cat1, cat2)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_212)
+    np.testing.assert_allclose(ggg.weight, true_weight_212, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_212, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_212, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_212, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_212, rtol=1.e-4)
 
     # Split into patches to test the list-based version of the code.
     # First with just one catalog with patches
@@ -4898,6 +5153,22 @@ def test_direct_logmultipole_cross12():
     np.testing.assert_allclose(ggg.gam1, true_gam1_122, rtol=1.e-4)
     np.testing.assert_allclose(ggg.gam2, true_gam2_122, rtol=1.e-4)
     np.testing.assert_allclose(ggg.gam3, true_gam3_122, rtol=1.e-4)
+
+    ggg.process(cat2, cat2, cat1)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_221)
+    np.testing.assert_allclose(ggg.weight, true_weight_221, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_221, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_221, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_221, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_221, rtol=1.e-4)
+
+    ggg.process(cat2, cat1, cat2)
+    np.testing.assert_array_equal(ggg.ntri, true_ntri_212)
+    np.testing.assert_allclose(ggg.weight, true_weight_212, rtol=1.e-5)
+    np.testing.assert_allclose(ggg.gam0, true_gam0_212, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam1, true_gam1_212, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam2, true_gam2_212, rtol=1.e-4)
+    np.testing.assert_allclose(ggg.gam3, true_gam3_212, rtol=1.e-4)
 
     # No tests of accuracy yet, but make sure patch-based covariance works.
     cov = ggg.estimate_cov('sample')

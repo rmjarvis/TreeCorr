@@ -214,7 +214,16 @@ struct MultipoleScratch<KData> : public BaseMultipoleScratch
     { return k * (maxn+1+buffer) + n; }
 
     std::complex<double> Gn(int index, int n=0)
-    { return n >= 0 ? _Gn[index+n] : std::conj(_Gn[index-n]); }
+    {
+        if (n >= 0) {
+            XAssert(index+n < Gnsize);
+            XAssert(index+n >= 0);
+        } else {
+            XAssert(index-n < Gnsize);
+            XAssert(index-n >= 0);
+        }
+        return n >= 0 ? _Gn[index+n] : std::conj(_Gn[index-n]);
+    }
 
     double correction0r(int k)
     { return sumwwkk[k].real(); }
@@ -296,7 +305,11 @@ struct MultipoleScratch<GData> : public BaseMultipoleScratch
     // 2*k*maxn + 2*k*buffer + maxn + buffer + k
 
     std::complex<double> Gn(int index, int n=0)
-    { return _Gn[index+n]; }
+    {
+        XAssert(index+n < Gnsize);
+        XAssert(index+n >= 0);
+        return _Gn[index+n];
+    }
 
     double correction0r(int k)
     { XAssert(false); return sumwwgg0[k].real(); }

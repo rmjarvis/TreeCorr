@@ -68,6 +68,7 @@ from .kkkcorrelation import KKKCorrelation
 from .gggcorrelation import GGGCorrelation
 
 from .kkgcorrelation import KKGCorrelation, KGKCorrelation, GKKCorrelation
+from .kggcorrelation import KGGCorrelation, GKGCorrelation, GGKCorrelation
 
 from .exec_corr2 import corr2, print_corr2_params, corr2_valid_params, corr2_aliases
 from .exec_corr3 import corr3, print_corr3_params, corr3_valid_params, corr3_aliases

@@ -194,8 +194,6 @@ def test_direct_logruv_cross():
     true_zeta_sum3[pos] /= true_weight_sum3[pos]
 
     # Now normalize each one individually.
-    n_list = [true_ntri_123, true_ntri_132, true_ntri_213, true_ntri_231,
-              true_ntri_312, true_ntri_321]
     w_list = [true_weight_123, true_weight_132, true_weight_213, true_weight_231,
               true_weight_312, true_weight_321]
     z_list = [true_zeta_123, true_zeta_132, true_zeta_213, true_zeta_231,
@@ -232,7 +230,7 @@ def test_direct_logruv_cross():
     np.testing.assert_allclose(gkk.weight, true_weight_321, rtol=1.e-5)
     np.testing.assert_allclose(gkk.zeta, true_zeta_321, rtol=1.e-5)
 
-    # With ordered=False, we end up with the sum of both versions where K in 1,2
+    # With ordered=False, we end up with the sum of both versions where G is in 3
     kkg.process(cat1, cat2, cat3, ordered=False)
     np.testing.assert_array_equal(kkg.ntri, true_ntri_sum3)
     np.testing.assert_allclose(kkg.weight, true_weight_sum3, rtol=1.e-5)
@@ -961,7 +959,7 @@ def test_varzeta_logruv():
                                   sep_units='arcmin', nubins=3, nvbins=3, verbose=1,
                                   bin_type='LogRUV')
 
-    # Before running process, varzeta and cov area allowed, but all 0.
+    # Before running process, varzeta and cov are allowed, but all 0.
     np.testing.assert_array_equal(kkg.cov, 0)
     np.testing.assert_array_equal(kkg.varzeta, 0)
     np.testing.assert_array_equal(kgk.cov, 0)
@@ -1108,6 +1106,7 @@ def test_direct_logsas_cross():
                         true_weight_123[kr2,kr3,kphi] += www
                         true_zeta_123[kr2,kr3,kphi] += zeta
 
+                    # 132
                     phi = 2*np.pi - phi
                     if phi >= 0 and phi < np.pi:
                         kphi = int(np.floor( phi / phi_bin_size ))
@@ -1179,8 +1178,6 @@ def test_direct_logsas_cross():
     true_zeta_sum3[pos] /= true_weight_sum3[pos]
 
     # Now normalize each one individually.
-    n_list = [true_ntri_123, true_ntri_132, true_ntri_213, true_ntri_231,
-              true_ntri_312, true_ntri_321]
     w_list = [true_weight_123, true_weight_132, true_weight_213, true_weight_231,
               true_weight_312, true_weight_321]
     z_list = [true_zeta_123, true_zeta_132, true_zeta_213, true_zeta_231,
@@ -1219,7 +1216,7 @@ def test_direct_logsas_cross():
     np.testing.assert_allclose(gkk.weight, true_weight_321, rtol=1.e-5)
     np.testing.assert_allclose(gkk.zeta, true_zeta_321, rtol=1.e-5)
 
-    # With ordered=False, we end up with the sum of both versions where K is in 1,2
+    # With ordered=False, we end up with the sum of both versions where G is in 3
     kkg.process(cat1, cat2, cat3, ordered=False, algo='triangle')
     np.testing.assert_array_equal(kkg.ntri, true_ntri_sum3)
     np.testing.assert_allclose(kkg.weight, true_weight_sum3, rtol=1.e-5)
@@ -1538,7 +1535,6 @@ def test_direct_logsas_cross21():
                         true_weight_212[kr1,kr2,kphi] += www
                         true_zeta_212[kr1,kr2,kphi] += zeta
 
-    n_list = [true_ntri_122, true_ntri_212, true_ntri_221]
     w_list = [true_weight_122, true_weight_212, true_weight_221]
     z_list = [true_zeta_122, true_zeta_212, true_zeta_221]
     for w,z in zip(w_list, z_list):
@@ -2487,7 +2483,7 @@ def test_varzeta():
     kgk = treecorr.KGKCorrelation(nbins=3, min_sep=30., max_sep=50., nphi_bins=20)
     gkk = treecorr.GKKCorrelation(nbins=3, min_sep=30., max_sep=50., nphi_bins=20)
 
-    # Before running process, varzeta and cov area allowed, but all 0.
+    # Before running process, varzeta and cov are allowed, but all 0.
     np.testing.assert_array_equal(kkg.cov, 0)
     np.testing.assert_array_equal(kkg.varzeta, 0)
     np.testing.assert_array_equal(kgk.cov, 0)
@@ -2709,8 +2705,8 @@ def test_kkg_logsas_jk():
     kkgm = treecorr.KKGCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep, max_n=40,
                                    rng=rng, bin_type='LogMultipole')
     kkgm.process(kcat, gcat)
-    fm = lambda kkg: kkg.toSAS(min_phi=min_phi, max_phi=max_phi, phi_units='deg',
-                               nphi_bins=nphi_bins).zeta.ravel()
+    fm = lambda corr: corr.toSAS(min_phi=min_phi, max_phi=max_phi, phi_units='deg',
+                                 nphi_bins=nphi_bins).zeta.ravel()
     cov = kkgm.estimate_cov('jackknife', func=fm)
     print('kkg max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkg))))
     np.testing.assert_allclose(np.diagonal(cov), var_kkg, rtol=0.4 * tol_factor)
@@ -2719,20 +2715,16 @@ def test_kkg_logsas_jk():
     kgkm = treecorr.KGKCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep, max_n=40,
                                    rng=rng, bin_type='LogMultipole')
     kgkm.process(kcat, gcat, kcat)
-    fm = lambda kgk: kgk.toSAS(min_phi=min_phi, max_phi=max_phi, phi_units='deg',
-                               nphi_bins=nphi_bins).zeta.ravel()
     cov = kgkm.estimate_cov('jackknife', func=fm)
-    print('kgkm max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kgk))))
+    print('kgk max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kgk))))
     np.testing.assert_allclose(np.diagonal(cov), var_kgk, rtol=0.4 * tol_factor)
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kgk), atol=0.5*tol_factor)
 
     gkkm = treecorr.GKKCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep, max_n=40,
                                    rng=rng, bin_type='LogMultipole')
     gkkm.process(gcat, kcat)
-    fm = lambda gkk: gkk.toSAS(min_phi=min_phi, max_phi=max_phi, phi_units='deg',
-                               nphi_bins=nphi_bins).zeta.ravel()
     cov = gkkm.estimate_cov('jackknife', func=fm)
-    print('gkkm max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_gkk))))
+    print('gkk max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_gkk))))
     np.testing.assert_allclose(np.diagonal(cov), var_gkk, rtol=0.5 * tol_factor)
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_gkk), atol=0.7*tol_factor)
 

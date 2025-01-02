@@ -542,54 +542,53 @@ struct ZetaData<2> // NNG, NKG, KKG, etc.  1 complex
 template <>
 struct ZetaData<3> // NGG, KGG, etc. -- 2 complex
 {
-    ZetaData(double* z0, double* z1, double* z2, double* z3, double*, double*, double*, double*,
-             bool) :
-        zetap(z0), zetap_im(z1), zetam(z2), zetam_im(z3) {}
+    ZetaData(double* z0, double* z1, double* z2, double* z3, double*, double*, double*, double*) :
+        gam0r(z0), gam0i(z1), gam1r(z2), gam1i(z3) {}
 
     void new_data(int n)
     {
-        zetap = new double[n];
-        zetap_im = new double[n];
-        zetam = new double[n];
-        zetam_im = new double[n];
+        gam0r = new double[n];
+        gam0i = new double[n];
+        gam1r = new double[n];
+        gam1i = new double[n];
     }
     void delete_data()
     {
-        delete [] zetap; zetap = 0;
-        delete [] zetap_im; zetap_im = 0;
-        delete [] zetam; zetam = 0;
-        delete [] zetam_im; zetam_im = 0;
+        delete [] gam0r; gam0r = 0;
+        delete [] gam0i; gam0i = 0;
+        delete [] gam1r; gam1r = 0;
+        delete [] gam1i; gam1i = 0;
     }
     void copy(const ZetaData<3>& rhs, int n)
     {
-        for (int i=0; i<n; ++i) zetap[i] = rhs.zetap[i];
-        for (int i=0; i<n; ++i) zetap_im[i] = rhs.zetap_im[i];
-        for (int i=0; i<n; ++i) zetam[i] = rhs.zetam[i];
-        for (int i=0; i<n; ++i) zetam_im[i] = rhs.zetam_im[i];
+        for (int i=0; i<n; ++i) gam0r[i] = rhs.gam0r[i];
+        for (int i=0; i<n; ++i) gam0i[i] = rhs.gam0i[i];
+        for (int i=0; i<n; ++i) gam1r[i] = rhs.gam1r[i];
+        for (int i=0; i<n; ++i) gam1i[i] = rhs.gam1i[i];
     }
     void add(const ZetaData<3>& rhs, int n)
     {
-        for (int i=0; i<n; ++i) zetap[i] += rhs.zetap[i];
-        for (int i=0; i<n; ++i) zetap_im[i] += rhs.zetap_im[i];
-        for (int i=0; i<n; ++i) zetam[i] += rhs.zetam[i];
-        for (int i=0; i<n; ++i) zetam_im[i] += rhs.zetam_im[i];
+        for (int i=0; i<n; ++i) gam0r[i] += rhs.gam0r[i];
+        for (int i=0; i<n; ++i) gam0i[i] += rhs.gam0i[i];
+        for (int i=0; i<n; ++i) gam1r[i] += rhs.gam1r[i];
+        for (int i=0; i<n; ++i) gam1i[i] += rhs.gam1i[i];
     }
     void clear(int n)
     {
-        for (int i=0; i<n; ++i) zetap[i] = 0.;
-        for (int i=0; i<n; ++i) zetap_im[i] = 0.;
-        for (int i=0; i<n; ++i) zetam[i] = 0.;
-        for (int i=0; i<n; ++i) zetam_im[i] = 0.;
+        for (int i=0; i<n; ++i) gam0r[i] = 0.;
+        for (int i=0; i<n; ++i) gam0i[i] = 0.;
+        for (int i=0; i<n; ++i) gam1r[i] = 0.;
+        for (int i=0; i<n; ++i) gam1i[i] = 0.;
     }
     void write(std::ostream& os) const
-    { os << zetap[0]<<','<<zetap_im[0]<<','<<zetam[0]<<','<<zetam_im; }
+    { os << gam0r[0]<<','<<gam0i[0]<<','<<gam1r[0]<<','<<gam1i; }
     void write_full(std::ostream& os, int n) const
-    { for(int i=0;i<n;++i) os << zetap[i] <<" "; }
+    { for(int i=0;i<n;++i) os << gam0r[i] <<" "; }
 
-    double* zetap;
-    double* zetap_im;
-    double* zetam;
-    double* zetam_im;
+    double* gam0r;
+    double* gam0i;
+    double* gam1r;
+    double* gam1i;
 };
 
 template <>

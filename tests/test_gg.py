@@ -1366,7 +1366,7 @@ def test_varxi():
     gg = treecorr.GGCorrelation(bin_size=0.1, min_sep=10., max_sep=100., sep_units='arcmin',
                                 verbose=1)
 
-    # Before running process, varxi and cov area allowed, but all 0.
+    # Before running process, varxi and cov are allowed, but all 0.
     np.testing.assert_array_equal(gg.cov, 0)
     np.testing.assert_array_equal(gg.varxip, 0)
     np.testing.assert_array_equal(gg.varxim, 0)

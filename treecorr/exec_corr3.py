@@ -23,6 +23,7 @@ from .nnncorrelation import NNNCorrelation
 from .kkkcorrelation import KKKCorrelation
 from .gggcorrelation import GGGCorrelation
 from .kkgcorrelation import KKGCorrelation, KGKCorrelation, GKKCorrelation
+from .kggcorrelation import KGGCorrelation, GKGCorrelation, GGKCorrelation
 
 
 # Dict describing the valid parameters, what types they are, and a description:
@@ -209,6 +210,33 @@ def corr3(config, logger=None):
         logger.info("Done GKK calculations.")
         gkk.write(config['gkk_file_name'])
         logger.warning("Wrote GKK correlation to %s",config['gkk_file_name'])
+
+    # Do KGG correlation function if necessary
+    if 'kgg_file_name' in config:
+        logger.warning("Performing KGG calculations...")
+        kgg = KGGCorrelation(config, logger=logger)
+        kgg.process(cat1, cat2, cat3)
+        logger.info("Done KGG calculations.")
+        kgg.write(config['kgg_file_name'])
+        logger.warning("Wrote KGG correlation to %s",config['kgg_file_name'])
+
+    # Do GKG correlation function if necessary
+    if 'gkg_file_name' in config:
+        logger.warning("Performing GKG calculations...")
+        gkg = GKGCorrelation(config, logger=logger)
+        gkg.process(cat1, cat2, cat3)
+        logger.info("Done GKG calculations.")
+        gkg.write(config['gkg_file_name'])
+        logger.warning("Wrote GKG correlation to %s",config['gkg_file_name'])
+
+    # Do GGK correlation function if necessary
+    if 'ggk_file_name' in config:
+        logger.warning("Performing GGK calculations...")
+        ggk = GGKCorrelation(config, logger=logger)
+        ggk.process(cat1, cat2, cat3)
+        logger.info("Done GGK calculations.")
+        ggk.write(config['ggk_file_name'])
+        logger.warning("Wrote GGK correlation to %s",config['ggk_file_name'])
 
 
 def print_corr3_params():

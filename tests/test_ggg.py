@@ -2363,7 +2363,7 @@ def test_vargam_logruv():
                                   sep_units='arcmin', nubins=3, nvbins=3, verbose=1,
                                   bin_type='LogRUV')
 
-    # Before running process, vargam and cov area allowed, but all 0.
+    # Before running process, vargam and cov are allowed, but all 0.
     np.testing.assert_array_equal(ggg.cov, 0)
     np.testing.assert_array_equal(ggg.vargam0, 0)
     np.testing.assert_array_equal(ggg.vargam1, 0)

@@ -2189,12 +2189,8 @@ class Corr3(object):
         self.meand3[mask1] /= self.weightr[mask1]
         self.meanlogd3[mask1] /= self.weightr[mask1]
         if self.bin_type != 'LogMultipole':
-            if self._z[0].size:
-                self._z[0][mask1] /= self.weightr[mask1]
-            if self._z[1].size:
-                self._z[1][mask1] /= self.weightr[mask1]
-            if self._z[2].size:
-                for i in range(2,8):
+            for i in range(8):
+                if self._z[i].size:
                     self._z[i][mask1] /= self.weightr[mask1]
             self.meand1[mask1] /= self.weightr[mask1]
             self.meanlogd1[mask1] /= self.weightr[mask1]

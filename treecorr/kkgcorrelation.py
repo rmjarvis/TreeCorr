@@ -153,7 +153,7 @@ class KKGCorrelation(Corr3):
         self._varzeta = data['sigma_zeta'].reshape(s)**2
 
 class KGKCorrelation(Corr3):
-    r"""This class handles the calculation and storage of a 3-point scalar-scalar-shear correlation
+    r"""This class handles the calculation and storage of a 3-point scalar-shear-scalar correlation
     function.
 
     See the doc string of `Corr3` for a description of how the triangles
@@ -282,7 +282,7 @@ class KGKCorrelation(Corr3):
         self._varzeta = data['sigma_zeta'].reshape(s)**2
 
 class GKKCorrelation(Corr3):
-    r"""This class handles the calculation and storage of a 3-point scalar-scalar-shear correlation
+    r"""This class handles the calculation and storage of a 3-point shear-scalar-scalar correlation
     function.
 
     See the doc string of `Corr3` for a description of how the triangles

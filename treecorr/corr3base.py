@@ -2485,10 +2485,13 @@ class Corr3(object):
                 zetas[3] *= phase[3]
             elif len(zetas) == 2:  # pragma: no cover
                 # This one is a little tricky.  It means there are two spinny vertices.
-                # Need to figure out which one to conjugate.
-                # TODO
-                assert False
-                phase[1] = np.conj(g1phase) * g2phase * g3phase
+                # If letter1 is N or K, then the conjugate is vertex 2
+                # otherwise it is vertex 1.
+                if self._letter1 in 'NK':
+                    assert np.all(g1phase == 1)
+                    phase[1] = np.conj(g2phase) * g3phase
+                else:
+                    phase[1] = np.conj(g1phase) * g2phase * g3phase
                 zetas[1] *= phase[1]
 
         for i in range(len(zetas)):

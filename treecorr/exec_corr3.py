@@ -66,6 +66,12 @@ corr3_valid_params = {
             'The output filename for scalar-shear-scalar correlation function.'),
     'gkk_file_name' : (str, False, None, None,
             'The output filename for shear-scalar-scalar correlation function.'),
+    'kgg_file_name' : (str, False, None, None,
+            'The output filename for scalar-shear-shear correlation function.'),
+    'gkg_file_name' : (str, False, None, None,
+            'The output filename for shear-scalar-shear correlation function.'),
+    'ggk_file_name' : (str, False, None, None,
+            'The output filename for shear-shear-scalar correlation function.'),
 
     # Derived output quantities
 

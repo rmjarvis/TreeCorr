@@ -9,7 +9,7 @@ The complex-valued :math:`g` is defined as:
 
     g = g_1 + i g_2 = |g| e^{2 i \phi}
 
-These values are used in all "G" correlation function classes: `GGCorrelation`,
+These values are used in all "G" correlation function classes, including `GGCorrelation`,
 `NGCorrelation`, `KGCorrelation`, and `GGGCorrelation`.
 
 Spin-2 fields have the property that when the coordinate system rotates by an angle

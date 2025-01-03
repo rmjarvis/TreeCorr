@@ -137,6 +137,8 @@ class NNNCorrelation(Corr3):
         self.tot += cat1.sumw * cat2.sumw * cat3.sumw
 
     def finalize(self):
+        """Finalize the calculation of the correlation function.
+        """
         self._finalize()
 
     @lazy_property

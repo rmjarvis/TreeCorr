@@ -180,11 +180,17 @@ Three-point Correlation Classes
 
 TreeCorr can also do three-point correlations, to measure how the product of three fields
 depends on the size and shape of the triangle connecting three points.
-So far, we have only implemented the auto-correlation three-point functions:
+So far, we have implemented the following combination:
 
     - `NNNCorrelation`  # count-count-count
-    - `GGGCorrelation`  # shear-shear-shear
     - `KKKCorrelation`  # scalar-scalar-scalar
+    - `GGGCorrelation`  # shear-shear-shear
+    - `KKGCorrelation`  # scalar-scalar-shear
+    - `KGKCorrelation`  # scalar-shear-scalar
+    - `GKKCorrelation`  # shear-scalar-scalar
+    - `KGGCorrelation`  # scalar-shear-shear
+    - `GKGCorrelation`  # shear-scalar-shear
+    - `GGKCorrelation`  # shear-shear-scalar
 
 These classes are significantly more complicated than the two-point ones,
 since they have to deal with the geometry of the triangles being binned.

@@ -2513,8 +2513,12 @@ def test_kgg_logsas():
     # And kappa(r) = kappa0 exp(-r^2/2r0^2)
     #
     # Doing the direct integral yields
-    # gam0 = int(int( g(x+x1,y+y1) k(x+x2,y+y2) k(x-x1-x2,y-y1-y2) (x1-Iy1)^2/(x1^2+y1^2) ))
-    #      = -2pi/3 kappa0^2 gamma0 |q1|^2 exp(-(|q1|^2+|q2|^2+|q3|^2)/2r0^2)
+    # gam0 = int(int( g(x+x1,y+y1) g(x+x2,y+y2) k(x-x1-x2,y-y1-y2) (x1-Iy1)^2/(x1^2+y1^2) (x2-Iy2)^2/(x2^2+y2^2) ))
+    #      = 2pi/3 kappa0 gamma0^2 |q1|^2 |q2|^2 exp(-(|q1|^2+|q2|^2+|q3|^2)/2r0^2) / r0^2
+    #
+    # gam1 = int(int( g(x+x1,y+y1)* g(x+x2,y+y2) k(x-x1-x2,y-y1-y2) (x1+Iy1)^2/(x1^2+y1^2) (x2-Iy2)^2/(x2^2+y2^2) ))
+    #      = 2pi/3 kappa0 gamma0^2 exp(-(|q1|^2+|q2|^2+|q3|^2)/2r0^2) / r0^2 x
+    #           (q1*^2 q2^2 + 8/3 q1* q2 r0^2 + 8/9 r0^4) q1 q2* / (q1* q2)
     #
     # where the positions are measured relative to the centroid (x,y).
     # If we call the positions relative to the centroid:
@@ -2532,11 +2536,11 @@ def test_kgg_logsas():
         tol_factor = 1
     else:
         # Looser tests that don't take so long to run.
-        ngal = 5000
+        ngal = 10000
         L = 10. * r0
         tol_factor = 3
 
-    rng = np.random.RandomState(8675309)
+    rng = np.random.RandomState(12345)
     x = (rng.random_sample(ngal)-0.5) * L
     y = (rng.random_sample(ngal)-0.5) * L
     r2 = (x**2 + y**2)/r0**2
@@ -2544,9 +2548,9 @@ def test_kgg_logsas():
     g2 = -gamma0 * np.exp(-r2/2.) * (2.*x*y)/r0**2
     k = kappa0 * np.exp(-r2/2.)
 
-    min_sep = 10.
-    max_sep = 13.
-    nbins = 3
+    min_sep = 12.
+    max_sep = 14.
+    nbins = 2
     min_phi = 45
     max_phi = 90
     nphi_bins = 5
@@ -2583,21 +2587,29 @@ def test_kgg_logsas():
         nq1 = np.abs(q1)**2
         nq2 = np.abs(q2)**2
         nq3 = np.abs(q3)**2
+        q1c = np.conjugate(q1)
+        q2c = np.conjugate(q2)
+        q3c = np.conjugate(q3)
 
         L = L - (np.abs(q1) + np.abs(q2) + np.abs(q3))/3.
 
-        true_gam0 = (-2.*np.pi * gamma0 * kappa0**2)/(3*L**2) * np.exp(-(nq1+nq2+nq3)/(2.*r0**2))
-        true_gam1 = (-2.*np.pi * gamma0 * kappa0**2)/(3*L**2) * np.exp(-(nq1+nq2+nq3)/(2.*r0**2))
+        true_gam0 = (2.*np.pi * gamma0**2 * kappa0)/(3*L**2*r0**2) * np.exp(-(nq1+nq2+nq3)/(2.*r0**2))
 
         if name == 'kgg':
-            true_gam0 *= nq3
-            true_gam1 *= nq3
+            true_gam1 = true_gam0 * (nq2*nq3 + 8/3*q2*q3c*r0**2 + 8/9*q2*q3c*r0**4/(q2c*q3))
+            true_gam0 *= nq2 * nq3
+            g1 = lambda kgg: kgg.gam2
+            cls = treecorr.KGGCorrelation
         elif name == 'gkg':
-            true_gam0 *= nq2
-            true_gam1 *= nq2
+            true_gam1 = true_gam0 * (nq1*nq3 + 8/3*q1*q3c*r0**2 + 8/9*q1*q3c*r0**4/(q1c*q3))
+            true_gam0 *= nq1 * nq3
+            g1 = lambda gkg: gkg.gam1
+            cls = treecorr.GKGCorrelation
         else:
-            true_gam0 *= nq1
-            true_gam1 *= nq1
+            true_gam1 = true_gam0 * (nq1*nq2 + 8/3*q1*q2c*r0**2 + 8/9*q1*q2c*r0**4/(q1c*q2))
+            true_gam0 *= nq1 * nq2
+            g1 = lambda ggk: ggk.gam1
+            cls = treecorr.GGKCorrelation
 
         print('ntri = ',corr.ntri)
         print('gam0 = ',corr.gam0)
@@ -2606,19 +2618,18 @@ def test_kgg_logsas():
         print('diff = ',corr.gam0 - true_gam0)
         print('max rel diff = ',np.max(np.abs((corr.gam0 - true_gam0)/true_gam0)))
         np.testing.assert_allclose(corr.gam0, true_gam0, rtol=0.2 * tol_factor, atol=1.e-7)
-        np.testing.assert_allclose(corr.gam1, true_gam1, rtol=0.2 * tol_factor, atol=1.e-7)
         np.testing.assert_allclose(np.log(np.abs(corr.gam0)),
                                    np.log(np.abs(true_gam0)), atol=0.2 * tol_factor)
-        np.testing.assert_allclose(np.log(np.abs(corr.gam1)),
+        print('gam1 = ',g1(corr))
+        print('true_gam1 = ',true_gam1)
+        print('ratio = ',g1(corr) / true_gam1)
+        print('diff = ',g1(corr) - true_gam1)
+        print('max rel diff = ',np.max(np.abs((g1(corr) - true_gam1)/true_gam1)))
+        np.testing.assert_allclose(g1(corr), true_gam1, rtol=0.2 * tol_factor, atol=1.e-7)
+        np.testing.assert_allclose(np.log(np.abs(g1(corr))),
                                    np.log(np.abs(true_gam1)), atol=0.2 * tol_factor)
 
         # Repeat this using Multipole and then convert to SAS:
-        if name == 'kgg':
-            cls = treecorr.KGGCorrelation
-        elif name == 'gkg':
-            cls = treecorr.GKGCorrelation
-        else:
-            cls = treecorr.GGKCorrelation
         corrm = cls(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=80,
                     sep_units='arcmin', bin_type='LogMultipole')
         t0 = time.time()
@@ -2632,15 +2643,18 @@ def test_kgg_logsas():
 
         print('gam0 mean ratio = ',np.mean(corrs.gam0 / corr.gam0))
         print('gam0 mean diff = ',np.mean(corrs.gam0 - corr.gam0))
-        print('gam1 mean ratio = ',np.mean(corrs.gam1 / corr.gam1))
-        print('gam1 mean diff = ',np.mean(corrs.gam1 - corr.gam1))
+        print('gam1 mean ratio = ',np.mean(g1(corrs) / g1(corr)))
+        print('gam1 mean diff = ',np.mean(g1(corrs) - g1(corr)))
         # Some of the individual values are a little ratty, but on average, they are quite close.
         np.testing.assert_allclose(corrs.gam0, corr.gam0, rtol=0.2*tol_factor)
         np.testing.assert_allclose(corrs.gam1, corr.gam1, rtol=0.2*tol_factor)
+        np.testing.assert_allclose(corrs.gam2, corr.gam2, rtol=0.2*tol_factor)
         np.testing.assert_allclose(np.mean(corrs.gam0 / corr.gam0), 1., rtol=0.02*tol_factor)
         np.testing.assert_allclose(np.mean(corrs.gam1 / corr.gam1), 1., rtol=0.02*tol_factor)
+        np.testing.assert_allclose(np.mean(corrs.gam2 / corr.gam2), 1., rtol=0.02*tol_factor)
         np.testing.assert_allclose(np.std(corrs.gam0 / corr.gam0), 0., atol=0.08*tol_factor)
         np.testing.assert_allclose(np.std(corrs.gam1 / corr.gam1), 0., atol=0.08*tol_factor)
+        np.testing.assert_allclose(np.std(corrs.gam2 / corr.gam2), 0., atol=0.08*tol_factor)
         np.testing.assert_allclose(corrs.ntri, corr.ntri, rtol=0.03*tol_factor)
         np.testing.assert_allclose(corrs.meanlogd1, corr.meanlogd1, rtol=0.03*tol_factor)
         np.testing.assert_allclose(corrs.meanlogd2, corr.meanlogd2, rtol=0.03*tol_factor)
@@ -2674,6 +2688,7 @@ def test_kgg_logsas():
         np.testing.assert_allclose(corr3.weight, corrs.weight)
         np.testing.assert_allclose(corr3.gam0, corrs.gam0)
         np.testing.assert_allclose(corr3.gam1, corrs.gam1)
+        np.testing.assert_allclose(corr3.gam2, corrs.gam2)
 
         # Check that we get the same result using the corr3 functin:
         # (This implicitly uses the multipole algorithm.)
@@ -2685,8 +2700,16 @@ def test_kgg_logsas():
                                      names=True, skip_header=1)
         np.testing.assert_allclose(corr3_output['gam0r'], corr3.gam0r.flatten(), rtol=1.e-3, atol=0)
         np.testing.assert_allclose(corr3_output['gam0i'], corr3.gam0i.flatten(), rtol=1.e-3, atol=0)
-        np.testing.assert_allclose(corr3_output['gam1r'], corr3.gam1r.flatten(), rtol=1.e-3, atol=0)
-        np.testing.assert_allclose(corr3_output['gam1i'], corr3.gam1i.flatten(), rtol=1.e-3, atol=0)
+        if name == 'kgg':
+            np.testing.assert_allclose(corr3_output['gam2r'], corr3.gam2r.flatten(),
+                                       rtol=1.e-3, atol=0)
+            np.testing.assert_allclose(corr3_output['gam2i'], corr3.gam2i.flatten(),
+                                       rtol=1.e-3, atol=0)
+        else:
+            np.testing.assert_allclose(corr3_output['gam1r'], corr3.gam1r.flatten(),
+                                       rtol=1.e-3, atol=0)
+            np.testing.assert_allclose(corr3_output['gam1i'], corr3.gam1i.flatten(),
+                                       rtol=1.e-3, atol=0)
 
         if name == 'gkg':
             # Invalid to omit file_name2
@@ -2721,10 +2744,15 @@ def test_kgg_logsas():
             np.testing.assert_allclose(data['meanphi'], corr.meanphi.flatten())
             np.testing.assert_allclose(data['gam0r'], corr.gam0.real.flatten())
             np.testing.assert_allclose(data['gam0i'], corr.gam0.imag.flatten())
-            np.testing.assert_allclose(data['gam1r'], corr.gam1.real.flatten())
-            np.testing.assert_allclose(data['gam1i'], corr.gam1.imag.flatten())
             np.testing.assert_allclose(data['sigma_gam0'], np.sqrt(corr.vargam0.flatten()))
-            np.testing.assert_allclose(data['sigma_gam1'], np.sqrt(corr.vargam1.flatten()))
+            if name == 'kgg':
+                np.testing.assert_allclose(data['gam2r'], corr.gam2.real.flatten())
+                np.testing.assert_allclose(data['gam2i'], corr.gam2.imag.flatten())
+                np.testing.assert_allclose(data['sigma_gam2'], np.sqrt(corr.vargam2.flatten()))
+            else:
+                np.testing.assert_allclose(data['gam1r'], corr.gam1.real.flatten())
+                np.testing.assert_allclose(data['gam1i'], corr.gam1.imag.flatten())
+                np.testing.assert_allclose(data['sigma_gam1'], np.sqrt(corr.vargam1.flatten()))
             np.testing.assert_allclose(data['weight'], corr.weight.flatten())
             np.testing.assert_allclose(data['ntri'], corr.ntri.flatten())
 
@@ -2744,8 +2772,10 @@ def test_kgg_logsas():
             np.testing.assert_allclose(corr2.meanphi, corr.meanphi)
             np.testing.assert_allclose(corr2.gam0, corr.gam0)
             np.testing.assert_allclose(corr2.gam1, corr.gam1)
+            np.testing.assert_allclose(corr2.gam2, corr.gam2)
             np.testing.assert_allclose(corr2.vargam0, corr.vargam0)
             np.testing.assert_allclose(corr2.vargam1, corr.vargam1)
+            np.testing.assert_allclose(corr2.vargam2, corr.vargam2)
             np.testing.assert_allclose(corr2.weight, corr.weight)
             np.testing.assert_allclose(corr2.ntri, corr.ntri)
             assert corr2.coords == corr.coords
@@ -2805,14 +2835,14 @@ def test_vargam():
 
         mean_kgg_gam0r = np.mean([kgg.gam0r for kgg in all_kggs], axis=0)
         mean_kgg_gam0i = np.mean([kgg.gam0i for kgg in all_kggs], axis=0)
-        mean_kgg.gam2r = np.mean([kgg.gam2r for kgg in all_kggs], axis=0)
-        mean_kgg.gam2i = np.mean([kgg.gam2i for kgg in all_kggs], axis=0)
+        mean_kgg_gam2r = np.mean([kgg.gam2r for kgg in all_kggs], axis=0)
+        mean_kgg_gam2i = np.mean([kgg.gam2i for kgg in all_kggs], axis=0)
         var_kgg_gam0r = np.var([kgg.gam0r for kgg in all_kggs], axis=0)
         var_kgg_gam0i = np.var([kgg.gam0i for kgg in all_kggs], axis=0)
-        var_kgg.gam2r = np.var([kgg.gam2r for kgg in all_kggs], axis=0)
-        var_kgg.gam2i = np.var([kgg.gam2i for kgg in all_kggs], axis=0)
+        var_kgg_gam2r = np.var([kgg.gam2r for kgg in all_kggs], axis=0)
+        var_kgg_gam2i = np.var([kgg.gam2i for kgg in all_kggs], axis=0)
         mean_kgg_vargam0 = np.mean([kgg.vargam0 for kgg in all_kggs], axis=0)
-        mean_kgg.vargam2 = np.mean([kgg.vargam2 for kgg in all_kggs], axis=0)
+        mean_kgg_vargam2 = np.mean([kgg.vargam2 for kgg in all_kggs], axis=0)
         mean_gkg_gam0r = np.mean([gkg.gam0r for gkg in all_gkgs], axis=0)
         mean_gkg_gam0i = np.mean([gkg.gam0i for gkg in all_gkgs], axis=0)
         mean_gkg_gam1r = np.mean([gkg.gam1r for gkg in all_gkgs], axis=0)
@@ -2837,14 +2867,14 @@ def test_vargam():
         np.savez(file_name,
                  mean_kgg_gam0r=mean_kgg_gam0r,
                  mean_kgg_gam0i=mean_kgg_gam0i,
-                 mean_kgg_gam2r=mean_kgg.gam2r,
-                 mean_kgg_gam2i=mean_kgg.gam2i,
+                 mean_kgg_gam2r=mean_kgg_gam2r,
+                 mean_kgg_gam2i=mean_kgg_gam2i,
                  var_kgg_gam0r=var_kgg_gam0r,
                  var_kgg_gam0i=var_kgg_gam0i,
-                 var_kgg_gam2r=var_kgg.gam2r,
-                 var_kgg_gam2i=var_kgg.gam2i,
+                 var_kgg_gam2r=var_kgg_gam2r,
+                 var_kgg_gam2i=var_kgg_gam2i,
                  mean_kgg_vargam0=mean_kgg_vargam0,
-                 mean_kgg_vargam2=mean_kgg.vargam2,
+                 mean_kgg_vargam2=mean_kgg_vargam2,
                  mean_gkg_gam0r=mean_gkg_gam0r,
                  mean_gkg_gam0i=mean_gkg_gam0i,
                  mean_gkg_gam1r=mean_gkg_gam1r,
@@ -2871,14 +2901,14 @@ def test_vargam():
 
     mean_kgg_gam0r = data['mean_kgg_gam0r']
     mean_kgg_gam0i = data['mean_kgg_gam0i']
-    mean_kgg.gam2r = data['mean_kgg_gam2r']
-    mean_kgg.gam2i = data['mean_kgg_gam2i']
+    mean_kgg_gam2r = data['mean_kgg_gam2r']
+    mean_kgg_gam2i = data['mean_kgg_gam2i']
     var_kgg_gam0r = data['var_kgg_gam0r']
     var_kgg_gam0i = data['var_kgg_gam0i']
-    var_kgg.gam2r = data['var_kgg_gam2r']
-    var_kgg.gam2i = data['var_kgg_gam2i']
+    var_kgg_gam2r = data['var_kgg_gam2r']
+    var_kgg_gam2i = data['var_kgg_gam2i']
     mean_kgg_vargam0 = data['mean_kgg_vargam0']
-    mean_kgg.vargam2 = data['mean_kgg_vargam2']
+    mean_kgg_vargam2 = data['mean_kgg_vargam2']
     mean_gkg_gam0r = data['mean_gkg_gam0r']
     mean_gkg_gam0i = data['mean_gkg_gam0i']
     mean_gkg_gam1r = data['mean_gkg_gam1r']
@@ -2916,8 +2946,8 @@ def test_vargam():
           np.max(np.abs((var_kgg_gam0i - mean_kgg_vargam0)/var_kgg_gam0i)))
     np.testing.assert_allclose(mean_kgg_vargam0, var_kgg_gam0r, rtol=0.1)
     np.testing.assert_allclose(mean_kgg_vargam0, var_kgg_gam0i, rtol=0.1)
-    np.testing.assert_allclose(mean_kgg.vargam2, var_kgg.gam2r, rtol=0.1)
-    np.testing.assert_allclose(mean_kgg.vargam2, var_kgg.gam2i, rtol=0.1)
+    np.testing.assert_allclose(mean_kgg_vargam2, var_kgg_gam2r, rtol=0.1)
+    np.testing.assert_allclose(mean_kgg_vargam2, var_kgg_gam2i, rtol=0.1)
 
     print('max relerr for gkg gam0r = ',
           np.max(np.abs((var_gkg_gam0r - mean_gkg_vargam0)/var_gkg_gam0r)))
@@ -2977,8 +3007,8 @@ def test_vargam():
     print('ntri = ',kgg.ntri)
     np.testing.assert_allclose(kgg.vargam0, var_kgg_gam0r, rtol=0.2)
     np.testing.assert_allclose(kgg.vargam0, var_kgg_gam0i, rtol=0.2)
-    np.testing.assert_allclose(kgg.vargam2, var_kgg.gam2r, rtol=0.2)
-    np.testing.assert_allclose(kgg.vargam2, var_kgg.gam2i, rtol=0.2)
+    np.testing.assert_allclose(kgg.vargam2, var_kgg_gam2r, rtol=0.2)
+    np.testing.assert_allclose(kgg.vargam2, var_kgg_gam2i, rtol=0.2)
     n = kgg.vargam0.size
     np.testing.assert_allclose(kgg.cov.diagonal()[0:n], kgg.vargam0.ravel())
     np.testing.assert_allclose(kgg.cov.diagonal()[n:2*n], kgg.vargam2.ravel())
@@ -3016,21 +3046,13 @@ def test_kgg_logsas_jk():
     if __name__ == '__main__':
         nhalo = 1000
         nsource = 100000
-        npatch = 32
+        npatch = 64
         tol_factor = 1
     else:
         nhalo = 500
         nsource = 10000
-        npatch = 12
+        npatch = 20
         tol_factor = 4
-
-    # This test is pretty fragile with respect to the choice of these parameters.
-    # It was hard to find a combination where JK worked reasonably well with the size of
-    # data set that is feasible for a unit test.  Mostly there need to be not many bins
-    # and near-equilateral triangles seem to work better, since they have higher snr.
-    # Also, it turned out to be important for the K and G catalogs to not use the same
-    # points; I think so there are no degenerate triangles, but I'm not sure exactly what
-    # the problem with them is in this case.
 
     nbins = 2
     min_sep = 10
@@ -3085,18 +3107,18 @@ def test_kgg_logsas_jk():
             all_ggk0.append(ggk.gam0.ravel())
             all_ggk1.append(ggk.gam1.ravel())
 
-        mean_kgg0 = np.mean([gam0 for gam0 in all_kgg], axis=0)
-        mean_kgg1 = np.mean([gam1 for gam1 in all_kgg], axis=0)
-        var_kgg0 = np.var([gam0 for gam0 in all_kgg], axis=0)
-        var_kgg1 = np.var([gam1 for gam1 in all_kgg], axis=0)
-        mean_gkg0 = np.mean([gam0 for gam0 in all_gkg], axis=0)
-        mean_gkg1 = np.mean([gam1 for gam1 in all_gkg], axis=0)
-        var_gkg0 = np.var([gam0 for gam0 in all_gkg], axis=0)
-        var_gkg1 = np.var([gam1 for gam1 in all_gkg], axis=0)
-        mean_ggk0 = np.mean([gam0 for gam0 in all_ggk], axis=0)
-        mean_ggk1 = np.mean([gam1 for gam1 in all_ggk], axis=0)
-        var_ggk0 = np.var([gam0 for gam0 in all_ggk], axis=0)
-        var_ggk1 = np.var([gam1 for gam1 in all_ggk], axis=0)
+        mean_kgg0 = np.mean([gam0 for gam0 in all_kgg0], axis=0)
+        mean_kgg1 = np.mean([gam1 for gam1 in all_kgg1], axis=0)
+        var_kgg0 = np.var([gam0 for gam0 in all_kgg0], axis=0)
+        var_kgg1 = np.var([gam1 for gam1 in all_kgg1], axis=0)
+        mean_gkg0 = np.mean([gam0 for gam0 in all_gkg0], axis=0)
+        mean_gkg1 = np.mean([gam1 for gam1 in all_gkg1], axis=0)
+        var_gkg0 = np.var([gam0 for gam0 in all_gkg0], axis=0)
+        var_gkg1 = np.var([gam1 for gam1 in all_gkg1], axis=0)
+        mean_ggk0 = np.mean([gam0 for gam0 in all_ggk0], axis=0)
+        mean_ggk1 = np.mean([gam1 for gam1 in all_ggk1], axis=0)
+        var_ggk0 = np.var([gam0 for gam0 in all_ggk0], axis=0)
+        var_ggk1 = np.var([gam1 for gam1 in all_ggk1], axis=0)
 
         np.savez(file_name,
                  mean_kgg0=mean_kgg0, var_kgg0=var_kgg0,
@@ -3153,14 +3175,14 @@ def test_kgg_logsas_jk():
     kgg2._calculate_xi_from_pairs(list(kgg.results.keys()))
     np.testing.assert_allclose(kgg2.ntri, kgg.ntri, rtol=0.01)
     np.testing.assert_allclose(kgg2.gam0, kgg.gam0, rtol=0.01)
-    np.testing.assert_allclose(kgg2.gam1, kgg.gam2, rtol=0.01)
+    np.testing.assert_allclose(kgg2.gam2, kgg.gam2, rtol=0.01)
     np.testing.assert_allclose(kgg2.vargam0, kgg.vargam0, rtol=0.01)
-    np.testing.assert_allclose(kgg2.vargam1, kgg.vargam2, rtol=0.01)
+    np.testing.assert_allclose(kgg2.vargam2, kgg.vargam2, rtol=0.01)
 
     gkg = treecorr.GKGCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep,
                                   min_phi=min_phi, max_phi=max_phi, phi_units='deg',
                                   nphi_bins=nphi_bins, bin_type='LogSAS', max_n=40)
-    gkg.process(kcat, gcat, kcat)
+    gkg.process(gcat, kcat, gcat)
     gkg2 = gkg.copy()
     gkg2._calculate_xi_from_pairs(list(gkg.results.keys()))
     np.testing.assert_allclose(gkg2.ntri, gkg.ntri, rtol=0.01)
@@ -3183,22 +3205,29 @@ def test_kgg_logsas_jk():
 
     # Next check jackknife covariance estimate
     cov_kgg = kgg.estimate_cov('jackknife')
-    print('kgg var ratio = ',np.diagonal(cov_kgg)/var_kgg)
-    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_kgg))-np.log(var_kgg))))
-    np.testing.assert_allclose(np.diagonal(cov_kgg), var_kgg, rtol=0.4 * tol_factor)
-    np.testing.assert_allclose(np.log(np.diagonal(cov_kgg)), np.log(var_kgg), atol=0.5*tol_factor)
+    n = kgg.vargam0.size
+    print('kgg var ratio = ',np.diagonal(cov_kgg)[0:n]/var_kgg0)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_kgg)[0:n])-np.log(var_kgg0))))
+    np.testing.assert_allclose(np.diagonal(cov_kgg)[0:n], var_kgg0, rtol=0.4 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov_kgg)[0:n]), np.log(var_kgg0), atol=0.5*tol_factor)
+    np.testing.assert_allclose(np.diagonal(cov_kgg)[n:2*n], var_kgg1, rtol=0.4 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov_kgg)[n:2*n]), np.log(var_kgg1), atol=0.5*tol_factor)
 
     cov_gkg = gkg.estimate_cov('jackknife')
-    print('gkg var ratio = ',np.diagonal(cov_gkg)/var_gkg)
-    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_gkg))-np.log(var_gkg))))
-    np.testing.assert_allclose(np.diagonal(cov_gkg), var_gkg, rtol=0.4 * tol_factor)
-    np.testing.assert_allclose(np.log(np.diagonal(cov_gkg)), np.log(var_gkg), atol=0.5*tol_factor)
+    print('gkg var ratio = ',np.diagonal(cov_gkg)[0:n]/var_gkg0)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_gkg)[0:n])-np.log(var_gkg0))))
+    np.testing.assert_allclose(np.diagonal(cov_gkg)[0:n], var_gkg0, rtol=0.4 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov_gkg)[0:n]), np.log(var_gkg0), atol=0.5*tol_factor)
+    np.testing.assert_allclose(np.diagonal(cov_gkg)[n:2*n], var_gkg1, rtol=0.4 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov_gkg)[n:2*n]), np.log(var_gkg1), atol=0.5*tol_factor)
 
     cov_ggk = ggk.estimate_cov('jackknife')
-    print('ggk var ratio = ',np.diagonal(cov_ggk)/var_ggk)
-    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_ggk))-np.log(var_ggk))))
-    np.testing.assert_allclose(np.diagonal(cov_ggk), var_ggk, rtol=0.5 * tol_factor)
-    np.testing.assert_allclose(np.log(np.diagonal(cov_ggk)), np.log(var_ggk), atol=0.7*tol_factor)
+    print('ggk var ratio = ',np.diagonal(cov_ggk)[0:n]/var_ggk0)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_ggk)[0:n])-np.log(var_ggk0))))
+    np.testing.assert_allclose(np.diagonal(cov_ggk)[0:n], var_ggk0, rtol=0.5 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov_ggk)[0:n]), np.log(var_ggk0), atol=0.7*tol_factor)
+    np.testing.assert_allclose(np.diagonal(cov_ggk)[n:2*n], var_ggk1, rtol=0.4 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov_ggk)[n:2*n]), np.log(var_ggk1), atol=0.7*tol_factor)
 
     # Check that these still work after roundtripping through a file.
     file_name = os.path.join('output','test_write_results_kgg.dat')
@@ -3228,18 +3257,20 @@ def test_kgg_logsas_jk():
                                   nphi_bins=nphi_bins).gam0.ravel()
     fm1 = lambda corr: corr.toSAS(min_phi=min_phi, max_phi=max_phi, phi_units='deg',
                                   nphi_bins=nphi_bins).gam1.ravel()
+    fm2 = lambda corr: corr.toSAS(min_phi=min_phi, max_phi=max_phi, phi_units='deg',
+                                  nphi_bins=nphi_bins).gam2.ravel()
     cov = kggm.estimate_cov('jackknife', func=fm0)
     print('kgg0 max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kgg0))))
     np.testing.assert_allclose(np.diagonal(cov), var_kgg0, rtol=0.4 * tol_factor)
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kgg0), atol=0.5*tol_factor)
-    cov = kggm.estimate_cov('jackknife', func=fm1)
+    cov = kggm.estimate_cov('jackknife', func=fm2)
     print('kgg1 max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kgg1))))
     np.testing.assert_allclose(np.diagonal(cov), var_kgg1, rtol=0.4 * tol_factor)
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kgg1), atol=0.5*tol_factor)
 
     gkgm = treecorr.GKGCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep, max_n=40,
                                    rng=rng, bin_type='LogMultipole')
-    gkgm.process(kcat, gcat, kcat)
+    gkgm.process(gcat, kcat, gcat)
     cov = gkgm.estimate_cov('jackknife', func=fm0)
     print('gkg0 max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_gkg0))))
     np.testing.assert_allclose(np.diagonal(cov), var_gkg0, rtol=0.4 * tol_factor)

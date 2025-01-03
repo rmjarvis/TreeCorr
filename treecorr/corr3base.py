@@ -237,7 +237,7 @@ class Corr3(object):
 
         If you separate out the steps of the `process` command and use `process_auto`
         and/or `process_cross`, then the units will not be applied to ``meanr`` or
-        ``meanlogr`` until the `finalize` function is called.
+        ``meanlogr`` until the ``finalize`` function is called.
 
     Parameters:
         config (dict):      A configuration dict that can be used to pass in the below kwargs if
@@ -1807,7 +1807,7 @@ class Corr3(object):
         """Process a single catalog, accumulating the auto-correlation.
 
         This accumulates the auto-correlation for the given catalog.  After
-        calling this function as often as desired, the `finalize` command will
+        calling this function as often as desired, the ``finalize`` command will
         finish the calculation of meand1, meanlogd1, etc.
 
         This method is only valid for classes that have the same type of value in all
@@ -2263,8 +2263,8 @@ class Corr3(object):
 
         .. note::
 
-            For this to make sense, both objects should not have had `finalize` called yet.
-            Then, after adding them together, you should call `finalize` on the sum.
+            For this to make sense, both objects should not have had ``finalize`` called yet.
+            Then, after adding them together, you should call ``finalize`` on the sum.
         """
         if not isinstance(other, self.__class__):
             raise TypeError(f"Can only add another {self._cls} object")

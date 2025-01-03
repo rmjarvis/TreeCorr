@@ -1191,6 +1191,37 @@ def test_vargam_logruv():
     np.testing.assert_allclose(ggk.cov.diagonal()[0:n], ggk.vargam0.ravel())
     np.testing.assert_allclose(ggk.cov.diagonal()[n:2*n], ggk.vargam1.ravel())
 
+    # Check valid aliases
+    # KGG: gam0 = gam1, gam2 = conj(gam3)
+    # GKG: gam0 = gam2, gam1 = conj(gam3)
+    # GGK: gam0 = gam3, gam1 = conj(gam2)
+    np.testing.assert_array_equal(kgg.gam0, kgg.gam1)
+    np.testing.assert_array_equal(kgg.gam0r, kgg.gam1r)
+    np.testing.assert_array_equal(kgg.gam0i, kgg.gam1i)
+    np.testing.assert_array_equal(kgg.gam2, np.conjugate(kgg.gam3))
+    np.testing.assert_array_equal(kgg.gam2r, kgg.gam3r)
+    np.testing.assert_array_equal(kgg.gam2i, -kgg.gam3i)
+    np.testing.assert_array_equal(kgg.vargam0, kgg.vargam1)
+    np.testing.assert_array_equal(kgg.vargam2, kgg.vargam3)
+
+    np.testing.assert_array_equal(gkg.gam0, gkg.gam2)
+    np.testing.assert_array_equal(gkg.gam0r, gkg.gam2r)
+    np.testing.assert_array_equal(gkg.gam0i, gkg.gam2i)
+    np.testing.assert_array_equal(gkg.gam1, np.conjugate(gkg.gam3))
+    np.testing.assert_array_equal(gkg.gam1r, gkg.gam3r)
+    np.testing.assert_array_equal(gkg.gam1i, -gkg.gam3i)
+    np.testing.assert_array_equal(gkg.vargam0, gkg.vargam2)
+    np.testing.assert_array_equal(gkg.vargam1, gkg.vargam3)
+
+    np.testing.assert_array_equal(ggk.gam0, ggk.gam3)
+    np.testing.assert_array_equal(ggk.gam0r, ggk.gam3r)
+    np.testing.assert_array_equal(ggk.gam0i, ggk.gam3i)
+    np.testing.assert_array_equal(ggk.gam1, np.conjugate(ggk.gam2))
+    np.testing.assert_array_equal(ggk.gam1r, ggk.gam2r)
+    np.testing.assert_array_equal(ggk.gam1i, -ggk.gam2i)
+    np.testing.assert_array_equal(ggk.vargam0, ggk.vargam3)
+    np.testing.assert_array_equal(ggk.vargam1, ggk.vargam2)
+
 
 @timer
 def test_direct_logsas_cross():

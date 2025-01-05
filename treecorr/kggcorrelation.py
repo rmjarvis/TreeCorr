@@ -27,9 +27,6 @@ class KGGCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point scalar-shear-shear correlation
     function.
 
-    See the doc string of `Corr3` for a description of how the triangles
-    are binned.
-
     With this class, point 1 of the triangle (i.e. the vertex opposite d1) is the one with the
     scalar value.  Use `GKGCorrelation` and `GGKCorrelation` for classes with the scalar in the
     other two positions.
@@ -253,9 +250,6 @@ class GKGCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point shear-scalar-shear correlation
     function.
 
-    See the doc string of `Corr3` for a description of how the triangles
-    are binned.
-
     With this class, point 2 of the triangle (i.e. the vertex opposite d2) is the one with the
     shear value.  Use `KGGCorrelation` and `GGKCorrelation` for classes with the shear in the
     other two positions.
@@ -476,9 +470,6 @@ class GKGCorrelation(Corr3):
 class GGKCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point shear-shear-scalar correlation
     function.
-
-    See the doc string of `Corr3` for a description of how the triangles
-    are binned.
 
     With this class, point 1 of the triangle (i.e. the vertex opposite d1) is the one with the
     shear value.  Use `GKGCorrelation` and `KGGCorrelation` for classes with the shear in the

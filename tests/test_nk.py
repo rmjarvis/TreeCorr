@@ -514,7 +514,7 @@ def test_varxi():
     # runs matters much more than the number of galaxies for getting this to pass.
     # In addition, I found that the variance was significantly underestimated when there
     # were lots of lenses.  I guess because there were multiple lenses that paired with the
-    # same sources in a given bin, which increased the variance of the mean <g>.
+    # same sources in a given bin, which increased the variance of the mean <kappa>.
     # So there might be some adjustment that would help improve the estimate of varxi,
     # but at least this unit test shows that it's fairly accurate for *some* scenario.
     nsource = 1000

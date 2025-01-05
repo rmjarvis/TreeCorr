@@ -1,0 +1,19 @@
+
+file_name: data/nkn_ndata_logsas.dat
+file_name2: data/nkn_kdata_logsas.dat
+file_name3: data/nkn_ndata_logsas.dat
+
+x_col: 1
+y_col: 2
+k_col: [0,3,0]
+
+verbose: 1
+
+min_sep: 8.
+max_sep: 12.
+nbins: 5
+nphi_bins: 30
+bin_type: LogSAS
+max_n: 120
+
+nkn_file_name: output/nkn_logsas.out

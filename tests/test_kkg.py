@@ -2281,7 +2281,7 @@ def test_kkg_logsas():
             with assert_raises(TypeError):
                 treecorr.corr3(config)
         else:
-            # Invalid to call cat2 file_name2 rather than file_name2
+            # Invalid to call cat2 file_name3 rather than file_name2
             config['file_name3'] = config['file_name2']
             del config['file_name2']
             with assert_raises(TypeError):
@@ -2293,7 +2293,7 @@ def test_kkg_logsas():
         except ImportError:
             pass
         else:
-            out_file_name = os.path.join('output','corr_out_logsas.fits')
+            out_file_name = os.path.join('output','corr_kkg_logsas.fits')
             corr.write(out_file_name)
             data = fitsio.read(out_file_name)
             np.testing.assert_allclose(data['d2_nom'], np.exp(corr.logd2).flatten())

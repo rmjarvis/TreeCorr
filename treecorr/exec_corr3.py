@@ -22,6 +22,7 @@ from .util import set_omp_threads
 from .nnncorrelation import NNNCorrelation
 from .kkkcorrelation import KKKCorrelation
 from .gggcorrelation import GGGCorrelation
+from .nnkcorrelation import NNKCorrelation, NKNCorrelation, KNNCorrelation
 from .kkgcorrelation import KKGCorrelation, KGKCorrelation, GKKCorrelation
 from .kggcorrelation import KGGCorrelation, GKGCorrelation, GGKCorrelation
 
@@ -60,12 +61,21 @@ corr3_valid_params = {
             'The output filename for scalar-scalar-scalar correlation function.'),
     'ggg_file_name' : (str, False, None, None,
             'The output filename for shear-shear-shear correlation function.'),
+
+    'nnk_file_name' : (str, False, None, None,
+            'The output filename for count-count-scalar correlation function.'),
+    'nkn_file_name' : (str, False, None, None,
+            'The output filename for count-scalar-count correlation function.'),
+    'knn_file_name' : (str, False, None, None,
+            'The output filename for scalar-count-count correlation function.'),
+
     'kkg_file_name' : (str, False, None, None,
             'The output filename for scalar-scalar-shear correlation function.'),
     'kgk_file_name' : (str, False, None, None,
             'The output filename for scalar-shear-scalar correlation function.'),
     'gkk_file_name' : (str, False, None, None,
             'The output filename for shear-scalar-scalar correlation function.'),
+
     'kgg_file_name' : (str, False, None, None,
             'The output filename for scalar-shear-shear correlation function.'),
     'gkg_file_name' : (str, False, None, None,
@@ -189,6 +199,34 @@ def corr3(config, logger=None):
         logger.info("Done KKK calculations.")
         kkk.write(config['kkk_file_name'])
         logger.warning("Wrote KKK correlation to %s",config['kkk_file_name'])
+
+    # Do NNK correlation function if necessary
+    if 'nnk_file_name' in config:
+        # TODO: randoms
+        logger.warning("Performing NNK calculations...")
+        nnk = NNKCorrelation(config, logger=logger)
+        nnk.process(cat1, cat2, cat3)
+        logger.info("Done NNK calculations.")
+        nnk.write(config['nnk_file_name'])
+        logger.warning("Wrote NNK correlation to %s",config['nnk_file_name'])
+
+    # Do NKN correlation function if necessary
+    if 'nkn_file_name' in config:
+        logger.warning("Performing NKN calculations...")
+        nkn = NKNCorrelation(config, logger=logger)
+        nkn.process(cat1, cat2, cat3)
+        logger.info("Done NKN calculations.")
+        nkn.write(config['nkn_file_name'])
+        logger.warning("Wrote NKN correlation to %s",config['nkn_file_name'])
+
+    # Do KNN correlation function if necessary
+    if 'knn_file_name' in config:
+        logger.warning("Performing KNN calculations...")
+        knn = KNNCorrelation(config, logger=logger)
+        knn.process(cat1, cat2, cat3)
+        logger.info("Done KNN calculations.")
+        knn.write(config['knn_file_name'])
+        logger.warning("Wrote KNN correlation to %s",config['knn_file_name'])
 
     # Do KKG correlation function if necessary
     if 'kkg_file_name' in config:

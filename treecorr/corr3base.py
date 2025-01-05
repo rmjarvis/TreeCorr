@@ -2153,6 +2153,7 @@ class Corr3(object):
                     if var1 is not None:
                         self.logger.info(f"var%s1 = %f: {self._sig1} = %f",
                                          self._letter1, var1, math.sqrt(var1))
+                    if var2 is not None:
                         self.logger.info(f"var%s2 = %f: {self._sig2} = %f",
                                          self._letter2, var2, math.sqrt(var2))
                 else:
@@ -2162,6 +2163,7 @@ class Corr3(object):
                     if var1 is not None:
                         self.logger.info(f"var%s1 = %f: {self._sig1} = %f",
                                          self._letter1, var1, math.sqrt(var1))
+                    if var3 is not None:
                         self.logger.info(f"var%s2 = %f: {self._sig2} = %f",
                                          self._letter2, var3, math.sqrt(var3))
             else:
@@ -2171,14 +2173,14 @@ class Corr3(object):
                 if var1 is not None:
                     self.logger.info(f"var%s1 = %f: {self._sig1} = %f",
                                      self._letter1, var1, math.sqrt(var1))
+                if var2 is not None:
                     self.logger.info(f"var%s2 = %f: {self._sig2} = %f",
                                      self._letter2, var2, math.sqrt(var2))
+                if var3 is not None:
                     self.logger.info(f"var%s3 = %f: {self._sig3} = %f",
                                      self._letter3, var3, math.sqrt(var3))
-            if var1 is None:
-                self.finalize()
-            else:
-                self.finalize(var1, var2, var3)
+            finalize_args = [v for v in [var1, var2, var3] if v is not None]
+            self.finalize(*finalize_args)
 
     def _finalize(self):
         mask1 = self.weightr != 0

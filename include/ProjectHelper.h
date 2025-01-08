@@ -71,6 +71,14 @@ inline std::complex<double> _expmsialpha(const std::complex<double>& r)
     return calculate_expmsialpha<s>(r);
 }
 
+// In some cases, either wk or w is fine according to DType
+template <int C>
+inline double getWK(const Cell<NData,C>& c)
+{ return c.getW(); }
+template <int C>
+inline double getWK(const Cell<KData,C>& c)
+{ return c.getWK(); }
+
 // Compute both z1 z2 and conj(z1) z2
 // cf. https://stackoverflow.com/questions/321068/returning-multiple-values-from-a-c-function
 inline std::tuple<std::complex<double>, std::complex<double> >

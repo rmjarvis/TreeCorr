@@ -372,15 +372,15 @@ void BaseCorr2::process11(const BaseCell<C>& c1, const BaseCell<C>& c2,
     }
 }
 
-
 // There are a smallish number of algorithms, each of which still may use D1 and/or D2
 // for projections, but are otherwise the same for mutliple D combinations.
 // So separate them out into a separate structure.
-template <int algo, int D1, int D2>
-struct DirectHelper2;
+template <int algo>
+struct DirectHelper;
 
+// NN
 template <>
-struct DirectHelper2<0,NData,NData>
+struct DirectHelper<0>
 {
     template <int R, int C>
     static void ProcessXi(
@@ -389,141 +389,47 @@ struct DirectHelper2<0,NData,NData>
     {}
 };
 
+// both real
 template <>
-struct DirectHelper2<1,NData,KData>
+struct DirectHelper<1>
 {
-    template <int R, int C>
+    template <int R, int D1, int D2, int C>
     static void ProcessXi(
-        const Cell<NData,C>& c1, const Cell<KData,C>& c2, const double ,
-        XiData<NData,KData>& xi, int k, int )
-    { xi.xi[k] += c1.getW() * c2.getWK(); }
-};
-
-template <>
-struct DirectHelper2<1,NData,ZData>
-{
-    template <int R, int C>
-    static void ProcessXi(
-        const Cell<NData,C>& c1, const Cell<ZData,C>& c2, const double ,
-        XiData<NData,ZData>& xi, int k, int )
-    {
-        std::complex<double> z2 = c1.getW() * c2.getWZ();
-        xi.xi[k] += real(z2);
-        xi.xi_im[k] += imag(z2);
+        const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double ,
+        XiData<D1,D2>& xi, int k, int k2)
+    { 
+        double wkk = getWK(c1) * getWK(c2);
+        xi.xi[k] += wkk;
+        if (R) xi.xi[k2] += wkk;
     }
 };
 
-template <int D2>
-struct DirectHelper2<2,NData,D2>
+// real, complex
+template <>
+struct DirectHelper<2>
 {
-    template <int R, int C>
+    template <int R, int D1, int D2, int C>
     static void ProcessXi(
-        const Cell<NData,C>& c1, const Cell<D2,C>& c2, const double rsq,
-        XiData<NData,D2>& xi, int k, int )
+        const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double rsq,
+        XiData<D1,D2>& xi, int k, int )
     {
         std::complex<double> g2 = c2.getWZ();
         ProjectHelper<C>::Project(c1,c2,g2);
         // For GData only, we multiply by -1, because the standard thing to accumulate is
         // the tangential shear, rather than radial.  Everyone else accumulates the radial
         // value (which is what Project returns).
-        if (D2 == GData) g2 *= -c1.getW();
-        else g2 *= c1.getW();
-        xi.xi[k] += real(g2);
-        xi.xi_im[k] += imag(g2);
+        if (D2 == GData) g2 *= -getWK(c1);
+        else g2 *= getWK(c1);
+        xi.xi[k] += g2.real();
+        xi.xi_im[k] += g2.imag();
     }
 };
 
+// both complex
 template <>
-struct DirectHelper2<3,KData,KData>
+struct DirectHelper<3>
 {
-    template <int R, int C>
-    static void ProcessXi(
-        const Cell<KData,C>& c1, const Cell<KData,C>& c2, const double ,
-        XiData<KData,KData>& xi, int k, int k2)
-    {
-        double wkk = c1.getWK() * c2.getWK();
-        xi.xi[k] += wkk;
-        if (R) {
-            xi.xi[k2] += wkk;
-        }
-    }
-};
-
-template <>
-struct DirectHelper2<3,KData,ZData>
-{
-    template <int R, int C>
-    static void ProcessXi(
-        const Cell<KData,C>& c1, const Cell<ZData,C>& c2, const double ,
-        XiData<KData,ZData>& xi, int k, int k2)
-    {
-        std::complex<double> wkz = c1.getWK() * c2.getWZ();
-        xi.xi[k] += real(wkz);
-        xi.xi_im[k] += imag(wkz);
-        if (R) {
-            xi.xi[k2] += real(wkz);
-            xi.xi_im[k2] += imag(wkz);
-        }
-    }
-};
-
-template <>
-struct DirectHelper2<3,ZData,ZData>
-{
-    template <int R, int C>
-    static void ProcessXi(
-        const Cell<ZData,C>& c1, const Cell<ZData,C>& c2, const double ,
-        XiData<ZData,ZData>& xi, int k, int k2)
-    {
-        std::complex<double> z1 = c1.getWZ();
-        std::complex<double> z2 = c2.getWZ();
-        ProjectHelper<C>::Project(c1,c2,z1,z2);
-
-        double z1rz2r = z1.real() * z2.real();
-        double z1rz2i = z1.real() * z2.imag();
-        double z1iz2r = z1.imag() * z2.real();
-        double z1iz2i = z1.imag() * z2.imag();
-
-        double z1z2cr = z1rz2r + z1iz2i;  // z1 * conj(z2)
-        double z1z2ci = z1iz2r - z1rz2i;
-        double z1z2r = z1rz2r - z1iz2i;   // z1 * z2
-        double z1z2i = z1iz2r + z1rz2i;
-
-        xi.xip[k] += z1z2cr;
-        xi.xip_im[k] += z1z2ci;
-        xi.xim[k] += z1z2r;
-        xi.xim_im[k] += z1z2i;
-
-        if (R) {
-            xi.xip[k2] += z1z2cr;
-            xi.xip_im[k2] += z1z2ci;
-            xi.xim[k2] += z1z2r;
-            xi.xim_im[k2] += z1z2i;
-        }
-    }
-};
-
-template <int D2>
-struct DirectHelper2<4,KData,D2>
-{
-    template <int R, int C>
-    static void ProcessXi(
-        const Cell<KData,C>& c1, const Cell<D2,C>& c2, const double rsq,
-        XiData<KData,D2>& xi, int k, int )
-    {
-        std::complex<double> g2 = c2.getWZ();
-        ProjectHelper<C>::Project(c1,c2,g2);
-        if (D2 == GData) g2 *= -c1.getWK();
-        else g2 *= c1.getWK();
-        xi.xi[k] += real(g2);
-        xi.xi_im[k] += imag(g2);
-    }
-};
-
-template <int D1, int D2>
-struct DirectHelper2<5,D1,D2>
-{
-    template <int R, int C>
+    template <int R, int D1, int D2, int C>
     static void ProcessXi(
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double rsq,
         XiData<D1,D2>& xi, int k, int k2)
@@ -533,48 +439,21 @@ struct DirectHelper2<5,D1,D2>
         ProjectHelper<C>::Project(c1,c2,g1,g2);
 
         // The complex products g1 g2 and g1 g2* share most of the calculations,
-        // so faster to do this manually.
-        double g1rg2r = g1.real() * g2.real();
-        double g1rg2i = g1.real() * g2.imag();
-        double g1ig2r = g1.imag() * g2.real();
-        double g1ig2i = g1.imag() * g2.imag();
+        // so faster to do this manually, which we do in both_complex_prod.
+        std::complex<double> xip, xim;
+        tie(xim, xip) = both_complex_prod(g2, g1);
 
-        double g1g2cr = g1rg2r + g1ig2i;  // g1 * conj(g2)
-        double g1g2ci = g1ig2r - g1rg2i;
-        double g1g2r = g1rg2r - g1ig2i;   // g1 * g2
-        double g1g2i = g1ig2r + g1rg2i;
-
-        xi.xip[k] += g1g2cr;
-        xi.xip_im[k] += g1g2ci;
-        xi.xim[k] += g1g2r;
-        xi.xim_im[k] += g1g2i;
+        xi.xip[k] += xip.real();
+        xi.xip_im[k] += xip.imag();
+        xi.xim[k] += xim.real();
+        xi.xim_im[k] += xim.imag();
 
         if (R) {
-            xi.xip[k2] += g1g2cr;
-            xi.xip_im[k2] += g1g2ci;
-            xi.xim[k2] += g1g2r;
-            xi.xim_im[k2] += g1g2i;
+            xi.xip[k2] += xip.real();
+            xi.xip_im[k2] += xip.imag();
+            xi.xim[k2] += xim.real();
+            xi.xim_im[k2] += xim.imag();
         }
-    }
-};
-
-template <int D1, int D2>
-struct DirectHelper
-{
-    template <int R, int C>
-    static void ProcessXi(
-        const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double rsq,
-        XiData<D1,D2>& xi, int k, int k2)
-    {
-        const int algo =
-            (D1 == NData && D2 == NData) ? 0 :
-            (D1 == NData && (D2==KData || D2==ZData)) ? 1 :
-            (D1 == NData && D2 >= VData) ? 2 :
-            (D1 == KData && (D2==KData || D2==ZData)) ? 3 :
-            (D1 == KData && D2 >= VData) ? 4 :
-            (D1 >= ZData && D2 >= ZData) ? 5 : -1;
-
-        DirectHelper2<algo,D1,D2>::template ProcessXi<R>(c1,c2,rsq,xi,k,k2);
     }
 };
 
@@ -653,9 +532,15 @@ void Corr2<D1,D2>::finishProcess(const BaseCell<C>& c1, const BaseCell<C>& c2,
         _weight[k2] += ww;
     }
 
+    const int algo =
+        (D1 == NData && D2 == NData) ? 0 :      // NN (nothing to do)
+        (D1 <= KData && D2 <= KData) ? 1 :      // NK, KN, KK
+        (D1 <= KData && D2 >= ZData) ? 2 :      // NZ, KZ
+        (D1 >= ZData && D2 >= ZData) ? 3 : -1;  // ZZ
+
     // Note: R=1 is only possible if D1 == D2, so multiply by (D1==D2)
     // to force the others to only instantiate R=0.
-    DirectHelper<D1,D2>::template ProcessXi<R*(D1==D2),C>(
+    DirectHelper<algo>::template ProcessXi<R*(D1==D2)>(
         static_cast<const Cell<D1,C>&>(c1),
         static_cast<const Cell<D2,C>&>(c2),
         rsq,_xi,k,k2);

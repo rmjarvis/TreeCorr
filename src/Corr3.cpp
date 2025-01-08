@@ -3050,14 +3050,6 @@ void Corr3<D1,D2,D3>::finishProcessMP(
         d1, d2, d3, z, _zeta, index, _nubins);
 }
 
-// In some cases, either wk or w is fine according to DType
-template <int C>
-inline double getWK(const Cell<NData,C>& c)
-{ return c.getW(); }
-template <int C>
-inline double getWK(const Cell<KData,C>& c)
-{ return c.getWK(); }
-
 template <>
 struct DirectHelper<0>
 {

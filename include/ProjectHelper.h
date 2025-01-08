@@ -15,6 +15,8 @@
 #ifndef TreeCorr_ProjectHelper_H
 #define TreeCorr_ProjectHelper_H
 
+#include <tuple>
+
 // For the direct processing, we need a helper struct to handle some of the projections
 // we need to do to the shear values.
 template <int C>
@@ -67,6 +69,27 @@ inline std::complex<double> _expmsialpha(const std::complex<double>& r)
                    D==TData ? 3 :
                    D==QData ? 4 : 0);
     return calculate_expmsialpha<s>(r);
+}
+
+// Compute both z1 z2 and conj(z1) z2
+// cf. https://stackoverflow.com/questions/321068/returning-multiple-values-from-a-c-function
+inline std::tuple<std::complex<double>, std::complex<double> >
+both_complex_prod(const std::complex<double>& z1, const std::complex<double>& z2)
+{
+    double z1rz2r = z1.real() * z2.real();
+    double z1rz2i = z1.real() * z2.imag();
+    double z1iz2r = z1.imag() * z2.real();
+    double z1iz2i = z1.imag() * z2.imag();
+
+    double z1z2r = z1rz2r - z1iz2i;
+    double z1z2i = z1rz2i + z1iz2r;
+    double z1cz2r = z1rz2r + z1iz2i;
+    double z1cz2i = z1rz2i - z1iz2r;
+
+    std::complex<double> z1z2(z1z2r, z1z2i);
+    std::complex<double> z1cz2(z1cz2r, z1cz2i);
+
+    return std::make_tuple(z1z2, z1cz2);
 }
 
 template <>

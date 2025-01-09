@@ -146,7 +146,7 @@ jobs:
             - name: Run unit tests
               run: |
                 cd tests
-                coverage run -m pytest -v
+                coverage run -m pytest -v --durations=20
                 coverage combine
                 coverage xml
                 cd ..  # N.B. This seems to happen automatically if omitted.

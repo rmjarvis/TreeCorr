@@ -512,7 +512,10 @@ def test_direct_logruv():
 def test_direct_logruv_spherical():
     # Repeat in spherical coords
 
-    ngal = 50
+    if __name__ == '__main__':
+        ngal = 100
+    else:
+        ngal = 30
     s = 10.
     rng = np.random.RandomState(8675309)
     x = rng.normal(0,s, (ngal,) )
@@ -1422,8 +1425,8 @@ def test_ggg_logruv():
         tol_factor = 1
     else:
         # Looser tests that don't take so long to run.
-        ngal = 10000
-        L = 20.*r0
+        ngal = 3000
+        L = 10.*r0
         tol_factor = 5
     rng = np.random.RandomState(8675309)
     x = (rng.random_sample(ngal)-0.5) * L
@@ -2716,7 +2719,10 @@ def test_direct_logsas():
 def test_direct_logsas_spherical():
     # Repeat in spherical coords
 
-    ngal = 100
+    if __name__ == '__main__':
+        ngal = 100
+    else:
+        ngal = 40
     s = 10.
     rng = np.random.RandomState(8675309)
     x = rng.normal(0,s, (ngal,) )
@@ -3927,12 +3933,6 @@ def test_map3_logsas():
     d3 = ggg.meand3
     s = d2
     t = d3 * np.exp(1j * ggg.meanphi)
-    print('d1 = ',d1.ravel())
-    print('d2 = ',d2.ravel())
-    print('d3 = ',d3.ravel())
-    print('phi = ',ggg.meanphi.ravel())
-    print('s = ',s.ravel())
-    print('t = ',t.ravel())
 
     q1 = (s + t)/3.
     q2 = q1 - t
@@ -3940,12 +3940,6 @@ def test_map3_logsas():
     nq1 = np.abs(q1)**2
     nq2 = np.abs(q2)**2
     nq3 = np.abs(q3)**2
-    #print('q1 = ',q1)
-    #print('q2 = ',q2)
-    #print('q3 = ',q3)
-    #print('nq1 = ',nq1)
-    #print('nq2 = ',nq2)
-    #print('nq3 = ',nq3)
 
     true_gam0 = ((-2.*np.pi * gamma0**3)/(3. * L**2 * r0**4) *
                  np.exp(-(nq1+nq2+nq3)/(2.*r0**2)) * (nq1*nq2*nq3) )
@@ -3972,14 +3966,6 @@ def test_map3_logsas():
               true_gam1.real, true_gam1.imag,
               true_gam2.real, true_gam2.imag,
               true_gam3.real, true_gam3.imag]
-    print('gam0r = ',ggg.gam0r.ravel())
-    print('gam0i = ',ggg.gam0i.ravel())
-    print('gam1r = ',ggg.gam1r.ravel())
-    print('gam1i = ',ggg.gam1i.ravel())
-    print('gam2r = ',ggg.gam2r.ravel())
-    print('gam2i = ',ggg.gam2i.ravel())
-    print('gam3r = ',ggg.gam3r.ravel())
-    print('gam3i = ',ggg.gam3i.ravel())
 
     # Directly calculate Map(u,v) across the region as:
     # Map(u,v) = int( g(x,y) * ((u-x) -I(v-y))^2 / ((u-x)^2 + (v-y)^2) * Q(u-x, v-y) )
@@ -4029,34 +4015,36 @@ def test_map3_logsas():
     np.testing.assert_allclose(ggg_map3b, ggg_map3, rtol=1.e-15, atol=1.e-20)
 
     # Other combinations are possible to compute analytically as well, so try out a couple
-    ggg_map3c = ggg.calculateMap3(R=r, k2=1, k3=2)
-    map3c = ggg_map3c[0]
-    true_map3c = 1024./243.*np.pi * gamma0**3 * r0**12 * r**6
-    true_map3c *= (575*r**8 + 806*r**6*r0**2 + 438*r**4*r0**4 + 110*r0**6*r**2 + 11*r0**8)
-    true_map3c /= L**2 * (3*r**2+r0**2)**7 * (r**2+r0**2)**5
-    print('map3c = ',map3c)
-    print('true_map3 = ',true_map3c)
-    print('ratio = ',map3c/true_map3c)
-    print('diff = ',map3c-true_map3c)
-    print('max diff = ',max(abs(map3c - true_map3c)))
-    np.testing.assert_allclose(map3c, true_map3c, rtol=0.1, atol=1.e-9)
+    # They take about a second for each one, so skip these for CI runs.
+    if __name__ == '__main__':
+        ggg_map3c = ggg.calculateMap3(R=r, k2=1, k3=2)
+        map3c = ggg_map3c[0]
+        true_map3c = 1024./243.*np.pi * gamma0**3 * r0**12 * r**6
+        true_map3c *= (575*r**8 + 806*r**6*r0**2 + 438*r**4*r0**4 + 110*r0**6*r**2 + 11*r0**8)
+        true_map3c /= L**2 * (3*r**2+r0**2)**7 * (r**2+r0**2)**5
+        print('map3c = ',map3c)
+        print('true_map3 = ',true_map3c)
+        print('ratio = ',map3c/true_map3c)
+        print('diff = ',map3c-true_map3c)
+        print('max diff = ',max(abs(map3c - true_map3c)))
+        np.testing.assert_allclose(map3c, true_map3c, rtol=0.1, atol=1.e-9)
 
-    # (This is the same but in a different order)
-    ggg_map3d = np.array(ggg.calculateMap3(R=r, k2=2, k3=1))
-    np.testing.assert_allclose(ggg_map3d[[0,2,1,3,5,4,6,7,8]], ggg_map3c)
+        # (This is the same but in a different order)
+        ggg_map3d = np.array(ggg.calculateMap3(R=r, k2=2, k3=1))
+        np.testing.assert_allclose(ggg_map3d[[0,2,1,3,5,4,6,7,8]], ggg_map3c)
 
-    ggg_map3e = ggg.calculateMap3(R=r, k2=1.5, k3=2)
-    map3e = ggg_map3e[0]
-    true_map3e = 442368.*np.pi * gamma0**3 * r0**12 * r**6
-    true_map3e *= (1800965*r**12 + 4392108*r**10*r0**2 + 4467940*r**8*r0**4 + 2429536*r**6*r0**6 +
-                   745312*r**4*r0**8 + 122496*r0**10*r**2 + 8448*r0**12)
-    true_map3e /= L**2 * (61*r**4 + 58*r0**2*r**2 + 12*r0**4)**7
-    print('map3e = ',map3e)
-    print('true_map3 = ',true_map3e)
-    print('ratio = ',map3e/true_map3e)
-    print('diff = ',map3e-true_map3e)
-    print('max diff = ',max(abs(map3e - true_map3e)))
-    np.testing.assert_allclose(map3e, true_map3e, rtol=0.1, atol=1.e-9)
+        ggg_map3e = ggg.calculateMap3(R=r, k2=1.5, k3=2)
+        map3e = ggg_map3e[0]
+        true_map3e = 442368.*np.pi * gamma0**3 * r0**12 * r**6
+        true_map3e *= (1800965*r**12 + 4392108*r**10*r0**2 + 4467940*r**8*r0**4 +
+                       2429536*r**6*r0**6 + 745312*r**4*r0**8 + 122496*r0**10*r**2 + 8448*r0**12)
+        true_map3e /= L**2 * (61*r**4 + 58*r0**2*r**2 + 12*r0**4)**7
+        print('map3e = ',map3e)
+        print('true_map3 = ',true_map3e)
+        print('ratio = ',map3e/true_map3e)
+        print('diff = ',map3e-true_map3e)
+        print('max diff = ',max(abs(map3e - true_map3e)))
+        np.testing.assert_allclose(map3e, true_map3e, rtol=0.1, atol=1.e-9)
 
     # Repeat now with the real ggg results.  The tolerance needs to be a bit larger now.
     # We also increase the "true" value a bit because the effective L^2 is a bit lower.
@@ -4216,48 +4204,49 @@ def test_map3_logsas():
     print('max diff = ',max(abs(mx3 - true_mx3c)))
     np.testing.assert_allclose(mx3, true_mx3c, rtol=0.05, atol=1.e-9)
 
-    # (This is the same but in a different order)
-    ggg_map3d = np.array(ggg.calculateMap3(R=r, k2=2, k3=1))
-    np.testing.assert_allclose(ggg_map3d[[0,2,1,3,5,4,6,7,8]], ggg_map3c)
+    if __name__ == '__main__':
+        # (This is the same but in a different order)
+        ggg_map3d = np.array(ggg.calculateMap3(R=r, k2=2, k3=1))
+        np.testing.assert_allclose(ggg_map3d[[0,2,1,3,5,4,6,7,8]], ggg_map3c)
 
-    ggg_map3e = ggg.calculateMap3(R=r, k2=1.5, k3=2)
-    temp = 442368.*np.pi * r0**12 * r**6
-    temp *= (1800965*r**12 + 4392108*r**10*r0**2 + 4467940*r**8*r0**4 + 2429536*r**6*r0**6 +
-                   745312*r**4*r0**8 + 122496*r0**10*r**2 + 8448*r0**12)
-    temp /= L**2 * (61*r**4 + 58*r0**2*r**2 + 12*r0**4)**7
-    true_map3e = temp * gamma0.real**3
-    true_map2mxe = temp * gamma0.real**2 * gamma0.imag
-    true_mapmx2e = temp * gamma0.real * gamma0.imag**2
-    true_mx3e = temp * gamma0.imag**3
+        ggg_map3e = ggg.calculateMap3(R=r, k2=1.5, k3=2)
+        temp = 442368.*np.pi * r0**12 * r**6
+        temp *= (1800965*r**12 + 4392108*r**10*r0**2 + 4467940*r**8*r0**4 + 2429536*r**6*r0**6 +
+                    745312*r**4*r0**8 + 122496*r0**10*r**2 + 8448*r0**12)
+        temp /= L**2 * (61*r**4 + 58*r0**2*r**2 + 12*r0**4)**7
+        true_map3e = temp * gamma0.real**3
+        true_map2mxe = temp * gamma0.real**2 * gamma0.imag
+        true_mapmx2e = temp * gamma0.real * gamma0.imag**2
+        true_mx3e = temp * gamma0.imag**3
 
-    map3e = ggg_map3e[0]
-    print('map3e = ',map3e)
-    print('true_map3 = ',true_map3e)
-    print('ratio = ',map3e/true_map3e)
-    print('diff = ',map3e-true_map3e)
-    print('max diff = ',max(abs(map3e - true_map3e)))
-    np.testing.assert_allclose(map3e, true_map3e, rtol=0.1, atol=1.e-9)
-    for map2mx in ggg_map3e[1:4]:
-        print('map2mx = ',map2mx)
-        print('true_map2mx = ',true_map2mxe)
-        print('ratio = ',map2mx/true_map2mxe)
-        print('diff = ',map2mx-true_map2mxe)
-        print('max diff = ',max(abs(map2mx - true_map2mxe)))
-        np.testing.assert_allclose(map2mx, true_map2mxe, rtol=0.05, atol=1.e-9)
-    for mapmx2 in ggg_map3e[4:7]:
-        print('mapmx2 = ',mapmx2)
-        print('true_mapmx2 = ',true_mapmx2e)
-        print('ratio = ',mapmx2/true_mapmx2e)
-        print('diff = ',mapmx2-true_mapmx2e)
-        print('max diff = ',max(abs(mapmx2 - true_mapmx2e)))
-        np.testing.assert_allclose(mapmx2, true_mapmx2e, rtol=0.05, atol=1.e-9)
-    mx3 = ggg_map3e[7]
-    print('mx3 = ',mx3)
-    print('true_mx3 = ',true_mx3e)
-    print('ratio = ',mx3/true_mx3e)
-    print('diff = ',mx3-true_mx3e)
-    print('max diff = ',max(abs(mx3 - true_mx3e)))
-    np.testing.assert_allclose(mx3, true_mx3e, rtol=0.05, atol=1.e-9)
+        map3e = ggg_map3e[0]
+        print('map3e = ',map3e)
+        print('true_map3 = ',true_map3e)
+        print('ratio = ',map3e/true_map3e)
+        print('diff = ',map3e-true_map3e)
+        print('max diff = ',max(abs(map3e - true_map3e)))
+        np.testing.assert_allclose(map3e, true_map3e, rtol=0.1, atol=1.e-9)
+        for map2mx in ggg_map3e[1:4]:
+            print('map2mx = ',map2mx)
+            print('true_map2mx = ',true_map2mxe)
+            print('ratio = ',map2mx/true_map2mxe)
+            print('diff = ',map2mx-true_map2mxe)
+            print('max diff = ',max(abs(map2mx - true_map2mxe)))
+            np.testing.assert_allclose(map2mx, true_map2mxe, rtol=0.05, atol=1.e-9)
+        for mapmx2 in ggg_map3e[4:7]:
+            print('mapmx2 = ',mapmx2)
+            print('true_mapmx2 = ',true_mapmx2e)
+            print('ratio = ',mapmx2/true_mapmx2e)
+            print('diff = ',mapmx2-true_mapmx2e)
+            print('max diff = ',max(abs(mapmx2 - true_mapmx2e)))
+            np.testing.assert_allclose(mapmx2, true_mapmx2e, rtol=0.05, atol=1.e-9)
+        mx3 = ggg_map3e[7]
+        print('mx3 = ',mx3)
+        print('true_mx3 = ',true_mx3e)
+        print('ratio = ',mx3/true_mx3e)
+        print('diff = ',mx3-true_mx3e)
+        print('max diff = ',max(abs(mx3 - true_mx3e)))
+        np.testing.assert_allclose(mx3, true_mx3e, rtol=0.05, atol=1.e-9)
 
 @timer
 def test_direct_logmultipole_auto():
@@ -4267,7 +4256,7 @@ def test_direct_logmultipole_auto():
     if __name__ == '__main__':
         ngal = 100
     else:
-        ngal = 50
+        ngal = 30
     s = 10.
     rng = np.random.RandomState(8675309)
     x = rng.normal(0,s, (ngal,) )
@@ -4483,10 +4472,8 @@ def test_direct_logmultipole_spherical():
 
     if __name__ == '__main__':
         ngal = 100
-        tol_factor = 1
     else:
-        ngal = 50
-        tol_factor = 3
+        ngal = 30
     s = 10.
     rng = np.random.RandomState(8675309)
     x = rng.normal(0,s, (ngal,) )
@@ -4595,10 +4582,10 @@ def test_direct_logmultipole_spherical():
 
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
     np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
-    np.testing.assert_allclose(ggg.gam0, true_gam0, rtol=1.e-5 * tol_factor, atol=1.e-8)
-    np.testing.assert_allclose(ggg.gam1, true_gam1, rtol=1.e-5 * tol_factor, atol=1.e-8)
-    np.testing.assert_allclose(ggg.gam2, true_gam2, rtol=1.e-5 * tol_factor, atol=1.e-8)
-    np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-5 * tol_factor, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam0, true_gam0, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam1, true_gam1, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam2, true_gam2, rtol=1.e-5, atol=1.e-8)
+    np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-5, atol=1.e-8)
 
 @timer
 def test_direct_logmultipole_cross():
@@ -4606,7 +4593,7 @@ def test_direct_logmultipole_cross():
     if __name__ == '__main__':
         ngal = 100
     else:
-        ngal = 50
+        ngal = 30
 
     s = 10.
     rng = np.random.RandomState(8675309)
@@ -4872,7 +4859,7 @@ def test_direct_logmultipole_cross():
 
     # Split into patches to test the list-based version of the code.
     # First with just one catalog with patches
-    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=10, rng=rng)
+    cat1 = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=3, rng=rng)
 
     ggg.process(cat1, cat2, cat3)
     np.testing.assert_allclose(ggg.weight, true_weight_123, rtol=1.e-5)

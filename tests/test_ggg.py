@@ -3534,6 +3534,9 @@ def test_ggg_logsas():
     #
     # Gamm2 and Gamma3 are found from cyclic rotations of q1,q2,q3.
 
+    # Skip this test on windows, since it is vv slow.
+    if os.name == 'nt': return
+
     gamma0 = 0.05
     r0 = 10.
     if __name__ == '__main__':

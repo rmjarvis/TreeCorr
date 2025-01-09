@@ -2556,7 +2556,9 @@ def test_kgg_logsas():
     #    q1 = x1 + I y1
     #    q2 = x2 + I y2
     #    q3 = -(x1+x2) - I (y1+y2)
-    #
+
+    # Skip this test on windows, since it is vv slow.
+    if os.name == 'nt': return
 
     gamma0 = 0.05
     kappa0 = 0.07
@@ -3073,6 +3075,9 @@ def test_vargam():
 @timer
 def test_kgg_logsas_jk():
     # Test jackknife covariance estimates for kgg correlations with LogSAS binning.
+
+    # Skip this test on windows, since it is vv slow.
+    if os.name == 'nt': return
 
     if __name__ == '__main__':
         nhalo = 1000

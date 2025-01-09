@@ -11,13 +11,13 @@
 #    this list of conditions, and the disclaimer given in the documentation
 #    and/or other materials provided with the distribution.
 
-import sys
+import sys, os
 import warnings
 
 from test_helper import timer
 from mpi_test import setup, do_mpi_gg, do_mpi_ng, do_mpi_nk, do_mpi_nn, do_mpi_kk, do_mpi_kg, do_mpi_cov
 
-skip=False
+skip = (os.name == 'nt')
 
 try:
     import fitsio

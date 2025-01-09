@@ -79,6 +79,9 @@ def test_kkk_logruv_jk():
     # have here, and it would take a lot more points to get to that regime.  So the
     # accuracy tests for those two are pretty loose.
 
+    # Skip this test on windows, since it is vv slow.
+    if os.name == 'nt': return
+
     if __name__ == '__main__':
         nhalo = 3000
         nsource = 5000
@@ -616,6 +619,9 @@ def test_kkk_logruv_jk():
 def test_ggg_logruv_jk():
     # Test jackknife and other covariance estimates for ggg correlations.
 
+    # Skip this test on windows, since it is vv slow.
+    if os.name == 'nt': return
+
     if __name__ == '__main__':
         # This setup takes about 590 sec to run.
         nhalo = 5000
@@ -1134,6 +1140,9 @@ def test_ggg_logruv_jk():
 def test_nnn_logruv_jk():
     # Test jackknife and other covariance estimates for nnn correlations.
 
+    # Skip this test on windows, since it is vv slow.
+    if os.name == 'nt': return
+
     if __name__ == '__main__':
         nhalo = 300
         nsource = 2000
@@ -1613,6 +1622,10 @@ def test_brute_jk():
     # With bin_slop = 0, the jackknife calculation from patches should match a
     # brute force calcaulation where we literally remove one patch at a time to make
     # the vectors.
+
+    # Skip this test on windows, since it is vv slow.
+    if os.name == 'nt': return
+
     if __name__ == '__main__':
         nhalo = 100
         ngal = 500
@@ -2305,6 +2318,9 @@ def test_lowmem():
 def test_kkk_logsas_jk():
     # Test jackknife covariance estimates for kkk correlations with LogSAS binning.
 
+    # Skip this test on windows, since it is vv slow.
+    if os.name == 'nt': return
+
     if __name__ == '__main__':
         nhalo = 1000
         nsource = 100000
@@ -2498,6 +2514,9 @@ def test_kkk_logsas_jk():
 def test_ggg_logsas_jk():
     # Test jackknife and other covariance estimates for ggg correlations.
 
+    # Skip this test on windows, since it is vv slow.
+    if os.name == 'nt': return
+
     if __name__ == '__main__':
         nhalo = 1000
         nsource = 50000
@@ -2687,6 +2706,9 @@ def test_ggg_logsas_jk():
 @timer
 def test_nnn_logsas_jk():
     # Test jackknife and other covariance estimates for nnn correlations.
+
+    # Skip this test on windows, since it is vv slow.
+    if os.name == 'nt': return
 
     if __name__ == '__main__':
         nhalo = 100

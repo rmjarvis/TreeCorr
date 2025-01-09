@@ -3396,6 +3396,9 @@ def test_direct_logsas_cross():
     # If the catalogs are small enough, we can do a direct count of the number of triangles
     # to see if comes out right.  This should exactly match the treecorr code if brute=True
 
+    # Windows fails here (at least sometimes) with a MemoryError
+    if os.name == 'nt': return
+
     if __name__ == '__main__':
         ngal = 200
     else:

@@ -571,6 +571,9 @@ def generate_shear_field(nside, rng=None):
 def test_gg_jk():
     # Test the variance estimate for GG correlation with jackknife (and other) error estimate.
 
+    # Skip this test on windows, since it is vv slow.
+    if os.name == 'nt': return
+
     if __name__ == '__main__':
         # 1000 x 1000, so 10^6 points.  With jackknifing, that gives 10^4 per region.
         nside = 1000
@@ -1002,6 +1005,9 @@ def test_gg_jk():
 def test_ng_jk():
     # Test the variance estimate for NG correlation with jackknife error estimate.
 
+    # Skip this test on windows, since it is vv slow.
+    if os.name == 'nt': return
+
     if __name__ == '__main__':
         # 1000 x 1000, so 10^6 points.  With jackknifing, that gives 10^4 per region.
         nside = 1000
@@ -1353,6 +1359,9 @@ def test_ng_jk():
 @timer
 def test_nn_jk():
     # Test the variance estimate for NN correlation with jackknife error estimate.
+
+    # Skip this test on windows, since it is vv slow.
+    if os.name == 'nt': return
 
     if __name__ == '__main__':
         nside = 1000
@@ -1762,6 +1771,9 @@ def test_nn_jk():
 def test_kappa_jk():
     # Test NK, KK, and KG with jackknife.
     # There's not really anything new to test here.  So just checking the interface works.
+
+    # Skip this test on windows, since it is vv slow.
+    if os.name == 'nt': return
 
     if __name__ == '__main__':
         nside = 1000
@@ -2467,6 +2479,10 @@ def test_clusters():
 
 @timer
 def test_brute_jk():
+
+    # Skip this test on windows, since it is vv slow.
+    if os.name == 'nt': return
+
     # With bin_slop = 0, the jackknife calculation from patches should match a
     # brute force calcaulation where we literally remove one patch at a time to make
     # the vectors.

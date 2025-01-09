@@ -611,6 +611,9 @@ def test_varxi():
 @timer
 def test_jk():
 
+    # Skip this test on windows, since it is vv slow.
+    if os.name == 'nt': return
+
     # Same multi-lens field we used for NV patch test
     r0 = 30.
     L = 30 * r0

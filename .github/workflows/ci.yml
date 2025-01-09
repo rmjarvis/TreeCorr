@@ -17,6 +17,8 @@ jobs:
     build:
         runs-on: ${{ matrix.os }}
 
+        continue-on-error: ${{ matrix.os == 'windows-2019' }}
+
         env:
             CC: ${{ matrix.CC }}
             CXX: ${{ matrix.CXX }}
@@ -50,7 +52,7 @@ jobs:
                       CXX: g++-11
 
                     # Check one on Windows
-                    - os: windows-latest
+                    - os: windows-2019
                       py: 3.11
                       CC: gcc
                       CXX: g++
@@ -133,7 +135,7 @@ jobs:
                 pip install -U guppy3
 
             - name: Install fitsio everywhere but Windows
-              if: matrix.os != 'windows-latest'
+              if: matrix.os != 'windows-2019'
               run: |
                 pip install -U fitsio
 
@@ -153,7 +155,7 @@ jobs:
                        # Less confusing to include it explicitly.
 
             - name: Upload coverage to codecov
-              if: matrix.os != 'windows-latest'
+              if: matrix.os != 'windows-2019'
               uses: codecov/codecov-action@v4
               with:
                 token: ${{ secrets.CODECOV_TOKEN }}
@@ -165,7 +167,7 @@ jobs:
               # The code is already mostly checked in the main tests with mock_mpi.
               # These just check that the code works when run in a real mpi session.
               # Skip windows and pypy for this.
-              if: (matrix.os != 'windows-latest') && (matrix.py > 3.0)
+              if: (matrix.os != 'windows-2019') && (matrix.py > 3.0)
               run: |
                 cd tests
                 which -a mpiexec

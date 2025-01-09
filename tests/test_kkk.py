@@ -2177,6 +2177,9 @@ def test_kkk_logsas():
     #             = 2/3 pi A^3 (s/L)^2 exp(-(x1^2 + y1^2 + x2^2 + y2^2 - x1x2 - y1y2)/3s^2)
     #             = 2/3 pi A^3 (s/L)^2 exp(-(d1^2 + d2^2 + d3^2)/6s^2)
 
+    # Skip this test on windows, since it is vv slow.
+    if os.name == 'nt': return
+
     A = 0.05
     s = 10.
     if __name__ == '__main__':

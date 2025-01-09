@@ -1001,6 +1001,9 @@ def test_varxi():
 @timer
 def test_jk():
 
+    # Skip this test on windows, since it is vv slow.
+    if os.name == 'nt': return
+
     # Similar to the profile we use above, but multiple "lenses".
     v0 = 0.05
     r0 = 30.

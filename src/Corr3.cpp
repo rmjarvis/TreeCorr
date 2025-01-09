@@ -3923,6 +3923,9 @@ void pyExportCorr3(py::module& _treecorr)
     WrapCorr3<NData,NData,KData>(_treecorr, "NNK");
     WrapCorr3<NData,KData,NData>(_treecorr, "NKN");
     WrapCorr3<KData,NData,NData>(_treecorr, "KNN");
+    WrapCorr3<NData,KData,KData>(_treecorr, "NKK");
+    WrapCorr3<KData,NData,KData>(_treecorr, "KNK");
+    WrapCorr3<KData,KData,NData>(_treecorr, "KKN");
     WrapCorr3<KData,KData,GData>(_treecorr, "KKG");
     WrapCorr3<KData,GData,KData>(_treecorr, "KGK");
     WrapCorr3<GData,KData,KData>(_treecorr, "GKK");

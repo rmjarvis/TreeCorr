@@ -67,9 +67,10 @@ from .nnncorrelation import NNNCorrelation
 from .kkkcorrelation import KKKCorrelation
 from .gggcorrelation import GGGCorrelation
 
+from .nnkcorrelation import NNKCorrelation, NKNCorrelation, KNNCorrelation
+from .nkkcorrelation import NKKCorrelation, KNKCorrelation, KKNCorrelation
 from .kkgcorrelation import KKGCorrelation, KGKCorrelation, GKKCorrelation
 from .kggcorrelation import KGGCorrelation, GKGCorrelation, GGKCorrelation
-from .nnkcorrelation import KNNCorrelation, NKNCorrelation, NNKCorrelation
 
 from .exec_corr2 import corr2, print_corr2_params, corr2_valid_params, corr2_aliases
 from .exec_corr3 import corr3, print_corr3_params, corr3_valid_params, corr3_aliases

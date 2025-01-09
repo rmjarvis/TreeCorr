@@ -1,0 +1,19 @@
+
+file_name: data/kkn_kdata_logsas.dat
+file_name2: data/kkn_ndata_logsas.dat
+
+x_col: 1
+y_col: 2
+k_col: [3,0]
+
+verbose: 1
+
+min_sep: 3.
+max_sep: 9.
+nbins: 5
+min_phi: 0.2
+nphi_bins: 15
+bin_type: LogSAS
+max_n: 120
+
+kkn_file_name: output/kkn_logsas.out

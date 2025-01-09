@@ -47,7 +47,11 @@ def do_mpi_corr(comm, Correlation, cross, attr, output=True, patch_method=None, 
     size = comm.Get_size()
     file_name = os.path.join('data','Aardvark.fit')
     patch_file = os.path.join('data','mpi_patches.fits')
-    nth = 2000  # Takes forever to do anywhere close to whole catalog.
+    # Takes forever to do anywhere close to whole catalog.
+    if __name__ == '__main__':
+        nth = 2000
+    else:
+        nth = 5000
 
     if rank == 0 and output:
         print('Start do_mpi_corr for ',Correlation.__name__,flush=True)
@@ -119,7 +123,11 @@ def do_mpi_corr2(comm, Correlation, cross, attr, output=True, patch_method='glob
     size = comm.Get_size()
     file_name = os.path.join('data','Aardvark.fit')
     patch_file = os.path.join('data','mpi_patches.fits')
-    nth = 2000  # Takes forever to do anywhere close to whole catalog.
+    # Takes forever to do anywhere close to whole catalog.
+    if __name__ == '__main__':
+        nth = 2000
+    else:
+        nth = 5000
 
     if rank == 0 and output:
         print('Start do_mpi_corr2 for ',Correlation.__name__,flush=True)

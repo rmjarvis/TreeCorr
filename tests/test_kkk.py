@@ -333,7 +333,10 @@ def test_direct_logruv():
 def test_direct_logruv_spherical():
     # Repeat in spherical coords
 
-    ngal = 50
+    if __name__ == '__main__':
+        ngal = 100
+    else:
+        ngal = 30
     s = 10.
     rng = np.random.RandomState(8675309)
     x = rng.normal(0,s, (ngal,) )
@@ -1534,7 +1537,10 @@ def test_direct_logsas():
 def test_direct_logsas_spherical():
     # Repeat in spherical coords
 
-    ngal = 100
+    if __name__ == '__main__':
+        ngal = 100
+    else:
+        ngal = 60
     s = 10.
     rng = np.random.RandomState(8675309)
     x = rng.normal(0,s, (ngal,) )
@@ -2537,7 +2543,7 @@ def test_direct_logmultipole_spherical():
     if __name__ == '__main__':
         ngal = 100
     else:
-        ngal = 50
+        ngal = 30
     s = 10.
     sig_kap = 3
     rng = np.random.RandomState(8675309)

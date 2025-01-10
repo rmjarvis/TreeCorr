@@ -1215,6 +1215,11 @@ class Corr3(object):
         """
         return np.any(self.ntri)
 
+    @lazy_property
+    def _nonzero(self):
+        # The lazy version when we can be sure the object isn't going to accumulate any more.
+        return self.nonzero
+
     def _add_tot(self, ijk, c1, c2, c3):
         # No op for all but NNCorrelation, which needs to add the tot value
         pass

@@ -20,7 +20,6 @@ import numpy as np
 from . import _treecorr
 from .catalog import calculateVarK, calculateVarG
 from .corr3base import Corr3
-from .config import make_minimal_config
 
 
 class KKGCorrelation(Corr3):

@@ -20,8 +20,6 @@ import numpy as np
 from . import _treecorr
 from .catalog import calculateVarK
 from .corr3base import Corr3
-from .util import lazy_property
-from .config import make_minimal_config
 
 
 class KNNCorrelation(Corr3):

@@ -20,8 +20,6 @@ import numpy as np
 from . import _treecorr
 from .catalog import calculateVarV
 from .nzcorrelation import BaseNZCorrelation
-from .util import make_writer, make_reader
-from .config import make_minimal_config
 
 
 class NVCorrelation(BaseNZCorrelation):

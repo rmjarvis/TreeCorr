@@ -20,8 +20,6 @@ import numpy as np
 from . import _treecorr
 from .catalog import calculateVarG, calculateVarK
 from .kzcorrelation import BaseKZCorrelation
-from .util import make_writer, make_reader
-from .config import make_minimal_config
 
 
 class KGCorrelation(BaseKZCorrelation):

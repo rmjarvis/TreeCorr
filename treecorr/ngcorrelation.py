@@ -19,8 +19,7 @@ import numpy as np
 
 from . import _treecorr
 from .catalog import calculateVarG
-from .util import make_writer, make_reader
-from .config import make_minimal_config
+from .util import make_writer
 from .nzcorrelation import BaseNZCorrelation
 
 
@@ -321,8 +320,7 @@ class NGCorrelation(BaseNZCorrelation):
 
         col_names = ['R','NMap','NMx','sig_nmap']
         columns = [ R, nmap, nmx, np.sqrt(varnmap) ]
-        writer = make_writer(file_name, precision, file_type, logger=self.logger)
-        with writer:
+        with make_writer(file_name, precision, file_type, logger=self.logger) as writer:
             writer.write(col_names, columns)
 
     def writeNorm(self, file_name, *, gg, dd, rr, R=None, dr=None, rg=None,
@@ -408,6 +406,5 @@ class NGCorrelation(BaseNZCorrelation):
                     nmap, nmx, np.sqrt(varnmap),
                     nsq, np.sqrt(varnsq), mapsq, np.sqrt(varmapsq),
                     nmnorm, np.sqrt(varnmnorm), nnnorm, np.sqrt(varnnnorm) ]
-        writer = make_writer(file_name, precision, file_type, logger=self.logger)
-        with writer:
+        with make_writer(file_name, precision, file_type, logger=self.logger) as writer:
             writer.write(col_names, columns)

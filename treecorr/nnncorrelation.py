@@ -19,7 +19,7 @@ import numpy as np
 
 from . import _treecorr
 from .corr3base import Corr3
-from .util import make_writer, make_reader, lazy_property
+from .util import make_writer, make_reader
 from .config import make_minimal_config
 
 
@@ -140,11 +140,6 @@ class NNNCorrelation(Corr3):
         """Finalize the calculation of the correlation function.
         """
         self._finalize()
-
-    @lazy_property
-    def _nonzero(self):
-        # The lazy version when we can be sure the object isn't going to accumulate any more.
-        return self.nonzero
 
     def _clear(self):
         super()._clear()

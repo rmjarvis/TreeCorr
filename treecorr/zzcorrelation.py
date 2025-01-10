@@ -21,7 +21,6 @@ from . import _treecorr
 from .catalog import calculateVarZ
 from .corr2base import Corr2
 from .util import make_writer
-from .config import make_minimal_config
 
 
 class BaseZZCorrelation(Corr2):

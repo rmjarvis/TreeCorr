@@ -512,8 +512,8 @@ class NNNCorrelation(Corr3):
         d2_nom          The nominal center of the bin in d2
         d3_nom          The nominal center of the bin in d3
         n               The multipole index n
-        weight_re       The real part of the complex weight.
-        weight_im       The imaginary part of the complex weight.
+        weightr         The real part of the complex weight.
+        weighti         The imaginary part of the complex weight.
         ==========      ================================================================
 
         In addition, all bin types include the following columns:
@@ -609,7 +609,7 @@ class NNNCorrelation(Corr3):
             if self.zeta is not None:
                 col_names += [ 'zeta', 'sigma_zeta' ]
             if self.weighti.size:
-                col_names += [ 'weight_re', 'weight_im' ]
+                col_names += [ 'weightr', 'weighti' ]
             col_names += [ 'DDD', 'ntri' ]
         else:
             col_names += [ 'zeta','sigma_zeta','DDD','RRR' ]

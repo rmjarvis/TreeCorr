@@ -2475,10 +2475,10 @@ def test_direct_logmultipole_auto():
         np.testing.assert_allclose(data['d3_nom'], kkk.d3nom.flatten(), rtol=1.e-4)
         np.testing.assert_allclose(data['n'], kkk.n.flatten(), rtol=1.e-4)
         np.testing.assert_allclose(data['ntri'], kkk.ntri.flatten(), rtol=1.e-4)
-        np.testing.assert_allclose(data['weight_re'], np.real(kkk.weight.flatten()), rtol=1.e-4)
-        np.testing.assert_allclose(data['weight_im'], np.imag(kkk.weight.flatten()), rtol=1.e-4, atol=1.e-8)
-        np.testing.assert_allclose(data['zeta_re'], np.real(kkk.zeta.flatten()), rtol=1.e-4)
-        np.testing.assert_allclose(data['zeta_im'], np.imag(kkk.zeta.flatten()), rtol=1.e-4, atol=1.e-8)
+        np.testing.assert_allclose(data['weightr'], np.real(kkk.weight.flatten()), rtol=1.e-4)
+        np.testing.assert_allclose(data['weighti'], np.imag(kkk.weight.flatten()), rtol=1.e-4, atol=1.e-8)
+        np.testing.assert_allclose(data['zetar'], np.real(kkk.zeta.flatten()), rtol=1.e-4)
+        np.testing.assert_allclose(data['zetai'], np.imag(kkk.zeta.flatten()), rtol=1.e-4, atol=1.e-8)
 
     # Test I/O
     ascii_name = 'output/kkk_ascii_logmultipole.txt'

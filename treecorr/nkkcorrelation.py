@@ -139,14 +139,14 @@ class NKKCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         zeta            The estimator of :math:`\zeta` (For LogMultipole, this is split
-                        into real and imaginary parts, zeta_re and zeta_im.)
+                        into real and imaginary parts, zetar and zetai.)
         sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`.
         """)
 
     @property
     def _write_class_col_names(self):
         if self.bin_type == 'LogMultipole':
-            return ['zeta_re', 'zeta_im', 'sigma_zeta']
+            return ['zetar', 'zetai', 'sigma_zeta']
         else:
             return ['zeta', 'sigma_zeta']
 
@@ -161,8 +161,8 @@ class NKKCorrelation(Corr3):
         super()._read_from_data(data, params)
         s = self.data_shape
         if self.bin_type == 'LogMultipole':
-            self._z[0] = data['zeta_re'].reshape(s)
-            self._z[1] = data['zeta_im'].reshape(s)
+            self._z[0] = data['zetar'].reshape(s)
+            self._z[1] = data['zetai'].reshape(s)
         else:
             self._z[0] = data['zeta'].reshape(s)
         self._varzeta = data['sigma_zeta'].reshape(s)**2
@@ -282,14 +282,14 @@ class KNKCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         zeta            The estimator of :math:`\zeta` (For LogMultipole, this is split
-                        into real and imaginary parts, zeta_re and zeta_im.)
+                        into real and imaginary parts, zetar and zetai.)
         sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`.
         """)
 
     @property
     def _write_class_col_names(self):
         if self.bin_type == 'LogMultipole':
-            return ['zeta_re', 'zeta_im', 'sigma_zeta']
+            return ['zetar', 'zetai', 'sigma_zeta']
         else:
             return ['zeta', 'sigma_zeta']
 
@@ -304,8 +304,8 @@ class KNKCorrelation(Corr3):
         super()._read_from_data(data, params)
         s = self.data_shape
         if self.bin_type == 'LogMultipole':
-            self._z[0] = data['zeta_re'].reshape(s)
-            self._z[1] = data['zeta_im'].reshape(s)
+            self._z[0] = data['zetar'].reshape(s)
+            self._z[1] = data['zetai'].reshape(s)
         else:
             self._z[0] = data['zeta'].reshape(s)
         self._varzeta = data['sigma_zeta'].reshape(s)**2
@@ -425,14 +425,14 @@ class KKNCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         zeta            The estimator of :math:`\zeta` (For LogMultipole, this is split
-                        into real and imaginary parts, zeta_re and zeta_im.)
+                        into real and imaginary parts, zetar and zetai.)
         sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`.
         """)
 
     @property
     def _write_class_col_names(self):
         if self.bin_type == 'LogMultipole':
-            return ['zeta_re', 'zeta_im', 'sigma_zeta']
+            return ['zetar', 'zetai', 'sigma_zeta']
         else:
             return ['zeta', 'sigma_zeta']
 
@@ -447,8 +447,8 @@ class KKNCorrelation(Corr3):
         super()._read_from_data(data, params)
         s = self.data_shape
         if self.bin_type == 'LogMultipole':
-            self._z[0] = data['zeta_re'].reshape(s)
-            self._z[1] = data['zeta_im'].reshape(s)
+            self._z[0] = data['zetar'].reshape(s)
+            self._z[1] = data['zetai'].reshape(s)
         else:
             self._z[0] = data['zeta'].reshape(s)
         self._varzeta = data['sigma_zeta'].reshape(s)**2

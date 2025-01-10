@@ -2925,7 +2925,7 @@ class Corr3(object):
                          'meand3', 'meanlogd3']
         col_names += self._write_class_col_names
         if self.bin_type == 'LogMultipole':
-            col_names += ['weight_re', 'weight_im', 'ntri']
+            col_names += ['weightr', 'weighti', 'ntri']
         else:
             col_names += ['weight', 'ntri']
         return col_names
@@ -3058,7 +3058,7 @@ class Corr3(object):
                         fell into each bin {}
         weight          The total weight of triangles contributing to each bin.
                         (For LogMultipole, this is split into real and imaginary parts,
-                        weight_re and weight_im.)
+                        weightr and weighti.)
         ntri            The number of triangles contributing to each bin
         ==========      ================================================================
 
@@ -3091,6 +3091,12 @@ class Corr3(object):
         cov_shape = params.get('cov_shape', None)
         name = 'main' if num_patch_tri and name is None else name
         data = reader.read_data(max_rows=num_rows, ext=name)
+
+        # Version 5.0 used weight_re, weight_im.  These are now weightr, weighti.
+        # Fix in place to keep backwards compatibility.
+        if any('_re' in n for n in data.dtype.names):
+            dt = np.dtype([(n.replace('_re','r').replace('_im','i'),t) for (n,t) in data.dtype.descr])
+            data = data.astype(dt)
 
         # This helper function defines how to set the attributes for each class
         # based on what was read in.
@@ -3128,8 +3134,8 @@ class Corr3(object):
         elif self.bin_type == 'LogSAS':
             self.meanu = data['meanphi'].reshape(s)
         if self.bin_type == 'LogMultipole':
-            self.weightr = data['weight_re'].reshape(s)
-            self.weighti = data['weight_im'].reshape(s)
+            self.weightr = data['weightr'].reshape(s)
+            self.weighti = data['weighti'].reshape(s)
         else:
             if 'weight' in data.dtype.names:
                 # NNN calls this DDD, rather than weight.  Let that class handle it.

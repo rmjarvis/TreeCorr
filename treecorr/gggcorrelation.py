@@ -21,7 +21,6 @@ from . import _treecorr
 from .catalog import calculateVarG
 from .corr3base import Corr3
 from .util import make_writer, make_reader
-from .config import make_minimal_config
 
 
 class GGGCorrelation(Corr3):

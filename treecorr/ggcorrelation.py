@@ -21,7 +21,6 @@ from . import _treecorr
 from .catalog import calculateVarG
 from .zzcorrelation import BaseZZCorrelation
 from .util import make_writer, make_reader
-from .config import make_minimal_config
 
 
 class GGCorrelation(BaseZZCorrelation):

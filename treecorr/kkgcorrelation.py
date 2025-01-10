@@ -132,9 +132,9 @@ class KKGCorrelation(Corr3):
 
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
-        zetar           The real part of the estimator of :math:`\Gamma_0`
-        zetai           The imag part of the estimator of :math:`\Gamma_0`
-        sigma_zeta      The sqrt of the variance estimate of :math:`\Gamma_0`
+        zetar           The real part of the estimator of :math:`\zeta`
+        zetai           The imag part of the estimator of :math:`\zeta`
+        sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`
         """)
 
     @property
@@ -260,9 +260,9 @@ class KGKCorrelation(Corr3):
 
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
-        zetar           The real part of the estimator of :math:`\Gamma_0`
-        zetai           The imag part of the estimator of :math:`\Gamma_0`
-        sigma_zeta      The sqrt of the variance estimate of :math:`\Gamma_0`
+        zetar           The real part of the estimator of :math:`\zeta`
+        zetai           The imag part of the estimator of :math:`\zeta`
+        sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`
         """)
 
     @property
@@ -389,9 +389,9 @@ class GKKCorrelation(Corr3):
 
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
-        zetar           The real part of the estimator of :math:`\Gamma_0`
-        zetai           The imag part of the estimator of :math:`\Gamma_0`
-        sigma_zeta      The sqrt of the variance estimate of :math:`\Gamma_0`
+        zetar           The real part of the estimator of :math:`\zeta`
+        zetai           The imag part of the estimator of :math:`\zeta`
+        sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`
         """)
 
     @property

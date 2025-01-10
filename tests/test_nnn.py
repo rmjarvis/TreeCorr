@@ -4541,8 +4541,8 @@ def test_direct_logmultipole_auto():
     np.testing.assert_allclose(corr3_output['d3_nom'], ddd.d3nom.flatten(), rtol=1.e-4)
     np.testing.assert_allclose(corr3_output['n'], ddd.n.flatten(), rtol=1.e-4)
     np.testing.assert_allclose(corr3_output['ntri'], ddd.ntri.flatten(), rtol=1.e-4)
-    np.testing.assert_allclose(corr3_output['weight_re'], np.real(ddd.weight).flatten(), rtol=1.e-4)
-    np.testing.assert_allclose(corr3_output['weight_im'], np.imag(ddd.weight).flatten(), rtol=1.e-4, atol=1.e-9)
+    np.testing.assert_allclose(corr3_output['weightr'], np.real(ddd.weight).flatten(), rtol=1.e-4)
+    np.testing.assert_allclose(corr3_output['weighti'], np.imag(ddd.weight).flatten(), rtol=1.e-4, atol=1.e-9)
 
     # Test I/O
     ascii_name = 'output/nnn_ascii_logmultipole.txt'

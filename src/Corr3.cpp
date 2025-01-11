@@ -1609,12 +1609,22 @@ void MultipoleScratch<NData>::calculateGn(
     double rsq, double r, int k, double w)
 {
     std::complex<double> z = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), r);
-    int index = k*(maxn+1);
-    Wn[index] += w;
+    if (ww && wbuffer) {
+        std::complex<double> ww = c2.calculateSumWSq();
+        XAssert(wbuffer == 1);  // Need to think more about this when not limited to N,K,G.
+        ww *= std::conj(z*z);
+        sumwwzz[k] += ww;
+    }
+    int iw = Windex(k);
+    Wn[iw] += w;
     std::complex<double> wztothen = w;
     for (int n=1; n<=maxn; ++n) {
         wztothen *= z;
-        Wn[index + n] += wztothen;
+        Wn[iw + n] += wztothen;
+    }
+    for (int n=maxn+1; n<=maxn+wbuffer; ++n) {
+        wztothen *= z;
+        Wn[iw + n] += wztothen;
     }
 }
 
@@ -2284,8 +2294,8 @@ struct MultipoleHelper<2>
 template <>
 struct MultipoleHelper<3>
 {
-    template <int C>
-    static void CalculateZeta(const Cell<KData,C>& c1,
+    template <int D, int C>
+    static void CalculateZeta(const Cell<D,C>& c1,
                               BaseMultipoleScratch& mp,
                               int kstart, int mink_zeta,
                               ZetaData<2>& zeta, int nbins, int maxn)
@@ -3920,15 +3930,23 @@ void pyExportCorr3(py::module& _treecorr)
     WrapCorr3<NData,NData,NData>(_treecorr, "NNN");
     WrapCorr3<KData,KData,KData>(_treecorr, "KKK");
     WrapCorr3<GData,GData,GData>(_treecorr, "GGG");
+
     WrapCorr3<NData,NData,KData>(_treecorr, "NNK");
     WrapCorr3<NData,KData,NData>(_treecorr, "NKN");
     WrapCorr3<KData,NData,NData>(_treecorr, "KNN");
+
     WrapCorr3<NData,KData,KData>(_treecorr, "NKK");
     WrapCorr3<KData,NData,KData>(_treecorr, "KNK");
     WrapCorr3<KData,KData,NData>(_treecorr, "KKN");
+
+    WrapCorr3<NData,NData,GData>(_treecorr, "NNG");
+    WrapCorr3<NData,GData,NData>(_treecorr, "NGN");
+    WrapCorr3<GData,NData,NData>(_treecorr, "GNN");
+
     WrapCorr3<KData,KData,GData>(_treecorr, "KKG");
     WrapCorr3<KData,GData,KData>(_treecorr, "KGK");
     WrapCorr3<GData,KData,KData>(_treecorr, "GKK");
+
     WrapCorr3<KData,GData,GData>(_treecorr, "KGG");
     WrapCorr3<GData,KData,GData>(_treecorr, "GKG");
     WrapCorr3<GData,GData,KData>(_treecorr, "GGK");

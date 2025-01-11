@@ -35,8 +35,9 @@ std::unique_ptr<T> make_unique(Args&&... args)
 // Anything related to K or G values is in the relevant derived classes.
 struct BaseMultipoleScratch
 {
-    BaseMultipoleScratch(int _nbins, int _maxn, bool use_ww) :
-        ww(use_ww), nbins(_nbins), maxn(_maxn), Wnsize(nbins * (maxn+1)),
+    BaseMultipoleScratch(int _nbins, int _maxn, bool use_ww, int _wbuffer=0) :
+        ww(use_ww), nbins(_nbins), maxn(_maxn), wbuffer(_wbuffer),
+        Wnsize(nbins * (maxn+1+wbuffer)),
         Wn(Wnsize), npairs(nbins), sumw(nbins), sumwr(nbins), sumwlogr(nbins)
     {
         if (ww) {
@@ -47,7 +48,7 @@ struct BaseMultipoleScratch
     }
 
     BaseMultipoleScratch(const BaseMultipoleScratch& rhs) :
-        ww(rhs.ww), nbins(rhs.nbins), maxn(rhs.maxn), Wnsize(rhs.Wnsize),
+        ww(rhs.ww), nbins(rhs.nbins), maxn(rhs.maxn), wbuffer(rhs.wbuffer), Wnsize(rhs.Wnsize),
         Wn(rhs.Wn), npairs(rhs.npairs), sumw(rhs.sumw), sumwr(rhs.sumwr), sumwlogr(rhs.sumwlogr),
         sumww(rhs.sumww), sumwwr(rhs.sumwwr), sumwwlogr(rhs.sumwwlogr)
     {}
@@ -77,7 +78,7 @@ struct BaseMultipoleScratch
     virtual std::unique_ptr<BaseMultipoleScratch> duplicate() = 0;
 
     inline int Windex(int k, int n=0)
-    { return k * (maxn+1) + n; }
+    { return k * (maxn+1+wbuffer) + n; }
 
     virtual int Gindex(int k, int n=0) = 0;
 
@@ -97,6 +98,7 @@ struct BaseMultipoleScratch
     const bool ww;
     const int nbins;
     const int maxn;
+    const int wbuffer;
     const int Wnsize;
 
     std::vector<std::complex<double> > Wn;
@@ -131,25 +133,52 @@ template <>
 struct MultipoleScratch<NData> : public BaseMultipoleScratch
 {
     MultipoleScratch(int nbins, int maxn, bool use_ww, int buffer) :
-        BaseMultipoleScratch(nbins, maxn, use_ww)
-    {}
+        BaseMultipoleScratch(nbins, maxn, use_ww, buffer)
+    {
+        if (use_ww && buffer) {
+            sumwwzz.resize(nbins);
+        }
+    }
 
     std::unique_ptr<BaseMultipoleScratch> duplicate()
     {
         return make_unique<MultipoleScratch>(*this);
     }
 
+    void clear()
+    {
+        BaseMultipoleScratch::clear();
+        if (sumwwzz.size()) {
+            for (int i=0; i<nbins; ++i) sumwwzz[i] = 0.;
+        }
+    }
+
     int Gindex(int k, int n=0)
     { return Windex(k, n); }
 
     std::complex<double> Gn(int index, int n=0)
-    { return n >= 0 ? Wn[index+n] : std::conj(Wn[index-n]); }
+    {
+        if (n >= 0) {
+            XAssert(index+n < Wnsize);
+            XAssert(index+n >= 0);
+        } else {
+            XAssert(index-n < Wnsize);
+            XAssert(index-n >= 0);
+        }
+        return n >= 0 ? Wn[index+n] : std::conj(Wn[index-n]);
+    }
 
     double correction0r(int k)
-    { return sumww[k]; }
+    {
+        XAssert(k >= 0 && k < sumww.size());
+        return sumww[k];
+    }
 
     std::complex<double> correction0(int k)
-    { return sumww[k]; }
+    {
+        XAssert(k >= 0 && k < (wbuffer ? sumwwzz.size() : sumww.size()));
+        return wbuffer ? sumwwzz[k] : sumww[k];
+    }
 
     std::complex<double> correction1(int k)
     { XAssert(false); return sumww[k]; }
@@ -161,6 +190,8 @@ struct MultipoleScratch<NData> : public BaseMultipoleScratch
     void calculateGn(
         const BaseCell<C>& c1, const Cell<NData,C>& c2,
         double rsq, double r, int k, double w);
+
+    std::vector<std::complex<double> > sumwwzz;
 
 protected:
     void doCalculateGn(

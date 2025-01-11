@@ -1842,7 +1842,7 @@ def test_direct_logmultipole_cross():
     np.testing.assert_allclose(gkk.zeta, true_zeta_321, rtol=1.e-4)
 
     # Split into patches to test the list-based version of the code.
-    cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=2, rng=rng)
+    cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=4, rng=rng)
     cat2p = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2, patch_centers=cat1.patch_centers)
     cat3p = treecorr.Catalog(x=x3, y=y3, w=w3, g1=g1_3, g2=g2_3, patch_centers=cat1.patch_centers)
 
@@ -2060,7 +2060,7 @@ def test_direct_logmultipole_cross21():
     np.testing.assert_allclose(gkk.zeta, true_zeta_211, rtol=1.e-4)
 
     # Split into patches to test the list-based version of the code.
-    cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=2, rng=rng)
+    cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, k=k1, npatch=4, rng=rng)
     cat2p = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2, patch_centers=cat1.patch_centers)
 
     # First test with just one catalog using patches

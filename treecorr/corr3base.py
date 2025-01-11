@@ -2020,6 +2020,17 @@ class Corr3(object):
           first catalog taking one corner of the triangles, and the second taking two corners.
         - If 3 arguments are given, then compute a three-way cross-correlation function.
 
+        .. note::
+
+            For cross correlations where the third field type is different from the other two
+            (e.g. KKG, NNG, etc.) then the 2 argument version will use the first catalog
+            for first two vertices and the second for the third vertex, since that's the
+            only valid combination for those correlation types.
+
+            E.g. ``kkg.process(cat1, cat2)`` is equivalent to ``kkg.process(cat1, cat1, cat2)``,
+            except it will be slightly more efficient, since it knows the first two vertices
+            are from a single field.
+
         For cross correlations, the default behavior is to use cat1 for the first vertex (P1),
         cat2 for the second vertex (P2), and cat3 for the third vertex (P3).  If only two
         catalogs are given, vertices P2 and P3 both come from cat2.  The sides d1, d2, d3,

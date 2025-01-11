@@ -69,6 +69,7 @@ from .gggcorrelation import GGGCorrelation
 
 from .nnkcorrelation import NNKCorrelation, NKNCorrelation, KNNCorrelation
 from .nkkcorrelation import NKKCorrelation, KNKCorrelation, KKNCorrelation
+from .nngcorrelation import NNGCorrelation, NGNCorrelation, GNNCorrelation
 from .kkgcorrelation import KKGCorrelation, KGKCorrelation, GKKCorrelation
 from .kggcorrelation import KGGCorrelation, GKGCorrelation, GGKCorrelation
 

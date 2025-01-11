@@ -2281,7 +2281,6 @@ def test_varzeta():
             y1 = (rng.random_sample(nlens)-0.5) * L
             x2 = (rng.random_sample(nsource)-0.5) * L
             y2 = (rng.random_sample(nsource)-0.5) * L
-            # Varied weights are hard, but at least check that non-unit weights work correctly.
             w = np.ones_like(x2) * 5
             r2 = (x2**2 + y2**2)/r0**2
             k = kappa0 * np.exp(-r2/2.)

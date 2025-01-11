@@ -165,10 +165,7 @@ class KGGCorrelation(Corr3):
             varg2 (float):  The variance per component of the second shear field.
         """
         self._finalize()
-        mask1 = self.weightr != 0
-        mask2 = self.weightr == 0
         self._var_num = 2 * vark * varg1 * varg2
-
         if self.bin_type in ['LogSAS', 'LogMultipole']:
             self._var_num *= 2
 
@@ -386,10 +383,7 @@ class GKGCorrelation(Corr3):
             varg2 (float):  The variance per component of the second shear field.
         """
         self._finalize()
-        mask1 = self.weightr != 0
-        mask2 = self.weightr == 0
         self._var_num = 2 * varg1 * vark * varg2
-
         if self.bin_type in ['LogSAS', 'LogMultipole']:
             self._var_num *= 2
 
@@ -607,10 +601,7 @@ class GGKCorrelation(Corr3):
             vark (float):   The variance of the scalar field.
         """
         self._finalize()
-        mask1 = self.weightr != 0
-        mask2 = self.weightr == 0
         self._var_num = 2 * varg1 * varg2 * vark
-
         if self.bin_type in ['LogSAS', 'LogMultipole']:
             self._var_num *= 2
 

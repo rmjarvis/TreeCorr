@@ -1195,6 +1195,14 @@ def test_vargam_logruv():
     # KGG: gam0 = gam1, gam2 = conj(gam3)
     # GKG: gam0 = gam2, gam1 = conj(gam3)
     # GGK: gam0 = gam3, gam1 = conj(gam2)
+    np.testing.assert_array_equal(kgg.gam0r, np.real(kgg.gam0))
+    np.testing.assert_array_equal(kgg.gam0i, np.imag(kgg.gam0))
+    np.testing.assert_array_equal(kgg.gam1r, np.real(kgg.gam1))
+    np.testing.assert_array_equal(kgg.gam1i, np.imag(kgg.gam1))
+    np.testing.assert_array_equal(kgg.gam2r, np.real(kgg.gam2))
+    np.testing.assert_array_equal(kgg.gam2i, np.imag(kgg.gam2))
+    np.testing.assert_array_equal(kgg.gam3r, np.real(kgg.gam3))
+    np.testing.assert_array_equal(kgg.gam3i, np.imag(kgg.gam3))
     np.testing.assert_array_equal(kgg.gam0, kgg.gam1)
     np.testing.assert_array_equal(kgg.gam0r, kgg.gam1r)
     np.testing.assert_array_equal(kgg.gam0i, kgg.gam1i)
@@ -1204,6 +1212,14 @@ def test_vargam_logruv():
     np.testing.assert_array_equal(kgg.vargam0, kgg.vargam1)
     np.testing.assert_array_equal(kgg.vargam2, kgg.vargam3)
 
+    np.testing.assert_array_equal(gkg.gam0r, np.real(gkg.gam0))
+    np.testing.assert_array_equal(gkg.gam0i, np.imag(gkg.gam0))
+    np.testing.assert_array_equal(gkg.gam1r, np.real(gkg.gam1))
+    np.testing.assert_array_equal(gkg.gam1i, np.imag(gkg.gam1))
+    np.testing.assert_array_equal(gkg.gam2r, np.real(gkg.gam2))
+    np.testing.assert_array_equal(gkg.gam2i, np.imag(gkg.gam2))
+    np.testing.assert_array_equal(gkg.gam3r, np.real(gkg.gam3))
+    np.testing.assert_array_equal(gkg.gam3i, np.imag(gkg.gam3))
     np.testing.assert_array_equal(gkg.gam0, gkg.gam2)
     np.testing.assert_array_equal(gkg.gam0r, gkg.gam2r)
     np.testing.assert_array_equal(gkg.gam0i, gkg.gam2i)
@@ -1213,6 +1229,14 @@ def test_vargam_logruv():
     np.testing.assert_array_equal(gkg.vargam0, gkg.vargam2)
     np.testing.assert_array_equal(gkg.vargam1, gkg.vargam3)
 
+    np.testing.assert_array_equal(ggk.gam0r, np.real(ggk.gam0))
+    np.testing.assert_array_equal(ggk.gam0i, np.imag(ggk.gam0))
+    np.testing.assert_array_equal(ggk.gam1r, np.real(ggk.gam1))
+    np.testing.assert_array_equal(ggk.gam1i, np.imag(ggk.gam1))
+    np.testing.assert_array_equal(ggk.gam2r, np.real(ggk.gam2))
+    np.testing.assert_array_equal(ggk.gam2i, np.imag(ggk.gam2))
+    np.testing.assert_array_equal(ggk.gam3r, np.real(ggk.gam3))
+    np.testing.assert_array_equal(ggk.gam3i, np.imag(ggk.gam3))
     np.testing.assert_array_equal(ggk.gam0, ggk.gam3)
     np.testing.assert_array_equal(ggk.gam0r, ggk.gam3r)
     np.testing.assert_array_equal(ggk.gam0i, ggk.gam3i)
@@ -2832,7 +2856,6 @@ def test_vargam():
     ngal = 5000
     nruns = 50000
 
-    file_name = 'data/test_vargam_kgg.npz'
     file_name = 'data/test_vargam_kgg.npz'
     print(file_name)
     if not os.path.isfile(file_name):

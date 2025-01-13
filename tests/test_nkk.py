@@ -2044,7 +2044,6 @@ def test_nkk_logsas():
                                   bin_type='LogSAS')
 
     for name, corr in zip(['nkk', 'knk', 'kkn'], [nkk, knk, kkn]):
-
         t0 = time.time()
         if name == 'nkk':
             corr.process(ncat, kcat, algo='triangle')

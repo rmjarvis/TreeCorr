@@ -25,6 +25,7 @@ from .gggcorrelation import GGGCorrelation
 from .nnkcorrelation import NNKCorrelation, NKNCorrelation, KNNCorrelation
 from .nkkcorrelation import NKKCorrelation, KNKCorrelation, KKNCorrelation
 from .nngcorrelation import NNGCorrelation, NGNCorrelation, GNNCorrelation
+from .nggcorrelation import NGGCorrelation, GNGCorrelation, GGNCorrelation
 from .kkgcorrelation import KKGCorrelation, KGKCorrelation, GKKCorrelation
 from .kggcorrelation import KGGCorrelation, GKGCorrelation, GGKCorrelation
 
@@ -84,6 +85,13 @@ corr3_valid_params = {
             'The output filename for count-shear-count correlation function.'),
     'gnn_file_name' : (str, False, None, None,
             'The output filename for shear-count-count correlation function.'),
+
+    'ngg_file_name' : (str, False, None, None,
+            'The output filename for count-shear-shear correlation function.'),
+    'gng_file_name' : (str, False, None, None,
+            'The output filename for shear-count-shear correlation function.'),
+    'ggn_file_name' : (str, False, None, None,
+            'The output filename for shear-shear-count correlation function.'),
 
     'kkg_file_name' : (str, False, None, None,
             'The output filename for scalar-scalar-shear correlation function.'),
@@ -297,6 +305,33 @@ def corr3(config, logger=None):
         logger.info("Done GNN calculations.")
         gnn.write(config['gnn_file_name'])
         logger.warning("Wrote GNN correlation to %s",config['gnn_file_name'])
+
+    # Do NGG correlation function if necessary
+    if 'ngg_file_name' in config:
+        logger.warning("Performing NGG calculations...")
+        ngg = NGGCorrelation(config, logger=logger)
+        ngg.process(cat1, cat2, cat3)
+        logger.info("Done NGG calculations.")
+        ngg.write(config['ngg_file_name'])
+        logger.warning("Wrote NGG correlation to %s",config['ngg_file_name'])
+
+    # Do GNG correlation function if necessary
+    if 'gng_file_name' in config:
+        logger.warning("Performing GNG calculations...")
+        gng = GNGCorrelation(config, logger=logger)
+        gng.process(cat1, cat2, cat3)
+        logger.info("Done GNG calculations.")
+        gng.write(config['gng_file_name'])
+        logger.warning("Wrote GNG correlation to %s",config['gng_file_name'])
+
+    # Do GGN correlation function if necessary
+    if 'ggn_file_name' in config:
+        logger.warning("Performing GGN calculations...")
+        ggn = GGNCorrelation(config, logger=logger)
+        ggn.process(cat1, cat2, cat3)
+        logger.info("Done GGN calculations.")
+        ggn.write(config['ggn_file_name'])
+        logger.warning("Wrote GGN correlation to %s",config['ggn_file_name'])
 
     # Do KKG correlation function if necessary
     if 'kkg_file_name' in config:

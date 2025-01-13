@@ -1,0 +1,21 @@
+
+file_name: data/gng_gdata_logsas.dat
+file_name2: data/gng_ndata_logsas.dat
+file_name3: data/gng_gdata_logsas.dat
+
+x_col: 1
+y_col: 2
+g1_col: [3,0,3]
+g2_col: [4,0,4]
+
+verbose: 1
+
+min_sep: 3.
+max_sep: 9.
+nbins: 10
+min_phi: 0.2
+nphi_bins: 15
+bin_type: LogSAS
+max_n: 80
+
+gng_file_name: output/gng_logsas.out

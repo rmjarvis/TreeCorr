@@ -2149,7 +2149,7 @@ def test_direct_logmultipole_cross():
     np.testing.assert_allclose(kgg.weight, true_weight_132, rtol=1.e-5)
     np.testing.assert_allclose(kgg.gam0, true_gam0_132, rtol=1.e-4)
     np.testing.assert_allclose(kgg.gam2, true_gam2_132, rtol=1.e-4)
-    gkg.process(cat2, cat1, cat3, num_threads=1)
+    gkg.process(cat2, cat1, cat3)
     np.testing.assert_allclose(gkg.ntri, true_ntri_213, rtol=1.e-5)
     np.testing.assert_allclose(gkg.weight, true_weight_213, rtol=1.e-5)
     np.testing.assert_allclose(gkg.gam0, true_gam0_213, rtol=1.e-4)
@@ -2450,7 +2450,7 @@ def test_direct_logmultipole_cross12():
     # are actually the same, so it doesn't subtract off the duplicates.
 
     # 2 arg version
-    kgg.process(cat1, cat2, num_threads=1)
+    kgg.process(cat1, cat2)
     np.testing.assert_allclose(kgg.ntri, true_ntri_122, rtol=1.e-5)
     np.testing.assert_allclose(kgg.weight, true_weight_122, rtol=1.e-5)
     np.testing.assert_allclose(kgg.gam0, true_gam0_122, rtol=1.e-4)

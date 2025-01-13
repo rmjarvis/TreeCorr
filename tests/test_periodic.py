@@ -371,7 +371,7 @@ def test_3pt():
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=0, xperiod=Lx, yperiod=Ly, brute=True,
                                   bin_type='LogRUV')
-    ddd.process(cat, metric='Periodic', num_threads=1)
+    ddd.process(cat, metric='Periodic')
     #print('ddd.ntri = ',ddd.ntri)
 
     log_min_sep = np.log(min_sep)

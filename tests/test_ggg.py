@@ -43,7 +43,7 @@ def test_direct_logruv():
     nvbins = 5
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, brute=True,
                                   bin_type='LogRUV')
-    ggg.process(cat, num_threads=2)
+    ggg.process(cat)
 
     true_ntri = np.zeros((nrbins, nubins, 2*nvbins), dtype=int)
     true_weight = np.zeros((nrbins, nubins, 2*nvbins), dtype=float)
@@ -160,7 +160,7 @@ def test_direct_logruv():
     # Also check the cross calculation.
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, brute=True,
                                   bin_type='LogRUV')
-    ggg.process(cat, cat, cat, num_threads=2)
+    ggg.process(cat, cat, cat)
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
     np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam0r, true_gam0.real, rtol=1.e-5, atol=1.e-8)
@@ -172,7 +172,7 @@ def test_direct_logruv():
     np.testing.assert_allclose(ggg.gam3r, true_gam3.real, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-5, atol=1.e-8)
 
-    ggg.process(cat, cat, num_threads=2)
+    ggg.process(cat, cat)
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
     np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam0r, true_gam0.real, rtol=1.e-5, atol=1.e-8)
@@ -727,7 +727,7 @@ def test_direct_logruv_cross():
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   brute=True, bin_type='LogRUV')
-    ggg.process(cat1, cat2, cat3, num_threads=2)
+    ggg.process(cat1, cat2, cat3)
 
     # Figure out the correct answer for each permutation
     true_ntri_123 = np.zeros((nrbins, nubins, 2*nvbins))
@@ -1104,7 +1104,7 @@ def test_direct_logruv_cross12():
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   brute=True, bin_type='LogRUV')
-    ggg.process(cat1, cat2, num_threads=2)
+    ggg.process(cat1, cat2)
 
     # Figure out the correct answer for each permutation
     true_ntri_122 = np.zeros((nrbins, nubins, 2*nvbins))
@@ -2441,7 +2441,7 @@ def test_direct_logsas():
     nphi_bins = 10
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   nphi_bins=nphi_bins, brute=True, bin_type='LogSAS')
-    ggg.process(cat, num_threads=2, algo='triangle')
+    ggg.process(cat, algo='triangle')
 
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
@@ -2521,7 +2521,7 @@ def test_direct_logsas():
     np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-5, atol=1.e-8)
 
     # Also check the cross calculation.
-    ggg.process(cat,cat,cat, num_threads=2, algo='triangle')
+    ggg.process(cat,cat,cat, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
     np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam0, true_gam0, rtol=1.e-5, atol=1.e-8)
@@ -2908,7 +2908,7 @@ def test_direct_logsas_cross():
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep,
                                   nbins=nbins, nphi_bins=nphi_bins,
                                   brute=True, bin_type='LogSAS')
-    ggg.process(cat1, cat2, cat3, num_threads=2, algo='triangle')
+    ggg.process(cat1, cat2, cat3, algo='triangle')
 
     # Figure out the correct answer for each permutation
     true_ntri_123 = np.zeros((nbins, nbins, nphi_bins))
@@ -3269,7 +3269,7 @@ def test_direct_logsas_cross12():
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep,
                                   nbins=nbins, nphi_bins=nphi_bins,
                                   bin_slop=0, bin_type='LogSAS')
-    ggg.process(cat1, cat2, num_threads=2, algo='triangle')
+    ggg.process(cat1, cat2, algo='triangle')
 
     # Figure out the correct answer for each permutation
     true_ntri_122 = np.zeros((nbins, nbins, nphi_bins))
@@ -3464,7 +3464,7 @@ def test_direct_logsas_cross12():
     np.testing.assert_allclose(ggg.gam2, true_gam2_221, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam3, true_gam3_221, rtol=1.e-4, atol=1.e-6)
 
-    ggg.process(cat1p, cat2p, ordered=False, num_threads=2, algo='triangle')
+    ggg.process(cat1p, cat2p, ordered=False, algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
     np.testing.assert_allclose(ggg.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_sum, rtol=1.e-4, atol=1.e-6)
@@ -3494,7 +3494,7 @@ def test_direct_logsas_cross12():
     np.testing.assert_allclose(ggg.gam2, true_gam2_221, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam3, true_gam3_221, rtol=1.e-4, atol=1.e-6)
 
-    ggg.process(cat1p, cat2p, ordered=False, num_threads=2, patch_method='local', algo='triangle')
+    ggg.process(cat1p, cat2p, ordered=False, patch_method='local', algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_sum)
     np.testing.assert_allclose(ggg.weight, true_weight_sum, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam0, true_gam0_sum, rtol=1.e-4, atol=1.e-6)
@@ -4626,7 +4626,7 @@ def test_direct_logmultipole_cross():
 
     ggg = treecorr.GGGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, max_n=max_n,
                                   brute=True, bin_type='LogMultipole')
-    ggg.process(cat1, cat2, cat3, num_threads=1)
+    ggg.process(cat1, cat2, cat3)
 
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)

@@ -267,6 +267,15 @@ def test_direct_logruv():
     np.testing.assert_allclose(ggg.gam3r, true_gam3.real, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam3i, true_gam3.imag, rtol=1.e-5, atol=1.e-8)
 
+    np.testing.assert_array_equal(ggg.gam0r, np.real(ggg.gam0))
+    np.testing.assert_array_equal(ggg.gam0i, np.imag(ggg.gam0))
+    np.testing.assert_array_equal(ggg.gam1r, np.real(ggg.gam1))
+    np.testing.assert_array_equal(ggg.gam1i, np.imag(ggg.gam1))
+    np.testing.assert_array_equal(ggg.gam2r, np.real(ggg.gam2))
+    np.testing.assert_array_equal(ggg.gam2i, np.imag(ggg.gam2))
+    np.testing.assert_array_equal(ggg.gam3r, np.real(ggg.gam3))
+    np.testing.assert_array_equal(ggg.gam3i, np.imag(ggg.gam3))
+
     # Check a few basic operations with a GGGCorrelation object.
     do_pickle(ggg)
 

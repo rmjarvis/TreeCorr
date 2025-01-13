@@ -1272,14 +1272,14 @@ def test_direct_logruv_auto():
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   bin_slop=0, verbose=1, bin_type='LogRUV')
-    ddd.process(cat,cat,cat, num_threads=2)
+    ddd.process(cat,cat,cat)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     ddd.process(cat,cat)
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
 
     # With ordered=False, we get 6x as much, since each triangle is discovered 6 times.
-    ddd.process(cat,cat,cat, ordered=False, num_threads=2)
+    ddd.process(cat,cat,cat, ordered=False)
     np.testing.assert_array_equal(ddd.ntri, 6*true_ntri)
 
     # Or with 2 argument version, finds each triangle 3 times.
@@ -1935,7 +1935,7 @@ def test_direct_logruv_spherical():
     nvbins = 5
     ddd = treecorr.NNNCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins,
                                   sep_units='deg', brute=True, bin_type='LogRUV')
-    ddd.process(cat, num_threads=2)
+    ddd.process(cat)
 
     r = np.sqrt(x**2 + y**2 + z**2)
     x /= r;  y /= r;  z /= r

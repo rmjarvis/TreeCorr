@@ -2048,7 +2048,7 @@ def test_sph_linear():
     cat = treecorr.Catalog(ra=ra, dec=dec, ra_units='deg', dec_units='deg')
 
     dd = treecorr.NNCorrelation(config)
-    dd.process(cat, num_threads=1)
+    dd.process(cat)
 
     print('dd.rnom = ',dd.rnom)
     print('dd.meanr = ',dd.meanr)
@@ -2079,7 +2079,7 @@ def test_linear_binslop():
     for bin_type in ['Log', 'Linear']:
         dd0 = treecorr.NNCorrelation(min_sep=0.1, max_sep=0.6, nbins=5, bin_slop=0.,
                                     bin_type=bin_type, sep_units='deg')
-        dd0.process(cat, num_threads=1)
+        dd0.process(cat)
         print('dd0.rnom = ',dd0.rnom)
         print('dd0.meanr = ',dd0.meanr)
         print('dd0.npairs = ',dd0.npairs)
@@ -2087,7 +2087,7 @@ def test_linear_binslop():
         for bin_slop in [1.e-3, 1.e-2, 1.e-1]:
             dd1 = treecorr.NNCorrelation(min_sep=0.1, max_sep=0.6, nbins=5, bin_slop=bin_slop,
                                         bin_type=bin_type, sep_units='deg')
-            dd1.process(cat, num_threads=1)
+            dd1.process(cat)
 
             print(bin_type, 'bs = ',bin_slop)
             print('dd1.rnom = ',dd1.rnom)

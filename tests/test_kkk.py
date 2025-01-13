@@ -42,7 +42,7 @@ def test_direct_logruv():
     nvbins = 5
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, bin_size=bin_size, nbins=nrbins, brute=True,
                                   bin_type='LogRUV')
-    kkk.process(cat, num_threads=2)
+    kkk.process(cat)
 
     true_ntri = np.zeros((nrbins, nubins, 2*nvbins), dtype=int)
     true_weight = np.zeros((nrbins, nubins, 2*nvbins), dtype=float)
@@ -110,7 +110,7 @@ def test_direct_logruv():
         np.testing.assert_allclose(data['zeta'], kkk.zeta.flatten(), rtol=1.e-3)
 
     # Also check the cross calculation.
-    kkk.process(cat,cat,cat, num_threads=2)
+    kkk.process(cat,cat,cat)
     np.testing.assert_array_equal(kkk.ntri, true_ntri)
     np.testing.assert_allclose(kkk.weight, true_weight, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(kkk.zeta, true_zeta, rtol=1.e-5, atol=1.e-8)
@@ -477,7 +477,7 @@ def test_direct_logruv_cross():
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   brute=True, bin_type='LogRUV')
-    kkk.process(cat1, cat2, cat3, num_threads=2)
+    kkk.process(cat1, cat2, cat3)
 
     # Figure out the correct answer for each permutation
     true_ntri_123 = np.zeros( (nrbins, nubins, 2*nvbins) )
@@ -716,7 +716,7 @@ def test_direct_logruv_cross12():
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   brute=True, bin_type='LogRUV')
-    kkk.process(cat1, cat2, num_threads=2)
+    kkk.process(cat1, cat2)
 
     # Figure out the correct answer for each permutation
     true_ntri_122 = np.zeros( (nrbins, nubins, 2*nvbins) )
@@ -904,7 +904,7 @@ def test_direct_logruv_cross_3d():
                                   min_u=min_u, max_u=max_u, nubins=nubins,
                                   min_v=min_v, max_v=max_v, nvbins=nvbins,
                                   brute=True, bin_type='LogRUV')
-    kkk.process(cat1, cat2, cat3, num_threads=2)
+    kkk.process(cat1, cat2, cat3)
 
     # Figure out the correct answer for each permutation
     true_ntri_123 = np.zeros( (nrbins, nubins, 2*nvbins) )
@@ -1345,7 +1345,7 @@ def test_direct_logsas():
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   nphi_bins=nphi_bins, phi_units='rad',
                                   brute=True, bin_type='LogSAS')
-    kkk.process(cat, num_threads=2, algo='triangle')
+    kkk.process(cat, algo='triangle')
 
     log_min_sep = np.log(min_sep)
     log_max_sep = np.log(max_sep)
@@ -1789,7 +1789,7 @@ def test_direct_logsas_cross():
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep,
                                   nbins=nbins, nphi_bins=nphi_bins,
                                   brute=True, bin_type='LogSAS')
-    kkk.process(cat1, cat2, cat3, num_threads=2, algo='triangle')
+    kkk.process(cat1, cat2, cat3, algo='triangle')
 
     # Figure out the correct answer for each permutation
     true_ntri_123 = np.zeros( (nbins, nbins, nphi_bins) )
@@ -2011,7 +2011,7 @@ def test_direct_logsas_cross12():
     kkk = treecorr.KKKCorrelation(min_sep=min_sep, max_sep=max_sep,
                                   nbins=nbins, nphi_bins=nphi_bins,
                                   bin_slop=0, bin_type='LogSAS')
-    kkk.process(cat1, cat2, num_threads=2, algo='triangle')
+    kkk.process(cat1, cat2, algo='triangle')
 
     # Figure out the correct answer for each permutation
     true_ntri_122 = np.zeros( (nbins, nbins, nphi_bins) )

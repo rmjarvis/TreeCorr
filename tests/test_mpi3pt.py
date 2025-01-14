@@ -54,6 +54,27 @@ def test_mpi_nnk():
     mock_mpiexec(4, do_mpi_nnk, output)
 
 @timer
+def test_mpi_nng():
+    if skip: return
+    output = __name__ == '__main__'
+    mock_mpiexec(1, do_mpi_nng, output)
+    mock_mpiexec(4, do_mpi_nng, output)
+
+@timer
+def test_mpi_nkk():
+    if skip: return
+    output = __name__ == '__main__'
+    mock_mpiexec(1, do_mpi_nkk, output)
+    mock_mpiexec(4, do_mpi_nkk, output)
+
+@timer
+def test_mpi_ngg():
+    if skip: return
+    output = __name__ == '__main__'
+    mock_mpiexec(1, do_mpi_ngg, output)
+    mock_mpiexec(4, do_mpi_ngg, output)
+
+@timer
 def test_mpi_kkg():
     if skip: return
     output = __name__ == '__main__'

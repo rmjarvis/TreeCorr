@@ -2315,6 +2315,24 @@ def test_direct_logmultipole_cross():
     with assert_raises(ValueError):
         ggk.process(cat2p, cat3p, cat1p, patch_method='global')
 
+    # Test I/O
+    for name, corr in zip(['kgg', 'gkg', 'ggk'], [kgg, gkg, ggk]):
+        ascii_name = 'output/'+name+'_ascii_logmultipole.txt'
+        corr.write(ascii_name, precision=16)
+        corr2 = treecorr.Corr3.from_file(ascii_name)
+        np.testing.assert_allclose(corr2.ntri, corr.ntri)
+        np.testing.assert_allclose(corr2.weight, corr.weight)
+        np.testing.assert_allclose(corr2.gam0, corr.gam0)
+        np.testing.assert_allclose(corr2.gam1, corr.gam1)
+        np.testing.assert_allclose(corr2.gam2, corr.gam2)
+        np.testing.assert_allclose(corr2.gam3, corr.gam3)
+        np.testing.assert_allclose(corr2.meand1, corr.meand1)
+        np.testing.assert_allclose(corr2.meand2, corr.meand2)
+        np.testing.assert_allclose(corr2.meand3, corr.meand3)
+        np.testing.assert_allclose(corr2.meanlogd1, corr.meanlogd1)
+        np.testing.assert_allclose(corr2.meanlogd2, corr.meanlogd2)
+        np.testing.assert_allclose(corr2.meanlogd3, corr.meanlogd3)
+
 
 @timer
 def test_direct_logmultipole_cross12():

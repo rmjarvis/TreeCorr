@@ -392,6 +392,21 @@ def test_direct_logruv_cross():
     np.testing.assert_allclose(ggn.gam0, true_gam0_sum3, rtol=1.e-5)
     np.testing.assert_allclose(ggn.gam1, true_gam1_sum3, rtol=1.e-5)
 
+    # Compute Gamma using randoms
+    # We save these values to compare to later ones with patches.
+    xr = rng.uniform(-3*s,3*s, (2*ngal,) )
+    yr = rng.normal(-3*s,3*s, (2*ngal,) )
+    rcat = treecorr.Catalog(x=xr, y=yr)
+    rgg = ngg.copy()
+    rgg.process(rcat, cat2, cat3, ordered=False)
+    gam0_ngg_r, gam2_ngg_r, _, _ = ngg.calculateGam(rgg=rgg)
+    grg = gng.copy()
+    grg.process(cat2, rcat, cat3, ordered=False)
+    gam0_gng_r, gam1_gng_r, _, _ = gng.calculateGam(grg=grg)
+    ggr = ggn.copy()
+    ggr.process(cat2, cat3, rcat, ordered=False)
+    gam0_ggn_r, gam1_ggn_r, _, _ = ggn.calculateGam(ggr=ggr)
+
     # Error to have cat3, but not cat2
     with assert_raises(ValueError):
         ngg.process(cat1, cat3=cat3)
@@ -499,6 +514,66 @@ def test_direct_logruv_cross():
     np.testing.assert_allclose(ggn.weight, true_weight_sum3, rtol=1.e-5)
     np.testing.assert_allclose(ggn.gam0, true_gam0_sum3, rtol=1.e-5)
     np.testing.assert_allclose(ggn.gam1, true_gam1_sum3, rtol=1.e-5)
+
+    # Check using randoms with and without patches
+    rcatp = treecorr.Catalog(x=xr, y=yr, patch_centers=cat1p.patch_centers)
+    rgg.process(rcat, cat2p, cat3p, ordered=False)
+    ngg.calculateGam(rgg=rgg)
+    ngg.estimate_cov('jackknife')  # No accuracy check.  Just make sure it runs without error.
+    np.testing.assert_allclose(ngg.gam0, gam0_ngg_r, rtol=1.e-5)
+    np.testing.assert_allclose(ngg.gam2, gam2_ngg_r, rtol=1.e-5)
+    rgg.process(rcatp, cat2p, cat3p, ordered=False)
+    ngg.calculateGam(rgg=rgg)
+    ngg.estimate_cov('jackknife')
+    np.testing.assert_allclose(ngg.gam0, gam0_ngg_r, rtol=1.e-5)
+    np.testing.assert_allclose(ngg.gam2, gam2_ngg_r, rtol=1.e-5)
+    grg.process(cat2p, rcat, cat3p, ordered=False)
+    gng.calculateGam(grg=grg)
+    gng.estimate_cov('jackknife')
+    np.testing.assert_allclose(gng.gam0, gam0_gng_r, rtol=1.e-5)
+    np.testing.assert_allclose(gng.gam1, gam1_gng_r, rtol=1.e-5)
+    grg.process(cat2p, rcatp, cat3p, ordered=False)
+    gng.calculateGam(grg=grg)
+    gng.estimate_cov('jackknife')
+    np.testing.assert_allclose(gng.gam0, gam0_gng_r, rtol=1.e-5)
+    np.testing.assert_allclose(gng.gam1, gam1_gng_r, rtol=1.e-5)
+    ggr.process(cat2p, cat3p, rcat, ordered=False)
+    ggn.calculateGam(ggr=ggr)
+    ggn.estimate_cov('jackknife')
+    np.testing.assert_allclose(ggn.gam0, gam0_ggn_r, rtol=1.e-5)
+    np.testing.assert_allclose(ggn.gam1, gam1_ggn_r, rtol=1.e-5)
+    ggr.process(cat2p, cat3p, rcatp, ordered=False)
+    ggn.calculateGam(ggr=ggr)
+    ggn.estimate_cov('jackknife')
+    np.testing.assert_allclose(ggn.gam0, gam0_ggn_r, rtol=1.e-5)
+    np.testing.assert_allclose(ggn.gam1, gam1_ggn_r, rtol=1.e-5)
+
+    # Check when some patches have no objects
+    rcatpx = treecorr.Catalog(x=xr, y=yr, npatch=20, rng=rng)
+    cat1px = treecorr.Catalog(x=x1, y=y1, w=w1, patch_centers=rcatpx.patch_centers)
+    cat2px = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2, patch_centers=rcatpx.patch_centers)
+    cat3px = treecorr.Catalog(x=x3, y=y3, w=w3, g1=g1_3, g2=g2_3, patch_centers=rcatpx.patch_centers)
+    ngg.process(cat1px, cat2px, cat3px, ordered=False)
+    with assert_raises(RuntimeError):
+        ngg.calculateGam(rgg=rgg)
+    rgg.process(rcatpx, cat2px, cat3px, ordered=False)
+    ngg.calculateGam(rgg=rgg)
+    np.testing.assert_allclose(ngg.gam0, gam0_ngg_r, rtol=1.e-5)
+    np.testing.assert_allclose(ngg.gam2, gam2_ngg_r, rtol=1.e-5)
+    gng.process(cat2px, cat1px, cat3px, ordered=False)
+    with assert_raises(RuntimeError):
+        gng.calculateGam(grg=grg)
+    grg.process(cat2px, rcatpx, cat3px, ordered=False)
+    gng.calculateGam(grg=grg)
+    np.testing.assert_allclose(gng.gam0, gam0_gng_r, rtol=1.e-5)
+    np.testing.assert_allclose(gng.gam1, gam1_gng_r, rtol=1.e-5)
+    ggn.process(cat2px, cat3px, cat1px, ordered=False)
+    with assert_raises(RuntimeError):
+        ggn.calculateGam(ggr=ggr)
+    ggr.process(cat2px, cat3px, rcatpx, ordered=False)
+    ggn.calculateGam(ggr=ggr)
+    np.testing.assert_allclose(ggn.gam0, gam0_ggn_r, rtol=1.e-5)
+    np.testing.assert_allclose(ggn.gam1, gam1_ggn_r, rtol=1.e-5)
 
     # patch_method=local
     ngg.process(cat1p, cat2p, cat3p, patch_method='local')
@@ -2614,6 +2689,11 @@ def test_ngg_logsas():
     ncat = treecorr.Catalog(x=x1, y=y1)
     gcat = treecorr.Catalog(x=x2, y=y2, g1=g1, g2=g2)
 
+    nrand = 10*nlens
+    x3 = (rng.random_sample(nrand)-0.5) * L
+    y3 = (rng.random_sample(nrand)-0.5) * L
+    rcat = treecorr.Catalog(x=x3, y=y3)
+
     min_sep = 4.
     max_sep = 9.
     nbins = 15
@@ -2757,7 +2837,43 @@ def test_ngg_logsas():
         np.testing.assert_allclose(corr3.gam0, corrs.gam0)
         np.testing.assert_allclose(corr3.gam1, corrs.gam1)
         np.testing.assert_allclose(corr3.gam2, corrs.gam2)
-        continue
+
+        # Now use randoms
+        corr2 = corr.copy()
+        rand = corr.copy()
+        if name == 'ngg':
+            rand.process(rcat, gcat, algo='triangle')
+            czkwargs = dict(rgg=rand)
+        elif name == 'gng':
+            rand.process(gcat, rcat, gcat, algo='triangle')
+            czkwargs = dict(grg=rand)
+        else:
+            rand.process(gcat, rcat, algo='triangle')
+            czkwargs = dict(ggr=rand)
+        gam0, gam1, vargam0, vargam1 = corr2.calculateGam(**czkwargs)
+        if name == 'gng':
+            # gng uses gam3 for our nominal gam1, so need to conjugate the return value of
+            # calculateGam
+            gam1 = np.conjugate(gam1)
+        print('with rand gam0 mean ratio = ',np.mean(gam0[m]/true_gam0[m]))
+        print('with rand gam1 mean ratio = ',np.mean(gam1[m]/true_gam1[m]))
+        np.testing.assert_allclose(gam0[m], true_gam0[m], rtol=0.15*tol_factor)
+        np.testing.assert_allclose(gam1[m], true_gam1[m], rtol=0.15*tol_factor)
+
+        corr2x = corr2.copy()
+        np.testing.assert_allclose(corr2x.gam0, corr2.gam0)
+        np.testing.assert_allclose(corr2x.gam1, corr2.gam1)
+        np.testing.assert_allclose(corr2x.gam2, corr2.gam2)
+        np.testing.assert_allclose(corr2x.vargam0, corr2.vargam0)
+        np.testing.assert_allclose(corr2x.vargam1, corr2.vargam1)
+        np.testing.assert_allclose(corr2x.vargam2, corr2.vargam2)
+        np.testing.assert_allclose(corr.calculateGam()[0], corr.gam0)
+        np.testing.assert_allclose(corr.calculateGam()[2], corr.vargam0)
+        np.testing.assert_allclose(corrs.calculateGam()[0], corrs.gam0)
+        np.testing.assert_allclose(corrs.calculateGam()[2], corrs.vargam0)
+
+        with assert_raises(TypeError):
+            corrm.calculateGam(**czkwargs)
 
         # Check that we get the same result using the corr3 functin:
         # (This implicitly uses the multipole algorithm.)
@@ -2784,8 +2900,6 @@ def test_ngg_logsas():
         if name == 'gng':
             # Invalid to omit file_name2
             del config['file_name2']
-            config['g1_col'] = [0,3]
-            config['g2_col'] = [0,4]
             with assert_raises(TypeError):
                 treecorr.corr3(config)
         else:
@@ -3144,20 +3258,20 @@ def test_ngg_logsas_jk():
     if os.name == 'nt': return
 
     if __name__ == '__main__':
-        nhalo = 1000
-        nsource = 100000
-        npatch = 64
+        nhalo = 50
+        nsource = 400000
+        npatch = 12
         tol_factor = 1
     else:
-        nhalo = 500
-        nsource = 10000
-        npatch = 20
+        nhalo = 50
+        nsource = 100000
+        npatch = 10
         tol_factor = 4
 
     nbins = 2
     min_sep = 10
     max_sep = 16
-    nphi_bins = 2
+    nphi_bins = 5
     min_phi = 30
     max_phi = 90
 
@@ -3166,31 +3280,39 @@ def test_ngg_logsas_jk():
     if not os.path.isfile(file_name):
         nruns = 1000
         all_ngg0 = []
-        all_ngg1 = []
+        all_ngg2 = []
         all_gng0 = []
         all_gng1 = []
         all_ggn0 = []
         all_ggn1 = []
+        all_ngg0_r = []
+        all_ngg2_r = []
+        all_gng0_r = []
+        all_gng1_r = []
+        all_ggn0_r = []
+        all_ggn1_r = []
         rng1 = np.random.default_rng()
         for run in range(nruns):
             # It doesn't work as well if the same points are in both, so make a single field
             # with both k and g, but take half the points for k, and the other half for g.
-            x, y, g1, g2, _ = generate_shear_field(2*nsource, nhalo, rng1)
-            x1 = x[::2]
-            y1 = y[::2]
-            g1 = g1[::2]
-            g2 = g2[::2]
-            x2 = x[1::2]
-            y2 = y[1::2]
+            x, y, g1, g2, _, xh, yh = generate_shear_field(nsource, nhalo, rng1, return_halos=True)
+            xr = rng1.uniform(0, 1000, size=10*nhalo)
+            yr = rng1.uniform(0, 1000, size=10*nhalo)
             print(run,': ',np.std(g1),np.std(g2))
-            gcat = treecorr.Catalog(x=x1, y=y1, g1=g1, g2=g2)
-            ncat = treecorr.Catalog(x=x2, y=y2)
+            gcat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
+            ncat = treecorr.Catalog(x=xh, y=yh)
+            rcat = treecorr.Catalog(x=xr, y=yr)
             ngg = treecorr.NGGCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep,
                                           min_phi=min_phi, max_phi=max_phi, phi_units='deg',
                                           nphi_bins=nphi_bins, bin_type='LogSAS', max_n=40)
             ngg.process(ncat, gcat)
             all_ngg0.append(ngg.gam0.ravel())
-            all_ngg1.append(ngg.gam2.ravel())
+            all_ngg2.append(ngg.gam2.ravel())
+            rgg = ngg.copy()
+            rgg.process(rcat, gcat)
+            gam0, gam1, _, _ = ngg.calculateGam(rgg=rgg)
+            all_ngg0_r.append(gam0.ravel())
+            all_ngg2_r.append(gam1.ravel())
 
             gng = treecorr.GNGCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep,
                                           min_phi=min_phi, max_phi=max_phi, phi_units='deg',
@@ -3198,6 +3320,11 @@ def test_ngg_logsas_jk():
             gng.process(gcat, ncat, gcat)
             all_gng0.append(gng.gam0.ravel())
             all_gng1.append(gng.gam1.ravel())
+            grg = gng.copy()
+            grg.process(gcat, rcat, gcat)
+            gam0, gam1, _, _ = gng.calculateGam(grg=grg)
+            all_gng0_r.append(gam0.ravel())
+            all_gng1_r.append(gam1.ravel())
 
             ggn = treecorr.GGNCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep,
                                           min_phi=min_phi, max_phi=max_phi, phi_units='deg',
@@ -3205,33 +3332,56 @@ def test_ngg_logsas_jk():
             ggn.process(gcat, ncat)
             all_ggn0.append(ggn.gam0.ravel())
             all_ggn1.append(ggn.gam1.ravel())
+            ggr = ggn.copy()
+            ggr.process(gcat, rcat)
+            gam0, gam1, _, _ = ggn.calculateGam(ggr=ggr)
+            all_ggn0_r.append(gam0.ravel())
+            all_ggn1_r.append(gam1.ravel())
 
-        mean_ngg0 = np.mean([gam0 for gam0 in all_ngg0], axis=0)
-        mean_ngg1 = np.mean([gam1 for gam1 in all_ngg1], axis=0)
-        var_ngg0 = np.var([gam0 for gam0 in all_ngg0], axis=0)
-        var_ngg1 = np.var([gam1 for gam1 in all_ngg1], axis=0)
-        mean_gng0 = np.mean([gam0 for gam0 in all_gng0], axis=0)
-        mean_gng1 = np.mean([gam1 for gam1 in all_gng1], axis=0)
-        var_gng0 = np.var([gam0 for gam0 in all_gng0], axis=0)
-        var_gng1 = np.var([gam1 for gam1 in all_gng1], axis=0)
-        mean_ggn0 = np.mean([gam0 for gam0 in all_ggn0], axis=0)
-        mean_ggn1 = np.mean([gam1 for gam1 in all_ggn1], axis=0)
-        var_ggn0 = np.var([gam0 for gam0 in all_ggn0], axis=0)
-        var_ggn1 = np.var([gam1 for gam1 in all_ggn1], axis=0)
+        mean_ngg0 = np.mean(all_ngg0, axis=0)
+        mean_ngg2 = np.mean(all_ngg2, axis=0)
+        var_ngg0 = np.var(all_ngg0, axis=0)
+        var_ngg2 = np.var(all_ngg2, axis=0)
+        mean_gng0 = np.mean(all_gng0, axis=0)
+        mean_gng1 = np.mean(all_gng1, axis=0)
+        var_gng0 = np.var(all_gng0, axis=0)
+        var_gng1 = np.var(all_gng1, axis=0)
+        mean_ggn0 = np.mean(all_ggn0, axis=0)
+        mean_ggn1 = np.mean(all_ggn1, axis=0)
+        var_ggn0 = np.var(all_ggn0, axis=0)
+        var_ggn1 = np.var(all_ggn1, axis=0)
+        mean_ngg0_r = np.mean(all_ngg0, axis=0)
+        mean_ngg2_r = np.mean(all_ngg2, axis=0)
+        var_ngg0_r = np.var(all_ngg0, axis=0)
+        var_ngg2_r = np.var(all_ngg2, axis=0)
+        mean_gng0_r = np.mean(all_gng0, axis=0)
+        mean_gng1_r = np.mean(all_gng1, axis=0)
+        var_gng0_r = np.var(all_gng0, axis=0)
+        var_gng1_r = np.var(all_gng1, axis=0)
+        mean_ggn0_r = np.mean(all_ggn0, axis=0)
+        mean_ggn1_r = np.mean(all_ggn1, axis=0)
+        var_ggn0_r = np.var(all_ggn0, axis=0)
+        var_ggn1_r = np.var(all_ggn1, axis=0)
 
         np.savez(file_name,
                  mean_ngg0=mean_ngg0, var_ngg0=var_ngg0,
-                 mean_ngg1=mean_ngg1, var_ngg1=var_ngg1,
+                 mean_ngg2=mean_ngg2, var_ngg2=var_ngg2,
                  mean_gng0=mean_gng0, var_gng0=var_gng0,
                  mean_gng1=mean_gng1, var_gng1=var_gng1,
                  mean_ggn0=mean_ggn0, var_ggn0=var_ggn0,
-                 mean_ggn1=mean_ggn1, var_ggn1=var_ggn1)
+                 mean_ggn1=mean_ggn1, var_ggn1=var_ggn1,
+                 mean_ngg0_r=mean_ngg0_r, var_ngg0_r=var_ngg0_r,
+                 mean_ngg2_r=mean_ngg2_r, var_ngg2_r=var_ngg2_r,
+                 mean_gng0_r=mean_gng0_r, var_gng0_r=var_gng0_r,
+                 mean_gng1_r=mean_gng1_r, var_gng1_r=var_gng1_r,
+                 mean_ggn0_r=mean_ggn0_r, var_ggn0_r=var_ggn0_r,
+                 mean_ggn1_r=mean_ggn1_r, var_ggn1_r=var_ggn1_r)
 
     data = np.load(file_name)
     mean_ngg0 = data['mean_ngg0']
-    mean_ngg1 = data['mean_ngg1']
+    mean_ngg2 = data['mean_ngg2']
     var_ngg0 = data['var_ngg0']
-    var_ngg1 = data['var_ngg1']
+    var_ngg2 = data['var_ngg2']
     mean_gng0 = data['mean_gng0']
     mean_gng1 = data['mean_gng1']
     var_gng0 = data['var_gng0']
@@ -3240,10 +3390,22 @@ def test_ngg_logsas_jk():
     mean_ggn1 = data['mean_ggn1']
     var_ggn0 = data['var_ggn0']
     var_ggn1 = data['var_ggn1']
+    mean_ngg0_r = data['mean_ngg0_r']
+    mean_ngg2_r = data['mean_ngg2_r']
+    var_ngg0_r = data['var_ngg0_r']
+    var_ngg2_r = data['var_ngg2_r']
+    mean_gng0_r = data['mean_gng0_r']
+    mean_gng1_r = data['mean_gng1_r']
+    var_gng0_r = data['var_gng0_r']
+    var_gng1_r = data['var_gng1_r']
+    mean_ggn0_r = data['mean_ggn0_r']
+    mean_ggn1_r = data['mean_ggn1_r']
+    var_ggn0_r = data['var_ggn0_r']
+    var_ggn1_r = data['var_ggn1_r']
     print('mean ngg0 = ',mean_ngg0)
-    print('mean ngg1 = ',mean_ngg1)
+    print('mean ngg2 = ',mean_ngg2)
     print('var ngg0 = ',var_ngg0)
-    print('var ngg1 = ',var_ngg1)
+    print('var ngg2 = ',var_ngg2)
     print('mean gng0 = ',mean_gng0)
     print('mean gng1 = ',mean_gng1)
     print('var gng0 = ',var_gng0)
@@ -3253,16 +3415,13 @@ def test_ngg_logsas_jk():
     print('var ggn0 = ',var_ggn0)
     print('var ggn1 = ',var_ggn1)
 
-    rng = np.random.default_rng(1234)
-    x, y, g1, g2, _ = generate_shear_field(2*nsource, nhalo, rng)
-    x1 = x[::2]
-    y1 = y[::2]
-    g1 = g1[::2]
-    g2 = g2[::2]
-    x2 = x[1::2]
-    y2 = y[1::2]
-    gcat = treecorr.Catalog(x=x1, y=y1, g1=g1, g2=g2, npatch=npatch, rng=rng)
-    ncat = treecorr.Catalog(x=x2, y=y2, rng=rng, patch_centers=gcat.patch_centers)
+    rng = np.random.default_rng(123)
+    x, y, g1, g2, _, xh, yh = generate_shear_field(2*nsource, nhalo, rng, return_halos=True)
+    xr = rng.uniform(0, 1000, size=10*nhalo)
+    yr = rng.uniform(0, 1000, size=10*nhalo)
+    gcat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, npatch=npatch, rng=rng)
+    ncat = treecorr.Catalog(x=xh, y=yh, rng=rng, patch_centers=gcat.patch_centers)
+    rcat = treecorr.Catalog(x=xr, y=yr, rng=rng, patch_centers=gcat.patch_centers)
 
     # First check calculate_xi with all pairs in results dict.
     ngg = treecorr.NGGCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep,
@@ -3276,6 +3435,20 @@ def test_ngg_logsas_jk():
     np.testing.assert_allclose(ngg2.gam2, ngg.gam2, rtol=0.01)
     np.testing.assert_allclose(ngg2.vargam0, ngg.vargam0, rtol=0.01)
     np.testing.assert_allclose(ngg2.vargam2, ngg.vargam2, rtol=0.01)
+    rgg = ngg.copy()
+    rgg.process(rcat, gcat)
+    ngg_r = ngg.copy()
+    gam0_rgg, gam2_rgg, vargam0_rgg, vargam2_rgg = ngg_r.calculateGam(rgg=rgg)
+    ngg2 = ngg_r.copy()
+    ngg2._calculate_xi_from_pairs(list(ngg_r.results.keys()))
+    np.testing.assert_allclose(ngg2.gam0, ngg_r.gam0, rtol=0.01)
+    np.testing.assert_allclose(ngg2.gam2, ngg_r.gam2, rtol=0.01)
+    np.testing.assert_allclose(ngg2.vargam0, ngg_r.vargam0, rtol=0.01)
+    np.testing.assert_allclose(ngg2.vargam2, ngg_r.vargam2, rtol=0.01)
+    np.testing.assert_allclose(ngg2.gam0, gam0_rgg, rtol=0.01)
+    np.testing.assert_allclose(ngg2.gam2, gam2_rgg, rtol=0.01)
+    np.testing.assert_allclose(ngg2.vargam0, vargam0_rgg, rtol=0.01)
+    np.testing.assert_allclose(ngg2.vargam2, vargam2_rgg, rtol=0.01)
 
     gng = treecorr.GNGCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep,
                                   min_phi=min_phi, max_phi=max_phi, phi_units='deg',
@@ -3288,6 +3461,20 @@ def test_ngg_logsas_jk():
     np.testing.assert_allclose(gng2.gam1, gng.gam1, rtol=0.01)
     np.testing.assert_allclose(gng2.vargam0, gng.vargam0, rtol=0.01)
     np.testing.assert_allclose(gng2.vargam1, gng.vargam1, rtol=0.01)
+    grg = gng.copy()
+    grg.process(gcat, rcat, gcat)
+    gng_r = gng.copy()
+    gam0_grg, gam1_grg, vargam0_grg, vargam1_grg = gng_r.calculateGam(grg=grg)
+    gng2 = gng_r.copy()
+    gng2._calculate_xi_from_pairs(list(gng_r.results.keys()))
+    np.testing.assert_allclose(gng2.gam0, gng_r.gam0, rtol=0.01)
+    np.testing.assert_allclose(gng2.gam1, gng_r.gam1, rtol=0.01)
+    np.testing.assert_allclose(gng2.vargam0, gng_r.vargam0, rtol=0.01)
+    np.testing.assert_allclose(gng2.vargam1, gng_r.vargam1, rtol=0.01)
+    np.testing.assert_allclose(gng2.gam0, gam0_grg, rtol=0.01)
+    np.testing.assert_allclose(gng2.gam1, gam1_grg, rtol=0.01)
+    np.testing.assert_allclose(gng2.vargam0, vargam0_grg, rtol=0.01)
+    np.testing.assert_allclose(gng2.vargam1, vargam1_grg, rtol=0.01)
 
     ggn = treecorr.GGNCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep,
                                   min_phi=min_phi, max_phi=max_phi, phi_units='deg',
@@ -3300,34 +3487,46 @@ def test_ngg_logsas_jk():
     np.testing.assert_allclose(ggn2.gam1, ggn.gam1, rtol=0.01)
     np.testing.assert_allclose(ggn2.vargam0, ggn.vargam0, rtol=0.01)
     np.testing.assert_allclose(ggn2.vargam1, ggn.vargam1, rtol=0.01)
+    ggr = gng.copy()
+    ggr.process(gcat, rcat, gcat)
+    ggn_r = ggn.copy()
+    gam0_ggr, gam1_ggr, vargam0_ggr, vargam1_ggr = ggn_r.calculateGam(ggr=ggr)
+    ggn2 = ggn_r.copy()
+    ggn2._calculate_xi_from_pairs(list(ggn_r.results.keys()))
+    np.testing.assert_allclose(ggn2.gam0, ggn_r.gam0, rtol=0.01)
+    np.testing.assert_allclose(ggn2.gam1, ggn_r.gam1, rtol=0.01)
+    np.testing.assert_allclose(ggn2.vargam0, ggn_r.vargam0, rtol=0.01)
+    np.testing.assert_allclose(ggn2.vargam1, ggn_r.vargam1, rtol=0.01)
+    np.testing.assert_allclose(ggn2.gam0, gam0_ggr, rtol=0.01)
+    np.testing.assert_allclose(ggn2.gam1, gam1_ggr, rtol=0.01)
+    np.testing.assert_allclose(ggn2.vargam0, vargam0_ggr, rtol=0.01)
+    np.testing.assert_allclose(ggn2.vargam1, vargam1_ggr, rtol=0.01)
 
     # Next check jackknife covariance estimate
     cov_ngg = ngg.estimate_cov('jackknife')
     n = ngg.vargam0.size
     print('ngg gam0 var ratio = ',np.diagonal(cov_ngg)[0:n]/var_ngg0)
-    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_ngg)[0:n])-np.log(var_ngg0))))
-    np.testing.assert_allclose(np.diagonal(cov_ngg)[0:n], var_ngg0, rtol=0.4 * tol_factor)
-    np.testing.assert_allclose(np.log(np.diagonal(cov_ngg)[0:n]), np.log(var_ngg0), atol=0.5*tol_factor)
-    print('ngg gam1 var ratio = ',np.diagonal(cov_ngg)[n:2*n]/var_ngg1)
-    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_ngg)[n:2*n])-np.log(var_ngg1))))
-    np.testing.assert_allclose(np.diagonal(cov_ngg)[n:2*n], var_ngg1, rtol=0.4 * tol_factor)
-    np.testing.assert_allclose(np.log(np.diagonal(cov_ngg)[n:2*n]), np.log(var_ngg1), atol=0.5*tol_factor)
+    print('ngg0 max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_ngg)[0:n])-np.log(var_ngg0))))
+    print('ngg gam2 var ratio = ',np.diagonal(cov_ngg)[n:2*n]/var_ngg2)
+    print('ngg2 max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_ngg)[n:2*n])-np.log(var_ngg2))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov_ngg)[0:n]), np.log(var_ngg0), atol=0.4*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov_ngg)[n:2*n]), np.log(var_ngg2), atol=0.4*tol_factor)
 
     cov_gng = gng.estimate_cov('jackknife')
-    print('gng var ratio = ',np.diagonal(cov_gng)[0:n]/var_gng0)
-    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_gng)[0:n])-np.log(var_gng0))))
-    np.testing.assert_allclose(np.diagonal(cov_gng)[0:n], var_gng0, rtol=0.4 * tol_factor)
-    np.testing.assert_allclose(np.log(np.diagonal(cov_gng)[0:n]), np.log(var_gng0), atol=0.5*tol_factor)
-    np.testing.assert_allclose(np.diagonal(cov_gng)[n:2*n], var_gng1, rtol=0.4 * tol_factor)
+    print('gng gam0 var ratio = ',np.diagonal(cov_gng)[0:n]/var_gng0)
+    print('gng0 max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_gng)[0:n])-np.log(var_gng0))))
+    print('gng gam1 var ratio = ',np.diagonal(cov_gng)[n:2*n]/var_gng1)
+    print('gng1 max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_gng)[n:2*n])-np.log(var_gng1))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov_gng)[0:n]), np.log(var_gng0), atol=0.4*tol_factor)
     np.testing.assert_allclose(np.log(np.diagonal(cov_gng)[n:2*n]), np.log(var_gng1), atol=0.5*tol_factor)
 
     cov_ggn = ggn.estimate_cov('jackknife')
-    print('ggn var ratio = ',np.diagonal(cov_ggn)[0:n]/var_ggn0)
-    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_ggn)[0:n])-np.log(var_ggn0))))
-    np.testing.assert_allclose(np.diagonal(cov_ggn)[0:n], var_ggn0, rtol=0.6 * tol_factor)
-    np.testing.assert_allclose(np.log(np.diagonal(cov_ggn)[0:n]), np.log(var_ggn0), atol=0.7*tol_factor)
-    np.testing.assert_allclose(np.diagonal(cov_ggn)[n:2*n], var_ggn1, rtol=0.5 * tol_factor)
-    np.testing.assert_allclose(np.log(np.diagonal(cov_ggn)[n:2*n]), np.log(var_ggn1), atol=0.7*tol_factor)
+    print('ggn gam0 var ratio = ',np.diagonal(cov_ggn)[0:n]/var_ggn0)
+    print('ggn0 max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_ggn)[0:n])-np.log(var_ggn0))))
+    print('ggn gam1 var ratio = ',np.diagonal(cov_ggn)[n:2*n]/var_ggn1)
+    print('ggn1 max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_ggn)[n:2*n])-np.log(var_ggn1))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov_ggn)[0:n]), np.log(var_ggn0), atol=0.5*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov_ggn)[n:2*n]), np.log(var_ggn1), atol=0.5*tol_factor)
 
     # Check that these still work after roundtripping through a file.
     file_name = os.path.join('output','test_write_results_ngg.dat')
@@ -3364,9 +3563,9 @@ def test_ngg_logsas_jk():
     np.testing.assert_allclose(np.diagonal(cov), var_ngg0, rtol=0.4 * tol_factor)
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ngg0), atol=0.5*tol_factor)
     cov = nggm.estimate_cov('jackknife', func=fm2)
-    print('ngg1 max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ngg1))))
-    np.testing.assert_allclose(np.diagonal(cov), var_ngg1, rtol=0.4 * tol_factor)
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ngg1), atol=0.5*tol_factor)
+    print('ngg1 max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ngg2))))
+    np.testing.assert_allclose(np.diagonal(cov), var_ngg2, rtol=0.4 * tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ngg2), atol=0.5*tol_factor)
 
     gngm = treecorr.GNGCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep, max_n=40,
                                    rng=rng, bin_type='LogMultipole')

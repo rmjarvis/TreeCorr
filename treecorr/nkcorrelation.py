@@ -230,6 +230,7 @@ class NKCorrelation(Corr2):
                     new_cij.xi.ravel()[:] = 0
                     new_cij.weight.ravel()[:] = 0
                     self.results[ij] = new_cij
+                    self.__dict__.pop('_ok',None)
 
                 self._cov = self.estimate_cov(self.var_method)
                 self._varxi = np.zeros_like(self.rnom, dtype=float)

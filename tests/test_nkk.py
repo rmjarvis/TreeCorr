@@ -328,6 +328,35 @@ def test_direct_logruv_cross():
     np.testing.assert_allclose(kkn.weight, true_weight_sum3, rtol=1.e-5)
     np.testing.assert_allclose(kkn.zeta, true_zeta_sum3, rtol=1.e-5)
 
+    # With no randoms, calculateZeta just returns zeta.
+    np.testing.assert_allclose(nkk.calculateZeta()[0], true_zeta_sum1, rtol=1.e-5)
+    np.testing.assert_allclose(knk.calculateZeta()[0], true_zeta_sum2, rtol=1.e-5)
+    np.testing.assert_allclose(kkn.calculateZeta()[0], true_zeta_sum3, rtol=1.e-5)
+
+    # Compute zeta using randoms
+    # We save these values to compare to later ones with patches.
+    xr = rng.uniform(-3*s,3*s, (2*ngal,) )
+    yr = rng.normal(-3*s,3*s, (2*ngal,) )
+    rcat = treecorr.Catalog(x=xr, y=yr)
+    rkk = nkk.copy()
+    rkk.process(rcat, cat2, cat3, ordered=False)
+    diff = nkk.zeta - rkk.zeta
+    zeta_nkk_r, _ = nkk.calculateZeta(rkk=rkk)
+    np.testing.assert_allclose(zeta_nkk_r, diff, rtol=1.e-5)
+    np.testing.assert_allclose(nkk.zeta, diff, rtol=1.e-5)
+    krk = knk.copy()
+    krk.process(cat2, rcat, cat3, ordered=False)
+    diff = knk.zeta - krk.zeta
+    zeta_knk_r, _ = knk.calculateZeta(krk=krk)
+    np.testing.assert_allclose(zeta_knk_r, diff, rtol=1.e-5)
+    np.testing.assert_allclose(knk.zeta, diff, rtol=1.e-5)
+    kkr = kkn.copy()
+    kkr.process(cat2, cat3, rcat, ordered=False)
+    diff = kkn.zeta - kkr.zeta
+    zeta_kkn_r, _ = kkn.calculateZeta(kkr=kkr)
+    np.testing.assert_allclose(zeta_kkn_r, diff, rtol=1.e-5)
+    np.testing.assert_allclose(kkn.zeta, diff, rtol=1.e-5)
+
     # Error to have cat3, but not cat2
     with assert_raises(ValueError):
         nkk.process(cat1, cat3=cat3)
@@ -418,6 +447,60 @@ def test_direct_logruv_cross():
     np.testing.assert_allclose(kkn.weight, true_weight_sum3, rtol=1.e-5)
     np.testing.assert_allclose(kkn.zeta, true_zeta_sum3, rtol=1.e-5)
 
+    # Check using randoms with and without patches
+    rcatp = treecorr.Catalog(x=xr, y=yr, patch_centers=cat1p.patch_centers)
+    rkk.process(rcat, cat2p, cat3p, ordered=False)
+    nkk.calculateZeta(rkk=rkk)
+    nkk.estimate_cov('jackknife')  # No accuracy check.  Just make sure it runs without error.
+    np.testing.assert_allclose(nkk.zeta, zeta_nkk_r, rtol=1.e-5)
+    rkk.process(rcatp, cat2p, cat3p, ordered=False)
+    nkk.calculateZeta(rkk=rkk)
+    nkk.estimate_cov('jackknife')
+    np.testing.assert_allclose(nkk.zeta, zeta_nkk_r, rtol=1.e-5)
+    krk.process(cat2p, rcat, cat3p, ordered=False)
+    knk.calculateZeta(krk=krk)
+    knk.estimate_cov('jackknife')
+    np.testing.assert_allclose(knk.zeta, zeta_knk_r, rtol=1.e-5)
+    krk.process(cat2p, rcatp, cat3p, ordered=False)
+    knk.calculateZeta(krk=krk)
+    knk.estimate_cov('jackknife')
+    np.testing.assert_allclose(knk.zeta, zeta_knk_r, rtol=1.e-5)
+    kkr.process(cat2p, cat3p, rcat, ordered=False)
+    kkn.calculateZeta(kkr=kkr)
+    kkn.estimate_cov('jackknife')
+    np.testing.assert_allclose(kkn.zeta, zeta_kkn_r, rtol=1.e-5)
+    kkr.process(cat2p, cat3p, rcatp, ordered=False)
+    kkn.calculateZeta(kkr=kkr)
+    kkn.estimate_cov('jackknife')
+    np.testing.assert_allclose(kkn.zeta, zeta_kkn_r, rtol=1.e-5)
+
+    # Check when some patches have no objects
+    rcatpx = treecorr.Catalog(x=xr, y=yr, npatch=20, rng=rng)
+    cat1px = treecorr.Catalog(x=x1, y=y1, w=w1, patch_centers=rcatpx.patch_centers)
+    cat2px = treecorr.Catalog(x=x2, y=y2, w=w2, k=k2, patch_centers=rcatpx.patch_centers)
+    cat3px = treecorr.Catalog(x=x3, y=y3, w=w3, k=k3, patch_centers=rcatpx.patch_centers)
+    nkk.process(cat1px, cat2px, cat3px, ordered=False)
+    with assert_raises(RuntimeError):
+        nkk.calculateZeta(rkk=rkk)
+    rkk.process(rcatpx, cat2px, cat3px, ordered=False)
+    nkk.calculateZeta(rkk=rkk)
+    nkk.estimate_cov('jackknife')
+    np.testing.assert_allclose(nkk.zeta, zeta_nkk_r, rtol=1.e-5)
+    knk.process(cat2px, cat1px, cat3px, ordered=False)
+    with assert_raises(RuntimeError):
+        knk.calculateZeta(krk=krk)
+    krk.process(cat2px, rcatpx, cat3px, ordered=False)
+    knk.calculateZeta(krk=krk)
+    knk.estimate_cov('jackknife')
+    np.testing.assert_allclose(knk.zeta, zeta_knk_r, rtol=1.e-5)
+    kkn.process(cat2px, cat3px, cat1px, ordered=False)
+    with assert_raises(RuntimeError):
+        kkn.calculateZeta(kkr=kkr)
+    kkr.process(cat2px, cat3px, rcatpx, ordered=False)
+    kkn.calculateZeta(kkr=kkr)
+    kkn.estimate_cov('jackknife')
+    np.testing.assert_allclose(kkn.zeta, zeta_kkn_r, rtol=1.e-5)
+
     # patch_method=local
     nkk.process(cat1p, cat2p, cat3p, patch_method='local')
     np.testing.assert_array_equal(nkk.ntri, true_ntri_123)
@@ -464,7 +547,6 @@ def test_direct_logruv_cross():
         knk.process(cat2p, cat1p, cat3p, patch_method='nonlocal')
     with assert_raises(ValueError):
         kkn.process(cat2p, cat3p, cat1p, patch_method='nonlocal')
-
 
 @timer
 def test_direct_logruv_cross12():
@@ -2042,6 +2124,11 @@ def test_nkk_logsas():
     ncat = treecorr.Catalog(x=x1, y=y1)
     kcat = treecorr.Catalog(x=x2, y=y2, k=kappa)
 
+    nrand = 10*nlens
+    x3 = (rng.random_sample(nrand)-0.5) * L
+    y3 = (rng.random_sample(nrand)-0.5) * L
+    rcat = treecorr.Catalog(x=x3, y=y3)
+
     min_sep = 3
     max_sep = 9
     nbins = 5
@@ -2094,7 +2181,7 @@ def test_nkk_logsas():
         print('mean ratio = ',np.mean(corr.zeta[m]/true_zeta[m]))
         np.testing.assert_allclose(corr.zeta[m], true_zeta[m], rtol=0.15*tol_factor)
         print('ave error = ',np.abs(np.mean(corr.zeta[m] - true_zeta[m])/np.mean(true_zeta[m])))
-        assert np.abs(np.mean(corr.zeta[m] - true_zeta[m])) < 0.05 * np.mean(true_zeta[m] * tol_factor)
+        assert np.abs(np.mean(corr.zeta[m] - true_zeta[m])) < 0.05 * np.mean(true_zeta[m]) * tol_factor
 
         # Repeat this using Multipole and then convert to SAS:
         t0 = time.time()
@@ -2157,6 +2244,35 @@ def test_nkk_logsas():
 
         np.testing.assert_allclose(corr3.weight, corrs.weight)
         np.testing.assert_allclose(corr3.zeta, corrs.zeta)
+
+        # Now use randoms
+        corr2 = corr.copy()
+        rand = corr.copy()
+        if name == 'nkk':
+            rand.process(rcat, kcat)
+            czkwargs = dict(rkk=rand)
+        elif name == 'knk':
+            rand.process(kcat, rcat, kcat)
+            czkwargs = dict(krk=rand)
+        else:
+            rand.process(kcat, rcat)
+            czkwargs = dict(kkr=rand)
+        zeta, varzeta = corr2.calculateZeta(**czkwargs)
+        print('with rand mean ratio = ',np.mean(corr2.zeta[m]/true_zeta[m]))
+        np.testing.assert_allclose(corr2.zeta[m], true_zeta[m], rtol=0.15*tol_factor)
+
+        corr2x = corr2.copy()
+        np.testing.assert_allclose(corr2x.zeta, corr2.zeta)
+        np.testing.assert_allclose(corr2x.varzeta, corr2.varzeta)
+        np.testing.assert_allclose(corr2x.raw_zeta, corr2.raw_zeta)
+        np.testing.assert_allclose(corr2x.raw_varzeta, corr2.raw_varzeta)
+        np.testing.assert_allclose(corr.calculateZeta()[0], corr.zeta)
+        np.testing.assert_allclose(corr.calculateZeta()[1], corr.varzeta)
+        np.testing.assert_allclose(corrs.calculateZeta()[0], corrs.zeta)
+        np.testing.assert_allclose(corrs.calculateZeta()[1], corrs.varzeta)
+
+        with assert_raises(TypeError):
+            corrm.calculateZeta(**czkwargs)
 
         # Check that we get the same result using the corr3 functin:
         # (This implicitly uses the multipole algorithm.)
@@ -2231,6 +2347,7 @@ def test_nkk_logsas():
             assert corr2.metric == corr.metric
             assert corr2.sep_units == corr.sep_units
             assert corr2.bin_type == corr.bin_type
+
 
 @timer
 def test_varzeta():
@@ -2390,6 +2507,279 @@ def test_varzeta():
     np.testing.assert_allclose(kkn.varzeta, var_kkn_zeta, rtol=0.6)
     np.testing.assert_allclose(kkn.cov.diagonal(), kkn.varzeta.ravel())
 
+@timer
+def test_nkk_logsas_jk():
+    # Test jackknife covariance estimates for nkk correlations with LogSAS binning.
+
+    # Skip this test on windows, since it is vv slow.
+    if os.name == 'nt': return
+
+    if __name__ == '__main__':
+        nhalo = 200
+        nsource = 200000
+        npatch = 16
+        tol_factor = 1
+    else:
+        nhalo = 100
+        nsource = 40000
+        npatch = 16
+        tol_factor = 4
+
+    nbins = 2
+    min_sep = 12
+    max_sep = 16
+    nphi_bins = 5
+    min_phi = 30
+    max_phi = 90
+
+    file_name = 'data/test_nkk_logsas_jk_{}.npz'.format(nsource)
+    print(file_name)
+    if not os.path.isfile(file_name):
+        nruns = 1000
+        all_nkk = []
+        all_knk = []
+        all_kkn = []
+        all_nkk_r = []
+        all_knk_r = []
+        all_kkn_r = []
+        rng1 = np.random.default_rng()
+        for run in range(nruns):
+            x, y, _, _, k, xh, yh = generate_shear_field(nsource, nhalo, rng1, return_halos=True)
+            k -= np.mean(k)
+            xr = rng1.uniform(0, 1000, size=10*nhalo)
+            yr = rng1.uniform(0, 1000, size=10*nhalo)
+            print(run,': ',np.std(k))
+            kcat = treecorr.Catalog(x=x, y=y, k=k)
+            ncat = treecorr.Catalog(x=xh, y=yh)
+            rcat = treecorr.Catalog(x=xr, y=yr)
+            nkk = treecorr.NKKCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep,
+                                          min_phi=min_phi, max_phi=max_phi, phi_units='deg',
+                                          nphi_bins=nphi_bins, bin_type='LogSAS', max_n=40)
+            nkk.process(ncat, kcat)
+            all_nkk.append(nkk.zeta.ravel())
+            rkk = nkk.copy()
+            rkk.process(rcat, kcat)
+            zeta, _ = nkk.calculateZeta(rkk=rkk)
+            all_nkk_r.append(zeta.ravel())
+
+            knk = treecorr.KNKCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep,
+                                          min_phi=min_phi, max_phi=max_phi, phi_units='deg',
+                                          nphi_bins=nphi_bins, bin_type='LogSAS', max_n=40)
+            knk.process(kcat, ncat, kcat)
+            all_knk.append(knk.zeta.ravel())
+            krk = knk.copy()
+            krk.process(kcat, rcat, kcat)
+            zeta, _ = knk.calculateZeta(krk=krk)
+            all_knk_r.append(zeta.ravel())
+
+            kkn = treecorr.KKNCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep,
+                                          min_phi=min_phi, max_phi=max_phi, phi_units='deg',
+                                          nphi_bins=nphi_bins, bin_type='LogSAS', max_n=40)
+            kkn.process(kcat, ncat)
+            all_kkn.append(kkn.zeta.ravel())
+            kkr = kkn.copy()
+            kkr.process(kcat, rcat)
+            zeta, _ = kkn.calculateZeta(kkr=kkr)
+            all_kkn_r.append(zeta.ravel())
+
+        mean_nkk = np.mean(all_nkk, axis=0)
+        var_nkk = np.var(all_nkk, axis=0)
+        mean_knk = np.mean(all_knk, axis=0)
+        var_knk = np.var(all_knk, axis=0)
+        mean_kkn = np.mean(all_kkn, axis=0)
+        var_kkn = np.var(all_kkn, axis=0)
+        mean_nkk_r = np.mean(all_nkk_r, axis=0)
+        var_nkk_r = np.var(all_nkk_r, axis=0)
+        mean_knk_r = np.mean(all_knk_r, axis=0)
+        var_knk_r = np.var(all_knk_r, axis=0)
+        mean_kkn_r = np.mean(all_kkn_r, axis=0)
+        var_kkn_r = np.var(all_kkn_r, axis=0)
+
+        np.savez(file_name,
+                 mean_nkk=mean_nkk, var_nkk=var_nkk,
+                 mean_knk=mean_knk, var_knk=var_knk,
+                 mean_kkn=mean_kkn, var_kkn=var_kkn,
+                 mean_nkk_r=mean_nkk_r, var_nkk_r=var_nkk_r,
+                 mean_knk_r=mean_knk_r, var_knk_r=var_knk_r,
+                 mean_kkn_r=mean_kkn_r, var_kkn_r=var_kkn_r)
+
+    data = np.load(file_name)
+    mean_nkk = data['mean_nkk']
+    var_nkk = data['var_nkk']
+    mean_knk = data['mean_knk']
+    var_knk = data['var_knk']
+    mean_kkn = data['mean_kkn']
+    var_kkn = data['var_kkn']
+    mean_nkk_r = data['mean_nkk_r']
+    var_nkk_r = data['var_nkk_r']
+    mean_knk_r = data['mean_knk_r']
+    var_knk_r = data['var_knk_r']
+    mean_kkn_r = data['mean_kkn_r']
+    var_kkn_r = data['var_kkn_r']
+    print('mean nkk = ',mean_nkk)
+    print('var nkk = ',var_nkk)
+    print('mean knk = ',mean_knk)
+    print('var knk = ',var_knk)
+    print('mean kkn = ',mean_kkn)
+    print('var kkn = ',var_kkn)
+
+    rng = np.random.default_rng(12345)
+    x, y, _, _, k, xh, yh = generate_shear_field(nsource, nhalo, rng, return_halos=True)
+    k -= np.mean(k)
+    xr = rng.uniform(0, 1000, size=10*nhalo)
+    yr = rng.uniform(0, 1000, size=10*nhalo)
+    kcat = treecorr.Catalog(x=x, y=y, k=k, npatch=npatch, rng=rng)
+    ncat = treecorr.Catalog(x=xh, y=yh, rng=rng, patch_centers=kcat.patch_centers)
+    rcat = treecorr.Catalog(x=xr, y=yr, rng=rng, patch_centers=kcat.patch_centers)
+
+    # First check calculate_xi with all pairs in results dict.
+    nkk = treecorr.NKKCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep,
+                                  min_phi=min_phi, max_phi=max_phi, phi_units='deg',
+                                  nphi_bins=nphi_bins, bin_type='LogSAS', max_n=40)
+    nkk.process(ncat, kcat)
+    nkk2 = nkk.copy()
+    nkk2._calculate_xi_from_pairs(list(nkk.results.keys()))
+    np.testing.assert_allclose(nkk2.ntri, nkk.ntri, rtol=0.01)
+    np.testing.assert_allclose(nkk2.zeta, nkk.zeta, rtol=0.01)
+    np.testing.assert_allclose(nkk2.varzeta, nkk.varzeta, rtol=0.01)
+    rkk = nkk.copy()
+    rkk.process(rcat, kcat)
+    nkk_r = nkk.copy()
+    zeta_rkk, varzeta_rkk = nkk_r.calculateZeta(rkk=rkk)
+    nkk2 = nkk_r.copy()
+    nkk2._calculate_xi_from_pairs(list(nkk_r.results.keys()))
+    np.testing.assert_allclose(nkk2.ntri, nkk_r.ntri, rtol=0.01)
+    np.testing.assert_allclose(nkk2.zeta, nkk_r.zeta, rtol=0.01)
+    np.testing.assert_allclose(nkk2.varzeta, nkk_r.varzeta, rtol=0.01)
+    np.testing.assert_allclose(nkk2.zeta, zeta_rkk, rtol=0.01)
+    np.testing.assert_allclose(nkk2.varzeta, varzeta_rkk, rtol=0.01)
+
+    knk = treecorr.KNKCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep,
+                                  min_phi=min_phi, max_phi=max_phi, phi_units='deg',
+                                  nphi_bins=nphi_bins, bin_type='LogSAS', max_n=40)
+    knk.process(kcat, ncat, kcat)
+    knk2 = knk.copy()
+    knk2._calculate_xi_from_pairs(list(knk.results.keys()))
+    np.testing.assert_allclose(knk2.ntri, knk.ntri, rtol=0.01)
+    np.testing.assert_allclose(knk2.zeta, knk.zeta, rtol=0.01)
+    np.testing.assert_allclose(knk2.varzeta, knk.varzeta, rtol=0.01)
+    krk = knk.copy()
+    krk.process(kcat, rcat, kcat)
+    knk_r = knk.copy()
+    zeta_krk, varzeta_krk = knk_r.calculateZeta(krk=krk)
+    knk2 = knk_r.copy()
+    knk2._calculate_xi_from_pairs(list(knk_r.results.keys()))
+    np.testing.assert_allclose(knk2.ntri, knk_r.ntri, rtol=0.01)
+    np.testing.assert_allclose(knk2.zeta, knk_r.zeta, rtol=0.01)
+    np.testing.assert_allclose(knk2.varzeta, knk_r.varzeta, rtol=0.01)
+    np.testing.assert_allclose(knk2.zeta, zeta_krk, rtol=0.01)
+    np.testing.assert_allclose(knk2.varzeta, varzeta_krk, rtol=0.01)
+
+    kkn = treecorr.KKNCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep,
+                                  min_phi=min_phi, max_phi=max_phi, phi_units='deg',
+                                  nphi_bins=nphi_bins, bin_type='LogSAS', max_n=40)
+    kkn.process(kcat, ncat)
+    kkn2 = kkn.copy()
+    kkn2._calculate_xi_from_pairs(list(kkn.results.keys()))
+    np.testing.assert_allclose(kkn2.ntri, kkn.ntri, rtol=0.01)
+    np.testing.assert_allclose(kkn2.zeta, kkn.zeta, rtol=0.01)
+    np.testing.assert_allclose(kkn2.varzeta, kkn.varzeta, rtol=0.01)
+    kkr = kkn.copy()
+    kkr.process(kcat, rcat)
+    kkn_r = kkn.copy()
+    zeta_kkr, varzeta_kkr= kkn_r.calculateZeta(kkr=kkr)
+    kkn2 = kkn_r.copy()
+    kkn2._calculate_xi_from_pairs(list(kkn.results.keys()))
+    np.testing.assert_allclose(kkn2.ntri, kkn_r.ntri, rtol=0.01)
+    np.testing.assert_allclose(kkn2.zeta, kkn_r.zeta, rtol=0.01)
+    np.testing.assert_allclose(kkn2.varzeta, kkn_r.varzeta, rtol=0.01)
+    np.testing.assert_allclose(kkn2.zeta, zeta_kkr, rtol=0.01)
+    np.testing.assert_allclose(kkn2.varzeta, varzeta_kkr, rtol=0.01)
+
+    # Next check jackknife covariance estimate
+    cov_nkk = nkk.estimate_cov('jackknife')
+    n = nkk.varzeta.size
+    print('nkk cov diag = ',np.diagonal(cov_nkk))
+    print('nkk zeta var ratio = ',np.diagonal(cov_nkk)/var_nkk)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_nkk))-np.log(var_nkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov_nkk)), np.log(var_nkk), atol=0.7*tol_factor)
+
+    cov_knk = knk.estimate_cov('jackknife')
+    print('knk var ratio = ',np.diagonal(cov_knk)/var_knk)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_knk))-np.log(var_knk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov_knk)), np.log(var_knk), atol=0.7*tol_factor)
+
+    cov_kkn = kkn.estimate_cov('jackknife')
+    print('kkn var ratio = ',np.diagonal(cov_kkn)/var_kkn)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_kkn))-np.log(var_kkn))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov_kkn)), np.log(var_kkn), atol=0.8*tol_factor)
+
+    # Check that these still work after roundtripping through a file.
+    file_name = os.path.join('output','test_write_results_nkk.dat')
+    nkk.write(file_name, write_patch_results=True)
+    nkk2 = treecorr.Corr3.from_file(file_name)
+    cov2 = nkk2.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov2, cov_nkk)
+
+    file_name = os.path.join('output','test_write_results_knk.dat')
+    knk.write(file_name, write_patch_results=True)
+    knk2 = treecorr.Corr3.from_file(file_name)
+    cov2 = knk2.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov2, cov_knk)
+
+    file_name = os.path.join('output','test_write_results_kkn.dat')
+    kkn.write(file_name, write_patch_results=True)
+    kkn2 = treecorr.Corr3.from_file(file_name)
+    cov2 = kkn2.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov2, cov_kkn)
+
+    # Check jackknife using LogMultipole
+    print('Using LogMultipole:')
+    nkkm = treecorr.NKKCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep, max_n=40,
+                                   rng=rng, bin_type='LogMultipole')
+    nkkm.process(ncat, kcat)
+    fm = lambda corr: corr.toSAS(min_phi=min_phi, max_phi=max_phi, phi_units='deg',
+                                 nphi_bins=nphi_bins).zeta.ravel()
+    cov = nkkm.estimate_cov('jackknife', func=fm)
+    print('nkk max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nkk), atol=0.7*tol_factor)
+
+    knkm = treecorr.KNKCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep, max_n=40,
+                                   rng=rng, bin_type='LogMultipole')
+    knkm.process(kcat, ncat, kcat)
+    cov = knkm.estimate_cov('jackknife', func=fm)
+    print('knk max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_knk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_knk), atol=0.7*tol_factor)
+
+    kknm = treecorr.KKNCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep, max_n=40,
+                                   rng=rng, bin_type='LogMultipole')
+    kknm.process(kcat, ncat)
+    cov = kknm.estimate_cov('jackknife', func=fm)
+    print('kkn max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkn))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkn), atol=0.8*tol_factor)
+
+    # Check with randoms
+    cov_nkk = nkk_r.estimate_cov('jackknife')
+    print('with rand nkk cov diag = ',np.diagonal(cov_nkk))
+    print('mean nkk_r = ',mean_nkk_r)
+    print('nkk_r.zeta = ',nkk_r.zeta.ravel())
+    print('var kkn_r = ',var_kkn_r.ravel())
+    print('nkk zeta var ratio = ',np.diagonal(cov_nkk)/var_nkk_r)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_nkk))-np.log(var_nkk_r))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov_nkk)), np.log(var_nkk_r), atol=0.7*tol_factor)
+
+    cov_knk = knk_r.estimate_cov('jackknife')
+    print('with rand knk cov diag = ',np.diagonal(cov_knk))
+    print('knk zeta var ratio = ',np.diagonal(cov_knk)/var_knk_r)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_knk))-np.log(var_knk_r))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov_knk)), np.log(var_knk_r), atol=0.7*tol_factor)
+
+    cov_kkn = kkn_r.estimate_cov('jackknife')
+    print('with rand kkn cov diag = ',np.diagonal(cov_kkn))
+    print('kkn zeta var ratio = ',np.diagonal(cov_kkn)/var_kkn_r)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_kkn))-np.log(var_kkn_r))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov_kkn)), np.log(var_kkn_r), atol=1.0*tol_factor)
+
 
 if __name__ == '__main__':
     test_direct_logruv_cross()
@@ -2401,3 +2791,4 @@ if __name__ == '__main__':
     test_direct_logmultipole_cross12()
     test_nkk_logsas()
     test_varzeta()
+    test_nkk_logsas_jk()

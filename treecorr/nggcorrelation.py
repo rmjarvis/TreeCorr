@@ -109,7 +109,17 @@ class NGGCorrelation(Corr3):
         self._gam2 = None
         self._vargam0 = None
         self._vargam2 = None
+        self._raw_vargam0 = None
+        self._raw_vargam2 = None
         self.logger.debug('Finished building NGGCorr')
+
+    @property
+    def raw_gam0(self):
+        return self._z[0] + 1j * self._z[1]
+
+    @property
+    def raw_gam2(self):
+        return self._z[2] + 1j * self._z[3]
 
     @property
     def gam0(self):
@@ -197,9 +207,15 @@ class NGGCorrelation(Corr3):
             self._var_num *= 2
 
     @property
+    def raw_vargam0(self):
+        if self._raw_vargam0 is None:
+            self._raw_vargam0 = self._calculate_varzeta(0, self._nbins)
+        return self._raw_vargam0
+
+    @property
     def vargam0(self):
         if self._vargam0 is None:
-            self._vargam0 = self._calculate_varzeta(0, self._nbins)
+            self._vargam0 = self.raw_vargam0
         return self._vargam0
 
     @property
@@ -207,9 +223,15 @@ class NGGCorrelation(Corr3):
         return self.vargam0
 
     @property
+    def raw_vargam2(self):
+        if self._raw_vargam2 is None:
+            self._raw_vargam2 = self._calculate_varzeta(self._nbins, 2*self._nbins)
+        return self._raw_vargam2
+
+    @property
     def vargam2(self):
         if self._vargam2 is None:
-            self._vargam2 = self._calculate_varzeta(self._nbins, 2*self._nbins)
+            self._vargam2 = self.raw_vargam0
         return self._vargam2
 
     @property
@@ -221,6 +243,8 @@ class NGGCorrelation(Corr3):
         self._rgg = None
         self._gam0 = None
         self._gam2 = None
+        self._raw_vargam0 = None
+        self._raw_vargam2 = None
         self._vargam0 = None
         self._vargam2 = None
 
@@ -237,6 +261,88 @@ class NGGCorrelation(Corr3):
         In this case, 2 copies of self.weight.ravel().
         """
         return np.concatenate([np.abs(self.weight.ravel())] * 2)
+
+    def calculateGam(self, *, rgg=None):
+        r"""Calculate the correlation function possibly given another correlation function
+        that uses random points for the foreground objects.
+
+        - If rgg is None, the simple correlation functions (self.gam0, self.gam2) are returned.
+        - If rgg is not None, then a compensated calculation is done:
+          :math:`\Gamma_i = (DGG - RGG)`, where DGG represents the correlation of the gamma
+          field with the data points and RGG represents the correlation with random points.
+
+        After calling this function, the attributes ``gam0``, ``gam2``, ``vargam0``,
+        ``vargam2``, and ``cov`` will correspond to the compensated values (if rgg is provided).
+        The raw, uncompensated values are available as ``raw_gam0`` , ``raw_gam2``,
+        ``raw_vargam0``, and ``raw_vargam2``.
+
+        Parameters:
+            rgg (NGGCorrelation): The cross-correlation using random locations as the lenses (RGG),
+                                  if desired.  (default: None)
+
+        Returns:
+            Tuple containing
+                - gam0 = array of :math:`\Gamma_0`
+                - gam2 = array of :math:`\Gamma_2`
+                - vargam0 = array of variance estimates of :math:`\Gamma_0`
+                - vargam2 = array of variance estimates of :math:`\Gamma_2`
+        """
+        if rgg is not None:
+            if self.bin_type == 'LogMultipole':
+                raise TypeError("calculateGam is not valid for LogMultipole binning")
+
+            self._gam0 = self.raw_gam0 - rgg.gam0
+            self._gam2 = self.raw_gam2 - rgg.gam2
+            self._rgg = rgg
+
+            if (rgg.npatch1 not in (1,self.npatch1) or rgg.npatch2 != self.npatch2
+                    or rgg.npatch3 != self.npatch3):
+                raise RuntimeError("RGG must be run with the same patches as DGG")
+
+            if len(self.results) > 0:
+                # If there are any rgg patch pairs that aren't in results (e.g. due to different
+                # edge effects among the various pairs in consideration), then we need to add
+                # some dummy results to make sure all the right pairs are computed when we make
+                # the vectors for the covariance matrix.
+                template = next(iter(self.results.values()))  # Just need something to copy.
+                for ijk in rgg.results:
+                    if ijk in self.results: continue
+                    new_cij = template.copy()
+                    for i in range(4):
+                        new_cij._z[i][:] = 0
+                    new_cij.weight[:] = 0
+                    self.results[ijk] = new_cij
+                    self.__dict__.pop('_ok',None)
+
+                self._cov = self.estimate_cov(self.var_method)
+                self._vargam0 = np.zeros(self.data_shape, dtype=float)
+                self._vargam2 = np.zeros(self.data_shape, dtype=float)
+                n1 = self._vargam0.ravel().size
+                self._vargam0.ravel()[:] = self.cov_diag[0:n1]
+                self._vargam2.ravel()[:] = self.cov_diag[n1:]
+            else:
+                self._vargam0 = self.raw_vargam0 + rgg.vargam0
+                self._vargam2 = self.raw_vargam2 + rgg.vargam2
+        else:
+            self._gam0 = self.raw_gam0
+            self._gam2 = self.raw_gam2
+            self._vargam0 = self.raw_vargam0
+            self._vargam2 = self.raw_vargam2
+
+        return self._gam0, self._gam2, self._vargam0, self._vargam2
+
+    def _calculate_xi_from_pairs(self, pairs):
+        self._sum([self.results[ijk] for ijk in pairs])
+        self._finalize()
+        if self._rgg is not None:
+            # If rgg has npatch1 = 1, adjust pairs appropriately
+            if self._rgg.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
+                pairs = [(0,ijk[1],ijk[2]) for ijk in pairs if ijk[0] == ijk[1]]
+            # Make sure all ijk are in the rgg results (some might be missing, which is ok)
+            pairs = [ijk for ijk in pairs if self._rgg._ok[ijk[0],ijk[1],ijk[2]]]
+            self._rgg._calculate_xi_from_pairs(pairs)
+            self._gam0 = self.raw_gam0 - self._rgg.gam0
+            self._gam2 = self.raw_gam2 - self._rgg.gam2
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
@@ -271,6 +377,8 @@ class NGGCorrelation(Corr3):
         self._z[3] = data['gam2i'].reshape(s)
         self._vargam0 = data['sigma_gam0'].reshape(s)**2
         self._vargam2 = data['sigma_gam2'].reshape(s)**2
+        self._raw_vargam0 = self._vargam0
+        self._raw_vargam2 = self._vargam2
 
 class GNGCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point shear-count-shear correlation
@@ -357,7 +465,17 @@ class GNGCorrelation(Corr3):
         self._gam1 = None
         self._vargam0 = None
         self._vargam1 = None
+        self._raw_vargam0 = None
+        self._raw_vargam1 = None
         self.logger.debug('Finished building GNGCorr')
+
+    @property
+    def raw_gam0(self):
+        return self._z[0] + 1j * self._z[1]
+
+    @property
+    def raw_gam1(self):
+        return self._z[2] + 1j * self._z[3]
 
     @property
     def gam0(self):
@@ -445,15 +563,27 @@ class GNGCorrelation(Corr3):
             self._var_num *= 2
 
     @property
+    def raw_vargam0(self):
+        if self._raw_vargam0 is None:
+            self._raw_vargam0 = self._calculate_varzeta(0, self._nbins)
+        return self._raw_vargam0
+
+    @property
     def vargam0(self):
         if self._vargam0 is None:
-            self._vargam0 = self._calculate_varzeta(0, self._nbins)
+            self._vargam0 = self.raw_vargam0
         return self._vargam0
+
+    @property
+    def raw_vargam1(self):
+        if self._raw_vargam1 is None:
+            self._raw_vargam1 = self._calculate_varzeta(self._nbins, 2*self._nbins)
+        return self._raw_vargam1
 
     @property
     def vargam1(self):
         if self._vargam1 is None:
-            self._vargam1 = self._calculate_varzeta(self._nbins, 2*self._nbins)
+            self._vargam1 = self.raw_vargam1
         return self._vargam1
 
     @property
@@ -469,6 +599,8 @@ class GNGCorrelation(Corr3):
         self._grg = None
         self._gam0 = None
         self._gam1 = None
+        self._raw_vargam0 = None
+        self._raw_vargam1 = None
         self._vargam0 = None
         self._vargam1 = None
 
@@ -485,6 +617,88 @@ class GNGCorrelation(Corr3):
         In this case, 2 copies of self.weight.ravel().
         """
         return np.concatenate([np.abs(self.weight.ravel())] * 2)
+
+    def calculateGam(self, *, grg=None):
+        r"""Calculate the correlation function possibly given another correlation function
+        that uses random points for the foreground objects.
+
+        - If grg is None, the simple correlation functions (self.gam0, self.gam1) are returned.
+        - If grg is not None, then a compensated calculation is done:
+          :math:`\Gamma_i = (GDG - GRG)`, where GDG represents the correlation of the gamma
+          field with the data points and GRG represents the correlation with random points.
+
+        After calling this function, the attributes ``gam0``, ``gam1``, ``vargam0``,
+        ``vargam1``, and ``cov`` will correspond to the compensated values (if grg is provided).
+        The raw, uncompensated values are available as ``raw_gam0`` , ``raw_gam1``,
+        ``raw_vargam0``, and ``raw_vargam1``.
+
+        Parameters:
+            grg (GNGCorrelation): The cross-correlation using random locations as the lenses (GRG),
+                                  if desired.  (default: None)
+
+        Returns:
+            Tuple containing
+                - gam0 = array of :math:`\Gamma_0`
+                - gam1 = array of :math:`\Gamma_1`
+                - vargam0 = array of variance estimates of :math:`\Gamma_0`
+                - vargam1 = array of variance estimates of :math:`\Gamma_1`
+        """
+        if grg is not None:
+            if self.bin_type == 'LogMultipole':
+                raise TypeError("calculateGam is not valid for LogMultipole binning")
+
+            self._gam0 = self.raw_gam0 - grg.gam0
+            self._gam1 = self.raw_gam1 - grg.gam1
+            self._grg = grg
+
+            if (grg.npatch2 not in (1,self.npatch2) or grg.npatch1 != self.npatch1
+                    or grg.npatch3 != self.npatch3):
+                raise RuntimeError("GRG must be run with the same patches as GDG")
+
+            if len(self.results) > 0:
+                # If there are any grg patch pairs that aren't in results (e.g. due to different
+                # edge effects among the various pairs in consideration), then we need to add
+                # some dummy results to make sure all the right pairs are computed when we make
+                # the vectors for the covariance matrix.
+                template = next(iter(self.results.values()))  # Just need something to copy.
+                for ijk in grg.results:
+                    if ijk in self.results: continue
+                    new_cij = template.copy()
+                    for i in range(4):
+                        new_cij._z[i][:] = 0
+                    new_cij.weight[:] = 0
+                    self.results[ijk] = new_cij
+                    self.__dict__.pop('_ok',None)
+
+                self._cov = self.estimate_cov(self.var_method)
+                self._vargam0 = np.zeros(self.data_shape, dtype=float)
+                self._vargam1 = np.zeros(self.data_shape, dtype=float)
+                n1 = self._vargam0.ravel().size
+                self._vargam0.ravel()[:] = self.cov_diag[0:n1]
+                self._vargam1.ravel()[:] = self.cov_diag[n1:]
+            else:
+                self._vargam0 = self.raw_vargam0 + grg.vargam0
+                self._vargam1 = self.raw_vargam1 + grg.vargam1
+        else:
+            self._gam0 = self.raw_gam0
+            self._gam1 = self.raw_gam1
+            self._vargam0 = self.raw_vargam0
+            self._vargam1 = self.raw_vargam1
+
+        return self._gam0, self._gam1, self._vargam0, self._vargam1
+
+    def _calculate_xi_from_pairs(self, pairs):
+        self._sum([self.results[ijk] for ijk in pairs])
+        self._finalize()
+        if self._grg is not None:
+            # If grg has npatch2 = 1, adjust pairs appropriately
+            if self._grg.npatch2 == 1 and not all([p[1] == 0 for p in pairs]):
+                pairs = [(ijk[0],0,ijk[2]) for ijk in pairs if ijk[0] == ijk[1]]
+            # Make sure all ijk are in the grg results (some might be missing, which is ok)
+            pairs = [ijk for ijk in pairs if self._grg._ok[ijk[0],ijk[1],ijk[2]]]
+            self._grg._calculate_xi_from_pairs(pairs)
+            self._gam0 = self.raw_gam0 - self._grg.gam0
+            self._gam1 = self.raw_gam1 - self._grg.gam1
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
@@ -519,6 +733,8 @@ class GNGCorrelation(Corr3):
         self._z[3] = data['gam1i'].reshape(s)
         self._vargam0 = data['sigma_gam0'].reshape(s)**2
         self._vargam1 = data['sigma_gam1'].reshape(s)**2
+        self._raw_vargam0 = self._vargam0
+        self._raw_vargam1 = self._vargam1
 
 class GGNCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point shear-shear-count correlation
@@ -605,7 +821,17 @@ class GGNCorrelation(Corr3):
         self._gam1 = None
         self._vargam0 = None
         self._vargam1 = None
+        self._raw_vargam0 = None
+        self._raw_vargam1 = None
         self.logger.debug('Finished building GGNCorr')
+
+    @property
+    def raw_gam0(self):
+        return self._z[0] + 1j * self._z[1]
+
+    @property
+    def raw_gam1(self):
+        return self._z[2] + 1j * self._z[3]
 
     @property
     def gam0(self):
@@ -693,15 +919,27 @@ class GGNCorrelation(Corr3):
             self._var_num *= 2
 
     @property
+    def raw_vargam0(self):
+        if self._raw_vargam0 is None:
+            self._raw_vargam0 = self._calculate_varzeta(0, self._nbins)
+        return self._raw_vargam0
+
+    @property
     def vargam0(self):
         if self._vargam0 is None:
-            self._vargam0 = self._calculate_varzeta(0, self._nbins)
+            self._vargam0 = self.raw_vargam0
         return self._vargam0
+
+    @property
+    def raw_vargam1(self):
+        if self._raw_vargam1 is None:
+            self._raw_vargam1 = self._calculate_varzeta(self._nbins, 2*self._nbins)
+        return self._raw_vargam1
 
     @property
     def vargam1(self):
         if self._vargam1 is None:
-            self._vargam1 = self._calculate_varzeta(self._nbins, 2*self._nbins)
+            self._vargam1 = self.raw_vargam1
         return self._vargam1
 
     @property
@@ -719,6 +957,8 @@ class GGNCorrelation(Corr3):
         self._gam1 = None
         self._vargam0 = None
         self._vargam1 = None
+        self._raw_vargam0 = None
+        self._raw_vargam1 = None
 
     def getStat(self):
         """The standard statistic for the current correlation object as a 1-d array.
@@ -733,6 +973,88 @@ class GGNCorrelation(Corr3):
         In this case, 2 copies of self.weight.ravel().
         """
         return np.concatenate([np.abs(self.weight.ravel())] * 2)
+
+    def calculateGam(self, *, ggr=None):
+        r"""Calculate the correlation function possibly given another correlation function
+        that uses random points for the foreground objects.
+
+        - If ggr is None, the simple correlation functions (self.gam0, self.gam1) are returned.
+        - If ggr is not None, then a compensated calculation is done:
+          :math:`\Gamma_i = (GGD - GGR)`, where GGD represents the correlation of the gamma
+          field with the data points and GGR represents the correlation with random points.
+
+        After calling this function, the attributes ``gam0``, ``gam1``, ``vargam0``,
+        ``vargam1``, and ``cov`` will correspond to the compensated values (if ggr is provided).
+        The raw, uncompensated values are available as ``raw_gam0`` , ``raw_gam1``,
+        ``raw_vargam0``, and ``raw_vargam1``.
+
+        Parameters:
+            ggr (GGNCorrelation): The cross-correlation using random locations as the lenses (GGR),
+                                  if desired.  (default: None)
+
+        Returns:
+            Tuple containing
+                - gam0 = array of :math:`\Gamma_0`
+                - gam1 = array of :math:`\Gamma_1`
+                - vargam0 = array of variance estimates of :math:`\Gamma_0`
+                - vargam1 = array of variance estimates of :math:`\Gamma_1`
+        """
+        if ggr is not None:
+            if self.bin_type == 'LogMultipole':
+                raise TypeError("calculateGam is not valid for LogMultipole binning")
+
+            self._gam0 = self.raw_gam0 - ggr.gam0
+            self._gam1 = self.raw_gam1 - ggr.gam1
+            self._ggr = ggr
+
+            if (ggr.npatch3 not in (1,self.npatch3) or ggr.npatch1 != self.npatch1
+                    or ggr.npatch2 != self.npatch2):
+                raise RuntimeError("GRG must be run with the same patches as GDG")
+
+            if len(self.results) > 0:
+                # If there are any ggr patch pairs that aren't in results (e.g. due to different
+                # edge effects among the various pairs in consideration), then we need to add
+                # some dummy results to make sure all the right pairs are computed when we make
+                # the vectors for the covariance matrix.
+                template = next(iter(self.results.values()))  # Just need something to copy.
+                for ijk in ggr.results:
+                    if ijk in self.results: continue
+                    new_cij = template.copy()
+                    for i in range(4):
+                        new_cij._z[i][:] = 0
+                    new_cij.weight[:] = 0
+                    self.results[ijk] = new_cij
+                    self.__dict__.pop('_ok',None)
+
+                self._cov = self.estimate_cov(self.var_method)
+                self._vargam0 = np.zeros(self.data_shape, dtype=float)
+                self._vargam1 = np.zeros(self.data_shape, dtype=float)
+                n1 = self._vargam0.ravel().size
+                self._vargam0.ravel()[:] = self.cov_diag[0:n1]
+                self._vargam1.ravel()[:] = self.cov_diag[n1:]
+            else:
+                self._vargam0 = self.raw_vargam0 + ggr.vargam0
+                self._vargam1 = self.raw_vargam1 + ggr.vargam1
+        else:
+            self._gam0 = self.raw_gam0
+            self._gam1 = self.raw_gam1
+            self._vargam0 = self.raw_vargam0
+            self._vargam1 = self.raw_vargam1
+
+        return self._gam0, self._gam1, self._vargam0, self._vargam1
+
+    def _calculate_xi_from_pairs(self, pairs):
+        self._sum([self.results[ijk] for ijk in pairs])
+        self._finalize()
+        if self._ggr is not None:
+            # If ggr has npatch3 = 1, adjust pairs appropriately
+            if self._ggr.npatch3 == 1 and not all([p[2] == 0 for p in pairs]):
+                pairs = [(ijk[0],ijk[1],0) for ijk in pairs if ijk[0] == ijk[2]]
+            # Make sure all ijk are in the ggr results (some might be missing, which is ok)
+            pairs = [ijk for ijk in pairs if self._ggr._ok[ijk[0],ijk[1],ijk[2]]]
+            self._ggr._calculate_xi_from_pairs(pairs)
+            self._gam0 = self.raw_gam0 - self._ggr.gam0
+            self._gam1 = self.raw_gam1 - self._ggr.gam1
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
@@ -767,3 +1089,5 @@ class GGNCorrelation(Corr3):
         self._z[3] = data['gam1i'].reshape(s)
         self._vargam0 = data['sigma_gam0'].reshape(s)**2
         self._vargam1 = data['sigma_gam1'].reshape(s)**2
+        self._raw_vargam0 = self._vargam0
+        self._raw_vargam1 = self._vargam1

@@ -86,7 +86,12 @@ class NKKCorrelation(Corr3):
             self._z[1] = np.zeros(shape, dtype=float)
         self._zeta = None
         self._varzeta = None
+        self._raw_varzeta = None
         self.logger.debug('Finished building NKKCorr')
+
+    @property
+    def raw_zeta(self):
+        return self._z[0]
 
     @property
     def zeta(self):
@@ -118,16 +123,93 @@ class NKKCorrelation(Corr3):
             self._var_num *= 2
 
     @property
+    def raw_varzeta(self):
+        if self._raw_varzeta is None:
+            self._raw_varzeta = self._calculate_varzeta()
+        return self._raw_varzeta
+
+    @property
     def varzeta(self):
         if self._varzeta is None:
-            self._varzeta = self._calculate_varzeta()
+            self._varzeta = self.raw_varzeta
         return self._varzeta
 
     def _clear(self):
         super()._clear()
         self._rkk = None
         self._zeta = None
+        self._raw_varzeta = None
         self._varzeta = None
+
+    def calculateZeta(self, *, rkk=None):
+        r"""Calculate the correlation function possibly given another correlation function
+        that uses random points for the foreground objects.
+
+        - If rkk is None, the simple correlation function (self.zeta) is returned.
+        - If rkk is not None, then a compensated calculation is done:
+          :math:`\zeta = (DKK - RKK)`, where DKK represents the correlation of the kappa
+          field with the data points and RKK represents the correlation with random points.
+
+        After calling this function, the attributes ``zeta``, ``varzeta`` and ``cov`` will
+        correspond to the compensated values (if rkk is provided).  The raw, uncompensated values
+        are available as ``rawxi`` and ``raw_varxi``.
+
+        Parameters:
+            rkk (NKKCorrelation): The cross-correlation using random locations as the lenses (RKK),
+                                  if desired.  (default: None)
+
+        Returns:
+            Tuple containing
+                - zeta = array of :math:`\zeta`
+                - varzeta = array of variance estimates of :math:`\zeta`
+        """
+        if rkk is not None:
+            if self.bin_type == 'LogMultipole':
+                raise TypeError("calculateZeta is not valid for LogMultipole binning")
+
+            self._zeta = self.raw_zeta - rkk.zeta
+            self._rkk = rkk
+
+            if (rkk.npatch1 not in (1,self.npatch1) or rkk.npatch2 != self.npatch2
+                    or rkk.npatch3 != self.npatch3):
+                raise RuntimeError("RKK must be run with the same patches as DKK")
+
+            if len(self.results) > 0:
+                # If there are any rkk patch pairs that aren't in results (e.g. due to different
+                # edge effects among the various pairs in consideration), then we need to add
+                # some dummy results to make sure all the right pairs are computed when we make
+                # the vectors for the covariance matrix.
+                template = next(iter(self.results.values()))  # Just need something to copy.
+                for ijk in rkk.results:
+                    if ijk in self.results: continue
+                    new_cij = template.copy()
+                    new_cij._z[0][:] = 0
+                    new_cij.weight[:] = 0
+                    self.results[ijk] = new_cij
+                    self.__dict__.pop('_ok',None)
+
+                self._cov = self.estimate_cov(self.var_method)
+                self._varzeta = np.zeros(self.data_shape, dtype=float)
+                self._varzeta.ravel()[:] = self.cov_diag
+            else:
+                self._varzeta = self.raw_varzeta + rkk.varzeta
+        else:
+            self._zeta = self.raw_zeta
+            self._varzeta = self.raw_varzeta
+
+        return self._zeta, self._varzeta
+
+    def _calculate_xi_from_pairs(self, pairs):
+        self._sum([self.results[ijk] for ijk in pairs])
+        self._finalize()
+        if self._rkk is not None:
+            # If rkk has npatch1 = 1, adjust pairs appropriately
+            if self._rkk.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
+                pairs = [(0,ijk[1],ijk[2]) for ijk in pairs if ijk[0] == ijk[1]]
+            # Make sure all ijk are in the rkk results (some might be missing, which is ok)
+            pairs = [ijk for ijk in pairs if self._rkk._ok[ijk[0],ijk[1],ijk[2]]]
+            self._rkk._calculate_xi_from_pairs(pairs)
+            self._zeta = self.raw_zeta - self._rkk.zeta
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
@@ -164,6 +246,7 @@ class NKKCorrelation(Corr3):
         else:
             self._z[0] = data['zeta'].reshape(s)
         self._varzeta = data['sigma_zeta'].reshape(s)**2
+        self._raw_varzeta = self._varzeta
 
 class KNKCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point scalar-count-scalar correlation
@@ -229,7 +312,12 @@ class KNKCorrelation(Corr3):
             self._z[1] = np.zeros(shape, dtype=float)
         self._zeta = None
         self._varzeta = None
+        self._raw_varzeta = None
         self.logger.debug('Finished building KNKCorr')
+
+    @property
+    def raw_zeta(self):
+        return self._z[0]
 
     @property
     def zeta(self):
@@ -261,16 +349,93 @@ class KNKCorrelation(Corr3):
             self._var_num *= 2
 
     @property
+    def raw_varzeta(self):
+        if self._raw_varzeta is None:
+            self._raw_varzeta = self._calculate_varzeta()
+        return self._raw_varzeta
+
+    @property
     def varzeta(self):
         if self._varzeta is None:
-            self._varzeta = self._calculate_varzeta()
+            self._varzeta = self.raw_varzeta
         return self._varzeta
 
     def _clear(self):
         super()._clear()
         self._krk = None
         self._zeta = None
+        self._raw_varzeta = None
         self._varzeta = None
+
+    def calculateZeta(self, *, krk=None):
+        r"""Calculate the correlation function possibly given another correlation function
+        that uses random points for the foreground objects.
+
+        - If krk is None, the simple correlation function (self.zeta) is returned.
+        - If krk is not None, then a compensated calculation is done:
+          :math:`\zeta = (KDK - KRK)`, where KDK represents the correlation of the kappa
+          field with the data points and KRK represents the correlation with random points.
+
+        After calling this function, the attributes ``zeta``, ``varzeta`` and ``cov`` will
+        correspond to the compensated values (if krk is provided).  The raw, uncompensated values
+        are available as ``rawxi`` and ``raw_varxi``.
+
+        Parameters:
+            krk (KNKCorrelation): The cross-correlation using random locations as the lenses (RKK),
+                                  if desired.  (default: None)
+
+        Returns:
+            Tuple containing
+                - zeta = array of :math:`\zeta`
+                - varzeta = array of variance estimates of :math:`\zeta`
+        """
+        if krk is not None:
+            if self.bin_type == 'LogMultipole':
+                raise TypeError("calculateZeta is not valid for LogMultipole binning")
+
+            self._zeta = self.raw_zeta - krk.zeta
+            self._krk = krk
+
+            if (krk.npatch2 not in (1,self.npatch2) or krk.npatch1 != self.npatch1
+                    or krk.npatch3 != self.npatch3):
+                raise RuntimeError("KRK must be run with the same patches as KDK")
+
+            if len(self.results) > 0:
+                # If there are any krk patch pairs that aren't in results (e.g. due to different
+                # edge effects among the various pairs in consideration), then we need to add
+                # some dummy results to make sure all the right pairs are computed when we make
+                # the vectors for the covariance matrix.
+                template = next(iter(self.results.values()))  # Just need something to copy.
+                for ijk in krk.results:
+                    if ijk in self.results: continue
+                    new_cij = template.copy()
+                    new_cij._z[0][:] = 0
+                    new_cij.weight[:] = 0
+                    self.results[ijk] = new_cij
+                    self.__dict__.pop('_ok',None)
+
+                self._cov = self.estimate_cov(self.var_method)
+                self._varzeta = np.zeros(self.data_shape, dtype=float)
+                self._varzeta.ravel()[:] = self.cov_diag
+            else:
+                self._varzeta = self.raw_varzeta + krk.varzeta
+        else:
+            self._zeta = self.raw_zeta
+            self._varzeta = self.raw_varzeta
+
+        return self._zeta, self._varzeta
+
+    def _calculate_xi_from_pairs(self, pairs):
+        self._sum([self.results[ijk] for ijk in pairs])
+        self._finalize()
+        if self._krk is not None:
+            # If krk has npatch2 = 1, adjust pairs appropriately
+            if self._krk.npatch2 == 1 and not all([p[1] == 0 for p in pairs]):
+                pairs = [(ijk[0],0,ijk[2]) for ijk in pairs if ijk[0] == ijk[1]]
+            # Make sure all ijk are in the krk results (some might be missing, which is ok)
+            pairs = [ijk for ijk in pairs if self._krk._ok[ijk[0],ijk[1],ijk[2]]]
+            self._krk._calculate_xi_from_pairs(pairs)
+            self._zeta = self.raw_zeta - self._krk.zeta
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
@@ -307,6 +472,7 @@ class KNKCorrelation(Corr3):
         else:
             self._z[0] = data['zeta'].reshape(s)
         self._varzeta = data['sigma_zeta'].reshape(s)**2
+        self._raw_varzeta = self._varzeta
 
 class KKNCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point scalar-scalar-count correlation
@@ -372,7 +538,12 @@ class KKNCorrelation(Corr3):
             self._z[1] = np.zeros(shape, dtype=float)
         self._zeta = None
         self._varzeta = None
+        self._raw_varzeta = None
         self.logger.debug('Finished building KKNCorr')
+
+    @property
+    def raw_zeta(self):
+        return self._z[0]
 
     @property
     def zeta(self):
@@ -404,16 +575,93 @@ class KKNCorrelation(Corr3):
             self._var_num *= 2
 
     @property
+    def raw_varzeta(self):
+        if self._raw_varzeta is None:
+            self._raw_varzeta = self._calculate_varzeta()
+        return self._raw_varzeta
+
+    @property
     def varzeta(self):
         if self._varzeta is None:
-            self._varzeta = self._calculate_varzeta()
+            self._varzeta = self.raw_varzeta
         return self._varzeta
 
     def _clear(self):
         super()._clear()
         self._kkr = None
         self._zeta = None
+        self._raw_varzeta = None
         self._varzeta = None
+
+    def calculateZeta(self, *, kkr=None):
+        r"""Calculate the correlation function possibly given another correlation function
+        that uses random points for the foreground objects.
+
+        - If kkr is None, the simple correlation function (self.zeta) is returned.
+        - If kkr is not None, then a compensated calculation is done:
+          :math:`\zeta = (DKK - RKK)`, where DKK represents the correlation of the kappa
+          field with the data points and RKK represents the correlation with random points.
+
+        After calling this function, the attributes ``zeta``, ``varzeta`` and ``cov`` will
+        correspond to the compensated values (if kkr is provided).  The raw, uncompensated values
+        are available as ``rawxi`` and ``raw_varxi``.
+
+        Parameters:
+            kkr (KKNCorrelation): The cross-correlation using random locations as the lenses (RKK),
+                                  if desired.  (default: None)
+
+        Returns:
+            Tuple containing
+                - zeta = array of :math:`\zeta`
+                - varzeta = array of variance estimates of :math:`\zeta`
+        """
+        if kkr is not None:
+            if self.bin_type == 'LogMultipole':
+                raise TypeError("calculateZeta is not valid for LogMultipole binning")
+
+            self._zeta = self.raw_zeta - kkr.zeta
+            self._kkr = kkr
+
+            if (kkr.npatch3 not in (1,self.npatch3) or kkr.npatch1 != self.npatch1
+                    or kkr.npatch2 != self.npatch2):
+                raise RuntimeError("KKR must be run with the same patches as KKD")
+
+            if len(self.results) > 0:
+                # If there are any kkr patch pairs that aren't in results (e.g. due to different
+                # edge effects among the various pairs in consideration), then we need to add
+                # some dummy results to make sure all the right pairs are computed when we make
+                # the vectors for the covariance matrix.
+                template = next(iter(self.results.values()))  # Just need something to copy.
+                for ijk in kkr.results:
+                    if ijk in self.results: continue
+                    new_cij = template.copy()
+                    new_cij._z[0][:] = 0
+                    new_cij.weight[:] = 0
+                    self.results[ijk] = new_cij
+                    self.__dict__.pop('_ok',None)
+
+                self._cov = self.estimate_cov(self.var_method)
+                self._varzeta = np.zeros(self.data_shape, dtype=float)
+                self._varzeta.ravel()[:] = self.cov_diag
+            else:
+                self._varzeta = self.raw_varzeta + kkr.varzeta
+        else:
+            self._zeta = self.raw_zeta
+            self._varzeta = self.raw_varzeta
+
+        return self._zeta, self._varzeta
+
+    def _calculate_xi_from_pairs(self, pairs):
+        self._sum([self.results[ijk] for ijk in pairs])
+        self._finalize()
+        if self._kkr is not None:
+            # If kkr has npatch3 = 1, adjust pairs appropriately
+            if self._kkr.npatch3 == 1 and not all([p[2] == 0 for p in pairs]):
+                pairs = [(ijk[0],ijk[1],0) for ijk in pairs if ijk[0] == ijk[2]]
+            # Make sure all ijk are in the kkr results (some might be missing, which is ok)
+            pairs = [ijk for ijk in pairs if self._kkr._ok[ijk[0],ijk[1],ijk[2]]]
+            self._kkr._calculate_xi_from_pairs(pairs)
+            self._zeta = self.raw_zeta - self._kkr.zeta
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
@@ -450,3 +698,4 @@ class KKNCorrelation(Corr3):
         else:
             self._z[0] = data['zeta'].reshape(s)
         self._varzeta = data['sigma_zeta'].reshape(s)**2
+        self._raw_varzeta = self._varzeta

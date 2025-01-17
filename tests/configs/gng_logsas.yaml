@@ -10,11 +10,12 @@ g2_col: [4,0,4]
 
 verbose: 1
 
-min_sep: 3.
+min_sep: 4.
 max_sep: 9.
-nbins: 10
-min_phi: 0.2
-nphi_bins: 15
+nbins: 15
+min_phi: 0.5
+max_phi: 2.5
+nphi_bins: 20
 bin_type: LogSAS
 max_n: 80
 

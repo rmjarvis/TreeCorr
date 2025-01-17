@@ -21,7 +21,7 @@ import pickle
 from test_helper import assert_raises, do_pickle, timer, get_from_wiki, CaptureLog, clear_save
 from test_helper import profile
 
-def generate_shear_field(npos, nhalo, rng=None):
+def generate_shear_field(npos, nhalo, rng=None, return_halos=False):
     # We do something completely different here than we did for 2pt patch tests.
     # A straight Gaussian field with a given power spectrum has no significant 3pt power,
     # so it's not a great choice for simulating a field for 3pt tests.
@@ -63,7 +63,10 @@ def generate_shear_field(npos, nhalo, rng=None):
         g = -k * (dx + 1j*dy)**2 / rsq
         gamma += np.sum(g, axis=1)
 
-    return x, y, np.real(gamma), np.imag(gamma), kappa
+    if return_halos:
+        return x, y, np.real(gamma), np.imag(gamma), kappa, xc, yc
+    else:
+        return x, y, np.real(gamma), np.imag(gamma), kappa
 
 
 @timer

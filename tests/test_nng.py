@@ -337,6 +337,84 @@ def test_direct_logruv_cross():
     np.testing.assert_allclose(gnn.weight, true_weight_sum1, rtol=1.e-5)
     np.testing.assert_allclose(gnn.zeta, true_zeta_sum1, rtol=1.e-5)
 
+    # With no randoms, calculateZeta just returns zeta.
+    np.testing.assert_allclose(nng.calculateZeta()[0], true_zeta_sum3, rtol=1.e-5)
+    np.testing.assert_allclose(ngn.calculateZeta()[0], true_zeta_sum2, rtol=1.e-5)
+    np.testing.assert_allclose(gnn.calculateZeta()[0], true_zeta_sum1, rtol=1.e-5)
+
+    # Compute zeta using randoms
+    # We save these values to compare to later ones with patches.
+    xr = rng.uniform(-3*s,3*s, (2*ngal,) )
+    yr = rng.normal(-3*s,3*s, (2*ngal,) )
+    rcat = treecorr.Catalog(x=xr, y=yr)
+
+    rrg = nng.copy()
+    rrg.process(rcat, rcat, cat3, ordered=3)
+    diff = nng.raw_zeta - rrg.zeta
+    zeta_nng_rr, _ = nng.calculateZeta(rrg=rrg)
+    np.testing.assert_allclose(zeta_nng_rr, diff, rtol=1.e-5)
+    np.testing.assert_allclose(nng.zeta, diff, rtol=1.e-5)
+    drg = nng.copy()
+    drg.process(cat1, rcat, cat3, ordered=3)
+    diff = nng.raw_zeta - 2*drg.zeta + rrg.zeta
+    zeta_nng_dr, _ = nng.calculateZeta(rrg=rrg, drg=drg)
+    np.testing.assert_allclose(zeta_nng_dr, diff, rtol=1.e-5)
+    np.testing.assert_allclose(nng.zeta, diff, rtol=1.e-5)
+    rdg = nng.copy()
+    rdg.process(rcat, cat2, cat3, ordered=3)
+    diff = nng.raw_zeta - 2*rdg.zeta + rrg.zeta
+    zeta_nng_rd, _ = nng.calculateZeta(rrg=rrg, rdg=rdg)
+    np.testing.assert_allclose(nng.zeta, diff, rtol=1.e-5)
+    diff = nng.raw_zeta - drg.zeta - rdg.zeta + rrg.zeta
+    zeta_nng_rdr, _ = nng.calculateZeta(rrg=rrg, rdg=rdg, drg=drg)
+    np.testing.assert_allclose(nng.zeta, diff, rtol=1.e-5)
+
+    rgr = ngn.copy()
+    rgr.process(rcat, cat3, rcat, ordered=2)
+    diff = ngn.raw_zeta - rgr.zeta
+    zeta_ngn_rr, _ = ngn.calculateZeta(rgr=rgr)
+    np.testing.assert_allclose(zeta_ngn_rr, diff, rtol=1.e-5)
+    np.testing.assert_allclose(ngn.zeta, diff, rtol=1.e-5)
+    dgr = ngn.copy()
+    dgr.process(cat1, cat3, rcat, ordered=2)
+    diff = ngn.raw_zeta - 2*dgr.zeta + rgr.zeta
+    zeta_ngn_dr, _ = ngn.calculateZeta(rgr=rgr, dgr=dgr)
+    np.testing.assert_allclose(zeta_ngn_dr, diff, rtol=1.e-5)
+    np.testing.assert_allclose(ngn.zeta, diff, rtol=1.e-5)
+    rgd = ngn.copy()
+    rgd.process(rcat, cat3, cat2, ordered=2)
+    diff = ngn.raw_zeta - 2*rgd.zeta + rgr.zeta
+    zeta_ngn_rd, _ = ngn.calculateZeta(rgr=rgr, rgd=rgd)
+    np.testing.assert_allclose(zeta_ngn_rd, diff, rtol=1.e-5)
+    np.testing.assert_allclose(ngn.zeta, diff, rtol=1.e-5)
+    diff = ngn.raw_zeta - dgr.zeta - rgd.zeta + rgr.zeta
+    zeta_ngn_rdr, _ = ngn.calculateZeta(rgr=rgr, rgd=rgd, dgr=dgr)
+    np.testing.assert_allclose(zeta_ngn_rdr, diff, rtol=1.e-5)
+    np.testing.assert_allclose(ngn.zeta, diff, rtol=1.e-5)
+
+    grr = gnn.copy()
+    grr.process(cat3, rcat, rcat, ordered=1)
+    diff = gnn.raw_zeta - grr.zeta
+    zeta_gnn_rr, _ = gnn.calculateZeta(grr=grr)
+    np.testing.assert_allclose(zeta_gnn_rr, diff, rtol=1.e-5)
+    np.testing.assert_allclose(gnn.zeta, diff, rtol=1.e-5)
+    gdr = gnn.copy()
+    gdr.process(cat3, cat1, rcat, ordered=1)
+    diff = gnn.raw_zeta - 2*gdr.zeta + grr.zeta
+    zeta_gnn_dr, _ = gnn.calculateZeta(grr=grr, gdr=gdr)
+    np.testing.assert_allclose(zeta_gnn_dr, diff, rtol=1.e-5)
+    np.testing.assert_allclose(gnn.zeta, diff, rtol=1.e-5)
+    grd = gnn.copy()
+    grd.process(cat3, rcat, cat2, ordered=1)
+    diff = gnn.raw_zeta - 2*grd.zeta + grr.zeta
+    zeta_gnn_rd, _ = gnn.calculateZeta(grr=grr, grd=grd)
+    np.testing.assert_allclose(zeta_gnn_rd, diff, rtol=1.e-5)
+    np.testing.assert_allclose(gnn.zeta, diff, rtol=1.e-5)
+    diff = gnn.raw_zeta - gdr.zeta - grd.zeta + grr.zeta
+    zeta_gnn_rdr, _ = gnn.calculateZeta(grr=grr, grd=grd, gdr=gdr)
+    np.testing.assert_allclose(zeta_gnn_rdr, diff, rtol=1.e-5)
+    np.testing.assert_allclose(gnn.zeta, diff, rtol=1.e-5)
+
     # Error to have cat3, but not cat2
     with assert_raises(ValueError):
         nng.process(cat1, cat3=cat3)
@@ -426,6 +504,181 @@ def test_direct_logruv_cross():
     np.testing.assert_array_equal(gnn.ntri, true_ntri_sum1)
     np.testing.assert_allclose(gnn.weight, true_weight_sum1, rtol=1.e-5)
     np.testing.assert_allclose(gnn.zeta, true_zeta_sum1, rtol=1.e-5)
+
+    # Check using randoms with and without patches
+    rcatp = treecorr.Catalog(x=xr, y=yr, patch_centers=cat1p.patch_centers)
+    rrg.process(rcat, rcat, cat3p, ordered=False)
+    nng.calculateZeta(rrg=rrg)
+    nng.estimate_cov('jackknife')
+    np.testing.assert_allclose(nng.zeta, zeta_nng_rr, rtol=1.e-5)
+    rrg.process(rcatp, rcatp, cat3p, ordered=False)
+    nng.calculateZeta(rrg=rrg)
+    nng.estimate_cov('jackknife')
+    np.testing.assert_allclose(nng.zeta, zeta_nng_rr, rtol=1.e-5)
+    drg.process(cat1p, rcat, cat3p, ordered=False)
+    nng.calculateZeta(rrg=rrg, drg=drg)
+    nng.estimate_cov('jackknife')
+    np.testing.assert_allclose(nng.zeta, zeta_nng_dr, rtol=1.e-5)
+    drg.process(cat1p, rcatp, cat3p, ordered=False)
+    nng.calculateZeta(rrg=rrg, drg=drg)
+    nng.estimate_cov('jackknife')
+    np.testing.assert_allclose(nng.zeta, zeta_nng_dr, rtol=1.e-5)
+    rdg.process(rcat, cat2p, cat3p, ordered=False)
+    nng.calculateZeta(rrg=rrg, rdg=rdg)
+    nng.estimate_cov('jackknife')
+    np.testing.assert_allclose(nng.zeta, zeta_nng_rd, rtol=1.e-5)
+    rdg.process(rcatp, cat2p, cat3p, ordered=False)
+    nng.calculateZeta(rrg=rrg, rdg=rdg)
+    nng.estimate_cov('jackknife')
+    np.testing.assert_allclose(nng.zeta, zeta_nng_rd, rtol=1.e-5)
+    nng.calculateZeta(rrg=rrg, rdg=rdg, drg=drg)
+    nng.estimate_cov('jackknife')
+    np.testing.assert_allclose(nng.zeta, zeta_nng_rdr, rtol=1.e-5)
+    nng.calculateZeta(rrg=rrg, rdg=rdg, drg=drg)
+    nng.estimate_cov('jackknife')
+    np.testing.assert_allclose(nng.zeta, zeta_nng_rdr, rtol=1.e-5)
+
+    rgr.process(rcat, cat3p, rcat, ordered=False)
+    ngn.calculateZeta(rgr=rgr)
+    ngn.estimate_cov('jackknife')
+    np.testing.assert_allclose(ngn.zeta, zeta_ngn_rr, rtol=1.e-5)
+    rgr.process(rcatp, cat3p, rcatp, ordered=False)
+    ngn.calculateZeta(rgr=rgr)
+    ngn.estimate_cov('jackknife')
+    np.testing.assert_allclose(ngn.zeta, zeta_ngn_rr, rtol=1.e-5)
+    dgr.process(cat1p, cat3p, rcat, ordered=False)
+    ngn.calculateZeta(rgr=rgr, dgr=dgr)
+    ngn.estimate_cov('jackknife')
+    np.testing.assert_allclose(ngn.zeta, zeta_ngn_dr, rtol=1.e-5)
+    dgr.process(cat1p, cat3p, rcatp, ordered=False)
+    ngn.calculateZeta(rgr=rgr, dgr=dgr)
+    ngn.estimate_cov('jackknife')
+    np.testing.assert_allclose(ngn.zeta, zeta_ngn_dr, rtol=1.e-5)
+    rgd.process(rcat, cat3p, cat2p, ordered=False)
+    ngn.calculateZeta(rgr=rgr, rgd=rgd)
+    ngn.estimate_cov('jackknife')
+    np.testing.assert_allclose(ngn.zeta, zeta_ngn_rd, rtol=1.e-5)
+    rgd.process(rcatp, cat3p, cat2p, ordered=False)
+    ngn.calculateZeta(rgr=rgr, rgd=rgd)
+    ngn.estimate_cov('jackknife')
+    np.testing.assert_allclose(ngn.zeta, zeta_ngn_rd, rtol=1.e-5)
+    ngn.calculateZeta(rgr=rgr, rgd=rgd, dgr=dgr)
+    ngn.estimate_cov('jackknife')
+    np.testing.assert_allclose(ngn.zeta, zeta_ngn_rdr, rtol=1.e-5)
+    ngn.calculateZeta(rgr=rgr, rgd=rgd, dgr=dgr)
+    ngn.estimate_cov('jackknife')
+    np.testing.assert_allclose(ngn.zeta, zeta_ngn_rdr, rtol=1.e-5)
+
+    grr.process(cat3p, rcat, rcat, ordered=False)
+    gnn.calculateZeta(grr=grr)
+    gnn.estimate_cov('jackknife')
+    np.testing.assert_allclose(gnn.zeta, zeta_gnn_rr, rtol=1.e-5)
+    grr.process(cat3p, rcatp, rcatp, ordered=False)
+    gnn.calculateZeta(grr=grr)
+    gnn.estimate_cov('jackknife')
+    np.testing.assert_allclose(gnn.zeta, zeta_gnn_rr, rtol=1.e-5)
+    gdr.process(cat3p, cat1p, rcat, ordered=False)
+    gnn.calculateZeta(grr=grr, gdr=gdr)
+    gnn.estimate_cov('jackknife')
+    np.testing.assert_allclose(gnn.zeta, zeta_gnn_dr, rtol=1.e-5)
+    gdr.process(cat3p, cat1p, rcatp, ordered=False)
+    gnn.calculateZeta(grr=grr, gdr=gdr)
+    gnn.estimate_cov('jackknife')
+    np.testing.assert_allclose(gnn.zeta, zeta_gnn_dr, rtol=1.e-5)
+    grd.process(cat3p, rcat, cat2p, ordered=False)
+    gnn.calculateZeta(grr=grr, grd=grd)
+    gnn.estimate_cov('jackknife')
+    np.testing.assert_allclose(gnn.zeta, zeta_gnn_rd, rtol=1.e-5)
+    grd.process(cat3p, rcatp, cat2p, ordered=False)
+    gnn.calculateZeta(grr=grr, grd=grd)
+    gnn.estimate_cov('jackknife')
+    np.testing.assert_allclose(gnn.zeta, zeta_gnn_rd, rtol=1.e-5)
+    gnn.calculateZeta(grr=grr, grd=grd, gdr=gdr)
+    gnn.estimate_cov('jackknife')
+    np.testing.assert_allclose(gnn.zeta, zeta_gnn_rdr, rtol=1.e-5)
+    gnn.calculateZeta(grr=grr, grd=grd, gdr=gdr)
+    gnn.estimate_cov('jackknife')
+    np.testing.assert_allclose(gnn.zeta, zeta_gnn_rdr, rtol=1.e-5)
+
+    # Check when some patches have no objects
+    rcatpx = treecorr.Catalog(x=xr, y=yr, npatch=20, rng=rng)
+    cat1px = treecorr.Catalog(x=x1, y=y1, w=w1, patch_centers=rcatpx.patch_centers)
+    cat2px = treecorr.Catalog(x=x2, y=y2, w=w2, patch_centers=rcatpx.patch_centers)
+    cat3px = treecorr.Catalog(x=x3, y=y3, w=w3, g1=g1_3, g2=g2_3, patch_centers=rcatpx.patch_centers)
+    nng.process(cat1px, cat2px, cat3px, ordered=False)
+    with assert_raises(RuntimeError):
+        nng.calculateZeta(rrg=rrg)
+    rrg.process(rcatpx, rcatpx, cat3px, ordered=False)
+    with assert_raises(RuntimeError):
+        nng.calculateZeta(rrg=rrg, rdg=rdg)
+    with assert_raises(RuntimeError):
+        nng.calculateZeta(rrg=rrg, drg=drg)
+    rdg.process(rcatpx, cat2px, cat3px, ordered=False)
+    with assert_raises(RuntimeError):
+        nng.calculateZeta(rrg=rrg, drg=drg, rdg=rdg)
+    drg.process(cat1px, rcatpx, cat3px, ordered=False)
+    with assert_raises(TypeError):
+        nng.calculateZeta(drg=drg)
+    with assert_raises(TypeError):
+        nng.calculateZeta(rdg=rdg)
+    nng.calculateZeta(rrg=rrg)
+    np.testing.assert_allclose(nng.zeta, zeta_nng_rr, rtol=1.e-5)
+    nng.calculateZeta(rrg=rrg, rdg=rdg)
+    np.testing.assert_allclose(nng.zeta, zeta_nng_rd, rtol=1.e-5)
+    nng.calculateZeta(rrg=rrg, drg=drg)
+    np.testing.assert_allclose(nng.zeta, zeta_nng_dr, rtol=1.e-5)
+    nng.calculateZeta(rrg=rrg, drg=drg, rdg=rdg)
+    np.testing.assert_allclose(nng.zeta, zeta_nng_rdr, rtol=1.e-5)
+
+    ngn.process(cat1px, cat3px, cat2px, ordered=False)
+    with assert_raises(RuntimeError):
+        ngn.calculateZeta(rgr=rgr)
+    rgr.process(rcatpx, cat3px, rcatpx, ordered=False)
+    with assert_raises(RuntimeError):
+        ngn.calculateZeta(rgr=rgr, rgd=rgd)
+    with assert_raises(RuntimeError):
+        ngn.calculateZeta(rgr=rgr, dgr=dgr)
+    rgd.process(rcatpx, cat3px, cat2px, ordered=False)
+    with assert_raises(RuntimeError):
+        ngn.calculateZeta(rgr=rgr, dgr=dgr, rgd=rgd)
+    dgr.process(cat1px, cat3px, rcatpx, ordered=False)
+    with assert_raises(TypeError):
+        ngn.calculateZeta(dgr=dgr)
+    with assert_raises(TypeError):
+        ngn.calculateZeta(rgd=rgd)
+    ngn.calculateZeta(rgr=rgr)
+    np.testing.assert_allclose(ngn.zeta, zeta_ngn_rr, rtol=1.e-5)
+    ngn.calculateZeta(rgr=rgr, dgr=dgr)
+    np.testing.assert_allclose(ngn.zeta, zeta_ngn_dr, rtol=1.e-5)
+    ngn.calculateZeta(rgr=rgr, rgd=rgd)
+    np.testing.assert_allclose(ngn.zeta, zeta_ngn_rd, rtol=1.e-5)
+    ngn.calculateZeta(rgr=rgr, dgr=dgr, rgd=rgd)
+    np.testing.assert_allclose(ngn.zeta, zeta_ngn_rdr, rtol=1.e-5)
+
+    gnn.process(cat3px, cat1px, cat2px, ordered=False)
+    with assert_raises(RuntimeError):
+        gnn.calculateZeta(grr=grr)
+    grr.process(cat3px, rcatpx, rcatpx, ordered=False)
+    with assert_raises(RuntimeError):
+        gnn.calculateZeta(grr=grr, gdr=gdr)
+    with assert_raises(RuntimeError):
+        gnn.calculateZeta(grr=grr, grd=grd)
+    gdr.process(cat3px, cat1px, rcatpx, ordered=False)
+    with assert_raises(RuntimeError):
+        gnn.calculateZeta(grr=grr, gdr=gdr, grd=grd)
+    grd.process(cat3px, rcatpx, cat2px, ordered=False)
+    with assert_raises(TypeError):
+        gnn.calculateZeta(gdr=gdr)
+    with assert_raises(TypeError):
+        gnn.calculateZeta(grd=grd)
+    gnn.calculateZeta(grr=grr)
+    np.testing.assert_allclose(gnn.zeta, zeta_gnn_rr, rtol=1.e-5)
+    gnn.calculateZeta(grr=grr, gdr=gdr)
+    np.testing.assert_allclose(gnn.zeta, zeta_gnn_dr, rtol=1.e-5)
+    gnn.calculateZeta(grr=grr, grd=grd)
+    np.testing.assert_allclose(gnn.zeta, zeta_gnn_rd, rtol=1.e-5)
+    gnn.calculateZeta(grr=grr, gdr=gdr, grd=grd)
+    np.testing.assert_allclose(gnn.zeta, zeta_gnn_rdr, rtol=1.e-5)
 
     # patch_method=local
     nng.process(cat1p, cat2p, cat3p, patch_method='local')
@@ -2168,6 +2421,11 @@ def test_nng_logsas():
     nbins = 15
     nphi_bins = 30
 
+    nrand = 10*nlens
+    xr = (rng.random_sample(nsource)-0.5) * (L + 2*r0)
+    yr = (rng.random_sample(nsource)-0.5) * (L + 2*r0)
+    rcat = treecorr.Catalog(x=xr, y=yr)
+
     nng = treecorr.NNGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
                                   nphi_bins=nphi_bins, bin_type='LogSAS')
     ngn = treecorr.NGNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins,
@@ -2299,6 +2557,36 @@ def test_nng_logsas():
             corr3.process(gcat, ncat, algo='multipole', max_n=80)
         np.testing.assert_allclose(corr3.weight, corrs.weight)
         np.testing.assert_allclose(corr3.zeta, corrs.zeta)
+
+        # Now use randoms
+        corr2 = corr.copy()
+        rr = corr.copy()
+        if name == 'nng':
+            rr.process(rcat, gcat)
+            czkwargs = dict(rrg=rr)
+        elif name == 'ngn':
+            rr.process(rcat, gcat, rcat)
+            czkwargs = dict(rgr=rr)
+        else:
+            rr.process(gcat, rcat)
+            czkwargs = dict(grr=rr)
+        zeta, varzeta = corr2.calculateZeta(**czkwargs)
+
+        print('with rand mean ratio = ',np.mean(corr2.zeta[m]/true_zeta[m]))
+        np.testing.assert_allclose(corr2.zeta[m], true_zeta[m], rtol=0.3*tol_factor)
+
+        corr2x = corr2.copy()
+        np.testing.assert_allclose(corr2x.zeta, corr2.zeta)
+        np.testing.assert_allclose(corr2x.varzeta, corr2.varzeta)
+        np.testing.assert_allclose(corr2x.raw_zeta, corr2.raw_zeta)
+        np.testing.assert_allclose(corr2x.raw_varzeta, corr2.raw_varzeta)
+        np.testing.assert_allclose(corr.calculateZeta()[0], corr.zeta)
+        np.testing.assert_allclose(corr.calculateZeta()[1], corr.varzeta)
+        np.testing.assert_allclose(corrs.calculateZeta()[0], corrs.zeta)
+        np.testing.assert_allclose(corrs.calculateZeta()[1], corrs.varzeta)
+
+        with assert_raises(TypeError):
+            corrm.calculateZeta(**czkwargs)
 
         # Check that we get the same result using the corr3 functin:
         # (This implicitly uses the multipole algorithm.)
@@ -2576,6 +2864,377 @@ def test_varzeta():
     np.testing.assert_allclose(gnn.cov.diagonal(), gnn.varzeta.ravel())
 
 
+@timer
+def test_nng_logsas_jk():
+    # Test jackknife covariance estimates for nng correlations with LogSAS binning.
+
+    # Skip this test on windows, since it is vv slow.
+    if os.name == 'nt': return
+
+    if __name__ == '__main__':
+        nhalo = 2000
+        nsource = 50000
+        npatch = 300
+        tol_factor = 1
+    else:
+        nhalo = 2000
+        nsource = 50000
+        npatch = 12
+        tol_factor = 2
+
+    nhalo = 2000
+    nsource = 50000
+    npatch = 16
+    tol_factor = 2
+
+    nbins = 2
+    min_sep = 12
+    max_sep = 16
+    nphi_bins = 5
+    min_phi = 30
+    max_phi = 90
+
+    file_name = 'data/test_nng_logsas_jk_{}.npz'.format(nsource)
+    print(file_name)
+    if not os.path.isfile(file_name):
+        nruns = 1000
+        all_nng = []
+        all_ngn = []
+        all_gnn = []
+        all_nng_rr = []
+        all_ngn_rr = []
+        all_gnn_rr = []
+        all_nng_dr = []
+        all_ngn_dr = []
+        all_gnn_dr = []
+        rng1 = np.random.default_rng()
+        for run in range(nruns):
+            x, y, g1, g2, _, xh, yh = generate_shear_field(nsource, nhalo, rng1, return_halos=True)
+            xr = rng1.uniform(0, 1000, size=10*nhalo)
+            yr = rng1.uniform(0, 1000, size=10*nhalo)
+            print(run,': ',np.std(g1),np.std(g2))
+            gcat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2)
+            ncat = treecorr.Catalog(x=xh, y=yh)
+            rcat = treecorr.Catalog(x=xr, y=yr)
+            nng = treecorr.NNGCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep,
+                                          min_phi=min_phi, max_phi=max_phi, phi_units='deg',
+                                          nphi_bins=nphi_bins, bin_type='LogSAS', max_n=40)
+            nng.process(ncat, gcat)
+            all_nng.append(nng.zeta.ravel())
+            rrg = nng.copy()
+            rrg.process(rcat, gcat)
+            drg = nng.copy()
+            drg.process(ncat, rcat, gcat, ordered=3)
+            zeta, _ = nng.calculateZeta(rrg=rrg)
+            all_nng_rr.append(zeta.ravel())
+            zeta, _ = nng.calculateZeta(rrg=rrg, drg=drg)
+            all_nng_dr.append(zeta.ravel())
+
+            ngn = treecorr.NGNCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep,
+                                          min_phi=min_phi, max_phi=max_phi, phi_units='deg',
+                                          nphi_bins=nphi_bins, bin_type='LogSAS', max_n=40)
+            ngn.process(ncat, gcat, ncat)
+            all_ngn.append(ngn.zeta.ravel())
+            rgr = ngn.copy()
+            rgr.process(rcat, gcat, rcat)
+            dgr = ngn.copy()
+            dgr.process(ncat, gcat, rcat, ordered=2)
+            zeta, _ = ngn.calculateZeta(rgr=rgr)
+            all_ngn_rr.append(zeta.ravel())
+            zeta, _ = ngn.calculateZeta(rgr=rgr, dgr=dgr)
+            all_ngn_dr.append(zeta.ravel())
+
+            gnn = treecorr.GNNCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep,
+                                          min_phi=min_phi, max_phi=max_phi, phi_units='deg',
+                                          nphi_bins=nphi_bins, bin_type='LogSAS', max_n=40)
+            gnn.process(gcat, ncat)
+            all_gnn.append(gnn.zeta.ravel())
+            grr = gnn.copy()
+            grr.process(gcat, rcat)
+            gdr = gnn.copy()
+            gdr.process(gcat, ncat, rcat, ordered=1)
+            zeta, _ = gnn.calculateZeta(grr=grr)
+            all_gnn_rr.append(zeta.ravel())
+            zeta, _ = gnn.calculateZeta(grr=grr, gdr=gdr)
+            all_gnn_dr.append(zeta.ravel())
+
+        mean_nng = np.mean(all_nng, axis=0)
+        var_nng = np.var(all_nng, axis=0)
+        mean_ngn = np.mean(all_ngn, axis=0)
+        var_ngn = np.var(all_ngn, axis=0)
+        mean_gnn = np.mean(all_gnn, axis=0)
+        var_gnn = np.var(all_gnn, axis=0)
+        mean_nng_rr = np.mean(all_nng_rr, axis=0)
+        var_nng_rr = np.var(all_nng_rr, axis=0)
+        mean_ngn_rr = np.mean(all_ngn_rr, axis=0)
+        var_ngn_rr = np.var(all_ngn_rr, axis=0)
+        mean_gnn_rr = np.mean(all_gnn_rr, axis=0)
+        var_gnn_rr = np.var(all_gnn_rr, axis=0)
+        mean_nng_dr = np.mean(all_nng_dr, axis=0)
+        var_nng_dr = np.var(all_nng_dr, axis=0)
+        mean_ngn_dr = np.mean(all_ngn_dr, axis=0)
+        var_ngn_dr = np.var(all_ngn_dr, axis=0)
+        mean_gnn_dr = np.mean(all_gnn_dr, axis=0)
+        var_gnn_dr = np.var(all_gnn_dr, axis=0)
+
+        np.savez(file_name,
+                 mean_nng=mean_nng, var_nng=var_nng,
+                 mean_ngn=mean_ngn, var_ngn=var_ngn,
+                 mean_gnn=mean_gnn, var_gnn=var_gnn,
+                 mean_nng_rr=mean_nng_rr, var_nng_rr=var_nng_rr,
+                 mean_ngn_rr=mean_ngn_rr, var_ngn_rr=var_ngn_rr,
+                 mean_gnn_rr=mean_gnn_rr, var_gnn_rr=var_gnn_rr,
+                 mean_nng_dr=mean_nng_dr, var_nng_dr=var_nng_dr,
+                 mean_ngn_dr=mean_ngn_dr, var_ngn_dr=var_ngn_dr,
+                 mean_gnn_dr=mean_gnn_dr, var_gnn_dr=var_gnn_dr)
+
+    data = np.load(file_name)
+    mean_nng = data['mean_nng']
+    var_nng = data['var_nng']
+    mean_ngn = data['mean_ngn']
+    var_ngn = data['var_ngn']
+    mean_gnn = data['mean_gnn']
+    var_gnn = data['var_gnn']
+    mean_nng_rr = data['mean_nng_rr']
+    var_nng_rr = data['var_nng_rr']
+    mean_ngn_rr = data['mean_ngn_rr']
+    var_ngn_rr = data['var_ngn_rr']
+    mean_gnn_rr = data['mean_gnn_rr']
+    var_gnn_rr = data['var_gnn_rr']
+    mean_nng_dr = data['mean_nng_dr']
+    var_nng_dr = data['var_nng_dr']
+    mean_ngn_dr = data['mean_ngn_dr']
+    var_ngn_dr = data['var_ngn_dr']
+    mean_gnn_dr = data['mean_gnn_dr']
+    var_gnn_dr = data['var_gnn_dr']
+    print('mean nng = ',mean_nng)
+    print('var nng = ',var_nng)
+    print('mean ngn = ',mean_ngn)
+    print('var ngn = ',var_ngn)
+    print('mean gnn = ',mean_gnn)
+    print('var gnn = ',var_gnn)
+
+    rng = np.random.default_rng(1234)
+    x, y, g1, g2, _, xh, yh = generate_shear_field(nsource, nhalo, rng, return_halos=True)
+    xr = rng.uniform(0, 1000, size=10*nhalo)
+    yr = rng.uniform(0, 1000, size=10*nhalo)
+    gcat = treecorr.Catalog(x=x, y=y, g1=g1, g2=g2, npatch=npatch, rng=rng)
+    ncat = treecorr.Catalog(x=xh, y=yh, rng=rng, patch_centers=gcat.patch_centers)
+    rcat = treecorr.Catalog(x=xr, y=yr, rng=rng, patch_centers=gcat.patch_centers)
+
+    # First check calculate_xi with all pairs in results dict.
+    nng = treecorr.NNGCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep,
+                                  min_phi=min_phi, max_phi=max_phi, phi_units='deg',
+                                  nphi_bins=nphi_bins, bin_type='LogSAS', max_n=40)
+    nng.process(ncat, gcat)
+    nng2 = nng.copy()
+    nng2._calculate_xi_from_pairs(list(nng.results.keys()))
+    np.testing.assert_allclose(nng2.ntri, nng.ntri, rtol=0.01)
+    np.testing.assert_allclose(nng2.zeta, nng.zeta, rtol=0.01)
+    np.testing.assert_allclose(nng2.varzeta, nng.varzeta, rtol=0.01)
+    rrg = nng.copy()
+    rrg.process(rcat, gcat)
+    nng_rr = nng.copy()
+    zeta_rrg, varzeta_rrg = nng_rr.calculateZeta(rrg=rrg)
+    nng2 = nng_rr.copy()
+    nng2._calculate_xi_from_pairs(list(nng.results.keys()))
+    np.testing.assert_allclose(nng2.ntri, nng_rr.ntri, rtol=0.01)
+    np.testing.assert_allclose(nng2.zeta, nng_rr.zeta, rtol=0.01)
+    np.testing.assert_allclose(nng2.varzeta, nng_rr.varzeta, rtol=0.01)
+    np.testing.assert_allclose(nng2.zeta, zeta_rrg, rtol=0.01)
+    np.testing.assert_allclose(nng2.varzeta, varzeta_rrg, rtol=0.01)
+    drg = nng.copy()
+    drg.process(ncat, rcat, gcat, ordered=3)
+    nng_dr = nng.copy()
+    zeta_drg, varzeta_drg = nng_dr.calculateZeta(rrg=rrg, drg=drg)
+    nng2 = nng_dr.copy()
+    nng2._calculate_xi_from_pairs(list(nng.results.keys()))
+    np.testing.assert_allclose(nng2.ntri, nng_dr.ntri, rtol=0.01)
+    np.testing.assert_allclose(nng2.zeta, nng_dr.zeta, rtol=0.01)
+    np.testing.assert_allclose(nng2.varzeta, nng_dr.varzeta, rtol=0.01)
+    np.testing.assert_allclose(nng2.zeta, zeta_drg, rtol=0.01)
+    np.testing.assert_allclose(nng2.varzeta, varzeta_drg, rtol=0.01)
+    nng2.calculateZeta(rrg=rrg, rdg=drg)
+    nng2._calculate_xi_from_pairs(list(nng.results.keys()))
+    np.testing.assert_allclose(nng2.zeta, nng_dr.zeta, rtol=0.01)
+    nng2.calculateZeta(rrg=rrg, rdg=drg, drg=drg)
+    nng2._calculate_xi_from_pairs(list(nng.results.keys()))
+    np.testing.assert_allclose(nng2.zeta, nng_dr.zeta, rtol=0.01)
+
+    ngn = treecorr.NGNCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep,
+                                  min_phi=min_phi, max_phi=max_phi, phi_units='deg',
+                                  nphi_bins=nphi_bins, bin_type='LogSAS', max_n=40)
+    ngn.process(ncat, gcat, ncat)
+    ngn2 = ngn.copy()
+    ngn2._calculate_xi_from_pairs(list(ngn.results.keys()))
+    np.testing.assert_allclose(ngn2.ntri, ngn.ntri, rtol=0.01)
+    np.testing.assert_allclose(ngn2.zeta, ngn.zeta, rtol=0.01)
+    np.testing.assert_allclose(ngn2.varzeta, ngn.varzeta, rtol=0.01)
+    rgr = ngn.copy()
+    rgr.process(rcat, gcat, rcat)
+    ngn_rr = ngn.copy()
+    zeta_rgr, varzeta_rgr = ngn_rr.calculateZeta(rgr=rgr)
+    ngn2 = ngn_rr.copy()
+    ngn2._calculate_xi_from_pairs(list(ngn.results.keys()))
+    np.testing.assert_allclose(ngn2.ntri, ngn_rr.ntri, rtol=0.01)
+    np.testing.assert_allclose(ngn2.zeta, ngn_rr.zeta, rtol=0.01)
+    np.testing.assert_allclose(ngn2.varzeta, ngn_rr.varzeta, rtol=0.01)
+    np.testing.assert_allclose(ngn2.zeta, zeta_rgr, rtol=0.01)
+    np.testing.assert_allclose(ngn2.varzeta, varzeta_rgr, rtol=0.01)
+    dgr = ngn.copy()
+    dgr.process(ncat, gcat, rcat)
+    ngn_dr = ngn.copy()
+    zeta_dgr, varzeta_dgr = ngn_dr.calculateZeta(rgr=rgr, dgr=dgr)
+    ngn2 = ngn_dr.copy()
+    ngn2._calculate_xi_from_pairs(list(ngn.results.keys()))
+    np.testing.assert_allclose(ngn2.ntri, ngn_dr.ntri, rtol=0.01)
+    np.testing.assert_allclose(ngn2.zeta, ngn_dr.zeta, rtol=0.01)
+    np.testing.assert_allclose(ngn2.varzeta, ngn_dr.varzeta, rtol=0.01)
+    np.testing.assert_allclose(ngn2.zeta, zeta_dgr, rtol=0.01)
+    np.testing.assert_allclose(ngn2.varzeta, varzeta_dgr, rtol=0.01)
+    ngn2.calculateZeta(rgr=rgr, rgd=dgr)
+    ngn2._calculate_xi_from_pairs(list(ngn.results.keys()))
+    np.testing.assert_allclose(ngn2.zeta, ngn_dr.zeta, rtol=0.01)
+    ngn2.calculateZeta(rgr=rgr, rgd=dgr, dgr=dgr)
+    ngn2._calculate_xi_from_pairs(list(ngn.results.keys()))
+    np.testing.assert_allclose(ngn2.zeta, ngn_dr.zeta, rtol=0.01)
+
+    gnn = treecorr.GNNCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep,
+                                  min_phi=min_phi, max_phi=max_phi, phi_units='deg',
+                                  nphi_bins=nphi_bins, bin_type='LogSAS', max_n=40)
+    gnn.process(gcat, ncat)
+    gnn2 = gnn.copy()
+    gnn2._calculate_xi_from_pairs(list(gnn.results.keys()))
+    np.testing.assert_allclose(gnn2.ntri, gnn.ntri, rtol=0.01)
+    np.testing.assert_allclose(gnn2.zeta, gnn.zeta, rtol=0.01)
+    np.testing.assert_allclose(gnn2.varzeta, gnn.varzeta, rtol=0.01)
+    grr = gnn.copy()
+    grr.process(gcat, rcat)
+    gnn_rr = gnn.copy()
+    zeta_grr, varzeta_grr = gnn_rr.calculateZeta(grr=grr)
+    gnn2 = gnn_rr.copy()
+    gnn2._calculate_xi_from_pairs(list(gnn.results.keys()))
+    np.testing.assert_allclose(gnn2.ntri, gnn_rr.ntri, rtol=0.01)
+    np.testing.assert_allclose(gnn2.zeta, gnn_rr.zeta, rtol=0.01)
+    np.testing.assert_allclose(gnn2.varzeta, gnn_rr.varzeta, rtol=0.01)
+    np.testing.assert_allclose(gnn2.zeta, zeta_grr, rtol=0.01)
+    np.testing.assert_allclose(gnn2.varzeta, varzeta_grr, rtol=0.01)
+    gdr = gnn.copy()
+    gdr.process(gcat, ncat, rcat)
+    gnn_dr = gnn.copy()
+    zeta_gdr, varzeta_gdr= gnn_dr.calculateZeta(grr=grr, gdr=gdr)
+    gnn2 = gnn_dr.copy()
+    gnn2._calculate_xi_from_pairs(list(gnn.results.keys()))
+    np.testing.assert_allclose(gnn2.ntri, gnn_dr.ntri, rtol=0.01)
+    np.testing.assert_allclose(gnn2.zeta, gnn_dr.zeta, rtol=0.01)
+    np.testing.assert_allclose(gnn2.varzeta, gnn_dr.varzeta, rtol=0.01)
+    np.testing.assert_allclose(gnn2.zeta, zeta_gdr, rtol=0.01)
+    np.testing.assert_allclose(gnn2.varzeta, varzeta_gdr, rtol=0.01)
+    gnn2.calculateZeta(grr=grr, grd=gdr)
+    gnn2._calculate_xi_from_pairs(list(gnn.results.keys()))
+    np.testing.assert_allclose(gnn2.zeta, gnn_dr.zeta, rtol=0.01)
+    gnn2.calculateZeta(grr=grr, gdr=gdr, grd=gdr)
+    gnn2._calculate_xi_from_pairs(list(gnn.results.keys()))
+    np.testing.assert_allclose(gnn2.zeta, gnn_dr.zeta, rtol=0.01)
+
+    # Next check jackknife covariance estimate
+    cov_nng = nng.estimate_cov('jackknife')
+    n = nng.varzeta.size
+    print('nng cov diag = ',np.diagonal(cov_nng))
+    print('var_nng = ',var_nng)
+    print('nng zeta var ratio = ',np.diagonal(cov_nng)/var_nng)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_nng))-np.log(var_nng))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov_nng)), np.log(var_nng), atol=0.6*tol_factor)
+
+    cov_ngn = ngn.estimate_cov('jackknife')
+    print('ngn var ratio = ',np.diagonal(cov_ngn)/var_ngn)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_ngn))-np.log(var_ngn))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov_ngn)), np.log(var_ngn), atol=0.6*tol_factor)
+
+    cov_gnn = gnn.estimate_cov('jackknife')
+    print('gnn var ratio = ',np.diagonal(cov_gnn)/var_gnn)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_gnn))-np.log(var_gnn))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov_gnn)), np.log(var_gnn), atol=0.6*tol_factor)
+
+    # Check that these still work after roundtripping through a file.
+    file_name = os.path.join('output','test_write_results_nng.dat')
+    nng.write(file_name, write_patch_results=True)
+    nng2 = treecorr.Corr3.from_file(file_name)
+    cov2 = nng2.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov2, cov_nng)
+
+    file_name = os.path.join('output','test_write_results_ngn.dat')
+    ngn.write(file_name, write_patch_results=True)
+    ngn2 = treecorr.Corr3.from_file(file_name)
+    cov2 = ngn2.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov2, cov_ngn)
+
+    file_name = os.path.join('output','test_write_results_gnn.dat')
+    gnn.write(file_name, write_patch_results=True)
+    gnn2 = treecorr.Corr3.from_file(file_name)
+    cov2 = gnn2.estimate_cov('jackknife')
+    np.testing.assert_allclose(cov2, cov_gnn)
+
+    # Check jackknife using LogMultipole
+    print('Using LogMultipole:')
+    nngm = treecorr.NNGCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep, max_n=40,
+                                   rng=rng, bin_type='LogMultipole')
+    nngm.process(ncat, gcat)
+    fm = lambda corr: corr.toSAS(min_phi=min_phi, max_phi=max_phi, phi_units='deg',
+                                 nphi_bins=nphi_bins).zeta.ravel()
+    cov = nngm.estimate_cov('jackknife', func=fm)
+    print('nng max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nng))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nng), atol=0.6*tol_factor)
+
+    ngnm = treecorr.NGNCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep, max_n=40,
+                                   rng=rng, bin_type='LogMultipole')
+    ngnm.process(ncat, gcat, ncat)
+    cov = ngnm.estimate_cov('jackknife', func=fm)
+    print('ngn max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ngn))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ngn), atol=0.6*tol_factor)
+
+    gnnm = treecorr.GNNCorrelation(nbins=nbins, min_sep=min_sep, max_sep=max_sep, max_n=40,
+                                   rng=rng, bin_type='LogMultipole')
+    gnnm.process(gcat, ncat)
+    cov = gnnm.estimate_cov('jackknife', func=fm)
+    print('gnn max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_gnn))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_gnn), atol=0.6*tol_factor)
+
+    # Check with randoms
+    cov_nng = nng_rr.estimate_cov('jackknife')
+    print('with rand nng cov diag = ',np.diagonal(cov_nng))
+    print('nng zeta var ratio = ',np.diagonal(cov_nng)/var_nng_rr)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_nng))-np.log(var_nng_rr))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov_nng)), np.log(var_nng_rr), atol=0.6*tol_factor)
+    cov_nng = nng_dr.estimate_cov('jackknife')
+    print('with rand/dr nng cov diag = ',np.diagonal(cov_nng))
+    print('nng zeta var ratio = ',np.diagonal(cov_nng)/var_nng_dr)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_nng))-np.log(var_nng_dr))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov_nng)), np.log(var_nng_dr), atol=0.6*tol_factor)
+
+    cov_ngn = ngn_rr.estimate_cov('jackknife')
+    print('with rand ngn cov diag = ',np.diagonal(cov_ngn))
+    print('ngn zeta var ratio = ',np.diagonal(cov_ngn)/var_ngn_rr)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_ngn))-np.log(var_ngn_rr))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov_ngn)), np.log(var_ngn_rr), atol=0.6*tol_factor)
+    cov_ngn = ngn_dr.estimate_cov('jackknife')
+    print('with rand/dr ngn cov diag = ',np.diagonal(cov_ngn))
+    print('ngn zeta var ratio = ',np.diagonal(cov_ngn)/var_ngn_dr)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_ngn))-np.log(var_ngn_dr))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov_ngn)), np.log(var_ngn_dr), atol=0.6*tol_factor)
+
+    cov_gnn = gnn_rr.estimate_cov('jackknife')
+    print('with rand gnn cov diag = ',np.diagonal(cov_gnn))
+    print('gnn zeta var ratio = ',np.diagonal(cov_gnn)/var_gnn_rr)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_gnn))-np.log(var_gnn_rr))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov_gnn)), np.log(var_gnn_rr), atol=0.6*tol_factor)
+    cov_gnn = gnn_dr.estimate_cov('jackknife')
+    print('with rand/dr gnn cov diag = ',np.diagonal(cov_gnn))
+    print('gnn zeta var ratio = ',np.diagonal(cov_gnn)/var_gnn_dr)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_gnn))-np.log(var_gnn_dr))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov_gnn)), np.log(var_gnn_dr), atol=0.7*tol_factor)
+
+
 if __name__ == '__main__':
     test_direct_logruv_cross()
     test_direct_logruv_cross21()
@@ -2586,3 +3245,4 @@ if __name__ == '__main__':
     test_direct_logmultipole_cross21()
     test_nng_logsas()
     test_varzeta()
+    test_nng_logsas_jk()

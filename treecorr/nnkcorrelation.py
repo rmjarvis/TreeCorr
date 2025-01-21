@@ -91,7 +91,12 @@ class KNNCorrelation(Corr3):
             self._z[1] = np.zeros(shape, dtype=float)
         self._zeta = None
         self._varzeta = None
+        self._raw_varzeta = None
         self.logger.debug('Finished building KNNCorr')
+
+    @property
+    def raw_zeta(self):
+        return self._z[0]
 
     @property
     def zeta(self):
@@ -126,9 +131,15 @@ class KNNCorrelation(Corr3):
             self._var_num *= 2
 
     @property
+    def raw_varzeta(self):
+        if self._raw_varzeta is None:
+            self._raw_varzeta = self._calculate_varzeta()
+        return self._raw_varzeta
+
+    @property
     def varzeta(self):
         if self._varzeta is None:
-            self._varzeta = self._calculate_varzeta()
+            self._varzeta = self.raw_varzeta
         return self._varzeta
 
     def _clear(self):
@@ -138,6 +149,143 @@ class KNNCorrelation(Corr3):
         self._kdr = None
         self._zeta = None
         self._varzeta = None
+        self._raw_varzeta = None
+
+    def calculateZeta(self, *, krr=None, kdr=None, krd=None):
+        r"""Calculate the correlation function given another correlation function of random
+        points using the same mask, and possibly cross correlations of the data and random.
+
+        The krr value is the `KNNCorrelation` function for random points with the scalar field.
+        One can also provide a cross correlation of the count data with randoms and the scalar.
+
+        - If krr is None, the simple correlation function (self.zeta) is returned.
+        - If only krr is given the compensated value :math:`\zeta = KDD - KRR` is returned.
+        - if kdr is given and krd is None (or vice versa), then :math:`\zeta = KDD - 2KDR + KRR`
+          is returned.
+        - If kdr and krd are both given, then :math:`\zeta = KDD - KDR - KRD + KRR` is returned.
+
+        where KDD is the data KNN correlation function, which is the current object.
+
+        After calling this method, you can use the `Corr2.estimate_cov` method or use this
+        correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and
+        varzeta returned from this function will be available as attributes.
+
+        Parameters:
+            krr (KNNCorrelation):   The correlation of the random points with the scalar field
+                                    (KRR) (default: None)
+            kdr (KNNCorrelation):   The cross-correlation of the data with both randoms and the
+                                    scalar field (KDR), if desired. (default: None)
+            krd (KNNCorrelation):   The cross-correlation of the randoms with both the data and the
+                                    scalar field (KRD), if desired. (default: None)
+
+        Returns:
+            Tuple containing:
+
+            - zeta = array of :math:`\zeta(r)`
+            - varzeta = an estimate of the variance of :math:`\zeta(r)`
+        """
+        # Calculate zeta based on which randoms are provided.
+        if krr is not None:
+            if self.bin_type == 'LogMultipole':
+                raise TypeError("calculateZeta is not valid for LogMultipole binning")
+
+            if kdr is None and krd is None:
+                self._zeta = self.raw_zeta - krr.zeta
+            elif krd is not None and kdr is None:
+                self._zeta = self.raw_zeta - 2.*krd.zeta + krr.zeta
+            elif kdr is not None and krd is None:
+                self._zeta = self.raw_zeta - 2.*kdr.zeta + krr.zeta
+            else:
+                self._zeta = self.raw_zeta - kdr.zeta - krd.zeta + krr.zeta
+
+            self._krr = krr
+            self._kdr = kdr
+            self._krd = krd
+
+            if (krr.npatch2 not in (1,self.npatch2) or krr.npatch3 not in (1,self.npatch3)
+                    or krr.npatch1 != self.npatch1):
+                raise RuntimeError("KRR must be run with the same patches as KDD")
+            if krd is not None and (krd.npatch2 not in (1,self.npatch2)
+                                    or krd.npatch1 != self.npatch1
+                                    or krd.npatch3 != self.npatch3):
+                raise RuntimeError("KRD must be run with the same patches as KDD")
+            if kdr is not None and (kdr.npatch3 not in (1,self.npatch3)
+                                    or kdr.npatch1 != self.npatch1
+                                    or kdr.npatch2 != self.npatch2):
+                raise RuntimeError("KDR must be run with the same patches as KDD")
+
+            if len(self.results) > 0:
+                template = next(iter(self.results.values()))  # Just need something to copy.
+                all_keys = list(krr.results.keys())
+                if krd is not None:
+                    all_keys += list(krd.results.keys())
+                if kdr is not None:
+                    all_keys += list(kdr.results.keys())
+                for ijk in all_keys:
+                    if ijk in self.results: continue
+                    new_cij = template.copy()
+                    new_cij._z[0][:] = 0
+                    new_cij.weight[:] = 0
+                    self.results[ijk] = new_cij
+                    self.__dict__.pop('_ok',None)
+
+                self._cov = self.estimate_cov(self.var_method)
+                self._varzeta = np.zeros(self.data_shape, dtype=float)
+                self._varzeta.ravel()[:] = self.cov_diag
+            else:
+                self._varzeta = self.raw_varzeta + krr.varzeta
+                if krd is not None:
+                    self._varzeta += krd.varzeta
+                if kdr is not None:
+                    self._varzeta += kdr.varzeta
+        else:
+            if krd is not None:
+                raise TypeError("krd is invalid if krr is None")
+            if kdr is not None:
+                raise TypeError("kdr is invalid if krr is None")
+            self._zeta = self.raw_zeta
+            self._varzeta = self.raw_varzeta
+
+        return self._zeta, self._varzeta
+
+    def _calculate_xi_from_pairs(self, pairs):
+        self._sum([self.results[ij] for ij in pairs])
+        self._finalize()
+        if self._krr is not None:
+            # If r doesn't have patches, then convert all (i,i,i) pairs to (i,0,0).
+            if self._krr.npatch2 == 1 and not all([p[1] == 0 for p in pairs]):
+                pairs1 = [(ijk[0],0,0) for ijk in pairs if ijk[0] == ijk[1] == ijk[2]]
+            else:
+                pairs1 = pairs
+            pairs1 = [ijk for ijk in pairs1 if self._krr._ok[ijk[0],ijk[1],ijk[2]]]
+            self._krr._calculate_xi_from_pairs(pairs1)
+
+        if self._kdr is not None:
+            if self._kdr.npatch3 == 1 and not all([p[2] == 0 for p in pairs]):
+                pairs2 = [(ijk[0],ijk[1],0) for ijk in pairs if ijk[1] == ijk[2]]
+            else:
+                pairs2 = pairs
+            pairs2 = [ijk for ijk in pairs2 if self._kdr._ok[ijk[0],ijk[1],ijk[2]]]
+            self._kdr._calculate_xi_from_pairs(pairs2)
+
+        if self._krd is not None:
+            if self._krd.npatch2 == 1 and not all([p[1] == 0 for p in pairs]):
+                pairs3 = [(ijk[0],0,ijk[2]) for ijk in pairs if ijk[0] == ijk[2]]
+            else:
+                pairs3 = pairs
+            pairs3 = [ijk for ijk in pairs3 if self._krd._ok[ijk[0],ijk[1],ijk[2]]]
+            self._krd._calculate_xi_from_pairs(pairs3)
+
+        if self._krr is None:
+            self._zeta = None
+        elif self._kdr is None and self._krd is None:
+            self._zeta = self.raw_zeta - self._krr.zeta
+        elif self._krd is not None and self._kdr is None:
+            self._zeta = self.raw_zeta - 2.*self._krd.zeta + self._krr.zeta
+        elif self._kdr is not None and self._krd is None:
+            self._zeta = self.raw_zeta - 2.*self._kdr.zeta + self._krr.zeta
+        else:
+            self._zeta = self.raw_zeta - self._kdr.zeta - self._krd.zeta + self._krr.zeta
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
@@ -174,6 +322,7 @@ class KNNCorrelation(Corr3):
         else:
             self._z[0] = data['zeta'].reshape(s)
         self._varzeta = data['sigma_zeta'].reshape(s)**2
+        self._raw_varzeta = self._varzeta
 
 class NKNCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point count-scalar-count correlation
@@ -196,7 +345,7 @@ class NKNCorrelation(Corr3):
 
     The typical usage pattern is as follows:
 
-        >>> nkn = treecorr.KNNCorrelation(config)
+        >>> nkn = treecorr.NKNCorrelation(config)
         >>> nkn.process(cat1, cat2, cat1)  # Compute cross-correlation of two fields.
         >>> nkn.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.
         >>> rkr.process(rand, cat2, rand)  # Compute cross-correlation with randoms.
@@ -244,7 +393,12 @@ class NKNCorrelation(Corr3):
             self._z[1] = np.zeros(shape, dtype=float)
         self._zeta = None
         self._varzeta = None
+        self._raw_varzeta = None
         self.logger.debug('Finished building NKNCorr')
+
+    @property
+    def raw_zeta(self):
+        return self._z[0]
 
     @property
     def zeta(self):
@@ -279,18 +433,161 @@ class NKNCorrelation(Corr3):
             self._var_num *= 2
 
     @property
+    def raw_varzeta(self):
+        if self._raw_varzeta is None:
+            self._raw_varzeta = self._calculate_varzeta()
+        return self._raw_varzeta
+
+    @property
     def varzeta(self):
         if self._varzeta is None:
-            self._varzeta = self._calculate_varzeta()
+            self._varzeta = self.raw_varzeta
         return self._varzeta
 
     def _clear(self):
         super()._clear()
         self._rkr = None
-        self._rkd = None
         self._dkr = None
+        self._rkd = None
         self._zeta = None
         self._varzeta = None
+        self._raw_varzeta = None
+
+    def calculateZeta(self, *, rkr=None, dkr=None, rkd=None):
+        r"""Calculate the correlation function given another correlation function of random
+        points using the same mask, and possibly cross correlations of the data and random.
+
+        The rkr value is the `NKNCorrelation` function for random points with the scalar field.
+        One can also provide a cross correlation of the count data with randoms and the scalar.
+
+        - If rkr is None, the simple correlation function (self.zeta) is returned.
+        - If only rkr is given the compensated value :math:`\zeta = DKD - RKR` is returned.
+        - if dkr is given and rkd is None (or vice versa), then :math:`\zeta = DKD - 2DKR + RKR`
+          is returned.
+        - If dkr and rkd are both given, then :math:`\zeta = DKD - DKR - RKD + RKR` is returned.
+
+        where DKD is the data NKN correlation function, which is the current object.
+
+        After calling this method, you can use the `Corr2.estimate_cov` method or use this
+        correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and
+        varzeta returned from this function will be available as attributes.
+
+        Parameters:
+            rkr (NKNCorrelation):   The correlation of the random points with the scalar field
+                                    (RKR) (default: None)
+            dkr (NKNCorrelation):   The cross-correlation of the data with both randoms and the
+                                    scalar field (DKR), if desired. (default: None)
+            rkd (NKNCorrelation):   The cross-correlation of the randoms with both the data and the
+                                    scalar field (RKD), if desired. (default: None)
+
+        Returns:
+            Tuple containing:
+
+            - zeta = array of :math:`\zeta(r)`
+            - varzeta = an estimate of the variance of :math:`\zeta(r)`
+        """
+        # Calculate zeta based on which randoms are provided.
+        if rkr is not None:
+            if self.bin_type == 'LogMultipole':
+                raise TypeError("calculateZeta is not valid for LogMultipole binning")
+
+            if dkr is None and rkd is None:
+                self._zeta = self.raw_zeta - rkr.zeta
+            elif rkd is not None and dkr is None:
+                self._zeta = self.raw_zeta - 2.*rkd.zeta + rkr.zeta
+            elif dkr is not None and rkd is None:
+                self._zeta = self.raw_zeta - 2.*dkr.zeta + rkr.zeta
+            else:
+                self._zeta = self.raw_zeta - dkr.zeta - rkd.zeta + rkr.zeta
+
+            self._rkr = rkr
+            self._dkr = dkr
+            self._rkd = rkd
+
+            if (rkr.npatch1 not in (1,self.npatch1) or rkr.npatch3 not in (1,self.npatch3)
+                    or rkr.npatch2 != self.npatch2):
+                raise RuntimeError("RKR must be run with the same patches as DKD")
+            if rkd is not None and (rkd.npatch1 not in (1,self.npatch1)
+                                    or rkd.npatch2 != self.npatch2
+                                    or rkd.npatch3 != self.npatch3):
+                raise RuntimeError("RKD must be run with the same patches as DKD")
+            if dkr is not None and (dkr.npatch3 not in (1,self.npatch3)
+                                    or dkr.npatch1 != self.npatch1
+                                    or dkr.npatch2 != self.npatch2):
+                raise RuntimeError("DKR must be run with the same patches as DKD")
+
+            if len(self.results) > 0:
+                template = next(iter(self.results.values()))  # Just need something to copy.
+                all_keys = list(rkr.results.keys())
+                if rkd is not None:
+                    all_keys += list(rkd.results.keys())
+                if dkr is not None:
+                    all_keys += list(dkr.results.keys())
+                for ijk in all_keys:
+                    if ijk in self.results: continue
+                    new_cij = template.copy()
+                    new_cij._z[0][:] = 0
+                    new_cij.weight[:] = 0
+                    self.results[ijk] = new_cij
+                    self.__dict__.pop('_ok',None)
+
+                self._cov = self.estimate_cov(self.var_method)
+                self._varzeta = np.zeros(self.data_shape, dtype=float)
+                self._varzeta.ravel()[:] = self.cov_diag
+            else:
+                self._varzeta = self.raw_varzeta + rkr.varzeta
+                if rkd is not None:
+                    self._varzeta += rkd.varzeta
+                if dkr is not None:
+                    self._varzeta += dkr.varzeta
+        else:
+            if rkd is not None:
+                raise TypeError("rkd is invalid if rkr is None")
+            if dkr is not None:
+                raise TypeError("dkr is invalid if rkr is None")
+            self._zeta = self.raw_zeta
+            self._varzeta = self.raw_varzeta
+
+        return self._zeta, self._varzeta
+
+    def _calculate_xi_from_pairs(self, pairs):
+        self._sum([self.results[ij] for ij in pairs])
+        self._finalize()
+        if self._rkr is not None:
+            # If r doesn't have patches, then convert all (i,i,i) pairs to (0,i,0).
+            if self._rkr.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
+                pairs1 = [(0,ijk[1],0) for ijk in pairs if ijk[0] == ijk[1] == ijk[2]]
+            else:
+                pairs1 = pairs
+            pairs1 = [ijk for ijk in pairs1 if self._rkr._ok[ijk[0],ijk[1],ijk[2]]]
+            self._rkr._calculate_xi_from_pairs(pairs1)
+
+        if self._dkr is not None:
+            if self._dkr.npatch3 == 1 and not all([p[2] == 0 for p in pairs]):
+                pairs2 = [(ijk[0],ijk[1],0) for ijk in pairs if ijk[1] == ijk[2]]
+            else:
+                pairs2 = pairs
+            pairs2 = [ijk for ijk in pairs2 if self._dkr._ok[ijk[0],ijk[1],ijk[2]]]
+            self._dkr._calculate_xi_from_pairs(pairs2)
+
+        if self._rkd is not None:
+            if self._rkd.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
+                pairs3 = [(0,ijk[1],ijk[2]) for ijk in pairs if ijk[0] == ijk[2]]
+            else:
+                pairs3 = pairs
+            pairs3 = [ijk for ijk in pairs3 if self._rkd._ok[ijk[0],ijk[1],ijk[2]]]
+            self._rkd._calculate_xi_from_pairs(pairs3)
+
+        if self._rkr is None:
+            self._zeta = None
+        elif self._dkr is None and self._rkd is None:
+            self._zeta = self.raw_zeta - self._rkr.zeta
+        elif self._rkd is not None and self._dkr is None:
+            self._zeta = self.raw_zeta - 2.*self._rkd.zeta + self._rkr.zeta
+        elif self._dkr is not None and self._rkd is None:
+            self._zeta = self.raw_zeta - 2.*self._dkr.zeta + self._rkr.zeta
+        else:
+            self._zeta = self.raw_zeta - self._dkr.zeta - self._rkd.zeta + self._rkr.zeta
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
@@ -327,6 +624,7 @@ class NKNCorrelation(Corr3):
         else:
             self._z[0] = data['zeta'].reshape(s)
         self._varzeta = data['sigma_zeta'].reshape(s)**2
+        self._raw_varzeta = self._varzeta
 
 class NNKCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point count-count-scalar correlation
@@ -397,7 +695,12 @@ class NNKCorrelation(Corr3):
             self._z[1] = np.zeros(shape, dtype=float)
         self._zeta = None
         self._varzeta = None
+        self._raw_varzeta = None
         self.logger.debug('Finished building NNKCorr')
+
+    @property
+    def raw_zeta(self):
+        return self._z[0]
 
     @property
     def zeta(self):
@@ -432,9 +735,15 @@ class NNKCorrelation(Corr3):
             self._var_num *= 2
 
     @property
+    def raw_varzeta(self):
+        if self._raw_varzeta is None:
+            self._raw_varzeta = self._calculate_varzeta()
+        return self._raw_varzeta
+
+    @property
     def varzeta(self):
         if self._varzeta is None:
-            self._varzeta = self._calculate_varzeta()
+            self._varzeta = self.raw_varzeta
         return self._varzeta
 
     def _clear(self):
@@ -444,6 +753,143 @@ class NNKCorrelation(Corr3):
         self._drk = None
         self._zeta = None
         self._varzeta = None
+        self._raw_varzeta = None
+
+    def calculateZeta(self, *, rrk=None, drk=None, rdk=None):
+        r"""Calculate the correlation function given another correlation function of random
+        points using the same mask, and possibly cross correlations of the data and random.
+
+        The rrk value is the `NNKCorrelation` function for random points with the scalar field.
+        One can also provide a cross correlation of the count data with randoms and the scalar.
+
+        - If rrk is None, the simple correlation function (self.zeta) is returned.
+        - If only rrk is given the compensated value :math:`\zeta = DDK - RRK` is returned.
+        - if drk is given and rdk is None (or vice versa), then :math:`\zeta = DDK - 2DRK + RRK`
+          is returned.
+        - If drk and rdk are both given, then :math:`\zeta = DDK - DRK - RDK + RRK` is returned.
+
+        where DDK is the data NNK correlation function, which is the current object.
+
+        After calling this method, you can use the `Corr2.estimate_cov` method or use this
+        correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and
+        varzeta returned from this function will be available as attributes.
+
+        Parameters:
+            rrk (NNKCorrelation):   The correlation of the random points with the scalar field
+                                    (RRK) (default: None)
+            drk (NNKCorrelation):   The cross-correlation of the data with both randoms and the
+                                    scalar field (DRK), if desired. (default: None)
+            rdk (NNKCorrelation):   The cross-correlation of the randoms with both the data and the
+                                    scalar field (RDK), if desired. (default: None)
+
+        Returns:
+            Tuple containing:
+
+            - zeta = array of :math:`\zeta(r)`
+            - varzeta = an estimate of the variance of :math:`\zeta(r)`
+        """
+        # Calculate zeta based on which randoms are provided.
+        if rrk is not None:
+            if self.bin_type == 'LogMultipole':
+                raise TypeError("calculateZeta is not valid for LogMultipole binning")
+
+            if drk is None and rdk is None:
+                self._zeta = self.raw_zeta - rrk.zeta
+            elif rdk is not None and drk is None:
+                self._zeta = self.raw_zeta - 2.*rdk.zeta + rrk.zeta
+            elif drk is not None and rdk is None:
+                self._zeta = self.raw_zeta - 2.*drk.zeta + rrk.zeta
+            else:
+                self._zeta = self.raw_zeta - drk.zeta - rdk.zeta + rrk.zeta
+
+            self._rrk = rrk
+            self._drk = drk
+            self._rdk = rdk
+
+            if (rrk.npatch1 not in (1,self.npatch1) or rrk.npatch2 not in (1,self.npatch2)
+                    or rrk.npatch3 != self.npatch3):
+                raise RuntimeError("RRK must be run with the same patches as DDK")
+            if rdk is not None and (rdk.npatch1 not in (1,self.npatch1)
+                                    or rdk.npatch2 != self.npatch2
+                                    or rdk.npatch3 != self.npatch3):
+                raise RuntimeError("RDK must be run with the same patches as DDK")
+            if drk is not None and (drk.npatch2 not in (1,self.npatch2)
+                                    or drk.npatch1 != self.npatch1
+                                    or drk.npatch3 != self.npatch3):
+                raise RuntimeError("DRK must be run with the same patches as DDK")
+
+            if len(self.results) > 0:
+                template = next(iter(self.results.values()))  # Just need something to copy.
+                all_keys = list(rrk.results.keys())
+                if rdk is not None:
+                    all_keys += list(rdk.results.keys())
+                if drk is not None:
+                    all_keys += list(drk.results.keys())
+                for ijk in all_keys:
+                    if ijk in self.results: continue
+                    new_cij = template.copy()
+                    new_cij._z[0][:] = 0
+                    new_cij.weight[:] = 0
+                    self.results[ijk] = new_cij
+                    self.__dict__.pop('_ok',None)
+
+                self._cov = self.estimate_cov(self.var_method)
+                self._varzeta = np.zeros(self.data_shape, dtype=float)
+                self._varzeta.ravel()[:] = self.cov_diag
+            else:
+                self._varzeta = self.raw_varzeta + rrk.varzeta
+                if rdk is not None:
+                    self._varzeta += rdk.varzeta
+                if drk is not None:
+                    self._varzeta += drk.varzeta
+        else:
+            if rdk is not None:
+                raise TypeError("rdk is invalid if rrk is None")
+            if drk is not None:
+                raise TypeError("drk is invalid if rrk is None")
+            self._zeta = self.raw_zeta
+            self._varzeta = self.raw_varzeta
+
+        return self._zeta, self._varzeta
+
+    def _calculate_xi_from_pairs(self, pairs):
+        self._sum([self.results[ij] for ij in pairs])
+        self._finalize()
+        if self._rrk is not None:
+            # If r doesn't have patches, then convert all (i,i,i) pairs to (0,0,i).
+            if self._rrk.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
+                pairs1 = [(0,0,ijk[2]) for ijk in pairs if ijk[0] == ijk[1] == ijk[2]]
+            else:
+                pairs1 = pairs
+            pairs1 = [ijk for ijk in pairs1 if self._rrk._ok[ijk[0],ijk[1],ijk[2]]]
+            self._rrk._calculate_xi_from_pairs(pairs1)
+
+        if self._drk is not None:
+            if self._drk.npatch2 == 1 and not all([p[1] == 0 for p in pairs]):
+                pairs2 = [(ijk[0],0,ijk[2]) for ijk in pairs if ijk[1] == ijk[2]]
+            else:
+                pairs2 = pairs
+            pairs2 = [ijk for ijk in pairs2 if self._drk._ok[ijk[0],ijk[1],ijk[2]]]
+            self._drk._calculate_xi_from_pairs(pairs2)
+
+        if self._rdk is not None:
+            if self._rdk.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
+                pairs3 = [(0,ijk[1],ijk[2]) for ijk in pairs if ijk[0] == ijk[2]]
+            else:
+                pairs3 = pairs
+            pairs3 = [ijk for ijk in pairs3 if self._rdk._ok[ijk[0],ijk[1],ijk[2]]]
+            self._rdk._calculate_xi_from_pairs(pairs3)
+
+        if self._rrk is None:
+            self._zeta = None
+        elif self._drk is None and self._rdk is None:
+            self._zeta = self.raw_zeta - self._rrk.zeta
+        elif self._rdk is not None and self._drk is None:
+            self._zeta = self.raw_zeta - 2.*self._rdk.zeta + self._rrk.zeta
+        elif self._drk is not None and self._rdk is None:
+            self._zeta = self.raw_zeta - 2.*self._drk.zeta + self._rrk.zeta
+        else:
+            self._zeta = self.raw_zeta - self._drk.zeta - self._rdk.zeta + self._rrk.zeta
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
@@ -480,3 +926,4 @@ class NNKCorrelation(Corr3):
         else:
             self._z[0] = data['zeta'].reshape(s)
         self._varzeta = data['sigma_zeta'].reshape(s)**2
+        self._raw_varzeta = self._varzeta

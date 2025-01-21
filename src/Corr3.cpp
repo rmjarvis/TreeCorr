@@ -3066,6 +3066,7 @@ void Corr3<D1,D2,D3>::finishProcessMP(
         d1, d2, d3, z, _zeta, index, _nubins);
 }
 
+// NNN
 template <>
 struct DirectHelper<0>
 {
@@ -3082,7 +3083,7 @@ struct DirectHelper<0>
     {}
 };
 
-// All real
+// KKK, NNK, etc.  Any completely real product.
 template <>
 struct DirectHelper<1>
 {
@@ -3112,7 +3113,7 @@ struct DirectHelper<1>
     }
 };
 
-// real first, others complex
+// NZZ, KZZ  Anything with N or K first and two complex values
 template <>
 struct DirectHelper<2>
 {
@@ -3187,7 +3188,8 @@ struct DirectHelper<2>
     }
 };
 
-// real first, others mixed real/complex
+// NNZ, KKZ, NZN, KZK, etc.  Anything with N or K first and one complex value
+// This splits into 3 and 13 for direct calculation.
 // This version is KKZ order.  13 is KZK
 template <>
 struct DirectHelper<3>
@@ -3240,9 +3242,8 @@ struct DirectHelper<3>
     }
 };
 
-// real first, others mixed real/complex
-// This version is KZK order.
-// But is mostly just calls the algo 3 code.
+// This version is KZK.
+// It mostly just calls the algo 3 code for KKZ.
 template <>
 struct DirectHelper<13>
 {
@@ -3268,7 +3269,8 @@ struct DirectHelper<13>
     }
 };
 
-// complex first, others real
+// ZKK, ZNN, etc.  Z first, others real
+// This mostly just calls the algo 3 code for KKZ.
 template <>
 struct DirectHelper<4>
 {
@@ -3296,7 +3298,7 @@ struct DirectHelper<4>
     }
 };
 
-// All complex
+// ZZZ, all three complex, so use gam0, gam1, gam2, gam3
 template <>
 struct DirectHelper<5>
 {
@@ -3415,8 +3417,9 @@ struct DirectHelper<5>
     }
 };
 
-// complex first, others mixed real/complex
-// This one is ZKZ.  It mostly just calls the KZZ in algo 2
+// ZZK, ZNZ, etc.  Z first, one other complex
+// This splits into 6 and 16 for direct calculation.
+// This one is ZKZ.  It mostly just calls the algo 2 code for KZZ.
 template <>
 struct DirectHelper<6>
 {
@@ -3444,8 +3447,7 @@ struct DirectHelper<6>
     }
 };
 
-// complex first, others mixed real/complex
-// This one is ZZK.  It mostly just calls the KZZ in algo 2
+// This one is ZZK.  It again mostly just calls the algo 2 code for KZZ.
 template <>
 struct DirectHelper<16>
 {

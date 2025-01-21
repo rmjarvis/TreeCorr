@@ -1748,8 +1748,14 @@ struct TripleTraits
             (
                 D2 < ZData && D3 < ZData ?   4 :   // ZNN, ZNK, ZKN, ZKK
                 D2 >= ZData && D3 >= ZData ? 5 :   // ZZZ
-                /**/                         6)    // ZNZ, ZKZ, ZZN, ZZK
-    ) };
+                /**/                         6))   // ZNZ, ZKZ, ZZN, ZZK
+    };
+    enum { direct_algo = (
+            // For this one, algo 3 and 6 have two varieties
+            algo == 3 && D2 > KData ? 13 :
+            algo == 6 && D2 > KData ? 16 :
+            algo)
+    };
 };
 
 template <int D1, int D2, int D3> template <int C>
@@ -3008,7 +3014,7 @@ void Corr3<D1,D2,D3>::finishProcess(
     _meanv[index] += www * v;
     _weight[index] += www;
 
-    const int algo = TripleTraits<D1,D2,D3>::algo;
+    const int algo = TripleTraits<D1,D2,D3>::direct_algo;
     DirectHelper<algo>::ProcessZeta(
         static_cast<const Cell<D1,C>&>(c1),
         static_cast<const Cell<D2,C>&>(c2),
@@ -3052,7 +3058,7 @@ void Corr3<D1,D2,D3>::finishProcessMP(
         _weight[index - n] += wwwztothen.real();
         _weight_im[index - n] -= wwwztothen.imag();
     }
-    const int algo = TripleTraits<D1,D2,D3>::algo;
+    const int algo = TripleTraits<D1,D2,D3>::direct_algo;
     DirectHelper<algo>::ProcessMultipole(
         static_cast<const Cell<D1,C>&>(c1),
         static_cast<const Cell<D2,C>&>(c2),
@@ -3110,25 +3116,25 @@ struct DirectHelper<1>
 template <>
 struct DirectHelper<2>
 {
-    static void ProcessZetaZZK(
+    static void ProcessZetaKZZ(
         ZetaData<3>& zeta, int index,
-        const std::complex<double>& g1, const std::complex<double>& g2, const double k3)
+        double k1, const std::complex<double>& g2, const std::complex<double>& g3)
     {
-        std::complex<double> g1g2, g1cg2;
-        tie(g1g2, g1cg2) = both_complex_prod(g1, g2);
+        std::complex<double> g2g3, g2cg3;
+        tie(g2g3, g2cg3) = both_complex_prod(g2, g3);
 
-        zeta.gam0r[index] += g1g2.real() * k3;
-        zeta.gam0i[index] += g1g2.imag() * k3;
-        zeta.gam1r[index] += g1cg2.real() * k3;
-        zeta.gam1i[index] += g1cg2.imag() * k3;
+        zeta.gam0r[index] += k1 * g2g3.real();
+        zeta.gam0i[index] += k1 * g2g3.imag();
+        zeta.gam1r[index] += k1 * g2cg3.real();
+        zeta.gam1i[index] += k1 * g2cg3.imag();
     }
 
-    static void ProcessMultipoleZZK(
+    static void ProcessMultipoleKZZ(
         ZetaData<3>& zeta, int index, int maxn, const std::complex<double>& z,
-        const std::complex<double>& g1, const std::complex<double>& g2, const double k3)
+        double k1, const std::complex<double>& g2, const std::complex<double>& g3)
     {
         std::complex<double> gam0, gam1;
-        tie(gam0, gam1) = both_complex_prod(g1, g2*k3);
+        tie(gam0, gam1) = both_complex_prod(k1*g2, g3);
 
         zeta.gam0r[index] += gam0.real();
         zeta.gam0i[index] += gam0.imag();
@@ -3165,7 +3171,7 @@ struct DirectHelper<2>
         std::complex<double> g2 = c2.getWZ();
         std::complex<double> g3 = c3.getWZ();
         ProjectHelper<C>::Project(c1, c2, c3, g2, g3);
-        ProcessZetaZZK(zeta, index, g2, g3, k1);
+        ProcessZetaKZZ(zeta, index, k1, g2, g3);
     }
     template <int D1, int D2, int D3, int C>
     static void ProcessMultipole(
@@ -3177,11 +3183,12 @@ struct DirectHelper<2>
         std::complex<double> g2 = c2.getWZ();
         std::complex<double> g3 = c3.getWZ();
         ProjectHelper<C>::ProjectX(c1, c2, c3, d1, d2, d3, g2, g3);
-        ProcessMultipoleZZK(zeta, index, maxn, z, g2, g3, k1);
+        ProcessMultipoleKZZ(zeta, index, maxn, z, k1, g2, g3);
     }
 };
 
 // real first, others mixed real/complex
+// This version is KKZ order.  13 is KZK
 template <>
 struct DirectHelper<3>
 {
@@ -3211,69 +3218,54 @@ struct DirectHelper<3>
         }
     }
 
-    // c2 is real, c3 is complex
-    template <int RC>
-    struct Helper2
-    {
-        template <int D1, int D2, int D3, int C>
-        static void ProcessZeta(
-            const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
-            ZetaData<2>& zeta, int index)
-        {
-            std::complex<double> g3 = c3.getWZ();
-            ProjectHelper<C>::Project(c1, c2, c3, g3);
-            ProcessZetaKKZ(zeta, index, getWK(c1) * getWK(c2) * g3);
-        }
-        template <int D1, int D2, int D3, int C>
-        static void ProcessMultipole(
-            const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
-            double d1, double d2, double d3, const std::complex<double>& z,
-            ZetaData<2>& zeta, int index, int maxn)
-        {
-            std::complex<double> g3 = c3.getWZ();
-            ProjectHelper<C>::ProjectX(c1, c2, c3, d1, d2, d3, g3);
-            std::complex<double> wk = getWK(c1) * getWK(c2) * g3;
-            ProcessMultipoleKKZ(zeta, index, maxn, z, wk);
-        }
-    };
-    // c2 is complex c3 is real
-    template <>
-    struct Helper2<false>
-    {
-        template <int D1, int D2, int D3, int C>
-        static void ProcessZeta(
-            const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
-            ZetaData<2>& zeta, int index)
-        {
-            std::complex<double> g2 = c2.getWZ();
-            ProjectHelper<C>::Project(c3, c1, c2, g2);
-            ProcessZetaKKZ(zeta, index, getWK(c1) * g2 * getWK(c3));
-        }
-        template <int D1, int D2, int D3, int C>
-        static void ProcessMultipole(
-            const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
-            double d1, double d2, double d3, const std::complex<double>& z,
-            ZetaData<2>& zeta, int index, int maxn)
-        {
-            std::complex<double> g2 = c2.getWZ();
-            ProjectHelper<C>::ProjectX(c3, c1, c2, d3, d1, d2, g2);
-            std::complex<double> wk = getWK(c1) * g2 * getWK(c3);
-            ProcessMultipoleKKZ(zeta, index, maxn, z, wk);
-        }
-    };
-
     template <int D1, int D2, int D3, int C>
     static void ProcessZeta(
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
         ZetaData<2>& zeta, int index)
-    { Helper2<(D2 <= KData)>::ProcessZeta(c1,c2,c3,zeta,index); }
-
+    {
+        std::complex<double> g3 = c3.getWZ();
+        ProjectHelper<C>::Project(c1, c2, c3, g3);
+        ProcessZetaKKZ(zeta, index, getWK(c1) * getWK(c2) * g3);
+    }
     template <int D1, int D2, int D3, int C>
     static void ProcessMultipole(
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
         double d1, double d2, double d3, const std::complex<double>& z,
         ZetaData<2>& zeta, int index, int maxn)
-    { Helper2<(D2 <= KData)>::ProcessMultipole(c1,c2,c3,d1,d2,d3,z,zeta,index,maxn); }
+    {
+        std::complex<double> g3 = c3.getWZ();
+        ProjectHelper<C>::ProjectX(c1, c2, c3, d1, d2, d3, g3);
+        std::complex<double> wk = getWK(c1) * getWK(c2) * g3;
+        ProcessMultipoleKKZ(zeta, index, maxn, z, wk);
+    }
+};
+
+// real first, others mixed real/complex
+// This version is KZK order.
+// But is mostly just calls the algo 3 code.
+template <>
+struct DirectHelper<13>
+{
+    template <int D1, int D2, int D3, int C>
+    static void ProcessZeta(
+        const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
+        ZetaData<2>& zeta, int index)
+    {
+        std::complex<double> g2 = c2.getWZ();
+        ProjectHelper<C>::Project(c3, c1, c2, g2);
+        DirectHelper<3>::ProcessZetaKKZ(zeta, index, getWK(c1) * g2 * getWK(c3));
+    }
+    template <int D1, int D2, int D3, int C>
+    static void ProcessMultipole(
+        const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
+        double d1, double d2, double d3, const std::complex<double>& z,
+        ZetaData<2>& zeta, int index, int maxn)
+    {
+        std::complex<double> g2 = c2.getWZ();
+        ProjectHelper<C>::ProjectX(c3, c1, c2, d3, d1, d2, g2);
+        std::complex<double> wk = getWK(c1) * g2 * getWK(c3);
+        DirectHelper<3>::ProcessMultipoleKKZ(zeta, index, maxn, z, wk);
+    }
 };
 
 // complex first, others real
@@ -3424,76 +3416,61 @@ struct DirectHelper<5>
 };
 
 // complex first, others mixed real/complex
+// This one is ZKZ.  It mostly just calls the KZZ in algo 2
 template <>
 struct DirectHelper<6>
 {
-    // c2 is real, c3 is complex
-    template <int RC>
-    struct Helper2
-    {
-        template <int D1, int D2, int D3, int C>
-        static void ProcessZeta(
-            const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
-            ZetaData<3>& zeta, int index)
-        {
-            std::complex<double> g1 = c1.getWZ();
-            std::complex<double> g3 = c3.getWZ();
-            ProjectHelper<C>::Project(c2, c3, c1, g3, g1);
-            DirectHelper<2>::ProcessZetaZZK(zeta, index, g1, g3, getWK(c2));
-        }
-        template <int D1, int D2, int D3, int C>
-        static void ProcessMultipole(
-            const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
-            double d1, double d2, double d3, const std::complex<double>& z,
-            ZetaData<3>& zeta, int index, int maxn)
-        {
-            std::complex<double> g1 = c1.getWZ();
-            std::complex<double> g2 = 0.;
-            std::complex<double> g3 = c3.getWZ();
-            ProjectHelper<C>::ProjectX(c1, c2, c3, d1, d2, d3, g1, g2, g3);
-            DirectHelper<2>::ProcessMultipoleZZK(zeta, index, maxn, z, g1, g3, getWK(c2));
-        }
-    };
-    // c2 is complex c3 is real
-    template <>
-    struct Helper2<false>
-    {
-        template <int D1, int D2, int D3, int C>
-        static void ProcessZeta(
-            const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
-            ZetaData<3>& zeta, int index)
-        {
-            std::complex<double> g1 = c1.getWZ();
-            std::complex<double> g2 = c2.getWZ();
-            ProjectHelper<C>::Project(c3, c1, c2, g1, g2);
-            DirectHelper<2>::ProcessZetaZZK(zeta, index, g1, g2, getWK(c3));
-        }
-        template <int D1, int D2, int D3, int C>
-        static void ProcessMultipole(
-            const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
-            double d1, double d2, double d3, const std::complex<double>& z,
-            ZetaData<3>& zeta, int index, int maxn)
-        {
-            std::complex<double> g1 = c1.getWZ();
-            std::complex<double> g2 = c2.getWZ();
-            std::complex<double> g3 = 0.;
-            ProjectHelper<C>::ProjectX(c1, c2, c3, d1, d2, d3, g1, g2, g3);
-            DirectHelper<2>::ProcessMultipoleZZK(zeta, index, maxn, z, g1, g2, getWK(c3));
-        }
-    };
-
     template <int D1, int D2, int D3, int C>
     static void ProcessZeta(
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
         ZetaData<3>& zeta, int index)
-    { Helper2<(D2 <= KData)>::ProcessZeta(c1,c2,c3,zeta,index); }
-
+    {
+        std::complex<double> g1 = c1.getWZ();
+        std::complex<double> g3 = c3.getWZ();
+        ProjectHelper<C>::Project(c2, c3, c1, g3, g1);
+        DirectHelper<2>::ProcessZetaKZZ(zeta, index, getWK(c2), g1, g3);
+    }
     template <int D1, int D2, int D3, int C>
     static void ProcessMultipole(
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
         double d1, double d2, double d3, const std::complex<double>& z,
         ZetaData<3>& zeta, int index, int maxn)
-    { Helper2<(D2 <= KData)>::ProcessMultipole(c1,c2,c3,d1,d2,d3,z,zeta,index,maxn); }
+    {
+        std::complex<double> g1 = c1.getWZ();
+        std::complex<double> g2 = 0.;
+        std::complex<double> g3 = c3.getWZ();
+        ProjectHelper<C>::ProjectX(c1, c2, c3, d1, d2, d3, g1, g2, g3);
+        DirectHelper<2>::ProcessMultipoleKZZ(zeta, index, maxn, z, getWK(c2), g1, g3);
+    }
+};
+
+// complex first, others mixed real/complex
+// This one is ZZK.  It mostly just calls the KZZ in algo 2
+template <>
+struct DirectHelper<16>
+{
+    template <int D1, int D2, int D3, int C>
+    static void ProcessZeta(
+        const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
+        ZetaData<3>& zeta, int index)
+    {
+        std::complex<double> g1 = c1.getWZ();
+        std::complex<double> g2 = c2.getWZ();
+        ProjectHelper<C>::Project(c3, c1, c2, g1, g2);
+        DirectHelper<2>::ProcessZetaKZZ(zeta, index, getWK(c3), g1, g2);
+    }
+    template <int D1, int D2, int D3, int C>
+    static void ProcessMultipole(
+        const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
+        double d1, double d2, double d3, const std::complex<double>& z,
+        ZetaData<3>& zeta, int index, int maxn)
+    {
+        std::complex<double> g1 = c1.getWZ();
+        std::complex<double> g2 = c2.getWZ();
+        std::complex<double> g3 = 0.;
+        ProjectHelper<C>::ProjectX(c1, c2, c3, d1, d2, d3, g1, g2, g3);
+        DirectHelper<2>::ProcessMultipoleKZZ(zeta, index, maxn, z, getWK(c3), g1, g2);
+    }
 };
 
 //

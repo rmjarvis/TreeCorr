@@ -31,13 +31,13 @@ def test_direct():
     rng = np.random.RandomState(8675309)
     x1 = rng.normal(0,s, (ngal,) )
     y1 = rng.normal(0,s, (ngal,) )
-    w1 = rng.random_sample(ngal) 
+    w1 = rng.random_sample(ngal)
     q11 = rng.normal(0,0.2, (ngal,) )
     q21 = rng.normal(0,0.2, (ngal,) )
 
     x2 = rng.normal(0,s, (ngal,) )
     y2 = rng.normal(0,s, (ngal,) )
-    w2 = rng.random_sample(ngal) 
+    w2 = rng.random_sample(ngal)
     q12 = rng.normal(0,0.2, (ngal,) )
     q22 = rng.normal(0,0.2, (ngal,) )
 

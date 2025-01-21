@@ -3895,7 +3895,7 @@ def test_ggg_logsas():
         assert ggg2.sep_units == ggg.sep_units
         assert ggg2.bin_type == ggg.bin_type
 
- 
+
 @timer
 def test_map3_logsas():
     # Use the same gamma(r) as in test_ggg.

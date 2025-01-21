@@ -2679,7 +2679,7 @@ def test_ngg_logsas():
     dx = x2[:,None]-x1[None,:]
     dy = y2[:,None]-y1[None,:]
     r = np.sqrt(dx**2 + dy**2) / r0
-        
+
     g1 = -gamma0 * np.exp(-r**2) * (dx**2-dy**2)/r0**2
     g2 = -gamma0 * np.exp(-r**2) * (2*dx*dy)/r0**2
     g1 = np.sum(g1, axis=1)

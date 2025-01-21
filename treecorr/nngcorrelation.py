@@ -88,12 +88,17 @@ class GNNCorrelation(Corr3):
         self._z[0:2] = [np.zeros(shape, dtype=float) for _ in range(2)]
         self._zeta = None
         self._varzeta = None
+        self._raw_varzeta = None
         self.logger.debug('Finished building GNNCorr')
+
+    @property
+    def raw_zeta(self):
+        return self._z[0] + 1j * self._z[1]
 
     @property
     def zeta(self):
         if self._zeta is None:
-            return self._z[0] + 1j * self._z[1]
+            return self.raw_zeta
         else:
             return self._zeta
 
@@ -134,18 +139,161 @@ class GNNCorrelation(Corr3):
             self._var_num *= 2
 
     @property
+    def raw_varzeta(self):
+        if self._raw_varzeta is None:
+            self._raw_varzeta = self._calculate_varzeta()
+        return self._raw_varzeta
+
+    @property
     def varzeta(self):
         if self._varzeta is None:
-            self._varzeta = self._calculate_varzeta()
+            self._varzeta = self.raw_varzeta
         return self._varzeta
 
     def _clear(self):
         super()._clear()
         self._grr = None
-        self._krd = None
+        self._grd = None
         self._gdr = None
         self._zeta = None
         self._varzeta = None
+        self._raw_varzeta = None
+
+    def calculateZeta(self, *, grr=None, gdr=None, grd=None):
+        r"""Calculate the correlation function given another correlation function of random
+        points using the same mask, and possibly cross correlations of the data and random.
+
+        The grr value is the `GNNCorrelation` function for random points with the scalar field.
+        One can also provide a cross correlation of the count data with randoms and the scalar.
+
+        - If grr is None, the simple correlation function (self.zeta) is returned.
+        - If only grr is given the compensated value :math:`\zeta = GDD - GRR` is returned.
+        - if gdr is given and grd is None (or vice versa), then :math:`\zeta = GDD - 2GDR + GRR`
+          is returned.
+        - If gdr and grd are both given, then :math:`\zeta = GDD - GDR - GRD + GRR` is returned.
+
+        where GDD is the data GNN correlation function, which is the current object.
+
+        After calling this method, you can use the `Corr2.estimate_cov` method or use this
+        correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and
+        varzeta returned from this function will be available as attributes.
+
+        Parameters:
+            grr (GNNCorrelation):   The correlation of the random points with the scalar field
+                                    (GRR) (default: None)
+            gdr (GNNCorrelation):   The cross-correlation of the data with both randoms and the
+                                    scalar field (GDR), if desired. (default: None)
+            grd (GNNCorrelation):   The cross-correlation of the randoms with both the data and the
+                                    scalar field (GRD), if desired. (default: None)
+
+        Returns:
+            Tuple containing:
+
+            - zeta = array of :math:`\zeta(r)`
+            - varzeta = an estimate of the variance of :math:`\zeta(r)`
+        """
+        # Calculate zeta based on which randoms are provided.
+        if grr is not None:
+            if self.bin_type == 'LogMultipole':
+                raise TypeError("calculateZeta is not valid for LogMultipole binning")
+
+            if gdr is None and grd is None:
+                self._zeta = self.raw_zeta - grr.zeta
+            elif grd is not None and gdr is None:
+                self._zeta = self.raw_zeta - 2.*grd.zeta + grr.zeta
+            elif gdr is not None and grd is None:
+                self._zeta = self.raw_zeta - 2.*gdr.zeta + grr.zeta
+            else:
+                self._zeta = self.raw_zeta - gdr.zeta - grd.zeta + grr.zeta
+
+            self._grr = grr
+            self._gdr = gdr
+            self._grd = grd
+
+            if (grr.npatch2 not in (1,self.npatch2) or grr.npatch3 not in (1,self.npatch3)
+                    or grr.npatch1 != self.npatch1):
+                raise RuntimeError("GRR must be run with the same patches as GDD")
+            if grd is not None and (grd.npatch2 not in (1,self.npatch2)
+                                    or grd.npatch1 != self.npatch1
+                                    or grd.npatch3 != self.npatch3):
+                raise RuntimeError("GRD must be run with the same patches as GDD")
+            if gdr is not None and (gdr.npatch3 not in (1,self.npatch3)
+                                    or gdr.npatch1 != self.npatch1
+                                    or gdr.npatch2 != self.npatch2):
+                raise RuntimeError("GDR must be run with the same patches as GDD")
+
+            if len(self.results) > 0:
+                template = next(iter(self.results.values()))  # Just need something to copy.
+                all_keys = list(grr.results.keys())
+                if grd is not None:
+                    all_keys += list(grd.results.keys())
+                if gdr is not None:
+                    all_keys += list(gdr.results.keys())
+                for ijk in all_keys:
+                    if ijk in self.results: continue
+                    new_cij = template.copy()
+                    new_cij._z[0][:] = 0
+                    new_cij.weight[:] = 0
+                    self.results[ijk] = new_cij
+                    self.__dict__.pop('_ok',None)
+
+                self._cov = self.estimate_cov(self.var_method)
+                self._varzeta = np.zeros(self.data_shape, dtype=float)
+                self._varzeta.ravel()[:] = self.cov_diag
+            else:
+                self._varzeta = self.raw_varzeta + grr.varzeta
+                if grd is not None:
+                    self._varzeta += grd.varzeta
+                if gdr is not None:
+                    self._varzeta += gdr.varzeta
+        else:
+            if grd is not None:
+                raise TypeError("grd is invalid if grr is None")
+            if gdr is not None:
+                raise TypeError("gdr is invalid if grr is None")
+            self._zeta = self.raw_zeta
+            self._varzeta = self.raw_varzeta
+
+        return self._zeta, self._varzeta
+
+    def _calculate_xi_from_pairs(self, pairs):
+        self._sum([self.results[ij] for ij in pairs])
+        self._finalize()
+        if self._grr is not None:
+            # If r doesn't have patches, then convert all (i,i,i) pairs to (i,0,0).
+            if self._grr.npatch2 == 1 and not all([p[1] == 0 for p in pairs]):
+                pairs1 = [(ijk[0],0,0) for ijk in pairs if ijk[0] == ijk[1] == ijk[2]]
+            else:
+                pairs1 = pairs
+            pairs1 = [ijk for ijk in pairs1 if self._grr._ok[ijk[0],ijk[1],ijk[2]]]
+            self._grr._calculate_xi_from_pairs(pairs1)
+
+        if self._gdr is not None:
+            if self._gdr.npatch3 == 1 and not all([p[2] == 0 for p in pairs]):
+                pairs2 = [(ijk[0],ijk[1],0) for ijk in pairs if ijk[1] == ijk[2]]
+            else:
+                pairs2 = pairs
+            pairs2 = [ijk for ijk in pairs2 if self._gdr._ok[ijk[0],ijk[1],ijk[2]]]
+            self._gdr._calculate_xi_from_pairs(pairs2)
+
+        if self._grd is not None:
+            if self._grd.npatch2 == 1 and not all([p[1] == 0 for p in pairs]):
+                pairs3 = [(ijk[0],0,ijk[2]) for ijk in pairs if ijk[0] == ijk[2]]
+            else:
+                pairs3 = pairs
+            pairs3 = [ijk for ijk in pairs3 if self._grd._ok[ijk[0],ijk[1],ijk[2]]]
+            self._grd._calculate_xi_from_pairs(pairs3)
+
+        if self._grr is None:
+            self._zeta = None
+        elif self._gdr is None and self._grd is None:
+            self._zeta = self.raw_zeta - self._grr.zeta
+        elif self._grd is not None and self._gdr is None:
+            self._zeta = self.raw_zeta - 2.*self._grd.zeta + self._grr.zeta
+        elif self._gdr is not None and self._grd is None:
+            self._zeta = self.raw_zeta - 2.*self._gdr.zeta + self._grr.zeta
+        else:
+            self._zeta = self.raw_zeta - self._gdr.zeta - self._grd.zeta + self._grr.zeta
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
@@ -173,6 +321,7 @@ class GNNCorrelation(Corr3):
         self._z[0] = data['zetar'].reshape(s)
         self._z[1] = data['zetai'].reshape(s)
         self._varzeta = data['sigma_zeta'].reshape(s)**2
+        self._raw_varzeta = self._varzeta
 
 class NGNCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point count-scalar-count correlation
@@ -241,12 +390,17 @@ class NGNCorrelation(Corr3):
         self._z[1] = np.zeros(shape, dtype=float)
         self._zeta = None
         self._varzeta = None
+        self._raw_varzeta = None
         self.logger.debug('Finished building NGNCorr')
+
+    @property
+    def raw_zeta(self):
+        return self._z[0] + 1j * self._z[1]
 
     @property
     def zeta(self):
         if self._zeta is None:
-            return self._z[0] + 1j * self._z[1]
+            return self.raw_zeta
         else:
             return self._zeta
 
@@ -287,9 +441,15 @@ class NGNCorrelation(Corr3):
             self._var_num *= 2
 
     @property
+    def raw_varzeta(self):
+        if self._raw_varzeta is None:
+            self._raw_varzeta = self._calculate_varzeta()
+        return self._raw_varzeta
+
+    @property
     def varzeta(self):
         if self._varzeta is None:
-            self._varzeta = self._calculate_varzeta()
+            self._varzeta = self.raw_varzeta
         return self._varzeta
 
     def _clear(self):
@@ -299,6 +459,143 @@ class NGNCorrelation(Corr3):
         self._dgr = None
         self._zeta = None
         self._varzeta = None
+        self._raw_varzeta = None
+
+    def calculateZeta(self, *, rgr=None, dgr=None, rgd=None):
+        r"""Calculate the correlation function given another correlation function of random
+        points using the same mask, and possibly cross correlations of the data and random.
+
+        The rgr value is the `NGNCorrelation` function for random points with the scalar field.
+        One can also provide a cross correlation of the count data with randoms and the scalar.
+
+        - If rgr is None, the simple correlation function (self.zeta) is returned.
+        - If only rgr is given the compensated value :math:`\zeta = DGD - RGR` is returned.
+        - if dgr is given and rgd is None (or vice versa), then :math:`\zeta = DGD - 2DGR + RGR`
+          is returned.
+        - If dgr and rgd are both given, then :math:`\zeta = DGD - DGR - RGD + RGR` is returned.
+
+        where DGD is the data NGN correlation function, which is the current object.
+
+        After calling this method, you can use the `Corr2.estimate_cov` method or use this
+        correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and
+        varzeta returned from this function will be available as attributes.
+
+        Parameters:
+            rgr (NGNCorrelation):   The correlation of the random points with the scalar field
+                                    (RGR) (default: None)
+            dgr (NGNCorrelation):   The cross-correlation of the data with both randoms and the
+                                    scalar field (DGR), if desired. (default: None)
+            rgd (NGNCorrelation):   The cross-correlation of the randoms with both the data and the
+                                    scalar field (RGD), if desired. (default: None)
+
+        Returns:
+            Tuple containing:
+
+            - zeta = array of :math:`\zeta(r)`
+            - varzeta = an estimate of the variance of :math:`\zeta(r)`
+        """
+        # Calculate zeta based on which randoms are provided.
+        if rgr is not None:
+            if self.bin_type == 'LogMultipole':
+                raise TypeError("calculateZeta is not valid for LogMultipole binning")
+
+            if dgr is None and rgd is None:
+                self._zeta = self.raw_zeta - rgr.zeta
+            elif rgd is not None and dgr is None:
+                self._zeta = self.raw_zeta - 2.*rgd.zeta + rgr.zeta
+            elif dgr is not None and rgd is None:
+                self._zeta = self.raw_zeta - 2.*dgr.zeta + rgr.zeta
+            else:
+                self._zeta = self.raw_zeta - dgr.zeta - rgd.zeta + rgr.zeta
+
+            self._rgr = rgr
+            self._dgr = dgr
+            self._rgd = rgd
+
+            if (rgr.npatch1 not in (1,self.npatch1) or rgr.npatch3 not in (1,self.npatch3)
+                    or rgr.npatch2 != self.npatch2):
+                raise RuntimeError("RGR must be run with the same patches as DGD")
+            if rgd is not None and (rgd.npatch1 not in (1,self.npatch1)
+                                    or rgd.npatch2 != self.npatch2
+                                    or rgd.npatch3 != self.npatch3):
+                raise RuntimeError("RGD must be run with the same patches as DGD")
+            if dgr is not None and (dgr.npatch3 not in (1,self.npatch3)
+                                    or dgr.npatch1 != self.npatch1
+                                    or dgr.npatch2 != self.npatch2):
+                raise RuntimeError("DGR must be run with the same patches as DGD")
+
+            if len(self.results) > 0:
+                template = next(iter(self.results.values()))  # Just need something to copy.
+                all_keys = list(rgr.results.keys())
+                if rgd is not None:
+                    all_keys += list(rgd.results.keys())
+                if dgr is not None:
+                    all_keys += list(dgr.results.keys())
+                for ijk in all_keys:
+                    if ijk in self.results: continue
+                    new_cij = template.copy()
+                    new_cij._z[0][:] = 0
+                    new_cij.weight[:] = 0
+                    self.results[ijk] = new_cij
+                    self.__dict__.pop('_ok',None)
+
+                self._cov = self.estimate_cov(self.var_method)
+                self._varzeta = np.zeros(self.data_shape, dtype=float)
+                self._varzeta.ravel()[:] = self.cov_diag
+            else:
+                self._varzeta = self.raw_varzeta + rgr.varzeta
+                if rgd is not None:
+                    self._varzeta += rgd.varzeta
+                if dgr is not None:
+                    self._varzeta += dgr.varzeta
+        else:
+            if rgd is not None:
+                raise TypeError("rgd is invalid if rgr is None")
+            if dgr is not None:
+                raise TypeError("dgr is invalid if rgr is None")
+            self._zeta = self.raw_zeta
+            self._varzeta = self.raw_varzeta
+
+        return self._zeta, self._varzeta
+
+    def _calculate_xi_from_pairs(self, pairs):
+        self._sum([self.results[ij] for ij in pairs])
+        self._finalize()
+        if self._rgr is not None:
+            # If r doesn't have patches, then convert all (i,i,i) pairs to (0,i,0).
+            if self._rgr.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
+                pairs1 = [(0,ijk[1],0) for ijk in pairs if ijk[0] == ijk[1] == ijk[2]]
+            else:
+                pairs1 = pairs
+            pairs1 = [ijk for ijk in pairs1 if self._rgr._ok[ijk[0],ijk[1],ijk[2]]]
+            self._rgr._calculate_xi_from_pairs(pairs1)
+
+        if self._dgr is not None:
+            if self._dgr.npatch3 == 1 and not all([p[2] == 0 for p in pairs]):
+                pairs2 = [(ijk[0],ijk[1],0) for ijk in pairs if ijk[1] == ijk[2]]
+            else:
+                pairs2 = pairs
+            pairs2 = [ijk for ijk in pairs2 if self._dgr._ok[ijk[0],ijk[1],ijk[2]]]
+            self._dgr._calculate_xi_from_pairs(pairs2)
+
+        if self._rgd is not None:
+            if self._rgd.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
+                pairs3 = [(0,ijk[1],ijk[2]) for ijk in pairs if ijk[0] == ijk[2]]
+            else:
+                pairs3 = pairs
+            pairs3 = [ijk for ijk in pairs3 if self._rgd._ok[ijk[0],ijk[1],ijk[2]]]
+            self._rgd._calculate_xi_from_pairs(pairs3)
+
+        if self._rgr is None:
+            self._zeta = None
+        elif self._dgr is None and self._rgd is None:
+            self._zeta = self.raw_zeta - self._rgr.zeta
+        elif self._rgd is not None and self._dgr is None:
+            self._zeta = self.raw_zeta - 2.*self._rgd.zeta + self._rgr.zeta
+        elif self._dgr is not None and self._rgd is None:
+            self._zeta = self.raw_zeta - 2.*self._dgr.zeta + self._rgr.zeta
+        else:
+            self._zeta = self.raw_zeta - self._dgr.zeta - self._rgd.zeta + self._rgr.zeta
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
@@ -326,6 +623,7 @@ class NGNCorrelation(Corr3):
         self._z[0] = data['zetar'].reshape(s)
         self._z[1] = data['zetai'].reshape(s)
         self._varzeta = data['sigma_zeta'].reshape(s)**2
+        self._raw_varzeta = self._varzeta
 
 class NNGCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point count-count-scalar correlation
@@ -394,12 +692,17 @@ class NNGCorrelation(Corr3):
         self._z[1] = np.zeros(shape, dtype=float)
         self._zeta = None
         self._varzeta = None
+        self._raw_varzeta = None
         self.logger.debug('Finished building NNGCorr')
+
+    @property
+    def raw_zeta(self):
+        return self._z[0] + 1j * self._z[1]
 
     @property
     def zeta(self):
         if self._zeta is None:
-            return self._z[0] + 1j * self._z[1]
+            return self.raw_zeta
         else:
             return self._zeta
 
@@ -440,9 +743,15 @@ class NNGCorrelation(Corr3):
             self._var_num *= 2
 
     @property
+    def raw_varzeta(self):
+        if self._raw_varzeta is None:
+            self._raw_varzeta = self._calculate_varzeta()
+        return self._raw_varzeta
+
+    @property
     def varzeta(self):
         if self._varzeta is None:
-            self._varzeta = self._calculate_varzeta()
+            self._varzeta = self.raw_varzeta
         return self._varzeta
 
     def _clear(self):
@@ -452,6 +761,143 @@ class NNGCorrelation(Corr3):
         self._drg = None
         self._zeta = None
         self._varzeta = None
+        self._raw_varzeta = None
+
+    def calculateZeta(self, *, rrg=None, drg=None, rdg=None):
+        r"""Calculate the correlation function given another correlation function of random
+        points using the same mask, and possibly cross correlations of the data and random.
+
+        The rrg value is the `NNGCorrelation` function for random points with the scalar field.
+        One can also provide a cross correlation of the count data with randoms and the scalar.
+
+        - If rrg is None, the simple correlation function (self.zeta) is returned.
+        - If only rrg is given the compensated value :math:`\zeta = DDG - RRG` is returned.
+        - if drg is given and rdg is None (or vice versa), then :math:`\zeta = DDG - 2DRG + RRG`
+          is returned.
+        - If drg and rdg are both given, then :math:`\zeta = DDG - DRG - RDG + RRG` is returned.
+
+        where DDG is the data NNG correlation function, which is the current object.
+
+        After calling this method, you can use the `Corr2.estimate_cov` method or use this
+        correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and
+        varzeta returned from this function will be available as attributes.
+
+        Parameters:
+            rrg (NNGCorrelation):   The correlation of the random points with the scalar field
+                                    (RRG) (default: None)
+            drg (NNGCorrelation):   The cross-correlation of the data with both randoms and the
+                                    scalar field (DRG), if desired. (default: None)
+            rdg (NNGCorrelation):   The cross-correlation of the randoms with both the data and the
+                                    scalar field (RDG), if desired. (default: None)
+
+        Returns:
+            Tuple containing:
+
+            - zeta = array of :math:`\zeta(r)`
+            - varzeta = an estimate of the variance of :math:`\zeta(r)`
+        """
+        # Calculate zeta based on which randoms are provided.
+        if rrg is not None:
+            if self.bin_type == 'LogMultipole':
+                raise TypeError("calculateZeta is not valid for LogMultipole binning")
+
+            if drg is None and rdg is None:
+                self._zeta = self.raw_zeta - rrg.zeta
+            elif rdg is not None and drg is None:
+                self._zeta = self.raw_zeta - 2.*rdg.zeta + rrg.zeta
+            elif drg is not None and rdg is None:
+                self._zeta = self.raw_zeta - 2.*drg.zeta + rrg.zeta
+            else:
+                self._zeta = self.raw_zeta - drg.zeta - rdg.zeta + rrg.zeta
+
+            self._rrg = rrg
+            self._drg = drg
+            self._rdg = rdg
+
+            if (rrg.npatch1 not in (1,self.npatch1) or rrg.npatch2 not in (1,self.npatch2)
+                    or rrg.npatch3 != self.npatch3):
+                raise RuntimeError("RRG must be run with the same patches as DDG")
+            if rdg is not None and (rdg.npatch1 not in (1,self.npatch1)
+                                    or rdg.npatch2 != self.npatch2
+                                    or rdg.npatch3 != self.npatch3):
+                raise RuntimeError("RDG must be run with the same patches as DDG")
+            if drg is not None and (drg.npatch2 not in (1,self.npatch2)
+                                    or drg.npatch1 != self.npatch1
+                                    or drg.npatch3 != self.npatch3):
+                raise RuntimeError("DRG must be run with the same patches as DDG")
+
+            if len(self.results) > 0:
+                template = next(iter(self.results.values()))  # Just need something to copy.
+                all_keys = list(rrg.results.keys())
+                if rdg is not None:
+                    all_keys += list(rdg.results.keys())
+                if drg is not None:
+                    all_keys += list(drg.results.keys())
+                for ijk in all_keys:
+                    if ijk in self.results: continue
+                    new_cij = template.copy()
+                    new_cij._z[0][:] = 0
+                    new_cij.weight[:] = 0
+                    self.results[ijk] = new_cij
+                    self.__dict__.pop('_ok',None)
+
+                self._cov = self.estimate_cov(self.var_method)
+                self._varzeta = np.zeros(self.data_shape, dtype=float)
+                self._varzeta.ravel()[:] = self.cov_diag
+            else:
+                self._varzeta = self.raw_varzeta + rrg.varzeta
+                if rdg is not None:
+                    self._varzeta += rdg.varzeta
+                if drg is not None:
+                    self._varzeta += drg.varzeta
+        else:
+            if rdg is not None:
+                raise TypeError("rdg is invalid if rrg is None")
+            if drg is not None:
+                raise TypeError("drg is invalid if rrg is None")
+            self._zeta = self.raw_zeta
+            self._varzeta = self.raw_varzeta
+
+        return self._zeta, self._varzeta
+
+    def _calculate_xi_from_pairs(self, pairs):
+        self._sum([self.results[ij] for ij in pairs])
+        self._finalize()
+        if self._rrg is not None:
+            # If r doesn't have patches, then convert all (i,i,i) pairs to (0,0,i).
+            if self._rrg.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
+                pairs1 = [(0,0,ijk[2]) for ijk in pairs if ijk[0] == ijk[1] == ijk[2]]
+            else:
+                pairs1 = pairs
+            pairs1 = [ijk for ijk in pairs1 if self._rrg._ok[ijk[0],ijk[1],ijk[2]]]
+            self._rrg._calculate_xi_from_pairs(pairs1)
+
+        if self._drg is not None:
+            if self._drg.npatch2 == 1 and not all([p[1] == 0 for p in pairs]):
+                pairs2 = [(ijk[0],0,ijk[2]) for ijk in pairs if ijk[1] == ijk[2]]
+            else:
+                pairs2 = pairs
+            pairs2 = [ijk for ijk in pairs2 if self._drg._ok[ijk[0],ijk[1],ijk[2]]]
+            self._drg._calculate_xi_from_pairs(pairs2)
+
+        if self._rdg is not None:
+            if self._rdg.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
+                pairs3 = [(0,ijk[1],ijk[2]) for ijk in pairs if ijk[0] == ijk[2]]
+            else:
+                pairs3 = pairs
+            pairs3 = [ijk for ijk in pairs3 if self._rdg._ok[ijk[0],ijk[1],ijk[2]]]
+            self._rdg._calculate_xi_from_pairs(pairs3)
+
+        if self._rrg is None:
+            self._zeta = None
+        elif self._drg is None and self._rdg is None:
+            self._zeta = self.raw_zeta - self._rrg.zeta
+        elif self._rdg is not None and self._drg is None:
+            self._zeta = self.raw_zeta - 2.*self._rdg.zeta + self._rrg.zeta
+        elif self._drg is not None and self._rdg is None:
+            self._zeta = self.raw_zeta - 2.*self._drg.zeta + self._rrg.zeta
+        else:
+            self._zeta = self.raw_zeta - self._drg.zeta - self._rdg.zeta + self._rrg.zeta
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
@@ -479,3 +925,4 @@ class NNGCorrelation(Corr3):
         self._z[0] = data['zetar'].reshape(s)
         self._z[1] = data['zetai'].reshape(s)
         self._varzeta = data['sigma_zeta'].reshape(s)**2
+        self._raw_varzeta = self._varzeta

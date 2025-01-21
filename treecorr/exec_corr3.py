@@ -197,7 +197,7 @@ def corr3(config, logger=None):
             logger.warning("No random catalogs given.  Only doing ntri calculation.")
             rrr = None
         else:
-            # TODO: I haven't don't all the options correcly with cat2, cat3 yet.
+            # TODO: I haven't don't all the options correctly with cat2, cat3 yet.
             logger.warning("Performing RRR calculations...")
             rrr = NNNCorrelation(config, logger=logger)
             rrr.process(rand1)

@@ -9,8 +9,12 @@ correlation functions:
     :maxdepth: 1
 
     nnn
-    ggg
     kkk
+    ggg
+    nnk
+    nng
+    nkk
+    ngg
     kkg
     kgg
 

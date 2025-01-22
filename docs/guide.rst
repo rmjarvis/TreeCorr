@@ -185,6 +185,18 @@ So far, we have implemented the following combination:
     - `NNNCorrelation`  # count-count-count
     - `KKKCorrelation`  # scalar-scalar-scalar
     - `GGGCorrelation`  # shear-shear-shear
+    - `NNKCorrelation`  # count-count-scalar
+    - `NKNCorrelation`  # count-scalar-count
+    - `KNNCorrelation`  # scalar-count-count
+    - `NNGCorrelation`  # count-count-shear
+    - `NGNCorrelation`  # count-shear-count
+    - `GNNCorrelation`  # shear-count-count
+    - `NKKCorrelation`  # count-scalar-scalar
+    - `KNKCorrelation`  # scalar-count-scalar
+    - `KKNCorrelation`  # scalar-scalar-count
+    - `NGGCorrelation`  # count-shear-shear
+    - `GNGCorrelation`  # shear-count-shear
+    - `GGNCorrelation`  # shear-shear-count
     - `KKGCorrelation`  # scalar-scalar-shear
     - `KGKCorrelation`  # scalar-shear-scalar
     - `GKKCorrelation`  # shear-scalar-scalar
@@ -244,7 +256,7 @@ since the statistics get better if you generate several randoms and do all the c
 The corresponding three-point NNN calculation is even more complicated, since there are 8 total
 combinations that need to be computed: zeta = (DDD-DDR-DRD-RDD+DRR+RDR+RRD-RRR)/RRR.
 Because of the triangle geometry, we don't have DRR = DRD = RDD, so all 8 need to be computed.
-See the docstring for `calculateZeta` for more details.
+See the docstring for `calculateZeta <NNNCorrelation.calculateZeta>` for more details.
 
 Manually accumulating the correlation function
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

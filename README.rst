@@ -216,8 +216,13 @@ than 2 (shear is a spin-2 field).  See `Two-point Correlation Functions
 Three-point Correlations
 ------------------------
 
-This software is not yet able to compute three-point cross-correlations, so the
-only avaiable three-point correlations are:
+Three point correlation functions are significantly more complicated, being functions
+of three parameters defining the triangle size and shape, rather than just a single
+separation.  For cross-correlations, there are also issues related to whether one wants
+to allow the different catalogs to take all possible vertices in the triangles are be
+fixed to a particular vertex.
+
+This software is able to compute the following three-point auto-correlations:
 
 :NNN: Three-point correlation function of number counts.
 
@@ -227,6 +232,12 @@ only avaiable three-point correlations are:
 
 :KKK: Three-point kappa correlation function.  Again, "kappa" here can be any
       scalar quantity.
+
+It is also possible to compute cross correlations combining two of these types, such
+as NNG, NKK, KGK, etc..  The ordering of the letters indicates which type is placed
+at which numbered vertex in the triangles where the first vertex is opposite d1, the
+second opposite d2, and the third opposite d3.  The meaning of the three side lengths
+is particular to the choice of binning.
 
 See `Three-point Correlation Functions
 <https://rmjarvis.github.io/TreeCorr/_build/html/correlation3.html>`_ for more details.

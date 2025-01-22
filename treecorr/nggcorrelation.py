@@ -42,7 +42,7 @@ class NGGCorrelation(Corr3):
         \Gamma_2 &= \langle \gamma(\mathbf{x1}) \gamma(\mathbf{x2})^* \gamma(\mathbf{x3}) \rangle \\
         \Gamma_3 &= \langle \gamma(\mathbf{x1}) \gamma(\mathbf{x2}) \gamma(\mathbf{x3}^*) \rangle \\
 
-    With no shear value at vertex 1, :math:`\Gamma_0 = \Gamma_1` and :math:`\Gamma_2 = \Gamma_3^*`.
+    With only a count at vertex 1, :math:`\Gamma_0 = \Gamma_1` and :math:`\Gamma_2 = \Gamma_3^*`.
     So there are only two independent values.  However, you may access these values using whichever
     names you find most convenient: ``gam0``, ``gam1``, ``gam2`` and ``gam3`` are all valid
     attributes, which return the corresponding value.
@@ -66,11 +66,13 @@ class NGGCorrelation(Corr3):
     The typical usage pattern is as follows::
 
         >>> ngg = treecorr.NGGCorrelation(config)
-        >>> ngg.process(cat)              # For auto-correlation.
-        >>> ngg.process(cat1,cat2,cat3)   # For cross-correlation.
+        >>> ngg.process(cat1, cat2)       # Compute cross-correlation of two fields.
+        >>> ngg.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.
         >>> ngg.write(file_name)          # Write out to a file.
-        >>> gam0 = ngg.gam0, etc.         # To access gamma values directly.
-        >>> gam0r = ngg.gam0r             # You can also access real and imag parts separately.
+        >>> rgg.process(rand, cat2)       # Compute cross-correlation with randoms.
+        >>> ngg.calculateZeta(rgg=rgg)    # Calculate zeta using randoms
+        >>> gam0 = ngg.gam0, etc.         # Access gamma values directly.
+        >>> gam0r = ngg.gam0r             # Or access real and imag parts separately.
         >>> gam0i = ngg.gam0i
 
     Parameters:
@@ -400,7 +402,7 @@ class GNGCorrelation(Corr3):
         \Gamma_2 &= \langle \gamma(\mathbf{x1}) \gamma(\mathbf{x2})^* \gamma(\mathbf{x3}) \rangle \\
         \Gamma_3 &= \langle \gamma(\mathbf{x1}) \gamma(\mathbf{x2}) \gamma(\mathbf{x3}^*) \rangle \\
 
-    With no shearr value at vertex 2, :math:`\Gamma_0 = \Gamma_2` and :math:`\Gamma_1 = \Gamma_3^*`.
+    With only a count at vertex 2, :math:`\Gamma_0 = \Gamma_2` and :math:`\Gamma_1 = \Gamma_3^*`.
     So there are only two independent values.  However, you may access these values using whichever
     names you find most convenient: ``gam0``, ``gam1``, ``gam2`` and ``gam3`` are all valid
     attributes, which return the corresponding value.
@@ -424,11 +426,13 @@ class GNGCorrelation(Corr3):
     The typical usage pattern is as follows::
 
         >>> gng = treecorr.GNGCorrelation(config)
-        >>> gng.process(cat)              # For auto-correlation.
-        >>> gng.process(cat1,cat2,cat3)   # For cross-correlation.
+        >>> gng.process(cat1, cat2, cat1) # Compute cross-correlation of two fields.
+        >>> gng.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.
         >>> gng.write(file_name)          # Write out to a file.
-        >>> gam0 = gng.gam0, etc.         # To access gamma values directly.
-        >>> gam0r = gng.gam0r             # You can also access real and imag parts separately.
+        >>> grg.process(cat1, rand, cat1) # Compute cross-correlation with randoms.
+        >>> gng.calculateZeta(grg=grg)    # Calculate zeta using randoms
+        >>> gam0 = gng.gam0, etc.         # Access gamma values directly.
+        >>> gam0r = gng.gam0r             # Or access real and imag parts separately.
         >>> gam0i = gng.gam0i
 
     Parameters:
@@ -756,7 +760,7 @@ class GGNCorrelation(Corr3):
         \Gamma_2 &= \langle \gamma(\mathbf{x1}) \gamma(\mathbf{x2})^* \gamma(\mathbf{x3}) \rangle \\
         \Gamma_3 &= \langle \gamma(\mathbf{x1}) \gamma(\mathbf{x2}) \gamma(\mathbf{x3}^*) \rangle \\
 
-    With no shear value at vertex 3, :math:`\Gamma_0 = \Gamma_3` and :math:`\Gamma_1 = \Gamma_2^*`.
+    With only a count at vertex 3, :math:`\Gamma_0 = \Gamma_3` and :math:`\Gamma_1 = \Gamma_2^*`.
     So there are only two independent values.  However, you may access these values using whichever
     names you find most convenient: ``gam0``, ``gam1``, ``gam2`` and ``gam3`` are all valid
     attributes, which return the corresponding value.
@@ -780,11 +784,13 @@ class GGNCorrelation(Corr3):
     The typical usage pattern is as follows::
 
         >>> ggn = treecorr.GGNCorrelation(config)
-        >>> ggn.process(cat)              # For auto-correlation.
-        >>> ggn.process(cat1,cat2,cat3)   # For cross-correlation.
+        >>> ggn.process(cat1, cat2)       # Compute cross-correlation of two fields.
+        >>> ggn.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.
         >>> ggn.write(file_name)          # Write out to a file.
-        >>> gam0 = ggn.gam0, etc.         # To access gamma values directly.
-        >>> gam0r = ggn.gam0r             # You can also access real and imag parts separately.
+        >>> ggr.process(cat1, rand)       # Compute cross-correlation with randoms.
+        >>> ggn.calculateZeta(ggr=ggr)    # Calculate zeta using randoms
+        >>> gam0 = ggn.gam0, etc.         # Access gamma values directly.
+        >>> gam0r = ggn.gam0r             # Or access real and imag parts separately.
         >>> gam0i = ggn.gam0i
 
     Parameters:

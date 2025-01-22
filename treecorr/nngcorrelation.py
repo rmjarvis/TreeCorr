@@ -51,7 +51,7 @@ class GNNCorrelation(Corr3):
         >>> gnn.write(file_name)           # Write out to a file.
         >>> gnn.calculateZeta(grr=grr, gdr=gdr) # Calculate zeta using randoms
         >>> zeta = gnn.zeta                # Access correlation function
-        >>> zetar = gnn.zetar              # Access real and imaginary parts separately
+        >>> zetar = gnn.zetar              # Or access real and imaginary parts separately
         >>> zetai = gnn.zetai
 
     Parameters:
@@ -352,7 +352,7 @@ class NGNCorrelation(Corr3):
         >>> ngn.write(file_name)           # Write out to a file.
         >>> ngn.calculateZeta(rgr=rgr, dgr=dgr) # Calculate zeta using randoms
         >>> zeta = ngn.zeta                # Access correlation function
-        >>> zetar = ngn.zetar              # Access real and imaginary parts separately
+        >>> zetar = ngn.zetar              # Or access real and imaginary parts separately
         >>> zetai = ngn.zetai
 
     Parameters:
@@ -654,7 +654,7 @@ class NNGCorrelation(Corr3):
         >>> nng.write(file_name)           # Write out to a file.
         >>> nng.calculateZeta(rrg=rrg, drg=drg) # Calculate zeta using randoms
         >>> zeta = nng.zeta                # Access correlation function
-        >>> zetar = nng.zetar              # Access real and imaginary parts separately
+        >>> zetar = nng.zetar              # Or access real and imaginary parts separately
         >>> zetai = nng.zetai
 
     Parameters:

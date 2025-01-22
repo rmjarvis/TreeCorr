@@ -3110,7 +3110,7 @@ class Corr3(object):
 
         # Version 5.0 used weight_re, weight_im.  These are now weightr, weighti.
         # Fix in place to keep backwards compatibility.
-        if any('_re' in n for n in data.dtype.names):
+        if 'weight_re' in data.dtype.names:
             dt = np.dtype([(n.replace('_re','r').replace('_im','i'),t) for (n,t) in data.dtype.descr])
             data = data.astype(dt)
 

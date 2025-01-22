@@ -47,8 +47,10 @@ class NKKCorrelation(Corr3):
         >>> nkk.process(cat1, cat2)        # Compute cross-correlation of two fields.
         >>> nkk.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.
         >>> nkk.write(file_name)           # Write out to a file.
+        >>> rkk.process(rand, cat2)        # Compute cross-correlation with randoms.
+        >>> nkk.calculateZeta(rkk=rkk)     # Calculate zeta using randoms
         >>> zeta = nkk.zeta                # Access correlation function
-        >>> zetar = nkk.zetar              # Access real and imaginary parts separately
+        >>> zetar = nkk.zetar              # Or access real and imaginary parts separately
         >>> zetai = nkk.zetai
 
     Parameters:
@@ -273,8 +275,10 @@ class KNKCorrelation(Corr3):
         >>> knk.process(cat1, cat2, cat1)  # Compute cross-correlation of two fields.
         >>> knk.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.
         >>> knk.write(file_name)           # Write out to a file.
+        >>> krk.process(cat1, rand, cat1)  # Compute cross-correlation with randoms.
+        >>> knk.calculateZeta(krk=krk)     # Calculate zeta using randoms
         >>> zeta = knk.zeta                # Access correlation function
-        >>> zetar = knk.zetar              # Access real and imaginary parts separately
+        >>> zetar = knk.zetar              # Or access real and imaginary parts separately
         >>> zetai = knk.zetai
 
     Parameters:
@@ -499,8 +503,10 @@ class KKNCorrelation(Corr3):
         >>> kkn.process(cat1, cat2)        # Compute cross-correlation of two fields.
         >>> kkn.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.
         >>> kkn.write(file_name)           # Write out to a file.
+        >>> kkr.process(cat1, rand)        # Compute cross-correlation with randoms.
+        >>> kkn.calculateZeta(kkr=kkr)     # Calculate zeta using randoms
         >>> zeta = kkn.zeta                # Access correlation function
-        >>> zetar = kkn.zetar              # Access real and imaginary parts separately
+        >>> zetar = kkn.zetar              # Or access real and imaginary parts separately
         >>> zetai = kkn.zetai
 
     Parameters:

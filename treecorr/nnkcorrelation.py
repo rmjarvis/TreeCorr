@@ -51,7 +51,7 @@ class KNNCorrelation(Corr3):
         >>> knn.write(file_name)           # Write out to a file.
         >>> knn.calculateZeta(krr=krr, kdr=kdr) # Calculate zeta using randoms
         >>> zeta = knn.zeta                # Access correlation function
-        >>> zetar = knn.zetar              # Access real and imaginary parts separately
+        >>> zetar = knn.zetar              # Or access real and imaginary parts separately
         >>> zetai = knn.zetai
 
     Parameters:
@@ -353,7 +353,7 @@ class NKNCorrelation(Corr3):
         >>> nkn.write(file_name)           # Write out to a file.
         >>> nkn.calculateZeta(rkr=rkr, dkr=dkr) # Calculate zeta using randoms
         >>> zeta = nkn.zeta                # Access correlation function
-        >>> zetar = nkn.zetar              # Access real and imaginary parts separately
+        >>> zetar = nkn.zetar              # Or access real and imaginary parts separately
         >>> zetai = nkn.zetai
 
     Parameters:
@@ -655,7 +655,7 @@ class NNKCorrelation(Corr3):
         >>> nnk.write(file_name)           # Write out to a file.
         >>> nnk.calculateZeta(rrk=rrk, drk=drk) # Calculate zeta using randoms
         >>> zeta = nnk.zeta                # Access correlation function
-        >>> zetar = nnk.zetar              # Access real and imaginary parts separately
+        >>> zetar = nnk.zetar              # Or access real and imaginary parts separately
         >>> zetai = nnk.zetai
 
     Parameters:

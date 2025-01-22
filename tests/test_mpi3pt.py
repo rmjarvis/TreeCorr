@@ -95,5 +95,8 @@ if __name__ == '__main__':
     test_mpi_kkk()
     test_mpi_kkk2()
     test_mpi_nnk()
+    test_mpi_nng()
+    test_mpi_nkk()
+    test_mpi_ngg()
     test_mpi_kkg()
     test_mpi_kgg()

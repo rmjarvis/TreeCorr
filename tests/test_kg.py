@@ -13,6 +13,7 @@
 
 import numpy as np
 import treecorr
+import time
 import os
 import coord
 
@@ -254,6 +255,15 @@ def test_direct_spherical():
                                 sep_units='deg', brute=True)
     kg.process(cat1, cat2)
 
+    kg2 = kg.copy()
+    kg2.process(cat1, cat2, corr_only=True)
+    np.testing.assert_allclose(kg2.weight, kg.weight)
+    np.testing.assert_allclose(kg2.xi, kg.xi)
+    np.testing.assert_allclose(kg2.xi_im, kg.xi_im)
+    #np.testing.assert_allclose(kg2.npairs, kg.weight / (np.mean(w1) * np.mean(w2)))
+    np.testing.assert_allclose(kg2.meanr, kg.rnom)
+    np.testing.assert_allclose(kg2.meanlogr, kg.logr)
+
     r1 = np.sqrt(x1**2 + y1**2 + z1**2)
     r2 = np.sqrt(x2**2 + y2**2 + z2**2)
     x1 /= r1;  y1 /= r1;  z1 /= r1
@@ -436,13 +446,25 @@ def test_kg():
     source_cat = treecorr.Catalog(x=xs, y=ys, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
     kg = treecorr.KGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
                                 verbose=1)
-    kg.process(lens_cat, source_cat)
+    t0 = time.time()
+    kg.process(lens_cat, source_cat, num_threads=1)
+    t1 = time.time()
+    print('Time for kg process = ',t1-t0)
 
     # Using nbins=None rather than omiting nbins is equivalent.
     kg2 = treecorr.KGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None, sep_units='arcmin')
     kg2.process(lens_cat, source_cat, num_threads=1)
-    kg.process(lens_cat, source_cat, num_threads=1)
     assert kg2 == kg
+
+    t2 = time.time()
+    kg2.process(lens_cat, source_cat, num_threads=1, corr_only=True)
+    t3 = time.time()
+    print('Time for corr-only kg process = ',t3-t2)
+    np.testing.assert_allclose(kg2.xi, kg.xi)
+    np.testing.assert_allclose(kg2.xi_im, kg.xi_im)
+    np.testing.assert_allclose(kg2.weight, kg.weight)
+    #np.testing.assert_allclose(kg2.npairs, kg.weight)
+    assert t3-t2 < t1-t0
 
     r = kg.meanr
     true_gt = gamma0 * np.exp(-0.5*r**2/r0**2)

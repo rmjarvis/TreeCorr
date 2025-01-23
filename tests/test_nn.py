@@ -679,6 +679,13 @@ def test_direct_spherical():
                                 sep_units='deg', brute=True)
     dd.process(cat1, cat2)
 
+    dd2 = dd.copy()
+    dd2.process(cat1, cat2, corr_only=True)
+    np.testing.assert_allclose(dd2.weight, dd.weight)
+    #np.testing.assert_allclose(dd2.npairs, dd.weight / (np.mean(w1) * np.mean(w2)))
+    np.testing.assert_allclose(dd2.meanr, dd.rnom)
+    np.testing.assert_allclose(dd2.meanlogr, dd.logr)
+
     r1 = np.sqrt(x1**2 + y1**2 + z1**2)
     r2 = np.sqrt(x2**2 + y2**2 + z2**2)
     x1 /= r1;  y1 /= r1;  z1 /= r1
@@ -1158,8 +1165,11 @@ def test_nn():
 
     cat = treecorr.Catalog(x=x, y=y, x_units='arcmin', y_units='arcmin')
     dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
+    t0 = time.time()
     dd.process(cat, num_threads=1)
-    print('dd.npairs = ',dd.npairs)
+    t1 = time.time()
+    print('Time for dd process = ',t1-t0)
+    print('dd.weight = ',dd.weight)
 
     # Using nbins=None rather than omitting nbins is equivalent.
     dd2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., nbins=None, sep_units='arcmin')
@@ -1170,16 +1180,45 @@ def test_nn():
     print('meanlogr - log(meanr) = ',dd.meanlogr - np.log(dd.meanr))
     np.testing.assert_allclose(dd.meanlogr, np.log(dd.meanr), atol=1.e-3)
 
+    # corr_only should give the same answer
+    t2 = time.time()
+    dd2.process(cat, num_threads=1, corr_only=True)
+    t3 = time.time()
+    print('Time for corr-only dd process = ',t3-t2)
+    np.testing.assert_allclose(dd2.weight, dd.weight)
+    #np.testing.assert_allclose(dd2.npairs, dd2.weight)
+    assert t3-t2 < t1-t0
+
     rx = (rng.random_sample(nrand)-0.5) * L
     ry = (rng.random_sample(nrand)-0.5) * L
     rand = treecorr.Catalog(x=rx,y=ry, x_units='arcmin', y_units='arcmin')
     rr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
+    t0 = time.time()
     rr.process(rand)
-    print('rr.npairs = ',rr.npairs)
+    t1 = time.time()
+    print('Time for rr process = ',t1-t0)
+
+    rr2 = rr.copy()
+    t2 = time.time()
+    rr2.process(rand, corr_only=True)
+    t3 = time.time()
+    print('Time for corr-only rr process = ',t3-t2)
+    np.testing.assert_allclose(rr2.weight, rr.weight)
+    assert t3-t2 < t1-t0
 
     dr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
+    t0 = time.time()
     dr.process(cat,rand)
-    print('dr.npairs = ',dr.npairs)
+    t1 = time.time()
+    print('Time for dr process = ',t1-t0)
+
+    dr2 = dr.copy()
+    t2 = time.time()
+    dr2.process(cat, rand, corr_only=True)
+    t3 = time.time()
+    print('Time for corr-only dr process = ',t3-t2)
+    np.testing.assert_allclose(dr2.weight, dr.weight)
+    assert t3-t2 < t1-t0
 
     r = dd.meanr
     true_xi = 0.25/np.pi * (L/s)**2 * np.exp(-0.25*r**2/s**2) - 1.
@@ -1538,7 +1577,10 @@ def test_3d():
 
     cat = treecorr.Catalog(ra=ra, dec=dec, r=r, ra_units='deg', dec_units='deg')
     dd = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=1)
+    t0 = time.time()
     dd.process(cat)
+    t1 = time.time()
+    print('dd process time = ',t1-t0)
     print('dd.npairs = ',dd.npairs)
 
     rx = (rng.random_sample(nrand)-0.5) * L + xcen
@@ -1549,11 +1591,17 @@ def test_3d():
     rra = np.arctan2(ry,rx) * coord.radians / coord.degrees
     rand = treecorr.Catalog(ra=rra, dec=rdec, r=rr, ra_units='deg', dec_units='deg')
     rr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=1)
+    t0 = time.time()
     rr.process(rand)
+    t1 = time.time()
+    print('rr process time = ',t1-t0)
     print('rr.npairs = ',rr.npairs)
 
     dr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., verbose=1)
+    t0 = time.time()
     dr.process(cat,rand)
+    t1 = time.time()
+    print('dr process time = ',t1-t0)
     print('dr.npairs = ',dr.npairs)
 
     r = dd.meanr
@@ -1609,9 +1657,9 @@ def test_3d():
     # And repeat with Catalogs that use x,y,z
     cat = treecorr.Catalog(x=x, y=y, z=z)
     rand = treecorr.Catalog(x=rx, y=ry, z=rz)
-    dd.process(cat)
-    rr.process(rand)
-    dr.process(cat,rand)
+    dd.process(cat, corr_only=True)
+    rr.process(rand, corr_only=True)
+    dr.process(cat,rand, corr_only=True)
     xi, varxi = dd.calculateXi(rr=rr, dr=dr)
     np.testing.assert_allclose(xi, true_xi, rtol=0.1*tol_factor)
     np.testing.assert_allclose(np.log(np.abs(xi)), np.log(np.abs(true_xi)),

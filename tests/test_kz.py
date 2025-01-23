@@ -49,6 +49,15 @@ def test_direct():
     kz = treecorr.KZCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
     kz.process(cat1, cat2)
 
+    kz2 = kz.copy()
+    kz2.process(cat1, cat2, corr_only=True)
+    np.testing.assert_allclose(kz2.weight, kz.weight)
+    np.testing.assert_allclose(kz2.xi, kz.xi)
+    np.testing.assert_allclose(kz2.xi_im, kz.xi_im)
+    #np.testing.assert_allclose(kz2.npairs, kz.weight / (np.mean(w1) * np.mean(w2)))
+    np.testing.assert_allclose(kz2.meanr, kz.rnom)
+    np.testing.assert_allclose(kz2.meanlogr, kz.logr)
+
     true_npairs = np.zeros(nbins, dtype=int)
     true_weight = np.zeros(nbins, dtype=float)
     true_xi = np.zeros(nbins, dtype=complex)
@@ -424,12 +433,25 @@ def test_kz():
     source_cat = treecorr.Catalog(x=xs, y=ys, z1=z1, z2=z2, x_units='arcmin', y_units='arcmin')
     kz = treecorr.KZCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
                                 verbose=1)
+    t0 = time.time()
     kz.process(lens_cat, source_cat, num_threads=1)
+    t1 = time.time()
+    print('Time for kz process = ',t1-t0)
 
     # Using nbins=None rather than omiting nbins is equivalent.
     kz2 = treecorr.KZCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None, sep_units='arcmin')
     kz2.process(lens_cat, source_cat, num_threads=1)
     assert kz2 == kz  # (Only exact == if num_threads=1.)
+
+    t2 = time.time()
+    kz2.process(lens_cat, source_cat, num_threads=1, corr_only=True)
+    t3 = time.time()
+    print('Time for corr-only kz process = ',t3-t2)
+    np.testing.assert_allclose(kz2.xi, kz.xi)
+    np.testing.assert_allclose(kz2.xi_im, kz.xi_im)
+    np.testing.assert_allclose(kz2.weight, kz.weight)
+    #np.testing.assert_allclose(kz2.npairs, kz.weight)
+    assert t3-t2 < t1-t0
 
     r = kz.meanr
     true_kz = z0 * np.exp(-0.5*r**2/r0**2) * (1-0.5*r**2/r0**2)

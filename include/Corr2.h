@@ -65,44 +65,56 @@ public:
     bool triviallyZero(Position<C> p1, Position<C> p2, double s1, double s2);
 
     template <int B, int M, int P, int C>
-    void process(const BaseField<C>& field, bool dots);
+    void process(const BaseField<C>& field, bool dots, bool quick);
 
     template <int B, int M, int P, int C>
-    void process(const BaseField<C>& field1, const BaseField<C>& field2, bool dots);
+    void process(const BaseField<C>& field1, const BaseField<C>& field2, bool dots, bool quick);
 
     // Main worker functions for calculating the result
     template <int B, int M, int P, int C>
-    void process2(const BaseCell<C>& c12, const MetricHelper<M,P>& m);
+    void process2(const BaseCell<C>& c12, const MetricHelper<M,P>& m, bool quick);
 
-    template <int B, int M, int P, int R, int C>
+    template <int B, int M, int P, int Q, int R, int C>
     void process11(const BaseCell<C>& c1, const BaseCell<C>& c2, const MetricHelper<M,P>& m);
 
-    template <int B, int R, int C>
+    template <int B, int Q, int R, int C>
     void directProcess11(const BaseCell<C>& c1, const BaseCell<C>& c2, const double rsq,
                          int k=-1, double r=0., double logr=0.);
 
-    template <int R, int C>
+    template <int Q, int R, int C>
     void finishProcess(const BaseCell<C>& c1, const BaseCell<C>& c2,
                        double rsq, double r, double logr, int k, int k2)
-    { doFinishProcess(c1, c2, rsq, r, logr, k, k2, R1<R>()); }
+    { doFinishProcess(c1, c2, rsq, r, logr, k, k2, R1<Q,R>()); }
 
 protected:
-    template <int R>
+    template <int Q, int R>
     struct R1 {};
 
     // This bit is a workaround for the the fact that virtual functions cannot be templates.
     virtual void doFinishProcess(const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
-                                 double rsq, double r, double logr, int k, int k2, R1<1>)=0;
+                                 double rsq, double r, double logr, int k, int k2, R1<1,0>)=0;
     virtual void doFinishProcess(const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
-                                 double rsq, double r, double logr, int k, int k2, R1<1>)=0;
+                                 double rsq, double r, double logr, int k, int k2, R1<1,0>)=0;
     virtual void doFinishProcess(const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
-                                 double rsq, double r, double logr, int k, int k2, R1<1>)=0;
+                                 double rsq, double r, double logr, int k, int k2, R1<1,0>)=0;
     virtual void doFinishProcess(const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
-                                 double rsq, double r, double logr, int k, int k2, R1<0>)=0;
+                                 double rsq, double r, double logr, int k, int k2, R1<0,0>)=0;
     virtual void doFinishProcess(const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
-                                 double rsq, double r, double logr, int k, int k2, R1<0>)=0;
+                                 double rsq, double r, double logr, int k, int k2, R1<0,0>)=0;
     virtual void doFinishProcess(const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
-                                 double rsq, double r, double logr, int k, int k2, R1<0>)=0;
+                                 double rsq, double r, double logr, int k, int k2, R1<0,0>)=0;
+    virtual void doFinishProcess(const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
+                                 double rsq, double r, double logr, int k, int k2, R1<1,1>)=0;
+    virtual void doFinishProcess(const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
+                                 double rsq, double r, double logr, int k, int k2, R1<1,1>)=0;
+    virtual void doFinishProcess(const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
+                                 double rsq, double r, double logr, int k, int k2, R1<1,1>)=0;
+    virtual void doFinishProcess(const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
+                                 double rsq, double r, double logr, int k, int k2, R1<0,1>)=0;
+    virtual void doFinishProcess(const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
+                                 double rsq, double r, double logr, int k, int k2, R1<0,1>)=0;
+    virtual void doFinishProcess(const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
+                                 double rsq, double r, double logr, int k, int k2, R1<0,1>)=0;
 
     BinType _bin_type;
     double _minsep;
@@ -147,7 +159,7 @@ public:
 
     void clear();  // Set all data to 0.
 
-    template <int R, int C>
+    template <int Q, int R, int C>
     void finishProcess(const BaseCell<C>& c1, const BaseCell<C>& c2,
                        double rsq, double r, double logr, int k, int k2);
 
@@ -158,23 +170,42 @@ public:
 protected:
 
     void doFinishProcess(const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
-                         double rsq, double r, double logr, int k, int k2, R1<1>)
-    { finishProcess<1>(c1, c2, rsq, r, logr, k, k2); }
+                         double rsq, double r, double logr, int k, int k2, R1<1,0>)
+    { finishProcess<1,0>(c1, c2, rsq, r, logr, k, k2); }
     void doFinishProcess(const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
-                         double rsq, double r, double logr, int k, int k2, R1<1>)
-    { finishProcess<1>(c1, c2, rsq, r, logr, k, k2); }
+                         double rsq, double r, double logr, int k, int k2, R1<1,0>)
+    { finishProcess<1,0>(c1, c2, rsq, r, logr, k, k2); }
     void doFinishProcess(const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
-                         double rsq, double r, double logr, int k, int k2, R1<1>)
-    { finishProcess<1>(c1, c2, rsq, r, logr, k, k2); }
+                         double rsq, double r, double logr, int k, int k2, R1<1,0>)
+    { finishProcess<1,0>(c1, c2, rsq, r, logr, k, k2); }
     void doFinishProcess(const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
-                         double rsq, double r, double logr, int k, int k2, R1<0>)
-    { finishProcess<0>(c1, c2, rsq, r, logr, k, k2); }
+                         double rsq, double r, double logr, int k, int k2, R1<0,0>)
+    { finishProcess<0,0>(c1, c2, rsq, r, logr, k, k2); }
     void doFinishProcess(const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
-                         double rsq, double r, double logr, int k, int k2, R1<0>)
-    { finishProcess<0>(c1, c2, rsq, r, logr, k, k2); }
+                         double rsq, double r, double logr, int k, int k2, R1<0,0>)
+    { finishProcess<0,0>(c1, c2, rsq, r, logr, k, k2); }
     void doFinishProcess(const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
-                         double rsq, double r, double logr, int k, int k2, R1<0>)
-    { finishProcess<0>(c1, c2, rsq, r, logr, k, k2); }
+                         double rsq, double r, double logr, int k, int k2, R1<0,0>)
+    { finishProcess<0,0>(c1, c2, rsq, r, logr, k, k2); }
+
+    void doFinishProcess(const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
+                         double rsq, double r, double logr, int k, int k2, R1<1,1>)
+    { finishProcess<1,1>(c1, c2, rsq, r, logr, k, k2); }
+    void doFinishProcess(const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
+                         double rsq, double r, double logr, int k, int k2, R1<1,1>)
+    { finishProcess<1,1>(c1, c2, rsq, r, logr, k, k2); }
+    void doFinishProcess(const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
+                         double rsq, double r, double logr, int k, int k2, R1<1,1>)
+    { finishProcess<1,1>(c1, c2, rsq, r, logr, k, k2); }
+    void doFinishProcess(const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
+                         double rsq, double r, double logr, int k, int k2, R1<0,1>)
+    { finishProcess<0,1>(c1, c2, rsq, r, logr, k, k2); }
+    void doFinishProcess(const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
+                         double rsq, double r, double logr, int k, int k2, R1<0,1>)
+    { finishProcess<0,1>(c1, c2, rsq, r, logr, k, k2); }
+    void doFinishProcess(const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
+                         double rsq, double r, double logr, int k, int k2, R1<0,1>)
+    { finishProcess<0,1>(c1, c2, rsq, r, logr, k, k2); }
 
     // These are usually allocated in the python layer and just built up here.
     // So all we have here is a bare pointer for each of them.
@@ -385,7 +416,7 @@ public:
     void addData(const BaseCorr2& rhs)
     { *this = static_cast<const Sampler&>(rhs); }
 
-    template <int R, int C>
+    template <int Q, int R, int C>
     void finishProcess(const BaseCell<C>& c1, const BaseCell<C>& c2,
                        double rsq, double r, double logr, int k, int k2);
 
@@ -394,23 +425,42 @@ public:
 protected:
 
     void doFinishProcess(const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
-                         double rsq, double r, double logr, int k, int k2, R1<1>)
-    { finishProcess<1>(c1, c2, rsq, r, logr, k, k2); }
+                         double rsq, double r, double logr, int k, int k2, R1<1,0>)
+    { finishProcess<1,0>(c1, c2, rsq, r, logr, k, k2); }
     void doFinishProcess(const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
-                         double rsq, double r, double logr, int k, int k2, R1<1>)
-    { finishProcess<1>(c1, c2, rsq, r, logr, k, k2); }
+                         double rsq, double r, double logr, int k, int k2, R1<1,0>)
+    { finishProcess<1,0>(c1, c2, rsq, r, logr, k, k2); }
     void doFinishProcess(const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
-                         double rsq, double r, double logr, int k, int k2, R1<1>)
-    { finishProcess<1>(c1, c2, rsq, r, logr, k, k2); }
+                         double rsq, double r, double logr, int k, int k2, R1<1,0>)
+    { finishProcess<1,0>(c1, c2, rsq, r, logr, k, k2); }
     void doFinishProcess(const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
-                         double rsq, double r, double logr, int k, int k2, R1<0>)
-    { finishProcess<0>(c1, c2, rsq, r, logr, k, k2); }
+                         double rsq, double r, double logr, int k, int k2, R1<0,0>)
+    { finishProcess<0,0>(c1, c2, rsq, r, logr, k, k2); }
     void doFinishProcess(const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
-                         double rsq, double r, double logr, int k, int k2, R1<0>)
-    { finishProcess<0>(c1, c2, rsq, r, logr, k, k2); }
+                         double rsq, double r, double logr, int k, int k2, R1<0,0>)
+    { finishProcess<0,0>(c1, c2, rsq, r, logr, k, k2); }
     void doFinishProcess(const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
-                         double rsq, double r, double logr, int k, int k2, R1<0>)
-    { finishProcess<0>(c1, c2, rsq, r, logr, k, k2); }
+                         double rsq, double r, double logr, int k, int k2, R1<0,0>)
+    { finishProcess<0,0>(c1, c2, rsq, r, logr, k, k2); }
+
+    void doFinishProcess(const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
+                         double rsq, double r, double logr, int k, int k2, R1<1,1>)
+    { finishProcess<1,1>(c1, c2, rsq, r, logr, k, k2); }
+    void doFinishProcess(const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
+                         double rsq, double r, double logr, int k, int k2, R1<1,1>)
+    { finishProcess<1,1>(c1, c2, rsq, r, logr, k, k2); }
+    void doFinishProcess(const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
+                         double rsq, double r, double logr, int k, int k2, R1<1,1>)
+    { finishProcess<1,1>(c1, c2, rsq, r, logr, k, k2); }
+    void doFinishProcess(const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
+                         double rsq, double r, double logr, int k, int k2, R1<0,1>)
+    { finishProcess<0,1>(c1, c2, rsq, r, logr, k, k2); }
+    void doFinishProcess(const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
+                         double rsq, double r, double logr, int k, int k2, R1<0,1>)
+    { finishProcess<0,1>(c1, c2, rsq, r, logr, k, k2); }
+    void doFinishProcess(const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
+                         double rsq, double r, double logr, int k, int k2, R1<0,1>)
+    { finishProcess<0,1>(c1, c2, rsq, r, logr, k, k2); }
 
     long* _i1;
     long* _i2;

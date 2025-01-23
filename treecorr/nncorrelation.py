@@ -133,12 +133,13 @@ class NNCorrelation(Corr2):
         setattr(ret, '_nonzero', False)
         return ret
 
-    def process_auto(self, cat, *, metric=None, num_threads=None):
-        super().process_auto(cat, metric=metric, num_threads=num_threads)
+    def process_auto(self, cat, *, metric=None, num_threads=None, corr_only=False):
+        super().process_auto(cat, metric=metric, num_threads=num_threads, corr_only=corr_only)
         self.tot += 0.5 * cat.sumw**2
 
-    def process_cross(self, cat1, cat2, *, metric=None, num_threads=None):
-        super().process_cross(cat1, cat2, metric=metric, num_threads=num_threads)
+    def process_cross(self, cat1, cat2, *, metric=None, num_threads=None, corr_only=False):
+        super().process_cross(cat1, cat2, metric=metric, num_threads=num_threads,
+                              corr_only=corr_only)
         self.tot += cat1.sumw * cat2.sumw
 
     def finalize(self):

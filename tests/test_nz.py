@@ -50,6 +50,15 @@ def test_direct():
     nz = treecorr.NZCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
     nz.process(cat1, cat2)
 
+    nz2 = nz.copy()
+    nz2.process(cat1, cat2, corr_only=True)
+    np.testing.assert_allclose(nz2.weight, nz.weight)
+    np.testing.assert_allclose(nz2.xi, nz.xi)
+    np.testing.assert_allclose(nz2.xi_im, nz.xi_im)
+    #np.testing.assert_allclose(nz2.npairs, nz.weight / (np.mean(w1) * np.mean(w2)))
+    np.testing.assert_allclose(nz2.meanr, nz.rnom)
+    np.testing.assert_allclose(nz2.meanlogr, nz.logr)
+
     true_npairs = np.zeros(nbins, dtype=int)
     true_weight = np.zeros(nbins, dtype=float)
     true_xi = np.zeros(nbins, dtype=complex)
@@ -420,13 +429,26 @@ def test_nz():
     source_cat = treecorr.Catalog(x=xs, y=ys, z1=z1, z2=z2, x_units='arcmin', y_units='arcmin')
     nz = treecorr.NZCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
                                 verbose=1)
-    nz.process(lens_cat, source_cat)
+    t0 = time.time()
+    nz.process(lens_cat, source_cat, num_threads=1)
+    t1 = time.time()
+    print('Time for nz process = ',t1-t0)
 
     # Using nbins=None rather than omitting nbins is equivalent.
     nz2 = treecorr.NZCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None, sep_units='arcmin')
     nz2.process(lens_cat, source_cat, num_threads=1)
-    nz.process(lens_cat, source_cat, num_threads=1)
     assert nz2 == nz
+
+    # corr_only should give the same answer
+    t2 = time.time()
+    nz2.process(lens_cat, source_cat, num_threads=1, corr_only=True)
+    t3 = time.time()
+    print('Time for corr-only nz process = ',t3-t2)
+    np.testing.assert_allclose(nz2.xi, nz.xi)
+    np.testing.assert_allclose(nz2.xi_im, nz.xi_im)
+    np.testing.assert_allclose(nz2.weight, nz.weight)
+    #np.testing.assert_allclose(nz2.npairs, nz.weight)
+    assert t3-t2 < t1-t0
 
     r = nz.meanr
     true_z = z0 * np.exp(-0.5*r**2/r0**2) * (1.-0.5*r**2/r0**2)

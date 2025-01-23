@@ -13,6 +13,7 @@
 
 import numpy as np
 import treecorr
+import time
 import os
 import sys
 import coord
@@ -47,6 +48,14 @@ def test_direct():
     bin_size = np.log(max_sep/min_sep) / nbins
     nk = treecorr.NKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
     nk.process(cat1, cat2)
+
+    nk2 = nk.copy()
+    nk2.process(cat1, cat2, corr_only=True)
+    np.testing.assert_allclose(nk2.weight, nk.weight)
+    np.testing.assert_allclose(nk2.xi, nk.xi)
+    #np.testing.assert_allclose(nk2.npairs, nk.weight / (np.mean(w1) * np.mean(w2)))
+    np.testing.assert_allclose(nk2.meanr, nk.rnom)
+    np.testing.assert_allclose(nk2.meanlogr, nk.logr)
 
     true_npairs = np.zeros(nbins, dtype=int)
     true_weight = np.zeros(nbins, dtype=float)
@@ -393,17 +402,28 @@ def test_nk():
     source_cat = treecorr.Catalog(x=xs, y=ys, k=k, x_units='arcmin', y_units='arcmin')
     nk = treecorr.NKCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
                                 verbose=1)
-    nk.process(lens_cat, source_cat)
+    t0 = time.time()
+    nk.process(lens_cat, source_cat, num_threads=1)
+    t1 = time.time()
+    print('Time for nk process = ',t1-t0)
 
     # Using nbins=None rather than omitting nbins is equivalent.
     nk2 = treecorr.NKCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None, sep_units='arcmin')
     nk2.process(lens_cat, source_cat, num_threads=1)
-    nk.process(lens_cat, source_cat, num_threads=1)
     assert nk2 == nk
 
     # log(<R>) != <logR>, but it should be close:
     print('meanlogr - log(meanr) = ',nk.meanlogr - np.log(nk.meanr))
     np.testing.assert_allclose(nk.meanlogr, np.log(nk.meanr), atol=1.e-3)
+
+    t2 = time.time()
+    nk2.process(lens_cat, source_cat, num_threads=1, corr_only=True)
+    t3 = time.time()
+    print('Time for corr-only nk process = ',t3-t2)
+    np.testing.assert_allclose(nk2.xi, nk.xi)
+    np.testing.assert_allclose(nk2.weight, nk.weight)
+    #np.testing.assert_allclose(nk2.npairs, nk.weight)
+    assert t3-t2 < t1-t0
 
     r = nk.meanr
     true_k = kappa0 * np.exp(-0.5*r**2/r0**2) * (1.-0.5*r**2/r0**2)

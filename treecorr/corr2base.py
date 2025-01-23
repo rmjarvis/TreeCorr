@@ -26,7 +26,7 @@ from . import _treecorr
 from .config import merge_config, setup_logger, get, make_minimal_config
 from .util import parse_metric, metric_enum, coord_enum, set_omp_threads, lazy_property
 from .util import make_reader
-from .catalog import Catalog
+from .catalog import Catalog, calculateMeanW
 
 class Namespace(object):
     pass
@@ -753,7 +753,7 @@ class Corr2(object):
     def nonzero(self):
         """Return if there are any values accumulated yet.  (i.e. npairs > 0)
         """
-        return np.any(self.npairs)
+        return np.any(self.weight)
 
     def _add_tot(self, ij, c1, c2):
         # No op for all but NNCorrelation, which needs to add the tot value
@@ -1184,6 +1184,7 @@ class Corr2(object):
             self.clear()
             self._processed_cats1.clear()
             self._processed_cats2.clear()
+            self._corr_only = corr_only
 
         if patch_method not in ['local', 'global']:
             raise ValueError("Invalid patch_method %s"%patch_method)
@@ -1223,6 +1224,13 @@ class Corr2(object):
                                          self._letter1, var1, math.sqrt(var1))
                     self.logger.info(f"var%s = %f: {self._sig2} = %f",
                                      self._letter2, var2, math.sqrt(var2))
+            if corr_only:
+                w1 = calculateMeanW(self._processed_cats1, low_mem=low_mem)
+                if cat2 is None:
+                    w2 = w1
+                else:
+                    w2 = calculateMeanW(self._processed_cats2, low_mem=low_mem)
+                self._meanww = w1*w2
             if var1 is None:
                 if var2 is None:
                     self.finalize()
@@ -1246,8 +1254,9 @@ class Corr2(object):
             self._xi4[mask1] /= self.weight[mask1]
 
         if self._corr_only:
-            self.meanr = self.rnom
-            self.meanlogr = self.logr
+            self.meanr[:] = self.rnom
+            self.meanlogr[:] = self.logr
+            self.npairs[:] = self.weight / self._meanww
         else:
             self.meanr[mask1] /= self.weight[mask1]
             self.meanlogr[mask1] /= self.weight[mask1]
@@ -1270,7 +1279,6 @@ class Corr2(object):
         self.weight[:] = 0
         self.npairs[:] = 0
         self._cov = None
-        self._corr_only = False
 
     def __iadd__(self, other):
         """Add a second Correlation object's data to this one.

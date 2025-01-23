@@ -34,6 +34,7 @@ from .util import set_omp_threads, get_omp_threads, set_max_omp_threads
 from .catalog import Catalog, read_catalogs
 from .catalog import calculateVarK, calculateVarG, calculateVarZ
 from .catalog import calculateVarV, calculateVarT, calculateVarQ
+from .catalog import calculateMeanW
 
 from .corr2base import Corr2, estimate_multi_cov, build_multi_cov_design_matrix
 from .corr3base import Corr3

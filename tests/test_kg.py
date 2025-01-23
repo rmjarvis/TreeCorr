@@ -260,7 +260,7 @@ def test_direct_spherical():
     np.testing.assert_allclose(kg2.weight, kg.weight)
     np.testing.assert_allclose(kg2.xi, kg.xi)
     np.testing.assert_allclose(kg2.xi_im, kg.xi_im)
-    #np.testing.assert_allclose(kg2.npairs, kg.weight / (np.mean(w1) * np.mean(w2)))
+    np.testing.assert_allclose(kg2.npairs, kg.weight / (np.mean(w1) * np.mean(w2)))
     np.testing.assert_allclose(kg2.meanr, kg.rnom)
     np.testing.assert_allclose(kg2.meanlogr, kg.logr)
 
@@ -463,7 +463,7 @@ def test_kg():
     np.testing.assert_allclose(kg2.xi, kg.xi)
     np.testing.assert_allclose(kg2.xi_im, kg.xi_im)
     np.testing.assert_allclose(kg2.weight, kg.weight)
-    #np.testing.assert_allclose(kg2.npairs, kg.weight)
+    np.testing.assert_allclose(kg2.npairs, kg.npairs)
     assert t3-t2 < t1-t0
 
     r = kg.meanr

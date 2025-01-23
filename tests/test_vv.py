@@ -58,7 +58,7 @@ def test_direct():
     np.testing.assert_allclose(vv2.xip_im, vv.xip_im)
     np.testing.assert_allclose(vv2.xim, vv.xim)
     np.testing.assert_allclose(vv2.xim_im, vv.xim_im)
-    #np.testing.assert_allclose(vv2.npairs, vv.weight / (np.mean(w1) * np.mean(w2)))
+    np.testing.assert_allclose(vv2.npairs, vv.weight / (np.mean(w1) * np.mean(w2)))
     np.testing.assert_allclose(vv2.meanr, vv.rnom)
     np.testing.assert_allclose(vv2.meanlogr, vv.logr)
 
@@ -475,7 +475,7 @@ def test_vv():
     np.testing.assert_allclose(vv2.xim, vv.xim)
     np.testing.assert_allclose(vv2.xim_im, vv.xim_im)
     np.testing.assert_allclose(vv2.weight, vv.weight)
-    #np.testing.assert_allclose(vv2.npairs, vv.weight)
+    np.testing.assert_allclose(vv2.npairs, vv.npairs)
     assert t3-t2 < t1-t0
 
     r = vv.meanr

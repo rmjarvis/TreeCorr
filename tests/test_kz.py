@@ -54,7 +54,7 @@ def test_direct():
     np.testing.assert_allclose(kz2.weight, kz.weight)
     np.testing.assert_allclose(kz2.xi, kz.xi)
     np.testing.assert_allclose(kz2.xi_im, kz.xi_im)
-    #np.testing.assert_allclose(kz2.npairs, kz.weight / (np.mean(w1) * np.mean(w2)))
+    np.testing.assert_allclose(kz2.npairs, kz.weight / (np.mean(w1) * np.mean(w2)))
     np.testing.assert_allclose(kz2.meanr, kz.rnom)
     np.testing.assert_allclose(kz2.meanlogr, kz.logr)
 
@@ -450,7 +450,7 @@ def test_kz():
     np.testing.assert_allclose(kz2.xi, kz.xi)
     np.testing.assert_allclose(kz2.xi_im, kz.xi_im)
     np.testing.assert_allclose(kz2.weight, kz.weight)
-    #np.testing.assert_allclose(kz2.npairs, kz.weight)
+    np.testing.assert_allclose(kz2.npairs, kz.npairs)
     assert t3-t2 < t1-t0
 
     r = kz.meanr

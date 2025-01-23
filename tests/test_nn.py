@@ -682,7 +682,7 @@ def test_direct_spherical():
     dd2 = dd.copy()
     dd2.process(cat1, cat2, corr_only=True)
     np.testing.assert_allclose(dd2.weight, dd.weight)
-    #np.testing.assert_allclose(dd2.npairs, dd.weight / (np.mean(w1) * np.mean(w2)))
+    np.testing.assert_allclose(dd2.npairs, dd.weight / (np.mean(w1) * np.mean(w2)))
     np.testing.assert_allclose(dd2.meanr, dd.rnom)
     np.testing.assert_allclose(dd2.meanlogr, dd.logr)
 
@@ -1186,7 +1186,7 @@ def test_nn():
     t3 = time.time()
     print('Time for corr-only dd process = ',t3-t2)
     np.testing.assert_allclose(dd2.weight, dd.weight)
-    #np.testing.assert_allclose(dd2.npairs, dd2.weight)
+    np.testing.assert_allclose(dd2.npairs, dd2.npairs)
     assert t3-t2 < t1-t0
 
     rx = (rng.random_sample(nrand)-0.5) * L

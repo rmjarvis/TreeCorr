@@ -53,7 +53,7 @@ def test_direct():
     nk2.process(cat1, cat2, corr_only=True)
     np.testing.assert_allclose(nk2.weight, nk.weight)
     np.testing.assert_allclose(nk2.xi, nk.xi)
-    #np.testing.assert_allclose(nk2.npairs, nk.weight / (np.mean(w1) * np.mean(w2)))
+    np.testing.assert_allclose(nk2.npairs, nk.weight / (np.mean(w1) * np.mean(w2)))
     np.testing.assert_allclose(nk2.meanr, nk.rnom)
     np.testing.assert_allclose(nk2.meanlogr, nk.logr)
 
@@ -422,7 +422,7 @@ def test_nk():
     print('Time for corr-only nk process = ',t3-t2)
     np.testing.assert_allclose(nk2.xi, nk.xi)
     np.testing.assert_allclose(nk2.weight, nk.weight)
-    #np.testing.assert_allclose(nk2.npairs, nk.weight)
+    np.testing.assert_allclose(nk2.npairs, nk.npairs)
     assert t3-t2 < t1-t0
 
     r = nk.meanr

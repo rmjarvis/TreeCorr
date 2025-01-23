@@ -346,7 +346,7 @@ def test_direct_spherical():
     np.testing.assert_allclose(gg2.xip_im, gg.xip_im)
     np.testing.assert_allclose(gg2.xim, gg.xim)
     np.testing.assert_allclose(gg2.xim_im, gg.xim_im)
-    #np.testing.assert_allclose(gg2.npairs, gg.weight / (np.mean(w1) * np.mean(w2)))
+    np.testing.assert_allclose(gg2.npairs, gg.weight / (np.mean(w1) * np.mean(w2)))
     np.testing.assert_allclose(gg2.meanr, gg.rnom)
     np.testing.assert_allclose(gg2.meanlogr, gg.logr)
 
@@ -495,6 +495,16 @@ def test_direct_spherical():
     np.testing.assert_allclose(gg2.xip, gg.xip, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(gg2.xim, gg.xim, rtol=1.e-4, atol=1.e-4)
 
+    gg2.process(cat1p, cat2p, corr_only=True)
+    np.testing.assert_allclose(gg2.weight, gg.weight)
+    np.testing.assert_allclose(gg2.xip, gg.xip, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(gg2.xip_im, gg.xip_im, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(gg2.xim, gg.xim, rtol=1.e-4, atol=1.e-4)
+    np.testing.assert_allclose(gg2.xim_im, gg.xim_im, rtol=1.e-4, atol=1.e-4)
+    np.testing.assert_allclose(gg2.npairs, gg.weight / (np.mean(w1) * np.mean(w2)))
+    np.testing.assert_allclose(gg2.meanr, gg.rnom)
+    np.testing.assert_allclose(gg2.meanlogr, gg.logr)
+
     gg2.process(cat1p, cat2p, patch_method='local')
     np.testing.assert_array_equal(gg2.npairs, gg.npairs)
     np.testing.assert_allclose(gg2.weight, gg.weight)
@@ -502,6 +512,16 @@ def test_direct_spherical():
     np.testing.assert_allclose(gg2.meanlogr, gg.meanlogr, rtol=1.e-5)
     np.testing.assert_allclose(gg2.xip, gg.xip, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(gg2.xim, gg.xim, rtol=1.e-4, atol=1.e-4)
+
+    gg2.process(cat1p, cat2p, patch_method='local', corr_only=True)
+    np.testing.assert_allclose(gg2.weight, gg.weight)
+    np.testing.assert_allclose(gg2.xip, gg.xip, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(gg2.xip_im, gg.xip_im, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(gg2.xim, gg.xim, rtol=1.e-4, atol=1.e-4)
+    np.testing.assert_allclose(gg2.xim_im, gg.xim_im, rtol=1.e-4, atol=1.e-4)
+    np.testing.assert_allclose(gg2.npairs, gg.weight / (np.mean(w1) * np.mean(w2)))
+    np.testing.assert_allclose(gg2.meanr, gg.rnom)
+    np.testing.assert_allclose(gg2.meanlogr, gg.logr)
 
 
 @timer
@@ -564,7 +584,7 @@ def test_gg():
     np.testing.assert_allclose(gg2.xim, gg.xim)
     np.testing.assert_allclose(gg2.xim_im, gg.xim_im)
     np.testing.assert_allclose(gg2.weight, gg.weight)
-    #np.testing.assert_allclose(gg2.npairs, gg.weight)
+    np.testing.assert_allclose(gg2.npairs, gg.npairs)
     assert t3-t2 < t1-t0
 
     r = gg.meanr

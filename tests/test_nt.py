@@ -55,7 +55,7 @@ def test_direct():
     np.testing.assert_allclose(nt2.weight, nt.weight)
     np.testing.assert_allclose(nt2.xi, nt.xi)
     np.testing.assert_allclose(nt2.xi_im, nt.xi_im)
-    #np.testing.assert_allclose(nt2.npairs, nt.weight / (np.mean(w1) * np.mean(w2)))
+    np.testing.assert_allclose(nt2.npairs, nt.weight / (np.mean(w1) * np.mean(w2)))
     np.testing.assert_allclose(nt2.meanr, nt.rnom)
     np.testing.assert_allclose(nt2.meanlogr, nt.logr)
 
@@ -631,7 +631,7 @@ def test_nt():
     np.testing.assert_allclose(nt2.xi, nt.xi)
     np.testing.assert_allclose(nt2.xi_im, nt.xi_im)
     np.testing.assert_allclose(nt2.weight, nt.weight)
-    #np.testing.assert_allclose(nt2.npairs, nt.weight)
+    np.testing.assert_allclose(nt2.npairs, nt.npairs)
     assert t4-t3 < t2-t1
 
     r = nt.meanr

@@ -1274,6 +1274,13 @@ class Catalog(object):
         return self._sumw2
 
     @property
+    def meanw(self):
+        if self.nontrivial_w:
+            return self.sumw / self.nobj
+        else:
+            return 1.
+
+    @property
     def coords(self):
         if self.ra is not None:
             if self.r is None:
@@ -3295,6 +3302,34 @@ def _compute_var_multi_cat(cat_list, k, low_mem):
     vark = (vark - meank * sumw2 * (2*altmeank - meank)) / sumw
     return vark
 
+def calculateMeanW(cat_list, *, low_mem=False):
+    """Calculate the mean weight from a list of catalogs.
+
+    The catalogs are assumed to be equivalent, so this is just the average
+    variance weighted by the number of objects in each catalog.
+
+    Parameters:
+        cat_list:   A Catalog or a list of Catalogs for which to calculate the variance.
+        low_mem:    Whether to try to conserve memory when cat_list is a list by unloading each
+                    catalog after getting its individual vark. [default: False]
+
+    Returns:
+        The mean weight.
+    """
+    if isinstance(cat_list, Catalog):
+        return cat_list.meanw
+    elif len(cat_list) == 1:
+        return cat_list[0].meanw
+    else:
+        sumw = 0
+        nobj = 0
+        for cat in cat_list:
+            sumw += cat.sumw
+            nobj += cat.nobj
+            if low_mem:
+                cat.unload()
+        return sumw / nobj
+
 def calculateVarK(cat_list, *, low_mem=False):
     """Calculate the overall variance of the scalar field from a list of catalogs.
 
@@ -3303,7 +3338,7 @@ def calculateVarK(cat_list, *, low_mem=False):
 
     Parameters:
         cat_list:   A Catalog or a list of Catalogs for which to calculate the variance.
-        low_mem:    Whether to try to conserve memory when cat is a list by unloading each
+        low_mem:    Whether to try to conserve memory when cat_list is a list by unloading each
                     catalog after getting its individual vark. [default: False]
 
     Returns:
@@ -3328,7 +3363,7 @@ def calculateVarZ(cat_list, *, low_mem=False):
 
     Parameters:
         cat_list:   A Catalog or a list of Catalogs for which to calculate the vector variance.
-        low_mem:    Whether to try to conserve memory when cat is a list by unloading each
+        low_mem:    Whether to try to conserve memory when cat_list is a list by unloading each
                     catalog after getting its individual varz. [default: False]
 
     Returns:
@@ -3351,7 +3386,7 @@ def calculateVarV(cat_list, *, low_mem=False):
 
     Parameters:
         cat_list:   A Catalog or a list of Catalogs for which to calculate the vector variance.
-        low_mem:    Whether to try to conserve memory when cat is a list by unloading each
+        low_mem:    Whether to try to conserve memory when cat_list is a list by unloading each
                     catalog after getting its individual varv. [default: False]
 
     Returns:
@@ -3374,7 +3409,7 @@ def calculateVarG(cat_list, *, low_mem=False):
 
     Parameters:
         cat_list:   A Catalog or a list of Catalogs for which to calculate the shear variance.
-        low_mem:    Whether to try to conserve memory when cat is a list by unloading each
+        low_mem:    Whether to try to conserve memory when cat_list is a list by unloading each
                     catalog after getting its individual varg. [default: False]
 
     Returns:
@@ -3397,7 +3432,7 @@ def calculateVarT(cat_list, *, low_mem=False):
 
     Parameters:
         cat_list:   A Catalog or a list of Catalogs for which to calculate the shear variance.
-        low_mem:    Whether to try to conserve memory when cat is a list by unloading each
+        low_mem:    Whether to try to conserve memory when cat_list is a list by unloading each
                     catalog after getting its individual varg. [default: False]
 
     Returns:
@@ -3420,7 +3455,7 @@ def calculateVarQ(cat_list, *, low_mem=False):
 
     Parameters:
         cat_list:   A Catalog or a list of Catalogs for which to calculate the shear variance.
-        low_mem:    Whether to try to conserve memory when cat is a list by unloading each
+        low_mem:    Whether to try to conserve memory when cat_list is a list by unloading each
                     catalog after getting its individual varg. [default: False]
 
     Returns:

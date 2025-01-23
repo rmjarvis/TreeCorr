@@ -55,7 +55,7 @@ def test_direct():
     np.testing.assert_allclose(ng2.weight, ng.weight)
     np.testing.assert_allclose(ng2.xi, ng.xi)
     np.testing.assert_allclose(ng2.xi_im, ng.xi_im)
-    #np.testing.assert_allclose(ng2.npairs, ng.weight / (np.mean(w1) * np.mean(w2)))
+    np.testing.assert_allclose(ng2.npairs, ng.weight / (np.mean(w1) * np.mean(w2)))
     np.testing.assert_allclose(ng2.meanr, ng.rnom)
     np.testing.assert_allclose(ng2.meanlogr, ng.logr)
 
@@ -631,7 +631,7 @@ def test_ng():
     np.testing.assert_allclose(ng2.xi, ng.xi)
     np.testing.assert_allclose(ng2.xi_im, ng.xi_im)
     np.testing.assert_allclose(ng2.weight, ng.weight)
-    #np.testing.assert_allclose(ng2.npairs, ng.weight)
+    np.testing.assert_allclose(ng2.npairs, ng.npairs)
     assert t3-t2 < t1-t0
 
     r = ng.meanr

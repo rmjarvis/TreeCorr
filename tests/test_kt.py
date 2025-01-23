@@ -49,6 +49,15 @@ def test_direct():
     kt = treecorr.KTCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
     kt.process(cat1, cat2)
 
+    kt2 = kt.copy()
+    kt2.process(cat1, cat2, corr_only=True)
+    np.testing.assert_allclose(kt2.weight, kt.weight)
+    np.testing.assert_allclose(kt2.xi, kt.xi)
+    np.testing.assert_allclose(kt2.xi_im, kt.xi_im)
+    #np.testing.assert_allclose(kt2.npairs, kt.weight / (np.mean(w1) * np.mean(w2)))
+    np.testing.assert_allclose(kt2.meanr, kt.rnom)
+    np.testing.assert_allclose(kt2.meanlogr, kt.logr)
+
     true_npairs = np.zeros(nbins, dtype=int)
     true_weight = np.zeros(nbins, dtype=float)
     true_xi = np.zeros(nbins, dtype=complex)
@@ -439,13 +448,25 @@ def test_kt():
     source_cat = treecorr.Catalog(x=xs, y=ys, t1=t1, t2=t2, x_units='arcmin', y_units='arcmin')
     kt = treecorr.KTCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
                                 verbose=1)
-    kt.process(lens_cat, source_cat)
+    t1 = time.time()
+    kt.process(lens_cat, source_cat, num_threads=1)
+    t2 = time.time()
+    print('Time for kt process = ',t2-t1)
 
     # Using nbins=None rather than omiting nbins is equivalent.
     kt2 = treecorr.KTCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None, sep_units='arcmin')
     kt2.process(lens_cat, source_cat, num_threads=1)
-    kt.process(lens_cat, source_cat, num_threads=1)
     assert kt2 == kt
+
+    t3 = time.time()
+    kt2.process(lens_cat, source_cat, num_threads=1, corr_only=True)
+    t4 = time.time()
+    print('Time for corr-only kt process = ',t4-t3)
+    np.testing.assert_allclose(kt2.xi, kt.xi)
+    np.testing.assert_allclose(kt2.xi_im, kt.xi_im)
+    np.testing.assert_allclose(kt2.weight, kt.weight)
+    #np.testing.assert_allclose(kt2.npairs, kt.weight)
+    assert t4-t3 < t2-t1
 
     r = kt.meanr
     true_tr = t0 * np.exp(-0.5*r**2/r0**2)

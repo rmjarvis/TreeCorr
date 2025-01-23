@@ -51,6 +51,17 @@ def test_direct():
     qq = treecorr.QQCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
     qq.process(cat1, cat2)
 
+    qq2 = qq.copy()
+    qq2.process(cat1, cat2, corr_only=True)
+    np.testing.assert_allclose(qq2.weight, qq.weight)
+    np.testing.assert_allclose(qq2.xip, qq.xip)
+    np.testing.assert_allclose(qq2.xip_im, qq.xip_im)
+    np.testing.assert_allclose(qq2.xim, qq.xim)
+    np.testing.assert_allclose(qq2.xim_im, qq.xim_im)
+    #np.testing.assert_allclose(qq2.npairs, qq.weight / (np.mean(w1) * np.mean(w2)))
+    np.testing.assert_allclose(qq2.meanr, qq.rnom)
+    np.testing.assert_allclose(qq2.meanlogr, qq.logr)
+
     true_npairs = np.zeros(nbins, dtype=int)
     true_weight = np.zeros(nbins, dtype=float)
     true_xip = np.zeros(nbins, dtype=complex)
@@ -438,11 +449,33 @@ def test_qq():
     cat = treecorr.Catalog(x=x, y=y, q1=q1, q2=q2, x_units='arcmin', y_units='arcmin')
     qq = treecorr.QQCorrelation(bin_size=0.1, min_sep=10., max_sep=100., sep_units='arcmin',
                                 verbose=1)
-    qq.process(cat)
+    t0 = time.time()
+    qq.process(cat, num_threads=1)
+    t1 = time.time()
+    print('Time for qq process = ',t1-t0)
 
     # log(<R>) != <logR>, but it should be close:
     print('meanlogr - log(meanr) = ',qq.meanlogr - np.log(qq.meanr))
     np.testing.assert_allclose(qq.meanlogr, np.log(qq.meanr), atol=1.e-3)
+
+    # Using nbins=None rather than omitting nbins is equivalent.
+    qq2 = treecorr.QQCorrelation(bin_size=0.1, min_sep=10., max_sep=100.,
+                                 nbins=None, sep_units='arcmin')
+    qq2.process(cat, num_threads=1)
+    assert qq2 == qq
+
+    # corr_only should give the same answer
+    t2 = time.time()
+    qq2.process(cat, num_threads=1, corr_only=True)
+    t3 = time.time()
+    print('Time for corr-only qq process = ',t3-t2)
+    np.testing.assert_allclose(qq2.xip, qq.xip)
+    np.testing.assert_allclose(qq2.xip_im, qq.xip_im)
+    np.testing.assert_allclose(qq2.xim, qq.xim)
+    np.testing.assert_allclose(qq2.xim_im, qq.xim_im)
+    np.testing.assert_allclose(qq2.weight, qq.weight)
+    #np.testing.assert_allclose(qq2.npairs, qq.weight)
+    assert t3-t2 < t1-t0
 
     r = qq.meanr
     temp = np.pi/256. * q0**2 * (r0/L)**2 * np.exp(-0.25*r**2/r0**2)

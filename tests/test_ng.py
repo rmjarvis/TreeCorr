@@ -50,6 +50,15 @@ def test_direct():
     ng = treecorr.NGCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
     ng.process(cat1, cat2)
 
+    ng2 = ng.copy()
+    ng2.process(cat1, cat2, corr_only=True)
+    np.testing.assert_allclose(ng2.weight, ng.weight)
+    np.testing.assert_allclose(ng2.xi, ng.xi)
+    np.testing.assert_allclose(ng2.xi_im, ng.xi_im)
+    #np.testing.assert_allclose(ng2.npairs, ng.weight / (np.mean(w1) * np.mean(w2)))
+    np.testing.assert_allclose(ng2.meanr, ng.rnom)
+    np.testing.assert_allclose(ng2.meanlogr, ng.logr)
+
     true_npairs = np.zeros(nbins, dtype=int)
     true_weight = np.zeros(nbins, dtype=float)
     true_xi = np.zeros(nbins, dtype=complex)
@@ -605,13 +614,25 @@ def test_ng():
     source_cat = treecorr.Catalog(x=xs, y=ys, g1=g1, g2=g2, x_units='arcmin', y_units='arcmin')
     ng = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
                                 verbose=1)
-    ng.process(lens_cat, source_cat)
+    t0 = time.time()
+    ng.process(lens_cat, source_cat, num_threads=1)
+    t1 = time.time()
+    print('Time for ng process = ',t1-t0)
 
     # Using nbins=None rather than omitting nbins is equivalent.
     ng2 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None, sep_units='arcmin')
     ng2.process(lens_cat, source_cat, num_threads=1)
-    ng.process(lens_cat, source_cat, num_threads=1)
     assert ng2 == ng
+
+    t2 = time.time()
+    ng2.process(lens_cat, source_cat, num_threads=1, corr_only=True)
+    t3 = time.time()
+    print('Time for corr-only ng process = ',t3-t2)
+    np.testing.assert_allclose(ng2.xi, ng.xi)
+    np.testing.assert_allclose(ng2.xi_im, ng.xi_im)
+    np.testing.assert_allclose(ng2.weight, ng.weight)
+    #np.testing.assert_allclose(ng2.npairs, ng.weight)
+    assert t3-t2 < t1-t0
 
     r = ng.meanr
     true_gt = gamma0 * np.exp(-0.5*r**2/r0**2)

@@ -13,6 +13,7 @@
 
 import numpy as np
 import treecorr
+import time
 import os
 import coord
 
@@ -46,6 +47,14 @@ def test_direct():
     bin_size = np.log(max_sep/min_sep) / nbins
     kk = treecorr.KKCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
     kk.process(cat1, cat2)
+
+    kk2 = kk.copy()
+    kk2.process(cat1, cat2, corr_only=True)
+    np.testing.assert_allclose(kk2.weight, kk.weight)
+    np.testing.assert_allclose(kk2.xi, kk.xi)
+    #np.testing.assert_allclose(kk2.npairs, kk.weight / (np.mean(w1) * np.mean(w2)))
+    np.testing.assert_allclose(kk2.meanr, kk.rnom)
+    np.testing.assert_allclose(kk2.meanlogr, kk.logr)
 
     true_npairs = np.zeros(nbins, dtype=int)
     true_weight = np.zeros(nbins, dtype=float)
@@ -424,7 +433,10 @@ def test_kk():
     cat = treecorr.Catalog(x=x, y=y, k=kappa, x_units='arcmin', y_units='arcmin')
     kk = treecorr.KKCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
                                 verbose=1)
+    t0 = time.time()
     kk.process(cat, num_threads=1)
+    t1 = time.time()
+    print('Time for kk process = ',t1-t0)
 
     # Using nbins=None rather than omiting nbins is equivalent.
     kk2 = treecorr.KKCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None,
@@ -435,6 +447,15 @@ def test_kk():
     # log(<R>) != <logR>, but it should be close:
     print('meanlogr - log(meanr) = ',kk.meanlogr - np.log(kk.meanr))
     np.testing.assert_allclose(kk.meanlogr, np.log(kk.meanr), atol=1.e-3)
+
+    t2 = time.time()
+    kk2.process(cat, num_threads=1, corr_only=True)
+    t3 = time.time()
+    print('Time for corr-only kk process = ',t3-t2)
+    np.testing.assert_allclose(kk2.xi, kk.xi)
+    np.testing.assert_allclose(kk2.weight, kk.weight)
+    #np.testing.assert_allclose(kk2.npairs, kk.weight)
+    assert t3-t2 < t1-t0
 
     r = kk.meanr
     true_xi = np.pi * A**2 * (s/L)**2 * np.exp(-0.25*r**2/s**2)

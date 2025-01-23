@@ -50,6 +50,15 @@ def test_direct():
     nv = treecorr.NVCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
     nv.process(cat1, cat2)
 
+    nv2 = nv.copy()
+    nv2.process(cat1, cat2, corr_only=True)
+    np.testing.assert_allclose(nv2.weight, nv.weight)
+    np.testing.assert_allclose(nv2.xi, nv.xi)
+    np.testing.assert_allclose(nv2.xi_im, nv.xi_im)
+    #np.testing.assert_allclose(nv2.npairs, nv.weight / (np.mean(w1) * np.mean(w2)))
+    np.testing.assert_allclose(nv2.meanr, nv.rnom)
+    np.testing.assert_allclose(nv2.meanlogr, nv.logr)
+
     true_npairs = np.zeros(nbins, dtype=int)
     true_weight = np.zeros(nbins, dtype=float)
     true_xi = np.zeros(nbins, dtype=complex)
@@ -601,13 +610,26 @@ def test_nv():
     source_cat = treecorr.Catalog(x=xs, y=ys, v1=v1, v2=v2, x_units='arcmin', y_units='arcmin')
     nv = treecorr.NVCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
                                 verbose=1)
-    nv.process(lens_cat, source_cat)
+    t0 = time.time()
+    nv.process(lens_cat, source_cat, num_threads=1)
+    t1 = time.time()
+    print('Time for nv process = ',t1-t0)
 
     # Using nbins=None rather than omitting nbins is equivalent.
     nv2 = treecorr.NVCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None, sep_units='arcmin')
     nv2.process(lens_cat, source_cat, num_threads=1)
-    nv.process(lens_cat, source_cat, num_threads=1)
     assert nv2 == nv
+
+    # corr_only should give the same answer
+    t2 = time.time()
+    nv2.process(lens_cat, source_cat, num_threads=1, corr_only=True)
+    t3 = time.time()
+    print('Time for corr-only nv process = ',t3-t2)
+    np.testing.assert_allclose(nv2.xi, nv.xi)
+    np.testing.assert_allclose(nv2.xi_im, nv.xi_im)
+    np.testing.assert_allclose(nv2.weight, nv.weight)
+    #np.testing.assert_allclose(nv2.npairs, nv.weight)
+    assert t3-t2 < t1-t0
 
     r = nv.meanr
     true_vr = v0 * np.exp(-0.5*r**2/r0**2)

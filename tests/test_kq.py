@@ -49,6 +49,15 @@ def test_direct():
     kq = treecorr.KQCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, brute=True)
     kq.process(cat1, cat2)
 
+    kq2 = kq.copy()
+    kq2.process(cat1, cat2, corr_only=True)
+    np.testing.assert_allclose(kq2.weight, kq.weight)
+    np.testing.assert_allclose(kq2.xi, kq.xi)
+    np.testing.assert_allclose(kq2.xi_im, kq.xi_im)
+    #np.testing.assert_allclose(kq2.npairs, kq.weight / (np.mean(w1) * np.mean(w2)))
+    np.testing.assert_allclose(kq2.meanr, kq.rnom)
+    np.testing.assert_allclose(kq2.meanlogr, kq.logr)
+
     true_npairs = np.zeros(nbins, dtype=int)
     true_weight = np.zeros(nbins, dtype=float)
     true_xi = np.zeros(nbins, dtype=complex)
@@ -440,13 +449,25 @@ def test_kq():
     source_cat = treecorr.Catalog(x=xs, y=ys, q1=q1, q2=q2, x_units='arcmin', y_units='arcmin')
     kq = treecorr.KQCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
                                 verbose=1)
-    kq.process(lens_cat, source_cat)
+    t0 = time.time()
+    kq.process(lens_cat, source_cat, num_threads=1)
+    t1 = time.time()
+    print('Time for kq process = ',t1-t0)
 
     # Using nbins=None rather than omiting nbins is equivalent.
     kq2 = treecorr.KQCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None, sep_units='arcmin')
     kq2.process(lens_cat, source_cat, num_threads=1)
-    kq.process(lens_cat, source_cat, num_threads=1)
     assert kq2 == kq
+
+    t2 = time.time()
+    kq2.process(lens_cat, source_cat, num_threads=1, corr_only=True)
+    t3 = time.time()
+    print('Time for corr-only kq process = ',t3-t2)
+    np.testing.assert_allclose(kq2.xi, kq.xi)
+    np.testing.assert_allclose(kq2.xi_im, kq.xi_im)
+    np.testing.assert_allclose(kq2.weight, kq.weight)
+    #np.testing.assert_allclose(kq2.npairs, kq.weight)
+    assert t3-t2 < t1-t0
 
     r = kq.meanr
     true_qr = q0 * np.exp(-0.5*r**2/r0**2)

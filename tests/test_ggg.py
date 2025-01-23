@@ -130,6 +130,23 @@ def test_direct_logruv():
     np.testing.assert_allclose(ggg.gam2, true_gam2, rtol=1.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-5, atol=1.e-8)
 
+    ggg2 = ggg.copy()
+    ggg2.process(cat, corr_only=True)
+    np.testing.assert_allclose(ggg2.weight, ggg.weight)
+    np.testing.assert_allclose(ggg2.gam0, ggg.gam0)
+    np.testing.assert_allclose(ggg2.gam1, ggg.gam1)
+    np.testing.assert_allclose(ggg2.gam2, ggg.gam2)
+    np.testing.assert_allclose(ggg2.gam3, ggg.gam3)
+    np.testing.assert_allclose(ggg2.ntri, ggg.weight / (np.mean(w)**3))
+    np.testing.assert_allclose(ggg2.meand2, ggg.rnom)
+    np.testing.assert_allclose(ggg2.meanlogd2, ggg.logr)
+    np.testing.assert_allclose(ggg2.meanu, ggg.u)
+    np.testing.assert_allclose(ggg2.meanv, ggg.v)
+    np.testing.assert_allclose(ggg2.meand3/ggg2.meand2, ggg.u)
+    np.testing.assert_allclose((ggg2.meand1 - ggg2.meand2)/ggg2.meand3, np.abs(ggg.v))
+    np.testing.assert_allclose(ggg2.meanlogd1, np.log(ggg2.meand1))
+    np.testing.assert_allclose(ggg2.meanlogd3, np.log(ggg2.meand3))
+
     # Check that running via the corr3 script works correctly.
     config = treecorr.config.read_config('configs/ggg_direct.yaml')
     try:
@@ -504,6 +521,22 @@ def test_direct_logruv():
     np.testing.assert_allclose(ggg.gam2, true_gam2, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-5)
 
+    ggg2.process(catp, corr_only=True)
+    np.testing.assert_allclose(ggg2.weight, ggg.weight)
+    np.testing.assert_allclose(ggg2.gam0, ggg.gam0)
+    np.testing.assert_allclose(ggg2.gam1, ggg.gam1)
+    np.testing.assert_allclose(ggg2.gam2, ggg.gam2)
+    np.testing.assert_allclose(ggg2.gam3, ggg.gam3)
+    np.testing.assert_allclose(ggg2.ntri, ggg.weight / (np.mean(w)**3))
+    np.testing.assert_allclose(ggg2.meand2, ggg.rnom)
+    np.testing.assert_allclose(ggg2.meanlogd2, ggg.logr)
+    np.testing.assert_allclose(ggg2.meanu, ggg.u)
+    np.testing.assert_allclose(ggg2.meanv, ggg.v)
+    np.testing.assert_allclose(ggg2.meand3/ggg2.meand2, ggg.u)
+    np.testing.assert_allclose((ggg2.meand1 - ggg2.meand2)/ggg2.meand3, np.abs(ggg.v))
+    np.testing.assert_allclose(ggg2.meanlogd1, np.log(ggg2.meand1))
+    np.testing.assert_allclose(ggg2.meanlogd3, np.log(ggg2.meand3))
+
     ggg.process(catp, patch_method='local')
     np.testing.assert_array_equal(ggg.ntri, true_ntri)
     np.testing.assert_allclose(ggg.weight, true_weight, rtol=1.e-5)
@@ -511,6 +544,22 @@ def test_direct_logruv():
     np.testing.assert_allclose(ggg.gam1, true_gam1, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam2, true_gam2, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-5)
+
+    ggg2.process(catp, patch_method='local', corr_only=True)
+    np.testing.assert_allclose(ggg2.weight, ggg.weight)
+    np.testing.assert_allclose(ggg2.gam0, ggg.gam0)
+    np.testing.assert_allclose(ggg2.gam1, ggg.gam1)
+    np.testing.assert_allclose(ggg2.gam2, ggg.gam2)
+    np.testing.assert_allclose(ggg2.gam3, ggg.gam3)
+    np.testing.assert_allclose(ggg2.ntri, ggg.weight / (np.mean(w)**3))
+    np.testing.assert_allclose(ggg2.meand2, ggg.rnom)
+    np.testing.assert_allclose(ggg2.meanlogd2, ggg.logr)
+    np.testing.assert_allclose(ggg2.meanu, ggg.u)
+    np.testing.assert_allclose(ggg2.meanv, ggg.v)
+    np.testing.assert_allclose(ggg2.meand3/ggg2.meand2, ggg.u)
+    np.testing.assert_allclose((ggg2.meand1 - ggg2.meand2)/ggg2.meand3, np.abs(ggg.v))
+    np.testing.assert_allclose(ggg2.meanlogd1, np.log(ggg2.meand1))
+    np.testing.assert_allclose(ggg2.meanlogd3, np.log(ggg2.meand3))
 
     with assert_raises(ValueError):
         ggg.process(cat, algo='invalid')
@@ -1033,6 +1082,23 @@ def test_direct_logruv_cross():
     np.testing.assert_allclose(ggg.gam2, true_gam2_sum, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam3, true_gam3_sum, rtol=1.e-5)
 
+    ggg2 = ggg.copy()
+    ggg2.process(cat1, cat2, cat3, corr_only=True, ordered=False)
+    np.testing.assert_allclose(ggg2.weight, ggg.weight)
+    np.testing.assert_allclose(ggg2.gam0, ggg.gam0)
+    np.testing.assert_allclose(ggg2.gam1, ggg.gam1)
+    np.testing.assert_allclose(ggg2.gam2, ggg.gam2)
+    np.testing.assert_allclose(ggg2.gam3, ggg.gam3)
+    np.testing.assert_allclose(ggg2.ntri, ggg.weight / (np.mean(w1)*np.mean(w2)*np.mean(w3)))
+    np.testing.assert_allclose(ggg2.meand2, ggg.rnom)
+    np.testing.assert_allclose(ggg2.meanlogd2, ggg.logr)
+    np.testing.assert_allclose(ggg2.meanu, ggg.u)
+    np.testing.assert_allclose(ggg2.meanv, ggg.v)
+    np.testing.assert_allclose(ggg2.meand3/ggg2.meand2, ggg.u)
+    np.testing.assert_allclose((ggg2.meand1 - ggg2.meand2)/ggg2.meand3, np.abs(ggg.v))
+    np.testing.assert_allclose(ggg2.meanlogd1, np.log(ggg2.meand1))
+    np.testing.assert_allclose(ggg2.meanlogd3, np.log(ggg2.meand3))
+
     # Error to have cat3, but not cat2
     with assert_raises(ValueError):
         ggg.process(cat1, cat3=cat3)
@@ -1073,6 +1139,22 @@ def test_direct_logruv_cross():
     np.testing.assert_allclose(ggg.gam1, true_gam1_sum, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam2, true_gam2_sum, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam3, true_gam3_sum, rtol=1.e-5)
+
+    ggg2.process(cat1p, cat2p, cat3p, ordered=False, patch_method='local', corr_only=True)
+    np.testing.assert_allclose(ggg2.weight, ggg.weight)
+    np.testing.assert_allclose(ggg2.gam0, ggg.gam0)
+    np.testing.assert_allclose(ggg2.gam1, ggg.gam1)
+    np.testing.assert_allclose(ggg2.gam2, ggg.gam2)
+    np.testing.assert_allclose(ggg2.gam3, ggg.gam3)
+    np.testing.assert_allclose(ggg2.ntri, ggg.weight / (np.mean(w1)*np.mean(w2)*np.mean(w3)))
+    np.testing.assert_allclose(ggg2.meand2, ggg.rnom)
+    np.testing.assert_allclose(ggg2.meanlogd2, ggg.logr)
+    np.testing.assert_allclose(ggg2.meanu, ggg.u)
+    np.testing.assert_allclose(ggg2.meanv, ggg.v)
+    np.testing.assert_allclose(ggg2.meand3/ggg2.meand2, ggg.u)
+    np.testing.assert_allclose((ggg2.meand1 - ggg2.meand2)/ggg2.meand3, np.abs(ggg.v))
+    np.testing.assert_allclose(ggg2.meanlogd1, np.log(ggg2.meand1))
+    np.testing.assert_allclose(ggg2.meanlogd3, np.log(ggg2.meand3))
 
     with assert_raises(ValueError):
         ggg.process(cat1p, cat2p, cat3p, patch_method='nonlocal')
@@ -2592,6 +2674,23 @@ def test_direct_logsas():
     np.testing.assert_allclose(ggg.gam2, true_gam2, rtol=2.e-5, atol=1.e-8)
     np.testing.assert_allclose(ggg.gam3, true_gam3, rtol=1.e-5, atol=1.e-8)
 
+    ggg2 = ggg.copy()
+    ggg2.process(cat, corr_only=True, algo='triangle')
+    np.testing.assert_allclose(ggg2.weight, ggg.weight)
+    np.testing.assert_allclose(ggg2.gam0, ggg.gam0)
+    np.testing.assert_allclose(ggg2.gam1, ggg.gam1)
+    np.testing.assert_allclose(ggg2.gam2, ggg.gam2)
+    np.testing.assert_allclose(ggg2.gam3, ggg.gam3)
+    np.testing.assert_allclose(ggg2.ntri, ggg.weight / (np.mean(w)**3))
+    np.testing.assert_allclose(ggg2.meand2, ggg.d2nom)
+    np.testing.assert_allclose(ggg2.meanlogd2, ggg.logd2)
+    np.testing.assert_allclose(ggg2.meand3, ggg.d3nom)
+    np.testing.assert_allclose(ggg2.meanlogd3, ggg.logd3)
+    np.testing.assert_allclose(ggg2.meanphi, ggg.phi)
+    np.testing.assert_allclose(ggg2.meand1**2,
+            ggg.d2nom**2 + ggg.d3nom**2 - 2*ggg.d2nom*ggg.d3nom*np.cos(ggg.phi))
+    np.testing.assert_allclose(ggg2.meanlogd1, np.log(ggg2.meand1))
+
     # Test I/O
     ascii_name = 'output/ggg_ascii_logsas.txt'
     ggg.write(ascii_name, precision=16)
@@ -3208,6 +3307,24 @@ def test_direct_logsas_cross():
     np.testing.assert_allclose(ggg.gam2, true_gam2_sum, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam3, true_gam3_sum, rtol=1.e-4, atol=1.e-6)
 
+    ggg2 = ggg.copy()
+    ggg2.process(cat1, cat2, cat3, ordered=False, algo='triangle', corr_only=True)
+    np.testing.assert_allclose(ggg2.weight, ggg.weight)
+    np.testing.assert_allclose(ggg2.gam0, ggg.gam0)
+    np.testing.assert_allclose(ggg2.gam1, ggg.gam1)
+    np.testing.assert_allclose(ggg2.gam2, ggg.gam2)
+    np.testing.assert_allclose(ggg2.gam3, ggg.gam3)
+    np.testing.assert_allclose(ggg2.ntri, ggg.weight / (np.mean(w1)*np.mean(w2)*np.mean(w3)),
+                               rtol=1.e-6)
+    np.testing.assert_allclose(ggg2.meand2, ggg.d2nom)
+    np.testing.assert_allclose(ggg2.meanlogd2, ggg.logd2)
+    np.testing.assert_allclose(ggg2.meand3, ggg.d3nom)
+    np.testing.assert_allclose(ggg2.meanlogd3, ggg.logd3)
+    np.testing.assert_allclose(ggg2.meanphi, ggg.phi)
+    np.testing.assert_allclose(ggg2.meand1**2,
+            ggg.d2nom**2 + ggg.d3nom**2 - 2*ggg.d2nom*ggg.d3nom*np.cos(ggg.phi))
+    np.testing.assert_allclose(ggg2.meanlogd1, np.log(ggg2.meand1))
+
     # Error to have cat3, but not cat2
     with assert_raises(ValueError):
         ggg.process(cat1, cat3=cat3, algo='triangle')
@@ -3248,6 +3365,25 @@ def test_direct_logsas_cross():
     np.testing.assert_allclose(ggg.gam1, true_gam1_sum, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam2, true_gam2_sum, rtol=1.e-5)
     np.testing.assert_allclose(ggg.gam3, true_gam3_sum, rtol=1.e-5)
+
+    ggg2 = ggg.copy()
+    ggg2.process(cat1p, cat2p, cat3p, ordered=False, patch_method='local', algo='triangle',
+                 corr_only=True)
+    np.testing.assert_allclose(ggg2.weight, ggg.weight)
+    np.testing.assert_allclose(ggg2.gam0, ggg.gam0)
+    np.testing.assert_allclose(ggg2.gam1, ggg.gam1)
+    np.testing.assert_allclose(ggg2.gam2, ggg.gam2)
+    np.testing.assert_allclose(ggg2.gam3, ggg.gam3)
+    np.testing.assert_allclose(ggg2.ntri, ggg.weight / (np.mean(w1)*np.mean(w2)*np.mean(w3)),
+                               rtol=1.e-6)
+    np.testing.assert_allclose(ggg2.meand2, ggg.d2nom)
+    np.testing.assert_allclose(ggg2.meanlogd2, ggg.logd2)
+    np.testing.assert_allclose(ggg2.meand3, ggg.d3nom)
+    np.testing.assert_allclose(ggg2.meanlogd3, ggg.logd3)
+    np.testing.assert_allclose(ggg2.meanphi, ggg.phi)
+    np.testing.assert_allclose(ggg2.meand1**2,
+            ggg.d2nom**2 + ggg.d3nom**2 - 2*ggg.d2nom*ggg.d3nom*np.cos(ggg.phi))
+    np.testing.assert_allclose(ggg2.meanlogd1, np.log(ggg2.meand1))
 
 
 @timer
@@ -3447,6 +3583,23 @@ def test_direct_logsas_cross12():
     np.testing.assert_allclose(ggg.gam2, true_gam2_sum, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam3, true_gam3_sum, rtol=1.e-4, atol=1.e-6)
 
+    ggg2 = ggg.copy()
+    ggg2.process(cat1, cat2, ordered=False, algo='triangle', corr_only=True)
+    np.testing.assert_allclose(ggg2.weight, ggg.weight)
+    np.testing.assert_allclose(ggg2.gam0, ggg.gam0)
+    np.testing.assert_allclose(ggg2.gam1, ggg.gam1)
+    np.testing.assert_allclose(ggg2.gam2, ggg.gam2)
+    np.testing.assert_allclose(ggg2.gam3, ggg.gam3)
+    np.testing.assert_allclose(ggg2.ntri, ggg.weight / (np.mean(w1)*np.mean(w2)**2))
+    np.testing.assert_allclose(ggg2.meand2, ggg.d2nom)
+    np.testing.assert_allclose(ggg2.meanlogd2, ggg.logd2)
+    np.testing.assert_allclose(ggg2.meand3, ggg.d3nom)
+    np.testing.assert_allclose(ggg2.meanlogd3, ggg.logd3)
+    np.testing.assert_allclose(ggg2.meanphi, ggg.phi)
+    np.testing.assert_allclose(ggg2.meand1**2,
+            ggg.d2nom**2 + ggg.d3nom**2 - 2*ggg.d2nom*ggg.d3nom*np.cos(ggg.phi))
+    np.testing.assert_allclose(ggg2.meanlogd1, np.log(ggg2.meand1))
+
     # Split into patches to test the list-based version of the code.
     cat1p = treecorr.Catalog(x=x1, y=y1, w=w1, g1=g1_1, g2=g2_1, npatch=4, rng=rng)
     cat2p = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2, patch_centers=cat1p.patch_centers)
@@ -3480,6 +3633,23 @@ def test_direct_logsas_cross12():
     np.testing.assert_allclose(ggg.gam1, true_gam1_sum, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam2, true_gam2_sum, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(ggg.gam3, true_gam3_sum, rtol=1.e-4, atol=1.e-6)
+
+    ggg2 = ggg.copy()
+    ggg2.process(cat1p, cat2p, ordered=False, algo='triangle', corr_only=True)
+    np.testing.assert_allclose(ggg2.weight, ggg.weight)
+    np.testing.assert_allclose(ggg2.gam0, ggg.gam0)
+    np.testing.assert_allclose(ggg2.gam1, ggg.gam1)
+    np.testing.assert_allclose(ggg2.gam2, ggg.gam2)
+    np.testing.assert_allclose(ggg2.gam3, ggg.gam3)
+    np.testing.assert_allclose(ggg2.ntri, ggg.weight / (np.mean(w1)*np.mean(w2)**2))
+    np.testing.assert_allclose(ggg2.meand2, ggg.d2nom)
+    np.testing.assert_allclose(ggg2.meanlogd2, ggg.logd2)
+    np.testing.assert_allclose(ggg2.meand3, ggg.d3nom)
+    np.testing.assert_allclose(ggg2.meanlogd3, ggg.logd3)
+    np.testing.assert_allclose(ggg2.meanphi, ggg.phi)
+    np.testing.assert_allclose(ggg2.meand1**2,
+            ggg.d2nom**2 + ggg.d3nom**2 - 2*ggg.d2nom*ggg.d3nom*np.cos(ggg.phi))
+    np.testing.assert_allclose(ggg2.meanlogd1, np.log(ggg2.meand1))
 
     ggg.process(cat1p, cat2p, patch_method='local', algo='triangle')
     np.testing.assert_array_equal(ggg.ntri, true_ntri_122)

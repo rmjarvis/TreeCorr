@@ -25,7 +25,7 @@ from .config import merge_config, setup_logger, get, make_minimal_config
 from .util import parse_metric, metric_enum, coord_enum, set_omp_threads, lazy_property
 from .util import make_writer, make_reader, spin_by_letter
 from .corr2base import estimate_multi_cov, build_multi_cov_design_matrix, Corr2
-from .catalog import Catalog
+from .catalog import Catalog, calculateMeanW
 
 class Namespace(object):
     pass
@@ -821,6 +821,7 @@ class Corr3(object):
         self.ntri = np.zeros(self.data_shape, dtype=float)
         self._cov = None
         self._var_num = 0
+        self._corr_only = False
 
         # Sub-classes will allocate space for the ones we actually need.
         self._z = [np.array([]) for _ in range(8)]
@@ -1213,7 +1214,7 @@ class Corr3(object):
     def nonzero(self):
         """Return if there are any values accumulated yet.  (i.e. ntri > 0)
         """
-        return np.any(self.ntri)
+        return np.any(self.weight)
 
     @lazy_property
     def _nonzero(self):
@@ -1237,13 +1238,15 @@ class Corr3(object):
 
     _make_expanded_patch = Corr2._make_expanded_patch
 
-    def _single_process12(self, c1, c2, ijj, metric, ordered, num_threads, temp, force_write):
+    def _single_process12(self, c1, c2, ijj, metric, ordered, num_threads, corr_only,
+                          temp, force_write):
         # Helper function for _process_all_auto, etc. for doing 12 cross pairs
         temp._clear()
 
         if c2 is not None and not self._trivially_zero(c1,c2,c2):
             self.logger.info('Process patches %s cross12',ijj)
-            temp.process_cross12(c1, c2, metric=metric, ordered=ordered, num_threads=num_threads)
+            temp.process_cross12(c1, c2, metric=metric, ordered=ordered, num_threads=num_threads,
+                                 corr_only=corr_only)
         else:
             self.logger.info('Skipping %s pair, which are too far apart ' +
                              'for this set of separations',ijj)
@@ -1257,13 +1260,15 @@ class Corr3(object):
             # NNNCorrelation needs to add the tot value
             self._add_tot(ijj, c1, c2, c2)
 
-    def _single_process21(self, c1, c2, iij, metric, ordered, num_threads, temp, force_write):
+    def _single_process21(self, c1, c2, iij, metric, ordered, num_threads, corr_only,
+                          temp, force_write):
         # Helper function for _process_all_cross21, etc. for doing 21 cross pairs
         temp._clear()
 
         if c1 is not None and not self._trivially_zero(c1,c1,c2):
             self.logger.info('Process patches %s cross21',iij)
-            temp.process_cross21(c1, c2, metric=metric, ordered=ordered, num_threads=num_threads)
+            temp.process_cross21(c1, c2, metric=metric, ordered=ordered, num_threads=num_threads,
+                                 corr_only=corr_only)
         else:
             self.logger.info('Skipping %s pair, which are too far apart ' +
                              'for this set of separations',iij)
@@ -1277,13 +1282,15 @@ class Corr3(object):
             # NNNCorrelation needs to add the tot value
             self._add_tot(iij, c1, c1, c2)
 
-    def _single_process123(self, c1, c2, c3, ijk, metric, ordered, num_threads, temp, force_write):
+    def _single_process123(self, c1, c2, c3, ijk, metric, ordered, num_threads, corr_only,
+                           temp, force_write):
         # Helper function for _process_all_auto, etc. for doing 123 cross triples
         temp._clear()
 
         if c2 is not None and c3 is not None and not self._trivially_zero(c1,c2,c3):
             self.logger.info('Process patches %s cross',ijk)
-            temp.process_cross(c1, c2, c3, metric=metric, ordered=ordered, num_threads=num_threads)
+            temp.process_cross(c1, c2, c3, metric=metric, ordered=ordered, num_threads=num_threads,
+                               corr_only=corr_only)
         else:
             self.logger.info('Skipping %s, which are too far apart ' +
                              'for this set of separations',ijk)
@@ -1297,7 +1304,7 @@ class Corr3(object):
             # NNNCorrelation needs to add the tot value
             self._add_tot(ijk, c1, c2, c3)
 
-    def _process_all_auto(self, cat1, metric, num_threads, comm, low_mem, local):
+    def _process_all_auto(self, cat1, metric, num_threads, corr_only, comm, low_mem, local):
 
         def is_my_job(my_indices, i, j, k, n):
             # Helper function to figure out if a given (i,j,k) job should be done on the
@@ -1333,7 +1340,7 @@ class Corr3(object):
                 return False
 
         if len(cat1) == 1 and cat1[0].npatch == 1:
-            self.process_auto(cat1[0], metric=metric, num_threads=num_threads)
+            self.process_auto(cat1[0], metric=metric, num_threads=num_threads, corr_only=corr_only)
 
         else:
             # When patch processing, keep track of the pair-wise results.
@@ -1362,7 +1369,7 @@ class Corr3(object):
                         c1e = self._make_expanded_patch(c1, cat1, metric, low_mem)
                         self.logger.info('Process patch %d with surrounding local patches',i)
                         self._single_process12(c1, c1e, (i,i,i), metric, 1,
-                                               num_threads, temp, True)
+                                               num_threads, corr_only, temp, True)
                         if low_mem:
                             c1.unload()
             else:
@@ -1371,7 +1378,8 @@ class Corr3(object):
                     if is_my_job(my_indices, i, i, i, n):
                         temp._clear()
                         self.logger.info('Process patch %d auto',i)
-                        temp.process_auto(c1, metric=metric, num_threads=num_threads)
+                        temp.process_auto(c1, metric=metric, num_threads=num_threads,
+                                          corr_only=corr_only)
                         if (i,i,i) in self.results and self.results[(i,i,i)].nonzero:
                             self.results[(i,i,i)] += temp
                         else:
@@ -1384,17 +1392,17 @@ class Corr3(object):
                             if is_my_job(my_indices, i, j, j, n):
                                 # One point in c1, 2 in c2.
                                 self._single_process12(c1, c2, (i,j,j), metric, 0,
-                                                    num_threads, temp, False)
+                                                    num_threads, corr_only, temp, False)
                                 # One point in c2, 2 in c1.
                                 self._single_process12(c2, c1, (i,i,j), metric, 0,
-                                                    num_threads, temp, False)
+                                                    num_threads, corr_only, temp, False)
 
                             # One point in each of c1, c2, c3
                             for kk,c3 in enumerate(cat1):
                                 k = c3._single_patch if c3._single_patch is not None else kk
                                 if j < k and is_my_job(my_indices, i, j, k, n):
                                     self._single_process123(c1, c2, c3, (i,j,k), metric, 0,
-                                                            num_threads, temp, False)
+                                                            num_threads, corr_only, temp, False)
                                     if low_mem:
                                         c3.unload()
 
@@ -1416,7 +1424,8 @@ class Corr3(object):
                         self += temp
                         self.results.update(temp.results)
 
-    def _process_all_cross12(self, cat1, cat2, metric, ordered, num_threads, comm, low_mem, local):
+    def _process_all_cross12(self, cat1, cat2, metric, ordered, num_threads, corr_only,
+                             comm, low_mem, local):
 
         def is_my_job(my_indices, i, j, k, n1, n2):
             # Helper function to figure out if a given (i,j,k) job should be done on the
@@ -1453,7 +1462,7 @@ class Corr3(object):
 
         if len(cat1) == 1 and len(cat2) == 1 and cat1[0].npatch == 1 and cat2[0].npatch == 1:
             self.process_cross12(cat1[0], cat2[0], metric=metric, ordered=ordered,
-                                 num_threads=num_threads)
+                                 num_threads=num_threads, corr_only=corr_only)
         else:
             # When patch processing, keep track of the pair-wise results.
             if self.npatch1 == 1:
@@ -1488,7 +1497,7 @@ class Corr3(object):
                         c2e = self._make_expanded_patch(c1, cat2, metric, low_mem)
                         self.logger.info('Process patch %d with surrounding local patches',i)
                         self._single_process12(c1, c2e, (i,i,i), metric, 1,
-                                               num_threads, temp, True)
+                                               num_threads, corr_only, temp, True)
                         if low_mem:
                             c1.unload()
                 if not ordered:
@@ -1503,7 +1512,7 @@ class Corr3(object):
                             c2e = self._make_expanded_patch(c2, cat2, metric, low_mem)
                             self.logger.info('Process patch %d from cat2 with surrounding local patches',i)
                             self._single_process123(c2, c1e, c2e, (i,i,i), metric, 1,
-                                                    num_threads, temp, True)
+                                                    num_threads, corr_only, temp, True)
                             if low_mem:
                                 c2.unload()
             else:
@@ -1513,14 +1522,14 @@ class Corr3(object):
                         j = c2._single_patch if c2._single_patch is not None else jj
                         if is_my_job(my_indices, i, j, j, n1, n2):
                             self._single_process12(c1, c2, (i,j,j), metric, ordered,
-                                                   num_threads, temp,
+                                                   num_threads, corr_only, temp,
                                                    (i==j or n1==1 or n2==1))
                         # One point in each of c1, c2, c3
                         for kk,c3 in list(enumerate(cat2))[::-1]:
                             k = c3._single_patch if c3._single_patch is not None else kk
                             if j < k and is_my_job(my_indices, i, j, k, n1, n2):
                                 self._single_process123(c1, c2, c3, (i,j,k), metric, ordered1,
-                                                        num_threads, temp, False)
+                                                        num_threads, corr_only, temp, False)
                                 if low_mem and kk != jj+1:
                                     # Don't unload j+1, since that's the next one we'll need.
                                     c3.unload()
@@ -1541,7 +1550,8 @@ class Corr3(object):
                         self += temp
                         self.results.update(temp.results)
 
-    def _process_all_cross21(self, cat1, cat2, metric, ordered, num_threads, comm, low_mem, local):
+    def _process_all_cross21(self, cat1, cat2, metric, ordered, num_threads, corr_only,
+                             comm, low_mem, local):
 
         def is_my_job(my_indices, i, j, k, n1, n2):
             # Helper function to figure out if a given (i,j,k) job should be done on the
@@ -1578,7 +1588,7 @@ class Corr3(object):
 
         if len(cat1) == 1 and len(cat2) == 1 and cat1[0].npatch == 1 and cat2[0].npatch == 1:
             self.process_cross21(cat1[0], cat2[0], metric=metric, ordered=ordered,
-                                 num_threads=num_threads)
+                                 num_threads=num_threads, corr_only=corr_only)
         else:
             # When patch processing, keep track of the pair-wise results.
             if self.npatch1 == 1:
@@ -1615,7 +1625,7 @@ class Corr3(object):
                         self.logger.info('Process patch %d with surrounding local patches',i)
                         self._single_process123(c1, c2e, c3e, (i,i,i), metric,
                                                 1 if not ordered else 4,
-                                                num_threads, temp, True)
+                                                num_threads, corr_only, temp, True)
                         if low_mem:
                             c1.unload()
             else:
@@ -1625,14 +1635,14 @@ class Corr3(object):
                         k = c3._single_patch if c3._single_patch is not None else kk
                         if is_my_job(my_indices, i, i, k, n1, n2):
                             self._single_process21(c1, c3, (i,i,k), metric, ordered,
-                                                   num_threads, temp,
+                                                   num_threads, corr_only, temp,
                                                    (i==k or n1==1 or n2==1))
                         # One point in each of c1, c2, c3
                         for jj,c2 in list(enumerate(cat1))[::-1]:
                             j = c2._single_patch if c2._single_patch is not None else jj
                             if i < j and is_my_job(my_indices, i, j, k, n1, n2):
                                 self._single_process123(c1, c2, c3, (i,j,k), metric, ordered3,
-                                                        num_threads, temp, False)
+                                                        num_threads, corr_only, temp, False)
                                 if low_mem and jj != ii+1:
                                     # Don't unload i+1, since that's the next one we'll need.
                                     c2.unload()
@@ -1653,8 +1663,8 @@ class Corr3(object):
                         self += temp
                         self.results.update(temp.results)
 
-    def _process_all_cross(self, cat1, cat2, cat3, metric, ordered, num_threads, comm, low_mem,
-                           local):
+    def _process_all_cross(self, cat1, cat2, cat3, metric, ordered, num_threads, corr_only,
+                           comm, low_mem, local):
 
         def is_my_job(my_indices, i, j, k, n1, n2, n3):
             # Helper function to figure out if a given (i,j,k) job should be done on the
@@ -1681,7 +1691,7 @@ class Corr3(object):
         if (len(cat1) == 1 and len(cat2) == 1 and len(cat3) == 1 and
                 cat1[0].npatch == 1 and cat2[0].npatch == 1 and cat3[0].npatch == 1):
             self.process_cross(cat1[0], cat2[0], cat3[0], metric=metric, ordered=ordered,
-                               num_threads=num_threads)
+                               num_threads=num_threads, corr_only=corr_only)
         else:
             # When patch processing, keep track of the pair-wise results.
             if self.npatch1 == 1:
@@ -1724,7 +1734,7 @@ class Corr3(object):
                         self.logger.info('Process patch %d with surrounding local patches',i)
                         self._single_process123(c1, c2e, c3e, (i,i,i), metric,
                                                 1 if ordered in (0,1) else 4,
-                                                num_threads, temp, True)
+                                                num_threads, corr_only, temp, True)
                         if low_mem:
                             c1.unload()
                 if ordered in (0,3):
@@ -1740,7 +1750,7 @@ class Corr3(object):
                             self.logger.info('Process patch %d from cat2 with surrounding local patches',i)
                             self._single_process123(c2, c1e, c3e, (i,i,i), metric,
                                                     1 if ordered == 0 else 4,
-                                                    num_threads, temp, True)
+                                                    num_threads, corr_only, temp, True)
                             if low_mem:
                                 c2.unload()
                 if ordered in (0,2):
@@ -1753,7 +1763,7 @@ class Corr3(object):
                             self.logger.info('Process patch %d from cat3 with surrounding local patches',i)
                             self._single_process123(c3, c2e, c1e, (i,i,i), metric,
                                                     1 if ordered == 0 else 4,
-                                                    num_threads, temp, True)
+                                                    num_threads, corr_only, temp, True)
                             if low_mem:
                                 c3.unload()
             else:
@@ -1765,7 +1775,7 @@ class Corr3(object):
                             k = c3._single_patch if c3._single_patch is not None else kk
                             if is_my_job(my_indices, i, j, k, n1, n2, n3):
                                 self._single_process123(c1, c2, c3, (i,j,k), metric, ordered,
-                                                        num_threads, temp,
+                                                        num_threads, corr_only, temp,
                                                         (i==j==k or n1==1 or n2==1 or n3==1))
                                 if low_mem:
                                     c3.unload()
@@ -1808,7 +1818,7 @@ class Corr3(object):
         # but for LogMultipole, the absolute value is what we want.
         return np.abs(self.weight.ravel())
 
-    def process_auto(self, cat, *, metric=None, num_threads=None):
+    def process_auto(self, cat, *, metric=None, num_threads=None, corr_only=False):
         """Process a single catalog, accumulating the auto-correlation.
 
         This accumulates the auto-correlation for the given catalog.  After
@@ -1826,6 +1836,8 @@ class Corr3(object):
             num_threads (int):  How many OpenMP threads to use during the calculation.
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
+            corr_only (bool):   Whether to skip summing quantities that are not essential for
+                                computing the correlation function. (default: False)
         """
         # The implementation is the same for all classes that can call this.
         assert self._letter1 == self._letter2 == self._letter3
@@ -1837,6 +1849,7 @@ class Corr3(object):
 
         self._set_metric(metric, cat.coords)
         self._set_num_threads(num_threads)
+        self._corr_only = corr_only
         min_size, max_size = self._get_minmax_size()
 
         getField = getattr(cat, f"get{self._letter1}Field")
@@ -1846,9 +1859,10 @@ class Corr3(object):
                          coords=self.coords)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        self.corr.processAuto(field.data, self.output_dots, self._metric)
+        self.corr.processAuto(field.data, self.output_dots, bool(corr_only), self._metric)
 
-    def process_cross12(self, cat1, cat2, *, metric=None, ordered=True, num_threads=None):
+    def process_cross12(self, cat1, cat2, *, metric=None, ordered=True, num_threads=None,
+                        corr_only=False):
         """Process two catalogs, accumulating the 3pt cross-correlation, where one of the
         points in each triangle come from the first catalog, and two come from the second.
 
@@ -1873,6 +1887,8 @@ class Corr3(object):
             num_threads (int):  How many OpenMP threads to use during the calculation.
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
+            corr_only (bool):   Whether to skip summing quantities that are not essential for
+                                computing the correlation function. (default: False)
         """
         assert self._letter2 == self._letter3
         if cat1.name == '' and cat2.name == '':
@@ -1883,6 +1899,7 @@ class Corr3(object):
 
         self._set_metric(metric, cat1.coords, cat2.coords)
         self._set_num_threads(num_threads)
+        self._corr_only = corr_only
         min_size, max_size = self._get_minmax_size()
 
         getField1 = getattr(cat1, f"get{self._letter1}Field")
@@ -1900,9 +1917,11 @@ class Corr3(object):
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         ocode = 1 if ordered or self._letter1 != self._letter2 else 0
-        self.corr.processCross12(f1.data, f2.data, ocode, self.output_dots, self._metric)
+        self.corr.processCross12(f1.data, f2.data, ocode, self.output_dots,
+                                 bool(corr_only), self._metric)
 
-    def process_cross21(self, cat1, cat2, *, metric=None, ordered=True, num_threads=None):
+    def process_cross21(self, cat1, cat2, *, metric=None, ordered=True, num_threads=None,
+                        corr_only=False):
         """Process two catalogs, accumulating the 3pt cross-correlation, where two of the
         points in each triangle come from the first catalog, and one comes from the second.
 
@@ -1927,6 +1946,8 @@ class Corr3(object):
             num_threads (int):  How many OpenMP threads to use during the calculation.
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
+            corr_only (bool):   Whether to skip summing quantities that are not essential for
+                                computing the correlation function. (default: False)
         """
         assert self._letter1 == self._letter2
         if cat1.name == '' and cat2.name == '':
@@ -1937,6 +1958,7 @@ class Corr3(object):
 
         self._set_metric(metric, cat1.coords, cat2.coords)
         self._set_num_threads(num_threads)
+        self._corr_only = corr_only
         min_size, max_size = self._get_minmax_size()
 
         getField1 = getattr(cat1, f"get{self._letter1}Field")
@@ -1954,9 +1976,11 @@ class Corr3(object):
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         ocode = 3 if ordered or self._letter2 != self._letter3 else 0
-        self.corr.processCross21(f1.data, f2.data, ocode, self.output_dots, self._metric)
+        self.corr.processCross21(f1.data, f2.data, ocode, self.output_dots,
+                                 bool(corr_only), self._metric)
 
-    def process_cross(self, cat1, cat2, cat3, *, metric=None, ordered=True, num_threads=None):
+    def process_cross(self, cat1, cat2, cat3, *, metric=None, ordered=True, num_threads=None,
+                      corr_only=False):
         """Process a set of three catalogs, accumulating the 3pt cross-correlation.
 
         This accumulates the cross-correlation for the given catalogs as part of a larger
@@ -1976,6 +2000,8 @@ class Corr3(object):
             num_threads (int):  How many OpenMP threads to use during the calculation.
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
+            corr_only (bool):   Whether to skip summing quantities that are not essential for
+                                computing the correlation function. (default: False)
         """
         if cat1.name == '' and cat2.name == '' and cat3.name == '':
             self.logger.info('Starting process %s cross-correlations', self._letters)
@@ -1985,6 +2011,7 @@ class Corr3(object):
 
         self._set_metric(metric, cat1.coords, cat2.coords, cat3.coords)
         self._set_num_threads(num_threads)
+        self._corr_only = corr_only
         min_size, max_size = self._get_minmax_size()
 
         getField1 = getattr(cat1, f"get{self._letter1}Field")
@@ -2008,11 +2035,12 @@ class Corr3(object):
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
         ocode = 4 if ordered is True else 0 if ordered is False else ordered
-        self.corr.processCross(f1.data, f2.data, f3.data, ocode, self.output_dots, self._metric)
+        self.corr.processCross(f1.data, f2.data, f3.data, ocode, self.output_dots,
+                               bool(corr_only), self._metric)
 
     def process(self, cat1, cat2=None, cat3=None, *, metric=None, ordered=True, num_threads=None,
                 comm=None, low_mem=False, initialize=True, finalize=True,
-                patch_method=None, algo=None, max_n=None):
+                patch_method=None, algo=None, max_n=None, corr_only=False):
         """Compute the 3pt correlation function.
 
         - If only 1 argument is given, then compute an auto-correlation function.
@@ -2085,6 +2113,8 @@ class Corr3(object):
                                 for the multipole part of the calculation. (default is to use
                                 2pi/phi_bin_size; this value can also be given in the constructor
                                 in the config dict.)
+            corr_only (bool):   Whether to skip summing quantities that are not essential for
+                                computing the correlation function. (default: False)
         """
         import math
 
@@ -2109,9 +2139,12 @@ class Corr3(object):
             corr = self.__class__(config, max_n=max_n)
             corr.process(cat1, cat2, cat3,
                          metric=metric, ordered=ordered, num_threads=num_threads,
-                         comm=comm, low_mem=low_mem, initialize=initialize, finalize=finalize,
+                         corr_only=corr_only, comm=comm, low_mem=low_mem,
+                         initialize=initialize, finalize=finalize,
                          patch_method=patch_method, algo='multipole')
             corr.toSAS(target=self)
+            if corr_only:
+                self.ntri[:] = np.abs(self.weight) / self._meanwww
             return
 
         if patch_method is None:
@@ -2132,6 +2165,7 @@ class Corr3(object):
 
         if initialize:
             self.clear()
+            self._corr_only = corr_only
 
         if cat2 is None:
             if not self._letter1 == self._letter2 == self._letter3:
@@ -2140,21 +2174,21 @@ class Corr3(object):
                 raise ValueError("For two catalog case, use cat1,cat2, not cat1,cat3")
             if not (ordered is True or ordered is False):
                 raise ValueError("The integer options for ordered are only valid with 3 catalogs")
-            self._process_all_auto(cat1, metric, num_threads, comm, low_mem, local)
+            self._process_all_auto(cat1, metric, num_threads, corr_only, comm, low_mem, local)
         elif cat3 is None:
             if not (ordered is True or ordered is False):
                 raise ValueError("The integer options for ordered are only valid with 3 catalogs")
             if self._letter2 == self._letter3:
-                self._process_all_cross12(cat1, cat2, metric, ordered, num_threads, comm, low_mem,
-                                          local)
+                self._process_all_cross12(cat1, cat2, metric, ordered, num_threads, corr_only,
+                                          comm, low_mem, local)
             elif self._letter1 == self._letter2:
-                self._process_all_cross21(cat1, cat2, metric, ordered, num_threads, comm, low_mem,
-                                          local)
+                self._process_all_cross21(cat1, cat2, metric, ordered, num_threads, corr_only,
+                                          comm, low_mem, local)
             else:
                 raise ValueError("{} cannot use two catalog version of process".format(self._letters))
         else:
-            self._process_all_cross(cat1, cat2, cat3, metric, ordered, num_threads, comm, low_mem,
-                                    local)
+            self._process_all_cross(cat1, cat2, cat3, metric, ordered, num_threads, corr_only,
+                                    comm, low_mem, local)
 
         if finalize:
             if cat2 is None:
@@ -2195,66 +2229,109 @@ class Corr3(object):
                 if var3 is not None:
                     self.logger.info(f"var%s3 = %f: {self._sig3} = %f",
                                      self._letter3, var3, math.sqrt(var3))
+            if corr_only:
+                w1 = calculateMeanW(cat1, low_mem=low_mem)
+                if cat2 is None:
+                    w2 = w3 = w1
+                elif cat3 is None:
+                    w2 = calculateMeanW(cat2, low_mem=low_mem)
+                    if self._letter2 == self._letter3:
+                        w3 = w2
+                    else:
+                        w3 = w1
+                else:
+                    w2 = calculateMeanW(cat2, low_mem=low_mem)
+                    w3 = calculateMeanW(cat3, low_mem=low_mem)
+                self._meanwww = w1*w2*w3
+
             finalize_args = [v for v in [var1, var2, var3] if v is not None]
             self.finalize(*finalize_args)
 
     def _finalize(self):
         mask1 = self.weightr != 0
-        mask2 = self.weightr == 0
 
-        self.meand2[mask1] /= self.weightr[mask1]
-        self.meanlogd2[mask1] /= self.weightr[mask1]
-        self.meand3[mask1] /= self.weightr[mask1]
-        self.meanlogd3[mask1] /= self.weightr[mask1]
         if self.bin_type != 'LogMultipole':
             for i in range(8):
                 if self._z[i].size:
                     self._z[i][mask1] /= self.weightr[mask1]
-            self.meand1[mask1] /= self.weightr[mask1]
-            self.meanlogd1[mask1] /= self.weightr[mask1]
-            self.meanu[mask1] /= self.weightr[mask1]
-        if self.bin_type == 'LogRUV':
-            self.meanv[mask1] /= self.weightr[mask1]
 
-        # Update the units
-        self._apply_units(mask1)
-
-        # Set to nominal when no triangles in bin.
-        if self.bin_type == 'LogRUV':
-            self.meand2[mask2] = self.rnom[mask2]
-            self.meanlogd2[mask2] = self.logr[mask2]
-            self.meanu[mask2] = self.u[mask2]
-            self.meanv[mask2] = self.v[mask2]
-            self.meand3[mask2] = self.u[mask2] * self.meand2[mask2]
-            self.meanlogd3[mask2] = np.log(self.meand3[mask2])
-            self.meand1[mask2] = np.abs(self.v[mask2]) * self.meand3[mask2] + self.meand2[mask2]
-            self.meanlogd1[mask2] = np.log(self.meand1[mask2])
+        if self._corr_only:
+            if self.bin_type == 'LogRUV':
+                self.meand2[:] = self.rnom
+                self.meanlogd2[:] = self.logr
+                self.meanu[:] = self.u
+                self.meanv[:] = self.v
+                self.meand3[:] = self.u * self.meand2
+                self.meanlogd3[:] = np.log(self.meand3)
+                self.meand1[:] = np.abs(self.v) * self.meand3 + self.meand2
+                self.meanlogd1[:] = np.log(self.meand1)
+            else:
+                self.meand2[:] = self.d2nom
+                self.meanlogd2[:] = self.logd2
+                self.meand3[:] = self.d3nom
+                self.meanlogd3[:] = self.logd3
+                if self.bin_type == 'LogSAS':
+                    self.meanphi[:] = self.phi
+                    self.meand1[:] = np.sqrt(self.d2nom**2 + self.d3nom**2
+                                          - 2*self.d2nom*self.d3nom*np.cos(self.phi))
+                    self.meanlogd1[:] = np.log(self.meand1)
+                else:
+                    self.meanu[:] = 0
+                    self.meand1[:] = 0
+                    self.meanlogd1[:] = 0
+            self.ntri[:] = self.weightr / self._meanwww
         else:
-            self.meand2[mask2] = self.d2nom[mask2]
-            self.meanlogd2[mask2] = self.logd2[mask2]
-            self.meand3[mask2] = self.d3nom[mask2]
-            self.meanlogd3[mask2] = self.logd3[mask2]
-            if self.bin_type == 'LogSAS':
-                self.meanu[mask2] = self.phi[mask2]
-                self.meand1[mask2] = np.sqrt(self.d2nom[mask2]**2 + self.d3nom[mask2]**2
-                                             - 2*self.d2nom[mask2]*self.d3nom[mask2]*
-                                             np.cos(self.phi[mask2]))
+            self.meand2[mask1] /= self.weightr[mask1]
+            self.meanlogd2[mask1] /= self.weightr[mask1]
+            self.meand3[mask1] /= self.weightr[mask1]
+            self.meanlogd3[mask1] /= self.weightr[mask1]
+            if self.bin_type != 'LogMultipole':
+                self.meand1[mask1] /= self.weightr[mask1]
+                self.meanlogd1[mask1] /= self.weightr[mask1]
+                self.meanu[mask1] /= self.weightr[mask1]
+            if self.bin_type == 'LogRUV':
+                self.meanv[mask1] /= self.weightr[mask1]
+
+            # Update the units
+            self._apply_units(mask1)
+
+            # Set to nominal when no triangles in bin.
+            mask2 = self.weightr == 0
+            if self.bin_type == 'LogRUV':
+                self.meand2[mask2] = self.rnom[mask2]
+                self.meanlogd2[mask2] = self.logr[mask2]
+                self.meanu[mask2] = self.u[mask2]
+                self.meanv[mask2] = self.v[mask2]
+                self.meand3[mask2] = self.u[mask2] * self.meand2[mask2]
+                self.meanlogd3[mask2] = np.log(self.meand3[mask2])
+                self.meand1[mask2] = np.abs(self.v[mask2]) * self.meand3[mask2] + self.meand2[mask2]
                 self.meanlogd1[mask2] = np.log(self.meand1[mask2])
             else:
-                self.meanu[mask2] = 0
-                self.meand1[mask2] = 0
-                self.meanlogd1[mask2] = 0
+                self.meand2[mask2] = self.d2nom[mask2]
+                self.meanlogd2[mask2] = self.logd2[mask2]
+                self.meand3[mask2] = self.d3nom[mask2]
+                self.meanlogd3[mask2] = self.logd3[mask2]
+                if self.bin_type == 'LogSAS':
+                    self.meanu[mask2] = self.phi[mask2]
+                    self.meand1[mask2] = np.sqrt(self.d2nom[mask2]**2 + self.d3nom[mask2]**2
+                                                 - 2*self.d2nom[mask2]*self.d3nom[mask2]*
+                                                 np.cos(self.phi[mask2]))
+                    self.meanlogd1[mask2] = np.log(self.meand1[mask2])
+                else:
+                    self.meanu[mask2] = 0
+                    self.meand1[mask2] = 0
+                    self.meanlogd1[mask2] = 0
 
-        if self.bin_type == 'LogMultipole':
-            # Multipole only sets the meand values at [i,j,max_n].
-            # (This is also where the complex weight is just a scalar = sum(www),
-            # so the above normalizations are correct.)
-            # Broadcast those to the rest of the values in the third dimension.
-            self.ntri[:,:,:] = self.ntri[:,:,self.max_n][:,:,np.newaxis]
-            self.meand2[:,:,:] = self.meand2[:,:,self.max_n][:,:,np.newaxis]
-            self.meanlogd2[:,:,:] = self.meanlogd2[:,:,self.max_n][:,:,np.newaxis]
-            self.meand3[:,:,:] = self.meand3[:,:,self.max_n][:,:,np.newaxis]
-            self.meanlogd3[:,:,:] = self.meanlogd3[:,:,self.max_n][:,:,np.newaxis]
+            if self.bin_type == 'LogMultipole':
+                # Multipole only sets the meand values at [i,j,max_n].
+                # (This is also where the complex weight is just a scalar = sum(www),
+                # so the above normalizations are correct.)
+                # Broadcast those to the rest of the values in the third dimension.
+                self.ntri[:,:,:] = self.ntri[:,:,self.max_n][:,:,np.newaxis]
+                self.meand2[:,:,:] = self.meand2[:,:,self.max_n][:,:,np.newaxis]
+                self.meanlogd2[:,:,:] = self.meanlogd2[:,:,self.max_n][:,:,np.newaxis]
+                self.meand3[:,:,:] = self.meand3[:,:,self.max_n][:,:,np.newaxis]
+                self.meanlogd3[:,:,:] = self.meanlogd3[:,:,self.max_n][:,:,np.newaxis]
 
     def _clear(self):
         """Clear the data vectors

@@ -1167,6 +1167,20 @@ def test_direct_logruv_auto():
                 true_ntri[kr,ku,kv] += 1
 
     np.testing.assert_array_equal(ddd.ntri, true_ntri)
+    np.testing.assert_array_equal(ddd.weight, true_ntri)
+
+    ddd2 = ddd.copy()
+    ddd2.process(cat, corr_only=True)
+    np.testing.assert_allclose(ddd2.weight, ddd.weight)
+    np.testing.assert_allclose(ddd2.ntri, ddd.ntri)
+    np.testing.assert_allclose(ddd2.meand2, ddd.rnom)
+    np.testing.assert_allclose(ddd2.meanlogd2, ddd.logr)
+    np.testing.assert_allclose(ddd2.meanu, ddd.u)
+    np.testing.assert_allclose(ddd2.meanv, ddd.v)
+    np.testing.assert_allclose(ddd2.meand3/ddd2.meand2, ddd.u)
+    np.testing.assert_allclose((ddd2.meand1 - ddd2.meand2)/ddd2.meand3, np.abs(ddd.v))
+    np.testing.assert_allclose(ddd2.meanlogd1, np.log(ddd2.meand1))
+    np.testing.assert_allclose(ddd2.meanlogd3, np.log(ddd2.meand3))
 
     # Check that running via the corr3 script works correctly.
     file_name = os.path.join('data','nnn_direct_data.dat')
@@ -1875,6 +1889,19 @@ def test_direct_logruv_cross12():
     print('no top bin_slop=0: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_122)
 
+    ddd2 = ddd.copy()
+    ddd2.process(cat1, cat2, corr_only=True)
+    np.testing.assert_allclose(ddd2.weight, ddd.weight)
+    np.testing.assert_allclose(ddd2.ntri, ddd.ntri)
+    np.testing.assert_allclose(ddd2.meand2, ddd.rnom)
+    np.testing.assert_allclose(ddd2.meanlogd2, ddd.logr)
+    np.testing.assert_allclose(ddd2.meanu, ddd.u)
+    np.testing.assert_allclose(ddd2.meanv, ddd.v)
+    np.testing.assert_allclose(ddd2.meand3/ddd2.meand2, ddd.u)
+    np.testing.assert_allclose((ddd2.meand1 - ddd2.meand2)/ddd2.meand3, np.abs(ddd.v))
+    np.testing.assert_allclose(ddd2.meanlogd1, np.log(ddd2.meand1))
+    np.testing.assert_allclose(ddd2.meanlogd3, np.log(ddd2.meand3))
+
     # Split into patches to test the list-based version of the code.
     cat1 = treecorr.Catalog(x=x1, y=y1, npatch=10, rng=rng)
     cat2 = treecorr.Catalog(x=x2, y=y2, patch_centers=cat1.patch_centers)
@@ -1904,6 +1931,19 @@ def test_direct_logruv_cross12():
     t1 = time.time()
     print('patch unordered: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
+
+    ddd2 = ddd.copy()
+    ddd2.process(cat1, cat2, ordered=False, patch_method='local', corr_only=True)
+    np.testing.assert_allclose(ddd2.weight, ddd.weight)
+    np.testing.assert_allclose(ddd2.ntri, ddd.ntri)
+    np.testing.assert_allclose(ddd2.meand2, ddd.rnom)
+    np.testing.assert_allclose(ddd2.meanlogd2, ddd.logr)
+    np.testing.assert_allclose(ddd2.meanu, ddd.u)
+    np.testing.assert_allclose(ddd2.meanv, ddd.v)
+    np.testing.assert_allclose(ddd2.meand3/ddd2.meand2, ddd.u)
+    np.testing.assert_allclose((ddd2.meand1 - ddd2.meand2)/ddd2.meand3, np.abs(ddd.v))
+    np.testing.assert_allclose(ddd2.meanlogd1, np.log(ddd2.meand1))
+    np.testing.assert_allclose(ddd2.meanlogd3, np.log(ddd2.meand3))
 
     with assert_raises(ValueError):
         ddd.process(cat1, cat2, patch_method='nonlocal')
@@ -2586,7 +2626,10 @@ def test_nnn_logruv():
                                   min_u=min_u, max_u=max_u, min_v=min_v, max_v=max_v,
                                   nubins=nubins, nvbins=nvbins,
                                   sep_units='arcmin', verbose=1, bin_type='LogRUV')
-    ddd.process(cat)
+    t0 = time.time()
+    ddd.process(cat, num_threads=1)
+    t1 = time.time()
+    print('Time for ddd process = ',t1-t0)
 
     # Using bin_size=None rather than omitting bin_size is equivalent.
     ddd2 = treecorr.NNNCorrelation(min_sep=min_sep, max_sep=max_sep, nbins=nbins, bin_size=None,
@@ -2594,8 +2637,15 @@ def test_nnn_logruv():
                                    nubins=nubins, nvbins=nvbins,
                                    sep_units='arcmin', verbose=1, bin_type='LogRUV')
     ddd2.process(cat, num_threads=1)
-    ddd.process(cat, num_threads=1)
     assert ddd2 == ddd
+
+    t2 = time.time()
+    ddd2.process(cat, num_threads=1, corr_only=True)
+    t3 = time.time()
+    print('Time for corr_only ddd process = ',t3-t2)
+    #assert t3-t2 < t1-t0
+    np.testing.assert_allclose(ddd2.weight, ddd.weight)
+    np.testing.assert_allclose(ddd2.ntri, ddd.ntri)
 
     # log(<d>) != <logd>, but it should be close:
     print('meanlogd1 - log(meand1) = ',ddd.meanlogd1 - np.log(ddd.meand1))
@@ -3875,7 +3925,18 @@ def test_nnn_logsas():
     t0 = time.time()
     ddd.process(cat, algo='triangle')
     t1 = time.time()
-    print('auto process time = ',t1-t0)
+    print('Time for ddd auto process (algo=triangle) = ',t1-t0)
+
+    ddd2 = ddd.copy()
+    t2 = time.time()
+    ddd2.process(cat, algo='triangle', corr_only=True)
+    t3 = time.time()
+    print('Time for corr_only ddd process = ',t3-t2)
+    # While the corr_only is usually faster, it's not by enough to be a reliable test.
+    # On average, it's only a few percent faster than the full calculation.
+    #assert t3-t2 < t1-t0
+    np.testing.assert_allclose(ddd2.weight, ddd.weight)
+    np.testing.assert_allclose(ddd2.ntri, ddd.ntri)
 
     # Doing 3 catalogs ordered, should be equivalent.  Not numerically identical, but
     # basically the same answer.
@@ -3943,7 +4004,7 @@ def test_nnn_logsas():
     dddm.process(cat)
     ddds = dddm.toSAS(min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins)
     t1 = time.time()
-    print('time for multipole ddd:', t1-t0)
+    print('Time for multipole ddd:', t1-t0)
 
     # Error to try to change sep binning with toSAS
     with assert_raises(ValueError):
@@ -3990,7 +4051,10 @@ def test_nnn_logsas():
     # Check the automatic use of the multipole algorithm from LogSAS.
     ddd3 = ddd.copy()
     rrr3 = rrr.copy()
+    t0 = time.time()
     ddd3.process(cat, algo='multipole', max_n=100)
+    t1 = time.time()
+    print('Time for normal multipole algo = ',t1-t0)
     rrr3.process(rand, algo='multipole', max_n=100)
     zeta3, varzeta3 = ddd3.calculateZeta(rrr=rrr3)
     print('mean ratio = ',np.mean(zeta3 / zeta2))
@@ -3998,6 +4062,13 @@ def test_nnn_logsas():
     np.testing.assert_allclose(ddd3.weight, ddds.weight)
     np.testing.assert_allclose(rrr3.weight, rrrs.weight)
     np.testing.assert_allclose(zeta3, zeta2)
+
+    t2 = time.time()
+    ddd2.process(cat, max_n=100, corr_only=True)
+    t3 = time.time()
+    print('Time for corr_only mulitpole = ',t3-t2)
+    np.testing.assert_allclose(ddd2.weight, ddd3.weight)
+    np.testing.assert_allclose(ddd2.ntri, ddd3.ntri, rtol=0.05)
 
     # Check that we get the same result using the corr3 function
     cat.write(os.path.join('data','nnn_data_logsas.dat'))

@@ -123,17 +123,20 @@ class NNNCorrelation(Corr3):
         setattr(ret, '_nonzero', False)
         return ret
 
-    def process_auto(self, cat, *, metric=None, num_threads=None):
-        super().process_auto(cat, metric=metric, num_threads=num_threads)
+    def process_auto(self, cat, *, metric=None, num_threads=None, corr_only=False):
+        super().process_auto(cat, metric=metric, num_threads=num_threads, corr_only=corr_only)
         self.tot += (1./6.) * cat.sumw**3
 
-    def process_cross12(self, cat1, cat2, *, metric=None, ordered=True, num_threads=None):
-        super().process_cross12(cat1, cat2, metric=metric, ordered=ordered, num_threads=num_threads)
+    def process_cross12(self, cat1, cat2, *, metric=None, ordered=True, num_threads=None,
+                        corr_only=False):
+        super().process_cross12(cat1, cat2, metric=metric, ordered=ordered,
+                                num_threads=num_threads, corr_only=corr_only)
         self.tot += 0.5 * cat1.sumw * cat2.sumw**2
 
-    def process_cross(self, cat1, cat2, cat3, *, metric=None, ordered=True, num_threads=None):
+    def process_cross(self, cat1, cat2, cat3, *, metric=None, ordered=True, num_threads=None,
+                        corr_only=False):
         super().process_cross(cat1, cat2, cat3, metric=metric, ordered=ordered,
-                              num_threads=num_threads)
+                              num_threads=num_threads, corr_only=corr_only)
         self.tot += cat1.sumw * cat2.sumw * cat3.sumw
 
     def finalize(self):

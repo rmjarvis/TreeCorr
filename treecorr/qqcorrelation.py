@@ -72,7 +72,7 @@ class QQCorrelation(BaseZZCorrelation):
     .. note::
 
         If you separate out the steps of the `Corr2.process` command and use
-        `BaseZZCorrelation.process_auto` and/or `Corr2.process_cross`, then the units will not be
+        `Corr2.process_auto` and/or `Corr2.process_cross`, then the units will not be
         applied to ``meanr`` or ``meanlogr`` until the `finalize` function is called.
 
     The typical usage pattern is as follows:
@@ -105,7 +105,7 @@ class QQCorrelation(BaseZZCorrelation):
     def finalize(self, varq1, varq2):
         """Finalize the calculation of the correlation function.
 
-        The `BaseZZCorrelation.process_auto` and `Corr2.process_cross` commands accumulate values
+        The `Corr2.process_auto` and `Corr2.process_cross` commands accumulate values
         in each bin, so they can be called multiple times if appropriate.  Afterwards, this command
         finishes the calculation by dividing each column by the total weight.
 

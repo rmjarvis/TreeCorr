@@ -75,29 +75,10 @@ class BaseZZCorrelation(Corr2):
         """
         return np.concatenate([self.weight.ravel(), self.weight.ravel()])
 
-    def process_auto(self, cat, *, metric=None, num_threads=None):
-        """Process a single catalog, accumulating the auto-correlation.
-
-        This accumulates the weighted sums into the bins, but does not finalize
-        the calculation by dividing by the total weight at the end.  After
-        calling this function as often as desired, the `finalize` command will
-        finish the calculation.
-
-        Parameters:
-            cat (Catalog):      The catalog to process
-            metric (str):       Which metric to use.  See `Metrics` for details.
-                                (default: 'Euclidean'; this value can also be given in the
-                                constructor in the config dict.)
-            num_threads (int):  How many OpenMP threads to use during the calculation.
-                                (default: use the number of cpu cores; this value can also be given
-                                in the constructor in the config dict.)
-        """
-        super()._process_auto(cat, metric, num_threads)
-
     def finalize(self, varz1, varz2):
         """Finalize the calculation of the correlation function.
 
-        The `process_auto` and `Corr2.process_cross` commands accumulate values in each bin,
+        The `Corr2.process_auto` and `Corr2.process_cross` commands accumulate values in each bin,
         so they can be called multiple times if appropriate.  Afterwards, this command
         finishes the calculation by dividing each column by the total weight.
 
@@ -278,7 +259,7 @@ class ZZCorrelation(BaseZZCorrelation):
     .. note::
 
         If you separate out the steps of the `Corr2.process` command and use
-        `BaseZZCorrelation.process_auto` and/or `Corr2.process_cross`, then the units will not be
+        `Corr2.process_auto` and/or `Corr2.process_cross`, then the units will not be
         applied to ``meanr`` or ``meanlogr`` until the `BaseZZCorrelation.finalize` function is
         called.
 

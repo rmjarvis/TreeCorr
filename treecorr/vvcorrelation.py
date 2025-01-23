@@ -26,34 +26,19 @@ class VVCorrelation(BaseZZCorrelation):
     r"""This class handles the calculation and storage of a 2-point vector-vector correlation
     function.
 
-    Ojects of this class holds the following attributes:
+    See the doc string of `Corr3` for a description of how the triangles are binned along
+    with the attributes related to the different binning options.
+
+    In addition to the attributes common to all `Corr2` subclasses, objects of this class
+    hold the following attributes:
 
     Attributes:
-        nbins:      The number of bins in logr
-        bin_size:   The size of the bins in logr
-        min_sep:    The minimum separation being considered
-        max_sep:    The maximum separation being considered
-
-    In addition, the following attributes are numpy arrays of length (nbins):
-
-    Attributes:
-
-        logr:       The nominal center of the bin in log(r) (the natural logarithm of r).
-        rnom:       The nominal center of the bin converted to regular distance.
-                    i.e. r = exp(logr).
-        meanr:      The (weighted) mean value of r for the pairs in each bin.
-                    If there are no pairs in a bin, then exp(logr) will be used instead.
-        meanlogr:   The (weighted) mean value of log(r) for the pairs in each bin.
-                    If there are no pairs in a bin, then logr will be used instead.
         xip:        The correlation function, :math:`\xi_+(r)`.
         xim:        The correlation function, :math:`\xi_-(r)`.
         xip_im:     The imaginary part of :math:`\xi_+(r)`.
         xim_im:     The imaginary part of :math:`\xi_-(r)`.
         varxip:     An estimate of the variance of :math:`\xi_+(r)`
         varxim:     An estimate of the variance of :math:`\xi_-(r)`
-        weight:     The total weight in each bin.
-        npairs:     The number of pairs going into each bin (including pairs where one or
-                    both objects have w=0).
         cov:        An estimate of the full covariance matrix for the data vector with
                     :math:`\xi_+` first and then :math:`\xi_-`.
 
@@ -65,15 +50,6 @@ class VVCorrelation(BaseZZCorrelation):
         underestimate of the actual variance.  To get better estimates, you need to set
         ``var_method`` to something else and use patches in the input catalog(s).
         cf. `Covariance Estimates`.
-
-    If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances
-    will all be in these units.
-
-    .. note::
-
-        If you separate out the steps of the `Corr2.process` command and use
-        `Corr2.process_auto` and/or `Corr2.process_cross`, then the units will not be
-        applied to ``meanr`` or ``meanlogr`` until the `finalize` function is called.
 
     The typical usage pattern is as follows:
 

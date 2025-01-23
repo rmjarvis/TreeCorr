@@ -33,30 +33,16 @@ class KGCorrelation(BaseKZCorrelation):
         correlations of some survey property, such as seeing, with shear, where "kappa" would
         really be the measured property, e.g. the observed sizes of the stars.
 
-    Ojects of this class holds the following attributes:
+    See the doc string of `Corr3` for a description of how the triangles are binned along
+    with the attributes related to the different binning options.
+
+    In addition to the attributes common to all `Corr3` subclasses, objects of this class
+    hold the following attributes:
 
     Attributes:
-        nbins:     The number of bins in logr
-        bin_size:  The size of the bins in logr
-        min_sep:   The minimum separation being considered
-        max_sep:   The maximum separation being considered
-
-    In addition, the following attributes are numpy arrays of length (nbins):
-
-    Attributes:
-        logr:       The nominal center of the bin in log(r) (the natural logarithm of r).
-        rnom:       The nominal center of the bin converted to regular distance.
-                    i.e. r = exp(logr).
-        meanr:      The (weighted) mean value of r for the pairs in each bin.
-                    If there are no pairs in a bin, then exp(logr) will be used instead.
-        meanlogr:   The (weighted) mean value of log(r) for the pairs in each bin.
-                    If there are no pairs in a bin, then logr will be used instead.
         xi:         The correlation function, :math:`\xi(r) = \langle \kappa\, \gamma_T\rangle`.
         xi_im:      The imaginary part of :math:`\xi(r)`.
         varxi:      An estimate of the variance of :math:`\xi`
-        weight:     The total weight in each bin.
-        npairs:     The number of pairs going into each bin (including pairs where one or
-                    both objects have w=0).
         cov:        An estimate of the full covariance matrix.
 
     .. note::
@@ -66,15 +52,6 @@ class KGCorrelation(BaseKZCorrelation):
         correlation.  This does not include sample variance, so it is always an underestimate of
         the actual variance.  To get better estimates, you need to set ``var_method`` to something
         else and use patches in the input catalog(s).  cf. `Covariance Estimates`.
-
-    If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances
-    will all be in these units.
-
-    .. note::
-
-        If you separate out the steps of the `Corr2.process` command and use `Corr2.process_cross`,
-        then the units will not be applied to ``meanr`` or ``meanlogr`` until the `finalize`
-        function is called.
 
     The typical usage pattern is as follows:
 

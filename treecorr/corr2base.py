@@ -1243,7 +1243,6 @@ class Corr2(object):
 
     def _finalize(self):
         mask1 = self.weight != 0
-        mask2 = self.weight == 0
 
         if len(self._xi1) > 0:
             self._xi1[mask1] /= self.weight[mask1]
@@ -1264,6 +1263,7 @@ class Corr2(object):
             self._apply_units(mask1)
 
             # Use meanlogr when available, but set to nominal when no pairs in bin.
+            mask2 = self.weight == 0
             self.meanr[mask2] = self.rnom[mask2]
             self.meanlogr[mask2] = self.logr[mask2]
 

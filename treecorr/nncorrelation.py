@@ -63,7 +63,7 @@ class NNCorrelation(Corr2):
 
     .. note::
 
-        If you separate out the steps of the `Corr2.process` command and use `process_auto`
+        If you separate out the steps of the `Corr2.process` command and use `Corr2.process_auto`
         and/or `Corr2.process_cross`, then the units will not be applied to ``meanr`` or
         ``meanlogr`` until the `finalize` function is called.
 
@@ -157,48 +157,17 @@ class NNCorrelation(Corr2):
         return ret
 
     def process_auto(self, cat, *, metric=None, num_threads=None):
-        """Process a single catalog, accumulating the auto-correlation.
-
-        This accumulates the auto-correlation for the given catalog.  After
-        calling this function as often as desired, the `finalize` command will
-        finish the calculation of meanr, meanlogr.
-
-        Parameters:
-            cat (Catalog):      The catalog to process
-            metric (str):       Which metric to use.  See `Metrics` for details.
-                                (default: 'Euclidean'; this value can also be given in the
-                                constructor in the config dict.)
-            num_threads (int):  How many OpenMP threads to use during the calculation.
-                                (default: use the number of cpu cores; this value can also be given
-                                in the constructor in the config dict.)
-        """
-        super()._process_auto(cat, metric, num_threads)
+        super().process_auto(cat, metric=metric, num_threads=num_threads)
         self.tot += 0.5 * cat.sumw**2
 
     def process_cross(self, cat1, cat2, *, metric=None, num_threads=None):
-        """Process a single pair of catalogs, accumulating the cross-correlation.
-
-        This accumulates the cross-correlation for the given catalogs.  After
-        calling this function as often as desired, the `finalize` command will
-        finish the calculation of meanr, meanlogr.
-
-        Parameters:
-            cat1 (Catalog):     The first catalog to process
-            cat2 (Catalog):     The second catalog to process
-            metric (str):       Which metric to use.  See `Metrics` for details.
-                                (default: 'Euclidean'; this value can also be given in the
-                                constructor in the config dict.)
-            num_threads (int):  How many OpenMP threads to use during the calculation.
-                                (default: use the number of cpu cores; this value can also be given
-                                in the constructor in the config dict.)
-        """
         super().process_cross(cat1, cat2, metric=metric, num_threads=num_threads)
         self.tot += cat1.sumw * cat2.sumw
 
     def finalize(self):
         """Finalize the calculation of the correlation function.
 
-        The `process_auto` and `Corr2.process_cross` commands accumulate values in each bin,
+        The `Corr2.process_auto` and `Corr2.process_cross` commands accumulate values in each bin,
         so they can be called multiple times if appropriate.  Afterwards, this command
         finishes the calculation of meanr, meanlogr by dividing by the total weight.
         """

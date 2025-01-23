@@ -1009,9 +1009,26 @@ class Corr2(object):
         """
         return self.weight.ravel()
 
-    def _process_auto(self, cat, metric=None, num_threads=None):
-        # This is only valid for some classes, but it common enough that we do the implementation
-        # here and only when appropriate define the non underscore version.
+    def process_auto(self, cat, *, metric=None, num_threads=None):
+        """Process a single catalog, accumulating the auto-correlation.
+
+        This accumulates the weighted sums into the bins, but does not finalize
+        the calculation by dividing by the total weight at the end.  After
+        calling this function as often as desired, the `finalize` command will
+        finish the calculation.
+
+        Parameters:
+            cat (Catalog):      The catalog to process
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
+        """
+        if self._letter1 != self._letter2:
+            raise TypeError(f"process_auto is invalid for {self._cls}")
+
         if cat.name == '':
             self.logger.info(f'Starting process {self._letters} auto-correlations')
         else:
@@ -1111,6 +1128,7 @@ class Corr2(object):
 
         if self._letter1 != self._letter2 and cat2 is None:
             raise TypeError(f"cat2 is required for {self._cls}.process")
+
         if initialize:
             self.clear()
             self._processed_cats1.clear()

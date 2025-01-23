@@ -439,6 +439,11 @@ def test_single():
                                  skip_header=1)
     np.testing.assert_allclose(corr2_output['gamT'], ng.xi, rtol=1.e-3)
 
+    with assert_raises(TypeError):
+        ng.process_auto(lens_cat2)
+    with assert_raises(TypeError):
+        ng.process_auto(source_cat2)
+
 
 @timer
 def test_spherical():

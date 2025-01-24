@@ -26,7 +26,7 @@ from . import _treecorr
 from .config import merge_config, setup_logger, get, make_minimal_config
 from .util import parse_metric, metric_enum, coord_enum, set_omp_threads, lazy_property
 from .util import make_reader
-from .catalog import Catalog
+from .catalog import Catalog, calculateMeanW
 
 class Namespace(object):
     pass
@@ -101,6 +101,43 @@ class Corr2(object):
           (i.e. linear in x,y)
 
     See `Binning` for more information about the different binning options.
+
+    Objects of any `Corr2` subclass hold the following attributes:
+
+    Attributes:
+        nbins:     The number of bins in logr
+        bin_size:  The size of the bins in logr
+        min_sep:   The minimum separation being considered
+        max_sep:   The maximum separation being considered
+
+    In addition, the following attributes are numpy arrays of length (nbins):
+
+    Attributes:
+        logr:       The nominal center of the bin in log(r) (the natural logarithm of r).
+        rnom:       The nominal center of the bin converted to regular distance.
+                    i.e. r = exp(logr).
+        meanr:      The (weighted) mean value of r for the pairs in each bin.
+                    If there are no pairs in a bin, then exp(logr) will be used instead.
+        meanlogr:   The mean value of log(r) for the pairs in each bin.
+                    If there are no pairs in a bin, then logr will be used instead.
+        weight:     The total weight in each bin.
+        npairs:     The number of pairs going into each bin (including pairs where one or
+                    both objects have w=0).
+
+    If ``sep_units`` are given (either in the config dict or as a named kwarg) then the distances
+    will all be in these units.
+
+    .. note::
+
+        If you separate out the steps of the `process` command and use `process_auto`
+        and/or `process_cross`, then the units will not be applied to ``meanr`` or
+        ``meanlogr`` until the ``finalize`` function is called.
+
+        Also, if you use the ``corr_only=True`` option to `Corr2.process`, then
+        ``meanr`` and ``meanlogr`` are not computed, so they will be set to the
+        nominal values for the bins.  Similarly, ``npairs`` will be set to the ``weight``
+        for each bin divided by the mean weight of points in the catalog, rather than the
+        actual number of pairs for each bin.
 
     Parameters:
         config (dict):      A configuration dict that can be used to pass in the below kwargs if
@@ -517,6 +554,7 @@ class Corr2(object):
         self._var_num = 0
         self._processed_cats1 = []
         self._processed_cats2 = []
+        self._corr_only = False
 
     def __init_subclass__(cls):
         super().__init_subclass__()
@@ -715,7 +753,7 @@ class Corr2(object):
     def nonzero(self):
         """Return if there are any values accumulated yet.  (i.e. npairs > 0)
         """
-        return np.any(self.npairs)
+        return np.any(self.weight)
 
     def _add_tot(self, ij, c1, c2):
         # No op for all but NNCorrelation, which needs to add the tot value
@@ -781,11 +819,11 @@ class Corr2(object):
                 cat2e.name = cat1.name + " (expanded)"
         return cat2e
 
-    def _single_process12(self, c1, c2, ij, metric, num_threads, temp, force_write=False):
+    def _single_process12(self, c1, c2, ij, metric, num_threads, corr_only, temp, force_write=False):
         # Helper function for _process_all_auto and _process_cross for doing cross pairs.
         temp._clear()
         if c2 is not None and not self._trivially_zero(c1, c2):
-            temp.process_cross(c1, c2, metric=metric, num_threads=num_threads)
+            temp.process_cross(c1, c2, metric=metric, num_threads=num_threads, corr_only=corr_only)
         else:
             self.logger.info('Skipping %s pair, which are too far apart ' +
                              'for this set of separations',ij)
@@ -799,7 +837,7 @@ class Corr2(object):
             # NNCorrelation needs to add the tot value
             self._add_tot(ij, c1, c2)
 
-    def _process_all_auto(self, cat1, metric, num_threads, comm, low_mem, local):
+    def _process_all_auto(self, cat1, metric, num_threads, corr_only, comm, low_mem, local):
 
         def is_my_job(my_indices, i, j, n):
             # Helper function to figure out if a given (i,j) job should be done on the
@@ -842,7 +880,7 @@ class Corr2(object):
             return ret
 
         if len(cat1) == 1 and cat1[0].npatch == 1:
-            self.process_auto(cat1[0], metric=metric, num_threads=num_threads)
+            self.process_auto(cat1[0], metric=metric, num_threads=num_threads, corr_only=corr_only)
         else:
             # When patch processing, keep track of the pair-wise results.
             if self.npatch1 == 1:
@@ -868,7 +906,8 @@ class Corr2(object):
                     if is_my_job(my_indices, i, i, n):
                         c1e = self._make_expanded_patch(c1, cat1, metric, low_mem)
                         self.logger.info('Process patch %d with surrounding local patches',i)
-                        self._single_process12(c1, c1e, (i,i), metric, num_threads, temp, True)
+                        self._single_process12(c1, c1e, (i,i), metric, num_threads, corr_only,
+                                               temp, True)
                         if low_mem:
                             c1.unload()
             else:
@@ -877,7 +916,8 @@ class Corr2(object):
                     if is_my_job(my_indices, i, i, n):
                         temp._clear()
                         self.logger.info('Process patch %d auto',i)
-                        temp.process_auto(c1, metric=metric, num_threads=num_threads)
+                        temp.process_auto(c1, metric=metric, num_threads=num_threads,
+                                          corr_only=corr_only)
                         if (i,i) not in self.results:
                             self.results[(i,i)] = temp.copy()
                         else:
@@ -888,7 +928,8 @@ class Corr2(object):
                         j = c2._single_patch if c2._single_patch is not None else jj
                         if i < j and is_my_job(my_indices, i, j, n):
                             self.logger.info('Process patches %d, %d cross',i,j)
-                            self._single_process12(c1, c2, (i,j), metric, num_threads, temp)
+                            self._single_process12(c1, c2, (i,j), metric, num_threads, corr_only,
+                                                   temp)
                             if low_mem and jj != ii+1:
                                 # Don't unload i+1, since that's the next one we'll need.
                                 c2.unload()
@@ -907,7 +948,7 @@ class Corr2(object):
                         self += temp
                         self.results.update(temp.results)
 
-    def _process_all_cross(self, cat1, cat2, metric, num_threads, comm, low_mem, local):
+    def _process_all_cross(self, cat1, cat2, metric, num_threads, corr_only, comm, low_mem, local):
 
         def is_my_job(my_indices, i, j, n1, n2):
             # Helper function to figure out if a given (i,j) job should be done on the
@@ -930,7 +971,8 @@ class Corr2(object):
                 return False
 
         if len(cat1) == 1 and len(cat2) == 1 and cat1[0].npatch == 1 and cat2[0].npatch == 1:
-            self.process_cross(cat1[0], cat2[0], metric=metric, num_threads=num_threads)
+            self.process_cross(cat1[0], cat2[0], metric=metric, num_threads=num_threads,
+                               corr_only=corr_only)
         else:
             # When patch processing, keep track of the pair-wise results.
             if self.npatch1 == 1:
@@ -962,7 +1004,8 @@ class Corr2(object):
                     if is_my_job(my_indices, i, i, n1, n2):
                         c2e = self._make_expanded_patch(c1, cat2, metric, low_mem)
                         self.logger.info('Process patch %d with surrounding local patches',i)
-                        self._single_process12(c1, c2e, (i,i), metric, num_threads, temp, True)
+                        self._single_process12(c1, c2e, (i,i), metric, num_threads, corr_only,
+                                               temp, True)
                         if low_mem:
                             c1.unload()
             else:
@@ -972,8 +1015,8 @@ class Corr2(object):
                         j = c2._single_patch if c2._single_patch is not None else jj
                         if is_my_job(my_indices, i, j, n1, n2):
                             self.logger.info('Process patches %d, %d cross',i,j)
-                            self._single_process12(c1, c2, (i,j), metric, num_threads, temp,
-                                                   (i==j or n1==1 or n2==1))
+                            self._single_process12(c1, c2, (i,j), metric, num_threads, corr_only,
+                                                   temp, (i==j or n1==1 or n2==1))
                             if low_mem:
                                 c2.unload()
                     if low_mem:
@@ -1009,9 +1052,28 @@ class Corr2(object):
         """
         return self.weight.ravel()
 
-    def _process_auto(self, cat, metric=None, num_threads=None):
-        # This is only valid for some classes, but it common enough that we do the implementation
-        # here and only when appropriate define the non underscore version.
+    def process_auto(self, cat, *, metric=None, num_threads=None, corr_only=False):
+        """Process a single catalog, accumulating the auto-correlation.
+
+        This accumulates the weighted sums into the bins, but does not finalize
+        the calculation by dividing by the total weight at the end.  After
+        calling this function as often as desired, the `finalize` command will
+        finish the calculation.
+
+        Parameters:
+            cat (Catalog):      The catalog to process
+            metric (str):       Which metric to use.  See `Metrics` for details.
+                                (default: 'Euclidean'; this value can also be given in the
+                                constructor in the config dict.)
+            num_threads (int):  How many OpenMP threads to use during the calculation.
+                                (default: use the number of cpu cores; this value can also be given
+                                in the constructor in the config dict.)
+            corr_only (bool):   Whether to skip summing quantities that are not essential for
+                                computing the correlation function. (default: False)
+        """
+        if self._letter1 != self._letter2:
+            raise TypeError(f"process_auto is invalid for {self._cls}")
+
         if cat.name == '':
             self.logger.info(f'Starting process {self._letters} auto-correlations')
         else:
@@ -1020,6 +1082,7 @@ class Corr2(object):
 
         self._set_metric(metric, cat.coords)
         self._set_num_threads(num_threads)
+        self._corr_only = corr_only
         min_size, max_size = self._get_minmax_size()
 
         getField = getattr(cat, f"get{self._letter1}Field")
@@ -1029,9 +1092,9 @@ class Corr2(object):
                          coords=self.coords)
 
         self.logger.info('Starting %d jobs.',field.nTopLevelNodes)
-        self.corr.processAuto(field.data, self.output_dots, self._metric)
+        self.corr.processAuto(field.data, self.output_dots, bool(corr_only), self._metric)
 
-    def process_cross(self, cat1, cat2, *, metric=None, num_threads=None):
+    def process_cross(self, cat1, cat2, *, metric=None, num_threads=None, corr_only=False):
         """Process a single pair of catalogs, accumulating the cross-correlation.
 
         This accumulates the weighted sums into the bins, but does not finalize
@@ -1048,6 +1111,8 @@ class Corr2(object):
             num_threads (int):  How many OpenMP threads to use during the calculation.
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
+            corr_only (bool):   Whether to skip summing quantities that are not essential for
+                                computing the correlation function. (default: False)
         """
         if cat1.name == '' and cat2.name == '':
             self.logger.info('Starting process %s%s cross-correlations',
@@ -1058,6 +1123,7 @@ class Corr2(object):
 
         self._set_metric(metric, cat1.coords, cat2.coords)
         self._set_num_threads(num_threads)
+        self._corr_only = corr_only
         min_size, max_size = self._get_minmax_size()
 
         getField1 = getattr(cat1, f"get{self._letter1}Field")
@@ -1074,10 +1140,10 @@ class Corr2(object):
                        coords=self.coords)
 
         self.logger.info('Starting %d jobs.',f1.nTopLevelNodes)
-        self.corr.processCross(f1.data, f2.data, self.output_dots, self._metric)
+        self.corr.processCross(f1.data, f2.data, self.output_dots, bool(corr_only), self._metric)
 
     def process(self, cat1, cat2=None, metric=None, num_threads=None, comm=None, low_mem=False,
-                initialize=True, finalize=True, patch_method='global'):
+                initialize=True, finalize=True, patch_method='global', corr_only=False):
         """Compute the correlation function.
 
         - If only 1 argument is given, then compute an auto-correlation function.
@@ -1106,15 +1172,19 @@ class Corr2(object):
             finalize (bool):    Whether to complete the calculation with a call to finalize.
                                 (default: True)
             patch_method (str): Which patch method to use. (default: 'global')
+            corr_only (bool):   Whether to skip summing quantities that are not essential for
+                                computing the correlation function. (default: False)
         """
         import math
 
         if self._letter1 != self._letter2 and cat2 is None:
             raise TypeError(f"cat2 is required for {self._cls}.process")
+
         if initialize:
             self.clear()
             self._processed_cats1.clear()
             self._processed_cats2.clear()
+            self._corr_only = corr_only
 
         if patch_method not in ['local', 'global']:
             raise ValueError("Invalid patch_method %s"%patch_method)
@@ -1126,9 +1196,9 @@ class Corr2(object):
             cat2 = cat2.get_patches(low_mem=low_mem)
 
         if cat2 is None:
-            self._process_all_auto(cat1, metric, num_threads, comm, low_mem, local)
+            self._process_all_auto(cat1, metric, num_threads, corr_only, comm, low_mem, local)
         else:
-            self._process_all_cross(cat1, cat2, metric, num_threads, comm, low_mem, local)
+            self._process_all_cross(cat1, cat2, metric, num_threads, corr_only, comm, low_mem, local)
 
         self._processed_cats1.extend(cat1)
         if cat2 is not None:
@@ -1154,6 +1224,13 @@ class Corr2(object):
                                          self._letter1, var1, math.sqrt(var1))
                     self.logger.info(f"var%s = %f: {self._sig2} = %f",
                                      self._letter2, var2, math.sqrt(var2))
+            if corr_only:
+                w1 = calculateMeanW(self._processed_cats1, low_mem=low_mem)
+                if cat2 is None:
+                    w2 = w1
+                else:
+                    w2 = calculateMeanW(self._processed_cats2, low_mem=low_mem)
+                self._meanww = w1*w2
             if var1 is None:
                 if var2 is None:
                     self.finalize()
@@ -1166,7 +1243,6 @@ class Corr2(object):
 
     def _finalize(self):
         mask1 = self.weight != 0
-        mask2 = self.weight == 0
 
         if len(self._xi1) > 0:
             self._xi1[mask1] /= self.weight[mask1]
@@ -1176,15 +1252,20 @@ class Corr2(object):
             self._xi3[mask1] /= self.weight[mask1]
             self._xi4[mask1] /= self.weight[mask1]
 
-        self.meanr[mask1] /= self.weight[mask1]
-        self.meanlogr[mask1] /= self.weight[mask1]
+        if self._corr_only:
+            self.meanr[:] = self.rnom
+            self.meanlogr[:] = self.logr
+            self.npairs[:] = self.weight / self._meanww
+        else:
+            self.meanr[mask1] /= self.weight[mask1]
+            self.meanlogr[mask1] /= self.weight[mask1]
+            # Update the units of meanr, meanlogr
+            self._apply_units(mask1)
 
-        # Update the units of meanlogr
-        self._apply_units(mask1)
-
-        # Use meanlogr when available, but set to nominal when no pairs in bin.
-        self.meanr[mask2] = self.rnom[mask2]
-        self.meanlogr[mask2] = self.logr[mask2]
+            # Use meanlogr when available, but set to nominal when no pairs in bin.
+            mask2 = self.weight == 0
+            self.meanr[mask2] = self.rnom[mask2]
+            self.meanlogr[mask2] = self.logr[mask2]
 
     def _clear(self):
         """Clear the data vectors

@@ -339,6 +339,17 @@ def test_direct_spherical():
                                 sep_units='deg', brute=True)
     gg.process(cat1, cat2)
 
+    gg2 = gg.copy()
+    gg2.process(cat1, cat2, corr_only=True)
+    np.testing.assert_allclose(gg2.weight, gg.weight)
+    np.testing.assert_allclose(gg2.xip, gg.xip)
+    np.testing.assert_allclose(gg2.xip_im, gg.xip_im)
+    np.testing.assert_allclose(gg2.xim, gg.xim)
+    np.testing.assert_allclose(gg2.xim_im, gg.xim_im)
+    np.testing.assert_allclose(gg2.npairs, gg.weight / (np.mean(w1) * np.mean(w2)))
+    np.testing.assert_allclose(gg2.meanr, gg.rnom)
+    np.testing.assert_allclose(gg2.meanlogr, gg.logr)
+
     r1 = np.sqrt(x1**2 + y1**2 + z1**2)
     r2 = np.sqrt(x2**2 + y2**2 + z2**2)
     x1 /= r1;  y1 /= r1;  z1 /= r1
@@ -484,6 +495,16 @@ def test_direct_spherical():
     np.testing.assert_allclose(gg2.xip, gg.xip, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(gg2.xim, gg.xim, rtol=1.e-4, atol=1.e-4)
 
+    gg2.process(cat1p, cat2p, corr_only=True)
+    np.testing.assert_allclose(gg2.weight, gg.weight)
+    np.testing.assert_allclose(gg2.xip, gg.xip, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(gg2.xip_im, gg.xip_im, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(gg2.xim, gg.xim, rtol=1.e-4, atol=1.e-4)
+    np.testing.assert_allclose(gg2.xim_im, gg.xim_im, rtol=1.e-4, atol=1.e-4)
+    np.testing.assert_allclose(gg2.npairs, gg.weight / (np.mean(w1) * np.mean(w2)))
+    np.testing.assert_allclose(gg2.meanr, gg.rnom)
+    np.testing.assert_allclose(gg2.meanlogr, gg.logr)
+
     gg2.process(cat1p, cat2p, patch_method='local')
     np.testing.assert_array_equal(gg2.npairs, gg.npairs)
     np.testing.assert_allclose(gg2.weight, gg.weight)
@@ -491,6 +512,16 @@ def test_direct_spherical():
     np.testing.assert_allclose(gg2.meanlogr, gg.meanlogr, rtol=1.e-5)
     np.testing.assert_allclose(gg2.xip, gg.xip, rtol=1.e-4, atol=1.e-6)
     np.testing.assert_allclose(gg2.xim, gg.xim, rtol=1.e-4, atol=1.e-4)
+
+    gg2.process(cat1p, cat2p, patch_method='local', corr_only=True)
+    np.testing.assert_allclose(gg2.weight, gg.weight)
+    np.testing.assert_allclose(gg2.xip, gg.xip, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(gg2.xip_im, gg.xip_im, rtol=1.e-4, atol=1.e-6)
+    np.testing.assert_allclose(gg2.xim, gg.xim, rtol=1.e-4, atol=1.e-4)
+    np.testing.assert_allclose(gg2.xim_im, gg.xim_im, rtol=1.e-4, atol=1.e-4)
+    np.testing.assert_allclose(gg2.npairs, gg.weight / (np.mean(w1) * np.mean(w2)))
+    np.testing.assert_allclose(gg2.meanr, gg.rnom)
+    np.testing.assert_allclose(gg2.meanlogr, gg.logr)
 
 
 @timer
@@ -543,6 +574,18 @@ def test_gg():
 
     # log(<R>) != <logR>, but it should be close:
     np.testing.assert_allclose(gg.meanlogr, np.log(gg.meanr), atol=1.e-3)
+
+    t2 = time.time()
+    gg2.process(cat, num_threads=1, corr_only=True)
+    t3 = time.time()
+    print('Time for corr-only gg process = ',t3-t2)
+    np.testing.assert_allclose(gg2.xip, gg.xip)
+    np.testing.assert_allclose(gg2.xip_im, gg.xip_im)
+    np.testing.assert_allclose(gg2.xim, gg.xim)
+    np.testing.assert_allclose(gg2.xim_im, gg.xim_im)
+    np.testing.assert_allclose(gg2.weight, gg.weight)
+    np.testing.assert_allclose(gg2.npairs, gg.npairs)
+    #assert t3-t2 < t1-t0
 
     r = gg.meanr
     temp = np.pi/16. * gamma0**2 * (r0/L)**2 * np.exp(-0.25*r**2/r0**2)

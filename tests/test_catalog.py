@@ -559,6 +559,7 @@ def test_ascii():
     np.testing.assert_equal(cat11.nobj, np.sum(cat11.w != 0))
     np.testing.assert_equal(cat11.sumw, np.sum(cat11.w))
     np.testing.assert_equal(cat11.sumw, np.sum(cat6.w[1009:3456]))
+    np.testing.assert_almost_equal(cat11.meanw, np.mean(cat11.w[cat11.w != 0]))
     np.testing.assert_almost_equal(cat11.k[1111], k[2120])
     np.testing.assert_almost_equal(cat11.z1[1111], z1[2120])
     np.testing.assert_almost_equal(cat11.z2[1111], z2[2120])
@@ -578,6 +579,7 @@ def test_ascii():
     np.testing.assert_equal(cat12.nobj, np.sum(cat12.w != 0))
     np.testing.assert_equal(cat12.sumw, np.sum(cat12.w))
     np.testing.assert_equal(cat12.sumw, np.sum(cat6.w[1009:3456]))
+    np.testing.assert_almost_equal(cat12.meanw, np.mean(cat12.w[cat12.w != 0]))
     assert cat12.k is None
     assert cat12.z1 is None
     assert cat12.z2 is None
@@ -597,6 +599,7 @@ def test_ascii():
     np.testing.assert_equal(cat13.ntot, 245)
     np.testing.assert_equal(cat13.nobj, np.sum(cat13.w != 0))
     np.testing.assert_equal(cat13.sumw, np.sum(cat13.w))
+    np.testing.assert_almost_equal(cat13.meanw, np.mean(cat13.w[cat13.w != 0]))
     print('first few = ',cat13.w[:3])
     print('from cat6: ',cat6.w[1009:1039])
     print('last few = ',cat13.w[-3:])
@@ -1492,7 +1495,8 @@ def test_var():
     allt2 = []
     allq1 = []
     allq2 = []
-    for i in range(10):
+    ncat = 10
+    for i in range(ncat):
         x = rng.random_sample(nobj)
         y = rng.random_sample(nobj)
         k = rng.random_sample(nobj) - 0.5
@@ -1529,6 +1533,8 @@ def test_var():
         assert np.isclose(treecorr.calculateVarT([cat]), vart)
         assert np.isclose(treecorr.calculateVarQ(cat), varq)
         assert np.isclose(treecorr.calculateVarQ([cat]), varq)
+        assert np.isclose(treecorr.calculateMeanW(cat), 1)
+        assert np.isclose(treecorr.calculateMeanW([cat]), 1)
         cats.append(cat)
         allk.extend(k)
         allz1.extend(z1)
@@ -1564,6 +1570,7 @@ def test_var():
     assert np.isclose(treecorr.calculateVarV(cats), varv)
     assert np.isclose(treecorr.calculateVarT(cats), vart)
     assert np.isclose(treecorr.calculateVarQ(cats), varq)
+    assert np.isclose(treecorr.calculateMeanW(cats), 1)
 
     # Now with weights
     cats = []
@@ -1579,7 +1586,7 @@ def test_var():
     allq1 = []
     allq2 = []
     allw = []
-    for i in range(10):
+    for i in range(ncat):
         x = rng.random_sample(nobj)
         y = rng.random_sample(nobj)
         w = rng.random_sample(nobj)
@@ -1613,6 +1620,7 @@ def test_var():
         meanq1 = np.sum(w*q1)/np.sum(w)
         meanq2 = np.sum(w*q2)/np.sum(w)
         varq = np.sum(w**2 * ((q1-meanq1)**2 + (q2-meanq2)**2)) / (2*np.sum(w))
+        meanw = np.mean(w)
         assert np.isclose(cat.vark, vark)
         assert np.isclose(cat.varg, varg)
         assert np.isclose(cat.varv, varv)
@@ -1628,6 +1636,8 @@ def test_var():
         assert np.isclose(treecorr.calculateVarT([cat]), vart)
         assert np.isclose(treecorr.calculateVarQ(cat), varq)
         assert np.isclose(treecorr.calculateVarQ([cat]), varq)
+        assert np.isclose(treecorr.calculateMeanW(cat), meanw)
+        assert np.isclose(treecorr.calculateMeanW([cat]), meanw)
         cats.append(cat)
         allk.extend(k)
         allz1.extend(z1)
@@ -1671,11 +1681,13 @@ def test_var():
     meanq1 = np.sum(allw*allq1)/np.sum(allw)
     meanq2 = np.sum(allw*allq2)/np.sum(allw)
     varq = np.sum(allw**2 * ((allq1-meanq1)**2 + (allq2-meanq2)**2)) / (2*np.sum(allw))
+    meanw = np.sum(allw)/(ncat * nobj)
     assert np.isclose(treecorr.calculateVarK(cats), vark)
     assert np.isclose(treecorr.calculateVarG(cats), varg)
     assert np.isclose(treecorr.calculateVarV(cats), varv)
     assert np.isclose(treecorr.calculateVarT(cats), vart)
     assert np.isclose(treecorr.calculateVarQ(cats), varq)
+    assert np.isclose(treecorr.calculateMeanW(cats), meanw)
 
     # With no g1,g2,k, varg=vark=0
     cat = treecorr.Catalog(x=x, y=y)
@@ -1704,7 +1716,7 @@ def test_var():
     allt2 = []
     allq1 = []
     allq2 = []
-    for i in range(10):
+    for i in range(ncat):
         x = rng.random_sample(nobj)
         y = rng.random_sample(nobj)
         k = rng.random_sample(nobj) - 0.5
@@ -2716,6 +2728,7 @@ def test_combine():
     assert cat2.nontrivial_w == cat1.nontrivial_w
     assert cat2.sumw == cat1.sumw
     assert cat2.sumw2 == cat1.sumw2
+    assert cat2.meanw == cat1.meanw
     assert cat2.coords == cat1.coords
     assert cat2 == cat1
 
@@ -2733,6 +2746,7 @@ def test_combine():
     assert cat3.nontrivial_w == cat1.nontrivial_w
     assert cat3.sumw == cat1.sumw
     assert cat3.sumw2 == cat1.sumw2
+    assert cat3.meanw == cat1.meanw
     assert cat3.coords == cat1.coords
 
     k = np.arange(100)
@@ -2745,6 +2759,7 @@ def test_combine():
     assert cat4.nontrivial_w == cat1.nontrivial_w
     assert cat4.sumw == cat1.sumw
     assert cat4.sumw2 == cat1.sumw2
+    assert cat4.meanw == cat1.meanw
     assert cat4.coords == cat1.coords
 
     # Check ra, dec

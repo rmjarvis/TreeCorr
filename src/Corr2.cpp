@@ -144,7 +144,7 @@ void Corr2<D1,D2>::clear()
 }
 
 template <int B, int M, int P, int C>
-void BaseCorr2::process(const BaseField<C>& field, bool dots)
+void BaseCorr2::process(const BaseField<C>& field, bool dots, bool quick)
 {
     xdbg<<"Start process (auto): M,P,C = "<<M<<"  "<<P<<"  "<<C<<std::endl;
     Assert(_coords == -1 || _coords == C);
@@ -182,10 +182,15 @@ void BaseCorr2::process(const BaseField<C>& field, bool dots)
                 if (dots) std::cout<<'.'<<std::flush;
             }
             const BaseCell<C>& c1 = *cells[i];
-            bc2.template process2<B,M,P>(c1, metric);
+            bc2.template process2<B,M,P>(c1, metric, quick);
             for (long j=i+1;j<n1;++j) {
                 const BaseCell<C>& c2 = *cells[j];
-                bc2.process11<B,M,P,BinTypeHelper<B>::do_reverse>(c1, c2, metric);
+                const int R = BinTypeHelper<B>::do_reverse;
+                if (quick) {
+                    bc2.process11<B,M,P,true,R>(c1, c2, metric);
+                } else {
+                    bc2.process11<B,M,P,false,R>(c1, c2, metric);
+                }
             }
         }
 #ifdef _OPENMP
@@ -200,7 +205,8 @@ void BaseCorr2::process(const BaseField<C>& field, bool dots)
 }
 
 template <int B, int M, int P, int C>
-void BaseCorr2::process(const BaseField<C>& field1, const BaseField<C>& field2, bool dots)
+void BaseCorr2::process(const BaseField<C>& field1, const BaseField<C>& field2,
+                        bool dots, bool quick)
 {
     xdbg<<"Start process (cross): M,P,C = "<<M<<"  "<<P<<"  "<<C<<std::endl;
     Assert(_coords == -1 || _coords == C);
@@ -262,7 +268,12 @@ void BaseCorr2::process(const BaseField<C>& field1, const BaseField<C>& field2, 
             const BaseCell<C>& c1 = *c1list[i];
             for (long j=0;j<n2;++j) {
                 const BaseCell<C>& c2 = *c2list[j];
-                bc2.process11<B,M,P,false>(c1, c2, metric);
+                // R is always false here.
+                if (quick) {
+                    bc2.process11<B,M,P,true,false>(c1, c2, metric);
+                } else {
+                    bc2.process11<B,M,P,false,false>(c1, c2, metric);
+                }
             }
         }
 #ifdef _OPENMP
@@ -277,19 +288,24 @@ void BaseCorr2::process(const BaseField<C>& field1, const BaseField<C>& field2, 
 }
 
 template <int B, int M, int P, int C>
-void BaseCorr2::process2(const BaseCell<C>& c12, const MetricHelper<M,P>& metric)
+void BaseCorr2::process2(const BaseCell<C>& c12, const MetricHelper<M,P>& metric, bool quick)
 {
     if (c12.getW() == 0.) return;
     if (c12.getSize() <= _halfminsep) return;
 
     Assert(c12.getLeft());
     Assert(c12.getRight());
-    process2<B,M,P>(*c12.getLeft(), metric);
-    process2<B,M,P>(*c12.getRight(), metric);
-    process11<B,M,P,BinTypeHelper<B>::do_reverse>(*c12.getLeft(), *c12.getRight(), metric);
+    process2<B,M,P>(*c12.getLeft(), metric, quick);
+    process2<B,M,P>(*c12.getRight(), metric, quick);
+    const int R = BinTypeHelper<B>::do_reverse;
+    if (quick) {
+        process11<B,M,P,true,R>(*c12.getLeft(), *c12.getRight(), metric);
+    } else {
+        process11<B,M,P,false,R>(*c12.getLeft(), *c12.getRight(), metric);
+    }
 }
 
-template <int B, int M, int P, int R, int C>
+template <int B, int M, int P, int Q, int R, int C>
 void BaseCorr2::process11(const BaseCell<C>& c1, const BaseCell<C>& c2,
                           const MetricHelper<M,P>& metric)
 {
@@ -336,7 +352,7 @@ void BaseCorr2::process11(const BaseCell<C>& c1, const BaseCell<C>& c2,
     {
         xdbg<<"Drop into single bin.\n";
         if (BinTypeHelper<B>::isRSqInRange(rsq, p1, p2, _minsep, _minsepsq, _maxsep, _maxsepsq)) {
-            directProcess11<B,R>(c1,c2,rsq,k,r,logr);
+            directProcess11<B,Q,R>(c1,c2,rsq,k,r,logr);
         }
     } else {
         xdbg<<"Need to split.\n";
@@ -353,21 +369,21 @@ void BaseCorr2::process11(const BaseCell<C>& c1, const BaseCell<C>& c2,
             Assert(c1.getRight());
             Assert(c2.getLeft());
             Assert(c2.getRight());
-            process11<B,M,P,R>(*c1.getLeft(),*c2.getLeft(),metric);
-            process11<B,M,P,R>(*c1.getLeft(),*c2.getRight(),metric);
-            process11<B,M,P,R>(*c1.getRight(),*c2.getLeft(),metric);
-            process11<B,M,P,R>(*c1.getRight(),*c2.getRight(),metric);
+            process11<B,M,P,Q,R>(*c1.getLeft(),*c2.getLeft(),metric);
+            process11<B,M,P,Q,R>(*c1.getLeft(),*c2.getRight(),metric);
+            process11<B,M,P,Q,R>(*c1.getRight(),*c2.getLeft(),metric);
+            process11<B,M,P,Q,R>(*c1.getRight(),*c2.getRight(),metric);
         } else if (split1) {
             Assert(c1.getLeft());
             Assert(c1.getRight());
-            process11<B,M,P,R>(*c1.getLeft(),c2,metric);
-            process11<B,M,P,R>(*c1.getRight(),c2,metric);
+            process11<B,M,P,Q,R>(*c1.getLeft(),c2,metric);
+            process11<B,M,P,Q,R>(*c1.getRight(),c2,metric);
         } else {
             Assert(split2);
             Assert(c2.getLeft());
             Assert(c2.getRight());
-            process11<B,M,P,R>(c1,*c2.getLeft(),metric);
-            process11<B,M,P,R>(c1,*c2.getRight(),metric);
+            process11<B,M,P,Q,R>(c1,*c2.getLeft(),metric);
+            process11<B,M,P,Q,R>(c1,*c2.getRight(),metric);
         }
     }
 }
@@ -457,7 +473,7 @@ struct DirectHelper<3>
     }
 };
 
-template <int B, int R, int C>
+template <int B, int Q, int R, int C>
 void BaseCorr2::directProcess11(
     const BaseCell<C>& c1, const BaseCell<C>& c2, const double rsq,
     int k, double r, double logr)
@@ -505,31 +521,34 @@ void BaseCorr2::directProcess11(
         if (k2 == _nbins) --k2;  // As before, this can (rarely) happen.
     }
 
-    finishProcess<R>(c1, c2, rsq, r, logr, k, k2);
+    finishProcess<Q,R>(c1, c2, rsq, r, logr, k, k2);
 }
 
-template <int D1, int D2> template <int R, int C>
+template <int D1, int D2> template <int Q, int R, int C>
 void Corr2<D1,D2>::finishProcess(const BaseCell<C>& c1, const BaseCell<C>& c2,
                                  double rsq, double r, double logr, int k, int k2)
 {
-    double nn = double(c1.getN()) * double(c2.getN());
-    _npairs[k] += nn;
-
     double ww = double(c1.getW()) * double(c2.getW());
-    double wwr = ww * r;
-    double wwlogr = ww * logr;
-    _meanr[k] += wwr;
-    _meanlogr[k] += wwlogr;
     _weight[k] += ww;
-    xdbg<<"n,w = "<<nn<<','<<ww<<" ==>  "<<_npairs[k]<<','<<_weight[k]<<std::endl;
+    if (R) _weight[k2] += ww;
 
-    if (R) {
-        Assert(k2 >= 0);
-        Assert(k2 < _nbins);
-        _npairs[k2] += nn;
-        _meanr[k2] += wwr;
-        _meanlogr[k2] += wwlogr;
-        _weight[k2] += ww;
+    if (!Q) {
+        double nn = double(c1.getN()) * double(c2.getN());
+        _npairs[k] += nn;
+
+        double wwr = ww * r;
+        double wwlogr = ww * logr;
+        _meanr[k] += wwr;
+        _meanlogr[k] += wwlogr;
+        xdbg<<"n,w = "<<nn<<','<<ww<<" ==>  "<<_npairs[k]<<','<<_weight[k]<<std::endl;
+
+        if (R) {
+            Assert(k2 >= 0);
+            Assert(k2 < _nbins);
+            _npairs[k2] += nn;
+            _meanr[k2] += wwr;
+            _meanlogr[k2] += wwlogr;
+        }
     }
 
     const int algo =
@@ -643,7 +662,7 @@ void SelectRandomFrom(long m, std::vector<long>& selection)
     }
 }
 
-template <int R, int C>
+template <int Q, int R, int C>
 void Sampler::finishProcess(
     const BaseCell<C>& c1, const BaseCell<C>& c2,
     double rsq, double r, double logr, int kk, int kk2)
@@ -846,7 +865,7 @@ Corr2<D1,D2>* BuildCorr2(
 }
 
 template <int B, int M, int C>
-void ProcessAuto2(BaseCorr2& corr, BaseField<C>& field, bool dots)
+void ProcessAuto2(BaseCorr2& corr, BaseField<C>& field, bool dots, bool quick)
 {
     const bool P = corr.nontrivialRPar();
     dbg<<"ProcessAuto: coords = "<<C<<", metric = "<<M<<", P = "<<P<<std::endl;
@@ -859,33 +878,33 @@ void ProcessAuto2(BaseCorr2& corr, BaseField<C>& field, bool dots)
     Assert((ValidMC<M,C>::_M == M));
     if (P) {
         Assert(C == ThreeD);
-        corr.template process<B, ValidMC<M,C>::_M, (C==ThreeD)>(field, dots);
+        corr.template process<B, ValidMC<M,C>::_M, (C==ThreeD)>(field, dots, quick);
     } else {
-        corr.template process<B, ValidMC<M,C>::_M, false>(field, dots);
+        corr.template process<B, ValidMC<M,C>::_M, false>(field, dots, quick);
     }
 }
 
 template <int B, int C>
-void ProcessAuto1(BaseCorr2& corr, BaseField<C>& field, bool dots, Metric metric)
+void ProcessAuto1(BaseCorr2& corr, BaseField<C>& field, bool dots, bool quick, Metric metric)
 {
     switch(metric) {
       case Euclidean:
-           ProcessAuto2<B,Euclidean>(corr, field, dots);
+           ProcessAuto2<B,Euclidean>(corr, field, dots, quick);
            break;
       case Rperp:
-           ProcessAuto2<B,Rperp>(corr, field, dots);
+           ProcessAuto2<B,Rperp>(corr, field, dots, quick);
            break;
       case OldRperp:
-           ProcessAuto2<B,OldRperp>(corr, field, dots);
+           ProcessAuto2<B,OldRperp>(corr, field, dots, quick);
            break;
       case Rlens:
-           ProcessAuto2<B,Rlens>(corr, field, dots);
+           ProcessAuto2<B,Rlens>(corr, field, dots, quick);
            break;
       case Arc:
-           ProcessAuto2<B,Arc>(corr, field, dots);
+           ProcessAuto2<B,Arc>(corr, field, dots, quick);
            break;
       case Periodic:
-           ProcessAuto2<B,Periodic>(corr, field, dots);
+           ProcessAuto2<B,Periodic>(corr, field, dots, quick);
            break;
       default:
            Assert(false);
@@ -893,17 +912,17 @@ void ProcessAuto1(BaseCorr2& corr, BaseField<C>& field, bool dots, Metric metric
 }
 
 template <int C>
-void ProcessAuto(BaseCorr2& corr, BaseField<C>& field, bool dots, Metric metric)
+void ProcessAuto(BaseCorr2& corr, BaseField<C>& field, bool dots, bool quick, Metric metric)
 {
     switch(corr.getBinType()) {
       case Log:
-           ProcessAuto1<Log>(corr, field, dots, metric);
+           ProcessAuto1<Log>(corr, field, dots, quick, metric);
            break;
       case Linear:
-           ProcessAuto1<Linear>(corr, field, dots, metric);
+           ProcessAuto1<Linear>(corr, field, dots, quick, metric);
            break;
       case TwoD:
-           ProcessAuto1<TwoD>(corr, field, dots, metric);
+           ProcessAuto1<TwoD>(corr, field, dots, quick, metric);
            break;
       default:
            Assert(false);
@@ -911,7 +930,8 @@ void ProcessAuto(BaseCorr2& corr, BaseField<C>& field, bool dots, Metric metric)
 }
 
 template <int B, int M, int C>
-void ProcessCross2(BaseCorr2& corr, BaseField<C>& field1, BaseField<C>& field2, bool dots)
+void ProcessCross2(BaseCorr2& corr, BaseField<C>& field1, BaseField<C>& field2,
+                   bool dots, bool quick)
 {
     const bool P = corr.nontrivialRPar();
     dbg<<"ProcessCross: coords = "<<C<<", metric = "<<M<<", P = "<<P<<std::endl;
@@ -919,34 +939,34 @@ void ProcessCross2(BaseCorr2& corr, BaseField<C>& field1, BaseField<C>& field2, 
     Assert((ValidMC<M,C>::_M == M));
     if (P) {
         Assert(C == ThreeD);
-        corr.template process<B, ValidMC<M,C>::_M, C==ThreeD>(field1, field2, dots);
+        corr.template process<B, ValidMC<M,C>::_M, C==ThreeD>(field1, field2, dots, quick);
     } else {
-        corr.template process<B, ValidMC<M,C>::_M, false>(field1, field2, dots);
+        corr.template process<B, ValidMC<M,C>::_M, false>(field1, field2, dots, quick);
     }
 }
 
 template <int B, int C>
 void ProcessCross1(BaseCorr2& corr, BaseField<C>& field1, BaseField<C>& field2,
-                   bool dots, Metric metric)
+                   bool dots, bool quick, Metric metric)
 {
     switch(metric) {
       case Euclidean:
-           ProcessCross2<B,Euclidean>(corr, field1, field2, dots);
+           ProcessCross2<B,Euclidean>(corr, field1, field2, dots, quick);
            break;
       case Rperp:
-           ProcessCross2<B,Rperp>(corr, field1, field2, dots);
+           ProcessCross2<B,Rperp>(corr, field1, field2, dots, quick);
            break;
       case OldRperp:
-           ProcessCross2<B,OldRperp>(corr, field1, field2, dots);
+           ProcessCross2<B,OldRperp>(corr, field1, field2, dots, quick);
            break;
       case Rlens:
-           ProcessCross2<B,Rlens>(corr, field1, field2, dots);
+           ProcessCross2<B,Rlens>(corr, field1, field2, dots, quick);
            break;
       case Arc:
-           ProcessCross2<B,Arc>(corr, field1, field2, dots);
+           ProcessCross2<B,Arc>(corr, field1, field2, dots, quick);
            break;
       case Periodic:
-           ProcessCross2<B,Periodic>(corr, field1, field2, dots);
+           ProcessCross2<B,Periodic>(corr, field1, field2, dots, quick);
            break;
       default:
            Assert(false);
@@ -955,18 +975,18 @@ void ProcessCross1(BaseCorr2& corr, BaseField<C>& field1, BaseField<C>& field2,
 
 template <int C>
 void ProcessCross(BaseCorr2& corr, BaseField<C>& field1, BaseField<C>& field2,
-                  bool dots, Metric metric)
+                  bool dots, bool quick, Metric metric)
 {
     dbg<<"Start ProcessCross: "<<corr.getBinType()<<" "<<metric<<std::endl;
     switch(corr.getBinType()) {
       case Log:
-           ProcessCross1<Log>(corr, field1, field2, dots, metric);
+           ProcessCross1<Log>(corr, field1, field2, dots, quick, metric);
            break;
       case Linear:
-           ProcessCross1<Linear>(corr, field1, field2, dots, metric);
+           ProcessCross1<Linear>(corr, field1, field2, dots, quick, metric);
            break;
       case TwoD:
-           ProcessCross1<TwoD>(corr, field1, field2, dots, metric);
+           ProcessCross1<TwoD>(corr, field1, field2, dots, quick, metric);
            break;
       default:
            Assert(false);
@@ -1013,7 +1033,7 @@ long SamplePairs(BaseCorr2& corr, BaseField<C>& field1, BaseField<C>& field2,
 
     // I don't know how to do the sampling safely in parallel, so temporarily set num_threads=1.
     int old_num_threads = SetOMPThreads(1);
-    ProcessCross(sampler, field1, field2, false, metric);
+    ProcessCross(sampler, field1, field2, false, false, metric);
     SetOMPThreads(old_num_threads);
 
     return sampler.getK();
@@ -1130,11 +1150,11 @@ template <int C, typename W>
 void WrapProcess(py::module& _treecorr, W& base_corr2)
 {
     typedef void (*auto_type)(BaseCorr2& corr, BaseField<C>& field,
-                              bool dots, Metric metric);
+                              bool dots, bool quick, Metric metric);
     base_corr2.def("processAuto", auto_type(&ProcessAuto));
 
     typedef void (*cross_type)(BaseCorr2& corr, BaseField<C>& field1, BaseField<C>& field2,
-                               bool dots, Metric metric);
+                               bool dots, bool quick, Metric metric);
     base_corr2.def("processCross", cross_type(&ProcessCross));
 
     typedef long (*sample_type)(BaseCorr2& corr,

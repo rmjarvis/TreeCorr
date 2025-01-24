@@ -2815,7 +2815,7 @@ def test_lowmem():
 
     t0 = time.time()
     s0 = hp.heap().size if hp else 0
-    dd.process(full_cat)
+    dd.process(full_cat, corr_only=True)
     t1 = time.time()
     s1 = hp.heap().size if hp else 200
     print('regular: ',s1, t1-t0, s1-s0)
@@ -2837,7 +2837,7 @@ def test_lowmem():
 
     t0 = time.time()
     s0 = hp.heap().size if hp else 0
-    dd.process(save_cat, low_mem=True)
+    dd.process(save_cat, corr_only=True, low_mem=True)
     t1 = time.time()
     s1 = hp.heap().size if hp else 0
     print('lomem: ',s1, t1-t0, s1-s0)
@@ -2849,7 +2849,7 @@ def test_lowmem():
     save_cat.unload()
     t0 = time.time()
     s0 = hp.heap().size if hp else 0
-    dd.process(save_cat, save_cat, low_mem=True)
+    dd.process(save_cat, save_cat, corr_only=True, low_mem=True)
     t1 = time.time()
     s1 = hp.heap().size if hp else 0
     print('lomem x: ',s1, t1-t0, s1-s0)
@@ -2893,7 +2893,7 @@ def test_lowmem():
     gg1 = treecorr.GGCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
     t0 = time.time()
     s0 = hp.heap().size if hp else 0
-    gg1.process(gk_cat1)
+    gg1.process(gk_cat1, corr_only=True)
     t1 = time.time()
     s1 = hp.heap().size if hp else 0
     print('GG1: ',s1, t1-t0, s1-s0)
@@ -2901,7 +2901,7 @@ def test_lowmem():
     gg2 = treecorr.GGCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
     t0 = time.time()
     s0 = hp.heap().size if hp else 0
-    gg2.process(gk_cat2, low_mem=True)
+    gg2.process(gk_cat2, corr_only=True, low_mem=True)
     t1 = time.time()
     s1 = hp.heap().size if hp else 0
     print('GG2: ',s1, t1-t0, s1-s0)
@@ -2914,7 +2914,7 @@ def test_lowmem():
     ng1 = treecorr.NGCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
     t0 = time.time()
     s0 = hp.heap().size if hp else 0
-    ng1.process(gk_cat1, gk_cat1)
+    ng1.process(gk_cat1, gk_cat1, corr_only=True)
     t1 = time.time()
     s1 = hp.heap().size if hp else 0
     print('NG1: ',s1, t1-t0, s1-s0)
@@ -2922,7 +2922,7 @@ def test_lowmem():
     ng2 = treecorr.NGCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
     t0 = time.time()
     s0 = hp.heap().size if hp else 0
-    ng2.process(gk_cat2, gk_cat2, low_mem=True)
+    ng2.process(gk_cat2, gk_cat2, low_mem=True, corr_only=True)
     t1 = time.time()
     s1 = hp.heap().size if hp else 0
     print('NG2: ',s1, t1-t0, s1-s0)
@@ -2933,14 +2933,14 @@ def test_lowmem():
     # Also with patch_method=local
     t0 = time.time()
     s0 = hp.heap().size if hp else 0
-    ng1.process(gk_cat1, gk_cat1, patch_method='local')
+    ng1.process(gk_cat1, gk_cat1, patch_method='local', corr_only=True)
     t1 = time.time()
     s1 = hp.heap().size if hp else 0
     print('NG1: ',s1, t1-t0, s1-s0)
     gk_cat1.unload()
     t0 = time.time()
     s0 = hp.heap().size if hp else 0
-    ng2.process(gk_cat2, gk_cat2, patch_method='local', low_mem=True)
+    ng2.process(gk_cat2, gk_cat2, patch_method='local', low_mem=True, corr_only=True)
     t1 = time.time()
     s1 = hp.heap().size if hp else 0
     print('NG2: ',s1, t1-t0, s1-s0)
@@ -2962,7 +2962,7 @@ def test_lowmem():
     kk1 = treecorr.KKCorrelation(bin_size=0.5, min_sep=1., max_sep=20.)
     t0 = time.time()
     s0 = hp.heap().size if hp else 0
-    kk1.process(gk_cat1)
+    kk1.process(gk_cat1, corr_only=True)
     t1 = time.time()
     s1 = hp.heap().size if hp else 0
     print('KK1: ',s1, t1-t0, s1-s0)
@@ -2970,7 +2970,7 @@ def test_lowmem():
     kk2 = treecorr.KKCorrelation(bin_size=0.5, min_sep=1., max_sep=20.)
     t0 = time.time()
     s0 = hp.heap().size if hp else 0
-    kk2.process(gk_cat2, low_mem=True)
+    kk2.process(gk_cat2, low_mem=True, corr_only=True)
     t1 = time.time()
     s1 = hp.heap().size if hp else 0
     print('KK2: ',s1, t1-t0, s1-s0)
@@ -2981,14 +2981,14 @@ def test_lowmem():
     # Also with patch_method=local
     t0 = time.time()
     s0 = hp.heap().size if hp else 0
-    kk1.process(gk_cat1, patch_method='local')
+    kk1.process(gk_cat1, patch_method='local', corr_only=True)
     t1 = time.time()
     s1 = hp.heap().size if hp else 0
     print('KK1: ',s1, t1-t0, s1-s0)
     gk_cat1.unload()
     t0 = time.time()
     s0 = hp.heap().size if hp else 0
-    kk2.process(gk_cat2, patch_method='local', low_mem=True)
+    kk2.process(gk_cat2, patch_method='local', low_mem=True, corr_only=True)
     t1 = time.time()
     s1 = hp.heap().size if hp else 0
     print('KK2: ',s1, t1-t0, s1-s0)
@@ -3010,7 +3010,7 @@ def test_lowmem():
     nk1 = treecorr.NKCorrelation(bin_size=0.5, min_sep=1., max_sep=20.)
     t0 = time.time()
     s0 = hp.heap().size if hp else 0
-    nk1.process(gk_cat1, gk_cat1)
+    nk1.process(gk_cat1, gk_cat1, corr_only=True)
     t1 = time.time()
     s1 = hp.heap().size if hp else 0
     print('NK1: ',s1, t1-t0, s1-s0)
@@ -3018,7 +3018,7 @@ def test_lowmem():
     nk2 = treecorr.NKCorrelation(bin_size=0.5, min_sep=1., max_sep=20.)
     t0 = time.time()
     s0 = hp.heap().size if hp else 0
-    nk2.process(gk_cat2, gk_cat2, low_mem=True)
+    nk2.process(gk_cat2, gk_cat2, low_mem=True, corr_only=True)
     t1 = time.time()
     s1 = hp.heap().size if hp else 0
     print('NK2: ',s1, t1-t0, s1-s0)
@@ -3040,7 +3040,7 @@ def test_lowmem():
     kg1 = treecorr.KGCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
     t0 = time.time()
     s0 = hp.heap().size if hp else 0
-    kg1.process(gk_cat1, gk_cat1)
+    kg1.process(gk_cat1, gk_cat1, corr_only=True)
     t1 = time.time()
     s1 = hp.heap().size if hp else 0
     print('KG1: ',s1, t1-t0, s1-s0)
@@ -3048,7 +3048,7 @@ def test_lowmem():
     kg2 = treecorr.KGCorrelation(bin_size=0.5, min_sep=1., max_sep=30., sep_units='arcmin')
     t0 = time.time()
     s0 = hp.heap().size if hp else 0
-    kg2.process(gk_cat2, gk_cat2, low_mem=True)
+    kg2.process(gk_cat2, gk_cat2, low_mem=True, corr_only=True)
     t1 = time.time()
     s1 = hp.heap().size if hp else 0
     print('KG2: ',s1, t1-t0, s1-s0)

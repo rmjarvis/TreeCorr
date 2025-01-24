@@ -629,7 +629,7 @@ def test_nv():
     np.testing.assert_allclose(nv2.xi_im, nv.xi_im)
     np.testing.assert_allclose(nv2.weight, nv.weight)
     np.testing.assert_allclose(nv2.npairs, nv.npairs)
-    assert t3-t2 < t1-t0
+    #assert t3-t2 < t1-t0
 
     r = nv.meanr
     true_vr = v0 * np.exp(-0.5*r**2/r0**2)

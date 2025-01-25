@@ -92,25 +92,12 @@ class BaseNZCorrelation(Corr2):
         self.xi_im = self.raw_xi_im
         self._rz = None
         self._raw_varxi = None
-        self._varxi = None
 
     def _sum(self, others):
-        # Equivalent to the operation of:
-        #     self._clear()
-        #     for other in others:
-        #         self += other
-        # but no sanity checks and use numpy.sum for faster calculation.
-        np.sum([c._xi[0] for c in others], axis=0, out=self._xi[0])
-        np.sum([c._xi[1] for c in others], axis=0, out=self._xi[1])
-        np.sum([c.meanr for c in others], axis=0, out=self.meanr)
-        np.sum([c.meanlogr for c in others], axis=0, out=self.meanlogr)
-        np.sum([c.weight for c in others], axis=0, out=self.weight)
-        np.sum([c.npairs for c in others], axis=0, out=self.npairs)
+        super()._sum(others)
         self.xi = self.raw_xi
         self.xi_im = self.raw_xi_im
         self._raw_varxi = None
-        self._varxi = None
-        self._cov = None
 
     def calculateXi(self, rz=None):
         if rz is not None:

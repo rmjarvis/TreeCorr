@@ -1273,6 +1273,7 @@ class Corr2(object):
         self.meanlogr[:] = 0
         self.weight[:] = 0
         self.npairs[:] = 0
+        self._varxi = None
         self._cov = None
 
     def __iadd__(self, other):
@@ -1299,6 +1300,22 @@ class Corr2(object):
         self.weight[:] += other.weight
         self.npairs[:] += other.npairs
         return self
+
+    def _sum(self, others):
+        # Equivalent to the operation of:
+        #     self._clear()
+        #     for other in others:
+        #         self += other
+        # but no sanity checks and use numpy.sum for faster calculation.
+        for i in range(4):
+            if self._xi[i].size:
+                np.sum([c._xi[i] for c in others], axis=0, out=self._xi[i])
+        np.sum([c.meanr for c in others], axis=0, out=self.meanr)
+        np.sum([c.meanlogr for c in others], axis=0, out=self.meanlogr)
+        np.sum([c.weight for c in others], axis=0, out=self.weight)
+        np.sum([c.npairs for c in others], axis=0, out=self.npairs)
+        self._varxi = None
+        self._cov = None
 
     def estimate_cov(self, method, *, func=None, comm=None):
         """Estimate the covariance matrix based on the data

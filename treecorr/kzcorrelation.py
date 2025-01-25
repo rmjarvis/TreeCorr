@@ -61,27 +61,6 @@ class BaseKZCorrelation(Corr2):
                 self._varxi.ravel()[:] = self.cov_diag
         return self._varxi
 
-    def _clear(self):
-        """Clear the data vectors
-        """
-        super()._clear()
-        self._varxi = None
-
-    def _sum(self, others):
-        # Equivalent to the operation of:
-        #     self._clear()
-        #     for other in others:
-        #         self += other
-        # but no sanity checks and use numpy.sum for faster calculation.
-        np.sum([c._xi[0] for c in others], axis=0, out=self._xi[0])
-        np.sum([c._xi[1] for c in others], axis=0, out=self._xi[1])
-        np.sum([c.meanr for c in others], axis=0, out=self.meanr)
-        np.sum([c.meanlogr for c in others], axis=0, out=self.meanlogr)
-        np.sum([c.weight for c in others], axis=0, out=self.weight)
-        np.sum([c.npairs for c in others], axis=0, out=self.npairs)
-        self._varxi = None
-        self._cov = None
-
     def write(self, file_name, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
         self.logger.info(f'Writing {self._letters} correlations to %s', file_name)

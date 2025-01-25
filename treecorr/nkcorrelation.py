@@ -144,23 +144,10 @@ class NKCorrelation(Corr2):
         self.xi = self.raw_xi
         self._rk = None
         self._raw_varxi = None
-        self._varxi = None
 
     def _sum(self, others):
-        # Equivalent to the operation of:
-        #     self._clear()
-        #     for other in others:
-        #         self += other
-        # but no sanity checks and use numpy.sum for faster calculation.
-        np.sum([c._xi[0] for c in others], axis=0, out=self._xi[0])
-        np.sum([c.meanr for c in others], axis=0, out=self.meanr)
-        np.sum([c.meanlogr for c in others], axis=0, out=self.meanlogr)
-        np.sum([c.weight for c in others], axis=0, out=self.weight)
-        np.sum([c.npairs for c in others], axis=0, out=self.npairs)
+        super()._sum(others)
         self.xi = self.raw_xi
-        self._raw_varxi = None
-        self._varxi = None
-        self._cov = None
 
     def calculateXi(self, *, rk=None):
         r"""Calculate the correlation function possibly given another correlation function

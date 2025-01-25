@@ -108,10 +108,6 @@ class GGGCorrelation(Corr3):
 
         shape = self.data_shape
         self._z = [np.zeros(shape, dtype=float) for _ in range(8)]
-        self._vargam0 = None
-        self._vargam1 = None
-        self._vargam2 = None
-        self._vargam3 = None
         self.logger.debug('Finished building GGGCorr')
 
     @property
@@ -181,34 +177,27 @@ class GGGCorrelation(Corr3):
 
     @property
     def vargam0(self):
-        if self._vargam0 is None:
-            self._vargam0 = self._calculate_varzeta(0, self._nbins)
-        return self._vargam0
+        if self._varzeta is None:
+            self._calculate_varzeta(4)
+        return self._varzeta[0]
 
     @property
     def vargam1(self):
-        if self._vargam1 is None:
-            self._vargam1 = self._calculate_varzeta(self._nbins, 2*self._nbins)
-        return self._vargam1
+        if self._varzeta is None:
+            self._calculate_varzeta(4)
+        return self._varzeta[1]
 
     @property
     def vargam2(self):
-        if self._vargam2 is None:
-            self._vargam2 = self._calculate_varzeta(2*self._nbins, 3*self._nbins)
-        return self._vargam2
+        if self._varzeta is None:
+            self._calculate_varzeta(4)
+        return self._varzeta[2]
 
     @property
     def vargam3(self):
-        if self._vargam3 is None:
-            self._vargam3 = self._calculate_varzeta(3*self._nbins, 4*self._nbins)
-        return self._vargam3
-
-    def _clear(self):
-        super()._clear()
-        self._vargam0 = None
-        self._vargam1 = None
-        self._vargam2 = None
-        self._vargam3 = None
+        if self._varzeta is None:
+            self._calculate_varzeta(4)
+        return self._varzeta[3]
 
     def getStat(self):
         """The standard statistic for the current correlation object as a 1-d array.
@@ -277,10 +266,11 @@ class GGGCorrelation(Corr3):
         self._z[5] = data['gam2i'].reshape(s)
         self._z[6] = data['gam3r'].reshape(s)
         self._z[7] = data['gam3i'].reshape(s)
-        self._vargam0 = data['sigma_gam0'].reshape(s)**2
-        self._vargam1 = data['sigma_gam1'].reshape(s)**2
-        self._vargam2 = data['sigma_gam2'].reshape(s)**2
-        self._vargam3 = data['sigma_gam3'].reshape(s)**2
+        vargam0 = data['sigma_gam0'].reshape(s)**2
+        vargam1 = data['sigma_gam1'].reshape(s)**2
+        vargam2 = data['sigma_gam2'].reshape(s)**2
+        vargam3 = data['sigma_gam3'].reshape(s)**2
+        self._varzeta = [vargam0, vargam1, vargam2, vargam3]
 
     @classmethod
     def _calculateT(cls, s, t, k1, k2, k3):

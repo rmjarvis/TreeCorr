@@ -92,8 +92,7 @@ class NKCorrelation(Corr2):
         self._xi[0] = np.zeros_like(self.rnom, dtype=float)
         self.xi = self.raw_xi
         self._rk = None
-        self._varxi = None
-        self._raw_varxi = None
+        self._comp_varxi = None
         self.logger.debug('Finished building NKCorr')
 
     @property
@@ -125,17 +124,16 @@ class NKCorrelation(Corr2):
 
     @property
     def raw_varxi(self):
-        if self._raw_varxi is None:
-            self._raw_varxi = np.zeros_like(self.rnom, dtype=float)
-            if self._var_num != 0:
-                self._raw_varxi.ravel()[:] = self.cov_diag
-        return self._raw_varxi
+        if self._varxi is None:
+            self._calculate_varxi(1)
+        return self._varxi[0]
 
     @property
     def varxi(self):
-        if self._varxi is None:
-            self._varxi = self.raw_varxi
-        return self._varxi
+        if self._comp_varxi is None:
+            return self.raw_varxi
+        else:
+            return self._comp_varxi
 
     def _clear(self):
         """Clear the data vectors
@@ -143,7 +141,7 @@ class NKCorrelation(Corr2):
         super()._clear()
         self.xi = self.raw_xi
         self._rk = None
-        self._raw_varxi = None
+        self._comp_varxi = None
 
     def _sum(self, others):
         super()._sum(others)
@@ -195,13 +193,13 @@ class NKCorrelation(Corr2):
                     self.__dict__.pop('_ok',None)
 
                 self._cov = self.estimate_cov(self.var_method)
-                self._varxi = np.zeros_like(self.rnom, dtype=float)
-                self._varxi.ravel()[:] = self.cov_diag
+                self._comp_varxi = np.zeros_like(self.rnom, dtype=float)
+                self._comp_varxi.ravel()[:] = self.cov_diag
             else:
-                self._varxi = self.raw_varxi + rk.varxi
+                self._comp_varxi = self.raw_varxi + rk.varxi
         else:
             self.xi = self.raw_xi
-            self._varxi = self.raw_varxi
+            self._comp_varxi = None
 
         return self.xi, self.varxi
 
@@ -281,6 +279,6 @@ class NKCorrelation(Corr2):
         super()._read_from_data(data, params)
         s = self.logr.shape
         self._xi[0] = data['kappa'].reshape(s)
-        self._varxi = data['sigma'].reshape(s)**2
+        self._comp_varxi = data['sigma'].reshape(s)**2
         self.xi = self.raw_xi
-        self._raw_varxi = self._varxi
+        self._varxi = [self._comp_varxi]

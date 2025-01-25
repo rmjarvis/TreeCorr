@@ -104,8 +104,6 @@ class KGGCorrelation(Corr3):
         # z0,1 holds gamma_0
         # z2,3 holds gamma_2
         self._z[0:4] = [np.zeros(shape, dtype=float) for _ in range(4)]
-        self._vargam0 = None
-        self._vargam2 = None
         self.logger.debug('Finished building KGGCorr')
 
     @property
@@ -171,9 +169,9 @@ class KGGCorrelation(Corr3):
 
     @property
     def vargam0(self):
-        if self._vargam0 is None:
-            self._vargam0 = self._calculate_varzeta(0, self._nbins)
-        return self._vargam0
+        if self._varzeta is None:
+            self._calculate_varzeta(2)
+        return self._varzeta[0]
 
     @property
     def vargam1(self):
@@ -181,18 +179,13 @@ class KGGCorrelation(Corr3):
 
     @property
     def vargam2(self):
-        if self._vargam2 is None:
-            self._vargam2 = self._calculate_varzeta(self._nbins, 2*self._nbins)
-        return self._vargam2
+        if self._varzeta is None:
+            self._calculate_varzeta(2)
+        return self._varzeta[1]
 
     @property
     def vargam3(self):
         return self.vargam2
-
-    def _clear(self):
-        super()._clear()
-        self._vargam0 = None
-        self._vargam2 = None
 
     def getStat(self):
         """The standard statistic for the current correlation object as a 1-d array.
@@ -239,8 +232,9 @@ class KGGCorrelation(Corr3):
         self._z[1] = data['gam0i'].reshape(s)
         self._z[2] = data['gam2r'].reshape(s)
         self._z[3] = data['gam2i'].reshape(s)
-        self._vargam0 = data['sigma_gam0'].reshape(s)**2
-        self._vargam2 = data['sigma_gam2'].reshape(s)**2
+        vargam0 = data['sigma_gam0'].reshape(s)**2
+        vargam2 = data['sigma_gam2'].reshape(s)**2
+        self._varzeta = [vargam0, vargam2]
 
 class GKGCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point shear-scalar-shear correlation
@@ -322,8 +316,6 @@ class GKGCorrelation(Corr3):
 
         shape = self.data_shape
         self._z[0:4] = [np.zeros(shape, dtype=float) for _ in range(4)]
-        self._vargam0 = None
-        self._vargam1 = None
         self.logger.debug('Finished building GKGCorr')
 
     @property
@@ -389,15 +381,15 @@ class GKGCorrelation(Corr3):
 
     @property
     def vargam0(self):
-        if self._vargam0 is None:
-            self._vargam0 = self._calculate_varzeta(0, self._nbins)
-        return self._vargam0
+        if self._varzeta is None:
+            self._calculate_varzeta(2)
+        return self._varzeta[0]
 
     @property
     def vargam1(self):
-        if self._vargam1 is None:
-            self._vargam1 = self._calculate_varzeta(self._nbins, 2*self._nbins)
-        return self._vargam1
+        if self._varzeta is None:
+            self._calculate_varzeta(2)
+        return self._varzeta[1]
 
     @property
     def vargam2(self):
@@ -406,11 +398,6 @@ class GKGCorrelation(Corr3):
     @property
     def vargam3(self):
         return self.vargam1
-
-    def _clear(self):
-        super()._clear()
-        self._vargam0 = None
-        self._vargam1 = None
 
     def getStat(self):
         """The standard statistic for the current correlation object as a 1-d array.
@@ -457,8 +444,9 @@ class GKGCorrelation(Corr3):
         self._z[1] = data['gam0i'].reshape(s)
         self._z[2] = data['gam1r'].reshape(s)
         self._z[3] = data['gam1i'].reshape(s)
-        self._vargam0 = data['sigma_gam0'].reshape(s)**2
-        self._vargam1 = data['sigma_gam1'].reshape(s)**2
+        vargam0 = data['sigma_gam0'].reshape(s)**2
+        vargam1 = data['sigma_gam1'].reshape(s)**2
+        self._varzeta = [vargam0, vargam1]
 
 class GGKCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point shear-shear-scalar correlation
@@ -540,8 +528,6 @@ class GGKCorrelation(Corr3):
 
         shape = self.data_shape
         self._z[0:4] = [np.zeros(shape, dtype=float) for _ in range(4)]
-        self._vargam0 = None
-        self._vargam1 = None
         self.logger.debug('Finished building GGKCorr')
 
     @property
@@ -607,15 +593,15 @@ class GGKCorrelation(Corr3):
 
     @property
     def vargam0(self):
-        if self._vargam0 is None:
-            self._vargam0 = self._calculate_varzeta(0, self._nbins)
-        return self._vargam0
+        if self._varzeta is None:
+            self._calculate_varzeta(2)
+        return self._varzeta[0]
 
     @property
     def vargam1(self):
-        if self._vargam1 is None:
-            self._vargam1 = self._calculate_varzeta(self._nbins, 2*self._nbins)
-        return self._vargam1
+        if self._varzeta is None:
+            self._calculate_varzeta(2)
+        return self._varzeta[1]
 
     @property
     def vargam2(self):
@@ -624,11 +610,6 @@ class GGKCorrelation(Corr3):
     @property
     def vargam3(self):
         return self.vargam0
-
-    def _clear(self):
-        super()._clear()
-        self._vargam0 = None
-        self._vargam1 = None
 
     def getStat(self):
         """The standard statistic for the current correlation object as a 1-d array.
@@ -675,5 +656,6 @@ class GGKCorrelation(Corr3):
         self._z[1] = data['gam0i'].reshape(s)
         self._z[2] = data['gam1r'].reshape(s)
         self._z[3] = data['gam1i'].reshape(s)
-        self._vargam0 = data['sigma_gam0'].reshape(s)**2
-        self._vargam1 = data['sigma_gam1'].reshape(s)**2
+        vargam0 = data['sigma_gam0'].reshape(s)**2
+        vargam1 = data['sigma_gam1'].reshape(s)**2
+        self._varzeta = [vargam0, vargam1]

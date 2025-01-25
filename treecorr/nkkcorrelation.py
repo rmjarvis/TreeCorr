@@ -87,8 +87,7 @@ class NKKCorrelation(Corr3):
         if self.bin_type == 'LogMultipole':
             self._z[1] = np.zeros(shape, dtype=float)
         self._zeta = None
-        self._varzeta = None
-        self._raw_varzeta = None
+        self._comp_varzeta = None
         self.logger.debug('Finished building NKKCorr')
 
     @property
@@ -126,22 +125,22 @@ class NKKCorrelation(Corr3):
 
     @property
     def raw_varzeta(self):
-        if self._raw_varzeta is None:
-            self._raw_varzeta = self._calculate_varzeta()
-        return self._raw_varzeta
+        if self._varzeta is None:
+            self._calculate_varzeta(1)
+        return self._varzeta[0]
 
     @property
     def varzeta(self):
-        if self._varzeta is None:
-            self._varzeta = self.raw_varzeta
-        return self._varzeta
+        if self._comp_varzeta is None:
+            return self.raw_varzeta
+        else:
+            return self._comp_varzeta
 
     def _clear(self):
         super()._clear()
         self._rkk = None
         self._zeta = None
-        self._raw_varzeta = None
-        self._varzeta = None
+        self._comp_varzeta = None
 
     def calculateZeta(self, *, rkk=None):
         r"""Calculate the correlation function possibly given another correlation function
@@ -191,15 +190,15 @@ class NKKCorrelation(Corr3):
                     self.__dict__.pop('_ok',None)
 
                 self._cov = self.estimate_cov(self.var_method)
-                self._varzeta = np.zeros(self.data_shape, dtype=float)
-                self._varzeta.ravel()[:] = self.cov_diag
+                self._comp_varzeta = np.zeros(self.data_shape, dtype=float)
+                self._comp_varzeta.ravel()[:] = self.cov_diag
             else:
-                self._varzeta = self.raw_varzeta + rkk.varzeta
+                self._comp_varzeta = self.raw_varzeta + rkk.varzeta
         else:
             self._zeta = self.raw_zeta
-            self._varzeta = self.raw_varzeta
+            self._comp_varzeta = None
 
-        return self._zeta, self._varzeta
+        return self._zeta, self.varzeta
 
     def _calculate_xi_from_pairs(self, pairs):
         self._sum([self.results[ijk] for ijk in pairs])
@@ -247,8 +246,8 @@ class NKKCorrelation(Corr3):
             self._z[1] = data['zetai'].reshape(s)
         else:
             self._z[0] = data['zeta'].reshape(s)
-        self._varzeta = data['sigma_zeta'].reshape(s)**2
-        self._raw_varzeta = self._varzeta
+        self._comp_varzeta = data['sigma_zeta'].reshape(s)**2
+        self._varzeta = [self._comp_varzeta]
 
 class KNKCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point scalar-count-scalar correlation
@@ -315,8 +314,7 @@ class KNKCorrelation(Corr3):
         if self.bin_type == 'LogMultipole':
             self._z[1] = np.zeros(shape, dtype=float)
         self._zeta = None
-        self._varzeta = None
-        self._raw_varzeta = None
+        self._comp_varzeta = None
         self.logger.debug('Finished building KNKCorr')
 
     @property
@@ -354,22 +352,22 @@ class KNKCorrelation(Corr3):
 
     @property
     def raw_varzeta(self):
-        if self._raw_varzeta is None:
-            self._raw_varzeta = self._calculate_varzeta()
-        return self._raw_varzeta
+        if self._varzeta is None:
+            self._calculate_varzeta(1)
+        return self._varzeta[0]
 
     @property
     def varzeta(self):
-        if self._varzeta is None:
-            self._varzeta = self.raw_varzeta
-        return self._varzeta
+        if self._comp_varzeta is None:
+            return self.raw_varzeta
+        else:
+            return self._comp_varzeta
 
     def _clear(self):
         super()._clear()
         self._krk = None
         self._zeta = None
-        self._raw_varzeta = None
-        self._varzeta = None
+        self._comp_varzeta = None
 
     def calculateZeta(self, *, krk=None):
         r"""Calculate the correlation function possibly given another correlation function
@@ -419,15 +417,15 @@ class KNKCorrelation(Corr3):
                     self.__dict__.pop('_ok',None)
 
                 self._cov = self.estimate_cov(self.var_method)
-                self._varzeta = np.zeros(self.data_shape, dtype=float)
-                self._varzeta.ravel()[:] = self.cov_diag
+                self._comp_varzeta = np.zeros(self.data_shape, dtype=float)
+                self._comp_varzeta.ravel()[:] = self.cov_diag
             else:
-                self._varzeta = self.raw_varzeta + krk.varzeta
+                self._comp_varzeta = self.raw_varzeta + krk.varzeta
         else:
             self._zeta = self.raw_zeta
-            self._varzeta = self.raw_varzeta
+            self._comp_varzeta = None
 
-        return self._zeta, self._varzeta
+        return self._zeta, self.varzeta
 
     def _calculate_xi_from_pairs(self, pairs):
         self._sum([self.results[ijk] for ijk in pairs])
@@ -475,8 +473,8 @@ class KNKCorrelation(Corr3):
             self._z[1] = data['zetai'].reshape(s)
         else:
             self._z[0] = data['zeta'].reshape(s)
-        self._varzeta = data['sigma_zeta'].reshape(s)**2
-        self._raw_varzeta = self._varzeta
+        self._comp_varzeta = data['sigma_zeta'].reshape(s)**2
+        self._varzeta = [self._comp_varzeta]
 
 class KKNCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point scalar-scalar-count correlation
@@ -543,8 +541,7 @@ class KKNCorrelation(Corr3):
         if self.bin_type == 'LogMultipole':
             self._z[1] = np.zeros(shape, dtype=float)
         self._zeta = None
-        self._varzeta = None
-        self._raw_varzeta = None
+        self._comp_varzeta = None
         self.logger.debug('Finished building KKNCorr')
 
     @property
@@ -582,22 +579,22 @@ class KKNCorrelation(Corr3):
 
     @property
     def raw_varzeta(self):
-        if self._raw_varzeta is None:
-            self._raw_varzeta = self._calculate_varzeta()
-        return self._raw_varzeta
+        if self._varzeta is None:
+            self._calculate_varzeta(1)
+        return self._varzeta[0]
 
     @property
     def varzeta(self):
-        if self._varzeta is None:
-            self._varzeta = self.raw_varzeta
-        return self._varzeta
+        if self._comp_varzeta is None:
+            return self.raw_varzeta
+        else:
+            return self._comp_varzeta
 
     def _clear(self):
         super()._clear()
         self._kkr = None
         self._zeta = None
-        self._raw_varzeta = None
-        self._varzeta = None
+        self._comp_varzeta = None
 
     def calculateZeta(self, *, kkr=None):
         r"""Calculate the correlation function possibly given another correlation function
@@ -647,15 +644,15 @@ class KKNCorrelation(Corr3):
                     self.__dict__.pop('_ok',None)
 
                 self._cov = self.estimate_cov(self.var_method)
-                self._varzeta = np.zeros(self.data_shape, dtype=float)
-                self._varzeta.ravel()[:] = self.cov_diag
+                self._comp_varzeta = np.zeros(self.data_shape, dtype=float)
+                self._comp_varzeta.ravel()[:] = self.cov_diag
             else:
-                self._varzeta = self.raw_varzeta + kkr.varzeta
+                self._comp_varzeta = self.raw_varzeta + kkr.varzeta
         else:
             self._zeta = self.raw_zeta
-            self._varzeta = self.raw_varzeta
+            self._comp_varzeta = None
 
-        return self._zeta, self._varzeta
+        return self._zeta, self.varzeta
 
     def _calculate_xi_from_pairs(self, pairs):
         self._sum([self.results[ijk] for ijk in pairs])
@@ -703,5 +700,5 @@ class KKNCorrelation(Corr3):
             self._z[1] = data['zetai'].reshape(s)
         else:
             self._z[0] = data['zeta'].reshape(s)
-        self._varzeta = data['sigma_zeta'].reshape(s)**2
-        self._raw_varzeta = self._varzeta
+        self._comp_varzeta = data['sigma_zeta'].reshape(s)**2
+        self._varzeta = [self._comp_varzeta]

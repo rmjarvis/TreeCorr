@@ -1317,6 +1317,12 @@ class Corr2(object):
         self._varxi = None
         self._cov = None
 
+    def _calculate_varxi(self, n):
+        self._varxi = [np.zeros_like(self.rnom, dtype=float) for _ in range(n)]
+        if self._var_num != 0:
+            for i in range(n):
+                self._varxi[i].ravel()[:] = self.cov_diag[i*self._nbins:(i+1)*self._nbins]
+
     def estimate_cov(self, method, *, func=None, comm=None):
         """Estimate the covariance matrix based on the data
 

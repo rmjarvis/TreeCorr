@@ -38,7 +38,6 @@ class BaseKZCorrelation(Corr2):
 
         self._xi[0] = np.zeros_like(self.rnom, dtype=float)
         self._xi[1] = np.zeros_like(self.rnom, dtype=float)
-        self._varxi = None
         self.logger.debug('Finished building %s', self._cls)
 
     @property
@@ -56,10 +55,8 @@ class BaseKZCorrelation(Corr2):
     @property
     def varxi(self):
         if self._varxi is None:
-            self._varxi = np.zeros_like(self.rnom, dtype=float)
-            if self._var_num != 0:
-                self._varxi.ravel()[:] = self.cov_diag
-        return self._varxi
+            self._calculate_varxi(1)
+        return self._varxi[0]
 
     def write(self, file_name, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
@@ -85,7 +82,7 @@ class BaseKZCorrelation(Corr2):
         s = self.logr.shape
         self._xi[0] = data[self._xireal].reshape(s)
         self._xi[1] = data[self._xiimag].reshape(s)
-        self._varxi = data['sigma'].reshape(s)**2
+        self._varxi = [data['sigma'].reshape(s)**2]
 
 
 class KZCorrelation(BaseKZCorrelation):

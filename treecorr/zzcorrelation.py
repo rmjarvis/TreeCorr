@@ -40,8 +40,6 @@ class BaseZZCorrelation(Corr2):
         self._xi[1] = np.zeros_like(self.rnom, dtype=float)
         self._xi[2] = np.zeros_like(self.rnom, dtype=float)
         self._xi[3] = np.zeros_like(self.rnom, dtype=float)
-        self._varxip = None
-        self._varxim = None
         self.logger.debug('Finished building %s', self._cls)
 
     @property
@@ -91,29 +89,15 @@ class BaseZZCorrelation(Corr2):
 
     @property
     def varxip(self):
-        if self._varxip is None:
-            self._varxip = np.zeros_like(self.rnom, dtype=float)
-            if self._var_num != 0:
-                self._varxip.ravel()[:] = self.cov_diag[:self._nbins]
-        return self._varxip
+        if self._varxi is None:
+            self._calculate_varxi(2)
+        return self._varxi[0]
 
     @property
     def varxim(self):
-        if self._varxim is None:
-            self._varxim = np.zeros_like(self.rnom, dtype=float)
-            if self._var_num != 0:
-                self._varxim.ravel()[:] = self.cov_diag[self._nbins:]
-        return self._varxim
-
-    def _clear(self):
-        super()._clear()
-        self._varxip = None
-        self._varxim = None
-
-    def _sum(self, others):
-        super()._sum(others)
-        self._varxip = None
-        self._varxim = None
+        if self._varxi is None:
+            self._calculate_varxi(2)
+        return self._varxi[1]
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
@@ -179,8 +163,9 @@ class BaseZZCorrelation(Corr2):
         self._xi[1] = data['xip_im'].reshape(s)
         self._xi[2] = data['xim'].reshape(s)
         self._xi[3] = data['xim_im'].reshape(s)
-        self._varxip = data['sigma_xip'].reshape(s)**2
-        self._varxim = data['sigma_xim'].reshape(s)**2
+        varxip = data['sigma_xip'].reshape(s)**2
+        varxim = data['sigma_xim'].reshape(s)**2
+        self._varxi = [varxip, varxim]
 
 
 class ZZCorrelation(BaseZZCorrelation):

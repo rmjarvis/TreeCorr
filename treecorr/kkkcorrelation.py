@@ -85,7 +85,6 @@ class KKKCorrelation(Corr3):
         self._z[0] = np.zeros(shape, dtype=float)
         if self.bin_type == 'LogMultipole':
             self._z[1] = np.zeros(shape, dtype=float)
-        self._varzeta = None
         self.logger.debug('Finished building KKKCorr')
 
     @property
@@ -115,12 +114,8 @@ class KKKCorrelation(Corr3):
     @property
     def varzeta(self):
         if self._varzeta is None:
-            self._varzeta = self._calculate_varzeta()
-        return self._varzeta
-
-    def _clear(self):
-        super()._clear()
-        self._varzeta = None
+            self._calculate_varzeta(1)
+        return self._varzeta[0]
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
@@ -157,4 +152,4 @@ class KKKCorrelation(Corr3):
             self._z[1] = data['zetai'].reshape(s)
         else:
             self._z[0] = data['zeta'].reshape(s)
-        self._varzeta = data['sigma_zeta'].reshape(s)**2
+        self._varzeta = [data['sigma_zeta'].reshape(s)**2]

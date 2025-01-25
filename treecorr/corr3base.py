@@ -820,6 +820,7 @@ class Corr3(object):
             self.weighti = np.array([])
         self.ntri = np.zeros(self.data_shape, dtype=float)
         self._cov = None
+        self._varzeta = None
         self._var_num = 0
         self._corr_only = False
 
@@ -2352,6 +2353,7 @@ class Corr3(object):
             self.weighti[:] = 0.
         self.ntri[:] = 0.
         self._cov = None
+        self._varzeta = None
 
     def __iadd__(self, other):
         """Add a second Correlation object's data to this one.
@@ -2407,12 +2409,14 @@ class Corr3(object):
         if self.bin_type == 'LogMultipole':
             np.sum([c.weighti for c in others], axis=0, out=self.weighti)
         np.sum([c.ntri for c in others], axis=0, out=self.ntri)
+        self._cov = None
+        self._varzeta = None
 
-    def _calculate_varzeta(self, i1=0, i2=None):
-        vz = np.zeros(self.data_shape)
+    def _calculate_varzeta(self, n):
+        self._varzeta = [np.zeros(self.data_shape) for _ in range(n)]
         if self._var_num != 0:
-            vz.ravel()[:] = self.cov_diag[i1:i2].real
-        return vz
+            for i in range(n):
+                self._varzeta[i].ravel()[:] = self.cov_diag[i*self._nbins:(i+1)*self._nbins].real
 
     def toSAS(self, *, target=None, **kwargs):
         """Convert a multipole-binned correlation to the corresponding SAS binning.

@@ -87,8 +87,7 @@ class GNNCorrelation(Corr3):
         shape = self.data_shape
         self._z[0:2] = [np.zeros(shape, dtype=float) for _ in range(2)]
         self._zeta = None
-        self._varzeta = None
-        self._raw_varzeta = None
+        self._comp_varzeta = None
         self.logger.debug('Finished building GNNCorr')
 
     @property
@@ -140,15 +139,16 @@ class GNNCorrelation(Corr3):
 
     @property
     def raw_varzeta(self):
-        if self._raw_varzeta is None:
-            self._raw_varzeta = self._calculate_varzeta()
-        return self._raw_varzeta
+        if self._varzeta is None:
+            self._calculate_varzeta(1)
+        return self._varzeta[0]
 
     @property
     def varzeta(self):
-        if self._varzeta is None:
-            self._varzeta = self.raw_varzeta
-        return self._varzeta
+        if self._comp_varzeta is None:
+            return self.raw_varzeta
+        else:
+            return self._comp_varzeta
 
     def _clear(self):
         super()._clear()
@@ -156,8 +156,7 @@ class GNNCorrelation(Corr3):
         self._grd = None
         self._gdr = None
         self._zeta = None
-        self._varzeta = None
-        self._raw_varzeta = None
+        self._comp_varzeta = None
 
     def calculateZeta(self, *, grr=None, gdr=None, grd=None):
         r"""Calculate the correlation function given another correlation function of random
@@ -238,23 +237,23 @@ class GNNCorrelation(Corr3):
                     self.__dict__.pop('_ok',None)
 
                 self._cov = self.estimate_cov(self.var_method)
-                self._varzeta = np.zeros(self.data_shape, dtype=float)
-                self._varzeta.ravel()[:] = self.cov_diag
+                self._comp_varzeta = np.zeros(self.data_shape, dtype=float)
+                self._comp_varzeta.ravel()[:] = self.cov_diag
             else:
-                self._varzeta = self.raw_varzeta + grr.varzeta
+                self._comp_varzeta = self.raw_varzeta + grr.varzeta
                 if grd is not None:
-                    self._varzeta += grd.varzeta
+                    self._comp_varzeta += grd.varzeta
                 if gdr is not None:
-                    self._varzeta += gdr.varzeta
+                    self._comp_varzeta += gdr.varzeta
         else:
             if grd is not None:
                 raise TypeError("grd is invalid if grr is None")
             if gdr is not None:
                 raise TypeError("gdr is invalid if grr is None")
             self._zeta = self.raw_zeta
-            self._varzeta = self.raw_varzeta
+            self._comp_varzeta = None
 
-        return self._zeta, self._varzeta
+        return self._zeta, self.varzeta
 
     def _calculate_xi_from_pairs(self, pairs):
         self._sum([self.results[ij] for ij in pairs])
@@ -320,8 +319,8 @@ class GNNCorrelation(Corr3):
         s = self.data_shape
         self._z[0] = data['zetar'].reshape(s)
         self._z[1] = data['zetai'].reshape(s)
-        self._varzeta = data['sigma_zeta'].reshape(s)**2
-        self._raw_varzeta = self._varzeta
+        self._comp_varzeta = data['sigma_zeta'].reshape(s)**2
+        self._varzeta = [self._comp_varzeta]
 
 class NGNCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point count-scalar-count correlation
@@ -389,8 +388,7 @@ class NGNCorrelation(Corr3):
         self._z[0] = np.zeros(shape, dtype=float)
         self._z[1] = np.zeros(shape, dtype=float)
         self._zeta = None
-        self._varzeta = None
-        self._raw_varzeta = None
+        self._comp_varzeta = None
         self.logger.debug('Finished building NGNCorr')
 
     @property
@@ -442,15 +440,16 @@ class NGNCorrelation(Corr3):
 
     @property
     def raw_varzeta(self):
-        if self._raw_varzeta is None:
-            self._raw_varzeta = self._calculate_varzeta()
-        return self._raw_varzeta
+        if self._varzeta is None:
+            self._calculate_varzeta(1)
+        return self._varzeta[0]
 
     @property
     def varzeta(self):
-        if self._varzeta is None:
-            self._varzeta = self.raw_varzeta
-        return self._varzeta
+        if self._comp_varzeta is None:
+            return self.raw_varzeta
+        else:
+            return self._comp_varzeta
 
     def _clear(self):
         super()._clear()
@@ -458,8 +457,7 @@ class NGNCorrelation(Corr3):
         self._rgd = None
         self._dgr = None
         self._zeta = None
-        self._varzeta = None
-        self._raw_varzeta = None
+        self._comp_varzeta = None
 
     def calculateZeta(self, *, rgr=None, dgr=None, rgd=None):
         r"""Calculate the correlation function given another correlation function of random
@@ -540,23 +538,23 @@ class NGNCorrelation(Corr3):
                     self.__dict__.pop('_ok',None)
 
                 self._cov = self.estimate_cov(self.var_method)
-                self._varzeta = np.zeros(self.data_shape, dtype=float)
-                self._varzeta.ravel()[:] = self.cov_diag
+                self._comp_varzeta = np.zeros(self.data_shape, dtype=float)
+                self._comp_varzeta.ravel()[:] = self.cov_diag
             else:
-                self._varzeta = self.raw_varzeta + rgr.varzeta
+                self._comp_varzeta = self.raw_varzeta + rgr.varzeta
                 if rgd is not None:
-                    self._varzeta += rgd.varzeta
+                    self._comp_varzeta += rgd.varzeta
                 if dgr is not None:
-                    self._varzeta += dgr.varzeta
+                    self._comp_varzeta += dgr.varzeta
         else:
             if rgd is not None:
                 raise TypeError("rgd is invalid if rgr is None")
             if dgr is not None:
                 raise TypeError("dgr is invalid if rgr is None")
             self._zeta = self.raw_zeta
-            self._varzeta = self.raw_varzeta
+            self._comp_varzeta = None
 
-        return self._zeta, self._varzeta
+        return self._zeta, self.varzeta
 
     def _calculate_xi_from_pairs(self, pairs):
         self._sum([self.results[ij] for ij in pairs])
@@ -622,8 +620,8 @@ class NGNCorrelation(Corr3):
         s = self.data_shape
         self._z[0] = data['zetar'].reshape(s)
         self._z[1] = data['zetai'].reshape(s)
-        self._varzeta = data['sigma_zeta'].reshape(s)**2
-        self._raw_varzeta = self._varzeta
+        self._comp_varzeta = data['sigma_zeta'].reshape(s)**2
+        self._varzeta = [self._comp_varzeta]
 
 class NNGCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point count-count-scalar correlation
@@ -691,8 +689,7 @@ class NNGCorrelation(Corr3):
         self._z[0] = np.zeros(shape, dtype=float)
         self._z[1] = np.zeros(shape, dtype=float)
         self._zeta = None
-        self._varzeta = None
-        self._raw_varzeta = None
+        self._comp_varzeta = None
         self.logger.debug('Finished building NNGCorr')
 
     @property
@@ -744,15 +741,16 @@ class NNGCorrelation(Corr3):
 
     @property
     def raw_varzeta(self):
-        if self._raw_varzeta is None:
-            self._raw_varzeta = self._calculate_varzeta()
-        return self._raw_varzeta
+        if self._varzeta is None:
+            self._calculate_varzeta(1)
+        return self._varzeta[0]
 
     @property
     def varzeta(self):
-        if self._varzeta is None:
-            self._varzeta = self.raw_varzeta
-        return self._varzeta
+        if self._comp_varzeta is None:
+            return self.raw_varzeta
+        else:
+            return self._comp_varzeta
 
     def _clear(self):
         super()._clear()
@@ -760,8 +758,7 @@ class NNGCorrelation(Corr3):
         self._rdg = None
         self._drg = None
         self._zeta = None
-        self._varzeta = None
-        self._raw_varzeta = None
+        self._comp_varzeta = None
 
     def calculateZeta(self, *, rrg=None, drg=None, rdg=None):
         r"""Calculate the correlation function given another correlation function of random
@@ -842,23 +839,23 @@ class NNGCorrelation(Corr3):
                     self.__dict__.pop('_ok',None)
 
                 self._cov = self.estimate_cov(self.var_method)
-                self._varzeta = np.zeros(self.data_shape, dtype=float)
-                self._varzeta.ravel()[:] = self.cov_diag
+                self._comp_varzeta = np.zeros(self.data_shape, dtype=float)
+                self._comp_varzeta.ravel()[:] = self.cov_diag
             else:
-                self._varzeta = self.raw_varzeta + rrg.varzeta
+                self._comp_varzeta = self.raw_varzeta + rrg.varzeta
                 if rdg is not None:
-                    self._varzeta += rdg.varzeta
+                    self._comp_varzeta += rdg.varzeta
                 if drg is not None:
-                    self._varzeta += drg.varzeta
+                    self._comp_varzeta += drg.varzeta
         else:
             if rdg is not None:
                 raise TypeError("rdg is invalid if rrg is None")
             if drg is not None:
                 raise TypeError("drg is invalid if rrg is None")
             self._zeta = self.raw_zeta
-            self._varzeta = self.raw_varzeta
+            self._comp_varzeta = None
 
-        return self._zeta, self._varzeta
+        return self._zeta, self.varzeta
 
     def _calculate_xi_from_pairs(self, pairs):
         self._sum([self.results[ij] for ij in pairs])
@@ -924,5 +921,5 @@ class NNGCorrelation(Corr3):
         s = self.data_shape
         self._z[0] = data['zetar'].reshape(s)
         self._z[1] = data['zetai'].reshape(s)
-        self._varzeta = data['sigma_zeta'].reshape(s)**2
-        self._raw_varzeta = self._varzeta
+        self._comp_varzeta = data['sigma_zeta'].reshape(s)**2
+        self._varzeta = [self._comp_varzeta]

@@ -83,7 +83,6 @@ class KKGCorrelation(Corr3):
 
         shape = self.data_shape
         self._z[0:2] = [np.zeros(shape, dtype=float) for _ in range(2)]
-        self._varzeta = None
         self.logger.debug('Finished building KKGCorr')
 
     @property
@@ -114,12 +113,8 @@ class KKGCorrelation(Corr3):
     @property
     def varzeta(self):
         if self._varzeta is None:
-            self._varzeta = self._calculate_varzeta()
-        return self._varzeta
-
-    def _clear(self):
-        super()._clear()
-        self._varzeta = None
+            self._calculate_varzeta(1)
+        return self._varzeta[0]
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
@@ -146,7 +141,7 @@ class KKGCorrelation(Corr3):
         s = self.data_shape
         self._z[0] = data['zetar'].reshape(s)
         self._z[1] = data['zetai'].reshape(s)
-        self._varzeta = data['sigma_zeta'].reshape(s)**2
+        self._varzeta = [data['sigma_zeta'].reshape(s)**2]
 
 class KGKCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point scalar-shear-scalar correlation
@@ -209,7 +204,6 @@ class KGKCorrelation(Corr3):
 
         shape = self.data_shape
         self._z[0:2] = [np.zeros(shape, dtype=float) for _ in range(2)]
-        self._varzeta = None
         self.logger.debug('Finished building KGKCorr')
 
     @property
@@ -240,12 +234,8 @@ class KGKCorrelation(Corr3):
     @property
     def varzeta(self):
         if self._varzeta is None:
-            self._varzeta = self._calculate_varzeta()
-        return self._varzeta
-
-    def _clear(self):
-        super()._clear()
-        self._varzeta = None
+            self._calculate_varzeta(1)
+        return self._varzeta[0]
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
@@ -272,7 +262,7 @@ class KGKCorrelation(Corr3):
         s = self.data_shape
         self._z[0] = data['zetar'].reshape(s)
         self._z[1] = data['zetai'].reshape(s)
-        self._varzeta = data['sigma_zeta'].reshape(s)**2
+        self._varzeta = [data['sigma_zeta'].reshape(s)**2]
 
 class GKKCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point shear-scalar-scalar correlation
@@ -335,7 +325,6 @@ class GKKCorrelation(Corr3):
 
         shape = self.data_shape
         self._z[0:2] = [np.zeros(shape, dtype=float) for _ in range(2)]
-        self._varzeta = None
         self.logger.debug('Finished building GKKCorr')
 
     @property
@@ -366,12 +355,8 @@ class GKKCorrelation(Corr3):
     @property
     def varzeta(self):
         if self._varzeta is None:
-            self._varzeta = self._calculate_varzeta()
-        return self._varzeta
-
-    def _clear(self):
-        super()._clear()
-        self._varzeta = None
+            self._calculate_varzeta(1)
+        return self._varzeta[0]
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
               write_cov=False):
@@ -398,4 +383,4 @@ class GKKCorrelation(Corr3):
         s = self.data_shape
         self._z[0] = data['zetar'].reshape(s)
         self._z[1] = data['zetai'].reshape(s)
-        self._varzeta = data['sigma_zeta'].reshape(s)**2
+        self._varzeta = [data['sigma_zeta'].reshape(s)**2]

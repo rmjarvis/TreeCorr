@@ -109,10 +109,8 @@ class NGGCorrelation(Corr3):
         self._z[0:4] = [np.zeros(shape, dtype=float) for _ in range(4)]
         self._gam0 = None
         self._gam2 = None
-        self._vargam0 = None
-        self._vargam2 = None
-        self._raw_vargam0 = None
-        self._raw_vargam2 = None
+        self._comp_vargam0 = None
+        self._comp_vargam2 = None
         self.logger.debug('Finished building NGGCorr')
 
     @property
@@ -210,15 +208,16 @@ class NGGCorrelation(Corr3):
 
     @property
     def raw_vargam0(self):
-        if self._raw_vargam0 is None:
-            self._raw_vargam0 = self._calculate_varzeta(0, self._nbins)
-        return self._raw_vargam0
+        if self._varzeta is None:
+            self._calculate_varzeta(2)
+        return self._varzeta[0]
 
     @property
     def vargam0(self):
-        if self._vargam0 is None:
-            self._vargam0 = self.raw_vargam0
-        return self._vargam0
+        if self._comp_vargam0 is None:
+            return self.raw_vargam0
+        else:
+            return self._comp_vargam0
 
     @property
     def vargam1(self):
@@ -226,15 +225,16 @@ class NGGCorrelation(Corr3):
 
     @property
     def raw_vargam2(self):
-        if self._raw_vargam2 is None:
-            self._raw_vargam2 = self._calculate_varzeta(self._nbins, 2*self._nbins)
-        return self._raw_vargam2
+        if self._varzeta is None:
+            self._calculate_varzeta(2)
+        return self._varzeta[1]
 
     @property
     def vargam2(self):
-        if self._vargam2 is None:
-            self._vargam2 = self.raw_vargam0
-        return self._vargam2
+        if self._comp_vargam2 is None:
+            return self.raw_vargam0
+        else:
+            return self._comp_vargam2
 
     @property
     def vargam3(self):
@@ -245,10 +245,8 @@ class NGGCorrelation(Corr3):
         self._rgg = None
         self._gam0 = None
         self._gam2 = None
-        self._raw_vargam0 = None
-        self._raw_vargam2 = None
-        self._vargam0 = None
-        self._vargam2 = None
+        self._comp_vargam0 = None
+        self._comp_vargam2 = None
 
     def getStat(self):
         """The standard statistic for the current correlation object as a 1-d array.
@@ -317,21 +315,21 @@ class NGGCorrelation(Corr3):
                     self.__dict__.pop('_ok',None)
 
                 self._cov = self.estimate_cov(self.var_method)
-                self._vargam0 = np.zeros(self.data_shape, dtype=float)
-                self._vargam2 = np.zeros(self.data_shape, dtype=float)
-                n1 = self._vargam0.ravel().size
-                self._vargam0.ravel()[:] = self.cov_diag[0:n1]
-                self._vargam2.ravel()[:] = self.cov_diag[n1:]
+                self._comp_vargam0 = np.zeros(self.data_shape, dtype=float)
+                self._comp_vargam2 = np.zeros(self.data_shape, dtype=float)
+                n1 = self._comp_vargam0.ravel().size
+                self._comp_vargam0.ravel()[:] = self.cov_diag[0:n1]
+                self._comp_vargam2.ravel()[:] = self.cov_diag[n1:]
             else:
-                self._vargam0 = self.raw_vargam0 + rgg.vargam0
-                self._vargam2 = self.raw_vargam2 + rgg.vargam2
+                self._comp_vargam0 = self.raw_vargam0 + rgg.vargam0
+                self._comp_vargam2 = self.raw_vargam2 + rgg.vargam2
         else:
             self._gam0 = self.raw_gam0
             self._gam2 = self.raw_gam2
-            self._vargam0 = self.raw_vargam0
-            self._vargam2 = self.raw_vargam2
+            self._comp_vargam0 = None
+            self._comp_vargam2 = None
 
-        return self._gam0, self._gam2, self._vargam0, self._vargam2
+        return self._gam0, self._gam2, self.vargam0, self.vargam2
 
     def _calculate_xi_from_pairs(self, pairs):
         self._sum([self.results[ijk] for ijk in pairs])
@@ -377,10 +375,9 @@ class NGGCorrelation(Corr3):
         self._z[1] = data['gam0i'].reshape(s)
         self._z[2] = data['gam2r'].reshape(s)
         self._z[3] = data['gam2i'].reshape(s)
-        self._vargam0 = data['sigma_gam0'].reshape(s)**2
-        self._vargam2 = data['sigma_gam2'].reshape(s)**2
-        self._raw_vargam0 = self._vargam0
-        self._raw_vargam2 = self._vargam2
+        self._comp_vargam0 = data['sigma_gam0'].reshape(s)**2
+        self._comp_vargam2 = data['sigma_gam2'].reshape(s)**2
+        self._varzeta = [self._comp_vargam0, self._comp_vargam2]
 
 class GNGCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point shear-count-shear correlation
@@ -467,10 +464,8 @@ class GNGCorrelation(Corr3):
         self._z[0:4] = [np.zeros(shape, dtype=float) for _ in range(4)]
         self._gam0 = None
         self._gam1 = None
-        self._vargam0 = None
-        self._vargam1 = None
-        self._raw_vargam0 = None
-        self._raw_vargam1 = None
+        self._comp_vargam0 = None
+        self._comp_vargam1 = None
         self.logger.debug('Finished building GNGCorr')
 
     @property
@@ -568,27 +563,29 @@ class GNGCorrelation(Corr3):
 
     @property
     def raw_vargam0(self):
-        if self._raw_vargam0 is None:
-            self._raw_vargam0 = self._calculate_varzeta(0, self._nbins)
-        return self._raw_vargam0
+        if self._varzeta is None:
+            self._calculate_varzeta(2)
+        return self._varzeta[0]
 
     @property
     def vargam0(self):
-        if self._vargam0 is None:
-            self._vargam0 = self.raw_vargam0
-        return self._vargam0
+        if self._comp_vargam0 is None:
+            return self.raw_vargam0
+        else:
+            return self._comp_vargam0
 
     @property
     def raw_vargam1(self):
-        if self._raw_vargam1 is None:
-            self._raw_vargam1 = self._calculate_varzeta(self._nbins, 2*self._nbins)
-        return self._raw_vargam1
+        if self._varzeta is None:
+            self._calculate_varzeta(2)
+        return self._varzeta[1]
 
     @property
     def vargam1(self):
-        if self._vargam1 is None:
-            self._vargam1 = self.raw_vargam1
-        return self._vargam1
+        if self._comp_vargam1 is None:
+            return self.raw_vargam1
+        else:
+            return self._comp_vargam1
 
     @property
     def vargam2(self):
@@ -603,10 +600,8 @@ class GNGCorrelation(Corr3):
         self._grg = None
         self._gam0 = None
         self._gam1 = None
-        self._raw_vargam0 = None
-        self._raw_vargam1 = None
-        self._vargam0 = None
-        self._vargam1 = None
+        self._comp_vargam0 = None
+        self._comp_vargam1 = None
 
     def getStat(self):
         """The standard statistic for the current correlation object as a 1-d array.
@@ -675,21 +670,21 @@ class GNGCorrelation(Corr3):
                     self.__dict__.pop('_ok',None)
 
                 self._cov = self.estimate_cov(self.var_method)
-                self._vargam0 = np.zeros(self.data_shape, dtype=float)
-                self._vargam1 = np.zeros(self.data_shape, dtype=float)
-                n1 = self._vargam0.ravel().size
-                self._vargam0.ravel()[:] = self.cov_diag[0:n1]
-                self._vargam1.ravel()[:] = self.cov_diag[n1:]
+                self._comp_vargam0 = np.zeros(self.data_shape, dtype=float)
+                self._comp_vargam1 = np.zeros(self.data_shape, dtype=float)
+                n1 = self._comp_vargam0.ravel().size
+                self._comp_vargam0.ravel()[:] = self.cov_diag[0:n1]
+                self._comp_vargam1.ravel()[:] = self.cov_diag[n1:]
             else:
-                self._vargam0 = self.raw_vargam0 + grg.vargam0
-                self._vargam1 = self.raw_vargam1 + grg.vargam1
+                self._comp_vargam0 = self.raw_vargam0 + grg.vargam0
+                self._comp_vargam1 = self.raw_vargam1 + grg.vargam1
         else:
             self._gam0 = self.raw_gam0
             self._gam1 = self.raw_gam1
-            self._vargam0 = self.raw_vargam0
-            self._vargam1 = self.raw_vargam1
+            self._comp_vargam0 = None
+            self._comp_vargam1 = None
 
-        return self._gam0, self._gam1, self._vargam0, self._vargam1
+        return self._gam0, self._gam1, self.vargam0, self.vargam1
 
     def _calculate_xi_from_pairs(self, pairs):
         self._sum([self.results[ijk] for ijk in pairs])
@@ -735,10 +730,9 @@ class GNGCorrelation(Corr3):
         self._z[1] = data['gam0i'].reshape(s)
         self._z[2] = data['gam1r'].reshape(s)
         self._z[3] = data['gam1i'].reshape(s)
-        self._vargam0 = data['sigma_gam0'].reshape(s)**2
-        self._vargam1 = data['sigma_gam1'].reshape(s)**2
-        self._raw_vargam0 = self._vargam0
-        self._raw_vargam1 = self._vargam1
+        self._comp_vargam0 = data['sigma_gam0'].reshape(s)**2
+        self._comp_vargam1 = data['sigma_gam1'].reshape(s)**2
+        self._varzeta = [self._comp_vargam0, self._comp_vargam1]
 
 class GGNCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point shear-shear-count correlation
@@ -825,10 +819,8 @@ class GGNCorrelation(Corr3):
         self._ggr = None
         self._gam0 = None
         self._gam1 = None
-        self._vargam0 = None
-        self._vargam1 = None
-        self._raw_vargam0 = None
-        self._raw_vargam1 = None
+        self._comp_vargam0 = None
+        self._comp_vargam1 = None
         self.logger.debug('Finished building GGNCorr')
 
     @property
@@ -926,27 +918,29 @@ class GGNCorrelation(Corr3):
 
     @property
     def raw_vargam0(self):
-        if self._raw_vargam0 is None:
-            self._raw_vargam0 = self._calculate_varzeta(0, self._nbins)
-        return self._raw_vargam0
+        if self._varzeta is None:
+            self._calculate_varzeta(2)
+        return self._varzeta[0]
 
     @property
     def vargam0(self):
-        if self._vargam0 is None:
-            self._vargam0 = self.raw_vargam0
-        return self._vargam0
+        if self._comp_vargam0 is None:
+            return self.raw_vargam0
+        else:
+            return self._comp_vargam0
 
     @property
     def raw_vargam1(self):
-        if self._raw_vargam1 is None:
-            self._raw_vargam1 = self._calculate_varzeta(self._nbins, 2*self._nbins)
-        return self._raw_vargam1
+        if self._varzeta is None:
+            self._calculate_varzeta(2)
+        return self._varzeta[1]
 
     @property
     def vargam1(self):
-        if self._vargam1 is None:
-            self._vargam1 = self.raw_vargam1
-        return self._vargam1
+        if self._comp_vargam1 is None:
+            return self.raw_vargam1
+        else:
+            return self._comp_vargam1
 
     @property
     def vargam2(self):
@@ -961,10 +955,8 @@ class GGNCorrelation(Corr3):
         self._ggr = None
         self._gam0 = None
         self._gam1 = None
-        self._vargam0 = None
-        self._vargam1 = None
-        self._raw_vargam0 = None
-        self._raw_vargam1 = None
+        self._comp_vargam0 = None
+        self._comp_vargam1 = None
 
     def getStat(self):
         """The standard statistic for the current correlation object as a 1-d array.
@@ -1033,21 +1025,21 @@ class GGNCorrelation(Corr3):
                     self.__dict__.pop('_ok',None)
 
                 self._cov = self.estimate_cov(self.var_method)
-                self._vargam0 = np.zeros(self.data_shape, dtype=float)
-                self._vargam1 = np.zeros(self.data_shape, dtype=float)
-                n1 = self._vargam0.ravel().size
-                self._vargam0.ravel()[:] = self.cov_diag[0:n1]
-                self._vargam1.ravel()[:] = self.cov_diag[n1:]
+                self._comp_vargam0 = np.zeros(self.data_shape, dtype=float)
+                self._comp_vargam1 = np.zeros(self.data_shape, dtype=float)
+                n1 = self._comp_vargam0.ravel().size
+                self._comp_vargam0.ravel()[:] = self.cov_diag[0:n1]
+                self._comp_vargam1.ravel()[:] = self.cov_diag[n1:]
             else:
-                self._vargam0 = self.raw_vargam0 + ggr.vargam0
-                self._vargam1 = self.raw_vargam1 + ggr.vargam1
+                self._comp_vargam0 = self.raw_vargam0 + ggr.vargam0
+                self._comp_vargam1 = self.raw_vargam1 + ggr.vargam1
         else:
             self._gam0 = self.raw_gam0
             self._gam1 = self.raw_gam1
-            self._vargam0 = self.raw_vargam0
-            self._vargam1 = self.raw_vargam1
+            self._comp_vargam0 = None
+            self._comp_vargam1 = None
 
-        return self._gam0, self._gam1, self._vargam0, self._vargam1
+        return self._gam0, self._gam1, self.vargam0, self.vargam1
 
     def _calculate_xi_from_pairs(self, pairs):
         self._sum([self.results[ijk] for ijk in pairs])
@@ -1093,7 +1085,6 @@ class GGNCorrelation(Corr3):
         self._z[1] = data['gam0i'].reshape(s)
         self._z[2] = data['gam1r'].reshape(s)
         self._z[3] = data['gam1i'].reshape(s)
-        self._vargam0 = data['sigma_gam0'].reshape(s)**2
-        self._vargam1 = data['sigma_gam1'].reshape(s)**2
-        self._raw_vargam0 = self._vargam0
-        self._raw_vargam1 = self._vargam1
+        self._comp_vargam0 = data['sigma_gam0'].reshape(s)**2
+        self._comp_vargam1 = data['sigma_gam1'].reshape(s)**2
+        self._varzeta = [self._comp_vargam0, self._comp_vargam1]

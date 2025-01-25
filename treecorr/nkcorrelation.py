@@ -89,8 +89,7 @@ class NKCorrelation(Corr2):
     def __init__(self, config=None, *, logger=None, **kwargs):
         super().__init__(config, logger=logger, **kwargs)
 
-        self._xi1 = np.zeros_like(self.rnom, dtype=float)
-        self._xi2 = self._xi3 = self._xi4 = np.array([])
+        self._xi[0] = np.zeros_like(self.rnom, dtype=float)
         self.xi = self.raw_xi
         self._rk = None
         self._varxi = None
@@ -99,7 +98,7 @@ class NKCorrelation(Corr2):
 
     @property
     def raw_xi(self):
-        return self._xi1
+        return self._xi[0]
 
     def copy(self):
         """Make a copy"""
@@ -153,7 +152,7 @@ class NKCorrelation(Corr2):
         #     for other in others:
         #         self += other
         # but no sanity checks and use numpy.sum for faster calculation.
-        np.sum([c._xi1 for c in others], axis=0, out=self._xi1)
+        np.sum([c._xi[0] for c in others], axis=0, out=self._xi[0])
         np.sum([c.meanr for c in others], axis=0, out=self.meanr)
         np.sum([c.meanlogr for c in others], axis=0, out=self.meanlogr)
         np.sum([c.weight for c in others], axis=0, out=self.weight)
@@ -294,7 +293,7 @@ class NKCorrelation(Corr2):
     def _read_from_data(self, data, params):
         super()._read_from_data(data, params)
         s = self.logr.shape
-        self._xi1 = data['kappa'].reshape(s)
+        self._xi[0] = data['kappa'].reshape(s)
         self._varxi = data['sigma'].reshape(s)**2
         self.xi = self.raw_xi
         self._raw_varxi = self._varxi

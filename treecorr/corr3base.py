@@ -2400,12 +2400,8 @@ class Corr3(object):
         np.sum([c.meanu for c in others], axis=0, out=self.meanu)
         if self.bin_type == 'LogRUV':
             np.sum([c.meanv for c in others], axis=0, out=self.meanv)
-        if self._z[0].size:
-            np.sum([c._z[0] for c in others], axis=0, out=self._z[0])
-        if self._z[1].size:
-            np.sum([c._z[1] for c in others], axis=0, out=self._z[1])
-        if self._z[2].size:
-            for i in range(2,8):
+        for i in range(8):
+            if self._z[i].size:
                 np.sum([c._z[i] for c in others], axis=0, out=self._z[i])
         np.sum([c.weightr for c in others], axis=0, out=self.weightr)
         if self.bin_type == 'LogMultipole':

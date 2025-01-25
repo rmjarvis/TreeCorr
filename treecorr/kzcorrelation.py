@@ -36,19 +36,18 @@ class BaseKZCorrelation(Corr2):
     def __init__(self, config=None, *, logger=None, **kwargs):
         super().__init__(config, logger=logger, **kwargs)
 
-        self._xi1 = np.zeros_like(self.rnom, dtype=float)
-        self._xi2 = np.zeros_like(self.rnom, dtype=float)
-        self._xi3 = self._xi4 = np.array([])
+        self._xi[0] = np.zeros_like(self.rnom, dtype=float)
+        self._xi[1] = np.zeros_like(self.rnom, dtype=float)
         self._varxi = None
         self.logger.debug('Finished building %s', self._cls)
 
     @property
     def xi(self):
-        return self._xi1
+        return self._xi[0]
 
     @property
     def xi_im(self):
-        return self._xi2
+        return self._xi[1]
 
     def finalize(self, vark, varz):
         self._finalize()
@@ -74,8 +73,8 @@ class BaseKZCorrelation(Corr2):
         #     for other in others:
         #         self += other
         # but no sanity checks and use numpy.sum for faster calculation.
-        np.sum([c._xi1 for c in others], axis=0, out=self._xi1)
-        np.sum([c._xi2 for c in others], axis=0, out=self._xi2)
+        np.sum([c._xi[0] for c in others], axis=0, out=self._xi[0])
+        np.sum([c._xi[1] for c in others], axis=0, out=self._xi[1])
         np.sum([c.meanr for c in others], axis=0, out=self.meanr)
         np.sum([c.meanlogr for c in others], axis=0, out=self.meanlogr)
         np.sum([c.weight for c in others], axis=0, out=self.weight)
@@ -105,8 +104,8 @@ class BaseKZCorrelation(Corr2):
     def _read_from_data(self, data, params):
         super()._read_from_data(data, params)
         s = self.logr.shape
-        self._xi1 = data[self._xireal].reshape(s)
-        self._xi2 = data[self._xiimag].reshape(s)
+        self._xi[0] = data[self._xireal].reshape(s)
+        self._xi[1] = data[self._xiimag].reshape(s)
         self._varxi = data['sigma'].reshape(s)**2
 
 

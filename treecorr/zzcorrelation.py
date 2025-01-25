@@ -36,29 +36,29 @@ class BaseZZCorrelation(Corr2):
     def __init__(self, config=None, *, logger=None, **kwargs):
         super().__init__(config, logger=logger, **kwargs)
 
-        self._xi1 = np.zeros_like(self.rnom, dtype=float)
-        self._xi2 = np.zeros_like(self.rnom, dtype=float)
-        self._xi3 = np.zeros_like(self.rnom, dtype=float)
-        self._xi4 = np.zeros_like(self.rnom, dtype=float)
+        self._xi[0] = np.zeros_like(self.rnom, dtype=float)
+        self._xi[1] = np.zeros_like(self.rnom, dtype=float)
+        self._xi[2] = np.zeros_like(self.rnom, dtype=float)
+        self._xi[3] = np.zeros_like(self.rnom, dtype=float)
         self._varxip = None
         self._varxim = None
         self.logger.debug('Finished building %s', self._cls)
 
     @property
     def xip(self):
-        return self._xi1
+        return self._xi[0]
 
     @property
     def xip_im(self):
-        return self._xi2
+        return self._xi[1]
 
     @property
     def xim(self):
-        return self._xi3
+        return self._xi[2]
 
     @property
     def xim_im(self):
-        return self._xi4
+        return self._xi[3]
 
     def getStat(self):
         """The standard statistic for the current correlation object as a 1-d array.
@@ -116,10 +116,10 @@ class BaseZZCorrelation(Corr2):
         #     for other in others:
         #         self += other
         # but no sanity checks and use numpy.sum for faster calculation.
-        np.sum([c._xi1 for c in others], axis=0, out=self._xi1)
-        np.sum([c._xi2 for c in others], axis=0, out=self._xi2)
-        np.sum([c._xi3 for c in others], axis=0, out=self._xi3)
-        np.sum([c._xi4 for c in others], axis=0, out=self._xi4)
+        np.sum([c._xi[0] for c in others], axis=0, out=self._xi[0])
+        np.sum([c._xi[1] for c in others], axis=0, out=self._xi[1])
+        np.sum([c._xi[2] for c in others], axis=0, out=self._xi[2])
+        np.sum([c._xi[3] for c in others], axis=0, out=self._xi[3])
         np.sum([c.meanr for c in others], axis=0, out=self.meanr)
         np.sum([c.meanlogr for c in others], axis=0, out=self.meanlogr)
         np.sum([c.weight for c in others], axis=0, out=self.weight)
@@ -188,10 +188,10 @@ class BaseZZCorrelation(Corr2):
     def _read_from_data(self, data, params):
         super()._read_from_data(data, params)
         s = self.logr.shape
-        self._xi1 = data['xip'].reshape(s)
-        self._xi2 = data['xip_im'].reshape(s)
-        self._xi3 = data['xim'].reshape(s)
-        self._xi4 = data['xim_im'].reshape(s)
+        self._xi[0] = data['xip'].reshape(s)
+        self._xi[1] = data['xip_im'].reshape(s)
+        self._xi[2] = data['xim'].reshape(s)
+        self._xi[3] = data['xim_im'].reshape(s)
         self._varxip = data['sigma_xip'].reshape(s)**2
         self._varxim = data['sigma_xim'].reshape(s)**2
 

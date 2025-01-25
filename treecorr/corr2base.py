@@ -556,6 +556,9 @@ class Corr2(object):
         self._processed_cats2 = []
         self._corr_only = False
 
+        # Sub-classes will allocate space for the ones we actually need.
+        self._xi = [np.array([]) for _ in range(4)]
+
     def __init_subclass__(cls):
         super().__init_subclass__()
         if hasattr(cls, '_letters'):
@@ -674,7 +677,7 @@ class Corr2(object):
                                        self._bin_size, self.b, self.angle_slop,
                                        self.min_rpar, self.max_rpar,
                                        self.xperiod, self.yperiod, self.zperiod,
-                                       self._xi1, self._xi2, self._xi3, self._xi4,
+                                       self._xi[0], self._xi[1], self._xi[2], self._xi[3],
                                        self.meanr, self.meanlogr, self.weight, self.npairs)
         return self._corr
 
@@ -699,10 +702,7 @@ class Corr2(object):
                 np.array_equal(self.meanlogr, other.meanlogr) and
                 np.array_equal(self.weight, other.weight) and
                 np.array_equal(self.npairs, other.npairs) and
-                np.array_equal(self._xi1, other._xi1) and
-                np.array_equal(self._xi2, other._xi2) and
-                np.array_equal(self._xi3, other._xi3) and
-                np.array_equal(self._xi4, other._xi4))
+                all(np.array_equal(self._xi[i], other._xi[i]) for i in range(4)))
 
     def copy(self):
         """Make a copy"""
@@ -719,6 +719,7 @@ class Corr2(object):
                 # The results dict is trickier.  We rely on it being copied in places, but we
                 # never add more to it after the copy, so shallow copy is fine.
                 ret.__dict__[key] = item
+        ret._xi = [xi.copy() for xi in self._xi]
         ret._corr = None # We'll want to make a new one of these if we need it.
         return ret
 
@@ -1244,13 +1245,9 @@ class Corr2(object):
     def _finalize(self):
         mask1 = self.weight != 0
 
-        if len(self._xi1) > 0:
-            self._xi1[mask1] /= self.weight[mask1]
-        if len(self._xi2) > 0:
-            self._xi2[mask1] /= self.weight[mask1]
-        if len(self._xi3) > 0:
-            self._xi3[mask1] /= self.weight[mask1]
-            self._xi4[mask1] /= self.weight[mask1]
+        for i in range(4):
+            if self._xi[i].size:
+                self._xi[i][mask1] /= self.weight[mask1]
 
         if self._corr_only:
             self.meanr[:] = self.rnom
@@ -1270,10 +1267,8 @@ class Corr2(object):
     def _clear(self):
         """Clear the data vectors
         """
-        self._xi1[:] = 0
-        self._xi2[:] = 0
-        self._xi3[:] = 0
-        self._xi4[:] = 0
+        for i in range(4):
+            self._xi[i][:] = 0
         self.meanr[:] = 0
         self.meanlogr[:] = 0
         self.weight[:] = 0
@@ -1297,10 +1292,8 @@ class Corr2(object):
 
         self._set_metric(other.metric, other.coords, other.coords)
         if not other.nonzero: return self
-        self._xi1[:] += other._xi1
-        self._xi2[:] += other._xi2
-        self._xi3[:] += other._xi3
-        self._xi4[:] += other._xi4
+        for i in range(4):
+            self._xi[i][:] += other._xi[i]
         self.meanr[:] += other.meanr
         self.meanlogr[:] += other.meanlogr
         self.weight[:] += other.weight

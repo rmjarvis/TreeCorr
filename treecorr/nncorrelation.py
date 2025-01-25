@@ -81,7 +81,6 @@ class NNCorrelation(Corr2):
     def __init__(self, config=None, *, logger=None, **kwargs):
         super().__init__(config, logger=logger, **kwargs)
         self.tot = 0.
-        self._xi1 = self._xi2 = self._xi3 = self._xi4 = np.array([])
         self._rr_weight = None  # Marker that calculateXi hasn't been called yet.
         self._rr = None
         self._dr = None

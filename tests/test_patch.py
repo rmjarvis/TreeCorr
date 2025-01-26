@@ -1191,7 +1191,7 @@ def test_ng_jk():
     print('ratio = ',cov_sample.diagonal() / var_xi)
     np.testing.assert_allclose(np.log(cov_sample.diagonal()), np.log(var_xi), atol=0.7*tol_factor)
 
-    cov_sample = ng5.estimate_cov('sample')
+    cov_sample = ng5.estimate_cov('sample', cross_patch_weight='simple')
     print('varxi = ',cov_sample.diagonal())
     print('ratio = ',cov_sample.diagonal() / var_xi)
     np.testing.assert_allclose(np.log(cov_sample.diagonal()), np.log(var_xi), atol=0.7*tol_factor)
@@ -2105,7 +2105,8 @@ def test_kappa_jk():
 
     # Reorder the data vector
     func = lambda corrs: np.concatenate([corrs[2].xi[:4], corrs[0].xi, corrs[1].xi[2:]])
-    cov_alt = treecorr.estimate_multi_cov([nk,kk,kg], 'jackknife', func=func)
+    cov_alt = treecorr.estimate_multi_cov([nk,kk,kg], 'jackknife', func=func,
+                                          cross_patch_weight='simple')
     np.testing.assert_allclose(cov_alt[:4,:4], cov[n2:n2+4,n2:n2+4])
     np.testing.assert_allclose(cov_alt[4:4+n1,4:4+n1], cov[:n1,:n1])
     np.testing.assert_allclose(cov_alt[4+n1:,4+n1:], cov[n1+2:n2,n1+2:n2])

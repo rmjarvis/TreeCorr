@@ -375,6 +375,9 @@ class Corr3(object):
                             (default: 'shot')
         num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
                             'marked_bootstrap' var_methods.  (default: 500)
+        cross_patch_weight (str): How to weight pairs that cross between two patches when one patch
+                            is deselected (e.g. in a jackknife sense) and the other is selected.
+                            (default 'mult')
         rng (RandomState):  If desired, a numpy.random.RandomState instance to use for bootstrap
                             random number generation. (default: None)
 
@@ -477,6 +480,8 @@ class Corr3(object):
         'num_bootstrap': (int, False, 500, None,
                 'How many bootstrap samples to use for the var_method=bootstrap and '
                 'marked_bootstrap'),
+        'cross_patch_weight': (str, False, 'mult', ['mult', 'mean', 'match'],
+                'How to weight pairs that cross between a selected and unselected patch'),
         'num_threads' : (int, False, None, None,
                 'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
     }
@@ -839,6 +844,7 @@ class Corr3(object):
 
         self._ro.var_method = get(self.config,'var_method',str,'shot')
         self._ro.num_bootstrap = get(self.config,'num_bootstrap',int,500)
+        self._ro.cross_patch_weight = get(self.config,'cross_patch_weight',str,'mult')
         self.results = {}  # for jackknife, etc. store the results of each pair of patches.
         self.npatch1 = self.npatch2 = self.npatch3 = 1
         self._rng = rng
@@ -1037,6 +1043,8 @@ class Corr3(object):
     def var_method(self): return self._ro.var_method
     @property
     def num_bootstrap(self): return self._ro.num_bootstrap
+    @property
+    def cross_patch_weight(self): return self._ro.cross_patch_weight
 
     @property
     def weight(self):
@@ -2614,7 +2622,8 @@ class Corr3(object):
 
         return sas
 
-    def estimate_cov(self, method, *, func=None, comm=None):
+    def estimate_cov(self, method, *, func=None, comm=None, num_bootstrap=None,
+                     cross_patch_weight=None):
         """Estimate the covariance matrix based on the data
 
         This function will calculate an estimate of the covariance matrix according to the
@@ -2641,6 +2650,25 @@ class Corr3(object):
 
         Both 'bootstrap' and 'marked_bootstrap' use the num_bootstrap parameter, which can be set on
         construction.
+
+        Another relevant parameter is 'cross_patch_weight'. This parameter controls how
+        triangles that cross between two or three patches are weighted when some, but not all
+        of the patches are selected.  See Mohammad and Percival (2021)
+        (https://arxiv.org/abs/2109.07071) for an in-depth discussion of these options for
+        two-point statistics.  We use a similar definitions for three-point statistics.
+        Briefly the options are:
+
+            - 'mult' = Don't use any triangles where any object is in a deselected patch.
+            - 'mean' = Use a weight of 1/3 for any triangle with one object in a selected patch
+              and the other two in deselected patches, and 2/3 for any triangle with two objects
+              in selected patches.
+            - 'geom' = Use the geometric mean of the three patch weights for each triangle.
+            - 'match' = Use the "optimal" weight that matches the effect of auto- and cross-pairs
+              for two-point jackknife covariances derived by Mohammad and Percival
+              (w = n_patch / (2 + sqrt(2) (n_patch-1))). This is probably not optimal for
+              three-point statistics, and it would probably be different for triangles with one
+              or two points in selected patches, but we have not tried to derive a better
+              value yet. (Suggestions welcome!)
 
         .. note::
 
@@ -2682,21 +2710,35 @@ class Corr3(object):
         Parameters:
             method (str):       Which method to use to estimate the covariance matrix.
             func (function):    A unary function that acts on the current correlation object and
-                                returns the desired data vector. [default: None, which is
-                                equivalent to ``lambda corr: corr.getStat()``.
-            comm (mpi comm)     If not None, run under MPI
+                                returns the desired data vector. (default: None, which is
+                                equivalent to ``lambda corr: corr.getStat()``)
+            comm (mpi comm)     If not None, run under MPI (default: None)
+            num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
+                                'marked_bootstrap' var_methods.  (default: 500; this value
+                                can also be given in the constructor.)
+            cross_patch_weight (str): How to weight pairs that cross between two patches when one
+                                patch is deselected (e.g. in a jackknife sense) and the other is
+                                selected.  (default 'mult'; see above for details; this value
+                                can also be given in the constructor.)
 
         Returns:
             A numpy array with the estimated covariance matrix.
         """
+        if num_bootstrap is None:
+            num_bootstrap = self.num_bootstrap
+        if cross_patch_weight is None:
+            cross_patch_weight = self.cross_patch_weight
         if func is not None:
             # Need to convert it to a function of the first item in the list.
             all_func = lambda corrs: func(corrs[0])
         else:
             all_func = None
-        return estimate_multi_cov([self], method, func=all_func, comm=comm)
+        return estimate_multi_cov([self], method, func=all_func, comm=comm,
+                                  num_bootstrap=num_bootstrap,
+                                  cross_patch_weight=cross_patch_weight)
 
-    def build_cov_design_matrix(self, method, *, func=None, comm=None):
+    def build_cov_design_matrix(self, method, *, func=None, comm=None, num_bootstrap=None,
+                                cross_patch_weight=None):
         r"""Build the design matrix that is used for estimating the covariance matrix.
 
         The design matrix for patch-based covariance estimates is a matrix where each row
@@ -2725,19 +2767,32 @@ class Corr3(object):
         Parameters:
             method (str):       Which method to use to estimate the covariance matrix.
             func (function):    A unary function that takes the list ``corrs`` and returns the
-                                desired full data vector. [default: None, which is equivalent to
-                                ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``]
-            comm (mpi comm)     If not None, run under MPI
+                                desired full data vector. (default: None, which is equivalent to
+                                ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``)
+            comm (mpi comm)     If not None, run under MPI (default: None)
+            num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
+                                'marked_bootstrap' var_methods.  (default: 500; this value
+                                can also be given in the constructor.)
+            cross_patch_weight (str): How to weight pairs that cross between two patches when one
+                                patch is deselected (e.g. in a jackknife sense) and the other is
+                                selected.  (default 'mult'; see above for details; this value
+                                can also be given in the constructor.)
 
         Returns:
             A, w: numpy arrays with the design matrix and weights respectively.
         """
+        if num_bootstrap is None:
+            num_bootstrap = self.num_bootstrap
+        if cross_patch_weight is None:
+            cross_patch_weight = self.cross_patch_weight
         if func is not None:
             # Need to convert it to a function of the first item in the list.
             all_func = lambda corrs: func(corrs[0])
         else:
             all_func = None
-        return build_multi_cov_design_matrix([self], method=method, func=all_func, comm=comm)
+        return build_multi_cov_design_matrix([self], method=method, func=all_func, comm=comm,
+                                             num_bootstrap=num_bootstrap,
+                                             cross_patch_weight=cross_patch_weight)
 
     def _set_num_threads(self, num_threads):
         if num_threads is None:
@@ -2862,7 +2917,7 @@ class Corr3(object):
     def _keep_ok(self, pairs):
         return [(i,j,k,w) for i,j,k,w in pairs if self._ok[i,j,k] and w != 0]
 
-    def _jackknife_pairs(self):
+    def _jackknife_pairs(self, cross_patch_weight):
         if self.npatch3 == 1:
             if self.npatch2 == 1:
                 # k=m=0
@@ -2897,7 +2952,7 @@ class Corr3(object):
             return [ [(j,k,m,1) for j,k,m in self.results.keys() if j!=i and k!=i and m!=i]
                      for i in range(self.npatch1) ]
 
-    def _sample_pairs(self):
+    def _sample_pairs(self, cross_patch_weight):
         if self.npatch3 == 1:
             if self.npatch2 == 1:
                 # k=m=0
@@ -2939,7 +2994,7 @@ class Corr3(object):
             ok[i,j,k] = True
         return ok
 
-    def _marked_pairs(self, indx):
+    def _marked_pairs(self, indx, cross_patch_weight):
         if self.npatch3 == 1:
             if self.npatch2 == 1:
                 return [ (i,0,0,1) for i in indx if self._ok[i,0,0] ]
@@ -2966,7 +3021,7 @@ class Corr3(object):
             return [ (i,j,k,1) for i in indx for j in range(self.npatch2)
                                            for k in range(self.npatch3) if self._ok[i,j,k] ]
 
-    def _bootstrap_pairs(self, indx):
+    def _bootstrap_pairs(self, indx, cross_patch_weight):
         if self.npatch3 == 1:
             if self.npatch2 == 1:
                 return [ (i,0,0,1) for i in indx if self._ok[i,0,0] ]

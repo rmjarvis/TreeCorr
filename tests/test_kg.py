@@ -464,7 +464,8 @@ def test_kg():
     np.testing.assert_allclose(kg2.xi_im, kg.xi_im)
     np.testing.assert_allclose(kg2.weight, kg.weight)
     np.testing.assert_allclose(kg2.npairs, kg.npairs)
-    #assert t3-t2 < t1-t0
+    if __name__ == '__main__':
+        assert t3-t2 < t1-t0
 
     r = kg.meanr
     true_gt = gamma0 * np.exp(-0.5*r**2/r0**2)

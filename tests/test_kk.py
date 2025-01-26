@@ -455,7 +455,8 @@ def test_kk():
     np.testing.assert_allclose(kk2.xi, kk.xi)
     np.testing.assert_allclose(kk2.weight, kk.weight)
     np.testing.assert_allclose(kk2.npairs, kk.npairs)
-    #assert t3-t2 < t1-t0
+    if __name__ == '__main__':
+        assert t3-t2 < t1-t0
 
     r = kk.meanr
     true_xi = np.pi * A**2 * (s/L)**2 * np.exp(-0.25*r**2/s**2)

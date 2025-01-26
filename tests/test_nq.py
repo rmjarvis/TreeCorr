@@ -627,7 +627,8 @@ def test_nq():
     np.testing.assert_allclose(nq2.xi_im, nq.xi_im)
     np.testing.assert_allclose(nq2.weight, nq.weight)
     np.testing.assert_allclose(nq2.npairs, nq.npairs)
-    #assert t3-t2 < t1-t0
+    if __name__ == '__main__':
+        assert t3-t2 < t1-t0
 
     r = nq.meanr
     true_qr = q0 * np.exp(-0.5*r**2/r0**2)

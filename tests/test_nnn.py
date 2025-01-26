@@ -2643,7 +2643,8 @@ def test_nnn_logruv():
     ddd2.process(cat, num_threads=1, corr_only=True)
     t3 = time.time()
     print('Time for corr_only ddd process = ',t3-t2)
-    #assert t3-t2 < t1-t0
+    if __name__ == '__main__':
+        assert t3-t2 < t1-t0
     np.testing.assert_allclose(ddd2.weight, ddd.weight)
     np.testing.assert_allclose(ddd2.ntri, ddd.ntri)
 
@@ -3934,7 +3935,8 @@ def test_nnn_logsas():
     print('Time for corr_only ddd process = ',t3-t2)
     # While the corr_only is usually faster, it's not by enough to be a reliable test.
     # On average, it's only a few percent faster than the full calculation.
-    #assert t3-t2 < t1-t0
+    if __name__ == '__main__':
+        assert t3-t2 < t1-t0
     np.testing.assert_allclose(ddd2.weight, ddd.weight)
     np.testing.assert_allclose(ddd2.ntri, ddd.ntri)
 

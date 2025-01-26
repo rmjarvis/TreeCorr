@@ -448,7 +448,8 @@ def test_nz():
     np.testing.assert_allclose(nz2.xi_im, nz.xi_im)
     np.testing.assert_allclose(nz2.weight, nz.weight)
     np.testing.assert_allclose(nz2.npairs, nz.npairs)
-    #assert t3-t2 < t1-t0
+    if __name__ == '__main__':
+        assert t3-t2 < t1-t0
 
     r = nz.meanr
     true_z = z0 * np.exp(-0.5*r**2/r0**2) * (1.-0.5*r**2/r0**2)

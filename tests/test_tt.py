@@ -474,7 +474,8 @@ def test_tt():
     np.testing.assert_allclose(tt2.xim_im, tt.xim_im)
     np.testing.assert_allclose(tt2.weight, tt.weight)
     np.testing.assert_allclose(tt2.npairs, tt.npairs)
-    #assert t4-t3 < t2-t1
+    if __name__ == '__main__':
+        assert t4-t3 < t2-t1
 
     r = tt.meanr
     temp = np.pi/64. * t0**2 * (r0/L)**2 * np.exp(-0.25*r**2/r0**2)

@@ -466,7 +466,8 @@ def test_kt():
     np.testing.assert_allclose(kt2.xi_im, kt.xi_im)
     np.testing.assert_allclose(kt2.weight, kt.weight)
     np.testing.assert_allclose(kt2.npairs, kt.npairs)
-    #assert t4-t3 < t2-t1
+    if __name__ == '__main__':
+        assert t4-t3 < t2-t1
 
     r = kt.meanr
     true_tr = t0 * np.exp(-0.5*r**2/r0**2)

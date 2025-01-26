@@ -423,7 +423,8 @@ def test_nk():
     np.testing.assert_allclose(nk2.xi, nk.xi)
     np.testing.assert_allclose(nk2.weight, nk.weight)
     np.testing.assert_allclose(nk2.npairs, nk.npairs)
-    #assert t3-t2 < t1-t0
+    if __name__ == '__main__':
+        assert t3-t2 < t1-t0
 
     r = nk.meanr
     true_k = kappa0 * np.exp(-0.5*r**2/r0**2) * (1.-0.5*r**2/r0**2)

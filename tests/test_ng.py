@@ -632,7 +632,8 @@ def test_ng():
     np.testing.assert_allclose(ng2.xi_im, ng.xi_im)
     np.testing.assert_allclose(ng2.weight, ng.weight)
     np.testing.assert_allclose(ng2.npairs, ng.npairs)
-    #assert t3-t2 < t1-t0
+    if __name__ == '__main__':
+        assert t3-t2 < t1-t0
 
     r = ng.meanr
     true_gt = gamma0 * np.exp(-0.5*r**2/r0**2)

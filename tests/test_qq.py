@@ -475,7 +475,8 @@ def test_qq():
     np.testing.assert_allclose(qq2.xim_im, qq.xim_im)
     np.testing.assert_allclose(qq2.weight, qq.weight)
     np.testing.assert_allclose(qq2.npairs, qq.npairs)
-    #assert t3-t2 < t1-t0
+    if __name__ == '__main__':
+        assert t3-t2 < t1-t0
 
     r = qq.meanr
     temp = np.pi/256. * q0**2 * (r0/L)**2 * np.exp(-0.25*r**2/r0**2)

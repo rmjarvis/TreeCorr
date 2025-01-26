@@ -464,7 +464,8 @@ def test_kv():
     np.testing.assert_allclose(kv2.xi_im, kv.xi_im)
     np.testing.assert_allclose(kv2.weight, kv.weight)
     np.testing.assert_allclose(kv2.npairs, kv.npairs)
-    #assert t3-t2 < t1-t0
+    if __name__ == '__main__':
+        assert t3-t2 < t1-t0
 
     r = kv.meanr
     true_vr = v0 * np.exp(-0.5*r**2/r0**2)

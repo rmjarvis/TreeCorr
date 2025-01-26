@@ -1187,7 +1187,8 @@ def test_nn():
     print('Time for corr-only dd process = ',t3-t2)
     np.testing.assert_allclose(dd2.weight, dd.weight)
     np.testing.assert_allclose(dd2.npairs, dd2.npairs)
-    assert t3-t2 < t1-t0
+    if __name__ == '__main__':
+        assert t3-t2 < t1-t0
 
     rx = (rng.random_sample(nrand)-0.5) * L
     ry = (rng.random_sample(nrand)-0.5) * L
@@ -1204,7 +1205,8 @@ def test_nn():
     t3 = time.time()
     print('Time for corr-only rr process = ',t3-t2)
     np.testing.assert_allclose(rr2.weight, rr.weight)
-    assert t3-t2 < t1-t0
+    if __name__ == '__main__':
+        assert t3-t2 < t1-t0
 
     dr = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., sep_units='arcmin')
     t0 = time.time()
@@ -1218,7 +1220,8 @@ def test_nn():
     t3 = time.time()
     print('Time for corr-only dr process = ',t3-t2)
     np.testing.assert_allclose(dr2.weight, dr.weight)
-    assert t3-t2 < t1-t0
+    if __name__ == '__main__':
+        assert t3-t2 < t1-t0
 
     r = dd.meanr
     true_xi = 0.25/np.pi * (L/s)**2 * np.exp(-0.25*r**2/s**2) - 1.

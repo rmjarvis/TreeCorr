@@ -135,7 +135,7 @@ class BaseNZCorrelation(Corr2):
         if self._rz is not None:
             # If rz has npatch1 = 1, adjust pairs appropriately
             if self._rz.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
-                pairs = [(0,j) for i,j in pairs if i == j]
+                pairs = [(0,j,w) for i,j,w in pairs if i == j]
             pairs = self._rz._keep_ok(pairs)
             self._rz._calculate_xi_from_pairs(pairs, corr_only=True)
             self.xi -= self._rz.xi

@@ -2390,30 +2390,31 @@ class Corr3(object):
     def _sum(self, others, corr_only):
         # Equivalent to the operation of:
         #     self._clear()
-        #     for other in others:
-        #         self += other
-        # but no sanity checks and use numpy.sum for faster calculation.
+        #     for other,w in others:
+        #         self += w*other
+        # if w*other was valid syntax, which it isn't.
+
+        def x(a, w):
+            return a if w == 1 else a*w
 
         for i in range(8):
             if self._z[i].size:
-                np.sum([c._z[i] for c in others], axis=0, out=self._z[i])
-        np.sum([c.weightr for c in others], axis=0, out=self.weightr)
+                np.sum([x(c._z[i],w) for c,w in others], axis=0, out=self._z[i])
+        np.sum([x(c.weightr,w) for c,w in others], axis=0, out=self.weightr)
         if self.bin_type == 'LogMultipole':
-            np.sum([c.weighti for c in others], axis=0, out=self.weighti)
+            np.sum([x(c.weighti,w) for c,w in others], axis=0, out=self.weighti)
 
         if not corr_only:
-            np.sum([c.meand1 for c in others], axis=0, out=self.meand1)
-            np.sum([c.meanlogd1 for c in others], axis=0, out=self.meanlogd1)
-            np.sum([c.meand2 for c in others], axis=0, out=self.meand2)
-            np.sum([c.meanlogd2 for c in others], axis=0, out=self.meanlogd2)
-            np.sum([c.meand3 for c in others], axis=0, out=self.meand3)
-            np.sum([c.meanlogd3 for c in others], axis=0, out=self.meanlogd3)
-            np.sum([c.meanu for c in others], axis=0, out=self.meanu)
+            np.sum([x(c.meand1,w) for c,w in others], axis=0, out=self.meand1)
+            np.sum([x(c.meanlogd1,w) for c,w in others], axis=0, out=self.meanlogd1)
+            np.sum([x(c.meand2,w) for c,w in others], axis=0, out=self.meand2)
+            np.sum([x(c.meanlogd2,w) for c,w in others], axis=0, out=self.meanlogd2)
+            np.sum([x(c.meand3,w) for c,w in others], axis=0, out=self.meand3)
+            np.sum([x(c.meanlogd3,w) for c,w in others], axis=0, out=self.meanlogd3)
+            np.sum([x(c.meanu,w) for c,w in others], axis=0, out=self.meanu)
             if self.bin_type == 'LogRUV':
-                np.sum([c.meanv for c in others], axis=0, out=self.meanv)
-            if self.bin_type == 'LogMultipole':
-                np.sum([c.weighti for c in others], axis=0, out=self.weighti)
-            np.sum([c.ntri for c in others], axis=0, out=self.ntri)
+                np.sum([x(c.meanv,w) for c,w in others], axis=0, out=self.meanv)
+            np.sum([x(c.ntri,w) for c,w in others], axis=0, out=self.ntri)
 
         self._cov = None
         self._varzeta = None
@@ -2855,80 +2856,80 @@ class Corr3(object):
         # "pairs" here are really triples, input as a list of (i,j,k) values.
 
         # This is the normal calculation.  It needs to be overridden when there are randoms.
-        self._sum([self.results[ijk] for ijk in pairs], corr_only)
+        self._sum([(self.results[(i,j,k)],w) for i,j,k,w in pairs], corr_only)
         self._finalize()
 
     def _keep_ok(self, pairs):
-        return [(i,j,k) for i,j,k in pairs if self._ok[i,j,k]]
+        return [(i,j,k,w) for i,j,k,w in pairs if self._ok[i,j,k] and w != 0]
 
     def _jackknife_pairs(self):
         if self.npatch3 == 1:
             if self.npatch2 == 1:
                 # k=m=0
-                return [ [(j,k,m) for j,k,m in self.results.keys() if j!=i]
+                return [ [(j,k,m,1) for j,k,m in self.results.keys() if j!=i]
                          for i in range(self.npatch1) ]
             elif self.npatch1 == 1:
                 # j=m=0
-                return [ [(j,k,m) for j,k,m in self.results.keys() if k!=i]
+                return [ [(j,k,m,1) for j,k,m in self.results.keys() if k!=i]
                          for i in range(self.npatch2) ]
             else:
                 # m=0
                 assert self.npatch1 == self.npatch2
-                return [ [(j,k,m) for j,k,m in self.results.keys() if j!=i and k!=i]
+                return [ [(j,k,m,1) for j,k,m in self.results.keys() if j!=i and k!=i]
                          for i in range(self.npatch1) ]
         elif self.npatch2 == 1:
             if self.npatch1 == 1:
                 # j=k=0
-                return [ [(j,k,m) for j,k,m in self.results.keys() if m!=i]
+                return [ [(j,k,m,1) for j,k,m in self.results.keys() if m!=i]
                          for i in range(self.npatch3) ]
             else:
                 # k=0
                 assert self.npatch1 == self.npatch3
-                return [ [(j,k,m) for j,k,m in self.results.keys() if j!=i and m!=i]
+                return [ [(j,k,m,1) for j,k,m in self.results.keys() if j!=i and m!=i]
                          for i in range(self.npatch1) ]
         elif self.npatch1 == 1:
             # j=0
             assert self.npatch2 == self.npatch3
-            return [ [(j,k,m) for j,k,m in self.results.keys() if k!=i and m!=i]
+            return [ [(j,k,m,1) for j,k,m in self.results.keys() if k!=i and m!=i]
                      for i in range(self.npatch2) ]
         else:
             assert self.npatch1 == self.npatch2 == self.npatch3
-            return [ [(j,k,m) for j,k,m in self.results.keys() if j!=i and k!=i and m!=i]
+            return [ [(j,k,m,1) for j,k,m in self.results.keys() if j!=i and k!=i and m!=i]
                      for i in range(self.npatch1) ]
 
     def _sample_pairs(self):
         if self.npatch3 == 1:
             if self.npatch2 == 1:
                 # k=m=0
-                return [ [(j,k,m) for j,k,m in self.results.keys() if j==i]
+                return [ [(j,k,m,1) for j,k,m in self.results.keys() if j==i]
                          for i in range(self.npatch1) ]
             elif self.npatch1 == 1:
                 # j=m=0
-                return [ [(j,k,m) for j,k,m in self.results.keys() if k==i]
+                return [ [(j,k,m,1) for j,k,m in self.results.keys() if k==i]
                          for i in range(self.npatch2) ]
             else:
                 # m=0
                 assert self.npatch1 == self.npatch2
-                return [ [(j,k,m) for j,k,m in self.results.keys() if j==i]
+                return [ [(j,k,m,1) for j,k,m in self.results.keys() if j==i]
                          for i in range(self.npatch1) ]
         elif self.npatch2 == 1:
             if self.npatch1 == 1:
                 # j=k=0
-                return [ [(j,k,m) for j,k,m in self.results.keys() if m==i]
+                return [ [(j,k,m,1) for j,k,m in self.results.keys() if m==i]
                          for i in range(self.npatch3) ]
             else:
                 # k=0
                 assert self.npatch1 == self.npatch3
-                return [ [(j,k,m) for j,k,m in self.results.keys() if j==i]
+                return [ [(j,k,m,1) for j,k,m in self.results.keys() if j==i]
                          for i in range(self.npatch1) ]
         elif self.npatch1 == 1:
             # j=0
             assert self.npatch2 == self.npatch3
-            return [ [(j,k,m) for j,k,m in self.results.keys() if k==i]
+            return [ [(j,k,m,1) for j,k,m in self.results.keys() if k==i]
                      for i in range(self.npatch2) ]
         else:
             assert self.npatch1 == self.npatch2 == self.npatch3
-            return [ [(j,k,m) for j,k,m in self.results.keys() if j==i]
+            return [ [(j,k,m,1) for j,k,m in self.results.keys() if j==i]
                      for i in range(self.npatch1) ]
 
     @lazy_property
@@ -2941,51 +2942,51 @@ class Corr3(object):
     def _marked_pairs(self, indx):
         if self.npatch3 == 1:
             if self.npatch2 == 1:
-                return [ (i,0,0) for i in indx if self._ok[i,0,0] ]
+                return [ (i,0,0,1) for i in indx if self._ok[i,0,0] ]
             elif self.npatch1 == 1:
-                return [ (0,i,0) for i in indx if self._ok[0,i,0] ]
+                return [ (0,i,0,1) for i in indx if self._ok[0,i,0] ]
             else:
                 assert self.npatch1 == self.npatch2
                 # Select all pairs where first point is in indx (repeating i as appropriate)
-                return [ (i,j,0) for i in indx for j in range(self.npatch2) if self._ok[i,j,0] ]
+                return [ (i,j,0,1) for i in indx for j in range(self.npatch2) if self._ok[i,j,0] ]
         elif self.npatch2 == 1:
             if self.npatch1 == 1:
-                return [ (0,0,i) for i in indx if self._ok[0,0,i] ]
+                return [ (0,0,i,1) for i in indx if self._ok[0,0,i] ]
             else:
                 assert self.npatch1 == self.npatch3
                 # Select all pairs where first point is in indx (repeating i as appropriate)
-                return [ (i,0,j) for i in indx for j in range(self.npatch3) if self._ok[i,0,j] ]
+                return [ (i,0,j,1) for i in indx for j in range(self.npatch3) if self._ok[i,0,j] ]
         elif self.npatch1 == 1:
             assert self.npatch2 == self.npatch3
             # Select all pairs where first point is in indx (repeating i as appropriate)
-            return [ (0,i,j) for i in indx for j in range(self.npatch3) if self._ok[0,i,j] ]
+            return [ (0,i,j,1) for i in indx for j in range(self.npatch3) if self._ok[0,i,j] ]
         else:
             assert self.npatch1 == self.npatch2 == self.npatch3
             # Select all pairs where first point is in indx (repeating i as appropriate)
-            return [ (i,j,k) for i in indx for j in range(self.npatch2)
+            return [ (i,j,k,1) for i in indx for j in range(self.npatch2)
                                            for k in range(self.npatch3) if self._ok[i,j,k] ]
 
     def _bootstrap_pairs(self, indx):
         if self.npatch3 == 1:
             if self.npatch2 == 1:
-                return [ (i,0,0) for i in indx if self._ok[i,0,0] ]
+                return [ (i,0,0,1) for i in indx if self._ok[i,0,0] ]
             elif self.npatch1 == 1:
-                return [ (0,i,0) for i in indx if self._ok[0,i,0] ]
+                return [ (0,i,0,1) for i in indx if self._ok[0,i,0] ]
             else:
                 assert self.npatch1 == self.npatch2
-                return ([ (i,i,0) for i in indx if self._ok[i,i,0] ] +
-                        [ (i,j,0) for i in indx for j in indx if self._ok[i,j,0] and i!=j ])
+                return ([ (i,i,0,1) for i in indx if self._ok[i,i,0] ] +
+                        [ (i,j,0,1) for i in indx for j in indx if self._ok[i,j,0] and i!=j ])
         elif self.npatch2 == 1:
             if self.npatch1 == 1:
-                return [ (0,0,i) for i in indx if self._ok[0,0,i] ]
+                return [ (0,0,i,1) for i in indx if self._ok[0,0,i] ]
             else:
                 assert self.npatch1 == self.npatch3
-                return ([ (i,0,i) for i in indx if self._ok[i,0,i] ] +
-                        [ (i,0,j) for i in indx for j in indx if self._ok[i,0,j] and i!=j ])
+                return ([ (i,0,i,1) for i in indx if self._ok[i,0,i] ] +
+                        [ (i,0,j,1) for i in indx for j in indx if self._ok[i,0,j] and i!=j ])
         elif self.npatch1 == 1:
             assert self.npatch2 == self.npatch3
-            return ([ (0,i,i) for i in indx if self._ok[0,i,i] ] +
-                    [ (0,i,j) for i in indx for j in indx if self._ok[0,i,j] and i!=j ])
+            return ([ (0,i,i,1) for i in indx if self._ok[0,i,i] ] +
+                    [ (0,i,j,1) for i in indx for j in indx if self._ok[0,i,j] and i!=j ])
         else:
             # Like for 2pt we want to avoid getting extra copies of what are actually
             # auto-correlations coming from two indices equalling each other in (i,j,k).
@@ -2995,12 +2996,12 @@ class Corr3(object):
             # Finally get all triples (i,j,k) where they are all different repeated as often
             # as they show up in the triple for loop.
             assert self.npatch1 == self.npatch2 == self.npatch3
-            return ([ (i,i,i) for i in indx if self._ok[i,i,i] ] +
-                    [ (i,i,j) for i in indx for j in indx if self._ok[i,i,j] and i!=j ] +
-                    [ (i,j,i) for i in indx for j in indx if self._ok[i,j,i] and i!=j ] +
-                    [ (j,i,i) for i in indx for j in indx if self._ok[j,i,i] and i!=j ] +
-                    [ (i,j,k) for i in indx for j in indx if i!=j
-                              for k in indx if self._ok[i,j,k] and (i!=k and j!=k) ])
+            return ([ (i,i,i,1) for i in indx if self._ok[i,i,i] ] +
+                    [ (i,i,j,1) for i in indx for j in indx if self._ok[i,i,j] and i!=j ] +
+                    [ (i,j,i,1) for i in indx for j in indx if self._ok[i,j,i] and i!=j ] +
+                    [ (j,i,i,1) for i in indx for j in indx if self._ok[j,i,i] and i!=j ] +
+                    [ (i,j,k,1) for i in indx for j in indx if i!=j
+                            for k in indx if self._ok[i,j,k] and (i!=k and j!=k) ])
 
     @property
     def _write_params(self):

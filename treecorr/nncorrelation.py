@@ -179,9 +179,9 @@ class NNCorrelation(Corr2):
         #     for other in others:
         #         self += other
         # but no sanity checks and use numpy.sum for faster calculation.
-        tot = np.sum([c.tot for c in others])
+        tot = np.sum([c.tot*w for c,w in others])
         # Empty ones were only needed for tot.  Remove them now.
-        others = [c for c in others if c._nonzero]
+        others = [(c,w) for c,w in others if c._nonzero]
         if len(others) == 0:
             self._clear()
         else:
@@ -397,7 +397,7 @@ class NNCorrelation(Corr2):
             # The approximation we'll use is that tot in the auto-correlations is
             # proportional to area**2.
             # So the sum of tot**0.5 when i==j gives an estimate of the fraction of the total area.
-            area_frac = np.sum([self.results[(i,j)].tot**0.5 for i,j in pairs if i == j])
+            area_frac = np.sum([(self.results[i,j].tot*w)**0.5 for i,j,w in pairs if i == j])
             area_frac /= np.sum([cij.tot**0.5 for (i,j),cij in self.results.items() if i == j])
             # First figure out the original total for all DD that had the same footprint as RR.
             dd_tot = np.sum([self.results[ij].tot for ij in self.results])
@@ -413,7 +413,7 @@ class NNCorrelation(Corr2):
             pairs2 = pairs
             if self._dr.npatch2 == 1:
                 # If r doesn't have patches, then convert all (i,i) pairs to (i,0).
-                pairs2 = [(i,0) for i,j in pairs2 if i == j]
+                pairs2 = [(i,0,w) for i,j,w in pairs2 if i == j]
             pairs2 = self._dr._keep_ok(pairs2)
             self._dr._calculate_xi_from_pairs(pairs2, corr_only=True)
             dr = self._dr.weight
@@ -422,7 +422,7 @@ class NNCorrelation(Corr2):
             pairs3 = pairs
             if self._rd.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
                 # If r doesn't have patches, then convert all (i,i) pairs to (0,i).
-                pairs3 = [(0,j) for i,j in pairs3 if i == j]
+                pairs3 = [(0,j,w) for i,j,w in pairs3 if i == j]
             pairs3 = self._rd._keep_ok(pairs3)
             self._rd._calculate_xi_from_pairs(pairs3, corr_only=True)
             rd = self._rd.weight

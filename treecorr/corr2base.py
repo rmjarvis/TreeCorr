@@ -1304,17 +1304,21 @@ class Corr2(object):
     def _sum(self, others, corr_only):
         # Equivalent to the operation of:
         #     self._clear()
-        #     for other in others:
-        #         self += other
-        # but no sanity checks and use numpy.sum for faster calculation.
+        #     for other,w in others:
+        #         self += w*other
+        # if w*other was valid syntax, which it isn't.
+
+        def x(a, w):
+            return a if w == 1 else a*w
+
         for i in range(4):
             if self._xi[i].size:
-                np.sum([c._xi[i] for c in others], axis=0, out=self._xi[i])
-        np.sum([c.weight for c in others], axis=0, out=self.weight)
+                np.sum([x(c._xi[i],w) for c,w in others], axis=0, out=self._xi[i])
+        np.sum([x(c.weight,w) for c,w in others], axis=0, out=self.weight)
         if not corr_only:
-            np.sum([c.meanr for c in others], axis=0, out=self.meanr)
-            np.sum([c.meanlogr for c in others], axis=0, out=self.meanlogr)
-            np.sum([c.npairs for c in others], axis=0, out=self.npairs)
+            np.sum([x(c.meanr,w) for c,w in others], axis=0, out=self.meanr)
+            np.sum([x(c.meanlogr,w) for c,w in others], axis=0, out=self.meanlogr)
+            np.sum([x(c.npairs,w) for c,w in others], axis=0, out=self.npairs)
         self._varxi = None
         self._cov = None
 
@@ -1648,14 +1652,15 @@ class Corr2(object):
 
     def _calculate_xi_from_pairs(self, pairs, corr_only):
         # Compute the xi data vector for the given list of pairs.
-        # pairs is input as a list of (i,j) values.
+        # pairs is input as a list of (i,j,w) values.
 
         # This is the normal calculation.  It needs to be overridden when there are randoms.
-        self._sum([self.results[ij] for ij in pairs], corr_only)
+        self._sum([(self.results[(i,j)],w) for i,j,w in pairs], corr_only)
         self._finalize()
 
     def _keep_ok(self, pairs):
-        return [(i,j) for i,j in pairs if self._ok[i,j]]
+        return [(i,j,w) for i,j,w in pairs if self._ok[i,j] and w != 0]
+
 
     #########################################################################################
     #                                                                                       #
@@ -1698,15 +1703,15 @@ class Corr2(object):
         def make_gen(self):
             if self.npatch2 == 1:
                 # k=0 here
-                return ((j,k) for j,k in self.results.keys() if j!=self.index)
+                return ((j,k,1) for j,k in self.results.keys() if j!=self.index)
             elif self.npatch1 == 1:
                 # j=0 here
-                return ((j,k) for j,k in self.results.keys() if k!=self.index)
+                return ((j,k,1) for j,k in self.results.keys() if k!=self.index)
             else:
                 # For each i:
                 #    Select all pairs where neither is i.
                 assert self.npatch1 == self.npatch2
-                return ((j,k) for j,k in self.results.keys() if j!=self.index and k!=self.index)
+                return ((j,k,1) for j,k in self.results.keys() if j!=self.index and k!=self.index)
 
     def _jackknife_pairs(self):
         np = self.npatch1 if self.npatch1 != 1 else self.npatch2
@@ -1717,10 +1722,10 @@ class Corr2(object):
         def make_gen(self):
             if self.npatch2 == 1:
                 # k=0 here.
-                return ((j,k) for j,k in self.results.keys() if j==self.index)
+                return ((j,k,1) for j,k in self.results.keys() if j==self.index)
             elif self.npatch1 == 1:
                 # j=0 here.
-                return ((j,k) for j,k in self.results.keys() if k==self.index)
+                return ((j,k,1) for j,k in self.results.keys() if k==self.index)
             else:
                 assert self.npatch1 == self.npatch2
                 # Note: It's not obvious to me a priori which of these should be the right choice.
@@ -1729,11 +1734,11 @@ class Corr2(object):
                 #       using.
                 # For each i:
                 #    Select all pairs where either is i.
-                #return ((j,k) for j,k in self.results.keys() if j==self.index or k==self.index)
+                #return ((j,k,1) for j,k in self.results.keys() if j==self.index or k==self.index)
                 #
                 # For each i:
                 #    Select all pairs where first is i.
-                return ((j,k) for j,k in self.results.keys() if j==self.index)
+                return ((j,k,1) for j,k in self.results.keys() if j==self.index)
 
     def _sample_pairs(self):
         np = self.npatch1 if self.npatch1 != 1 else self.npatch2
@@ -1752,13 +1757,13 @@ class Corr2(object):
     class MarkedPairIterator(PairIterator):
         def make_gen(self):
             if self.npatch2 == 1:
-                return ( (i,0) for i in self.index if self.ok[i,0] )
+                return ( (i,0,1) for i in self.index if self.ok[i,0] )
             elif self.npatch1 == 1:
-                return ( (0,i) for i in self.index if self.ok[0,i] )
+                return ( (0,i,1) for i in self.index if self.ok[0,i] )
             else:
                 assert self.npatch1 == self.npatch2
                 # Select all pairs where first point is in index (repeating i as appropriate)
-                return ( (i,j) for i in self.index for j in range(self.npatch2) if self.ok[i,j] )
+                return ( (i,j,1) for i in self.index for j in range(self.npatch2) if self.ok[i,j] )
 
     def _marked_pairs(self, index):
         return self.MarkedPairIterator(self.results, self.npatch1, self.npatch2, index, self._ok)
@@ -1766,9 +1771,9 @@ class Corr2(object):
     class BootstrapPairIterator(PairIterator):
         def make_gen(self):
             if self.npatch2 == 1:
-                return ( (i,0) for i in self.index if self.ok[i,0] )
+                return ( (i,0,1) for i in self.index if self.ok[i,0] )
             elif self.npatch1 == 1:
-                return ( (0,i) for i in self.index if self.ok[0,i] )
+                return ( (0,i,1) for i in self.index if self.ok[0,i] )
             else:
                 assert self.npatch1 == self.npatch2
                 # Include all represented auto-correlations once, repeating as appropriate.
@@ -1776,13 +1781,13 @@ class Corr2(object):
                 # that you would get by looping i in index and j in index for cases where i=j at
                 # different places in the index list.  E.g. if i=3 shows up 3 times in index, then
                 # the naive way would get 9 instance of (3,3), whereas we only want 3 instances.
-                ret1 = ( (i,i) for i in self.index if self.ok[i,i] )
+                ret1 = ( (i,i,1) for i in self.index if self.ok[i,i] )
 
                 # And all other pairs that aren't really auto-correlations.
                 # These can happen at their natural multiplicity from i and j loops.
                 # Note: This is way faster with the precomputed ok matrix.
                 # Like 0.005 seconds per call rather than 1.2 seconds for 128 patches!
-                ret2 = ( (i,j) for i in self.index for j in self.index if self.ok[i,j] and i!=j )
+                ret2 = ( (i,j,1) for i in self.index for j in self.index if self.ok[i,j] and i!=j )
 
                 return itertools.chain(ret1, ret2)
 

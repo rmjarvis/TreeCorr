@@ -336,7 +336,7 @@ class NGGCorrelation(Corr3):
         if self._rgg is not None:
             # If rgg has npatch1 = 1, adjust pairs appropriately
             if self._rgg.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
-                pairs = [(0,j,k) for i,j,k in pairs if i == j]
+                pairs = [(0,j,k,w) for i,j,k,w in pairs if i == j]
             pairs = self._rgg._keep_ok(pairs)
             self._rgg._calculate_xi_from_pairs(pairs, corr_only=True)
             self._gam0 = self.raw_gam0 - self._rgg.gam0
@@ -689,7 +689,7 @@ class GNGCorrelation(Corr3):
         if self._grg is not None:
             # If grg has npatch2 = 1, adjust pairs appropriately
             if self._grg.npatch2 == 1 and not all([p[1] == 0 for p in pairs]):
-                pairs = [(i,0,k) for i,j,k in pairs if i == j]
+                pairs = [(i,0,k,w) for i,j,k,w in pairs if i == j]
             pairs = self._grg._keep_ok(pairs)
             self._grg._calculate_xi_from_pairs(pairs, corr_only=True)
             self._gam0 = self.raw_gam0 - self._grg.gam0
@@ -1042,7 +1042,7 @@ class GGNCorrelation(Corr3):
         if self._ggr is not None:
             # If ggr has npatch3 = 1, adjust pairs appropriately
             if self._ggr.npatch3 == 1 and not all([p[2] == 0 for p in pairs]):
-                pairs = [(i,j,0) for i,j,k in pairs if i == k]
+                pairs = [(i,j,0,w) for i,j,k,w in pairs if i == k]
             pairs = self._ggr._keep_ok(pairs)
             self._ggr._calculate_xi_from_pairs(pairs, corr_only=True)
             self._gam0 = self.raw_gam0 - self._ggr.gam0

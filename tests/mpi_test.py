@@ -297,14 +297,10 @@ def do_mpi_cov(comm, method, output=True):
         print("\nCOV 1 \n", cov1[0:3,0:3], " for rank ", comm.rank, " of ", comm.size)
 
     rng = np.random.default_rng(31415)
-    gg = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng,
-                                num_bootstrap=100)
-    ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng,
-                                num_bootstrap=100)
-    nn = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng,
-                                num_bootstrap=100)
-    rr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng,
-                                num_bootstrap=100)
+    gg = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng)
+    ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng)
+    nn = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng)
+    rr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=50., rng=rng)
     if output:
         print(comm.rank, "Running GG process 2")
     gg.process(cat, comm=comm)
@@ -335,18 +331,20 @@ def do_mpi_cov(comm, method, output=True):
     # Compare to the MPI-estimated covariance
     if output:
         print(comm.rank, "MPI cov")
-    cov2 = treecorr.estimate_multi_cov(corrs, method, comm=comm)
+    cov2 = treecorr.estimate_multi_cov(corrs, method, comm=comm, num_bootstrap=100,
+                                       cross_patch_weight='simple')
     if output:
         print("\nCOV 2\n", cov2[0:3,0:3], " for ", comm.rank, "\n")
 
     np.testing.assert_allclose(cov1, cov2, atol=tol)
 
-    A2, w2 = treecorr.build_multi_cov_design_matrix(corrs, method, comm=comm)
+    A2, w2 = treecorr.build_multi_cov_design_matrix(corrs, method, comm=comm, num_bootstrap=100,
+                                                    cross_patch_weight='simple')
     np.testing.assert_allclose(A1, A2, atol=tol)
     np.testing.assert_allclose(w1, w2, atol=tol)
 
-    cov2b = gg.estimate_cov(method, func=gg_func, comm=comm)
-    A2b, w2b = gg.build_cov_design_matrix(method, func=gg_func, comm=comm)
+    cov2b = gg.estimate_cov(method, func=gg_func, comm=comm, num_bootstrap=100)
+    A2b, w2b = gg.build_cov_design_matrix(method, func=gg_func, comm=comm, num_bootstrap=100)
     np.testing.assert_allclose(A1b, A2b, atol=tol)
     np.testing.assert_allclose(w1b, w2b, atol=tol)
 
@@ -360,7 +358,7 @@ def do_mpi_cov(comm, method, output=True):
     ng.calculateXi()
     nn.calculateXi(rr=rr)
     corrs = [gg, ng, nn]
-    cov3 = treecorr.estimate_multi_cov(corrs, method, comm=comm)
+    cov3 = treecorr.estimate_multi_cov(corrs, method, comm=comm, num_bootstrap=100)
     if output:
         print("\nCOV 3\n", cov3[0:3,0:3], " for ", comm.rank, "\n")
 

@@ -2105,8 +2105,7 @@ def test_kappa_jk():
 
     # Reorder the data vector
     func = lambda corrs: np.concatenate([corrs[2].xi[:4], corrs[0].xi, corrs[1].xi[2:]])
-    cov_alt = treecorr.estimate_multi_cov([nk,kk,kg], 'jackknife', func=func,
-                                          cross_patch_weight='simple')
+    cov_alt = treecorr.estimate_multi_cov([nk,kk,kg], 'jackknife', func=func)
     np.testing.assert_allclose(cov_alt[:4,:4], cov[n2:n2+4,n2:n2+4])
     np.testing.assert_allclose(cov_alt[4:4+n1,4:4+n1], cov[:n1,:n1])
     np.testing.assert_allclose(cov_alt[4+n1:,4+n1:], cov[n1+2:n2,n1+2:n2])
@@ -2436,11 +2435,8 @@ def test_clusters():
     np.testing.assert_allclose(np.log(ng3.varxi), np.log(var_xi), atol=0.3*tol_factor)
 
     # Check sample covariance estimate
-    t0 = time.time()
     with assert_raises(RuntimeError):
         ng3.estimate_cov('sample')
-    t1 = time.time()
-    print('Time to calculate sample covariance = ',t1-t0)
 
     # Check marked_bootstrap covariance estimate
     t0 = time.time()
@@ -2498,27 +2494,29 @@ def test_brute_jk():
         nside = 100
         nlens = 30
         nsource = 500
-        npatch = 16
+        npatch = 8
         rand_factor = 5
         tol_factor = 3
 
     rng = np.random.RandomState(8675309)
     x, y, g1, g2, k = generate_shear_field(nside, rng)
-    indx = rng.choice(range(len(x)),nsource,replace=False)
-    source_cat = treecorr.Catalog(x=x[indx], y=y[indx],
-                                  g1=g1[indx], g2=g2[indx], k=k[indx],
-                                  npatch=npatch, rng=rng)
-    print('source_cat patches = ',np.unique(source_cat.patch))
-    print('len = ',source_cat.nobj, source_cat.ntot)
-    assert source_cat.nobj == nsource
+
     indx = rng.choice(np.where(k>0)[0],nlens,replace=False)
-    print('indx = ',indx)
     lens_cat = treecorr.Catalog(x=x[indx], y=y[indx], k=k[indx],
                                 g1=g1[indx], g2=g2[indx],
-                                patch_centers=source_cat.patch_centers)
+                                npatch=npatch, rng=rng)
     print('lens_cat patches = ',np.unique(lens_cat.patch))
     print('len = ',lens_cat.nobj, lens_cat.ntot)
     assert lens_cat.nobj == nlens
+
+    indx = rng.choice(range(len(x)),nsource,replace=False)
+    source_cat = treecorr.Catalog(x=x[indx], y=y[indx],
+                                  g1=g1[indx], g2=g2[indx], k=k[indx],
+                                  patch_centers=lens_cat.patch_centers)
+    print('source_cat patches = ',np.unique(source_cat.patch))
+    print('len = ',source_cat.nobj, source_cat.ntot)
+    assert source_cat.nobj == nsource
+    assert len(set(source_cat.patch)) == npatch  # Otherwise we'll get errors later.
 
     rand_source_cat = treecorr.Catalog(x=rng.uniform(0,1000,nsource*rand_factor),
                                        y=rng.uniform(0,1000,nsource*rand_factor),
@@ -2533,28 +2531,77 @@ def test_brute_jk():
 
     # Start with NK, since relatively simple.
     nk = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True,
-                                var_method='jackknife')
+                                var_method='jackknife', cross_patch_weight='simple')
     nk.process(lens_cat, source_cat)
-    print('TreeCorr jackknife:')
+    print('TreeCorr jackknife/simple:')
     print('nk = ',nk.xi)
     print('var = ',nk.varxi)
 
     # Now do this using brute force calculation.
-    print('Direct jackknife:')
-    xi_list = []
+    xi_list_jk_simple = []
+    xi_list_jk_mean = []
+    xi_list_jk_match = []
+    xi_list_sam_simple = []
+    xi_list_sam_mean = []
+    w_list_sam_simple = []
+    w_list_sam_mean = []
+    # Mohammad and Percival (2021) Eqn. 27
+    alpha = npatch / (2 + np.sqrt(2)*(npatch-1))
     for i in range(npatch):
+        # jackknife simple
         lens_cat1 = treecorr.Catalog(x=lens_cat.x[lens_cat.patch != i],
                                      y=lens_cat.y[lens_cat.patch != i])
         source_cat1 = treecorr.Catalog(x=source_cat.x[source_cat.patch != i],
                                        y=source_cat.y[source_cat.patch != i],
                                        k=source_cat.k[source_cat.patch != i])
-        nk1 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
+        nk1 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
         nk1.process(lens_cat1, source_cat1)
-        xi_list.append(nk1.xi)
-    xi_list = np.array(xi_list)
-    xi = np.mean(xi_list, axis=0)
-    print('mean xi = ',xi)
-    C = np.cov(xi_list.T, bias=True) * (len(xi_list)-1)
+        xi_list_jk_simple.append(nk1.xi.copy())
+
+        # jackknife mean
+        nk1.process(lens_cat1, source_cat1, initialize=True, finalize=False)
+        nl0 = np.sum(lens_cat.patch == i)
+        lens_cat0 = treecorr.Catalog(x=lens_cat.x[lens_cat.patch == i],
+                                     y=lens_cat.y[lens_cat.patch == i],
+                                     w=np.full(nl0, 0.5))
+        nk1.process(lens_cat0, source_cat1, initialize=False, finalize=False)
+        ns0 = np.sum(source_cat.patch == i)
+        source_cat0 = treecorr.Catalog(x=source_cat.x[source_cat.patch == i],
+                                       y=source_cat.y[source_cat.patch == i],
+                                       k=source_cat.k[source_cat.patch == i],
+                                       w=np.full(ns0, 0.5))
+        nk1.process(lens_cat1, source_cat0, initialize=False, finalize=True)
+        xi_list_jk_mean.append(nk1.xi.copy())
+
+        # jackknife match
+        nk1.process(lens_cat1, source_cat1, initialize=True, finalize=False)
+        lens_cat2 = treecorr.Catalog(x=lens_cat0.x, y=lens_cat0.y, w=np.full(nl0, 1-alpha))
+        nk1.process(lens_cat2, source_cat1, initialize=False, finalize=False)
+        source_cat2 = treecorr.Catalog(x=source_cat0.x, y=source_cat0.y, k=source_cat0.k,
+                                       w=np.full(ns0, 1-alpha))
+        nk1.process(lens_cat1, source_cat2, initialize=False, finalize=True)
+        xi_list_jk_match.append(nk1.xi.copy())
+
+        # sample simple
+        nk1.process(lens_cat0, source_cat)
+        xi_list_sam_simple.append(nk1.xi.copy())
+        w_list_sam_simple.append(np.sum(nk1.weight))
+
+        # simple mean
+        nk1.process(lens_cat0, source_cat0, initialize=True, finalize=False)
+        nk1.xi[:] *= 4  # We want w*w = 1 here, not 0.25.
+        nk1.weight[:] *= 4
+        nk1.process(lens_cat0, source_cat1, initialize=False, finalize=False)
+        nk1.process(lens_cat1, source_cat0, initialize=False, finalize=True)
+        xi_list_sam_mean.append(nk1.xi.copy())
+        w_list_sam_mean.append(np.sum(nk1.weight))
+
+    # Check jackknife with cross_patch_weight=simple
+    print('Direct jackknife/simple:')
+    v = np.array(xi_list_jk_simple)
+    xi = np.mean(v, axis=0)
+    print('xi = ',xi)
+    C = np.cov(v.T, bias=True) * (npatch-1)
     varxi = np.diagonal(C)
     print('varxi = ',varxi)
     # xi isn't exact because of the variation in denominators, which doesn't commute with the mean.
@@ -2562,9 +2609,57 @@ def test_brute_jk():
     # The difference gets less as npatch increases.
     np.testing.assert_allclose(nk.xi, xi, rtol=0.01 * tol_factor)
     np.testing.assert_allclose(nk.varxi, varxi)
+    np.testing.assert_allclose(nk.cov, C)
 
+    # Check jackknife with cross_patch_weight=mean
+    v = np.array(xi_list_jk_mean)
+    xi = np.mean(v, axis=0)
+    C = np.cov(v.T, bias=True) * (npatch-1)
+    cov = nk.estimate_cov(method='jackknife', cross_patch_weight='mean')
+    np.testing.assert_allclose(nk.xi, xi, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(cov, C)
+
+    # Check jackknife with cross_patch_weight=match
+    v = np.array(xi_list_jk_match)
+    xi = np.mean(v, axis=0)
+    C = np.cov(v.T, bias=True) * (npatch-1)
+    cov = nk.estimate_cov(method='jackknife', cross_patch_weight='match')
+    np.testing.assert_allclose(nk.xi, xi, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(cov, C)
+
+    # Check sample with cross_patch_weight=simple
+    v = np.array(xi_list_sam_simple)
+    w = np.array(w_list_sam_simple)
+    w /= np.sum(w)
+    xi = np.mean(xi_list_sam_simple, axis=0)
+    C = (w * (v-xi).T).dot(v-xi) / (npatch-1)
+    cov = nk.estimate_cov(method='sample', cross_patch_weight='simple')
+    np.testing.assert_allclose(cov, C)
+
+    # Check sample with cross_patch_weight=mean
+    v = np.array(xi_list_sam_mean)
+    w = np.array(w_list_sam_mean)
+    w /= np.sum(w)
+    xi = np.mean(xi_list_sam_mean, axis=0)
+    C = (w * (v-xi).T).dot(v-xi) / (npatch-1)
+    cov = nk.estimate_cov(method='sample', cross_patch_weight='mean')
+    np.testing.assert_allclose(cov, C)
+
+    with assert_raises(ValueError):
+        nk.estimate_cov(method='jackknife', cross_patch_weight='invalid')
+    with assert_raises(ValueError):
+        nk.estimate_cov(method='jackknife', cross_patch_weight='geom')
+    with assert_raises(ValueError):
+        nk.estimate_cov(method='sample', cross_patch_weight='invalid')
+    with assert_raises(ValueError):
+        nk.estimate_cov(method='sample', cross_patch_weight='geom')
+    with assert_raises(ValueError):
+        nk.estimate_cov(method='sample', cross_patch_weight='match')
+
+    # For the rest, just do jackknife, simple, since it's simpler and the above tests
+    # verify the diffent cross_patch_weight options sufficiently well.
     # Repeat with randoms.
-    rk = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
+    rk = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
     rk.process(rand_lens_cat, source_cat)
     nk.calculateXi(rk=rk)
     print('With randoms:')
@@ -2581,30 +2676,32 @@ def test_brute_jk():
         source_cat1 = treecorr.Catalog(x=source_cat.x[source_cat.patch != i],
                                        y=source_cat.y[source_cat.patch != i],
                                        k=source_cat.k[source_cat.patch != i])
-        nk1 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
+        nk1 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
         nk1.process(lens_cat1, source_cat1)
-        rk1 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
+        rk1 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
         rk1.process(rand_lens_cat1, source_cat1)
         nk1.calculateXi(rk=rk1)
         xi_list.append(nk1.xi)
     xi_list = np.array(xi_list)
-    C = np.cov(xi_list.T, bias=True) * (len(xi_list)-1)
+    C = np.cov(xi_list.T, bias=True) * (npatch-1)
     varxi = np.diagonal(C)
     print('var = ',varxi)
     np.testing.assert_allclose(nk.varxi, varxi)
+    np.testing.assert_allclose(nk.cov, C)
 
     # Repeat for NG, GG, KK, KG
+    # Note: that the shear ones need brute, not just bin_slop=0 to be exact
     ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True,
-                                var_method='jackknife')
+                                var_method='jackknife', cross_patch_weight='simple')
     ng.process(lens_cat, source_cat)
     gg = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True,
-                                var_method='jackknife')
+                                var_method='jackknife', cross_patch_weight='simple')
     gg.process(source_cat)
-    kk = treecorr.KKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True,
-                                var_method='jackknife')
+    kk = treecorr.KKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0,
+                                var_method='jackknife', cross_patch_weight='simple')
     kk.process(source_cat)
     kg = treecorr.KGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True,
-                                var_method='jackknife')
+                                var_method='jackknife', cross_patch_weight='simple')
     kg.process(lens_cat, source_cat)
 
     ng_xi_list = []
@@ -2628,7 +2725,7 @@ def test_brute_jk():
         gg1.process(source_cat1)
         gg_xip_list.append(gg1.xip)
         gg_xim_list.append(gg1.xim)
-        kk1 = treecorr.KKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
+        kk1 = treecorr.KKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
         kk1.process(source_cat1)
         kk_xi_list.append(kk1.xi)
         kg1 = treecorr.KGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
@@ -2682,7 +2779,7 @@ def test_brute_jk():
         ng1.calculateXi(rg=rg1)
         xi_list.append(ng1.xi)
     xi_list = np.array(xi_list)
-    C = np.cov(xi_list.T, bias=True) * (len(xi_list)-1)
+    C = np.cov(xi_list.T, bias=True) * (npatch-1)
     varxi = np.diagonal(C)
     print('NG with randoms:')
     print('treecorr jackknife varxi = ',ng.varxi)
@@ -2695,16 +2792,16 @@ def test_brute_jk():
     # 3. (DD-2RD+RR)/RR
     # 4. (DD-DR-RD+RR)/RR
     dd = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0,
-                                var_method='jackknife')
+                                var_method='jackknife', cross_patch_weight='simple')
     dd.process(lens_cat, source_cat)
     rr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0,
-                                var_method='jackknife')
+                                var_method='jackknife', cross_patch_weight='simple')
     rr.process(rand_lens_cat, rand_source_cat)
     rd = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0,
-                                var_method='jackknife')
+                                var_method='jackknife', cross_patch_weight='simple')
     rd.process(rand_lens_cat, source_cat)
     dr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0,
-                                var_method='jackknife')
+                                var_method='jackknife', cross_patch_weight='simple')
     dr.process(lens_cat, rand_source_cat)
 
     # Now do this using brute force calculation.
@@ -2737,7 +2834,7 @@ def test_brute_jk():
     print('(DD-RR)/RR')
     xi1_list = np.array(xi1_list)
     xi1, varxi1 = dd.calculateXi(rr=rr)
-    varxi = np.diagonal(np.cov(xi1_list.T, bias=True)) * (len(xi1_list)-1)
+    varxi = np.diagonal(np.cov(xi1_list.T, bias=True)) * (npatch-1)
     print('treecorr jackknife varxi = ',varxi1)
     print('direct jackknife varxi = ',varxi)
     np.testing.assert_allclose(dd.varxi, varxi)
@@ -2745,7 +2842,7 @@ def test_brute_jk():
     print('(DD-2DR+RR)/RR')
     xi2_list = np.array(xi2_list)
     xi2, varxi2 = dd.calculateXi(rr=rr, dr=dr)
-    varxi = np.diagonal(np.cov(xi2_list.T, bias=True)) * (len(xi2_list)-1)
+    varxi = np.diagonal(np.cov(xi2_list.T, bias=True)) * (npatch-1)
     print('treecorr jackknife varxi = ',varxi2)
     print('direct jackknife varxi = ',varxi)
     np.testing.assert_allclose(dd.varxi, varxi)
@@ -2753,7 +2850,7 @@ def test_brute_jk():
     print('(DD-2RD+RR)/RR')
     xi3_list = np.array(xi3_list)
     xi3, varxi3 = dd.calculateXi(rr=rr, rd=rd)
-    varxi = np.diagonal(np.cov(xi3_list.T, bias=True)) * (len(xi3_list)-1)
+    varxi = np.diagonal(np.cov(xi3_list.T, bias=True)) * (npatch-1)
     print('treecorr jackknife varxi = ',varxi3)
     print('direct jackknife varxi = ',varxi)
     np.testing.assert_allclose(dd.varxi, varxi)
@@ -2761,7 +2858,7 @@ def test_brute_jk():
     print('(DD-DR-RD+RR)/RR')
     xi4_list = np.array(xi4_list)
     xi4, varxi4 = dd.calculateXi(rr=rr, rd=rd, dr=dr)
-    varxi = np.diagonal(np.cov(xi4_list.T, bias=True)) * (len(xi4_list)-1)
+    varxi = np.diagonal(np.cov(xi4_list.T, bias=True)) * (npatch-1)
     print('treecorr jackknife varxi = ',varxi4)
     print('direct jackknife varxi = ',varxi)
     np.testing.assert_allclose(dd.varxi, varxi)

@@ -1377,11 +1377,9 @@ class Corr2(object):
               This is the simplest implementation of the methods and is what TreeCorr always
               did prior to version 5.1.  In the language of MP22, this is called mult, since
               deselected patches have weight=0, and selected patches have weight=1, so the product
-              of the weights is 0 if either patch is deselected.  Note: for bootstrap, where
-              individual patches may have w > 1, multiplying the weights is definitely wrong
-              (and MP22 found it to be very biased).  Our implementation of 'simple' effecively
-              uses the mean of the two weights for two selected patches, not the product.
-              This option is valid for all patch-based methods, and for now is the default.
+              of the weights is 0 if either patch is deselected.
+              This option is valid for all patch-based methods, and for now is the default
+              for all methods.
             - 'mean' = Use a weight of 0.5 for any pair with one object in a deselected patch
               and the other in a selected patch. This is the mean of the two patch weights (0,1).
               This option is valid for all patch-based methods.
@@ -1769,16 +1767,34 @@ class Corr2(object):
     class JackknifePairIterator(PairIterator):
         def make_gen(self):
             if self.npatch2 == 1:
-                # k=0 here
-                return ((j,k,1) for j,k in self.results.keys() if j!=self.index)
-            elif self.npatch1 == 1:
                 # j=0 here
-                return ((j,k,1) for j,k in self.results.keys() if k!=self.index)
-            else:
+                return ((i,j,1) for i,j in self.results.keys() if i!=self.index)
+            elif self.npatch1 == 1:
+                # i=0 here
+                return ((i,j,1) for i,j in self.results.keys() if j!=self.index)
+            elif self.cpw in [None, 'simple']:
                 # For each i:
                 #    Select all pairs where neither is i.
                 assert self.npatch1 == self.npatch2
-                return ((j,k,1) for j,k in self.results.keys() if j!=self.index and k!=self.index)
+                return ((i,j,1) for i,j in self.results.keys() if i!=self.index and j!=self.index)
+            elif self.cpw == 'mean':
+                # When neither patch == i, w = 1
+                # When one patch == i, w = 0.5
+                # else exclude.
+                assert self.npatch1 == self.npatch2
+                return ((i,j, 0.5 if i == self.index or j == self.index else 1)
+                        for i,j in self.results.keys() if i!=self.index or j!=self.index)
+            elif self.cpw == 'match':
+                # match is like mean, but has a little higher weight for the cross-pairs.
+                # See section 4.5 of Mohammad and Percival (2022).
+                # The following is eqn. 27 from that paper, where w = 1-alpha, since
+                # alpha is the weight to remove from the cross pairs.
+                w = 1 - self.npatch1 / (2 + 2**0.5 * (self.npatch1 - 1))
+                assert self.npatch1 == self.npatch2
+                return ((i,j, w if i == self.index or j == self.index else 1)
+                        for i,j in self.results.keys() if i!=self.index or j!=self.index)
+            else:
+                raise ValueError("cross_patch_weight = {} is invalid".format(self.cpw))
 
     def _jackknife_pairs(self, cross_patch_weight):
         np = self.npatch1 if self.npatch1 != 1 else self.npatch2
@@ -1789,24 +1805,23 @@ class Corr2(object):
     class SamplePairIterator(PairIterator):
         def make_gen(self):
             if self.npatch2 == 1:
-                # k=0 here.
-                return ((j,k,1) for j,k in self.results.keys() if j==self.index)
-            elif self.npatch1 == 1:
                 # j=0 here.
-                return ((j,k,1) for j,k in self.results.keys() if k==self.index)
-            else:
+                return ((i,j,1) for i,j in self.results.keys() if i==self.index)
+            elif self.npatch1 == 1:
+                # i=0 here.
+                return ((i,j,1) for i,j in self.results.keys() if j==self.index)
+            elif self.cpw in [None,'simple']:
+                # Always use pair if i == index
                 assert self.npatch1 == self.npatch2
-                # Note: It's not obvious to me a priori which of these should be the right choice.
-                #       Empirically, they both underestimate the variance, but the second one
-                #       does so less on the tests I have in test_patch.py.  So that's the one I'm
-                #       using.
-                # For each i:
-                #    Select all pairs where either is i.
-                #return ((j,k,1) for j,k in self.results.keys() if j==self.index or k==self.index)
-                #
-                # For each i:
-                #    Select all pairs where first is i.
-                return ((j,k,1) for j,k in self.results.keys() if j==self.index)
+                return ((i,j,1) for i,j in self.results.keys() if i==self.index)
+            elif self.cpw == 'mean':
+                # i,i has weight 1
+                # when i != j, both i,j and j,i have weight 0.5
+                assert self.npatch1 == self.npatch2
+                return ((i,j, 0.5 if i != self.index or j != self.index else 1)
+                        for i,j in self.results.keys() if i==self.index or j==self.index)
+            else:
+                raise ValueError("cross_patch_weight = {} is invalid".format(self.cpw))
 
     def _sample_pairs(self, cross_patch_weight):
         np = self.npatch1 if self.npatch1 != 1 else self.npatch2
@@ -2082,11 +2097,9 @@ def estimate_multi_cov(corrs, method, *, func=None, comm=None, num_bootstrap=Non
           This is the simplest implementation of the methods and is what TreeCorr always
           did prior to version 5.1.  In the language of MP22, this is called mult, since
           deselected patches have weight=0, and selected patches have weight=1, so the product
-          of the weights is 0 if either patch is deselected.  Note: for bootstrap, where
-          individual patches may have w > 1, multiplying the weights is definitely wrong
-          (and MP22 found it to be very biased).  Our implementation of 'simple' effecively
-          uses the mean of the two weights for two selected patches, not the product.
-          This option is valid for all patch-based methods, and for now is the default.
+          of the weights is 0 if either patch is deselected.
+          This option is valid for all patch-based methods, and for now is the default
+          for all methods.
         - 'mean' = Use a weight of 0.5 for any pair with one object in a deselected patch
           and the other in a selected patch. This is the mean of the two patch weights (0,1).
           This option is valid for all patch-based methods.

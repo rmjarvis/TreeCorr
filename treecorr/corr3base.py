@@ -377,7 +377,7 @@ class Corr3(object):
                             'marked_bootstrap' var_methods.  (default: 500)
         cross_patch_weight (str): How to weight pairs that cross between two patches when one patch
                             is deselected (e.g. in a jackknife sense) and the other is selected.
-                            (default 'mult')
+                            (default None)
         rng (RandomState):  If desired, a numpy.random.RandomState instance to use for bootstrap
                             random number generation. (default: None)
 
@@ -480,7 +480,7 @@ class Corr3(object):
         'num_bootstrap': (int, False, 500, None,
                 'How many bootstrap samples to use for the var_method=bootstrap and '
                 'marked_bootstrap'),
-        'cross_patch_weight': (str, False, 'mult', ['mult', 'mean', 'match'],
+        'cross_patch_weight': (str, False, None, ['simple', 'mean', 'match', 'geom'],
                 'How to weight pairs that cross between a selected and unselected patch'),
         'num_threads' : (int, False, None, None,
                 'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
@@ -844,7 +844,7 @@ class Corr3(object):
 
         self._ro.var_method = get(self.config,'var_method',str,'shot')
         self._ro.num_bootstrap = get(self.config,'num_bootstrap',int,500)
-        self._ro.cross_patch_weight = get(self.config,'cross_patch_weight',str,'mult')
+        self._ro.cross_patch_weight = get(self.config,'cross_patch_weight',str,None)
         self.results = {}  # for jackknife, etc. store the results of each pair of patches.
         self.npatch1 = self.npatch2 = self.npatch3 = 1
         self._rng = rng
@@ -2656,9 +2656,10 @@ class Corr3(object):
         of the patches are selected.  See Mohammad and Percival (2021)
         (https://arxiv.org/abs/2109.07071) for an in-depth discussion of these options for
         two-point statistics.  We use a similar definitions for three-point statistics.
-        Briefly the options are:
+        Briefly the options are: (TODO!  This is aspirational so far.)
 
-            - 'mult' = Don't use any triangles where any object is in a deselected patch.
+            - 'simple' = Don't use any triangles where any object is in a deselected patch.
+              This is currently the default for all methods.
             - 'mean' = Use a weight of 1/3 for any triangle with one object in a selected patch
               and the other two in deselected patches, and 2/3 for any triangle with two objects
               in selected patches.
@@ -2718,7 +2719,7 @@ class Corr3(object):
                                 can also be given in the constructor.)
             cross_patch_weight (str): How to weight pairs that cross between two patches when one
                                 patch is deselected (e.g. in a jackknife sense) and the other is
-                                selected.  (default 'mult'; see above for details; this value
+                                selected.  (default None; see above for details; this value
                                 can also be given in the constructor.)
 
         Returns:
@@ -2775,7 +2776,7 @@ class Corr3(object):
                                 can also be given in the constructor.)
             cross_patch_weight (str): How to weight pairs that cross between two patches when one
                                 patch is deselected (e.g. in a jackknife sense) and the other is
-                                selected.  (default 'mult'; see above for details; this value
+                                selected.  (default None; see above for details; this value
                                 can also be given in the constructor.)
 
         Returns:
@@ -2918,6 +2919,8 @@ class Corr3(object):
         return [(i,j,k,w) for i,j,k,w in pairs if self._ok[i,j,k] and w != 0]
 
     def _jackknife_pairs(self, cross_patch_weight):
+        if cross_patch_weight not in [None, 'simple']:
+            raise ValueError(f"cross_patch_weight = {cross_patch_weight} is invalid for 3pt jackknife")
         if self.npatch3 == 1:
             if self.npatch2 == 1:
                 # k=m=0
@@ -2953,6 +2956,8 @@ class Corr3(object):
                      for i in range(self.npatch1) ]
 
     def _sample_pairs(self, cross_patch_weight):
+        if cross_patch_weight not in [None, 'simple']:
+            raise ValueError(f"cross_patch_weight = {cross_patch_weight} is invalid for 3pt sample")
         if self.npatch3 == 1:
             if self.npatch2 == 1:
                 # k=m=0
@@ -2995,6 +3000,8 @@ class Corr3(object):
         return ok
 
     def _marked_pairs(self, indx, cross_patch_weight):
+        if cross_patch_weight not in [None, 'simple']:
+            raise ValueError(f"cross_patch_weight = {cross_patch_weight} is invalid for 3pt marked_bootstrap")
         if self.npatch3 == 1:
             if self.npatch2 == 1:
                 return [ (i,0,0,1) for i in indx if self._ok[i,0,0] ]
@@ -3022,6 +3029,8 @@ class Corr3(object):
                                            for k in range(self.npatch3) if self._ok[i,j,k] ]
 
     def _bootstrap_pairs(self, indx, cross_patch_weight):
+        if cross_patch_weight not in [None, 'simple']:
+            raise ValueError(f"cross_patch_weight = {cross_patch_weight} is invalid for 3pt bootstrap")
         if self.npatch3 == 1:
             if self.npatch2 == 1:
                 return [ (i,0,0,1) for i in indx if self._ok[i,0,0] ]

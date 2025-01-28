@@ -2864,6 +2864,196 @@ def test_brute_jk():
     np.testing.assert_allclose(dd.varxi, varxi)
 
 @timer
+def test_brute_bootstrap():
+    # Similar to the above test, but for the two bootstrap methods
+
+    # Skip this test on windows, since it is vv slow.
+    if os.name == 'nt': return
+
+    if __name__ == '__main__':
+        nside = 100
+        ngal = 5000
+        npatch = 32
+        nboot = 200
+        tol_factor = 1
+    else:
+        nside = 100
+        ngal = 500
+        npatch = 8
+        nboot = 50
+        tol_factor = 1
+
+    rng = np.random.default_rng(8675309)
+    x, y, _, _, k = generate_shear_field(nside, rng)
+
+    indx = rng.choice(range(len(x)), ngal, replace=False)
+    cat = treecorr.Catalog(x=x[indx], y=y[indx], k=k[indx], npatch=npatch)
+    print('patches = ',np.unique(cat.patch))
+    print('len = ',cat.nobj, cat.ntot)
+    assert cat.nobj == ngal
+
+    # This rng will be used for the bootstrap realization.
+    rng1 = np.random.default_rng(1234)
+    kk = treecorr.KKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0, rng=rng1,
+                                var_method='bootstrap', cross_patch_weight='simple',
+                                num_bootstrap=nboot)
+    kk.process(cat)
+    print('TreeCorr bootstrap/simple:')
+    print('xi = ',kk.xi)
+    print('var = ',kk.varxi)
+
+    # Now do this using brute force calculation.
+    xi_list_boot_simple = []
+    xi_list_boot_mean = []
+    xi_list_boot_geom = []
+    xi_list_mark_simple = []
+    xi_list_mark_mean = []
+    rng2 = np.random.default_rng(1234)
+    kk1 = treecorr.KKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+    kk2 = kk1.copy()
+    kk3 = kk1.copy()
+    for i in range(nboot):
+        index = rng2.choice(np.arange(npatch), size=npatch, replace=True)
+
+        # bootstrap simple:
+        kk1.clear()
+        for i in index:
+            kk1.process_auto(cat.patches[i])
+            for j in index:
+                if j < i:
+                    kk1.process_cross(cat.patches[i], cat.patches[j])
+        kk1.finalize(0,0)
+        xi_list_boot_simple.append(kk1.xi.copy())
+
+        # bootstrap mean, geom
+        index2, counts = np.unique(index, return_counts=True)
+        kk1.clear()  # for mean
+        kk2.clear()  # for geom
+        for i,w1 in zip(index2,counts):
+            kk3.clear()
+            kk3.process_auto(cat.patches[i], corr_only=True)
+            kk3.xi[:] *= w1
+            kk3.weight[:] *= w1
+            kk1 += kk3
+            kk2 += kk3
+            for j,w2 in zip(index2,counts):
+                if i <= j: continue
+                kk3.clear()
+                kk3.process_cross(cat.patches[i], cat.patches[j], corr_only=True)
+                kk4 = kk3.copy()
+                kk3.xi[:] *= (w1+w2)/2.
+                kk3.weight[:] *= (w1+w2)/2.
+                kk1 += kk3
+                kk4.xi[:] *= (w1*w2)**0.5
+                kk4.weight[:] *= (w1*w2)**0.5
+                kk2 += kk4
+        kk1.finalize(0,0)
+        kk2.finalize(0,0)
+        xi_list_boot_mean.append(kk1.xi.copy())
+        xi_list_boot_geom.append(kk2.xi.copy())
+
+        # marked simple
+        kk1.clear()
+        for i in index:
+            for j in range(npatch):
+                kk2.clear()
+                if i == j:
+                    kk2.process_auto(cat.patches[i], corr_only=True)
+                elif i < j:
+                    kk2.process_cross(cat.patches[i], cat.patches[j], corr_only=True)
+                kk1 += kk2
+        kk1.finalize(0,0)
+        xi_list_mark_simple.append(kk1.xi.copy())
+
+        # marked mean
+        kk1.clear()
+        for i in index:
+            for j in range(npatch):
+                kk2.clear()
+                if i == j:
+                    kk2.process_auto(cat.patches[i], corr_only=True)
+                else:
+                    kk2.process_cross(cat.patches[i], cat.patches[j], corr_only=True)
+                    kk2.xi[:] *= 0.5
+                    kk2.weight[:] *= 0.5
+                kk1 += kk2
+        kk1.finalize(0,0)
+        xi_list_mark_mean.append(kk1.xi.copy())
+
+    # Check bootstrap with cross_patch_weight=simple
+    print('Direct bootstrap/simple:')
+    v = np.array(xi_list_boot_simple)
+    xi = np.mean(v, axis=0)
+    print('xi = ',xi)
+    C = np.cov(v.T)
+    varxi = np.diagonal(C)
+    print('varxi = ',varxi)
+    # This isn't expected to be exact, since patch selection is random.  But it should be closish.
+    np.testing.assert_allclose(kk.xi, xi, rtol=0.03 * tol_factor)
+    np.testing.assert_allclose(kk.varxi, varxi)
+    np.testing.assert_allclose(kk.cov, C)
+
+    # Check bootstrap with cross_patch_weight=mean
+    print('Direct bootstrap/mean:')
+    v = np.array(xi_list_boot_mean)
+    xi = np.mean(v, axis=0)
+    C = np.cov(v.T)
+    kk._rng = np.random.default_rng(1234)
+    cov = kk.estimate_cov(method='bootstrap', cross_patch_weight='mean')
+    np.testing.assert_allclose(kk.xi, xi, rtol=0.03 * tol_factor)
+    print('varxi = ',np.diagonal(cov))
+    print('direct = ',np.diagonal(C))
+    np.testing.assert_allclose(cov, C)
+
+    # Check bootstrap with cross_patch_weight=geom
+    print('Direct bootstrap/geom:')
+    v = np.array(xi_list_boot_geom)
+    xi = np.mean(v, axis=0)
+    C = np.cov(v.T)
+    kk._rng = np.random.default_rng(1234)
+    cov = kk.estimate_cov(method='bootstrap', cross_patch_weight='geom')
+    np.testing.assert_allclose(kk.xi, xi, rtol=0.03 * tol_factor)
+    print('varxi = ',np.diagonal(cov))
+    print('direct = ',np.diagonal(C))
+    np.testing.assert_allclose(cov, C)
+
+    # Check marked_bootstrap with cross_patch_weight=simple
+    print('Direct marked_bootstrap/simple:')
+    v = np.array(xi_list_mark_simple)
+    xi = np.mean(v, axis=0)
+    C = np.cov(v.T)
+    kk._rng = np.random.default_rng(1234)
+    cov = kk.estimate_cov(method='marked_bootstrap', cross_patch_weight='simple')
+    np.testing.assert_allclose(kk.xi, xi, rtol=0.03 * tol_factor)
+    print('varxi = ',np.diagonal(cov))
+    print('direct = ',np.diagonal(C))
+    np.testing.assert_allclose(cov, C)
+
+    # Check marked_bootstrap with cross_patch_weight=mean
+    print('Direct marked_bootstrap/mean:')
+    v = np.array(xi_list_mark_mean)
+    xi = np.mean(v, axis=0)
+    C = np.cov(v.T)
+    kk._rng = np.random.default_rng(1234)
+    cov = kk.estimate_cov(method='marked_bootstrap', cross_patch_weight='mean')
+    np.testing.assert_allclose(kk.xi, xi, rtol=0.03 * tol_factor)
+    print('varxi = ',np.diagonal(cov))
+    print('direct = ',np.diagonal(C))
+    np.testing.assert_allclose(cov, C)
+
+    with assert_raises(ValueError):
+        kk.estimate_cov(method='bootstrap', cross_patch_weight='invalid')
+    with assert_raises(ValueError):
+        kk.estimate_cov(method='bootstrap', cross_patch_weight='match')
+    with assert_raises(ValueError):
+        kk.estimate_cov(method='marked_bootstrap', cross_patch_weight='invalid')
+    with assert_raises(ValueError):
+        kk.estimate_cov(method='marked_bootstrap', cross_patch_weight='geom')
+    with assert_raises(ValueError):
+        kk.estimate_cov(method='marked_bootstrap', cross_patch_weight='match')
+
+
+@timer
 def test_lowmem():
     # Test using patches to keep the memory usage lower.
     try:
@@ -3586,6 +3776,7 @@ if __name__ == '__main__':
     test_save_patches()
     test_clusters()
     test_brute_jk()
+    test_brute_bootstrap()
     test_lowmem()
     test_config()
     test_finalize_false()

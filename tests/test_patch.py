@@ -694,6 +694,8 @@ def test_gg_jk():
         gg2.build_cov_design_matrix('shot')
     with assert_raises(ValueError):
         gg2.build_cov_design_matrix('invalid')
+    with assert_raises(ValueError):
+        gg2.build_cov_design_matrix('jackknife', cross_patch_weight='invalid')
 
     # Now run with jackknife variance estimate.  Should be much better.
     gg3 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife',

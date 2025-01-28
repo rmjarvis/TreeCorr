@@ -179,6 +179,14 @@ def test_kkk_logruv_jk():
         kkkp.build_cov_design_matrix('shot')
     with assert_raises(ValueError):
         kkkp.build_cov_design_matrix('invalid')
+    with assert_raises(ValueError):
+        kkkp.build_cov_design_matrix('jackknife', cross_patch_weight='invalid')
+    with assert_raises(ValueError):
+        kkkp.build_cov_design_matrix('sample', cross_patch_weight='invalid')
+    with assert_raises(ValueError):
+        kkkp.build_cov_design_matrix('bootstrap', cross_patch_weight='invalid')
+    with assert_raises(ValueError):
+        kkkp.build_cov_design_matrix('marked_bootstrap', cross_patch_weight='invalid')
 
     print('sample:')
     cov = kkkp.estimate_cov('sample')
@@ -220,7 +228,7 @@ def test_kkk_logruv_jk():
 
     # Test design matrix
     kkkp.rng.set_state(rng_state)
-    A, w = kkkp.build_cov_design_matrix('bootstrap')
+    A, w = kkkp.build_cov_design_matrix('bootstrap', num_bootstrap=500)
     nboot = A.shape[0]
     A -= np.mean(A, axis=0)
     C = 1/(nboot-1) * A.conj().T.dot(A)
@@ -1668,7 +1676,8 @@ def test_brute_jk():
     kkk = treecorr.KKKCorrelation(nbins=3, min_sep=100., max_sep=300., brute=True,
                                   min_u=0., max_u=1.0, nubins=1,
                                   min_v=0., max_v=1.0, nvbins=1,
-                                  var_method='jackknife', bin_type='LogRUV')
+                                  var_method='jackknife', cross_patch_weight='simple',
+                                  bin_type='LogRUV')
     kkk.process(cat)
     np.testing.assert_allclose(kkk.zeta, kkk1.zeta)
 
@@ -1703,7 +1712,8 @@ def test_brute_jk():
     ggg = treecorr.GGGCorrelation(nbins=3, min_sep=100., max_sep=300., brute=True,
                                   min_u=0., max_u=1.0, nubins=1,
                                   min_v=0., max_v=1.0, nvbins=1,
-                                  var_method='jackknife', bin_type='LogRUV')
+                                  var_method='jackknife', cross_patch_weight='simple',
+                                  bin_type='LogRUV')
     ggg.process(cat)
     np.testing.assert_allclose(ggg.gam0, ggg1.gam0)
     np.testing.assert_allclose(ggg.gam1, ggg1.gam1)
@@ -1767,14 +1777,15 @@ def test_brute_jk():
     varmap3 = np.diagonal(np.cov(ggg_map3_list.T, bias=True)) * (len(ggg_map3_list)-1)
 
     # Use estimate_multi_cov
-    covmap3 = treecorr.estimate_multi_cov([ggg], 'jackknife',
+    covmap3 = treecorr.estimate_multi_cov([ggg], 'jackknife', cross_patch_weight='simple',
                                           func=lambda corrs: corrs[0].calculateMap3()[0])
     print('GGG: treecorr jackknife varmap3 = ',np.diagonal(covmap3))
     print('GGG: direct jackknife varmap3 = ',varmap3)
     np.testing.assert_allclose(np.diagonal(covmap3), varmap3)
 
     # Use estimate_cov
-    covmap3b = ggg.estimate_cov('jackknife', func=lambda corr: corr.calculateMap3()[0])
+    covmap3b = ggg.estimate_cov('jackknife', cross_patch_weight='simple',
+                                func=lambda corr: corr.calculateMap3()[0])
     print('GGG: treecorr jackknife varmap3 = ',np.diagonal(covmap3b))
     print('GGG: direct jackknife varmap3 = ',varmap3)
     np.testing.assert_allclose(np.diagonal(covmap3b), varmap3)
@@ -1784,7 +1795,8 @@ def test_brute_jk():
     ddd = treecorr.NNNCorrelation(nbins=3, min_sep=100., max_sep=300., bin_slop=0,
                                   min_u=0., max_u=1.0, nubins=1,
                                   min_v=0., max_v=1.0, nvbins=1,
-                                  var_method='jackknife', bin_type='LogRUV')
+                                  var_method='jackknife', cross_patch_weight='simple',
+                                  bin_type='LogRUV')
     drr = ddd.copy()
     rdd = ddd.copy()
     rrr = ddd.copy()
@@ -2700,7 +2712,7 @@ def test_ggg_logsas_jk():
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.2*tol_factor)
 
     print('bootstrap:')
-    cov = gggm.estimate_cov('bootstrap', func=fm)
+    cov = gggm.estimate_cov('bootstrap', func=fm, num_bootstrap=100)
     print(np.diagonal(cov).real)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)

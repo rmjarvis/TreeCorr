@@ -200,16 +200,14 @@ class NKKCorrelation(Corr3):
 
         return self._zeta, self.varzeta
 
-    def _calculate_xi_from_pairs(self, pairs):
-        self._sum([self.results[ijk] for ijk in pairs])
-        self._finalize()
+    def _calculate_xi_from_pairs(self, pairs, corr_only):
+        super()._calculate_xi_from_pairs(pairs, corr_only)
         if self._rkk is not None:
             # If rkk has npatch1 = 1, adjust pairs appropriately
             if self._rkk.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
-                pairs = [(0,ijk[1],ijk[2]) for ijk in pairs if ijk[0] == ijk[1]]
-            # Make sure all ijk are in the rkk results (some might be missing, which is ok)
-            pairs = [ijk for ijk in pairs if self._rkk._ok[ijk[0],ijk[1],ijk[2]]]
-            self._rkk._calculate_xi_from_pairs(pairs)
+                pairs = [(0,j,k) for i,j,k in pairs if i == j]
+            pairs = self._rkk._keep_ok(pairs)
+            self._rkk._calculate_xi_from_pairs(pairs, corr_only=True)
             self._zeta = self.raw_zeta - self._rkk.zeta
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
@@ -427,16 +425,14 @@ class KNKCorrelation(Corr3):
 
         return self._zeta, self.varzeta
 
-    def _calculate_xi_from_pairs(self, pairs):
-        self._sum([self.results[ijk] for ijk in pairs])
-        self._finalize()
+    def _calculate_xi_from_pairs(self, pairs, corr_only):
+        super()._calculate_xi_from_pairs(pairs, corr_only)
         if self._krk is not None:
             # If krk has npatch2 = 1, adjust pairs appropriately
             if self._krk.npatch2 == 1 and not all([p[1] == 0 for p in pairs]):
-                pairs = [(ijk[0],0,ijk[2]) for ijk in pairs if ijk[0] == ijk[1]]
-            # Make sure all ijk are in the krk results (some might be missing, which is ok)
-            pairs = [ijk for ijk in pairs if self._krk._ok[ijk[0],ijk[1],ijk[2]]]
-            self._krk._calculate_xi_from_pairs(pairs)
+                pairs = [(i,0,k) for i,j,k in pairs if i == j]
+            pairs = self._krk._keep_ok(pairs)
+            self._krk._calculate_xi_from_pairs(pairs, corr_only=True)
             self._zeta = self.raw_zeta - self._krk.zeta
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,
@@ -654,16 +650,14 @@ class KKNCorrelation(Corr3):
 
         return self._zeta, self.varzeta
 
-    def _calculate_xi_from_pairs(self, pairs):
-        self._sum([self.results[ijk] for ijk in pairs])
-        self._finalize()
+    def _calculate_xi_from_pairs(self, pairs, corr_only):
+        super()._calculate_xi_from_pairs(pairs, corr_only)
         if self._kkr is not None:
             # If kkr has npatch3 = 1, adjust pairs appropriately
             if self._kkr.npatch3 == 1 and not all([p[2] == 0 for p in pairs]):
-                pairs = [(ijk[0],ijk[1],0) for ijk in pairs if ijk[0] == ijk[2]]
-            # Make sure all ijk are in the kkr results (some might be missing, which is ok)
-            pairs = [ijk for ijk in pairs if self._kkr._ok[ijk[0],ijk[1],ijk[2]]]
-            self._kkr._calculate_xi_from_pairs(pairs)
+                pairs = [(i,j,0) for i,j,k in pairs if i == k]
+            pairs = self._kkr._keep_ok(pairs)
+            self._kkr._calculate_xi_from_pairs(pairs, corr_only=True)
             self._zeta = self.raw_zeta - self._kkr.zeta
 
     def write(self, file_name, *, file_type=None, precision=None, write_patch_results=False,

@@ -148,7 +148,7 @@ class NNNCorrelation(Corr3):
         super()._clear()
         self.tot = 0.
 
-    def _sum(self, others):
+    def _sum(self, others, corr_only):
         # Equivalent to the operation of:
         #     self._clear()
         #     for other in others:
@@ -160,7 +160,7 @@ class NNNCorrelation(Corr3):
         if len(others) == 0:
             self._clear()
         else:
-            super()._sum(others)
+            super()._sum(others, corr_only)
         self.tot = tot
 
     def _add_tot(self, ijk, c1, c2, c3):
@@ -384,19 +384,18 @@ class NNNCorrelation(Corr3):
         self.varzeta = self.cov_diag.reshape(self.zeta.shape)
         return self.zeta, self.varzeta
 
-    def _calculate_xi_from_pairs(self, pairs):
+    def _calculate_xi_from_pairs(self, pairs, corr_only):
         # Note: we keep the notation ij and pairs here, even though they are really ijk and
         # triples.
-        self._sum([self.results[ij] for ij in pairs])
-        self._finalize()
+        super()._calculate_xi_from_pairs(pairs, corr_only)
         if self._rrr is None:
             return
         ddd = self.weight
         if len(self._rrr.results) > 0:
             # This is the usual case.  R has patches just like D.
             # Calculate rrr and rrrf in the normal way based on the same pairs as used for DDD.
-            pairs1 = [ij for ij in pairs if self._rrr._ok[ij[0],ij[1],ij[2]]]
-            self._rrr._sum([self._rrr.results[ij] for ij in pairs1])
+            pairs1 = self._rrr._keep_ok(pairs)
+            self._rrr._calculate_xi_from_pairs(pairs1, corr_only=True)
             ddd_tot = self.tot
         else:
             # In this case, R was not run with patches.
@@ -419,22 +418,22 @@ class NNNCorrelation(Corr3):
         rrrf = ddd_tot / self._rrr.tot
 
         if self._drr is not None:
+            pairs2 = pairs
             if self._drr.npatch2 == 1:
                 # If r doesn't have patches, then convert all (i,i,i) pairs to (i,0,0).
-                pairs2 = [(ij[0],0,0) for ij in pairs if ij[0] == ij[1] == ij[2]]
-            else:
-                pairs2 = [ij for ij in pairs if self._drr._ok[ij[0],ij[1],ij[2]]]
-            self._drr._sum([self._drr.results[ij] for ij in pairs2])
+                pairs2 = [(i,0,0) for i,j,k in pairs2 if i == j == k]
+            pairs2 = self._drr._keep_ok(pairs2)
+            self._drr._calculate_xi_from_pairs(pairs2, corr_only=True)
             drr = self._drr.weight
             drrf = ddd_tot / self._drr.tot
         if self._rdd is not None:
+            pairs3 = pairs
             if self._rdd.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
                 # If r doesn't have patches, then convert all (i,i,j) pairs to (0,i,j)
                 # and all (i,j,i to (0,j,i).
-                pairs3 = [(0,ij[1],ij[2]) for ij in pairs if ij[0] == ij[1] or ij[0] == ij[2]]
-            else:
-                pairs3 = [ij for ij in pairs if self._rdd._ok[ij[0],ij[1],ij[2]]]
-            self._rdd._sum([self._rdd.results[ij] for ij in pairs3])
+                pairs3 = [(0,j,k) for i,j,k in pairs3 if i == j or i == k]
+            pairs3 = self._rdd._keep_ok(pairs3)
+            self._rdd._calculate_xi_from_pairs(pairs3, corr_only=True)
             rdd = self._rdd.weight
             rddf = ddd_tot / self._rdd.tot
         denom = rrr * rrrf

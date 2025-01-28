@@ -157,7 +157,7 @@ def test_kkk_logruv_jk():
 
     # Check calculate_xi with all pairs in results dict.
     kkk2 = kkkp.copy()
-    kkk2._calculate_xi_from_pairs(list(kkkp.results.keys()))
+    kkk2._calculate_xi_from_pairs(list(kkkp.results.keys()), False)
     np.testing.assert_allclose(kkk2.ntri, kkk.ntri, rtol=0.05 * tol_factor)
     np.testing.assert_allclose(kkk2.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
     np.testing.assert_allclose(kkk2.varzeta, kkk.varzeta, rtol=0.05 * tol_factor, atol=3.e-6)
@@ -334,7 +334,7 @@ def test_kkk_logruv_jk():
 
     # Check calculate_xi with all pairs in results dict.
     kkk2 = kkkp.copy()
-    kkk2._calculate_xi_from_pairs(list(kkkp.results.keys()))
+    kkk2._calculate_xi_from_pairs(list(kkkp.results.keys()), False)
     np.testing.assert_allclose(kkk2.ntri, kkk.ntri, rtol=0.05 * tol_factor)
     np.testing.assert_allclose(kkk2.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
     np.testing.assert_allclose(kkk2.varzeta, kkk.varzeta, rtol=0.05 * tol_factor, atol=3.e-6)
@@ -721,7 +721,7 @@ def test_ggg_logruv_jk():
 
     # Check calculate_xi with all pairs in results dict.
     ggg2 = gggp.copy()
-    ggg2._calculate_xi_from_pairs(list(gggp.results.keys()))
+    ggg2._calculate_xi_from_pairs(list(gggp.results.keys()), False)
     np.testing.assert_allclose(ggg2.ntri, ggg.ntri, rtol=0.05 * tol_factor)
     np.testing.assert_allclose(ggg2.gam0, ggg.gam0, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
     np.testing.assert_allclose(ggg2.gam1, ggg.gam1, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
@@ -878,7 +878,7 @@ def test_ggg_logruv_jk():
 
     # Check calculate_xi with all pairs in results dict.
     ggg2 = gggp.copy()
-    ggg2._calculate_xi_from_pairs(list(gggp.results.keys()))
+    ggg2._calculate_xi_from_pairs(list(gggp.results.keys()), False)
     np.testing.assert_allclose(ggg2.ntri, ggg.ntri, rtol=0.05 * tol_factor)
     np.testing.assert_allclose(ggg2.gam0, ggg.gam0, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
     np.testing.assert_allclose(ggg2.gam1, ggg.gam1, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
@@ -1302,7 +1302,7 @@ def test_nnn_logruv_jk():
 
     # Check the _calculate_xi_from_pairs function.  Using all pairs, should get total xi.
     ddd1 = dddp.copy()
-    ddd1._calculate_xi_from_pairs(dddp.results.keys())
+    ddd1._calculate_xi_from_pairs(dddp.results.keys(), True)
     np.testing.assert_allclose(ddd1.zeta, dddp.zeta)
 
     # None of these are very good without the random using patches.
@@ -1393,7 +1393,7 @@ def test_nnn_logruv_jk():
     np.testing.assert_allclose(var_zeta_s2, var_zeta_s1, rtol=0.05 * tol_factor)
 
     ddd1 = dddp.copy()
-    ddd1._calculate_xi_from_pairs(dddp.results.keys())
+    ddd1._calculate_xi_from_pairs(dddp.results.keys(), True)
     np.testing.assert_allclose(ddd1.zeta, dddp.zeta)
 
     t0 = time.time()
@@ -2394,7 +2394,7 @@ def test_kkk_logsas_jk():
 
     # Check calculate_xi with all pairs in results dict.
     kkk2 = kkkp.copy()
-    kkk2._calculate_xi_from_pairs(list(kkkp.results.keys()))
+    kkk2._calculate_xi_from_pairs(list(kkkp.results.keys()), False)
     np.testing.assert_allclose(kkk2.ntri, kkkp.ntri, rtol=0.01 * tol_factor)
     np.testing.assert_allclose(kkk2.zeta, kkkp.zeta, rtol=0.01 * tol_factor)
     np.testing.assert_allclose(kkk2.weight, kkkp.weight, rtol=0.01 * tol_factor)
@@ -2577,7 +2577,7 @@ def test_ggg_logsas_jk():
 
     # Check calculate_xi with all pairs in results dict.
     ggg2 = gggp.copy()
-    ggg2._calculate_xi_from_pairs(list(gggp.results.keys()))
+    ggg2._calculate_xi_from_pairs(list(gggp.results.keys()), False)
     f2 = f(ggg2)
     np.testing.assert_allclose(ggg2.ntri, gggp.ntri, rtol=0.01 * tol_factor)
     np.testing.assert_allclose(ggg2.weight, gggp.weight, rtol=0.01 * tol_factor)
@@ -2851,7 +2851,7 @@ def test_nnn_logsas_jk():
 
     # Check the _calculate_xi_from_pairs function.  Using all pairs, should get total xi.
     ddd1 = dddp.copy()
-    ddd1._calculate_xi_from_pairs(dddp.results.keys())
+    ddd1._calculate_xi_from_pairs(dddp.results.keys(), True)
     np.testing.assert_allclose(ddd1.zeta, dddp.zeta)
 
     print('jackknife:')

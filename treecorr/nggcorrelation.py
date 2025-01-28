@@ -331,16 +331,14 @@ class NGGCorrelation(Corr3):
 
         return self._gam0, self._gam2, self.vargam0, self.vargam2
 
-    def _calculate_xi_from_pairs(self, pairs):
-        self._sum([self.results[ijk] for ijk in pairs])
-        self._finalize()
+    def _calculate_xi_from_pairs(self, pairs, corr_only):
+        super()._calculate_xi_from_pairs(pairs, corr_only)
         if self._rgg is not None:
             # If rgg has npatch1 = 1, adjust pairs appropriately
             if self._rgg.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
-                pairs = [(0,ijk[1],ijk[2]) for ijk in pairs if ijk[0] == ijk[1]]
-            # Make sure all ijk are in the rgg results (some might be missing, which is ok)
-            pairs = [ijk for ijk in pairs if self._rgg._ok[ijk[0],ijk[1],ijk[2]]]
-            self._rgg._calculate_xi_from_pairs(pairs)
+                pairs = [(0,j,k) for i,j,k in pairs if i == j]
+            pairs = self._rgg._keep_ok(pairs)
+            self._rgg._calculate_xi_from_pairs(pairs, corr_only=True)
             self._gam0 = self.raw_gam0 - self._rgg.gam0
             self._gam2 = self.raw_gam2 - self._rgg.gam2
 
@@ -686,16 +684,14 @@ class GNGCorrelation(Corr3):
 
         return self._gam0, self._gam1, self.vargam0, self.vargam1
 
-    def _calculate_xi_from_pairs(self, pairs):
-        self._sum([self.results[ijk] for ijk in pairs])
-        self._finalize()
+    def _calculate_xi_from_pairs(self, pairs, corr_only):
+        super()._calculate_xi_from_pairs(pairs, corr_only)
         if self._grg is not None:
             # If grg has npatch2 = 1, adjust pairs appropriately
             if self._grg.npatch2 == 1 and not all([p[1] == 0 for p in pairs]):
-                pairs = [(ijk[0],0,ijk[2]) for ijk in pairs if ijk[0] == ijk[1]]
-            # Make sure all ijk are in the grg results (some might be missing, which is ok)
-            pairs = [ijk for ijk in pairs if self._grg._ok[ijk[0],ijk[1],ijk[2]]]
-            self._grg._calculate_xi_from_pairs(pairs)
+                pairs = [(i,0,k) for i,j,k in pairs if i == j]
+            pairs = self._grg._keep_ok(pairs)
+            self._grg._calculate_xi_from_pairs(pairs, corr_only=True)
             self._gam0 = self.raw_gam0 - self._grg.gam0
             self._gam1 = self.raw_gam1 - self._grg.gam1
 
@@ -1041,16 +1037,14 @@ class GGNCorrelation(Corr3):
 
         return self._gam0, self._gam1, self.vargam0, self.vargam1
 
-    def _calculate_xi_from_pairs(self, pairs):
-        self._sum([self.results[ijk] for ijk in pairs])
-        self._finalize()
+    def _calculate_xi_from_pairs(self, pairs, corr_only):
+        super()._calculate_xi_from_pairs(pairs, corr_only)
         if self._ggr is not None:
             # If ggr has npatch3 = 1, adjust pairs appropriately
             if self._ggr.npatch3 == 1 and not all([p[2] == 0 for p in pairs]):
-                pairs = [(ijk[0],ijk[1],0) for ijk in pairs if ijk[0] == ijk[2]]
-            # Make sure all ijk are in the ggr results (some might be missing, which is ok)
-            pairs = [ijk for ijk in pairs if self._ggr._ok[ijk[0],ijk[1],ijk[2]]]
-            self._ggr._calculate_xi_from_pairs(pairs)
+                pairs = [(i,j,0) for i,j,k in pairs if i == k]
+            pairs = self._ggr._keep_ok(pairs)
+            self._ggr._calculate_xi_from_pairs(pairs, corr_only=True)
             self._gam0 = self.raw_gam0 - self._ggr.gam0
             self._gam1 = self.raw_gam1 - self._ggr.gam1
 

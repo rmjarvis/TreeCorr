@@ -173,7 +173,7 @@ class NNCorrelation(Corr2):
         self.tot += other.tot
         return self
 
-    def _sum(self, others):
+    def _sum(self, others, corr_only):
         # Equivalent to the operation of:
         #     self._clear()
         #     for other in others:
@@ -185,10 +185,7 @@ class NNCorrelation(Corr2):
         if len(others) == 0:
             self._clear()
         else:
-            np.sum([c.meanr for c in others], axis=0, out=self.meanr)
-            np.sum([c.meanlogr for c in others], axis=0, out=self.meanlogr)
-            np.sum([c.weight for c in others], axis=0, out=self.weight)
-            np.sum([c.npairs for c in others], axis=0, out=self.npairs)
+            super()._sum(others, corr_only)
         self.tot = tot
 
     def _add_tot(self, ij, c1, c2):
@@ -382,17 +379,16 @@ class NNCorrelation(Corr2):
         self.varxi = self.cov_diag
         return self.xi, self.varxi
 
-    def _calculate_xi_from_pairs(self, pairs):
-        self._sum([self.results[ij] for ij in pairs])
-        self._finalize()
+    def _calculate_xi_from_pairs(self, pairs, corr_only):
+        super()._calculate_xi_from_pairs(pairs, corr_only)
         if self._rr is None:
             return
         dd = self.weight
         if len(self._rr.results) > 0:
             # This is the usual case.  R has patches just like D.
             # Calculate rr and rrf in the normal way based on the same pairs as used for DD.
-            pairs1 = [ij for ij in pairs if self._rr._ok[ij[0],ij[1]]]
-            self._rr._sum([self._rr.results[ij] for ij in pairs1])
+            pairs1 = self._rr._keep_ok(pairs)
+            self._rr._calculate_xi_from_pairs(pairs1, corr_only=True)
             dd_tot = self.tot
         else:
             # In this case, R was not run with patches.
@@ -401,8 +397,8 @@ class NNCorrelation(Corr2):
             # The approximation we'll use is that tot in the auto-correlations is
             # proportional to area**2.
             # So the sum of tot**0.5 when i==j gives an estimate of the fraction of the total area.
-            area_frac = np.sum([self.results[ij].tot**0.5 for ij in pairs if ij[0] == ij[1]])
-            area_frac /= np.sum([cij.tot**0.5 for ij,cij in self.results.items() if ij[0] == ij[1]])
+            area_frac = np.sum([self.results[(i,j)].tot**0.5 for i,j in pairs if i == j])
+            area_frac /= np.sum([cij.tot**0.5 for (i,j),cij in self.results.items() if i == j])
             # First figure out the original total for all DD that had the same footprint as RR.
             dd_tot = np.sum([self.results[ij].tot for ij in self.results])
             # The rrf we want will be a factor of area_frac smaller than the original
@@ -414,21 +410,21 @@ class NNCorrelation(Corr2):
         rrf = dd_tot / self._rr.tot
 
         if self._dr is not None:
+            pairs2 = pairs
             if self._dr.npatch2 == 1:
                 # If r doesn't have patches, then convert all (i,i) pairs to (i,0).
-                pairs2 = [(ij[0],0) for ij in pairs if ij[0] == ij[1]]
-            else:
-                pairs2 = [ij for ij in pairs if self._dr._ok[ij[0],ij[1]]]
-            self._dr._sum([self._dr.results[ij] for ij in pairs2])
+                pairs2 = [(i,0) for i,j in pairs2 if i == j]
+            pairs2 = self._dr._keep_ok(pairs2)
+            self._dr._calculate_xi_from_pairs(pairs2, corr_only=True)
             dr = self._dr.weight
             drf = dd_tot / self._dr.tot
         if self._rd is not None:
+            pairs3 = pairs
             if self._rd.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
                 # If r doesn't have patches, then convert all (i,i) pairs to (0,i).
-                pairs3 = [(0,ij[1]) for ij in pairs if ij[0] == ij[1]]
-            else:
-                pairs3 = [ij for ij in pairs if self._rd._ok[ij[0],ij[1]]]
-            self._rd._sum([self._rd.results[ij] for ij in pairs3])
+                pairs3 = [(0,j) for i,j in pairs3 if i == j]
+            pairs3 = self._rd._keep_ok(pairs3)
+            self._rd._calculate_xi_from_pairs(pairs3, corr_only=True)
             rd = self._rd.weight
             rdf = dd_tot / self._rd.tot
         denom = rr * rrf

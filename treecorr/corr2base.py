@@ -1301,7 +1301,7 @@ class Corr2(object):
         self.npairs[:] += other.npairs
         return self
 
-    def _sum(self, others):
+    def _sum(self, others, corr_only):
         # Equivalent to the operation of:
         #     self._clear()
         #     for other in others:
@@ -1310,10 +1310,11 @@ class Corr2(object):
         for i in range(4):
             if self._xi[i].size:
                 np.sum([c._xi[i] for c in others], axis=0, out=self._xi[i])
-        np.sum([c.meanr for c in others], axis=0, out=self.meanr)
-        np.sum([c.meanlogr for c in others], axis=0, out=self.meanlogr)
         np.sum([c.weight for c in others], axis=0, out=self.weight)
-        np.sum([c.npairs for c in others], axis=0, out=self.npairs)
+        if not corr_only:
+            np.sum([c.meanr for c in others], axis=0, out=self.meanr)
+            np.sum([c.meanlogr for c in others], axis=0, out=self.meanlogr)
+            np.sum([c.npairs for c in others], axis=0, out=self.npairs)
         self._varxi = None
         self._cov = None
 
@@ -1645,13 +1646,16 @@ class Corr2(object):
     def _get_npatch(self):
         return max(self.npatch1, self.npatch2)
 
-    def _calculate_xi_from_pairs(self, pairs):
+    def _calculate_xi_from_pairs(self, pairs, corr_only):
         # Compute the xi data vector for the given list of pairs.
         # pairs is input as a list of (i,j) values.
 
         # This is the normal calculation.  It needs to be overridden when there are randoms.
-        self._sum([self.results[ij] for ij in pairs])
+        self._sum([self.results[ij] for ij in pairs], corr_only)
         self._finalize()
+
+    def _keep_ok(self, pairs):
+        return [(i,j) for i,j in pairs if self._ok[i,j]]
 
     #########################################################################################
     #                                                                                       #
@@ -2145,7 +2149,7 @@ def _make_cov_design_matrix_core(corrs, plist, func, name, rank=0, size=1):
                                "are inappropriate for these data.")
                 c._clear()
             else:
-                c._calculate_xi_from_pairs(cpairs)
+                c._calculate_xi_from_pairs(cpairs, corr_only=c._corr_only or (func is None))
         v[row] = func(corrs)
         w[row] = np.sum([np.sum(c.getWeight()) for c in corrs])
     return v,w

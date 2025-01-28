@@ -90,8 +90,8 @@ class BaseNZCorrelation(Corr2):
         self.xi_im = self.raw_xi_im
         self._rz = None
 
-    def _sum(self, others):
-        super()._sum(others)
+    def _sum(self, others, corr_only):
+        super()._sum(others, corr_only)
         self.xi = self.raw_xi
         self.xi_im = self.raw_xi_im
 
@@ -130,16 +130,14 @@ class BaseNZCorrelation(Corr2):
 
         return self.xi, self.xi_im, self.varxi
 
-    def _calculate_xi_from_pairs(self, pairs):
-        self._sum([self.results[ij] for ij in pairs])
-        self._finalize()
+    def _calculate_xi_from_pairs(self, pairs, corr_only):
+        super()._calculate_xi_from_pairs(pairs, corr_only)
         if self._rz is not None:
             # If rz has npatch1 = 1, adjust pairs appropriately
             if self._rz.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
-                pairs = [(0,ij[1]) for ij in pairs if ij[0] == ij[1]]
-            # Make sure all ij are in the rz results (some might be missing, which is ok)
-            pairs = [ij for ij in pairs if self._rz._ok[ij[0],ij[1]]]
-            self._rz._calculate_xi_from_pairs(pairs)
+                pairs = [(0,j) for i,j in pairs if i == j]
+            pairs = self._rz._keep_ok(pairs)
+            self._rz._calculate_xi_from_pairs(pairs, corr_only=True)
             self.xi -= self._rz.xi
 
     def write(self, file_name, rz=None, file_type=None, precision=None,

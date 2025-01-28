@@ -2387,28 +2387,34 @@ class Corr3(object):
         self.ntri[:] += other.ntri[:]
         return self
 
-    def _sum(self, others):
+    def _sum(self, others, corr_only):
         # Equivalent to the operation of:
         #     self._clear()
         #     for other in others:
         #         self += other
         # but no sanity checks and use numpy.sum for faster calculation.
-        np.sum([c.meand1 for c in others], axis=0, out=self.meand1)
-        np.sum([c.meanlogd1 for c in others], axis=0, out=self.meanlogd1)
-        np.sum([c.meand2 for c in others], axis=0, out=self.meand2)
-        np.sum([c.meanlogd2 for c in others], axis=0, out=self.meanlogd2)
-        np.sum([c.meand3 for c in others], axis=0, out=self.meand3)
-        np.sum([c.meanlogd3 for c in others], axis=0, out=self.meanlogd3)
-        np.sum([c.meanu for c in others], axis=0, out=self.meanu)
-        if self.bin_type == 'LogRUV':
-            np.sum([c.meanv for c in others], axis=0, out=self.meanv)
+
         for i in range(8):
             if self._z[i].size:
                 np.sum([c._z[i] for c in others], axis=0, out=self._z[i])
         np.sum([c.weightr for c in others], axis=0, out=self.weightr)
         if self.bin_type == 'LogMultipole':
             np.sum([c.weighti for c in others], axis=0, out=self.weighti)
-        np.sum([c.ntri for c in others], axis=0, out=self.ntri)
+
+        if not corr_only:
+            np.sum([c.meand1 for c in others], axis=0, out=self.meand1)
+            np.sum([c.meanlogd1 for c in others], axis=0, out=self.meanlogd1)
+            np.sum([c.meand2 for c in others], axis=0, out=self.meand2)
+            np.sum([c.meanlogd2 for c in others], axis=0, out=self.meanlogd2)
+            np.sum([c.meand3 for c in others], axis=0, out=self.meand3)
+            np.sum([c.meanlogd3 for c in others], axis=0, out=self.meanlogd3)
+            np.sum([c.meanu for c in others], axis=0, out=self.meanu)
+            if self.bin_type == 'LogRUV':
+                np.sum([c.meanv for c in others], axis=0, out=self.meanv)
+            if self.bin_type == 'LogMultipole':
+                np.sum([c.weighti for c in others], axis=0, out=self.weighti)
+            np.sum([c.ntri for c in others], axis=0, out=self.ntri)
+
         self._cov = None
         self._varzeta = None
 
@@ -2844,13 +2850,16 @@ class Corr3(object):
     def _get_npatch(self):
         return max(self.npatch1, self.npatch2, self.npatch3)
 
-    def _calculate_xi_from_pairs(self, pairs):
+    def _calculate_xi_from_pairs(self, pairs, corr_only):
         # Compute the xi data vector for the given list of pairs.
         # "pairs" here are really triples, input as a list of (i,j,k) values.
 
         # This is the normal calculation.  It needs to be overridden when there are randoms.
-        self._sum([self.results[ijk] for ijk in pairs])
+        self._sum([self.results[ijk] for ijk in pairs], corr_only)
         self._finalize()
+
+    def _keep_ok(self, pairs):
+        return [(i,j,k) for i,j,k in pairs if self._ok[i,j,k]]
 
     def _jackknife_pairs(self):
         if self.npatch3 == 1:

@@ -143,8 +143,8 @@ class NKCorrelation(Corr2):
         self._rk = None
         self._comp_varxi = None
 
-    def _sum(self, others):
-        super()._sum(others)
+    def _sum(self, others, corr_only):
+        super()._sum(others, corr_only)
         self.xi = self.raw_xi
 
     def calculateXi(self, *, rk=None):
@@ -203,16 +203,14 @@ class NKCorrelation(Corr2):
 
         return self.xi, self.varxi
 
-    def _calculate_xi_from_pairs(self, pairs):
-        self._sum([self.results[ij] for ij in pairs])
-        self._finalize()
+    def _calculate_xi_from_pairs(self, pairs, corr_only):
+        super()._calculate_xi_from_pairs(pairs, corr_only)
         if self._rk is not None:
             # If rk has npatch1 = 1, adjust pairs appropriately
             if self._rk.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
-                pairs = [(0,ij[1]) for ij in pairs if ij[0] == ij[1]]
-            # Make sure all ij are in the rk results (some might be missing, which is ok)
-            pairs = [ij for ij in pairs if self._rk._ok[ij[0],ij[1]]]
-            self._rk._calculate_xi_from_pairs(pairs)
+                pairs = [(0,j) for i,j in pairs if i == j]
+            pairs = self._rk._keep_ok(pairs)
+            self._rk._calculate_xi_from_pairs(pairs, corr_only=True)
             self.xi -= self._rk.xi
 
     def write(self, file_name, * ,rk=None, file_type=None, precision=None,

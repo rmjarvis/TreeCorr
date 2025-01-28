@@ -2460,8 +2460,11 @@ def test_vargam_logruv():
     # Before running process, vargam and cov are allowed, but all 0.
     np.testing.assert_array_equal(ggg.cov, 0)
     np.testing.assert_array_equal(ggg.vargam0, 0)
+    ggg.clear()  # This exercises the creation of _varzeta from vargam1, etc.
     np.testing.assert_array_equal(ggg.vargam1, 0)
+    ggg.clear()
     np.testing.assert_array_equal(ggg.vargam2, 0)
+    ggg.clear()
     np.testing.assert_array_equal(ggg.vargam3, 0)
 
     ggg.process(cat)

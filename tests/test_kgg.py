@@ -1141,12 +1141,15 @@ def test_vargam_logruv():
     # Before running process, vargam0 and cov are allowed, but all 0.
     np.testing.assert_array_equal(kgg.cov, 0)
     np.testing.assert_array_equal(kgg.vargam0, 0)
+    kgg.clear()
     np.testing.assert_array_equal(kgg.vargam2, 0)
     np.testing.assert_array_equal(gkg.cov, 0)
     np.testing.assert_array_equal(gkg.vargam0, 0)
+    gkg.clear()
     np.testing.assert_array_equal(gkg.vargam1, 0)
     np.testing.assert_array_equal(ggk.cov, 0)
     np.testing.assert_array_equal(ggk.vargam0, 0)
+    ggk.clear()
     np.testing.assert_array_equal(ggk.vargam1, 0)
 
     kgg.process(cat, cat)

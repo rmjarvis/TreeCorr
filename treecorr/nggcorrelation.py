@@ -232,7 +232,7 @@ class NGGCorrelation(Corr3):
     @property
     def vargam2(self):
         if self._comp_vargam2 is None:
-            return self.raw_vargam0
+            return self.raw_vargam2
         else:
             return self._comp_vargam2
 

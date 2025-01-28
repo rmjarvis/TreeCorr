@@ -1413,6 +1413,7 @@ def test_varxi():
     # Before running process, varxi and cov are allowed, but all 0.
     np.testing.assert_array_equal(gg.cov, 0)
     np.testing.assert_array_equal(gg.varxip, 0)
+    gg.clear()  # Checks construction of _varxi from varxim access.
     np.testing.assert_array_equal(gg.varxim, 0)
 
     gg.process(cat)

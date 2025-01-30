@@ -1845,7 +1845,7 @@ class Corr2(object):
             if self.npatch2 == 1:
                 return ( (i,0,1) for i in self.index if self.ok[i,0] )
             elif self.npatch1 == 1:
-                return ( (0,i,1) for i in self.index if self.ok[0,i] )
+                return ( (0,j,1) for j in self.index if self.ok[0,j] )
             elif self.cpw in [None,'simple']:
                 assert self.npatch1 == self.npatch2
                 index, weights = np.unique(self.index, return_counts=True)
@@ -1870,8 +1870,8 @@ class Corr2(object):
             if self.npatch2 == 1:
                 return ( (i,0,1) for i in self.index if self.ok[i,0] )
             elif self.npatch1 == 1:
-                return ( (0,i,1) for i in self.index if self.ok[0,i] )
-            elif self.cpw in [None,'simple']:
+                return ( (0,j,1) for j in self.index if self.ok[0,j] )
+            else:
                 assert self.npatch1 == self.npatch2
                 index, weights = np.unique(self.index, return_counts=True)
 
@@ -1882,36 +1882,25 @@ class Corr2(object):
                 # the naive way would get 9 instance of (3,3), whereas we only want 3 instances.
                 ret1 = ( (i,i,w) for (i,w) in zip(index, weights) if self.ok[i,i] )
 
-                # And all other pairs that aren't really auto-correlations.
-                # These can happen at their natural multiplicity from i and j loops.
-                # Note: This is way faster with the precomputed ok matrix.
-                # Like 0.005 seconds per call rather than 1.2 seconds for 128 patches!
-                ret2 = ( (i,j,w1*w2) for (i,w1) in zip(index, weights)
-                         for (j,w2) in zip(index,weights) if self.ok[i,j] and i!=j )
+                if self.cpw in [None,'simple']:
+                    # And all other pairs that aren't really auto-correlations.
+                    # These can happen at their natural multiplicity from i and j loops.
+                    # Note: This is way faster with the precomputed ok matrix.
+                    # Like 0.005 seconds per call rather than 1.2 seconds for 128 patches!
+                    ret2 = ( (i,j,w1*w2) for (i,w1) in zip(index, weights)
+                            for (j,w2) in zip(index,weights) if self.ok[i,j] and i!=j )
+                elif self.cpw == 'mean':
+                    # For mean, the weight is the mean, not product.
+                    ret2 = ( (i,j,(w1+w2)/2) for (i,w1) in zip(index, weights)
+                            for (j,w2) in zip(index,weights) if self.ok[i,j] and i!=j )
+                elif self.cpw == 'geom':
+                    # Finally, geom uses the geometric mean
+                    ret2 = ( (i,j,(w1*w2)**0.5) for (i,w1) in zip(index, weights)
+                            for (j,w2) in zip(index,weights) if self.ok[i,j] and i!=j )
+                else:
+                    raise ValueError(f"cross_patch_weight = {self.cpw} is invalid for bootstrap")
 
                 return itertools.chain(ret1, ret2)
-            elif self.cpw == 'mean':
-                assert self.npatch1 == self.npatch2
-                index, weights = np.unique(self.index, return_counts=True)
-
-                # Auto is the same as above.
-                ret1 = ( (i,i,w) for (i,w) in zip(index, weights) if self.ok[i,i] )
-
-                # Now the cross-pairs are used with the mean weight, not product.
-                ret2 = ( (i,j,(w1+w2)/2) for (i,w1) in zip(index, weights)
-                         for (j,w2) in zip(index,weights) if self.ok[i,j] and i!=j )
-
-                return itertools.chain(ret1, ret2)
-            elif self.cpw == 'geom':
-                # Same as mean, but geometric mean this time.
-                assert self.npatch1 == self.npatch2
-                index, weights = np.unique(self.index, return_counts=True)
-                ret1 = ( (i,i,w) for (i,w) in zip(index, weights) if self.ok[i,i] )
-                ret2 = ( (i,j,(w1*w2)**0.5) for (i,w1) in zip(index, weights)
-                         for (j,w2) in zip(index,weights) if self.ok[i,j] and i!=j )
-                return itertools.chain(ret1, ret2)
-            else:
-                raise ValueError(f"cross_patch_weight = {self.cpw} is invalid for bootstrap")
 
     def _bootstrap_pairs(self, index, cross_patch_weight):
         return self.BootstrapPairIterator(self.results, self.npatch1, self.npatch2, index,

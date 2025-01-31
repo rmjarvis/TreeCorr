@@ -61,7 +61,7 @@ from the sample.  Then the covariance matrix is estimated as
 ^^^^^^^^
 
 This is the simplest patch-based covariance estimate estimate.  It computes the
-correlation function for each patch, where at least one of the two points falls in
+correlation function for each patch, where at least one point falls in
 that patch.  Then the estimated covariance matrix is simply the sample covariance
 of these vectors, scaled by the relative total weight in each patch.
 
@@ -112,8 +112,8 @@ Correlation constructor using the parameter ``num_bootstrap``.
 
 This estimate is based on a "marked-point" bootstrap resampling of the patches.
 Specifically, we follow the method described in
-*A valid and Fast Spatial Bootstrap for Correlation Functions*
-by Ji Meng Loh, 2008.  cf. https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/.
+`*A valid and Fast Spatial Bootstrap for Correlation Functions*
+by Ji Meng Loh, 2008 <https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/>`_.
 
 This method starts out the same as the "sample" method.  It computes the correlation
 function for each patch where at least one of the two points falls in that patch.
@@ -132,6 +132,49 @@ Then the covariance estimate is the sample variance of these resampled results:
 
 The default number of bootstrap resamplings is 500, but you can change this in the
 Correlation constructor using the parameter ``num_bootstrap``.
+
+Cross-patch Weights
+-------------------
+
+There is some ambiguity as to the exact calculation of :math:`\xi` in each of the above
+formulae, specifically with respect to the treatment of pairs (or triples for 3 point
+statistics) that cross between a selected patch and an unselected patch.
+`Mohammad and Percival (2022; MP22 hereafter)
+<https://ui.adsabs.harvard.edu/abs/2022MNRAS.514.1289M/>`_ explored several different options
+for how much weight to give these pairs for jackknife and bootstrap.
+We allow the user to choose among them using the parameter ``cross_patch_weight``,
+which can be provided in the `Corr2` or `Corr3` constructor or in the call to
+`Corr2.estimate_cov` or `treecorr.estimate_multi_cov`.  The valid options are:
+
+* 'simple' is prescription that TreeCorr implicitly used prior to version 5.1,
+  and it is generally the simplest treatment in each case.
+  For jackknife and bootstrap, it corresponds to what MP22 call :math:`v_{\rm mult}`,
+  which means the weight is the product of the two patch weights.
+  For jackknife, the weights are all 1 or 0, so this means the pair is used only if
+  both points are not in the excluded patch.  For bootstrap, the weights are some
+  integer corresponding the multiplicity of that patch in the bootstrap selection.
+  Cross patch pairs are included at the product of the multipilicity of the two patches.
+  For sample and marked_bootstrap, a pair is included if the first point is the selected
+  sample.
+* 'mean' involves weighting pairs by the mean of the patch weights.  For jackknife, this
+  means that pairs between the unselected patch and the other one are included, but only with
+  half the weight of other pairs.  For bootstrap, the cross pairs between selected and
+  unselected patches have half the weight of the selected patch, and those between two
+  selected patch use the average weight of the two patches.  For sample and marked_bootstrap,
+  the weight of pairs between the selected sample and another one is 0.5, but it includes
+  pairs with the selected patch in either position.
+* 'geom' is the same as 'mean', but using the geometric mean rather than the arithmetic mean.
+  This option is only valid for 'bootstrap', since for other methods, it is equivalent to
+  'simple'.
+* 'match' is an innovation of MP22.  They derived an optimal weight for jackknife covariance
+  that matches the effective weight of the cross-patch pairs to that of the intra-patch
+  pairs.  They find that this weight is significantly more accurate than either 'simple'
+  (what they call mult) or 'mean'.
+
+The default value of ``cross_patch_weight`` is 'simple' in all cases.  We may in the
+future change this, but for now if a use wants a different weight scheme, they need to
+explicitly specify which scheme to use.
+
 
 Covariance Matrix
 -----------------

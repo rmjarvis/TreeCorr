@@ -1380,8 +1380,8 @@ class Corr2(object):
               did prior to version 5.1.  In the language of MP22, this is called mult, since
               deselected patches have weight=0, and selected patches have weight=1, so the product
               of the weights is 0 if either patch is deselected.
-              This option is valid for all patch-based methods, and for now is the default
-              for all methods.
+              This option is valid for all patch-based methods, and it is the default for
+              sample and marked_bootstrap.
             - 'mean' = Use a weight of 0.5 for any pair with one object in a deselected patch
               and the other in a selected patch. This is the mean of the two patch weights (0,1).
               This option is valid for all patch-based methods.
@@ -1389,11 +1389,11 @@ class Corr2(object):
               this would be equivalent to 'simple', since patch weights are either 0 or 1.
               However, for bootstrap, individual patches can have weights greater than 1, so this
               leads to a different weight for pairs that cross between two selected patches.
-              This option is only valid for bootstrap.
+              This option is only valid for bootstrap, for which it is the default.
             - 'match' = Use the "optimal" weight that matches the effect of auto- and cross-pairs
               in the estimate of the jackknife covariance. MP22 calculate this for the to
-              be w = n_patch / (2 + sqrt(2) (n_patch-1)).
-              This option is only valid for jackknife.
+              be w = 1 - n_patch / (2 + sqrt(2) (n_patch-1)).
+              This option is only valid for jackknife, for which it is the default.
 
         .. note::
 
@@ -1774,7 +1774,7 @@ class Corr2(object):
             elif self.npatch1 == 1:
                 # i=0 here
                 return ((i,j,1) for i,j in self.results.keys() if j!=self.index)
-            elif self.cpw in [None, 'simple']:
+            elif self.cpw == 'simple':
                 # For each i:
                 #    Select all pairs where neither is i.
                 assert self.npatch1 == self.npatch2
@@ -1786,8 +1786,8 @@ class Corr2(object):
                 assert self.npatch1 == self.npatch2
                 return ((i,j, 0.5 if i == self.index or j == self.index else 1)
                         for i,j in self.results.keys() if i!=self.index or j!=self.index)
-            elif self.cpw == 'match':
-                # match is like mean, but has a little higher weight for the cross-pairs.
+            elif self.cpw in [None, 'match']:
+                # match is like mean, but has a little lower weight for the cross-pairs.
                 # See section 4.5 of Mohammad and Percival (2022).
                 # The following is eqn. 27 from that paper, where w = 1-alpha, since
                 # alpha is the weight to remove from the cross pairs.
@@ -1812,7 +1812,7 @@ class Corr2(object):
             elif self.npatch1 == 1:
                 # i=0 here.
                 return ((i,j,1) for i,j in self.results.keys() if j==self.index)
-            elif self.cpw in [None,'simple']:
+            elif self.cpw in [None, 'simple']:
                 # Always use pair if i == index
                 assert self.npatch1 == self.npatch2
                 return ((i,j,1) for i,j in self.results.keys() if i==self.index)
@@ -1846,7 +1846,7 @@ class Corr2(object):
                 return ( (i,0,1) for i in self.index if self.ok[i,0] )
             elif self.npatch1 == 1:
                 return ( (0,j,1) for j in self.index if self.ok[0,j] )
-            elif self.cpw in [None,'simple']:
+            elif self.cpw in [None, 'simple']:
                 assert self.npatch1 == self.npatch2
                 index, weights = np.unique(self.index, return_counts=True)
                 # Select all pairs where first point is in index (repeating i as appropriate)
@@ -1882,7 +1882,7 @@ class Corr2(object):
                 # the naive way would get 9 instance of (3,3), whereas we only want 3 instances.
                 ret1 = ( (i,i,w) for (i,w) in zip(index, weights) if self.ok[i,i] )
 
-                if self.cpw in [None,'simple']:
+                if self.cpw == 'simple':
                     # And all other pairs that aren't really auto-correlations.
                     # These can happen at their natural multiplicity from i and j loops.
                     # Note: This is way faster with the precomputed ok matrix.
@@ -1896,7 +1896,7 @@ class Corr2(object):
                     ret2 = ( (i,j,(wdict.get(i,0)+wdict.get(j,0))/2)
                             for i in range(self.npatch1) for j in range(self.npatch2)
                             if self.ok[i,j] and i!=j )
-                elif self.cpw == 'geom':
+                elif self.cpw in [None, 'geom']:
                     # Finally, geom uses the geometric mean
                     ret2 = ( (i,j,(w1*w2)**0.5) for (i,w1) in zip(index, weights)
                             for (j,w2) in zip(index,weights) if self.ok[i,j] and i!=j )
@@ -2127,8 +2127,8 @@ def estimate_multi_cov(corrs, method, *, func=None, comm=None, num_bootstrap=Non
           did prior to version 5.1.  In the language of MP22, this is called mult, since
           deselected patches have weight=0, and selected patches have weight=1, so the product
           of the weights is 0 if either patch is deselected.
-          This option is valid for all patch-based methods, and for now is the default
-          for all methods.
+          This option is valid for all patch-based methods, and it is the default
+          for sample and marked_bootstrap.
         - 'mean' = Use a weight of 0.5 for any pair with one object in a deselected patch
           and the other in a selected patch. This is the mean of the two patch weights (0,1).
           This option is valid for all patch-based methods.
@@ -2136,11 +2136,11 @@ def estimate_multi_cov(corrs, method, *, func=None, comm=None, num_bootstrap=Non
           this would be equivalent to 'simple', since patch weights are either 0 or 1.
           However, for bootstrap, individual patches can have weights greater than 1, so this
           leads to a different weight for pairs that cross between two selected patches.
-          This option is only valid for bootstrap.
+          This option is only valid for bootstrap, for which it is the default.
         - 'match' = Use the "optimal" weight that matches the effect of auto- and cross-pairs
           in the estimate of the jackknife covariance. MP22 calculate this for the to
-          be w = n_patch / (2 + sqrt(2) (n_patch-1)).
-          This option is only valid for jackknife.
+          be w = 1 - n_patch / (2 + sqrt(2) (n_patch-1)).
+          This option is only valid for jackknife, for which it is the default.
 
     For example, to find the combined covariance matrix for an NG tangential shear statistc,
     along with the GG xi+ and xi- from the same area, using jackknife covariance estimation,

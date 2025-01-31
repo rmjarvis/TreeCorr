@@ -233,8 +233,11 @@ class NNCorrelation(Corr2):
         cross-correlations: data-random and random-data, given as dr and rd.
 
         - If dr is None, the simple correlation function :math:`\xi = (DD/RR - 1)` is used.
-        - if dr is given and rd is None, then :math:`\xi = (DD - 2DR + RR)/RR` is used.
+        - if dr is given and rd is None, then the Landy-Szalay estimate
+          :math:`\xi = (DD - 2DR + RR)/RR` is used.
         - If dr and rd are both given, then :math:`\xi = (DD - DR - RD + RR)/RR` is used.
+          This is the correlate of the Landy-Szalay statistic for cross-correlations, where
+          the first and second catalogs do not represent the same underlying field.
 
         where DD is the data NN correlation function, which is the current object.
 

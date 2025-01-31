@@ -2948,12 +2948,12 @@ class Corr3(object):
                 elif self.npatch1 == 1:
                     # i=k=0
                     return ((i,j,k,1) for i,j,k in self.results.keys() if j!=self.index)
-                elif self.cpw in [None, 'simple']:
+                elif self.cpw == 'simple':
                     # k=0
                     assert self.npatch1 == self.npatch2
                     return ((i,j,k,1) for i,j,k in self.results.keys()
                             if i!=self.index and j!=self.index)
-                elif self.cpw == 'match':
+                elif self.cpw in [None, 'match']:
                     w = 1 - self.npatch1 / (2 + 2**0.5 * (self.npatch1-1))
                     assert self.npatch1 == self.npatch2
                     return ((i,j,k, w if i == self.index or j == self.index else 1)
@@ -2967,12 +2967,12 @@ class Corr3(object):
                 if self.npatch1 == 1:
                     # i=j=0
                     return ((i,j,k,1) for i,j,k in self.results.keys() if k!=self.index)
-                elif self.cpw in [None, 'simple']:
+                elif self.cpw == 'simple':
                     # j=0
                     assert self.npatch1 == self.npatch3
                     return ((i,j,k,1) for i,j,k in self.results.keys()
                             if i!=self.index and k!=self.index)
-                elif self.cpw == 'match':
+                elif self.cpw in [None, 'match']:
                     w = 1 - self.npatch1 / (2 + 2**0.5 * (self.npatch1-1))
                     assert self.npatch1 == self.npatch3
                     return ((i,j,k, w if i == self.index or k == self.index else 1)
@@ -2985,10 +2985,10 @@ class Corr3(object):
             elif self.npatch1 == 1:
                 # i=0
                 assert self.npatch2 == self.npatch3
-                if self.cpw in [None, 'simple']:
+                if self.cpw == 'simple':
                     return ((i,j,k,1) for i,j,k in self.results.keys()
                             if j!=self.index and k!=self.index)
-                elif self.cpw == 'match':
+                elif self.cpw in [None, 'match']:
                     w = 1 - self.npatch2 / (2 + 2**0.5 * (self.npatch2-1))
                     assert self.npatch2 == self.npatch3
                     return ((i,j,k, w if j == self.index or k == self.index else 1)
@@ -2999,10 +2999,10 @@ class Corr3(object):
                             for i,j,k in self.results.keys() if j!=self.index or k!=self.index)
             else:
                 assert self.npatch1 == self.npatch2 == self.npatch3
-                if self.cpw in [None, 'simple']:
+                if self.cpw == 'simple':
                     return ((i,j,k,1) for i,j,k in self.results.keys()
                             if i!=self.index and j!=self.index and k!=self.index)
-                elif self.cpw == 'match':
+                elif self.cpw in [None, 'match']:
                     # For 3pt, there are two different optimal match weights depending
                     # on the nature of the triangle.  If two points are in one patch, and one
                     # point is in another, then the same weight as MP22 is appropriate.
@@ -3188,7 +3188,7 @@ class Corr3(object):
                     assert self.npatch1 == self.npatch2
                     index, weights = np.unique(self.index, return_counts=True)
                     ret1 = ( (i,i,0,w) for (i,w) in zip(index, weights) if self.ok[i,i,0] )
-                    if self.cpw in [None, 'simple']:
+                    if self.cpw == 'simple':
                         ret2 = ( (i,j,0,w1*w2) for (i,w1) in zip(index, weights)
                                  for (j,w2) in zip(index,weights) if self.ok[i,j,0] and i != j )
                     elif self.cpw == 'mean':
@@ -3197,7 +3197,7 @@ class Corr3(object):
                                 for i in range(self.npatch1) for j in range(self.npatch2)
                                 if self.ok[i,j,0] and i!=j )
                     else:
-                        assert self.cpw == 'geom'
+                        assert self.cpw in [None, 'geom']
                         ret2 = ( (i,j,0,(w1*w2)**0.5) for (i,w1) in zip(index, weights)
                                  for (j,w2) in zip(index,weights) if self.ok[i,j,0] and i != j )
                     return itertools.chain(ret1, ret2)
@@ -3208,7 +3208,7 @@ class Corr3(object):
                     assert self.npatch1 == self.npatch3
                     index, weights = np.unique(self.index, return_counts=True)
                     ret1 = ( (i,0,i,w) for (i,w) in zip(index, weights) if self.ok[i,0,i] )
-                    if self.cpw in [None, 'simple']:
+                    if self.cpw == 'simple':
                         ret2 = ( (i,0,k,w1*w2) for (i,w1) in zip(index, weights)
                                  for (k,w2) in zip(index,weights) if self.ok[i,0,k] and i != k )
                     elif self.cpw == 'mean':
@@ -3217,7 +3217,7 @@ class Corr3(object):
                                 for i in range(self.npatch1) for k in range(self.npatch3)
                                 if self.ok[i,0,k] and i!=k )
                     else:
-                        assert self.cpw == 'geom'
+                        assert self.cpw in [None, 'geom']
                         ret2 = ( (i,0,k,(w1*w2)**0.5) for (i,w1) in zip(index, weights)
                                  for (k,w2) in zip(index,weights) if self.ok[i,0,k] and i != k )
                     return itertools.chain(ret1, ret2)
@@ -3225,7 +3225,7 @@ class Corr3(object):
                 assert self.npatch2 == self.npatch3
                 index, weights = np.unique(self.index, return_counts=True)
                 ret1 = ( (0,j,j,w) for (j,w) in zip(index, weights) if self.ok[0,j,j] )
-                if self.cpw in [None, 'simple']:
+                if self.cpw == 'simple':
                     ret2 = ( (0,j,k,w1*w2) for (j,w1) in zip(index, weights)
                                 for (k,w2) in zip(index,weights) if self.ok[0,j,k] and j != k )
                 elif self.cpw == 'mean':
@@ -3234,7 +3234,7 @@ class Corr3(object):
                             for j in range(self.npatch2) for k in range(self.npatch3)
                             if self.ok[0,j,k] and j!=k )
                 else:
-                    assert self.cpw == 'geom'
+                    assert self.cpw in [None, 'geom']
                     ret2 = ( (0,j,k,(w1*w2)**0.5) for (j,w1) in zip(index, weights)
                                 for (k,w2) in zip(index,weights) if self.ok[0,j,k] and j != k )
                 return itertools.chain(ret1, ret2)
@@ -3249,7 +3249,7 @@ class Corr3(object):
                 assert self.npatch1 == self.npatch2 == self.npatch3
                 index, weights = np.unique(self.index, return_counts=True)
                 ret1 = ( (i,i,i,w) for (i,w) in zip(index, weights) if self.ok[i,i,i] )
-                if self.cpw in [None, 'simple']:
+                if self.cpw == 'simple':
                     ret2 = ( (i,j,k, (w1*w2 if (i==k or j==k) else w1*w3 if i==j else w1*w2*w3))
                                 for (i,w1) in zip(index, weights)
                                 for (j,w2) in zip(index,weights)
@@ -3261,7 +3261,7 @@ class Corr3(object):
                             for i in range(self.npatch1) for j in range(self.npatch2)
                             for k in range(self.npatch3) if self.ok[i,j,k] and not i==j==k )
                 else:
-                    assert self.cpw == 'geom'
+                    assert self.cpw in [None, 'geom']
                     ret2 = ( (i,j,k,(w1*w2*w3)**(1./3.)) for (i,w1) in zip(index, weights)
                                 for (j,w2) in zip(index,weights)
                                 for (k,w3) in zip(index,weights)

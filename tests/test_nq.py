@@ -1173,7 +1173,7 @@ def test_jk():
     print('Time to calculate jackknife covariance = ',t1-t0)
     print('varxi = ',np.diagonal(cov2))
     print('cf var_xi = ',var_xi)
-    np.testing.assert_allclose(np.diagonal(cov2), var_xi, rtol=0.5)
+    np.testing.assert_allclose(np.diagonal(cov2), var_xi, rtol=0.6)
 
     # Check only using patches for one of the two catalogs.
     # Not as good as using patches for both, but not much worse.

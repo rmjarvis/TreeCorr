@@ -713,9 +713,17 @@ def test_gg_jk():
     np.testing.assert_allclose(gg3.weight, gg2.weight)
     np.testing.assert_allclose(gg3.xip, gg2.xip)
     np.testing.assert_allclose(gg3.xim, gg2.xim)
-    # Not perfect, but within about 30%.
-    np.testing.assert_allclose(np.log(gg3.varxip), np.log(var_xip), atol=0.4*tol_factor)
-    np.testing.assert_allclose(np.log(gg3.varxim), np.log(var_xim), atol=0.3*tol_factor)
+    np.testing.assert_allclose(gg3.varxip, var_xip, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(gg3.varxim, var_xim, rtol=0.4*tol_factor)
+    cov = gg3.estimate_cov('jackknife')
+    np.testing.assert_allclose(gg3.cov, cov)
+    n = gg3.nbins
+    np.testing.assert_allclose(cov.diagonal()[:n], gg3.varxip)
+    np.testing.assert_allclose(cov.diagonal()[n:], gg3.varxim)
+    np.testing.assert_allclose(cov.diagonal()[:n], var_xip, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(cov.diagonal()[n:], var_xim, rtol=0.4*tol_factor)
+    np.testing.assert_allclose(np.log(gg3.varxip), np.log(var_xip), atol=0.6*tol_factor)
+    np.testing.assert_allclose(np.log(gg3.varxim), np.log(var_xim), atol=0.5*tol_factor)
 
     # Should also work with local patches
     gg3l = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife',
@@ -738,7 +746,24 @@ def test_gg_jk():
     print('Time to calculate jackknife covariance = ',t1-t0)
 
     # Compare other cross_patch_weight options:
-    n = gg3.nbins
+    # Note that simple is actually the most accurate for this test.  This will tend to
+    # be true for many of the unit tests in this file, despite the fact that MP22 have
+    # recommended match as the optimal cross-weight choie.  I think what is going on here
+    # is that these tests have some super-sample variance intrinsic to how I constructed them.
+    # This is somewhat inevitable when trying to construct something with significant sample
+    # variance (i.e. so the variance is not shot-noise limited.)  However, the patch-based
+    # methods cannot detect super-sample variance, so they underestimate the variance.
+    # On the other hand, MP22 showed that simple (what they call mult) overestimates sample
+    # variance.  So these two effects partly cancel and the simple weight ends up the best
+    # in most cases.  Since real-world examples rarely have much super-sample variance,
+    # I think 'match' is most often going to be the best choice in practice.
+    cov = gg3.estimate_cov('jackknife', cross_patch_weight='simple')
+    print('jackknife/simple:')
+    print('var_xip ratio = ',cov.diagonal()[:n] / var_xip)
+    print('var_xim ratio = ',cov.diagonal()[n:] / var_xim)
+    np.testing.assert_allclose(cov.diagonal()[:n], var_xip, rtol=0.4*tol_factor)
+    np.testing.assert_allclose(cov.diagonal()[n:], var_xim, rtol=0.3*tol_factor)
+
     cov = gg3.estimate_cov('jackknife', cross_patch_weight='mean')
     print('jackknife/mean:')
     print('var_xip ratio = ',cov.diagonal()[:n] / var_xip)
@@ -793,14 +818,20 @@ def test_gg_jk():
 
     # Repeat with bootstraps, who used to have a bug related to this
     for method in ['sample', 'marked_bootstrap', 'bootstrap']:
+        gg2x = gg2.copy()
+        gg3x = gg3.copy()
+        gg2x._rng = np.random.default_rng(1234)
+        gg3x._rng = np.random.default_rng(1234)
         t0 = time.time()
-        cov23 = treecorr.estimate_multi_cov([gg2,gg3], method)
+        cov23 = treecorr.estimate_multi_cov([gg2x,gg3x], method)
         t1 = time.time()
         print('Time for %s cross-covariance = '%method,t1-t0)
-        np.testing.assert_allclose(cov23[:2*n,:2*n], gg3.cov, rtol=1.e-2, atol=1.e-5)
-        np.testing.assert_allclose(cov23[2*n:,2*n:], gg3.cov, rtol=1.e-2, atol=1.e-5)
-        np.testing.assert_allclose(cov23[:2*n,2*n:], gg3.cov, rtol=1.e-2, atol=1.e-5)
-        np.testing.assert_allclose(cov23[2*n:,:2*n], gg3.cov, rtol=1.e-2, atol=1.e-5)
+        gg3x._rng = np.random.default_rng(1234)
+        cov3 = gg3x.estimate_cov(method)
+        np.testing.assert_allclose(cov23[:2*n,:2*n], cov3)
+        np.testing.assert_allclose(cov23[2*n:,2*n:], cov3)
+        np.testing.assert_allclose(cov23[:2*n,2*n:], cov3)
+        np.testing.assert_allclose(cov23[2*n:,:2*n], cov3)
 
     # Check advertised example to reorder the data vectors with func argument
     func = lambda corrs: np.concatenate([c.xip for c in corrs] + [c.xim for c in corrs])
@@ -827,7 +858,7 @@ def test_gg_jk():
 
     # Check sample covariance estimate
     t0 = time.time()
-    cov_sample = gg3.estimate_cov('sample')
+    cov_sample = gg3.estimate_cov('sample', cross_patch_weight='simple')
     t1 = time.time()
     print('Time to calculate sample covariance = ',t1-t0)
     print('var_xip = ',cov_sample.diagonal()[:n])
@@ -841,7 +872,7 @@ def test_gg_jk():
     np.testing.assert_allclose(cov_sample.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
 
     # Test design matrix
-    A, w = gg2.build_cov_design_matrix('sample')
+    A, w = gg2.build_cov_design_matrix('sample', cross_patch_weight='simple')
     w /= np.sum(w)
     A -= np.mean(A, axis=0)
     C = 1./(npatch-1) * (w*A.conj().T).dot(A)
@@ -857,7 +888,7 @@ def test_gg_jk():
     # Check marked-point bootstrap covariance estimate
     t0 = time.time()
     rng_state = gg3.rng.get_state()
-    cov_boot = gg3.estimate_cov('marked_bootstrap')
+    cov_boot = gg3.estimate_cov('marked_bootstrap', cross_patch_weight='simple')
     t1 = time.time()
     print('Time to calculate marked_bootstrap covariance = ',t1-t0)
     print('var_xip = ',cov_boot.diagonal()[:n])
@@ -865,12 +896,12 @@ def test_gg_jk():
     print('var_xim = ',cov_boot.diagonal()[n:])
     print('ratio = ',cov_boot.diagonal()[n:] / var_xim)
     # Not really much better than sample.
-    np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.6*tol_factor)
     np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
 
     # Test design matrix
     gg3.rng.set_state(rng_state)
-    A, w = gg2.build_cov_design_matrix('marked_bootstrap')
+    A, w = gg2.build_cov_design_matrix('marked_bootstrap', cross_patch_weight='simple')
     nboot = A.shape[0]
     A -= np.mean(A, axis=0)
     C = 1./(nboot-1) * A.conj().T.dot(A)
@@ -897,19 +928,19 @@ def test_gg_jk():
     # Check bootstrap covariance estimate.
     t0 = time.time()
     rng_state = gg3.rng.get_state()
-    cov_boot = gg3.estimate_cov('bootstrap')
+    cov_boot = gg3.estimate_cov('bootstrap', cross_patch_weight='simple')
     t1 = time.time()
     print('Time to calculate bootstrap covariance = ',t1-t0)
     print('var_xip = ',cov_boot.diagonal()[:n])
     print('ratio = ',cov_boot.diagonal()[:n] / var_xip)
     print('var_xim = ',cov_boot.diagonal()[n:])
     print('ratio = ',cov_boot.diagonal()[n:] / var_xim)
-    np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.2*tol_factor)
+    np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.3*tol_factor)
     np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.4*tol_factor)
 
     # Test design matrix
     gg3.rng.set_state(rng_state)
-    A, w = gg2.build_cov_design_matrix('bootstrap')
+    A, w = gg2.build_cov_design_matrix('bootstrap', cross_patch_weight='simple')
     nboot = A.shape[0]
     A -= np.mean(A, axis=0)
     C = 1./(nboot-1) * A.conj().T.dot(A)
@@ -1173,14 +1204,18 @@ def test_ng_jk():
     print('ratio = ',ng3.varxi / var_xi)
     np.testing.assert_allclose(ng3.weight, ng2.weight)
     np.testing.assert_allclose(ng3.xi, ng2.xi)
-    np.testing.assert_allclose(np.log(ng3.varxi), np.log(var_xi), atol=0.4*tol_factor)
-    np.testing.assert_allclose(np.log(ng3.cov.diagonal()), np.log(var_xi), atol=0.4*tol_factor)
+    np.testing.assert_allclose(np.log(ng3.varxi), np.log(var_xi), atol=0.5*tol_factor)
+    np.testing.assert_allclose(np.log(ng3.cov.diagonal()), np.log(var_xi), atol=0.5*tol_factor)
 
     # Check using estimate_cov
     t0 = time.time()
     np.testing.assert_allclose(ng2.estimate_cov('jackknife'), ng3.cov)
     t1 = time.time()
     print('Time to calculate jackknife covariance = ',t1-t0)
+
+    cov = ng3.estimate_cov('jackknife', cross_patch_weight='simple')
+    print('cpw=simple: ratio = ',cov.diagonal()/var_xi)
+    np.testing.assert_allclose(np.log(cov.diagonal()), np.log(var_xi), atol=0.4*tol_factor)
 
     cov = ng3.estimate_cov('jackknife', cross_patch_weight='mean')
     print('cpw=mean: ratio = ',cov.diagonal()/var_xi)
@@ -1277,17 +1312,17 @@ def test_ng_jk():
 
     # Check bootstrap covariance estimate.
     t0 = time.time()
-    cov_boot = ng3.estimate_cov('bootstrap')
+    cov_boot = ng3.estimate_cov('bootstrap', cross_patch_weight='simple')
     t1 = time.time()
     print('Time to calculate bootstrap covariance = ',t1-t0)
     print('varxi = ',cov_boot.diagonal())
     print('ratio = ',cov_boot.diagonal() / var_xi)
     np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.4*tol_factor)
-    cov_boot = ng4.estimate_cov('bootstrap')
+    cov_boot = ng4.estimate_cov('bootstrap', cross_patch_weight='simple')
     print('varxi = ',cov_boot.diagonal())
     print('ratio = ',cov_boot.diagonal() / var_xi)
     np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.7*tol_factor)
-    cov_boot = ng5.estimate_cov('bootstrap')
+    cov_boot = ng5.estimate_cov('bootstrap', cross_patch_weight='simple')
     print('varxi = ',cov_boot.diagonal())
     print('ratio = ',cov_boot.diagonal() / var_xi)
     np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.5*tol_factor)
@@ -1361,7 +1396,7 @@ def test_ng_jk():
     print('ratio = ',ng4.varxi / var_xi)
     np.testing.assert_allclose(ng4.weight, ng3.weight, rtol=0.02*tol_factor)
     np.testing.assert_allclose(ng4.xi, ng3.xi, rtol=0.02*tol_factor)
-    np.testing.assert_allclose(np.log(ng4.varxi), np.log(var_xi), atol=0.3*tol_factor)
+    np.testing.assert_allclose(np.log(ng4.varxi), np.log(var_xi), atol=0.4*tol_factor)
 
     # Check using estimate_cov
     t0 = time.time()
@@ -1388,7 +1423,7 @@ def test_ng_jk():
     np.testing.assert_allclose(ng5.weight, ng3.weight, rtol=0.02*tol_factor)
     np.testing.assert_allclose(ng5.xi, ng3.xi, rtol=0.02*tol_factor)
     # This does only slightly worse.
-    np.testing.assert_allclose(np.log(ng5.varxi), np.log(var_xi), atol=0.4*tol_factor)
+    np.testing.assert_allclose(np.log(ng5.varxi), np.log(var_xi), atol=0.5*tol_factor)
 
     # Check using estimate_cov
     t0 = time.time()
@@ -1653,7 +1688,7 @@ def test_nn_jk():
 
     # Check bootstrap covariance estimate
     t0 = time.time()
-    cov3 = nn3.estimate_cov('bootstrap')
+    cov3 = nn3.estimate_cov('bootstrap', cross_patch_weight='simple')
     t1 = time.time()
     print('Time to calculate bootstrap covariance = ',t1-t0)
     print('varxi = ',cov3.diagonal())
@@ -2121,7 +2156,7 @@ def test_kappa_jk():
     print('ratio = ',kk.varxi / var_kk_xi)
     np.testing.assert_allclose(kk.weight, kk.weight)
     np.testing.assert_allclose(kk.xi, kk.xi)
-    np.testing.assert_allclose(np.log(kk.varxi), np.log(var_kk_xi), atol=0.3*tol_factor)
+    np.testing.assert_allclose(np.log(kk.varxi), np.log(var_kk_xi), atol=0.4*tol_factor)
 
     # Check sample covariance estimate
     cov_xi = kk.estimate_cov('sample')
@@ -2186,7 +2221,7 @@ def test_kappa_jk():
     print('ratio = ',kg.varxi / var_kg_xi)
     np.testing.assert_allclose(kg.weight, kg.weight)
     np.testing.assert_allclose(kg.xi, kg.xi)
-    np.testing.assert_allclose(np.log(kg.varxi), np.log(var_kg_xi), atol=0.3*tol_factor)
+    np.testing.assert_allclose(np.log(kg.varxi), np.log(var_kg_xi), atol=0.5*tol_factor)
 
     # Check sample covariance estimate
     cov_xi = kg.estimate_cov('sample')
@@ -3851,7 +3886,7 @@ def test_empty_patches():
         ng3l = treecorr.NGCorrelation(bin_size=0.1, bin_slop=0.1, min_sep=10., max_sep=100.,
                                       logger=cl.logger)
         ng3l.process(cat1p, cat2p)
-        ng3l.estimate_cov('jackknife')
+        ng3l.estimate_cov('jackknife', cross_patch_weight='simple')
     #print(cl.output)
     assert 'WARNING: A xi for calculating the jackknife covariance has no patch pairs.' in cl.output
 

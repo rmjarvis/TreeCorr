@@ -1053,7 +1053,7 @@ def test_jk():
     nz6 = nz2.copy()
     nz6.calculateXi(rz=rz6)
     cov6 = nz6.estimate_cov('jackknife')
-    np.testing.assert_allclose(np.diagonal(cov6), var_xi_r, rtol=0.5)
+    np.testing.assert_allclose(np.diagonal(cov6), var_xi_r, rtol=0.6)
 
     # Use a random catalog without patches.
     rz7 = treecorr.NZCorrelation(corr_params)
@@ -1066,7 +1066,7 @@ def test_jk():
     nz8 = nz2.copy()
     nz8.calculateXi(rz=rz7)
     cov8 = nz8.estimate_cov('jackknife')
-    np.testing.assert_allclose(np.diagonal(cov8), var_xi_r, rtol=0.5)
+    np.testing.assert_allclose(np.diagonal(cov8), var_xi_r, rtol=0.6)
 
     # Check some invalid actions
     # Bad var_method

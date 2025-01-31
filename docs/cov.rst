@@ -171,9 +171,12 @@ which can be provided in the `Corr2` or `Corr3` constructor or in the call to
   pairs.  They find that this weight is significantly more accurate than either 'simple'
   (what they call mult) or 'mean'.
 
-The default value of ``cross_patch_weight`` is 'simple' in all cases.  We may in the
-future change this, but for now if a use wants a different weight scheme, they need to
-explicitly specify which scheme to use.
+The default value of ``cross_patch_weight`` is 'match' for jackknife and 'geom' for bootstrap.
+This is the recommendation of MP22, and it seems to be optimal when the field has significant
+sample variance, but not much super-sample variance.  The default for 'sample' and
+'marked_bootstrap' methods is 'simple'.  We don't see much difference between that and 'mean'
+for these methods, althought we welcome feedback from users whether 'mean' might be a better
+choice for these methods.
 
 
 Covariance Matrix

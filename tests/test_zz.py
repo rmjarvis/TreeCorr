@@ -777,8 +777,8 @@ def test_jk():
     print('cov.diag = ',np.diagonal(cov2))
     print('cf var_xip = ',var_xip)
     print('cf var_xim = ',var_xim)
-    np.testing.assert_allclose(np.diagonal(cov2)[:4], var_xip, rtol=0.3)
-    np.testing.assert_allclose(np.diagonal(cov2)[4:], var_xim, rtol=0.5)
+    np.testing.assert_allclose(np.diagonal(cov2)[:4], var_xip, rtol=0.4)
+    np.testing.assert_allclose(np.diagonal(cov2)[4:], var_xim, rtol=0.6)
 
     # Use initialize/finalize
     zz3 = treecorr.ZZCorrelation(corr_params)

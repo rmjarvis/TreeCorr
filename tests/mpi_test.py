@@ -331,15 +331,13 @@ def do_mpi_cov(comm, method, output=True):
     # Compare to the MPI-estimated covariance
     if output:
         print(comm.rank, "MPI cov")
-    cov2 = treecorr.estimate_multi_cov(corrs, method, comm=comm, num_bootstrap=100,
-                                       cross_patch_weight='simple')
+    cov2 = treecorr.estimate_multi_cov(corrs, method, comm=comm, num_bootstrap=100)
     if output:
         print("\nCOV 2\n", cov2[0:3,0:3], " for ", comm.rank, "\n")
 
     np.testing.assert_allclose(cov1, cov2, atol=tol)
 
-    A2, w2 = treecorr.build_multi_cov_design_matrix(corrs, method, comm=comm, num_bootstrap=100,
-                                                    cross_patch_weight='simple')
+    A2, w2 = treecorr.build_multi_cov_design_matrix(corrs, method, comm=comm, num_bootstrap=100)
     np.testing.assert_allclose(A1, A2, atol=tol)
     np.testing.assert_allclose(w1, w2, atol=tol)
 

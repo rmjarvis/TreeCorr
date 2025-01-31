@@ -1890,9 +1890,12 @@ class Corr2(object):
                     ret2 = ( (i,j,w1*w2) for (i,w1) in zip(index, weights)
                             for (j,w2) in zip(index,weights) if self.ok[i,j] and i!=j )
                 elif self.cpw == 'mean':
+                    wdict = dict(zip(index, weights))
                     # For mean, the weight is the mean, not product.
-                    ret2 = ( (i,j,(w1+w2)/2) for (i,w1) in zip(index, weights)
-                            for (j,w2) in zip(index,weights) if self.ok[i,j] and i!=j )
+                    # Also, use all i,j, even those with no representation in index.
+                    ret2 = ( (i,j,(wdict.get(i,0)+wdict.get(j,0))/2)
+                            for i in range(self.npatch1) for j in range(self.npatch2)
+                            if self.ok[i,j] and i!=j )
                 elif self.cpw == 'geom':
                     # Finally, geom uses the geometric mean
                     ret2 = ( (i,j,(w1*w2)**0.5) for (i,w1) in zip(index, weights)
@@ -2307,7 +2310,7 @@ def _make_cov_design_matrix_core(corrs, plist, func, name, rank=0, size=1):
         if row % size != rank:
             continue
         for c, cpairs in zip(corrs, pairs):
-            cpairs = list(cpairs)
+            cpairs = c._keep_ok(cpairs)
             if len(cpairs) == 0:
                 # This will cause problems downstream if we let it go.
                 # It probably indicates user error, using an inappropriate covariance estimator.

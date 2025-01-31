@@ -924,8 +924,8 @@ def test_gg_jk():
     print('bootstrap/mean:')
     print('var_xip ratio = ',cov_boot.diagonal()[:n] / var_xip)
     print('var_xim ratio = ',cov_boot.diagonal()[n:] / var_xim)
-    np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.4*tol_factor)
-    np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.2*tol_factor)
+    np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.6*tol_factor)
+    np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
 
     cov_boot = gg3.estimate_cov('bootstrap', cross_patch_weight='geom')
     print('bootstrap/geom:')
@@ -1294,7 +1294,7 @@ def test_ng_jk():
 
     cov_boot = ng3.estimate_cov('bootstrap', cross_patch_weight='mean')
     print('bootstrap/mean ratio = ',cov_boot.diagonal() / var_xi)
-    np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.5*tol_factor)
+    np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.7*tol_factor)
 
     cov_boot = ng3.estimate_cov('bootstrap', cross_patch_weight='geom')
     print('bootstrap/mean ratio = ',cov_boot.diagonal() / var_xi)
@@ -2675,7 +2675,7 @@ def test_clusters():
     np.testing.assert_allclose(np.log(cov.diagonal()), np.log(var_xi), atol=0.4*tol_factor)
 
     cov = ng3b.estimate_cov('bootstrap', cross_patch_weight='mean')
-    np.testing.assert_allclose(np.log(cov.diagonal()), np.log(var_xi), atol=0.3*tol_factor)
+    np.testing.assert_allclose(np.log(cov.diagonal()), np.log(var_xi), atol=0.4*tol_factor)
 
     cov = ng3b.estimate_cov('bootstrap', cross_patch_weight='geom')
     np.testing.assert_allclose(np.log(cov.diagonal()), np.log(var_xi), atol=0.3*tol_factor)
@@ -3154,6 +3154,13 @@ def test_brute_bootstrap():
                 kk4.xi[:] *= (w1*w2)**0.5
                 kk4.weight[:] *= (w1*w2)**0.5
                 kk2 += kk4
+            for j in range(npatch):
+                if j in index2: continue
+                kk3.clear()
+                kk3.process_cross(cat.patches[i], cat.patches[j], corr_only=True)
+                kk3.xi[:] *= w1/2.
+                kk3.weight[:] *= w1/2.
+                kk1 += kk3
         kk1.finalize(0,0)
         kk2.finalize(0,0)
         xi_list_boot_mean.append(kk1.xi.copy())

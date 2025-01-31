@@ -278,7 +278,7 @@ def test_kkk_logruv_jk():
     cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='mean')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.3*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
 
     print('bootstrap/geom:')
     cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='geom')
@@ -410,7 +410,7 @@ def test_kkk_logruv_jk():
     cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='mean')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.4*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
 
     print('bootstrap/geom:')
     cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='geom')
@@ -765,7 +765,7 @@ def test_kkk_logruv_jk():
     cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='mean')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.4*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
 
     print('bootstrap/geom:')
     cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='geom')
@@ -831,7 +831,7 @@ def test_kkk_logruv_jk():
     cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='mean')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.4*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.7*tol_factor)
 
     print('bootstrap/geom:')
     cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='geom')
@@ -897,7 +897,7 @@ def test_kkk_logruv_jk():
     cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='mean')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.4*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.7*tol_factor)
 
     print('bootstrap/geom:')
     cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='geom')
@@ -1097,7 +1097,7 @@ def test_ggg_logruv_jk():
     print('bootstrap/mean')
     cov = gggp.estimate_cov('bootstrap', func=f, cross_patch_weight='mean')
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.4*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.7*tol_factor)
 
     print('bootstrap/geom')
     cov = gggp.estimate_cov('bootstrap', func=f, cross_patch_weight='geom')
@@ -1228,7 +1228,7 @@ def test_ggg_logruv_jk():
     print('bootstrap/mean')
     cov = gggp.estimate_cov('bootstrap', func=f, cross_patch_weight='mean')
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.3*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.6*tol_factor)
 
     print('bootstrap/geom')
     cov = gggp.estimate_cov('bootstrap', func=f, cross_patch_weight='geom')
@@ -1827,7 +1827,7 @@ def test_nnn_logruv_jk():
     print('bootstrap/mean')
     cov = dddp.estimate_cov('bootstrap', cross_patch_weight='mean')
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.5*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.9*tol_factor)
 
     print('bootstrap/geom')
     cov = dddp.estimate_cov('bootstrap', cross_patch_weight='geom')

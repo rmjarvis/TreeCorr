@@ -3192,8 +3192,10 @@ class Corr3(object):
                         ret2 = ( (i,j,0,w1*w2) for (i,w1) in zip(index, weights)
                                  for (j,w2) in zip(index,weights) if self.ok[i,j,0] and i != j )
                     elif self.cpw == 'mean':
-                        ret2 = ( (i,j,0,(w1+w2)/2) for (i,w1) in zip(index, weights)
-                                 for (j,w2) in zip(index,weights) if self.ok[i,j,0] and i != j )
+                        wdict = dict(zip(index, weights))
+                        ret2 = ( (i,j,0,(wdict.get(i,0)+wdict.get(j,0))/2)
+                                for i in range(self.npatch1) for j in range(self.npatch2)
+                                if self.ok[i,j,0] and i!=j )
                     else:
                         assert self.cpw == 'geom'
                         ret2 = ( (i,j,0,(w1*w2)**0.5) for (i,w1) in zip(index, weights)
@@ -3210,8 +3212,10 @@ class Corr3(object):
                         ret2 = ( (i,0,k,w1*w2) for (i,w1) in zip(index, weights)
                                  for (k,w2) in zip(index,weights) if self.ok[i,0,k] and i != k )
                     elif self.cpw == 'mean':
-                        ret2 = ( (i,0,k,(w1+w2)/2) for (i,w1) in zip(index, weights)
-                                 for (k,w2) in zip(index,weights) if self.ok[i,0,k] and i != k )
+                        wdict = dict(zip(index, weights))
+                        ret2 = ( (i,0,k,(wdict.get(i,0)+wdict.get(k,0))/2)
+                                for i in range(self.npatch1) for k in range(self.npatch3)
+                                if self.ok[i,0,k] and i!=k )
                     else:
                         assert self.cpw == 'geom'
                         ret2 = ( (i,0,k,(w1*w2)**0.5) for (i,w1) in zip(index, weights)
@@ -3225,8 +3229,10 @@ class Corr3(object):
                     ret2 = ( (0,j,k,w1*w2) for (j,w1) in zip(index, weights)
                                 for (k,w2) in zip(index,weights) if self.ok[0,j,k] and j != k )
                 elif self.cpw == 'mean':
-                    ret2 = ( (0,j,k,(w1+w2)/2) for (j,w1) in zip(index, weights)
-                                for (k,w2) in zip(index,weights) if self.ok[0,j,k] and j != k )
+                    wdict = dict(zip(index, weights))
+                    ret2 = ( (0,j,k,(wdict.get(j,0)+wdict.get(k,0))/2)
+                            for j in range(self.npatch2) for k in range(self.npatch3)
+                            if self.ok[0,j,k] and j!=k )
                 else:
                     assert self.cpw == 'geom'
                     ret2 = ( (0,j,k,(w1*w2)**0.5) for (j,w1) in zip(index, weights)
@@ -3250,10 +3256,10 @@ class Corr3(object):
                                 for (k,w3) in zip(index,weights)
                                 if self.ok[i,j,k] and not i==j==k )
                 elif self.cpw == 'mean':
-                    ret2 = ( (i,j,k,(w1+w2+w3)/3) for (i,w1) in zip(index, weights)
-                                for (j,w2) in zip(index,weights)
-                                for (k,w3) in zip(index,weights)
-                                if self.ok[i,j,k] and not i==j==k )
+                    wdict = dict(zip(index, weights))
+                    ret2 = ( (i,j,k,(wdict.get(i,0)+wdict.get(j,0)+wdict.get(k,0))/3)
+                            for i in range(self.npatch1) for j in range(self.npatch2)
+                            for k in range(self.npatch3) if self.ok[i,j,k] and not i==j==k )
                 else:
                     assert self.cpw == 'geom'
                     ret2 = ( (i,j,k,(w1*w2*w3)**(1./3.)) for (i,w1) in zip(index, weights)

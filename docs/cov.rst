@@ -116,7 +116,7 @@ Specifically, we follow the method described in
 by Ji Meng Loh, 2008 <https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/>`_.
 
 This method starts out the same as the "sample" method.  It computes the correlation
-function for each patch where at least one of the two points falls in that patch.
+function for each patch where at least one point falls in that patch.
 However, it keeps track of the numerator and denominator separately.
 These are the "marks" in Loh, 2008.
 
@@ -146,7 +146,7 @@ We allow the user to choose among them using the parameter ``cross_patch_weight`
 which can be provided in the `Corr2` or `Corr3` constructor or in the call to
 `Corr2.estimate_cov` or `treecorr.estimate_multi_cov`.  The valid options are:
 
-* 'simple' is prescription that TreeCorr implicitly used prior to version 5.1,
+* 'simple' is the prescription that TreeCorr implicitly used prior to version 5.1,
   and it is generally the simplest treatment in each case.
   For jackknife and bootstrap, it corresponds to what MP22 call :math:`v_{\rm mult}`,
   which means the weight is the product of the two patch weights.

@@ -154,9 +154,9 @@ class NNNCorrelation(Corr3):
         #     for other in others:
         #         self += other
         # but no sanity checks and use numpy.sum for faster calculation.
-        tot = np.sum([c.tot for c in others])
+        tot = np.sum([c.tot*w for c,w in others])
         # Empty ones were only needed for tot.  Remove them now.
-        others = [c for c in others if c._nonzero]
+        others = [(c,w) for c,w in others if c._nonzero]
         if len(others) == 0:
             self._clear()
         else:
@@ -403,10 +403,10 @@ class NNNCorrelation(Corr3):
             # The approximation we'll use is that tot in the auto-correlations is
             # proportional to area**3.
             # The sum of tot**(1/3) when i=j=k gives an estimate of the fraction of the total area.
-            area_frac = np.sum([self.results[ij].tot**(1./3.) for ij in pairs
-                                if ij[0] == ij[1] == ij[2]])
-            area_frac /= np.sum([cij.tot**(1./3.) for ij,cij in self.results.items()
-                                 if ij[0] == ij[1] == ij[2]])
+            area_frac = np.sum([(self.results[(i,j,k)].tot*w)**(1./3.) for i,j,k,w in pairs
+                                if i == j == k])
+            area_frac /= np.sum([cij.tot**(1./3.) for ijk,cij in self.results.items()
+                                 if ijk[0] == ijk[1] == ijk[2]])
             # First figure out the original total for all DDD that had the same footprint as RRR.
             ddd_tot = np.sum([self.results[ij].tot for ij in self.results])
             # The rrrf we want will be a factor of area_frac smaller than the original
@@ -421,7 +421,7 @@ class NNNCorrelation(Corr3):
             pairs2 = pairs
             if self._drr.npatch2 == 1:
                 # If r doesn't have patches, then convert all (i,i,i) pairs to (i,0,0).
-                pairs2 = [(i,0,0) for i,j,k in pairs2 if i == j == k]
+                pairs2 = [(i,0,0,w) for i,j,k,w in pairs2 if i == j == k]
             pairs2 = self._drr._keep_ok(pairs2)
             self._drr._calculate_xi_from_pairs(pairs2, corr_only=True)
             drr = self._drr.weight
@@ -431,7 +431,7 @@ class NNNCorrelation(Corr3):
             if self._rdd.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
                 # If r doesn't have patches, then convert all (i,i,j) pairs to (0,i,j)
                 # and all (i,j,i to (0,j,i).
-                pairs3 = [(0,j,k) for i,j,k in pairs3 if i == j or i == k]
+                pairs3 = [(0,j,k,w) for i,j,k,w in pairs3 if i == j or i == k]
             pairs3 = self._rdd._keep_ok(pairs3)
             self._rdd._calculate_xi_from_pairs(pairs3, corr_only=True)
             rdd = self._rdd.weight

@@ -694,6 +694,8 @@ def test_gg_jk():
         gg2.build_cov_design_matrix('shot')
     with assert_raises(ValueError):
         gg2.build_cov_design_matrix('invalid')
+    with assert_raises(ValueError):
+        gg2.build_cov_design_matrix('jackknife', cross_patch_weight='invalid')
 
     # Now run with jackknife variance estimate.  Should be much better.
     gg3 = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife',
@@ -711,9 +713,17 @@ def test_gg_jk():
     np.testing.assert_allclose(gg3.weight, gg2.weight)
     np.testing.assert_allclose(gg3.xip, gg2.xip)
     np.testing.assert_allclose(gg3.xim, gg2.xim)
-    # Not perfect, but within about 30%.
-    np.testing.assert_allclose(np.log(gg3.varxip), np.log(var_xip), atol=0.4*tol_factor)
-    np.testing.assert_allclose(np.log(gg3.varxim), np.log(var_xim), atol=0.3*tol_factor)
+    np.testing.assert_allclose(gg3.varxip, var_xip, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(gg3.varxim, var_xim, rtol=0.4*tol_factor)
+    cov = gg3.estimate_cov('jackknife')
+    np.testing.assert_allclose(gg3.cov, cov)
+    n = gg3.nbins
+    np.testing.assert_allclose(cov.diagonal()[:n], gg3.varxip)
+    np.testing.assert_allclose(cov.diagonal()[n:], gg3.varxim)
+    np.testing.assert_allclose(cov.diagonal()[:n], var_xip, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(cov.diagonal()[n:], var_xim, rtol=0.4*tol_factor)
+    np.testing.assert_allclose(np.log(gg3.varxip), np.log(var_xip), atol=0.6*tol_factor)
+    np.testing.assert_allclose(np.log(gg3.varxim), np.log(var_xim), atol=0.5*tol_factor)
 
     # Should also work with local patches
     gg3l = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=50., var_method='jackknife',
@@ -735,6 +745,39 @@ def test_gg_jk():
     t1 = time.time()
     print('Time to calculate jackknife covariance = ',t1-t0)
 
+    # Compare other cross_patch_weight options:
+    # Note that simple is actually the most accurate for this test.  This will tend to
+    # be true for many of the unit tests in this file, despite the fact that MP22 have
+    # recommended match as the optimal cross-weight choie.  I think what is going on here
+    # is that these tests have some super-sample variance intrinsic to how I constructed them.
+    # This is somewhat inevitable when trying to construct something with significant sample
+    # variance (i.e. so the variance is not shot-noise limited.)  However, the patch-based
+    # methods cannot detect super-sample variance, so they underestimate the variance.
+    # On the other hand, MP22 showed that simple (what they call mult) overestimates sample
+    # variance.  So these two effects partly cancel and the simple weight ends up the best
+    # in most cases.  Since real-world examples rarely have much super-sample variance,
+    # I think 'match' is most often going to be the best choice in practice.
+    cov = gg3.estimate_cov('jackknife', cross_patch_weight='simple')
+    print('jackknife/simple:')
+    print('var_xip ratio = ',cov.diagonal()[:n] / var_xip)
+    print('var_xim ratio = ',cov.diagonal()[n:] / var_xim)
+    np.testing.assert_allclose(cov.diagonal()[:n], var_xip, rtol=0.4*tol_factor)
+    np.testing.assert_allclose(cov.diagonal()[n:], var_xim, rtol=0.3*tol_factor)
+
+    cov = gg3.estimate_cov('jackknife', cross_patch_weight='mean')
+    print('jackknife/mean:')
+    print('var_xip ratio = ',cov.diagonal()[:n] / var_xip)
+    print('var_xim ratio = ',cov.diagonal()[n:] / var_xim)
+    np.testing.assert_allclose(cov.diagonal()[:n], var_xip, rtol=0.6*tol_factor)
+    np.testing.assert_allclose(cov.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
+
+    cov = gg3.estimate_cov('jackknife', cross_patch_weight='match')
+    print('jackknife/match:')
+    print('var_xip ratio = ',cov.diagonal()[:n] / var_xip)
+    print('var_xim ratio = ',cov.diagonal()[n:] / var_xim)
+    np.testing.assert_allclose(cov.diagonal()[:n], var_xip, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(cov.diagonal()[n:], var_xim, rtol=0.4*tol_factor)
+
     # estimate_cov with var_method='shot' returns just the diagonal.
     np.testing.assert_allclose(gg3.estimate_cov('shot'), np.concatenate([gg2.varxip, gg2.varxim]))
 
@@ -748,7 +791,6 @@ def test_gg_jk():
     np.testing.assert_allclose(C, gg3.cov)
 
     # Check that cross-covariance between xip and xim is significant.
-    n = gg3.nbins
     print('cross covariance = ',gg3.cov[:n,n:],np.sum(gg3.cov[n:,n:]**2))
     # Make cross correlation matrix
     c = gg3.cov[:n,n:] / (np.sqrt(gg3.varxip)[:,np.newaxis] * np.sqrt(gg3.varxim)[np.newaxis,:])
@@ -776,14 +818,20 @@ def test_gg_jk():
 
     # Repeat with bootstraps, who used to have a bug related to this
     for method in ['sample', 'marked_bootstrap', 'bootstrap']:
+        gg2x = gg2.copy()
+        gg3x = gg3.copy()
+        gg2x._rng = np.random.default_rng(1234)
+        gg3x._rng = np.random.default_rng(1234)
         t0 = time.time()
-        cov23 = treecorr.estimate_multi_cov([gg2,gg3], method)
+        cov23 = treecorr.estimate_multi_cov([gg2x,gg3x], method)
         t1 = time.time()
         print('Time for %s cross-covariance = '%method,t1-t0)
-        np.testing.assert_allclose(cov23[:2*n,:2*n], gg3.cov, rtol=1.e-2, atol=1.e-5)
-        np.testing.assert_allclose(cov23[2*n:,2*n:], gg3.cov, rtol=1.e-2, atol=1.e-5)
-        np.testing.assert_allclose(cov23[:2*n,2*n:], gg3.cov, rtol=1.e-2, atol=1.e-5)
-        np.testing.assert_allclose(cov23[2*n:,:2*n], gg3.cov, rtol=1.e-2, atol=1.e-5)
+        gg3x._rng = np.random.default_rng(1234)
+        cov3 = gg3x.estimate_cov(method)
+        np.testing.assert_allclose(cov23[:2*n,:2*n], cov3)
+        np.testing.assert_allclose(cov23[2*n:,2*n:], cov3)
+        np.testing.assert_allclose(cov23[:2*n,2*n:], cov3)
+        np.testing.assert_allclose(cov23[2*n:,:2*n], cov3)
 
     # Check advertised example to reorder the data vectors with func argument
     func = lambda corrs: np.concatenate([c.xip for c in corrs] + [c.xim for c in corrs])
@@ -810,12 +858,12 @@ def test_gg_jk():
 
     # Check sample covariance estimate
     t0 = time.time()
-    cov_sample = gg3.estimate_cov('sample')
+    cov_sample = gg3.estimate_cov('sample', cross_patch_weight='simple')
     t1 = time.time()
     print('Time to calculate sample covariance = ',t1-t0)
-    print('varxip = ',cov_sample.diagonal()[:n])
+    print('var_xip = ',cov_sample.diagonal()[:n])
     print('ratio = ',cov_sample.diagonal()[:n] / var_xip)
-    print('varxim = ',cov_sample.diagonal()[n:])
+    print('var_xim = ',cov_sample.diagonal()[n:])
     print('ratio = ',cov_sample.diagonal()[n:] / var_xim)
     # It's not too bad ast small scales, but at larger scales the variance in the number of pairs
     # among the different samples gets bigger (since some are near the edge, and others not).
@@ -824,29 +872,36 @@ def test_gg_jk():
     np.testing.assert_allclose(cov_sample.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
 
     # Test design matrix
-    A, w = gg2.build_cov_design_matrix('sample')
+    A, w = gg2.build_cov_design_matrix('sample', cross_patch_weight='simple')
     w /= np.sum(w)
     A -= np.mean(A, axis=0)
     C = 1./(npatch-1) * (w*A.conj().T).dot(A)
     np.testing.assert_allclose(C, cov_sample)
 
+    cov_sample = gg3.estimate_cov('sample', cross_patch_weight='mean')
+    print('sample/mean:')
+    print('var_xip ratio = ',cov_sample.diagonal()[:n] / var_xip)
+    print('var_xim ratio = ',cov_sample.diagonal()[n:] / var_xim)
+    np.testing.assert_allclose(cov_sample.diagonal()[:n], var_xip, rtol=0.6*tol_factor)
+    np.testing.assert_allclose(cov_sample.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
+
     # Check marked-point bootstrap covariance estimate
     t0 = time.time()
     rng_state = gg3.rng.get_state()
-    cov_boot = gg3.estimate_cov('marked_bootstrap')
+    cov_boot = gg3.estimate_cov('marked_bootstrap', cross_patch_weight='simple')
     t1 = time.time()
     print('Time to calculate marked_bootstrap covariance = ',t1-t0)
-    print('varxip = ',cov_boot.diagonal()[:n])
+    print('var_xip = ',cov_boot.diagonal()[:n])
     print('ratio = ',cov_boot.diagonal()[:n] / var_xip)
-    print('varxim = ',cov_boot.diagonal()[n:])
+    print('var_xim = ',cov_boot.diagonal()[n:])
     print('ratio = ',cov_boot.diagonal()[n:] / var_xim)
     # Not really much better than sample.
-    np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.6*tol_factor)
     np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
 
     # Test design matrix
     gg3.rng.set_state(rng_state)
-    A, w = gg2.build_cov_design_matrix('marked_bootstrap')
+    A, w = gg2.build_cov_design_matrix('marked_bootstrap', cross_patch_weight='simple')
     nboot = A.shape[0]
     A -= np.mean(A, axis=0)
     C = 1./(nboot-1) * A.conj().T.dot(A)
@@ -862,22 +917,30 @@ def test_gg_jk():
     np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.5*tol_factor)
     np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
 
+    cov_boot = gg3.estimate_cov('marked_bootstrap', cross_patch_weight='mean')
+    print('marked/mean:')
+    print('var_xip ratio = ',cov_boot.diagonal()[:n] / var_xip)
+    print('var_xim ratio = ',cov_boot.diagonal()[n:] / var_xim)
+    # Not really much better than sample.
+    np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.6*tol_factor)
+    np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
+
     # Check bootstrap covariance estimate.
     t0 = time.time()
     rng_state = gg3.rng.get_state()
-    cov_boot = gg3.estimate_cov('bootstrap')
+    cov_boot = gg3.estimate_cov('bootstrap', cross_patch_weight='simple')
     t1 = time.time()
     print('Time to calculate bootstrap covariance = ',t1-t0)
-    print('varxip = ',cov_boot.diagonal()[:n])
+    print('var_xip = ',cov_boot.diagonal()[:n])
     print('ratio = ',cov_boot.diagonal()[:n] / var_xip)
-    print('varxim = ',cov_boot.diagonal()[n:])
+    print('var_xim = ',cov_boot.diagonal()[n:])
     print('ratio = ',cov_boot.diagonal()[n:] / var_xim)
     np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.3*tol_factor)
-    np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
+    np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.4*tol_factor)
 
     # Test design matrix
     gg3.rng.set_state(rng_state)
-    A, w = gg2.build_cov_design_matrix('bootstrap')
+    A, w = gg2.build_cov_design_matrix('bootstrap', cross_patch_weight='simple')
     nboot = A.shape[0]
     A -= np.mean(A, axis=0)
     C = 1./(nboot-1) * A.conj().T.dot(A)
@@ -887,6 +950,20 @@ def test_gg_jk():
     cov_boot = gg4.estimate_cov('bootstrap')
     np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.5*tol_factor)
     np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
+
+    cov_boot = gg3.estimate_cov('bootstrap', cross_patch_weight='mean')
+    print('bootstrap/mean:')
+    print('var_xip ratio = ',cov_boot.diagonal()[:n] / var_xip)
+    print('var_xim ratio = ',cov_boot.diagonal()[n:] / var_xim)
+    np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.6*tol_factor)
+    np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.5*tol_factor)
+
+    cov_boot = gg3.estimate_cov('bootstrap', cross_patch_weight='geom')
+    print('bootstrap/geom:')
+    print('var_xip ratio = ',cov_boot.diagonal()[:n] / var_xip)
+    print('var_xim ratio = ',cov_boot.diagonal()[n:] / var_xim)
+    np.testing.assert_allclose(cov_boot.diagonal()[:n], var_xip, rtol=0.4*tol_factor)
+    np.testing.assert_allclose(cov_boot.diagonal()[n:], var_xim, rtol=0.3*tol_factor)
 
     # Check that these still work after roundtripping through a file.
     file_name = os.path.join('output','test_write_results_gg.pkl')
@@ -1127,14 +1204,26 @@ def test_ng_jk():
     print('ratio = ',ng3.varxi / var_xi)
     np.testing.assert_allclose(ng3.weight, ng2.weight)
     np.testing.assert_allclose(ng3.xi, ng2.xi)
-    np.testing.assert_allclose(np.log(ng3.varxi), np.log(var_xi), atol=0.4*tol_factor)
-    np.testing.assert_allclose(np.log(ng3.cov.diagonal()), np.log(var_xi), atol=0.4*tol_factor)
+    np.testing.assert_allclose(np.log(ng3.varxi), np.log(var_xi), atol=0.5*tol_factor)
+    np.testing.assert_allclose(np.log(ng3.cov.diagonal()), np.log(var_xi), atol=0.5*tol_factor)
 
     # Check using estimate_cov
     t0 = time.time()
     np.testing.assert_allclose(ng2.estimate_cov('jackknife'), ng3.cov)
     t1 = time.time()
     print('Time to calculate jackknife covariance = ',t1-t0)
+
+    cov = ng3.estimate_cov('jackknife', cross_patch_weight='simple')
+    print('cpw=simple: ratio = ',cov.diagonal()/var_xi)
+    np.testing.assert_allclose(np.log(cov.diagonal()), np.log(var_xi), atol=0.4*tol_factor)
+
+    cov = ng3.estimate_cov('jackknife', cross_patch_weight='mean')
+    print('cpw=mean: ratio = ',cov.diagonal()/var_xi)
+    np.testing.assert_allclose(np.log(cov.diagonal()), np.log(var_xi), atol=0.6*tol_factor)
+
+    cov = ng3.estimate_cov('jackknife', cross_patch_weight='match')
+    print('cpw=match: ratio = ',cov.diagonal()/var_xi)
+    np.testing.assert_allclose(np.log(cov.diagonal()), np.log(var_xi), atol=0.5*tol_factor)
 
     # Check only using patches for one of the two catalogs.
     # Not as good as using patches for both, but not much worse.
@@ -1191,9 +1280,13 @@ def test_ng_jk():
     print('ratio = ',cov_sample.diagonal() / var_xi)
     np.testing.assert_allclose(np.log(cov_sample.diagonal()), np.log(var_xi), atol=0.7*tol_factor)
 
-    cov_sample = ng5.estimate_cov('sample')
+    cov_sample = ng5.estimate_cov('sample', cross_patch_weight='simple')
     print('varxi = ',cov_sample.diagonal())
     print('ratio = ',cov_sample.diagonal() / var_xi)
+    np.testing.assert_allclose(np.log(cov_sample.diagonal()), np.log(var_xi), atol=0.7*tol_factor)
+
+    cov_sample = ng3.estimate_cov('sample', cross_patch_weight='mean')
+    print('cpw=mean ratio = ',cov_sample.diagonal() / var_xi)
     np.testing.assert_allclose(np.log(cov_sample.diagonal()), np.log(var_xi), atol=0.7*tol_factor)
 
     # Check marked_bootstrap covariance estimate
@@ -1213,22 +1306,34 @@ def test_ng_jk():
     print('ratio = ',cov_boot.diagonal() / var_xi)
     np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.6*tol_factor)
 
+    cov_boot = ng3.estimate_cov('marked_bootstrap', cross_patch_weight='mean')
+    print('marked/mean ratio = ',cov_boot.diagonal() / var_xi)
+    np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.4*tol_factor)
+
     # Check bootstrap covariance estimate.
     t0 = time.time()
-    cov_boot = ng3.estimate_cov('bootstrap')
+    cov_boot = ng3.estimate_cov('bootstrap', cross_patch_weight='simple')
     t1 = time.time()
     print('Time to calculate bootstrap covariance = ',t1-t0)
     print('varxi = ',cov_boot.diagonal())
     print('ratio = ',cov_boot.diagonal() / var_xi)
-    np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.3*tol_factor)
-    cov_boot = ng4.estimate_cov('bootstrap')
+    np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.4*tol_factor)
+    cov_boot = ng4.estimate_cov('bootstrap', cross_patch_weight='simple')
     print('varxi = ',cov_boot.diagonal())
     print('ratio = ',cov_boot.diagonal() / var_xi)
-    np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.6*tol_factor)
-    cov_boot = ng5.estimate_cov('bootstrap')
+    np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.7*tol_factor)
+    cov_boot = ng5.estimate_cov('bootstrap', cross_patch_weight='simple')
     print('varxi = ',cov_boot.diagonal())
     print('ratio = ',cov_boot.diagonal() / var_xi)
-    np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.6*tol_factor)
+    np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.5*tol_factor)
+
+    cov_boot = ng3.estimate_cov('bootstrap', cross_patch_weight='mean')
+    print('bootstrap/mean ratio = ',cov_boot.diagonal() / var_xi)
+    np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.7*tol_factor)
+
+    cov_boot = ng3.estimate_cov('bootstrap', cross_patch_weight='geom')
+    print('bootstrap/mean ratio = ',cov_boot.diagonal() / var_xi)
+    np.testing.assert_allclose(np.log(cov_boot.diagonal()), np.log(var_xi), atol=0.4*tol_factor)
 
     # Check that these still work after roundtripping through a file.
     try:
@@ -1291,7 +1396,7 @@ def test_ng_jk():
     print('ratio = ',ng4.varxi / var_xi)
     np.testing.assert_allclose(ng4.weight, ng3.weight, rtol=0.02*tol_factor)
     np.testing.assert_allclose(ng4.xi, ng3.xi, rtol=0.02*tol_factor)
-    np.testing.assert_allclose(np.log(ng4.varxi), np.log(var_xi), atol=0.3*tol_factor)
+    np.testing.assert_allclose(np.log(ng4.varxi), np.log(var_xi), atol=0.4*tol_factor)
 
     # Check using estimate_cov
     t0 = time.time()
@@ -1318,7 +1423,7 @@ def test_ng_jk():
     np.testing.assert_allclose(ng5.weight, ng3.weight, rtol=0.02*tol_factor)
     np.testing.assert_allclose(ng5.xi, ng3.xi, rtol=0.02*tol_factor)
     # This does only slightly worse.
-    np.testing.assert_allclose(np.log(ng5.varxi), np.log(var_xi), atol=0.4*tol_factor)
+    np.testing.assert_allclose(np.log(ng5.varxi), np.log(var_xi), atol=0.5*tol_factor)
 
     # Check using estimate_cov
     t0 = time.time()
@@ -1481,7 +1586,8 @@ def test_nn_jk():
     print('Patch\tNlens')
     for i in range(npatch):
         print('%d\t%d'%(i,np.sum(catp.w[catp.patch==i])))
-    nn2 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., var_method='shot')
+    nn2 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., var_method='shot',
+                                 rng=rng)
     nr2 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., var_method='shot')
     t0 = time.time()
     nn2.process(catp)
@@ -1512,7 +1618,8 @@ def test_nn_jk():
     np.testing.assert_allclose(nn1.estimate_cov('shot'), varxib1)
 
     # Now run with jackknife variance estimate.  Should be much better.
-    nn3 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., var_method='jackknife')
+    nn3 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., var_method='jackknife',
+                                 rng=rng)
     nr3 = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30.)
     t0 = time.time()
     nn3.process(catp)
@@ -1538,20 +1645,63 @@ def test_nn_jk():
 
     # Check using estimate_cov
     t0 = time.time()
-    cov3 = nn2.estimate_cov('jackknife')
+    cov3 = nn2.estimate_cov('jackknife', cross_patch_weight='simple')
     t1 = time.time()
     print('Time to calculate jackknife covariance = ',t1-t0)
     print('varxi = ',cov3.diagonal())
-    np.testing.assert_allclose(cov3, nn3.cov)
+    np.testing.assert_allclose(np.log(cov3.diagonal()), np.log(var_xib), atol=0.3*tol_factor)
+
+    cov3 = nn2.estimate_cov('jackknife', cross_patch_weight='mean')
+    print('jackknife/mean ratio = ',cov3.diagonal() / var_xib)
+    np.testing.assert_allclose(np.log(cov3.diagonal()), np.log(var_xib), atol=0.3*tol_factor)
+
+    cov3 = nn2.estimate_cov('jackknife', cross_patch_weight='match')
+    print('jackknife/mean ratio = ',cov3.diagonal() / var_xib)
+    np.testing.assert_allclose(np.log(cov3.diagonal()), np.log(var_xib), atol=0.3*tol_factor)
 
     # Check sample covariance estimate
     t0 = time.time()
-    cov3b = nn3.estimate_cov('sample')
+    cov3 = nn3.estimate_cov('sample')
     t1 = time.time()
     print('Time to calculate sample covariance = ',t1-t0)
-    print('varxi = ',cov3b.diagonal())
-    print('ratio = ',cov3b.diagonal() / var_xib)
-    np.testing.assert_allclose(cov3b.diagonal(), var_xib, rtol=0.4*tol_factor)
+    print('varxi = ',cov3.diagonal())
+    print('ratio = ',cov3.diagonal() / var_xib)
+    np.testing.assert_allclose(np.log(cov3.diagonal()), np.log(var_xib), atol=0.4*tol_factor)
+
+    cov3 = nn2.estimate_cov('sample', cross_patch_weight='mean')
+    print('sample/mean ratio = ',cov3.diagonal() / var_xib)
+    np.testing.assert_allclose(np.log(cov3.diagonal()), np.log(var_xib), atol=0.4*tol_factor)
+
+    # Check marked bootstrap covariance estimate
+    # Both bootstrap methods are really bad here for some reason.
+    t0 = time.time()
+    cov3 = nn3.estimate_cov('marked_bootstrap')
+    t1 = time.time()
+    print('Time to calculate marked bootstrap covariance = ',t1-t0)
+    print('varxi = ',cov3.diagonal())
+    print('ratio = ',cov3.diagonal() / var_xib)
+    np.testing.assert_allclose(np.log(cov3.diagonal()), np.log(var_xib), atol=1.4*tol_factor)
+
+    cov3 = nn2.estimate_cov('marked_bootstrap', cross_patch_weight='mean')
+    print('marked/mean ratio = ',cov3.diagonal() / var_xib)
+    np.testing.assert_allclose(np.log(cov3.diagonal()), np.log(var_xib), atol=1.4*tol_factor)
+
+    # Check bootstrap covariance estimate
+    t0 = time.time()
+    cov3 = nn3.estimate_cov('bootstrap', cross_patch_weight='simple')
+    t1 = time.time()
+    print('Time to calculate bootstrap covariance = ',t1-t0)
+    print('varxi = ',cov3.diagonal())
+    print('ratio = ',cov3.diagonal() / var_xib)
+    np.testing.assert_allclose(np.log(cov3.diagonal()), np.log(var_xib), atol=1.5*tol_factor)
+
+    cov3 = nn2.estimate_cov('bootstrap', cross_patch_weight='mean')
+    print('bootstrap/mean ratio = ',cov3.diagonal() / var_xib)
+    np.testing.assert_allclose(np.log(cov3.diagonal()), np.log(var_xib), atol=1.5*tol_factor)
+
+    cov3 = nn2.estimate_cov('bootstrap', cross_patch_weight='geom')
+    print('bootstrap/geom ratio = ',cov3.diagonal() / var_xib)
+    np.testing.assert_allclose(np.log(cov3.diagonal()), np.log(var_xib), atol=1.4*tol_factor)
 
     # Check that these still work after roundtripping through a file.
     try:
@@ -1854,7 +2004,8 @@ def test_kappa_jk():
     # And at larger scales, the power drops off too quickly (more quickly than shear),
     # since convergence is a more local effect.  So for this choice of ngal, nlens,
     # and power spectrum, this is where the covariance estimate works out reasonably well.
-    nk = treecorr.NKCorrelation(bin_size=0.3, min_sep=10, max_sep=30., var_method='jackknife')
+    nk = treecorr.NKCorrelation(bin_size=0.3, min_sep=10, max_sep=30., var_method='jackknife',
+                                rng=rng)
     t0 = time.time()
     nk.process(cat1p, cat2p)
     t1 = time.time()
@@ -1865,12 +2016,54 @@ def test_kappa_jk():
     np.testing.assert_array_less((nk.xi - mean_nk_xi)**2/var_nk_xi, 25) # within 5 sigma
     np.testing.assert_allclose(np.log(nk.varxi), np.log(var_nk_xi), atol=0.7*tol_factor)
 
+    cov_xi = nk.estimate_cov('jackknife', cross_patch_weight='simple')
+    print('jackknife/simple ratio = ',cov_xi.diagonal() / var_nk_xi)
+    np.testing.assert_allclose(np.log(nk.varxi), np.log(var_nk_xi), atol=0.7*tol_factor)
+
+    cov_xi = nk.estimate_cov('jackknife', cross_patch_weight='mean')
+    print('jackknife/mean ratio = ',cov_xi.diagonal() / var_nk_xi)
+    np.testing.assert_allclose(np.log(nk.varxi), np.log(var_nk_xi), atol=0.7*tol_factor)
+
+    cov_xi = nk.estimate_cov('jackknife', cross_patch_weight='match')
+    print('jackknife/match ratio = ',cov_xi.diagonal() / var_nk_xi)
+    np.testing.assert_allclose(np.log(nk.varxi), np.log(var_nk_xi), atol=0.7*tol_factor)
+
     # Check sample covariance estimate
-    cov_xi = nk.estimate_cov('sample')
+    cov_xi = nk.estimate_cov('sample', cross_patch_weight='simple')
     print('NK sample variance:')
     print('varxi = ',cov_xi.diagonal())
     print('ratio = ',cov_xi.diagonal() / var_nk_xi)
-    np.testing.assert_allclose(cov_xi.diagonal(), var_nk_xi, rtol=0.6*tol_factor)
+    np.testing.assert_allclose(np.log(nk.varxi), np.log(var_nk_xi), atol=0.7*tol_factor)
+
+    cov_xi = nk.estimate_cov('jackknife', cross_patch_weight='mean')
+    print('sample/mean ratio = ',cov_xi.diagonal() / var_nk_xi)
+    np.testing.assert_allclose(np.log(nk.varxi), np.log(var_nk_xi), atol=0.7*tol_factor)
+
+    # Check marked bootstrap covariance estimate
+    cov_xi = nk.estimate_cov('marked_bootstrap', cross_patch_weight='simple')
+    print('NK marked bootstrap variance:')
+    print('varxi = ',cov_xi.diagonal())
+    print('ratio = ',cov_xi.diagonal() / var_nk_xi)
+    np.testing.assert_allclose(np.log(nk.varxi), np.log(var_nk_xi), atol=0.7*tol_factor)
+
+    cov_xi = nk.estimate_cov('marked_bootstrap', cross_patch_weight='mean')
+    print('marked/mean ratio = ',cov_xi.diagonal() / var_nk_xi)
+    np.testing.assert_allclose(np.log(nk.varxi), np.log(var_nk_xi), atol=0.7*tol_factor)
+
+    # Check bootstrap covariance estimate
+    cov_xi = nk.estimate_cov('bootstrap', cross_patch_weight='simple')
+    print('NK bootstrap variance:')
+    print('varxi = ',cov_xi.diagonal())
+    print('ratio = ',cov_xi.diagonal() / var_nk_xi)
+    np.testing.assert_allclose(np.log(nk.varxi), np.log(var_nk_xi), atol=0.7*tol_factor)
+
+    cov_xi = nk.estimate_cov('bootstrap', cross_patch_weight='mean')
+    print('bootstrap/mean ratio = ',cov_xi.diagonal() / var_nk_xi)
+    np.testing.assert_allclose(np.log(nk.varxi), np.log(var_nk_xi), atol=0.7*tol_factor)
+
+    cov_xi = nk.estimate_cov('bootstrap', cross_patch_weight='geom')
+    print('bootstrap/geom ratio = ',cov_xi.diagonal() / var_nk_xi)
+    np.testing.assert_allclose(np.log(nk.varxi), np.log(var_nk_xi), atol=0.7*tol_factor)
 
     # Check that these still work after roundtripping through a file.
     try:
@@ -1963,7 +2156,7 @@ def test_kappa_jk():
     print('ratio = ',kk.varxi / var_kk_xi)
     np.testing.assert_allclose(kk.weight, kk.weight)
     np.testing.assert_allclose(kk.xi, kk.xi)
-    np.testing.assert_allclose(np.log(kk.varxi), np.log(var_kk_xi), atol=0.3*tol_factor)
+    np.testing.assert_allclose(np.log(kk.varxi), np.log(var_kk_xi), atol=0.4*tol_factor)
 
     # Check sample covariance estimate
     cov_xi = kk.estimate_cov('sample')
@@ -2028,7 +2221,7 @@ def test_kappa_jk():
     print('ratio = ',kg.varxi / var_kg_xi)
     np.testing.assert_allclose(kg.weight, kg.weight)
     np.testing.assert_allclose(kg.xi, kg.xi)
-    np.testing.assert_allclose(np.log(kg.varxi), np.log(var_kg_xi), atol=0.3*tol_factor)
+    np.testing.assert_allclose(np.log(kg.varxi), np.log(var_kg_xi), atol=0.5*tol_factor)
 
     # Check sample covariance estimate
     cov_xi = kg.estimate_cov('sample')
@@ -2434,30 +2627,51 @@ def test_clusters():
     np.testing.assert_allclose(ng3.xi, ng2.xi)
     np.testing.assert_allclose(np.log(ng3.varxi), np.log(var_xi), atol=0.3*tol_factor)
 
+    cov = ng3.estimate_cov('jackknife', cross_patch_weight='simple')
+    np.testing.assert_allclose(np.log(cov.diagonal()), np.log(var_xi), atol=0.3*tol_factor)
+
+    cov = ng3.estimate_cov('jackknife', cross_patch_weight='mean')
+    np.testing.assert_allclose(np.log(cov.diagonal()), np.log(var_xi), atol=0.4*tol_factor)
+
+    cov = ng3.estimate_cov('jackknife', cross_patch_weight='match')
+    np.testing.assert_allclose(np.log(cov.diagonal()), np.log(var_xi), atol=0.3*tol_factor)
+
     # Check sample covariance estimate
-    t0 = time.time()
     with assert_raises(RuntimeError):
         ng3.estimate_cov('sample')
-    t1 = time.time()
-    print('Time to calculate sample covariance = ',t1-t0)
 
     # Check marked_bootstrap covariance estimate
     t0 = time.time()
-    cov_boot = ng3.estimate_cov('marked_bootstrap')
+    cov = ng3.estimate_cov('marked_bootstrap')
     t1 = time.time()
     print('Time to calculate marked_bootstrap covariance = ',t1-t0)
-    print('varxi = ',cov_boot.diagonal())
-    print('ratio = ',cov_boot.diagonal() / var_xi)
-    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.3*tol_factor)
+    print('varxi = ',cov.diagonal())
+    print('ratio = ',cov.diagonal() / var_xi)
+    np.testing.assert_allclose(cov.diagonal(), var_xi, rtol=0.2*tol_factor)
+
+    cov = ng3.estimate_cov('marked_bootstrap', cross_patch_weight='simple')
+    np.testing.assert_allclose(np.log(cov.diagonal()), np.log(var_xi), atol=0.3*tol_factor)
+
+    cov = ng3.estimate_cov('marked_bootstrap', cross_patch_weight='mean')
+    np.testing.assert_allclose(np.log(cov.diagonal()), np.log(var_xi), atol=0.4*tol_factor)
 
     # Check bootstrap covariance estimate.
     t0 = time.time()
-    cov_boot = ng3.estimate_cov('bootstrap')
+    cov = ng3.estimate_cov('bootstrap')
     t1 = time.time()
     print('Time to calculate bootstrap covariance = ',t1-t0)
-    print('varxi = ',cov_boot.diagonal())
-    print('ratio = ',cov_boot.diagonal() / var_xi)
-    np.testing.assert_allclose(cov_boot.diagonal(), var_xi, rtol=0.5*tol_factor)
+    print('varxi = ',cov.diagonal())
+    print('ratio = ',cov.diagonal() / var_xi)
+    np.testing.assert_allclose(cov.diagonal(), var_xi, rtol=0.5*tol_factor)
+
+    cov = ng3.estimate_cov('bootstrap', cross_patch_weight='simple')
+    np.testing.assert_allclose(np.log(cov.diagonal()), np.log(var_xi), atol=0.3*tol_factor)
+
+    cov = ng3.estimate_cov('bootstrap', cross_patch_weight='mean')
+    np.testing.assert_allclose(np.log(cov.diagonal()), np.log(var_xi), atol=0.4*tol_factor)
+
+    cov = ng3.estimate_cov('bootstrap', cross_patch_weight='geom')
+    np.testing.assert_allclose(np.log(cov.diagonal()), np.log(var_xi), atol=0.3*tol_factor)
 
     # Use a random catalog
     # In this case the locations of the source catalog are fine to use as our random catalog,
@@ -2476,6 +2690,31 @@ def test_clusters():
     np.testing.assert_allclose(ng3b.weight, ng3.weight, rtol=0.02*tol_factor)
     np.testing.assert_allclose(ng3b.xi, ng3.xi, rtol=0.02*tol_factor)
     np.testing.assert_allclose(np.log(ng3b.varxi), np.log(var_xi), atol=0.3*tol_factor)
+
+    cov = ng3b.estimate_cov('jackknife', cross_patch_weight='simple')
+    np.testing.assert_allclose(np.log(cov.diagonal()), np.log(var_xi), atol=0.3*tol_factor)
+
+    cov = ng3b.estimate_cov('jackknife', cross_patch_weight='mean')
+    np.testing.assert_allclose(np.log(cov.diagonal()), np.log(var_xi), atol=0.4*tol_factor)
+
+    cov = ng3b.estimate_cov('jackknife', cross_patch_weight='match')
+    np.testing.assert_allclose(np.log(cov.diagonal()), np.log(var_xi), atol=0.3*tol_factor)
+
+    cov = ng3b.estimate_cov('marked_bootstrap', cross_patch_weight='simple')
+    np.testing.assert_allclose(np.log(cov.diagonal()), np.log(var_xi), atol=0.3*tol_factor)
+
+    cov = ng3b.estimate_cov('marked_bootstrap', cross_patch_weight='mean')
+    np.testing.assert_allclose(np.log(cov.diagonal()), np.log(var_xi), atol=0.3*tol_factor)
+
+    cov = ng3b.estimate_cov('bootstrap', cross_patch_weight='simple')
+    np.testing.assert_allclose(np.log(cov.diagonal()), np.log(var_xi), atol=0.4*tol_factor)
+
+    cov = ng3b.estimate_cov('bootstrap', cross_patch_weight='mean')
+    np.testing.assert_allclose(np.log(cov.diagonal()), np.log(var_xi), atol=0.4*tol_factor)
+
+    cov = ng3b.estimate_cov('bootstrap', cross_patch_weight='geom')
+    np.testing.assert_allclose(np.log(cov.diagonal()), np.log(var_xi), atol=0.3*tol_factor)
+
 
 @timer
 def test_brute_jk():
@@ -2497,27 +2736,29 @@ def test_brute_jk():
         nside = 100
         nlens = 30
         nsource = 500
-        npatch = 16
+        npatch = 8
         rand_factor = 5
         tol_factor = 3
 
     rng = np.random.RandomState(8675309)
     x, y, g1, g2, k = generate_shear_field(nside, rng)
-    indx = rng.choice(range(len(x)),nsource,replace=False)
-    source_cat = treecorr.Catalog(x=x[indx], y=y[indx],
-                                  g1=g1[indx], g2=g2[indx], k=k[indx],
-                                  npatch=npatch, rng=rng)
-    print('source_cat patches = ',np.unique(source_cat.patch))
-    print('len = ',source_cat.nobj, source_cat.ntot)
-    assert source_cat.nobj == nsource
+
     indx = rng.choice(np.where(k>0)[0],nlens,replace=False)
-    print('indx = ',indx)
     lens_cat = treecorr.Catalog(x=x[indx], y=y[indx], k=k[indx],
                                 g1=g1[indx], g2=g2[indx],
-                                patch_centers=source_cat.patch_centers)
+                                npatch=npatch, rng=rng)
     print('lens_cat patches = ',np.unique(lens_cat.patch))
     print('len = ',lens_cat.nobj, lens_cat.ntot)
     assert lens_cat.nobj == nlens
+
+    indx = rng.choice(range(len(x)),nsource,replace=False)
+    source_cat = treecorr.Catalog(x=x[indx], y=y[indx],
+                                  g1=g1[indx], g2=g2[indx], k=k[indx],
+                                  patch_centers=lens_cat.patch_centers)
+    print('source_cat patches = ',np.unique(source_cat.patch))
+    print('len = ',source_cat.nobj, source_cat.ntot)
+    assert source_cat.nobj == nsource
+    assert len(set(source_cat.patch)) == npatch  # Otherwise we'll get errors later.
 
     rand_source_cat = treecorr.Catalog(x=rng.uniform(0,1000,nsource*rand_factor),
                                        y=rng.uniform(0,1000,nsource*rand_factor),
@@ -2532,28 +2773,77 @@ def test_brute_jk():
 
     # Start with NK, since relatively simple.
     nk = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True,
-                                var_method='jackknife')
+                                var_method='jackknife', cross_patch_weight='simple')
     nk.process(lens_cat, source_cat)
-    print('TreeCorr jackknife:')
+    print('TreeCorr jackknife/simple:')
     print('nk = ',nk.xi)
     print('var = ',nk.varxi)
 
     # Now do this using brute force calculation.
-    print('Direct jackknife:')
-    xi_list = []
+    xi_list_jk_simple = []
+    xi_list_jk_mean = []
+    xi_list_jk_match = []
+    xi_list_sam_simple = []
+    xi_list_sam_mean = []
+    w_list_sam_simple = []
+    w_list_sam_mean = []
+    # Mohammad and Percival (2021) Eqn. 27
+    alpha = npatch / (2 + np.sqrt(2)*(npatch-1))
     for i in range(npatch):
+        # jackknife simple
         lens_cat1 = treecorr.Catalog(x=lens_cat.x[lens_cat.patch != i],
                                      y=lens_cat.y[lens_cat.patch != i])
         source_cat1 = treecorr.Catalog(x=source_cat.x[source_cat.patch != i],
                                        y=source_cat.y[source_cat.patch != i],
                                        k=source_cat.k[source_cat.patch != i])
-        nk1 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
+        nk1 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
         nk1.process(lens_cat1, source_cat1)
-        xi_list.append(nk1.xi)
-    xi_list = np.array(xi_list)
-    xi = np.mean(xi_list, axis=0)
-    print('mean xi = ',xi)
-    C = np.cov(xi_list.T, bias=True) * (len(xi_list)-1)
+        xi_list_jk_simple.append(nk1.xi.copy())
+
+        # jackknife mean
+        nk1.process(lens_cat1, source_cat1, initialize=True, finalize=False)
+        nl0 = np.sum(lens_cat.patch == i)
+        lens_cat0 = treecorr.Catalog(x=lens_cat.x[lens_cat.patch == i],
+                                     y=lens_cat.y[lens_cat.patch == i],
+                                     w=np.full(nl0, 0.5))
+        nk1.process(lens_cat0, source_cat1, initialize=False, finalize=False)
+        ns0 = np.sum(source_cat.patch == i)
+        source_cat0 = treecorr.Catalog(x=source_cat.x[source_cat.patch == i],
+                                       y=source_cat.y[source_cat.patch == i],
+                                       k=source_cat.k[source_cat.patch == i],
+                                       w=np.full(ns0, 0.5))
+        nk1.process(lens_cat1, source_cat0, initialize=False, finalize=True)
+        xi_list_jk_mean.append(nk1.xi.copy())
+
+        # jackknife match
+        nk1.process(lens_cat1, source_cat1, initialize=True, finalize=False)
+        lens_cat2 = treecorr.Catalog(x=lens_cat0.x, y=lens_cat0.y, w=np.full(nl0, 1-alpha))
+        nk1.process(lens_cat2, source_cat1, initialize=False, finalize=False)
+        source_cat2 = treecorr.Catalog(x=source_cat0.x, y=source_cat0.y, k=source_cat0.k,
+                                       w=np.full(ns0, 1-alpha))
+        nk1.process(lens_cat1, source_cat2, initialize=False, finalize=True)
+        xi_list_jk_match.append(nk1.xi.copy())
+
+        # sample simple
+        nk1.process(lens_cat0, source_cat)
+        xi_list_sam_simple.append(nk1.xi.copy())
+        w_list_sam_simple.append(np.sum(nk1.weight))
+
+        # simple mean
+        nk1.process(lens_cat0, source_cat0, initialize=True, finalize=False)
+        nk1.xi[:] *= 4  # We want w*w = 1 here, not 0.25.
+        nk1.weight[:] *= 4
+        nk1.process(lens_cat0, source_cat1, initialize=False, finalize=False)
+        nk1.process(lens_cat1, source_cat0, initialize=False, finalize=True)
+        xi_list_sam_mean.append(nk1.xi.copy())
+        w_list_sam_mean.append(np.sum(nk1.weight))
+
+    # Check jackknife with cross_patch_weight=simple
+    print('Direct jackknife/simple:')
+    v = np.array(xi_list_jk_simple)
+    xi = np.mean(v, axis=0)
+    print('xi = ',xi)
+    C = np.cov(v.T, bias=True) * (npatch-1)
     varxi = np.diagonal(C)
     print('varxi = ',varxi)
     # xi isn't exact because of the variation in denominators, which doesn't commute with the mean.
@@ -2561,9 +2851,57 @@ def test_brute_jk():
     # The difference gets less as npatch increases.
     np.testing.assert_allclose(nk.xi, xi, rtol=0.01 * tol_factor)
     np.testing.assert_allclose(nk.varxi, varxi)
+    np.testing.assert_allclose(nk.cov, C)
 
+    # Check jackknife with cross_patch_weight=mean
+    v = np.array(xi_list_jk_mean)
+    xi = np.mean(v, axis=0)
+    C = np.cov(v.T, bias=True) * (npatch-1)
+    cov = nk.estimate_cov(method='jackknife', cross_patch_weight='mean')
+    np.testing.assert_allclose(nk.xi, xi, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(cov, C)
+
+    # Check jackknife with cross_patch_weight=match
+    v = np.array(xi_list_jk_match)
+    xi = np.mean(v, axis=0)
+    C = np.cov(v.T, bias=True) * (npatch-1)
+    cov = nk.estimate_cov(method='jackknife', cross_patch_weight='match')
+    np.testing.assert_allclose(nk.xi, xi, rtol=0.01 * tol_factor)
+    np.testing.assert_allclose(cov, C)
+
+    # Check sample with cross_patch_weight=simple
+    v = np.array(xi_list_sam_simple)
+    w = np.array(w_list_sam_simple)
+    w /= np.sum(w)
+    xi = np.mean(xi_list_sam_simple, axis=0)
+    C = (w * (v-xi).T).dot(v-xi) / (npatch-1)
+    cov = nk.estimate_cov(method='sample', cross_patch_weight='simple')
+    np.testing.assert_allclose(cov, C)
+
+    # Check sample with cross_patch_weight=mean
+    v = np.array(xi_list_sam_mean)
+    w = np.array(w_list_sam_mean)
+    w /= np.sum(w)
+    xi = np.mean(xi_list_sam_mean, axis=0)
+    C = (w * (v-xi).T).dot(v-xi) / (npatch-1)
+    cov = nk.estimate_cov(method='sample', cross_patch_weight='mean')
+    np.testing.assert_allclose(cov, C)
+
+    with assert_raises(ValueError):
+        nk.estimate_cov(method='jackknife', cross_patch_weight='invalid')
+    with assert_raises(ValueError):
+        nk.estimate_cov(method='jackknife', cross_patch_weight='geom')
+    with assert_raises(ValueError):
+        nk.estimate_cov(method='sample', cross_patch_weight='invalid')
+    with assert_raises(ValueError):
+        nk.estimate_cov(method='sample', cross_patch_weight='geom')
+    with assert_raises(ValueError):
+        nk.estimate_cov(method='sample', cross_patch_weight='match')
+
+    # For the rest, just do jackknife, simple, since it's simpler and the above tests
+    # verify the diffent cross_patch_weight options sufficiently well.
     # Repeat with randoms.
-    rk = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
+    rk = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
     rk.process(rand_lens_cat, source_cat)
     nk.calculateXi(rk=rk)
     print('With randoms:')
@@ -2580,30 +2918,32 @@ def test_brute_jk():
         source_cat1 = treecorr.Catalog(x=source_cat.x[source_cat.patch != i],
                                        y=source_cat.y[source_cat.patch != i],
                                        k=source_cat.k[source_cat.patch != i])
-        nk1 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
+        nk1 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
         nk1.process(lens_cat1, source_cat1)
-        rk1 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
+        rk1 = treecorr.NKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
         rk1.process(rand_lens_cat1, source_cat1)
         nk1.calculateXi(rk=rk1)
         xi_list.append(nk1.xi)
     xi_list = np.array(xi_list)
-    C = np.cov(xi_list.T, bias=True) * (len(xi_list)-1)
+    C = np.cov(xi_list.T, bias=True) * (npatch-1)
     varxi = np.diagonal(C)
     print('var = ',varxi)
     np.testing.assert_allclose(nk.varxi, varxi)
+    np.testing.assert_allclose(nk.cov, C)
 
     # Repeat for NG, GG, KK, KG
+    # Note: that the shear ones need brute, not just bin_slop=0 to be exact
     ng = treecorr.NGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True,
-                                var_method='jackknife')
+                                var_method='jackknife', cross_patch_weight='simple')
     ng.process(lens_cat, source_cat)
     gg = treecorr.GGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True,
-                                var_method='jackknife')
+                                var_method='jackknife', cross_patch_weight='simple')
     gg.process(source_cat)
-    kk = treecorr.KKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True,
-                                var_method='jackknife')
+    kk = treecorr.KKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0,
+                                var_method='jackknife', cross_patch_weight='simple')
     kk.process(source_cat)
     kg = treecorr.KGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True,
-                                var_method='jackknife')
+                                var_method='jackknife', cross_patch_weight='simple')
     kg.process(lens_cat, source_cat)
 
     ng_xi_list = []
@@ -2627,7 +2967,7 @@ def test_brute_jk():
         gg1.process(source_cat1)
         gg_xip_list.append(gg1.xip)
         gg_xim_list.append(gg1.xim)
-        kk1 = treecorr.KKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
+        kk1 = treecorr.KKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
         kk1.process(source_cat1)
         kk_xi_list.append(kk1.xi)
         kg1 = treecorr.KGCorrelation(bin_size=0.3, min_sep=10., max_sep=30., brute=True)
@@ -2681,7 +3021,7 @@ def test_brute_jk():
         ng1.calculateXi(rg=rg1)
         xi_list.append(ng1.xi)
     xi_list = np.array(xi_list)
-    C = np.cov(xi_list.T, bias=True) * (len(xi_list)-1)
+    C = np.cov(xi_list.T, bias=True) * (npatch-1)
     varxi = np.diagonal(C)
     print('NG with randoms:')
     print('treecorr jackknife varxi = ',ng.varxi)
@@ -2694,16 +3034,16 @@ def test_brute_jk():
     # 3. (DD-2RD+RR)/RR
     # 4. (DD-DR-RD+RR)/RR
     dd = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0,
-                                var_method='jackknife')
+                                var_method='jackknife', cross_patch_weight='simple')
     dd.process(lens_cat, source_cat)
     rr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0,
-                                var_method='jackknife')
+                                var_method='jackknife', cross_patch_weight='simple')
     rr.process(rand_lens_cat, rand_source_cat)
     rd = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0,
-                                var_method='jackknife')
+                                var_method='jackknife', cross_patch_weight='simple')
     rd.process(rand_lens_cat, source_cat)
     dr = treecorr.NNCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0,
-                                var_method='jackknife')
+                                var_method='jackknife', cross_patch_weight='simple')
     dr.process(lens_cat, rand_source_cat)
 
     # Now do this using brute force calculation.
@@ -2736,7 +3076,7 @@ def test_brute_jk():
     print('(DD-RR)/RR')
     xi1_list = np.array(xi1_list)
     xi1, varxi1 = dd.calculateXi(rr=rr)
-    varxi = np.diagonal(np.cov(xi1_list.T, bias=True)) * (len(xi1_list)-1)
+    varxi = np.diagonal(np.cov(xi1_list.T, bias=True)) * (npatch-1)
     print('treecorr jackknife varxi = ',varxi1)
     print('direct jackknife varxi = ',varxi)
     np.testing.assert_allclose(dd.varxi, varxi)
@@ -2744,7 +3084,7 @@ def test_brute_jk():
     print('(DD-2DR+RR)/RR')
     xi2_list = np.array(xi2_list)
     xi2, varxi2 = dd.calculateXi(rr=rr, dr=dr)
-    varxi = np.diagonal(np.cov(xi2_list.T, bias=True)) * (len(xi2_list)-1)
+    varxi = np.diagonal(np.cov(xi2_list.T, bias=True)) * (npatch-1)
     print('treecorr jackknife varxi = ',varxi2)
     print('direct jackknife varxi = ',varxi)
     np.testing.assert_allclose(dd.varxi, varxi)
@@ -2752,7 +3092,7 @@ def test_brute_jk():
     print('(DD-2RD+RR)/RR')
     xi3_list = np.array(xi3_list)
     xi3, varxi3 = dd.calculateXi(rr=rr, rd=rd)
-    varxi = np.diagonal(np.cov(xi3_list.T, bias=True)) * (len(xi3_list)-1)
+    varxi = np.diagonal(np.cov(xi3_list.T, bias=True)) * (npatch-1)
     print('treecorr jackknife varxi = ',varxi3)
     print('direct jackknife varxi = ',varxi)
     np.testing.assert_allclose(dd.varxi, varxi)
@@ -2760,10 +3100,207 @@ def test_brute_jk():
     print('(DD-DR-RD+RR)/RR')
     xi4_list = np.array(xi4_list)
     xi4, varxi4 = dd.calculateXi(rr=rr, rd=rd, dr=dr)
-    varxi = np.diagonal(np.cov(xi4_list.T, bias=True)) * (len(xi4_list)-1)
+    varxi = np.diagonal(np.cov(xi4_list.T, bias=True)) * (npatch-1)
     print('treecorr jackknife varxi = ',varxi4)
     print('direct jackknife varxi = ',varxi)
     np.testing.assert_allclose(dd.varxi, varxi)
+
+@timer
+def test_brute_bootstrap():
+    # Similar to the above test, but for the two bootstrap methods
+
+    # Skip this test on windows, since it is vv slow.
+    if os.name == 'nt': return
+
+    if __name__ == '__main__':
+        nside = 100
+        ngal = 5000
+        npatch = 32
+        nboot = 200
+        tol_factor = 1
+    else:
+        nside = 100
+        ngal = 500
+        npatch = 8
+        nboot = 50
+        tol_factor = 1
+
+    rng = np.random.default_rng(8675309)
+    x, y, _, _, k = generate_shear_field(nside, rng)
+
+    indx = rng.choice(range(len(x)), ngal, replace=False)
+    cat = treecorr.Catalog(x=x[indx], y=y[indx], k=k[indx], npatch=npatch)
+    print('patches = ',np.unique(cat.patch))
+    print('len = ',cat.nobj, cat.ntot)
+    assert cat.nobj == ngal
+
+    # This rng will be used for the bootstrap realization.
+    rng1 = np.random.default_rng(1234)
+    kk = treecorr.KKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0, rng=rng1,
+                                var_method='bootstrap', cross_patch_weight='simple',
+                                num_bootstrap=nboot)
+    kk.process(cat)
+    print('TreeCorr bootstrap/simple:')
+    print('xi = ',kk.xi)
+    print('var = ',kk.varxi)
+
+    # Now do this using brute force calculation.
+    xi_list_boot_simple = []
+    xi_list_boot_mean = []
+    xi_list_boot_geom = []
+    xi_list_mark_simple = []
+    xi_list_mark_mean = []
+    rng2 = np.random.default_rng(1234)
+    kk1 = treecorr.KKCorrelation(bin_size=0.3, min_sep=10., max_sep=30., bin_slop=0)
+    kk2 = kk1.copy()
+    kk3 = kk1.copy()
+    for i in range(nboot):
+        index = rng2.choice(np.arange(npatch), size=npatch, replace=True)
+
+        # bootstrap simple:
+        kk1.clear()
+        for i in index:
+            kk1.process_auto(cat.patches[i])
+            for j in index:
+                if j < i:
+                    kk1.process_cross(cat.patches[i], cat.patches[j])
+        kk1.finalize(0,0)
+        xi_list_boot_simple.append(kk1.xi.copy())
+
+        # bootstrap mean, geom
+        index2, counts = np.unique(index, return_counts=True)
+        kk1.clear()  # for mean
+        kk2.clear()  # for geom
+        for i,w1 in zip(index2,counts):
+            kk3.clear()
+            kk3.process_auto(cat.patches[i], corr_only=True)
+            kk3.xi[:] *= w1
+            kk3.weight[:] *= w1
+            kk1 += kk3
+            kk2 += kk3
+            for j,w2 in zip(index2,counts):
+                if i <= j: continue
+                kk3.clear()
+                kk3.process_cross(cat.patches[i], cat.patches[j], corr_only=True)
+                kk4 = kk3.copy()
+                kk3.xi[:] *= (w1+w2)/2.
+                kk3.weight[:] *= (w1+w2)/2.
+                kk1 += kk3
+                kk4.xi[:] *= (w1*w2)**0.5
+                kk4.weight[:] *= (w1*w2)**0.5
+                kk2 += kk4
+            for j in range(npatch):
+                if j in index2: continue
+                kk3.clear()
+                kk3.process_cross(cat.patches[i], cat.patches[j], corr_only=True)
+                kk3.xi[:] *= w1/2.
+                kk3.weight[:] *= w1/2.
+                kk1 += kk3
+        kk1.finalize(0,0)
+        kk2.finalize(0,0)
+        xi_list_boot_mean.append(kk1.xi.copy())
+        xi_list_boot_geom.append(kk2.xi.copy())
+
+        # marked simple
+        kk1.clear()
+        for i in index:
+            for j in range(npatch):
+                kk2.clear()
+                if i == j:
+                    kk2.process_auto(cat.patches[i], corr_only=True)
+                elif i < j:
+                    kk2.process_cross(cat.patches[i], cat.patches[j], corr_only=True)
+                kk1 += kk2
+        kk1.finalize(0,0)
+        xi_list_mark_simple.append(kk1.xi.copy())
+
+        # marked mean
+        kk1.clear()
+        for i in index:
+            for j in range(npatch):
+                kk2.clear()
+                if i == j:
+                    kk2.process_auto(cat.patches[i], corr_only=True)
+                else:
+                    kk2.process_cross(cat.patches[i], cat.patches[j], corr_only=True)
+                    kk2.xi[:] *= 0.5
+                    kk2.weight[:] *= 0.5
+                kk1 += kk2
+        kk1.finalize(0,0)
+        xi_list_mark_mean.append(kk1.xi.copy())
+
+    # Check bootstrap with cross_patch_weight=simple
+    print('Direct bootstrap/simple:')
+    v = np.array(xi_list_boot_simple)
+    xi = np.mean(v, axis=0)
+    print('xi = ',xi)
+    C = np.cov(v.T)
+    varxi = np.diagonal(C)
+    print('varxi = ',varxi)
+    # This isn't expected to be exact, since patch selection is random.  But it should be closish.
+    np.testing.assert_allclose(kk.xi, xi, rtol=0.03 * tol_factor)
+    np.testing.assert_allclose(kk.varxi, varxi)
+    np.testing.assert_allclose(kk.cov, C)
+
+    # Check bootstrap with cross_patch_weight=mean
+    print('Direct bootstrap/mean:')
+    v = np.array(xi_list_boot_mean)
+    xi = np.mean(v, axis=0)
+    C = np.cov(v.T)
+    kk._rng = np.random.default_rng(1234)
+    cov = kk.estimate_cov(method='bootstrap', cross_patch_weight='mean')
+    np.testing.assert_allclose(kk.xi, xi, rtol=0.03 * tol_factor)
+    print('varxi = ',np.diagonal(cov))
+    print('direct = ',np.diagonal(C))
+    np.testing.assert_allclose(cov, C)
+
+    # Check bootstrap with cross_patch_weight=geom
+    print('Direct bootstrap/geom:')
+    v = np.array(xi_list_boot_geom)
+    xi = np.mean(v, axis=0)
+    C = np.cov(v.T)
+    kk._rng = np.random.default_rng(1234)
+    cov = kk.estimate_cov(method='bootstrap', cross_patch_weight='geom')
+    np.testing.assert_allclose(kk.xi, xi, rtol=0.03 * tol_factor)
+    print('varxi = ',np.diagonal(cov))
+    print('direct = ',np.diagonal(C))
+    np.testing.assert_allclose(cov, C)
+
+    # Check marked_bootstrap with cross_patch_weight=simple
+    print('Direct marked_bootstrap/simple:')
+    v = np.array(xi_list_mark_simple)
+    xi = np.mean(v, axis=0)
+    C = np.cov(v.T)
+    kk._rng = np.random.default_rng(1234)
+    cov = kk.estimate_cov(method='marked_bootstrap', cross_patch_weight='simple')
+    np.testing.assert_allclose(kk.xi, xi, rtol=0.03 * tol_factor)
+    print('varxi = ',np.diagonal(cov))
+    print('direct = ',np.diagonal(C))
+    np.testing.assert_allclose(cov, C)
+
+    # Check marked_bootstrap with cross_patch_weight=mean
+    print('Direct marked_bootstrap/mean:')
+    v = np.array(xi_list_mark_mean)
+    xi = np.mean(v, axis=0)
+    C = np.cov(v.T)
+    kk._rng = np.random.default_rng(1234)
+    cov = kk.estimate_cov(method='marked_bootstrap', cross_patch_weight='mean')
+    np.testing.assert_allclose(kk.xi, xi, rtol=0.03 * tol_factor)
+    print('varxi = ',np.diagonal(cov))
+    print('direct = ',np.diagonal(C))
+    np.testing.assert_allclose(cov, C)
+
+    with assert_raises(ValueError):
+        kk.estimate_cov(method='bootstrap', cross_patch_weight='invalid')
+    with assert_raises(ValueError):
+        kk.estimate_cov(method='bootstrap', cross_patch_weight='match')
+    with assert_raises(ValueError):
+        kk.estimate_cov(method='marked_bootstrap', cross_patch_weight='invalid')
+    with assert_raises(ValueError):
+        kk.estimate_cov(method='marked_bootstrap', cross_patch_weight='geom')
+    with assert_raises(ValueError):
+        kk.estimate_cov(method='marked_bootstrap', cross_patch_weight='match')
+
 
 @timer
 def test_lowmem():
@@ -3349,7 +3886,7 @@ def test_empty_patches():
         ng3l = treecorr.NGCorrelation(bin_size=0.1, bin_slop=0.1, min_sep=10., max_sep=100.,
                                       logger=cl.logger)
         ng3l.process(cat1p, cat2p)
-        ng3l.estimate_cov('jackknife')
+        ng3l.estimate_cov('jackknife', cross_patch_weight='simple')
     #print(cl.output)
     assert 'WARNING: A xi for calculating the jackknife covariance has no patch pairs.' in cl.output
 
@@ -3488,6 +4025,7 @@ if __name__ == '__main__':
     test_save_patches()
     test_clusters()
     test_brute_jk()
+    test_brute_bootstrap()
     test_lowmem()
     test_config()
     test_finalize_false()

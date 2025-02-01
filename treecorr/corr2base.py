@@ -250,6 +250,9 @@ class Corr2(object):
                             (default: 'shot')
         num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
                             'marked_bootstrap' var_methods.  (default: 500)
+        cross_patch_weight (str): How to weight pairs that cross between two patches when one patch
+                            is deselected (e.g. in a jackknife sense) and the other is selected.
+                            (default None)
         rng (RandomState):  If desired, a numpy.random.RandomState instance to use for bootstrap
                             random number generation. (default: None)
 
@@ -332,6 +335,8 @@ class Corr2(object):
         'num_bootstrap': (int, False, 500, None,
                 'How many bootstrap samples to use for the var_method=bootstrap and '
                 'marked_bootstrap'),
+        'cross_patch_weight': (str, False, None, ['simple', 'mean', 'match', 'geom'],
+                'How to weight pairs that cross between a selected and unselected patch'),
         'num_threads' : (int, False, None, None,
                 'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
     }
@@ -541,6 +546,7 @@ class Corr2(object):
 
         self._ro.var_method = get(self.config,'var_method',str,'shot')
         self._ro.num_bootstrap = get(self.config,'num_bootstrap',int,500)
+        self._ro.cross_patch_weight = get(self.config,'cross_patch_weight',str,None)
         self.results = {}  # for jackknife, etc. store the results of each pair of patches.
         self.npatch1 = self.npatch2 = 1
         self._rng = rng
@@ -643,6 +649,8 @@ class Corr2(object):
     def var_method(self): return self._ro.var_method
     @property
     def num_bootstrap(self): return self._ro.num_bootstrap
+    @property
+    def cross_patch_weight(self): return self._ro.cross_patch_weight
 
     @property
     def cov(self):
@@ -1084,6 +1092,7 @@ class Corr2(object):
         self._set_metric(metric, cat.coords)
         self._set_num_threads(num_threads)
         self._corr_only = corr_only
+        self._meanww = cat.meanw**2
         min_size, max_size = self._get_minmax_size()
 
         getField = getattr(cat, f"get{self._letter1}Field")
@@ -1125,6 +1134,7 @@ class Corr2(object):
         self._set_metric(metric, cat1.coords, cat2.coords)
         self._set_num_threads(num_threads)
         self._corr_only = corr_only
+        self._meanww = cat1.meanw * cat2.meanw
         min_size, max_size = self._get_minmax_size()
 
         getField1 = getattr(cat1, f"get{self._letter1}Field")
@@ -1304,17 +1314,21 @@ class Corr2(object):
     def _sum(self, others, corr_only):
         # Equivalent to the operation of:
         #     self._clear()
-        #     for other in others:
-        #         self += other
-        # but no sanity checks and use numpy.sum for faster calculation.
+        #     for other,w in others:
+        #         self += w*other
+        # if w*other was valid syntax, which it isn't.
+
+        def x(a, w):
+            return a if w == 1 else a*w
+
         for i in range(4):
             if self._xi[i].size:
-                np.sum([c._xi[i] for c in others], axis=0, out=self._xi[i])
-        np.sum([c.weight for c in others], axis=0, out=self.weight)
+                np.sum([x(c._xi[i],w) for c,w in others], axis=0, out=self._xi[i])
+        np.sum([x(c.weight,w) for c,w in others], axis=0, out=self.weight)
         if not corr_only:
-            np.sum([c.meanr for c in others], axis=0, out=self.meanr)
-            np.sum([c.meanlogr for c in others], axis=0, out=self.meanlogr)
-            np.sum([c.npairs for c in others], axis=0, out=self.npairs)
+            np.sum([x(c.meanr,w) for c,w in others], axis=0, out=self.meanr)
+            np.sum([x(c.meanlogr,w) for c,w in others], axis=0, out=self.meanlogr)
+            np.sum([x(c.npairs,w) for c,w in others], axis=0, out=self.npairs)
         self._varxi = None
         self._cov = None
 
@@ -1324,7 +1338,8 @@ class Corr2(object):
             for i in range(n):
                 self._varxi[i].ravel()[:] = self.cov_diag[i*self._nbins:(i+1)*self._nbins]
 
-    def estimate_cov(self, method, *, func=None, comm=None):
+    def estimate_cov(self, method, *, func=None, comm=None, num_bootstrap=None,
+                     cross_patch_weight=None):
         """Estimate the covariance matrix based on the data
 
         This function will calculate an estimate of the covariance matrix according to the
@@ -1352,6 +1367,33 @@ class Corr2(object):
 
         Both 'bootstrap' and 'marked_bootstrap' use the num_bootstrap parameter, which can be set on
         construction.
+
+        Another relevant parameter is 'cross_patch_weight'. This parameter controls how
+        pairs that cross between two patches are weighted when one of the patches is selected
+        and the other is deselected. See Mohammad and Percival (2022) (MP22 hereafter)
+        (https://ui.adsabs.harvard.edu/abs/2022MNRAS.514.1289M/) for an in-depth discussion of
+        these options. The parameter options mostly correspond to the notation used in that paper.
+        Briefly the options are:
+
+            - 'simple' = Don't use any pairs where either object is in a deselected patch.
+              This is the simplest implementation of the methods and is what TreeCorr always
+              did prior to version 5.1.  In the language of MP22, this is called mult, since
+              deselected patches have weight=0, and selected patches have weight=1, so the product
+              of the weights is 0 if either patch is deselected.
+              This option is valid for all patch-based methods, and it is the default for
+              sample and marked_bootstrap.
+            - 'mean' = Use a weight of 0.5 for any pair with one object in a deselected patch
+              and the other in a selected patch. This is the mean of the two patch weights (0,1).
+              This option is valid for all patch-based methods.
+            - 'geom' = Use the geometric mean of the two patch weights for each pair. For jackknife,
+              this would be equivalent to 'simple', since patch weights are either 0 or 1.
+              However, for bootstrap, individual patches can have weights greater than 1, so this
+              leads to a different weight for pairs that cross between two selected patches.
+              This option is only valid for bootstrap, for which it is the default.
+            - 'match' = Use the "optimal" weight that matches the effect of auto- and cross-pairs
+              in the estimate of the jackknife covariance. MP22 calculate this for the to
+              be w = 1 - n_patch / (2 + sqrt(2) (n_patch-1)).
+              This option is only valid for jackknife, for which it is the default.
 
         .. note::
 
@@ -1393,21 +1435,36 @@ class Corr2(object):
         Parameters:
             method (str):       Which method to use to estimate the covariance matrix.
             func (function):    A unary function that acts on the current correlation object and
-                                returns the desired data vector. [default: None, which is
-                                equivalent to ``lambda corr: corr.getStat()``.
-            comm (mpi comm)     If not None, run under MPI
+                                returns the desired data vector. (default: None, which is
+                                equivalent to ``lambda corr: corr.getStat()``.)
+            comm (mpi comm)     If not None, run under MPI (default: None)
+            num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
+                                'marked_bootstrap' var_methods.  (default: 500; this value
+                                can also be given in the constructor.)
+            cross_patch_weight (str): How to weight pairs that cross between two patches when one
+                                patch is deselected (e.g. in a jackknife sense) and the other is
+                                selected.  (default None; see above for details about what this
+                                defaults to for each method; this value can also be given in the
+                                constructor.)
 
         Returns:
             A numpy array with the estimated covariance matrix.
         """
+        if num_bootstrap is None:
+            num_bootstrap = self.num_bootstrap
+        if cross_patch_weight is None:
+            cross_patch_weight = self.cross_patch_weight
         if func is not None:
             # Need to convert it to a function of the first item in the list.
             all_func = lambda corrs: func(corrs[0])
         else:
             all_func = None
-        return estimate_multi_cov([self], method=method, func=all_func, comm=comm)
+        return estimate_multi_cov([self], method=method, func=all_func, comm=comm,
+                                  num_bootstrap=num_bootstrap,
+                                  cross_patch_weight=cross_patch_weight)
 
-    def build_cov_design_matrix(self, method, *, func=None, comm=None):
+    def build_cov_design_matrix(self, method, *, func=None, comm=None,
+                                num_bootstrap=None, cross_patch_weight=None):
         """Build the design matrix that is used for estimating the covariance matrix.
 
         The design matrix for patch-based covariance estimates is a matrix where each row
@@ -1436,19 +1493,32 @@ class Corr2(object):
         Parameters:
             method (str):       Which method to use to estimate the covariance matrix.
             func (function):    A unary function that takes the list ``corrs`` and returns the
-                                desired full data vector. [default: None, which is equivalent to
-                                ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``]
-            comm (mpi comm)     If not None, run under MPI
+                                desired full data vector. (default: None, which is equivalent to
+                                ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``)
+            comm (mpi comm)     If not None, run under MPI (default: None)
+            num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
+                                'marked_bootstrap' var_methods.  (default: 500; this value
+                                can also be given in the constructor.)
+            cross_patch_weight (str): How to weight pairs that cross between two patches when one
+                                patch is deselected (e.g. in a jackknife sense) and the other is
+                                selected.  (default None; see `estimate_cov` for details; this
+                                value can also be given in the constructor.)
 
         Returns:
             (A, w), numpy arrays with the design matrix and weights respectively.
         """
+        if num_bootstrap is None:
+            num_bootstrap = self.num_bootstrap
+        if cross_patch_weight is None:
+            cross_patch_weight = self.cross_patch_weight
         if func is not None:
             # Need to convert it to a function of the first item in the list.
             all_func = lambda corrs: func(corrs[0])
         else:
             all_func = None
-        return build_multi_cov_design_matrix([self], method=method, func=all_func, comm=comm)
+        return build_multi_cov_design_matrix([self], method=method, func=all_func, comm=comm,
+                                             num_bootstrap=num_bootstrap,
+                                             cross_patch_weight=cross_patch_weight)
 
     def _set_num_threads(self, num_threads):
         if num_threads is None:
@@ -1648,14 +1718,15 @@ class Corr2(object):
 
     def _calculate_xi_from_pairs(self, pairs, corr_only):
         # Compute the xi data vector for the given list of pairs.
-        # pairs is input as a list of (i,j) values.
+        # pairs is input as a list of (i,j,w) values.
 
         # This is the normal calculation.  It needs to be overridden when there are randoms.
-        self._sum([self.results[ij] for ij in pairs], corr_only)
+        self._sum([(self.results[(i,j)],w) for i,j,w in pairs], corr_only)
         self._finalize()
 
     def _keep_ok(self, pairs):
-        return [(i,j) for i,j in pairs if self._ok[i,j]]
+        return [(i,j,w) for i,j,w in pairs if self._ok[i,j] and w != 0]
+
 
     #########################################################################################
     #                                                                                       #
@@ -1680,12 +1751,13 @@ class Corr2(object):
     #########################################################################################
 
     class PairIterator(collections.abc.Iterator):
-        def __init__(self, results, npatch1, npatch2, index, ok=None):
+        def __init__(self, results, npatch1, npatch2, index, cpw, ok=None):
             self.results = results
             self.npatch1 = npatch1
             self.npatch2 = npatch2
             self.index = index
             self.ok = ok
+            self.cpw = cpw
 
         def __iter__(self):
             self.gen = iter(self.make_gen())
@@ -1697,47 +1769,66 @@ class Corr2(object):
     class JackknifePairIterator(PairIterator):
         def make_gen(self):
             if self.npatch2 == 1:
-                # k=0 here
-                return ((j,k) for j,k in self.results.keys() if j!=self.index)
-            elif self.npatch1 == 1:
                 # j=0 here
-                return ((j,k) for j,k in self.results.keys() if k!=self.index)
-            else:
+                return ((i,j,1) for i,j in self.results.keys() if i!=self.index)
+            elif self.npatch1 == 1:
+                # i=0 here
+                return ((i,j,1) for i,j in self.results.keys() if j!=self.index)
+            elif self.cpw == 'simple':
                 # For each i:
                 #    Select all pairs where neither is i.
                 assert self.npatch1 == self.npatch2
-                return ((j,k) for j,k in self.results.keys() if j!=self.index and k!=self.index)
+                return ((i,j,1) for i,j in self.results.keys() if i!=self.index and j!=self.index)
+            elif self.cpw == 'mean':
+                # When neither patch == i, w = 1
+                # When one patch == i, w = 0.5
+                # else exclude.
+                assert self.npatch1 == self.npatch2
+                return ((i,j, 0.5 if i == self.index or j == self.index else 1)
+                        for i,j in self.results.keys() if i!=self.index or j!=self.index)
+            elif self.cpw in [None, 'match']:
+                # match is like mean, but has a little lower weight for the cross-pairs.
+                # See section 4.5 of Mohammad and Percival (2022).
+                # The following is eqn. 27 from that paper, where w = 1-alpha, since
+                # alpha is the weight to remove from the cross pairs.
+                w = 1 - self.npatch1 / (2 + 2**0.5 * (self.npatch1 - 1))
+                assert self.npatch1 == self.npatch2
+                return ((i,j, w if i == self.index or j == self.index else 1)
+                        for i,j in self.results.keys() if i!=self.index or j!=self.index)
+            else:
+                raise ValueError(f"cross_patch_weight = {self.cpw} is invalid for jackknife")
 
-    def _jackknife_pairs(self):
+    def _jackknife_pairs(self, cross_patch_weight):
         np = self.npatch1 if self.npatch1 != 1 else self.npatch2
-        return [self.JackknifePairIterator(self.results, self.npatch1, self.npatch2, i)
+        return [self.JackknifePairIterator(self.results, self.npatch1, self.npatch2, i,
+                                           cross_patch_weight)
                 for i in range(np)]
 
     class SamplePairIterator(PairIterator):
         def make_gen(self):
             if self.npatch2 == 1:
-                # k=0 here.
-                return ((j,k) for j,k in self.results.keys() if j==self.index)
-            elif self.npatch1 == 1:
                 # j=0 here.
-                return ((j,k) for j,k in self.results.keys() if k==self.index)
-            else:
+                return ((i,j,1) for i,j in self.results.keys() if i==self.index)
+            elif self.npatch1 == 1:
+                # i=0 here.
+                return ((i,j,1) for i,j in self.results.keys() if j==self.index)
+            elif self.cpw in [None, 'simple']:
+                # Always use pair if i == index
                 assert self.npatch1 == self.npatch2
-                # Note: It's not obvious to me a priori which of these should be the right choice.
-                #       Empirically, they both underestimate the variance, but the second one
-                #       does so less on the tests I have in test_patch.py.  So that's the one I'm
-                #       using.
-                # For each i:
-                #    Select all pairs where either is i.
-                #return ((j,k) for j,k in self.results.keys() if j==self.index or k==self.index)
-                #
-                # For each i:
-                #    Select all pairs where first is i.
-                return ((j,k) for j,k in self.results.keys() if j==self.index)
+                return ((i,j,1) for i,j in self.results.keys() if i==self.index)
+            elif self.cpw == 'mean':
+                # i,i has weight 1
+                # when i != j, both i,j and j,i have weight 0.5
+                assert self.npatch1 == self.npatch2
+                return ((i,j, 0.5 if i != self.index or j != self.index else 1)
+                        for i,j in self.results.keys() if i==self.index or j==self.index)
+            else:
+                raise ValueError(f"cross_patch_weight = {self.cpw} is invalid for sample")
 
-    def _sample_pairs(self):
+    def _sample_pairs(self, cross_patch_weight):
         np = self.npatch1 if self.npatch1 != 1 else self.npatch2
-        return [self.SamplePairIterator(self.results, self.npatch1, self.npatch2, i)
+        return [self.SamplePairIterator(self.results, self.npatch1, self.npatch2, i,
+                                        cross_patch_weight)
                 for i in range(np)]
 
     @lazy_property
@@ -1752,42 +1843,71 @@ class Corr2(object):
     class MarkedPairIterator(PairIterator):
         def make_gen(self):
             if self.npatch2 == 1:
-                return ( (i,0) for i in self.index if self.ok[i,0] )
+                return ( (i,0,1) for i in self.index if self.ok[i,0] )
             elif self.npatch1 == 1:
-                return ( (0,i) for i in self.index if self.ok[0,i] )
-            else:
+                return ( (0,j,1) for j in self.index if self.ok[0,j] )
+            elif self.cpw in [None, 'simple']:
                 assert self.npatch1 == self.npatch2
+                index, weights = np.unique(self.index, return_counts=True)
                 # Select all pairs where first point is in index (repeating i as appropriate)
-                return ( (i,j) for i in self.index for j in range(self.npatch2) if self.ok[i,j] )
+                return ( (i,j,w) for (i,w) in zip(index,weights)
+                         for j in range(self.npatch2) if self.ok[i,j] )
+            elif self.cpw == 'mean':
+                assert self.npatch1 == self.npatch2
+                index, weights = np.unique(self.index, return_counts=True)
+                return ( (i,j,w) if i == j else (i,j,w/2) if self.ok[i,j] else (j,i,w/2)
+                         for (i,w) in zip(index,weights)
+                         for j in range(self.npatch2) if self.ok[i,j] or self.ok[j,i] )
+            else:
+                raise ValueError(f"cross_patch_weight = {self.cpw} is invalid for marked_bootstrap")
 
-    def _marked_pairs(self, index):
-        return self.MarkedPairIterator(self.results, self.npatch1, self.npatch2, index, self._ok)
+    def _marked_pairs(self, index, cross_patch_weight):
+        return self.MarkedPairIterator(self.results, self.npatch1, self.npatch2, index,
+                                       cross_patch_weight, self._ok)
 
     class BootstrapPairIterator(PairIterator):
         def make_gen(self):
             if self.npatch2 == 1:
-                return ( (i,0) for i in self.index if self.ok[i,0] )
+                return ( (i,0,1) for i in self.index if self.ok[i,0] )
             elif self.npatch1 == 1:
-                return ( (0,i) for i in self.index if self.ok[0,i] )
+                return ( (0,j,1) for j in self.index if self.ok[0,j] )
             else:
                 assert self.npatch1 == self.npatch2
+                index, weights = np.unique(self.index, return_counts=True)
+
                 # Include all represented auto-correlations once, repeating as appropriate.
                 # This needs to be done separately from the below step to avoid extra pairs (i,i)
                 # that you would get by looping i in index and j in index for cases where i=j at
                 # different places in the index list.  E.g. if i=3 shows up 3 times in index, then
                 # the naive way would get 9 instance of (3,3), whereas we only want 3 instances.
-                ret1 = ( (i,i) for i in self.index if self.ok[i,i] )
+                ret1 = ( (i,i,w) for (i,w) in zip(index, weights) if self.ok[i,i] )
 
-                # And all other pairs that aren't really auto-correlations.
-                # These can happen at their natural multiplicity from i and j loops.
-                # Note: This is way faster with the precomputed ok matrix.
-                # Like 0.005 seconds per call rather than 1.2 seconds for 128 patches!
-                ret2 = ( (i,j) for i in self.index for j in self.index if self.ok[i,j] and i!=j )
+                if self.cpw == 'simple':
+                    # And all other pairs that aren't really auto-correlations.
+                    # These can happen at their natural multiplicity from i and j loops.
+                    # Note: This is way faster with the precomputed ok matrix.
+                    # Like 0.005 seconds per call rather than 1.2 seconds for 128 patches!
+                    ret2 = ( (i,j,w1*w2) for (i,w1) in zip(index, weights)
+                            for (j,w2) in zip(index,weights) if self.ok[i,j] and i!=j )
+                elif self.cpw == 'mean':
+                    wdict = dict(zip(index, weights))
+                    # For mean, the weight is the mean, not product.
+                    # Also, use all i,j, even those with no representation in index.
+                    ret2 = ( (i,j,(wdict.get(i,0)+wdict.get(j,0))/2)
+                            for i in range(self.npatch1) for j in range(self.npatch2)
+                            if self.ok[i,j] and i!=j )
+                elif self.cpw in [None, 'geom']:
+                    # Finally, geom uses the geometric mean
+                    ret2 = ( (i,j,(w1*w2)**0.5) for (i,w1) in zip(index, weights)
+                            for (j,w2) in zip(index,weights) if self.ok[i,j] and i!=j )
+                else:
+                    raise ValueError(f"cross_patch_weight = {self.cpw} is invalid for bootstrap")
 
                 return itertools.chain(ret1, ret2)
 
-    def _bootstrap_pairs(self, index):
-        return self.BootstrapPairIterator(self.results, self.npatch1, self.npatch2, index, self._ok)
+    def _bootstrap_pairs(self, index, cross_patch_weight):
+        return self.BootstrapPairIterator(self.results, self.npatch1, self.npatch2, index,
+                                          cross_patch_weight, self._ok)
 
     @property
     def _write_params(self):
@@ -1966,7 +2086,8 @@ class Corr2(object):
         return corr
 
 
-def estimate_multi_cov(corrs, method, *, func=None, comm=None):
+def estimate_multi_cov(corrs, method, *, func=None, comm=None, num_bootstrap=None,
+                       cross_patch_weight=None):
     """Estimate the covariance matrix of multiple statistics.
 
     This is like the method `Corr2.estimate_cov`, except that it will acoommodate
@@ -1991,8 +2112,35 @@ def estimate_multi_cov(corrs, method, *, func=None, comm=None):
           the first catalog.  Based on the algorithm presented in Loh (2008).
           cf. https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/
 
-    Both 'bootstrap' and 'marked_bootstrap' use the num_bootstrap parameter, which can be set on
-    construction.
+    Both 'bootstrap' and 'marked_bootstrap' use the num_bootstrap parameter to set the
+    number of bootstrap realizations to be used.
+
+    Another relevant parameter is 'cross_patch_weight'. This parameter controls how
+    pairs that cross between two patches are weighted when one of the patches is selected
+    and the other is deselected. See Mohammad and Percival (2022) (MP22 hereafter)
+    (https://ui.adsabs.harvard.edu/abs/2022MNRAS.514.1289M/) for an in-depth discussion of
+    these options. The parameter options mostly correspond to the notation used in that paper.
+    Briefly the options are:
+
+        - 'simple' = Don't use any pairs where either object is in a deselected patch.
+          This is the simplest implementation of the methods and is what TreeCorr always
+          did prior to version 5.1.  In the language of MP22, this is called mult, since
+          deselected patches have weight=0, and selected patches have weight=1, so the product
+          of the weights is 0 if either patch is deselected.
+          This option is valid for all patch-based methods, and it is the default
+          for sample and marked_bootstrap.
+        - 'mean' = Use a weight of 0.5 for any pair with one object in a deselected patch
+          and the other in a selected patch. This is the mean of the two patch weights (0,1).
+          This option is valid for all patch-based methods.
+        - 'geom' = Use the geometric mean of the two patch weights for each pair. For jackknife,
+          this would be equivalent to 'simple', since patch weights are either 0 or 1.
+          However, for bootstrap, individual patches can have weights greater than 1, so this
+          leads to a different weight for pairs that cross between two selected patches.
+          This option is only valid for bootstrap, for which it is the default.
+        - 'match' = Use the "optimal" weight that matches the effect of auto- and cross-pairs
+          in the estimate of the jackknife covariance. MP22 calculate this for the to
+          be w = 1 - n_patch / (2 + sqrt(2) (n_patch-1)).
+          This option is only valid for jackknife, for which it is the default.
 
     For example, to find the combined covariance matrix for an NG tangential shear statistc,
     along with the GG xi+ and xi- from the same area, using jackknife covariance estimation,
@@ -2034,29 +2182,41 @@ def estimate_multi_cov(corrs, method, *, func=None, comm=None):
         corrs (list):       A list of `Corr2` instances.
         method (str):       Which method to use to estimate the covariance matrix.
         func (function):    A unary function that takes the list ``corrs`` and returns the
-                            desired full data vector. [default: None, which is equivalent to
-                            ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``]
-        comm (mpi comm)     If not None, run under MPI
+                            desired full data vector. (default: None, which is equivalent to
+                            ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``)
+        comm (mpi comm)     If not None, run under MPI (default: None)
+        num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
+                            'marked_bootstrap' var_methods.  (default: 500)
+        cross_patch_weight (str): How to weight pairs that cross between two patches when one
+                            patch is deselected (e.g. in a jackknife sense) and the other is
+                            selected.  (default None; see above for details)
 
     Returns:
         A numpy array with the estimated covariance matrix.
     """
+    if num_bootstrap is None and 'boot' in method:
+        # use the maximum if they differ.
+        num_bootstrap = np.max([c.num_bootstrap for c in corrs])
+    if cross_patch_weight is None:
+        # Use the first one, since there isn't a useful tie breaker for this.
+        cross_patch_weight = corrs[0].cross_patch_weight
     if method == 'shot':
         if func is not None:
             raise ValueError("func is invalid with method='shot'")
         return _cov_shot(corrs)
     elif method == 'jackknife':
-        return _cov_jackknife(corrs, func, comm=comm)
+        return _cov_jackknife(corrs, func, comm, cross_patch_weight)
     elif method == 'bootstrap':
-        return _cov_bootstrap(corrs, func, comm=comm)
+        return _cov_bootstrap(corrs, func, comm, num_bootstrap, cross_patch_weight)
     elif method == 'marked_bootstrap':
-        return _cov_marked(corrs, func, comm=comm)
+        return _cov_marked(corrs, func, comm, num_bootstrap, cross_patch_weight)
     elif method == 'sample':
-        return _cov_sample(corrs, func, comm=comm)
+        return _cov_sample(corrs, func, comm, cross_patch_weight)
     else:
         raise ValueError("Invalid method: %s"%method)
 
-def build_multi_cov_design_matrix(corrs, method, *, func=None, comm=None):
+def build_multi_cov_design_matrix(corrs, method, *, func=None, comm=None, num_bootstrap=None,
+                                  cross_patch_weight=None):
     """Build the design matrix that is used for estimating the covariance matrix.
 
     The design matrix for patch-based covariance estimates is a matrix where each row
@@ -2085,23 +2245,34 @@ def build_multi_cov_design_matrix(corrs, method, *, func=None, comm=None):
         corrs (list):       A list of `Corr2` instances.
         method (str):       Which method to use to estimate the covariance matrix.
         func (function):    A unary function that takes the list ``corrs`` and returns the
-                            desired full data vector. [default: None, which is equivalent to
-                            ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``]
-        comm (mpi comm)     If not None, run under MPI
+                            desired full data vector. (default: None, which is equivalent to
+                            ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``)
+        comm (mpi comm)     If not None, run under MPI (default: None)
+        num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
+                            'marked_bootstrap' var_methods.  (default: 500)
+        cross_patch_weight (str): How to weight pairs that cross between two patches when one
+                            patch is deselected (e.g. in a jackknife sense) and the other is
+                            selected.  (default None; see `esimate_multi_cov` for details)
 
     Returns:
         (A, w), numpy arrays with the design matrix and weights respectively.
     """
+    if num_bootstrap is None and 'boot' in method:
+        # use the maximum if they differ.
+        num_bootstrap = np.max([c.num_bootstrap for c in corrs])
+    if cross_patch_weight is None:
+        # Use the first one, since there isn't a useful tie breaker for this.
+        cross_patch_weight = corrs[0].cross_patch_weight
     if method == 'shot':
         raise ValueError("There is no design matrix for method='shot'")
     elif method == 'jackknife':
-        return _design_jackknife(corrs, func, comm=comm)
+        return _design_jackknife(corrs, func, comm, cross_patch_weight)
     elif method == 'bootstrap':
-        return _design_bootstrap(corrs, func, comm=comm)
+        return _design_bootstrap(corrs, func, comm, num_bootstrap, cross_patch_weight)
     elif method == 'marked_bootstrap':
-        return _design_marked(corrs, func, comm=comm)
+        return _design_marked(corrs, func, comm, num_bootstrap, cross_patch_weight)
     elif method == 'sample':
-        return _design_sample(corrs, func, comm=comm)
+        return _design_sample(corrs, func, comm, cross_patch_weight)
     else:
         raise ValueError("Invalid method: %s"%method)
 
@@ -2139,7 +2310,7 @@ def _make_cov_design_matrix_core(corrs, plist, func, name, rank=0, size=1):
         if row % size != rank:
             continue
         for c, cpairs in zip(corrs, pairs):
-            cpairs = list(cpairs)
+            cpairs = c._keep_ok(cpairs)
             if len(cpairs) == 0:
                 # This will cause problems downstream if we let it go.
                 # It probably indicates user error, using an inappropriate covariance estimator.
@@ -2207,16 +2378,16 @@ def _check_patch_nums(corrs, name):
             raise RuntimeError("All correlations must use the same number of patches")
     return npatch
 
-def _design_jackknife(corrs, func, comm):
+def _design_jackknife(corrs, func, comm, cross_patch_weight):
     npatch = _check_patch_nums(corrs, 'jackknife')
-    plist = [c._jackknife_pairs() for c in corrs]
+    plist = [c._jackknife_pairs(cross_patch_weight) for c in corrs]
     # Swap order of plist.  Right now it's a list for each corr of a list for each row.
     # We want a list by row with a list for each corr.
     plist = list(zip(*plist))
 
     return _make_cov_design_matrix(corrs, plist, func, 'jackknife', comm=comm)
 
-def _cov_jackknife(corrs, func, comm):
+def _cov_jackknife(corrs, func, comm, cross_patch_weight):
     # Calculate the jackknife covariance for the given statistics
 
     # The basic jackknife formula is:
@@ -2224,23 +2395,23 @@ def _cov_jackknife(corrs, func, comm):
     # where v_i is the vector when excluding patch i, and v_mean is the mean of all {v_i}.
     #   v_i = Sum_jk!=i num_jk / Sum_jk!=i denom_jk
 
-    v,w = _design_jackknife(corrs, func, comm)
+    v,w = _design_jackknife(corrs, func, comm, cross_patch_weight)
     npatch = v.shape[0]
     vmean = np.mean(v, axis=0)
     v -= vmean
     C = (1.-1./npatch) * v.conj().T.dot(v)
     return C
 
-def _design_sample(corrs, func, comm):
+def _design_sample(corrs, func, comm, cross_patch_weight):
     npatch = _check_patch_nums(corrs, 'sample')
-    plist = [c._sample_pairs() for c in corrs]
+    plist = [c._sample_pairs(cross_patch_weight) for c in corrs]
     # Swap order of plist.  Right now it's a list for each corr of a list for each row.
     # We want a list by row with a list for each corr.
     plist = list(zip(*plist))
 
     return _make_cov_design_matrix(corrs, plist, func, 'sample', comm=comm)
 
-def _cov_sample(corrs, func, comm):
+def _cov_sample(corrs, func, comm, cross_patch_weight):
     # Calculate the sample covariance.
 
     # This is kind of the converse of the jackknife.  We take each patch and use any
@@ -2251,7 +2422,7 @@ def _cov_sample(corrs, func, comm):
     # where v_i = Sum_j num_ij / Sum_j denom_ij
     # and w_i is the fraction of the total weight in each patch
 
-    v,w = _design_sample(corrs, func, comm)
+    v,w = _design_sample(corrs, func, comm, cross_patch_weight)
     npatch = v.shape[0]
 
     if np.any(w == 0):
@@ -2264,22 +2435,21 @@ def _cov_sample(corrs, func, comm):
     C = 1./(npatch-1) * (w * v.conj().T).dot(v)
     return C
 
-def _design_marked(corrs, func, comm):
+def _design_marked(corrs, func, comm, num_bootstrap, cross_patch_weight):
     npatch = _check_patch_nums(corrs, 'marked_bootstrap')
-    nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
 
     plist = []
-    for k in range(nboot):
+    for k in range(num_bootstrap):
         # Select a random set of indices to use.  (Will have repeats.)
         # Note use choice rather than integers, so it is backwards compatible with the old
         # np.random.RandomState (which used randint rather than integers for that functionality).
         index = corrs[0].rng.choice(np.arange(npatch), size=npatch, replace=True)
-        vpairs = [c._marked_pairs(index) for c in corrs]
+        vpairs = [c._marked_pairs(index, cross_patch_weight) for c in corrs]
         plist.append(vpairs)
 
     return _make_cov_design_matrix(corrs, plist, func, 'marked_bootstrap', comm=comm)
 
-def _cov_marked(corrs, func, comm):
+def _cov_marked(corrs, func, comm, num_bootstrap, cross_patch_weight):
     # Calculate the marked-point bootstrap covariance
 
     # This is based on the article A Valid and Fast Spatial Bootstrap for Correlation Functions
@@ -2296,26 +2466,24 @@ def _cov_marked(corrs, func, comm):
 
     # C = 1/(nboot) Sum_i (v_i - v_mean) (v_i - v_mean)^T
 
-    v,w = _design_marked(corrs, func, comm)
-    nboot = v.shape[0]
+    v,w = _design_marked(corrs, func, comm, num_bootstrap, cross_patch_weight)
     vmean = np.mean(v, axis=0)
     v -= vmean
-    C = 1./(nboot-1) * v.conj().T.dot(v)
+    C = 1./(num_bootstrap-1) * v.conj().T.dot(v)
     return C
 
-def _design_bootstrap(corrs, func, comm):
+def _design_bootstrap(corrs, func, comm, num_bootstrap, cross_patch_weight):
     npatch = _check_patch_nums(corrs, 'bootstrap')
-    nboot = np.max([c.num_bootstrap for c in corrs])  # use the maximum if they differ.
 
     plist = []
-    for k in range(nboot):
+    for k in range(num_bootstrap):
         index = corrs[0].rng.choice(np.arange(npatch), size=npatch, replace=True)
-        vpairs = [c._bootstrap_pairs(index) for c in corrs]
+        vpairs = [c._bootstrap_pairs(index, cross_patch_weight) for c in corrs]
         plist.append(vpairs)
 
     return _make_cov_design_matrix(corrs, plist, func, 'bootstrap', comm=comm)
 
-def _cov_bootstrap(corrs, func, comm):
+def _cov_bootstrap(corrs, func, comm, num_bootstrap, cross_patch_weight):
     # Calculate the 2-patch bootstrap covariance estimate.
 
     # This is a different version of the bootstrap idea.  It selects patches at random with
@@ -2324,9 +2492,8 @@ def _cov_bootstrap(corrs, func, comm):
     # It seems to do a slightly better job than the marked-point bootstrap above from the
     # tests done in the test suite.  But the difference is generally pretty small.
 
-    v,w = _design_bootstrap(corrs, func, comm)
-    nboot = v.shape[0]
+    v,w = _design_bootstrap(corrs, func, comm, num_bootstrap, cross_patch_weight)
     vmean = np.mean(v, axis=0)
     v -= vmean
-    C = 1./(nboot-1) * v.conj().T.dot(v)
+    C = 1./(num_bootstrap-1) * v.conj().T.dot(v)
     return C

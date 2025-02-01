@@ -18,6 +18,8 @@
 import math
 import numpy as np
 import sys
+import itertools
+import collections
 import coord
 
 from . import _treecorr
@@ -275,7 +277,7 @@ class Corr3(object):
                             If bin_slop = 1, then the bin into which a particular pair is placed
                             may be incorrect by at most 1.0 bin widths.  (default: None, which
                             means to use a bin_slop that gives a maximum error of 10% on any bin,
-                            which has been found to yield good results for most application.
+                            which has been found to yield good results for most application.)
         angle_slop (float): How much slop to allow in the angular direction. This works very
                             similarly to bin_slop, but applies to the projection angle of a pair
                             of cells. The projection angle for any two objects in a pair of cells
@@ -375,6 +377,9 @@ class Corr3(object):
                             (default: 'shot')
         num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
                             'marked_bootstrap' var_methods.  (default: 500)
+        cross_patch_weight (str): How to weight pairs that cross between two patches when one patch
+                            is deselected (e.g. in a jackknife sense) and the other is selected.
+                            (default None)
         rng (RandomState):  If desired, a numpy.random.RandomState instance to use for bootstrap
                             random number generation. (default: None)
 
@@ -477,6 +482,8 @@ class Corr3(object):
         'num_bootstrap': (int, False, 500, None,
                 'How many bootstrap samples to use for the var_method=bootstrap and '
                 'marked_bootstrap'),
+        'cross_patch_weight': (str, False, None, ['simple', 'mean', 'match', 'geom'],
+                'How to weight pairs that cross between a selected and unselected patch'),
         'num_threads' : (int, False, None, None,
                 'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
     }
@@ -839,6 +846,7 @@ class Corr3(object):
 
         self._ro.var_method = get(self.config,'var_method',str,'shot')
         self._ro.num_bootstrap = get(self.config,'num_bootstrap',int,500)
+        self._ro.cross_patch_weight = get(self.config,'cross_patch_weight',str,None)
         self.results = {}  # for jackknife, etc. store the results of each pair of patches.
         self.npatch1 = self.npatch2 = self.npatch3 = 1
         self._rng = rng
@@ -1037,6 +1045,8 @@ class Corr3(object):
     def var_method(self): return self._ro.var_method
     @property
     def num_bootstrap(self): return self._ro.num_bootstrap
+    @property
+    def cross_patch_weight(self): return self._ro.cross_patch_weight
 
     @property
     def weight(self):
@@ -2390,30 +2400,31 @@ class Corr3(object):
     def _sum(self, others, corr_only):
         # Equivalent to the operation of:
         #     self._clear()
-        #     for other in others:
-        #         self += other
-        # but no sanity checks and use numpy.sum for faster calculation.
+        #     for other,w in others:
+        #         self += w*other
+        # if w*other was valid syntax, which it isn't.
+
+        def x(a, w):
+            return a if w == 1 else a*w
 
         for i in range(8):
             if self._z[i].size:
-                np.sum([c._z[i] for c in others], axis=0, out=self._z[i])
-        np.sum([c.weightr for c in others], axis=0, out=self.weightr)
+                np.sum([x(c._z[i],w) for c,w in others], axis=0, out=self._z[i])
+        np.sum([x(c.weightr,w) for c,w in others], axis=0, out=self.weightr)
         if self.bin_type == 'LogMultipole':
-            np.sum([c.weighti for c in others], axis=0, out=self.weighti)
+            np.sum([x(c.weighti,w) for c,w in others], axis=0, out=self.weighti)
 
         if not corr_only:
-            np.sum([c.meand1 for c in others], axis=0, out=self.meand1)
-            np.sum([c.meanlogd1 for c in others], axis=0, out=self.meanlogd1)
-            np.sum([c.meand2 for c in others], axis=0, out=self.meand2)
-            np.sum([c.meanlogd2 for c in others], axis=0, out=self.meanlogd2)
-            np.sum([c.meand3 for c in others], axis=0, out=self.meand3)
-            np.sum([c.meanlogd3 for c in others], axis=0, out=self.meanlogd3)
-            np.sum([c.meanu for c in others], axis=0, out=self.meanu)
+            np.sum([x(c.meand1,w) for c,w in others], axis=0, out=self.meand1)
+            np.sum([x(c.meanlogd1,w) for c,w in others], axis=0, out=self.meanlogd1)
+            np.sum([x(c.meand2,w) for c,w in others], axis=0, out=self.meand2)
+            np.sum([x(c.meanlogd2,w) for c,w in others], axis=0, out=self.meanlogd2)
+            np.sum([x(c.meand3,w) for c,w in others], axis=0, out=self.meand3)
+            np.sum([x(c.meanlogd3,w) for c,w in others], axis=0, out=self.meanlogd3)
+            np.sum([x(c.meanu,w) for c,w in others], axis=0, out=self.meanu)
             if self.bin_type == 'LogRUV':
-                np.sum([c.meanv for c in others], axis=0, out=self.meanv)
-            if self.bin_type == 'LogMultipole':
-                np.sum([c.weighti for c in others], axis=0, out=self.weighti)
-            np.sum([c.ntri for c in others], axis=0, out=self.ntri)
+                np.sum([x(c.meanv,w) for c,w in others], axis=0, out=self.meanv)
+            np.sum([x(c.ntri,w) for c,w in others], axis=0, out=self.ntri)
 
         self._cov = None
         self._varzeta = None
@@ -2613,7 +2624,8 @@ class Corr3(object):
 
         return sas
 
-    def estimate_cov(self, method, *, func=None, comm=None):
+    def estimate_cov(self, method, *, func=None, comm=None, num_bootstrap=None,
+                     cross_patch_weight=None):
         """Estimate the covariance matrix based on the data
 
         This function will calculate an estimate of the covariance matrix according to the
@@ -2640,6 +2652,26 @@ class Corr3(object):
 
         Both 'bootstrap' and 'marked_bootstrap' use the num_bootstrap parameter, which can be set on
         construction.
+
+        Another relevant parameter is 'cross_patch_weight'. This parameter controls how
+        triangles that cross between two or three patches are weighted when some, but not all
+        of the patches are selected.  See Mohammad and Percival (2021)
+        (https://arxiv.org/abs/2109.07071) for an in-depth discussion of these options for
+        two-point statistics.  We use a similar definitions for three-point statistics.
+        Briefly the options are: (TODO!  This is aspirational so far.)
+
+            - 'simple' = Don't use any triangles where any object is in a deselected patch.
+              This is currently the default for all methods.
+            - 'mean' = Use a weight of 1/3 for any triangle with one object in a selected patch
+              and the other two in deselected patches, and 2/3 for any triangle with two objects
+              in selected patches.
+            - 'geom' = Use the geometric mean of the three patch weights for each triangle.
+            - 'match' = Use the "optimal" weight that matches the effect of auto- and cross-pairs
+              for two-point jackknife covariances derived by Mohammad and Percival
+              (w = n_patch / (2 + sqrt(2) (n_patch-1))). This is probably not optimal for
+              three-point statistics, and it would probably be different for triangles with one
+              or two points in selected patches, but we have not tried to derive a better
+              value yet. (Suggestions welcome!)
 
         .. note::
 
@@ -2681,21 +2713,35 @@ class Corr3(object):
         Parameters:
             method (str):       Which method to use to estimate the covariance matrix.
             func (function):    A unary function that acts on the current correlation object and
-                                returns the desired data vector. [default: None, which is
-                                equivalent to ``lambda corr: corr.getStat()``.
-            comm (mpi comm)     If not None, run under MPI
+                                returns the desired data vector. (default: None, which is
+                                equivalent to ``lambda corr: corr.getStat()``)
+            comm (mpi comm)     If not None, run under MPI (default: None)
+            num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
+                                'marked_bootstrap' var_methods.  (default: 500; this value
+                                can also be given in the constructor.)
+            cross_patch_weight (str): How to weight pairs that cross between two patches when one
+                                patch is deselected (e.g. in a jackknife sense) and the other is
+                                selected.  (default None; see above for details; this value
+                                can also be given in the constructor.)
 
         Returns:
             A numpy array with the estimated covariance matrix.
         """
+        if num_bootstrap is None:
+            num_bootstrap = self.num_bootstrap
+        if cross_patch_weight is None:
+            cross_patch_weight = self.cross_patch_weight
         if func is not None:
             # Need to convert it to a function of the first item in the list.
             all_func = lambda corrs: func(corrs[0])
         else:
             all_func = None
-        return estimate_multi_cov([self], method, func=all_func, comm=comm)
+        return estimate_multi_cov([self], method, func=all_func, comm=comm,
+                                  num_bootstrap=num_bootstrap,
+                                  cross_patch_weight=cross_patch_weight)
 
-    def build_cov_design_matrix(self, method, *, func=None, comm=None):
+    def build_cov_design_matrix(self, method, *, func=None, comm=None, num_bootstrap=None,
+                                cross_patch_weight=None):
         r"""Build the design matrix that is used for estimating the covariance matrix.
 
         The design matrix for patch-based covariance estimates is a matrix where each row
@@ -2724,19 +2770,32 @@ class Corr3(object):
         Parameters:
             method (str):       Which method to use to estimate the covariance matrix.
             func (function):    A unary function that takes the list ``corrs`` and returns the
-                                desired full data vector. [default: None, which is equivalent to
-                                ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``]
-            comm (mpi comm)     If not None, run under MPI
+                                desired full data vector. (default: None, which is equivalent to
+                                ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``)
+            comm (mpi comm)     If not None, run under MPI (default: None)
+            num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
+                                'marked_bootstrap' var_methods.  (default: 500; this value
+                                can also be given in the constructor.)
+            cross_patch_weight (str): How to weight pairs that cross between two patches when one
+                                patch is deselected (e.g. in a jackknife sense) and the other is
+                                selected.  (default None; see above for details; this value
+                                can also be given in the constructor.)
 
         Returns:
             A, w: numpy arrays with the design matrix and weights respectively.
         """
+        if num_bootstrap is None:
+            num_bootstrap = self.num_bootstrap
+        if cross_patch_weight is None:
+            cross_patch_weight = self.cross_patch_weight
         if func is not None:
             # Need to convert it to a function of the first item in the list.
             all_func = lambda corrs: func(corrs[0])
         else:
             all_func = None
-        return build_multi_cov_design_matrix([self], method=method, func=all_func, comm=comm)
+        return build_multi_cov_design_matrix([self], method=method, func=all_func, comm=comm,
+                                             num_bootstrap=num_bootstrap,
+                                             cross_patch_weight=cross_patch_weight)
 
     def _set_num_threads(self, num_threads):
         if num_threads is None:
@@ -2855,81 +2914,188 @@ class Corr3(object):
         # "pairs" here are really triples, input as a list of (i,j,k) values.
 
         # This is the normal calculation.  It needs to be overridden when there are randoms.
-        self._sum([self.results[ijk] for ijk in pairs], corr_only)
+        self._sum([(self.results[(i,j,k)],w) for i,j,k,w in pairs], corr_only)
         self._finalize()
 
     def _keep_ok(self, pairs):
-        return [(i,j,k) for i,j,k in pairs if self._ok[i,j,k]]
+        return [(i,j,k,w) for i,j,k,w in pairs if self._ok[i,j,k] and w != 0]
 
-    def _jackknife_pairs(self):
-        if self.npatch3 == 1:
-            if self.npatch2 == 1:
-                # k=m=0
-                return [ [(j,k,m) for j,k,m in self.results.keys() if j!=i]
-                         for i in range(self.npatch1) ]
-            elif self.npatch1 == 1:
-                # j=m=0
-                return [ [(j,k,m) for j,k,m in self.results.keys() if k!=i]
-                         for i in range(self.npatch2) ]
-            else:
-                # m=0
-                assert self.npatch1 == self.npatch2
-                return [ [(j,k,m) for j,k,m in self.results.keys() if j!=i and k!=i]
-                         for i in range(self.npatch1) ]
-        elif self.npatch2 == 1:
-            if self.npatch1 == 1:
-                # j=k=0
-                return [ [(j,k,m) for j,k,m in self.results.keys() if m!=i]
-                         for i in range(self.npatch3) ]
-            else:
-                # k=0
-                assert self.npatch1 == self.npatch3
-                return [ [(j,k,m) for j,k,m in self.results.keys() if j!=i and m!=i]
-                         for i in range(self.npatch1) ]
-        elif self.npatch1 == 1:
-            # j=0
-            assert self.npatch2 == self.npatch3
-            return [ [(j,k,m) for j,k,m in self.results.keys() if k!=i and m!=i]
-                     for i in range(self.npatch2) ]
-        else:
-            assert self.npatch1 == self.npatch2 == self.npatch3
-            return [ [(j,k,m) for j,k,m in self.results.keys() if j!=i and k!=i and m!=i]
-                     for i in range(self.npatch1) ]
+    class TripleIterator(collections.abc.Iterator):
+        def __init__(self, results, npatch1, npatch2, npatch3, index, cpw, ok=None):
+            self.results = results
+            self.npatch1 = npatch1
+            self.npatch2 = npatch2
+            self.npatch3 = npatch3
+            self.index = index
+            self.cpw = cpw
+            self.ok = ok
 
-    def _sample_pairs(self):
-        if self.npatch3 == 1:
-            if self.npatch2 == 1:
-                # k=m=0
-                return [ [(j,k,m) for j,k,m in self.results.keys() if j==i]
-                         for i in range(self.npatch1) ]
+        def __iter__(self):
+            self.gen = iter(self.make_gen())
+            return self
+
+        def __next__(self):
+            return next(self.gen)
+
+    class JackknifeTripleIterator(TripleIterator):
+        def make_gen(self):
+            if self.cpw not in [None, 'simple', 'mean', 'match']:
+                raise ValueError(f"cross_patch_weight = {self.cpw} is invalid for jackknife")
+            if self.npatch3 == 1:
+                if self.npatch2 == 1:
+                    # j=k=0
+                    return ((i,j,k,1) for i,j,k in self.results.keys() if i!=self.index)
+                elif self.npatch1 == 1:
+                    # i=k=0
+                    return ((i,j,k,1) for i,j,k in self.results.keys() if j!=self.index)
+                elif self.cpw == 'simple':
+                    # k=0
+                    assert self.npatch1 == self.npatch2
+                    return ((i,j,k,1) for i,j,k in self.results.keys()
+                            if i!=self.index and j!=self.index)
+                elif self.cpw in [None, 'match']:
+                    w = 1 - self.npatch1 / (2 + 2**0.5 * (self.npatch1-1))
+                    assert self.npatch1 == self.npatch2
+                    return ((i,j,k, w if i == self.index or j == self.index else 1)
+                            for i,j,k in self.results.keys() if i!=self.index or j!=self.index)
+                else:
+                    assert self.cpw == 'mean'
+                    assert self.npatch1 == self.npatch2
+                    return ((i,j,k, 0.5 if i == self.index or j == self.index else 1)
+                            for i,j,k in self.results.keys() if i!=self.index or j!=self.index)
+            elif self.npatch2 == 1:
+                if self.npatch1 == 1:
+                    # i=j=0
+                    return ((i,j,k,1) for i,j,k in self.results.keys() if k!=self.index)
+                elif self.cpw == 'simple':
+                    # j=0
+                    assert self.npatch1 == self.npatch3
+                    return ((i,j,k,1) for i,j,k in self.results.keys()
+                            if i!=self.index and k!=self.index)
+                elif self.cpw in [None, 'match']:
+                    w = 1 - self.npatch1 / (2 + 2**0.5 * (self.npatch1-1))
+                    assert self.npatch1 == self.npatch3
+                    return ((i,j,k, w if i == self.index or k == self.index else 1)
+                            for i,j,k in self.results.keys() if i!=self.index or k!=self.index)
+                else:
+                    assert self.cpw == 'mean'
+                    assert self.npatch1 == self.npatch3
+                    return ((i,j,k, 0.5 if i == self.index or k == self.index else 1)
+                            for i,j,k in self.results.keys() if i!=self.index or k!=self.index)
             elif self.npatch1 == 1:
-                # j=m=0
-                return [ [(j,k,m) for j,k,m in self.results.keys() if k==i]
-                         for i in range(self.npatch2) ]
+                # i=0
+                assert self.npatch2 == self.npatch3
+                if self.cpw == 'simple':
+                    return ((i,j,k,1) for i,j,k in self.results.keys()
+                            if j!=self.index and k!=self.index)
+                elif self.cpw in [None, 'match']:
+                    w = 1 - self.npatch2 / (2 + 2**0.5 * (self.npatch2-1))
+                    assert self.npatch2 == self.npatch3
+                    return ((i,j,k, w if j == self.index or k == self.index else 1)
+                            for i,j,k in self.results.keys() if j!=self.index or k!=self.index)
+                else:
+                    assert self.cpw == 'mean'
+                    return ((i,j,k, 0.5 if j == self.index or k == self.index else 1)
+                            for i,j,k in self.results.keys() if j!=self.index or k!=self.index)
             else:
-                # m=0
-                assert self.npatch1 == self.npatch2
-                return [ [(j,k,m) for j,k,m in self.results.keys() if j==i]
-                         for i in range(self.npatch1) ]
-        elif self.npatch2 == 1:
-            if self.npatch1 == 1:
-                # j=k=0
-                return [ [(j,k,m) for j,k,m in self.results.keys() if m==i]
-                         for i in range(self.npatch3) ]
+                assert self.npatch1 == self.npatch2 == self.npatch3
+                if self.cpw == 'simple':
+                    return ((i,j,k,1) for i,j,k in self.results.keys()
+                            if i!=self.index and j!=self.index and k!=self.index)
+                elif self.cpw in [None, 'match']:
+                    # For 3pt, there are two different optimal match weights depending
+                    # on the nature of the triangle.  If two points are in one patch, and one
+                    # point is in another, then the same weight as MP22 is appropriate.
+                    # For triangles where all three points are in different patches, the
+                    # derivation is as follows:
+                    #
+                    #           n(n-1)(n-2)/6 DDDm - beta (n-1)(n-2)/2 DDDk
+                    # theta_c = -------------------------------------------
+                    #                n(n-1)(n-2)/6 - beta (n-1)(n-2)/2
+                    #
+                    # Then, (theta_c - <theta_c>)^2 comes out to
+                    #   9 S beta^2 n (n-1) / 2 (3beta-n)^2
+                    # As in MP22, set this equal to n S / (n-1) and solve for beta, we get
+                    # beta = sqrt(2) n / 3 (n - 1 + sqrt(2))
+                    w1 = 1 - self.npatch2 / (2 + 2**0.5 * (self.npatch2-1))
+                    w2 = 1 - 2**0.5 * self.npatch1 / (3*(self.npatch1 - 1 + 2**0.5))
+                    assert self.npatch1 == self.npatch2 == self.npatch3
+                    return ((i,j,k,
+                                1 if (i != self.index and j != self.index and k != self.index)
+                                else w2 if (i != j and i != k and j != k)
+                                else w1)
+                            for i,j,k in self.results.keys()
+                            if i!= self.index or j!=self.index or k!=self.index)
+                else:
+                    assert self.cpw == 'mean'
+                    # 1/3 if 2 points are index, 2/3 if 1 point is index, 1 if none are index
+                    return ((i,j,k, sum(p!=self.index for p in (i,j,k))/3)
+                            for i,j,k in self.results.keys()
+                            if i!=self.index or j!=self.index or k!=self.index)
+
+    def _jackknife_pairs(self, cross_patch_weight):
+        np = max(self.npatch1, self.npatch2, self.npatch3)
+        return [self.JackknifeTripleIterator(self.results, self.npatch1, self.npatch2,
+                                             self.npatch3, i, cross_patch_weight)
+                for i in range(np)]
+
+    class SampleTripleIterator(TripleIterator):
+        def make_gen(self):
+            if self.cpw not in [None, 'simple', 'mean']:
+                raise ValueError(f"cross_patch_weight = {self.cpw} is invalid for sample")
+            if self.npatch3 == 1:
+                if self.npatch2 == 1:
+                    # j=k=0
+                    return ((i,j,k,1) for i,j,k in self.results.keys() if i==self.index)
+                elif self.npatch1 == 1:
+                    # i=k=0
+                    return ((i,j,k,1) for i,j,k in self.results.keys() if j==self.index)
+                elif self.cpw in [None, 'simple']:
+                    # k=0
+                    assert self.npatch1 == self.npatch2
+                    return ((i,j,k,1) for i,j,k in self.results.keys() if i==self.index)
+                else:
+                    assert self.cpw == 'mean'
+                    assert self.npatch1 == self.npatch2
+                    return ((i,j,k, 0.5 if i!=self.index or j!=self.index else 1)
+                            for i,j,k in self.results.keys() if i==self.index or j==self.index)
+            elif self.npatch2 == 1:
+                if self.npatch1 == 1:
+                    # i=j=0
+                    return ((i,j,k,1) for i,j,k in self.results.keys() if k==self.index)
+                elif self.cpw in [None, 'simple']:
+                    # j=0
+                    assert self.npatch1 == self.npatch3
+                    return ((i,j,k,1) for i,j,k in self.results.keys() if i==self.index)
+                else:
+                    assert self.cpw == 'mean'
+                    assert self.npatch1 == self.npatch3
+                    return ((i,j,k, 0.5 if i!=self.index or k!=self.index else 1)
+                            for i,j,k in self.results.keys() if i==self.index or k==self.index)
+            elif self.npatch1 == 1:
+                # i=0
+                assert self.npatch2 == self.npatch3
+                if self.cpw in [None, 'simple']:
+                    return ((i,j,k,1) for i,j,k in self.results.keys() if j==self.index)
+                else:
+                    assert self.cpw == 'mean'
+                    return ((i,j,k, 0.5 if j!=self.index or k!=self.index else 1)
+                            for i,j,k in self.results.keys() if j==self.index or k==self.index)
             else:
-                # k=0
-                assert self.npatch1 == self.npatch3
-                return [ [(j,k,m) for j,k,m in self.results.keys() if j==i]
-                         for i in range(self.npatch1) ]
-        elif self.npatch1 == 1:
-            # j=0
-            assert self.npatch2 == self.npatch3
-            return [ [(j,k,m) for j,k,m in self.results.keys() if k==i]
-                     for i in range(self.npatch2) ]
-        else:
-            assert self.npatch1 == self.npatch2 == self.npatch3
-            return [ [(j,k,m) for j,k,m in self.results.keys() if j==i]
-                     for i in range(self.npatch1) ]
+                assert self.npatch1 == self.npatch2 == self.npatch3
+                if self.cpw in [None, 'simple']:
+                    return ((i,j,k,1) for i,j,k in self.results.keys() if i==self.index)
+                else:
+                    assert self.cpw == 'mean'
+                    return ((i,j,k, sum(p==self.index for p in (i,j,k))/3)
+                            for i,j,k in self.results.keys()
+                            if i==self.index or j==self.index or k==self.index)
+
+    def _sample_pairs(self, cross_patch_weight):
+        np = max(self.npatch1, self.npatch2, self.npatch3)
+        return [self.SampleTripleIterator(self.results, self.npatch1, self.npatch2,
+                                          self.npatch3, i, cross_patch_weight)
+                for i in range(np)]
 
     @lazy_property
     def _ok(self):
@@ -2938,69 +3104,173 @@ class Corr3(object):
             ok[i,j,k] = True
         return ok
 
-    def _marked_pairs(self, indx):
-        if self.npatch3 == 1:
-            if self.npatch2 == 1:
-                return [ (i,0,0) for i in indx if self._ok[i,0,0] ]
+    class MarkedTripleIterator(TripleIterator):
+        def make_gen(self):
+            if self.cpw not in [None, 'simple', 'mean']:
+                raise ValueError(f"cross_patch_weight = {self.cpw} is invalid for marked_bootstrap")
+            if self.npatch3 == 1:
+                if self.npatch2 == 1:
+                    return ( (i,0,0,1) for i in self.index if self.ok[i,0,0] )
+                elif self.npatch1 == 1:
+                    return ( (0,j,0,1) for j in self.index if self.ok[0,j,0] )
+                elif self.cpw in [None, 'simple']:
+                    assert self.npatch1 == self.npatch2
+                    index, weights = np.unique(self.index, return_counts=True)
+                    return ( (i,j,0,w) for (i,w) in zip(index, weights)
+                             for j in range(self.npatch2) if self.ok[i,j,0] )
+                else:
+                    assert self.cpw == 'mean'
+                    assert self.npatch1 == self.npatch2
+                    index, weights = np.unique(self.index, return_counts=True)
+                    return ( (i,j,0,w) if i == j else (i,j,0,w/2) if self.ok[i,j,0] else (j,i,0,w/2)
+                             for i,w in zip(index, weights)
+                             for j in range(self.npatch2) if self.ok[i,j,0] or self.ok[j,i,0] )
+            elif self.npatch2 == 1:
+                if self.npatch1 == 1:
+                    return ( (0,0,k,1) for k in self.index if self.ok[0,0,k] )
+                elif self.cpw in [None, 'simple']:
+                    assert self.npatch1 == self.npatch3
+                    index, weights = np.unique(self.index, return_counts=True)
+                    return ( (i,0,k,w) for (i,w) in zip(index, weights)
+                             for k in range(self.npatch3) if self.ok[i,0,k] )
+                else:
+                    assert self.cpw == 'mean'
+                    assert self.npatch1 == self.npatch3
+                    index, weights = np.unique(self.index, return_counts=True)
+                    return ( (i,0,k,w) if i == k else (i,0,k,w/2) if self.ok[i,0,k] else (k,0,i,w/2)
+                             for i,w in zip(index, weights)
+                             for k in range(self.npatch3) if self.ok[i,0,k] or self.ok[k,0,i] )
             elif self.npatch1 == 1:
-                return [ (0,i,0) for i in indx if self._ok[0,i,0] ]
+                assert self.npatch2 == self.npatch3
+                if self.cpw in [None, 'simple']:
+                    assert self.npatch2 == self.npatch3
+                    index, weights = np.unique(self.index, return_counts=True)
+                    return ( (0,j,k,w) for (j,w) in zip(index, weights)
+                             for k in range(self.npatch3) if self.ok[0,j,k] )
+                else:
+                    assert self.cpw == 'mean'
+                    assert self.npatch2 == self.npatch3
+                    index, weights = np.unique(self.index, return_counts=True)
+                    return ( (0,j,k,w) if j == k else (0,j,k,w/2) if self.ok[0,j,k] else (0,k,j,w/2)
+                             for j,w in zip(index, weights)
+                             for k in range(self.npatch3) if self.ok[0,j,k] or self.ok[0,k,j] )
             else:
-                assert self.npatch1 == self.npatch2
-                # Select all pairs where first point is in indx (repeating i as appropriate)
-                return [ (i,j,0) for i in indx for j in range(self.npatch2) if self._ok[i,j,0] ]
-        elif self.npatch2 == 1:
-            if self.npatch1 == 1:
-                return [ (0,0,i) for i in indx if self._ok[0,0,i] ]
-            else:
-                assert self.npatch1 == self.npatch3
-                # Select all pairs where first point is in indx (repeating i as appropriate)
-                return [ (i,0,j) for i in indx for j in range(self.npatch3) if self._ok[i,0,j] ]
-        elif self.npatch1 == 1:
-            assert self.npatch2 == self.npatch3
-            # Select all pairs where first point is in indx (repeating i as appropriate)
-            return [ (0,i,j) for i in indx for j in range(self.npatch3) if self._ok[0,i,j] ]
-        else:
-            assert self.npatch1 == self.npatch2 == self.npatch3
-            # Select all pairs where first point is in indx (repeating i as appropriate)
-            return [ (i,j,k) for i in indx for j in range(self.npatch2)
-                                           for k in range(self.npatch3) if self._ok[i,j,k] ]
+                assert self.npatch1 == self.npatch2 == self.npatch3
+                if self.cpw in [None, 'simple']:
+                    assert self.npatch1 == self.npatch2 == self.npatch3
+                    index, weights = np.unique(self.index, return_counts=True)
+                    return ( (i,j,k,w) for (i,w) in zip(index, weights)
+                             for j in range(self.npatch2)
+                             for k in range(self.npatch3) if self.ok[i,j,k] )
+                else:
+                    assert self.cpw == 'mean'
+                    assert self.npatch1 == self.npatch2 == self.npatch3
+                    index, weights = np.unique(self.index, return_counts=True)
+                    return ( (i,j,k, sum(p==i for p in (i,j,k))/3 * w)
+                             for i,w in zip(index, weights)
+                             for j in range(self.npatch2)
+                             for k in range(self.npatch3) if self.ok[i,j,k] )
 
-    def _bootstrap_pairs(self, indx):
-        if self.npatch3 == 1:
-            if self.npatch2 == 1:
-                return [ (i,0,0) for i in indx if self._ok[i,0,0] ]
+    def _marked_pairs(self, index, cross_patch_weight):
+        return self.MarkedTripleIterator(self.results, self.npatch1, self.npatch2,
+                                         self.npatch3, index, cross_patch_weight, self._ok)
+
+    class BootstrapTripleIterator(TripleIterator):
+        def make_gen(self):
+            if self.cpw not in [None, 'simple', 'mean', 'geom']:
+                raise ValueError(f"cross_patch_weight = {self.cpw} is invalid for bootstrap")
+            if self.npatch3 == 1:
+                if self.npatch2 == 1:
+                    return ( (i,0,0,1) for i in self.index if self.ok[i,0,0] )
+                elif self.npatch1 == 1:
+                    return ( (0,j,0,1) for j in self.index if self.ok[0,j,0] )
+                else:
+                    assert self.npatch1 == self.npatch2
+                    index, weights = np.unique(self.index, return_counts=True)
+                    ret1 = ( (i,i,0,w) for (i,w) in zip(index, weights) if self.ok[i,i,0] )
+                    if self.cpw == 'simple':
+                        ret2 = ( (i,j,0,w1*w2) for (i,w1) in zip(index, weights)
+                                 for (j,w2) in zip(index,weights) if self.ok[i,j,0] and i != j )
+                    elif self.cpw == 'mean':
+                        wdict = dict(zip(index, weights))
+                        ret2 = ( (i,j,0,(wdict.get(i,0)+wdict.get(j,0))/2)
+                                for i in range(self.npatch1) for j in range(self.npatch2)
+                                if self.ok[i,j,0] and i!=j )
+                    else:
+                        assert self.cpw in [None, 'geom']
+                        ret2 = ( (i,j,0,(w1*w2)**0.5) for (i,w1) in zip(index, weights)
+                                 for (j,w2) in zip(index,weights) if self.ok[i,j,0] and i != j )
+                    return itertools.chain(ret1, ret2)
+            elif self.npatch2 == 1:
+                if self.npatch1 == 1:
+                    return [ (0,0,i,1) for i in self.index if self.ok[0,0,i] ]
+                else:
+                    assert self.npatch1 == self.npatch3
+                    index, weights = np.unique(self.index, return_counts=True)
+                    ret1 = ( (i,0,i,w) for (i,w) in zip(index, weights) if self.ok[i,0,i] )
+                    if self.cpw == 'simple':
+                        ret2 = ( (i,0,k,w1*w2) for (i,w1) in zip(index, weights)
+                                 for (k,w2) in zip(index,weights) if self.ok[i,0,k] and i != k )
+                    elif self.cpw == 'mean':
+                        wdict = dict(zip(index, weights))
+                        ret2 = ( (i,0,k,(wdict.get(i,0)+wdict.get(k,0))/2)
+                                for i in range(self.npatch1) for k in range(self.npatch3)
+                                if self.ok[i,0,k] and i!=k )
+                    else:
+                        assert self.cpw in [None, 'geom']
+                        ret2 = ( (i,0,k,(w1*w2)**0.5) for (i,w1) in zip(index, weights)
+                                 for (k,w2) in zip(index,weights) if self.ok[i,0,k] and i != k )
+                    return itertools.chain(ret1, ret2)
             elif self.npatch1 == 1:
-                return [ (0,i,0) for i in indx if self._ok[0,i,0] ]
+                assert self.npatch2 == self.npatch3
+                index, weights = np.unique(self.index, return_counts=True)
+                ret1 = ( (0,j,j,w) for (j,w) in zip(index, weights) if self.ok[0,j,j] )
+                if self.cpw == 'simple':
+                    ret2 = ( (0,j,k,w1*w2) for (j,w1) in zip(index, weights)
+                                for (k,w2) in zip(index,weights) if self.ok[0,j,k] and j != k )
+                elif self.cpw == 'mean':
+                    wdict = dict(zip(index, weights))
+                    ret2 = ( (0,j,k,(wdict.get(j,0)+wdict.get(k,0))/2)
+                            for j in range(self.npatch2) for k in range(self.npatch3)
+                            if self.ok[0,j,k] and j!=k )
+                else:
+                    assert self.cpw in [None, 'geom']
+                    ret2 = ( (0,j,k,(w1*w2)**0.5) for (j,w1) in zip(index, weights)
+                                for (k,w2) in zip(index,weights) if self.ok[0,j,k] and j != k )
+                return itertools.chain(ret1, ret2)
             else:
-                assert self.npatch1 == self.npatch2
-                return ([ (i,i,0) for i in indx if self._ok[i,i,0] ] +
-                        [ (i,j,0) for i in indx for j in indx if self._ok[i,j,0] and i!=j ])
-        elif self.npatch2 == 1:
-            if self.npatch1 == 1:
-                return [ (0,0,i) for i in indx if self._ok[0,0,i] ]
-            else:
-                assert self.npatch1 == self.npatch3
-                return ([ (i,0,i) for i in indx if self._ok[i,0,i] ] +
-                        [ (i,0,j) for i in indx for j in indx if self._ok[i,0,j] and i!=j ])
-        elif self.npatch1 == 1:
-            assert self.npatch2 == self.npatch3
-            return ([ (0,i,i) for i in indx if self._ok[0,i,i] ] +
-                    [ (0,i,j) for i in indx for j in indx if self._ok[0,i,j] and i!=j ])
-        else:
-            # Like for 2pt we want to avoid getting extra copies of what are actually
-            # auto-correlations coming from two indices equalling each other in (i,j,k).
-            # This time, get each (i,i,i) once.
-            # Then get (i,i,j), (i,j,i), and (j,i,i) once per each (i,j) pair with i!=j
-            # repeated as often as they show up in the double for loop.
-            # Finally get all triples (i,j,k) where they are all different repeated as often
-            # as they show up in the triple for loop.
-            assert self.npatch1 == self.npatch2 == self.npatch3
-            return ([ (i,i,i) for i in indx if self._ok[i,i,i] ] +
-                    [ (i,i,j) for i in indx for j in indx if self._ok[i,i,j] and i!=j ] +
-                    [ (i,j,i) for i in indx for j in indx if self._ok[i,j,i] and i!=j ] +
-                    [ (j,i,i) for i in indx for j in indx if self._ok[j,i,i] and i!=j ] +
-                    [ (i,j,k) for i in indx for j in indx if i!=j
-                              for k in indx if self._ok[i,j,k] and (i!=k and j!=k) ])
+                # Like for 2pt we want to avoid getting extra copies of what are actually
+                # auto-correlations coming from two indices equalling each other in (i,j,k).
+                # This time, get each (i,i,i) once.
+                # Then get (i,i,j), (i,j,i), and (j,i,i) once per each (i,j) pair with i!=j
+                # repeated as often as they show up in the double for loop.
+                # Finally get all triples (i,j,k) where they are all different repeated as often
+                # as they show up in the triple for loop.
+                assert self.npatch1 == self.npatch2 == self.npatch3
+                index, weights = np.unique(self.index, return_counts=True)
+                ret1 = ( (i,i,i,w) for (i,w) in zip(index, weights) if self.ok[i,i,i] )
+                if self.cpw == 'simple':
+                    ret2 = ( (i,j,k, (w1*w2 if (i==k or j==k) else w1*w3 if i==j else w1*w2*w3))
+                                for (i,w1) in zip(index, weights)
+                                for (j,w2) in zip(index,weights)
+                                for (k,w3) in zip(index,weights)
+                                if self.ok[i,j,k] and not i==j==k )
+                elif self.cpw == 'mean':
+                    wdict = dict(zip(index, weights))
+                    ret2 = ( (i,j,k,(wdict.get(i,0)+wdict.get(j,0)+wdict.get(k,0))/3)
+                            for i in range(self.npatch1) for j in range(self.npatch2)
+                            for k in range(self.npatch3) if self.ok[i,j,k] and not i==j==k )
+                else:
+                    assert self.cpw in [None, 'geom']
+                    ret2 = ( (i,j,k,(w1*w2*w3)**(1./3.)) for (i,w1) in zip(index, weights)
+                                for (j,w2) in zip(index,weights)
+                                for (k,w3) in zip(index,weights)
+                                if self.ok[i,j,k] and not i==j==k )
+                return itertools.chain(ret1, ret2)
+
+    def _bootstrap_pairs(self, index, cross_patch_weight):
+        return self.BootstrapTripleIterator(self.results, self.npatch1, self.npatch2,
+                                            self.npatch3, index, cross_patch_weight, self._ok)
 
     @property
     def _write_params(self):

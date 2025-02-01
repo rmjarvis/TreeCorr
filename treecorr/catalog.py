@@ -2822,9 +2822,9 @@ class Catalog(object):
         at most two patches in memory at a time.
 
         Parameters:
-            save_patch_dir (str):   The directory to write the patches to. [default: None, in which
+            save_patch_dir (str):   The directory to write the patches to. (default: None, in which
                                     case self.save_patch_dir will be used.  If that is None, a
-                                    ValueError will be raised.]
+                                    ValueError will be raised.)
         """
         if save_patch_dir is None:
             save_patch_dir = self.save_patch_dir
@@ -2858,9 +2858,9 @@ class Catalog(object):
             the ``low_mem`` option in various places.
 
         Parameters:
-            save_patch_dir (str):   The directory to read from. [default: None, in which
+            save_patch_dir (str):   The directory to read from. (default: None, in which
                                     case self.save_patch_dir will be used.  If that is None, a
-                                    ValueError will be raised.]
+                                    ValueError will be raised.)
         """
         if save_patch_dir is None:
             save_patch_dir = self.save_patch_dir
@@ -3311,7 +3311,7 @@ def calculateMeanW(cat_list, *, low_mem=False):
     Parameters:
         cat_list:   A Catalog or a list of Catalogs for which to calculate the variance.
         low_mem:    Whether to try to conserve memory when cat_list is a list by unloading each
-                    catalog after getting its individual vark. [default: False]
+                    catalog after getting its individual vark. (default: False)
 
     Returns:
         The mean weight.
@@ -3339,7 +3339,7 @@ def calculateVarK(cat_list, *, low_mem=False):
     Parameters:
         cat_list:   A Catalog or a list of Catalogs for which to calculate the variance.
         low_mem:    Whether to try to conserve memory when cat_list is a list by unloading each
-                    catalog after getting its individual vark. [default: False]
+                    catalog after getting its individual vark. (default: False)
 
     Returns:
         The variance of the scalar field.
@@ -3364,7 +3364,7 @@ def calculateVarZ(cat_list, *, low_mem=False):
     Parameters:
         cat_list:   A Catalog or a list of Catalogs for which to calculate the vector variance.
         low_mem:    Whether to try to conserve memory when cat_list is a list by unloading each
-                    catalog after getting its individual varz. [default: False]
+                    catalog after getting its individual varz. (default: False)
 
     Returns:
         The variance per component of the vector field.
@@ -3387,7 +3387,7 @@ def calculateVarV(cat_list, *, low_mem=False):
     Parameters:
         cat_list:   A Catalog or a list of Catalogs for which to calculate the vector variance.
         low_mem:    Whether to try to conserve memory when cat_list is a list by unloading each
-                    catalog after getting its individual varv. [default: False]
+                    catalog after getting its individual varv. (default: False)
 
     Returns:
         The variance per component of the vector field.
@@ -3410,7 +3410,7 @@ def calculateVarG(cat_list, *, low_mem=False):
     Parameters:
         cat_list:   A Catalog or a list of Catalogs for which to calculate the shear variance.
         low_mem:    Whether to try to conserve memory when cat_list is a list by unloading each
-                    catalog after getting its individual varg. [default: False]
+                    catalog after getting its individual varg. (default: False)
 
     Returns:
         The variance per component of the shear field (aka shape noise).
@@ -3433,7 +3433,7 @@ def calculateVarT(cat_list, *, low_mem=False):
     Parameters:
         cat_list:   A Catalog or a list of Catalogs for which to calculate the shear variance.
         low_mem:    Whether to try to conserve memory when cat_list is a list by unloading each
-                    catalog after getting its individual varg. [default: False]
+                    catalog after getting its individual varg. (default: False)
 
     Returns:
         The variance per component of the trefoil field.
@@ -3456,7 +3456,7 @@ def calculateVarQ(cat_list, *, low_mem=False):
     Parameters:
         cat_list:   A Catalog or a list of Catalogs for which to calculate the shear variance.
         low_mem:    Whether to try to conserve memory when cat_list is a list by unloading each
-                    catalog after getting its individual varg. [default: False]
+                    catalog after getting its individual varg. (default: False)
 
     Returns:
         The variance per component of the quatrefoil field.

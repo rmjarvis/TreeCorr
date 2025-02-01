@@ -965,7 +965,7 @@ def test_jk():
     print('cov.diag = ',np.diagonal(cov2))
     print('cf var_xip = ',var_xip)
     print('cf var_xim = ',var_xim)
-    np.testing.assert_allclose(np.diagonal(cov2)[:6], var_xip, rtol=0.4)
+    np.testing.assert_allclose(np.diagonal(cov2)[:6], var_xip, rtol=0.5)
     np.testing.assert_allclose(np.diagonal(cov2)[6:], var_xim, rtol=0.5)
 
     # Use initialize/finalize

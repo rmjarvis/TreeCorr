@@ -157,20 +157,42 @@ def test_kkk_logruv_jk():
 
     # Check calculate_xi with all pairs in results dict.
     kkk2 = kkkp.copy()
-    kkk2._calculate_xi_from_pairs(list(kkkp.results.keys()), False)
+    kkk2._calculate_xi_from_pairs([(i,j,k,1) for i,j,k in kkkp.results.keys()], False)
     np.testing.assert_allclose(kkk2.ntri, kkk.ntri, rtol=0.05 * tol_factor)
     np.testing.assert_allclose(kkk2.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
     np.testing.assert_allclose(kkk2.varzeta, kkk.varzeta, rtol=0.05 * tol_factor, atol=3.e-6)
 
-    print('jackknife:')
-    cov = kkkp.estimate_cov('jackknife')
+    print('jackknife/simple:')
+    cov = kkkp.estimate_cov('jackknife', cross_patch_weight='simple')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.6 * tol_factor)
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.5*tol_factor)
 
     # Test design matrix
-    A, w = kkkp.build_cov_design_matrix('jackknife')
+    A, w = kkkp.build_cov_design_matrix('jackknife', cross_patch_weight='simple')
+    A -= np.mean(A, axis=0)
+    C = (1-1/npatch) * A.conj().T.dot(A)
+    np.testing.assert_allclose(C, cov)
+
+    print('jackknife/mean:')
+    cov = kkkp.estimate_cov('jackknife', cross_patch_weight='mean')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    A, w = kkkp.build_cov_design_matrix('jackknife', cross_patch_weight='mean')
+    A -= np.mean(A, axis=0)
+    C = (1-1/npatch) * A.conj().T.dot(A)
+    np.testing.assert_allclose(C, cov)
+
+    print('jackknife/match:')
+    cov = kkkp.estimate_cov('jackknife', cross_patch_weight='match')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.4*tol_factor)
+
+    A, w = kkkp.build_cov_design_matrix('jackknife', cross_patch_weight='match')
     A -= np.mean(A, axis=0)
     C = (1-1/npatch) * A.conj().T.dot(A)
     np.testing.assert_allclose(C, cov)
@@ -179,16 +201,37 @@ def test_kkk_logruv_jk():
         kkkp.build_cov_design_matrix('shot')
     with assert_raises(ValueError):
         kkkp.build_cov_design_matrix('invalid')
+    with assert_raises(ValueError):
+        kkkp.build_cov_design_matrix('jackknife', cross_patch_weight='invalid')
+    with assert_raises(ValueError):
+        kkkp.build_cov_design_matrix('sample', cross_patch_weight='invalid')
+    with assert_raises(ValueError):
+        kkkp.build_cov_design_matrix('bootstrap', cross_patch_weight='invalid')
+    with assert_raises(ValueError):
+        kkkp.build_cov_design_matrix('marked_bootstrap', cross_patch_weight='invalid')
 
-    print('sample:')
-    cov = kkkp.estimate_cov('sample')
+    print('sample/simple:')
+    cov = kkkp.estimate_cov('sample', cross_patch_weight='simple')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.7 * tol_factor)
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.7*tol_factor)
 
     # Test design matrix
-    A, w = kkkp.build_cov_design_matrix('sample')
+    A, w = kkkp.build_cov_design_matrix('sample', cross_patch_weight='simple')
+    w /= np.sum(w)
+    A -= np.mean(A, axis=0)
+    C = 1/(npatch-1) * (w*A.conj().T).dot(A)
+    np.testing.assert_allclose(C, cov)
+
+    print('sample/mean:')
+    cov = kkkp.estimate_cov('sample', cross_patch_weight='mean')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    # Test design matrix
+    A, w = kkkp.build_cov_design_matrix('sample', cross_patch_weight='mean')
     w /= np.sum(w)
     A -= np.mean(A, axis=0)
     C = 1/(npatch-1) * (w*A.conj().T).dot(A)
@@ -196,7 +239,7 @@ def test_kkk_logruv_jk():
 
     print('marked:')
     rng_state = kkkp.rng.get_state()
-    cov = kkkp.estimate_cov('marked_bootstrap')
+    cov = kkkp.estimate_cov('marked_bootstrap', cross_patch_weight='simple')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.7 * tol_factor)
@@ -204,27 +247,44 @@ def test_kkk_logruv_jk():
 
     # Test design matrix
     kkkp.rng.set_state(rng_state)
-    A, w = kkkp.build_cov_design_matrix('marked_bootstrap')
+    A, w = kkkp.build_cov_design_matrix('marked_bootstrap', cross_patch_weight='simple')
     nboot = A.shape[0]
     A -= np.mean(A, axis=0)
     C = 1/(nboot-1) * A.conj().T.dot(A)
     np.testing.assert_allclose(C, cov)
+
+    print('marked/mean:')
+    cov = kkkp.estimate_cov('marked_bootstrap', cross_patch_weight='mean')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
 
     print('bootstrap:')
     rng_state = kkkp.rng.get_state()
-    cov = kkkp.estimate_cov('bootstrap')
+    cov = kkkp.estimate_cov('bootstrap', num_bootstrap=300, cross_patch_weight='simple')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
-    np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.5 * tol_factor)
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.3*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.4*tol_factor)
 
     # Test design matrix
     kkkp.rng.set_state(rng_state)
-    A, w = kkkp.build_cov_design_matrix('bootstrap')
+    A, w = kkkp.build_cov_design_matrix('bootstrap', num_bootstrap=300, cross_patch_weight='simple')
     nboot = A.shape[0]
     A -= np.mean(A, axis=0)
     C = 1/(nboot-1) * A.conj().T.dot(A)
     np.testing.assert_allclose(C, cov)
+
+    print('bootstrap/mean:')
+    cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='mean')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('bootstrap/geom:')
+    cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='geom')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.4*tol_factor)
 
     # Check that these still work after roundtripping through a file.
     cov1 = kkkp.estimate_cov('jackknife')
@@ -299,25 +359,61 @@ def test_kkk_logruv_jk():
     np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
 
     print('jackknife:')
-    cov = kkkp.estimate_cov('jackknife')
+    cov = kkkp.estimate_cov('jackknife', cross_patch_weight='simple')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.5*tol_factor)
 
+    print('jackknife/mean:')
+    cov = kkkp.estimate_cov('jackknife', cross_patch_weight='mean')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('jackknife/match:')
+    cov = kkkp.estimate_cov('jackknife', cross_patch_weight='match')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.4*tol_factor)
+
     print('sample:')
-    cov = kkkp.estimate_cov('sample')
+    cov = kkkp.estimate_cov('sample', cross_patch_weight='simple')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('sample/mean:')
+    cov = kkkp.estimate_cov('sample', cross_patch_weight='mean')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
 
     print('marked:')
-    cov = kkkp.estimate_cov('marked_bootstrap')
+    cov = kkkp.estimate_cov('marked_bootstrap', cross_patch_weight='simple')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
 
+    print('marked/mean:')
+    cov = kkkp.estimate_cov('marked_bootstrap', cross_patch_weight='mean')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.7*tol_factor)
+
     print('bootstrap:')
-    cov = kkkp.estimate_cov('bootstrap')
+    cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='simple')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.5*tol_factor)
+
+    print('bootstrap/mean:')
+    cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='mean')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('bootstrap/geom:')
+    cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='geom')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.4*tol_factor)
@@ -334,7 +430,7 @@ def test_kkk_logruv_jk():
 
     # Check calculate_xi with all pairs in results dict.
     kkk2 = kkkp.copy()
-    kkk2._calculate_xi_from_pairs(list(kkkp.results.keys()), False)
+    kkk2._calculate_xi_from_pairs([(i,j,k,1) for i,j,k in kkkp.results.keys()], False)
     np.testing.assert_allclose(kkk2.ntri, kkk.ntri, rtol=0.05 * tol_factor)
     np.testing.assert_allclose(kkk2.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
     np.testing.assert_allclose(kkk2.varzeta, kkk.varzeta, rtol=0.05 * tol_factor, atol=3.e-6)
@@ -419,28 +515,64 @@ def test_kkk_logruv_jk():
     np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
 
     print('jackknife:')
-    cov = kkkp.estimate_cov('jackknife')
+    cov = kkkp.estimate_cov('jackknife', cross_patch_weight='simple')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('jackknife/mean:')
+    cov = kkkp.estimate_cov('jackknife', cross_patch_weight='mean')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('jackknife/match:')
+    cov = kkkp.estimate_cov('jackknife', cross_patch_weight='match')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
 
     print('sample:')
-    cov = kkkp.estimate_cov('sample')
+    cov = kkkp.estimate_cov('sample', cross_patch_weight='simple')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('sample/mean:')
+    cov = kkkp.estimate_cov('sample', cross_patch_weight='mean')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
 
     print('marked:')
-    cov = kkkp.estimate_cov('marked_bootstrap')
+    cov = kkkp.estimate_cov('marked_bootstrap', cross_patch_weight='simple')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.9*tol_factor)
+
+    print('marked/mean:')
+    cov = kkkp.estimate_cov('marked_bootstrap', cross_patch_weight='mean')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.9*tol_factor)
 
     print('bootstrap:')
-    cov = kkkp.estimate_cov('bootstrap')
+    cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='simple')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('bootstrap/mean:')
+    cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='mean')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('bootstrap/geom:')
+    cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='geom')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.9*tol_factor)
 
     # Patch on 2 only:
     print('with patches on 2 only:')
@@ -449,29 +581,65 @@ def test_kkk_logruv_jk():
     np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
 
     print('jackknife:')
-    cov = kkkp.estimate_cov('jackknife')
+    cov = kkkp.estimate_cov('jackknife', cross_patch_weight='simple')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.9 * tol_factor)
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
 
+    print('jackknife/mean:')
+    cov = kkkp.estimate_cov('jackknife', cross_patch_weight='mean')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('jackknife/match:')
+    cov = kkkp.estimate_cov('jackknife', cross_patch_weight='match')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
     print('sample:')
-    cov = kkkp.estimate_cov('sample')
+    cov = kkkp.estimate_cov('sample', cross_patch_weight='simple')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('sample/mean:')
+    cov = kkkp.estimate_cov('sample', cross_patch_weight='mean')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
 
     print('marked:')
-    cov = kkkp.estimate_cov('marked_bootstrap')
+    cov = kkkp.estimate_cov('marked_bootstrap', cross_patch_weight='simple')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.9*tol_factor)
+
+    print('marked/mean:')
+    cov = kkkp.estimate_cov('marked_bootstrap', cross_patch_weight='mean')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
 
     print('bootstrap:')
-    cov = kkkp.estimate_cov('bootstrap')
+    cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='simple')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('bootstrap/mean:')
+    cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='mean')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.9*tol_factor)
+
+    print('bootstrap/geom:')
+    cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='geom')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.7*tol_factor)
 
     # Patch on 3 only:
     print('with patches on 3 only:')
@@ -480,25 +648,61 @@ def test_kkk_logruv_jk():
     np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
 
     print('jackknife:')
-    cov = kkkp.estimate_cov('jackknife')
+    cov = kkkp.estimate_cov('jackknife', cross_patch_weight='simple')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('jackknife/mean:')
+    cov = kkkp.estimate_cov('jackknife', cross_patch_weight='mean')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('jackknife/match:')
+    cov = kkkp.estimate_cov('jackknife', cross_patch_weight='match')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
 
     print('sample:')
-    cov = kkkp.estimate_cov('sample')
+    cov = kkkp.estimate_cov('sample', cross_patch_weight='simple')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('sample/mean:')
+    cov = kkkp.estimate_cov('sample', cross_patch_weight='mean')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
 
     print('marked:')
-    cov = kkkp.estimate_cov('marked_bootstrap')
+    cov = kkkp.estimate_cov('marked_bootstrap', cross_patch_weight='simple')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('marked/mean:')
+    cov = kkkp.estimate_cov('marked_bootstrap', cross_patch_weight='mean')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
 
     print('bootstrap:')
-    cov = kkkp.estimate_cov('bootstrap')
+    cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='simple')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.9*tol_factor)
+
+    print('bootstrap/mean:')
+    cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='mean')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('bootstrap/geom:')
+    cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='geom')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
@@ -510,25 +714,61 @@ def test_kkk_logruv_jk():
     np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
 
     print('jackknife:')
-    cov = kkkp.estimate_cov('jackknife')
+    cov = kkkp.estimate_cov('jackknife', cross_patch_weight='simple')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.5*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.3*tol_factor)
+
+    print('jackknife/mean:')
+    cov = kkkp.estimate_cov('jackknife', cross_patch_weight='mean')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('jackknife/match:')
+    cov = kkkp.estimate_cov('jackknife', cross_patch_weight='match')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.4*tol_factor)
 
     print('sample:')
-    cov = kkkp.estimate_cov('sample')
+    cov = kkkp.estimate_cov('sample', cross_patch_weight='simple')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('sample/mean:')
+    cov = kkkp.estimate_cov('sample', cross_patch_weight='mean')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
 
     print('marked:')
-    cov = kkkp.estimate_cov('marked_bootstrap')
+    cov = kkkp.estimate_cov('marked_bootstrap', cross_patch_weight='simple')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('marked/mean:')
+    cov = kkkp.estimate_cov('marked_bootstrap', cross_patch_weight='mean')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
 
     print('bootstrap:')
-    cov = kkkp.estimate_cov('bootstrap')
+    cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='simple')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.4*tol_factor)
+
+    print('bootstrap/mean:')
+    cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='mean')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('bootstrap/geom:')
+    cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='geom')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.4*tol_factor)
@@ -540,25 +780,61 @@ def test_kkk_logruv_jk():
     np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
 
     print('jackknife:')
-    cov = kkkp.estimate_cov('jackknife')
+    cov = kkkp.estimate_cov('jackknife', cross_patch_weight='simple')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.5*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.3*tol_factor)
+
+    print('jackknife/mean:')
+    cov = kkkp.estimate_cov('jackknife', cross_patch_weight='mean')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('jackknife/match:')
+    cov = kkkp.estimate_cov('jackknife', cross_patch_weight='match')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.4*tol_factor)
 
     print('sample:')
-    cov = kkkp.estimate_cov('sample')
+    cov = kkkp.estimate_cov('sample', cross_patch_weight='simple')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.7*tol_factor)
 
+    print('sample/mean:')
+    cov = kkkp.estimate_cov('sample', cross_patch_weight='mean')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
     print('marked:')
-    cov = kkkp.estimate_cov('marked_bootstrap')
+    cov = kkkp.estimate_cov('marked_bootstrap', cross_patch_weight='simple')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('marked/mean:')
+    cov = kkkp.estimate_cov('marked_bootstrap', cross_patch_weight='mean')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
 
     print('bootstrap:')
-    cov = kkkp.estimate_cov('bootstrap')
+    cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='simple')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.3*tol_factor)
+
+    print('bootstrap/mean:')
+    cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='mean')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('bootstrap/geom:')
+    cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='geom')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.4*tol_factor)
@@ -570,25 +846,61 @@ def test_kkk_logruv_jk():
     np.testing.assert_allclose(kkkp.zeta, kkk.zeta, rtol=0.1 * tol_factor, atol=1e-3 * tol_factor)
 
     print('jackknife:')
-    cov = kkkp.estimate_cov('jackknife')
+    cov = kkkp.estimate_cov('jackknife', cross_patch_weight='simple')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.5*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.3*tol_factor)
+
+    print('jackknife/mean:')
+    cov = kkkp.estimate_cov('jackknife', cross_patch_weight='mean')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('jackknife/match:')
+    cov = kkkp.estimate_cov('jackknife', cross_patch_weight='match')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.4*tol_factor)
 
     print('sample:')
-    cov = kkkp.estimate_cov('sample')
+    cov = kkkp.estimate_cov('sample', cross_patch_weight='simple')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('sample/mean:')
+    cov = kkkp.estimate_cov('sample', cross_patch_weight='mean')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
 
     print('marked:')
-    cov = kkkp.estimate_cov('marked_bootstrap')
+    cov = kkkp.estimate_cov('marked_bootstrap', cross_patch_weight='simple')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('marked/mean:')
+    cov = kkkp.estimate_cov('marked_bootstrap', cross_patch_weight='mean')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
 
     print('bootstrap:')
-    cov = kkkp.estimate_cov('bootstrap')
+    cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='simple')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.4*tol_factor)
+
+    print('bootstrap/mean:')
+    cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='mean')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+
+    print('bootstrap/geom:')
+    cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='geom')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.4*tol_factor)
@@ -721,7 +1033,7 @@ def test_ggg_logruv_jk():
 
     # Check calculate_xi with all pairs in results dict.
     ggg2 = gggp.copy()
-    ggg2._calculate_xi_from_pairs(list(gggp.results.keys()), False)
+    ggg2._calculate_xi_from_pairs([(i,j,k,1) for i,j,k in gggp.results.keys()], False)
     np.testing.assert_allclose(ggg2.ntri, ggg.ntri, rtol=0.05 * tol_factor)
     np.testing.assert_allclose(ggg2.gam0, ggg.gam0, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
     np.testing.assert_allclose(ggg2.gam1, ggg.gam1, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
@@ -733,34 +1045,64 @@ def test_ggg_logruv_jk():
     np.testing.assert_allclose(ggg2.vargam3, ggg.vargam3, rtol=0.1 * tol_factor)
 
     print('jackknife:')
-    cov = gggp.estimate_cov('jackknife', func=f)
+    cov = gggp.estimate_cov('jackknife', func=f, cross_patch_weight='simple')
     print(np.diagonal(cov).real)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.4*tol_factor)
 
     # Test design matrix
-    A, w = gggp.build_cov_design_matrix('jackknife', func=f)
+    A, w = gggp.build_cov_design_matrix('jackknife', func=f, cross_patch_weight='simple')
     A -= np.mean(A, axis=0)
     C = (1-1/npatch) * A.conj().T.dot(A)
     np.testing.assert_allclose(C, cov)
 
+    print('jackknife/mean:')
+    cov = gggp.estimate_cov('jackknife', func=f, cross_patch_weight='mean')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.7*tol_factor)
+
+    print('jackknife/match')
+    cov = gggp.estimate_cov('jackknife', func=f, cross_patch_weight='match')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.6*tol_factor)
+
     print('sample:')
-    cov = gggp.estimate_cov('sample', func=f)
+    cov = gggp.estimate_cov('sample', func=f, cross_patch_weight='simple')
     print(np.diagonal(cov).real)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.8*tol_factor)
 
+    print('sample/mean')
+    cov = gggp.estimate_cov('sample', func=f, cross_patch_weight='mean')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.6*tol_factor)
+
     print('marked:')
-    cov = gggp.estimate_cov('marked_bootstrap', func=f)
+    cov = gggp.estimate_cov('marked_bootstrap', func=f, cross_patch_weight='simple')
     print(np.diagonal(cov).real)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.9*tol_factor)
 
+    print('marked/mean')
+    cov = gggp.estimate_cov('marked_bootstrap', func=f, cross_patch_weight='mean')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.7*tol_factor)
+
     print('bootstrap:')
-    cov = gggp.estimate_cov('bootstrap', func=f)
+    cov = gggp.estimate_cov('bootstrap', func=f, cross_patch_weight='simple')
     print(np.diagonal(cov).real)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.3*tol_factor)
+
+    print('bootstrap/mean')
+    cov = gggp.estimate_cov('bootstrap', func=f, cross_patch_weight='mean')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.7*tol_factor)
+
+    print('bootstrap/geom')
+    cov = gggp.estimate_cov('bootstrap', func=f, cross_patch_weight='geom')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.4*tol_factor)
 
     # Check that these still work after roundtripping through a file.
     cov1 = gggp.estimate_cov('jackknife', func=f)
@@ -840,28 +1182,58 @@ def test_ggg_logruv_jk():
     np.testing.assert_allclose(gggp.gam3, ggg.gam3, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
 
     print('jackknife:')
-    cov = gggp.estimate_cov('jackknife', func=f)
+    cov = gggp.estimate_cov('jackknife', func=f, cross_patch_weight='simple')
     print(np.diagonal(cov).real)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.4*tol_factor)
 
+    print('jackknife/mean')
+    cov = gggp.estimate_cov('jackknife', func=f, cross_patch_weight='mean')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.6*tol_factor)
+
+    print('jackknife/match')
+    cov = gggp.estimate_cov('jackknife', func=f, cross_patch_weight='match')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.6*tol_factor)
+
     print('sample:')
-    cov = gggp.estimate_cov('sample', func=f)
+    cov = gggp.estimate_cov('sample', func=f, cross_patch_weight='simple')
+    print(np.diagonal(cov).real)
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.5*tol_factor)
+
+    print('sample/mean')
+    cov = gggp.estimate_cov('sample', func=f, cross_patch_weight='mean')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.5*tol_factor)
+
+    print('marked:')
+    cov = gggp.estimate_cov('marked_bootstrap', func=f, cross_patch_weight='simple')
     print(np.diagonal(cov).real)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.6*tol_factor)
 
-    print('marked:')
-    cov = gggp.estimate_cov('marked_bootstrap', func=f)
-    print(np.diagonal(cov).real)
+    print('marked/mean')
+    cov = gggp.estimate_cov('marked_bootstrap', func=f, cross_patch_weight='mean')
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.8*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.4*tol_factor)
 
     print('bootstrap:')
-    cov = gggp.estimate_cov('bootstrap', func=f)
+    cov = gggp.estimate_cov('bootstrap', func=f, cross_patch_weight='simple')
     print(np.diagonal(cov).real)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.4*tol_factor)
+
+    print('bootstrap/mean')
+    cov = gggp.estimate_cov('bootstrap', func=f, cross_patch_weight='mean')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.6*tol_factor)
+
+    print('bootstrap/geom')
+    cov = gggp.estimate_cov('bootstrap', func=f, cross_patch_weight='geom')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.3*tol_factor)
 
     # Check with patch_method='local'
     gggp.process(catp, patch_method='local')
@@ -878,7 +1250,7 @@ def test_ggg_logruv_jk():
 
     # Check calculate_xi with all pairs in results dict.
     ggg2 = gggp.copy()
-    ggg2._calculate_xi_from_pairs(list(gggp.results.keys()), False)
+    ggg2._calculate_xi_from_pairs([(i,j,k,1) for i,j,k in gggp.results.keys()], False)
     np.testing.assert_allclose(ggg2.ntri, ggg.ntri, rtol=0.05 * tol_factor)
     np.testing.assert_allclose(ggg2.gam0, ggg.gam0, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
     np.testing.assert_allclose(ggg2.gam1, ggg.gam1, rtol=0.3 * tol_factor, atol=0.3 * tol_factor)
@@ -977,13 +1349,13 @@ def test_ggg_logruv_jk():
         cov = gggp.estimate_cov('marked_bootstrap', func=f)
         print(np.diagonal(cov).real)
         print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
-        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.8*tol_factor)
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.9*tol_factor)
 
         print('bootstrap:')
         cov = gggp.estimate_cov('bootstrap', func=f)
         print(np.diagonal(cov).real)
         print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
-        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.8*tol_factor)
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.9*tol_factor)
 
         # Patch on 2 only:
         print('with patches on 2 only:')
@@ -1005,7 +1377,7 @@ def test_ggg_logruv_jk():
         cov = gggp.estimate_cov('marked_bootstrap', func=f)
         print(np.diagonal(cov).real)
         print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
-        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.8*tol_factor)
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.9*tol_factor)
 
         print('bootstrap:')
         cov = gggp.estimate_cov('bootstrap', func=f)
@@ -1049,7 +1421,7 @@ def test_ggg_logruv_jk():
         cov = gggp.estimate_cov('jackknife', func=f)
         print(np.diagonal(cov).real)
         print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
-        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.6*tol_factor)
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.7*tol_factor)
 
         print('sample:')
         cov = gggp.estimate_cov('sample', func=f)
@@ -1067,7 +1439,7 @@ def test_ggg_logruv_jk():
         cov = gggp.estimate_cov('bootstrap', func=f)
         print(np.diagonal(cov).real)
         print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
-        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.5*tol_factor)
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.7*tol_factor)
 
         # Patch on 2,3
         print('with patches on 2,3:')
@@ -1077,7 +1449,7 @@ def test_ggg_logruv_jk():
         cov = gggp.estimate_cov('jackknife', func=f)
         print(np.diagonal(cov).real)
         print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
-        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.6*tol_factor)
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.7*tol_factor)
 
         print('sample:')
         cov = gggp.estimate_cov('sample', func=f)
@@ -1095,7 +1467,7 @@ def test_ggg_logruv_jk():
         cov = gggp.estimate_cov('bootstrap', func=f)
         print(np.diagonal(cov).real)
         print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
-        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.4*tol_factor)
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.6*tol_factor)
 
         # Patch on 1,3
         print('with patches on 1,3:')
@@ -1105,7 +1477,7 @@ def test_ggg_logruv_jk():
         cov = gggp.estimate_cov('jackknife', func=f)
         print(np.diagonal(cov).real)
         print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
-        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.6*tol_factor)
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.7*tol_factor)
 
         print('sample:')
         cov = gggp.estimate_cov('sample', func=f)
@@ -1117,13 +1489,13 @@ def test_ggg_logruv_jk():
         cov = gggp.estimate_cov('marked_bootstrap', func=f)
         print(np.diagonal(cov).real)
         print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
-        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.7*tol_factor)
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.8*tol_factor)
 
         print('bootstrap:')
         cov = gggp.estimate_cov('bootstrap', func=f)
         print(np.diagonal(cov).real)
         print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
-        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.5*tol_factor)
+        np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=0.6*tol_factor)
 
     # Don't check LogSAS for accuracy.  Just make sure the code runs.
     print('LogSAS')
@@ -1149,7 +1521,7 @@ def test_nnn_logruv_jk():
     if __name__ == '__main__':
         nhalo = 300
         nsource = 2000
-        npatch = 16
+        npatch = 32
         source_factor = 50
         rand_factor = 3
         tol_factor = 1
@@ -1302,7 +1674,7 @@ def test_nnn_logruv_jk():
 
     # Check the _calculate_xi_from_pairs function.  Using all pairs, should get total xi.
     ddd1 = dddp.copy()
-    ddd1._calculate_xi_from_pairs(dddp.results.keys(), True)
+    ddd1._calculate_xi_from_pairs([(i,j,k,1) for i,j,k in dddp.results.keys()], True)
     np.testing.assert_allclose(ddd1.zeta, dddp.zeta)
 
     # None of these are very good without the random using patches.
@@ -1329,13 +1701,13 @@ def test_nnn_logruv_jk():
     cov = dddp.estimate_cov('marked_bootstrap')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=1.3*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=2.1*tol_factor)
 
     print('bootstrap:')
     cov = dddp.estimate_cov('bootstrap')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=2.2*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=3.0*tol_factor)
 
     zeta_c2, var_zeta_c2 = dddp.calculateZeta(rrr=rrr, drr=drrp, rdd=rddp)
     print('compensated: ')
@@ -1358,19 +1730,19 @@ def test_nnn_logruv_jk():
     cov = dddp.estimate_cov('sample')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnnc))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=3.8*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=3.9*tol_factor)
 
     print('marked:')
     cov = dddp.estimate_cov('marked_bootstrap')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnnc))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=2.3*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=2.6*tol_factor)
 
     print('bootstrap:')
     cov = dddp.estimate_cov('bootstrap')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnnc))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=2.6*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=3.2*tol_factor)
 
     # Now with the random also using patches
     # These are a lot better than the above tests.  But still not nearly as good as we were able
@@ -1393,45 +1765,74 @@ def test_nnn_logruv_jk():
     np.testing.assert_allclose(var_zeta_s2, var_zeta_s1, rtol=0.05 * tol_factor)
 
     ddd1 = dddp.copy()
-    ddd1._calculate_xi_from_pairs(dddp.results.keys(), True)
+    ddd1._calculate_xi_from_pairs([(i,j,k,1) for i,j,k in dddp.results.keys()], True)
     np.testing.assert_allclose(ddd1.zeta, dddp.zeta)
 
-    t0 = time.time()
     print('jackknife:')
-    cov = dddp.estimate_cov('jackknife')
-    print(np.diagonal(cov))
-    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.9*tol_factor)
-    t1 = time.time()
-    print('t = ',t1-t0)
     t0 = time.time()
-
-    print('sample:')
-    cov = dddp.estimate_cov('sample')
-    print(np.diagonal(cov))
-    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.7*tol_factor)
-    t1 = time.time()
-    print('t = ',t1-t0)
-    t0 = time.time()
-
-    print('marked:')
-    cov = dddp.estimate_cov('marked_bootstrap')
+    cov = dddp.estimate_cov('jackknife', cross_patch_weight='simple')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.8*tol_factor)
     t1 = time.time()
     print('t = ',t1-t0)
-    t0 = time.time()
 
-    print('bootstrap:')
-    cov = dddp.estimate_cov('bootstrap')
+    print('jackknife/mean')
+    cov = dddp.estimate_cov('jackknife', cross_patch_weight='mean')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.8*tol_factor)
+
+    print('jackknife/match')
+    cov = dddp.estimate_cov('jackknife', cross_patch_weight='match')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.8*tol_factor)
+
+    print('sample:')
+    t0 = time.time()
+    cov = dddp.estimate_cov('sample', cross_patch_weight='simple')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=1.0*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.6*tol_factor)
     t1 = time.time()
     print('t = ',t1-t0)
+
+    print('sample/mean')
+    cov = dddp.estimate_cov('sample', cross_patch_weight='mean')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.6*tol_factor)
+
+    print('marked:')
     t0 = time.time()
+    cov = dddp.estimate_cov('marked_bootstrap', cross_patch_weight='simple')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.8*tol_factor)
+    t1 = time.time()
+    print('t = ',t1-t0)
+
+    print('marked/mean')
+    cov = dddp.estimate_cov('marked_bootstrap', cross_patch_weight='mean')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.7*tol_factor)
+
+    print('bootstrap:')
+    t0 = time.time()
+    cov = dddp.estimate_cov('bootstrap', cross_patch_weight='simple')
+    print(np.diagonal(cov))
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=1.2*tol_factor)
+    t1 = time.time()
+    print('t = ',t1-t0)
+
+    print('bootstrap/mean')
+    cov = dddp.estimate_cov('bootstrap', cross_patch_weight='mean')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.9*tol_factor)
+
+    print('bootstrap/geom')
+    cov = dddp.estimate_cov('bootstrap', cross_patch_weight='geom')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.5*tol_factor)
 
     print('compensated: ')
     zeta_c2, var_zeta_c2 = dddp.calculateZeta(rrr=rrrp, drr=drrp, rdd=rddp)
@@ -1446,40 +1847,69 @@ def test_nnn_logruv_jk():
 
     t0 = time.time()
     print('jackknife:')
-    cov = dddp.estimate_cov('jackknife')
+    cov = dddp.estimate_cov('jackknife', cross_patch_weight='simple')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnnc))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.8*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.7*tol_factor)
     t1 = time.time()
     print('t = ',t1-t0)
-    t0 = time.time()
+
+    print('jackknife/mean')
+    cov = dddp.estimate_cov('jackknife', cross_patch_weight='mean')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=1.0*tol_factor)
+
+    print('jackknife/match')
+    cov = dddp.estimate_cov('jackknife', cross_patch_weight='match')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.8*tol_factor)
 
     print('sample:')
-    cov = dddp.estimate_cov('sample')
+    t0 = time.time()
+    cov = dddp.estimate_cov('sample', cross_patch_weight='simple')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnnc))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.8*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.6*tol_factor)
     t1 = time.time()
     print('t = ',t1-t0)
-    t0 = time.time()
+
+    print('sample/mean')
+    cov = dddp.estimate_cov('sample', cross_patch_weight='mean')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=1.2*tol_factor)
 
     print('marked:')
-    cov = dddp.estimate_cov('marked_bootstrap')
+    t0 = time.time()
+    cov = dddp.estimate_cov('marked_bootstrap', cross_patch_weight='simple')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnnc))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.8*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.6*tol_factor)
     t1 = time.time()
     print('t = ',t1-t0)
-    t0 = time.time()
+
+    print('marked/mean')
+    cov = dddp.estimate_cov('marked_bootstrap', cross_patch_weight='mean')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.9*tol_factor)
 
     print('bootstrap:')
-    cov = dddp.estimate_cov('bootstrap')
+    t0 = time.time()
+    cov = dddp.estimate_cov('bootstrap', cross_patch_weight='simple')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnnc))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.8*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.9*tol_factor)
     t1 = time.time()
     print('t = ',t1-t0)
-    t0 = time.time()
+
+    print('bootstrap/mean')
+    cov = dddp.estimate_cov('bootstrap', cross_patch_weight='mean')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.9*tol_factor)
+
+    print('bootstrap/geom')
+    cov = dddp.estimate_cov('bootstrap', cross_patch_weight='geom')
+    print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.7*tol_factor)
 
     # Check with patch_method='local'
     print('with patch_method=local:')
@@ -1502,6 +1932,9 @@ def test_nnn_logruv_jk():
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnnc))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnnc), atol=0.8*tol_factor)
+
+    # Note: patch_method=local doesn't have cross-patch results, so no point testing any
+    # cross_patch_weight options.
 
     # Check that these still work after roundtripping through files.
     cov1 = dddp.estimate_cov('jackknife')
@@ -1668,7 +2101,8 @@ def test_brute_jk():
     kkk = treecorr.KKKCorrelation(nbins=3, min_sep=100., max_sep=300., brute=True,
                                   min_u=0., max_u=1.0, nubins=1,
                                   min_v=0., max_v=1.0, nvbins=1,
-                                  var_method='jackknife', bin_type='LogRUV')
+                                  var_method='jackknife', cross_patch_weight='simple',
+                                  bin_type='LogRUV')
     kkk.process(cat)
     np.testing.assert_allclose(kkk.zeta, kkk1.zeta)
 
@@ -1703,7 +2137,8 @@ def test_brute_jk():
     ggg = treecorr.GGGCorrelation(nbins=3, min_sep=100., max_sep=300., brute=True,
                                   min_u=0., max_u=1.0, nubins=1,
                                   min_v=0., max_v=1.0, nvbins=1,
-                                  var_method='jackknife', bin_type='LogRUV')
+                                  var_method='jackknife', cross_patch_weight='simple',
+                                  bin_type='LogRUV')
     ggg.process(cat)
     np.testing.assert_allclose(ggg.gam0, ggg1.gam0)
     np.testing.assert_allclose(ggg.gam1, ggg1.gam1)
@@ -1767,14 +2202,15 @@ def test_brute_jk():
     varmap3 = np.diagonal(np.cov(ggg_map3_list.T, bias=True)) * (len(ggg_map3_list)-1)
 
     # Use estimate_multi_cov
-    covmap3 = treecorr.estimate_multi_cov([ggg], 'jackknife',
+    covmap3 = treecorr.estimate_multi_cov([ggg], 'jackknife', cross_patch_weight='simple',
                                           func=lambda corrs: corrs[0].calculateMap3()[0])
     print('GGG: treecorr jackknife varmap3 = ',np.diagonal(covmap3))
     print('GGG: direct jackknife varmap3 = ',varmap3)
     np.testing.assert_allclose(np.diagonal(covmap3), varmap3)
 
     # Use estimate_cov
-    covmap3b = ggg.estimate_cov('jackknife', func=lambda corr: corr.calculateMap3()[0])
+    covmap3b = ggg.estimate_cov('jackknife', cross_patch_weight='simple',
+                                func=lambda corr: corr.calculateMap3()[0])
     print('GGG: treecorr jackknife varmap3 = ',np.diagonal(covmap3b))
     print('GGG: direct jackknife varmap3 = ',varmap3)
     np.testing.assert_allclose(np.diagonal(covmap3b), varmap3)
@@ -1784,7 +2220,8 @@ def test_brute_jk():
     ddd = treecorr.NNNCorrelation(nbins=3, min_sep=100., max_sep=300., bin_slop=0,
                                   min_u=0., max_u=1.0, nubins=1,
                                   min_v=0., max_v=1.0, nvbins=1,
-                                  var_method='jackknife', bin_type='LogRUV')
+                                  var_method='jackknife', cross_patch_weight='simple',
+                                  bin_type='LogRUV')
     drr = ddd.copy()
     rdd = ddd.copy()
     rrr = ddd.copy()
@@ -2394,7 +2831,7 @@ def test_kkk_logsas_jk():
 
     # Check calculate_xi with all pairs in results dict.
     kkk2 = kkkp.copy()
-    kkk2._calculate_xi_from_pairs(list(kkkp.results.keys()), False)
+    kkk2._calculate_xi_from_pairs([(i,j,k,1) for i,j,k in kkkp.results.keys()], False)
     np.testing.assert_allclose(kkk2.ntri, kkkp.ntri, rtol=0.01 * tol_factor)
     np.testing.assert_allclose(kkk2.zeta, kkkp.zeta, rtol=0.01 * tol_factor)
     np.testing.assert_allclose(kkk2.weight, kkkp.weight, rtol=0.01 * tol_factor)
@@ -2406,6 +2843,8 @@ def test_kkk_logsas_jk():
     np.testing.assert_allclose(kkk2.meanlogd2, kkkp.meanlogd2, rtol=0.01 * tol_factor)
     np.testing.assert_allclose(kkk2.meanlogd3, kkkp.meanlogd3, rtol=0.01 * tol_factor)
 
+    # Note: with the multipole algorithm, there are no cross-patch calculations, as the
+    # patch_method is always local.
     print('jackknife:')
     cov = kkkp.estimate_cov('jackknife')
     print('diag = ',np.diagonal(cov))
@@ -2432,7 +2871,7 @@ def test_kkk_logsas_jk():
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
     np.testing.assert_allclose(np.diagonal(cov), var_kkk, rtol=0.6 * tol_factor)
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.8*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.9*tol_factor)
 
     # Check that these still work after roundtripping through a file.
     cov1 = kkkp.estimate_cov('jackknife')
@@ -2577,7 +3016,7 @@ def test_ggg_logsas_jk():
 
     # Check calculate_xi with all pairs in results dict.
     ggg2 = gggp.copy()
-    ggg2._calculate_xi_from_pairs(list(gggp.results.keys()), False)
+    ggg2._calculate_xi_from_pairs([(i,j,k,1) for i,j,k in gggp.results.keys()], False)
     f2 = f(ggg2)
     np.testing.assert_allclose(ggg2.ntri, gggp.ntri, rtol=0.01 * tol_factor)
     np.testing.assert_allclose(ggg2.weight, gggp.weight, rtol=0.01 * tol_factor)
@@ -2614,13 +3053,13 @@ def test_ggg_logsas_jk():
     cov = gggp.estimate_cov('marked_bootstrap', func=f)
     print(np.diagonal(cov).real)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.1*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
 
     print('bootstrap:')
     cov = gggp.estimate_cov('bootstrap', func=f)
     print(np.diagonal(cov).real)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.1*tol_factor)
 
     # Check that these still work after roundtripping through a file.
     cov1 = gggp.estimate_cov('jackknife', func=f)
@@ -2700,7 +3139,7 @@ def test_ggg_logsas_jk():
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.2*tol_factor)
 
     print('bootstrap:')
-    cov = gggm.estimate_cov('bootstrap', func=fm)
+    cov = gggm.estimate_cov('bootstrap', func=fm, num_bootstrap=100)
     print(np.diagonal(cov).real)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_ggg))))
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggg), atol=1.0*tol_factor)
@@ -2851,7 +3290,7 @@ def test_nnn_logsas_jk():
 
     # Check the _calculate_xi_from_pairs function.  Using all pairs, should get total xi.
     ddd1 = dddp.copy()
-    ddd1._calculate_xi_from_pairs(dddp.results.keys(), True)
+    ddd1._calculate_xi_from_pairs([(i,j,k,1) for i,j,k in dddp.results.keys()], True)
     np.testing.assert_allclose(ddd1.zeta, dddp.zeta)
 
     print('jackknife:')
@@ -2873,7 +3312,7 @@ def test_nnn_logsas_jk():
     print('bootstrap:')
     cov = dddp.estimate_cov('bootstrap')
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_nnns))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=0.7*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_nnns), atol=1.0*tol_factor)
 
     print('compensated: ')
     zeta_c2, var_zeta_c2 = dddp.calculateZeta(rrr=rrrp, drr=drrp, rdd=rddp)

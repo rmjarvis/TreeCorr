@@ -2827,8 +2827,7 @@ class Corr3(object):
     def _zero_array(self):
         # An array of all zeros with the same shape as the data arrays
         z = np.zeros(self.data_shape)
-        # XXX
-        #z.flags.writeable=False  # Just to make sure we get an error if we try to change it.
+        z.flags.writeable=False  # Just to make sure we get an error if we try to change it.
         return z
 
     def _apply_units(self, mask):

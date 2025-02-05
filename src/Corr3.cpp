@@ -935,7 +935,7 @@ void BaseCorr3::process111Sorted(
     // At the end, if singleBin is true, then all these will be set correctly.
     double d1=-1., d2=-1., d3=-1., u=-1., v=-1.;
     if (BinTypeHelper<B>::template stop111<O>(d1sq, d2sq, d3sq, s1, s2, s3,
-                                              c1, c2, c3, metric,
+                                              c1.getPos(), c2.getPos(), c3.getPos(), metric,
                                               d1, d2, d3, u, v,
                                               _minsep, _minsepsq, _maxsep, _maxsepsq,
                                               _minu, _minusq, _maxu, _maxusq,
@@ -963,7 +963,7 @@ void BaseCorr3::process111Sorted(
         double logd1, logd2, logd3;
         int index;
         if (BinTypeHelper<B>::template isTriangleInRange<O>(
-                c1, c2, c3, metric,
+                c1.getPos(), c2.getPos(), c3.getPos(), metric,
                 d1sq, d2sq, d3sq, d1, d2, d3, u, v,
                 _logminsep, _minsep, _maxsep, _binsize, _nbins,
                 _minu, _maxu, _ubinsize, _nubins,

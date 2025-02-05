@@ -236,10 +236,9 @@ struct MetricHelper<Euclidean, P>
 
     // Arc is the only metric with anything different from the normal law of cosines.
     template <int C>
-    double calculateCosPhi(
-        const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
-        double d1sq, double d2sq, double d3sq,
-        double d1, double d2, double d3) const
+    double calculateCosPhi(const Position<C>& p1, const Position<C>& p2, const Position<C>& p3,
+                           double d1sq, double d2sq, double d3sq,
+                           double d1, double d2, double d3) const
     { return (d2sq + d3sq - d1sq) / (2*d2*d3); }
 
 
@@ -370,10 +369,9 @@ struct MetricHelper<OldRperp, P>
     }
 
     template <int C>
-    double calculateCosPhi(
-        const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
-        double d1sq, double d2sq, double d3sq,
-        double d1, double d2, double d3) const
+    double calculateCosPhi(const Position<C>& p1, const Position<C>& p2, const Position<C>& p3,
+                           double d1sq, double d2sq, double d3sq,
+                           double d1, double d2, double d3) const
     { return (d2sq + d3sq - d1sq) / (2*d2*d3); }
 
 };
@@ -500,10 +498,9 @@ struct MetricHelper<Rperp, P>
     }
 
     template <int C>
-    double calculateCosPhi(
-        const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
-        double d1sq, double d2sq, double d3sq,
-        double d1, double d2, double d3) const
+    double calculateCosPhi(const Position<C>& p1, const Position<C>& p2, const Position<C>& p3,
+                           double d1sq, double d2sq, double d3sq,
+                           double d1, double d2, double d3) const
     { return (d2sq + d3sq - d1sq) / (2*d2*d3); }
 
 };
@@ -575,10 +572,9 @@ struct MetricHelper<Rlens, P>
     { return true; }
 
     template <int C>
-    double calculateCosPhi(
-        const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
-        double d1sq, double d2sq, double d3sq,
-        double d1, double d2, double d3) const
+    double calculateCosPhi(const Position<C>& p1, const Position<C>& p2, const Position<C>& p3,
+                           double d1sq, double d2sq, double d3sq,
+                           double d1, double d2, double d3) const
     { return (d2sq + d3sq - d1sq) / (2*d2*d3); }
 
 };
@@ -689,10 +685,9 @@ struct MetricHelper<Arc, P>
     { return true; }
 
     template <int C>
-    double calculateCosPhi(
-        const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
-        double theta1sq, double theta2sq, double theta3sq,
-        double theta1, double theta2, double theta3) const
+    double calculateCosPhi(const Position<C>& p1, const Position<C>& p2, const Position<C>& p3,
+                           double theta1sq, double theta2sq, double theta3sq,
+                           double theta1, double theta2, double theta3) const
     {
         // The correct spherical geometry formula is
         // cos(c) = cos(a) cos(b) + sin(a) sin(b) cos(phi)
@@ -712,9 +707,9 @@ struct MetricHelper<Arc, P>
         // Rather than do trig though, recompute the chord lengths so we can compute
         // cos(phi) with just regular arithmetic and a sqrt.
         //
-        double d1sq = (c2.getPos() - c3.getPos()).normSq();
-        double d2sq = (c1.getPos() - c3.getPos()).normSq();
-        double d3sq = (c1.getPos() - c2.getPos()).normSq();
+        double d1sq = (p2 - p3).normSq();
+        double d2sq = (p1 - p3).normSq();
+        double d3sq = (p1 - p2).normSq();
 
         double cosphi = (d2sq + d3sq - 0.5*d2sq*d3sq - d1sq);
         cosphi /= 2. * std::sqrt( d2sq * d3sq * (1.-0.25*d2sq) * (1.-0.25*d3sq) );
@@ -849,10 +844,9 @@ struct MetricHelper<Periodic, P>
     { return true; }
 
     template <int C>
-    double calculateCosPhi(
-        const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
-        double d1sq, double d2sq, double d3sq,
-        double d1, double d2, double d3) const
+    double calculateCosPhi(const Position<C>& p1, const Position<C>& p2, const Position<C>& p3,
+                           double d1sq, double d2sq, double d3sq,
+                           double d1, double d2, double d3) const
     { return (d2sq + d3sq - d1sq) / (2*d2*d3); }
 
 };

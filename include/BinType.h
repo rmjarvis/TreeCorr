@@ -60,7 +60,7 @@ struct BinTypeHelper<Log>
     // In this case it is simply to check if minsep <= r < maxsep.
     template <int C>
     static bool isRSqInRange(double rsq, const Position<C>& p1, const Position<C>& p2,
-                           double minsep, double minsepsq, double maxsep, double maxsepsq)
+                             double minsep, double minsepsq, double maxsep, double maxsepsq)
     {
         return rsq >= minsepsq && rsq < maxsepsq;
     }
@@ -174,7 +174,7 @@ struct BinTypeHelper<Linear>
     // These next few calculations are the same as Log.
     template <int C>
     static bool isRSqInRange(double rsq, const Position<C>& p1, const Position<C>& p2,
-                           double minsep, double minsepsq, double maxsep, double maxsepsq)
+                             double minsep, double minsepsq, double maxsep, double maxsepsq)
     {
         return rsq >= minsepsq && rsq < maxsepsq;
     }
@@ -269,7 +269,7 @@ struct BinTypeHelper<TwoD>
     // Only C=Flat is valid here.
     template <int C>
     static bool isRSqInRange(double rsq, const Position<C>& p1, const Position<C>& p2,
-                           double minsep, double minsepsq, double maxsep, double maxsepsq)
+                             double minsep, double minsepsq, double maxsep, double maxsepsq)
     {
         // Separately check for r==0, since minsep might be 0, but we still don't want to
         // include "pair"s that are really the same object.
@@ -429,7 +429,7 @@ struct BinTypeHelper<LogRUV>
     static bool stop111(
         double d1sq, double d2sq, double d3sq,
         double s1, double s2, double s3,
-        const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
+        const Position<C>& p1, const Position<C>& p2, const Position<C>& p3,
         const MetricHelper<M,0>& metric,
         double& d1, double& d2, double& d3, double& u, double& v,
         double minsep, double minsepsq, double maxsep, double maxsepsq,
@@ -696,8 +696,8 @@ struct BinTypeHelper<LogRUV>
     }
 
     template <int O, int M, int C>
-    static bool isTriangleInRange(const BaseCell<C>& c1, const BaseCell<C>& c2,
-                                  const BaseCell<C>& c3,
+    static bool isTriangleInRange(const Position<C>& p1, const Position<C>& p2,
+                                  const Position<C>& p3,
                                   const MetricHelper<M,0>& metric,
                                   double d1sq, double d2sq, double d3sq,
                                   double d1, double d2, double d3, double& u, double& v,
@@ -769,7 +769,7 @@ struct BinTypeHelper<LogRUV>
         Assert(kv < nvbins);
 
         // Now account for negative v
-        if (!metric.CCW(c1.getPos(), c2.getPos(), c3.getPos())) {
+        if (!metric.CCW(p1, p2, p3)) {
             v = -v;
             kv = nvbins - kv - 1;
         } else {
@@ -870,7 +870,7 @@ struct BinTypeHelper<LogSAS>
     static bool stop111(
         double d1sq, double d2sq, double d3sq,
         double s1, double s2, double s3,
-        const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
+        const Position<C>& p1, const Position<C>& p2, const Position<C>& p3,
         const MetricHelper<M,0>& metric,
         double& d1, double& d2, double& d3, double& phi, double& cosphi,
         double minsep, double minsepsq, double maxsep, double maxsepsq,
@@ -919,11 +919,11 @@ struct BinTypeHelper<LogSAS>
             return false;
         }
 
-        cosphi = metric.calculateCosPhi(c1,c2,c3,d1sq,d2sq,d3sq,d1,d2,d3);
+        cosphi = metric.calculateCosPhi(p1,p2,p3,d1sq,d2sq,d3sq,d1,d2,d3);
 
         // If we are not swapping 2,3, stop if orientation cannot be counter-clockwise.
         if (O > 1 &&
-            !metric.CCW(c1.getPos(), c3.getPos(), c2.getPos())) {
+            !metric.CCW(p1, p3, p2)) {
             // For skinny triangles, be careful that the points can't flip to the other side.
             // This is similar to the calculation below.  We effecively check that cosphi can't
             // increase to 1.
@@ -1175,8 +1175,8 @@ struct BinTypeHelper<LogSAS>
 
     // This BinType finally sets phi here.
     template <int O, int M, int C>
-    static bool isTriangleInRange(const BaseCell<C>& c1, const BaseCell<C>& c2,
-                                  const BaseCell<C>& c3,
+    static bool isTriangleInRange(const Position<C>& p1, const Position<C>& p2,
+                                  const Position<C>& p3,
                                   const MetricHelper<M,0>& metric,
                                   double d1sq, double d2sq, double d3sq,
                                   double d1, double d2, double d3, double& phi, double& cosphi,
@@ -1211,12 +1211,12 @@ struct BinTypeHelper<LogSAS>
         }
 
         if (O > 1 &&
-            !metric.CCW(c1.getPos(), c3.getPos(), c2.getPos())) {
+            !metric.CCW(p1, p3, p2)) {
             xdbg<<"Triangle is not CCW.\n";
             return false;
         }
 
-        XAssert(metric.CCW(c1.getPos(), c3.getPos(), c2.getPos()));
+        XAssert(metric.CCW(p1, p3, p2));
 
         if (phi < minphi || phi >= maxphi) {
             xdbg<<"phi not in minphi .. maxphi\n";
@@ -1303,7 +1303,7 @@ struct BinTypeHelper<LogMultipole>
     static bool stop111(
         double d1sq, double d2sq, double d3sq,
         double s1, double s2, double s3,
-        const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
+        const Position<C>& p1, const Position<C>& p2, const Position<C>& p3,
         const MetricHelper<M,0>& metric,
         double& , double& , double& , double& , double& ,
         double minsep, double minsepsq, double maxsep, double maxsepsq,
@@ -1420,8 +1420,8 @@ struct BinTypeHelper<LogMultipole>
     }
 
     template <int O, int M, int C>
-    static bool isTriangleInRange(const BaseCell<C>& c1, const BaseCell<C>& c2,
-                                  const BaseCell<C>& c3,
+    static bool isTriangleInRange(const Position<C>& p1, const Position<C>& p2,
+                                  const Position<C>& p3,
                                   const MetricHelper<M,0>& metric,
                                   double d1sq, double d2sq, double d3sq,
                                   double d1, double d2, double d3,
@@ -1468,8 +1468,8 @@ struct BinTypeHelper<LogMultipole>
 
         // Calculate cosphi, sinphi for this triangle.
         // (We use the u variable for sinphi in this class.)
-        std::complex<double> r3 = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), d3);
-        std::complex<double> r2 = ProjectHelper<C>::ExpIPhi(c1.getPos(), c3.getPos(), d2);
+        std::complex<double> r3 = ProjectHelper<C>::ExpIPhi(p1, p2, d3);
+        std::complex<double> r2 = ProjectHelper<C>::ExpIPhi(p1, p3, d2);
         std::complex<double> expiphi = r3 * std::conj(r2);
         cosphi = std::real(expiphi);
         sinphi = std::imag(expiphi);

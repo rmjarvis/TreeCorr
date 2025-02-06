@@ -223,7 +223,7 @@ struct MultipoleScratch<KData> : public BaseMultipoleScratch
 
     MultipoleScratch(const MultipoleScratch& rhs) :
         BaseMultipoleScratch(rhs), buffer(rhs.buffer),
-        _Gn(rhs._Gn), sumwwkk(rhs.sumwwkk)
+        Gnsize(rhs.Gnsize), _Gn(rhs._Gn), sumwwkk(rhs.sumwwkk)
     {}
 
 

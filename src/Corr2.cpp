@@ -596,9 +596,8 @@ bool BaseCorr2::triviallyZero(Position<C> p1, Position<C> p2, double s1, double 
     MetricHelper<M,0> metric(minrpar, maxrpar, _xp, _yp, _zp);
     const double rsq = metric.DistSq(p1, p2, s1, s2);
     double s1ps2 = s1 + s2;
-    double rpar = 0;
     return (BinTypeHelper<B>::tooLargeDist(rsq, s1ps2, _maxsep, _maxsepsq) &&
-            metric.tooLargeDist(p1, p2, rsq, rpar, s1ps2, _fullmaxsep, _fullmaxsepsq));
+            metric.tooLargeDist(p1, p2, rsq, 0, s1ps2, _fullmaxsep, _fullmaxsepsq));
 }
 
 Sampler::Sampler(const BaseCorr2& base_corr2, double minsep, double maxsep,

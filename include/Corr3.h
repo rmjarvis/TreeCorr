@@ -39,7 +39,7 @@ public:
               double b, double a,
               double minu, double maxu, int nubins, double ubinsize, double bu,
               double minv, double maxv, int nvbins, double vbinsize, double bv,
-              double xp, double yp, double zp);
+              double minrpar, double maxrpar, double xp, double yp, double zp);
     BaseCorr3(const BaseCorr3& rhs);
     virtual ~BaseCorr3() {}
 
@@ -55,47 +55,53 @@ public:
         const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3)
     { return _d1 == c1.getD() && _d2 == c2.getD() && _d3 == c3.getD(); }
 
+    bool nontrivialRPar() const
+    {
+        return (_minrpar != -std::numeric_limits<double>::max() ||
+                _maxrpar != std::numeric_limits<double>::max());
+    }
+
     template <int B, int M, int C>
     bool triviallyZero(Position<C> p1, Position<C> p2, Position<C> p3,
                        double s1, double s2, double s3, int ordered, bool p13);
 
-    template <int B, int M, int C>
+    template <int B, int M, int P, int C>
     void process3(const BaseField<C>& field, bool dots, bool quick);
-    template <int B, int O, int M, int C>
+    template <int B, int O, int M, int P, int C>
     void process12(const BaseField<C>& field1, const BaseField<C>& field2, bool dots, bool quick);
-    template <int B, int O, int M, int C>
+    template <int B, int O, int M, int P, int C>
     void process21(const BaseField<C>& field1, const BaseField<C>& field2, bool dots, bool quick);
-    template <int B, int O, int M, int C>
+    template <int B, int O, int M, int P, int C>
     void process111(const BaseField<C>& field1, const BaseField<C>& field2,
                     const BaseField<C>& field3, bool dots, bool quick);
 
-    template <int B, int M, int C>
+    template <int B, int M, int P, int C>
     void multipole(const BaseField<C>& field, bool dots, bool quick);
-    template <int B, int M, int C>
+    template <int B, int M, int P, int C>
     void multipole(const BaseField<C>& field1,  const BaseField<C>& field2, bool dots, bool quick);
-    template <int B, int M, int C>
+    template <int B, int M, int P, int C>
     void multipole(const BaseField<C>& field1,  const BaseField<C>& field2,
                    const BaseField<C>& field3, bool dots, int ordered, bool quick);
 
     // Main worker functions for calculating the result
-    template <int B, int M, int C>
-    void process3(const BaseCell<C>& c1, const MetricHelper<M,0>& metric, bool quick);
+    template <int B, int M, int P, int C>
+    void process3(const BaseCell<C>& c1, const MetricHelper<M,P>& metric, bool quick);
 
-    template <int B, int O, int M, int C>
-    void process12(const BaseCell<C>& c1, const BaseCell<C>& c2, const MetricHelper<M,0>& metric,
+    template <int B, int O, int M, int P, int C>
+    void process12(const BaseCell<C>& c1, const BaseCell<C>& c2, const MetricHelper<M,P>& metric,
                    bool quick);
-    template <int B, int O, int M, int C>
-    void process21(const BaseCell<C>& c1, const BaseCell<C>& c2, const MetricHelper<M,0>& metric,
+    template <int B, int O, int M, int P, int C>
+    void process21(const BaseCell<C>& c1, const BaseCell<C>& c2, const MetricHelper<M,P>& metric,
                    bool quick);
 
-    template <int B, int O, int Q, int M, int C>
+    template <int B, int O, int Q, int M, int P, int C>
     void process111(const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
-                    const MetricHelper<M,0>& metric,
+                    const MetricHelper<M,P>& metric,
                     double d1sq=0., double d2sq=0., double d3sq=0.);
 
-    template <int B, int O, int Q, int M, int C>
+    template <int B, int O, int Q, int M, int P, int C>
     void process111Sorted(const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
-                          const MetricHelper<M,0>& metric,
+                          const MetricHelper<M,P>& metric,
                           double d1sq=0., double d2sq=0., double d3sq=0.);
 
     template <int B, int Q, int C>
@@ -106,39 +112,39 @@ public:
                           const int index);
 
 
-    template <int B, int M, int C>
+    template <int B, int M, int P, int C>
     void splitC2Cells(const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
-                      const MetricHelper<M,0>& metric, std::vector<const BaseCell<C>*>& newc2list);
+                      const MetricHelper<M,P>& metric, std::vector<const BaseCell<C>*>& newc2list);
 
-    template <int B, int M, int C>
+    template <int B, int M, int P, int C>
     void multipoleSplit1(const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
-                         const MetricHelper<M,0>& metric, bool quick,
+                         const MetricHelper<M,P>& metric, bool quick,
                          BaseMultipoleScratch& mp);
 
-    template <int B, int M, int C>
+    template <int B, int M, int P, int C>
     void multipoleSplit1(const BaseCell<C>& c1,
                          const std::vector<const BaseCell<C>*>& c2list,
                          const std::vector<const BaseCell<C>*>& c3list,
-                         const MetricHelper<M,0>& metric, int ordered, bool quick,
+                         const MetricHelper<M,P>& metric, int ordered, bool quick,
                          BaseMultipoleScratch& mp2, BaseMultipoleScratch& mp3);
 
-    template <int B, int M, int C>
+    template <int B, int M, int P, int C>
     double splitC2CellsOrCalculateGn(
         const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
-        const MetricHelper<M,0>& metric,
+        const MetricHelper<M,P>& metric,
         std::vector<const BaseCell<C>*>& newc2list, bool& anysplit1,
         BaseMultipoleScratch& mp, double maxr);
 
-    template <int B, int Q, int M, int C>
+    template <int B, int Q, int M, int P, int C>
     void multipoleFinish(const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
-                         const MetricHelper<M,0>& metric, BaseMultipoleScratch& mp,
+                         const MetricHelper<M,P>& metric, BaseMultipoleScratch& mp,
                          int mink_zeta, double maxr);
 
-    template <int B, int Q, int M, int C>
+    template <int B, int Q, int M, int P, int C>
     void multipoleFinish(const BaseCell<C>& c1,
                          const std::vector<const BaseCell<C>*>& c2list,
                          const std::vector<const BaseCell<C>*>& c3list,
-                         const MetricHelper<M,0>& metric, int ordered,
+                         const MetricHelper<M,P>& metric, int ordered,
                          BaseMultipoleScratch& mp2, BaseMultipoleScratch& mp3,
                          int mink_zeta, double maxr2, double maxr3);
 
@@ -317,6 +323,7 @@ protected:
     int _nvbins;
     double _vbinsize;
     double _bv;
+    double _minrpar, _maxrpar;
     double _xp, _yp, _zp;
     double _logminsep;
     double _halfminsep;
@@ -344,7 +351,7 @@ public:
           double b, double a,
           double minu, double maxu, int nubins, double ubinsize, double bu,
           double minv, double maxv, int nvbins, double vbinsize, double bv,
-          double xp, double yp, double zp,
+          double minrpar, double maxrpar, double xp, double yp, double zp,
           double* zeta0, double* zeta1, double* zeta2, double* zeta3,
           double* zeta4, double* zeta5, double* zeta6, double* zeta7,
           double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,

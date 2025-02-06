@@ -73,12 +73,12 @@ BaseCorr3::BaseCorr3(
     double b, double a,
     double minu, double maxu, int nubins, double ubinsize, double bu,
     double minv, double maxv, int nvbins, double vbinsize, double bv,
-    double xp, double yp, double zp):
+    double minrpar, double maxrpar, double xp, double yp, double zp):
     _bin_type(bin_type), _d1(d1), _d2(d2), _d3(d3),
     _minsep(minsep), _maxsep(maxsep), _nbins(nbins), _binsize(binsize), _b(b), _a(a),
     _minu(minu), _maxu(maxu), _nubins(nubins), _ubinsize(ubinsize), _bu(bu),
     _minv(minv), _maxv(maxv), _nvbins(nvbins), _vbinsize(vbinsize), _bv(bv),
-    _xp(xp), _yp(yp), _zp(zp), _coords(-1)
+    _minrpar(minrpar), _maxrpar(maxrpar), _xp(xp), _yp(yp), _zp(zp), _coords(-1)
 {
     // Do a few things that are specific to different bin_types.
     switch(bin_type) {
@@ -130,7 +130,7 @@ Corr3<D1,D2,D3>::Corr3(
     BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b, double a,
     double minu, double maxu, int nubins, double ubinsize, double bu,
     double minv, double maxv, int nvbins, double vbinsize, double bv,
-    double xp, double yp, double zp,
+    double minrpar, double maxrpar, double xp, double yp, double zp,
     double* zeta0, double* zeta1, double* zeta2, double* zeta3,
     double* zeta4, double* zeta5, double* zeta6, double* zeta7,
     double* meand1, double* meanlogd1, double* meand2, double* meanlogd2,
@@ -140,7 +140,7 @@ Corr3<D1,D2,D3>::Corr3(
               minsep, maxsep, nbins, binsize, b, a,
               minu, maxu, nubins, ubinsize, bu,
               minv, maxv, nvbins, vbinsize, bv,
-              xp, yp, zp),
+              minrpar, maxrpar, xp, yp, zp),
     _owns_data(false),
     _zeta(zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7),
     _meand1(meand1), _meanlogd1(meanlogd1), _meand2(meand2), _meanlogd2(meanlogd2),
@@ -156,6 +156,8 @@ BaseCorr3::BaseCorr3(const BaseCorr3& rhs):
     _ubinsize(rhs._ubinsize), _bu(rhs._bu),
     _minv(rhs._minv), _maxv(rhs._maxv), _nvbins(rhs._nvbins),
     _vbinsize(rhs._vbinsize), _bv(rhs._bv),
+    _minrpar(rhs._minrpar), _maxrpar(rhs._maxrpar),
+    _xp(rhs._xp), _yp(rhs._yp), _zp(rhs._zp),
     _logminsep(rhs._logminsep), _halfminsep(rhs._halfminsep),
     _minsepsq(rhs._minsepsq), _maxsepsq(rhs._maxsepsq),
     _minusq(rhs._minusq), _maxusq(rhs._maxusq),
@@ -295,7 +297,7 @@ bool BaseCorr3::triviallyZero(Position<C> p1, Position<C> p2, Position<C> p3,
     }
 }
 
-template <int B, int M, int C>
+template <int B, int M, int P, int C>
 void BaseCorr3::process3(const BaseField<C>& field, bool dots, bool quick)
 {
     dbg<<"Start process auto\n";
@@ -318,7 +320,7 @@ void BaseCorr3::process3(const BaseField<C>& field, bool dots, bool quick)
         BaseCorr3& corr = *this;
 #endif
 
-        MetricHelper<M,0> metric(0, 0, _xp, _yp, _zp);
+        MetricHelper<M,P> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
 
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic)
@@ -360,7 +362,7 @@ void BaseCorr3::process3(const BaseField<C>& field, bool dots, bool quick)
     if (dots) std::cout<<std::endl;
 }
 
-template <int B, int O, int M, int C>
+template <int B, int O, int M, int P, int C>
 void BaseCorr3::process12(const BaseField<C>& field1, const BaseField<C>& field2,
                           bool dots, bool quick)
 {
@@ -377,7 +379,7 @@ void BaseCorr3::process12(const BaseField<C>& field1, const BaseField<C>& field2
     Assert(n1 > 0);
     Assert(n2 > 0);
 
-    MetricHelper<M,0> metric(0, 0, _xp, _yp, _zp);
+    MetricHelper<M,P> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
 
     const std::vector<const BaseCell<C>*>& c1list = field1.getCells();
     const std::vector<const BaseCell<C>*>& c2list = field2.getCells();
@@ -430,7 +432,7 @@ void BaseCorr3::process12(const BaseField<C>& field1, const BaseField<C>& field2
     if (dots) std::cout<<std::endl;
 }
 
-template <int B, int O, int M, int C>
+template <int B, int O, int M, int P, int C>
 void BaseCorr3::process21(const BaseField<C>& field1, const BaseField<C>& field2,
                            bool dots, bool quick)
 {
@@ -447,7 +449,7 @@ void BaseCorr3::process21(const BaseField<C>& field1, const BaseField<C>& field2
     Assert(n1 > 0);
     Assert(n2 > 0);
 
-    MetricHelper<M,0> metric(0, 0, _xp, _yp, _zp);
+    MetricHelper<M,P> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
 
     const std::vector<const BaseCell<C>*>& c1list = field1.getCells();
     const std::vector<const BaseCell<C>*>& c2list = field2.getCells();
@@ -500,7 +502,7 @@ void BaseCorr3::process21(const BaseField<C>& field1, const BaseField<C>& field2
     if (dots) std::cout<<std::endl;
 }
 
-template <int B, int O, int M, int C>
+template <int B, int O, int M, int P, int C>
 void BaseCorr3::process111(const BaseField<C>& field1, const BaseField<C>& field2,
                            const BaseField<C>& field3, bool dots, bool quick)
 {
@@ -520,7 +522,7 @@ void BaseCorr3::process111(const BaseField<C>& field1, const BaseField<C>& field
     Assert(n2 > 0);
     Assert(n3 > 0);
 
-    MetricHelper<M,0> metric(0, 0, _xp, _yp, _zp);
+    MetricHelper<M,P> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
 
     const std::vector<const BaseCell<C>*>& c1list = field1.getCells();
     const std::vector<const BaseCell<C>*>& c2list = field2.getCells();
@@ -573,8 +575,8 @@ void BaseCorr3::process111(const BaseField<C>& field1, const BaseField<C>& field
     if (dots) std::cout<<std::endl;
 }
 
-template <int B, int M, int C>
-void BaseCorr3::process3(const BaseCell<C>& c1, const MetricHelper<M,0>& metric, bool quick)
+template <int B, int M, int P, int C>
+void BaseCorr3::process3(const BaseCell<C>& c1, const MetricHelper<M,P>& metric, bool quick)
 {
     // Does all triangles with 3 points in c1
     xdbg<<ws()<<"Process3: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getN()<<std::endl;
@@ -599,9 +601,9 @@ void BaseCorr3::process3(const BaseCell<C>& c1, const MetricHelper<M,0>& metric,
     dec_ws();
 }
 
-template <int B, int O, int M, int C>
+template <int B, int O, int M, int P, int C>
 void BaseCorr3::process12(const BaseCell<C>& c1, const BaseCell<C>& c2,
-                          const MetricHelper<M,0>& metric, bool quick)
+                          const MetricHelper<M,P>& metric, bool quick)
 {
     // Does all triangles with one point in c1 and the other two points in c2
     xdbg<<ws()<<"Process12: c1: "<<c1.getSize()<<"  "<<c1.getW()<<"  c2: "<<c2.getSize()<<"  "<<c2.getW()<<std::endl;
@@ -684,9 +686,9 @@ void BaseCorr3::process12(const BaseCell<C>& c1, const BaseCell<C>& c2,
     dec_ws();
 }
 
-template <int B, int O, int M, int C>
+template <int B, int O, int M, int P, int C>
 void BaseCorr3::process21(const BaseCell<C>& c1, const BaseCell<C>& c2,
-                          const MetricHelper<M,0>& metric, bool quick)
+                          const MetricHelper<M,P>& metric, bool quick)
 {
     // Does all triangles with two points in c1 and the other point in c2
     xdbg<<ws()<<"Process21: c1: "<<c1.getSize()<<"  "<<c1.getW()<<"  c2: "<<c2.getSize()<<"  "<<c2.getW()<<std::endl;
@@ -769,10 +771,10 @@ void BaseCorr3::process21(const BaseCell<C>& c1, const BaseCell<C>& c2,
     dec_ws();
 }
 
-template <int B, int O, int Q, int M, int C>
+template <int B, int O, int Q, int M, int P, int C>
 void BaseCorr3::process111(
     const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
-    const MetricHelper<M,0>& metric, double d1sq, double d2sq, double d3sq)
+    const MetricHelper<M,P>& metric, double d1sq, double d2sq, double d3sq)
 {
     xdbg<<ws()<<"Process111: c1: "<<c1.getSize()<<"  "<<c1.getW()<<"  c2: "<<c2.getSize()<<"  "<<c2.getW()<<"  c3: "<<c3.getSize()<<"  "<<c3.getW()<<std::endl;
     xdbg<<ws()<<"Process111: c1 = "<<indices(c1)<<"  c2 = "<<indices(c2)<<"  c3 = "<<indices(c3)<<"  ordered="<<O<<"\n";
@@ -935,26 +937,36 @@ void BaseCorr3::process111(
     dec_ws();
 }
 
-template <int B, int O, int Q, int M, int C>
+template <int B, int O, int Q, int M, int P, int C>
 void BaseCorr3::process111Sorted(
     const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
-    const MetricHelper<M,0>& metric, double d1sq, double d2sq, double d3sq)
+    const MetricHelper<M,P>& metric, double d1sq, double d2sq, double d3sq)
 {
     const double s1 = c1.getSize();
     const double s2 = c2.getSize();
     const double s3 = c3.getSize();
+    const Position<C>& p1 = c1.getPos();
+    const Position<C>& p2 = c2.getPos();
+    const Position<C>& p3 = c3.getPos();
 
-    xdbg<<"Process111Sorted: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getN()<<std::endl;
-    xdbg<<"                  c2 = "<<c2.getPos()<<"  "<<c2.getSize()<<"  "<<c2.getN()<<std::endl;
-    xdbg<<"                  c3 = "<<c3.getPos()<<"  "<<c3.getSize()<<"  "<<c3.getN()<<std::endl;
+    xdbg<<"Process111Sorted: c1 = "<<p1<<"  "<<s1<<"  "<<c1.getN()<<std::endl;
+    xdbg<<"                  c2 = "<<p2<<"  "<<s2<<"  "<<c2.getN()<<std::endl;
+    xdbg<<"                  c3 = "<<p3<<"  "<<s3<<"  "<<c3.getN()<<std::endl;
     xdbg<<"                  d123 = "<<sqrt(d1sq)<<"  "<<sqrt(d2sq)<<"  "<<sqrt(d3sq)<<std::endl;
     xdbg<<ws()<<"ProcessSorted111: c1 = "<<indices(c1)<<"  c2 = "<<indices(c2)<<"  c3 = "<<indices(c3)<<"  ordered="<<O<<"\n";
+
+    double rpar2, rpar3;
+    if (metric.isRParOutsideRange(p1, p2, s1+s2, rpar2) ||
+        metric.isRParOutsideRange(p1, p3, s1+s3, rpar3)) {
+        xdbg<<ws()<<"Stopping early -- invalid rpar: "<<rpar2<<"  "<<rpar3<<std::endl;
+        return;
+    }
 
     // Various quanities that we'll set along the way if we need them.
     // At the end, if singleBin is true, then all these will be set correctly.
     double d1=-1., d2=-1., d3=-1., u=-1., v=-1.;
     if (BinTypeHelper<B>::template stop111<O>(d1sq, d2sq, d3sq, s1, s2, s3,
-                                              c1.getPos(), c2.getPos(), c3.getPos(), metric,
+                                              p1, p2, p3, metric,
                                               d1, d2, d3, u, v,
                                               _minsep, _minsepsq, _maxsep, _maxsepsq,
                                               _minu, _minusq, _maxu, _maxusq,
@@ -966,7 +978,9 @@ void BaseCorr3::process111Sorted(
 
     // Now check if these cells are small enough that it is ok to drop into a single bin.
     bool split1=false, split2=false, split3=false;
-    if (BinTypeHelper<B>::singleBin(d1sq, d2sq, d3sq, s1, s2, s3,
+    if (metric.isRParInsideRange(p1, p2, s1+s2, rpar2) &&
+        metric.isRParInsideRange(p1, p3, s1+s3, rpar3) &&
+        BinTypeHelper<B>::singleBin(d1sq, d2sq, d3sq, s1, s2, s3,
                                     _b, _a, _bu, _bv, _bsq, _asq, _busq, _bvsq,
                                     split1, split2, split3,
                                     d1, d2, d3, u, v))
@@ -997,6 +1011,17 @@ void BaseCorr3::process111Sorted(
     } else {
         xdbg<<"Need to split.\n";
 
+        if (P && !(split1 || split2 || split3)) {
+            // This can happen if the only reason to split is for rpar reasons.
+            // Then just split the one with the largest size
+            if (s2 > s3)
+                if (s2 > s1) split2 = true;
+                else split1 = true;
+            else
+                if (s3 > s1) split3 = true;
+                else split1 = true;
+        }
+        XAssert(split1 || split2 || split3);
         XAssert(split1 == false || s1 > 0);
         XAssert(split2 == false || s2 > 0);
         XAssert(split3 == false || s3 > 0);
@@ -1091,7 +1116,7 @@ void BaseCorr3::process111Sorted(
 // finish the calculation, coputing Zeta_n from G_n.
 //
 
-template <int B, int M, int C>
+template <int B, int M, int P, int C>
 void BaseCorr3::multipole(const BaseField<C>& field, bool dots, bool quick)
 {
     dbg<<"Start multipole auto\n";
@@ -1102,7 +1127,7 @@ void BaseCorr3::multipole(const BaseField<C>& field, bool dots, bool quick)
     dbg<<"field has "<<n1<<" top level nodes\n";
     Assert(n1 > 0);
 
-    MetricHelper<M,0> metric(0, 0, _xp, _yp, _zp);
+    MetricHelper<M,P> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
     const std::vector<const BaseCell<C>*>& cells = field.getCells();
 
 #ifdef _OPENMP
@@ -1144,7 +1169,7 @@ void BaseCorr3::multipole(const BaseField<C>& field, bool dots, bool quick)
     if (dots) std::cout<<std::endl;
 }
 
-template <int B, int M, int C>
+template <int B, int M, int P, int C>
 void BaseCorr3::multipole(const BaseField<C>& field1, const BaseField<C>& field2, bool dots,
                           bool quick)
 {
@@ -1161,7 +1186,7 @@ void BaseCorr3::multipole(const BaseField<C>& field1, const BaseField<C>& field2
     Assert(n1 > 0);
     Assert(n2 > 0);
 
-    MetricHelper<M,0> metric(0, 0, _xp, _yp, _zp);
+    MetricHelper<M,P> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
 
     const std::vector<const BaseCell<C>*>& c1list = field1.getCells();
     const std::vector<const BaseCell<C>*>& c2list = field2.getCells();
@@ -1205,7 +1230,7 @@ void BaseCorr3::multipole(const BaseField<C>& field1, const BaseField<C>& field2
     if (dots) std::cout<<std::endl;
 }
 
-template <int B, int M, int C>
+template <int B, int M, int P, int C>
 void BaseCorr3::multipole(const BaseField<C>& field1, const BaseField<C>& field2,
                           const BaseField<C>& field3, bool dots, int ordered, bool quick)
 {
@@ -1225,7 +1250,7 @@ void BaseCorr3::multipole(const BaseField<C>& field1, const BaseField<C>& field2
     Assert(n2 > 0);
     Assert(n3 > 0);
 
-    MetricHelper<M,0> metric(0, 0, _xp, _yp, _zp);
+    MetricHelper<M,P> metric(_minrpar, _maxrpar, _xp, _yp, _zp);
 
     const std::vector<const BaseCell<C>*>& c1list = field1.getCells();
     const std::vector<const BaseCell<C>*>& c2list = field2.getCells();
@@ -1290,10 +1315,10 @@ std::unique_ptr<BaseMultipoleScratch> Corr3<D1,D2,D3>::getMP3(bool use_ww)
     return make_unique<MultipoleScratch<D3> >(_nbins, _nubins, use_ww, buffer);
 }
 
-template <int B, int M, int C>
+template <int B, int M, int P, int C>
 void BaseCorr3::splitC2Cells(
     const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
-    const MetricHelper<M,0>& metric, std::vector<const BaseCell<C>*>& newc2list)
+    const MetricHelper<M,P>& metric, std::vector<const BaseCell<C>*>& newc2list)
 {
     // Given the current c1, make a new c2 list where we throw away any from c2 list
     // that can't contribute to the bins, and split any that need to be split.
@@ -1341,10 +1366,10 @@ void BaseCorr3::splitC2Cells(
     }
 }
 
-template <int B, int M, int C>
+template <int B, int M, int P, int C>
 void BaseCorr3::multipoleSplit1(
     const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
-    const MetricHelper<M,0>& metric, bool quick, BaseMultipoleScratch& mp)
+    const MetricHelper<M,P>& metric, bool quick, BaseMultipoleScratch& mp)
 {
     xdbg<<ws()<<"MultipoleSplit1: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<"  len c2 = "<<c2list.size()<<std::endl;
 
@@ -1376,12 +1401,12 @@ void BaseCorr3::multipoleSplit1(
     dec_ws();
 }
 
-template <int B, int M, int C>
+template <int B, int M, int P, int C>
 void BaseCorr3::multipoleSplit1(
     const BaseCell<C>& c1,
     const std::vector<const BaseCell<C>*>& c2list,
     const std::vector<const BaseCell<C>*>& c3list,
-    const MetricHelper<M,0>& metric, int ordered, bool quick,
+    const MetricHelper<M,P>& metric, int ordered, bool quick,
     BaseMultipoleScratch& mp2, BaseMultipoleScratch& mp3)
 {
     xdbg<<ws()<<"MultipoleSplit1: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<"  len c2 = "<<c2list.size()<<" len c3 = "<<c3list.size()<<std::endl;
@@ -1417,10 +1442,10 @@ void BaseCorr3::multipoleSplit1(
     dec_ws();
 }
 
-template <int B, int M, int C>
+template <int B, int M, int P, int C>
 double BaseCorr3::splitC2CellsOrCalculateGn(
     const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
-    const MetricHelper<M,0>& metric, std::vector<const BaseCell<C>*>& newc2list, bool& anysplit1,
+    const MetricHelper<M,P>& metric, std::vector<const BaseCell<C>*>& newc2list, bool& anysplit1,
     BaseMultipoleScratch& mp, double prev_max_remaining_r)
 {
     // Similar to splitC2Cells, but this time, check to see if any cells are small enough that
@@ -1513,10 +1538,10 @@ double BaseCorr3::splitC2CellsOrCalculateGn(
     return max_remaining_r;
 }
 
-template <int B, int Q, int M, int C>
+template <int B, int Q, int M, int P, int C>
 void BaseCorr3::multipoleFinish(
     const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
-    const MetricHelper<M,0>& metric, BaseMultipoleScratch& mp, int mink_zeta, double maxr)
+    const MetricHelper<M,P>& metric, BaseMultipoleScratch& mp, int mink_zeta, double maxr)
 {
     // This is structured a lot like the previous function.
     // However, in this one, we will actually be filling the Gn array.
@@ -1579,10 +1604,10 @@ void BaseCorr3::multipoleFinish(
     }
 }
 
-template <int B, int Q, int M, int C>
+template <int B, int Q, int M, int P, int C>
 void BaseCorr3::multipoleFinish(
     const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
-    const std::vector<const BaseCell<C>*>& c3list, const MetricHelper<M,0>& metric, int ordered,
+    const std::vector<const BaseCell<C>*>& c3list, const MetricHelper<M,P>& metric, int ordered,
     BaseMultipoleScratch& mp2, BaseMultipoleScratch& mp3, int mink_zeta,
     double maxr2, double maxr3)
 {
@@ -3562,7 +3587,7 @@ Corr3<D1,D2,D3>* BuildCorr3(
     BinType bin_type, double minsep, double maxsep, int nbins, double binsize, double b, double a,
     double minu, double maxu, int nubins, double ubinsize, double bu,
     double minv, double maxv, int nvbins, double vbinsize, double bv,
-    double xp, double yp, double zp,
+    double minrpar, double maxrpar, double xp, double yp, double zp,
     py::array_t<double>& zeta0p, py::array_t<double>& zeta1p,
     py::array_t<double>& zeta2p, py::array_t<double>& zeta3p,
     py::array_t<double>& zeta4p, py::array_t<double>& zeta5p,
@@ -3598,7 +3623,8 @@ Corr3<D1,D2,D3>* BuildCorr3(
 
     return new Corr3<D1,D2,D3>(
             bin_type, minsep, maxsep, nbins, binsize, b, a,
-            minu, maxu, nubins, ubinsize, bu, minv, maxv, nvbins, vbinsize, bv, xp, yp, zp,
+            minu, maxu, nubins, ubinsize, bu, minv, maxv, nvbins, vbinsize, bv,
+            minrpar, maxrpar, xp, yp, zp,
             zeta0, zeta1, zeta2, zeta3, zeta4, zeta5, zeta6, zeta7,
             meand1, meanlogd1, meand2, meanlogd2, meand3, meanlogd3,
             meanu, meanv, weight, weight_im, ntri);
@@ -3611,19 +3637,33 @@ template <int B>
 struct ValidMPB
 { enum { _B = Log }; };
 
-template <int B, int M, int C>
-void ProcessAutob(BaseCorr3& corr, BaseField<C>& field, bool dots, bool quick)
+template <int B, int M, int P, int C>
+void ProcessAutoc(BaseCorr3& corr, BaseField<C>& field, bool dots, bool quick)
 {
-    Assert((ValidMC<M,C>::_M == M));
+    const int _M = ValidMC<M,C>::_M;
+    Assert(_M == M);
 #ifndef DIRECT_MULTIPOLE
     if (B == LogMultipole) {
-        corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(field, dots, quick);
+        const int _B = ValidMPB<B>::_B;
+        corr.template multipole<_B,_M,P>(field, dots, quick);
     } else {
 #endif
-        corr.template process3<B,ValidMC<M,C>::_M>(field, dots, quick);
+        corr.template process3<B,_M,P>(field, dots, quick);
 #ifndef DIRECT_MULTIPOLE
     }
 #endif
+}
+
+template <int B, int M, int C>
+void ProcessAutob(BaseCorr3& corr, BaseField<C>& field, bool dots, bool quick)
+{
+    const bool P = corr.nontrivialRPar();
+    if (P) {
+        Assert(C == ThreeD);
+        ProcessAutoc<B,M,(C==ThreeD)>(corr, field, dots, quick);
+    } else {
+        ProcessAutoc<B,M,false>(corr, field, dots, quick);
+    }
 }
 
 template <int B, int C>
@@ -3673,21 +3713,23 @@ void ProcessAuto(BaseCorr3& corr, BaseField<C>& field,
     }
 }
 
-template <int B, int M, int C>
-void ProcessCross12b(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2,
+template <int B, int M, int P, int C>
+void ProcessCross12c(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2,
                      int ordered, bool dots, bool quick)
 {
     Assert(ordered == 0 || ordered == 1);
-    Assert((ValidMC<M,C>::_M == M));
+    const int _M = ValidMC<M,C>::_M;
+    Assert(_M == M);
 #ifndef DIRECT_MULTIPOLE
     if (B == LogMultipole) {
+        const int _B = ValidMPB<B>::_B;
         switch(ordered) {
           case 0:
-               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+               corr.template multipole<_B,_M,P>(
                    field2, field1, field2, dots, 1, quick);
                // Drop through.
           case 1:
-               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+               corr.template multipole<_B,_M,P>(
                    field1, field2, dots, quick);
                break;
           default:
@@ -3697,10 +3739,10 @@ void ProcessCross12b(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2
 #endif
         switch(ordered) {
           case 0:
-               corr.template process12<B,0,ValidMC<M,C>::_M>(field1, field2, dots, quick);
+               corr.template process12<B,0,_M,P>(field1, field2, dots, quick);
                break;
           case 1:
-               corr.template process12<B,1,ValidMC<M,C>::_M>(field1, field2, dots, quick);
+               corr.template process12<B,1,_M,P>(field1, field2, dots, quick);
                break;
           default:
                Assert(false);
@@ -3708,6 +3750,19 @@ void ProcessCross12b(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2
 #ifndef DIRECT_MULTIPOLE
     }
 #endif
+}
+
+template <int B, int M, int C>
+void ProcessCross12b(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2,
+                     int ordered, bool dots, bool quick)
+{
+    const bool P = corr.nontrivialRPar();
+    if (P) {
+        Assert(C == ThreeD);
+        ProcessCross12c<B,M,(C==ThreeD)>(corr, field1, field2, ordered, dots, quick);
+    } else {
+        ProcessCross12c<B,M,false>(corr, field1, field2, ordered, dots, quick);
+    }
 }
 
 template <int B, int C>
@@ -3758,25 +3813,27 @@ void ProcessCross12(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2,
     }
 }
 
-template <int B, int M, int C>
-void ProcessCross21b(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2,
+template <int B, int M, int P, int C>
+void ProcessCross21c(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2,
                      int ordered, bool dots, bool quick)
 {
     Assert(ordered == 0 || ordered == 3);
-    Assert((ValidMC<M,C>::_M == M));
+    const int _M = ValidMC<M,C>::_M;
+    Assert(_M == M);
 #ifndef DIRECT_MULTIPOLE
     if (B == LogMultipole) {
+        const int _B = ValidMPB<B>::_B;
         switch(ordered) {
           case 0:
-               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+               corr.template multipole<_B,_M,P>(
                    field2, field1, field1, dots, 1, quick);
-               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+               corr.template multipole<_B,_M,P>(
                    field1, field2, field1, dots, 1, quick);
-               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+               corr.template multipole<_B,_M,P>(
                    field1, field1, field2, dots, 1, quick);
                break;
           case 3:
-               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+               corr.template multipole<_B,_M,P>(
                    field1, field1, field2, dots, 4, quick);
                break;
           default:
@@ -3786,13 +3843,13 @@ void ProcessCross21b(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2
 #endif
         switch(ordered) {
           case 0:
-               corr.template process21<B,0,ValidMC<M,C>::_M>(field1, field2, dots, quick);
+               corr.template process21<B,0,_M,P>(field1, field2, dots, quick);
                break;
           case 3:
-               corr.template process21<B,3,ValidMC<M,C>::_M>(field1, field2, dots, quick);
+               corr.template process21<B,3,_M,P>(field1, field2, dots, quick);
                break;
           case 4:
-               corr.template process21<B,4,ValidMC<M,C>::_M>(field1, field2, dots, quick);
+               corr.template process21<B,4,_M,P>(field1, field2, dots, quick);
                break;
           default:
                Assert(false);
@@ -3800,6 +3857,19 @@ void ProcessCross21b(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2
 #ifndef DIRECT_MULTIPOLE
     }
 #endif
+}
+
+template <int B, int M, int C>
+void ProcessCross21b(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2,
+                     int ordered, bool dots, bool quick)
+{
+    const bool P = corr.nontrivialRPar();
+    if (P) {
+        Assert(C == ThreeD);
+        ProcessCross21c<B,M,(C==ThreeD)>(corr, field1, field2, ordered, dots, quick);
+    } else {
+        ProcessCross21c<B,M,false>(corr, field1, field2, ordered, dots, quick);
+    }
 }
 
 template <int B, int C>
@@ -3850,40 +3920,42 @@ void ProcessCross21(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2,
     }
 }
 
-template <int B, int M, int C>
-void ProcessCrossb(BaseCorr3& corr,
+template <int B, int M, int P, int C>
+void ProcessCrossc(BaseCorr3& corr,
                    BaseField<C>& field1, BaseField<C>& field2, BaseField<C>& field3,
                    int ordered, bool dots, bool quick)
 {
     Assert(ordered >= 0 && ordered <= 4);
-    Assert((ValidMC<M,C>::_M == M));
+    const int _M = ValidMC<M,C>::_M;
+    Assert(_M == M);
 #ifndef DIRECT_MULTIPOLE
     if (B == LogMultipole) {
+        const int _B = ValidMPB<B>::_B;
         switch(ordered) {
           case 0:
-               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+               corr.template multipole<_B,_M,P>(
                    field2, field1, field3, dots, 1, quick);
-               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+               corr.template multipole<_B,_M,P>(
                    field3, field1, field2, dots, 1, quick);
                // Drop through.
           case 1:
-               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+               corr.template multipole<_B,_M,P>(
                    field1, field2, field3, dots, 1, quick);
                break;
           case 2:
-               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+               corr.template multipole<_B,_M,P>(
                    field1, field2, field3, dots, 4, quick);
-               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+               corr.template multipole<_B,_M,P>(
                    field3, field2, field1, dots, 4, quick);
                break;
           case 3:
-               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+               corr.template multipole<_B,_M,P>(
                    field1, field2, field3, dots, 4, quick);
-               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+               corr.template multipole<_B,_M,P>(
                    field2, field1, field3, dots, 4, quick);
                break;
           case 4:
-               corr.template multipole<ValidMPB<B>::_B,ValidMC<M,C>::_M>(
+               corr.template multipole<_B,_M,P>(
                    field1, field2, field3, dots, 4, quick);
                break;
           default:
@@ -3893,19 +3965,19 @@ void ProcessCrossb(BaseCorr3& corr,
 #endif
         switch(ordered) {
           case 0:
-               corr.template process111<B,0,ValidMC<M,C>::_M>(field1, field2, field3, dots, quick);
+               corr.template process111<B,0,_M,P>(field1, field2, field3, dots, quick);
                break;
           case 1:
-               corr.template process111<B,1,ValidMC<M,C>::_M>(field1, field2, field3, dots, quick);
+               corr.template process111<B,1,_M,P>(field1, field2, field3, dots, quick);
                break;
           case 2:
-               corr.template process111<B,2,ValidMC<M,C>::_M>(field1, field2, field3, dots, quick);
+               corr.template process111<B,2,_M,P>(field1, field2, field3, dots, quick);
                break;
           case 3:
-               corr.template process111<B,3,ValidMC<M,C>::_M>(field1, field2, field3, dots, quick);
+               corr.template process111<B,3,_M,P>(field1, field2, field3, dots, quick);
                break;
           case 4:
-               corr.template process111<B,4,ValidMC<M,C>::_M>(field1, field2, field3, dots, quick);
+               corr.template process111<B,4,_M,P>(field1, field2, field3, dots, quick);
                break;
           default:
                Assert(false);
@@ -3913,6 +3985,20 @@ void ProcessCrossb(BaseCorr3& corr,
 #ifndef DIRECT_MULTIPOLE
     }
 #endif
+}
+
+template <int B, int M, int C>
+void ProcessCrossb(BaseCorr3& corr,
+                   BaseField<C>& field1, BaseField<C>& field2, BaseField<C>& field3,
+                   int ordered, bool dots, bool quick)
+{
+    const bool P = corr.nontrivialRPar();
+    if (P) {
+        Assert(C == ThreeD);
+        ProcessCrossc<B,M,(C==ThreeD)>(corr, field1, field2, field3, ordered, dots, quick);
+    } else {
+        ProcessCrossc<B,M,false>(corr, field1, field2, field3, ordered, dots, quick);
+    }
 }
 
 template <int B, int C>
@@ -4109,7 +4195,7 @@ void WrapCorr3(py::module& _treecorr, std::string prefix)
         double b, double a,
         double minu, double maxu, int nubins, double ubinsize, double bu,
         double minv, double maxv, int nvbins, double vbinsize, double bv,
-        double xp, double yp, double zp,
+        double minrpar, double maxrpar, double xp, double yp, double zp,
         py::array_t<double>& zeta0p, py::array_t<double>& zeta1p,
         py::array_t<double>& zeta2p, py::array_t<double>& zeta3p,
         py::array_t<double>& zeta4p, py::array_t<double>& zeta5p,

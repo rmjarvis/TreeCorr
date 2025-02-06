@@ -375,6 +375,10 @@ class Corr3(object):
                             above.  (default: 'Euclidean')
         bin_type (str):     What type of binning should be used.  Options are listed above.
                             (default: 'LogSAS')
+        min_rpar (float):   The minimum difference in Rparallel to allow for pairs being included
+                            in the correlation function.  (default: None)
+        max_rpar (float):   The maximum difference in Rparallel to allow for pairs being included
+                            in the correlation function.  (default: None)
         period (float):     For the 'Periodic' metric, the period to use in all directions.
                             (default: None)
         xperiod (float):    For the 'Periodic' metric, the period to use in the x direction.
@@ -480,6 +484,10 @@ class Corr3(object):
                 'Which metric to use for the distance measurements'),
         'bin_type': (str, False, 'LogSAS', ['LogRUV', 'LogSAS', 'LogMultipole'],
                 'Which type of binning should be used'),
+        'min_rpar': (float, False, None, None,
+                'The minimum difference in Rparallel for pairs to include'),
+        'max_rpar': (float, False, None, None,
+                'The maximum difference in Rparallel for pairs to include'),
         'period': (float, False, None, None,
                 'The period to use for all directions for the Periodic metric'),
         'xperiod': (float, False, None, None,
@@ -852,6 +860,10 @@ class Corr3(object):
             self.logger.info("Doing brute force calculation.",)
         self.coords = None
         self.metric = None
+        self._ro.min_rpar = get(self.config,'min_rpar',float,-sys.float_info.max)
+        self._ro.max_rpar = get(self.config,'max_rpar',float,sys.float_info.max)
+        if self.min_rpar > self.max_rpar:
+            raise ValueError("min_rpar must be <= max_rpar")
         period = get(self.config,'period',float,0)
         self._ro.xperiod = get(self.config,'xperiod',float,period)
         self._ro.yperiod = get(self.config,'yperiod',float,period)
@@ -1049,6 +1061,10 @@ class Corr3(object):
     @property
     def brute(self): return self._ro.brute
     @property
+    def min_rpar(self): return self._ro.min_rpar
+    @property
+    def max_rpar(self): return self._ro.max_rpar
+    @property
     def xperiod(self): return self._ro.xperiod
     @property
     def yperiod(self): return self._ro.yperiod
@@ -1102,6 +1118,7 @@ class Corr3(object):
                     self.angle_slop,
                     self._ro.min_u,self._ro.max_u,self._ro.nubins,self._ro.ubin_size,self.bu,
                     self._ro.min_v,self._ro.max_v,self._ro.nvbins,self._ro.vbin_size,self.bv,
+                    self.min_rpar, self.max_rpar,
                     self.xperiod, self.yperiod, self.zperiod,
                     self._z[0], self._z[1], self._z[2], self._z[3],
                     self._z[4], self._z[5], self._z[6], self._z[7],
@@ -1159,6 +1176,8 @@ class Corr3(object):
                     self.coords == other.coords and
                     self.bin_slop == other.bin_slop and
                     self.angle_slop == other.angle_slop and
+                    self.min_rpar == other.min_rpar and
+                    self.max_rpar == other.max_rpar and
                     self.xperiod == other.xperiod and
                     self.yperiod == other.yperiod and
                     self.zperiod == other.zperiod)
@@ -2815,22 +2834,32 @@ class Corr3(object):
         if metric is None:
             metric = get(self.config,'metric',str,'Euclidean')
         coords, metric = parse_metric(metric, coords1, coords2, coords3)
-        if self.coords is not None or self.metric is not None:
-            if coords != self.coords:
-                self.logger.warning("Detected a change in catalog coordinate systems. "+
-                                    "This probably doesn't make sense!")
-            if metric != self.metric:
-                self.logger.warning("Detected a change in metric. "+
-                                    "This probably doesn't make sense!")
+        if coords != '3d':
+            if self.min_rpar != -sys.float_info.max:
+                raise ValueError("min_rpar is only valid for 3d coordinates")
+            if self.max_rpar != sys.float_info.max:
+                raise ValueError("max_rpar is only valid for 3d coordinates")
+        if self.sep_units != '' and coords == '3d' and metric != 'Arc':
+            raise ValueError("sep_units is invalid with 3d coordinates. "
+                             "min_sep and max_sep should be in the same units as r (or x,y,z).")
         if metric == 'Periodic':
             if self.xperiod == 0 or self.yperiod == 0 or (coords=='3d' and self.zperiod == 0):
                 raise ValueError("Periodic metric requires setting the period to use.")
         else:
             if self.xperiod != 0 or self.yperiod != 0 or self.zperiod != 0:
                 raise ValueError("period options are not valid for %s metric."%metric)
-        self.coords = coords
+
+        if self.coords is not None or self.metric is not None:
+            if coords != self.coords:
+                self.logger.warning("Detected a change in catalog coordinate systems.\n"+
+                                    "This probably doesn't make sense!")
+            if metric != self.metric:
+                self.logger.warning("Detected a change in metric.\n"+
+                                    "This probably doesn't make sense!")
+
+        self.coords = coords  # These are the regular string values
         self.metric = metric
-        self._coords = coord_enum(coords)
+        self._coords = coord_enum(coords)  # These are the C++-layer enums
         self._metric = metric_enum(metric)
 
     @lazy_property

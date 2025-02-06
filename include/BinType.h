@@ -34,7 +34,7 @@
 
 enum BinType { Log, Linear, TwoD, LogRUV, LogSAS, LogMultipole };
 
-template <int M>
+template <int B>
 struct BinTypeHelper;
 
 template <>
@@ -425,12 +425,12 @@ struct BinTypeHelper<LogRUV>
 
     // Once we have all the distances, see if it's possible to stop
     // For this BinType, if return value is false, d2 is set on output.
-    template <int O, int M, int C>
+    template <int O, int M, int P, int C>
     static bool stop111(
         double d1sq, double d2sq, double d3sq,
         double s1, double s2, double s3,
         const Position<C>& p1, const Position<C>& p2, const Position<C>& p3,
-        const MetricHelper<M,0>& metric,
+        const MetricHelper<M,P>& metric,
         double& d1, double& d2, double& d3, double& u, double& v,
         double minsep, double minsepsq, double maxsep, double maxsepsq,
         double minu, double minusq, double maxu, double maxusq,
@@ -735,10 +735,10 @@ struct BinTypeHelper<LogRUV>
         }
     }
 
-    template <int O, int M, int C>
+    template <int O, int M, int P, int C>
     static bool isTriangleInRange(const Position<C>& p1, const Position<C>& p2,
                                   const Position<C>& p3,
-                                  const MetricHelper<M,0>& metric,
+                                  const MetricHelper<M,P>& metric,
                                   double d1sq, double d2sq, double d3sq,
                                   double d1, double d2, double d3, double& u, double& v,
                                   double logminsep,
@@ -906,12 +906,12 @@ struct BinTypeHelper<LogSAS>
 
     // Once we have all the distances, see if it's possible to stop
     // For this BinType, if return value is false, d1,d2,d3,cosphi are set on output.
-    template <int O, int M, int C>
+    template <int O, int M, int P, int C>
     static bool stop111(
         double d1sq, double d2sq, double d3sq,
         double s1, double s2, double s3,
         const Position<C>& p1, const Position<C>& p2, const Position<C>& p3,
-        const MetricHelper<M,0>& metric,
+        const MetricHelper<M,P>& metric,
         double& d1, double& d2, double& d3, double& phi, double& cosphi,
         double minsep, double minsepsq, double maxsep, double maxsepsq,
         double minphi, double , double maxphi, double ,
@@ -1268,10 +1268,10 @@ struct BinTypeHelper<LogSAS>
     }
 
     // This BinType finally sets phi here.
-    template <int O, int M, int C>
+    template <int O, int M, int P, int C>
     static bool isTriangleInRange(const Position<C>& p1, const Position<C>& p2,
                                   const Position<C>& p3,
-                                  const MetricHelper<M,0>& metric,
+                                  const MetricHelper<M,P>& metric,
                                   double d1sq, double d2sq, double d3sq,
                                   double d1, double d2, double d3, double& phi, double& cosphi,
                                   double logminsep,
@@ -1393,12 +1393,12 @@ struct BinTypeHelper<LogMultipole>
     { return false; }
 
     // Once we have all the distances, see if it's possible to stop
-    template <int O, int M, int C>
+    template <int O, int M, int P, int C>
     static bool stop111(
         double d1sq, double d2sq, double d3sq,
         double s1, double s2, double s3,
         const Position<C>& p1, const Position<C>& p2, const Position<C>& p3,
-        const MetricHelper<M,0>& metric,
+        const MetricHelper<M,P>& metric,
         double& , double& , double& , double& , double& ,
         double minsep, double minsepsq, double maxsep, double maxsepsq,
         double , double , double , double ,
@@ -1544,10 +1544,10 @@ struct BinTypeHelper<LogMultipole>
         return true;
     }
 
-    template <int O, int M, int C>
+    template <int O, int M, int P, int C>
     static bool isTriangleInRange(const Position<C>& p1, const Position<C>& p2,
                                   const Position<C>& p3,
-                                  const MetricHelper<M,0>& metric,
+                                  const MetricHelper<M,P>& metric,
                                   double d1sq, double d2sq, double d3sq,
                                   double d1, double d2, double d3,
                                   double& sinphi, double& cosphi,

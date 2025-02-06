@@ -74,7 +74,9 @@ class Corr2(object):
     are appropriate for different use cases.  These are specified by the ``metric`` parameter.
     The possible options are:
 
-        - 'Euclidean' = straight line Euclidean distance between two points.
+        - 'Euclidean' = straight line Euclidean distance between two points.  For spherical
+          coordinates (ra,dec without r), this is the chord distance between points on the
+          unit sphere.
         - 'FisherRperp' = the perpendicular component of the distance, following the
           definitions in Fisher et al, 1994 (MNRAS, 267, 927).
         - 'OldRperp' = the perpendicular component of the distance using the definition

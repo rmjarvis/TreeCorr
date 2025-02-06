@@ -113,12 +113,22 @@ class Corr3(object):
     use one or if you want to change some parameters from what are in a config dict,
     then you can use normal kwargs, which take precedence over anything in the config dict.
 
-    There are three implemented definitions for the ``metric``, which defines how to calculate
-    the distance between two points, for three-point corretions:
+    There are a number of possible definitions for the distance between two points, which
+    are appropriate for different use cases.  These are specified by the ``metric`` parameter.
+    The possible options are:
 
         - 'Euclidean' = straight line Euclidean distance between two points.  For spherical
           coordinates (ra,dec without r), this is the chord distance between points on the
           unit sphere.
+        - 'FisherRperp' = the perpendicular component of the distance, following the
+          definitions in Fisher et al, 1994 (MNRAS, 267, 927).
+        - 'OldRperp' = the perpendicular component of the distance using the definition
+          of Rperp from TreeCorr v3.x.
+        - 'Rperp' = an alias for FisherRperp.  You can change it to be an alias for
+          OldRperp if you want by setting ``treecorr.Rperp_alias = 'OldRperp'`` before
+          using it.
+        - 'Rlens' = the distance from the first object (taken to be a lens) to the line
+          connecting Earth and the second object (taken to be a lensed source).
         - 'Arc' = the true great circle distance for spherical coordinates.
         - 'Periodic' = Like Euclidean, but with periodic boundaries.
 
@@ -128,6 +138,8 @@ class Corr3(object):
             side length d > period/2, which means for the SSS triangle definition, max_sep
             (the maximum d2) should be less than period/4, and for SAS, max_sep should be less
             than period/2.  This is not enforced.
+
+    See `Metrics` for more information about these various metric options.
 
     There are three allowed value for the ``bin_type`` for three-point correlations.
 
@@ -463,7 +475,8 @@ class Corr3(object):
                 'The maximum number of top layers to use when setting up the field.'),
         'precision' : (int, False, 4, None,
                 'The number of digits after the decimal in the output.'),
-        'metric': (str, False, 'Euclidean', ['Euclidean', 'Arc', 'Periodic'],
+        'metric': (str, False, 'Euclidean', ['Euclidean', 'Rperp', 'FisherRperp', 'OldRperp',
+                                             'Rlens', 'Arc', 'Periodic'],
                 'Which metric to use for the distance measurements'),
         'bin_type': (str, False, 'LogSAS', ['LogRUV', 'LogSAS', 'LogMultipole'],
                 'Which type of binning should be used'),

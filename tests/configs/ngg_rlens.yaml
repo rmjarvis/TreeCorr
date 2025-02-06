@@ -1,0 +1,23 @@
+
+file_name: data/ngg_rlens_lens.dat
+file_name2: data/ngg_rlens_source.dat
+
+x_col: 1
+y_col: 2
+z_col: 3
+
+g1_col: [0,4]
+g2_col: [0,5]
+
+verbose: 1
+
+min_sep: 12.
+max_sep: 16.
+bin_size: 0.2
+min_phi: 0.5
+max_phi: 2.5
+nphi_bins: 20
+
+metric: Rlens
+
+ngg_file_name: output/ngg_rlens.out

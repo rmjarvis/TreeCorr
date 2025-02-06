@@ -773,13 +773,7 @@ void BaseCorr3::process111(
     }
 
     // Calculate the distances if they aren't known yet
-    double s=0.;
-    if (d1sq == 0.)
-        d1sq = metric.DistSq(c2.getPos(), c3.getPos(), s, s);
-    if (d2sq == 0.)
-        d2sq = metric.DistSq(c1.getPos(), c3.getPos(), s, s);
-    if (d3sq == 0.)
-        d3sq = metric.DistSq(c1.getPos(), c2.getPos(), s, s);
+    metric.TripleDistSq(c1.getPos(), c2.getPos(), c3.getPos(), d1sq, d2sq, d3sq);
 
     inc_ws();
     if (O == 0) {
@@ -3614,6 +3608,15 @@ void ProcessAutoa(BaseCorr3& corr, BaseField<C>& field, bool dots, bool quick, M
       case Euclidean:
            ProcessAutob<B,Euclidean>(corr, field, dots, quick);
            break;
+      case Rperp:
+           ProcessAutob<B,Rperp>(corr, field, dots, quick);
+           break;
+      case OldRperp:
+           ProcessAutob<B,OldRperp>(corr, field, dots, quick);
+           break;
+      case Rlens:
+           ProcessAutob<B,Rlens>(corr, field, dots, quick);
+           break;
       case Arc:
            ProcessAutob<B,Arc>(corr, field, dots, quick);
            break;
@@ -3689,6 +3692,15 @@ void ProcessCross12a(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2
     switch(metric) {
       case Euclidean:
            ProcessCross12b<B,Euclidean>(corr, field1, field2, ordered, dots, quick);
+           break;
+      case Rperp:
+           ProcessCross12b<B,Rperp>(corr, field1, field2, ordered, dots, quick);
+           break;
+      case OldRperp:
+           ProcessCross12b<B,OldRperp>(corr, field1, field2, ordered, dots, quick);
+           break;
+      case Rlens:
+           ProcessCross12b<B,Rlens>(corr, field1, field2, ordered, dots, quick);
            break;
       case Arc:
            ProcessCross12b<B,Arc>(corr, field1, field2, ordered, dots, quick);
@@ -3772,6 +3784,15 @@ void ProcessCross21a(BaseCorr3& corr, BaseField<C>& field1, BaseField<C>& field2
     switch(metric) {
       case Euclidean:
            ProcessCross21b<B,Euclidean>(corr, field1, field2, ordered, dots, quick);
+           break;
+      case Rperp:
+           ProcessCross21b<B,Rperp>(corr, field1, field2, ordered, dots, quick);
+           break;
+      case OldRperp:
+           ProcessCross21b<B,OldRperp>(corr, field1, field2, ordered, dots, quick);
+           break;
+      case Rlens:
+           ProcessCross21b<B,Rlens>(corr, field1, field2, ordered, dots, quick);
            break;
       case Arc:
            ProcessCross21b<B,Arc>(corr, field1, field2, ordered, dots, quick);
@@ -3877,6 +3898,15 @@ void ProcessCrossa(BaseCorr3& corr,
     switch(metric) {
       case Euclidean:
            ProcessCrossb<B,Euclidean>(corr, field1, field2, field3, ordered, dots, quick);
+           break;
+      case Rperp:
+           ProcessCrossb<B,Rperp>(corr, field1, field2, field3, ordered, dots, quick);
+           break;
+      case OldRperp:
+           ProcessCrossb<B,OldRperp>(corr, field1, field2, field3, ordered, dots, quick);
+           break;
+      case Rlens:
+           ProcessCrossb<B,Rlens>(corr, field1, field2, field3, ordered, dots, quick);
            break;
       case Arc:
            ProcessCrossb<B,Arc>(corr, field1, field2, field3, ordered, dots, quick);

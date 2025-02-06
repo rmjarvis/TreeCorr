@@ -234,6 +234,19 @@ struct MetricHelper<Euclidean, P>
                       double rsq, double rpar, double s1ps2, double maxsep, double maxsepsq) const
     { return true; }
 
+    template <int C>
+    void TripleDistSq(const Position<C>& p1, const Position<C>& p2, const Position<C>& p3,
+                      double& d1sq, double& d2sq, double& d3sq) const
+    {
+        double s=0.;
+        if (d1sq == 0.)
+            d1sq = DistSq(p2, p3, s, s);
+        if (d2sq == 0.)
+            d2sq = DistSq(p1, p3, s, s);
+        if (d3sq == 0.)
+            d3sq = DistSq(p1, p2, s, s);
+    }
+
     // Arc is the only metric with anything different from the normal law of cosines.
     template <int C>
     double calculateCosPhi(const Position<C>& p1, const Position<C>& p2, const Position<C>& p3,
@@ -369,6 +382,19 @@ struct MetricHelper<OldRperp, P>
     }
 
     template <int C>
+    void TripleDistSq(const Position<C>& p1, const Position<C>& p2, const Position<C>& p3,
+                      double& d1sq, double& d2sq, double& d3sq) const
+    {
+        double s=0.;
+        if (d1sq == 0.)
+            d1sq = DistSq(p2, p3, s, s);
+        if (d2sq == 0.)
+            d2sq = DistSq(p1, p3, s, s);
+        if (d3sq == 0.)
+            d3sq = DistSq(p1, p2, s, s);
+    }
+
+    template <int C>
     double calculateCosPhi(const Position<C>& p1, const Position<C>& p2, const Position<C>& p3,
                            double d1sq, double d2sq, double d3sq,
                            double d1, double d2, double d3) const
@@ -498,6 +524,31 @@ struct MetricHelper<Rperp, P>
     }
 
     template <int C>
+    void TripleDistSq(const Position<C>& p1, const Position<C>& p2, const Position<C>& p3,
+                      double& d1sq, double& d2sq, double& d3sq) const
+    {
+        // The generalization for three points is the following:
+        //   L = (p1 + p2 + p3)/3
+        //   rij = (pj - pi)
+        //   r_par = |L . r| / |L|
+        //   r_perp^2 = |r|^2 - |r_par|^2
+
+        Position<ThreeD> L = (p1+p2+p3)/3.;
+        double normLsq = L.normSq();
+        // Save this so we can use it later in tooLargeDist.
+        _normLsq = normLsq;
+
+        double r1parsq = SQR(L.dot(p2-p3)) / normLsq;
+        d1sq = (p2-p3).normSq() - r1parsq;
+
+        double r2parsq = SQR(L.dot(p3-p1)) / normLsq;
+        d2sq = (p3-p1).normSq() - r2parsq;
+
+        double r3parsq = SQR(L.dot(p2-p1)) / normLsq;
+        d3sq = (p2-p1).normSq() - r3parsq;
+    }
+
+    template <int C>
     double calculateCosPhi(const Position<C>& p1, const Position<C>& p2, const Position<C>& p3,
                            double d1sq, double d2sq, double d3sq,
                            double d1, double d2, double d3) const
@@ -570,6 +621,24 @@ struct MetricHelper<Rlens, P>
     bool tooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                       double rsq, double rpar, double s1ps2, double maxsep, double maxsepsq) const
     { return true; }
+
+    template <int C>
+    void TripleDistSq(const Position<C>& p1, const Position<C>& p2, const Position<C>& p3,
+                      double& d1sq, double& d2sq, double& d3sq) const
+    {
+        // In this case, d2, d3 are normal, but d1 needs both points projected to the plane
+        // of p1 do get the right separation.
+        // If we do it the normal way then d1 is too big by a factor r2/r1.
+        // So just do that, then then scale down by that factor.
+        double s;
+        if (d1sq == 0.)
+            d1sq = DistSq(p2, p3, s, s);
+        if (d2sq == 0.)
+            d2sq = DistSq(p1, p3, s, s);
+        if (d3sq == 0.)
+            d3sq = DistSq(p1, p2, s, s);
+        d1sq /= p2.normSq() / p1.normSq();
+    }
 
     template <int C>
     double calculateCosPhi(const Position<C>& p1, const Position<C>& p2, const Position<C>& p3,
@@ -683,6 +752,19 @@ struct MetricHelper<Arc, P>
     bool tooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                       double rsq, double rpar, double s1ps2, double maxsep, double maxsepsq) const
     { return true; }
+
+    template <int C>
+    void TripleDistSq(const Position<C>& p1, const Position<C>& p2, const Position<C>& p3,
+                      double& d1sq, double& d2sq, double& d3sq) const
+    {
+        double s=0.;
+        if (d1sq == 0.)
+            d1sq = DistSq(p2, p3, s, s);
+        if (d2sq == 0.)
+            d2sq = DistSq(p1, p3, s, s);
+        if (d3sq == 0.)
+            d3sq = DistSq(p1, p2, s, s);
+    }
 
     template <int C>
     double calculateCosPhi(const Position<C>& p1, const Position<C>& p2, const Position<C>& p3,
@@ -842,6 +924,19 @@ struct MetricHelper<Periodic, P>
     bool tooLargeDist(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                       double rsq, double rpar, double s1ps2, double maxsep, double maxsepsq) const
     { return true; }
+
+    template <int C>
+    void TripleDistSq(const Position<C>& p1, const Position<C>& p2, const Position<C>& p3,
+                      double& d1sq, double& d2sq, double& d3sq) const
+    {
+        double s=0.;
+        if (d1sq == 0.)
+            d1sq = DistSq(p2, p3, s, s);
+        if (d2sq == 0.)
+            d2sq = DistSq(p1, p3, s, s);
+        if (d3sq == 0.)
+            d3sq = DistSq(p1, p2, s, s);
+    }
 
     template <int C>
     double calculateCosPhi(const Position<C>& p1, const Position<C>& p2, const Position<C>& p3,

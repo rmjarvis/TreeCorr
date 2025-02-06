@@ -3594,6 +3594,173 @@ def test_ngg_logsas_jk():
     np.testing.assert_allclose(np.diagonal(cov), var_ggn1, rtol=0.5 * tol_factor)
     np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_ggn1), atol=0.7*tol_factor)
 
+@timer
+def test_ngg_rlens():
+    # Similar to test_ng_rlens, but with two shears
+    # Use gaussian tangential shear around lens centers
+    # gamma_t(r) = gamma0 exp(-R^2/2R0^2)
+
+    nlens = 300
+    nsource = 100000
+    gamma0 = 0.05
+    r0 = 10.
+    L = 100. * r0
+    rng = np.random.RandomState(8675309)
+    xl = (rng.random_sample(nlens)-0.5) * L  # -250 < x < 250
+    zl = (rng.random_sample(nlens)-0.5) * L  # -250 < y < 250
+    yl = rng.random_sample(nlens) * 4*L + 10*L  # 5000 < z < 7000
+    rl = np.sqrt(xl**2 + yl**2 + zl**2)
+    xs = (rng.random_sample(nsource)-0.5) * 10*L   # -2500 < x < 2500
+    zs = (rng.random_sample(nsource)-0.5) * 10*L   # -2500 < y < 2500
+    ys = rng.random_sample(nsource) * 40*L + 100*L  # 50000 < z < 70000
+    rs = np.sqrt(xs**2 + ys**2 + zs**2)
+    g1 = np.zeros( (nsource,) )
+    g2 = np.zeros( (nsource,) )
+    for x,y,z,r in zip(xl,yl,zl,rl):
+        # Rlens = |r1 x r2| / |r2|
+        xcross = ys * z - zs * y
+        ycross = zs * x - xs * z
+        zcross = xs * y - ys * x
+        Rlens = np.sqrt(xcross**2 + ycross**2 + zcross**2) / rs
+
+        gammat = gamma0 * np.exp(-0.5*Rlens**2/r0**2)
+        # For the rotation, approximate that the x,z coords are approx the perpendicular plane.
+        # So just normalize back to the unit sphere and do the 2d projection calculation.
+        # It's not exactly right, but it should be good enough for this unit test.
+        dx = xs/rs-x/r
+        dz = zs/rs-z/r
+        drsq = dx**2 + dz**2
+        g1 += -gammat * (dx**2-dz**2)/drsq
+        g2 += -gammat * (2.*dx*dz)/drsq
+
+    lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl)
+    source_cat = treecorr.Catalog(x=xs, y=ys, z=zs, g1=g1, g2=g2)
+
+    bin_size = 0.2
+    min_sep = 12
+    max_sep = 16
+    min_phi = 0.5
+    max_phi = 2.5
+    nphi_bins = 20
+
+    ngg = treecorr.NGGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep,
+                                  min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                  metric='Rlens')
+
+    def predict(ngg):
+        # Prediction is the same as in test_ngg_logsas above.
+        r1 = ngg.meand1
+        r2 = ngg.meand2
+        r3 = ngg.meand3
+        phi = ngg.meanphi
+
+        # Use coordinates where r2 is horizontal, N is at the origin.
+        s = r2 * (1 + 0j) / r0
+        t = r3 * np.exp(1j * phi) / r0
+        q1 = (s + t)/3.
+        q2 = q1 - t
+        q3 = q1 - s
+
+        gamma2 = -gamma0 * np.exp(-0.5*r3**2/r0**2) * t**2 / np.abs(t)**2
+        gamma2 *= np.conjugate(q2)**2 / np.abs(q2**2)
+        gamma3 = -gamma0 * np.exp(-0.5*r2**2/r0**2) * s**2 / np.abs(s)**2
+        gamma3 *= np.conjugate(q3)**2 / np.abs(q3**2)
+
+        true_gam0 = gamma2 * gamma3
+        true_gam2 = np.conjugate(gamma2) * gamma3
+        return true_gam0, true_gam2
+
+    if __name__ == '__main__':
+        t0 = time.time()
+        ngg.process(lens_cat, source_cat, algo='triangle')
+        t1 = time.time()
+        print('time for algo=triangle process = ',t1-t0)
+
+        true_gam0, true_gam2 = predict(ngg)
+
+        #print('ngg.gam0 = ',ngg.gam0.ravel())
+        #print('theory = ',true_gam0.ravel())
+        #print('ratio = ',ngg.gam0.ravel() / true_gam0.ravel())
+        #print('diff = ',ngg.gam0.ravel() - true_gam0.ravel())
+        print('gam0 max diff = ',np.max(np.abs(ngg.gam0 - true_gam0)))
+        print('max rel diff = ',np.max(np.abs(ngg.gam0 / true_gam0 - 1)))
+        np.testing.assert_allclose(ngg.gam0, true_gam0, rtol=0.3)
+
+        #print('ngg.gam2 = ',ngg.gam2.ravel())
+        #print('theory = ',true_gam2.ravel())
+        #print('ratio = ',ngg.gam2.ravel() / true_gam2.ravel())
+        #print('diff = ',ngg.gam2.ravel() - true_gam2.ravel())
+        print('gam2 max diff = ',np.max(np.abs(ngg.gam2 - true_gam2)))
+        print('max rel diff = ',np.max(np.abs(ngg.gam2 / true_gam2 - 1)))
+        np.testing.assert_allclose(ngg.gam2, true_gam2, rtol=0.3)
+
+    # Now use multipole algorithm
+    t0 = time.time()
+    ngg.process(lens_cat, source_cat)
+    t1 = time.time()
+    print('time for algo=multipole process = ',t1-t0)
+
+    true_gam0, true_gam2 = predict(ngg)
+
+    print('Results using multipole')
+    #print('ngg.gam0 = ',ngg.gam0.ravel())
+    #print('theory = ',true_gam0.ravel())
+    #print('ratio = ',ngg.gam0.ravel() / true_gam0.ravel())
+    #print('diff = ',ngg.gam0.ravel() - true_gam0.ravel())
+    print('gam0 max diff = ',np.max(np.abs(ngg.gam0 - true_gam0)))
+    print('max rel diff = ',np.max(np.abs(ngg.gam0 / true_gam0 - 1)))
+    np.testing.assert_allclose(ngg.gam0, true_gam0, rtol=0.3)
+
+    #print('ngg.gam2 = ',ngg.gam2.ravel())
+    #print('theory = ',true_gam2.ravel())
+    #print('ratio = ',ngg.gam2.ravel() / true_gam2.ravel())
+    #print('diff = ',ngg.gam2.ravel() - true_gam2.ravel())
+    print('gam2 max diff = ',np.max(np.abs(ngg.gam2 - true_gam2)))
+    print('max rel diff = ',np.max(np.abs(ngg.gam2 / true_gam2 - 1)))
+    np.testing.assert_allclose(ngg.gam2, true_gam2, rtol=0.3)
+
+    # Check that we get the same result using the corr2 function:
+    lens_cat.write(os.path.join('data','ngg_rlens_lens.dat'))
+    source_cat.write(os.path.join('data','ngg_rlens_source.dat'))
+    config = treecorr.read_config('configs/ngg_rlens.yaml')
+    config['verbose'] = 0
+    treecorr.corr3(config)
+    corr3_output = np.genfromtxt(os.path.join('output','ngg_rlens.out'), names=True,
+                                 skip_header=1)
+    np.testing.assert_allclose(corr3_output['gam0r'], ngg.gam0r.ravel(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['gam0i'], ngg.gam0i.ravel(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['gam2r'], ngg.gam2r.ravel(), rtol=1.e-3)
+    np.testing.assert_allclose(corr3_output['gam2i'], ngg.gam2i.ravel(), rtol=1.e-3)
+
+    # Repeat with the sources being given as RA/Dec only.
+    ral, decl = coord.CelestialCoord.xyz_to_radec(xl,yl,zl)
+    ras, decs = coord.CelestialCoord.xyz_to_radec(xs,ys,zs)
+    lens_cat = treecorr.Catalog(ra=ral, dec=decl, ra_units='radians', dec_units='radians', r=rl)
+    source_cat = treecorr.Catalog(ra=ras, dec=decs, ra_units='radians', dec_units='radians',
+                                  g1=g1, g2=g2)
+
+    t0 = time.time()
+    ngg.process(lens_cat, source_cat)
+    t1 = time.time()
+    print('time for algo=multipole process with ra/dec cats = ',t1-t0)
+
+    print('Results when sources have no radius information')
+    #print('ngg.gam0 = ',ngg.gam0)
+    #print('theory = ',true_gam0)
+    #print('ratio = ',ngg.gam0 / true_gam0)
+    #print('diff = ',ngg.gam0 - true_gam0)
+    print('gam0 max diff = ',np.max(np.abs(ngg.gam0 - true_gam0)))
+    print('max rel diff = ',np.max(np.abs(ngg.gam0 / true_gam0 - 1)))
+    np.testing.assert_allclose(ngg.gam0, true_gam0, rtol=0.3)
+
+    #print('ngg.gam2 = ',ngg.gam2)
+    #print('theory = ',true_gam2)
+    #print('ratio = ',ngg.gam2 / true_gam2)
+    #print('diff = ',ngg.gam2 - true_gam2)
+    print('gam2 max diff = ',np.max(np.abs(ngg.gam2 - true_gam2)))
+    print('max rel diff = ',np.max(np.abs(ngg.gam2 / true_gam2 - 1)))
+    np.testing.assert_allclose(ngg.gam2, true_gam2, rtol=0.3)
+
 
 if __name__ == '__main__':
     test_direct_logruv_cross()

@@ -358,7 +358,7 @@ def metric_enum(metric):
         return metric_enum(Rperp_alias)
     elif metric == 'FisherRperp':
         return _treecorr.Rperp
-    elif metric in ['OldRperp']:
+    elif metric == 'OldRperp':
         return _treecorr.OldRperp
     elif metric == 'Rlens':
         return _treecorr.Rlens

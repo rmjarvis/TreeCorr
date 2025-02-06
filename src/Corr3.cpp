@@ -271,6 +271,31 @@ void Corr3<D1,D2,D3>::operator+=(const Corr3<D1,D2,D3>& rhs)
 }
 
 template <int B, int M, int C>
+bool BaseCorr3::triviallyZero(Position<C> p1, Position<C> p2, Position<C> p3,
+                              double s1, double s2, double s3, int ordered, bool p13)
+{
+    // Ignore any min/max rpar for this calculation.
+    double minrpar = -std::numeric_limits<double>::max();
+    double maxrpar = std::numeric_limits<double>::max();
+    MetricHelper<M,0> metric(minrpar, maxrpar, _xp, _yp, _zp);
+    if (p13) {
+        // This means p2 is the same as either p1 or p3, so just look at d2.
+        double dsq = metric.DistSq(p1, p3, s1, s3);
+        return (BinTypeHelper<B>::tooLargeDist(dsq, s1+s3, _maxsep, _maxsepsq) &&
+                metric.tooLargeDist(p1, p3, dsq, 0, s1+s3, _maxsep, _maxsepsq));
+    } else {
+        double d1sq = 0;
+        double d2sq = 0;
+        double d3sq = 0;
+        metric.TripleDistSq(p1, p2, p3, d1sq, d2sq, d3sq);
+        return BinTypeHelper<B>::template trivial_stop(
+            d1sq, d2sq, d3sq, s1, s2, s3,
+            metric, ordered,
+            _minsep, _minsepsq, _maxsep, _maxsepsq);
+    }
+}
+
+template <int B, int M, int C>
 void BaseCorr3::process3(const BaseField<C>& field, bool dots, bool quick)
 {
     dbg<<"Start process auto\n";
@@ -3940,6 +3965,121 @@ void ProcessCross(BaseCorr3& corr,
     }
 }
 
+template <int B, int M, int C>
+int TriviallyZero3(BaseCorr3& corr,
+                   double x1, double y1, double z1, double s1,
+                   double x2, double y2, double z2, double s2,
+                   double x3, double y3, double z3, double s3,
+                   int ordered, bool p13)
+{
+    Assert((ValidMC<M,C>::_M == M));
+    const int _M = ValidMC<M,C>::_M;
+    Position<C> p1(x1,y1,z1);
+    Position<C> p2(x2,y2,z2);
+    Position<C> p3(x3,y3,z3);
+    return corr.template triviallyZero<B,_M>(p1, p2, p3, s1, s2, s3, ordered, p13);
+}
+
+template <int B, int M>
+int TriviallyZero2(BaseCorr3& corr, Coord coords,
+                   double x1, double y1, double z1, double s1,
+                   double x2, double y2, double z2, double s2,
+                   double x3, double y3, double z3, double s3,
+                   int ordered, bool p13)
+{
+    switch(coords) {
+      case Flat:
+           return TriviallyZero3<B,M,Flat>(
+               corr, x1, y1, z1, s1, x2, y2, z2, s2, x3, y3, z3, s3,
+               ordered, p13);
+           break;
+      case Sphere:
+           return TriviallyZero3<B,M,Sphere>(
+               corr, x1, y1, z1, s1, x2, y2, z2, s2, x3, y3, z3, s3,
+               ordered, p13);
+           break;
+      case ThreeD:
+           return TriviallyZero3<B,M,ThreeD>(
+               corr, x1, y1, z1, s1, x2, y2, z2, s2, x3, y3, z3, s3,
+               ordered, p13);
+      default:
+           Assert(false);
+    }
+    return 0;
+}
+
+template <int B>
+int TriviallyZero1(BaseCorr3& corr, Metric metric, Coord coords,
+                   double x1, double y1, double z1, double s1,
+                   double x2, double y2, double z2, double s2,
+                   double x3, double y3, double z3, double s3,
+                   int ordered, bool p13)
+{
+    switch(metric) {
+      case Euclidean:
+           return TriviallyZero2<B,Euclidean>(corr, coords,
+                                              x1, y1, z1, s1, x2, y2, z2, s2, x3, y3, z3, s3,
+                                              ordered, p13);
+           break;
+      case Rperp:
+           return TriviallyZero2<B,Rperp>(corr, coords,
+                                          x1, y1, z1, s1, x2, y2, z2, s2, x3, y3, z3, s3,
+                                          ordered, p13);
+           break;
+      case OldRperp:
+           return TriviallyZero2<B,OldRperp>(corr, coords,
+                                             x1, y1, z1, s1, x2, y2, z2, s2, x3, y3, z3, s3,
+                                             ordered, p13);
+           break;
+      case Rlens:
+           return TriviallyZero2<B,Rlens>(corr, coords,
+                                          x1, y1, z1, s1, x2, y2, z2, s2, x3, y3, z3, s3,
+                                          ordered, p13);
+           break;
+      case Arc:
+           return TriviallyZero2<B,Arc>(corr, coords,
+                                        x1, y1, z1, s1, x2, y2, z2, s2, x3, y3, z3, s3,
+                                        ordered, p13);
+           break;
+      case Periodic:
+           return TriviallyZero2<B,Periodic>(corr, coords,
+                                             x1, y1, z1, s1, x2, y2, z2, s2, x3, y3, z3, s3,
+                                             ordered, p13);
+           break;
+      default:
+           Assert(false);
+    }
+    return 0;
+}
+
+int TriviallyZero(BaseCorr3& corr, Metric metric, Coord coords,
+                  double x1, double y1, double z1, double s1,
+                  double x2, double y2, double z2, double s2,
+                  double x3, double y3, double z3, double s3,
+                  int ordered, bool p13)
+{
+    switch(corr.getBinType()) {
+      case LogRUV:
+           return TriviallyZero1<LogRUV>(corr, metric, coords,
+                                         x1, y1, z1, s1, x2, y2, z2, s2, x3, y3, z3, s3,
+                                         ordered, p13);
+           break;
+      case LogSAS:
+           return TriviallyZero1<LogSAS>(corr, metric, coords,
+                                         x1, y1, z1, s1, x2, y2, z2, s2, x3, y3, z3, s3,
+                                         ordered, p13);
+           break;
+      case LogMultipole:
+           return TriviallyZero1<LogMultipole>(corr, metric, coords,
+                                               x1, y1, z1, s1, x2, y2, z2, s2, x3, y3, z3, s3,
+                                               ordered, p13);
+           break;
+      default:
+           Assert(false);
+    }
+    return 0;
+}
+
 // Export the above functions using pybind11
 
 template <int C, typename W>
@@ -3988,6 +4128,7 @@ void WrapCorr3(py::module& _treecorr, std::string prefix)
 void pyExportCorr3(py::module& _treecorr)
 {
     py::class_<BaseCorr3> base_corr3(_treecorr, "BaseCorr3");
+    base_corr3.def("triviallyZero", &TriviallyZero);
 
     WrapProcess<Flat>(_treecorr, base_corr3);
     WrapProcess<Sphere>(_treecorr, base_corr3);

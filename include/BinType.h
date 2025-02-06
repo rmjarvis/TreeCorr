@@ -568,6 +568,46 @@ struct BinTypeHelper<LogRUV>
         return false;
     }
 
+    // A simpler version of the above that we use for trivially_zero.
+    template <int M>
+    static bool trivial_stop(
+        double d1sq, double d2sq, double d3sq,
+        double s1, double s2, double s3,
+        const MetricHelper<M,0>& metric, int ordered,
+        double minsep, double minsepsq, double maxsep, double maxsepsq)
+    {
+        if (!ordered) {
+            // Sort if necessary
+            if (d1sq < d2sq) {
+                return trivial_stop(d2sq, d1sq, d3sq, s2, s1, s3,
+                                    metric, ordered, minsep, minsepsq, maxsep, maxsepsq);
+            } else if (d2sq < d3sq) {
+                return trivial_stop(d1sq, d3sq, d2sq, s1, s3, s2,
+                                    metric, ordered, minsep, minsepsq, maxsep, maxsepsq);
+            }
+            Assert(d1sq >= d2sq);
+            Assert(d2sq >= d3sq);
+        }
+
+        // Check if all possible triangles will have d2 < minsep
+        if (d2sq < minsepsq && s1+s3 < minsep && s1+s2 < minsep &&
+            (s1+s3 == 0. || d2sq < SQR(minsep - s1-s3)) &&
+            (s1+s2 == 0. || d3sq < SQR(minsep - s1-s2)) ) {
+            xdbg<<"d2 cannot be as large as minsep\n";
+            return true;
+        }
+
+        // Check if all possible triangles will have d2 > maxsep.
+        if (d2sq >= maxsepsq &&
+            (s1+s3 == 0. || d2sq >= SQR(maxsep + s1+s3)) &&
+            (s2+s3 == 0. || d1sq >= SQR(maxsep + s2+s3))) {
+            xdbg<<"d2 cannot be as small as maxsep\n";
+            return true;
+        }
+
+        return false;
+    }
+
     // If return value is false, split1, split2, split3 will be set on output.
     // If return value is true, d1, d2, d3, u, v will be set on output.
     // (For this BinType, d2 is already set coming in.)
@@ -1066,6 +1106,60 @@ struct BinTypeHelper<LogSAS>
         return false;
     }
 
+    // A simpler version of the above that we use for trivially_zero.
+    template <int M>
+    static bool trivial_stop(
+        double d1sq, double d2sq, double d3sq,
+        double s1, double s2, double s3,
+        const MetricHelper<M,0>& metric, int ordered,
+        double minsep, double minsepsq, double maxsep, double maxsepsq)
+    {
+        xdbg<<"LogSAS trivial_stop\n";
+        // Check if all possible triangles will have either d2 or d3 < minsep
+        int small_count = 0;
+        if (d2sq < minsepsq && s1+s3 < minsep && (s1+s3 == 0. || d2sq < SQR(minsep - s1-s3))) {
+            xdbg<<"d2 cannot be as large as minsep\n";
+            if (ordered) return true;
+            else small_count += 1;
+        }
+        if (d3sq < minsepsq && s1+s2 < minsep && (s1+s2 == 0. || d3sq < SQR(minsep - s1-s2))) {
+            xdbg<<"d3 cannot be as large as minsep\n";
+            if (ordered) return true;
+            else small_count += 1;
+        }
+        if (!ordered && d1sq < minsepsq && s2+s3 < minsep &&
+            (s2+s3 == 0. || d1sq < SQR(minsep - s2-s3))) {
+            xdbg<<"d1 cannot be as large as minsep\n";
+            small_count += 1;
+        }
+        if (!ordered && small_count >= 2) {
+            return true;
+        }
+
+        // Check if all possible triangles will have d2 or d3 > maxsep.
+        int large_count = 0;
+        if (d2sq >= maxsepsq && (s1+s3 == 0. || d2sq >= SQR(maxsep + s1+s3))) {
+            xdbg<<"d2 cannot be as small as maxsep\n";
+            if (ordered) return true;
+            else large_count += 1;
+        }
+        if (d3sq >= maxsepsq && (s1+s2 == 0. || d3sq >= SQR(maxsep + s1+s2))) {
+            xdbg<<"d3 cannot be as small as maxsep\n";
+            if (ordered) return true;
+            else large_count += 1;
+        }
+        if (!ordered && d1sq >= maxsepsq && (s2+s3 == 0. || d1sq >= SQR(maxsep + s2+s3))) {
+            xdbg<<"d1 cannot be as small as maxsep\n";
+            large_count += 1;
+        }
+        if (!ordered && large_count >= 2) {
+            return true;
+        }
+
+        return false;
+    }
+
+
     // If return value is false, split1, split2, split3 will be set on output.
     // If return value is true, d1, d2, d3, cosphi will be set on output.
     // (For this BinType, d2,d3,cosphi are already set coming in.)
@@ -1339,6 +1433,37 @@ struct BinTypeHelper<LogMultipole>
         if (s2==0 && s3==0 && d1sq == 0) return true;
         if (s1==0 && s3==0 && d2sq == 0) return true;
         if (s1==0 && s2==0 && d3sq == 0) return true;
+
+        return false;
+    }
+
+    // A simpler version of the above that we use for trivially_zero.
+    template <int M>
+    static bool trivial_stop(
+        double d1sq, double d2sq, double d3sq,
+        double s1, double s2, double s3,
+        const MetricHelper<M,0>& metric, int ordered,
+        double minsep, double minsepsq, double maxsep, double maxsepsq)
+    {
+        // Check if all possible triangles will have either d2 or d3 < minsep
+        if (d2sq < minsepsq && s1+s3 < minsep && (s1+s3 == 0. || d2sq < SQR(minsep - s1-s3))) {
+            xdbg<<"d2 cannot be as large as minsep\n";
+            return true;
+        }
+        if (d3sq < minsepsq && s1+s2 < minsep && (s1+s2 == 0. || d3sq < SQR(minsep - s1-s2))) {
+            xdbg<<"d3 cannot be as large as minsep\n";
+            return true;
+        }
+
+        // Check if all possible triangles will have d2 or d3 > maxsep.
+        if (d2sq >= maxsepsq && (s1+s3 == 0. || d2sq >= SQR(maxsep + s1+s3))) {
+            xdbg<<"d2 cannot be as small as maxsep\n";
+            return true;
+        }
+        if (d3sq >= maxsepsq && (s1+s2 == 0. || d3sq >= SQR(maxsep + s1+s2))) {
+            xdbg<<"d3 cannot be as small as maxsep\n";
+            return true;
+        }
 
         return false;
     }

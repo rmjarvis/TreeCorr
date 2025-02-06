@@ -637,7 +637,7 @@ struct MetricHelper<Rlens, P>
             d2sq = DistSq(p1, p3, s, s);
         if (d3sq == 0.)
             d3sq = DistSq(p1, p2, s, s);
-        d1sq /= p2.normSq() / p1.normSq();
+        d1sq /= (p2.normSq() / p1.normSq());
     }
 
     template <int C>

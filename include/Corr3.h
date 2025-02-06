@@ -56,6 +56,10 @@ public:
     { return _d1 == c1.getD() && _d2 == c2.getD() && _d3 == c3.getD(); }
 
     template <int B, int M, int C>
+    bool triviallyZero(Position<C> p1, Position<C> p2, Position<C> p3,
+                       double s1, double s2, double s3, int ordered, bool p13);
+
+    template <int B, int M, int C>
     void process3(const BaseField<C>& field, bool dots, bool quick);
     template <int B, int O, int M, int C>
     void process12(const BaseField<C>& field1, const BaseField<C>& field2, bool dots, bool quick);

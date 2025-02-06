@@ -1249,16 +1249,13 @@ class Corr3(object):
         # No op for all but NNCorrelation, which needs to add the tot value
         pass
 
-    def _trivially_zero(self, c1, c2, c3):
-        # For now, ignore the metric.  Just be conservative about how much space we need.
+    def _trivially_zero(self, c1, c2, c3, ordered):
         x1,y1,z1,s1 = c1._get_center_size()
         x2,y2,z2,s2 = c2._get_center_size()
         x3,y3,z3,s3 = c3._get_center_size()
-        d3 = ((x1-x2)**2 + (y1-y2)**2 + (z1-z2)**2)**0.5
-        d1 = ((x2-x3)**2 + (y2-y3)**2 + (z2-z3)**2)**0.5
-        d2 = ((x3-x1)**2 + (y3-y1)**2 + (z3-z1)**2)**0.5
-        d3, d2, d1 = sorted([d1,d2,d3])
-        return (d2 > s1 + s2 + s3 + 2*self._max_sep)  # The 2* is where we are being conservative.
+        return self.corr.triviallyZero(self._metric, self._coords,
+                                       x1, y1, z1, s1, x2, y2, z2, s2, x3, y3, z3, s3,
+                                       ordered, (c2 is c3 or c1 is c2))
 
     _make_expanded_patch = Corr2._make_expanded_patch
 
@@ -1267,7 +1264,7 @@ class Corr3(object):
         # Helper function for _process_all_auto, etc. for doing 12 cross pairs
         temp._clear()
 
-        if c2 is not None and not self._trivially_zero(c1,c2,c2):
+        if c2 is not None and not self._trivially_zero(c1,c2,c2,ordered):
             self.logger.info('Process patches %s cross12',ijj)
             temp.process_cross12(c1, c2, metric=metric, ordered=ordered, num_threads=num_threads,
                                  corr_only=corr_only)
@@ -1289,7 +1286,7 @@ class Corr3(object):
         # Helper function for _process_all_cross21, etc. for doing 21 cross pairs
         temp._clear()
 
-        if c1 is not None and not self._trivially_zero(c1,c1,c2):
+        if c1 is not None and not self._trivially_zero(c1,c1,c2,ordered):
             self.logger.info('Process patches %s cross21',iij)
             temp.process_cross21(c1, c2, metric=metric, ordered=ordered, num_threads=num_threads,
                                  corr_only=corr_only)
@@ -1311,7 +1308,7 @@ class Corr3(object):
         # Helper function for _process_all_auto, etc. for doing 123 cross triples
         temp._clear()
 
-        if c2 is not None and c3 is not None and not self._trivially_zero(c1,c2,c3):
+        if c2 is not None and c3 is not None and not self._trivially_zero(c1,c2,c3,ordered):
             self.logger.info('Process patches %s cross',ijk)
             temp.process_cross(c1, c2, c3, metric=metric, ordered=ordered, num_threads=num_threads,
                                corr_only=corr_only)

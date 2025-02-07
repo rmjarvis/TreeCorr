@@ -3969,6 +3969,33 @@ def test_ngg_rlens_bkg():
     assert np.max(np.abs(ngg4.gam0 - true_gam0)) > 2.e-4
     assert np.max(np.abs(ngg4.gam2 - true_gam2)) > 2.e-4
 
+    # Can't have max_rpar < min_rpar
+    with assert_raises(ValueError):
+        treecorr.NGGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep,
+                                min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                metric='Rlens', min_rpar=10, max_rpar=0)
+
+    # Can't use min/max rpar with non-3d coords
+    ral, decl = coord.CelestialCoord.xyz_to_radec(xl,yl,zl)
+    ras, decs = coord.CelestialCoord.xyz_to_radec(xs,ys,zs)
+    lens_cat_sph = treecorr.Catalog(ra=ral, dec=decl, ra_units='radians', dec_units='radians', r=rl)
+    source_cat_sph = treecorr.Catalog(ra=ras, dec=decs, ra_units='radians', dec_units='radians',
+                                      g1=g1, g2=g2)
+    with assert_raises(ValueError):
+        ngg.process(lens_cat_sph, source_cat_sph)
+    ngg5 = treecorr.NGGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep,
+                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                   metric='Rlens', max_rpar=0)
+    with assert_raises(ValueError):
+        ngg5.process(lens_cat_sph, source_cat_sph)
+
+    # sep units invalid with normal 3d coords (non-Arc metric)
+    ngg6 = treecorr.NGGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep,
+                                   min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                   metric='Rlens', min_rpar=0, sep_units='arcmin')
+    with assert_raises(ValueError):
+        ngg6.process(lens_cat, source_cat)
+
 
 if __name__ == '__main__':
     test_direct_logruv_cross()

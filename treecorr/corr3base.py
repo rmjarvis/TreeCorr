@@ -2834,7 +2834,7 @@ class Corr3(object):
         if metric is None:
             metric = get(self.config,'metric',str,'Euclidean')
         coords, metric = parse_metric(metric, coords1, coords2, coords3)
-        if coords != '3d':
+        if any(c not in ['3d',None] for c in [coords1, coords2, coords3]):
             if self.min_rpar != -sys.float_info.max:
                 raise ValueError("min_rpar is only valid for 3d coordinates")
             if self.max_rpar != sys.float_info.max:

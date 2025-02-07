@@ -1531,7 +1531,7 @@ class Corr2(object):
         if metric is None:
             metric = get(self.config,'metric',str,'Euclidean')
         coords, metric = parse_metric(metric, coords1, coords2)
-        if coords != '3d':
+        if coords1 != '3d' or coords2 not in [None,'3d']:
             if self.min_rpar != -sys.float_info.max:
                 raise ValueError("min_rpar is only valid for 3d coordinates")
             if self.max_rpar != sys.float_info.max:

@@ -1131,7 +1131,10 @@ class Corr3(object):
     def _zetas(self):
         zetas = []
         if self._z[0].size:
-            zetas += [self._z[0] + 1j*self._z[1]]
+            if self._z[1].size:
+                zetas += [self._z[0] + 1j*self._z[1]]
+            else:
+                zetas += [self._z[0]]
         if self._z[2].size:
             zetas += [self._z[2] + 1j*self._z[3]]
         if self._z[4].size:
@@ -2464,6 +2467,70 @@ class Corr3(object):
             for i in range(n):
                 self._varzeta[i].ravel()[:] = self.cov_diag[i*self._nbins:(i+1)*self._nbins].real
 
+    def _x_to_natural_phases(self):
+        phases = [None] * len(self._zetas)
+        if len(set('VGTQ') & set(self._letters)) > 0:
+            # Now fix the projection.
+            # The multipole algorithm uses the Porth et al x projection.
+            # We need to switch that to the canoical centroid projection.
+
+            # (Comments here are for GGG, but we can use this for any class
+            # that has at least one non-spin 0 value needing a projection.)
+
+            # Define some complex "vectors" where p1 is at the origin and
+            # p3 is on the x axis:
+            # s = p3 - p1
+            # t = p2 - p1
+            # u = angle bisector of s, t
+            # q1 = (s+t)/3.  (this is the centroid)
+            # q2 = q1-t
+            # q3 = q1-s
+            s = self.meand2
+            t = self.meand3 * np.exp(1j * self.meanphi * self._phi_units)
+            u = (1 + t/np.abs(t))/2
+            q1 = (s+t)/3.
+            q2 = q1-t
+            q3 = q1-s
+
+            # Currently the projection is as follows:
+            # g1 is projected along u
+            # g2 is projected along t
+            # g3 is projected along s
+            #
+            # We want to have
+            # g1 projected along q1
+            # g2 projected along q2
+            # g3 projected along q3
+            #
+            # The phases to multiply by are exp(2iphi_current) * exp(-2iphi_target). I.e.
+            # g1phase = (u conj(q1))**2 / |u conj(q1)|**2
+            # g2phase = (t conj(q2))**2 / |t conj(q2)|**2
+            # g3phase = (s conj(q3))**2 / |s conj(q3)|**2
+            g1phase = (u * np.conj(q1))**spin_by_letter(self._letter1)
+            g2phase = (t * np.conj(q2))**spin_by_letter(self._letter2)
+            g3phase = (s * np.conj(q3))**spin_by_letter(self._letter3)
+            g1phase /= np.abs(g1phase)
+            g2phase /= np.abs(g2phase)
+            g3phase /= np.abs(g3phase)
+
+            # Now just multiply each gam by the appropriate combination of phases.
+            phases[0] = g1phase * g2phase * g3phase
+
+            if len(self._zetas) == 4:
+                phases[1] = np.conj(g1phase) * g2phase * g3phase
+                phases[2] = g1phase * np.conj(g2phase) * g3phase
+                phases[3] = g1phase * g2phase * np.conj(g3phase)
+            elif len(self._zetas) == 2:
+                # This one is a little tricky.  It means there are two spinny vertices.
+                # If letter1 is N or K, then the conjugate is vertex 2
+                # otherwise it is vertex 1.
+                if self._letter1 in 'NK':
+                    assert np.all(g1phase == 1)
+                    phases[1] = np.conj(g2phase) * g3phase
+                else:
+                    phases[1] = np.conj(g1phase) * g2phase * g3phase
+        return phases
+
     def toSAS(self, *, target=None, **kwargs):
         """Convert a multipole-binned correlation to the corresponding SAS binning.
 
@@ -2568,72 +2635,8 @@ class Corr3(object):
         for z in zetas:
             z[mask] /= sas.weightr[mask]
 
-        phase = [None] * len(zetas)
-        if len(set('VGTQ') & set(self._letters)) > 0:
-            # Now fix the projection.
-            # The multipole algorithm uses the Porth et al x projection.
-            # We need to switch that to the canoical centroid projection.
-
-            # (Comments here are for GGG, but we can use this for any class
-            # that has at least one non-spin 0 value needing a projection.)
-
-            # Define some complex "vectors" where p1 is at the origin and
-            # p3 is on the x axis:
-            # s = p3 - p1
-            # t = p2 - p1
-            # u = angle bisector of s, t
-            # q1 = (s+t)/3.  (this is the centroid)
-            # q2 = q1-t
-            # q3 = q1-s
-            s = sas.meand2
-            t = sas.meand3 * np.exp(1j * sas.meanphi * sas._phi_units)
-            u = (1 + t/np.abs(t))/2
-            q1 = (s+t)/3.
-            q2 = q1-t
-            q3 = q1-s
-
-            # Currently the projection is as follows:
-            # g1 is projected along u
-            # g2 is projected along t
-            # g3 is projected along s
-            #
-            # We want to have
-            # g1 projected along q1
-            # g2 projected along q2
-            # g3 projected along q3
-            #
-            # The phases to multiply by are exp(2iphi_current) * exp(-2iphi_target). I.e.
-            # g1phase = (u conj(q1))**2 / |u conj(q1)|**2
-            # g2phase = (t conj(q2))**2 / |t conj(q2)|**2
-            # g3phase = (s conj(q3))**2 / |s conj(q3)|**2
-            g1phase = (u * np.conj(q1))**spin_by_letter(self._letter1)
-            g2phase = (t * np.conj(q2))**spin_by_letter(self._letter2)
-            g3phase = (s * np.conj(q3))**spin_by_letter(self._letter3)
-            g1phase /= np.abs(g1phase)
-            g2phase /= np.abs(g2phase)
-            g3phase /= np.abs(g3phase)
-
-            # Now just multiply each gam by the appropriate combination of phases.
-            phase[0] = g1phase * g2phase * g3phase
-            zetas[0] *= phase[0]
-
-            if len(zetas) == 4:
-                phase[1] = np.conj(g1phase) * g2phase * g3phase
-                phase[2] = g1phase * np.conj(g2phase) * g3phase
-                phase[3] = g1phase * g2phase * np.conj(g3phase)
-                zetas[1] *= phase[1]
-                zetas[2] *= phase[2]
-                zetas[3] *= phase[3]
-            elif len(zetas) == 2:  # pragma: no cover
-                # This one is a little tricky.  It means there are two spinny vertices.
-                # If letter1 is N or K, then the conjugate is vertex 2
-                # otherwise it is vertex 1.
-                if self._letter1 in 'NK':
-                    assert np.all(g1phase == 1)
-                    phase[1] = np.conj(g2phase) * g3phase
-                else:
-                    phase[1] = np.conj(g1phase) * g2phase * g3phase
-                zetas[1] *= phase[1]
+        phases = sas._x_to_natural_phases()
+        zetas = [z*p if p is not None else z for z,p in zip(zetas, phases)]
 
         for i in range(len(zetas)):
             sas._z[2*i][:] = np.real(zetas[i])
@@ -2645,8 +2648,8 @@ class Corr3(object):
             temp = sas.results[k]
             zetas = [z.dot(expiphi) / (2*np.pi) * sas.phi_bin_size for z in v._zetas]
             for i in range(len(zetas)):
-                if phase[i] is not None:
-                    zetas[i] *= phase[i]
+                if phases[i] is not None:
+                    zetas[i] *= phases[i]
                 temp._z[2*i][:] = np.real(zetas[i])
                 if sas._z[2*i+1].size:
                     temp._z[2*i+1][:] = np.imag(zetas[i])

@@ -1,0 +1,22 @@
+
+file_name: data/ggg_rperp_lens.dat
+file_name2: data/ggg_rperp_source.dat
+
+x_col: 1
+y_col: 2
+z_col: 3
+
+g1_col: 4
+g2_col: 5
+
+bin_size: 0.1
+min_sep: 15
+max_sep: 20
+min_phi: 0.5
+max_phi: 1.5
+nphi_bins: 10
+max_n: 30
+
+metric: Rperp
+
+ggg_file_name: output/ggg_rperp.out

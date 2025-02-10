@@ -126,7 +126,7 @@ jobs:
               # They are slow to install on pypy, where some are installed from scratch.
               if: matrix.py > 3.0
               run: |
-                pip install -U matplotlib nbval ipykernel scipy pandas h5py pyarrow mpi4py
+                pip install -U matplotlib nbval ipykernel scipy pandas h5py pyarrow
 
             - name: Install other test dependencies
               # guppy3 not available on 3.13 yet.
@@ -137,7 +137,7 @@ jobs:
             - name: Install fitsio everywhere but Windows
               if: matrix.os != 'windows-2019'
               run: |
-                pip install -U fitsio
+                pip install -U fitsio mpi4py
 
             - name: List all installed packages for reference
               run: pip list

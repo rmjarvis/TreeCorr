@@ -5635,6 +5635,248 @@ def test_vargam():
     np.testing.assert_allclose(ggg.vargam3[noneq], var_gam3i[noneq], rtol=0.2)
 
 
+@timer
+def test_ggg_rperp():
+    # Similar to test_gg_rperp, but with 3 shears.
+    # For the other test, the lenses have a pure phasae for the shear, |gl|=1.
+    # And the shears include a factor of conj(gl), so the product is constant.
+    # In this one, we do the same, but then square gl, so the product of three
+    # shears ends up with the lens phase canceling.  We also give the shears
+    # a factor of exp(3ialpha), so the product of two shears and the lens
+    # rotate with exp(6ialpha), so gam0 is invariant to orientation.
+
+    nlens = 100
+    nsource = 200000
+    gamma0 = 0.05
+    R0 = 10.
+    L = 100. * R0
+    rng = np.random.RandomState(8675309)
+
+    # Lenses are randomly located with random shapes.
+    xl = (rng.random_sample(nlens)-0.5) * L  # -500 < x < 500
+    zl = (rng.random_sample(nlens)-0.5) * L  # -500 < y < 500
+    yl = rng.random_sample(nlens) * 4*L + 10*L  # 10000 < z < 14000
+    rl = np.sqrt(xl**2 + yl**2 + zl**2)
+    g1l = rng.normal(0., 0.1, (nlens,))
+    g2l = rng.normal(0., 0.1, (nlens,))
+    gl = g1l + 1j * g2l
+    gl /= np.abs(gl)
+    save_gl = gl
+    print('Made lenses')
+
+    xs = (rng.random_sample(nsource)-0.5) * L
+    zs = (rng.random_sample(nsource)-0.5) * L
+    ys = rng.random_sample(nsource) * 4*L + 10*L  # 100000 < z < 120000
+    rs = np.sqrt(xs**2 + ys**2 + zs**2)
+    gs = np.zeros( (nsource,), dtype=complex )
+    print('Making shear vectors')
+    for x,y,z,r,g in zip(xl,yl,zl,rl,gl):
+        dsq = (x-xs)**2 + (y-ys)**2 + (z-zs)**2
+        Lsq = ((x+xs)**2 + (y+ys)**2 + (z+zs)**2) / 4.
+        Rpar = abs(rs**2 - r**2) / (2 * np.sqrt(Lsq))
+        Rperpsq = dsq - Rpar**2
+        Rperp = np.sqrt(Rperpsq)
+        gammaQ = gamma0 * np.exp(-0.5*Rperp**2/R0**2)
+
+        dx = xs/rs-x/r
+        dz = zs/rs-z/r
+        expialpha = dx + 1j*dz
+        expialpha /= np.abs(expialpha)
+
+        gQ = gammaQ * expialpha**3 * np.conj(g)
+        gs += gQ
+
+    # Square the phase now, so the product of lens-shear-shear gets two factors of the phase.
+    gl = gl**2
+
+    bin_size = 0.1
+    min_sep = 15
+    max_sep = 20
+    min_phi = 0.5
+    max_phi = 1.5
+    nphi_bins = 10
+
+    lens_cat = treecorr.Catalog(x=xl, y=yl, z=zl, g1=gl.real, g2=gl.imag)
+    source_cat = treecorr.Catalog(x=xs, y=ys, z=zs, g1=gs.real, g2=gs.imag)
+    ggg = treecorr.GGGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep,
+                                  min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                  metric='Rperp')
+
+    def predict(ggg):
+        d2 = ggg.meand2
+        d3 = ggg.meand3
+        phi = ggg.meanphi
+        theory_gam0 = gamma0**2 * np.exp(-0.5*(d2**2+d3**2)/R0**2) + 0j
+        # This is using the X projection.  Convert to natural.
+        # We can use a private method for this.  This use case might imply that it would be
+        # worth making a public API for this.  Maybe including other projections as well.
+        # Something to think about...
+        phases = ggg._x_to_natural_phases()
+        theory_gam0 *= phases[0]
+        return theory_gam0
+
+    if __name__ == '__main__':
+        print('ggg.process(lens_cat, source_cat, triangle)')
+        t0 = time.time()
+        ggg.process(lens_cat, source_cat, algo='triangle')
+        t1 = time.time()
+        print('time = ',t1-t0)
+        theory_gam0 = predict(ggg)
+
+        #print('ggg.ntri = ',ggg.ntri.ravel())
+        #print('ggg.gam0 = ',ggg.gam0.ravel())
+        #print('theory_gam0 = ',theory_gam0.ravel())
+        #print('ratio = ',ggg.gam0.ravel() / theory_gam0.ravel())
+        #print('diff = ',ggg.gam0.ravel() - theory_gam0.ravel())
+        print('max diff = ',np.max(np.abs(ggg.gam0 - theory_gam0)))
+        print('max rel diff = ',np.max(np.abs(ggg.gam0/theory_gam0 - 1)))
+        print('mean ratio = ',np.mean(ggg.gam0/theory_gam0))
+        print('max gam0 = ',np.max(np.abs(ggg.gam0)))
+        print('max gam1 = ',np.max(np.abs(ggg.gam1)))
+        print('max gam2 = ',np.max(np.abs(ggg.gam2)))
+        print('max gam3 = ',np.max(np.abs(ggg.gam3)))
+        np.testing.assert_allclose(ggg.gam0, theory_gam0, rtol=0.15)
+        assert np.max(np.abs(ggg.gam0)) > 2.e-4  # gam0 is much larger than the other 3.
+        assert np.max(np.abs(ggg.gam1)) < 3.e-5
+        assert np.max(np.abs(ggg.gam2)) < 3.e-5
+        assert np.max(np.abs(ggg.gam3)) < 3.e-5
+
+    print('ggg.process(lens_cat, source_cat')
+    t0 = time.time()
+    ggg.process(lens_cat, source_cat, max_n=30)
+    t1 = time.time()
+    print('time = ',t1-t0)
+    theory_gam0 = predict(ggg)
+
+    #print('ggg.ntri = ',ggg.ntri.ravel())
+    #print('ggg.gam0 = ',ggg.gam0.ravel())
+    #print('theory_gam0 = ',theory_gam0.ravel())
+    #print('ratio = ',ggg.gam0.ravel() / theory_gam0.ravel())
+    #print('diff = ',ggg.gam0.ravel() - theory_gam0.ravel())
+    print('max diff = ',np.max(np.abs(ggg.gam0 - theory_gam0)))
+    print('max rel diff = ',np.max(np.abs(ggg.gam0/theory_gam0 - 1)))
+    print('mean ratio = ',np.mean(ggg.gam0/theory_gam0))
+    print('max gam0 = ',np.max(np.abs(ggg.gam0)))
+    print('max gam1 = ',np.max(np.abs(ggg.gam1)))
+    print('max gam2 = ',np.max(np.abs(ggg.gam2)))
+    print('max gam3 = ',np.max(np.abs(ggg.gam3)))
+    np.testing.assert_allclose(ggg.gam0, theory_gam0, rtol=0.15)
+    assert np.max(np.abs(ggg.gam0)) > 2.e-4
+    assert np.max(np.abs(ggg.gam1)) < 3.e-5
+    assert np.max(np.abs(ggg.gam2)) < 3.e-5
+    assert np.max(np.abs(ggg.gam3)) < 3.e-5
+
+    # Check that we get the same result using the corr3 function
+    lens_cat.write(os.path.join('data','ggg_rperp_lens.dat'))
+    source_cat.write(os.path.join('data','ggg_rperp_source.dat'))
+    config = treecorr.read_config('configs/ggg_rperp.yaml')
+    config['verbose'] = 0
+    treecorr.corr3(config)
+    corr3_output = np.genfromtxt(os.path.join('output','ggg_rperp.out'), names=True,
+                                 skip_header=1)
+    np.testing.assert_allclose(corr3_output['gam0r'], ggg.gam0r.ravel(), rtol=1.e-4)
+    np.testing.assert_allclose(corr3_output['gam0i'], ggg.gam0i.ravel(), rtol=1.e-4)
+    np.testing.assert_allclose(corr3_output['gam1r'], ggg.gam1r.ravel(), rtol=1.e-4)
+    np.testing.assert_allclose(corr3_output['gam1i'], ggg.gam1i.ravel(), rtol=1.e-4)
+    np.testing.assert_allclose(corr3_output['gam2r'], ggg.gam2r.ravel(), rtol=1.e-4)
+    np.testing.assert_allclose(corr3_output['gam2i'], ggg.gam2i.ravel(), rtol=1.e-4)
+    np.testing.assert_allclose(corr3_output['gam3r'], ggg.gam3r.ravel(), rtol=1.e-4)
+    np.testing.assert_allclose(corr3_output['gam3i'], ggg.gam3i.ravel(), rtol=1.e-4)
+
+    # Repeat the above, but limiting the signal to |rparp| < 500
+    # (Need more sources now to get similar accuracy.)
+    nsource *= 2
+    xs = (rng.random_sample(nsource)-0.5) * L
+    zs = (rng.random_sample(nsource)-0.5) * L
+    ys = rng.random_sample(nsource) * 4*L + 10*L  # 100000 < z < 120000
+    rs = np.sqrt(xs**2 + ys**2 + zs**2)
+    gs = np.zeros( (nsource,), dtype=complex )
+    print('Making shear vectors with only local signal')
+    max_rpar = L/2
+    gl = save_gl  # Go back to the original un-squared gl for this loop.
+    for x,y,z,r,g in zip(xl,yl,zl,rl,gl):
+        dsq = (x-xs)**2 + (y-ys)**2 + (z-zs)**2
+        Lsq = ((x+xs)**2 + (y+ys)**2 + (z+zs)**2) / 4.
+        Rpar = abs(rs**2 - r**2) / (2 * np.sqrt(Lsq))
+        Rperpsq = dsq - Rpar**2
+        Rperp = np.sqrt(Rperpsq)
+        gammaQ = gamma0 * np.exp(-0.5*Rperp**2/R0**2)
+
+        dx = xs/rs-x/r
+        dz = zs/rs-z/r
+        expialpha = dx + 1j*dz
+        expialpha /= np.abs(expialpha)
+
+        gQ = gammaQ * expialpha**3 * np.conj(g)
+        local = np.abs(Rpar) < max_rpar
+        gs[local] += gQ[local]
+    gl = gl**2
+    source_cat = treecorr.Catalog(x=xs, y=ys, z=zs, g1=gs.real, g2=gs.imag)
+
+    ggg = treecorr.GGGCorrelation(bin_size=bin_size, min_sep=min_sep, max_sep=max_sep,
+                                  min_phi=min_phi, max_phi=max_phi, nphi_bins=nphi_bins,
+                                  metric='Rperp', min_rpar=-max_rpar, max_rpar=max_rpar)
+
+    if __name__ == '__main__':
+        print('ggg.process(lens_cat, source_cat, triangle)')
+        t0 = time.time()
+        ggg.process(lens_cat, source_cat, algo='triangle')
+        t1 = time.time()
+        print('time = ',t1-t0)
+        theory_gam0 = predict(ggg)
+
+        print('max diff = ',np.max(np.abs(ggg.gam0 - theory_gam0)))
+        print('max rel diff = ',np.max(np.abs(ggg.gam0/theory_gam0 - 1)))
+        print('mean ratio = ',np.mean(ggg.gam0/theory_gam0))
+        print('max gam0 = ',np.max(np.abs(ggg.gam0)))
+        print('max gam1 = ',np.max(np.abs(ggg.gam1)))
+        print('max gam2 = ',np.max(np.abs(ggg.gam2)))
+        print('max gam3 = ',np.max(np.abs(ggg.gam3)))
+        np.testing.assert_allclose(ggg.gam0, theory_gam0, rtol=0.15)
+        assert np.max(np.abs(ggg.gam0)) > 2.e-4  # gam0 is much larger than the other 3.
+        assert np.max(np.abs(ggg.gam1)) < 3.e-5
+        assert np.max(np.abs(ggg.gam2)) < 3.e-5
+        assert np.max(np.abs(ggg.gam3)) < 3.e-5
+
+    print('ggg.process(lens_cat, source_cat')
+    t0 = time.time()
+    ggg.process(lens_cat, source_cat, max_n=30)
+    t1 = time.time()
+    print('time = ',t1-t0)
+    theory_gam0 = predict(ggg)
+
+    print('max diff = ',np.max(np.abs(ggg.gam0 - theory_gam0)))
+    print('max rel diff = ',np.max(np.abs(ggg.gam0/theory_gam0 - 1)))
+    print('mean ratio = ',np.mean(ggg.gam0/theory_gam0))
+    print('max gam0 = ',np.max(np.abs(ggg.gam0)))
+    print('max gam1 = ',np.max(np.abs(ggg.gam1)))
+    print('max gam2 = ',np.max(np.abs(ggg.gam2)))
+    print('max gam3 = ',np.max(np.abs(ggg.gam3)))
+    np.testing.assert_allclose(ggg.gam0, theory_gam0, rtol=0.15)
+    assert np.max(np.abs(ggg.gam0)) > 2.e-4
+    assert np.max(np.abs(ggg.gam1)) < 3.e-5
+    assert np.max(np.abs(ggg.gam2)) < 3.e-5
+    assert np.max(np.abs(ggg.gam3)) < 3.e-5
+
+    # Check that we get the same result using the corr3 function
+    source_cat.write(os.path.join('data','ggg_rperp_source_local.dat'))
+    config['file_name2'] = 'data/ggg_rperp_source_local.dat'
+    config['min_rpar'] = -max_rpar
+    config['max_rpar'] = max_rpar
+    treecorr.corr3(config)
+    corr3_output = np.genfromtxt(os.path.join('output','ggg_rperp.out'), names=True,
+                                 skip_header=1)
+    np.testing.assert_allclose(corr3_output['gam0r'], ggg.gam0r.ravel(), rtol=1.e-4)
+    np.testing.assert_allclose(corr3_output['gam0i'], ggg.gam0i.ravel(), rtol=1.e-4)
+    np.testing.assert_allclose(corr3_output['gam1r'], ggg.gam1r.ravel(), rtol=1.e-4)
+    np.testing.assert_allclose(corr3_output['gam1i'], ggg.gam1i.ravel(), rtol=1.e-4)
+    np.testing.assert_allclose(corr3_output['gam2r'], ggg.gam2r.ravel(), rtol=1.e-4)
+    np.testing.assert_allclose(corr3_output['gam2i'], ggg.gam2i.ravel(), rtol=1.e-4)
+    np.testing.assert_allclose(corr3_output['gam3r'], ggg.gam3r.ravel(), rtol=1.e-4)
+    np.testing.assert_allclose(corr3_output['gam3i'], ggg.gam3i.ravel(), rtol=1.e-4)
+
+
+
 if __name__ == '__main__':
     test_direct_logruv()
     test_direct_logruv_spherical()
@@ -5655,3 +5897,4 @@ if __name__ == '__main__':
     test_direct_logmultipole_cross()
     test_direct_logmultipole_cross12()
     test_map3_logmultipole()
+    test_ggg_rperp()

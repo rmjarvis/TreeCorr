@@ -2668,10 +2668,9 @@ class Corr3(object):
             - 'geom' = Use the geometric mean of the three patch weights for each triangle.
             - 'match' = Use the "optimal" weight that matches the effect of auto- and cross-pairs
               for two-point jackknife covariances derived by Mohammad and Percival
-              (w = n_patch / (2 + sqrt(2) (n_patch-1))). This is probably not optimal for
-              three-point statistics, and it would probably be different for triangles with one
-              or two points in selected patches, but we have not tried to derive a better
-              value yet. (Suggestions welcome!)
+              (w = n_patch / (2 + sqrt(2) (n_patch-1))).
+              There is a similar formula for triangles that span three different patches
+              (w = sqrt(2) n_patch / 3 (n_patch - 1 + sqrt(2))), which we use for those triples.
 
         .. note::
 
@@ -2721,16 +2720,14 @@ class Corr3(object):
                                 can also be given in the constructor.)
             cross_patch_weight (str): How to weight pairs that cross between two patches when one
                                 patch is deselected (e.g. in a jackknife sense) and the other is
-                                selected.  (default None; see above for details; this value
-                                can also be given in the constructor.)
+                                selected.  (default 'simple'; this value can also be given in
+                                the constructor.)
 
         Returns:
             A numpy array with the estimated covariance matrix.
         """
         if num_bootstrap is None:
             num_bootstrap = self.num_bootstrap
-        if cross_patch_weight is None:
-            cross_patch_weight = self.cross_patch_weight
         if func is not None:
             # Need to convert it to a function of the first item in the list.
             all_func = lambda corrs: func(corrs[0])
@@ -2778,16 +2775,14 @@ class Corr3(object):
                                 can also be given in the constructor.)
             cross_patch_weight (str): How to weight pairs that cross between two patches when one
                                 patch is deselected (e.g. in a jackknife sense) and the other is
-                                selected.  (default None; see above for details; this value
-                                can also be given in the constructor.)
+                                selected.  (default 'simple'; this value can also be given in the
+                                constructor.)
 
         Returns:
             A, w: numpy arrays with the design matrix and weights respectively.
         """
         if num_bootstrap is None:
             num_bootstrap = self.num_bootstrap
-        if cross_patch_weight is None:
-            cross_patch_weight = self.cross_patch_weight
         if func is not None:
             # Need to convert it to a function of the first item in the list.
             all_func = lambda corrs: func(corrs[0])
@@ -2939,7 +2934,7 @@ class Corr3(object):
 
     class JackknifeTripleIterator(TripleIterator):
         def make_gen(self):
-            if self.cpw not in [None, 'simple', 'mean', 'match']:
+            if self.cpw not in ['simple', 'mean', 'match']:
                 raise ValueError(f"cross_patch_weight = {self.cpw} is invalid for jackknife")
             if self.npatch3 == 1:
                 if self.npatch2 == 1:
@@ -2953,7 +2948,7 @@ class Corr3(object):
                     assert self.npatch1 == self.npatch2
                     return ((i,j,k,1) for i,j,k in self.results.keys()
                             if i!=self.index and j!=self.index)
-                elif self.cpw in [None, 'match']:
+                elif self.cpw == 'match':
                     w = 1 - self.npatch1 / (2 + 2**0.5 * (self.npatch1-1))
                     assert self.npatch1 == self.npatch2
                     return ((i,j,k, w if i == self.index or j == self.index else 1)
@@ -2972,7 +2967,7 @@ class Corr3(object):
                     assert self.npatch1 == self.npatch3
                     return ((i,j,k,1) for i,j,k in self.results.keys()
                             if i!=self.index and k!=self.index)
-                elif self.cpw in [None, 'match']:
+                elif self.cpw == 'match':
                     w = 1 - self.npatch1 / (2 + 2**0.5 * (self.npatch1-1))
                     assert self.npatch1 == self.npatch3
                     return ((i,j,k, w if i == self.index or k == self.index else 1)
@@ -2988,7 +2983,7 @@ class Corr3(object):
                 if self.cpw == 'simple':
                     return ((i,j,k,1) for i,j,k in self.results.keys()
                             if j!=self.index and k!=self.index)
-                elif self.cpw in [None, 'match']:
+                elif self.cpw == 'match':
                     w = 1 - self.npatch2 / (2 + 2**0.5 * (self.npatch2-1))
                     assert self.npatch2 == self.npatch3
                     return ((i,j,k, w if j == self.index or k == self.index else 1)
@@ -3002,7 +2997,7 @@ class Corr3(object):
                 if self.cpw == 'simple':
                     return ((i,j,k,1) for i,j,k in self.results.keys()
                             if i!=self.index and j!=self.index and k!=self.index)
-                elif self.cpw in [None, 'match']:
+                elif self.cpw == 'match':
                     # For 3pt, there are two different optimal match weights depending
                     # on the nature of the triangle.  If two points are in one patch, and one
                     # point is in another, then the same weight as MP22 is appropriate.
@@ -3041,7 +3036,7 @@ class Corr3(object):
 
     class SampleTripleIterator(TripleIterator):
         def make_gen(self):
-            if self.cpw not in [None, 'simple', 'mean']:
+            if self.cpw not in ['simple', 'mean']:
                 raise ValueError(f"cross_patch_weight = {self.cpw} is invalid for sample")
             if self.npatch3 == 1:
                 if self.npatch2 == 1:
@@ -3050,7 +3045,7 @@ class Corr3(object):
                 elif self.npatch1 == 1:
                     # i=k=0
                     return ((i,j,k,1) for i,j,k in self.results.keys() if j==self.index)
-                elif self.cpw in [None, 'simple']:
+                elif self.cpw == 'simple':
                     # k=0
                     assert self.npatch1 == self.npatch2
                     return ((i,j,k,1) for i,j,k in self.results.keys() if i==self.index)
@@ -3063,7 +3058,7 @@ class Corr3(object):
                 if self.npatch1 == 1:
                     # i=j=0
                     return ((i,j,k,1) for i,j,k in self.results.keys() if k==self.index)
-                elif self.cpw in [None, 'simple']:
+                elif self.cpw == 'simple':
                     # j=0
                     assert self.npatch1 == self.npatch3
                     return ((i,j,k,1) for i,j,k in self.results.keys() if i==self.index)
@@ -3075,7 +3070,7 @@ class Corr3(object):
             elif self.npatch1 == 1:
                 # i=0
                 assert self.npatch2 == self.npatch3
-                if self.cpw in [None, 'simple']:
+                if self.cpw == 'simple':
                     return ((i,j,k,1) for i,j,k in self.results.keys() if j==self.index)
                 else:
                     assert self.cpw == 'mean'
@@ -3083,7 +3078,7 @@ class Corr3(object):
                             for i,j,k in self.results.keys() if j==self.index or k==self.index)
             else:
                 assert self.npatch1 == self.npatch2 == self.npatch3
-                if self.cpw in [None, 'simple']:
+                if self.cpw == 'simple':
                     return ((i,j,k,1) for i,j,k in self.results.keys() if i==self.index)
                 else:
                     assert self.cpw == 'mean'
@@ -3106,14 +3101,14 @@ class Corr3(object):
 
     class MarkedTripleIterator(TripleIterator):
         def make_gen(self):
-            if self.cpw not in [None, 'simple', 'mean']:
+            if self.cpw not in ['simple', 'mean']:
                 raise ValueError(f"cross_patch_weight = {self.cpw} is invalid for marked_bootstrap")
             if self.npatch3 == 1:
                 if self.npatch2 == 1:
                     return ( (i,0,0,1) for i in self.index if self.ok[i,0,0] )
                 elif self.npatch1 == 1:
                     return ( (0,j,0,1) for j in self.index if self.ok[0,j,0] )
-                elif self.cpw in [None, 'simple']:
+                elif self.cpw == 'simple':
                     assert self.npatch1 == self.npatch2
                     index, weights = np.unique(self.index, return_counts=True)
                     return ( (i,j,0,w) for (i,w) in zip(index, weights)
@@ -3128,7 +3123,7 @@ class Corr3(object):
             elif self.npatch2 == 1:
                 if self.npatch1 == 1:
                     return ( (0,0,k,1) for k in self.index if self.ok[0,0,k] )
-                elif self.cpw in [None, 'simple']:
+                elif self.cpw == 'simple':
                     assert self.npatch1 == self.npatch3
                     index, weights = np.unique(self.index, return_counts=True)
                     return ( (i,0,k,w) for (i,w) in zip(index, weights)
@@ -3142,7 +3137,7 @@ class Corr3(object):
                              for k in range(self.npatch3) if self.ok[i,0,k] or self.ok[k,0,i] )
             elif self.npatch1 == 1:
                 assert self.npatch2 == self.npatch3
-                if self.cpw in [None, 'simple']:
+                if self.cpw == 'simple':
                     assert self.npatch2 == self.npatch3
                     index, weights = np.unique(self.index, return_counts=True)
                     return ( (0,j,k,w) for (j,w) in zip(index, weights)
@@ -3156,7 +3151,7 @@ class Corr3(object):
                              for k in range(self.npatch3) if self.ok[0,j,k] or self.ok[0,k,j] )
             else:
                 assert self.npatch1 == self.npatch2 == self.npatch3
-                if self.cpw in [None, 'simple']:
+                if self.cpw == 'simple':
                     assert self.npatch1 == self.npatch2 == self.npatch3
                     index, weights = np.unique(self.index, return_counts=True)
                     return ( (i,j,k,w) for (i,w) in zip(index, weights)
@@ -3177,7 +3172,7 @@ class Corr3(object):
 
     class BootstrapTripleIterator(TripleIterator):
         def make_gen(self):
-            if self.cpw not in [None, 'simple', 'mean', 'geom']:
+            if self.cpw not in ['simple', 'mean', 'geom']:
                 raise ValueError(f"cross_patch_weight = {self.cpw} is invalid for bootstrap")
             if self.npatch3 == 1:
                 if self.npatch2 == 1:
@@ -3197,7 +3192,7 @@ class Corr3(object):
                                 for i in range(self.npatch1) for j in range(self.npatch2)
                                 if self.ok[i,j,0] and i!=j )
                     else:
-                        assert self.cpw in [None, 'geom']
+                        assert self.cpw == 'geom'
                         ret2 = ( (i,j,0,(w1*w2)**0.5) for (i,w1) in zip(index, weights)
                                  for (j,w2) in zip(index,weights) if self.ok[i,j,0] and i != j )
                     return itertools.chain(ret1, ret2)
@@ -3217,7 +3212,7 @@ class Corr3(object):
                                 for i in range(self.npatch1) for k in range(self.npatch3)
                                 if self.ok[i,0,k] and i!=k )
                     else:
-                        assert self.cpw in [None, 'geom']
+                        assert self.cpw == 'geom'
                         ret2 = ( (i,0,k,(w1*w2)**0.5) for (i,w1) in zip(index, weights)
                                  for (k,w2) in zip(index,weights) if self.ok[i,0,k] and i != k )
                     return itertools.chain(ret1, ret2)
@@ -3234,7 +3229,7 @@ class Corr3(object):
                             for j in range(self.npatch2) for k in range(self.npatch3)
                             if self.ok[0,j,k] and j!=k )
                 else:
-                    assert self.cpw in [None, 'geom']
+                    assert self.cpw == 'geom'
                     ret2 = ( (0,j,k,(w1*w2)**0.5) for (j,w1) in zip(index, weights)
                                 for (k,w2) in zip(index,weights) if self.ok[0,j,k] and j != k )
                 return itertools.chain(ret1, ret2)
@@ -3261,7 +3256,7 @@ class Corr3(object):
                             for i in range(self.npatch1) for j in range(self.npatch2)
                             for k in range(self.npatch3) if self.ok[i,j,k] and not i==j==k )
                 else:
-                    assert self.cpw in [None, 'geom']
+                    assert self.cpw == 'geom'
                     ret2 = ( (i,j,k,(w1*w2*w3)**(1./3.)) for (i,w1) in zip(index, weights)
                                 for (j,w2) in zip(index,weights)
                                 for (k,w3) in zip(index,weights)
@@ -3271,6 +3266,25 @@ class Corr3(object):
     def _bootstrap_pairs(self, index, cross_patch_weight):
         return self.BootstrapTripleIterator(self.results, self.npatch1, self.npatch2,
                                             self.npatch3, index, cross_patch_weight, self._ok)
+
+    def _check_cpw(self, method, cross_patch_weight):
+        if cross_patch_weight is None:
+            cross_patch_weight = self.cross_patch_weight
+        if cross_patch_weight is None:
+            cross_patch_weight = 'simple'
+            if method == 'jackknife':
+                self.logger.warning(
+                    "Using the default cross_patch_weight='simple' may be less accurate than "
+                    "using cross_patch_weight='match'.  See the docs for details about this "
+                    "option.  It may become the new default value in a future version.\n"
+                    "Set cross_patch_weight='simple' explicitly to suppress this message.")
+            elif method == 'bootstrap':
+                self.logger.warning(
+                    "Using the default cross_patch_weight='simple' may be less accurate than "
+                    "using cross_patch_weight='geom'.  See the docs for details about this "
+                    "option.  It may become the new default value in a future version.\n"
+                    "Set cross_patch_weight='simple' explicitly to suppress this message.")
+        return cross_patch_weight
 
     @property
     def _write_params(self):

@@ -1380,8 +1380,8 @@ class Corr2(object):
               did prior to version 5.1.  In the language of MP22, this is called mult, since
               deselected patches have weight=0, and selected patches have weight=1, so the product
               of the weights is 0 if either patch is deselected.
-              This option is valid for all patch-based methods, and it is the default for
-              sample and marked_bootstrap.
+              This option is valid for all patch-based methods, and it is currently still
+              the default.  This may change in a future version.
             - 'mean' = Use a weight of 0.5 for any pair with one object in a deselected patch
               and the other in a selected patch. This is the mean of the two patch weights (0,1).
               This option is valid for all patch-based methods.
@@ -1389,11 +1389,11 @@ class Corr2(object):
               this would be equivalent to 'simple', since patch weights are either 0 or 1.
               However, for bootstrap, individual patches can have weights greater than 1, so this
               leads to a different weight for pairs that cross between two selected patches.
-              This option is only valid for bootstrap, for which it is the default.
+              This option is only valid for bootstrap.
             - 'match' = Use the "optimal" weight that matches the effect of auto- and cross-pairs
               in the estimate of the jackknife covariance. MP22 calculate this for the to
               be w = 1 - n_patch / (2 + sqrt(2) (n_patch-1)).
-              This option is only valid for jackknife, for which it is the default.
+              This option is only valid for jackknife.
 
         .. note::
 
@@ -1443,8 +1443,7 @@ class Corr2(object):
                                 can also be given in the constructor.)
             cross_patch_weight (str): How to weight pairs that cross between two patches when one
                                 patch is deselected (e.g. in a jackknife sense) and the other is
-                                selected.  (default None; see above for details about what this
-                                defaults to for each method; this value can also be given in the
+                                selected.  (default 'simple'; this value can also be given in the
                                 constructor.)
 
         Returns:
@@ -1452,8 +1451,6 @@ class Corr2(object):
         """
         if num_bootstrap is None:
             num_bootstrap = self.num_bootstrap
-        if cross_patch_weight is None:
-            cross_patch_weight = self.cross_patch_weight
         if func is not None:
             # Need to convert it to a function of the first item in the list.
             all_func = lambda corrs: func(corrs[0])
@@ -1501,16 +1498,14 @@ class Corr2(object):
                                 can also be given in the constructor.)
             cross_patch_weight (str): How to weight pairs that cross between two patches when one
                                 patch is deselected (e.g. in a jackknife sense) and the other is
-                                selected.  (default None; see `estimate_cov` for details; this
-                                value can also be given in the constructor.)
+                                selected.  (default 'simple'; this value can also be given in
+                                the constructor.)
 
         Returns:
             (A, w), numpy arrays with the design matrix and weights respectively.
         """
         if num_bootstrap is None:
             num_bootstrap = self.num_bootstrap
-        if cross_patch_weight is None:
-            cross_patch_weight = self.cross_patch_weight
         if func is not None:
             # Need to convert it to a function of the first item in the list.
             all_func = lambda corrs: func(corrs[0])
@@ -1786,7 +1781,7 @@ class Corr2(object):
                 assert self.npatch1 == self.npatch2
                 return ((i,j, 0.5 if i == self.index or j == self.index else 1)
                         for i,j in self.results.keys() if i!=self.index or j!=self.index)
-            elif self.cpw in [None, 'match']:
+            elif self.cpw == 'match':
                 # match is like mean, but has a little lower weight for the cross-pairs.
                 # See section 4.5 of Mohammad and Percival (2022).
                 # The following is eqn. 27 from that paper, where w = 1-alpha, since
@@ -1812,7 +1807,7 @@ class Corr2(object):
             elif self.npatch1 == 1:
                 # i=0 here.
                 return ((i,j,1) for i,j in self.results.keys() if j==self.index)
-            elif self.cpw in [None, 'simple']:
+            elif self.cpw == 'simple':
                 # Always use pair if i == index
                 assert self.npatch1 == self.npatch2
                 return ((i,j,1) for i,j in self.results.keys() if i==self.index)
@@ -1846,7 +1841,7 @@ class Corr2(object):
                 return ( (i,0,1) for i in self.index if self.ok[i,0] )
             elif self.npatch1 == 1:
                 return ( (0,j,1) for j in self.index if self.ok[0,j] )
-            elif self.cpw in [None, 'simple']:
+            elif self.cpw == 'simple':
                 assert self.npatch1 == self.npatch2
                 index, weights = np.unique(self.index, return_counts=True)
                 # Select all pairs where first point is in index (repeating i as appropriate)
@@ -1896,7 +1891,7 @@ class Corr2(object):
                     ret2 = ( (i,j,(wdict.get(i,0)+wdict.get(j,0))/2)
                             for i in range(self.npatch1) for j in range(self.npatch2)
                             if self.ok[i,j] and i!=j )
-                elif self.cpw in [None, 'geom']:
+                elif self.cpw == 'geom':
                     # Finally, geom uses the geometric mean
                     ret2 = ( (i,j,(w1*w2)**0.5) for (i,w1) in zip(index, weights)
                             for (j,w2) in zip(index,weights) if self.ok[i,j] and i!=j )
@@ -1908,6 +1903,26 @@ class Corr2(object):
     def _bootstrap_pairs(self, index, cross_patch_weight):
         return self.BootstrapPairIterator(self.results, self.npatch1, self.npatch2, index,
                                           cross_patch_weight, self._ok)
+
+
+    def _check_cpw(self, method, cross_patch_weight):
+        if cross_patch_weight is None:
+            cross_patch_weight = self.cross_patch_weight
+        if cross_patch_weight is None:
+            cross_patch_weight = 'simple'
+            if method == 'jackknife':
+                self.logger.warning(
+                    "Using the default cross_patch_weight='simple' may be less accurate than "
+                    "using cross_patch_weight='match'.  See the docs for details about this "
+                    "option.  It may become the new default value in a future version.\n"
+                    "Set cross_patch_weight='simple' explicitly to suppress this message.")
+            elif method == 'bootstrap':
+                self.logger.warning(
+                    "Using the default cross_patch_weight='simple' may be less accurate than "
+                    "using cross_patch_weight='geom'.  See the docs for details about this "
+                    "option.  It may become the new default value in a future version.\n"
+                    "Set cross_patch_weight='simple' explicitly to suppress this message.")
+        return cross_patch_weight
 
     @property
     def _write_params(self):
@@ -2127,8 +2142,8 @@ def estimate_multi_cov(corrs, method, *, func=None, comm=None, num_bootstrap=Non
           did prior to version 5.1.  In the language of MP22, this is called mult, since
           deselected patches have weight=0, and selected patches have weight=1, so the product
           of the weights is 0 if either patch is deselected.
-          This option is valid for all patch-based methods, and it is the default
-          for sample and marked_bootstrap.
+          This option is valid for all patch-based methods, and it is currently still
+          the default.  This may change in a future version.
         - 'mean' = Use a weight of 0.5 for any pair with one object in a deselected patch
           and the other in a selected patch. This is the mean of the two patch weights (0,1).
           This option is valid for all patch-based methods.
@@ -2136,11 +2151,11 @@ def estimate_multi_cov(corrs, method, *, func=None, comm=None, num_bootstrap=Non
           this would be equivalent to 'simple', since patch weights are either 0 or 1.
           However, for bootstrap, individual patches can have weights greater than 1, so this
           leads to a different weight for pairs that cross between two selected patches.
-          This option is only valid for bootstrap, for which it is the default.
+          This option is only valid for bootstrap.
         - 'match' = Use the "optimal" weight that matches the effect of auto- and cross-pairs
           in the estimate of the jackknife covariance. MP22 calculate this for the to
           be w = 1 - n_patch / (2 + sqrt(2) (n_patch-1)).
-          This option is only valid for jackknife, for which it is the default.
+          This option is only valid for jackknife.
 
     For example, to find the combined covariance matrix for an NG tangential shear statistc,
     along with the GG xi+ and xi- from the same area, using jackknife covariance estimation,
@@ -2189,7 +2204,7 @@ def estimate_multi_cov(corrs, method, *, func=None, comm=None, num_bootstrap=Non
                             'marked_bootstrap' var_methods.  (default: 500)
         cross_patch_weight (str): How to weight pairs that cross between two patches when one
                             patch is deselected (e.g. in a jackknife sense) and the other is
-                            selected.  (default None; see above for details)
+                            selected.  (default 'simple')
 
     Returns:
         A numpy array with the estimated covariance matrix.
@@ -2197,9 +2212,7 @@ def estimate_multi_cov(corrs, method, *, func=None, comm=None, num_bootstrap=Non
     if num_bootstrap is None and 'boot' in method:
         # use the maximum if they differ.
         num_bootstrap = np.max([c.num_bootstrap for c in corrs])
-    if cross_patch_weight is None:
-        # Use the first one, since there isn't a useful tie breaker for this.
-        cross_patch_weight = corrs[0].cross_patch_weight
+    cross_patch_weight = corrs[0]._check_cpw(method, cross_patch_weight)
     if method == 'shot':
         if func is not None:
             raise ValueError("func is invalid with method='shot'")
@@ -2252,7 +2265,7 @@ def build_multi_cov_design_matrix(corrs, method, *, func=None, comm=None, num_bo
                             'marked_bootstrap' var_methods.  (default: 500)
         cross_patch_weight (str): How to weight pairs that cross between two patches when one
                             patch is deselected (e.g. in a jackknife sense) and the other is
-                            selected.  (default None; see `esimate_multi_cov` for details)
+                            selected.  (default 'simple')
 
     Returns:
         (A, w), numpy arrays with the design matrix and weights respectively.
@@ -2260,9 +2273,7 @@ def build_multi_cov_design_matrix(corrs, method, *, func=None, comm=None, num_bo
     if num_bootstrap is None and 'boot' in method:
         # use the maximum if they differ.
         num_bootstrap = np.max([c.num_bootstrap for c in corrs])
-    if cross_patch_weight is None:
-        # Use the first one, since there isn't a useful tie breaker for this.
-        cross_patch_weight = corrs[0].cross_patch_weight
+    cross_patch_weight = corrs[0]._check_cpw(method, cross_patch_weight)
     if method == 'shot':
         raise ValueError("There is no design matrix for method='shot'")
     elif method == 'jackknife':

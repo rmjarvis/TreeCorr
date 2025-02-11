@@ -89,9 +89,15 @@ two points, and
 
 :math:`L \equiv \frac{p1 + p2}{2}`
 
-then
+or, for 3-point correlations
+
+:math:`L \eqiv \frac{p1 + p2 + p3}{3}`.
+
+Then
 
 :math:`r_\parallel = \frac{(p_2 - p_1) \cdot L}{|L|}`
+
+(or similarly for each pair of points in the 3-point case).
 
 That is, it breaks up the full 3-d distance into perpendicular and parallel components:
 :math:`d_{\rm 3d}^2 = r_\bot^2 + r_\parallel^2`,
@@ -145,8 +151,8 @@ In this limit, the formula for :math:`d` reduces to
 -------
 
 This metric is only valid when the first catalog uses 3-dimensional coordinates
-(ra,dec,r) or (x,y,z).  The second catalog may take either 3-d coordinates or spherical
-coordinates (ra,dec).
+(ra,dec,r) or (x,y,z).  The second catalog (and the third in the 3-point case)
+may take either 3-d coordinates or spherical coordinates (ra,dec).
 
 The distance is defined as
 
@@ -200,7 +206,8 @@ Restrictions on the Line of Sight Separation
 There are two additional parameters that are tightly connected to the metric space:
 ``min_rpar`` and ``max_rpar``.
 These set the minimum and maximum values of :math:`r_\parallel` for pairs to be included in the
-correlations.
+correlations.  For 3-point correlations, the minimum and maximum values apply to both
+points 2 and 3 with respect to point 1 in the triangle.
 
 This is most typically relevant for the Rperp or Rlens metrics, but we now (as of version 4.2)
 allow these parameters for any metric.

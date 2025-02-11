@@ -1363,17 +1363,17 @@ class Corr2(object):
               patches.  Similar to bootstrap, but only samples the patches of the first catalog and
               uses all patches from the second catalog that correspond to each patch selection of
               the first catalog.  Based on the algorithm presented in Loh (2008).
-              cf. https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/
+              cf. `<https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/>`_
 
         Both 'bootstrap' and 'marked_bootstrap' use the num_bootstrap parameter, which can be set on
         construction.
 
         Another relevant parameter is 'cross_patch_weight'. This parameter controls how
         pairs that cross between two patches are weighted when one of the patches is selected
-        and the other is deselected. See Mohammad and Percival (2022) (MP22 hereafter)
-        (https://ui.adsabs.harvard.edu/abs/2022MNRAS.514.1289M/) for an in-depth discussion of
-        these options. The parameter options mostly correspond to the notation used in that paper.
-        Briefly the options are:
+        and the other is deselected. See `Mohammad and Percival (2022)
+        <https://ui.adsabs.harvard.edu/abs/2022MNRAS.514.1289M/>`_ (MP22 hereafter)
+        for an in-depth discussion of these options. The parameter options mostly correspond
+        to the notation used in that paper.  Briefly the options are:
 
             - 'simple' = Don't use any pairs where either object is in a deselected patch.
               This is the simplest implementation of the methods and is what TreeCorr always
@@ -2110,17 +2110,17 @@ def estimate_multi_cov(corrs, method, *, func=None, comm=None, num_bootstrap=Non
           patches.  Similar to bootstrap, but only samples the patches of the first catalog and
           uses all patches from the second catalog that correspond to each patch selection of
           the first catalog.  Based on the algorithm presented in Loh (2008).
-          cf. https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/
+          cf. `<https://ui.adsabs.harvard.edu/abs/2008ApJ...681..726L/>`_
 
     Both 'bootstrap' and 'marked_bootstrap' use the num_bootstrap parameter to set the
     number of bootstrap realizations to be used.
 
     Another relevant parameter is 'cross_patch_weight'. This parameter controls how
     pairs that cross between two patches are weighted when one of the patches is selected
-    and the other is deselected. See Mohammad and Percival (2022) (MP22 hereafter)
-    (https://ui.adsabs.harvard.edu/abs/2022MNRAS.514.1289M/) for an in-depth discussion of
-    these options. The parameter options mostly correspond to the notation used in that paper.
-    Briefly the options are:
+    and the other is deselected. See `Mohammad and Percival (2022)
+    <https://ui.adsabs.harvard.edu/abs/2022MNRAS.514.1289M/>`_ (MP22 hereafter)
+    for an in-depth discussion of these options. The parameter options mostly correspond to
+    the notation used in that paper.  Briefly the options are:
 
         - 'simple' = Don't use any pairs where either object is in a deselected patch.
           This is the simplest implementation of the methods and is what TreeCorr always

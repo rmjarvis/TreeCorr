@@ -128,7 +128,7 @@ class Corr3(object):
           OldRperp if you want by setting ``treecorr.Rperp_alias = 'OldRperp'`` before
           using it.
         - 'Rlens' = the distance from the first object (taken to be a lens) to the line
-          connecting Earth and the second object (taken to be a lensed source).
+          connecting Earth and each of the other two objects (taken to be lensed sources).
         - 'Arc' = the true great circle distance for spherical coordinates.
         - 'Periodic' = Like Euclidean, but with periodic boundaries.
 

@@ -1445,23 +1445,45 @@ struct BinTypeHelper<LogMultipole>
         const MetricHelper<M,0>& metric, int ordered,
         double minsep, double minsepsq, double maxsep, double maxsepsq)
     {
+        xdbg<<"LogMultipole trivial_stop\n";
         // Check if all possible triangles will have either d2 or d3 < minsep
+        int small_count = 0;
         if (d2sq < minsepsq && s1+s3 < minsep && (s1+s3 == 0. || d2sq < SQR(minsep - s1-s3))) {
             xdbg<<"d2 cannot be as large as minsep\n";
-            return true;
+            if (ordered) return true;
+            else small_count += 1;
         }
         if (d3sq < minsepsq && s1+s2 < minsep && (s1+s2 == 0. || d3sq < SQR(minsep - s1-s2))) {
             xdbg<<"d3 cannot be as large as minsep\n";
+            if (ordered) return true;
+            else small_count += 1;
+        }
+        if (!ordered && d1sq < minsepsq && s2+s3 < minsep &&
+            (s2+s3 == 0. || d1sq < SQR(minsep - s2-s3))) {
+            xdbg<<"d1 cannot be as large as minsep\n";
+            small_count += 1;
+        }
+        if (!ordered && small_count >= 2) {
             return true;
         }
 
         // Check if all possible triangles will have d2 or d3 > maxsep.
+        int large_count = 0;
         if (d2sq >= maxsepsq && (s1+s3 == 0. || d2sq >= SQR(maxsep + s1+s3))) {
             xdbg<<"d2 cannot be as small as maxsep\n";
-            return true;
+            if (ordered) return true;
+            else large_count += 1;
         }
         if (d3sq >= maxsepsq && (s1+s2 == 0. || d3sq >= SQR(maxsep + s1+s2))) {
             xdbg<<"d3 cannot be as small as maxsep\n";
+            if (ordered) return true;
+            else large_count += 1;
+        }
+        if (!ordered && d1sq >= maxsepsq && (s2+s3 == 0. || d1sq >= SQR(maxsep + s2+s3))) {
+            xdbg<<"d1 cannot be as small as maxsep\n";
+            large_count += 1;
+        }
+        if (!ordered && large_count >= 2) {
             return true;
         }
 

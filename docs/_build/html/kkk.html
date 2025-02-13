@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KKKCorrelation: Scalar-scalar-scalar correlations &mdash; TreeCorr 5.1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="GGGCorrelation: Shear-shear-shear correlations" href="ggg.html" />
+    <link rel="prev" title="NNNCorrelation: Count-count-count correlations" href="nnn.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            TreeCorr
+          </a>
+              <div class="version">
+                5.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="nnn.html">NNNCorrelation: Count-count-count correlations</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">KKKCorrelation: Scalar-scalar-scalar correlations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#treecorr.KKKCorrelation"><code class="docutils literal notranslate"><span class="pre">KKKCorrelation</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#treecorr.KKKCorrelation.__init__"><code class="docutils literal notranslate"><span class="pre">KKKCorrelation.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#treecorr.KKKCorrelation.finalize"><code class="docutils literal notranslate"><span class="pre">KKKCorrelation.finalize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#treecorr.KKKCorrelation.write"><code class="docutils literal notranslate"><span class="pre">KKKCorrelation.write()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ggg.html">GGGCorrelation: Shear-shear-shear correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nnk.html">NNKCorrelation: Count-count-scalar correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nnk.html#nkncorrelation-count-scalar-count-correlations">NKNCorrelation: Count-scalar-count correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nnk.html#knncorrelation-scalar-count-count-correlations">KNNCorrelation: Scalar-count-count correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nng.html">NNGCorrelation: Count-count-shear correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nng.html#ngncorrelation-count-shear-count-correlations">NGNCorrelation: Count-shear-count correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nng.html#gnncorrelation-shear-count-count-correlations">GNNCorrelation: Shear-count-count correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nkk.html">NKKCorrelation: Count-scalar-scalar correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nkk.html#knkcorrelation-scalar-count-scalar-correlations">KNKCorrelation: Scalar-count-scalar correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nkk.html#kkncorrelation-scalar-scalar-count-correlations">KKNCorrelation: Scalar-scalar-count correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ngg.html">NGGCorrelation: Count-shear-shear correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ngg.html#gngcorrelation-shear-count-shear-correlations">GNGCorrelation: Shear-count-shear correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ngg.html#ggncorrelation-shear-shear-count-correlations">GGNCorrelation: Shear-shear-count correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kkg.html">KKGCorrelation: Scalar-scalar-shear correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kkg.html#kgkcorrelation-scalar-shear-scalar-correlations">KGKCorrelation: Scalar-shear-scalar correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kkg.html#gkkcorrelation-shear-scalar-scalar-correlations">GKKCorrelation: Shear-scalar-scalar correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kgg.html">KGGCorrelation: Scalar-shear-shear correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kgg.html#gkgcorrelation-shear-scalar-shear-correlations">GKGCorrelation: Shear-scalar-shear correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kgg.html#ggkcorrelation-shear-shear-scalar-correlations">GGKCorrelation: Shear-shear-scalar correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="correlation3.html#treecorr.Corr3"><code class="docutils literal notranslate"><span class="pre">Corr3</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="binning3pt.html">Binning for 3-point correlations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shear.html">Shear Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 5.0 to 5.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">TreeCorr</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="correlation3.html">Three-point Correlation Functions</a></li>
+      <li class="breadcrumb-item active">KKKCorrelation: Scalar-scalar-scalar correlations</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/kkk.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="kkkcorrelation-scalar-scalar-scalar-correlations">
+<h1>KKKCorrelation: Scalar-scalar-scalar correlations<a class="headerlink" href="#kkkcorrelation-scalar-scalar-scalar-correlations" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="treecorr.KKKCorrelation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">KKKCorrelation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KKKCorrelation" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.corr3base.Corr3"><code class="xref py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a></p>
+<p>This class handles the calculation and storage of a 3-point scalar-scalar-scalar correlation
+function.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>While we use the term kappa (<span class="math notranslate nohighlight">\(\kappa\)</span>) here and the letter K in various places,
+in fact any scalar field will work here.  For example, you can use this to compute
+correlations of the CMB temperature fluctuations, where “kappa” would really be
+<span class="math notranslate nohighlight">\(\Delta T\)</span>.</p>
+</div>
+<p>See the doc string of <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a> for a description of how the triangles are binned along
+with the attributes related to the different binning options.</p>
+<p>In addition to the attributes common to all <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a> subclasses, objects of this class
+hold the following attributes:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>zeta</strong> – The correlation function, <span class="math notranslate nohighlight">\(\zeta\)</span>.</p></li>
+<li><p><strong>varzeta</strong> – The variance of <span class="math notranslate nohighlight">\(\zeta\)</span>, only including the shot noise propagated into
+the final correlation.  This does not include sample variance, so it is always
+an underestimate of the actual variance.</p></li>
+</ul>
+</dd>
+</dl>
+<p>The typical usage pattern is as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">kkk</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">KKKCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kkk</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat</span><span class="p">)</span>              <span class="c1"># Compute auto-correlation.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kkk</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">cat3</span><span class="p">)</span> <span class="c1"># Compute cross-correlation.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kkk</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>          <span class="c1"># Write out to a file.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zeta</span> <span class="o">=</span> <span class="n">kkk</span><span class="o">.</span><span class="n">zeta</span>               <span class="c1"># Access zeta directly.</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>dict</em>) – A configuration dict that can be used to pass in kwargs if desired.
+This dict is allowed to have addition entries besides those listed
+in <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a>, which are ignored here. (default: None)</p></li>
+<li><p><strong>logger</strong> – If desired, a logger object for logging. (default: None, in which case
+one will be built according to the config dict’s verbose level.)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>**kwargs</strong> – See the documentation for <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a> for the list of allowed keyword
+arguments, which may be passed either directly or in the config dict.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.KKKCorrelation.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KKKCorrelation.__init__" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.KKKCorrelation.finalize">
+<span class="sig-name descname"><span class="pre">finalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vark1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vark2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vark3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.finalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KKKCorrelation.finalize" title="Permalink to this definition"></a></dt>
+<dd><p>Finalize the calculation of the correlation function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vark1</strong> (<em>float</em>) – The variance of the first scalar field.</p></li>
+<li><p><strong>vark2</strong> (<em>float</em>) – The variance of the second scalar field.</p></li>
+<li><p><strong>vark3</strong> (<em>float</em>) – The variance of the third scalar field.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.KKKCorrelation.write">
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_patch_results</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_cov</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/kkkcorrelation.html#KKKCorrelation.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KKKCorrelation.write" title="Permalink to this definition"></a></dt>
+<dd><p>Write the correlation function to the file, file_name.</p>
+<p>For bin_type = LogRUV, the output file will include the following columns:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>r_nom</p></td>
+<td><p>The nominal center of the bin in r = d2 where d1 &gt; d2 &gt; d3</p></td>
+</tr>
+<tr class="row-odd"><td><p>u_nom</p></td>
+<td><p>The nominal center of the bin in u = d3/d2</p></td>
+</tr>
+<tr class="row-even"><td><p>v_nom</p></td>
+<td><p>The nominal center of the bin in v = +-(d1-d2)/d3</p></td>
+</tr>
+<tr class="row-odd"><td><p>meanu</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle u\rangle\)</span> of triangles that fell
+into each bin</p></td>
+</tr>
+<tr class="row-even"><td><p>meanv</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle v\rangle\)</span> of triangles that fell
+into each bin</p></td>
+</tr>
+</tbody>
+</table>
+<p>For bin_type = LogSAS, the output file will include the following columns:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>d2_nom</p></td>
+<td><p>The nominal center of the bin in d2</p></td>
+</tr>
+<tr class="row-odd"><td><p>d3_nom</p></td>
+<td><p>The nominal center of the bin in d3</p></td>
+</tr>
+<tr class="row-even"><td><p>phi_nom</p></td>
+<td><p>The nominal center of the bin in phi, the opening angle between
+d2 and d3 in the counter-clockwise direction</p></td>
+</tr>
+<tr class="row-odd"><td><p>meanphi</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle phi\rangle\)</span> of triangles that fell
+into each bin</p></td>
+</tr>
+</tbody>
+</table>
+<p>For bin_type = LogMultipole, the output file will include the following columns:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>d2_nom</p></td>
+<td><p>The nominal center of the bin in d2</p></td>
+</tr>
+<tr class="row-odd"><td><p>d3_nom</p></td>
+<td><p>The nominal center of the bin in d3</p></td>
+</tr>
+<tr class="row-even"><td><p>n</p></td>
+<td><p>The multipole index n</p></td>
+</tr>
+</tbody>
+</table>
+<p>In addition, all bin types include the following columns:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>meand1</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle d1\rangle\)</span> of triangles that fell
+into each bin</p></td>
+</tr>
+<tr class="row-odd"><td><p>meanlogd1</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle \log(d1)\rangle\)</span> of triangles that
+fell into each bin</p></td>
+</tr>
+<tr class="row-even"><td><p>meand2</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle d2\rangle\)</span> of triangles that fell
+into each bin</p></td>
+</tr>
+<tr class="row-odd"><td><p>meanlogd2</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle \log(d2)\rangle\)</span> of triangles that
+fell into each bin</p></td>
+</tr>
+<tr class="row-even"><td><p>meand3</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle d3\rangle\)</span> of triangles that fell
+into each bin</p></td>
+</tr>
+<tr class="row-odd"><td><p>meanlogd3</p></td>
+<td><p>The mean value <span class="math notranslate nohighlight">\(\langle \log(d3)\rangle\)</span> of triangles that
+fell into each bin</p></td>
+</tr>
+<tr class="row-even"><td><p>zeta</p></td>
+<td><p>The estimator of <span class="math notranslate nohighlight">\(\zeta\)</span> (For LogMultipole, this is split
+into real and imaginary parts, zetar and zetai.)</p></td>
+</tr>
+<tr class="row-odd"><td><p>sigma_zeta</p></td>
+<td><p>The sqrt of the variance estimate of <span class="math notranslate nohighlight">\(\zeta\)</span>
+(if rrr is given)</p></td>
+</tr>
+<tr class="row-even"><td><p>weight</p></td>
+<td><p>The total weight of triangles contributing to each bin.
+(For LogMultipole, this is split into real and imaginary parts,
+weightr and weighti.)</p></td>
+</tr>
+<tr class="row-odd"><td><p>ntri</p></td>
+<td><p>The number of triangles contributing to each bin</p></td>
+</tr>
+</tbody>
+</table>
+<p>If <code class="docutils literal notranslate"><span class="pre">sep_units</span></code> was given at construction, then the distances will all be in these units.
+Otherwise, they will be in either the same units as x,y,z (for flat or 3d coordinates) or
+radians (for spherical coordinates).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to write to.</p></li>
+<li><p><strong>file_type</strong> (<em>str</em>) – The type of file to write (‘ASCII’ or ‘FITS’).  (default: determine
+the type automatically from the extension of file_name.)</p></li>
+<li><p><strong>precision</strong> (<em>int</em>) – For ASCII output catalogs, the desired precision. (default: 4;
+this value can also be given in the constructor in the config dict.)</p></li>
+<li><p><strong>write_patch_results</strong> (<em>bool</em>) – Whether to write the patch-based results as well.
+(default: False)</p></li>
+<li><p><strong>write_cov</strong> (<em>bool</em>) – Whether to write the covariance matrix as well. (default: False)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="nnn.html" class="btn btn-neutral float-left" title="NNNCorrelation: Count-count-count correlations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ggg.html" class="btn btn-neutral float-right" title="GGGCorrelation: Shear-shear-shear correlations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Mike Jarvis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

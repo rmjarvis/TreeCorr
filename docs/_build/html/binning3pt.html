@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Binning for 3-point correlations &mdash; TreeCorr 5.1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Shear Conventions" href="shear.html" />
+    <link rel="prev" title="Binning" href="binning.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            TreeCorr
+          </a>
+              <div class="version">
+                5.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Binning for 3-point correlations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#logruv">“LogRUV”</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#logsas">“LogSAS”</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#logmultipole">“LogMultipole”</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="shear.html">Shear Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 5.0 to 5.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">TreeCorr</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Binning for 3-point correlations</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/binning3pt.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="binning-for-3-point-correlations">
+<h1>Binning for 3-point correlations<a class="headerlink" href="#binning-for-3-point-correlations" title="Permalink to this heading"></a></h1>
+<p>The binning in the three-point case is somewhat more complicated than for
+two-point functions, since we need to characterize the geometry of triangles.
+There are currently three different binnings available, which
+may be specified using the <code class="docutils literal notranslate"><span class="pre">bin_type</span></code> parameter in <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The different binning options each have their own way of defining the sides,
+which we number <span class="math notranslate nohighlight">\(d_1\)</span>, <span class="math notranslate nohighlight">\(d_2\)</span>, and <span class="math notranslate nohighlight">\(d_3\)</span>.
+In all cases, vertices 1, 2 and 3 of the triangle are defined to be the vertex opposite
+the corresponding sides (<span class="math notranslate nohighlight">\(d_1\)</span>, <span class="math notranslate nohighlight">\(d_2\)</span>, <span class="math notranslate nohighlight">\(d_3\)</span> respectively).
+For mixed-type correlations (e.g. NNG, KNK, etc.) we only keep the triangle if
+this definition of vertices has the right field in the corresponding vertex.
+E.g. NNG only keeps triangles that have the G field in vertex 3.  For triangles
+with the G field in vertex 1 or 2, you would need to use GNN and NGN respectively.
+To fully characterize the full set of 3-point correlation information of the
+three fields with mixed type, you need all three of these.</p>
+</div>
+<p>See also <a class="reference internal" href="binning.html#other-options-for-binning"><span class="std std-ref">Other options for binning</span></a> for additional parameters that are relevant to
+the binning. These all work the same way for three-point functions as for
+two-point function.</p>
+<section id="logruv">
+<h2>“LogRUV”<a class="headerlink" href="#logruv" title="Permalink to this heading"></a></h2>
+<p>This binning option uses a Side-Side-Side (SSS) characterization of the triangle.
+Thre three side lengths of the triangle are measured (using whatever <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metric</span></a>
+is being used).  Then we sort their lengths so that <span class="math notranslate nohighlight">\(d_1 \ge d_2 \ge d_3\)</span>.</p>
+<p>If we just binned directly in these three side lengths, then the range of valid
+values for each of these will depend on the values of the other two.  This would
+make the binning extremely complicated.  Therefore, we compute three derived
+quantities which have better-behaved ranges:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}r &amp;\equiv d_2 \\
+u &amp;\equiv \frac{d_3}{d_2} \\
+v &amp;\equiv \frac{d_1 - d_2}{d_3}\end{split}\]</div>
+<p>With this reparametrization, <span class="math notranslate nohighlight">\(u\)</span> and <span class="math notranslate nohighlight">\(v\)</span> are each limited to the range
+<span class="math notranslate nohighlight">\([0,1]\)</span>, independent of the values of the other parameters.  The <span class="math notranslate nohighlight">\(r\)</span>
+parameter defines the overall size of the triangle, and that can range of whatever
+set of values the user wants.</p>
+<p>This provides a unique definition for any triangle, except for a mirror reflection.
+Two congruent triangles (that are not isoceles or equilateral) are not necessarily
+equivalent for 3-point correlations.  The orienation of the sides matters, at least
+in many use cases.  So we need to keep track of that.  We choose to do so in the
+sign of <span class="math notranslate nohighlight">\(v\)</span>, where positive values mean that the sides <span class="math notranslate nohighlight">\(d_1\)</span>,
+<span class="math notranslate nohighlight">\(d_2\)</span> and <span class="math notranslate nohighlight">\(d_3\)</span> are oriented in counter-clockwise order.
+Negative values of <span class="math notranslate nohighlight">\(v\)</span> mean they are oriented in clockwise order.</p>
+<p>The binning of <span class="math notranslate nohighlight">\(r\)</span> works the same was as <a class="reference internal" href="binning.html#log"><span class="std std-ref">“Log”</span></a> for two-point correlations.
+That is, the binning is specified using any 3 of the following 4 parameters:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">nbins</span></code>       How many bins to use.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bin_size</span></code>    The width of the bins in log(r).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">min_sep</span></code>     The minimum separation r to include.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_sep</span></code>     The maximum separation r to include.</p></li>
+</ul>
+</div></blockquote>
+<p>The <span class="math notranslate nohighlight">\(u\)</span> and <span class="math notranslate nohighlight">\(v\)</span> parameters are binned linearly between limits given
+by the user.  If unspecified, the full range of <span class="math notranslate nohighlight">\([0,1]\)</span> is used.  We always
+bin <span class="math notranslate nohighlight">\(v\)</span> symmetrically for positive and negative values.  So if you give it
+a range of <span class="math notranslate nohighlight">\([0.2,0.6]\)</span> say, then it will also bin clockwise triangles
+with these values into negative <span class="math notranslate nohighlight">\(v\)</span> bins.
+The <span class="math notranslate nohighlight">\(u\)</span> and <span class="math notranslate nohighlight">\(v\)</span> binning is specified using the following parameters:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">nubins</span></code>      How many bins to use for u.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ubin_size</span></code>   The width of the bins in u.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">min_u</span></code>       The minimum u to include.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_u</span></code>       The maximum u to include.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nvbins</span></code>      How many bins to use for v.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vbin_size</span></code>   The width of the bins in v.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">min_v</span></code>       The minimum v to include.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_v</span></code>       The maximum v to include.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="logsas">
+<h2>“LogSAS”<a class="headerlink" href="#logsas" title="Permalink to this heading"></a></h2>
+<p>This binning option uses a Side-Angle-Side (SAS) characterization of the triangles.
+The two sides extending from vertex 1 of a triangle are measured using whatever
+<a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metric</span></a> is being used.  In addition, we measure the angle between
+these two sides.  Since vertex 1 is where the angle is, the two side lengths
+being used for the binning are called <span class="math notranslate nohighlight">\(d_2\)</span> and <span class="math notranslate nohighlight">\(d_3\)</span>.  The angle
+between these two sides is called <span class="math notranslate nohighlight">\(\phi\)</span>, and the side opposite it
+(not used for binning) is <span class="math notranslate nohighlight">\(d_1\)</span>.</p>
+<p>The two sides, <span class="math notranslate nohighlight">\(d_2\)</span> and <span class="math notranslate nohighlight">\(d_3\)</span> are each binned the same was as
+<a class="reference internal" href="binning.html#log"><span class="std std-ref">“Log”</span></a> binning for two-point correlations.
+That is, the binning is specified using any 3 of the following 4 parameters:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">nbins</span></code>         How many bins to use for d2 and d3.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bin_size</span></code>      The width of the bins in log(d2) or log(d3).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">min_sep</span></code>       The minimum side length to include for d2 or d3.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_sep</span></code>       The maximum side length to include for d2 or d3.</p></li>
+</ul>
+</div></blockquote>
+<p>The angle <span class="math notranslate nohighlight">\(\phi\)</span> is binned linearly according to the parameters:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">nphi_bins</span></code>     How many bins to use for phi.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">phi_bin_size</span></code>  The width of the bins in phi.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">min_phi</span></code>       The minimum angle phi to include.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_phi</span></code>       The maximum angle phi to include.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">phi_units</span></code>     The angle units to use for <code class="docutils literal notranslate"><span class="pre">min_phi</span></code> and <code class="docutils literal notranslate"><span class="pre">max_phi</span></code>.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="logmultipole">
+<h2>“LogMultipole”<a class="headerlink" href="#logmultipole" title="Permalink to this heading"></a></h2>
+<p>This binning option uses a multipole expansion of the <a class="reference internal" href="#logsas"><span class="std std-ref">“LogSAS”</span></a> characterization.
+This idea was initially developed by
+<a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2005ApJ...635..743C/abstract">Chen &amp; Szapudi (2005, ApJ, 635, 743)</a>
+and then further refined by
+<a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2015MNRAS.448....9S/abstract">Slepian &amp; Eisenstein (2015, MNRAS, 454, 4142)</a>,
+<a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2022MNRAS.509.2457P/abstract">Philcox et al (2022, MNRAS, 509, 2457)</a>, and
+<a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2024A%26A...689A.227P/abstract">Porth et al (2024, A&amp;A, 689, 224)</a>.
+The latter in particular showed how to use this
+method for non-spin-0 correlations (GGG in particular).</p>
+<p>The basic idea is to do a Fourier transform of the phi binning to convert the phi
+bins into n bins.</p>
+<div class="math notranslate nohighlight">
+\[\zeta(d_2, d_3, \phi) = \frac{1}{2\pi} \sum_n \mathcal{Z}_n(d_2,d_3) e^{i n \phi}\]</div>
+<p>Formally, this is exact if the sum goes from <span class="math notranslate nohighlight">\(-\infty .. \infty\)</span>.  Truncating this
+sum at <span class="math notranslate nohighlight">\(\pm n_\mathrm{max}\)</span> is similar to binning in theta with this many bins
+for <span class="math notranslate nohighlight">\(\phi\)</span> within the range <span class="math notranslate nohighlight">\(0 \le \phi \le \pi\)</span>.</p>
+<p>The above papers show that this multipole expansion allows for a much more efficient
+calculation, since it can be done with a kind of 2-point calculation.
+We provide methods to convert the multipole output into the SAS binning if desired, since
+that is often more convenient in practice.</p>
+<p>As for <a class="reference internal" href="#logsas"><span class="std std-ref">“LogSAS”</span></a>, the sides <span class="math notranslate nohighlight">\(d_2\)</span> and <span class="math notranslate nohighlight">\(d_3\)</span> are binned logarithmically
+according to the parameters</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">nbins</span></code>         How many bins to use for d2 and d3.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bin_size</span></code>      The width of the bins in log(d2) or log(d3).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">min_sep</span></code>       The minimum side length to include for d2 or d3.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_sep</span></code>       The maximum side length to include for d2 or d3.</p></li>
+</ul>
+</div></blockquote>
+<p>The binning of the multipoles for each pair of <span class="math notranslate nohighlight">\(d_2\)</span>, <span class="math notranslate nohighlight">\(d_3\)</span> is given by
+a single parameter:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">max_n</span></code>         The maximum multipole index n being stored.</p></li>
+</ul>
+</div></blockquote>
+<p>The multipole values range from <span class="math notranslate nohighlight">\(-n_{\rm max}\)</span> to <span class="math notranslate nohighlight">\(+n_{\rm max}\)</span> inclusive.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="binning.html" class="btn btn-neutral float-left" title="Binning" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="shear.html" class="btn btn-neutral float-right" title="Shear Conventions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Mike Jarvis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

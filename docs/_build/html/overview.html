@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Overview &mdash; TreeCorr 5.1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Input Data" href="catalog.html" />
+    <link rel="prev" title="TreeCorr Documentation" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            TreeCorr
+          </a>
+              <div class="version">
+                5.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#download-treecorr">1. Download TreeCorr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#install-dependencies">2. Install dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#install">3. Install</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#run-tests-optional">4. Run Tests (optional)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#two-point-correlations">Two-point Correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#three-point-correlations">Three-point Correlations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-corr2-and-corr3">Running corr2 and corr3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-the-python-module">Using the Python module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reporting-bugs">Reporting bugs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#requesting-features">Requesting features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="binning3pt.html">Binning for 3-point correlations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shear.html">Shear Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 5.0 to 5.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">TreeCorr</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Overview</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/overview.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="overview">
+<h1>Overview<a class="headerlink" href="#overview" title="Permalink to this heading"></a></h1>
+<a class="reference external image-reference" href="https://travis-ci.org/rmjarvis/TreeCorr"><img alt="https://travis-ci.org/rmjarvis/TreeCorr.svg?branch=main" src="https://travis-ci.org/rmjarvis/TreeCorr.svg?branch=main" /></a>
+<a class="reference external image-reference" href="https://codecov.io/gh/rmjarvis/TreeCorr"><img alt="https://codecov.io/gh/rmjarvis/TreeCorr/branch/main/graph/badge.svg" src="https://codecov.io/gh/rmjarvis/TreeCorr/branch/main/graph/badge.svg" /></a>
+<p>TreeCorr is a package for efficiently computing 2-point and 3-point correlation
+functions.</p>
+<ul class="simple">
+<li><p>The code is hosted at <a class="reference external" href="https://github.com/rmjarvis/TreeCorr">https://github.com/rmjarvis/TreeCorr</a></p></li>
+<li><p>It can compute correlations of regular number counts, weak lensing shears, or
+scalar quantities such as convergence or CMB temperature fluctutations.</p></li>
+<li><p>2-point correlations may be auto-correlations or cross-correlations.  This
+includes shear-shear, count-shear, count-count, kappa-kappa, etc.  (Any
+combination of shear, kappa, and counts.)</p></li>
+<li><p>3-point correlations currently can only be auto-correlations.  This includes
+shear-shear-shear, count-count-count, and kappa-kappa-kappa.  The cross
+varieties are planned to be added in the near future.</p></li>
+<li><p>Both 2- and 3-point functions can be done with the correct curved-sky
+calculation using RA, Dec coordinates, on a Euclidean tangent plane, or in
+3D using either (RA,Dec,r) or (x,y,z) positions.</p></li>
+<li><p>The front end is in Python, which can be used as a Python module or as a
+standalone executable using configuration files. (The executable is corr2
+for 2-point and corr3 for 3-point.)</p></li>
+<li><p>The actual computation of the correlation functions is done in C++ using ball
+trees (similar to kd trees), which make the calculation extremely efficient.</p></li>
+<li><p>When available, OpenMP is used to run in parallel on multi-core machines.</p></li>
+<li><p>Approximate running time for 2-point shear-shear is ~30 sec * (N/10^6) / core
+for a bin size b=0.1 in log(r).  It scales as b^(-2).  This is the slowest
+of the various kinds of 2-point correlations, so others will be a bit faster,
+but with the same scaling with N and b.</p></li>
+<li><p>The running time for 3-point functions are highly variable depending on the
+range of triangle geometries you are calculating.  They are significantly
+slower than the 2-point functions, but many orders of magnitude faster than
+brute force algorithms.</p></li>
+<li><p><strong>If you use TreeCorr in published research, please reference:
+Jarvis, Bernstein, &amp; Jain, 2004, MNRAS, 352, 338</strong>
+(I’m working on new paper about TreeCorr, including some of the improvements
+I’ve made since then, but this will suffice as a reference for now.)</p></li>
+<li><p>If you use the three-point multipole functionality of TreeCorr, please also
+reference <strong>Porth et al, 2023, arXiv:2309.08601</strong></p></li>
+<li><p>Record on the Astrophyics Source Code Library: <a class="reference external" href="http://ascl.net/1508.007">http://ascl.net/1508.007</a></p></li>
+<li><p>Developed by Mike Jarvis.  Fee free to contact me with questions or comments
+at mikejarvis17 at gmail.  Or post an issue (see below) if you have any
+problems with the code.</p></li>
+</ul>
+<p>The code is licensed under a FreeBSD license.  Essentially, you can use the
+code in any way you want, but if you distribute it, you need to include the
+file <code class="docutils literal notranslate"><span class="pre">TreeCorr_LICENSE</span></code> with the distribution.  See that file for details.</p>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h2>
+<p>The easiest ways to install TreeCorr are either with pip:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">treecorr</span>
+</pre></div>
+</div>
+<p>or with conda:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">treecorr</span>
+</pre></div>
+</div>
+<p>If you have previously installed TreeCorr, and want to upgrade to a new
+released version, you should do:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">treecorr</span> <span class="o">--</span><span class="n">upgrade</span>
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">update</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">treecorr</span>
+</pre></div>
+</div>
+<p>Depending on the write permissions of the python distribution for your specific
+system, you might need to use one of the following variants for pip installation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">treecorr</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">treecorr</span> <span class="o">--</span><span class="n">user</span>
+</pre></div>
+</div>
+<p>The latter installs the Python module into <code class="docutils literal notranslate"><span class="pre">~/.local/lib/python3.X/site-packages</span></code>,
+which is normally already in your PYTHONPATH, but it puts the executables
+<code class="docutils literal notranslate"><span class="pre">corr2</span></code> and <code class="docutils literal notranslate"><span class="pre">corr3</span></code> into <code class="docutils literal notranslate"><span class="pre">~/.local/bin</span></code> which is probably not in your PATH.
+To use these scripts, you should add this directory to your PATH.  If you would
+rather install into a different prefix rather than ~/.local, you can use:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">treecorr</span> <span class="o">--</span><span class="n">install</span><span class="o">-</span><span class="n">option</span><span class="o">=</span><span class="s2">&quot;--prefix=PREFIX&quot;</span>
+</pre></div>
+</div>
+<p>This would install the executables into <code class="docutils literal notranslate"><span class="pre">PREFIX/bin</span></code> and the Python module
+into <code class="docutils literal notranslate"><span class="pre">PREFIX/lib/python3.X/site-packages</span></code>.</p>
+<p>If you would rather download the tarball and install TreeCorr yourself,
+that is also relatively straightforward:</p>
+<section id="download-treecorr">
+<h3>1. Download TreeCorr<a class="headerlink" href="#download-treecorr" title="Permalink to this heading"></a></h3>
+<blockquote>
+<div><p>You can download the latest tarball from:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">rmjarvis</span><span class="o">/</span><span class="n">TreeCorr</span><span class="o">/</span><span class="n">releases</span><span class="o">/</span>
+</pre></div>
+</div>
+<p>Or you can clone the repository using either of the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="n">rmjarvis</span><span class="o">/</span><span class="n">TreeCorr</span><span class="o">.</span><span class="n">git</span>
+<span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">rmjarvis</span><span class="o">/</span><span class="n">TreeCorr</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<p>which will start out in the current stable release branch.</p>
+<p>Either way, cd into the TreeCorr directory.</p>
+</div></blockquote>
+</section>
+<section id="install-dependencies">
+<h3>2. Install dependencies<a class="headerlink" href="#install-dependencies" title="Permalink to this heading"></a></h3>
+<blockquote>
+<div><p>All required dependencies should be installed automatically for you by
+pip or conda, so you should not need to worry about these.  But if you
+are interested, the dependencies are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>numpy</p></li>
+<li><p>pyyaml</p></li>
+<li><p>LSSTDESC.Coord</p></li>
+<li><p>pybind11</p></li>
+</ul>
+</div></blockquote>
+<p>They can all be installed at once by running:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">treecorr</span> <span class="o">--</span><span class="n">only</span><span class="o">-</span><span class="n">deps</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Several additional modules are not required for basic TreeCorr operations, but are
+potentially useful.</p>
+<ul class="simple">
+<li><p>fitsio is required for reading FITS catalogs or writing to FITS output files.</p></li>
+<li><p>pandas will signficantly speed up reading from ASCII catalogs.</p></li>
+<li><p>pandas and pyarrow are required for reading Parquet files.</p></li>
+<li><p>h5py is required for reading HDF5 catalogs.</p></li>
+<li><p>mpi4py is required for running TreeCorr across multiple machines using MPI.</p></li>
+</ul>
+<p>These are all pip installable:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">fitsio</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">pandas</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">pyarrow</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">h5py</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">mpi4py</span>
+</pre></div>
+</div>
+<p>But they are not installed with TreeCorr automatically.</p>
+<p>Also, beware that many HPC machines (e.g. NERSC) have special instructions for installing
+mpi4py, so the above command may not work on such systems.  If you have trouble, look
+for specialized instructions about how to install mpi4py properly on your system.</p>
+</div>
+</div></blockquote>
+</section>
+<section id="install">
+<h3>3. Install<a class="headerlink" href="#install" title="Permalink to this heading"></a></h3>
+<blockquote>
+<div><p>You can then install TreeCorr from the local distribution.  Typically this would be the
+command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">.</span>
+</pre></div>
+</div>
+<p>If you don’t have write permission in your python distribution, you might need
+to use:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">.</span> <span class="o">--</span><span class="n">user</span>
+</pre></div>
+</div>
+<p>In addition to installing the Python module <code class="docutils literal notranslate"><span class="pre">treecorr</span></code>, this will install
+the executables <code class="docutils literal notranslate"><span class="pre">corr2</span></code> and <code class="docutils literal notranslate"><span class="pre">corr3</span></code> in a <code class="docutils literal notranslate"><span class="pre">bin</span></code> folder somewhere on your
+system.  Look for a line like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Installing</span> <span class="n">corr2</span> <span class="n">script</span> <span class="n">to</span> <span class="o">/</span><span class="n">anaconda3</span><span class="o">/</span><span class="nb">bin</span>
+</pre></div>
+</div>
+<p>or similar in the output to see where the scripts are installed.  If the
+directory is not in your path, you will also get a warning message at the
+end letting you know which directory you should add to your path if you want
+to run these scripts.</p>
+</div></blockquote>
+</section>
+<section id="run-tests-optional">
+<h3>4. Run Tests (optional)<a class="headerlink" href="#run-tests-optional" title="Permalink to this heading"></a></h3>
+<blockquote>
+<div><p>If you want to run the unit tests, you can do the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">test_requirements</span><span class="o">.</span><span class="n">txt</span>
+<span class="n">cd</span> <span class="n">tests</span>
+<span class="n">pytest</span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+</section>
+<section id="two-point-correlations">
+<h2>Two-point Correlations<a class="headerlink" href="#two-point-correlations" title="Permalink to this heading"></a></h2>
+<p>This software is able to compute a variety of two-point correlations:</p>
+<dl class="field-list simple">
+<dt class="field-odd">NN<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The normal two-point correlation function of number counts (typically
+galaxy counts).</p>
+</dd>
+<dt class="field-even">GG<span class="colon">:</span></dt>
+<dd class="field-even"><p>Two-point shear-shear correlation function.</p>
+</dd>
+<dt class="field-odd">KK<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Nominally the two-point kappa-kappa correlation function, although any
+scalar quantity can be used as “kappa”.  In lensing, kappa is the
+convergence, but this could be used for temperature, size, etc.</p>
+</dd>
+<dt class="field-even">NG<span class="colon">:</span></dt>
+<dd class="field-even"><p>Cross-correlation of counts with shear.  This is what is often called
+galaxy-galaxy lensing.</p>
+</dd>
+<dt class="field-odd">NK<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Cross-correlation of counts with kappa.  Again, “kappa” here can be any scalar
+quantity.</p>
+</dd>
+<dt class="field-even">KG<span class="colon">:</span></dt>
+<dd class="field-even"><p>Cross-correlation of convergence with shear.  Like the NG calculation, but
+weighting the pairs by the kappa values the foreground points.</p>
+</dd>
+</dl>
+<p>There are also additional combinations involving complex fields with different spin
+than 2 (shear is a spin-2 field).  See <a class="reference external" href="https://rmjarvis.github.io/TreeCorr/_build/html/correlation2.html">Two-point Correlation Functions</a> for more details.</p>
+</section>
+<section id="three-point-correlations">
+<h2>Three-point Correlations<a class="headerlink" href="#three-point-correlations" title="Permalink to this heading"></a></h2>
+<p>Three point correlation functions are significantly more complicated, being functions
+of three parameters defining the triangle size and shape, rather than just a single
+separation.  For cross-correlations, there are also issues related to whether one wants
+to allow the different catalogs to take all possible vertices in the triangles are be
+fixed to a particular vertex.</p>
+<p>This software is able to compute the following three-point auto-correlations:</p>
+<dl class="field-list simple">
+<dt class="field-odd">NNN<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Three-point correlation function of number counts.</p>
+</dd>
+<dt class="field-even">GGG<span class="colon">:</span></dt>
+<dd class="field-even"><p>Three-point shear correlation function.  We use the “natural components”
+called Gamma, described by Schneider &amp; Lombardi (2003) (Astron.Astrophys.
+397, 809) using the triangle centroid as the reference point.</p>
+</dd>
+<dt class="field-odd">KKK<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Three-point kappa correlation function.  Again, “kappa” here can be any
+scalar quantity.</p>
+</dd>
+</dl>
+<p>It is also possible to compute cross correlations combining two of these types, such
+as NNG, NKK, KGK, etc..  The ordering of the letters indicates which type is placed
+at which numbered vertex in the triangles where the first vertex is opposite d1, the
+second opposite d2, and the third opposite d3.  The meaning of the three side lengths
+is particular to the choice of binning.</p>
+<p>See <a class="reference external" href="https://rmjarvis.github.io/TreeCorr/_build/html/correlation3.html">Three-point Correlation Functions</a> for more details.</p>
+</section>
+<section id="running-corr2-and-corr3">
+<h2>Running corr2 and corr3<a class="headerlink" href="#running-corr2-and-corr3" title="Permalink to this heading"></a></h2>
+<p>The executables corr2 and corr3 each take one required command-line argument,
+which is the name of a configuration file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">corr2</span> <span class="n">config_file</span>
+<span class="n">corr3</span> <span class="n">config_file</span>
+</pre></div>
+</div>
+<p>A sample configuration file for corr2 is provided, called sample.params.
+See <a class="reference external" href="https://rmjarvis.github.io/TreeCorr/_build/html/params.html">Configuration Parameters</a>
+for the complete documentation about the allowed parameters.</p>
+<p>You can also specify parameters on the command line after the name of
+the configuration file. e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">corr2</span> <span class="n">config_file</span> <span class="n">file_name</span><span class="o">=</span><span class="n">file1</span><span class="o">.</span><span class="n">dat</span> <span class="n">gg_file_name</span><span class="o">=</span><span class="n">file1</span><span class="o">.</span><span class="n">out</span>
+<span class="n">corr2</span> <span class="n">config_file</span> <span class="n">file_name</span><span class="o">=</span><span class="n">file2</span><span class="o">.</span><span class="n">dat</span> <span class="n">gg_file_name</span><span class="o">=</span><span class="n">file2</span><span class="o">.</span><span class="n">out</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>This can be useful when running the program from a script for lots of input
+files.</p>
+<p>See <a class="reference external" href="https://rmjarvis.github.io/TreeCorr/_build/html/scripts.html">Using configuration files</a>
+for more details.</p>
+</section>
+<section id="using-the-python-module">
+<h2>Using the Python module<a class="headerlink" href="#using-the-python-module" title="Permalink to this heading"></a></h2>
+<p>The typical usage in python is in three stages:</p>
+<ol class="arabic simple">
+<li><p>Define one or more Catalogs with the input data to be correlated.</p></li>
+<li><p>Define the correlation function that you want to perform on those data.</p></li>
+<li><p>Run the correlation by calling <code class="docutils literal notranslate"><span class="pre">process</span></code>.</p></li>
+<li><p>Maybe write the results to a file or use them in some way.</p></li>
+</ol>
+<p>For instance, computing a shear-shear correlation from an input file stored
+in a fits file would look something like the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">treecorr</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="s1">&#39;cat.fits&#39;</span><span class="p">,</span> <span class="n">ra_col</span><span class="o">=</span><span class="s1">&#39;RA&#39;</span><span class="p">,</span> <span class="n">dec_col</span><span class="o">=</span><span class="s1">&#39;DEC&#39;</span><span class="p">,</span>
+<span class="gp">... </span>                       <span class="n">ra_units</span><span class="o">=</span><span class="s1">&#39;degrees&#39;</span><span class="p">,</span> <span class="n">dec_units</span><span class="o">=</span><span class="s1">&#39;degrees&#39;</span><span class="p">,</span>
+<span class="gp">... </span>                       <span class="n">g1_col</span><span class="o">=</span><span class="s1">&#39;GAMMA1&#39;</span><span class="p">,</span> <span class="n">g2_col</span><span class="o">=</span><span class="s1">&#39;GAMMA2&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gg</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">GGCorrelation</span><span class="p">(</span><span class="n">min_sep</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">max_sep</span><span class="o">=</span><span class="mf">100.</span><span class="p">,</span> <span class="n">bin_size</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+<span class="gp">... </span>                            <span class="n">sep_units</span><span class="o">=</span><span class="s1">&#39;arcmin&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gg</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xip</span> <span class="o">=</span> <span class="n">gg</span><span class="o">.</span><span class="n">xip</span>  <span class="c1"># The xi_plus correlation function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xim</span> <span class="o">=</span> <span class="n">gg</span><span class="o">.</span><span class="n">xim</span>  <span class="c1"># The xi_minus correlation function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gg</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;gg.out&#39;</span><span class="p">)</span>  <span class="c1"># Write results to a file</span>
+</pre></div>
+</div>
+<p>For more details, see our slightly longer <a class="reference external" href="https://rmjarvis.github.io/TreeCorr/_build/html/guide.html">Getting Started Guide</a>.</p>
+<p>Or for a more involved worked example, see our <a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/main/tests/Tutorial.ipynb">Jupyter notebook tutorial</a>.</p>
+<p>And for the complete details about all aspects of the code, see the <a class="reference external" href="http://rmjarvis.github.io/TreeCorr">Sphinx-generated
+documentation</a>.</p>
+</section>
+<section id="reporting-bugs">
+<h2>Reporting bugs<a class="headerlink" href="#reporting-bugs" title="Permalink to this heading"></a></h2>
+<p>If you find a bug running the code, please report it at:</p>
+<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/issues">https://github.com/rmjarvis/TreeCorr/issues</a></p>
+<p>Click “New Issue”, which will open up a form for you to fill in with the
+details of the problem you are having.</p>
+</section>
+<section id="requesting-features">
+<h2>Requesting features<a class="headerlink" href="#requesting-features" title="Permalink to this heading"></a></h2>
+<p>If you would like to request a new feature, do the same thing.  Open a new
+issue and fill in the details of the feature you would like added to TreeCorr.
+Or if there is already an issue for your desired feature, please add to the
+discussion, describing your use case.  The more people who say they want a
+feature, the more likely I am to get around to it sooner than later.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="TreeCorr Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="catalog.html" class="btn btn-neutral float-right" title="Input Data" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Mike Jarvis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

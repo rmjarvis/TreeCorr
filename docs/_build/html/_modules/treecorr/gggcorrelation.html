@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>treecorr.gggcorrelation &mdash; TreeCorr 5.1.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            TreeCorr
+          </a>
+              <div class="version">
+                5.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../catalog.html">Input Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../correlation2.html">Two-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../metric.html">Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../binning.html">Binning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../binning3pt.html">Binning for 3-point correlations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../shear.html">Shear Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../patches.html">Patches</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cov.html">Covariance Estimates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../field.html">Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Using configuration files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 5.0 to 5.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">TreeCorr</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">treecorr.gggcorrelation</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for treecorr.gggcorrelation</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2003-2024 by Mike Jarvis</span>
+<span class="c1">#</span>
+<span class="c1"># TreeCorr is free software: redistribution and use in source and binary forms,</span>
+<span class="c1"># with or without modification, are permitted provided that the following</span>
+<span class="c1"># conditions are met:</span>
+<span class="c1">#</span>
+<span class="c1"># 1. Redistributions of source code must retain the above copyright notice, this</span>
+<span class="c1">#    list of conditions, and the disclaimer given in the accompanying LICENSE</span>
+<span class="c1">#    file.</span>
+<span class="c1"># 2. Redistributions in binary form must reproduce the above copyright notice,</span>
+<span class="c1">#    this list of conditions, and the disclaimer given in the documentation</span>
+<span class="c1">#    and/or other materials provided with the distribution.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: nnncorrelation</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_treecorr</span>
+<span class="kn">from</span> <span class="nn">.catalog</span> <span class="kn">import</span> <span class="n">calculateVarG</span>
+<span class="kn">from</span> <span class="nn">.corr3base</span> <span class="kn">import</span> <span class="n">Corr3</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">make_writer</span><span class="p">,</span> <span class="n">make_reader</span>
+
+
+<div class="viewcode-block" id="GGGCorrelation"><a class="viewcode-back" href="../../ggg.html#treecorr.GGGCorrelation">[docs]</a><span class="k">class</span> <span class="nc">GGGCorrelation</span><span class="p">(</span><span class="n">Corr3</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;This class handles the calculation and storage of a 3-point shear-shear-shear correlation</span>
+<span class="sd">    function.</span>
+
+<span class="sd">    We use the &quot;natural components&quot; of the shear 3-point function described by Schneider &amp;</span>
+<span class="sd">    Lombardi (2003) [Astron.Astrophys. 397 (2003) 809-818].  In this paradigm, the shears</span>
+<span class="sd">    are projected relative to some point defined by the geometry of the triangle.  They</span>
+<span class="sd">    give several reasonable choices for this point.  We choose the triangle&#39;s centroid as the</span>
+<span class="sd">    &quot;most natural&quot; point, as many simple shear fields have purely real :math:`\Gamma_0` using</span>
+<span class="sd">    this definition.  It is also a fairly simple point to calculate in the code compared to</span>
+<span class="sd">    some of the other options they offer, so projections relative to it are fairly efficient.</span>
+
+<span class="sd">    There are 4 complex-valued 3-point shear corrletion functions defined for triples of shear</span>
+<span class="sd">    values projected relative to the line joining the location of the shear to the cenroid of</span>
+<span class="sd">    the triangle:</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        \Gamma_0 &amp;= \langle \gamma(\mathbf{x1}) \gamma(\mathbf{x2}) \gamma(\mathbf{x3}) \rangle \\</span>
+<span class="sd">        \Gamma_1 &amp;= \langle \gamma(\mathbf{x1})^* \gamma(\mathbf{x2}) \gamma(\mathbf{x3}) \rangle \\</span>
+<span class="sd">        \Gamma_2 &amp;= \langle \gamma(\mathbf{x1}) \gamma(\mathbf{x2})^* \gamma(\mathbf{x3}) \rangle \\</span>
+<span class="sd">        \Gamma_3 &amp;= \langle \gamma(\mathbf{x1}) \gamma(\mathbf{x2}) \gamma(\mathbf{x3})^* \rangle \\</span>
+
+<span class="sd">    where :math:`\mathbf{x1}, \mathbf{x2}, \mathbf{x3}` are the corners of the triange opposite</span>
+<span class="sd">    sides d1, d2, d3 respectively, where d1 &gt; d2 &gt; d3, and :math:`{}^*` indicates complex</span>
+<span class="sd">    conjugation.</span>
+
+<span class="sd">    See the doc string of `Corr3` for a description of how the triangles are binned along</span>
+<span class="sd">    with the attributes related to the different binning options.</span>
+
+<span class="sd">    In addition to the attributes common to all `Corr3` subclasses, objects of this class</span>
+<span class="sd">    hold the following attributes:</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        gam0:       The 0th &quot;natural&quot; correlation function, :math:`\Gamma_0`.</span>
+<span class="sd">        gam1:       The 1st &quot;natural&quot; correlation function, :math:`\Gamma_1`.</span>
+<span class="sd">        gam2:       The 2nd &quot;natural&quot; correlation function, :math:`\Gamma_2`.</span>
+<span class="sd">        gam3:       The 3rd &quot;natural&quot; correlation function, :math:`\Gamma_3`.</span>
+<span class="sd">        vargam0:    The variance of :math:`\Gamma_0`, only including the shot noise</span>
+<span class="sd">                    propagated into the final correlation.  This (and the related values for</span>
+<span class="sd">                    1,2,3) does not include sample variance, so it is always an underestimate</span>
+<span class="sd">                    of the actual variance.</span>
+<span class="sd">        vargam1:    The variance of :math:`\Gamma_1`.</span>
+<span class="sd">        vargam2:    The variance of :math:`\Gamma_2`.</span>
+<span class="sd">        vargam3:    The variance of :math:`\Gamma_3`.</span>
+
+<span class="sd">    The typical usage pattern is as follows::</span>
+
+<span class="sd">        &gt;&gt;&gt; ggg = treecorr.GGGCorrelation(config)</span>
+<span class="sd">        &gt;&gt;&gt; ggg.process(cat)              # Compute auto-correlation.</span>
+<span class="sd">        &gt;&gt;&gt; ggg.process(cat1, cat2, cat3) # Compute cross-correlation.</span>
+<span class="sd">        &gt;&gt;&gt; ggg.write(file_name)          # Write out to a file.</span>
+<span class="sd">        &gt;&gt;&gt; gam0 = ggg.gam0, etc.         # Access gamma values directly.</span>
+<span class="sd">        &gt;&gt;&gt; gam0r = ggg.gam0r             # Or access real and imag parts separately.</span>
+<span class="sd">        &gt;&gt;&gt; gam0i = ggg.gam0i</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        config (dict):  A configuration dict that can be used to pass in kwargs if desired.</span>
+<span class="sd">                        This dict is allowed to have addition entries besides those listed</span>
+<span class="sd">                        in `Corr3`, which are ignored here. (default: None)</span>
+<span class="sd">        logger:         If desired, a logger object for logging. (default: None, in which case</span>
+<span class="sd">                        one will be built according to the config dict&#39;s verbose level.)</span>
+
+<span class="sd">    Keyword Arguments:</span>
+<span class="sd">        **kwargs:       See the documentation for `Corr3` for the list of allowed keyword</span>
+<span class="sd">                        arguments, which may be passed either directly or in the config dict.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_cls</span> <span class="o">=</span> <span class="s1">&#39;GGGCorrelation&#39;</span>
+    <span class="n">_letter1</span> <span class="o">=</span> <span class="s1">&#39;G&#39;</span>
+    <span class="n">_letter2</span> <span class="o">=</span> <span class="s1">&#39;G&#39;</span>
+    <span class="n">_letter3</span> <span class="o">=</span> <span class="s1">&#39;G&#39;</span>
+    <span class="n">_letters</span> <span class="o">=</span> <span class="s1">&#39;GGG&#39;</span>
+    <span class="n">_builder</span> <span class="o">=</span> <span class="n">_treecorr</span><span class="o">.</span><span class="n">GGGCorr</span>
+    <span class="n">_calculateVar1</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">calculateVarG</span><span class="p">)</span>
+    <span class="n">_calculateVar2</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">calculateVarG</span><span class="p">)</span>
+    <span class="n">_calculateVar3</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">calculateVarG</span><span class="p">)</span>
+    <span class="n">_sig1</span> <span class="o">=</span> <span class="s1">&#39;sig_sn (per component)&#39;</span>
+    <span class="n">_sig2</span> <span class="o">=</span> <span class="s1">&#39;sig_sn (per component)&#39;</span>
+    <span class="n">_sig3</span> <span class="o">=</span> <span class="s1">&#39;sig_sn (per component)&#39;</span>
+
+<div class="viewcode-block" id="GGGCorrelation.__init__"><a class="viewcode-back" href="../../ggg.html#treecorr.GGGCorrelation.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_z</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building GGGCorr&#39;</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">gam0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">gam1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">gam2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">gam3</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">gam0r</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">gam0i</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">gam1r</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">gam1i</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">gam2r</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">gam2i</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">gam3r</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">gam3i</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span>
+
+<div class="viewcode-block" id="GGGCorrelation.finalize"><a class="viewcode-back" href="../../ggg.html#treecorr.GGGCorrelation.finalize">[docs]</a>    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">varg1</span><span class="p">,</span> <span class="n">varg2</span><span class="p">,</span> <span class="n">varg3</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Finalize the calculation of the correlation function.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            varg1 (float):  The variance per component of the first shear field.</span>
+<span class="sd">            varg2 (float):  The variance per component of the second shear field.</span>
+<span class="sd">            varg3 (float):  The variance per component of the third shear field.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_finalize</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_var_num</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">varg1</span> <span class="o">*</span> <span class="n">varg2</span> <span class="o">*</span> <span class="n">varg3</span>
+
+        <span class="c1"># I don&#39;t really understand why the variance is coming out 2x larger than the normal</span>
+        <span class="c1"># formula for LogSAS.  But with just Gaussian noise, I need to multiply the numerator</span>
+        <span class="c1"># by two to get the variance estimates to come out right.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;LogSAS&#39;</span><span class="p">,</span> <span class="s1">&#39;LogMultipole&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_var_num</span> <span class="o">*=</span> <span class="mi">2</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">vargam0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_varzeta</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_varzeta</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_varzeta</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">vargam1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_varzeta</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_varzeta</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_varzeta</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">vargam2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_varzeta</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_varzeta</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_varzeta</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">vargam3</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_varzeta</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_varzeta</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_varzeta</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+
+<div class="viewcode-block" id="GGGCorrelation.getStat"><a class="viewcode-back" href="../../ggg.html#treecorr.GGGCorrelation.getStat">[docs]</a>    <span class="k">def</span> <span class="nf">getStat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The standard statistic for the current correlation object as a 1-d array.</span>
+
+<span class="sd">        In this case, the concatenation of gam0.ravel(), gam1.ravel(), gam2.ravel(), gam3.ravel().</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            This is a complex array, unlike most other statistics.</span>
+<span class="sd">            The computed covariance matrix will be complex, although since it is Hermitian the</span>
+<span class="sd">            diagonal is real, so the resulting vargam0, etc. will all be real arrays.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">gam0</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">gam1</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">gam2</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">gam3</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span></div>
+
+<div class="viewcode-block" id="GGGCorrelation.getWeight"><a class="viewcode-back" href="../../ggg.html#treecorr.GGGCorrelation.getWeight">[docs]</a>    <span class="k">def</span> <span class="nf">getWeight</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The weight array for the current correlation object as a 1-d array.</span>
+
+<span class="sd">        In this case, 4 copies of self.weight.ravel().</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">ravel</span><span class="p">())]</span> <span class="o">*</span> <span class="mi">4</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GGGCorrelation.write"><a class="viewcode-back" href="../../ggg.html#treecorr.GGGCorrelation.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+              <span class="n">write_cov</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="n">file_type</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span>
+                      <span class="n">write_patch_results</span><span class="o">=</span><span class="n">write_patch_results</span><span class="p">,</span> <span class="n">write_cov</span><span class="o">=</span><span class="n">write_cov</span><span class="p">)</span></div>
+
+    <span class="n">write</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">Corr3</span><span class="o">.</span><span class="n">write</span><span class="o">.</span><span class="vm">__doc__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        gam0r           The real part of the estimator of :math:`\Gamma_0`</span>
+<span class="sd">        gam0i           The imag part of the estimator of :math:`\Gamma_0`</span>
+<span class="sd">        gam1r           The real part of the estimator of :math:`\Gamma_1`</span>
+<span class="sd">        gam1i           The imag part of the estimator of :math:`\Gamma_1`</span>
+<span class="sd">        gam2r           The real part of the estimator of :math:`\Gamma_2`</span>
+<span class="sd">        gam2i           The imag part of the estimator of :math:`\Gamma_2`</span>
+<span class="sd">        gam3r           The real part of the estimator of :math:`\Gamma_3`</span>
+<span class="sd">        gam3i           The imag part of the estimator of :math:`\Gamma_3`</span>
+<span class="sd">        sigma_gam0      The sqrt of the variance estimate of :math:`\Gamma_0`</span>
+<span class="sd">        sigma_gam1      The sqrt of the variance estimate of :math:`\Gamma_1`</span>
+<span class="sd">        sigma_gam2      The sqrt of the variance estimate of :math:`\Gamma_2`</span>
+<span class="sd">        sigma_gam3      The sqrt of the variance estimate of :math:`\Gamma_3`</span>
+<span class="sd">        &quot;&quot;&quot;</span><span class="p">)</span>
+
+    <span class="c1"># These properties just include the class-specific info.</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_write_class_col_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;gam0r&#39;</span><span class="p">,</span> <span class="s1">&#39;gam0i&#39;</span><span class="p">,</span> <span class="s1">&#39;gam1r&#39;</span><span class="p">,</span> <span class="s1">&#39;gam1i&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;gam2r&#39;</span><span class="p">,</span> <span class="s1">&#39;gam2i&#39;</span><span class="p">,</span> <span class="s1">&#39;gam3r&#39;</span><span class="p">,</span> <span class="s1">&#39;gam3i&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sigma_gam0&#39;</span><span class="p">,</span> <span class="s1">&#39;sigma_gam1&#39;</span><span class="p">,</span> <span class="s1">&#39;sigma_gam2&#39;</span><span class="p">,</span> <span class="s1">&#39;sigma_gam3&#39;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_write_class_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">gam0r</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gam0i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gam1r</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gam1i</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">gam2r</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gam2i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gam3r</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gam3i</span><span class="p">,</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vargam0</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vargam1</span><span class="p">),</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vargam2</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vargam3</span><span class="p">)</span> <span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_read_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_read_from_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;gam0r&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;gam0i&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;gam1r&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;gam1i&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;gam2r&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;gam2i&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;gam3r&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;gam3i&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="n">vargam0</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sigma_gam0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">vargam1</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sigma_gam1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">vargam2</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sigma_gam2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">vargam3</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sigma_gam3&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_varzeta</span> <span class="o">=</span> <span class="p">[</span><span class="n">vargam0</span><span class="p">,</span> <span class="n">vargam1</span><span class="p">,</span> <span class="n">vargam2</span><span class="p">,</span> <span class="n">vargam3</span><span class="p">]</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_calculateT</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">k1</span><span class="p">,</span> <span class="n">k2</span><span class="p">,</span> <span class="n">k3</span><span class="p">):</span>
+        <span class="c1"># First calculate q values:</span>
+        <span class="n">q1</span> <span class="o">=</span> <span class="p">(</span><span class="n">s</span><span class="o">+</span><span class="n">t</span><span class="p">)</span><span class="o">/</span><span class="mf">3.</span>
+        <span class="n">q2</span> <span class="o">=</span> <span class="n">q1</span><span class="o">-</span><span class="n">t</span>
+        <span class="n">q3</span> <span class="o">=</span> <span class="n">q1</span><span class="o">-</span><span class="n">s</span>
+
+        <span class="c1"># |qi|^2 shows up a lot, so save these.</span>
+        <span class="c1"># The a stands for &quot;absolute&quot;, and the ^2 part is implicit.</span>
+        <span class="n">a1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">q1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">a2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">q2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">a3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">q3</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">a123</span> <span class="o">=</span> <span class="n">a1</span><span class="o">*</span><span class="n">a2</span><span class="o">*</span><span class="n">a3</span>
+
+        <span class="c1"># These combinations also appear multiple times.</span>
+        <span class="c1"># The b doesn&#39;t stand for anything.  It&#39;s just the next letter after a.</span>
+        <span class="n">b1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conjugate</span><span class="p">(</span><span class="n">q1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">q2</span><span class="o">*</span><span class="n">q3</span>
+        <span class="n">b2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conjugate</span><span class="p">(</span><span class="n">q2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">q1</span><span class="o">*</span><span class="n">q3</span>
+        <span class="n">b3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conjugate</span><span class="p">(</span><span class="n">q3</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">q1</span><span class="o">*</span><span class="n">q2</span>
+
+        <span class="k">if</span> <span class="n">k1</span><span class="o">==</span><span class="mi">1</span> <span class="ow">and</span> <span class="n">k2</span><span class="o">==</span><span class="mi">1</span> <span class="ow">and</span> <span class="n">k3</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+
+            <span class="c1"># Some factors we use multiple times</span>
+            <span class="n">expfactor</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">a1</span> <span class="o">+</span> <span class="n">a2</span> <span class="o">+</span> <span class="n">a3</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+
+            <span class="c1"># JBJ Equation 51</span>
+            <span class="c1"># Note that we actually accumulate the Gammas with a different choice for</span>
+            <span class="c1"># alpha_i.  We accumulate the shears relative to the q vectors, not relative to s.</span>
+            <span class="c1"># cf. JBJ Equation 41 and footnote 3.  The upshot is that we multiply JBJ&#39;s formulae</span>
+            <span class="c1"># by (q1q2q3)^2 / |q1q2q3|^2 for T0 and (q1*q2q3)^2/|q1q2q3|^2 for T1.</span>
+            <span class="c1"># Then T0 becomes</span>
+            <span class="c1"># T0 = -(|q1 q2 q3|^2)/24 exp(-(|q1|^2+|q2|^2+|q3|^2)/2)</span>
+            <span class="n">T0</span> <span class="o">=</span> <span class="n">expfactor</span> <span class="o">*</span> <span class="n">a123</span> <span class="o">/</span> <span class="mi">24</span>
+
+            <span class="c1"># JBJ Equation 52</span>
+            <span class="c1"># After the phase adjustment, T1 becomes:</span>
+            <span class="c1"># T1 = -[(|q1 q2 q3|^2)/24</span>
+            <span class="c1">#        - (q1*^2 q2 q3)/9</span>
+            <span class="c1">#        + (q1*^4 q2^2 q3^2 + 2 |q2 q3|^2 q1*^2 q2 q3)/(|q1 q2 q3|^2)/27</span>
+            <span class="c1">#       ] exp(-(|q1|^2+|q2|^2+|q3|^2)/2)</span>
+            <span class="n">T1</span> <span class="o">=</span> <span class="n">expfactor</span> <span class="o">*</span> <span class="p">(</span><span class="n">a123</span> <span class="o">/</span> <span class="mi">24</span> <span class="o">-</span> <span class="n">b1</span> <span class="o">/</span> <span class="mi">9</span> <span class="o">+</span> <span class="p">(</span><span class="n">b1</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">a2</span><span class="o">*</span><span class="n">a3</span><span class="o">*</span><span class="n">b1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">a123</span> <span class="o">*</span> <span class="mi">27</span><span class="p">))</span>
+            <span class="n">T2</span> <span class="o">=</span> <span class="n">expfactor</span> <span class="o">*</span> <span class="p">(</span><span class="n">a123</span> <span class="o">/</span> <span class="mi">24</span> <span class="o">-</span> <span class="n">b2</span> <span class="o">/</span> <span class="mi">9</span> <span class="o">+</span> <span class="p">(</span><span class="n">b2</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">a1</span><span class="o">*</span><span class="n">a3</span><span class="o">*</span><span class="n">b2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">a123</span> <span class="o">*</span> <span class="mi">27</span><span class="p">))</span>
+            <span class="n">T3</span> <span class="o">=</span> <span class="n">expfactor</span> <span class="o">*</span> <span class="p">(</span><span class="n">a123</span> <span class="o">/</span> <span class="mi">24</span> <span class="o">-</span> <span class="n">b3</span> <span class="o">/</span> <span class="mi">9</span> <span class="o">+</span> <span class="p">(</span><span class="n">b3</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">a1</span><span class="o">*</span><span class="n">a2</span><span class="o">*</span><span class="n">b3</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">a123</span> <span class="o">*</span> <span class="mi">27</span><span class="p">))</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># SKL Equation 63:</span>
+            <span class="n">k1sq</span> <span class="o">=</span> <span class="n">k1</span><span class="o">*</span><span class="n">k1</span>
+            <span class="n">k2sq</span> <span class="o">=</span> <span class="n">k2</span><span class="o">*</span><span class="n">k2</span>
+            <span class="n">k3sq</span> <span class="o">=</span> <span class="n">k3</span><span class="o">*</span><span class="n">k3</span>
+            <span class="n">Theta2</span> <span class="o">=</span> <span class="p">((</span><span class="n">k1sq</span><span class="o">*</span><span class="n">k2sq</span> <span class="o">+</span> <span class="n">k1sq</span><span class="o">*</span><span class="n">k3sq</span> <span class="o">+</span> <span class="n">k2sq</span><span class="o">*</span><span class="n">k3sq</span><span class="p">)</span><span class="o">/</span><span class="mf">3.</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span>
+            <span class="n">k1sq</span> <span class="o">/=</span> <span class="n">Theta2</span>   <span class="c1"># These are now what SKL calls theta_i^2 / Theta^2</span>
+            <span class="n">k2sq</span> <span class="o">/=</span> <span class="n">Theta2</span>
+            <span class="n">k3sq</span> <span class="o">/=</span> <span class="n">Theta2</span>
+            <span class="n">Theta4</span> <span class="o">=</span> <span class="n">Theta2</span><span class="o">*</span><span class="n">Theta2</span>
+            <span class="n">Theta6</span> <span class="o">=</span> <span class="n">Theta4</span><span class="o">*</span><span class="n">Theta2</span>
+            <span class="n">S</span> <span class="o">=</span> <span class="n">k1sq</span> <span class="o">*</span> <span class="n">k2sq</span> <span class="o">*</span> <span class="n">k3sq</span>
+
+            <span class="c1"># SKL Equation 64:</span>
+            <span class="n">Z</span> <span class="o">=</span> <span class="p">((</span><span class="mi">2</span><span class="o">*</span><span class="n">k2sq</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">k3sq</span> <span class="o">-</span> <span class="n">k1sq</span><span class="p">)</span> <span class="o">*</span> <span class="n">a1</span> <span class="o">+</span>
+                 <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">k3sq</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">k1sq</span> <span class="o">-</span> <span class="n">k2sq</span><span class="p">)</span> <span class="o">*</span> <span class="n">a2</span> <span class="o">+</span>
+                 <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">k1sq</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">k2sq</span> <span class="o">-</span> <span class="n">k3sq</span><span class="p">)</span> <span class="o">*</span> <span class="n">a3</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">6</span><span class="o">*</span><span class="n">Theta2</span><span class="p">)</span>
+            <span class="n">expfactor</span> <span class="o">=</span> <span class="o">-</span><span class="n">S</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">Z</span><span class="p">)</span> <span class="o">/</span> <span class="n">Theta4</span>
+
+            <span class="c1"># SKL Equation 65:</span>
+            <span class="n">f1</span> <span class="o">=</span> <span class="p">(</span><span class="n">k2sq</span><span class="o">+</span><span class="n">k3sq</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">k2sq</span><span class="o">-</span><span class="n">k3sq</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">q2</span><span class="o">-</span><span class="n">q3</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">6</span><span class="o">*</span><span class="n">q1</span><span class="p">)</span>
+            <span class="n">f2</span> <span class="o">=</span> <span class="p">(</span><span class="n">k3sq</span><span class="o">+</span><span class="n">k1sq</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">k3sq</span><span class="o">-</span><span class="n">k1sq</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">q3</span><span class="o">-</span><span class="n">q1</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">6</span><span class="o">*</span><span class="n">q2</span><span class="p">)</span>
+            <span class="n">f3</span> <span class="o">=</span> <span class="p">(</span><span class="n">k1sq</span><span class="o">+</span><span class="n">k2sq</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">k1sq</span><span class="o">-</span><span class="n">k2sq</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">q1</span><span class="o">-</span><span class="n">q2</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">6</span><span class="o">*</span><span class="n">q3</span><span class="p">)</span>
+            <span class="n">f1c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conjugate</span><span class="p">(</span><span class="n">f1</span><span class="p">)</span>
+            <span class="n">f2c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conjugate</span><span class="p">(</span><span class="n">f2</span><span class="p">)</span>
+            <span class="n">f3c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conjugate</span><span class="p">(</span><span class="n">f3</span><span class="p">)</span>
+
+            <span class="c1"># SKL Equation 69:</span>
+            <span class="n">g1</span> <span class="o">=</span> <span class="n">k2sq</span><span class="o">*</span><span class="n">k3sq</span> <span class="o">+</span> <span class="p">(</span><span class="n">k3sq</span><span class="o">-</span><span class="n">k2sq</span><span class="p">)</span><span class="o">*</span><span class="n">k1sq</span><span class="o">*</span><span class="p">(</span><span class="n">q2</span><span class="o">-</span><span class="n">q3</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="n">q1</span><span class="p">)</span>
+            <span class="n">g2</span> <span class="o">=</span> <span class="n">k3sq</span><span class="o">*</span><span class="n">k1sq</span> <span class="o">+</span> <span class="p">(</span><span class="n">k1sq</span><span class="o">-</span><span class="n">k3sq</span><span class="p">)</span><span class="o">*</span><span class="n">k2sq</span><span class="o">*</span><span class="p">(</span><span class="n">q3</span><span class="o">-</span><span class="n">q1</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="n">q2</span><span class="p">)</span>
+            <span class="n">g3</span> <span class="o">=</span> <span class="n">k1sq</span><span class="o">*</span><span class="n">k2sq</span> <span class="o">+</span> <span class="p">(</span><span class="n">k2sq</span><span class="o">-</span><span class="n">k1sq</span><span class="p">)</span><span class="o">*</span><span class="n">k3sq</span><span class="o">*</span><span class="p">(</span><span class="n">q1</span><span class="o">-</span><span class="n">q2</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="n">q3</span><span class="p">)</span>
+            <span class="n">g1c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conjugate</span><span class="p">(</span><span class="n">g1</span><span class="p">)</span>
+            <span class="n">g2c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conjugate</span><span class="p">(</span><span class="n">g2</span><span class="p">)</span>
+            <span class="n">g3c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conjugate</span><span class="p">(</span><span class="n">g3</span><span class="p">)</span>
+
+            <span class="c1"># SKL Equation 62:</span>
+            <span class="n">T0</span> <span class="o">=</span> <span class="n">expfactor</span> <span class="o">*</span> <span class="n">a123</span> <span class="o">*</span> <span class="n">f1c</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">f2c</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">f3c</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mf">24.</span><span class="o">*</span><span class="n">Theta6</span><span class="p">)</span>
+
+            <span class="c1"># SKL Equation 68:</span>
+            <span class="n">T1</span> <span class="o">=</span> <span class="n">expfactor</span> <span class="o">*</span> <span class="p">(</span>
+                <span class="n">a123</span> <span class="o">*</span> <span class="n">f1</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">f2c</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">f3c</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">24</span><span class="o">*</span><span class="n">Theta6</span><span class="p">)</span> <span class="o">-</span>
+                <span class="n">b1</span> <span class="o">*</span> <span class="n">f1</span><span class="o">*</span><span class="n">f2c</span><span class="o">*</span><span class="n">f3c</span><span class="o">*</span><span class="n">g1c</span> <span class="o">/</span> <span class="p">(</span><span class="mi">9</span><span class="o">*</span><span class="n">Theta4</span><span class="p">)</span> <span class="o">+</span>
+                <span class="p">(</span><span class="n">b1</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">g1c</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">k2sq</span><span class="o">*</span><span class="n">k3sq</span><span class="o">*</span><span class="n">a2</span><span class="o">*</span><span class="n">a3</span><span class="o">*</span><span class="n">b1</span> <span class="o">*</span> <span class="n">f2c</span> <span class="o">*</span> <span class="n">f3c</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">a123</span> <span class="o">*</span> <span class="mi">27</span><span class="o">*</span><span class="n">Theta2</span><span class="p">))</span>
+            <span class="n">T2</span> <span class="o">=</span> <span class="n">expfactor</span> <span class="o">*</span> <span class="p">(</span>
+                <span class="n">a123</span> <span class="o">*</span> <span class="n">f1c</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">f2</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">f3c</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">24</span><span class="o">*</span><span class="n">Theta6</span><span class="p">)</span> <span class="o">-</span>
+                <span class="n">b2</span> <span class="o">*</span> <span class="n">f1c</span><span class="o">*</span><span class="n">f2</span><span class="o">*</span><span class="n">f3c</span><span class="o">*</span><span class="n">g2c</span> <span class="o">/</span> <span class="p">(</span><span class="mi">9</span><span class="o">*</span><span class="n">Theta4</span><span class="p">)</span> <span class="o">+</span>
+                <span class="p">(</span><span class="n">b2</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">g2c</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">k1sq</span><span class="o">*</span><span class="n">k3sq</span><span class="o">*</span><span class="n">a1</span><span class="o">*</span><span class="n">a3</span><span class="o">*</span><span class="n">b2</span> <span class="o">*</span> <span class="n">f1c</span> <span class="o">*</span> <span class="n">f3c</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">a123</span> <span class="o">*</span> <span class="mi">27</span><span class="o">*</span><span class="n">Theta2</span><span class="p">))</span>
+            <span class="n">T3</span> <span class="o">=</span> <span class="n">expfactor</span> <span class="o">*</span> <span class="p">(</span>
+                <span class="n">a123</span> <span class="o">*</span> <span class="n">f1c</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">f2c</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">f3</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">24</span><span class="o">*</span><span class="n">Theta6</span><span class="p">)</span> <span class="o">-</span>
+                <span class="n">b3</span> <span class="o">*</span> <span class="n">f1c</span><span class="o">*</span><span class="n">f2c</span><span class="o">*</span><span class="n">f3</span><span class="o">*</span><span class="n">g3c</span> <span class="o">/</span> <span class="p">(</span><span class="mi">9</span><span class="o">*</span><span class="n">Theta4</span><span class="p">)</span> <span class="o">+</span>
+                <span class="p">(</span><span class="n">b3</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">g3c</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">k1sq</span><span class="o">*</span><span class="n">k2sq</span><span class="o">*</span><span class="n">a1</span><span class="o">*</span><span class="n">a2</span><span class="o">*</span><span class="n">b3</span> <span class="o">*</span> <span class="n">f1c</span> <span class="o">*</span> <span class="n">f2c</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">a123</span> <span class="o">*</span> <span class="mi">27</span><span class="o">*</span><span class="n">Theta2</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">T0</span><span class="p">,</span> <span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">T3</span>
+
+<div class="viewcode-block" id="GGGCorrelation.calculateMap3"><a class="viewcode-back" href="../../ggg.html#treecorr.GGGCorrelation.calculateMap3">[docs]</a>    <span class="k">def</span> <span class="nf">calculateMap3</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">R</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">k2</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">k3</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the skewness of the aperture mass from the correlation function.</span>
+
+<span class="sd">        The equations for this come from Jarvis, Bernstein &amp; Jain (2004, MNRAS, 352).</span>
+<span class="sd">        See their section 3, especially equations 51 and 52 for the :math:`T_i` functions,</span>
+<span class="sd">        equations 60 and 61 for the calculation of :math:`\langle \cal M^3 \rangle` and</span>
+<span class="sd">        :math:`\langle \cal M^2 M^* \rangle`, and equations 55-58 for how to convert</span>
+<span class="sd">        these to the return values.</span>
+
+<span class="sd">        If k2 or k3 != 1, then this routine calculates the generalization of the skewness</span>
+<span class="sd">        proposed by Schneider, Kilbinger &amp; Lombardi (2005, A&amp;A, 431):</span>
+<span class="sd">        :math:`\langle M_{ap}^3(R, k_2 R, k_3 R)\rangle` and related values.</span>
+
+<span class="sd">        If k2 = k3 = 1 (the default), then there are only 4 combinations of Map and Mx</span>
+<span class="sd">        that are relevant:</span>
+
+<span class="sd">        - map3 = :math:`\langle M_{ap}^3(R)\rangle`</span>
+<span class="sd">        - map2mx = :math:`\langle M_{ap}^2(R) M_\times(R)\rangle`,</span>
+<span class="sd">        - mapmx2 = :math:`\langle M_{ap}(R) M_\times(R)\rangle`</span>
+<span class="sd">        - mx3 = :math:`\langle M_{\rm \times}^3(R)\rangle`</span>
+
+<span class="sd">        However, if k2 or k3 != 1, then there are 8 combinations:</span>
+
+<span class="sd">        - map3 = :math:`\langle M_{ap}(R) M_{ap}(k_2 R) M_{ap}(k_3 R)\rangle`</span>
+<span class="sd">        - mapmapmx = :math:`\langle M_{ap}(R) M_{ap}(k_2 R) M_\times(k_3 R)\rangle`</span>
+<span class="sd">        - mapmxmap = :math:`\langle M_{ap}(R) M_\times(k_2 R) M_{ap}(k_3 R)\rangle`</span>
+<span class="sd">        - mxmapmap = :math:`\langle M_\times(R) M_{ap}(k_2 R) M_{ap}(k_3 R)\rangle`</span>
+<span class="sd">        - mxmxmap = :math:`\langle M_\times(R) M_\times(k_2 R) M_{ap}(k_3 R)\rangle`</span>
+<span class="sd">        - mxmapmx = :math:`\langle M_\times(R) M_{ap}(k_2 R) M_\times(k_3 R)\rangle`</span>
+<span class="sd">        - mapmxmx = :math:`\langle M_{ap}(R) M_\times(k_2 R) M_\times(k_3 R)\rangle`</span>
+<span class="sd">        - mx3 = :math:`\langle M_\times(R) M_\times(k_2 R) M_\times(k_3 R)\rangle`</span>
+
+<span class="sd">        To accommodate this full generality, we always return all 8 values, along with the</span>
+<span class="sd">        estimated variance (which is equal for each), even when k2 = k3 = 1.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            The formulae for the ``m2_uform`` = &#39;Schneider&#39; definition of the aperture mass,</span>
+<span class="sd">            described in the documentation of `calculateMapSq`, are not known, so that is not an</span>
+<span class="sd">            option here.  The calculations here use the definition that corresponds to</span>
+<span class="sd">            ``m2_uform`` = &#39;Crittenden&#39;.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            R (array):      The R values at which to calculate the aperture mass statistics.</span>
+<span class="sd">                            (default: None, which means use self.rnom1d)</span>
+<span class="sd">            k2 (float):     If given, the ratio R2/R1 in the SKL formulae. (default: 1)</span>
+<span class="sd">            k3 (float):     If given, the ratio R3/R1 in the SKL formulae. (default: 1)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple containing:</span>
+
+<span class="sd">            - map3 = array of :math:`\langle M_{ap}(R) M_{ap}(k_2 R) M_{ap}(k_3 R)\rangle`</span>
+<span class="sd">            - mapmapmx = array of :math:`\langle M_{ap}(R) M_{ap}(k_2 R) M_\times(k_3 R)\rangle`</span>
+<span class="sd">            - mapmxmap = array of :math:`\langle M_{ap}(R) M_\times(k_2 R) M_{ap}(k_3 R)\rangle`</span>
+<span class="sd">            - mxmapmap = array of :math:`\langle M_\times(R) M_{ap}(k_2 R) M_{ap}(k_3 R)\rangle`</span>
+<span class="sd">            - mxmxmap = array of :math:`\langle M_\times(R) M_\times(k_2 R) M_{ap}(k_3 R)\rangle`</span>
+<span class="sd">            - mxmapmx = array of :math:`\langle M_\times(R) M_{ap}(k_2 R) M_\times(k_3 R)\rangle`</span>
+<span class="sd">            - mapmxmx = array of :math:`\langle M_{ap}(R) M_\times(k_2 R) M_\times(k_3 R)\rangle`</span>
+<span class="sd">            - mx3 = array of :math:`\langle M_\times(R) M_\times(k_2 R) M_\times(k_3 R)\rangle`</span>
+<span class="sd">            - varmap3 = array of variance estimates of the above values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># As in the calculateMapSq function, we Make s and t matrices, so we can eventually do the</span>
+        <span class="c1"># integral by doing a matrix product.</span>
+        <span class="k">if</span> <span class="n">R</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">R</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rnom1d</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">R</span><span class="p">)</span>
+
+        <span class="c1"># Pick s = d2, so dlogs is bin_size</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">d2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="n">R</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meand2</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">==</span> <span class="s1">&#39;LogRUV&#39;</span><span class="p">:</span>
+            <span class="c1"># We take t = d3, but we need the x and y components. (relative to s along x axis)</span>
+            <span class="c1"># cf. Figure 1 in JBJ.</span>
+            <span class="c1"># d1^2 = d2^2 + d3^2 - 2 d2 d3 cos(theta1)</span>
+            <span class="c1"># tx = d3 cos(theta1) = (d2^2 + d3^2 - d1^2)/2d2</span>
+            <span class="c1"># Simplify this using u=d3/d2 and v=(d1-d2)/d3</span>
+            <span class="c1">#    = (d3^2 - (d1+d2)(d1-d2)) / 2d2</span>
+            <span class="c1">#    = d3 (d3 - (d1+d2)v) / 2d2</span>
+            <span class="c1">#    = d3 (u - (2+uv)v)/2</span>
+            <span class="c1">#    = d3 (u - 2v - uv^2)/2</span>
+            <span class="c1">#    = d3 (u(1-v^2)/2 - v)</span>
+            <span class="c1"># Note that v here is really |v|.  We&#39;ll account for the sign of v in ty.</span>
+            <span class="n">d3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="n">R</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meand3</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span>
+            <span class="n">d1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="n">R</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meand1</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span>
+            <span class="n">u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanu</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanv</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+            <span class="n">tx</span> <span class="o">=</span> <span class="n">d3</span><span class="o">*</span><span class="p">(</span><span class="mf">0.5</span><span class="o">*</span><span class="n">u</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">v</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+            <span class="c1"># This form tends to be more stable near potentially degenerate triangles</span>
+            <span class="c1"># than tx = (d2*d2 + d3*d3 - d1*d1) / (2*d2)</span>
+            <span class="c1"># However, add a check to make sure.</span>
+            <span class="n">bad</span> <span class="o">=</span> <span class="p">(</span><span class="n">tx</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="n">d3</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">tx</span> <span class="o">&gt;=</span> <span class="n">d3</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">bad</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Warning: Detected some invalid triangles when computing Map^3&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Excluding these triangles from the integral.&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;N bad points = </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">bad</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;d1[bad] = </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">d1</span><span class="p">[</span><span class="n">bad</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;d2[bad] = </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">d2</span><span class="p">[</span><span class="n">bad</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;d3[bad] = </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">d3</span><span class="p">[</span><span class="n">bad</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;tx[bad] = </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">tx</span><span class="p">[</span><span class="n">bad</span><span class="p">])</span>
+            <span class="n">bad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">bad</span><span class="p">)</span>
+            <span class="n">tx</span><span class="p">[</span><span class="n">bad</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># for now to avoid nans</span>
+            <span class="n">ty</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">d3</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">tx</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">ty</span><span class="p">[:,</span><span class="bp">self</span><span class="o">.</span><span class="n">meanv</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*=</span> <span class="o">-</span><span class="mf">1.</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">tx</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">ty</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">d3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="n">R</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meand3</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">d3</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanphi</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phi_units</span><span class="p">)</span>
+
+        <span class="c1"># Next we need to construct the T values.</span>
+        <span class="n">T0</span><span class="p">,</span> <span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">T3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculateT</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">t</span><span class="p">,</span><span class="mf">1.</span><span class="p">,</span><span class="n">k2</span><span class="p">,</span><span class="n">k3</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">==</span> <span class="s1">&#39;LogRUV&#39;</span><span class="p">:</span>
+            <span class="c1"># Finally, account for the Jacobian in d^2t: jac = |J(tx, ty; u, v)|,</span>
+            <span class="c1"># since our Gammas are accumulated in s, u, v, not s, tx, ty.</span>
+            <span class="c1"># u = d3/d2, v = (d1-d2)/d3</span>
+            <span class="c1"># tx = d3 (u - 2v - uv^2)/2</span>
+            <span class="c1">#    = s/2 (u^2 - 2uv - u^2v^2)</span>
+            <span class="c1"># dtx/du = s (u - v - uv^2)</span>
+            <span class="c1"># dtx/dv = -us (1 + uv)</span>
+            <span class="c1"># ty = sqrt(d3^2 - tx^2) = sqrt(u^2 s^2 - tx^2)</span>
+            <span class="c1"># dty/du = s^2 u/2ty (1-v^2) (2 + 3uv - u^2 + u^2v^2)</span>
+            <span class="c1"># dty/dv = s^2 u^2/2ty (1 + uv) (u - uv^2 - 2uv)</span>
+            <span class="c1">#</span>
+            <span class="c1"># After some algebra...</span>
+            <span class="c1">#</span>
+            <span class="c1"># J = s^3 u^2 (1+uv) / ty</span>
+            <span class="c1">#   = d3^2 d1 / ty</span>
+            <span class="c1">#</span>
+            <span class="n">jac</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">d3</span><span class="o">*</span><span class="n">d3</span><span class="o">*</span><span class="n">d1</span><span class="o">/</span><span class="n">ty</span><span class="p">)</span>
+            <span class="n">jac</span><span class="p">[</span><span class="n">bad</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>  <span class="c1"># Exclude any bad triangles from the integral.</span>
+            <span class="n">d2t</span> <span class="o">=</span> <span class="n">jac</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ubin_size</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">vbin_size</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># In SAS binning, d2t is easier.</span>
+            <span class="c1"># We bin directly in ln(d3) and phi, so</span>
+            <span class="c1"># tx = d3 cos(phi)</span>
+            <span class="c1"># ty = d3 sin(phi)</span>
+            <span class="c1"># dtx/dlnd3 = d3 dtx/dd3 = d3 cos(phi)</span>
+            <span class="c1"># dty/dlnd3 = d3 dty/dd3 = d3 sin(phi)</span>
+            <span class="c1"># dtx/dphi = -d3 sin(phi)</span>
+            <span class="c1"># dty/dphi = d3 cos(phi)</span>
+            <span class="c1"># J(tx,ty; lnd3, phi) = d3^2</span>
+            <span class="n">d2t</span> <span class="o">=</span> <span class="n">d3</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi_bin_size</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+
+        <span class="n">sds</span> <span class="o">=</span> <span class="n">s</span> <span class="o">*</span> <span class="n">s</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span>  <span class="c1"># Remember bin_size is dln(s)</span>
+        <span class="c1"># Note: these are really d2t/2piR^2 and sds/R^2, which are what actually show up</span>
+        <span class="c1"># in JBJ equations 45 and 50.</span>
+
+        <span class="n">T0</span> <span class="o">*=</span> <span class="n">sds</span> <span class="o">*</span> <span class="n">d2t</span>
+        <span class="n">T1</span> <span class="o">*=</span> <span class="n">sds</span> <span class="o">*</span> <span class="n">d2t</span>
+        <span class="n">T2</span> <span class="o">*=</span> <span class="n">sds</span> <span class="o">*</span> <span class="n">d2t</span>
+        <span class="n">T3</span> <span class="o">*=</span> <span class="n">sds</span> <span class="o">*</span> <span class="n">d2t</span>
+
+        <span class="c1"># Now do the integral by taking the matrix products.</span>
+        <span class="n">gam0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gam0</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">gam1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gam1</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">gam2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gam2</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">gam3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gam3</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">vargam0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vargam0</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">vargam1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vargam1</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">vargam2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vargam2</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">vargam3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vargam3</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">mmm</span> <span class="o">=</span> <span class="n">T0</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">gam0</span><span class="p">)</span>
+        <span class="n">mcmm</span> <span class="o">=</span> <span class="n">T1</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">gam1</span><span class="p">)</span>
+        <span class="n">mmcm</span> <span class="o">=</span> <span class="n">T2</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">gam2</span><span class="p">)</span>
+        <span class="n">mmmc</span> <span class="o">=</span> <span class="n">T3</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">gam3</span><span class="p">)</span>
+
+        <span class="c1"># These accumulate the coefficients that are being dotted to gam0,1,2,3 respectively.</span>
+        <span class="c1"># Below, we will take the abs^2 and dot it to gam0,1,2,3 in each case to compute the</span>
+        <span class="c1"># total variance.</span>
+        <span class="c1"># Note: This assumes that gam0, gam1, gam2, gam3 have no covariance.</span>
+        <span class="c1"># This is not technically true, but I think it&#39;s approximately ok.</span>
+        <span class="n">var0</span> <span class="o">=</span> <span class="n">T0</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">var1</span> <span class="o">=</span> <span class="n">T1</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">var2</span> <span class="o">=</span> <span class="n">T2</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">var3</span> <span class="o">=</span> <span class="n">T3</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">==</span> <span class="s1">&#39;LogRUV&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">k2</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">k3</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">mmm</span> <span class="o">*=</span> <span class="mi">6</span>
+                <span class="n">mcmm</span> <span class="o">+=</span> <span class="n">mmcm</span>
+                <span class="n">mcmm</span> <span class="o">+=</span> <span class="n">mmmc</span>
+                <span class="n">mcmm</span> <span class="o">*=</span> <span class="mi">2</span>
+                <span class="n">mmcm</span> <span class="o">=</span> <span class="n">mmmc</span> <span class="o">=</span> <span class="n">mcmm</span>
+                <span class="n">var0</span> <span class="o">*=</span> <span class="mi">6</span>
+                <span class="n">var1</span> <span class="o">*=</span> <span class="mi">6</span>
+                <span class="n">var2</span> <span class="o">*=</span> <span class="mi">6</span>
+                <span class="n">var3</span> <span class="o">*=</span> <span class="mi">6</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Repeat the above for the other permutations</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">_k1</span><span class="p">,</span> <span class="n">_k2</span><span class="p">,</span> <span class="n">_k3</span><span class="p">,</span> <span class="n">_mcmm</span><span class="p">,</span> <span class="n">_mmcm</span><span class="p">,</span> <span class="n">_mmmc</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span>
+                        <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">k3</span><span class="p">,</span><span class="n">k2</span><span class="p">,</span><span class="n">mcmm</span><span class="p">,</span><span class="n">mmmc</span><span class="p">,</span><span class="n">mmcm</span><span class="p">),</span>
+                        <span class="p">(</span><span class="n">k2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">k3</span><span class="p">,</span><span class="n">mmcm</span><span class="p">,</span><span class="n">mcmm</span><span class="p">,</span><span class="n">mmmc</span><span class="p">),</span>
+                        <span class="p">(</span><span class="n">k2</span><span class="p">,</span><span class="n">k3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">mmcm</span><span class="p">,</span><span class="n">mmmc</span><span class="p">,</span><span class="n">mcmm</span><span class="p">),</span>
+                        <span class="p">(</span><span class="n">k3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">k2</span><span class="p">,</span><span class="n">mmmc</span><span class="p">,</span><span class="n">mcmm</span><span class="p">,</span><span class="n">mmcm</span><span class="p">),</span>
+                        <span class="p">(</span><span class="n">k3</span><span class="p">,</span><span class="n">k2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">mmmc</span><span class="p">,</span><span class="n">mmcm</span><span class="p">,</span><span class="n">mcmm</span><span class="p">)</span> <span class="p">]:</span>
+                    <span class="n">T0</span><span class="p">,</span> <span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">T3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculateT</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">t</span><span class="p">,</span><span class="n">_k1</span><span class="p">,</span><span class="n">_k2</span><span class="p">,</span><span class="n">_k3</span><span class="p">)</span>
+                    <span class="n">T0</span> <span class="o">*=</span> <span class="n">sds</span> <span class="o">*</span> <span class="n">d2t</span>
+                    <span class="n">T1</span> <span class="o">*=</span> <span class="n">sds</span> <span class="o">*</span> <span class="n">d2t</span>
+                    <span class="n">T2</span> <span class="o">*=</span> <span class="n">sds</span> <span class="o">*</span> <span class="n">d2t</span>
+                    <span class="n">T3</span> <span class="o">*=</span> <span class="n">sds</span> <span class="o">*</span> <span class="n">d2t</span>
+                    <span class="c1"># Relies on numpy array overloading += to actually update in place.</span>
+                    <span class="n">mmm</span> <span class="o">+=</span> <span class="n">T0</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">gam0</span><span class="p">)</span>
+                    <span class="n">_mcmm</span> <span class="o">+=</span> <span class="n">T1</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">gam1</span><span class="p">)</span>
+                    <span class="n">_mmcm</span> <span class="o">+=</span> <span class="n">T2</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">gam2</span><span class="p">)</span>
+                    <span class="n">_mmmc</span> <span class="o">+=</span> <span class="n">T3</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">gam3</span><span class="p">)</span>
+                    <span class="n">var0</span> <span class="o">+=</span> <span class="n">T0</span>
+                    <span class="n">var1</span> <span class="o">+=</span> <span class="n">T1</span>
+                    <span class="n">var2</span> <span class="o">+=</span> <span class="n">T2</span>
+                    <span class="n">var3</span> <span class="o">+=</span> <span class="n">T3</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># SAS binning counts each triangle with each vertex in the c1 position.</span>
+            <span class="c1"># Just need to account for the cases where 1-2-3 are clockwise, rather than CCW.</span>
+            <span class="k">if</span> <span class="n">k2</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">k3</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">mmm</span> <span class="o">*=</span> <span class="mi">2</span>
+                <span class="n">mcmm</span> <span class="o">*=</span> <span class="mi">2</span>
+                <span class="n">mmcm</span> <span class="o">+=</span> <span class="n">mmmc</span>
+                <span class="n">mmmc</span> <span class="o">=</span> <span class="n">mmcm</span>
+                <span class="n">var0</span> <span class="o">*=</span> <span class="mi">2</span>
+                <span class="n">var1</span> <span class="o">*=</span> <span class="mi">2</span>
+                <span class="n">var2</span> <span class="o">*=</span> <span class="mi">2</span>
+                <span class="n">var3</span> <span class="o">*=</span> <span class="mi">2</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Repeat the above with 2,3 swapped.</span>
+                <span class="n">T0</span><span class="p">,</span> <span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">T3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculateT</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">t</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">k3</span><span class="p">,</span><span class="n">k2</span><span class="p">)</span>
+                <span class="n">T0</span> <span class="o">*=</span> <span class="n">sds</span> <span class="o">*</span> <span class="n">d2t</span>
+                <span class="n">T1</span> <span class="o">*=</span> <span class="n">sds</span> <span class="o">*</span> <span class="n">d2t</span>
+                <span class="n">T2</span> <span class="o">*=</span> <span class="n">sds</span> <span class="o">*</span> <span class="n">d2t</span>
+                <span class="n">T3</span> <span class="o">*=</span> <span class="n">sds</span> <span class="o">*</span> <span class="n">d2t</span>
+                <span class="n">mmm</span> <span class="o">+=</span> <span class="n">T0</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">gam0</span><span class="p">)</span>
+                <span class="n">mcmm</span> <span class="o">+=</span> <span class="n">T1</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">gam1</span><span class="p">)</span>
+                <span class="n">mmmc</span> <span class="o">+=</span> <span class="n">T2</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">gam2</span><span class="p">)</span>
+                <span class="n">mmcm</span> <span class="o">+=</span> <span class="n">T3</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">gam3</span><span class="p">)</span>
+                <span class="n">var0</span> <span class="o">+=</span> <span class="n">T0</span>
+                <span class="n">var1</span> <span class="o">+=</span> <span class="n">T1</span>
+                <span class="n">var2</span> <span class="o">+=</span> <span class="n">T2</span>
+                <span class="n">var3</span> <span class="o">+=</span> <span class="n">T3</span>
+
+        <span class="n">map3</span> <span class="o">=</span> <span class="mf">0.25</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">mcmm</span> <span class="o">+</span> <span class="n">mmcm</span> <span class="o">+</span> <span class="n">mmmc</span> <span class="o">+</span> <span class="n">mmm</span><span class="p">)</span>
+        <span class="n">mapmapmx</span> <span class="o">=</span> <span class="mf">0.25</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">mcmm</span> <span class="o">+</span> <span class="n">mmcm</span> <span class="o">-</span> <span class="n">mmmc</span> <span class="o">+</span> <span class="n">mmm</span><span class="p">)</span>
+        <span class="n">mapmxmap</span> <span class="o">=</span> <span class="mf">0.25</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">mcmm</span> <span class="o">-</span> <span class="n">mmcm</span> <span class="o">+</span> <span class="n">mmmc</span> <span class="o">+</span> <span class="n">mmm</span><span class="p">)</span>
+        <span class="n">mxmapmap</span> <span class="o">=</span> <span class="mf">0.25</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="o">-</span><span class="n">mcmm</span> <span class="o">+</span> <span class="n">mmcm</span> <span class="o">+</span> <span class="n">mmmc</span> <span class="o">+</span> <span class="n">mmm</span><span class="p">)</span>
+        <span class="n">mxmxmap</span> <span class="o">=</span> <span class="mf">0.25</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">mcmm</span> <span class="o">+</span> <span class="n">mmcm</span> <span class="o">-</span> <span class="n">mmmc</span> <span class="o">-</span> <span class="n">mmm</span><span class="p">)</span>
+        <span class="n">mxmapmx</span> <span class="o">=</span> <span class="mf">0.25</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">mcmm</span> <span class="o">-</span> <span class="n">mmcm</span> <span class="o">+</span> <span class="n">mmmc</span> <span class="o">-</span> <span class="n">mmm</span><span class="p">)</span>
+        <span class="n">mapmxmx</span> <span class="o">=</span> <span class="mf">0.25</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="o">-</span><span class="n">mcmm</span> <span class="o">+</span> <span class="n">mmcm</span> <span class="o">+</span> <span class="n">mmmc</span> <span class="o">-</span> <span class="n">mmm</span><span class="p">)</span>
+        <span class="n">mx3</span> <span class="o">=</span> <span class="mf">0.25</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">mcmm</span> <span class="o">+</span> <span class="n">mmcm</span> <span class="o">+</span> <span class="n">mmmc</span> <span class="o">-</span> <span class="n">mmm</span><span class="p">)</span>
+
+        <span class="n">var0</span> <span class="o">/=</span> <span class="mi">4</span>
+        <span class="n">var1</span> <span class="o">/=</span> <span class="mi">4</span>
+        <span class="n">var2</span> <span class="o">/=</span> <span class="mi">4</span>
+        <span class="n">var3</span> <span class="o">/=</span> <span class="mi">4</span>
+
+        <span class="c1"># Now finally add up the coefficient squared times each vargam element.</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">var0</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vargam0</span><span class="p">)</span>
+        <span class="n">var</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">var1</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vargam1</span><span class="p">)</span>
+        <span class="n">var</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">var2</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vargam2</span><span class="p">)</span>
+        <span class="n">var</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">var3</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vargam3</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">map3</span><span class="p">,</span> <span class="n">mapmapmx</span><span class="p">,</span> <span class="n">mapmxmap</span><span class="p">,</span> <span class="n">mxmapmap</span><span class="p">,</span> <span class="n">mxmxmap</span><span class="p">,</span> <span class="n">mxmapmx</span><span class="p">,</span> <span class="n">mapmxmx</span><span class="p">,</span> <span class="n">mx3</span><span class="p">,</span> <span class="n">var</span></div>
+
+<div class="viewcode-block" id="GGGCorrelation.writeMap3"><a class="viewcode-back" href="../../ggg.html#treecorr.GGGCorrelation.writeMap3">[docs]</a>    <span class="k">def</span> <span class="nf">writeMap3</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">R</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Write the aperture mass skewness based on the correlation function to the</span>
+<span class="sd">        file, file_name.</span>
+
+<span class="sd">        The output file will include the following columns:</span>
+
+<span class="sd">        ==========      ==========================================================</span>
+<span class="sd">        Column          Description</span>
+<span class="sd">        ==========      ==========================================================</span>
+<span class="sd">        R               The aperture radius</span>
+<span class="sd">        Map3            An estimate of :math:`\langle M_{ap}^3\rangle(R)`</span>
+<span class="sd">                        (cf. `calculateMap3`)</span>
+<span class="sd">        Map2Mx          An estimate of :math:`\langle M_{ap}^2 M_\times\rangle(R)`</span>
+<span class="sd">        MapMx2          An estimate of :math:`\langle M_{ap} M_\times^2\rangle(R)`</span>
+<span class="sd">        Mx3             An estimate of :math:`\langle M_\times^3\rangle(R)`</span>
+<span class="sd">        sig_map         The sqrt of the variance estimate of each of these</span>
+<span class="sd">        ==========      ==========================================================</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            file_name (str):    The name of the file to write to.</span>
+<span class="sd">            R (array):          The R values at which to calculate the statistics.</span>
+<span class="sd">                                (default: None, which means use self.rnom)</span>
+<span class="sd">            file_type (str):    The type of file to write (&#39;ASCII&#39; or &#39;FITS&#39;).  (default: determine</span>
+<span class="sd">                                the type automatically from the extension of file_name.)</span>
+<span class="sd">            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;</span>
+<span class="sd">                                this value can also be given in the constructor in the config dict.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Writing Map^3 from GGG correlations to </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">file_name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">R</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">R</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rnom1d</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculateMap3</span><span class="p">(</span><span class="n">R</span><span class="o">=</span><span class="n">R</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">precision</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">precision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;precision&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+
+        <span class="n">col_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">,</span><span class="s1">&#39;Map3&#39;</span><span class="p">,</span><span class="s1">&#39;Map2Mx&#39;</span><span class="p">,</span> <span class="s1">&#39;MapMx2&#39;</span><span class="p">,</span> <span class="s1">&#39;Mx3&#39;</span><span class="p">,</span><span class="s1">&#39;sig_map&#39;</span><span class="p">]</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span> <span class="n">R</span><span class="p">,</span> <span class="n">stats</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">stats</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">stats</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">stats</span><span class="p">[</span><span class="mi">7</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">stats</span><span class="p">[</span><span class="mi">8</span><span class="p">])</span> <span class="p">]</span>
+        <span class="k">with</span> <span class="n">make_writer</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">file_type</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">col_names</span><span class="p">,</span> <span class="n">columns</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Mike Jarvis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

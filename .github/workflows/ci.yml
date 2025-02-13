@@ -27,7 +27,7 @@ jobs:
             matrix:
                 # First all python versions in basic linux
                 os: [ ubuntu-latest ]
-                py: [ 3.8, 3.9, '3.10', 3.11, 3.12, 3.13, 'pypy-3.10' ]
+                py: [ 3.8, 3.9, '3.10', 3.11, 3.12, 3.13 ]
                 CC: [ gcc ]
                 CXX: [ g++ ]
 
@@ -119,12 +119,7 @@ jobs:
                 # Extra packages needed for testing
                 pip install -U coverage mockmpi pytest
 
-                # Note: I'd rather include h5py here, but I can't get it to install properly
-                # on GHA for pypy3.  So only do that for regular py3.
-
             - name: Install test dependencies
-              # They are slow to install on pypy, where some are installed from scratch.
-              if: matrix.py > 3.0
               run: |
                 pip install -U matplotlib nbval ipykernel scipy pandas h5py pyarrow
 
@@ -166,8 +161,8 @@ jobs:
             - name: Test MPI
               # The code is already mostly checked in the main tests with mock_mpi.
               # These just check that the code works when run in a real mpi session.
-              # Skip windows and pypy for this.
-              if: (matrix.os != 'windows-2019') && (matrix.py > 3.0)
+              # Skip windows for this.
+              if: matrix.os != 'windows-2019'
               run: |
                 cd tests
                 which -a mpiexec

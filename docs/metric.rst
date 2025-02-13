@@ -91,7 +91,7 @@ two points, and
 
 or, for 3-point correlations
 
-:math:`L \eqiv \frac{p1 + p2 + p3}{3}`.
+:math:`L \equiv \frac{p1 + p2 + p3}{3}`.
 
 Then
 

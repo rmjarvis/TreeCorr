@@ -1068,7 +1068,7 @@ class Corr2(object):
 
         This accumulates the weighted sums into the bins, but does not finalize
         the calculation by dividing by the total weight at the end.  After
-        calling this function as often as desired, the `finalize` command will
+        calling this function as often as desired, the ``finalize`` command will
         finish the calculation.
 
         Parameters:

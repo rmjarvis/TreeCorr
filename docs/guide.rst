@@ -281,7 +281,7 @@ function, you could write the following::
 
 In addition to `process_cross <Corr2.process_cross>`,
 classes that allow auto-correlations have a
-`process_auto <BaseZZCorrelation.process_auto>` method for manually processing
+`process_auto <Corr2.process_auto>` method for manually processing
 auto-correlations.  See the doc strings for these methods for more information.
 
 Breaking up the calculation manually like this is probably not often necessary anymore.

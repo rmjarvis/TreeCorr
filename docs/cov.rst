@@ -144,7 +144,7 @@ statistics) that cross between a selected patch and an unselected patch.
 for how much weight to give these pairs for jackknife and bootstrap.
 We allow the user to choose among them using the parameter ``cross_patch_weight``,
 which can be provided in the `Corr2` or `Corr3` constructor or in the call to
-`Corr2.estimate_cov` or `treecorr.estimate_multi_cov`.  The valid options are:
+`estimate_cov <Corr2.estimate_cov>` or `estimate_multi_cov`.  The valid options are:
 
 * 'simple' is the prescription that TreeCorr implicitly used prior to version 5.1,
   and it is generally the simplest treatment in each case.
@@ -171,11 +171,17 @@ which can be provided in the `Corr2` or `Corr3` constructor or in the call to
   pairs.  They find that this weight is significantly more accurate than either 'simple'
   (what they call mult) or 'mean'.
 
-The default value of ``cross_patch_weight`` is 'match' for jackknife and 'geom' for bootstrap.
-This is the recommendation of MP22, and it seems to be optimal when the field has significant
-sample variance, but not much super-sample variance.  The default for 'sample' and
-'marked_bootstrap' methods is 'simple'.  We don't see much difference between that and 'mean'
-for these methods, althought we welcome feedback from users whether 'mean' might be a better
+The default value of ``cross_patch_weight`` is 'simple' for all variance methods.
+MP22 recommends to instead use 'match' for jackknife covariances and 'geom' for
+bootstrap covariances.  In order to maintain API consistency, we haven't made this
+the default yet, but we may in a future version of TreeCorr.
+
+For now, we recommend
+explicitly setting ``cross_patch_weight`` to either 'match' or 'geom' as appropriate,
+especially if your field has significant sample variance, but not much super-sample variance,
+where these options seem to be more optimal than the default weighting.
+For 'sample' and 'marked_bootstrap', we don't see much difference between 'simple' and 'mean',
+althought we welcome feedback from users whether 'mean' might be a better
 choice for these methods.
 
 
@@ -196,7 +202,7 @@ using `Corr2.estimate_cov` or `Corr3.estimate_cov`.  E.g.::
     >>> cov_boot = ng.estimate_cov('bootstrap')
 
 Additionally, you can compute the joint covariance matrix for a number of statistics
-that were processed using the same patches with `treecorr.estimate_multi_cov`.  E.g.::
+that were processed using the same patches with `estimate_multi_cov`.  E.g.::
 
     >>> ng = treecorr.NGCorrelation(nbins=10, min_sep=1, max_sep=100)
     >>> ng.process(lens_cat, source_cat)
@@ -223,7 +229,7 @@ quantity. E.g.
 These are just examples of what kind of thing you might want. In fact, we enable
 any kind of post-processing you want to do on either a single correlation object
 (using `Corr2.estimate_cov` or `Corr3.estimate_cov`) or a list of
-correlation objects (using `treecorr.estimate_multi_cov`).
+correlation objects (using `estimate_multi_cov`).
 
 These functions take an optional ``func`` parameter, which can be any user-defined
 function that calculates the desired data vector from the given correlation(s).
@@ -269,7 +275,7 @@ catalogs, which of course are required when doing an NN correlation.
 5. It also allows you to call `dd.estimate_cov <Corr2.estimate_cov>`
    with any different method you want.
    And you can include ``dd`` in a list of correlation
-   objects passed to `treecorr.estimate_multi_cov`.
+   objects passed to `estimate_multi_cov`.
 
 Here is a worked example::
 
@@ -290,6 +296,6 @@ As mentioned above, using ``patch_centers`` is optional for ``rand``, but probab
 In the last line, it would be required that ``ng`` and ``gg`` were also made using catalogs
 with the same patch centers that ``dd`` used.
 
-The use pattern for `NNNCorrelation` is analogous, where `NNNCorrelation.calculateZeta`
+The use pattern for `NNNCorrelation` is analogous, where `calculateZeta <NNNCorrelation.calculateZeta>`
 needs to be run to get the covariance estimate, after which it may be used in a list
-past to `treecorr.estimate_multi_cov`.
+passed to `estimate_multi_cov`.

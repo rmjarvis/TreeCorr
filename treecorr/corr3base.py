@@ -89,7 +89,7 @@ class Corr3(object):
     3. The third option is a multipole expansion of the SAS description.  This idea was initially
        developed by Chen & Szapudi (2005, ApJ, 635, 743) and then further refined by
        Slepian & Eisenstein (2015, MNRAS, 454, 4142), Philcox et al (2022, MNRAS, 509, 2457),
-       and Porth et al (arXiv:2309.08601).  The latter in particular showed how to use this
+       and Porth et al (2024, A&A, 689, 227).  The latter in particular showed how to use this
        method for non-spin-0 correlations (GGG in particular).
 
        The basic idea is to do a Fourier transform of the phi binning to convert the phi

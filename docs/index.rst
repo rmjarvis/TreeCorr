@@ -12,6 +12,7 @@ TreeCorr Documentation
    correlation3
    metric
    binning
+   binning3pt
    shear
    patches
    cov

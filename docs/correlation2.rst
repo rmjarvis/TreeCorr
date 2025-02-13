@@ -2,7 +2,7 @@
 Two-point Correlation Functions
 ===============================
 
-TreeCorr can compute two- and three-point correlations for several different kinds of fields.
+TreeCorr can compute two-point correlations for several different kinds of fields.
 For notational brevity in the various classes involved, we use a single letter
 to represent each kind of field as follows:
 

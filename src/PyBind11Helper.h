@@ -15,7 +15,7 @@
 #ifndef PyBind11Helper_H
 #define PyBind11Helper_H
 
-// Python.h has to be included beore anything else, since they make some idiotic choices in
+// Python.h has to be included before anything else, since they make some idiotic choices in
 // how they structure their #defines.  But they refuse to fix.
 // cf. https://bugs.python.org/issue1045893),
 #include "Python.h"

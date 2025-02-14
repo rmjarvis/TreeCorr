@@ -45,3 +45,8 @@ New features
   The default is called "simple" and is the same behavior as what TreeCorr has been doing in
   previous versions, but we recommend users explicitly set ``cross_patch_weight`` to the
   appropriate value to take advantage of the more optimal weighting. (#180, #183)
+
+Changes from version 5.0.0 to 5.0.1
+-----------------------------------
+
+- Fixed an error in the manifest, which omitted a file from the source distribution on pypi.

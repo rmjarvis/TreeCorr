@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.5
+        uses: pypa/cibuildwheel@v2.22.0
         env:
           CIBW_BUILD: "*manylinux*"
           CIBW_SKIP: "cp36* cp37* pp* *i686"
@@ -34,7 +34,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.5
+        uses: pypa/cibuildwheel@v2.22.0
         env:
           CIBW_BUILD: "*musllinux*"
           CIBW_SKIP: "cp36* cp37* pp* *i686"
@@ -54,7 +54,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.5
+        uses: pypa/cibuildwheel@v2.22.0
         env:
           CIBW_BUILD: "*macosx*"
           CIBW_SKIP: "cp36* cp37* pp* *i686"

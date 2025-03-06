@@ -71,7 +71,7 @@ of these vectors, scaled by the relative total weight in each patch.
 
 For :math:`w_i`, we use the total weight in the correlation measurement for each patch
 divided by the total weight in all patches.  This is roughly equal to
-:math:`1/N_\mathrm{patch}` but accounts somewhat any patch-to-patch variation in area
+:math:`1/N_\mathrm{patch}` but accounts somewhat for any patch-to-patch variation in area
 that might be present.
 
 "bootstrap"

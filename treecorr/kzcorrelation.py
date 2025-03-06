@@ -98,8 +98,6 @@ class KZCorrelation(BaseKZCorrelation):
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
     hold the following attributes:
 
-    In addition, the following attributes are numpy arrays of length (nbins):
-
     Attributes:
         xi:         The correlation function, :math:`\xi(r) = \langle \kappa\, z\rangle`.
         xi_im:      The imaginary part of :math:`\xi(r)`.

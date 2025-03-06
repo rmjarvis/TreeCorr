@@ -71,7 +71,7 @@ of these vectors, scaled by the relative total weight in each patch.
 
 For :math:`w_i`, we use the total weight in the correlation measurement for each patch
 divided by the total weight in all patches.  This is roughly equal to
-:math:`1/N_\mathrm{patch}` but captures somewhat any patch-to-patch variation in area
+:math:`1/N_\mathrm{patch}` but accounts somewhat any patch-to-patch variation in area
 that might be present.
 
 "bootstrap"
@@ -148,7 +148,7 @@ which can be provided in the `Corr2` or `Corr3` constructor or in the call to
 
 * 'simple' is the prescription that TreeCorr implicitly used prior to version 5.1,
   and it is generally the simplest treatment in each case.
-  For jackknife and bootstrap, it corresponds to what MP22 call :math:`v_{\rm mult}`,
+  For jackknife and bootstrap, it corresponds to what MP22 calls :math:`v_{\rm mult}`,
   which means the weight is the product of the two patch weights.
   For jackknife, the weights are all 1 or 0, so this means the pair is used only if
   both points are not in the excluded patch.  For bootstrap, the weights are some
@@ -157,10 +157,10 @@ which can be provided in the `Corr2` or `Corr3` constructor or in the call to
   For sample and marked_bootstrap, a pair is included if the first point is the selected
   sample.
 * 'mean' involves weighting pairs by the mean of the patch weights.  For jackknife, this
-  means that pairs between the unselected patch and the other one are included, but only with
+  means that pairs between the unselected patch and a selected one are included, but only with
   half the weight of other pairs.  For bootstrap, the cross pairs between selected and
   unselected patches have half the weight of the selected patch, and those between two
-  selected patch use the average weight of the two patches.  For sample and marked_bootstrap,
+  selected patches use the average weight of the two patches.  For sample and marked_bootstrap,
   the weight of pairs between the selected sample and another one is 0.5, but it includes
   pairs with the selected patch in either position.
 * 'geom' is the same as 'mean', but using the geometric mean rather than the arithmetic mean.
@@ -243,7 +243,7 @@ two NK correlations, you could find the corresponding covariance matrix as follo
     >>> nk2.process(cat2a, cat2b)
     >>> corrs = [nk1, nk2]
     >>> ratio = func(corrs)  # = nk1.xi / nk2.xi
-    >>> cov = treecorr.estimate_multi_cov(corrs, 'jackknife', func)
+    >>> cov = treecorr.estimate_multi_cov(corrs, method='jackknife', func=func)
 
 The resulting covariance matrix, ``cov``, will be the jackknife estimate for the derived
 data vector, ``ratio``.
@@ -290,7 +290,7 @@ Here is a worked example::
     >>> dd.calculateXi(rr=rr, dr=dr)
     >>> dd_cov = dd.cov  # Can access covariance now.
     >>> dd_cov_bs = dd.estimate_cov(method='bootstrap') # Or calculate a different one.
-    >>> txcov = treecorr.estimate_multi_cov([ng,gg,dd], 'bootstrap') # Or include in multi_cov
+    >>> tx_cov = treecorr.estimate_multi_cov([ng,gg,dd], 'bootstrap') # Or include in multi_cov
 
 As mentioned above, using ``patch_centers`` is optional for ``rand``, but probably recommended.
 In the last line, it would be required that ``ng`` and ``gg`` were also made using catalogs
@@ -299,3 +299,21 @@ with the same patch centers that ``dd`` used.
 The use pattern for `NNNCorrelation` is analogous, where `calculateZeta <NNNCorrelation.calculateZeta>`
 needs to be run to get the covariance estimate, after which it may be used in a list
 passed to `estimate_multi_cov`.
+
+Design Matrix
+-------------
+
+Occasionally, it can be useful to access the design matrix that would be used to compute the
+covariance matrix.  This is the matrix where each row is the :math:`\xi_i` vector as
+described `above <Variance Methods>`.
+
+This matrix is available using a parallel pair of functions to `estimate_cov <Corr2.estimate_cov>`
+and `estimate_multi_cov`.  Namely `build_cov_design_matrix <Corr2.build_cov_design_matrix>`
+and `build_multi_cov_design_matrix`.  E.g.::
+
+    >>> A_ng_jk, w = ng.build_cov_design_matrix(method='jackknife')
+    >>> A_tx_bs, w = treecorr.build_multi_cov_design_matrix([ng,gg,dd], method='bootstrap')
+
+The second value returned here (``w``) is a vector of the total weight for each row.  Most methods
+ignore this quantity, but the 'sample' method uses this to weight the rows when building the
+covariance matrix.

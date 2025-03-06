@@ -16,7 +16,7 @@ to represent each kind of field as follows:
 * G represents a complex, spin-2 shear field.  Spin-2 means that the complex value changes
   by :math:`\exp(2i \phi)` when the orientation is rotated by an angle :math:`\phi`.  The letter
   g is commonly used for reduced shear in the weak lensing context (and :math:`\gamma` is the
-  unreduced shear), which is a spin-2 field, hence our use of G for spin-2 fields in Treecorr.
+  unreduced shear), which is a spin-2 field, hence our use of G for spin-2 fields in TreeCorr.
 
 We have not yet implemented complex fields with spin 0, 1, 3 or 4 (called Z, V, T, and Q
 respectively) as we have for two-point functions.  If you have a use case that requires any

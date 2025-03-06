@@ -69,6 +69,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#covariance-matrix">Covariance Matrix</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#covariance-of-derived-quantities">Covariance of Derived Quantities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#random-catalogs">Random Catalogs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#design-matrix">Design Matrix</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
@@ -159,7 +160,7 @@ of these vectors, scaled by the relative total weight in each patch.</p>
 \[C = \frac{1}{N_\mathrm{patch} - 1} \sum_i w_i (\xi_i - \bar\xi)^T (\xi_i-\bar\xi)\]</div>
 <p>For <span class="math notranslate nohighlight">\(w_i\)</span>, we use the total weight in the correlation measurement for each patch
 divided by the total weight in all patches.  This is roughly equal to
-<span class="math notranslate nohighlight">\(1/N_\mathrm{patch}\)</span> but captures somewhat any patch-to-patch variation in area
+<span class="math notranslate nohighlight">\(1/N_\mathrm{patch}\)</span> but accounts somewhat any patch-to-patch variation in area
 that might be present.</p>
 </section>
 <section id="bootstrap">
@@ -223,7 +224,7 @@ which can be provided in the <a class="reference internal" href="correlation2.ht
 <ul class="simple">
 <li><p>‘simple’ is the prescription that TreeCorr implicitly used prior to version 5.1,
 and it is generally the simplest treatment in each case.
-For jackknife and bootstrap, it corresponds to what MP22 call <span class="math notranslate nohighlight">\(v_{\rm mult}\)</span>,
+For jackknife and bootstrap, it corresponds to what MP22 calls <span class="math notranslate nohighlight">\(v_{\rm mult}\)</span>,
 which means the weight is the product of the two patch weights.
 For jackknife, the weights are all 1 or 0, so this means the pair is used only if
 both points are not in the excluded patch.  For bootstrap, the weights are some
@@ -232,10 +233,10 @@ Cross patch pairs are included at the product of the multipilicity of the two pa
 For sample and marked_bootstrap, a pair is included if the first point is the selected
 sample.</p></li>
 <li><p>‘mean’ involves weighting pairs by the mean of the patch weights.  For jackknife, this
-means that pairs between the unselected patch and the other one are included, but only with
+means that pairs between the unselected patch and a selected one are included, but only with
 half the weight of other pairs.  For bootstrap, the cross pairs between selected and
 unselected patches have half the weight of the selected patch, and those between two
-selected patch use the average weight of the two patches.  For sample and marked_bootstrap,
+selected patches use the average weight of the two patches.  For sample and marked_bootstrap,
 the weight of pairs between the selected sample and another one is 0.5, but it includes
 pairs with the selected patch in either position.</p></li>
 <li><p>‘geom’ is the same as ‘mean’, but using the geometric mean rather than the arithmetic mean.
@@ -311,7 +312,7 @@ two NK correlations, you could find the corresponding covariance matrix as follo
 <span class="gp">&gt;&gt;&gt; </span><span class="n">nk2</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat2a</span><span class="p">,</span> <span class="n">cat2b</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">corrs</span> <span class="o">=</span> <span class="p">[</span><span class="n">nk1</span><span class="p">,</span> <span class="n">nk2</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ratio</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">corrs</span><span class="p">)</span>  <span class="c1"># = nk1.xi / nk2.xi</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">estimate_multi_cov</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="s1">&#39;jackknife&#39;</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cov</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">estimate_multi_cov</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;jackknife&#39;</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="n">func</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The resulting covariance matrix, <code class="docutils literal notranslate"><span class="pre">cov</span></code>, will be the jackknife estimate for the derived
@@ -357,7 +358,7 @@ objects passed to <a class="reference internal" href="correlation2.html#treecorr
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dd</span><span class="o">.</span><span class="n">calculateXi</span><span class="p">(</span><span class="n">rr</span><span class="o">=</span><span class="n">rr</span><span class="p">,</span> <span class="n">dr</span><span class="o">=</span><span class="n">dr</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dd_cov</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">cov</span>  <span class="c1"># Can access covariance now.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dd_cov_bs</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">estimate_cov</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;bootstrap&#39;</span><span class="p">)</span> <span class="c1"># Or calculate a different one.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">txcov</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">estimate_multi_cov</span><span class="p">([</span><span class="n">ng</span><span class="p">,</span><span class="n">gg</span><span class="p">,</span><span class="n">dd</span><span class="p">],</span> <span class="s1">&#39;bootstrap&#39;</span><span class="p">)</span> <span class="c1"># Or include in multi_cov</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tx_cov</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">estimate_multi_cov</span><span class="p">([</span><span class="n">ng</span><span class="p">,</span><span class="n">gg</span><span class="p">,</span><span class="n">dd</span><span class="p">],</span> <span class="s1">&#39;bootstrap&#39;</span><span class="p">)</span> <span class="c1"># Or include in multi_cov</span>
 </pre></div>
 </div>
 <p>As mentioned above, using <code class="docutils literal notranslate"><span class="pre">patch_centers</span></code> is optional for <code class="docutils literal notranslate"><span class="pre">rand</span></code>, but probably recommended.
@@ -366,6 +367,22 @@ with the same patch centers that <code class="docutils literal notranslate"><spa
 <p>The use pattern for <a class="reference internal" href="nnn.html#treecorr.NNNCorrelation" title="treecorr.NNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNNCorrelation</span></code></a> is analogous, where <a class="reference internal" href="nnn.html#treecorr.NNNCorrelation.calculateZeta" title="treecorr.NNNCorrelation.calculateZeta"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">calculateZeta</span></code></a>
 needs to be run to get the covariance estimate, after which it may be used in a list
 passed to <a class="reference internal" href="correlation2.html#treecorr.estimate_multi_cov" title="treecorr.estimate_multi_cov"><code class="xref any py py-func docutils literal notranslate"><span class="pre">estimate_multi_cov</span></code></a>.</p>
+</section>
+<section id="design-matrix">
+<h2>Design Matrix<a class="headerlink" href="#design-matrix" title="Permalink to this heading"></a></h2>
+<p>Occasionally, it can be useful to access the design matrix that would be used to compute the
+covariance matrix.  This is the matrix where each row is the <span class="math notranslate nohighlight">\(\xi_i\)</span> vector as
+described <a class="reference internal" href="#variance-methods"><span class="std std-ref">above</span></a>.</p>
+<p>This matrix is available using a parallel pair of functions to <a class="reference internal" href="correlation2.html#treecorr.Corr2.estimate_cov" title="treecorr.Corr2.estimate_cov"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">estimate_cov</span></code></a>
+and <a class="reference internal" href="correlation2.html#treecorr.estimate_multi_cov" title="treecorr.estimate_multi_cov"><code class="xref any py py-func docutils literal notranslate"><span class="pre">estimate_multi_cov</span></code></a>.  Namely <a class="reference internal" href="correlation2.html#treecorr.Corr2.build_cov_design_matrix" title="treecorr.Corr2.build_cov_design_matrix"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">build_cov_design_matrix</span></code></a>
+and <a class="reference internal" href="correlation2.html#treecorr.build_multi_cov_design_matrix" title="treecorr.build_multi_cov_design_matrix"><code class="xref any py py-func docutils literal notranslate"><span class="pre">build_multi_cov_design_matrix</span></code></a>.  E.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">A_ng_jk</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">ng</span><span class="o">.</span><span class="n">build_cov_design_matrix</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;jackknife&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A_tx_bs</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">build_multi_cov_design_matrix</span><span class="p">([</span><span class="n">ng</span><span class="p">,</span><span class="n">gg</span><span class="p">,</span><span class="n">dd</span><span class="p">],</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;bootstrap&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The second value returned here (<code class="docutils literal notranslate"><span class="pre">w</span></code>) is a vector of the total weight for each row.  Most methods
+ignore this quantity, but the ‘sample’ method uses this to weight the rows when building the
+covariance matrix.</p>
 </section>
 </section>
 

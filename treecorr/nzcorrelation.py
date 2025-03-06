@@ -53,7 +53,6 @@ class BaseNZCorrelation(Corr2):
         return self._xi[1]
 
     def copy(self):
-        """Make a copy"""
         ret = super().copy()
         if self.xi is self.raw_xi:
             ret.xi = ret.raw_xi

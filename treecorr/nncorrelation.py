@@ -92,7 +92,6 @@ class NNCorrelation(Corr2):
         self.logger.debug('Finished building NNCorr')
 
     def copy(self):
-        """Make a copy"""
         ret = super().copy()
         # True is possible during read before we finish reading in these attributes.
         if self._rr is not None and self._rr is not True:
@@ -156,19 +155,10 @@ class NNCorrelation(Corr2):
         return self.nonzero
 
     def _clear(self):
-        """Clear the data vectors
-        """
         super()._clear()
         self.tot = 0.
 
     def __iadd__(self, other):
-        """Add a second Correlation object's data to this one.
-
-        .. note::
-
-            For this to make sense, both objects should not have had `finalize` called yet.
-            Then, after adding them together, you should call `finalize` on the sum.
-        """
         super().__iadd__(other)
         self.tot += other.tot
         return self

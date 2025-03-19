@@ -1165,6 +1165,17 @@ class Corr2(object):
         Both arguments may be lists, in which case all items in the list are used
         for that element of the correlation.
 
+        In addition to computing the correlation function, this function also computes a
+        few ancillary quantities that are useful for interpreting the resulting correlation
+        function, including the attributes ``meanr``, ``meanlogr`` and ``npairs``.  For most
+        use cases these calculation impart negligible overhead to the calculation time.
+        The exception is `NNCorrelation`, where they can result in somthing like 20-30%
+        overhead in the compute time.  So if you want to optimize the efficiency of the
+        calculation, we provide the option ``corr_only=True``, which skips these computations.
+        In this case the resulting ``meanr`` and ``meanlogr`` attributes are the nominal
+        centers of the bins, not the actual mean values.  And ``npairs`` is estimated from
+        the total computed ``weight`` and the mean weight in the catalogs.
+
         Parameters:
             cat1 (Catalog):     A catalog or list of catalogs for the first field.
             cat2 (Catalog):     A catalog or list of catalogs for the second field, if any.
@@ -1186,7 +1197,7 @@ class Corr2(object):
                                 (default: True)
             patch_method (str): Which patch method to use. (default: 'global')
             corr_only (bool):   Whether to skip summing quantities that are not essential for
-                                computing the correlation function. (default: False)
+                                computing the correlation function. (default: False; see above)
         """
         import math
 

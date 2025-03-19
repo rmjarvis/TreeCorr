@@ -2123,6 +2123,16 @@ class Corr3(object):
             but P1 and P2 will each come from one of cat1 or cat2 in either order.
             This option is only valid when all three catalogs (cat1, cat2, cat3) are given.
 
+        In addition to computing the correlation function, this function also computes a
+        number of ancillary quantities that are useful for interpreting the resulting correlation
+        function, including the attributes ``meand1``, ``meanlogd1``, etc.  These almost never
+        impart significant extra computation time for three-point correlations, but we provide
+        the option ``corr_only=True`` in analogy to the `two-point version <Corr2.process>`,
+        which skips these computations.  In this case the resulting ``meand?`` and ``meanlogd?``
+        attributes are the values for the nominal centers of the bins, not the actual mean values.
+        And ``ntri`` is estimated from the total computed ``weight`` and the mean weight in the
+        catalogs.
+
         Parameters:
             cat1 (Catalog):     A catalog or list of catalogs for the first field.
             cat2 (Catalog):     A catalog or list of catalogs for the second field.

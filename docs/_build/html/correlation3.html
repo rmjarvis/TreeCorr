@@ -860,6 +860,15 @@ vertices are unordered.  E.g. if ordered=3, then P3 will always come from cat3,
 but P1 and P2 will each come from one of cat1 or cat2 in either order.
 This option is only valid when all three catalogs (cat1, cat2, cat3) are given.</p>
 </div>
+<p>In addition to computing the correlation function, this function also computes a
+number of ancillary quantities that are useful for interpreting the resulting correlation
+function, including the attributes <code class="docutils literal notranslate"><span class="pre">meand1</span></code>, <code class="docutils literal notranslate"><span class="pre">meanlogd1</span></code>, etc.  These almost never
+impart significant extra computation time for three-point correlations, but we provide
+the option <code class="docutils literal notranslate"><span class="pre">corr_only=True</span></code> in analogy to the <a class="reference internal" href="correlation2.html#treecorr.Corr2.process" title="treecorr.Corr2.process"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">two-point</span> <span class="pre">version</span></code></a>,
+which skips these computations.  In this case the resulting <code class="docutils literal notranslate"><span class="pre">meand?</span></code> and <code class="docutils literal notranslate"><span class="pre">meanlogd?</span></code>
+attributes are the values for the nominal centers of the bins, not the actual mean values.
+And <code class="docutils literal notranslate"><span class="pre">ntri</span></code> is estimated from the total computed <code class="docutils literal notranslate"><span class="pre">weight</span></code> and the mean weight in the
+catalogs.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

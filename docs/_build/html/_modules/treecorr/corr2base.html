@@ -1252,6 +1252,17 @@
 <span class="sd">        Both arguments may be lists, in which case all items in the list are used</span>
 <span class="sd">        for that element of the correlation.</span>
 
+<span class="sd">        In addition to computing the correlation function, this function also computes a</span>
+<span class="sd">        few ancillary quantities that are useful for interpreting the resulting correlation</span>
+<span class="sd">        function, including the attributes ``meanr``, ``meanlogr`` and ``npairs``.  For most</span>
+<span class="sd">        use cases these calculation impart negligible overhead to the calculation time.</span>
+<span class="sd">        The exception is `NNCorrelation`, where they can result in somthing like 20-30%</span>
+<span class="sd">        overhead in the compute time.  So if you want to optimize the efficiency of the</span>
+<span class="sd">        calculation, we provide the option ``corr_only=True``, which skips these computations.</span>
+<span class="sd">        In this case the resulting ``meanr`` and ``meanlogr`` attributes are the nominal</span>
+<span class="sd">        centers of the bins, not the actual mean values.  And ``npairs`` is estimated from</span>
+<span class="sd">        the total computed ``weight`` and the mean weight in the catalogs.</span>
+
 <span class="sd">        Parameters:</span>
 <span class="sd">            cat1 (Catalog):     A catalog or list of catalogs for the first field.</span>
 <span class="sd">            cat2 (Catalog):     A catalog or list of catalogs for the second field, if any.</span>
@@ -1273,7 +1284,7 @@
 <span class="sd">                                (default: True)</span>
 <span class="sd">            patch_method (str): Which patch method to use. (default: &#39;global&#39;)</span>
 <span class="sd">            corr_only (bool):   Whether to skip summing quantities that are not essential for</span>
-<span class="sd">                                computing the correlation function. (default: False)</span>
+<span class="sd">                                computing the correlation function. (default: False; see above)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">math</span>
 

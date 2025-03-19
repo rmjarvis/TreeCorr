@@ -2210,6 +2210,16 @@
 <span class="sd">            but P1 and P2 will each come from one of cat1 or cat2 in either order.</span>
 <span class="sd">            This option is only valid when all three catalogs (cat1, cat2, cat3) are given.</span>
 
+<span class="sd">        In addition to computing the correlation function, this function also computes a</span>
+<span class="sd">        number of ancillary quantities that are useful for interpreting the resulting correlation</span>
+<span class="sd">        function, including the attributes ``meand1``, ``meanlogd1``, etc.  These almost never</span>
+<span class="sd">        impart significant extra computation time for three-point correlations, but we provide</span>
+<span class="sd">        the option ``corr_only=True`` in analogy to the `two-point version &lt;Corr2.process&gt;`,</span>
+<span class="sd">        which skips these computations.  In this case the resulting ``meand?`` and ``meanlogd?``</span>
+<span class="sd">        attributes are the values for the nominal centers of the bins, not the actual mean values.</span>
+<span class="sd">        And ``ntri`` is estimated from the total computed ``weight`` and the mean weight in the</span>
+<span class="sd">        catalogs.</span>
+
 <span class="sd">        Parameters:</span>
 <span class="sd">            cat1 (Catalog):     A catalog or list of catalogs for the first field.</span>
 <span class="sd">            cat2 (Catalog):     A catalog or list of catalogs for the second field.</span>

@@ -693,6 +693,16 @@ raveled for TwoD and duplicated for <a class="reference internal" href="gg.html#
 </ul>
 <p>Both arguments may be lists, in which case all items in the list are used
 for that element of the correlation.</p>
+<p>In addition to computing the correlation function, this function also computes a
+few ancillary quantities that are useful for interpreting the resulting correlation
+function, including the attributes <code class="docutils literal notranslate"><span class="pre">meanr</span></code>, <code class="docutils literal notranslate"><span class="pre">meanlogr</span></code> and <code class="docutils literal notranslate"><span class="pre">npairs</span></code>.  For most
+use cases these calculation impart negligible overhead to the calculation time.
+The exception is <a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNCorrelation</span></code></a>, where they can result in somthing like 20-30%
+overhead in the compute time.  So if you want to optimize the efficiency of the
+calculation, we provide the option <code class="docutils literal notranslate"><span class="pre">corr_only=True</span></code>, which skips these computations.
+In this case the resulting <code class="docutils literal notranslate"><span class="pre">meanr</span></code> and <code class="docutils literal notranslate"><span class="pre">meanlogr</span></code> attributes are the nominal
+centers of the bins, not the actual mean values.  And <code class="docutils literal notranslate"><span class="pre">npairs</span></code> is estimated from
+the total computed <code class="docutils literal notranslate"><span class="pre">weight</span></code> and the mean weight in the catalogs.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -716,7 +726,7 @@ This only works if using patches. (default: False)</p></li>
 (default: True)</p></li>
 <li><p><strong>patch_method</strong> (<em>str</em>) – Which patch method to use. (default: ‘global’)</p></li>
 <li><p><strong>corr_only</strong> (<em>bool</em>) – Whether to skip summing quantities that are not essential for
-computing the correlation function. (default: False)</p></li>
+computing the correlation function. (default: False; see above)</p></li>
 </ul>
 </dd>
 </dl>

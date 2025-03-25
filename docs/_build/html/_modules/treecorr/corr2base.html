@@ -1537,7 +1537,8 @@
 <span class="sd">            func (function):    A unary function that acts on the current correlation object and</span>
 <span class="sd">                                returns the desired data vector. (default: None, which is</span>
 <span class="sd">                                equivalent to ``lambda corr: corr.getStat()``.)</span>
-<span class="sd">            comm (mpi comm)     If not None, run under MPI (default: None)</span>
+<span class="sd">            comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between</span>
+<span class="sd">                                processes.  (default: None)</span>
 <span class="sd">            num_bootstrap (int): How many bootstrap samples to use for the &#39;bootstrap&#39; and</span>
 <span class="sd">                                &#39;marked_bootstrap&#39; var_methods.  (default: 500; this value</span>
 <span class="sd">                                can also be given in the constructor.)</span>
@@ -1592,7 +1593,8 @@
 <span class="sd">            func (function):    A unary function that takes the list ``corrs`` and returns the</span>
 <span class="sd">                                desired full data vector. (default: None, which is equivalent to</span>
 <span class="sd">                                ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``)</span>
-<span class="sd">            comm (mpi comm)     If not None, run under MPI (default: None)</span>
+<span class="sd">            comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between</span>
+<span class="sd">                                processes.  (default: None)</span>
 <span class="sd">            num_bootstrap (int): How many bootstrap samples to use for the &#39;bootstrap&#39; and</span>
 <span class="sd">                                &#39;marked_bootstrap&#39; var_methods.  (default: 500; this value</span>
 <span class="sd">                                can also be given in the constructor.)</span>
@@ -2136,7 +2138,9 @@
 
 <span class="sd">            The current object should be constructed with the same configuration parameters as</span>
 <span class="sd">            the one being read.  e.g. the same min_sep, max_sep, etc.  This is not checked by</span>
-<span class="sd">            the read function.</span>
+<span class="sd">            the read function.  For most use cases, you should prefer `from_file`, which will</span>
+<span class="sd">            automatically construct the object with the correct configuration parameters given</span>
+<span class="sd">            the information in the file.</span>
 
 <span class="sd">        Parameters:</span>
 <span class="sd">            file_name (str):    The name of the file to read in.</span>
@@ -2299,7 +2303,8 @@
 <span class="sd">        func (function):    A unary function that takes the list ``corrs`` and returns the</span>
 <span class="sd">                            desired full data vector. (default: None, which is equivalent to</span>
 <span class="sd">                            ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``)</span>
-<span class="sd">        comm (mpi comm)     If not None, run under MPI (default: None)</span>
+<span class="sd">        comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between</span>
+<span class="sd">                            processes.  (default: None)</span>
 <span class="sd">        num_bootstrap (int): How many bootstrap samples to use for the &#39;bootstrap&#39; and</span>
 <span class="sd">                            &#39;marked_bootstrap&#39; var_methods.  (default: 500)</span>
 <span class="sd">        cross_patch_weight (str): How to weight pairs that cross between two patches when one</span>
@@ -2360,7 +2365,8 @@
 <span class="sd">        func (function):    A unary function that takes the list ``corrs`` and returns the</span>
 <span class="sd">                            desired full data vector. (default: None, which is equivalent to</span>
 <span class="sd">                            ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``)</span>
-<span class="sd">        comm (mpi comm)     If not None, run under MPI (default: None)</span>
+<span class="sd">        comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between</span>
+<span class="sd">                            processes.  (default: None)</span>
 <span class="sd">        num_bootstrap (int): How many bootstrap samples to use for the &#39;bootstrap&#39; and</span>
 <span class="sd">                            &#39;marked_bootstrap&#39; var_methods.  (default: 500)</span>
 <span class="sd">        cross_patch_weight (str): How to weight pairs that cross between two patches when one</span>

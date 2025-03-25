@@ -615,7 +615,8 @@ here in case they are useful.</p>
 <li><p><strong>func</strong> (<em>function</em>) – A unary function that takes the list <code class="docutils literal notranslate"><span class="pre">corrs</span></code> and returns the
 desired full data vector. (default: None, which is equivalent to
 <code class="docutils literal notranslate"><span class="pre">lambda</span> <span class="pre">corrs:</span> <span class="pre">np.concatenate([c.getStat()</span> <span class="pre">for</span> <span class="pre">c</span> <span class="pre">in</span> <span class="pre">corrs])</span></code>)</p></li>
-<li><p><strong>comm</strong> (<em>mpi comm</em>) – None)</p></li>
+<li><p><strong>comm</strong> (<em>mpi4py.Comm</em>) – If using MPI, an mpi4py Comm object to communicate between
+processes.  (default: None)</p></li>
 <li><p><strong>num_bootstrap</strong> (<em>int</em>) – How many bootstrap samples to use for the ‘bootstrap’ and
 ‘marked_bootstrap’ var_methods.  (default: 500; this value
 can also be given in the constructor.)</p></li>
@@ -750,7 +751,8 @@ If method == “shot” then parallelization has no effect.</p>
 <li><p><strong>func</strong> (<em>function</em>) – A unary function that acts on the current correlation object and
 returns the desired data vector. (default: None, which is
 equivalent to <code class="docutils literal notranslate"><span class="pre">lambda</span> <span class="pre">corr:</span> <span class="pre">corr.getStat()</span></code>)</p></li>
-<li><p><strong>comm</strong> (<em>mpi comm</em>) – None)</p></li>
+<li><p><strong>comm</strong> (<em>mpi4py.Comm</em>) – If using MPI, an mpi4py Comm object to communicate between
+processes.  (default: None)</p></li>
 <li><p><strong>num_bootstrap</strong> (<em>int</em>) – How many bootstrap samples to use for the ‘bootstrap’ and
 ‘marked_bootstrap’ var_methods.  (default: 500; this value
 can also be given in the constructor.)</p></li>
@@ -1042,7 +1044,9 @@ there is no loss of information.</p>
 <p class="admonition-title">Warning</p>
 <p>The current object should be constructed with the same configuration parameters as
 the one being read.  e.g. the same min_sep, max_sep, etc.  This is not checked by
-the read function.</p>
+the read function.  For most use cases, you should prefer <a class="reference internal" href="#treecorr.Corr3.from_file" title="treecorr.Corr3.from_file"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">from_file</span></code></a>, which will
+automatically construct the object with the correct configuration parameters given
+the information in the file.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>

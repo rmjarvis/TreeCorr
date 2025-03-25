@@ -2160,7 +2160,7 @@ class Corr3(object):
                                 bin_type=LogMultipole, and 'global' otherwise)
             algo (str):         Which accumulation algorithm to use. (options are 'triangle' or
                                 'multipole'; default is 'multipole' unless bin_type is 'LogRUV',
-                                which can only use 'triangle')
+                                which can only use 'triangle')  cf. `Three-point Algorithm`.
             max_n (int):        If using the multpole algorithm, and this is not directly using
                                 bin_type='LogMultipole', then this is the value of max_n to use
                                 for the multipole part of the calculation. (default is to use

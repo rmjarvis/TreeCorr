@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Binning for 3-point correlations &mdash; TreeCorr 5.1.1 documentation</title>
+  <title>Binning for three-point correlations &mdash; TreeCorr 5.1.1 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -53,10 +53,11 @@
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metric.html">Metrics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="binning.html">Binning</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Binning for 3-point correlations</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Binning for three-point correlations</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#logruv">“LogRUV”</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#logsas">“LogSAS”</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#logmultipole">“LogMultipole”</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#three-point-algorithm">Three-point Algorithm</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="shear.html">Shear Conventions</a></li>
@@ -83,7 +84,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Binning for 3-point correlations</li>
+      <li class="breadcrumb-item active">Binning for three-point correlations</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/binning3pt.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -93,8 +94,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="binning-for-3-point-correlations">
-<h1>Binning for 3-point correlations<a class="headerlink" href="#binning-for-3-point-correlations" title="Permalink to this heading"></a></h1>
+  <section id="binning-for-three-point-correlations">
+<h1>Binning for three-point correlations<a class="headerlink" href="#binning-for-three-point-correlations" title="Permalink to this heading"></a></h1>
 <p>The binning in the three-point case is somewhat more complicated than for
 two-point functions, since we need to characterize the geometry of triangles.
 There are currently three different binnings available, which
@@ -139,6 +140,14 @@ in many use cases.  So we need to keep track of that.  We choose to do so in the
 sign of <span class="math notranslate nohighlight">\(v\)</span>, where positive values mean that the sides <span class="math notranslate nohighlight">\(d_1\)</span>,
 <span class="math notranslate nohighlight">\(d_2\)</span> and <span class="math notranslate nohighlight">\(d_3\)</span> are oriented in counter-clockwise order.
 Negative values of <span class="math notranslate nohighlight">\(v\)</span> mean they are oriented in clockwise order.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This binning can only use the ‘triangle’ algorithm, which is generally much
+slower than the ‘multipole’ algorithm.  For most purposes, we recommend using
+<a class="reference internal" href="#logsas"><span class="std std-ref">“LogSAS”</span></a> instead, which can use the ‘multpole’ algorithm to calculate the
+correlation function.  See <a class="reference internal" href="#three-point-algorithm"><span class="std std-ref">Three-point Algorithm</span></a> below for more discussion
+about this.</p>
+</div>
 <p>The binning of <span class="math notranslate nohighlight">\(r\)</span> works the same was as <a class="reference internal" href="binning.html#log"><span class="std std-ref">“Log”</span></a> for two-point correlations.
 That is, the binning is specified using any 3 of the following 4 parameters:</p>
 <blockquote>
@@ -221,7 +230,7 @@ for <span class="math notranslate nohighlight">\(\phi\)</span> within the range 
 calculation, since it can be done with a kind of 2-point calculation.
 We provide methods to convert the multipole output into the SAS binning if desired, since
 that is often more convenient in practice.</p>
-<p>As for <a class="reference internal" href="#logsas"><span class="std std-ref">“LogSAS”</span></a>, the sides <span class="math notranslate nohighlight">\(d_2\)</span> and <span class="math notranslate nohighlight">\(d_3\)</span> are binned logarithmically
+<p>As for “LogSAS”, the sides <span class="math notranslate nohighlight">\(d_2\)</span> and <span class="math notranslate nohighlight">\(d_3\)</span> are binned logarithmically
 according to the parameters</p>
 <blockquote>
 <div><ul class="simple">
@@ -239,6 +248,29 @@ a single parameter:</p>
 </ul>
 </div></blockquote>
 <p>The multipole values range from <span class="math notranslate nohighlight">\(-n_{\rm max}\)</span> to <span class="math notranslate nohighlight">\(+n_{\rm max}\)</span> inclusive.</p>
+</section>
+<section id="three-point-algorithm">
+<h2>Three-point Algorithm<a class="headerlink" href="#three-point-algorithm" title="Permalink to this heading"></a></h2>
+<p>An important consideration related to the choice of binning for three-point correlations is
+the algorithm used to compute the correlations.  The original algorithm used by TreeCorr
+prior to version 5.0 is now called the ‘triangle’ algorithm.  This was described in
+<a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2004MNRAS.352..338J/abstract">Jarvis, Bernstein &amp; Jain (2004, MNRAS, 352, 338)</a>,
+section 4.2. (We no longer implement the algorithm described in section 4.3 due to memory
+considerations.)  This algorithm is much faster than a brute-force calculation, but it is
+still quite slow compared to the new multipole algorithm.</p>
+<p>Starting in version 5.0, we now also implement the algorthm developed by
+<a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2024A%26A...689A.227P/abstract">Porth et al (2024, A&amp;A, 689, 224)</a>,
+called ‘multipole’ in TreeCorr, which is much faster for typical data sets.
+This algorithm is directly used for
+<a class="reference internal" href="#logmultipole"><span class="std std-ref">“LogMultipole”</span></a> binning, but it is also available for <a class="reference internal" href="#logsas"><span class="std std-ref">“LogSAS”</span></a>.  In the latter case, TreeCorr
+first computes the correlation using the “LogMultipole” binning. Then it essentially does
+a Fourier transform to convert the results to “LogSAS” binning.  This is the default
+algorithm for “LogSAS” binning, but if desired, you may also use <code class="docutils literal notranslate"><span class="pre">algo='triangle'</span></code> to
+use the ‘triangle’ algorithm.  (We use comparisons between the two algorithms extensively in
+the unit tests.)</p>
+<p>There is not currently any way to use the ‘multipole’ algorithm with <a class="reference internal" href="#logruv"><span class="std std-ref">“LogRUV”</span></a> binning,
+which means that calculations using that binning choice tend to be a lot slower than calculations
+using “LogSAS” binning. For most use cases, we strongly recommend using “LogSAS” instead.</p>
 </section>
 </section>
 

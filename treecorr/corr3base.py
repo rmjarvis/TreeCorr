@@ -3597,7 +3597,9 @@ class Corr3(object):
 
             The current object should be constructed with the same configuration parameters as
             the one being read.  e.g. the same min_sep, max_sep, etc.  This is not checked by
-            the read function.
+            the read function.  For most use cases, you should prefer `from_file`, which will
+            automatically construct the object with the correct configuration parameters given
+            the information in the file.
 
         Parameters:
             file_name (str):    The name of the file to read in.

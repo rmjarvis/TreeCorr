@@ -2108,9 +2108,9 @@ class Corr3(object):
         used to define the binning, are taken to be opposte P1, P2, P3 respectively.
 
         However, if you want to accumulate triangles where objects from each catalog can take
-        any position in the triangles, you can set ``ordered=False``.  In this case,
-        triangles will be formed where P1, P2 and P3 can come any input catalog, so long as there
-        is one from cat1, one from cat2, and one from cat3 (or two from cat2 if cat3 is None).
+        any position in the triangles, you can set ``ordered=False``.  In this case, triangles
+        will be formed where P1, P2 and P3 can come from any input catalog, so long as there is
+        one from cat1, one from cat2, and one from cat3 (or two from cat2 if cat3 is None).
 
         All arguments may be lists, in which case all items in the list are used
         for that element of the correlation.

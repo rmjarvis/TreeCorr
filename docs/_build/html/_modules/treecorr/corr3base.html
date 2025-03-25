@@ -2195,11 +2195,11 @@
 <span class="sd">        used to define the binning, are taken to be opposte P1, P2, P3 respectively.</span>
 
 <span class="sd">        However, if you want to accumulate triangles where objects from each catalog can take</span>
-<span class="sd">        any position in the triangles, you can set ``ordered=False``.  In this case,</span>
-<span class="sd">        triangles will be formed where P1, P2 and P3 can come any input catalog, so long as there</span>
-<span class="sd">        is one from cat1, one from cat2, and one from cat3 (or two from cat2 if cat3 is None).</span>
+<span class="sd">        any position in the triangles, you can set ``ordered=False``.  In this case, triangles</span>
+<span class="sd">        will be formed where P1, P2 and P3 can come from any input catalog, so long as there is</span>
+<span class="sd">        one from cat1, one from cat2, and one from cat3 (or two from cat2 if cat3 is None).</span>
 
-<span class="sd">        All arguments may be lists, in which case all items in the list are used</span>
+<span class="sd">        All catalog arguments may be lists, in which case all items in the list are used</span>
 <span class="sd">        for that element of the correlation.</span>
 
 <span class="sd">        .. note::</span>
@@ -2247,7 +2247,7 @@
 <span class="sd">                                bin_type=LogMultipole, and &#39;global&#39; otherwise)</span>
 <span class="sd">            algo (str):         Which accumulation algorithm to use. (options are &#39;triangle&#39; or</span>
 <span class="sd">                                &#39;multipole&#39;; default is &#39;multipole&#39; unless bin_type is &#39;LogRUV&#39;,</span>
-<span class="sd">                                which can only use &#39;triangle&#39;)</span>
+<span class="sd">                                which can only use &#39;triangle&#39;)  cf. `Three-point Algorithm`.</span>
 <span class="sd">            max_n (int):        If using the multpole algorithm, and this is not directly using</span>
 <span class="sd">                                bin_type=&#39;LogMultipole&#39;, then this is the value of max_n to use</span>
 <span class="sd">                                for the multipole part of the calculation. (default is to use</span>

@@ -847,10 +847,10 @@ cat2 for the second vertex (P2), and cat3 for the third vertex (P3).  If only tw
 catalogs are given, vertices P2 and P3 both come from cat2.  The sides d1, d2, d3,
 used to define the binning, are taken to be opposte P1, P2, P3 respectively.</p>
 <p>However, if you want to accumulate triangles where objects from each catalog can take
-any position in the triangles, you can set <code class="docutils literal notranslate"><span class="pre">ordered=False</span></code>.  In this case,
-triangles will be formed where P1, P2 and P3 can come any input catalog, so long as there
-is one from cat1, one from cat2, and one from cat3 (or two from cat2 if cat3 is None).</p>
-<p>All arguments may be lists, in which case all items in the list are used
+any position in the triangles, you can set <code class="docutils literal notranslate"><span class="pre">ordered=False</span></code>.  In this case, triangles
+will be formed where P1, P2 and P3 can come from any input catalog, so long as there is
+one from cat1, one from cat2, and one from cat3 (or two from cat2 if cat3 is None).</p>
+<p>All catalog arguments may be lists, in which case all items in the list are used
 for that element of the correlation.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -898,7 +898,7 @@ This only works if using patches. (default: False)</p></li>
 bin_type=LogMultipole, and ‘global’ otherwise)</p></li>
 <li><p><strong>algo</strong> (<em>str</em>) – Which accumulation algorithm to use. (options are ‘triangle’ or
 ‘multipole’; default is ‘multipole’ unless bin_type is ‘LogRUV’,
-which can only use ‘triangle’)</p></li>
+which can only use ‘triangle’)  cf. <a class="reference internal" href="binning3pt.html#three-point-algorithm"><span class="std std-ref">Three-point Algorithm</span></a>.</p></li>
 <li><p><strong>max_n</strong> (<em>int</em>) – If using the multpole algorithm, and this is not directly using
 bin_type=’LogMultipole’, then this is the value of max_n to use
 for the multipole part of the calculation. (default is to use

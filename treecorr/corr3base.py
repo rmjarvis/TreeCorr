@@ -2756,7 +2756,8 @@ class Corr3(object):
             func (function):    A unary function that acts on the current correlation object and
                                 returns the desired data vector. (default: None, which is
                                 equivalent to ``lambda corr: corr.getStat()``)
-            comm (mpi comm)     If not None, run under MPI (default: None)
+            comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between
+                                processes.  (default: None)
             num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
                                 'marked_bootstrap' var_methods.  (default: 500; this value
                                 can also be given in the constructor.)
@@ -2811,7 +2812,8 @@ class Corr3(object):
             func (function):    A unary function that takes the list ``corrs`` and returns the
                                 desired full data vector. (default: None, which is equivalent to
                                 ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``)
-            comm (mpi comm)     If not None, run under MPI (default: None)
+            comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between
+                                processes.  (default: None)
             num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
                                 'marked_bootstrap' var_methods.  (default: 500; this value
                                 can also be given in the constructor.)

@@ -1450,7 +1450,8 @@ class Corr2(object):
             func (function):    A unary function that acts on the current correlation object and
                                 returns the desired data vector. (default: None, which is
                                 equivalent to ``lambda corr: corr.getStat()``.)
-            comm (mpi comm)     If not None, run under MPI (default: None)
+            comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between
+                                processes.  (default: None)
             num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
                                 'marked_bootstrap' var_methods.  (default: 500; this value
                                 can also be given in the constructor.)
@@ -1505,7 +1506,8 @@ class Corr2(object):
             func (function):    A unary function that takes the list ``corrs`` and returns the
                                 desired full data vector. (default: None, which is equivalent to
                                 ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``)
-            comm (mpi comm)     If not None, run under MPI (default: None)
+            comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between
+                                processes.  (default: None)
             num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
                                 'marked_bootstrap' var_methods.  (default: 500; this value
                                 can also be given in the constructor.)
@@ -2212,7 +2214,8 @@ def estimate_multi_cov(corrs, method, *, func=None, comm=None, num_bootstrap=Non
         func (function):    A unary function that takes the list ``corrs`` and returns the
                             desired full data vector. (default: None, which is equivalent to
                             ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``)
-        comm (mpi comm)     If not None, run under MPI (default: None)
+        comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between
+                            processes.  (default: None)
         num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
                             'marked_bootstrap' var_methods.  (default: 500)
         cross_patch_weight (str): How to weight pairs that cross between two patches when one
@@ -2273,7 +2276,8 @@ def build_multi_cov_design_matrix(corrs, method, *, func=None, comm=None, num_bo
         func (function):    A unary function that takes the list ``corrs`` and returns the
                             desired full data vector. (default: None, which is equivalent to
                             ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``)
-        comm (mpi comm)     If not None, run under MPI (default: None)
+        comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between
+                            processes.  (default: None)
         num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
                             'marked_bootstrap' var_methods.  (default: 500)
         cross_patch_weight (str): How to weight pairs that cross between two patches when one

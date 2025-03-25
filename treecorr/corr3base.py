@@ -2112,7 +2112,7 @@ class Corr3(object):
         will be formed where P1, P2 and P3 can come from any input catalog, so long as there is
         one from cat1, one from cat2, and one from cat3 (or two from cat2 if cat3 is None).
 
-        All arguments may be lists, in which case all items in the list are used
+        All catalog arguments may be lists, in which case all items in the list are used
         for that element of the correlation.
 
         .. note::

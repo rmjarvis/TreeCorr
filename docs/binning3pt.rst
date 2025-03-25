@@ -1,5 +1,5 @@
-Binning for 3-point correlations
-================================
+Binning for three-point correlations
+====================================
 
 The binning in the three-point case is somewhat more complicated than for
 two-point functions, since we need to characterize the geometry of triangles.
@@ -53,6 +53,14 @@ in many use cases.  So we need to keep track of that.  We choose to do so in the
 sign of :math:`v`, where positive values mean that the sides :math:`d_1`,
 :math:`d_2` and :math:`d_3` are oriented in counter-clockwise order.
 Negative values of :math:`v` mean they are oriented in clockwise order.
+
+.. warning::
+
+    This binning can only use the 'triangle' algorithm, which is generally much
+    slower than the 'multipole' algorithm.  For most purposes, we recommend using
+    `"LogSAS"` instead, which can use the 'multpole' algorithm to calculate the
+    correlation function.  See `Three-point Algorithm` below for more discussion
+    about this.
 
 The binning of :math:`r` works the same was as `"Log"` for two-point correlations.
 That is, the binning is specified using any 3 of the following 4 parameters:
@@ -141,7 +149,7 @@ calculation, since it can be done with a kind of 2-point calculation.
 We provide methods to convert the multipole output into the SAS binning if desired, since
 that is often more convenient in practice.
 
-As for `"LogSAS"`, the sides :math:`d_2` and :math:`d_3` are binned logarithmically
+As for "LogSAS", the sides :math:`d_2` and :math:`d_3` are binned logarithmically
 according to the parameters
 
     - ``nbins``         How many bins to use for d2 and d3.
@@ -155,3 +163,31 @@ a single parameter:
     - ``max_n``         The maximum multipole index n being stored.
 
 The multipole values range from :math:`-n_{\rm max}` to :math:`+n_{\rm max}` inclusive.
+
+Three-point Algorithm
+---------------------
+
+An important consideration related to the choice of binning for three-point correlations is
+the algorithm used to compute the correlations.  The original algorithm used by TreeCorr
+prior to version 5.0 is now called the 'triangle' algorithm.  This was described in
+`Jarvis, Bernstein & Jain (2004, MNRAS, 352, 338)
+<https://ui.adsabs.harvard.edu/abs/2004MNRAS.352..338J/abstract>`_,
+section 4.2. (We no longer implement the algorithm described in section 4.3 due to memory
+considerations.)  This algorithm is much faster than a brute-force calculation, but it is
+still quite slow compared to the new multipole algorithm.
+
+Starting in version 5.0, we now also implement the algorthm developed by
+`Porth et al (2024, A&A, 689, 224)
+<https://ui.adsabs.harvard.edu/abs/2024A%26A...689A.227P/abstract>`_,
+called 'multipole' in TreeCorr, which is much faster for typical data sets.
+This algorithm is directly used for
+`"LogMultipole"` binning, but it is also available for `"LogSAS"`.  In the latter case, TreeCorr
+first computes the correlation using the "LogMultipole" binning. Then it essentially does
+a Fourier transform to convert the results to "LogSAS" binning.  This is the default
+algorithm for "LogSAS" binning, but if desired, you may also use ``algo='triangle'`` to
+use the 'triangle' algorithm.  (We use comparisons between the two algorithms extensively in
+the unit tests.)
+
+There is not currently any way to use the 'multipole' algorithm with `"LogRUV"` binning,
+which means that calculations using that binning choice tend to be a lot slower than calculations
+using "LogSAS" binning. For most use cases, we strongly recommend using "LogSAS" instead.

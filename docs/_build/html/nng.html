@@ -149,10 +149,10 @@
 <dt class="sig sig-object py" id="treecorr.NNGCorrelation">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">NNGCorrelation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nngcorrelation.html#NNGCorrelation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNGCorrelation" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.corr3base.Corr3"><code class="xref py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a></p>
-<p>This class handles the calculation and storage of a 3-point count-count-scalar correlation
-function, where as usual G represents any spin-0 scalar field.</p>
+<p>This class handles the calculation and storage of a 3-point count-count-shear correlation
+function.</p>
 <p>With this class, point 3 of the triangle (i.e. the vertex opposite d3) is the one with the
-scalar value.  Use <a class="reference internal" href="#treecorr.GNNCorrelation" title="treecorr.GNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GNNCorrelation</span></code></a> and <a class="reference internal" href="#treecorr.NGNCorrelation" title="treecorr.NGNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NGNCorrelation</span></code></a> for classes with the scalar in the
+shear value.  Use <a class="reference internal" href="#treecorr.GNNCorrelation" title="treecorr.GNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GNNCorrelation</span></code></a> and <a class="reference internal" href="#treecorr.NGNCorrelation" title="treecorr.NGNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NGNCorrelation</span></code></a> for classes with the shear in the
 other two positions.</p>
 <p>See the doc string of <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a> for a description of how the triangles are binned along
 with the attributes related to the different binning options.</p>
@@ -205,8 +205,8 @@ arguments, which may be passed either directly or in the config dict.</p>
 <span class="sig-name descname"><span class="pre">calculateZeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rrg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rdg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nngcorrelation.html#NNGCorrelation.calculateZeta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NNGCorrelation.calculateZeta" title="Permalink to this definition"></a></dt>
 <dd><p>Calculate the correlation function given another correlation function of random
 points using the same mask, and possibly cross correlations of the data and random.</p>
-<p>The rrg value is the <a class="reference internal" href="#treecorr.NNGCorrelation" title="treecorr.NNGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNGCorrelation</span></code></a> function for random points with the scalar field.
-One can also provide a cross correlation of the count data with randoms and the scalar.</p>
+<p>The rrg value is the <a class="reference internal" href="#treecorr.NNGCorrelation" title="treecorr.NNGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNGCorrelation</span></code></a> function for random points with the shear field.
+One can also provide a cross correlation of the count data with randoms and the shear.</p>
 <ul class="simple">
 <li><p>If rrg is None, the simple correlation function (self.zeta) is returned.</p></li>
 <li><p>If only rrg is given the compensated value <span class="math notranslate nohighlight">\(\zeta = DDG - RRG\)</span> is returned.</p></li>
@@ -221,12 +221,12 @@ varzeta returned from this function will be available as attributes.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>rrg</strong> (<a class="reference internal" href="#treecorr.NNGCorrelation" title="treecorr.NNGCorrelation"><em>NNGCorrelation</em></a>) – The correlation of the random points with the scalar field
+<li><p><strong>rrg</strong> (<a class="reference internal" href="#treecorr.NNGCorrelation" title="treecorr.NNGCorrelation"><em>NNGCorrelation</em></a>) – The correlation of the random points with the shear field
 (RRG) (default: None)</p></li>
 <li><p><strong>drg</strong> (<a class="reference internal" href="#treecorr.NNGCorrelation" title="treecorr.NNGCorrelation"><em>NNGCorrelation</em></a>) – The cross-correlation of the data with both randoms and the
-scalar field (DRG), if desired. (default: None)</p></li>
+shear field (DRG), if desired. (default: None)</p></li>
 <li><p><strong>rdg</strong> (<a class="reference internal" href="#treecorr.NNGCorrelation" title="treecorr.NNGCorrelation"><em>NNGCorrelation</em></a>) – The cross-correlation of the randoms with both the data and the
-scalar field (RDG), if desired. (default: None)</p></li>
+shear field (RDG), if desired. (default: None)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -412,10 +412,10 @@ this value can also be given in the constructor in the config dict.)</p></li>
 <dt class="sig sig-object py" id="treecorr.NGNCorrelation">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">NGNCorrelation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nngcorrelation.html#NGNCorrelation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NGNCorrelation" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.corr3base.Corr3"><code class="xref py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a></p>
-<p>This class handles the calculation and storage of a 3-point count-scalar-count correlation
-function, where as usual G represents any spin-0 scalar field.</p>
+<p>This class handles the calculation and storage of a 3-point count-shear-count correlation
+function.</p>
 <p>With this class, point 2 of the triangle (i.e. the vertex opposite d2) is the one with the
-scalar value.  Use <a class="reference internal" href="#treecorr.GNNCorrelation" title="treecorr.GNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GNNCorrelation</span></code></a> and <a class="reference internal" href="#treecorr.NNGCorrelation" title="treecorr.NNGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNGCorrelation</span></code></a> for classes with the scalar in the
+shear value.  Use <a class="reference internal" href="#treecorr.GNNCorrelation" title="treecorr.GNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GNNCorrelation</span></code></a> and <a class="reference internal" href="#treecorr.NNGCorrelation" title="treecorr.NNGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNGCorrelation</span></code></a> for classes with the shear in the
 other two positions.</p>
 <p>See the doc string of <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a> for a description of how the triangles are binned along
 with the attributes related to the different binning options.</p>
@@ -468,8 +468,8 @@ arguments, which may be passed either directly or in the config dict.</p>
 <span class="sig-name descname"><span class="pre">calculateZeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rgr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dgr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rgd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nngcorrelation.html#NGNCorrelation.calculateZeta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NGNCorrelation.calculateZeta" title="Permalink to this definition"></a></dt>
 <dd><p>Calculate the correlation function given another correlation function of random
 points using the same mask, and possibly cross correlations of the data and random.</p>
-<p>The rgr value is the <a class="reference internal" href="#treecorr.NGNCorrelation" title="treecorr.NGNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NGNCorrelation</span></code></a> function for random points with the scalar field.
-One can also provide a cross correlation of the count data with randoms and the scalar.</p>
+<p>The rgr value is the <a class="reference internal" href="#treecorr.NGNCorrelation" title="treecorr.NGNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NGNCorrelation</span></code></a> function for random points with the shear field.
+One can also provide a cross correlation of the count data with randoms and the shear.</p>
 <ul class="simple">
 <li><p>If rgr is None, the simple correlation function (self.zeta) is returned.</p></li>
 <li><p>If only rgr is given the compensated value <span class="math notranslate nohighlight">\(\zeta = DGD - RGR\)</span> is returned.</p></li>
@@ -484,12 +484,12 @@ varzeta returned from this function will be available as attributes.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>rgr</strong> (<a class="reference internal" href="#treecorr.NGNCorrelation" title="treecorr.NGNCorrelation"><em>NGNCorrelation</em></a>) – The correlation of the random points with the scalar field
+<li><p><strong>rgr</strong> (<a class="reference internal" href="#treecorr.NGNCorrelation" title="treecorr.NGNCorrelation"><em>NGNCorrelation</em></a>) – The correlation of the random points with the shear field
 (RGR) (default: None)</p></li>
 <li><p><strong>dgr</strong> (<a class="reference internal" href="#treecorr.NGNCorrelation" title="treecorr.NGNCorrelation"><em>NGNCorrelation</em></a>) – The cross-correlation of the data with both randoms and the
-scalar field (DGR), if desired. (default: None)</p></li>
+shear field (DGR), if desired. (default: None)</p></li>
 <li><p><strong>rgd</strong> (<a class="reference internal" href="#treecorr.NGNCorrelation" title="treecorr.NGNCorrelation"><em>NGNCorrelation</em></a>) – The cross-correlation of the randoms with both the data and the
-scalar field (RGD), if desired. (default: None)</p></li>
+shear field (RGD), if desired. (default: None)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -675,10 +675,10 @@ this value can also be given in the constructor in the config dict.)</p></li>
 <dt class="sig sig-object py" id="treecorr.GNNCorrelation">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">GNNCorrelation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nngcorrelation.html#GNNCorrelation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.GNNCorrelation" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.corr3base.Corr3"><code class="xref py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a></p>
-<p>This class handles the calculation and storage of a 3-point scalar-count-count correlation
-function, where as usual G represents any spin-0 scalar field.</p>
+<p>This class handles the calculation and storage of a 3-point shear-count-count correlation
+function.</p>
 <p>With this class, point 1 of the triangle (i.e. the vertex opposite d1) is the one with the
-scalar value.  Use <a class="reference internal" href="#treecorr.NGNCorrelation" title="treecorr.NGNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NGNCorrelation</span></code></a> and <a class="reference internal" href="#treecorr.NNGCorrelation" title="treecorr.NNGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNGCorrelation</span></code></a> for classes with the scalar in the
+shear value.  Use <a class="reference internal" href="#treecorr.NGNCorrelation" title="treecorr.NGNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NGNCorrelation</span></code></a> and <a class="reference internal" href="#treecorr.NNGCorrelation" title="treecorr.NNGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNGCorrelation</span></code></a> for classes with the shear in the
 other two positions.</p>
 <p>See the doc string of <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a> for a description of how the triangles are binned along
 with the attributes related to the different binning options.</p>
@@ -731,8 +731,8 @@ arguments, which may be passed either directly or in the config dict.</p>
 <span class="sig-name descname"><span class="pre">calculateZeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gdr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nngcorrelation.html#GNNCorrelation.calculateZeta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.GNNCorrelation.calculateZeta" title="Permalink to this definition"></a></dt>
 <dd><p>Calculate the correlation function given another correlation function of random
 points using the same mask, and possibly cross correlations of the data and random.</p>
-<p>The grr value is the <a class="reference internal" href="#treecorr.GNNCorrelation" title="treecorr.GNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GNNCorrelation</span></code></a> function for random points with the scalar field.
-One can also provide a cross correlation of the count data with randoms and the scalar.</p>
+<p>The grr value is the <a class="reference internal" href="#treecorr.GNNCorrelation" title="treecorr.GNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GNNCorrelation</span></code></a> function for random points with the shear field.
+One can also provide a cross correlation of the count data with randoms and the shear.</p>
 <ul class="simple">
 <li><p>If grr is None, the simple correlation function (self.zeta) is returned.</p></li>
 <li><p>If only grr is given the compensated value <span class="math notranslate nohighlight">\(\zeta = GDD - GRR\)</span> is returned.</p></li>
@@ -747,12 +747,12 @@ varzeta returned from this function will be available as attributes.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>grr</strong> (<a class="reference internal" href="#treecorr.GNNCorrelation" title="treecorr.GNNCorrelation"><em>GNNCorrelation</em></a>) – The correlation of the random points with the scalar field
+<li><p><strong>grr</strong> (<a class="reference internal" href="#treecorr.GNNCorrelation" title="treecorr.GNNCorrelation"><em>GNNCorrelation</em></a>) – The correlation of the random points with the shear field
 (GRR) (default: None)</p></li>
 <li><p><strong>gdr</strong> (<a class="reference internal" href="#treecorr.GNNCorrelation" title="treecorr.GNNCorrelation"><em>GNNCorrelation</em></a>) – The cross-correlation of the data with both randoms and the
-scalar field (GDR), if desired. (default: None)</p></li>
+shear field (GDR), if desired. (default: None)</p></li>
 <li><p><strong>grd</strong> (<a class="reference internal" href="#treecorr.GNNCorrelation" title="treecorr.GNNCorrelation"><em>GNNCorrelation</em></a>) – The cross-correlation of the randoms with both the data and the
-scalar field (GRD), if desired. (default: None)</p></li>
+shear field (GRD), if desired. (default: None)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

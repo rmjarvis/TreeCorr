@@ -23,11 +23,11 @@ from .corr3base import Corr3
 
 
 class GNNCorrelation(Corr3):
-    r"""This class handles the calculation and storage of a 3-point scalar-count-count correlation
-    function, where as usual G represents any spin-0 scalar field.
+    r"""This class handles the calculation and storage of a 3-point shear-count-count correlation
+    function.
 
     With this class, point 1 of the triangle (i.e. the vertex opposite d1) is the one with the
-    scalar value.  Use `NGNCorrelation` and `NNGCorrelation` for classes with the scalar in the
+    shear value.  Use `NGNCorrelation` and `NNGCorrelation` for classes with the shear in the
     other two positions.
 
     See the doc string of `Corr3` for a description of how the triangles are binned along
@@ -162,8 +162,8 @@ class GNNCorrelation(Corr3):
         r"""Calculate the correlation function given another correlation function of random
         points using the same mask, and possibly cross correlations of the data and random.
 
-        The grr value is the `GNNCorrelation` function for random points with the scalar field.
-        One can also provide a cross correlation of the count data with randoms and the scalar.
+        The grr value is the `GNNCorrelation` function for random points with the shear field.
+        One can also provide a cross correlation of the count data with randoms and the shear.
 
         - If grr is None, the simple correlation function (self.zeta) is returned.
         - If only grr is given the compensated value :math:`\zeta = GDD - GRR` is returned.
@@ -178,12 +178,12 @@ class GNNCorrelation(Corr3):
         varzeta returned from this function will be available as attributes.
 
         Parameters:
-            grr (GNNCorrelation):   The correlation of the random points with the scalar field
+            grr (GNNCorrelation):   The correlation of the random points with the shear field
                                     (GRR) (default: None)
             gdr (GNNCorrelation):   The cross-correlation of the data with both randoms and the
-                                    scalar field (GDR), if desired. (default: None)
+                                    shear field (GDR), if desired. (default: None)
             grd (GNNCorrelation):   The cross-correlation of the randoms with both the data and the
-                                    scalar field (GRD), if desired. (default: None)
+                                    shear field (GRD), if desired. (default: None)
 
         Returns:
             Tuple containing:
@@ -320,11 +320,11 @@ class GNNCorrelation(Corr3):
         self._varzeta = [self._comp_varzeta]
 
 class NGNCorrelation(Corr3):
-    r"""This class handles the calculation and storage of a 3-point count-scalar-count correlation
-    function, where as usual G represents any spin-0 scalar field.
+    r"""This class handles the calculation and storage of a 3-point count-shear-count correlation
+    function.
 
     With this class, point 2 of the triangle (i.e. the vertex opposite d2) is the one with the
-    scalar value.  Use `GNNCorrelation` and `NNGCorrelation` for classes with the scalar in the
+    shear value.  Use `GNNCorrelation` and `NNGCorrelation` for classes with the shear in the
     other two positions.
 
     See the doc string of `Corr3` for a description of how the triangles are binned along
@@ -460,8 +460,8 @@ class NGNCorrelation(Corr3):
         r"""Calculate the correlation function given another correlation function of random
         points using the same mask, and possibly cross correlations of the data and random.
 
-        The rgr value is the `NGNCorrelation` function for random points with the scalar field.
-        One can also provide a cross correlation of the count data with randoms and the scalar.
+        The rgr value is the `NGNCorrelation` function for random points with the shear field.
+        One can also provide a cross correlation of the count data with randoms and the shear.
 
         - If rgr is None, the simple correlation function (self.zeta) is returned.
         - If only rgr is given the compensated value :math:`\zeta = DGD - RGR` is returned.
@@ -476,12 +476,12 @@ class NGNCorrelation(Corr3):
         varzeta returned from this function will be available as attributes.
 
         Parameters:
-            rgr (NGNCorrelation):   The correlation of the random points with the scalar field
+            rgr (NGNCorrelation):   The correlation of the random points with the shear field
                                     (RGR) (default: None)
             dgr (NGNCorrelation):   The cross-correlation of the data with both randoms and the
-                                    scalar field (DGR), if desired. (default: None)
+                                    shear field (DGR), if desired. (default: None)
             rgd (NGNCorrelation):   The cross-correlation of the randoms with both the data and the
-                                    scalar field (RGD), if desired. (default: None)
+                                    shear field (RGD), if desired. (default: None)
 
         Returns:
             Tuple containing:
@@ -618,11 +618,11 @@ class NGNCorrelation(Corr3):
         self._varzeta = [self._comp_varzeta]
 
 class NNGCorrelation(Corr3):
-    r"""This class handles the calculation and storage of a 3-point count-count-scalar correlation
-    function, where as usual G represents any spin-0 scalar field.
+    r"""This class handles the calculation and storage of a 3-point count-count-shear correlation
+    function.
 
     With this class, point 3 of the triangle (i.e. the vertex opposite d3) is the one with the
-    scalar value.  Use `GNNCorrelation` and `NGNCorrelation` for classes with the scalar in the
+    shear value.  Use `GNNCorrelation` and `NGNCorrelation` for classes with the shear in the
     other two positions.
 
     See the doc string of `Corr3` for a description of how the triangles are binned along
@@ -758,8 +758,8 @@ class NNGCorrelation(Corr3):
         r"""Calculate the correlation function given another correlation function of random
         points using the same mask, and possibly cross correlations of the data and random.
 
-        The rrg value is the `NNGCorrelation` function for random points with the scalar field.
-        One can also provide a cross correlation of the count data with randoms and the scalar.
+        The rrg value is the `NNGCorrelation` function for random points with the shear field.
+        One can also provide a cross correlation of the count data with randoms and the shear.
 
         - If rrg is None, the simple correlation function (self.zeta) is returned.
         - If only rrg is given the compensated value :math:`\zeta = DDG - RRG` is returned.
@@ -774,12 +774,12 @@ class NNGCorrelation(Corr3):
         varzeta returned from this function will be available as attributes.
 
         Parameters:
-            rrg (NNGCorrelation):   The correlation of the random points with the scalar field
+            rrg (NNGCorrelation):   The correlation of the random points with the shear field
                                     (RRG) (default: None)
             drg (NNGCorrelation):   The cross-correlation of the data with both randoms and the
-                                    scalar field (DRG), if desired. (default: None)
+                                    shear field (DRG), if desired. (default: None)
             rdg (NNGCorrelation):   The cross-correlation of the randoms with both the data and the
-                                    scalar field (RDG), if desired. (default: None)
+                                    shear field (RDG), if desired. (default: None)
 
         Returns:
             Tuple containing:

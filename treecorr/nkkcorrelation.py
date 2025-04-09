@@ -24,7 +24,7 @@ from .corr3base import Corr3
 
 class NKKCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point count-scalar-scalar correlation
-    function, where as usual K represents any spin-0 scalar field.
+    function.
 
     With this class, point 1 of the triangle (i.e. the vertex opposite d1) is the one with the
     scalar value.  Use `KNKCorrelation` and `KKNCorrelation` for classes with the scalar in the
@@ -249,7 +249,7 @@ class NKKCorrelation(Corr3):
 
 class KNKCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point scalar-count-scalar correlation
-    function, where as usual K represents any spin-0 scalar field.
+    function.
 
     With this class, point 2 of the triangle (i.e. the vertex opposite d2) is the one with the
     scalar value.  Use `NKKCorrelation` and `KKNCorrelation` for classes with the scalar in the
@@ -474,7 +474,7 @@ class KNKCorrelation(Corr3):
 
 class KKNCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point scalar-scalar-count correlation
-    function, where as usual K represents any spin-0 scalar field.
+    function.
 
     With this class, point 3 of the triangle (i.e. the vertex opposite d3) is the one with the
     scalar value.  Use `NKKCorrelation` and `KNKCorrelation` for classes with the scalar in the

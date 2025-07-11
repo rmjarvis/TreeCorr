@@ -138,7 +138,7 @@ jobs:
               run: pip list
 
             - name: Build TreeCorr
-              run: pip install -vvv .
+              run: pip install -v .
 
             - name: Run unit tests
               run: |

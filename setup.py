@@ -481,7 +481,7 @@ ext = Extension("treecorr._treecorr",
                 depends=headers,
                 undef_macros=undef_macros)
 
-build_dep = ['setuptools>=38', 'numpy>=1.17', 'pybind11>=2.2']
+build_dep = ['setuptools>=38', 'numpy>=1.17', 'pybind11>=2.2,<3']
 run_dep = ['pyyaml', 'LSSTDESC.Coord>=1.1']
 
 with open('README.rst') as file:

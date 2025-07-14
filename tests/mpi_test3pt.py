@@ -45,6 +45,9 @@ def setup():
 def do_mpi_corr(comm, Correlation, cross, attr, output=True, patch_method=None, low_mem=False):
     rank = comm.Get_rank()
     size = comm.Get_size()
+    if rank == 0:
+        setup()
+    comm.Barrier()
     file_name = os.path.join('data','Aardvark.fit')
     patch_file = os.path.join('data','mpi_patches.fits')
     # Takes forever to do anywhere close to whole catalog.
@@ -121,6 +124,9 @@ def do_mpi_corr2(comm, Correlation, cross, attr, output=True, patch_method='glob
 
     rank = comm.Get_rank()
     size = comm.Get_size()
+    if rank == 0:
+        setup()
+    comm.Barrier()
     file_name = os.path.join('data','Aardvark.fit')
     patch_file = os.path.join('data','mpi_patches.fits')
     # Takes forever to do anywhere close to whole catalog.

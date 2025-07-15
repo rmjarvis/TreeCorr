@@ -481,6 +481,8 @@ ext = Extension("treecorr._treecorr",
                 depends=headers,
                 undef_macros=undef_macros)
 
+# Note: Don't allow pybind11 3.x until PR #5751 is merged and released
+# https://github.com/pybind/pybind11/pull/5751
 build_dep = ['setuptools>=38', 'numpy>=1.17', 'pybind11>=2.2,<3']
 run_dep = ['pyyaml', 'LSSTDESC.Coord>=1.1']
 

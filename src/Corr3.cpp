@@ -290,7 +290,7 @@ bool BaseCorr3::triviallyZero(Position<C> p1, Position<C> p2, Position<C> p3,
         double d2sq = 0;
         double d3sq = 0;
         metric.TripleDistSq(p1, p2, p3, d1sq, d2sq, d3sq);
-        return BinTypeHelper<B>::template trivial_stop(
+        return BinTypeHelper<B>::template trivial_stop<M>(
             d1sq, d2sq, d3sq, s1, s2, s3,
             metric, ordered,
             _minsep, _minsepsq, _maxsep, _maxsepsq);
@@ -1769,7 +1769,7 @@ void MultipoleScratch<GData>::calculateGn(
 
     if (ww) {
         std::complex<double> wgsq = c2.calculateSumWZSq();
-        ProjectHelper<C>::template ProjectWithSq(c1, c2, wg, wgsq);
+        ProjectHelper<C>::template ProjectWithSq<GData>(c1, c2, wg, wgsq);
         std::complex<double> abswgsq = c2.calculateSumAbsWZSq();
         if (buffer) {
             XAssert(buffer == 1);

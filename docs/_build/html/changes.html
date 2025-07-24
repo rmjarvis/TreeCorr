@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Changes from version 5.0 to 5.1 &mdash; TreeCorr 5.1.1 documentation</title>
+  <title>Changes from version 5.0 to 5.1 &mdash; TreeCorr 5.1.2 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -63,7 +63,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#api-changes">API Changes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#performance-improvements">Performance improvements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#new-features">New features</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-5-0-0-to-5-0-1">Changes from version 5.0.0 to 5.0.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-5-1-0-to-5-1-1">Changes from version 5.1.0 to 5.1.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-5-1-1-to-5-1-2">Changes from version 5.1.1 to 5.1.2</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
@@ -138,10 +139,16 @@ previous versions, but we recommend users explicitly set <code class="docutils l
 appropriate value to take advantage of the more optimal weighting. (#180, #183)</p></li>
 </ul>
 </section>
-<section id="changes-from-version-5-0-0-to-5-0-1">
-<h2>Changes from version 5.0.0 to 5.0.1<a class="headerlink" href="#changes-from-version-5-0-0-to-5-0-1" title="Permalink to this heading"></a></h2>
+<section id="changes-from-version-5-1-0-to-5-1-1">
+<h2>Changes from version 5.1.0 to 5.1.1<a class="headerlink" href="#changes-from-version-5-1-0-to-5-1-1" title="Permalink to this heading"></a></h2>
 <ul class="simple">
 <li><p>Fixed an error in the manifest, which omitted a file from the source distribution on pypi.</p></li>
+</ul>
+</section>
+<section id="changes-from-version-5-1-1-to-5-1-2">
+<h2>Changes from version 5.1.1 to 5.1.2<a class="headerlink" href="#changes-from-version-5-1-1-to-5-1-2" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>Limit pybind11 to &lt;3 until they fix their template depth issue (cf. their PR #5751).</p></li>
 </ul>
 </section>
 </section>

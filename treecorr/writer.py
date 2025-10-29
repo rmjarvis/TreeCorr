@@ -232,3 +232,75 @@ class HdfWriter(object):
         # closes file at end of "with" statement
         self._file.close()
         self._file = None
+
+
+class ParquetWriter(object):
+    """Writer interface for parquet files.
+    """
+    def __init__(self, file_name, *, logger=None):
+        """
+        Parameters:
+            file_name:      The file name.
+            logger:         If desired, a logger object for logging. (default: None)
+        """
+        try:
+            import pyarrow  # noqa: F401
+        except ImportError:
+            if logger:
+                logger.error("Unable to import pyarrow.  Cannot write to %s"%file_name)
+            raise
+        self.file_name = file_name
+        self.logger = logger
+        self._file = None
+        ensure_dir(file_name)
+
+    def set_precision(self, precision):
+        pass
+
+    @property
+    def file(self):
+        if self._file is None:
+            raise RuntimeError('Illegal operation when not in a "with" context')
+        return self._file
+
+    def write(self, col_names, columns, *, params=None, ext=None):
+        """Write some columns to an output ASCII file with the given column names.
+
+        If name is not None, then it is used as the name of the extension for these data.
+
+        Parameters:
+            col_names:      A list of columns names for the given columns.
+            columns:        A list of numpy arrays with the data to write.
+            params:         A dict of extra parameters to write at the top of the output file.
+            ext:            Optional ext name for these data. (default: None)
+        """
+        import pyarrow as pa
+        import pyarrow.parquet as pq
+
+        _metadata = {}
+        if params is not None:
+            for k, v in params.items():
+                _metadata[k.encode()] = str(v).encode()
+
+        data = pa.Table.from_pydict({name: col for name, col in zip(col_names, columns)}, metadata=_metadata)
+        pq.write_table(data, self.file)
+
+    def write_array(self, data, *, ext=None):
+        """Write a (typically 2-d) numpy array to the output file.
+
+        Parameters:
+            data:           The array to write.
+            ext:            Optional ext name for these data. (default: None)
+        """
+        import pyarrow as pa
+        _tensor = pa.Tensor.from_numpy(data)
+        pa.ipc.write_tensor(_tensor, self.file)
+
+    def __enter__(self):
+        import pyarrow as pa
+        self._file = pa.output_stream(self.file_name)
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self._file.close()
+        self._file = None

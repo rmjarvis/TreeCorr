@@ -881,7 +881,7 @@ class Catalog(object):
                 self.reader = HdfReader(file_name)
                 self._check_file(file_name, self.reader, num, is_rand)
             elif file_type == 'PARQUET':
-                self.reader = ArrowReader(file_name, format="parquet")
+                self.reader = ArrowReader(file_name)
                 self._check_file(file_name, self.reader, num, is_rand)
             else:
                 delimiter = self.config.get('delimiter',None)

@@ -24,8 +24,8 @@ import warnings
 
 from . import _treecorr
 from . import Rperp_alias
-from .writer import AsciiWriter, FitsWriter, HdfWriter
-from .reader import AsciiReader, FitsReader, HdfReader
+from .writer import AsciiWriter, FitsWriter, HdfWriter, ArrowWriter
+from .reader import AsciiReader, FitsReader, HdfReader, ArrowReader
 
 max_omp_threads=None
 
@@ -122,8 +122,8 @@ def parse_file_type(file_type, file_name, output=False, logger=None):
             file_type = 'FITS'
         elif ext.startswith('.hdf') or ext.startswith('.h5'):
             file_type = 'HDF'
-        elif not output and ext.startswith('.par'):
-            file_type = 'Parquet'
+        elif not output and ext.startswith('.par') or ext.startswith('.pq'):
+            file_type = 'PARQUET'
         else:
             file_type = 'ASCII'
         if logger:
@@ -141,6 +141,8 @@ def make_writer(file_name, precision=4, file_type=None, logger=None):
         writer = HdfWriter(file_name, logger=logger)
     elif file_type == 'ASCII':
         writer = AsciiWriter(file_name, precision=precision, logger=logger)
+    elif file_type == 'PARQUET':
+        writer = ArrowWriter(file_name, logger=logger)
     else:
         raise ValueError("Invalid file_type %s"%file_type)
     return writer
@@ -157,6 +159,8 @@ def make_reader(file_name, file_type=None, logger=None):
         reader = HdfReader(file_name, logger=logger)
     elif file_type == 'ASCII':
         reader = AsciiReader(file_name, logger=logger)
+    elif file_type == 'PARQUET':
+        reader = ArrowReader(file_name, logger=logger)
     else:
         raise ValueError("Invalid file_type %s"%file_type)
     return reader

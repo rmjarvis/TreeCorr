@@ -234,7 +234,7 @@ class HdfWriter(object):
         self._file = None
 
 
-class ParquetWriter(object):
+class ArrowWriter(object):
     """Writer interface for parquet files.
     """
     def __init__(self, file_name, *, logger=None):
@@ -304,3 +304,5 @@ class ParquetWriter(object):
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self._file.close()
         self._file = None
+
+ParquetWriter = ArrowWriter

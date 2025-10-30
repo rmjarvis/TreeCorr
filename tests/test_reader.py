@@ -17,7 +17,7 @@ import numpy as np
 import warnings
 from unittest import mock
 
-from treecorr.reader import FitsReader, HdfReader, PandasReader, AsciiReader, ParquetReader, ArrowReader
+from treecorr.reader import FitsReader, HdfReader, PandasReader, AsciiReader, ParquetReader
 from treecorr.writer import FitsWriter, HdfWriter, AsciiWriter, ParquetWriter
 from test_helper import get_from_wiki, assert_raises, timer, CaptureLog
 from treecorr.util import make_writer, make_reader
@@ -583,91 +583,6 @@ def _test_ascii_reader(r, has_names=True):
         w.write(['g1', 'g2'], [g1, g2], params={'test': True}, ext='g1g2')
 
 @timer
-def test_arrow_reader():
-    try:
-        import pyarrow # noqa: F401
-        import pyarrow.compute as pc # noqa: F401
-    except ImportError:
-        warnings.warn("Skipping some tests because pyarrow is not installed.")
-        print('Skipping ArrowReader tests, since pyarrow not installed.')
-        return
-
-    get_from_wiki('Aardvark.parquet')
-    r = ArrowReader(os.path.join('data','Aardvark.parquet'))
-
-    # Check things not allowed if not in context
-    with assert_raises(RuntimeError):
-        r.read(['RA'], slice(0,10,2), ext=None)
-    with assert_raises(RuntimeError):
-        r.read('RA')
-    with assert_raises(RuntimeError):
-        r.row_count('DEC', ext=None)
-    with assert_raises(RuntimeError):
-        r.row_count('DEC')
-    with assert_raises(RuntimeError):
-        r.row_count()
-    with assert_raises(RuntimeError):
-        r.names(ext=None)
-    with assert_raises(RuntimeError):
-        r.names()
-
-    with r:
-
-        # None is the only extension in this file.
-        assert_raises(ValueError, r.check_valid_ext, 'invalid')
-        r.check_valid_ext(None)
-
-        # Default ext is None
-        assert r.default_ext == None
-
-        # Default ext is "in" reader
-        assert None in r
-
-        s = slice(0, 10, 2)
-        data = r.read(['RA'], s)
-        dec = r.read('DEC', s)
-        assert data['RA'].size == 5
-        assert dec.size == 5
-
-        s = [0, 2, 4, 6, 8]
-        data = r.read(['RA'], s)
-        dec = r.read('DEC', s)
-        assert data['RA'].size == 5
-        assert dec.size == 5
-
-        s = pc.field('DEC') > 84.2
-        data = r.read(['RA'], s)
-        dec = r.read('DEC', s)
-        assert data['RA'].size == 189030
-        assert dec.size == 189030
-
-        assert r.row_count('RA') == 390935
-        assert r.row_count('RA', ext=None) == 390935
-        assert r.row_count('GAMMA1') == 390935
-        assert r.row_count() == 390935
-        print('names = ',set(r.names()))
-        print('names = ',set("INDEX RA DEC Z GAMMA1 GAMMA2 KAPPA MU".split()))
-        assert set(r.names()) == set("INDEX RA DEC Z GAMMA1 GAMMA2 KAPPA MU".split())
-        assert set(r.names(ext=None)) == set(r.names())
-
-    # Again check things not allowed if not in context
-    with assert_raises(RuntimeError):
-        r.read(['RA'], slice(0,10,2), ext=None)
-    with assert_raises(RuntimeError):
-        r.read('RA')
-    with assert_raises(RuntimeError):
-        r.row_count('DEC', ext=None)
-    with assert_raises(RuntimeError):
-        r.row_count('DEC')
-    with assert_raises(RuntimeError):
-        r.row_count()
-    with assert_raises(RuntimeError):
-        r.names(ext=None)
-    with assert_raises(RuntimeError):
-        r.names()
-
-
-@timer
 def test_ascii_reader():
     # These all have the same data, but different comment lines
     _test_ascii_reader(AsciiReader(os.path.join('data','test1.dat')))
@@ -690,7 +605,7 @@ def test_pandas_reader():
 if __name__ == '__main__':
     test_fits_reader()
     test_hdf_reader()
+    test_arrow_reader()
     test_parquet_reader()
     test_ascii_reader()
     test_pandas_reader()
-    test_arrow_reader()

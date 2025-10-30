@@ -356,34 +356,32 @@ class PandasReader(AsciiReader):
         else:
             return {col : df.loc[:,icols[i]].to_numpy() for i,col in enumerate(cols)}
 
-class ParquetReader():
-    """Reader interface for Parquet files using pandas.
+
+class ArrowReader():
+    """Reader interface for arrow files using pyarrow.
     """
     default_ext = None
 
-    def __init__(self, file_name, *, delimiter=None, comment_marker='#', logger=None):
+    def __init__(self, file_name, *, logger=None):
         """
         Parameters:
-            file_name (str):        The file name.
-            delimiter (str):        What delimiter to use between values. (default: None,
-                                    which means any whitespace)
-            comment_marker (str):   What token indicates a comment line. (default: '#')
+            file_name (str):    The file name.
         """
         try:
-            import pandas
+            import pyarrow
         except ImportError:
             if logger:
-                logger.error("Unable to import pandas.  Cannot read %s"%file_name)
+                logger.error("Unable to import pyarrow.  Cannot read %s"%file_name)
             raise
 
         self.file_name = file_name
-        self._df = None
+        self._file = None
 
     @property
-    def df(self):
-        if self._df is None:
+    def file(self):
+        if self._file is None:
             raise RuntimeError('Illegal operation when not in a "with" context')
-        return self._df
+        return self._file
 
     def __contains__(self, ext):
         """Check if ext is None.
@@ -421,15 +419,70 @@ class ParquetReader():
         Returns:
             The data as a recarray or simple numpy array as appropriate
         """
+        import pyarrow.compute as pc
+        import pyarrow.parquet as pq
+
         if np.isscalar(cols):
-            return self.df[cols][s].to_numpy()
+            columns = [cols]
         else:
-            return self.df[cols][s].to_records()
+            columns = cols
+
+        if isinstance(s, slice):
+            _table = pq.read_table(self.file, columns=columns)[s]
+        elif isinstance(s, pc.Expression):
+            _table = pq.read_table(self.file, columns=columns, filters=s)
+        else:
+            # Then s is an array of indices
+            _table = pq.read_table(self.file, columns=columns).take(s)
+
+        if np.isscalar(cols):
+            return _table[cols].to_numpy()
+        else:
+            # return np.rec.fromarrays(_table.columns, _table.schema.names)
+            return {name: col.to_numpy() for name, col in zip(_table.schema.names, _table.columns)}
+
+    def read_params(self, *, ext=None):
+        """Read the params in the given extension, if any.
+
+        Parameters:
+            ext (str):          The HDF (sub-)group to use. (default: '/')
+
+        Returns:
+            params
+        """
+        import pyarrow.parquet as pq
+        return pq.ParquetFile(self.file).schema_arrow.metadata
+
+    def read_data(self, *, ext=None, max_rows=None):
+        """Read all data in the file, and the parameters in the header, if any.
+
+        Parameters:
+            ext (str):          The extension. (ignored)
+            max_rows (int):     The max number of rows to read. (ignored)
+
+        Returns:
+            data
+        """
+        data = self.read(None)
+        return data
+
+    def read_array(self, shape=None, *, ext=None):
+        """Read an array from the file.
+
+        Parameters:
+            shape (tuple):      The expected shape of the array.
+            ext (str):          The extension. (ignored -- Ascii always reads the next group)
+
+        Returns:
+            array
+        """
+        import pyarrow as pa
+        _tensor = pa.ipc.read_tensor(self.file)
+        data = _tensor.to_numpy()
+        return data
 
     def row_count(self, col=None, *, ext=None):
         """Count the number of rows in the named extension and column
-
-        Unlike in FitsReader, col is required.
 
         Parameters:
             col (str):  The column to use. (ignored)
@@ -438,7 +491,8 @@ class ParquetReader():
         Returns:
             The number of rows
         """
-        return len(self.df)
+        import pyarrow.parquet as pq
+        return pq.ParquetFile(self.file).scan_contents()
 
     def names(self, *, ext=None):
         """Return a list of the names of all the columns in an extension
@@ -449,16 +503,19 @@ class ParquetReader():
         Returns:
             A list of string column names
         """
-        return self.df.columns
+        import pyarrow.parquet as pq
+        return pq.ParquetFile(self.file).schema.names
 
     def __enter__(self):
-        import pandas
-        self._df = pandas.read_parquet(self.file_name)
+        import pyarrow as pa
+        self._file = pa.input_stream(self.file_name)
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        # free the memory in the dataframe at end of "with" statement
-        self._df = None
+        # closes file at end of "with" statement
+        # self._dataset = None
+        self._file.close()
+        self._file = None
 
 
 class FitsReader(object):
@@ -808,3 +865,6 @@ class HdfReader(object):
         # closes file at end of "with" statement
         self._file.close()
         self._file = None
+
+
+ParquetReader = ArrowReader

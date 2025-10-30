@@ -22,7 +22,7 @@ import copy
 import os
 
 from . import _treecorr
-from .reader import FitsReader, HdfReader, AsciiReader, PandasReader, ParquetReader
+from .reader import FitsReader, HdfReader, AsciiReader, PandasReader, ParquetReader, ArrowReader
 from .config import merge_config, setup_logger, get, get_from_list
 from .util import parse_file_type, LRU_Cache, make_writer, make_reader, set_omp_threads
 from .field import NField, KField, ZField, VField, GField, TField, QField
@@ -881,7 +881,7 @@ class Catalog(object):
                 self.reader = HdfReader(file_name)
                 self._check_file(file_name, self.reader, num, is_rand)
             elif file_type == 'PARQUET':
-                self.reader = ParquetReader(file_name)
+                self.reader = ArrowReader(file_name)
                 self._check_file(file_name, self.reader, num, is_rand)
             else:
                 delimiter = self.config.get('delimiter',None)

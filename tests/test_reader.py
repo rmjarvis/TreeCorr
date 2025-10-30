@@ -18,7 +18,7 @@ import warnings
 from unittest import mock
 
 from treecorr.reader import FitsReader, HdfReader, PandasReader, AsciiReader, ParquetReader
-from treecorr.writer import FitsWriter, HdfWriter, AsciiWriter
+from treecorr.writer import FitsWriter, HdfWriter, AsciiWriter, ParquetWriter
 from test_helper import get_from_wiki, assert_raises, timer, CaptureLog
 from treecorr.util import make_writer, make_reader
 
@@ -283,11 +283,11 @@ def test_hdf_reader():
 @timer
 def test_parquet_reader():
     try:
-        import pandas  # noqa: F401
         import pyarrow # noqa: F401
+        import pyarrow.compute as pc
     except ImportError:
         warnings.warn("Skipping some tests because pyarrow is not installed.")
-        print('Skipping ParquetReader tests, since pandas or pyarrow not installed.')
+        print('Skipping ParquetReader tests, since pyarrow is not installed.')
         return
 
     get_from_wiki('Aardvark.parquet')
@@ -327,6 +327,12 @@ def test_parquet_reader():
         assert data['RA'].size == 5
         assert dec.size == 5
 
+        s = pc.field('DEC') > 84.2
+        data = r.read(['RA'], s)
+        dec = r.read('DEC', s)
+        assert data['RA'].size == 189030
+        assert dec.size == 189030
+
         assert r.row_count('RA') == 390935
         assert r.row_count('RA', ext=None) == 390935
         assert r.row_count('GAMMA1') == 390935
@@ -335,6 +341,16 @@ def test_parquet_reader():
         print('names = ',set("INDEX RA DEC Z GAMMA1 GAMMA2 KAPPA MU".split()))
         assert set(r.names()) == set("INDEX RA DEC Z GAMMA1 GAMMA2 KAPPA MU".split())
         assert set(r.names(ext=None)) == set(r.names())
+
+        # Can read without slice or ext to use defaults
+        assert r.row_count() == 390935
+        g2 = r.read('GAMMA2')
+        assert len(g2) == 390935
+        d = r.read(['KAPPA', 'MU'])
+        assert len(d['KAPPA']) == 390935
+        assert len(d['MU']) == 390935
+        kappa = d['KAPPA']
+        mu = d['MU']
 
     # Again check things not allowed if not in context
     with assert_raises(RuntimeError):
@@ -351,6 +367,33 @@ def test_parquet_reader():
         r.names(ext=None)
     with assert_raises(RuntimeError):
         r.names()
+
+
+    kappa = d['KAPPA']
+    mu = d['MU']
+
+    # Check writer too.
+    with ParquetWriter(os.path.join('output','test_parquet_writer.parquet')) as w:
+        w.write(['KAPPA', 'MU'], [kappa, mu], params={'test': True})
+    with ParquetReader(os.path.join('output','test_parquet_writer.parquet')) as r:
+        params = r.read_params()
+        data = r.read_data()
+    assert params[b'test']
+    assert np.array_equal(data['KAPPA'], kappa)
+    assert np.array_equal(data['MU'], mu)
+
+    # Test write_array, read_array
+    cov = np.random.normal(5, 1, size=(10,10))
+    with ParquetWriter(os.path.join('output','test_parquet_writer_tensor.arrow')) as w:
+        w.write_array(cov)
+    with ParquetReader(os.path.join('output','test_parquet_writer_tensor.arrow')) as r:
+        cov1 = r.read_array(cov.shape)
+    np.testing.assert_array_equal(cov1, cov)
+
+    # Not allowed to write when not in with context
+    w = ParquetWriter(os.path.join('output','test_hdf_writer.hdf'))
+    with assert_raises(RuntimeError):
+        w.write(['KAPPA', 'MU'], [kappa, mu], params={'test': True}, ext='KM')
 
 def _test_ascii_reader(r, has_names=True):
     # Same tests for AsciiReader and PandasReader
@@ -539,7 +582,6 @@ def _test_ascii_reader(r, has_names=True):
     with assert_raises(RuntimeError):
         w.write(['g1', 'g2'], [g1, g2], params={'test': True}, ext='g1g2')
 
-
 @timer
 def test_ascii_reader():
     # These all have the same data, but different comment lines
@@ -563,6 +605,7 @@ def test_pandas_reader():
 if __name__ == '__main__':
     test_fits_reader()
     test_hdf_reader()
+    test_arrow_reader()
     test_parquet_reader()
     test_ascii_reader()
     test_pandas_reader()

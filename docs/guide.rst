@@ -51,7 +51,7 @@ When random catalogs are required
 * ``NN`` and ``NNN`` require random catalogs for unbiased estimators.
 * ``NG`` and ``NK`` can also use random catalogs for compensated estimators.
 
-See :doc:`guide` and :doc:`params` for estimator usage.
+See :doc:`params` for the relevant random-catalog configuration parameters.
 
 Shear-shear auto-correlation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^

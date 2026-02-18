@@ -9,12 +9,59 @@ The below page covers many of the same points as the
 available in the TreeCorr repo.
 You may find it useful to work through that as well as, or instead of, reading this guide.
 
+
+Choosing a two-point correlation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Choose based on the field types:
+
+* ``N`` = counts (discrete objects)
+* ``K`` = real scalar field
+* ``G`` = shear (spin-2 complex field)
+* ``Z`` = complex spin-0 field
+* ``V`` = vector (complex spin-1 field)
+* ``T`` = trefoil (complex spin-3 field)
+* ``Q`` = quatrefoil (complex spin-4 field)
+
+Common cases:
+
+* ``NN``: count-count clustering (`NNCorrelation`)
+* ``NG``: count-shear (galaxy-galaxy lensing) (`NGCorrelation`)
+* ``GG``: shear-shear (`GGCorrelation`)
+* ``NK`` / ``KK`` / ``KG``: scalar-based correlations
+
+See :doc:`correlation2` for all supported two-point classes.
+
+Choosing a three-point correlation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Three-point classes are available for:
+
+* Auto-correlations: ``NNN``, ``KKK``, ``GGG``
+* Mixed cross-correlations: ``NNK``, ``NNG``, ``NKK``, ``NGG``, ``KKG``, ``KGG``
+
+Each mixed family also includes the corresponding permutations (e.g.
+``NNG``, ``NGN``, ``GNN``).
+
+See :doc:`correlation3` for details and class-level docs.
+
+When random catalogs are required
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* ``NN`` and ``NNN`` require random catalogs for unbiased estimators.
+* ``NG`` and ``NK`` can also use random catalogs for compensated estimators.
+
+See :doc:`guide` and :doc:`params` for estimator usage.
+
 Shear-shear auto-correlation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Let's start with how to calculate a shear-shear two-point auto-correlation.
+Let's start with how to calculate a shear-shear two-point auto-correlation as a
+typical concrete example.
 It's not necessarily the simplest choice of correlation, but this specific
 calculation was the original reason I wrote TreeCorr, so it's close to my heart.
+The usage pattern is similar for other combinations of fields.
+
 The basic pattern is as follows::
 
     cat = treecorr.Catalog(file_name, config)

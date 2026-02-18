@@ -14,10 +14,11 @@ functions.
   (Any combination of shear, kappa, and counts.)
 - 3-point correlations include both auto-correlations (e.g. NNN, KKK, GGG)
   and mixed cross-correlations (e.g. NNG, NKK, KGG and permutations).
-- Additional combinations involving fields with other spin values besides 0 and 2.
-  This includes vectors (spin-1, referred to as V), shear (spin-2, G), trefoil (spin-3, T),
-  and quatrefoil (spin-4, Q).  There are classes implementing 2- and 3-point correlations
-  of these kinds of fields as well.
+- Additional field types with non-zero spin are supported in two-point
+  correlations, including vectors (spin-1, V), shear (spin-2, G), trefoil
+  (spin-3, T), and quatrefoil (spin-4, Q).
+  Three-point correlations currently support N, K, and G fields (including mixed
+  combinations such as NNG, NKK, KGG and permutations).
 - Both 2- and 3-point functions can be done with the correct curved-sky
   calculation using RA, Dec coordinates, on a Euclidean tangent plane, or in
   3D using either (RA,Dec,r) or (x,y,z) positions.

@@ -300,6 +300,20 @@ combinations that need to be computed: zeta = (DDD-DDR-DRD-RDD+DRR+RDR+RRD-RRR)/
 Because of the triangle geometry, we don't have DRR = DRD = RDD, so all 8 need to be computed.
 See the docstring for `calculateZeta <NNNCorrelation.calculateZeta>` for more details.
 
+Common pitfalls
+^^^^^^^^^^^^^^^
+
+Some common issues that can silently cause errors in the correlations:
+
+* Mixed coordinate conventions: ensure ``ra_units``/``dec_units`` are set correctly,
+  and check sign conventions (``flip_g1``/``flip_g2`` when needed).
+* Missing or mismatched random catalogs for ``NN``/``NNN``: random catalogs should
+  follow the same survey geometry/masks as the corresponding data catalogs.
+* Inconsistent patch definitions across cross-correlated catalogs: use shared
+  ``patch_centers`` rather than separate ``npatch`` runs for each catalog.
+* Interpreting ``varxi`` as total uncertainty by default: shot-noise-only variances
+  can underestimate errors at large scales; prefer patch-based covariances when possible.
+
 Manually accumulating the correlation function
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

@@ -1,5 +1,5 @@
-.. image:: https://travis-ci.org/rmjarvis/TreeCorr.svg?branch=main
-        :target: https://travis-ci.org/rmjarvis/TreeCorr
+.. image:: https://github.com/rmjarvis/TreeCorr/actions/workflows/ci.yml/badge.svg
+        :target: https://github.com/rmjarvis/TreeCorr/actions/workflows/ci.yml
 .. image:: https://codecov.io/gh/rmjarvis/TreeCorr/branch/main/graph/badge.svg
         :target: https://codecov.io/gh/rmjarvis/TreeCorr
 

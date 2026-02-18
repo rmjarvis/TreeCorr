@@ -221,6 +221,25 @@ Finally, the default way of calculating separations is a normal Euclidean metric
 However, TreeCorr implements a number of other metrics as well, which are useful
 in various situations.  See `Metrics` for details.
 
+Performance and accuracy tips
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Some practical recommendations that are often useful in production analyses:
+
+* Start with the default ``bin_slop``.  If you need to verify numerical stability,
+  reduce it (e.g. by a factor of 2) and check whether your science vector shifts.
+* For three-point calculations, prefer ``bin_type='LogSAS'`` with the default
+  multipole algorithm for speed, unless you specifically need ``LogRUV``.
+* Use patches early if you will need covariance estimates.  This avoids re-running
+  the full correlation later to get jackknife/bootstrap covariances.
+* For large jobs, use ``low_mem=True`` in ``process`` calls and use patches
+  to reduce peak memory usage.
+* For OpenMP runs, set ``num_threads`` explicitly in configs when running on shared
+  systems, so results are reproducible and resource usage is controlled.
+
+See `Binning`, `Binning for three-point correlations`, `Patches`, and
+`Covariance Estimates` for full details.
+
 Three-point Correlation Classes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

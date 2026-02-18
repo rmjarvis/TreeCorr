@@ -25,14 +25,15 @@ There are several kinds of `Field` classes.
       It is used for correlations with a G in the name, including
       `GGCorrelation`, `NGCorrelation`, `KGCorrelation`, and `GGGCorrelation`.
     - `TField` holds both counts of objects and the mean trefoil field of those objects.
-      It is used for correlations with a V in the name, including
-      `VVCorrelation`, `NVCorrelation`, and `KVCorrelation`.
+      It is used for correlations with a T in the name, including
+      `TTCorrelation`, `NTCorrelation`, and `KTCorrelation`.
     - `QField` holds both counts of objects and the mean quatrefoil field of those objects.
-      It is used for correlations with a V in the name, including
-      `VVCorrelation`, `NVCorrelation`, and `KVCorrelation`.
+      It is used for correlations with a Q in the name, including
+      `QQCorrelation`, `NQCorrelation`, and `KQCorrelation`.
 
 Typically, one would not create any of these objects directly, but would instead
-use Catalog methods `getNField`, `getKField`, `getGField`, `getVField`.
+use Catalog methods `getNField`, `getKField`, `getZField`, `getVField`, `getGField`.
+`getTField`, or `getQField`.
 Or indeed, usually, one does not even do that, and just lets the relevant ``process``
 command do so for you.
 

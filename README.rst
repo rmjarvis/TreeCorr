@@ -324,3 +324,22 @@ issue and fill in the details of the feature you would like added to TreeCorr.
 Or if there is already an issue for your desired feature, please add to the
 discussion, describing your use case.  The more people who say they want a
 feature, the more likely I am to get around to it sooner than later.
+
+
+Since Jarvis, Bernstein, and Jain (2004)
+----------------------------------------
+
+The 2004 paper remains the foundational reference for TreeCorr's tree-based
+correlation algorithms. Current TreeCorr includes additional capabilities that
+were introduced later, including:
+
+* mixed-type three-point cross-correlations
+* patch-based covariance estimates and cross-patch weighting options
+* multipole three-point algorithm support (``bin_type='LogMultipole'`` and
+  fast ``'multipole'`` algorithm for ``'LogSAS'`` binning)
+* expanded field support in two-point calculations (``Z``, ``V``, ``T``, ``Q``)
+
+References:
+
+* `Jarvis, Bernstein, and Jain (2004) <https://arxiv.org/abs/astro-ph/0307393>`_
+* `Porth et al. (2023) <https://arxiv.org/abs/2309.08601>`_

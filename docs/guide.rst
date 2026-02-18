@@ -95,17 +95,16 @@ See the doc string for `GGCorrelation` for other available attributes.
 Other Two-point Correlation Classes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The other kinds of correlations each have their own class:
+The other kinds of correlations each have their own class.  E.g.:
 
     - `NNCorrelation` = count-count  (normal LSS correlation)
     - `NKCorrelation` = count-scalar (i.e. <kappa>(R), where kappa is any scalar field)
     - `KKCorrelation` = scalar-scalar
     - `NGCorrelation` = count-shear  (i.e. <gamma_t>(R))
-    - `KGCorrelation` = scalar-shear
-    - `GGCorrelation` = shear-shear  (e.g. cosmic shear)
     - `NVCorrelation` = count-vector
-    - `KVCorrelation` = scalar-vector
     - `VVCorrelation` = vector-vector
+
+See `Two-point Correlation Functions` for the complete list including other spin varieties.
 
 You should see their doc strings for details, but they all work similarly.
 For the cross-type classes (e.g. NK, KG, etc.), there is no auto-correlation option,
@@ -227,33 +226,10 @@ Three-point Correlation Classes
 
 TreeCorr can also do three-point correlations, to measure how the product of three fields
 depends on the size and shape of the triangle connecting three points.
-So far, we have implemented the following combination:
-
-    - `NNNCorrelation`  # count-count-count
-    - `KKKCorrelation`  # scalar-scalar-scalar
-    - `GGGCorrelation`  # shear-shear-shear
-    - `NNKCorrelation`  # count-count-scalar
-    - `NKNCorrelation`  # count-scalar-count
-    - `KNNCorrelation`  # scalar-count-count
-    - `NNGCorrelation`  # count-count-shear
-    - `NGNCorrelation`  # count-shear-count
-    - `GNNCorrelation`  # shear-count-count
-    - `NKKCorrelation`  # count-scalar-scalar
-    - `KNKCorrelation`  # scalar-count-scalar
-    - `KKNCorrelation`  # scalar-scalar-count
-    - `NGGCorrelation`  # count-shear-shear
-    - `GNGCorrelation`  # shear-count-shear
-    - `GGNCorrelation`  # shear-shear-count
-    - `KKGCorrelation`  # scalar-scalar-shear
-    - `KGKCorrelation`  # scalar-shear-scalar
-    - `GKKCorrelation`  # shear-scalar-scalar
-    - `KGGCorrelation`  # scalar-shear-shear
-    - `GKGCorrelation`  # shear-scalar-shear
-    - `GGKCorrelation`  # shear-shear-scalar
 
 These classes are significantly more complicated than the two-point ones,
 since they have to deal with the geometry of the triangles being binned.
-See their doc strings for more details.
+See `Three-point Correlation Functions` for details.
 
 
 Using random catalogs

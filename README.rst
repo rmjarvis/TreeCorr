@@ -10,11 +10,14 @@ functions.
 - It can compute correlations of regular number counts, weak lensing shears, or
   scalar quantities such as convergence or CMB temperature fluctutations.
 - 2-point correlations may be auto-correlations or cross-correlations.  This
-  includes shear-shear, count-shear, count-count, kappa-kappa, etc.  (Any
-  combination of shear, kappa, and counts.)
-- 3-point correlations currently can only be auto-correlations.  This includes
-  shear-shear-shear, count-count-count, and kappa-kappa-kappa.  The cross
-  varieties are planned to be added in the near future.
+  includes shear-shear (aka GG), count-shear (NG), count-count (NN), kappa-kappa (KK), etc.
+  (Any combination of shear, kappa, and counts.)
+- 3-point correlations include both auto-correlations (e.g. NNN, KKK, GGG)
+  and mixed cross-correlations (e.g. NNG, NKK, KGG and permutations).
+- Additional combinations involving fields with other spin values besides 0 and 2.
+  This includes vectors (spin-1, referred to as V), shear (spin-2, G), trefoil (spin-3, T),
+  and quatrefoil (spin-4, Q).  There are classes implementing 2- and 3-point correlations
+  of these kinds of fields as well.
 - Both 2- and 3-point functions can be done with the correct curved-sky
   calculation using RA, Dec coordinates, on a Euclidean tangent plane, or in
   3D using either (RA,Dec,r) or (x,y,z) positions.
@@ -251,7 +254,7 @@ which is the name of a configuration file::
     corr2 config_file
     corr3 config_file
 
-A sample configuration file for corr2 is provided, called sample.params.
+A sample configuration file for corr2 is provided, called sample_config.yaml.
 See `Configuration Parameters <https://rmjarvis.github.io/TreeCorr/_build/html/params.html>`_
 for the complete documentation about the allowed parameters.
 
@@ -299,7 +302,7 @@ Or for a more involved worked example, see our `Jupyter notebook tutorial
 <https://github.com/rmjarvis/TreeCorr/blob/main/tests/Tutorial.ipynb>`_.
 
 And for the complete details about all aspects of the code, see the `Sphinx-generated
-documentation <http://rmjarvis.github.io/TreeCorr>`_.
+documentation <https://rmjarvis.github.io/TreeCorr>`_.
 
 
 Reporting bugs

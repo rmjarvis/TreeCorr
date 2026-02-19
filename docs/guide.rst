@@ -91,6 +91,8 @@ further calculation with them, you can access the resulting fields directly as n
                             # taking into account shape noise only
 
 See the doc string for `GGCorrelation` for other available attributes.
+If you want to run this same workflow from a config file via ``corr2``,
+or compare executable and Python interfaces, see :doc:`scripts`.
 
 Loading a Catalog
 ^^^^^^^^^^^^^^^^^

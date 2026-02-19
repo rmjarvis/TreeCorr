@@ -123,6 +123,12 @@ Parameters about the input file(s)
     may instead give patch_centers either as a file name or an array
     from which the patches will be determined.
 
+    For cross-correlations where both catalogs use patches, this is often the
+    preferred way to ensure consistent patch geometry between the two catalogs.
+    Running separate ``npatch`` calculations for each catalog is incorrect for
+    patch-based covariance estimation, since it produces inconsistent patch
+    definitions between the catalogs.
+
 :x_col: (int/str) Which column to use for x.
 :y_col: (int/str) Which column to use for y.
 :ra_col: (int/str) Which column to use for ra.
@@ -296,6 +302,13 @@ Parameters about the binned correlation function to be calculated
 
     See `Binning` for details about how these parameters are used for the
     different choice of ``bin_type``.
+
+:max_n: (int) The maximum multipole index to store for three-point multipole calculations.
+
+    This parameter is required when ``bin_type='LogMultipole'``.
+    It may also be provided with ``bin_type='LogSAS'`` when using the multipole
+    algorithm path, in which case it controls the internal multipole expansion
+    before conversion back to SAS bins.
 
 :sep_units: (str, default=None) The units to use for ``min_sep`` and ``max_sep``.
 
@@ -785,7 +798,7 @@ about the output columns.
     - ``zeta`` = The correlation function.
     - ``sigma_zeta`` = The 1-sigma error bar for zeta.
     - ``DDD``, ``RRR`` = The raw numbers of triangles for the data and randoms
-    - ``DDR``, ``DRD``, ``RDD``, ``DRR``, ``RDR``, ``RRD`` (if ``nn_statistic=compensated``) = The cross terms between data and random.
+    - ``DDR``, ``DRD``, ``RDD``, ``DRR``, ``RDR``, ``RRD`` (if ``nnn_statistic=compensated``) = The cross terms between data and random.
 
 :nnn_statistic: (str, default='compensated') Which statistic to use for the estimator of the NNN correlation function.
 
@@ -795,6 +808,9 @@ about the output columns.
       zeta = (DDD-DDR-DRD-RDD+DRR+RDR+RRD-RRR)/RRR
     - 'simple' is the older version: zeta = (DDD/RRR - 1), although this is not actually
       an estimator of zeta.  Rather, it estimates zeta(d1,d2,d3) + xi(d1) + xi(d2) + xi(d3).
+
+    For most science analyses, ``'compensated'`` is recommended when random
+    catalogs are available.
 
 :ggg_file_name: (str) The output filename for shear-shear-shear correlation function.
 
@@ -979,3 +995,5 @@ Miscellaneous parameters
 
     The default is to try to determine the number of cpu cores your system has
     and use that many threads.
+    For reproducibility and predictable resource usage on shared systems, it is
+    often better to set this explicitly.

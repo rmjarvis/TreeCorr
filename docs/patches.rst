@@ -34,6 +34,7 @@ correlation function:
 Below we describe how to split up an input `Catalog` into patches and
 a few things you can do with it once you have done so.
 
+
 Defining Patches on Input
 -------------------------
 
@@ -56,6 +57,16 @@ Finally, to make sure multiple catalogs are using the same definition for
 where patches are on the sky, you would probably want to have a single
 set of patch centers and have all of your catalogs use that via
 the ``patch_centers`` option.  See `Using Patch Centers` below for details.
+
+.. warning::
+
+    If you are using patches for cross-correlations of multiple catalogs,
+    make sure you only use ``npatch`` on (at most) one of them.
+    If you use ``npatch`` on two catalogs being cross-correlated, then the patch
+    definitions will be different between the two catalogs and the resulting
+    covariance estimates will be wrong.  Rather you should use ``npatch`` on one
+    of the catalogs and copy those definitions to the other catalogs using
+    ``patch_centers``.
 
 
 Running K-Means

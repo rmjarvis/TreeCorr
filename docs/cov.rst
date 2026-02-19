@@ -24,6 +24,19 @@ patches to estimate the overall sample variance.
 
 See `Patches` for information on defining the patches to use for your input `Catalog`.
 
+.. admonition:: Recommendation
+
+    For most use cases, the most accurate covariance estimate seems to be
+    jackknife covariances with matched cross-patch weights, so we recommend
+    this option for most users who want empirical covariance estimates from
+    the data.  I.e. use ``method='jackknife', cross_patch_weight='match'``,
+    as described below.
+
+    For the 5.x version series, the matched cross-patch weights are not the default
+    in order to maintain backwards-compatibility, but this may change at the
+    next major version (6.0).
+
+
 Variance Methods
 ----------------
 
@@ -185,6 +198,31 @@ the most accurate default choice, with bootstrap/``'geom'`` as a useful comparis
 For 'sample' and 'marked_bootstrap', we don't see much difference between 'simple' and 'mean',
 although we welcome feedback from users whether 'mean' might be a better
 choice for these methods.
+
+Recommended Baseline Workflow
+-----------------------------
+
+For most analyses, a good baseline is jackknife covariance with ``'match'`` weighting:
+
+.. code-block:: python
+
+    cat1 = treecorr.Catalog(cat1_file, npatch=50)
+    cat2 = treecorr.Catalog(cat2_file, patch_centers=cat1.patch_centers)
+    ng = treecorr.NGCorrelation(config)
+    ng.process(cat1, cat2)
+    cov = ng.estimate_cov(method='jackknife', cross_patch_weight='match')
+
+Patch consistency checklist for cross-correlations:
+
+1. Use a single shared patch definition across all relevant catalogs.
+2. In particular, do not use ``npatch`` on multiple catalogs, since that will create different
+   patch definitions for the different data sets.
+3. Typically use ``patch_centers`` to copy the patch definitions from one catalog to any other
+   catalogs being used in the correlation calculation.
+4. This applies to random catalogs as well.  If you are using random catalogs, use the same
+   patch definitions as the data.
+5. Ensure any correlations combined with ``estimate_multi_cov`` were processed with compatible
+   patches.
 
 
 Covariance Matrix

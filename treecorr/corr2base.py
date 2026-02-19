@@ -143,8 +143,8 @@ class Corr2(object):
 
     Parameters:
         config (dict):      A configuration dict that can be used to pass in the below kwargs if
-                            desired.  This dict is allowed to have addition entries in addition
-                            to those listed below, which are ignored here. (default: None)
+                            desired.  This dict is allowed to have additional entries beyond
+                            those listed below, which are ignored here. (default: None)
         logger:             If desired, a logger object for logging. (default: None, in which case
                             one will be built according to the config dict's verbose level.)
 
@@ -177,7 +177,7 @@ class Corr2(object):
                             If bin_slop = 1, then the bin into which a particular pair is placed
                             may be incorrect by at most 1.0 bin widths.  (default: None, which
                             means to use a bin_slop that gives a maximum error of 10% on any bin,
-                            which has been found to yield good results for most application.
+                            which has been found to yield good results for most applications.
         angle_slop (float): How much slop to allow in the angular direction. This works very
                             similarly to bin_slop, but applies to the projection angle of a pair
                             of cells. The projection angle for any two objects in a pair of cells
@@ -204,7 +204,7 @@ class Corr2(object):
 
         log_file (str):     If no logger is provided, this will specify a file to write the logging
                             output.  (default: None; i.e. output to standard output)
-        output_dots (bool): Whether to output progress dots during the calcualtion of the
+        output_dots (bool): Whether to output progress dots during the calculation of the
                             correlation function. (default: False unless verbose is given and >= 2,
                             in which case True)
 

@@ -250,13 +250,13 @@ class Corr3(object):
     .. note::
 
         If you separate out the steps of the `process` command and use `process_auto`
-        and/or `process_cross`, then the units will not be applied to ``meanr`` or
-        ``meanlogr`` until the ``finalize`` function is called.
+        and/or `process_cross`, then the units will not be applied to the ``meand*`` and
+        ``meanlogd*`` attributes until the ``finalize`` function is called.
 
     Parameters:
         config (dict):      A configuration dict that can be used to pass in the below kwargs if
-                            desired.  This dict is allowed to have addition entries in addition
-                            to those listed below, which are ignored here. (default: None)
+                            desired.  This dict is allowed to have additional entries beyond
+                            those listed below, which are ignored here. (default: None)
         logger:             If desired, a logger object for logging. (default: None, in which case
                             one will be built according to the config dict's verbose level.)
 
@@ -286,10 +286,10 @@ class Corr3(object):
                             3-d or flat 2-d positions, the default will just match the units of
                             x,y[,z] coordinates)
         bin_slop (float):   How much slop to allow in the placement of triangles in the bins.
-                            If bin_slop = 1, then the bin into which a particular pair is placed
+                            If bin_slop = 1, then the bin into which a particular triangle is placed
                             may be incorrect by at most 1.0 bin widths.  (default: None, which
                             means to use a bin_slop that gives a maximum error of 10% on any bin,
-                            which has been found to yield good results for most application.)
+                            which has been found to yield good results for most applications.)
         angle_slop (float): How much slop to allow in the angular direction. This works very
                             similarly to bin_slop, but applies to the projection angle of a pair
                             of cells. The projection angle for any two objects in a pair of cells
@@ -309,8 +309,8 @@ class Corr3(object):
 
         nphi_bins (int):    Analogous to nbins for the phi values when bin_type=LogSAS.  (The
                             default is to calculate from phi_bin_size = bin_size, min_phi = 0,
-                            max_u = np.pi, but this can be overridden by specifying up to 3 of
-                            these four parametes.)
+                            max_phi = np.pi, but this can be overridden by specifying up to 3 of
+                            these four parameters.)
         phi_bin_size (float): Analogous to bin_size for the phi values. (default: bin_size)
         min_phi (float):    Analogous to min_sep for the phi values. (default: 0)
         max_phi (float):    Analogous to max_sep for the phi values. (default: np.pi)
@@ -324,15 +324,15 @@ class Corr3(object):
 
         nubins (int):       Analogous to nbins for the u values when bin_type=LogRUV.  (The default
                             is to calculate from ubin_size = bin_size, min_u = 0, max_u = 1, but
-                            this can be overridden by specifying up to 3 of these four parametes.)
+                            this can be overridden by specifying up to 3 of these four parameters.)
         ubin_size (float):  Analogous to bin_size for the u values. (default: bin_size)
         min_u (float):      Analogous to min_sep for the u values. (default: 0)
         max_u (float):      Analogous to max_sep for the u values. (default: 1)
 
-        nvbins (int):       Analogous to nbins for the positive v values when bin__type=LogRUV.
+        nvbins (int):       Analogous to nbins for the positive v values when bin_type=LogRUV.
                             (The default is to calculate from vbin_size = bin_size, min_v = 0,
                             max_v = 1, but this can be overridden by specifying up to 3 of these
-                            four parametes.)
+                            four parameters.)
         vbin_size (float):  Analogous to bin_size for the v values. (default: bin_size)
         min_v (float):      Analogous to min_sep for the positive v values. (default: 0)
         max_v (float):      Analogous to max_sep for the positive v values. (default: 1)
@@ -347,7 +347,7 @@ class Corr3(object):
 
         log_file (str):     If no logger is provided, this will specify a file to write the logging
                             output.  (default: None; i.e. output to standard output)
-        output_dots (bool): Whether to output progress dots during the calcualtion of the
+        output_dots (bool): Whether to output progress dots during the calculation of the
                             correlation function. (default: False unless verbose is given and >= 2,
                             in which case True)
 
@@ -393,7 +393,7 @@ class Corr3(object):
                             (default: 'shot')
         num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
                             'marked_bootstrap' var_methods.  (default: 500)
-        cross_patch_weight (str): How to weight pairs that cross between two patches when one patch
+        cross_patch_weight (str): How to weight triangles that cross between two patches when one patch
                             is deselected (e.g. in a jackknife sense) and the other is selected.
                             (default None)
         rng (RandomState):  If desired, a numpy.random.RandomState instance to use for bootstrap
@@ -2161,7 +2161,7 @@ class Corr3(object):
             algo (str):         Which accumulation algorithm to use. (options are 'triangle' or
                                 'multipole'; default is 'multipole' unless bin_type is 'LogRUV',
                                 which can only use 'triangle')  cf. `Three-point Algorithm`.
-            max_n (int):        If using the multpole algorithm, and this is not directly using
+            max_n (int):        If using the multipole algorithm, and this is not directly using
                                 bin_type='LogMultipole', then this is the value of max_n to use
                                 for the multipole part of the calculation. (default is to use
                                 2pi/phi_bin_size; this value can also be given in the constructor

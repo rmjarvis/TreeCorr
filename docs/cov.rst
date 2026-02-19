@@ -153,7 +153,7 @@ which can be provided in the `Corr2` or `Corr3` constructor or in the call to
   For jackknife, the weights are all 1 or 0, so this means the pair is used only if
   both points are not in the excluded patch.  For bootstrap, the weights are some
   integer corresponding the multiplicity of that patch in the bootstrap selection.
-  Cross patch pairs are included at the product of the multipilicity of the two patches.
+  Cross patch pairs are included at the product of the multiplicity of the two patches.
   For sample and marked_bootstrap, a pair is included if the first point is the selected
   sample.
 * 'mean' involves weighting pairs by the mean of the patch weights.  For jackknife, this
@@ -181,7 +181,7 @@ explicitly setting ``cross_patch_weight`` to either 'match' or 'geom' as appropr
 especially if your field has significant sample variance, but not much super-sample variance,
 where these options seem to be more optimal than the default weighting.
 For 'sample' and 'marked_bootstrap', we don't see much difference between 'simple' and 'mean',
-althought we welcome feedback from users whether 'mean' might be a better
+although we welcome feedback from users whether 'mean' might be a better
 choice for these methods.
 
 
@@ -251,7 +251,7 @@ data vector, ``ratio``.
 Random Catalogs
 ---------------
 
-There are a few adjustements to the above prescription when using random
+There are a few adjustments to the above prescription when using random
 catalogs, which of course are required when doing an NN correlation.
 
 1. It is not necessarily required to use patches for the random catalog.

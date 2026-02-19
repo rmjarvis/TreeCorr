@@ -2750,7 +2750,7 @@ class Catalog(object):
         set of patches, since you may not be able to fit all the patches in memory at once.
 
         One does not normally need to call this method explicitly.  It will run automatically
-        whenever the data is needed.  However, if you want to directly control when the disk
+        whenever the data are needed.  However, if you want to directly control when the disk
         access happens, you can use this function.
         """
         if not self.loaded:

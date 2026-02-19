@@ -12,7 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 """
-.. module:: corr3
+.. module:: exec_corr3
 """
 
 from .catalog import Catalog, read_catalogs
@@ -39,7 +39,7 @@ from .kggcorrelation import KGGCorrelation, GKGCorrelation, GGKCorrelation
 #    description
 corr3_valid_params = {
 
-    # Parameters about the input catlogs
+    # Parameters about the input catalogs
 
     'file_name' : (str, True, None, None,
             'The file(s) with the galaxy data.'),
@@ -57,9 +57,9 @@ corr3_valid_params = {
     # Parameters about the output file(s)
 
     'nnn_file_name' : (str, False, None, None,
-            'The output filename for point-point correlation function.'),
+            'The output filename for count-count-count correlation function.'),
     'nnn_statistic' : (str, False, 'compensated', ['compensated','simple'],
-            'Which statistic to use for omega as the estimator fo the NN correlation function. '),
+            'Which statistic to use for omega as the estimator for the NNN correlation function. '),
     'kkk_file_name' : (str, False, None, None,
             'The output filename for scalar-scalar-scalar correlation function.'),
     'ggg_file_name' : (str, False, None, None,

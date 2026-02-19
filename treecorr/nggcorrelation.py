@@ -12,7 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 """
-.. module:: nnncorrelation
+.. module:: nggcorrelation
 """
 
 import numpy as np
@@ -77,7 +77,7 @@ class NGGCorrelation(Corr3):
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr3`, which are ignored here. (default: None)
         logger:         If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
@@ -432,7 +432,7 @@ class GNGCorrelation(Corr3):
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr3`, which are ignored here. (default: None)
         logger:         If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
@@ -785,7 +785,7 @@ class GGNCorrelation(Corr3):
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr3`, which are ignored here. (default: None)
         logger:         If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)

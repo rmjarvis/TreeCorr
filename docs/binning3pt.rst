@@ -27,7 +27,7 @@ two-point function.
 --------
 
 This binning option uses a Side-Side-Side (SSS) characterization of the triangle.
-Thre three side lengths of the triangle are measured (using whatever `Metric <Metrics>`
+The three side lengths of the triangle are measured (using whatever `Metric <Metrics>`
 is being used).  Then we sort their lengths so that :math:`d_1 \ge d_2 \ge d_3`.
 
 If we just binned directly in these three side lengths, then the range of valid
@@ -47,8 +47,8 @@ parameter defines the overall size of the triangle, and that can range of whatev
 set of values the user wants.
 
 This provides a unique definition for any triangle, except for a mirror reflection.
-Two congruent triangles (that are not isoceles or equilateral) are not necessarily
-equivalent for 3-point correlations.  The orienation of the sides matters, at least
+Two congruent triangles (that are not isosceles or equilateral) are not necessarily
+equivalent for 3-point correlations.  The orientation of the sides matters, at least
 in many use cases.  So we need to keep track of that.  We choose to do so in the 
 sign of :math:`v`, where positive values mean that the sides :math:`d_1`,
 :math:`d_2` and :math:`d_3` are oriented in counter-clockwise order.
@@ -58,11 +58,11 @@ Negative values of :math:`v` mean they are oriented in clockwise order.
 
     This binning can only use the 'triangle' algorithm, which is generally much
     slower than the 'multipole' algorithm.  For most purposes, we recommend using
-    `"LogSAS"` instead, which can use the 'multpole' algorithm to calculate the
+    `"LogSAS"` instead, which can use the 'multipole' algorithm to calculate the
     correlation function.  See `Three-point Algorithm` below for more discussion
     about this.
 
-The binning of :math:`r` works the same was as `"Log"` for two-point correlations.
+The binning of :math:`r` works the same way as `"Log"` for two-point correlations.
 That is, the binning is specified using any 3 of the following 4 parameters:
 
     - ``nbins``       How many bins to use.
@@ -98,7 +98,7 @@ being used for the binning are called :math:`d_2` and :math:`d_3`.  The angle
 between these two sides is called :math:`\phi`, and the side opposite it
 (not used for binning) is :math:`d_1`.
 
-The two sides, :math:`d_2` and :math:`d_3` are each binned the same was as
+The two sides, :math:`d_2` and :math:`d_3` are each binned the same way as
 `"Log"` binning for two-point correlations.
 That is, the binning is specified using any 3 of the following 4 parameters:
 
@@ -176,7 +176,7 @@ section 4.2. (We no longer implement the algorithm described in section 4.3 due 
 considerations.)  This algorithm is much faster than a brute-force calculation, but it is
 still quite slow compared to the new multipole algorithm.
 
-Starting in version 5.0, we now also implement the algorthm developed by
+Starting in version 5.0, we now also implement the algorithm developed by
 `Porth et al (2024, A&A, 689, 224)
 <https://ui.adsabs.harvard.edu/abs/2024A%26A...689A.227P/abstract>`_,
 called 'multipole' in TreeCorr, which is much faster for typical data sets.

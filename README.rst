@@ -8,7 +8,7 @@ functions.
 
 - The code is hosted at https://github.com/rmjarvis/TreeCorr
 - It can compute correlations of regular number counts, weak lensing shears, or
-  scalar quantities such as convergence or CMB temperature fluctutations.
+  scalar quantities such as convergence or CMB temperature fluctuations.
 - 2-point correlations may be auto-correlations or cross-correlations.  This
   includes shear-shear (aka GG), count-shear (NG), count-count (NN), kappa-kappa (KK), etc.
   (Any combination of shear, kappa, and counts.)
@@ -42,8 +42,8 @@ functions.
   I've made since then, but this will suffice as a reference for now.)
 - If you use the three-point multipole functionality of TreeCorr, please also
   reference **Porth et al, 2023, arXiv:2309.08601**
-- Record on the Astrophyics Source Code Library: http://ascl.net/1508.007
-- Developed by Mike Jarvis.  Fee free to contact me with questions or comments
+- Record on the Astrophysics Source Code Library: https://ascl.net/1508.007
+- Developed by Mike Jarvis.  Feel free to contact me with questions or comments
   at mikejarvis17 at gmail.  Or post an issue (see below) if you have any
   problems with the code.
 
@@ -135,7 +135,7 @@ that is also relatively straightforward:
         potentially useful.
 
         - fitsio is required for reading FITS catalogs or writing to FITS output files.
-        - pandas will signficantly speed up reading from ASCII catalogs.
+        - pandas will significantly speed up reading from ASCII catalogs.
         - pandas and pyarrow are required for reading Parquet files.
         - h5py is required for reading HDF5 catalogs.
         - mpi4py is required for running TreeCorr across multiple machines using MPI.
@@ -223,7 +223,7 @@ Three-point Correlations
 Three point correlation functions are significantly more complicated, being functions
 of three parameters defining the triangle size and shape, rather than just a single
 separation.  For cross-correlations, there are also issues related to whether one wants
-to allow the different catalogs to take all possible vertices in the triangles are be
+to allow the different catalogs to take all possible vertices in the triangles or be
 fixed to a particular vertex.
 
 This software is able to compute the following three-point auto-correlations:

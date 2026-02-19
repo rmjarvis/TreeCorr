@@ -12,7 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 """
-.. module:: corr2ex
+.. module:: exec_corr2
 """
 
 from .catalog import Catalog, read_catalogs
@@ -71,7 +71,7 @@ corr2_valid_params = {
     'nn_file_name' : (str, False, None, None,
             'The output filename for point-point correlation function.'),
     'nn_statistic' : (str, False, 'compensated', ['compensated','simple'],
-            'Which statistic to use for omega as the estimator fo the NN correlation function. '),
+            'Which statistic to use for omega as the estimator for the NN correlation function. '),
     'nk_file_name' : (str, False, None, None,
             'The output filename for count-scalar correlation function.'),
     'nk_statistic' : (str, False, None, ['compensated', 'simple'],

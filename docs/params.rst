@@ -69,7 +69,7 @@ Parameters about the input file(s)
     and ``file_name`` (or any of the other corresponding pairs).
 
 :file_type: (ASCII, FITS, HDF5, or Parquet) The file type of the input files.
-:delimiter: (str, default = '\0') The delimeter between input values in an ASCII catalog.
+:delimiter: (str, default = '\0') The delimiter between input values in an ASCII catalog.
 :comment_marker: (str, default = '#') The first (non-whitespace) character of comment lines in an input ASCII catalog.
 
     The default file type is normally ASCII.  However, if the file name
@@ -96,7 +96,7 @@ Parameters about the input file(s)
     You can optionally not use all the rows in the input file.
     You may specify ``first_row``, ``last_row``, or both to limit the rows being used.
     The rows are numbered starting with 1.  If ``last_row`` is not positive, it
-    means to use to the end of the file.  If ``every_nth`` is set, it will skip
+    means to read through the end of the file.  If ``every_nth`` is set, it will skip
     rows, selecting only 1 out of every n rows.
 
 :npatch: (int, default=1)
@@ -177,8 +177,8 @@ Parameters about the input file(s)
     If you are doing one of the shear correlation functions (i.e. NG, KG, GG),
     then you need to specify the shear estimates of the corresponding galaxies.
     The g1,g2 values are taken to be reduced shear values.  They should be
-    unbiases estimators of g1,g2, so they are allowed to exceed :math:`|g| = 1`.
-    (This is required for some methods to produce unbiased estimates.
+    unbiased estimators of g1,g2, so they are allowed to exceed :math:`|g| = 1`.
+    (This is required for some methods to produce unbiased estimates.)
 
 :v1_col: (int/str) Which column to use for v1 (the real component of the vectors).
 :v2_col: (int/str) Which column to use for v2 (the imaginary component of the vectors).
@@ -979,4 +979,3 @@ Miscellaneous parameters
 
     The default is to try to determine the number of cpu cores your system has
     and use that many threads.
-

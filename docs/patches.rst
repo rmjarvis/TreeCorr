@@ -26,7 +26,7 @@ correlation function:
 4. To run k-means on some data set for non-correlation reasons.
    TreeCorr happens to have an extremely efficient implementation of the
    k-means algorithm.  So if you want to perform k-means clustering on
-   some data that can be represnted in a TreeCorr `Catalog` (i.e.
+   some data that can be represented in a TreeCorr `Catalog` (i.e.
    only 2 or 3 spatial dimensions), then using TreeCorr may be a
    particularly efficient way to do the clustering.
    See `Running K-Means` below.
@@ -89,7 +89,7 @@ sky that has objects, so this algorithm is a good choice for dividing up a
 catalog of astronomical objects into fairly uniform patches.
 
 To use the TreeCorr implementation of k-means, simply
-set the ``npatch`` parameter in the `Catalog` constructor to specifiy
+set the ``npatch`` parameter in the `Catalog` constructor to specify
 how many patches you want TreeCorr to split the data into.
 
 .. note::
@@ -161,7 +161,7 @@ where these parameters are called simply ``init`` and ``alt`` respectively.
 
     However, we don't really care about the total inertia being minimized.  For most purposes
     here, we really want the patches to be all close to the *same* size.  So rather than
-    the total inertia, my metric for quality was the rms variation of the intertia
+    the total inertia, my metric for quality was the rms variation of the inertia
     (aka the standard deviation).
 
     Fortunately, the process of minimizing the total inertia does tend to select patches with

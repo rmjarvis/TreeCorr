@@ -12,7 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 """
-.. module:: nnncorrelation
+.. module:: gggcorrelation
 """
 
 import numpy as np
@@ -35,8 +35,8 @@ class GGGCorrelation(Corr3):
     this definition.  It is also a fairly simple point to calculate in the code compared to
     some of the other options they offer, so projections relative to it are fairly efficient.
 
-    There are 4 complex-valued 3-point shear corrletion functions defined for triples of shear
-    values projected relative to the line joining the location of the shear to the cenroid of
+    There are 4 complex-valued 3-point shear correlation functions defined for triples of shear
+    values projected relative to the line joining the location of the shear to the centroid of
     the triangle:
 
     .. math::
@@ -46,7 +46,7 @@ class GGGCorrelation(Corr3):
         \Gamma_2 &= \langle \gamma(\mathbf{x1}) \gamma(\mathbf{x2})^* \gamma(\mathbf{x3}) \rangle \\
         \Gamma_3 &= \langle \gamma(\mathbf{x1}) \gamma(\mathbf{x2}) \gamma(\mathbf{x3})^* \rangle \\
 
-    where :math:`\mathbf{x1}, \mathbf{x2}, \mathbf{x3}` are the corners of the triange opposite
+    where :math:`\mathbf{x1}, \mathbf{x2}, \mathbf{x3}` are the corners of the triangle opposite
     sides d1, d2, d3 respectively, where d1 > d2 > d3, and :math:`{}^*` indicates complex
     conjugation.
 
@@ -81,7 +81,7 @@ class GGGCorrelation(Corr3):
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr3`, which are ignored here. (default: None)
         logger:         If desired, a logger object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)

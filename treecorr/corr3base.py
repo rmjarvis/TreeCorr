@@ -504,7 +504,7 @@ class Corr3(object):
                 'How many bootstrap samples to use for the var_method=bootstrap and '
                 'marked_bootstrap'),
         'cross_patch_weight': (str, False, None, ['simple', 'mean', 'match', 'geom'],
-                'How to weight pairs that cross between a selected and unselected patch'),
+                'How to weight triangles that cross between selected and unselected patches'),
         'num_threads' : (int, False, None, None,
                 'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
     }
@@ -2699,8 +2699,8 @@ class Corr3(object):
         triangles that cross between two or three patches are weighted when some, but not all
         of the patches are selected.  See Mohammad and Percival (2021)
         (https://arxiv.org/abs/2109.07071) for an in-depth discussion of these options for
-        two-point statistics.  We use a similar definitions for three-point statistics.
-        Briefly the options are: (TODO!  This is aspirational so far.)
+        two-point statistics. We use a similar set of definitions for three-point statistics.
+        Briefly the options are:
 
             - 'simple' = Don't use any triangles where any object is in a deselected patch.
               This is currently the default for all methods.
@@ -2761,9 +2761,8 @@ class Corr3(object):
             num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
                                 'marked_bootstrap' var_methods.  (default: 500; this value
                                 can also be given in the constructor.)
-            cross_patch_weight (str): How to weight pairs that cross between two patches when one
-                                patch is deselected (e.g. in a jackknife sense) and the other is
-                                selected.  (default 'simple'; this value can also be given in
+            cross_patch_weight (str): How to weight triangles that span selected and
+                                deselected patches.  (default 'simple'; this value can also be given in
                                 the constructor.)
 
         Returns:
@@ -2788,7 +2787,7 @@ class Corr3(object):
         corresponds to a different estimate of the data vector, :math:`\zeta_i` (or
         :math:`f(\zeta_i)` if using the optional ``func`` parameter).
 
-        The different of rows in the matrix for each valid ``method`` are:
+        The different rows in the matrix for each valid ``method`` are:
 
             - 'shot': This method is not valid here.
             - 'jackknife': The data vector when excluding a single patch.
@@ -2809,17 +2808,16 @@ class Corr3(object):
 
         Parameters:
             method (str):       Which method to use to estimate the covariance matrix.
-            func (function):    A unary function that takes the list ``corrs`` and returns the
-                                desired full data vector. (default: None, which is equivalent to
-                                ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``)
+            func (function):    A unary function that acts on the current correlation object and
+                                returns the desired data vector. (default: None, which is
+                                equivalent to ``lambda corr: corr.getStat()``)
             comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between
                                 processes.  (default: None)
             num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
                                 'marked_bootstrap' var_methods.  (default: 500; this value
                                 can also be given in the constructor.)
-            cross_patch_weight (str): How to weight pairs that cross between two patches when one
-                                patch is deselected (e.g. in a jackknife sense) and the other is
-                                selected.  (default 'simple'; this value can also be given in the
+            cross_patch_weight (str): How to weight triangles that span selected and
+                                deselected patches.  (default 'simple'; this value can also be given in the
                                 constructor.)
 
         Returns:

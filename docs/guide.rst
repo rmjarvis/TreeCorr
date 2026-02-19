@@ -11,7 +11,7 @@ You may find it useful to work through that as well as, or instead of, reading t
 
 
 Choosing a two-point correlation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Choose based on the field types:
 
@@ -33,7 +33,7 @@ Common cases:
 See :doc:`correlation2` for all supported two-point classes.
 
 Choosing a three-point correlation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Three-point classes are available for:
 
@@ -46,7 +46,7 @@ Each mixed family also includes the corresponding permutations (e.g.
 See :doc:`correlation3` for details and class-level docs.
 
 When random catalogs are required
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * ``NN`` and ``NNN`` require random catalogs for unbiased estimators.
 * ``NG`` and ``NK`` can also use random catalogs for compensated estimators.
@@ -91,32 +91,6 @@ further calculation with them, you can access the resulting fields directly as n
                             # taking into account shape noise only
 
 See the doc string for `GGCorrelation` for other available attributes.
-
-Other Two-point Correlation Classes
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The other kinds of correlations each have their own class.  E.g.:
-
-    - `NNCorrelation` = count-count  (normal LSS correlation)
-    - `NKCorrelation` = count-scalar (i.e. <kappa>(R), where kappa is any scalar field)
-    - `KKCorrelation` = scalar-scalar
-    - `NGCorrelation` = count-shear  (i.e. <gamma_t>(R))
-    - `NVCorrelation` = count-vector
-    - `VVCorrelation` = vector-vector
-
-See `Two-point Correlation Functions` for the complete list including other spin varieties.
-
-You should see their doc strings for details, but they all work similarly.
-For the cross-type classes (e.g. NK, KG, etc.), there is no auto-correlation option,
-of course, just the cross-correlation.
-
-The other main difference between these other correlation classes from GG is that there is only a
-single correlation function, so it is called ``xi`` rather than ``xip`` and ``xim``.
-
-Also, NN does not have any kind of ``xi`` attribute.  You need to perform an additional
-calculation involving random catalogs for that.
-See `Using random catalogs` below for more details.
-
 
 Loading a Catalog
 ^^^^^^^^^^^^^^^^^
@@ -221,24 +195,31 @@ Finally, the default way of calculating separations is a normal Euclidean metric
 However, TreeCorr implements a number of other metrics as well, which are useful
 in various situations.  See `Metrics` for details.
 
-Performance and accuracy tips
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Other Two-point Correlation Classes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Some practical recommendations that are often useful in production analyses:
+The other kinds of correlations each have their own class.  E.g.:
 
-* Start with the default ``bin_slop``.  If you need to verify numerical stability,
-  reduce it (e.g. by a factor of 2) and check whether your science vector shifts.
-* For three-point calculations, prefer ``bin_type='LogSAS'`` with the default
-  multipole algorithm for speed, unless you specifically need ``LogRUV``.
-* Use patches early if you will need covariance estimates.  This avoids re-running
-  the full correlation later to get jackknife/bootstrap covariances.
-* For large jobs, use ``low_mem=True`` in ``process`` calls and use patches
-  to reduce peak memory usage.
-* For OpenMP runs, set ``num_threads`` explicitly in configs when running on shared
-  systems, so results are reproducible and resource usage is controlled.
+    - `NNCorrelation` = count-count  (normal LSS correlation)
+    - `NKCorrelation` = count-scalar (i.e. <kappa>(R), where kappa is any scalar field)
+    - `KKCorrelation` = scalar-scalar
+    - `NGCorrelation` = count-shear  (i.e. <gamma_t>(R))
+    - `NVCorrelation` = count-vector
+    - `VVCorrelation` = vector-vector
 
-See `Binning`, `Binning for three-point correlations`, `Patches`, and
-`Covariance Estimates` for full details.
+See `Two-point Correlation Functions` for the complete list including other spin varieties.
+
+You should see their doc strings for details, but they all work similarly.
+For the cross-type classes (e.g. NK, KG, etc.), there is no auto-correlation option,
+of course, just the cross-correlation.
+
+The other main difference between these other correlation classes from GG is that there is only a
+single correlation function, so it is called ``xi`` rather than ``xip`` and ``xim``.
+
+Also, NN does not have any kind of ``xi`` attribute.  You need to perform an additional
+calculation involving random catalogs for that.
+See `Using random catalogs` below for more details.
+
 
 Three-point Correlation Classes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -299,6 +280,35 @@ The corresponding three-point NNN calculation is even more complicated, since th
 combinations that need to be computed: zeta = (DDD-DDR-DRD-RDD+DRR+RDR+RRD-RRR)/RRR.
 Because of the triangle geometry, we don't have DRR = DRD = RDD, so all 8 need to be computed.
 See the docstring for `calculateZeta <NNNCorrelation.calculateZeta>` for more details.
+
+Performance and accuracy tips
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Some practical recommendations that are often useful in production analyses:
+
+* Start with the default ``bin_slop``.  If you need to verify numerical stability,
+  reduce it (e.g. by a factor of 2) and check whether your science vector shifts.
+* For three-point calculations, prefer ``bin_type='LogSAS'`` with the default
+  multipole algorithm for speed, unless you specifically need ``LogRUV``.
+* Use patches early if you will need covariance estimates.  This avoids re-running
+  the full correlation later to get jackknife/bootstrap covariances.
+* For patch-based covariance, use jackknife with ``cross_patch_weight='match'`` for the
+  best accuracy in most cases; use bootstrap/``'geom'`` mainly as a cross-check.
+
+  .. important::
+
+     This is not currently the default.  To avoid backwards incompatibility,
+     you must set ``cross_patch_weight='match'`` explicitly.  The default value,
+     ``'simple'``, is probably less accurate in most cases, but matches the behavior
+     of TreeCorr prior to version 5.1.
+
+* For large jobs, use ``low_mem=True`` in ``process`` calls and use patches
+  to reduce peak memory usage.
+* For OpenMP runs, set ``num_threads`` explicitly in configs when running on shared
+  systems, so results are reproducible and resource usage is controlled.
+
+See `Binning`, `Binning for three-point correlations`, `Patches`, and
+`Covariance Estimates` for full details.
 
 Common pitfalls
 ^^^^^^^^^^^^^^^

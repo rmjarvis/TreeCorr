@@ -180,6 +180,8 @@ For now, we recommend
 explicitly setting ``cross_patch_weight`` to either 'match' or 'geom' as appropriate,
 especially if your field has significant sample variance, but not much super-sample variance,
 where these options seem to be more optimal than the default weighting.
+In many practical analyses, we find jackknife with ``cross_patch_weight='match'`` to be
+the most accurate default choice, with bootstrap/``'geom'`` as a useful comparison.
 For 'sample' and 'marked_bootstrap', we don't see much difference between 'simple' and 'mean',
 although we welcome feedback from users whether 'mean' might be a better
 choice for these methods.

@@ -304,6 +304,10 @@ class Catalog(object):
                             may instead give patch_centers either as a file name or an array
                             from which the patches will be determined. (default: None)
 
+                            For cross-correlations that use patch-based covariance estimates,
+                            all catalogs should use consistent patch definitions, typically by
+                            sharing the same ``patch_centers``.
+
         file_type (str):    What kind of file is the input file. Valid options are 'ASCII', 'FITS'
                             'HDF', or 'Parquet' (default: if the file_name extension starts with
                             .fit, then use 'FITS', or with .hdf, then use 'HDF', or with '.par',
@@ -328,6 +332,11 @@ class Catalog(object):
                             If ``patch`` is given, then this sets the total number of patches
                             that are relevant for the area that was split into patches, which
                             may include more catalogs than just this one.
+
+                            If two catalogs in a cross-correlation both use patches, avoid
+                            running separate ``npatch`` assignments for each one. Use shared
+                            ``patch_centers`` instead so corresponding patch IDs refer to the
+                            same sky regions.
 
         kmeans_init (str):  If using kmeans to make patches, which init method to use.
                             cf. `Field.run_kmeans` (default: 'tree')
@@ -2728,7 +2737,7 @@ class Catalog(object):
         string, being the file name.  The patch centers are read from the file and returned.
 
         Parameters:
-            file_name (str):    The name of the file to write to.
+            file_name (str):    The name of the file to read from.
 
         Returns:
             The centers, as an array, which can be used to determine the patches.

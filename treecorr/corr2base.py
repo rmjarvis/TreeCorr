@@ -1482,7 +1482,7 @@ class Corr2(object):
         corresponds to a different estimate of the data vector, :math:`\\xi_i` (or
         :math:`f(\\xi_i)` if using the optional ``func`` parameter).
 
-        The different of rows in the matrix for each valid ``method`` are:
+        The different rows in the matrix for each valid ``method`` are:
 
             - 'shot': This method is not valid here.
             - 'jackknife': The data vector when excluding a single patch.
@@ -1503,9 +1503,9 @@ class Corr2(object):
 
         Parameters:
             method (str):       Which method to use to estimate the covariance matrix.
-            func (function):    A unary function that takes the list ``corrs`` and returns the
-                                desired full data vector. (default: None, which is equivalent to
-                                ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``)
+            func (function):    A unary function that acts on the current correlation object and
+                                returns the desired data vector. (default: None, which is
+                                equivalent to ``lambda corr: corr.getStat()``)
             comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between
                                 processes.  (default: None)
             num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
@@ -2122,7 +2122,7 @@ def estimate_multi_cov(corrs, method, *, func=None, comm=None, num_bootstrap=Non
                        cross_patch_weight=None):
     """Estimate the covariance matrix of multiple statistics.
 
-    This is like the method `Corr2.estimate_cov`, except that it will acoommodate
+    This is like the method `Corr2.estimate_cov`, except that it will accommodate
     multiple statistics from a list ``corrs`` of `Corr2` objects.
 
     Options for ``method`` include:
@@ -2170,11 +2170,11 @@ def estimate_multi_cov(corrs, method, *, func=None, comm=None, num_bootstrap=Non
           leads to a different weight for pairs that cross between two selected patches.
           This option is only valid for bootstrap.
         - 'match' = Use the "optimal" weight that matches the effect of auto- and cross-pairs
-          in the estimate of the jackknife covariance. MP22 calculate this for the to
+          in the estimate of the jackknife covariance. MP22 calculate this to
           be w = 1 - n_patch / (2 + sqrt(2) (n_patch-1)).
           This option is only valid for jackknife.
 
-    For example, to find the combined covariance matrix for an NG tangential shear statistc,
+    For example, to find the combined covariance matrix for an NG tangential shear statistic,
     along with the GG xi+ and xi- from the same area, using jackknife covariance estimation,
     you would write::
 
@@ -2254,7 +2254,7 @@ def build_multi_cov_design_matrix(corrs, method, *, func=None, comm=None, num_bo
     corresponds to a different estimate of the data vector, :math:`\\xi_i` (or
     :math:`f(\\xi_i)` if using the optional ``func`` parameter).
 
-    The different of rows in the matrix for each valid ``method`` are:
+    The different rows in the matrix for each valid ``method`` are:
 
         - 'shot': This method is not valid here.
         - 'jackknife': The data vector when excluding a single patch.
@@ -2313,7 +2313,7 @@ def _make_cov_design_matrix_core(corrs, plist, func, name, rank=0, size=1):
     # We aggregate and finalize each correlation function based on those pairs, and then call
     # the function func on that list of correlation objects.  This is the data vector for
     # each row in the design matrix.
-    # We also make a parallel array of the total weight in each row in case the calling routing
+    # We also make a parallel array of the total weight in each row in case the calling routine
     # needs it. So far, only sample uses the returned w, but it's very little overhead to compute
     # it, and only a small memory overhead to build that array and return it.
 

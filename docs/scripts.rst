@@ -54,6 +54,36 @@ the configuration file. e.g.::
 This can be useful when running the program from a script for lots of input
 files.
 
+Python API and corr2/corr3 parity
+---------------------------------
+
+The ``corr2`` and ``corr3`` executables and the Python ``treecorr.corr2`` /
+``treecorr.corr3`` functions use the same configuration logic and core processing
+pipeline, so they produce matching results when given equivalent configs and inputs.
+
+What is equivalent:
+
+* Same parameter names and meanings from :doc:`params`.
+* Same correlation calculations and estimators.
+* Same output products when the same output file options are set.
+
+What differs:
+
+* The executables are file-driven, one-shot runs from the command line.
+* Direct class usage in Python (`Catalog`, `Corr2`, `Corr3`) provides lower-level
+  control, such as:
+
+  - splitting processing into ``process_auto`` / ``process_cross`` / ``finalize``
+  - custom post-processing with ``estimate_cov(..., func=...)`` and
+    ``estimate_multi_cov(..., func=...)``
+  - explicit in-memory workflows without writing intermediate files
+
+When to choose which interface:
+
+* Use ``corr2``/``corr3`` for reproducible, config-driven batch jobs.
+* Use direct Python classes for iterative analysis, custom data vectors, and
+  non-standard control flow.
+
 The corr2 function from python
 ------------------------------
 

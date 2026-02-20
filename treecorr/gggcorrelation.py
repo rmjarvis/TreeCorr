@@ -61,13 +61,11 @@ class GGGCorrelation(Corr3):
         gam1:       The 1st "natural" correlation function, :math:`\Gamma_1`.
         gam2:       The 2nd "natural" correlation function, :math:`\Gamma_2`.
         gam3:       The 3rd "natural" correlation function, :math:`\Gamma_3`.
-        vargam0:    The variance of :math:`\Gamma_0`, only including the shot noise
-                    propagated into the final correlation.  This (and the related values for
-                    1, 2, 3) does not include sample variance, so it is always an underestimate
-                    of the actual variance.
-        vargam1:    The variance of :math:`\Gamma_1`.
-        vargam2:    The variance of :math:`\Gamma_2`.
-        vargam3:    The variance of :math:`\Gamma_3`.
+        vargam0:    The variance estimate of :math:`\Gamma_0`, computed according to ``var_method``
+                    (default: ``'shot'``).
+        vargam1:    The variance estimate of :math:`\Gamma_1`.
+        vargam2:    The variance estimate of :math:`\Gamma_2`.
+        vargam3:    The variance estimate of :math:`\Gamma_3`.
 
     The typical usage pattern is as follows::
 

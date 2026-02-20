@@ -58,10 +58,14 @@ class NGGCorrelation(Corr3):
         gam1:       The 1st "natural" correlation function, :math:`\Gamma_1`.
         gam2:       The 2nd "natural" correlation function, :math:`\Gamma_2`.
         gam3:       The 3rd "natural" correlation function, :math:`\Gamma_3`.
-        vargam0:    The variance estimate of :math:`\Gamma_0`, only including the shot noise.
-        vargam1:    The variance estimate of :math:`\Gamma_1`, only including the shot noise.
-        vargam2:    The variance estimate of :math:`\Gamma_2`, only including the shot noise.
-        vargam3:    The variance estimate of :math:`\Gamma_3`, only including the shot noise.
+        vargam0:    The variance estimate of :math:`\Gamma_0`, computed according to ``var_method``
+                    (default: ``'shot'``).
+        vargam1:    The variance estimate of :math:`\Gamma_1`, computed according to ``var_method``
+                    (default: ``'shot'``).
+        vargam2:    The variance estimate of :math:`\Gamma_2`, computed according to ``var_method``
+                    (default: ``'shot'``).
+        vargam3:    The variance estimate of :math:`\Gamma_3`, computed according to ``var_method``
+                    (default: ``'shot'``).
 
     The typical usage pattern is as follows::
 
@@ -423,10 +427,14 @@ class GNGCorrelation(Corr3):
         gam1:       The 1st "natural" correlation function, :math:`\Gamma_1`.
         gam2:       The 2nd "natural" correlation function, :math:`\Gamma_2`.
         gam3:       The 3rd "natural" correlation function, :math:`\Gamma_3`.
-        vargam0:    The variance estimate of :math:`\Gamma_0`, only including the shot noise.
-        vargam1:    The variance estimate of :math:`\Gamma_1`, only including the shot noise.
-        vargam2:    The variance estimate of :math:`\Gamma_2`, only including the shot noise.
-        vargam3:    The variance estimate of :math:`\Gamma_3`, only including the shot noise.
+        vargam0:    The variance estimate of :math:`\Gamma_0`, computed according to ``var_method``
+                    (default: ``'shot'``).
+        vargam1:    The variance estimate of :math:`\Gamma_1`, computed according to ``var_method``
+                    (default: ``'shot'``).
+        vargam2:    The variance estimate of :math:`\Gamma_2`, computed according to ``var_method``
+                    (default: ``'shot'``).
+        vargam3:    The variance estimate of :math:`\Gamma_3`, computed according to ``var_method``
+                    (default: ``'shot'``).
 
     The typical usage pattern is as follows::
 
@@ -786,10 +794,14 @@ class GGNCorrelation(Corr3):
         gam1:       The 1st "natural" correlation function, :math:`\Gamma_1`.
         gam2:       The 2nd "natural" correlation function, :math:`\Gamma_2`.
         gam3:       The 3rd "natural" correlation function, :math:`\Gamma_3`.
-        vargam0:    The variance estimate of :math:`\Gamma_0`, only including the shot noise.
-        vargam1:    The variance estimate of :math:`\Gamma_1`, only including the shot noise.
-        vargam2:    The variance estimate of :math:`\Gamma_2`, only including the shot noise.
-        vargam3:    The variance estimate of :math:`\Gamma_3`, only including the shot noise.
+        vargam0:    The variance estimate of :math:`\Gamma_0`, computed according to ``var_method``
+                    (default: ``'shot'``).
+        vargam1:    The variance estimate of :math:`\Gamma_1`, computed according to ``var_method``
+                    (default: ``'shot'``).
+        vargam2:    The variance estimate of :math:`\Gamma_2`, computed according to ``var_method``
+                    (default: ``'shot'``).
+        vargam3:    The variance estimate of :math:`\Gamma_3`, computed according to ``var_method``
+                    (default: ``'shot'``).
 
     The typical usage pattern is as follows::
 

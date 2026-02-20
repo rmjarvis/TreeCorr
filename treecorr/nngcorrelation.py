@@ -54,6 +54,9 @@ class GNNCorrelation(Corr3):
         >>> zetar = gnn.zetar                # Or access real and imaginary parts separately.
         >>> zetai = gnn.zetai
 
+    See also: `NGNCorrelation`, `NNGCorrelation`, `NGGCorrelation`, `NNNCorrelation`,
+    `NGCorrelation`.
+
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have additional entries besides those listed
@@ -350,6 +353,9 @@ class NGNCorrelation(Corr3):
         >>> zeta = ngn.zeta                  # Access the correlation function.
         >>> zetar = ngn.zetar                # Or access real and imaginary parts separately.
         >>> zetai = ngn.zetai
+
+    See also: `GNNCorrelation`, `NNGCorrelation`, `NGGCorrelation`, `NNNCorrelation`,
+    `NGCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
@@ -648,6 +654,9 @@ class NNGCorrelation(Corr3):
         >>> zeta = nng.zeta                  # Access the correlation function.
         >>> zetar = nng.zetar                # Or access real and imaginary parts separately.
         >>> zetai = nng.zetai
+
+    See also: `GNNCorrelation`, `NGNCorrelation`, `NGGCorrelation`, `NNNCorrelation`,
+    `NGCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.

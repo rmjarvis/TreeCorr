@@ -63,6 +63,8 @@ class NKCorrelation(Corr2):
         >>> nk.write(file_name)            # Write out to a file.
         >>> xi = nk.xi                     # Or access the correlation function directly.
 
+    See also: `NGCorrelation`, `KKCorrelation`, `NKKCorrelation`.
+
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have additional entries besides those listed

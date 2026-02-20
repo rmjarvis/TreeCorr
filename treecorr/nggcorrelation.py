@@ -75,6 +75,9 @@ class NGGCorrelation(Corr3):
         >>> gam0r = ngg.gam0r               # Or access real and imaginary parts separately.
         >>> gam0i = ngg.gam0i
 
+    See also: `GNGCorrelation`, `GGNCorrelation`, `NNGCorrelation`, `GGGCorrelation`,
+    `NGCorrelation`.
+
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have additional entries besides those listed
@@ -430,6 +433,9 @@ class GNGCorrelation(Corr3):
         >>> gam0r = gng.gam0r               # Or access real and imaginary parts separately.
         >>> gam0i = gng.gam0i
 
+    See also: `NGGCorrelation`, `GGNCorrelation`, `NNGCorrelation`, `GGGCorrelation`,
+    `NGCorrelation`.
+
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have additional entries besides those listed
@@ -782,6 +788,9 @@ class GGNCorrelation(Corr3):
         >>> gam0 = ggn.gam0, etc.           # Access gamma values directly.
         >>> gam0r = ggn.gam0r               # Or access real and imaginary parts separately.
         >>> gam0i = ggn.gam0i
+
+    See also: `NGGCorrelation`, `GNGCorrelation`, `NNGCorrelation`, `GGGCorrelation`,
+    `NGCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.

@@ -59,6 +59,8 @@ class VVCorrelation(BaseZZCorrelation):
         >>> vv.write(file_name)            # Write out to a file.
         >>> xip, xim = vv.xip, vv.xim      # Or access the correlation functions directly.
 
+    See also: `NVCorrelation`, `KVCorrelation`, `GGCorrelation`.
+
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have additional entries besides those listed

@@ -119,6 +119,8 @@ class KZCorrelation(BaseKZCorrelation):
         >>> kz.write(file_name)            # Write out to a file.
         >>> xi, xi_im = kz.xi, kz.xi_im    # Or access the correlation function directly.
 
+    See also: `NZCorrelation`, `ZZCorrelation`, `KVCorrelation`.
+
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have additional entries besides those listed

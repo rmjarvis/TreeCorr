@@ -55,6 +55,8 @@ class NNCorrelation(Corr2):
         >>> xi, varxi = nn.calculateXi(rr=rr, dr=dr, rd=rd)  # Calculate the correlation function.
         >>> nn.write(file_name, rr=rr, dr=dr, rd=rd)         # Write out to a file.
 
+    See also: `NGCorrelation`, `NKCorrelation`, `NNNCorrelation`.
+
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have additional entries besides those listed

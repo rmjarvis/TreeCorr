@@ -53,6 +53,8 @@ class KTCorrelation(BaseKZCorrelation):
         >>> kt.write(file_name)            # Write out to a file.
         >>> xi, xi_im = kt.xi, kt.xi_im    # Or access the correlation function directly.
 
+    See also: `NTCorrelation`, `TTCorrelation`, `KZCorrelation`.
+
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have additional entries besides those listed

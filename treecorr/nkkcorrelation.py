@@ -158,6 +158,13 @@ class NKKCorrelation(Corr3):
         correspond to the compensated values (if rkk is provided).  The raw, uncompensated values
         are available as ``raw_zeta`` and ``raw_varzeta``.
 
+        .. note::
+
+            The returned variance estimate (``varzeta``) is computed according to this object's
+            ``var_method`` setting, specified when constructing the object (default: ``'shot'``).
+            Internally, this method calls `Corr3.estimate_cov`; see that method for details
+            about available variance and covariance estimation schemes.
+
         Parameters:
             rkk (NKKCorrelation): The cross-correlation using random locations as the lenses (RKK),
                                   if desired.  (default: None)
@@ -386,6 +393,13 @@ class KNKCorrelation(Corr3):
         correspond to the compensated values (if krk is provided).  The raw, uncompensated values
         are available as ``raw_zeta`` and ``raw_varzeta``.
 
+        .. note::
+
+            The returned variance estimate (``varzeta``) is computed according to this object's
+            ``var_method`` setting, specified when constructing the object (default: ``'shot'``).
+            Internally, this method calls `Corr3.estimate_cov`; see that method for details
+            about available variance and covariance estimation schemes.
+
         Parameters:
             krk (KNKCorrelation): The cross-correlation using random locations as the lenses (KRK),
                                   if desired.  (default: None)
@@ -613,6 +627,13 @@ class KKNCorrelation(Corr3):
         After calling this function, the attributes ``zeta``, ``varzeta`` and ``cov`` will
         correspond to the compensated values (if kkr is provided).  The raw, uncompensated values
         are available as ``raw_zeta`` and ``raw_varzeta``.
+
+        .. note::
+
+            The returned variance estimate (``varzeta``) is computed according to this object's
+            ``var_method`` setting, specified when constructing the object (default: ``'shot'``).
+            Internally, this method calls `Corr3.estimate_cov`; see that method for details
+            about available variance and covariance estimation schemes.
 
         Parameters:
             kkr (KKNCorrelation): The cross-correlation using random locations as the lenses (KKR),

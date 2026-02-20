@@ -168,9 +168,16 @@ class KNNCorrelation(Corr3):
 
         Here KDD is the data KNN correlation function, which is the current object.
 
-        After calling this method, you can use the `Corr3.estimate_cov` method or use this
-        correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and
-        varzeta returned from this function will be available as attributes.
+        After calling this method, you can use this correlation object in the
+        `estimate_multi_cov` function.  Also, the calculated zeta and varzeta returned from this
+        function will be available as attributes.
+
+        .. note::
+
+            The returned variance estimate (``varzeta``) is computed according to this object's
+            ``var_method`` setting, specified when constructing the object (default: ``'shot'``).
+            Internally, this method calls `Corr3.estimate_cov`; see that method for details
+            about available variance and covariance estimation schemes.
 
         Parameters:
             krr (KNNCorrelation):   The correlation of the random points with the scalar field
@@ -469,9 +476,16 @@ class NKNCorrelation(Corr3):
 
         Here DKD is the data NKN correlation function, which is the current object.
 
-        After calling this method, you can use the `Corr3.estimate_cov` method or use this
-        correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and
-        varzeta returned from this function will be available as attributes.
+        After calling this method, you can use this correlation object in the
+        `estimate_multi_cov` function.  Also, the calculated zeta and varzeta returned from this
+        function will be available as attributes.
+
+        .. note::
+
+            The returned variance estimate (``varzeta``) is computed according to this object's
+            ``var_method`` setting, specified when constructing the object (default: ``'shot'``).
+            Internally, this method calls `Corr3.estimate_cov`; see that method for details
+            about available variance and covariance estimation schemes.
 
         Parameters:
             rkr (NKNCorrelation):   The correlation of the random points with the scalar field
@@ -770,9 +784,16 @@ class NNKCorrelation(Corr3):
 
         Here DDK is the data NNK correlation function, which is the current object.
 
-        After calling this method, you can use the `Corr3.estimate_cov` method or use this
-        correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and
-        varzeta returned from this function will be available as attributes.
+        After calling this method, you can use this correlation object in the
+        `estimate_multi_cov` function.  Also, the calculated zeta and varzeta returned from this
+        function will be available as attributes.
+
+        .. note::
+
+            The returned variance estimate (``varzeta``) is computed according to this object's
+            ``var_method`` setting, specified when constructing the object (default: ``'shot'``).
+            Internally, this method calls `Corr3.estimate_cov`; see that method for details
+            about available variance and covariance estimation schemes.
 
         Parameters:
             rrk (NNKCorrelation):   The correlation of the random points with the scalar field

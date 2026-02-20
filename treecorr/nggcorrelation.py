@@ -279,6 +279,13 @@ class NGGCorrelation(Corr3):
         The raw, uncompensated values are available as ``raw_gam0``, ``raw_gam2``,
         ``raw_vargam0``, and ``raw_vargam2``.
 
+        .. note::
+
+            The returned variance estimates (``vargam0`` and ``vargam2``) are computed according
+            to this object's ``var_method`` setting, specified when constructing the object
+            (default: ``'shot'``). Internally, this method calls `Corr3.estimate_cov`; see that
+            method for details about available variance and covariance estimation schemes.
+
         Parameters:
             rgg (NGGCorrelation): The cross-correlation using random locations as the lenses (RGG),
                                   if desired.  (default: None)
@@ -635,6 +642,13 @@ class GNGCorrelation(Corr3):
         The raw, uncompensated values are available as ``raw_gam0``, ``raw_gam1``,
         ``raw_vargam0``, and ``raw_vargam1``.
 
+        .. note::
+
+            The returned variance estimates (``vargam0`` and ``vargam1``) are computed according
+            to this object's ``var_method`` setting, specified when constructing the object
+            (default: ``'shot'``). Internally, this method calls `Corr3.estimate_cov`; see that
+            method for details about available variance and covariance estimation schemes.
+
         Parameters:
             grg (GNGCorrelation): The cross-correlation using random locations as the lenses (GRG),
                                   if desired.  (default: None)
@@ -990,6 +1004,13 @@ class GGNCorrelation(Corr3):
         ``vargam1``, and ``cov`` will correspond to the compensated values (if ggr is provided).
         The raw, uncompensated values are available as ``raw_gam0``, ``raw_gam1``,
         ``raw_vargam0``, and ``raw_vargam1``.
+
+        .. note::
+
+            The returned variance estimates (``vargam0`` and ``vargam1``) are computed according
+            to this object's ``var_method`` setting, specified when constructing the object
+            (default: ``'shot'``). Internally, this method calls `Corr3.estimate_cov`; see that
+            method for details about available variance and covariance estimation schemes.
 
         Parameters:
             ggr (GGNCorrelation): The cross-correlation using random locations as the lenses (GGR),

@@ -141,7 +141,7 @@ class NVCorrelation(BaseNZCorrelation):
         vR              The mean radial vector, :math:`\langle v_R \rangle(r)`
         vT              The mean counter-clockwise tangential vector,
                         :math:`\langle v_T \rangle(r)`.
-        sigma           The sqrt of the variance estimate of either of these
+        sigma           The sqrt of the variance estimate of each of these
         weight          The total weight contributing to each bin
         npairs          The total number of pairs in each bin
         ==========      =============================================================

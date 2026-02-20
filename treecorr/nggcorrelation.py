@@ -26,7 +26,7 @@ class NGGCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point count-shear-shear correlation
     function.
 
-    With this class, points 2 and 3 of the triangle (i.e. the vertces opposite d2,d3) are the ones
+    With this class, points 2 and 3 of the triangle (i.e. the vertices opposite d2,d3) are the ones
     with the shear values.  Use `GNGCorrelation` and `GGNCorrelation` for classes with the shears
     in the other positions.
 
@@ -391,7 +391,7 @@ class GNGCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point shear-count-shear correlation
     function.
 
-    With this class, points 1 and 3 of the triangle (i.e. the vertces opposite d2,d3) are the ones
+    With this class, points 1 and 3 of the triangle (i.e. the vertices opposite d2,d3) are the ones
     with the shear values.  Use `NGGCorrelation` and `GGNCorrelation` for classes with the shears
     in the other positions.
 
@@ -754,7 +754,7 @@ class GGNCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point shear-shear-count correlation
     function.
 
-    With this class, points 1 and 2 of the triangle (i.e. the vertces opposite d2,d3) are the ones
+    With this class, points 1 and 2 of the triangle (i.e. the vertices opposite d2,d3) are the ones
     with the shear values.  Use `NGGCorrelation` and `GNGCorrelation` for classes with the shears
     in the other positions.
 

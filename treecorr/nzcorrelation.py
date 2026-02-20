@@ -294,9 +294,10 @@ class NZCorrelation(BaseNZCorrelation):
                         into each bin
         meanlogr        The mean value :math:`\langle \log(r) \rangle` of pairs that
                         fell into each bin
-        z_real          The mean real component, :math:`\langle real(z) \rangle(r)`
-        z_imag          The mean imaginary component, :math:`\langle imag(z) \rangle(r)`.
-        sigma           The sqrt of the variance estimate of either of these
+        z_real          The mean real component, :math:`\langle \operatorname{Re}(z) \rangle(r)`
+        z_imag          The mean imaginary component,
+                        :math:`\langle \operatorname{Im}(z) \rangle(r)`.
+        sigma           The sqrt of the variance estimate of each of these
         weight          The total weight contributing to each bin
         npairs          The total number of pairs in each bin
         ==========      =============================================================

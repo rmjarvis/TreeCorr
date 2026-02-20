@@ -143,7 +143,7 @@ class NQCorrelation(BaseNZCorrelation):
                         center points
         qR_im           The mean imaginary part of the quatrefoil field relative to the
                         center points
-        sigma           The sqrt of the variance estimate of either of these
+        sigma           The sqrt of the variance estimate of each of these
         weight          The total weight contributing to each bin
         npairs          The total number of pairs in each bin
         ==========      =============================================================

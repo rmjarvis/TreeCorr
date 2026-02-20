@@ -243,7 +243,7 @@ class NKCorrelation(Corr2):
                         that fell into each bin
         kappa           The mean value :math:`\langle \kappa\rangle(r)`
         sigma           The sqrt of the variance estimate of
-                        :math:`\langle \kappa\rangle`
+                        :math:`\langle \kappa\rangle(r)`
         weight          The total weight contributing to each bin
         npairs          The total number of pairs in each bin
         ==========      =========================================================

@@ -151,7 +151,7 @@ class NGCorrelation(BaseNZCorrelation):
                         :math:`\langle \gamma_T \rangle(r)`
         gamX            The imaginary part of the mean tangential shear,
                         :math:`\langle \gamma_\times \rangle(r)`
-        sigma           The sqrt of the variance estimate of either of these
+        sigma           The sqrt of the variance estimate of each of these
         weight          The total weight contributing to each bin
         npairs          The total number of pairs in each bin
         ==========      =============================================================
@@ -279,7 +279,7 @@ class NGCorrelation(BaseNZCorrelation):
         R               The radius of the aperture.
         NMap            An estimate of :math:`\langle N_{ap} M_{ap} \rangle(R)`
         NMx             An estimate of :math:`\langle N_{ap} M_\times \rangle(R)`
-        sig_nmap        The sqrt of the variance estimate of either of these
+        sig_nmap        The sqrt of the variance estimate of each of these
         ==========      =========================================================
 
 
@@ -336,7 +336,7 @@ class NGCorrelation(BaseNZCorrelation):
         R               The radius of the aperture
         NMap            An estimate of :math:`\langle N_{ap} M_{ap} \rangle(R)`
         NMx             An estimate of :math:`\langle N_{ap} M_\times \rangle(R)`
-        sig_nmap        The sqrt of the variance estimate of either of these
+        sig_nmap        The sqrt of the variance estimate of each of these
         Napsq           An estimate of :math:`\langle N_{ap}^2 \rangle(R)`
         sig_napsq       The sqrt of the variance estimate of :math:`\langle N_{ap}^2 \rangle`
         Mapsq           An estimate of :math:`\langle M_{ap}^2 \rangle(R)`

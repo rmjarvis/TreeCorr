@@ -169,9 +169,9 @@ class KZCorrelation(BaseKZCorrelation):
                         fell into each bin
         meanlogr        The mean value :math:`\langle \log(r)\rangle` of pairs
                         that fell into each bin
-        xi              The real part of correlation function,
+        xi              The real part of the correlation function,
                         :math:`xi(r) = \langle \kappa\, z\rangle`
-        xi_im           The imaginary part of correlation function.
+        xi_im           The imaginary part of the correlation function.
         sigma           The sqrt of the variance estimate of both of these
         weight          The total weight contributing to each bin
         npairs          The total number of pairs in each bin

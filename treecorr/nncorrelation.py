@@ -47,13 +47,13 @@ class NNCorrelation(Corr2):
     The typical usage pattern is as follows:
 
         >>> nn = treecorr.NNCorrelation(config)
-        >>> nn.process(cat)         # For auto-correlation.
-        >>> nn.process(cat1,cat2)   # For cross-correlation.
-        >>> rr.process...           # Likewise for random-random correlations
-        >>> dr.process...           # If desired, also do data-random correlations
-        >>> rd.process...           # For cross-correlations, also do the reverse.
-        >>> nn.write(file_name,rr=rr,dr=dr,rd=rd)         # Write out to a file.
-        >>> xi,varxi = nn.calculateXi(rr=rr,dr=dr,rd=rd)  # Or get correlation function directly.
+        >>> nn.process(cat)                  # Compute the auto-correlation.
+        >>> # nn.process(cat1, cat2)         # ... or the cross-correlation.
+        >>> rr.process(...)                  # Likewise for random-random correlations.
+        >>> dr.process(...)                  # If desired, also do data-random correlations.
+        >>> rd.process(...)                  # For cross-correlations, also do the reverse.
+        >>> xi, varxi = nn.calculateXi(rr=rr, dr=dr, rd=rd)  # Calculate the correlation function.
+        >>> nn.write(file_name, rr=rr, dr=dr, rd=rd)         # Write out to a file.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.

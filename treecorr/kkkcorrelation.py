@@ -48,10 +48,10 @@ class KKKCorrelation(Corr3):
     The typical usage pattern is as follows:
 
         >>> kkk = treecorr.KKKCorrelation(config)
-        >>> kkk.process(cat)              # Compute auto-correlation.
-        >>> kkk.process(cat1, cat2, cat3) # Compute cross-correlation.
-        >>> kkk.write(file_name)          # Write out to a file.
-        >>> zeta = kkk.zeta               # Access zeta directly.
+        >>> kkk.process(cat)                # Compute the auto-correlation.
+        >>> # kkk.process(cat1, cat2, cat3) # ... or the cross-correlation.
+        >>> kkk.write(file_name)            # Write out to a file.
+        >>> zeta = kkk.zeta                 # Access zeta directly.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.

@@ -56,10 +56,10 @@ class KKCorrelation(Corr2):
     The typical usage pattern is as follows:
 
         >>> kk = treecorr.KKCorrelation(config)
-        >>> kk.process(cat)         # For auto-correlation.
-        >>> kk.process(cat1,cat2)   # For cross-correlation.
-        >>> kk.write(file_name)     # Write out to a file.
-        >>> xi = kk.xi              # Or access the correlation function directly.
+        >>> kk.process(cat)                # Compute the auto-correlation.
+        >>> # kk.process(cat1, cat2)       # ... or the cross-correlation.
+        >>> kk.write(file_name)            # Write out to a file.
+        >>> xi = kk.xi                     # Or access the correlation function directly.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.

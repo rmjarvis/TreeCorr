@@ -47,11 +47,11 @@ class KKGCorrelation(Corr3):
     The typical usage pattern is as follows::
 
         >>> kkg = treecorr.KKGCorrelation(config)
-        >>> kkg.process(cat1, cat2)       # Compute cross-correlation of two fields.
-        >>> kkg.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.
-        >>> kkg.write(file_name)          # Write out to a file.
-        >>> zeta = kkg.zeta               # Access correlation function.
-        >>> zetar = kkg.zetar             # Or access real and imaginary parts separately.
+        >>> kkg.process(cat1, cat2)         # Compute the cross-correlation of two fields.
+        >>> # kkg.process(cat1, cat2, cat3) # ... or of three fields.
+        >>> kkg.write(file_name)            # Write out to a file.
+        >>> zeta = kkg.zeta                 # Access the correlation function.
+        >>> zetar = kkg.zetar               # Or access real and imaginary parts separately.
         >>> zetai = kkg.zetai
 
     Parameters:
@@ -168,11 +168,11 @@ class KGKCorrelation(Corr3):
     The typical usage pattern is as follows::
 
         >>> kgk = treecorr.KGKCorrelation(config)
-        >>> kgk.process(cat1, cat2, cat1) # Compute cross-correlation of two fields.
-        >>> kgk.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.
-        >>> kgk.write(file_name)          # Write out to a file.
-        >>> zeta = kgk.zeta               # Access correlation function.
-        >>> zetar = kgk.zetar             # Or access real and imaginary parts separately.
+        >>> kgk.process(cat1, cat2, cat1)   # Compute the cross-correlation of two fields.
+        >>> # kgk.process(cat1, cat2, cat3) # ... or of three fields.
+        >>> kgk.write(file_name)            # Write out to a file.
+        >>> zeta = kgk.zeta                 # Access the correlation function.
+        >>> zetar = kgk.zetar               # Or access real and imaginary parts separately.
         >>> zetai = kgk.zetai
 
     Parameters:
@@ -289,11 +289,11 @@ class GKKCorrelation(Corr3):
     The typical usage pattern is as follows::
 
         >>> gkk = treecorr.GKKCorrelation(config)
-        >>> gkk.process(cat1, cat2)       # Compute cross-correlation of two fields.
-        >>> gkk.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.
-        >>> gkk.write(file_name)          # Write out to a file.
-        >>> zeta = gkk.zeta               # Access correlation function.
-        >>> zetar = gkk.zetar             # Or access real and imaginary parts separately.
+        >>> gkk.process(cat1, cat2)         # Compute the cross-correlation of two fields.
+        >>> # gkk.process(cat1, cat2, cat3) # ... or of three fields.
+        >>> gkk.write(file_name)            # Write out to a file.
+        >>> zeta = gkk.zeta                 # Access the correlation function.
+        >>> zetar = gkk.zetar               # Or access real and imaginary parts separately.
         >>> zetai = gkk.zetai
 
     Parameters:

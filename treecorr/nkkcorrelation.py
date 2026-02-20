@@ -44,13 +44,13 @@ class NKKCorrelation(Corr3):
     The typical usage pattern is as follows:
 
         >>> nkk = treecorr.NKKCorrelation(config)
-        >>> nkk.process(cat1, cat2)        # Compute cross-correlation of two fields.
-        >>> nkk.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.
-        >>> nkk.write(file_name)           # Write out to a file.
-        >>> rkk.process(rand, cat2)        # Compute cross-correlation with randoms.
-        >>> nkk.calculateZeta(rkk=rkk)     # Calculate zeta using randoms
-        >>> zeta = nkk.zeta                # Access correlation function
-        >>> zetar = nkk.zetar              # Or access real and imaginary parts separately
+        >>> nkk.process(cat1, cat2)          # Compute the cross-correlation of two fields.
+        >>> # nkk.process(cat1, cat2, cat3)  # ... or of three fields.
+        >>> nkk.write(file_name)             # Write out to a file.
+        >>> rkk.process(rand, cat2)          # Compute the random cross-correlation.
+        >>> nkk.calculateZeta(rkk=rkk)       # Calculate zeta using randoms.
+        >>> zeta = nkk.zeta                  # Access the correlation function.
+        >>> zetar = nkk.zetar                # Or access real and imaginary parts separately.
         >>> zetai = nkk.zetai
 
     Parameters:
@@ -269,13 +269,13 @@ class KNKCorrelation(Corr3):
     The typical usage pattern is as follows:
 
         >>> knk = treecorr.KNKCorrelation(config)
-        >>> knk.process(cat1, cat2, cat1)  # Compute cross-correlation of two fields.
-        >>> knk.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.
-        >>> knk.write(file_name)           # Write out to a file.
-        >>> krk.process(cat1, rand, cat1)  # Compute cross-correlation with randoms.
-        >>> knk.calculateZeta(krk=krk)     # Calculate zeta using randoms
-        >>> zeta = knk.zeta                # Access correlation function
-        >>> zetar = knk.zetar              # Or access real and imaginary parts separately
+        >>> knk.process(cat1, cat2, cat1)    # Compute the cross-correlation of two fields.
+        >>> # knk.process(cat1, cat2, cat3)  # ... or of three fields.
+        >>> knk.write(file_name)             # Write out to a file.
+        >>> krk.process(cat1, rand, cat1)    # Compute the random cross-correlation.
+        >>> knk.calculateZeta(krk=krk)       # Calculate zeta using randoms.
+        >>> zeta = knk.zeta                  # Access the correlation function.
+        >>> zetar = knk.zetar                # Or access real and imaginary parts separately.
         >>> zetai = knk.zetai
 
     Parameters:
@@ -494,13 +494,13 @@ class KKNCorrelation(Corr3):
     The typical usage pattern is as follows:
 
         >>> kkn = treecorr.KKNCorrelation(config)
-        >>> kkn.process(cat1, cat2)        # Compute cross-correlation of two fields.
-        >>> kkn.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.
-        >>> kkn.write(file_name)           # Write out to a file.
-        >>> kkr.process(cat1, rand)        # Compute cross-correlation with randoms.
-        >>> kkn.calculateZeta(kkr=kkr)     # Calculate zeta using randoms
-        >>> zeta = kkn.zeta                # Access correlation function
-        >>> zetar = kkn.zetar              # Or access real and imaginary parts separately
+        >>> kkn.process(cat1, cat2)          # Compute the cross-correlation of two fields.
+        >>> # kkn.process(cat1, cat2, cat3)  # ... or of three fields.
+        >>> kkn.write(file_name)             # Write out to a file.
+        >>> kkr.process(cat1, rand)          # Compute the random cross-correlation.
+        >>> kkn.calculateZeta(kkr=kkr)       # Calculate zeta using randoms.
+        >>> zeta = kkn.zeta                  # Access the correlation function.
+        >>> zetar = kkn.zetar                # Or access real and imaginary parts separately.
         >>> zetai = kkn.zetai
 
     Parameters:

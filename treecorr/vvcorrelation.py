@@ -54,10 +54,10 @@ class VVCorrelation(BaseZZCorrelation):
     The typical usage pattern is as follows:
 
         >>> vv = treecorr.VVCorrelation(config)
-        >>> vv.process(cat)         # For auto-correlation.
-        >>> vv.process(cat1,cat2)   # For cross-correlation.
-        >>> vv.write(file_name)     # Write out to a file.
-        >>> xip = vv.xip            # Or access the correlation function directly.
+        >>> vv.process(cat)                # Compute the auto-correlation.
+        >>> # vv.process(cat1, cat2)       # ... or the cross-correlation.
+        >>> vv.write(file_name)            # Write out to a file.
+        >>> xip, xim = vv.xip, vv.xim      # Or access the correlation functions directly.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.

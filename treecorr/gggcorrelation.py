@@ -72,11 +72,11 @@ class GGGCorrelation(Corr3):
     The typical usage pattern is as follows::
 
         >>> ggg = treecorr.GGGCorrelation(config)
-        >>> ggg.process(cat)              # Compute auto-correlation.
-        >>> ggg.process(cat1, cat2, cat3) # Compute cross-correlation.
-        >>> ggg.write(file_name)          # Write out to a file.
-        >>> gam0 = ggg.gam0, etc.         # Access gamma values directly.
-        >>> gam0r = ggg.gam0r             # Or access real and imaginary parts separately.
+        >>> ggg.process(cat)                # Compute the auto-correlation.
+        >>> # ggg.process(cat1, cat2, cat3) # ... or the cross-correlation.
+        >>> ggg.write(file_name)            # Write out to a file.
+        >>> gam0 = ggg.gam0, etc.           # Access gamma values directly.
+        >>> gam0r = ggg.gam0r               # Or access real and imaginary parts separately.
         >>> gam0i = ggg.gam0i
 
     Parameters:

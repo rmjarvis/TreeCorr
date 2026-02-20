@@ -53,9 +53,9 @@ class NVCorrelation(BaseNZCorrelation):
     The typical usage pattern is as follows:
 
         >>> nv = treecorr.NVCorrelation(config)
-        >>> nv.process(cat1,cat2)   # Compute the cross-correlation.
-        >>> nv.write(file_name)     # Write out to a file.
-        >>> xi = nv.xi              # Or access the correlation function directly.
+        >>> nv.process(cat1, cat2)         # Compute the cross-correlation.
+        >>> nv.write(file_name)            # Write out to a file.
+        >>> xi, xi_im = nv.xi, nv.xi_im    # Or access the correlation function directly.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.

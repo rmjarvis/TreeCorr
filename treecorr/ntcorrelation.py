@@ -53,9 +53,9 @@ class NTCorrelation(BaseNZCorrelation):
     The typical usage pattern is as follows:
 
         >>> nt = treecorr.NTCorrelation(config)
-        >>> nt.process(cat1,cat2)   # Compute the cross-correlation.
-        >>> nt.write(file_name)     # Write out to a file.
-        >>> xi = nt.xi              # Or access the correlation function directly.
+        >>> nt.process(cat1, cat2)         # Compute the cross-correlation.
+        >>> nt.write(file_name)            # Write out to a file.
+        >>> xi, xi_im = nt.xi, nt.xi_im    # Or access the correlation function directly.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.

@@ -30,7 +30,7 @@ class NKKCorrelation(Corr3):
     scalar value.  Use `KNKCorrelation` and `KKNCorrelation` for classes with the scalar in the
     other two positions.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -265,7 +265,7 @@ class KNKCorrelation(Corr3):
     scalar value.  Use `NKKCorrelation` and `KKNCorrelation` for classes with the scalar in the
     other two positions.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -500,7 +500,7 @@ class KKNCorrelation(Corr3):
     scalar value.  Use `NKKCorrelation` and `KNKCorrelation` for classes with the scalar in the
     other two positions.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class

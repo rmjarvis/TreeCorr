@@ -1918,7 +1918,7 @@ def test_direct_logsas_cross12():
     with assert_raises(ValueError):
         ggk.process(cat2)
 
-    # With ordered=False, doesn't do anything difference, since there is no other valid order.
+    # With ordered=False, doesn't do anything different, since there is no other valid order.
     kgg.process(cat1, cat2, ordered=False, algo='triangle')
     np.testing.assert_array_equal(kgg.ntri, true_ntri_122)
     np.testing.assert_allclose(kgg.weight, true_weight_122, rtol=1.e-5)

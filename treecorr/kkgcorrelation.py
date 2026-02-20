@@ -26,14 +26,14 @@ class KKGCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point scalar-scalar-shear correlation
     function.
 
-    See the doc string of `Corr3` for a description of how the triangles
+    See the docstring of `Corr3` for a description of how the triangles
     are binned.
 
     With this class, point 3 of the triangle (i.e. the vertex opposite d3) is the one with the
     shear value.  Use `KGKCorrelation` and `GKKCorrelation` for classes with the shear in the
     other two positions.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -150,14 +150,14 @@ class KGKCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point scalar-shear-scalar correlation
     function.
 
-    See the doc string of `Corr3` for a description of how the triangles
+    See the docstring of `Corr3` for a description of how the triangles
     are binned.
 
     With this class, point 2 of the triangle (i.e. the vertex opposite d2) is the one with the
     shear value.  Use `KKGCorrelation` and `GKKCorrelation` for classes with the shear in the
     other two positions.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -274,14 +274,14 @@ class GKKCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point shear-scalar-scalar correlation
     function.
 
-    See the doc string of `Corr3` for a description of how the triangles
+    See the docstring of `Corr3` for a description of how the triangles
     are binned.
 
     With this class, point 1 of the triangle (i.e. the vertex opposite d1) is the one with the
     shear value.  Use `KGKCorrelation` and `KKGCorrelation` for classes with the shear in the
     other two positions.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class

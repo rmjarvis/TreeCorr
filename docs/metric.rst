@@ -5,12 +5,12 @@ Metrics
 The correlation functions need to know how to calculate distances between the points,
 that is, the metric defining the space.
 
-In most cases, you will probably want to use the default Metric, called "Euclidean",
-which just uses the normal Euclidean distance between two points.  However, there are a few
+In most cases, you will probably want to use the default metric, called "Euclidean",
+which uses the normal Euclidean distance between two points.  However, there are a few
 other options, which are useful for various applications.
 
-Both `Corr2` and `Corr3` take an optional
-``metric`` parameter, which should be one of the following string values:
+Both `Corr2` and `Corr3` take an optional ``metric`` parameter, which should be one
+of the following string values:
 
 
 "Euclidean"
@@ -83,7 +83,7 @@ The distance in this metric is defined as
 
 :math:`d_{\rm Rperp} = \sqrt{d_{\rm Euclidean}^2 - r_\parallel^2}`
 
-where :math:`r_\parallel` follows the defintion in Fisher et al, 1994 (MNRAS, 267, 927).
+where :math:`r_\parallel` follows the definition in Fisher et al, 1994 (MNRAS, 267, 927).
 Namely, if :math:`p_1` and :math:`p_2` are the vector positions from Earth for the
 two points, and
 
@@ -113,7 +113,7 @@ In this limit, the formula for :math:`d` reduces to
 
     Prior to version 4.0, the "Rperp" name meant what is now called "OldRperp".
     The difference can be significant for some use cases, so if consistency across
-    versions is importatnt to you, you should either switch to using "OldRperp"
+    versions is important to you, you should either switch to using "OldRperp"
     or investigate whether the change to "FisherRperp" is important for your
     particular science case.
 
@@ -129,7 +129,7 @@ used by Fisher et al, 1994 (MNRAS, 267, 927).  The difference turns out to be
 non-trivial in some realistic use cases, so we preserve the ability to use the
 old version with this metric.
 
-Specifically, if :math:`r_1` and :math:`r_2` are the two distance from Earth,
+Specifically, if :math:`r_1` and :math:`r_2` are the two distances from Earth,
 then this metric uses :math:`r_\parallel \equiv r_2-r_1`.
 
 The distance is then defined as
@@ -196,7 +196,7 @@ The distance is defined as
 
 Of course, for 2-dimensional coordinate systems, :math:`dz = 0`.
 
-This metric is particularly relevant for data generated from N-body simuluations, which
+This metric is particularly relevant for data generated from N-body simulations, which
 often use periodic boundary conditions.
 
 

@@ -131,7 +131,7 @@ class BaseZZCorrelation(Corr2):
             file_name (str):    The name of the file to write to.
             file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
                                 the type automatically from the extension of file_name.)
-            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
+            precision (int):    For ASCII output files, the desired precision. (default: 4;
                                 this value can also be given in the constructor in the config dict.)
             write_patch_results (bool): Whether to write the patch-based results as well.
                                         (default: False)
@@ -185,7 +185,7 @@ class ZZCorrelation(BaseZZCorrelation):
     There is no projection along the line connecting the two points as there is for the other
     complex fields, since the field values don't change with orientation.
 
-    See the doc string of `Corr2` for a description of how the pairs are binned along
+    See the docstring of `Corr2` for a description of how the pairs are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr2` subclasses, objects of this class

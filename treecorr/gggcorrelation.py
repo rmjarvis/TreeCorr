@@ -50,7 +50,7 @@ class GGGCorrelation(Corr3):
     sides d1, d2, d3 respectively, where d1 > d2 > d3, and :math:`{}^*` indicates complex
     conjugation.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -414,7 +414,7 @@ class GGGCorrelation(Corr3):
 
         Parameters:
             R (array):      The R values at which to calculate the aperture mass statistics.
-                            (default: None, which means use self.rnom1d)
+                            (default: None, which means to use self.rnom1d)
             k2 (float):     If given, the ratio R2/R1 in the SKL formulae. (default: 1)
             k3 (float):     If given, the ratio R3/R1 in the SKL formulae. (default: 1)
 
@@ -651,10 +651,10 @@ class GGGCorrelation(Corr3):
         Parameters:
             file_name (str):    The name of the file to write to.
             R (array):          The R values at which to calculate the statistics.
-                                (default: None, which means use self.rnom)
+                                (default: None, which means to use self.rnom)
             file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
                                 the type automatically from the extension of file_name.)
-            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
+            precision (int):    For ASCII output files, the desired precision. (default: 4;
                                 this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing Map^3 from GGG correlations to %s',file_name)

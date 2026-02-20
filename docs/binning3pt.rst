@@ -3,7 +3,7 @@ Binning for three-point correlations
 
 The binning in the three-point case is somewhat more complicated than for
 two-point functions, since we need to characterize the geometry of triangles.
-There are currently three different binnings available, which
+There are currently three different binning schemes available, which
 may be specified using the ``bin_type`` parameter in `Corr3`.
 
 .. note::
@@ -16,12 +16,12 @@ may be specified using the ``bin_type`` parameter in `Corr3`.
     this definition of vertices has the right field in the corresponding vertex.
     E.g. NNG only keeps triangles that have the G field in vertex 3.  For triangles
     with the G field in vertex 1 or 2, you would need to use GNN and NGN respectively.
-    To fully characterize the full set of 3-point correlation information of the
-    three fields with mixed type, you need all three of these.
+    To fully characterize the 3-point correlation information for three mixed-type fields,
+    you need all three of these.
 
 See also `Other options for binning` for additional parameters that are relevant to
 the binning. These all work the same way for three-point functions as for
-two-point function.
+two-point functions.
 
 "LogRUV"
 --------
@@ -43,13 +43,13 @@ quantities which have better-behaved ranges:
 
 With this reparametrization, :math:`u` and :math:`v` are each limited to the range
 :math:`[0,1]`, independent of the values of the other parameters.  The :math:`r`
-parameter defines the overall size of the triangle, and that can range of whatever
-set of values the user wants.
+parameter defines the overall size of the triangle, and that can range over
+whatever set of values the user wants.
 
 This provides a unique definition for any triangle, except for a mirror reflection.
 Two congruent triangles (that are not isosceles or equilateral) are not necessarily
 equivalent for 3-point correlations.  The orientation of the sides matters, at least
-in many use cases.  So we need to keep track of that.  We choose to do so in the 
+in many use cases.  So we need to keep track of that.  We choose to do so in the
 sign of :math:`v`, where positive values mean that the sides :math:`d_1`,
 :math:`d_2` and :math:`d_3` are oriented in counter-clockwise order.
 Negative values of :math:`v` mean they are oriented in clockwise order.

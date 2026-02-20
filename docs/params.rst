@@ -85,7 +85,7 @@ Parameters about the input file(s)
 :ext: (int/str, default=1 for FITS or root for HDF5) The extension (fits) or group (hdf) to read
     from
 
-    Normally if you are using a fits file, the binary fits table is
+    Normally if you are using a FITS file, the binary FITS table is
     taken from the first extension, HDU 1.  If you want to read from a
     different HDU, you can specify which one to use here. For HDF files,
     the default is to read from the root of the file, but you can also
@@ -271,7 +271,7 @@ Parameters about the input file(s)
       set any of the above items from ``file_type`` to ``flip_g2`` as a two element
       list (i.e. two values separated by a space).  In this case, the first
       item refers to the file(s) in ``file_name``, and the second item refers
-      to the file(s) in files_name2.
+      to the file(s) in ``file_name2``.
 
     - You may not mix (x,y) columns with (ra,dec) columns, since its meaning
       would be ambiguous.
@@ -281,7 +281,7 @@ Parameters about the input file(s)
       any format of input catalog.
 
     - Also, if the given column only applies to one of the two input files
-      (e.g. k_col for an count-scalar cross-correlation) then you may specify just
+      (e.g. k_col for a count-scalar cross-correlation) then you may specify just
       the column name or number for the file to which it does apply.
 
 

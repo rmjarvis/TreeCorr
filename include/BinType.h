@@ -965,7 +965,7 @@ struct BinTypeHelper<LogSAS>
         if (O > 1 &&
             !metric.CCW(p1, p3, p2)) {
             // For skinny triangles, be careful that the points can't flip to the other side.
-            // This is similar to the calculation below.  We effecively check that cosphi can't
+            // This is similar to the calculation below.  We effectively check that cosphi can't
             // increase to 1.
             // First check if either side on its own can cause a flip of orientation.
             double sindphi2=0., sindphi3=0.;
@@ -1644,4 +1644,3 @@ struct BinTypeHelper<LogMultipole>
 
 
 #endif
-

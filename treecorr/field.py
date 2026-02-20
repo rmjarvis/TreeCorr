@@ -148,7 +148,7 @@ class Field(object):
         Parameters:
             ra (float or Angle):    The right ascension of the target location
             dec (float or Angle):   The declination of the target location
-            c (CelestialCorod):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)
+            c (CelestialCoord):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)
             sep (float or Angle):   The separation distance
             ra_units (str):         The units of ra if given as a float
             dec_units (str):        The units of dec if given as a float
@@ -159,7 +159,7 @@ class Field(object):
         Parameters:
             ra (float or Angle):    The right ascension of the target location
             dec (float or Angle):   The declination of the target location
-            c (CelestialCorod):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)
+            c (CelestialCoord):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)
             r (float):              The distance to the target location
             sep (float):            The separation distance
             ra_units (str):         The units of ra if given as a float
@@ -216,7 +216,7 @@ class Field(object):
         Parameters:
             ra (float or Angle):    The right ascension of the target location
             dec (float or Angle):   The declination of the target location
-            c (CelestialCorod):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)
+            c (CelestialCoord):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)
             sep (float or Angle):   The separation distance
             ra_units (str):         The units of ra if given as a float
             dec_units (str):        The units of dec if given as a float
@@ -227,7 +227,7 @@ class Field(object):
         Parameters:
             ra (float or Angle):    The right ascension of the target location
             dec (float or Angle):   The declination of the target location
-            c (CelestialCorod):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)
+            c (CelestialCoord):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)
             r (float):              The distance to the target location
             sep (float):            The separation distance
             ra_units (str):         The units of ra if given as a float
@@ -309,7 +309,7 @@ class Field(object):
         can produce slightly better patches for the purpose of patch-based covariance estimation.
         The ideal patch definition for such use would be to minimize the standard deviation (std)
         of the inertia of each patch, not the total (or mean) inertia.  It turns out that it is
-        difficult to devise an algorithm that literally does this, since it has a tendancy to
+        difficult to devise an algorithm that literally does this, since it has a tendency to
         become unstable and not converge.
 
         However, adding a penalty term to the patch assignment step of the normal k-means

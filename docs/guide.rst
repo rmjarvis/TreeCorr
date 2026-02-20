@@ -80,7 +80,7 @@ You can do a cross-correlation between two sets of galaxies very similarly::
     cat2 = treecorr.Catalog(file_name2, config2)
     gg.process(cat1, cat2)
 
-If you would rather not write the results to an output file, but maybe plot them up or do some
+If you would rather not write the results to an output file, but instead plot them or do some
 further calculation with them, you can access the resulting fields directly as numpy arrays::
 
     xip = gg.xip            # The real part of xi+
@@ -127,8 +127,9 @@ to specify what units the angles use::
                            ra_col='RA', dec_col='DEC', g1_col='E1', g2_col='E2',
                            ra_units='hours', dec_units='degrees')
 
-For the catalog of the N part of a calculation, you can skip the ``g1_col`` and ``g2_col``.
-Those only need positions. For a K correlation, you should specify ``k_col`` instead::
+For catalogs corresponding to the N part of a calculation, you can skip ``g1_col`` and
+``g2_col``; those catalogs only need positions.  For a K correlation, specify ``k_col``
+instead::
 
     cat = treecorr.Catalog(file_name='input_cat.fits',
                            ra_col='RA', dec_col='DEC', k_col='KAPPA',
@@ -142,9 +143,9 @@ skip objects with specific flags, and more.
 Building a Catalog from numpy arrays
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If the provided tools for reading in the data from an input file are insufficient, or if
-the data you want to use are being generated in Python natively, so there is no file
-to read, then you can instead build the `Catalog` directly from numpy arrays::
+If the provided tools for reading data from an input file are insufficient, or if
+the data are generated directly in Python so there is no file to read, then you can
+instead build the `Catalog` directly from numpy arrays::
 
     x = numpy.array(x_values)    # These might be the output of
     y = numpy.array(y_values)    # some calculation...
@@ -200,7 +201,7 @@ in various situations.  See `Metrics` for details.
 Other Two-point Correlation Classes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The other kinds of correlations each have their own class.  E.g.:
+The other kinds of correlations each have their own class.  For example:
 
     - `NNCorrelation` = count-count  (normal LSS correlation)
     - `NKCorrelation` = count-scalar (i.e. <kappa>(R), where kappa is any scalar field)
@@ -239,7 +240,7 @@ Using random catalogs
 
 For the NN and NNN correlations, the raw calculation is not sufficient to produce the real
 correlation function.  You also need to account for the survey geometry (edges, mask, etc.)
-by running the same calculation with a random catalog (or several) that have a uniform density,
+by running the same calculation with one or more random catalogs that have a uniform density,
 but the same geometry::
 
     data = treecorr.Catalog(data_file, config)
@@ -250,7 +251,7 @@ but the same geometry::
     dd.process(data)
     dr.process(data,rand)
     rr.process(rand)
-    xi, varxi = dd.calculateXi(rr,dr)
+    xi, varxi = dd.calculateXi(rr=rr, dr=dr)
 
 
 This calculates xi = (DD-2DR+RR)/RR for each bin.  This is the Landy-Szalay estimator,

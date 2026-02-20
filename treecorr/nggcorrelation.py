@@ -47,7 +47,7 @@ class NGGCorrelation(Corr3):
     names you find most convenient: ``gam0``, ``gam1``, ``gam2`` and ``gam3`` are all valid
     attributes, which return the corresponding value.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -416,7 +416,7 @@ class GNGCorrelation(Corr3):
     names you find most convenient: ``gam0``, ``gam1``, ``gam2`` and ``gam3`` are all valid
     attributes, which return the corresponding value.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -783,7 +783,7 @@ class GGNCorrelation(Corr3):
     names you find most convenient: ``gam0``, ``gam1``, ``gam2`` and ``gam3`` are all valid
     attributes, which return the corresponding value.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class

@@ -242,7 +242,7 @@ class LRU_Cache(object):
         return self.root[0][3]
 
     def resize(self, maxsize):
-        """ Resize the cache.  Increasing the size of the cache is non-destructive, i.e.,
+        """ Resize the cache.  Increasing the size of the cache is non-destructive, i.e.
         previously cached inputs remain in the cache.  Decreasing the size of the cache will
         necessarily remove items from the cache if the cache is already filled.  Items are removed
         in least recently used order.
@@ -329,7 +329,7 @@ def parse_metric(metric, coords, coords2=None, coords3=None):
     if metric in ['Rperp', 'OldRperp', 'FisherRperp'] and coords != '3d':
         raise ValueError("%s metric is only valid for catalogs with 3d positions."%metric)
     if metric == 'Rlens' and auto:
-        raise ValueError("Rlens metric is only valid for cross correlations.")
+        raise ValueError("Rlens metric is only valid for cross-correlations.")
     if metric == 'Rlens' and coords != '3d':
         raise ValueError("Rlens metric is only valid for catalogs with 3d positions.")
     if metric == 'Arc' and coords not in ['spherical', '3d']:
@@ -599,8 +599,8 @@ class lazy_property(object):
             x =  ...  # Some slow calculation.
             return x
 
-    Base on an answer from http://stackoverflow.com/a/6849299
-    This implementation taken from GalSim utilities.py
+    Based on an answer from http://stackoverflow.com/a/6849299
+    This implementation was taken from GalSim utilities.py
     """
     def __init__(self, fget):
         self.fget = fget

@@ -192,7 +192,7 @@ protected:
     virtual std::unique_ptr<BaseMultipoleScratch> getMP2(bool use_ww) =0;
     virtual std::unique_ptr<BaseMultipoleScratch> getMP3(bool use_ww) =0;
 
-    // This bit is a workaround for the the fact that virtual functions cannot be templates.
+    // This bit is a workaround for the fact that virtual functions cannot be templates.
     virtual void doFinishProcess(
         const BaseCell<Flat>& c1, const BaseCell<Flat>& c2, const BaseCell<Flat>& c3,
         const double d1, const double d2, const double d3, const double u, const double v,

@@ -229,7 +229,7 @@ angle_slop
 
 For some calculations, the angular orientation of the line between two points is relevant
 to the correlation.  For most complex quantities (e.g. shear), the value used in the correlation
-has to be projected onto the the line between the two points (for two-point correlations) or
+has to be projected onto the line between the two points (for two-point correlations) or
 the centroid of the triangle (for three-point correlations).  Even for scalar quantities,
 three-point correlations using the multipole method also use the angular direction of the
 lines between points.

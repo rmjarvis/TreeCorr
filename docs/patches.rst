@@ -44,8 +44,8 @@ is to just tell TreeCorr the patch number for each object explicitly.
 If passing in numpy arrays for everything, then just pass in a ``patch``
 parameter with integer values indicating the patch number.
 
-If reading in data from a file, then set a ``patch_col`` to use which
-should have these values.
+If reading data from a file, set ``patch_col`` to the column that contains
+these values.
 
 The next simplest way to define the patches is to tell TreeCorr how many
 patches you want using ``npatch``.
@@ -72,8 +72,8 @@ the ``patch_centers`` option.  See `Using Patch Centers` below for details.
 Running K-Means
 ---------------
 
-One standard way to split up a set of objects into roughly equal area
-patches is an algorithm called
+One standard way to split up a set of objects into roughly equal-area
+patches is to use an algorithm called
 `k-means clustering <https://en.wikipedia.org/wiki/K-means_clustering>`_.
 
 The basic idea of the algorithm is to divide the points :math:`\vec x_j` into
@@ -111,7 +111,7 @@ how many patches you want TreeCorr to split the data into.
     astronomical survey area.  If you really want to make patches according
     to 3-D clustering of points, then you should input x,y,z values instead.
 
-There are also two additional options which can affect how the k-means
+There are also two additional options that can affect how the k-means
 algorithm runs:
 
 * ``kmeans_init`` specifies what procedure to use for the initialization
@@ -135,13 +135,13 @@ algorithm runs:
   of the inertia rather than the mean inertia, so it tends to lead to patches that
   have a smaller final size variation than the regular k-means algorithm.
 
-  This is not the default algorithm because it is not provably (at least by
-  me) stable.  It is possible that the iteration can get into a failure mode
+  This is not the default algorithm because it is not provably stable
+  (at least as far as I know).  It is possible that the iteration can get into a failure mode
   where one patch will end up with zero objects.  The regular k-means
   provably cannot fail in this way.
 
   So if you care especially about having very uniform patch sizes, you might
-  want to try this option, but be careful about inspecting the results that
+  want to try this option, but be careful when inspecting the results so that
   they don't look crazy.
 
 See also `Field.run_kmeans`, which has more information about these options,
@@ -281,12 +281,12 @@ The overall procedure for doing this is as follows:
    galaxies or clusters or even stars).  Or it could be the large catalog
    you want to use, but sampled using the ``every_nth`` option to read
    in only a fraction of the rows.  Run k-means on the smaller catalog
-   and write the patch_centers to a file, as describe `above <Using Patch Centers>`.
+   and write the patch_centers to a file, as described `above <Using Patch Centers>`.
 2. Set up a directory somewhere that TreeCorr can use as temporary
    space for writing the individual patch files.
-3. Define the full `Catalog`, specifying to use the above centers file for the
+3. Define the full `Catalog`, specifying the above centers file as
    ``patch_centers`` and the temp directory as ``save_patch_dir``.
-4. Make sure not to do anything that requires the catalog be loaded from disk.
+4. Make sure not to do anything that requires the catalog to be loaded from disk.
    TreeCorr will delay doing the actual load until it needs to do so.
    Here, we want to make sure it never loads the full data.
 5. Run the `process <Corr2.process>` function (for whichever correlation
@@ -316,7 +316,7 @@ be a problem, but the source catalog is too large to hold in memory::
 In both cases, the result should be equivalent to what you would get if you could
 hold the catalogs fully in memory, but the peak memory will be much lower.
 The downside is that this usage will generally take somewhat longer --
-probably something like a factor of 2 for typical scenarios, but this of course
+probably something like a factor of 2 for typical scenarios, but this
 depends heavily on the nature of your calculation, how fast your disk I/O is
 compared to your CPUs, and how many cores you are using.
 
@@ -355,7 +355,7 @@ over multiple machines with MPI using `mpi4py <https://mpi4py.readthedocs.io/en/
 For this usage, the `process <Corr2.process>` functions take an optional ``comm``
 parameter.  When running in an MPI job, you can pass in ``comm=MPI.COMM_WORLD``,
 and TreeCorr will divide up the work among however many nodes you are using.
-The results will be sent back the the rank 0 node and combined to produce the
+The results will be sent back to the rank 0 node and combined to produce the
 complete answer:
 
 .. code-block:: python

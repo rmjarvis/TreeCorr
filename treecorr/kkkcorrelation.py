@@ -33,7 +33,7 @@ class KKKCorrelation(Corr3):
         correlations of the CMB temperature fluctuations, where "kappa" would really be
         :math:`\Delta T`.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class

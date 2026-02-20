@@ -1759,7 +1759,7 @@ def test_direct_logsas_cross21():
     with assert_raises(ValueError):
         knn.process(cat2)
 
-    # With ordered=False, doesn't do anything difference, since there is no other valid order.
+    # With ordered=False, doesn't do anything different, since there is no other valid order.
     nnk.process(cat2, cat1, ordered=False, algo='triangle')
     np.testing.assert_array_equal(nnk.ntri, true_ntri_221)
     np.testing.assert_allclose(nnk.weight, true_weight_221, rtol=1.e-5)

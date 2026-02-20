@@ -90,7 +90,7 @@ protected:
     template <int Q, int R>
     struct R1 {};
 
-    // This bit is a workaround for the the fact that virtual functions cannot be templates.
+    // This bit is a workaround for the fact that virtual functions cannot be templates.
     virtual void doFinishProcess(const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
                                  double rsq, double r, double logr, int k, int k2, R1<1,0>)=0;
     virtual void doFinishProcess(const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,

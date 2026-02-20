@@ -272,7 +272,8 @@ of the correlation function if you are able to use a random catalog.
 Furthermore, the `process <Corr2.process>` functions can take lists of Catalogs if desired,
 in which case it will
 do all the possible combinations.  This is especially relevant for doing randoms,
-since the statistics get better if you generate several randoms and do all the correlations to beat down the noise::
+since the statistics get better if you generate several randoms and do all the correlations to
+beat down the noise::
 
     rand_list = [ treecorr.Catalog(f,config) for f in rand_files ]
     dr.process(data, rand_list)
@@ -333,7 +334,8 @@ For even more control over the calculation, you can break up the steps in the
 `process <Corr2.process>` functions.  There are typically three steps:
 
 1. Calculate the variance of the field as needed (i.e. for anything but NN correlations).
-2. Accumulate the correlations into the bins for each auto-correlation and cross-correlation desired.
+2. Accumulate the correlations into the bins for each auto-correlation and cross-correlation
+   desired.
 3. Finalize the calculation.
 
 If you have several pairs of catalogs that you want to accumulate into a single correlation

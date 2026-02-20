@@ -120,6 +120,7 @@ User-impact highlights:
 * Major architectural overhaul that introduced a first-class Python-module interface.
 * Enabled direct Catalog construction from arrays and in-memory access to computed vectors.
 * Enabled more flexible custom workflows than executable-only usage.
-* Simplified legacy corr2 options and clarified ``file_name``/``file_name2`` cross-correlation semantics.
+* Simplified legacy corr2 options and clarified ``file_name``/``file_name2`` cross-correlation
+  semantics.
 
 `Full changelog <https://github.com/rmjarvis/TreeCorr/blob/releases/3.0/CHANGELOG.md>`__

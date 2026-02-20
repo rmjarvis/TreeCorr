@@ -101,7 +101,9 @@ class BaseNZCorrelation(Corr2):
             self._rz = rz
 
             if rz.npatch1 not in (1,self.npatch1) or rz.npatch2 != self.npatch2:
-                raise RuntimeError(f"R{self._letter2} must be run with the same patches as D{self._letter2}")
+                raise RuntimeError(
+                    f"R{self._letter2} must be run with the same patches as D{self._letter2}"
+                )
 
             if len(self.results) > 0:
                 # If there are any rz patch pairs that aren't in results (e.g. due to different

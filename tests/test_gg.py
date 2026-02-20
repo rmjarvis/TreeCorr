@@ -568,7 +568,8 @@ def test_gg():
     print('Time for gg process = ',t1-t0)
 
     # Using nbins=None rather than omiting nbins is equivalent.
-    gg2 = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., nbins=None, sep_units='arcmin')
+    gg2 = treecorr.GGCorrelation(bin_size=0.1, min_sep=1., max_sep=100., nbins=None,
+                                 sep_units='arcmin')
     gg2.process(cat, num_threads=1)
     assert gg2 == gg  # Only exactly == if num_threads == 1
 
@@ -1342,7 +1343,8 @@ def test_varxi():
 
         for run in range(nruns):
             print(f'{run}/{nruns}')
-            # In addition to the shape noise below, there is shot noise from the random x,y positions.
+            # In addition to the shape noise below, there is shot noise
+            # from the random x,y positions.
             x = (rng.random_sample(ngal)-0.5) * L
             y = (rng.random_sample(ngal)-0.5) * L
             # Varied weights are hard, but at least check that non-unit weights work correctly.
@@ -1455,7 +1457,8 @@ def test_double():
     g1_2 = np.concatenate([g1,g1])
     g2_2 = np.concatenate([g2,g2])
     w_2 = np.concatenate([w,w])
-    cat_2 = treecorr.Catalog(ra=ra_2, dec=dec_2, g1=g1_2, g2=g2_2, w=w_2, ra_units='rad', dec_units='rad')
+    cat_2 = treecorr.Catalog(ra=ra_2, dec=dec_2, g1=g1_2, g2=g2_2, w=w_2,
+                             ra_units='rad', dec_units='rad')
     gg_2 = treecorr.GGCorrelation(bin_size=0.1, min_sep=80., max_sep=100., sep_units='arcmin',
                                   verbose=1)
     gg_2.process(cat_2)

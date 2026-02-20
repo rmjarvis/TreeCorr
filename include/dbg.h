@@ -76,7 +76,13 @@ private:
 #define get_dbgout() Debugger::instance().get_dbgout()
 #define set_verbose(level) Debugger::instance().set_verbose(level)
 #define verbose_level Debugger::instance().get_level()
-#define Assert(x) do { if (!(x)) { dbg<<"Failed Assert: "<<#x<<std::endl; dbg<<__FILE__<<":"<<__LINE__<<std::endl; throw std::runtime_error("Failed Assert: " #x); } } while (false)
+#define Assert(x) do { \
+    if (!(x)) { \
+        dbg<<"Failed Assert: "<<#x<<std::endl; \
+        dbg<<__FILE__<<":"<<__LINE__<<std::endl; \
+        throw std::runtime_error("Failed Assert: " #x); \
+    } \
+} while (false)
 #define XAssert(x) do { if (verbose_level >= 0) Assert(x); } while (false)
 #else
 #define dbg if(false) (std::cerr)

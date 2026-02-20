@@ -2295,7 +2295,8 @@ def test_vargam_logruv():
 
         for run in range(nruns):
             print(f'{run}/{nruns}')
-            # In addition to the shape noise below, there is shot noise from the random x,y positions.
+            # In addition to the shape noise below, there is shot noise
+            # from the random x,y positions.
             x = (rng.random_sample(ngal)-0.5) * L
             y = (rng.random_sample(ngal)-0.5) * L
             # Varied weights are hard, but at least check that non-unit weights work correctly.
@@ -2715,7 +2716,10 @@ def test_direct_logsas():
     np.testing.assert_allclose(ggg3.gam3, ggg.gam3)
 
     # Check that the repr is minimal
-    assert repr(ggg3) == f"GGGCorrelation(min_sep={min_sep}, bin_size={bin_size}, nbins={nbins}, nphi_bins={nphi_bins})"
+    assert repr(ggg3) == (
+        f"GGGCorrelation(min_sep={min_sep}, bin_size={bin_size}, "
+        f"nbins={nbins}, nphi_bins={nphi_bins})"
+    )
 
     # New in version 5.0 is a simpler API for reading
     ggg3b = treecorr.GGGCorrelation.from_file(ascii_name)
@@ -4571,15 +4575,20 @@ def test_direct_logmultipole_auto():
         np.testing.assert_allclose(data['n'], ggg.n.flatten(), rtol=1.e-4)
         np.testing.assert_allclose(data['ntri'], ggg.ntri.flatten(), rtol=1.e-4)
         np.testing.assert_allclose(data['weightr'], np.real(ggg.weight.flatten()), rtol=1.e-4)
-        np.testing.assert_allclose(data['weighti'], np.imag(ggg.weight.flatten()), rtol=1.e-4, atol=1.e-8)
+        np.testing.assert_allclose(
+            data['weighti'], np.imag(ggg.weight.flatten()), rtol=1.e-4, atol=1.e-8)
         np.testing.assert_allclose(data['gam0r'], np.real(ggg.gam0.flatten()), rtol=1.e-4)
-        np.testing.assert_allclose(data['gam0i'], np.imag(ggg.gam0.flatten()), rtol=1.e-4, atol=1.e-8)
+        np.testing.assert_allclose(
+            data['gam0i'], np.imag(ggg.gam0.flatten()), rtol=1.e-4, atol=1.e-8)
         np.testing.assert_allclose(data['gam1r'], np.real(ggg.gam1.flatten()), rtol=1.e-4)
-        np.testing.assert_allclose(data['gam1i'], np.imag(ggg.gam1.flatten()), rtol=1.e-4, atol=1.e-8)
+        np.testing.assert_allclose(
+            data['gam1i'], np.imag(ggg.gam1.flatten()), rtol=1.e-4, atol=1.e-8)
         np.testing.assert_allclose(data['gam2r'], np.real(ggg.gam2.flatten()), rtol=1.e-4)
-        np.testing.assert_allclose(data['gam2i'], np.imag(ggg.gam2.flatten()), rtol=1.e-4, atol=1.e-8)
+        np.testing.assert_allclose(
+            data['gam2i'], np.imag(ggg.gam2.flatten()), rtol=1.e-4, atol=1.e-8)
         np.testing.assert_allclose(data['gam3r'], np.real(ggg.gam3.flatten()), rtol=1.e-4)
-        np.testing.assert_allclose(data['gam3i'], np.imag(ggg.gam3.flatten()), rtol=1.e-4, atol=1.e-8)
+        np.testing.assert_allclose(
+            data['gam3i'], np.imag(ggg.gam3.flatten()), rtol=1.e-4, atol=1.e-8)
 
     # Test I/O
     ascii_name = 'output/ggg_ascii_logmultipole.txt'
@@ -5470,7 +5479,8 @@ def test_vargam():
 
         for run in range(nruns):
             print(f'{run}/{nruns}')
-            # In addition to the shape noise below, there is shot noise from the random x,y positions.
+            # In addition to the shape noise below, there is shot noise
+            # from the random x,y positions.
             x = (rng.random_sample(ngal)-0.5) * L
             y = (rng.random_sample(ngal)-0.5) * L
             # Varied weights are hard, but at least check that non-unit weights work correctly.
@@ -5602,10 +5612,14 @@ def test_vargam():
     print('gam1 ratio = ',ggg.vargam1/var_gam1r)
     print('gam2 ratio = ',ggg.vargam2/var_gam2r)
     print('gam3 ratio = ',ggg.vargam3/var_gam3r)
-    print('max relerr for gam0 = ',np.max(np.abs((ggg.vargam0[noneq] - var_gam0r[noneq])/var_gam0r[noneq])))
-    print('max relerr for gam1 = ',np.max(np.abs((ggg.vargam1[noneq] - var_gam1r[noneq])/var_gam1r[noneq])))
-    print('max relerr for gam2 = ',np.max(np.abs((ggg.vargam2[noneq] - var_gam2r[noneq])/var_gam2r[noneq])))
-    print('max relerr for gam3 = ',np.max(np.abs((ggg.vargam3[noneq] - var_gam3r[noneq])/var_gam3r[noneq])))
+    print('max relerr for gam0 = ',
+          np.max(np.abs((ggg.vargam0[noneq] - var_gam0r[noneq]) / var_gam0r[noneq])))
+    print('max relerr for gam1 = ',
+          np.max(np.abs((ggg.vargam1[noneq] - var_gam1r[noneq]) / var_gam1r[noneq])))
+    print('max relerr for gam2 = ',
+          np.max(np.abs((ggg.vargam2[noneq] - var_gam2r[noneq]) / var_gam2r[noneq])))
+    print('max relerr for gam3 = ',
+          np.max(np.abs((ggg.vargam3[noneq] - var_gam3r[noneq]) / var_gam3r[noneq])))
     np.testing.assert_allclose(ggg.vargam0[noneq], var_gam0r[noneq], rtol=0.1)
     np.testing.assert_allclose(ggg.vargam1[noneq], var_gam1r[noneq], rtol=0.1)
     np.testing.assert_allclose(ggg.vargam2[noneq], var_gam2r[noneq], rtol=0.1)
@@ -5621,10 +5635,14 @@ def test_vargam():
     print('gam1 ratio = ',ggg.vargam1/var_gam1r)
     print('gam2 ratio = ',ggg.vargam2/var_gam2r)
     print('gam3 ratio = ',ggg.vargam3/var_gam3r)
-    print('max relerr for gam0 = ',np.max(np.abs((ggg.vargam0[noneq] - var_gam0r[noneq])/var_gam0r[noneq])))
-    print('max relerr for gam1 = ',np.max(np.abs((ggg.vargam1[noneq] - var_gam1r[noneq])/var_gam1r[noneq])))
-    print('max relerr for gam2 = ',np.max(np.abs((ggg.vargam2[noneq] - var_gam2r[noneq])/var_gam2r[noneq])))
-    print('max relerr for gam3 = ',np.max(np.abs((ggg.vargam3[noneq] - var_gam3r[noneq])/var_gam3r[noneq])))
+    print('max relerr for gam0 = ',
+          np.max(np.abs((ggg.vargam0[noneq] - var_gam0r[noneq]) / var_gam0r[noneq])))
+    print('max relerr for gam1 = ',
+          np.max(np.abs((ggg.vargam1[noneq] - var_gam1r[noneq]) / var_gam1r[noneq])))
+    print('max relerr for gam2 = ',
+          np.max(np.abs((ggg.vargam2[noneq] - var_gam2r[noneq]) / var_gam2r[noneq])))
+    print('max relerr for gam3 = ',
+          np.max(np.abs((ggg.vargam3[noneq] - var_gam3r[noneq]) / var_gam3r[noneq])))
     np.testing.assert_allclose(ggg.vargam0[noneq], var_gam0r[noneq], rtol=0.2)
     np.testing.assert_allclose(ggg.vargam1[noneq], var_gam1r[noneq], rtol=0.2)
     np.testing.assert_allclose(ggg.vargam2[noneq], var_gam2r[noneq], rtol=0.2)

@@ -36,7 +36,8 @@ void ProcessV(
 
     ++recursen;
     xdbg<<std::string(recursen,'.')<<"Start ProcessV "<<d1<<" >= "<<d2<<" >= "<<d3<<std::endl;
-    xdbg<<std::string(recursen,'.')<<"sizes = "<<c1.getSize()<<" -- "<<c2.getSize()<<" -- "<<c3.getSize()<<std::endl;
+    xdbg<<std::string(recursen,'.')<<"sizes = "<<c1.getSize()<<" -- "
+        <<c2.getSize()<<" -- "<<c3.getSize()<<std::endl;
 
     XAssert(NoSplit(c1,c2,d3,b));
     XAssert(Check(c1,c2,c3,d1,d2,d3));
@@ -122,7 +123,8 @@ void ProcessV(
 
     ++recursen;
     xdbg<<std::string(recursen,'.')<<"Start ProcessV1 "<<d1<<" >= "<<d2<<" >= "<<d3<<std::endl;
-    xdbg<<std::string(recursen,'.')<<"sizes = "<<c1.getSize()<<" -- "<<c2.getSize()<<" -- "<<c3.getSize()<<std::endl;
+    xdbg<<std::string(recursen,'.')<<"sizes = "<<c1.getSize()<<" -- "
+        <<c2.getSize()<<" -- "<<c3.getSize()<<std::endl;
 
     XAssert(Check(c1,c2,c3,d1,d2,d3));
     XAssert(std::abs(u-d3/d2) < altb);
@@ -152,7 +154,8 @@ void ProcessU(
 {
     ++recursen;
     xdbg<<std::string(recursen,'.')<<"Start ProcessU3 "<<d1<<" >= "<<d2<<" >= "<<d3<<std::endl;
-    xdbg<<std::string(recursen,'.')<<"sizes = "<<c1.getSize()<<" -- "<<c2.getSize()<<" -- "<<c3.getSize()<<std::endl;
+    xdbg<<std::string(recursen,'.')<<"sizes = "<<c1.getSize()<<" -- "
+        <<c2.getSize()<<" -- "<<c3.getSize()<<std::endl;
 
     XAssert(NoSplit(c1,c2,d3,b));
     XAssert(Check(c1,c2,c3,d1,d2,d3));
@@ -195,8 +198,10 @@ void ProcessU(
 // Preconditions: s1+s2/d3 < b
 {
     ++recursen;
-    xdbg<<std::string(recursen,'.')<<"Start ProcessU1 "<<Dist(c2.getMeanPos(),c3.getMeanPos())<<" , "<<Dist(c1.getMeanPos(),c3.getMeanPos())<<" , "<<d3<<std::endl;
-    xdbg<<std::string(recursen,'.')<<"sizes = "<<c1.getSize()<<" -- "<<c2.getSize()<<" -- "<<c3.getSize()<<std::endl;
+    xdbg<<std::string(recursen,'.')<<"Start ProcessU1 "<<Dist(c2.getMeanPos(),c3.getMeanPos())
+        <<" , "<<Dist(c1.getMeanPos(),c3.getMeanPos())<<" , "<<d3<<std::endl;
+    xdbg<<std::string(recursen,'.')<<"sizes = "<<c1.getSize()<<" -- "<<c2.getSize()<<" -- "
+        <<c3.getSize()<<std::endl;
     const double d2 = Dist(c1.getMeanPos(),c3.getMeanPos());
     if (d2 < d3) {
         if (d2 + c3.getSize() < d3) {

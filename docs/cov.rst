@@ -336,8 +336,9 @@ As mentioned above, using ``patch_centers`` is optional for ``rand``, but probab
 In the last line, it would be required that ``ng`` and ``gg`` were also made using catalogs
 with the same patch centers that ``dd`` used.
 
-The use pattern for `NNNCorrelation` is analogous, where `calculateZeta <NNNCorrelation.calculateZeta>`
-needs to be run to get the covariance estimate, after which it may be used in a list
+The use pattern for `NNNCorrelation` is analogous, where
+`calculateZeta <NNNCorrelation.calculateZeta>` needs to be run to get the covariance estimate,
+after which it may be used in a list
 passed to `estimate_multi_cov`.
 
 Design Matrix

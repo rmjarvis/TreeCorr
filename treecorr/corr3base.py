@@ -393,9 +393,9 @@ class Corr3(object):
                             (default: 'shot')
         num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
                             'marked_bootstrap' var_methods.  (default: 500)
-        cross_patch_weight (str): How to weight triangles that cross between two patches when one patch
-                            is deselected (e.g. in a jackknife sense) and the other is selected.
-                            (default None)
+        cross_patch_weight (str): How to weight triangles that cross between two patches when
+                            one patch is deselected (e.g. in a jackknife sense) and the other
+                            is selected. (default None)
         rng (RandomState):  If desired, a numpy.random.RandomState instance to use for bootstrap
                             random number generation. (default: None)
 
@@ -719,7 +719,8 @@ class Corr3(object):
                 self._ro.bin_slop = 1.0
                 self._ro.b = self.bin_size
             else:
-                self._ro.bin_slop = 0.1/self.bin_size  # The stored bin_slop corresponds to lnr bins.
+                # The stored bin_slop corresponds to lnr bins.
+                self._ro.bin_slop = 0.1/self.bin_size
                 self._ro.b = 0.1
             if self.bin_type == 'LogRUV':
                 if self.ubin_size <= 0.1:
@@ -1553,7 +1554,8 @@ class Corr3(object):
                                 and self._letter1 == self._letter2):
                             c1e = self._make_expanded_patch(c2, cat1, metric, low_mem)
                             c2e = self._make_expanded_patch(c2, cat2, metric, low_mem)
-                            self.logger.info('Process patch %d from cat2 with surrounding local patches',i)
+                            self.logger.info(
+                                'Process patch %d from cat2 with surrounding local patches', i)
                             self._single_process123(c2, c1e, c2e, (i,i,i), metric, 1,
                                                     num_threads, corr_only, temp, True)
                             if low_mem:
@@ -1790,7 +1792,8 @@ class Corr3(object):
                                 and self._letter1 == self._letter2):
                             c1e = self._make_expanded_patch(c2, cat1, metric, low_mem)
                             c3e = self._make_expanded_patch(c2, cat3, metric, low_mem)
-                            self.logger.info('Process patch %d from cat2 with surrounding local patches',i)
+                            self.logger.info(
+                                'Process patch %d from cat2 with surrounding local patches', i)
                             self._single_process123(c2, c1e, c3e, (i,i,i), metric,
                                                     1 if ordered == 0 else 4,
                                                     num_threads, corr_only, temp, True)
@@ -1803,7 +1806,8 @@ class Corr3(object):
                                 and self._letter1 == self._letter3):
                             c1e = self._make_expanded_patch(c3, cat1, metric, low_mem)
                             c2e = self._make_expanded_patch(c3, cat2, metric, low_mem)
-                            self.logger.info('Process patch %d from cat3 with surrounding local patches',i)
+                            self.logger.info(
+                                'Process patch %d from cat3 with surrounding local patches', i)
                             self._single_process123(c3, c2e, c1e, (i,i,i), metric,
                                                     1 if ordered == 0 else 4,
                                                     num_threads, corr_only, temp, True)
@@ -2222,7 +2226,8 @@ class Corr3(object):
 
         if cat2 is None:
             if not self._letter1 == self._letter2 == self._letter3:
-                raise ValueError("{} cannot use one catalog version of process".format(self._letters))
+                raise ValueError(
+                    "{} cannot use one catalog version of process".format(self._letters))
             if cat3 is not None:
                 raise ValueError("For two catalog case, use cat1,cat2, not cat1,cat3")
             if not (ordered is True or ordered is False):
@@ -2238,7 +2243,8 @@ class Corr3(object):
                 self._process_all_cross21(cat1, cat2, metric, ordered, num_threads, corr_only,
                                           comm, low_mem, local)
             else:
-                raise ValueError("{} cannot use two catalog version of process".format(self._letters))
+                raise ValueError(
+                    "{} cannot use two catalog version of process".format(self._letters))
         else:
             self._process_all_cross(cat1, cat2, cat3, metric, ordered, num_threads, corr_only,
                                     comm, low_mem, local)
@@ -3532,7 +3538,8 @@ class Corr3(object):
         # Version 5.0 used weight_re, weight_im.  These are now weightr, weighti.
         # Fix in place to keep backwards compatibility.
         if 'weight_re' in data.dtype.names:
-            dt = np.dtype([(n.replace('_re','r').replace('_im','i'),t) for (n,t) in data.dtype.descr])
+            dt = np.dtype([(n.replace('_re','r').replace('_im','i'), t)
+                           for (n, t) in data.dtype.descr])
             data = data.astype(dt)
 
         # This helper function defines how to set the attributes for each class

@@ -606,7 +606,8 @@ void BaseCorr3::process12(const BaseCell<C>& c1, const BaseCell<C>& c2,
                           const MetricHelper<M,P>& metric, bool quick)
 {
     // Does all triangles with one point in c1 and the other two points in c2
-    xdbg<<ws()<<"Process12: c1: "<<c1.getSize()<<"  "<<c1.getW()<<"  c2: "<<c2.getSize()<<"  "<<c2.getW()<<std::endl;
+    xdbg<<ws()<<"Process12: c1: "<<c1.getSize()<<"  "<<c1.getW()<<"  c2: "<<c2.getSize()
+        <<"  "<<c2.getW()<<std::endl;
     xdbg<<"Process12: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getN()<<std::endl;
     xdbg<<"           c2  = "<<c2.getPos()<<"  "<<c2.getSize()<<"  "<<c2.getN()<<std::endl;
     xdbg<<ws()<<"Process12: c1 = "<<indices(c1)<<"  c2 = "<<indices(c2)<<"  ordered="<<O<<"\n";
@@ -691,7 +692,8 @@ void BaseCorr3::process21(const BaseCell<C>& c1, const BaseCell<C>& c2,
                           const MetricHelper<M,P>& metric, bool quick)
 {
     // Does all triangles with two points in c1 and the other point in c2
-    xdbg<<ws()<<"Process21: c1: "<<c1.getSize()<<"  "<<c1.getW()<<"  c2: "<<c2.getSize()<<"  "<<c2.getW()<<std::endl;
+    xdbg<<ws()<<"Process21: c1: "<<c1.getSize()<<"  "<<c1.getW()<<"  c2: "<<c2.getSize()
+        <<"  "<<c2.getW()<<std::endl;
     xdbg<<"Process21: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getN()<<std::endl;
     xdbg<<"           c2  = "<<c2.getPos()<<"  "<<c2.getSize()<<"  "<<c2.getN()<<std::endl;
     xdbg<<ws()<<"Process21: c1 = "<<indices(c1)<<"  c2 = "<<indices(c2)<<"  ordered="<<O<<"\n";
@@ -776,8 +778,10 @@ void BaseCorr3::process111(
     const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
     const MetricHelper<M,P>& metric, double d1sq, double d2sq, double d3sq)
 {
-    xdbg<<ws()<<"Process111: c1: "<<c1.getSize()<<"  "<<c1.getW()<<"  c2: "<<c2.getSize()<<"  "<<c2.getW()<<"  c3: "<<c3.getSize()<<"  "<<c3.getW()<<std::endl;
-    xdbg<<ws()<<"Process111: c1 = "<<indices(c1)<<"  c2 = "<<indices(c2)<<"  c3 = "<<indices(c3)<<"  ordered="<<O<<"\n";
+    xdbg<<ws()<<"Process111: c1: "<<c1.getSize()<<"  "<<c1.getW()<<"  c2: "<<c2.getSize()
+        <<"  "<<c2.getW()<<"  c3: "<<c3.getSize()<<"  "<<c3.getW()<<std::endl;
+    xdbg<<ws()<<"Process111: c1 = "<<indices(c1)<<"  c2 = "<<indices(c2)
+        <<"  c3 = "<<indices(c3)<<"  ordered="<<O<<"\n";
 
     // ordered=0 means that we don't care which point is called c1, c2, or c3 at the end.
     // ordered=1 means that c1 must be from the given c1 cell.
@@ -953,7 +957,8 @@ void BaseCorr3::process111Sorted(
     xdbg<<"                  c2 = "<<p2<<"  "<<s2<<"  "<<c2.getN()<<std::endl;
     xdbg<<"                  c3 = "<<p3<<"  "<<s3<<"  "<<c3.getN()<<std::endl;
     xdbg<<"                  d123 = "<<sqrt(d1sq)<<"  "<<sqrt(d2sq)<<"  "<<sqrt(d3sq)<<std::endl;
-    xdbg<<ws()<<"ProcessSorted111: c1 = "<<indices(c1)<<"  c2 = "<<indices(c2)<<"  c3 = "<<indices(c3)<<"  ordered="<<O<<"\n";
+    xdbg<<ws()<<"ProcessSorted111: c1 = "<<indices(c1)<<"  c2 = "<<indices(c2)
+        <<"  c3 = "<<indices(c3)<<"  ordered="<<O<<"\n";
 
     double rpar2, rpar3;
     if (metric.isRParOutsideRange(p1, p2, s1+s2, rpar2) ||
@@ -1371,7 +1376,8 @@ void BaseCorr3::multipoleSplit1(
     const BaseCell<C>& c1, const std::vector<const BaseCell<C>*>& c2list,
     const MetricHelper<M,P>& metric, bool quick, BaseMultipoleScratch& mp)
 {
-    xdbg<<ws()<<"MultipoleSplit1: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<"  len c2 = "<<c2list.size()<<std::endl;
+    xdbg<<ws()<<"MultipoleSplit1: c1 = "<<c1.getPos()<<"  "<<c1.getSize()
+        <<"  "<<c1.getW()<<"  len c2 = "<<c2list.size()<<std::endl;
 
     double s1 = c1.getSize();
 
@@ -1409,7 +1415,8 @@ void BaseCorr3::multipoleSplit1(
     const MetricHelper<M,P>& metric, int ordered, bool quick,
     BaseMultipoleScratch& mp2, BaseMultipoleScratch& mp3)
 {
-    xdbg<<ws()<<"MultipoleSplit1: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<"  len c2 = "<<c2list.size()<<" len c3 = "<<c3list.size()<<std::endl;
+    xdbg<<ws()<<"MultipoleSplit1: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()
+        <<"  len c2 = "<<c2list.size()<<" len c3 = "<<c3list.size()<<std::endl;
 
     double s1 = c1.getSize();
 
@@ -1549,7 +1556,8 @@ void BaseCorr3::multipoleFinish(
     // Note: if we decide to split c1, we need to make a copy of Gn before
     // recursing.  This is why we split up the calculation into two functions like
     // this.  We want to minimize the number of copies of Gn (et al) we need to make.
-    xdbg<<ws()<<"MultipoleFinish1: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<"  len c2 = "<<c2list.size()<<std::endl;
+    xdbg<<ws()<<"MultipoleFinish1: c1 = "<<c1.getPos()<<"  "<<c1.getSize()
+        <<"  "<<c1.getW()<<"  len c2 = "<<c2list.size()<<std::endl;
 
     xdbg<<"B,M,C = "<<B<<"  "<<M<<"  "<<C<<std::endl;
     bool anysplit1=false;
@@ -1611,7 +1619,8 @@ void BaseCorr3::multipoleFinish(
     BaseMultipoleScratch& mp2, BaseMultipoleScratch& mp3, int mink_zeta,
     double maxr2, double maxr3)
 {
-    xdbg<<ws()<<"MultipoleFinish1: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<"  len c2 = "<<c2list.size()<<"  len c3 = "<<c3list.size()<<std::endl;
+    xdbg<<ws()<<"MultipoleFinish1: c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()
+        <<"  len c2 = "<<c2list.size()<<"  len c3 = "<<c3list.size()<<std::endl;
 
     xdbg<<"B,M,C = "<<B<<"  "<<M<<"  "<<C<<std::endl;
     bool anysplit1=false;
@@ -1620,7 +1629,8 @@ void BaseCorr3::multipoleFinish(
     maxr2 = splitC2CellsOrCalculateGn<B>(c1, c2list, metric, newc2list, anysplit1, mp2, maxr2);
     std::vector<const BaseCell<C>*> newc3list;
     maxr3 = splitC2CellsOrCalculateGn<B>(c1, c3list, metric, newc3list, anysplit1, mp3, maxr3);
-    xdbg<<"newsize = "<<newc2list.size()<<","<<newc3list.size()<<", anysplit1 = "<<anysplit1<<std::endl;
+    xdbg<<"newsize = "<<newc2list.size()<<","<<newc3list.size()
+        <<", anysplit1 = "<<anysplit1<<std::endl;
     double maxr = std::max(maxr2, maxr3);
     xdbg<<"maxr = "<<maxr2<<", "<<maxr3<<" -> "<<maxr<<std::endl;
 
@@ -1968,7 +1978,8 @@ void Corr3<D1,D2,D3>::calculateZeta(
     const BaseCell<C>& c1, int ordered,
     BaseMultipoleScratch& mp2, BaseMultipoleScratch& mp3, int kstart, int mink_zeta)
 {
-    xdbg<<ws()<<"Zeta c1 = "<<c1.getPos()<<"  "<<c1.getSize()<<"  "<<c1.getW()<<"  "<<ordered<<std::endl;
+    xdbg<<ws()<<"Zeta c1 = "<<c1.getPos()<<"  "<<c1.getSize()
+        <<"  "<<c1.getW()<<"  "<<ordered<<std::endl;
     xdbg<<"kstart, mink_zeta, nbins = "<<kstart<<" "<<mink_zeta<<" "<<_nbins<<std::endl;
     double w1 = c1.getW();
     const int maxn = _nubins;
@@ -2860,7 +2871,8 @@ struct MultipoleHelper<5>
                     std::complex<double> gam0 = wg1 * mp3.Gn(ig2,n-1) * mp2.Gn(ig3,-n-1);
                     std::complex<double> gam1 = std::conj(wg1) * mp3.Gn(ig2,n+1) * mp2.Gn(ig3,-n+1);
                     std::complex<double> gam2 = wg1 * mp3.Gn(ig2,n-1) * std::conj(mp2.Gn(ig3,n+1));
-                    std::complex<double> gam3 = wg1 * std::conj(mp3.Gn(ig2,-n+1)) * mp2.Gn(ig3,-n-1);
+                    std::complex<double> gam3 =
+                        wg1 * std::conj(mp3.Gn(ig2,-n+1)) * mp2.Gn(ig3,-n-1);
                     if (swap23) {
                         gam0 += wg1 * mp2.Gn(ig2,n-1) * mp3.Gn(ig3,-n-1);
                         gam1 += std::conj(wg1) * mp2.Gn(ig2,n+1) * mp3.Gn(ig3,-n+1);
@@ -3043,10 +3055,12 @@ struct MultipoleHelper<6>
                 // Now +-n for the rest
                 for (int n=1; n<=maxn; ++n) {
                     std::complex<double> gam0p = wg1 * mp3.Gn(ig2,n-1) * mp2.Gn(ig3,-n-1);
-                    std::complex<double> gam1p = std::conj(wg1) * mp3.Gn(ig2,n+1) * mp2.Gn(ig3,-n+1);
+                    std::complex<double> gam1p =
+                        std::conj(wg1) * mp3.Gn(ig2,n+1) * mp2.Gn(ig3,-n+1);
 
                     std::complex<double> gam0m = wg1 * mp3.Gn(ig2,-n-1) * mp2.Gn(ig3,n-1);
-                    std::complex<double> gam1m = std::conj(wg1) * mp3.Gn(ig2,-n+1) * mp2.Gn(ig3,n+1);
+                    std::complex<double> gam1m =
+                        std::conj(wg1) * mp3.Gn(ig2,-n+1) * mp2.Gn(ig3,n+1);
 
                     zeta.gam0r[iz+n] += gam0p.real();
                     zeta.gam0i[iz+n] += gam0p.imag();

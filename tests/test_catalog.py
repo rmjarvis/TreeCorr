@@ -68,7 +68,8 @@ def test_ascii():
     file_name = os.path.join('data','test.dat')
     with open(file_name, 'w') as fid:
         # These are intentionally in a different order from the order we parse them.
-        fid.write('# ra, dec, x, y, k, g1, g2, w, z, v1, v2, r, wpos, flag, t1, t2, z1, z2, q1, q2\n')
+        fid.write('# ra, dec, x, y, k, g1, g2, w, z, v1, v2, r, wpos, flag, t1, t2, '
+                  'z1, z2, q1, q2\n')
         for i in range(nobj):
             fid.write((('%.8f '*13)+'%d'+(' %.8f'*6)+'\n')%(
                 ra[i],dec[i],x[i],y[i],k[i],g1[i],g2[i],w[i],z[i],

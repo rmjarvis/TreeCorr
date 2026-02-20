@@ -115,8 +115,8 @@ class BaseZZCorrelation(Corr2):
                         that fell into each bin
         xip             The real part of the :math:`\xi_+` correlation function
         xim             The real part of the :math:`\xi_-` correlation function
-        xip_im          The imag part of the :math:`\xi_+` correlation function
-        xim_im          The imag part of the :math:`\xi_-` correlation function
+        xip_im          The imaginary part of the :math:`\xi_+` correlation function
+        xim_im          The imaginary part of the :math:`\xi_-` correlation function
         sigma_xip       The sqrt of the variance estimate of :math:`\xi_+`
         sigma_xim       The sqrt of the variance estimate of :math:`\xi_-`
         weight          The total weight contributing to each bin
@@ -172,7 +172,7 @@ class ZZCorrelation(BaseZZCorrelation):
     r"""This class handles the calculation and storage of a 2-point correlation function
     of two complex spin-0 fields.  If either spin-0 field is real, you should instead use
     `KZCorrelation` as it will be faster, and if both are real, you should use `KKCorrelation`.
-    This class is intended for correlations of scalar fields with a complex values that
+    This class is intended for correlations of scalar fields with complex values that
     don't change with orientation.
 
     To be consistent with the other spin correlation functions, we compute two quantities:
@@ -185,7 +185,7 @@ class ZZCorrelation(BaseZZCorrelation):
     There is no projection along the line connecting the two points as there is for the other
     complex fields, since the field values don't change with orientation.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the doc string of `Corr2` for a description of how the pairs are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr2` subclasses, objects of this class

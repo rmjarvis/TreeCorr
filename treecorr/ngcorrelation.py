@@ -28,10 +28,10 @@ class NGCorrelation(BaseNZCorrelation):
     function.  This is the tangential shear profile around lenses, commonly referred to as
     galaxy-galaxy lensing.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the doc string of `Corr2` for a description of how the pairs are binned along
     with the attributes related to the different binning options.
 
-    In addition to the attributes common to all `Corr3` subclasses, objects of this class
+    In addition to the attributes common to all `Corr2` subclasses, objects of this class
     hold the following attributes:
 
     Attributes:
@@ -104,7 +104,7 @@ class NGCorrelation(BaseNZCorrelation):
 
         After calling this function, the attributes ``xi``, ``xi_im``, ``varxi``, and ``cov`` will
         correspond to the compensated values (if rg is provided).  The raw, uncompensated values
-        are available as ``rawxi``, ``raw_xi_im``, and ``raw_varxi``.
+        are available as ``raw_xi``, ``raw_xi_im``, and ``raw_varxi``.
 
         Parameters:
             rg (NGCorrelation): The cross-correlation using random locations as the lenses
@@ -140,7 +140,7 @@ class NGCorrelation(BaseNZCorrelation):
                         fell into each bin
         gamT            The real part of the mean tangential shear,
                         :math:`\langle \gamma_T \rangle(r)`
-        gamX            The imag part of the mean tangential shear,
+        gamX            The imaginary part of the mean tangential shear,
                         :math:`\langle \gamma_\times \rangle(r)`
         sigma           The sqrt of the variance estimate of either of these
         weight          The total weight contributing to each bin
@@ -255,7 +255,7 @@ class NGCorrelation(BaseNZCorrelation):
 
     def writeNMap(self, file_name, *, R=None, rg=None, m2_uform=None, file_type=None,
                   precision=None):
-        r"""Write the cross correlation of the foreground galaxy counts with the aperture mass
+        r"""Write the cross-correlation of the foreground galaxy counts with the aperture mass
         based on the correlation function to the file, file_name.
 
         If rg is provided, the compensated calculation will be used for :math:`\xi`.
@@ -312,9 +312,9 @@ class NGCorrelation(BaseNZCorrelation):
 
         This function computes these combinations and outputs them to a file.
 
-        - if rg is provided, the compensated calculation will be used for
+        - If rg is provided, the compensated calculation will be used for
           :math:`\langle N_{ap} M_{ap} \rangle`.
-        - if dr is provided, the compensated calculation will be used for
+        - If dr is provided, the compensated calculation will be used for
           :math:`\langle N_{ap}^2 \rangle`.
 
         See `calculateNMap` for an explanation of the ``m2_uform`` parameter.

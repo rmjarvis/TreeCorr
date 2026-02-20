@@ -153,7 +153,7 @@ class NKKCorrelation(Corr3):
 
         After calling this function, the attributes ``zeta``, ``varzeta`` and ``cov`` will
         correspond to the compensated values (if rkk is provided).  The raw, uncompensated values
-        are available as ``rawxi`` and ``raw_varxi``.
+        are available as ``raw_zeta`` and ``raw_varzeta``.
 
         Parameters:
             rkk (NKKCorrelation): The cross-correlation using random locations as the lenses (RKK),
@@ -268,7 +268,7 @@ class KNKCorrelation(Corr3):
 
     The typical usage pattern is as follows:
 
-        >>> knk = treecorr.NKKCorrelation(config)
+        >>> knk = treecorr.KNKCorrelation(config)
         >>> knk.process(cat1, cat2, cat1)  # Compute cross-correlation of two fields.
         >>> knk.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.
         >>> knk.write(file_name)           # Write out to a file.
@@ -378,10 +378,10 @@ class KNKCorrelation(Corr3):
 
         After calling this function, the attributes ``zeta``, ``varzeta`` and ``cov`` will
         correspond to the compensated values (if krk is provided).  The raw, uncompensated values
-        are available as ``rawxi`` and ``raw_varxi``.
+        are available as ``raw_zeta`` and ``raw_varzeta``.
 
         Parameters:
-            krk (KNKCorrelation): The cross-correlation using random locations as the lenses (RKK),
+            krk (KNKCorrelation): The cross-correlation using random locations as the lenses (KRK),
                                   if desired.  (default: None)
 
         Returns:
@@ -598,15 +598,15 @@ class KKNCorrelation(Corr3):
 
         - If kkr is None, the simple correlation function (self.zeta) is returned.
         - If kkr is not None, then a compensated calculation is done:
-          :math:`\zeta = (DKK - RKK)`, where DKK represents the correlation of the kappa
-          field with the data points and RKK represents the correlation with random points.
+          :math:`\zeta = (KKD - KKR)`, where KKD represents the correlation of the kappa
+          field with the data points and KKR represents the correlation with random points.
 
         After calling this function, the attributes ``zeta``, ``varzeta`` and ``cov`` will
         correspond to the compensated values (if kkr is provided).  The raw, uncompensated values
-        are available as ``rawxi`` and ``raw_varxi``.
+        are available as ``raw_zeta`` and ``raw_varzeta``.
 
         Parameters:
-            kkr (KKNCorrelation): The cross-correlation using random locations as the lenses (RKK),
+            kkr (KKNCorrelation): The cross-correlation using random locations as the lenses (KKR),
                                   if desired.  (default: None)
 
         Returns:

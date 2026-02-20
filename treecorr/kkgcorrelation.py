@@ -51,7 +51,7 @@ class KKGCorrelation(Corr3):
         >>> kkg.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.
         >>> kkg.write(file_name)          # Write out to a file.
         >>> zeta = kkg.zeta               # Access correlation function.
-        >>> zetar = kkg.zetar             # Or access real and imag parts separately.
+        >>> zetar = kkg.zetar             # Or access real and imaginary parts separately.
         >>> zetai = kkg.zetai
 
     Parameters:
@@ -124,7 +124,7 @@ class KKGCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         zetar           The real part of the estimator of :math:`\zeta`
-        zetai           The imag part of the estimator of :math:`\zeta`
+        zetai           The imaginary part of the estimator of :math:`\zeta`
         sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`
         """)
 
@@ -172,7 +172,7 @@ class KGKCorrelation(Corr3):
         >>> kgk.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.
         >>> kgk.write(file_name)          # Write out to a file.
         >>> zeta = kgk.zeta               # Access correlation function.
-        >>> zetar = kgk.zetar             # Or access real and imag parts separately.
+        >>> zetar = kgk.zetar             # Or access real and imaginary parts separately.
         >>> zetai = kgk.zetai
 
     Parameters:
@@ -245,7 +245,7 @@ class KGKCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         zetar           The real part of the estimator of :math:`\zeta`
-        zetai           The imag part of the estimator of :math:`\zeta`
+        zetai           The imaginary part of the estimator of :math:`\zeta`
         sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`
         """)
 
@@ -293,7 +293,7 @@ class GKKCorrelation(Corr3):
         >>> gkk.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.
         >>> gkk.write(file_name)          # Write out to a file.
         >>> zeta = gkk.zeta               # Access correlation function.
-        >>> zetar = gkk.zetar             # Or access real and imag parts separately.
+        >>> zetar = gkk.zetar             # Or access real and imaginary parts separately.
         >>> zetai = gkk.zetai
 
     Parameters:
@@ -366,7 +366,7 @@ class GKKCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         zetar           The real part of the estimator of :math:`\zeta`
-        zetai           The imag part of the estimator of :math:`\zeta`
+        zetai           The imaginary part of the estimator of :math:`\zeta`
         sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`
         """)
 

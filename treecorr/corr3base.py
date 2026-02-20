@@ -47,7 +47,7 @@ class Corr3(object):
     Three-point correlations are a bit more complicated than two-point, since the data need
     to be binned in triangles, not just the separation between two points.
 
-    There are currenlty three different ways to quantify the triangle shapes.
+    There are currently three different ways to quantify the triangle shapes.
 
     1. The triangle can be defined by its three side lengths (i.e. SSS congruence).
        In this case, we characterize the triangles according to the following three parameters
@@ -141,7 +141,7 @@ class Corr3(object):
 
     See `Metrics` for more information about these various metric options.
 
-    There are three allowed value for the ``bin_type`` for three-point correlations.
+    There are three allowed values for the ``bin_type`` for three-point correlations.
 
         - 'LogRUV' uses the SSS description given above converted to r,u,v. The bin steps will be
           uniform in log(r) from log(min_sep) .. log(max_sep).  The u and v values are binned
@@ -1359,7 +1359,7 @@ class Corr3(object):
 
             # Now the tricky part.  If using MPI, we need to divide up the jobs smartly.
             # The first point is to divvy up the auto jobs evenly.  This is where most of the
-            # work is done, so we want those to be spreads as evenly as possibly across procs.
+            # work is done, so we want those to be spread as evenly as possible across procs.
             # Therefore, if all indices are mine, then do the job.
             # This reduces the number of catalogs this machine needs to load up.
             n1 = np.sum([i in my_indices, j in my_indices, k in my_indices])
@@ -2558,7 +2558,7 @@ class Corr3(object):
             An object with bin_type=LogSAS containing the same information as this object,
             but with the SAS binning.
         """
-        # Each class will add a bit to this.  The implemenation here is the common code
+        # Each class will add a bit to this.  The implementation here is the common code
         # that applies to all the different classes.
 
         if self.bin_type != 'LogMultipole':
@@ -2762,8 +2762,8 @@ class Corr3(object):
                                 'marked_bootstrap' var_methods.  (default: 500; this value
                                 can also be given in the constructor.)
             cross_patch_weight (str): How to weight triangles that span selected and
-                                deselected patches.  (default 'simple'; this value can also be given in
-                                the constructor.)
+                                deselected patches.  (default 'simple'; this value can also be
+                                given in the constructor.)
 
         Returns:
             A numpy array with the estimated covariance matrix.
@@ -2817,8 +2817,8 @@ class Corr3(object):
                                 'marked_bootstrap' var_methods.  (default: 500; this value
                                 can also be given in the constructor.)
             cross_patch_weight (str): How to weight triangles that span selected and
-                                deselected patches.  (default 'simple'; this value can also be given in the
-                                constructor.)
+                                deselected patches.  (default 'simple'; this value can also be
+                                given in the constructor.)
 
         Returns:
             A, w: numpy arrays with the design matrix and weights respectively.

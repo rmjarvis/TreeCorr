@@ -27,7 +27,7 @@ class NNCorrelation(Corr2):
     r"""This class handles the calculation and storage of a 2-point count-count correlation
     function.  i.e. the regular density correlation function.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the doc string of `Corr2` for a description of how the pairs are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr2` subclasses, objects of this class
@@ -216,20 +216,20 @@ class NNCorrelation(Corr2):
 
     def calculateXi(self, *, rr, dr=None, rd=None):
         r"""Calculate the correlation function given another correlation function of random
-        points using the same mask, and possibly cross correlations of the data and random.
+        points using the same mask, and possibly cross-correlations of the data and random.
 
         The rr value is the `NNCorrelation` function for random points.
-        For a signal that involves a cross correlations, there should be two random
+        For a signal that involves a cross-correlation, there should be two random
         cross-correlations: data-random and random-data, given as dr and rd.
 
         - If dr is None, the simple correlation function :math:`\xi = (DD/RR - 1)` is used.
-        - if dr is given and rd is None, then the Landy-Szalay estimate
+        - If dr is given and rd is None, then the Landy-Szalay estimate
           :math:`\xi = (DD - 2DR + RR)/RR` is used.
         - If dr and rd are both given, then :math:`\xi = (DD - DR - RD + RR)/RR` is used.
-          This is the correlate of the Landy-Szalay statistic for cross-correlations, where
+          This is the analog of the Landy-Szalay statistic for cross-correlations, where
           the first and second catalogs do not represent the same underlying field.
 
-        where DD is the data NN correlation function, which is the current object.
+        Here DD is the data NN correlation function, which is the current object.
 
         .. note::
 

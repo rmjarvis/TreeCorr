@@ -172,10 +172,10 @@ class NZCorrelation(BaseNZCorrelation):
     r"""This class handles the calculation and storage of a 2-point count-complex correlation
     function, where the complex field is taken to have spin-0 rotational properties.  If the
     spin-0 field is real, you should instead use `NKCorrelation` as it will be faster.
-    This class is intended for correlations of a scalar field with a complex values that
+    This class is intended for correlations of a scalar field with complex values that
     don't change with orientation.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the doc string of `Corr2` for a description of how the pairs are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr2` subclasses, objects of this class
@@ -251,7 +251,7 @@ class NZCorrelation(BaseNZCorrelation):
 
         After calling this function, the attributes ``xi``, ``xi_im``, ``varxi``, and ``cov`` will
         correspond to the compensated values (if rz is provided).  The raw, uncompensated values
-        are available as ``rawxi``, ``raw_xi_im``, and ``raw_varxi``.
+        are available as ``raw_xi``, ``raw_xi_im``, and ``raw_varxi``.
 
         Parameters:
             rz (NZCorrelation): The cross-correlation using random locations as the lenses

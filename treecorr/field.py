@@ -360,7 +360,7 @@ class Field(object):
                                       field, traversing down to a level where there are npatch
                                       cells, and use the centroids of these cells as the initial
                                       centers.  This is almost always the best choice.
-                                    - 'random' =  Use npatch random points as the intial centers.
+                                    - 'random' =  Use npatch random points as the initial centers.
                                     - 'kmeans++' =  Use the k-means++ algorithm.
                                       cf. https://en.wikipedia.org/wiki/K-means%2B%2B
 
@@ -407,7 +407,7 @@ class Field(object):
                                       field, traversing down to a level where there are npatch
                                       cells, and use the centroids of these cells as the initial
                                       centers.  This is almost always the best choice.
-                                    - 'random' =  Use npatch random points as the intial centers.
+                                    - 'random' =  Use npatch random points as the initial centers.
                                     - 'kmeans++' =  Use the k-means++ algorithm.
                                       cf. https://en.wikipedia.org/wiki/K-means%2B%2B
 

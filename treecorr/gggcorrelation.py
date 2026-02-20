@@ -76,7 +76,7 @@ class GGGCorrelation(Corr3):
         >>> ggg.process(cat1, cat2, cat3) # Compute cross-correlation.
         >>> ggg.write(file_name)          # Write out to a file.
         >>> gam0 = ggg.gam0, etc.         # Access gamma values directly.
-        >>> gam0r = ggg.gam0r             # Or access real and imag parts separately.
+        >>> gam0r = ggg.gam0r             # Or access real and imaginary parts separately.
         >>> gam0i = ggg.gam0i
 
     Parameters:
@@ -228,13 +228,13 @@ class GGGCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         gam0r           The real part of the estimator of :math:`\Gamma_0`
-        gam0i           The imag part of the estimator of :math:`\Gamma_0`
+        gam0i           The imaginary part of the estimator of :math:`\Gamma_0`
         gam1r           The real part of the estimator of :math:`\Gamma_1`
-        gam1i           The imag part of the estimator of :math:`\Gamma_1`
+        gam1i           The imaginary part of the estimator of :math:`\Gamma_1`
         gam2r           The real part of the estimator of :math:`\Gamma_2`
-        gam2i           The imag part of the estimator of :math:`\Gamma_2`
+        gam2i           The imaginary part of the estimator of :math:`\Gamma_2`
         gam3r           The real part of the estimator of :math:`\Gamma_3`
-        gam3i           The imag part of the estimator of :math:`\Gamma_3`
+        gam3i           The imaginary part of the estimator of :math:`\Gamma_3`
         sigma_gam0      The sqrt of the variance estimate of :math:`\Gamma_0`
         sigma_gam1      The sqrt of the variance estimate of :math:`\Gamma_1`
         sigma_gam2      The sqrt of the variance estimate of :math:`\Gamma_2`

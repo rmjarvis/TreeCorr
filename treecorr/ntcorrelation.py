@@ -26,7 +26,7 @@ class NTCorrelation(BaseNZCorrelation):
     r"""This class handles the calculation and storage of a 2-point count-trefoil correlation
     function, where a trefoil is any field with spin-3 rotational properties.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the doc string of `Corr2` for a description of how the pairs are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr2` subclasses, objects of this class
@@ -103,7 +103,7 @@ class NTCorrelation(BaseNZCorrelation):
 
         After calling this function, the attributes ``xi``, ``xi_im``, ``varxi``, and ``cov`` will
         correspond to the compensated values (if rt is provided).  The raw, uncompensated values
-        are available as ``rawxi``, ``raw_xi_im``, and ``raw_varxi``.
+        are available as ``raw_xi``, ``raw_xi_im``, and ``raw_varxi``.
 
         Parameters:
             rt (NTCorrelation): The cross-correlation using random locations as the lenses

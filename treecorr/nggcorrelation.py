@@ -72,7 +72,7 @@ class NGGCorrelation(Corr3):
         >>> rgg.process(rand, cat2)       # Compute cross-correlation with randoms.
         >>> ngg.calculateZeta(rgg=rgg)    # Calculate zeta using randoms
         >>> gam0 = ngg.gam0, etc.         # Access gamma values directly.
-        >>> gam0r = ngg.gam0r             # Or access real and imag parts separately.
+        >>> gam0r = ngg.gam0r             # Or access real and imaginary parts separately.
         >>> gam0i = ngg.gam0i
 
     Parameters:
@@ -273,7 +273,7 @@ class NGGCorrelation(Corr3):
 
         After calling this function, the attributes ``gam0``, ``gam2``, ``vargam0``,
         ``vargam2``, and ``cov`` will correspond to the compensated values (if rgg is provided).
-        The raw, uncompensated values are available as ``raw_gam0`` , ``raw_gam2``,
+        The raw, uncompensated values are available as ``raw_gam0``, ``raw_gam2``,
         ``raw_vargam0``, and ``raw_vargam2``.
 
         Parameters:
@@ -350,9 +350,9 @@ class NGGCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         gam0r           The real part of the estimator of :math:`\Gamma_0`
-        gam0i           The imag part of the estimator of :math:`\Gamma_0`
+        gam0i           The imaginary part of the estimator of :math:`\Gamma_0`
         gam2r           The real part of the estimator of :math:`\Gamma_2`
-        gam2i           The imag part of the estimator of :math:`\Gamma_2`
+        gam2i           The imaginary part of the estimator of :math:`\Gamma_2`
         sigma_gam0      The sqrt of the variance estimate of :math:`\Gamma_0`
         sigma_gam2      The sqrt of the variance estimate of :math:`\Gamma_2`
         """)
@@ -427,7 +427,7 @@ class GNGCorrelation(Corr3):
         >>> grg.process(cat1, rand, cat1) # Compute cross-correlation with randoms.
         >>> gng.calculateZeta(grg=grg)    # Calculate zeta using randoms
         >>> gam0 = gng.gam0, etc.         # Access gamma values directly.
-        >>> gam0r = gng.gam0r             # Or access real and imag parts separately.
+        >>> gam0r = gng.gam0r             # Or access real and imaginary parts separately.
         >>> gam0i = gng.gam0i
 
     Parameters:
@@ -626,7 +626,7 @@ class GNGCorrelation(Corr3):
 
         After calling this function, the attributes ``gam0``, ``gam1``, ``vargam0``,
         ``vargam1``, and ``cov`` will correspond to the compensated values (if grg is provided).
-        The raw, uncompensated values are available as ``raw_gam0`` , ``raw_gam1``,
+        The raw, uncompensated values are available as ``raw_gam0``, ``raw_gam1``,
         ``raw_vargam0``, and ``raw_vargam1``.
 
         Parameters:
@@ -703,9 +703,9 @@ class GNGCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         gam0r           The real part of the estimator of :math:`\Gamma_0`
-        gam0i           The imag part of the estimator of :math:`\Gamma_0`
+        gam0i           The imaginary part of the estimator of :math:`\Gamma_0`
         gam1r           The real part of the estimator of :math:`\Gamma_1`
-        gam1i           The imag part of the estimator of :math:`\Gamma_1`
+        gam1i           The imaginary part of the estimator of :math:`\Gamma_1`
         sigma_gam0      The sqrt of the variance estimate of :math:`\Gamma_0`
         sigma_gam1      The sqrt of the variance estimate of :math:`\Gamma_1`
         """)
@@ -780,7 +780,7 @@ class GGNCorrelation(Corr3):
         >>> ggr.process(cat1, rand)       # Compute cross-correlation with randoms.
         >>> ggn.calculateZeta(ggr=ggr)    # Calculate zeta using randoms
         >>> gam0 = ggn.gam0, etc.         # Access gamma values directly.
-        >>> gam0r = ggn.gam0r             # Or access real and imag parts separately.
+        >>> gam0r = ggn.gam0r             # Or access real and imaginary parts separately.
         >>> gam0i = ggn.gam0i
 
     Parameters:
@@ -979,7 +979,7 @@ class GGNCorrelation(Corr3):
 
         After calling this function, the attributes ``gam0``, ``gam1``, ``vargam0``,
         ``vargam1``, and ``cov`` will correspond to the compensated values (if ggr is provided).
-        The raw, uncompensated values are available as ``raw_gam0`` , ``raw_gam1``,
+        The raw, uncompensated values are available as ``raw_gam0``, ``raw_gam1``,
         ``raw_vargam0``, and ``raw_vargam1``.
 
         Parameters:
@@ -1003,7 +1003,7 @@ class GGNCorrelation(Corr3):
 
             if (ggr.npatch3 not in (1,self.npatch3) or ggr.npatch1 != self.npatch1
                     or ggr.npatch2 != self.npatch2):
-                raise RuntimeError("GRG must be run with the same patches as GDG")
+                raise RuntimeError("GGR must be run with the same patches as GGD")
 
             if len(self.results) > 0:
                 # If there are any ggr patch pairs that aren't in results (e.g. due to different
@@ -1056,9 +1056,9 @@ class GGNCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         gam0r           The real part of the estimator of :math:`\Gamma_0`
-        gam0i           The imag part of the estimator of :math:`\Gamma_0`
+        gam0i           The imaginary part of the estimator of :math:`\Gamma_0`
         gam1r           The real part of the estimator of :math:`\Gamma_1`
-        gam1i           The imag part of the estimator of :math:`\Gamma_1`
+        gam1i           The imaginary part of the estimator of :math:`\Gamma_1`
         sigma_gam0      The sqrt of the variance estimate of :math:`\Gamma_0`
         sigma_gam1      The sqrt of the variance estimate of :math:`\Gamma_1`
         """)

@@ -89,13 +89,13 @@ class KZCorrelation(BaseKZCorrelation):
     r"""This class handles the calculation and storage of a 2-point scalar-complex correlation
     function, where the complex field is taken to have spin-0 rotational properties.  If the
     spin-0 field is real, you should instead use `KKCorrelation` as it will be faster.
-    This class is intended for correlations of a scalar field with a complex values that
+    This class is intended for correlations of a scalar field with complex values that
     don't change with orientation.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the doc string of `Corr2` for a description of how the pairs are binned along
     with the attributes related to the different binning options.
 
-    In addition to the attributes common to all `Corr3` subclasses, objects of this class
+    In addition to the attributes common to all `Corr2` subclasses, objects of this class
     hold the following attributes:
 
     Attributes:
@@ -114,10 +114,10 @@ class KZCorrelation(BaseKZCorrelation):
 
     The typical usage pattern is as follows:
 
-        >>> kv = treecorr.KZCorrelation(config)
-        >>> kv.process(cat1,cat2)   # Calculate the cross-correlation
-        >>> kv.write(file_name)     # Write out to a file.
-        >>> xi = kv.xi              # Or access the correlation function directly.
+        >>> kz = treecorr.KZCorrelation(config)
+        >>> kz.process(cat1,cat2)   # Calculate the cross-correlation
+        >>> kz.write(file_name)     # Write out to a file.
+        >>> xi = kz.xi              # Or access the correlation function directly.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.

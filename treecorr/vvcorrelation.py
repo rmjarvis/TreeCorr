@@ -26,7 +26,7 @@ class VVCorrelation(BaseZZCorrelation):
     r"""This class handles the calculation and storage of a 2-point vector-vector correlation
     function.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the doc string of `Corr2` for a description of how the pairs are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr2` subclasses, objects of this class

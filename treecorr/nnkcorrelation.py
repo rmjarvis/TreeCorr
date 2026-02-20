@@ -152,20 +152,20 @@ class KNNCorrelation(Corr3):
 
     def calculateZeta(self, *, krr=None, kdr=None, krd=None):
         r"""Calculate the correlation function given another correlation function of random
-        points using the same mask, and possibly cross correlations of the data and random.
+        points using the same mask, and possibly cross-correlations of the data and random.
 
         The krr value is the `KNNCorrelation` function for random points with the scalar field.
-        One can also provide a cross correlation of the count data with randoms and the scalar.
+        One can also provide a cross-correlation of the count data with randoms and the scalar.
 
         - If krr is None, the simple correlation function (self.zeta) is returned.
         - If only krr is given the compensated value :math:`\zeta = KDD - KRR` is returned.
-        - if kdr is given and krd is None (or vice versa), then :math:`\zeta = KDD - 2KDR + KRR`
+        - If kdr is given and krd is None (or vice versa), then :math:`\zeta = KDD - 2KDR + KRR`
           is returned.
         - If kdr and krd are both given, then :math:`\zeta = KDD - KDR - KRD + KRR` is returned.
 
-        where KDD is the data KNN correlation function, which is the current object.
+        Here KDD is the data KNN correlation function, which is the current object.
 
-        After calling this method, you can use the `Corr2.estimate_cov` method or use this
+        After calling this method, you can use the `Corr3.estimate_cov` method or use this
         correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and
         varzeta returned from this function will be available as attributes.
 
@@ -450,20 +450,20 @@ class NKNCorrelation(Corr3):
 
     def calculateZeta(self, *, rkr=None, dkr=None, rkd=None):
         r"""Calculate the correlation function given another correlation function of random
-        points using the same mask, and possibly cross correlations of the data and random.
+        points using the same mask, and possibly cross-correlations of the data and random.
 
         The rkr value is the `NKNCorrelation` function for random points with the scalar field.
-        One can also provide a cross correlation of the count data with randoms and the scalar.
+        One can also provide a cross-correlation of the count data with randoms and the scalar.
 
         - If rkr is None, the simple correlation function (self.zeta) is returned.
         - If only rkr is given the compensated value :math:`\zeta = DKD - RKR` is returned.
-        - if dkr is given and rkd is None (or vice versa), then :math:`\zeta = DKD - 2DKR + RKR`
+        - If dkr is given and rkd is None (or vice versa), then :math:`\zeta = DKD - 2DKR + RKR`
           is returned.
         - If dkr and rkd are both given, then :math:`\zeta = DKD - DKR - RKD + RKR` is returned.
 
-        where DKD is the data NKN correlation function, which is the current object.
+        Here DKD is the data NKN correlation function, which is the current object.
 
-        After calling this method, you can use the `Corr2.estimate_cov` method or use this
+        After calling this method, you can use the `Corr3.estimate_cov` method or use this
         correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and
         varzeta returned from this function will be available as attributes.
 
@@ -748,20 +748,20 @@ class NNKCorrelation(Corr3):
 
     def calculateZeta(self, *, rrk=None, drk=None, rdk=None):
         r"""Calculate the correlation function given another correlation function of random
-        points using the same mask, and possibly cross correlations of the data and random.
+        points using the same mask, and possibly cross-correlations of the data and random.
 
         The rrk value is the `NNKCorrelation` function for random points with the scalar field.
-        One can also provide a cross correlation of the count data with randoms and the scalar.
+        One can also provide a cross-correlation of the count data with randoms and the scalar.
 
         - If rrk is None, the simple correlation function (self.zeta) is returned.
         - If only rrk is given the compensated value :math:`\zeta = DDK - RRK` is returned.
-        - if drk is given and rdk is None (or vice versa), then :math:`\zeta = DDK - 2DRK + RRK`
+        - If drk is given and rdk is None (or vice versa), then :math:`\zeta = DDK - 2DRK + RRK`
           is returned.
         - If drk and rdk are both given, then :math:`\zeta = DDK - DRK - RDK + RRK` is returned.
 
-        where DDK is the data NNK correlation function, which is the current object.
+        Here DDK is the data NNK correlation function, which is the current object.
 
-        After calling this method, you can use the `Corr2.estimate_cov` method or use this
+        After calling this method, you can use the `Corr3.estimate_cov` method or use this
         correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and
         varzeta returned from this function will be available as attributes.
 

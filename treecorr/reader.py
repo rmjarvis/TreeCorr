@@ -12,19 +12,16 @@
 #    and/or other materials provided with the distribution.
 
 """
-This is a set of helper classes that read data for treecorr.Catalog objects.
-They have a bit of a mixed bag of functions, not intended to be complete,
-just to cover the needs of that class.
+This module provides helper classes that read data for `treecorr.Catalog` objects.
+The interfaces are intentionally minimal and cover only what Catalog needs.
 
-HDF and FITS files differ in that the former can have different length columns
-in the same data group, unlike fits HDUs, which have columns of all the same length.
-Where possible we check for that here, and a user would have to be fairly determined to
-trigger this.
+HDF and FITS files differ in that HDF groups can have columns with different lengths,
+unlike FITS table HDUs, where all columns have the same length.
+Where possible, we check for this.
 
-The other difference is that fitsio reads a structured array, whereas h5py will
-read a dictionary of arrays. This does not cause problems here, since both are
-indexed by string, but may prevent usage elsewhere. If so we could convert them to
-both provide dicts.
+Another difference is that fitsio reads a structured array, whereas h5py reads
+a dictionary of arrays. This does not cause problems here, since both are
+indexed by string, but it may matter elsewhere.
 """
 import numpy as np
 

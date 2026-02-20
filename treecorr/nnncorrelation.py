@@ -224,7 +224,7 @@ class NNNCorrelation(Corr3):
 
     def calculateZeta(self, *, rrr, drr=None, rdd=None):
         r"""Calculate the 3pt function given another 3pt function of random
-        points using the same mask, and possibly cross correlations of the data and random.
+        points using the same mask, and possibly cross-correlations of the data and random.
 
         There are two possible formulae that are currently supported.
 
@@ -251,7 +251,7 @@ class NNNCorrelation(Corr3):
 
            .. note::
 
-                One might thing the formula should be :math:`\zeta = (DDD-3RDD+3DRR-RRR)/RRR`
+                One might think the formula should be :math:`\zeta = (DDD-3RDD+3DRR-RRR)/RRR`
                 by analogy with the 2pt Landy-Szalay formula. However, the way these are
                 calculated, the object we are calling RDD already includes triangles where R
                 is in each of the 3 locations.  So it is really more like RDD + DRD + DDR.
@@ -266,7 +266,7 @@ class NNNCorrelation(Corr3):
         .. note::
 
             This method is not valid for bin_type='LogMultipole'. I don't think there is
-            a straightforward way to go directly from the multipole expoansion of DDD and
+            a straightforward way to go directly from the multipole expansion of DDD and
             RRR to Zeta.  Normally one would instead convert both to LogSAS binning
             (cf. `toSAS`) and then call `calculateZeta` with those.
 
@@ -311,7 +311,7 @@ class NNNCorrelation(Corr3):
         else:
             self.zeta = self.weight - rdd.weight * rddf + drr.weight * drrf - denom
 
-        # Divide by DRR in all cases.
+        # Divide by RRR in all cases.
         if np.any(rrr.weight == 0):
             self.logger.warning("Warning: Some bins for the randoms had no triangles.")
             denom[rrr.weight==0] = 1.  # guard against division by 0.

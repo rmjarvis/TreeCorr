@@ -27,10 +27,10 @@ class GGCorrelation(BaseZZCorrelation):
     r"""This class handles the calculation and storage of a 2-point shear-shear correlation
     function.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the doc string of `Corr2` for a description of how the pairs are binned along
     with the attributes related to the different binning options.
 
-    In addition to the attributes common to all `Corr3` subclasses, objects of this class
+    In addition to the attributes common to all `Corr2` subclasses, objects of this class
     hold the following attributes:
 
     Attributes:
@@ -297,9 +297,9 @@ class GGCorrelation(BaseZZCorrelation):
         Mapsq           The real part of :math:`\langle M_{ap}^2\rangle`
                          (cf. `calculateMapSq`)
         Mxsq            The real part of :math:`\langle M_\times^2\rangle`
-        MMxa            The imag part of :math:`\langle M_{ap}^2\rangle`:
+        MMxa            The imaginary part of :math:`\langle M_{ap}^2\rangle`:
                          an estimator of :math:`\langle M_{ap} M_\times\rangle`
-        MMxa            The imag part of :math:`\langle M_\times^2\rangle`:
+        MMxb            The imaginary part of :math:`\langle M_\times^2\rangle`:
                          an estimator of :math:`\langle M_{ap} M_\times\rangle`
         sig_map         The sqrt of the variance estimate of
                          :math:`\langle M_{ap}^2\rangle`

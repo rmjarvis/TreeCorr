@@ -160,20 +160,20 @@ class GNNCorrelation(Corr3):
 
     def calculateZeta(self, *, grr=None, gdr=None, grd=None):
         r"""Calculate the correlation function given another correlation function of random
-        points using the same mask, and possibly cross correlations of the data and random.
+        points using the same mask, and possibly cross-correlations of the data and random.
 
         The grr value is the `GNNCorrelation` function for random points with the shear field.
-        One can also provide a cross correlation of the count data with randoms and the shear.
+        One can also provide a cross-correlation of the count data with randoms and the shear.
 
         - If grr is None, the simple correlation function (self.zeta) is returned.
         - If only grr is given the compensated value :math:`\zeta = GDD - GRR` is returned.
-        - if gdr is given and grd is None (or vice versa), then :math:`\zeta = GDD - 2GDR + GRR`
+        - If gdr is given and grd is None (or vice versa), then :math:`\zeta = GDD - 2GDR + GRR`
           is returned.
         - If gdr and grd are both given, then :math:`\zeta = GDD - GDR - GRD + GRR` is returned.
 
-        where GDD is the data GNN correlation function, which is the current object.
+        Here GDD is the data GNN correlation function, which is the current object.
 
-        After calling this method, you can use the `Corr2.estimate_cov` method or use this
+        After calling this method, you can use the `Corr3.estimate_cov` method or use this
         correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and
         varzeta returned from this function will be available as attributes.
 
@@ -299,7 +299,7 @@ class GNNCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         zetar           The real part of the estimator of :math:`\zeta`
-        zetai           The imag part of the estimator of :math:`\zeta`
+        zetai           The imaginary part of the estimator of :math:`\zeta`
         sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`.
         """)
 
@@ -340,7 +340,7 @@ class NGNCorrelation(Corr3):
 
     The typical usage pattern is as follows:
 
-        >>> ngn = treecorr.GNNCorrelation(config)
+        >>> ngn = treecorr.NGNCorrelation(config)
         >>> ngn.process(cat1, cat2, cat1)  # Compute cross-correlation of two fields.
         >>> ngn.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.
         >>> rgr.process(rand, cat2, rand)  # Compute cross-correlation with randoms.
@@ -458,20 +458,20 @@ class NGNCorrelation(Corr3):
 
     def calculateZeta(self, *, rgr=None, dgr=None, rgd=None):
         r"""Calculate the correlation function given another correlation function of random
-        points using the same mask, and possibly cross correlations of the data and random.
+        points using the same mask, and possibly cross-correlations of the data and random.
 
         The rgr value is the `NGNCorrelation` function for random points with the shear field.
-        One can also provide a cross correlation of the count data with randoms and the shear.
+        One can also provide a cross-correlation of the count data with randoms and the shear.
 
         - If rgr is None, the simple correlation function (self.zeta) is returned.
         - If only rgr is given the compensated value :math:`\zeta = DGD - RGR` is returned.
-        - if dgr is given and rgd is None (or vice versa), then :math:`\zeta = DGD - 2DGR + RGR`
+        - If dgr is given and rgd is None (or vice versa), then :math:`\zeta = DGD - 2DGR + RGR`
           is returned.
         - If dgr and rgd are both given, then :math:`\zeta = DGD - DGR - RGD + RGR` is returned.
 
-        where DGD is the data NGN correlation function, which is the current object.
+        Here DGD is the data NGN correlation function, which is the current object.
 
-        After calling this method, you can use the `Corr2.estimate_cov` method or use this
+        After calling this method, you can use the `Corr3.estimate_cov` method or use this
         correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and
         varzeta returned from this function will be available as attributes.
 
@@ -597,7 +597,7 @@ class NGNCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         zetar           The real part of the estimator of :math:`\zeta`
-        zetai           The imag part of the estimator of :math:`\zeta`
+        zetai           The imaginary part of the estimator of :math:`\zeta`
         sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`.
         """)
 
@@ -756,20 +756,20 @@ class NNGCorrelation(Corr3):
 
     def calculateZeta(self, *, rrg=None, drg=None, rdg=None):
         r"""Calculate the correlation function given another correlation function of random
-        points using the same mask, and possibly cross correlations of the data and random.
+        points using the same mask, and possibly cross-correlations of the data and random.
 
         The rrg value is the `NNGCorrelation` function for random points with the shear field.
-        One can also provide a cross correlation of the count data with randoms and the shear.
+        One can also provide a cross-correlation of the count data with randoms and the shear.
 
         - If rrg is None, the simple correlation function (self.zeta) is returned.
         - If only rrg is given the compensated value :math:`\zeta = DDG - RRG` is returned.
-        - if drg is given and rdg is None (or vice versa), then :math:`\zeta = DDG - 2DRG + RRG`
+        - If drg is given and rdg is None (or vice versa), then :math:`\zeta = DDG - 2DRG + RRG`
           is returned.
         - If drg and rdg are both given, then :math:`\zeta = DDG - DRG - RDG + RRG` is returned.
 
-        where DDG is the data NNG correlation function, which is the current object.
+        Here DDG is the data NNG correlation function, which is the current object.
 
-        After calling this method, you can use the `Corr2.estimate_cov` method or use this
+        After calling this method, you can use the `Corr3.estimate_cov` method or use this
         correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and
         varzeta returned from this function will be available as attributes.
 
@@ -895,7 +895,7 @@ class NNGCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         zetar           The real part of the estimator of :math:`\zeta`
-        zetai           The imag part of the estimator of :math:`\zeta`
+        zetai           The imaginary part of the estimator of :math:`\zeta`
         sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`.
         """)
 

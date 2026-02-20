@@ -34,10 +34,10 @@ class NKCorrelation(Corr2):
         correlations of non-shear quantities, e.g. the sizes or concentrations of galaxies, around
         a set of lenses, where "kappa" would be the measurements of these quantities.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the doc string of `Corr2` for a description of how the pairs are binned along
     with the attributes related to the different binning options.
 
-    In addition to the attributes common to all `Corr3` subclasses, objects of this class
+    In addition to the attributes common to all `Corr2` subclasses, objects of this class
     hold the following attributes:
 
     Attributes:
@@ -158,7 +158,7 @@ class NKCorrelation(Corr2):
 
         After calling this function, the attributes ``xi``, ``varxi`` and ``cov`` will correspond
         to the compensated values (if rk is provided).  The raw, uncompensated values are
-        available as ``rawxi`` and ``raw_varxi``.
+        available as ``raw_xi`` and ``raw_varxi``.
 
         Parameters:
             rk (NKCorrelation): The cross-correlation using random locations as the lenses (RK),

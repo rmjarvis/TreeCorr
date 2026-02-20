@@ -33,10 +33,10 @@ class KGCorrelation(BaseKZCorrelation):
         correlations of some survey property, such as seeing, with shear, where "kappa" would
         really be the measured property, e.g. the observed sizes of the stars.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the doc string of `Corr2` for a description of how the pairs are binned along
     with the attributes related to the different binning options.
 
-    In addition to the attributes common to all `Corr3` subclasses, objects of this class
+    In addition to the attributes common to all `Corr2` subclasses, objects of this class
     hold the following attributes:
 
     Attributes:

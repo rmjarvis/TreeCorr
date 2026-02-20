@@ -90,7 +90,7 @@ def get_omp_threads():
 
     :returns:           The  number of threads OpenMP reports that it will use.
     """
-    # Some OMP implemenations have a bug where if omp_get_max_threads() is called
+    # Some OMP implementations have a bug where if omp_get_max_threads() is called
     # (which is what this function does), it sets something called thread affinity.
     # The upshot of that is that multiprocessing (i.e. not even just omp threading) is
     # confined to a single hardware thread.  Yeah, it's idiotic, but that seems to be
@@ -146,7 +146,7 @@ def make_writer(file_name, precision=4, file_type=None, logger=None):
     return writer
 
 def make_reader(file_name, file_type=None, logger=None):
-    """Factory function to make a writer instance of the correct type.
+    """Factory function to make a reader instance of the correct type.
     """
     # Figure out which file type to use.
     file_type = parse_file_type(file_type, file_name, output=False, logger=logger)
@@ -162,9 +162,9 @@ def make_reader(file_name, file_type=None, logger=None):
     return reader
 
 class LRU_Cache(object):
-    """ Simplified Least Recently Used Cache.
-    Mostly stolen from http://code.activestate.com/recipes/577970-simplified-lru-cache/,
-    but added a method for dynamic resizing.  The least recently used cached item is
+    """Simplified Least Recently Used Cache.
+    Based on http://code.activestate.com/recipes/577970-simplified-lru-cache/,
+    with an added method for dynamic resizing. The least recently used cached item is
     overwritten on a cache miss.
 
     Note: This has additional functionality beyond what functools.lru_cache provides.
@@ -172,7 +172,7 @@ class LRU_Cache(object):
           2. The key is only on the args, not kwargs, so a logger can be provided as a kwarg
              without triggering a cache miss.
 
-    :param user_function:  A python function to cache.
+    :param user_function:  A Python function to cache.
     :param maxsize:        Maximum number of inputs to cache.  [Default: 1024]
 
     Usage
@@ -182,7 +182,7 @@ class LRU_Cache(object):
     >>>
     >>> v1 = slow_function(*k1)  # Calling function is slow
     >>> v1 = slow_function(*k1)  # Calling again with same args is still slow
-    >>> cache = galsim.utilities.LRU_Cache(slow_function)
+    >>> cache = treecorr.util.LRU_Cache(slow_function)
     >>> v1 = cache(*k1)  # Returns slow_function(*k1), slowly the first time
     >>> v1 = cache(*k1)  # Returns slow_function(*k1) again, but fast this time.
 

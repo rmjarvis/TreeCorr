@@ -91,7 +91,7 @@ class Corr2(object):
 
     See `Metrics` for more information about these various metric options.
 
-    There are also a few different possibile binning prescriptions to define the range of
+    There are also a few different possible binning prescriptions to define the range of
     distances, which should be placed into each bin.
 
         - 'Log' - logarithmic binning in the distance.  The bin steps will be uniform in
@@ -860,7 +860,7 @@ class Corr2(object):
 
             # Now the tricky part.  If using MPI, we need to divide up the jobs smartly.
             # The first point is to divvy up the auto jobs evenly.  This is where most of the
-            # work is done, so we want those to be spreads as evenly as possibly across procs.
+            # work is done, so we want those to be spread as evenly as possible across procs.
             # Therefore, if both indices are mine, then do the job.
             # This reduces the number of catalogs this machine needs to load up.
             # If the auto i,i and j,j are both my job, then i and j are already being loaded

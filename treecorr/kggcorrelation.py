@@ -70,7 +70,7 @@ class KGGCorrelation(Corr3):
         >>> kgg.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.
         >>> kgg.write(file_name)          # Write out to a file.
         >>> gam0 = kgg.gam0, etc.         # Access gamma values directly.
-        >>> gam0r = kgg.gam0r             # Or access real and imag parts separately.
+        >>> gam0r = kgg.gam0r             # Or access real and imaginary parts separately.
         >>> gam0i = kgg.gam0i
 
     Parameters:
@@ -209,9 +209,9 @@ class KGGCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         gam0r           The real part of the estimator of :math:`\Gamma_0`
-        gam0i           The imag part of the estimator of :math:`\Gamma_0`
+        gam0i           The imaginary part of the estimator of :math:`\Gamma_0`
         gam2r           The real part of the estimator of :math:`\Gamma_2`
-        gam2i           The imag part of the estimator of :math:`\Gamma_2`
+        gam2i           The imaginary part of the estimator of :math:`\Gamma_2`
         sigma_gam0      The sqrt of the variance estimate of :math:`\Gamma_0`
         sigma_gam2      The sqrt of the variance estimate of :math:`\Gamma_2`
         """)
@@ -284,7 +284,7 @@ class GKGCorrelation(Corr3):
         >>> gkg.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.
         >>> gkg.write(file_name)          # Write out to a file.
         >>> gam0 = gkg.gam0, etc.         # Access gamma values directly.
-        >>> gam0r = gkg.gam0r             # Or access real and imag parts separately.
+        >>> gam0r = gkg.gam0r             # Or access real and imaginary parts separately.
         >>> gam0i = gkg.gam0i
 
     Parameters:
@@ -421,9 +421,9 @@ class GKGCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         gam0r           The real part of the estimator of :math:`\Gamma_0`
-        gam0i           The imag part of the estimator of :math:`\Gamma_0`
+        gam0i           The imaginary part of the estimator of :math:`\Gamma_0`
         gam1r           The real part of the estimator of :math:`\Gamma_1`
-        gam1i           The imag part of the estimator of :math:`\Gamma_1`
+        gam1i           The imaginary part of the estimator of :math:`\Gamma_1`
         sigma_gam0      The sqrt of the variance estimate of :math:`\Gamma_0`
         sigma_gam1      The sqrt of the variance estimate of :math:`\Gamma_1`
         """)
@@ -452,8 +452,8 @@ class GGKCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point shear-shear-scalar correlation
     function.
 
-    With this class, point 1 of the triangle (i.e. the vertex opposite d1) is the one with the
-    shear value.  Use `GKGCorrelation` and `KGGCorrelation` for classes with the shear in the
+    With this class, point 3 of the triangle (i.e. the vertex opposite d3) is the one with the
+    scalar value.  Use `GKGCorrelation` and `KGGCorrelation` for classes with the scalar in the
     other two positions.
 
     For the shear projection, we follow the lead of the 3-point shear-shear-shear correlation
@@ -496,7 +496,7 @@ class GGKCorrelation(Corr3):
         >>> ggk.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.
         >>> ggk.write(file_name)          # Write out to a file.
         >>> gam0 = ggk.gam0, etc.         # Access gamma values directly.
-        >>> gam0r = ggk.gam0r             # Or access real and imag parts separately.
+        >>> gam0r = ggk.gam0r             # Or access real and imaginary parts separately.
         >>> gam0i = ggk.gam0i
 
     Parameters:
@@ -633,9 +633,9 @@ class GGKCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         gam0r           The real part of the estimator of :math:`\Gamma_0`
-        gam0i           The imag part of the estimator of :math:`\Gamma_0`
+        gam0i           The imaginary part of the estimator of :math:`\Gamma_0`
         gam1r           The real part of the estimator of :math:`\Gamma_1`
-        gam1i           The imag part of the estimator of :math:`\Gamma_1`
+        gam1i           The imaginary part of the estimator of :math:`\Gamma_1`
         sigma_gam0      The sqrt of the variance estimate of :math:`\Gamma_0`
         sigma_gam1      The sqrt of the variance estimate of :math:`\Gamma_1`
         """)

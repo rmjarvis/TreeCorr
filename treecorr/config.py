@@ -27,11 +27,11 @@ def parse_variable(config, v):
     """Parse a configuration variable from a string that should look like 'key = value'
     and write that value to config[key].
 
-    :param config:  The configuration dict to wich to write the key,value pair
+    :param config:  The configuration dict to which to write the key,value pair
     :param v:       A string of the form 'key = value'
     """
     if '=' not in v:
-        raise ValueError('Improper variable specificationi: %s.  Use syntax: key = value.'%v)
+        raise ValueError('Improper variable specification: %s.  Use syntax: key = value.'%v)
     key, value = v.split('=',1)
     key = key.strip()
     # Cut off any trailing comment
@@ -58,11 +58,12 @@ def parse_bool(value):
     Valid string values for False are: 'false', 'no', 'f', 'n', 'none'
     Capitalization is ignored.
 
-    If value is a number, it is converted to a bool in the usual way.
+    If value is an integer (or a string that parses as an integer), the integer value is
+    returned. This preserves special integer semantics used by some parameters.
 
     :param value:   The value to parse.
 
-    :returns:       The value converted to a bool.
+    :returns:       The parsed boolean (or integer, as described above).
     """
     if isinstance(value,str):
         if value.strip().upper() in [ 'TRUE', 'YES', 'T', 'Y' ]:
@@ -262,7 +263,7 @@ def check_config(config, params, aliases=None, logger=None):
             if value is None:
                 continue
 
-        # If limited allowed value, check that this is one of them.
+        # If there are limited allowed values, check that this is one of them.
         if valid_values is not None and value is not None:
             if value_type is str:
                 matches = [ v for v in valid_values if value == v ]

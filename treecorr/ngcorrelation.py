@@ -108,6 +108,13 @@ class NGCorrelation(BaseNZCorrelation):
         correspond to the compensated values (if rg is provided).  The raw, uncompensated values
         are available as ``raw_xi``, ``raw_xi_im``, and ``raw_varxi``.
 
+        .. note::
+
+            The returned variance estimate (``varxi``) is computed according to this object's
+            ``var_method`` setting, specified when constructing the object (default: ``'shot'``).
+            Internally, this method calls `Corr2.estimate_cov`; see that method for details
+            about available variance and covariance estimation schemes.
+
         Parameters:
             rg (NGCorrelation): The cross-correlation using random locations as the lenses
                                 (RG), if desired.  (default: None)

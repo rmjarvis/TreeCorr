@@ -273,6 +273,13 @@ class NNNCorrelation(Corr3):
             RRR to Zeta.  Normally one would instead convert both to LogSAS binning
             (cf. `toSAS`) and then call `calculateZeta` with those.
 
+        .. note::
+
+            The returned variance estimate (``varzeta``) is computed according to this object's
+            ``var_method`` setting, specified when constructing the object (default: ``'shot'``).
+            Internally, this method calls `Corr3.estimate_cov`; see that method for details
+            about available variance and covariance estimation schemes.
+
         Parameters:
             rrr (NNNCorrelation):   The auto-correlation of the random field (RRR)
             drr (NNNCorrelation):   DRR if desired. (default: None)

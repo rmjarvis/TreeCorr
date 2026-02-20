@@ -176,9 +176,16 @@ class GNNCorrelation(Corr3):
 
         Here GDD is the data GNN correlation function, which is the current object.
 
-        After calling this method, you can use the `Corr3.estimate_cov` method or use this
-        correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and
-        varzeta returned from this function will be available as attributes.
+        After calling this method, you can use this correlation object in the
+        `estimate_multi_cov` function.  Also, the calculated zeta and varzeta returned from this
+        function will be available as attributes.
+
+        .. note::
+
+            The returned variance estimate (``varzeta``) is computed according to this object's
+            ``var_method`` setting, specified when constructing the object (default: ``'shot'``).
+            Internally, this method calls `Corr3.estimate_cov`; see that method for details
+            about available variance and covariance estimation schemes.
 
         Parameters:
             grr (GNNCorrelation):   The correlation of the random points with the shear field
@@ -477,9 +484,16 @@ class NGNCorrelation(Corr3):
 
         Here DGD is the data NGN correlation function, which is the current object.
 
-        After calling this method, you can use the `Corr3.estimate_cov` method or use this
-        correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and
-        varzeta returned from this function will be available as attributes.
+        After calling this method, you can use this correlation object in the
+        `estimate_multi_cov` function.  Also, the calculated zeta and varzeta returned from this
+        function will be available as attributes.
+
+        .. note::
+
+            The returned variance estimate (``varzeta``) is computed according to this object's
+            ``var_method`` setting, specified when constructing the object (default: ``'shot'``).
+            Internally, this method calls `Corr3.estimate_cov`; see that method for details
+            about available variance and covariance estimation schemes.
 
         Parameters:
             rgr (NGNCorrelation):   The correlation of the random points with the shear field
@@ -778,9 +792,16 @@ class NNGCorrelation(Corr3):
 
         Here DDG is the data NNG correlation function, which is the current object.
 
-        After calling this method, you can use the `Corr3.estimate_cov` method or use this
-        correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and
-        varzeta returned from this function will be available as attributes.
+        After calling this method, you can use this correlation object in the
+        `estimate_multi_cov` function.  Also, the calculated zeta and varzeta returned from this
+        function will be available as attributes.
+
+        .. note::
+
+            The returned variance estimate (``varzeta``) is computed according to this object's
+            ``var_method`` setting, specified when constructing the object (default: ``'shot'``).
+            Internally, this method calls `Corr3.estimate_cov`; see that method for details
+            about available variance and covariance estimation schemes.
 
         Parameters:
             rrg (NNGCorrelation):   The correlation of the random points with the shear field

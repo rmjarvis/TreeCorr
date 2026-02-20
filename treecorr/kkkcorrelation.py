@@ -41,9 +41,8 @@ class KKKCorrelation(Corr3):
 
     Attributes:
         zeta:       The correlation function, :math:`\zeta`.
-        varzeta:    The variance of :math:`\zeta`, only including the shot noise propagated into
-                    the final correlation.  This does not include sample variance, so it is always
-                    an underestimate of the actual variance.
+        varzeta:    The variance estimate of :math:`\zeta`, computed according to ``var_method``
+                    (default: ``'shot'``).
 
     The typical usage pattern is as follows:
 

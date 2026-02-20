@@ -53,6 +53,9 @@ class NKKCorrelation(Corr3):
         >>> zetar = nkk.zetar                # Or access real and imaginary parts separately.
         >>> zetai = nkk.zetai
 
+    See also: `KNKCorrelation`, `KKNCorrelation`, `NNKCorrelation`, `KKKCorrelation`,
+    `NKCorrelation`.
+
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have additional entries besides those listed
@@ -278,6 +281,9 @@ class KNKCorrelation(Corr3):
         >>> zetar = knk.zetar                # Or access real and imaginary parts separately.
         >>> zetai = knk.zetai
 
+    See also: `NKKCorrelation`, `KKNCorrelation`, `NNKCorrelation`, `KKKCorrelation`,
+    `NKCorrelation`.
+
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have additional entries besides those listed
@@ -502,6 +508,9 @@ class KKNCorrelation(Corr3):
         >>> zeta = kkn.zeta                  # Access the correlation function.
         >>> zetar = kkn.zetar                # Or access real and imaginary parts separately.
         >>> zetai = kkn.zetai
+
+    See also: `NKKCorrelation`, `KNKCorrelation`, `NNKCorrelation`, `KKKCorrelation`,
+    `NKCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.

@@ -59,6 +59,8 @@ class QQCorrelation(BaseZZCorrelation):
         >>> qq.write(file_name)            # Write out to a file.
         >>> xip, xim = qq.xip, qq.xim      # Or access the correlation functions directly.
 
+    See also: `NQCorrelation`, `KQCorrelation`, `GGCorrelation`.
+
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have additional entries besides those listed

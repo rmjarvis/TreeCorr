@@ -41,6 +41,8 @@ class NNNCorrelation(Corr3):
         >>> zeta, varzeta = nnn.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)  # Calculate zeta.
         >>> nnn.write(file_name, rrr=rrr, drr=drr, ...)   # Write out to a file.
 
+    See also: `NNCorrelation`, `NNGCorrelation`, `NNKCorrelation`.
+
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have additional entries besides those listed

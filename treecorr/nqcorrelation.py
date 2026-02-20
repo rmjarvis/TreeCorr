@@ -57,6 +57,8 @@ class NQCorrelation(BaseNZCorrelation):
         >>> nq.write(file_name)            # Write out to a file.
         >>> xi, xi_im = nq.xi, nq.xi_im    # Or access the correlation function directly.
 
+    See also: `KQCorrelation`, `QQCorrelation`, `NZCorrelation`.
+
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have additional entries besides those listed

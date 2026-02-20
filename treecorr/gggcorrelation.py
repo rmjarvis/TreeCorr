@@ -79,6 +79,8 @@ class GGGCorrelation(Corr3):
         >>> gam0r = ggg.gam0r               # Or access real and imaginary parts separately.
         >>> gam0i = ggg.gam0i
 
+    See also: `KGGCorrelation`, `NGGCorrelation`, `GGCorrelation`.
+
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have additional entries besides those listed

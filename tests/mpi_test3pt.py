@@ -168,7 +168,8 @@ def do_mpi_corr2(comm, Correlation, cross, attr, output=True, patch_method='glob
         elif cross == 5:
             corr0.process(cat1, cat2, ordered=False, patch_method=patch_method, low_mem=low_mem)
         else:
-            corr0.process(cat1, cat2, cat2, ordered=False, patch_method=patch_method, low_mem=low_mem)
+            corr0.process(cat1, cat2, cat2, ordered=False,
+                          patch_method=patch_method, low_mem=low_mem)
 
     t1 = time.time()
     comm.Barrier()
@@ -194,9 +195,11 @@ def do_mpi_corr2(comm, Correlation, cross, attr, output=True, patch_method='glob
     elif cross == 4:
         corr1.process(cat2, cat2, cat1, comm=comm, patch_method=patch_method, low_mem=low_mem)
     elif cross == 5:
-        corr1.process(cat1, cat2, ordered=False, comm=comm, patch_method=patch_method, low_mem=low_mem)
+        corr1.process(cat1, cat2, ordered=False, comm=comm, patch_method=patch_method,
+                      low_mem=low_mem)
     else:
-        corr1.process(cat1, cat2, cat2, ordered=False, comm=comm, patch_method=patch_method, low_mem=low_mem)
+        corr1.process(cat1, cat2, cat2, ordered=False, comm=comm, patch_method=patch_method,
+                      low_mem=low_mem)
     t2 = time.time()
     comm.Barrier()
     if output:

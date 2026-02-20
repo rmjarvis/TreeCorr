@@ -820,7 +820,8 @@ def test_varzeta_logruv():
 
         for run in range(nruns):
             print(f'{run}/{nruns}')
-            # In addition to the shape noise below, there is shot noise from the random x,y positions.
+            # In addition to the shape noise below, there is shot noise
+            # from the random x,y positions.
             x = (rng.random_sample(ngal)-0.5) * L
             y = (rng.random_sample(ngal)-0.5) * L
             # Varied weights are hard, but at least check that non-unit weights work correctly.
@@ -2374,7 +2375,8 @@ def test_varzeta():
 
         for run in range(nruns):
             print(f'{run}/{nruns}')
-            # In addition to the shape noise below, there is shot noise from the random x,y positions.
+            # In addition to the shape noise below, there is shot noise
+            # from the random x,y positions.
             x = (rng.random_sample(ngal)-0.5) * L
             y = (rng.random_sample(ngal)-0.5) * L
             # Varied weights are hard, but at least check that non-unit weights work correctly.

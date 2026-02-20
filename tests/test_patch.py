@@ -2383,7 +2383,8 @@ def test_save_patches():
         cat0.write(file_name)
         # And also try to match the type if HDF
         clear_save('test_save_patches_%03d.hdf5', npatch)
-        cat2 = treecorr.Catalog(file_name, ra_col='ra', dec_col='dec', ra_units='deg', dec_units='deg',
+        cat2 = treecorr.Catalog(file_name, ra_col='ra', dec_col='dec',
+                                ra_units='deg', dec_units='deg',
                                 npatch=npatch, save_patch_dir='output')
         assert not cat2.loaded
         cat2.get_patches(low_mem=True)

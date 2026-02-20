@@ -26,7 +26,8 @@ Other utilities related to catalogs
     treecorr.calculateVarQ
 .. automodule:: treecorr.catalog
     :members:
-    :exclude-members: Catalog, read_catalogs, calculateVarK, calculateVarZ, calculateVarV, calculateVarG, calculateVarT, calculateVatQ
+    :exclude-members: Catalog, read_catalogs, calculateVarK, calculateVarZ, calculateVarV,
+        calculateVarG, calculateVarT, calculateVatQ
 
 File Readers
 ------------

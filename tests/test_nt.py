@@ -619,7 +619,8 @@ def test_nt():
     print('Time for nt process = ',t2-t1)
 
     # Using nbins=None rather than omitting nbins is equivalent.
-    nt2 = treecorr.NTCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None, sep_units='arcmin')
+    nt2 = treecorr.NTCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None,
+                                 sep_units='arcmin')
     nt2.process(lens_cat, source_cat, num_threads=1)
     assert nt2 == nt
 

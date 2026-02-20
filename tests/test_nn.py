@@ -1172,7 +1172,8 @@ def test_nn():
     print('dd.weight = ',dd.weight)
 
     # Using nbins=None rather than omitting nbins is equivalent.
-    dd2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., nbins=None, sep_units='arcmin')
+    dd2 = treecorr.NNCorrelation(bin_size=0.1, min_sep=1., max_sep=25., nbins=None,
+                                 sep_units='arcmin')
     dd2.process(cat, num_threads=1)
     assert dd2 == dd  # Only exactly == if num_threads == 1
 
@@ -1299,7 +1300,7 @@ def test_nn():
     assert dd2.bin_type == dd.bin_type
 
     # Check that the repr is minimal
-    assert repr(dd2) == f"NNCorrelation(bin_size=0.1, min_sep=1.0, max_sep=25.0, sep_units='arcmin')"
+    assert repr(dd2) == "NNCorrelation(bin_size=0.1, min_sep=1.0, max_sep=25.0, sep_units='arcmin')"
     # Simpler API using from_file:
     with CaptureLog() as cl:
         dd2b = treecorr.NNCorrelation.from_file(out_file_name, logger=cl.logger)
@@ -1968,7 +1969,8 @@ def test_varxi():
         var_xi_2 = np.var([xi[0] for xi in all_xis], axis=0)
         mean_varxi_2 = np.mean([xi[1] for xi in all_xis], axis=0)
 
-        all_xis = [dd.calculateXi(rr=rr, dr=dr, rd=dr) for dd,dr,rr in zip(all_dds, all_drs, all_rrs)]
+        all_xis = [dd.calculateXi(rr=rr, dr=dr, rd=dr)
+                   for dd, dr, rr in zip(all_dds, all_drs, all_rrs)]
         var_xi_3 = np.var([xi[0] for xi in all_xis], axis=0)
         mean_varxi_3 = np.mean([xi[1] for xi in all_xis], axis=0)
 

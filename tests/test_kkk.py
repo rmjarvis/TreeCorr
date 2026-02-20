@@ -1455,7 +1455,10 @@ def test_direct_logsas():
     np.testing.assert_allclose(kkk3.zeta, kkk.zeta)
 
     # Check that the repr is minimal
-    assert repr(kkk3) == f"KKKCorrelation(min_sep={min_sep}, bin_size={bin_size}, nbins={nbins}, nphi_bins={nphi_bins})"
+    assert repr(kkk3) == (
+        f"KKKCorrelation(min_sep={min_sep}, bin_size={bin_size}, "
+        f"nbins={nbins}, nphi_bins={nphi_bins})"
+    )
 
     # New in version 5.0 is a simpler API for reading
     kkk3b = treecorr.KKKCorrelation.from_file(ascii_name)
@@ -2476,9 +2479,11 @@ def test_direct_logmultipole_auto():
         np.testing.assert_allclose(data['n'], kkk.n.flatten(), rtol=1.e-4)
         np.testing.assert_allclose(data['ntri'], kkk.ntri.flatten(), rtol=1.e-4)
         np.testing.assert_allclose(data['weightr'], np.real(kkk.weight.flatten()), rtol=1.e-4)
-        np.testing.assert_allclose(data['weighti'], np.imag(kkk.weight.flatten()), rtol=1.e-4, atol=1.e-8)
+        np.testing.assert_allclose(
+            data['weighti'], np.imag(kkk.weight.flatten()), rtol=1.e-4, atol=1.e-8)
         np.testing.assert_allclose(data['zetar'], np.real(kkk.zeta.flatten()), rtol=1.e-4)
-        np.testing.assert_allclose(data['zetai'], np.imag(kkk.zeta.flatten()), rtol=1.e-4, atol=1.e-8)
+        np.testing.assert_allclose(
+            data['zetai'], np.imag(kkk.zeta.flatten()), rtol=1.e-4, atol=1.e-8)
 
     # Test I/O
     ascii_name = 'output/kkk_ascii_logmultipole.txt'

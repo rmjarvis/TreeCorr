@@ -485,9 +485,11 @@ def test_zz():
     print('ratio = ',zz.xim / true_xim)
     print('diff = ',zz.xim - true_xim)
     print('max diff = ',max(abs(zz.xim - true_xim)))
-    np.testing.assert_allclose(zz.xim, np.real(true_xim), rtol=0.1 * tol_factor, atol=2.e-7 * tol_factor)
+    np.testing.assert_allclose(
+        zz.xim, np.real(true_xim), rtol=0.1 * tol_factor, atol=2.e-7 * tol_factor)
     print('xim_im = ',zz.xim_im)
-    np.testing.assert_allclose(zz.xim_im, np.imag(true_xim), rtol=0.1 * tol_factor, atol=2.e-7 * tol_factor)
+    np.testing.assert_allclose(
+        zz.xim_im, np.imag(true_xim), rtol=0.1 * tol_factor, atol=2.e-7 * tol_factor)
 
     # Should also work as a cross-correlation with itself
     zz.process(cat,cat)
@@ -566,7 +568,8 @@ def test_varxi():
 
         for run in range(nruns):
             print(f'{run}/{nruns}')
-            # In addition to the shape noise below, there is shot noise from the random x,y positions.
+            # In addition to the shape noise below, there is shot noise
+            # from the random x,y positions.
             x = (rng.random_sample(ngal)-0.5) * L
             y = (rng.random_sample(ngal)-0.5) * L
             # Varied weights are hard, but at least check that non-unit weights work correctly.

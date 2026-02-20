@@ -830,7 +830,8 @@ class Corr2(object):
                 cat2e.name = cat1.name + " (expanded)"
         return cat2e
 
-    def _single_process12(self, c1, c2, ij, metric, num_threads, corr_only, temp, force_write=False):
+    def _single_process12(self, c1, c2, ij, metric, num_threads, corr_only, temp,
+                          force_write=False):
         # Helper function for _process_all_auto and _process_cross for doing cross pairs.
         temp._clear()
         if c2 is not None and not self._trivially_zero(c1, c2):
@@ -1222,7 +1223,8 @@ class Corr2(object):
         if cat2 is None:
             self._process_all_auto(cat1, metric, num_threads, corr_only, comm, low_mem, local)
         else:
-            self._process_all_cross(cat1, cat2, metric, num_threads, corr_only, comm, low_mem, local)
+            self._process_all_cross(cat1, cat2, metric, num_threads, corr_only, comm, low_mem,
+                                    local)
 
         self._processed_cats1.extend(cat1)
         if cat2 is not None:

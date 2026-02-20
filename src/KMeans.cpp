@@ -694,7 +694,8 @@ double CalculateShiftSq(const std::vector<Position<C> >& centers,
     double shiftsq=0.;
     for (size_t i=0; i<centers.size(); ++i) {
         double shiftsq_i = (centers[i] - new_centers[i]).normSq();
-        xdbg<<"Shift for "<<i<<" = "<<centers[i]<<" -> "<<new_centers[i]<<"  d = "<<sqrt(shiftsq_i)<<std::endl;
+        xdbg<<"Shift for "<<i<<" = "<<centers[i]<<" -> "<<new_centers[i]
+            <<"  d = "<<sqrt(shiftsq_i)<<std::endl;
         shiftsq += shiftsq_i;
     }
     xdbg<<"Total shiftsq = "<<shiftsq<<std::endl;
@@ -911,7 +912,8 @@ void QuickAssign(py::array_t<double>& cenp, int npatch,
             int kmin = 0;
             double min_rsq = SQR(x[i]-centers[0]) + SQR(y[i]-centers[1]) + SQR(z[i]-centers[2]);
             for (int k=1; k<npatch; ++k) {
-                double rsq = SQR(x[i]-centers[3*k]) + SQR(y[i]-centers[3*k+1]) + SQR(z[i]-centers[3*k+2]);
+                double rsq = SQR(x[i]-centers[3*k]) + SQR(y[i]-centers[3*k+1])
+                    + SQR(z[i]-centers[3*k+2]);
                 if (rsq < min_rsq) {
                     kmin = k;
                     min_rsq = rsq;

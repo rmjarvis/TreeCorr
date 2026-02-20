@@ -614,7 +614,8 @@ def test_nq():
     print('Time for nq process = ',t1-t0)
 
     # Using nbins=None rather than omitting nbins is equivalent.
-    nq2 = treecorr.NQCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None, sep_units='arcmin')
+    nq2 = treecorr.NQCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None,
+                                 sep_units='arcmin')
     nq2.process(lens_cat, source_cat, num_threads=1)
     assert nq2 == nq
 

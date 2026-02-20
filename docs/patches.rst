@@ -153,12 +153,17 @@ where these parameters are called simply ``init`` and ``alt`` respectively.
     Before implementing k-means in TreeCorr, I investigated what other options
     there were in the Python landscape.  I found the following implementations:
 
-    * `scipy.cluster.vq.kmeans <https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.vq.kmeans.html>`_
-    * `scipy.cluster.vq.kmeans2 <https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.vq.kmeans2.html#scipy.cluster.vq.kmeans2>`_
+    * `scipy.cluster.vq.kmeans
+      <https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.vq.kmeans.html>`_
+    * `scipy.cluster.vq.kmeans2
+      <https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.vq.kmeans2.html>`_
     * `kmeans_radec <https://github.com/esheldon/kmeans_radec>`_
-    * `pyclustering.cluster.kmeans <https://pyclustering.github.io/docs/0.8.2/html/da/d97/namespacepyclustering_1_1cluster_1_1kmeans.html>`_
-    * `sklearn.cluster.KMeans <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html#sklearn.cluster.KMeans>`_
-    * `sklearn.cluster.MiniBatchKMeans <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.MiniBatchKMeans.html#sklearn.cluster.MiniBatchKMeans>`_
+    * `pyclustering.cluster.kmeans
+      <https://pyclustering.github.io/>`_
+    * `sklearn.cluster.KMeans
+      <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html>`_
+    * `sklearn.cluster.MiniBatchKMeans
+      <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.MiniBatchKMeans.html>`_
 
     I made a `notebook <https://github.com/rmjarvis/TreeCorr/blob/main/devel/kmeans.ipynb>`_
     comparing the different algorithms using a random million galaxies from the DES SV
@@ -184,9 +189,9 @@ where these parameters are called simply ``init`` and ``alt`` respectively.
     Comparing the results of the various k-means implementations, I found that they all tend
     to be either fairly slow, taking a minute or more for just 1 million objects, or they have
     very high rms variation in the inertia.
-    I reran each code multiple times using a different random million objects selected from the original
-    catalog (of around 16 million objects). Here is a scatter plot of the time vs rms variation
-    in the inertia for the various codes.
+    I reran each code multiple times using a different random million objects selected from the
+    original catalog (of around 16 million objects). Here is a scatter plot of the time vs rms
+    variation in the inertia for the various codes.
 
     .. image:: https://user-images.githubusercontent.com/623887/57647337-ac6bd800-7590-11e9-80bc-900bda3bf66b.png
 

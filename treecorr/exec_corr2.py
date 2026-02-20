@@ -154,7 +154,7 @@ def corr2(config, logger=None):
     The function `print_corr2_params` will output information about the valid parameters
     that are expected to be in the config dict.
 
-    Optionally a logger parameter maybe given, in which case it is used for logging.
+    Optionally a logger parameter may be given, in which case it is used for logging.
     If not given, the logging will be based on the verbose and log_file parameters.
 
     :param config:  The configuration dict which defines what to do.

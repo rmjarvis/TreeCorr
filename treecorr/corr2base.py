@@ -1168,9 +1168,9 @@ class Corr2(object):
         In addition to computing the correlation function, this function also computes a
         few ancillary quantities that are useful for interpreting the resulting correlation
         function, including the attributes ``meanr``, ``meanlogr`` and ``npairs``.  For most
-        use cases these calculation impart negligible overhead to the calculation time.
-        The exception is `NNCorrelation`, where they can result in somthing like 20-30%
-        overhead in the compute time.  So if you want to optimize the efficiency of the
+        use cases these calculations impart negligible overhead.
+        The exception is `NNCorrelation`, where they can result in something like 20-30%
+        higher computation time.  So if you want to optimize the efficiency of the
         calculation, we provide the option ``corr_only=True``, which skips these computations.
         In this case the resulting ``meanr`` and ``meanlogr`` attributes are the nominal
         centers of the bins, not the actual mean values.  And ``npairs`` is estimated from
@@ -1404,14 +1404,14 @@ class Corr2(object):
               leads to a different weight for pairs that cross between two selected patches.
               This option is only valid for bootstrap.
             - 'match' = Use the "optimal" weight that matches the effect of auto- and cross-pairs
-              in the estimate of the jackknife covariance. MP22 calculate this for the to
+              in the estimate of the jackknife covariance. MP22 calculate this to
               be w = 1 - n_patch / (2 + sqrt(2) (n_patch-1)).
               This option is only valid for jackknife.
 
         .. note::
 
             For most classes, there is only a single statistic, so this calculates a covariance
-            matrix for that vector.  `GGCorrelation` other complex auto-correaltions have two:
+            matrix for that vector.  `GGCorrelation` and other complex auto-correlations have two:
             ``xip`` and ``xim``, so in this case the full data vector is ``xip`` followed by
             ``xim``, and this calculates the covariance matrix for that full vector including
             both statistics.  The helper function `getStat` returns the relevant statistic in all

@@ -59,9 +59,9 @@ class NKCorrelation(Corr2):
     The typical usage pattern is as follows:
 
         >>> nk = treecorr.NKCorrelation(config)
-        >>> nk.process(cat1,cat2)   # Compute the cross-correlation function.
-        >>> nk.write(file_name)     # Write out to a file.
-        >>> xi = nk.xi              # Or access the correlation function directly.
+        >>> nk.process(cat1, cat2)         # Compute the cross-correlation.
+        >>> nk.write(file_name)            # Write out to a file.
+        >>> xi = nk.xi                     # Or access the correlation function directly.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.

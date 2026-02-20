@@ -33,12 +33,13 @@ class NNNCorrelation(Corr3):
     The typical usage pattern is as follows:
 
         >>> nnn = treecorr.NNNCorrelation(config)
-        >>> nnn.process(cat)         # Compute auto-correlation.
-        >>> rrr.process(rand)        # Compute auto-correlation of random field.
-        >>> drr.process(cat,rand)    # If desired, compute data-random cross-correlations
-        >>> rdd.process(rand,cat)    # Also compute cross-correlation with two data and one random
-        >>> nnn.write(file_name, rrr=rrr, drr=drr, ...)  # Write out to a file.
-        >>> zeta,varzeta = nnn.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)  # Calculate zeta
+        >>> nnn.process(cat)                 # Compute the auto-correlation.
+        >>> # nnn.process(cat1, cat2, cat3)  # ... or the cross-correlation.
+        >>> rrr.process(rand)                # Compute the random auto-correlation.
+        >>> drr.process(cat, rand)           # Optionally compute data-random cross-correlation.
+        >>> rdd.process(rand, cat)           # Also compute random-data cross-correlation.
+        >>> zeta, varzeta = nnn.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)  # Calculate zeta.
+        >>> nnn.write(file_name, rrr=rrr, drr=drr, ...)   # Write out to a file.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.

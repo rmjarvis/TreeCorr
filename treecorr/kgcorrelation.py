@@ -56,9 +56,9 @@ class KGCorrelation(BaseKZCorrelation):
     The typical usage pattern is as follows:
 
         >>> kg = treecorr.KGCorrelation(config)
-        >>> kg.process(cat1,cat2)   # Calculate the cross-correlation
-        >>> kg.write(file_name)     # Write out to a file.
-        >>> xi = kg.xi              # Or access the correlation function directly.
+        >>> kg.process(cat1, cat2)         # Compute the cross-correlation.
+        >>> kg.write(file_name)            # Write out to a file.
+        >>> xi, xi_im = kg.xi, kg.xi_im    # Or access the correlation function directly.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.

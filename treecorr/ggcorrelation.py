@@ -56,10 +56,10 @@ class GGCorrelation(BaseZZCorrelation):
     The typical usage pattern is as follows:
 
         >>> gg = treecorr.GGCorrelation(config)
-        >>> gg.process(cat)         # For auto-correlation.
-        >>> gg.process(cat1,cat2)   # For cross-correlation.
-        >>> gg.write(file_name)     # Write out to a file.
-        >>> xip = gg.xip            # Or access the correlation function directly.
+        >>> gg.process(cat)                # Compute the auto-correlation.
+        >>> # gg.process(cat1, cat2)       # ... or the cross-correlation.
+        >>> gg.write(file_name)            # Write out to a file.
+        >>> xip, xim = gg.xip, gg.xim      # Or access the correlation functions directly.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.

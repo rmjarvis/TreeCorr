@@ -213,10 +213,10 @@ class ZZCorrelation(BaseZZCorrelation):
     The typical usage pattern is as follows:
 
         >>> zz = treecorr.ZZCorrelation(config)
-        >>> zz.process(cat)         # For auto-correlation.
-        >>> zz.process(cat1,cat2)   # For cross-correlation.
-        >>> zz.write(file_name)     # Write out to a file.
-        >>> xip = zz.xip            # Or access the correlation function directly.
+        >>> zz.process(cat)                # Compute the auto-correlation.
+        >>> # zz.process(cat1, cat2)       # ... or the cross-correlation.
+        >>> zz.write(file_name)            # Write out to a file.
+        >>> xip, xim = zz.xip, zz.xim      # Or access the correlation functions directly.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.

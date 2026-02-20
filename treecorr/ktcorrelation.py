@@ -49,9 +49,9 @@ class KTCorrelation(BaseKZCorrelation):
     The typical usage pattern is as follows:
 
         >>> kt = treecorr.KTCorrelation(config)
-        >>> kt.process(cat1,cat2)   # Calculate the cross-correlation
-        >>> kt.write(file_name)     # Write out to a file.
-        >>> xi = kt.xi              # Or access the correlation function directly.
+        >>> kt.process(cat1, cat2)         # Compute the cross-correlation.
+        >>> kt.write(file_name)            # Write out to a file.
+        >>> xi, xi_im = kt.xi, kt.xi_im    # Or access the correlation function directly.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.

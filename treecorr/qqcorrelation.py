@@ -54,10 +54,10 @@ class QQCorrelation(BaseZZCorrelation):
     The typical usage pattern is as follows:
 
         >>> qq = treecorr.QQCorrelation(config)
-        >>> qq.process(cat)         # For auto-correlation.
-        >>> qq.process(cat1,cat2)   # For cross-correlation.
-        >>> qq.write(file_name)     # Write out to a file.
-        >>> xip = qq.xip            # Or access the correlation function directly.
+        >>> qq.process(cat)                # Compute the auto-correlation.
+        >>> # qq.process(cat1, cat2)       # ... or the cross-correlation.
+        >>> qq.write(file_name)            # Write out to a file.
+        >>> xip, xim = qq.xip, qq.xim      # Or access the correlation functions directly.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.

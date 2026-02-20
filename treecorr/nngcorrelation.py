@@ -44,14 +44,14 @@ class GNNCorrelation(Corr3):
     The typical usage pattern is as follows:
 
         >>> gnn = treecorr.GNNCorrelation(config)
-        >>> gnn.process(cat1, cat2)        # Compute cross-correlation of two fields.
-        >>> gnn.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.
-        >>> grr.process(cat1, rand)        # Compute cross-correlation with randoms.
-        >>> gdr.process(cat1, cat2, rand)  # Compute cross-correlation with randoms and data
-        >>> gnn.write(file_name)           # Write out to a file.
-        >>> gnn.calculateZeta(grr=grr, gdr=gdr) # Calculate zeta using randoms
-        >>> zeta = gnn.zeta                # Access correlation function
-        >>> zetar = gnn.zetar              # Or access real and imaginary parts separately
+        >>> gnn.process(cat1, cat2)          # Compute the cross-correlation of two fields.
+        >>> # gnn.process(cat1, cat2, cat3)  # ... or of three fields.
+        >>> grr.process(cat1, rand)          # Compute the random cross-correlation.
+        >>> gdr.process(cat1, cat2, rand)    # Optionally compute data-random cross-correlation.
+        >>> gnn.write(file_name)             # Write out to a file.
+        >>> gnn.calculateZeta(grr=grr, gdr=gdr)  # Calculate zeta using randoms.
+        >>> zeta = gnn.zeta                  # Access the correlation function.
+        >>> zetar = gnn.zetar                # Or access real and imaginary parts separately.
         >>> zetai = gnn.zetai
 
     Parameters:
@@ -341,14 +341,14 @@ class NGNCorrelation(Corr3):
     The typical usage pattern is as follows:
 
         >>> ngn = treecorr.NGNCorrelation(config)
-        >>> ngn.process(cat1, cat2, cat1)  # Compute cross-correlation of two fields.
-        >>> ngn.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.
-        >>> rgr.process(rand, cat2, rand)  # Compute cross-correlation with randoms.
-        >>> dgr.process(cat1, cat2, rand)  # Compute cross-correlation with randoms and data
-        >>> ngn.write(file_name)           # Write out to a file.
-        >>> ngn.calculateZeta(rgr=rgr, dgr=dgr) # Calculate zeta using randoms
-        >>> zeta = ngn.zeta                # Access correlation function
-        >>> zetar = ngn.zetar              # Or access real and imaginary parts separately
+        >>> ngn.process(cat1, cat2, cat1)    # Compute the cross-correlation of two fields.
+        >>> # ngn.process(cat1, cat2, cat3)  # ... or of three fields.
+        >>> rgr.process(rand, cat2, rand)    # Compute the random cross-correlation.
+        >>> dgr.process(cat1, cat2, rand)    # Optionally compute data-random cross-correlation.
+        >>> ngn.write(file_name)             # Write out to a file.
+        >>> ngn.calculateZeta(rgr=rgr, dgr=dgr)  # Calculate zeta using randoms.
+        >>> zeta = ngn.zeta                  # Access the correlation function.
+        >>> zetar = ngn.zetar                # Or access real and imaginary parts separately.
         >>> zetai = ngn.zetai
 
     Parameters:
@@ -639,14 +639,14 @@ class NNGCorrelation(Corr3):
     The typical usage pattern is as follows:
 
         >>> nng = treecorr.NNGCorrelation(config)
-        >>> nng.process(cat1, cat2)        # Compute cross-correlation of two fields.
-        >>> nng.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.
-        >>> rrg.process(rand, cat2)        # Compute cross-correlation with randoms.
-        >>> drg.process(cat1, rand, cat2)  # Compute cross-correlation with randoms and data
-        >>> nng.write(file_name)           # Write out to a file.
-        >>> nng.calculateZeta(rrg=rrg, drg=drg) # Calculate zeta using randoms
-        >>> zeta = nng.zeta                # Access correlation function
-        >>> zetar = nng.zetar              # Or access real and imaginary parts separately
+        >>> nng.process(cat1, cat2)          # Compute the cross-correlation of two fields.
+        >>> # nng.process(cat1, cat2, cat3)  # ... or of three fields.
+        >>> rrg.process(rand, cat2)          # Compute the random cross-correlation.
+        >>> drg.process(cat1, rand, cat2)    # Optionally compute data-random cross-correlation.
+        >>> nng.write(file_name)             # Write out to a file.
+        >>> nng.calculateZeta(rrg=rrg, drg=drg)  # Calculate zeta using randoms.
+        >>> zeta = nng.zeta                  # Access the correlation function.
+        >>> zetar = nng.zetar                # Or access real and imaginary parts separately.
         >>> zetai = nng.zetai
 
     Parameters:

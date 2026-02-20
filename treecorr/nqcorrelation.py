@@ -53,9 +53,9 @@ class NQCorrelation(BaseNZCorrelation):
     The typical usage pattern is as follows:
 
         >>> nq = treecorr.NQCorrelation(config)
-        >>> nq.process(cat1,cat2)   # Compute the cross-correlation.
-        >>> nq.write(file_name)     # Write out to a file.
-        >>> xi = nq.xi              # Or access the correlation function directly.
+        >>> nq.process(cat1, cat2)         # Compute the cross-correlation.
+        >>> nq.write(file_name)            # Write out to a file.
+        >>> xi, xi_im = nq.xi, nq.xi_im    # Or access the correlation function directly.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.

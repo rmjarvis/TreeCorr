@@ -66,13 +66,13 @@ class NGGCorrelation(Corr3):
     The typical usage pattern is as follows::
 
         >>> ngg = treecorr.NGGCorrelation(config)
-        >>> ngg.process(cat1, cat2)       # Compute cross-correlation of two fields.
-        >>> ngg.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.
-        >>> ngg.write(file_name)          # Write out to a file.
-        >>> rgg.process(rand, cat2)       # Compute cross-correlation with randoms.
-        >>> ngg.calculateZeta(rgg=rgg)    # Calculate zeta using randoms
-        >>> gam0 = ngg.gam0, etc.         # Access gamma values directly.
-        >>> gam0r = ngg.gam0r             # Or access real and imaginary parts separately.
+        >>> ngg.process(cat1, cat2)         # Compute the cross-correlation of two fields.
+        >>> # ngg.process(cat1, cat2, cat3) # ... or of three fields.
+        >>> ngg.write(file_name)            # Write out to a file.
+        >>> rgg.process(rand, cat2)         # Compute the random cross-correlation.
+        >>> ngg.calculateZeta(rgg=rgg)      # Calculate zeta using randoms.
+        >>> gam0 = ngg.gam0, etc.           # Access gamma values directly.
+        >>> gam0r = ngg.gam0r               # Or access real and imaginary parts separately.
         >>> gam0i = ngg.gam0i
 
     Parameters:
@@ -421,13 +421,13 @@ class GNGCorrelation(Corr3):
     The typical usage pattern is as follows::
 
         >>> gng = treecorr.GNGCorrelation(config)
-        >>> gng.process(cat1, cat2, cat1) # Compute cross-correlation of two fields.
-        >>> gng.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.
-        >>> gng.write(file_name)          # Write out to a file.
-        >>> grg.process(cat1, rand, cat1) # Compute cross-correlation with randoms.
-        >>> gng.calculateZeta(grg=grg)    # Calculate zeta using randoms
-        >>> gam0 = gng.gam0, etc.         # Access gamma values directly.
-        >>> gam0r = gng.gam0r             # Or access real and imaginary parts separately.
+        >>> gng.process(cat1, cat2, cat1)   # Compute the cross-correlation of two fields.
+        >>> # gng.process(cat1, cat2, cat3) # ... or of three fields.
+        >>> gng.write(file_name)            # Write out to a file.
+        >>> grg.process(cat1, rand, cat1)   # Compute the random cross-correlation.
+        >>> gng.calculateZeta(grg=grg)      # Calculate zeta using randoms.
+        >>> gam0 = gng.gam0, etc.           # Access gamma values directly.
+        >>> gam0r = gng.gam0r               # Or access real and imaginary parts separately.
         >>> gam0i = gng.gam0i
 
     Parameters:
@@ -774,13 +774,13 @@ class GGNCorrelation(Corr3):
     The typical usage pattern is as follows::
 
         >>> ggn = treecorr.GGNCorrelation(config)
-        >>> ggn.process(cat1, cat2)       # Compute cross-correlation of two fields.
-        >>> ggn.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.
-        >>> ggn.write(file_name)          # Write out to a file.
-        >>> ggr.process(cat1, rand)       # Compute cross-correlation with randoms.
-        >>> ggn.calculateZeta(ggr=ggr)    # Calculate zeta using randoms
-        >>> gam0 = ggn.gam0, etc.         # Access gamma values directly.
-        >>> gam0r = ggn.gam0r             # Or access real and imaginary parts separately.
+        >>> ggn.process(cat1, cat2)         # Compute the cross-correlation of two fields.
+        >>> # ggn.process(cat1, cat2, cat3) # ... or of three fields.
+        >>> ggn.write(file_name)            # Write out to a file.
+        >>> ggr.process(cat1, rand)         # Compute the random cross-correlation.
+        >>> ggn.calculateZeta(ggr=ggr)      # Calculate zeta using randoms.
+        >>> gam0 = ggn.gam0, etc.           # Access gamma values directly.
+        >>> gam0r = ggn.gam0r               # Or access real and imaginary parts separately.
         >>> gam0i = ggn.gam0i
 
     Parameters:

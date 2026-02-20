@@ -66,11 +66,11 @@ class KGGCorrelation(Corr3):
     The typical usage pattern is as follows::
 
         >>> kgg = treecorr.KGGCorrelation(config)
-        >>> kgg.process(cat1, cat2)       # Compute cross-correlation of two fields.
-        >>> kgg.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.
-        >>> kgg.write(file_name)          # Write out to a file.
-        >>> gam0 = kgg.gam0, etc.         # Access gamma values directly.
-        >>> gam0r = kgg.gam0r             # Or access real and imaginary parts separately.
+        >>> kgg.process(cat1, cat2)         # Compute the cross-correlation of two fields.
+        >>> # kgg.process(cat1, cat2, cat3) # ... or of three fields.
+        >>> kgg.write(file_name)            # Write out to a file.
+        >>> gam0 = kgg.gam0, etc.           # Access gamma values directly.
+        >>> gam0r = kgg.gam0r               # Or access real and imaginary parts separately.
         >>> gam0i = kgg.gam0i
 
     Parameters:
@@ -280,11 +280,11 @@ class GKGCorrelation(Corr3):
     The typical usage pattern is as follows::
 
         >>> gkg = treecorr.GKGCorrelation(config)
-        >>> gkg.process(cat1, cat2, cat1) # Compute cross-correlation of two fields.
-        >>> gkg.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.
-        >>> gkg.write(file_name)          # Write out to a file.
-        >>> gam0 = gkg.gam0, etc.         # Access gamma values directly.
-        >>> gam0r = gkg.gam0r             # Or access real and imaginary parts separately.
+        >>> gkg.process(cat1, cat2, cat1)   # Compute the cross-correlation of two fields.
+        >>> # gkg.process(cat1, cat2, cat3) # ... or of three fields.
+        >>> gkg.write(file_name)            # Write out to a file.
+        >>> gam0 = gkg.gam0, etc.           # Access gamma values directly.
+        >>> gam0r = gkg.gam0r               # Or access real and imaginary parts separately.
         >>> gam0i = gkg.gam0i
 
     Parameters:
@@ -492,11 +492,11 @@ class GGKCorrelation(Corr3):
     The typical usage pattern is as follows::
 
         >>> ggk = treecorr.GGKCorrelation(config)
-        >>> ggk.process(cat1, cat2)       # Compute cross-correlation of two fields.
-        >>> ggk.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.
-        >>> ggk.write(file_name)          # Write out to a file.
-        >>> gam0 = ggk.gam0, etc.         # Access gamma values directly.
-        >>> gam0r = ggk.gam0r             # Or access real and imaginary parts separately.
+        >>> ggk.process(cat1, cat2)         # Compute the cross-correlation of two fields.
+        >>> # ggk.process(cat1, cat2, cat3) # ... or of three fields.
+        >>> ggk.write(file_name)            # Write out to a file.
+        >>> gam0 = ggk.gam0, etc.           # Access gamma values directly.
+        >>> gam0r = ggk.gam0r               # Or access real and imaginary parts separately.
         >>> gam0i = ggk.gam0i
 
     Parameters:

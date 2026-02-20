@@ -115,9 +115,9 @@ class KZCorrelation(BaseKZCorrelation):
     The typical usage pattern is as follows:
 
         >>> kz = treecorr.KZCorrelation(config)
-        >>> kz.process(cat1,cat2)   # Calculate the cross-correlation
-        >>> kz.write(file_name)     # Write out to a file.
-        >>> xi = kz.xi              # Or access the correlation function directly.
+        >>> kz.process(cat1, cat2)         # Compute the cross-correlation.
+        >>> kz.write(file_name)            # Write out to a file.
+        >>> xi, xi_im = kz.xi, kz.xi_im    # Or access the correlation function directly.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.

@@ -50,9 +50,9 @@ class KVCorrelation(BaseKZCorrelation):
     The typical usage pattern is as follows:
 
         >>> kv = treecorr.KVCorrelation(config)
-        >>> kv.process(cat1,cat2)   # Calculate the cross-correlation
-        >>> kv.write(file_name)     # Write out to a file.
-        >>> xi = kv.xi              # Or access the correlation function directly.
+        >>> kv.process(cat1, cat2)         # Compute the cross-correlation.
+        >>> kv.write(file_name)            # Write out to a file.
+        >>> xi, xi_im = kv.xi, kv.xi_im    # Or access the correlation function directly.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.

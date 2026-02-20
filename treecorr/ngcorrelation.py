@@ -55,9 +55,9 @@ class NGCorrelation(BaseNZCorrelation):
     The typical usage pattern is as follows:
 
         >>> ng = treecorr.NGCorrelation(config)
-        >>> ng.process(cat1,cat2)   # Compute the cross-correlation.
-        >>> ng.write(file_name)     # Write out to a file.
-        >>> xi = ng.xi              # Or access the correlation function directly.
+        >>> ng.process(cat1, cat2)         # Compute the cross-correlation.
+        >>> ng.write(file_name)            # Write out to a file.
+        >>> xi, xi_im = ng.xi, ng.xi_im    # Or access the correlation function directly.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.

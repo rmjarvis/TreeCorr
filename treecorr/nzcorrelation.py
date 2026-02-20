@@ -202,9 +202,9 @@ class NZCorrelation(BaseNZCorrelation):
     The typical usage pattern is as follows:
 
         >>> nz = treecorr.NZCorrelation(config)
-        >>> nz.process(cat1,cat2)   # Compute the cross-correlation.
-        >>> nz.write(file_name)     # Write out to a file.
-        >>> xi = nz.xi              # Or access the correlation function directly.
+        >>> nz.process(cat1, cat2)         # Compute the cross-correlation.
+        >>> nz.write(file_name)            # Write out to a file.
+        >>> xi, xi_im = nz.xi, nz.xi_im    # Or access the correlation function directly.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.

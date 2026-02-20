@@ -44,14 +44,14 @@ class KNNCorrelation(Corr3):
     The typical usage pattern is as follows:
 
         >>> knn = treecorr.KNNCorrelation(config)
-        >>> knn.process(cat1, cat2)        # Compute cross-correlation of two fields.
-        >>> knn.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.
-        >>> krr.process(cat1, rand)        # Compute cross-correlation with randoms.
-        >>> kdr.process(cat1, cat2, rand)  # Compute cross-correlation with randoms and data
-        >>> knn.write(file_name)           # Write out to a file.
-        >>> knn.calculateZeta(krr=krr, kdr=kdr) # Calculate zeta using randoms
-        >>> zeta = knn.zeta                # Access correlation function
-        >>> zetar = knn.zetar              # Or access real and imaginary parts separately
+        >>> knn.process(cat1, cat2)          # Compute the cross-correlation of two fields.
+        >>> # knn.process(cat1, cat2, cat3)  # ... or of three fields.
+        >>> krr.process(cat1, rand)          # Compute the random cross-correlation.
+        >>> kdr.process(cat1, cat2, rand)    # Optionally compute data-random cross-correlation.
+        >>> knn.write(file_name)             # Write out to a file.
+        >>> knn.calculateZeta(krr=krr, kdr=kdr)  # Calculate zeta using randoms.
+        >>> zeta = knn.zeta                  # Access the correlation function.
+        >>> zetar = knn.zetar                # Or access real and imaginary parts separately.
         >>> zetai = knn.zetai
 
     Parameters:
@@ -342,14 +342,14 @@ class NKNCorrelation(Corr3):
     The typical usage pattern is as follows:
 
         >>> nkn = treecorr.NKNCorrelation(config)
-        >>> nkn.process(cat1, cat2, cat1)  # Compute cross-correlation of two fields.
-        >>> nkn.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.
-        >>> rkr.process(rand, cat2, rand)  # Compute cross-correlation with randoms.
-        >>> dkr.process(cat1, cat2, rand)  # Compute cross-correlation with randoms and data
-        >>> nkn.write(file_name)           # Write out to a file.
-        >>> nkn.calculateZeta(rkr=rkr, dkr=dkr) # Calculate zeta using randoms
-        >>> zeta = nkn.zeta                # Access correlation function
-        >>> zetar = nkn.zetar              # Or access real and imaginary parts separately
+        >>> nkn.process(cat1, cat2, cat1)    # Compute the cross-correlation of two fields.
+        >>> # nkn.process(cat1, cat2, cat3)  # ... or of three fields.
+        >>> rkr.process(rand, cat2, rand)    # Compute the random cross-correlation.
+        >>> dkr.process(cat1, cat2, rand)    # Optionally compute data-random cross-correlation.
+        >>> nkn.write(file_name)             # Write out to a file.
+        >>> nkn.calculateZeta(rkr=rkr, dkr=dkr)  # Calculate zeta using randoms.
+        >>> zeta = nkn.zeta                  # Access the correlation function.
+        >>> zetar = nkn.zetar                # Or access real and imaginary parts separately.
         >>> zetai = nkn.zetai
 
     Parameters:
@@ -640,14 +640,14 @@ class NNKCorrelation(Corr3):
     The typical usage pattern is as follows:
 
         >>> nnk = treecorr.NNKCorrelation(config)
-        >>> nnk.process(cat1, cat2)        # Compute cross-correlation of two fields.
-        >>> nnk.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.
-        >>> rrk.process(rand, cat2)        # Compute cross-correlation with randoms.
-        >>> drk.process(cat1, rand, cat2)  # Compute cross-correlation with randoms and data
-        >>> nnk.write(file_name)           # Write out to a file.
-        >>> nnk.calculateZeta(rrk=rrk, drk=drk) # Calculate zeta using randoms
-        >>> zeta = nnk.zeta                # Access correlation function
-        >>> zetar = nnk.zetar              # Or access real and imaginary parts separately
+        >>> nnk.process(cat1, cat2)          # Compute the cross-correlation of two fields.
+        >>> # nnk.process(cat1, cat2, cat3)  # ... or of three fields.
+        >>> rrk.process(rand, cat2)          # Compute the random cross-correlation.
+        >>> drk.process(cat1, rand, cat2)    # Optionally compute data-random cross-correlation.
+        >>> nnk.write(file_name)             # Write out to a file.
+        >>> nnk.calculateZeta(rrk=rrk, drk=drk)  # Calculate zeta using randoms.
+        >>> zeta = nnk.zeta                  # Access the correlation function.
+        >>> zetar = nnk.zetar                # Or access real and imaginary parts separately.
         >>> zetai = nnk.zetai
 
     Parameters:

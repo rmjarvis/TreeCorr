@@ -209,7 +209,7 @@ where these parameters are called simply ``init`` and ``alt`` respectively.
     implementation according to any of these metrics.
 
     In addition, you can see some slightly smaller orange dots, which have even lower rms
-    variation but take very slightly longer to run. These are the alternate algorithm I mentioned
+    variation but take very slightly longer to run. These are the alternate algorithms I mentioned
     above.  This alternate algorithm is similar to k-means, but it penalizes patches with a
     larger-than-average inertia, so they give up some of their outer points to patches with
     smaller inertia. In other words, it explicitly targets making the rms variation as small as

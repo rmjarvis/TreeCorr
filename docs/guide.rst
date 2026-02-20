@@ -4,7 +4,7 @@ Getting Started Guide
 Jupyter Tutorial
 ^^^^^^^^^^^^^^^^
 
-The below page covers many of the same points as the
+This page covers many of the same points as the
 `Jupyter notebook tutorial <https://github.com/rmjarvis/TreeCorr/blob/main/tests/Tutorial.ipynb>`_
 available in the TreeCorr repo.
 You may find it useful to work through that as well as, or instead of, reading this guide.
@@ -90,7 +90,7 @@ further calculation with them, you can access the resulting fields directly as n
     varxi = gg.varxi        # The variance of each xi+ or xi- value
                             # taking into account shape noise only
 
-See the doc string for `GGCorrelation` for other available attributes.
+See the docstring for `GGCorrelation` for other available attributes.
 If you want to run this same workflow from a config file via ``corr2``,
 or compare executable and Python interfaces, see :doc:`scripts`.
 
@@ -117,7 +117,7 @@ in the FITS table.  For ASCII input files, you specify the column number instead
     cat = treecorr.Catalog(file_name='input_cat.dat',
                            x_col=2, y_col=3, g1_col=5, g2_col=6)
 
-where the first column in numbered 1, not 0.
+where the first column is numbered 1, not 0.
 
 When the positions are given as right ascension and declination on the celestial
 sphere, rather than x and y on a flat projection (like an image), you also need
@@ -161,7 +161,7 @@ from the data.  For GG, you need ``g1`` and ``g2``, but for K correlations, you 
 You can optionally provide a weight column as well with ``w`` if desired.
 This will then perform a weighted correlation using those weights.
 
-Again, see the doc string for `Catalog` for more information.
+Again, see the docstring for `Catalog` for more information.
 
 
 Defining the binning
@@ -211,7 +211,7 @@ The other kinds of correlations each have their own class.  E.g.:
 
 See `Two-point Correlation Functions` for the complete list including other spin varieties.
 
-You should see their doc strings for details, but they all work similarly.
+You should see their docstrings for details, but they all work similarly.
 For the cross-type classes (e.g. NK, KG, etc.), there is no auto-correlation option,
 of course, just the cross-correlation.
 
@@ -350,7 +350,7 @@ function, you could write the following::
 In addition to `process_cross <Corr2.process_cross>`,
 classes that allow auto-correlations have a
 `process_auto <Corr2.process_auto>` method for manually processing
-auto-correlations.  See the doc strings for these methods for more information.
+auto-correlations.  See the docstrings for these methods for more information.
 
 Breaking up the calculation manually like this is probably not often necessary anymore.
 It used to be useful for dividing a calculation among several machines, which would

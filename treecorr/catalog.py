@@ -45,7 +45,7 @@ class Catalog(object):
 
         >>> cat = treecorr.Catalog(x=x, y=y, k=k, w=w)
 
-    Each of these input paramters should be a numpy array, where each corresponding element
+    Each of these input parameters should be a numpy array, where each corresponding element
     is the value for that object.  Of course, all the arrays should be the same size.
 
     In some cases, there are additional required parameters.  For instance, with RA and Dec
@@ -2963,7 +2963,7 @@ class Catalog(object):
                 return self._patches
 
         if low_mem and self.file_name is not None:
-            # This is a litle tricky, since we don't want to trigger a load if the catalog
+            # This is a little tricky, since we don't want to trigger a load if the catalog
             # isn't loaded yet.  So try to get the patches from centers or single_patch first.
             if self._centers is not None:
                 patch_set = range(len(self._centers))
@@ -3232,7 +3232,7 @@ def read_catalogs(config, key=None, list_key=None, *, num=0, logger=None, is_ran
     """Read in a list of catalogs for the given key.
 
     key should be the file_name parameter or similar key word.
-    list_key should be be corresponging file_list parameter, if appropriate.
+    list_key should be the corresponding file_list parameter, if appropriate.
     At least one of key or list_key must be provided.  If both are provided, then only
     one of these should be in the config dict.
 

@@ -490,7 +490,7 @@ class Field(object):
     def kmeans_assign_patches(self, centers):
         """Assign patch numbers to each point according to the given centers.
 
-        This is final step in the full K-Means algorithm.  It assignes patch numbers to each
+        This is the final step in the full K-Means algorithm. It assigns patch numbers to each
         point in the field according to which center is closest.
 
         Parameters:

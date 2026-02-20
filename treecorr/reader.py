@@ -365,9 +365,8 @@ class ParquetReader():
         """
         Parameters:
             file_name (str):        The file name.
-            delimiter (str):        What delimiter to use between values. (default: None,
-                                    which means any whitespace)
-            comment_marker (str):   What token indicates a comment line. (default: '#')
+            delimiter (str):        Ignored for Parquet input.
+            comment_marker (str):   Ignored for Parquet input.
         """
         try:
             import pandas
@@ -402,7 +401,7 @@ class ParquetReader():
     def check_valid_ext(self, ext):
         """Check if an extension is valid for reading, and raise ValueError if not.
 
-        None is the only valid extension for ASCII files.
+        None is the only valid extension for Parquet files.
 
         Parameters:
             ext (str):  The extension to check.
@@ -429,7 +428,7 @@ class ParquetReader():
     def row_count(self, col=None, *, ext=None):
         """Count the number of rows in the named extension and column
 
-        Unlike in FitsReader, col is required.
+        For Parquet input, this is just the number of rows in the DataFrame.
 
         Parameters:
             col (str):  The column to use. (ignored)
@@ -482,7 +481,7 @@ class FitsReader(object):
 
         else:
             # There is a bug in earlier fitsio versions that prevents slicing.
-            # It you hit this assert, upgrade your fitsio version.
+            # If you hit this assert, upgrade your fitsio version.
             assert fitsio.__version__ > '1.0.6'
 
         self._file = None  # Only works inside a with block.
@@ -548,7 +547,7 @@ class FitsReader(object):
         Parameters:
             cols (str/list):    The name(s) of column(s) to read.
             s (slice/array):    A slice object or selection of integers to read. (default: all)
-            ext (str/int)):     The FITS extension to use. (default: 1)
+            ext (str/int):      The FITS extension to use. (default: 1)
 
         Returns:
             The data as a recarray or simple numpy array as appropriate

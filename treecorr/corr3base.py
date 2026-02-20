@@ -2549,7 +2549,7 @@ class Corr3(object):
         Keyword Arguments:
             target:     A target Correlation object with LogSAS binning to write to.
                         If this is not given, a new object will be created based on the
-                        configuration paramters of the current object. (default: None)
+                        configuration parameters of the current object. (default: None)
             **kwargs:   Any kwargs that you want to use to configure the returned object.
                         Typically, might include min_phi, max_phi, nphi_bins, phi_bin_size.
                         The default phi binning is [0,pi] with nphi_bins = self.max_n.

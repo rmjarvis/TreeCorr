@@ -1911,7 +1911,7 @@ class Corr3(object):
 
         This accumulates the cross-correlation for the given catalogs as part of a larger
         auto- or cross-correlation calculation.  E.g. when splitting up a large catalog into
-        patches, this is appropriate to use for the cross correlation between different patches
+        patches, this is appropriate to use for the cross-correlation between different patches
         as part of the complete auto-correlation of the full catalog.
 
         This method is only valid for classes that have the same type of value in vertices
@@ -1970,7 +1970,7 @@ class Corr3(object):
 
         This accumulates the cross-correlation for the given catalogs as part of a larger
         auto- or cross-correlation calculation.  E.g. when splitting up a large catalog into
-        patches, this is appropriate to use for the cross correlation between different patches
+        patches, this is appropriate to use for the cross-correlation between different patches
         as part of the complete auto-correlation of the full catalog.
 
         This method is only valid for classes that have the same type of value in vertices
@@ -2028,7 +2028,7 @@ class Corr3(object):
 
         This accumulates the cross-correlation for the given catalogs as part of a larger
         auto- or cross-correlation calculation.  E.g. when splitting up a large catalog into
-        patches, this is appropriate to use for the cross correlation between different patches
+        patches, this is appropriate to use for the cross-correlation between different patches
         as part of the complete auto-correlation of the full catalog.
 
         Parameters:
@@ -2093,7 +2093,7 @@ class Corr3(object):
 
         .. note::
 
-            For cross correlations where the third field type is different from the other two
+            For cross-correlations where the third field type is different from the other two
             (e.g. KKG, NNG, etc.) then the 2 argument version will use the first catalog
             for first two vertices and the second for the third vertex, since that's the
             only valid combination for those correlation types.
@@ -2102,10 +2102,10 @@ class Corr3(object):
             except it will be slightly more efficient, since it knows the first two vertices
             are from a single field.
 
-        For cross correlations, the default behavior is to use cat1 for the first vertex (P1),
+        For cross-correlations, the default behavior is to use cat1 for the first vertex (P1),
         cat2 for the second vertex (P2), and cat3 for the third vertex (P3).  If only two
         catalogs are given, vertices P2 and P3 both come from cat2.  The sides d1, d2, d3,
-        used to define the binning, are taken to be opposte P1, P2, P3 respectively.
+        used to define the binning, are taken to be opposite P1, P2, P3 respectively.
 
         However, if you want to accumulate triangles where objects from each catalog can take
         any position in the triangles, you can set ``ordered=False``.  In this case, triangles

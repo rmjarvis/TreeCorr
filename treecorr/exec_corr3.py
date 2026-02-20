@@ -128,7 +128,7 @@ def corr3(config, logger=None):
     The function `print_corr3_params` will output information about the valid parameters
     that are expected to be in the config dict.
 
-    Optionally a logger parameter maybe given, in which case it is used for logging.
+    Optionally a logger parameter may be given, in which case it is used for logging.
     If not given, the logging will be based on the verbose and log_file parameters.
 
     :param config:  The configuration dict which defines what to do.
@@ -197,7 +197,8 @@ def corr3(config, logger=None):
             logger.warning("No random catalogs given.  Only doing ntri calculation.")
             rrr = None
         else:
-            # TODO: I haven't don't all the options correctly with cat2, cat3 yet.
+            # Note: random handling here is currently only implemented for the primary
+            # data catalog in the NNN workflow.
             logger.warning("Performing RRR calculations...")
             rrr = NNNCorrelation(config, logger=logger)
             rrr.process(rand1)
@@ -225,7 +226,8 @@ def corr3(config, logger=None):
         logger.warning("Wrote KKK correlation to %s",config['kkk_file_name'])
 
     # Do NNK correlation function if necessary
-    # TODO: randoms on all cross correlations that include N
+    # Note: random-catalog support is not implemented here for all cross-correlations
+    # that include N.
     if 'nnk_file_name' in config:
         logger.warning("Performing NNK calculations...")
         nnk = NNKCorrelation(config, logger=logger)

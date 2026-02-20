@@ -25,9 +25,9 @@ from .config import make_minimal_config
 
 class NNCorrelation(Corr2):
     r"""This class handles the calculation and storage of a 2-point count-count correlation
-    function.  i.e. the regular density correlation function.
+    function, i.e. the regular density correlation function.
 
-    See the doc string of `Corr2` for a description of how the pairs are binned along
+    See the docstring of `Corr2` for a description of how the pairs are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr2` subclasses, objects of this class
@@ -147,7 +147,7 @@ class NNCorrelation(Corr2):
 
         The `Corr2.process_auto` and `Corr2.process_cross` commands accumulate values in each bin,
         so they can be called multiple times if appropriate.  Afterwards, this command
-        finishes the calculation of meanr, meanlogr by dividing by the total weight.
+        finishes the calculation of ``meanr`` and ``meanlogr`` by dividing by the total weight.
         """
         self._finalize()
 
@@ -209,7 +209,7 @@ class NNCorrelation(Corr2):
         """The weight array for the current correlation object as a 1-d array.
 
         This is the weight array corresponding to `getStat`.  In this case, it is the denominator
-        RR from the calculation done by calculateXi().
+        RR from the calculation done by `calculateXi`.
         """
         if self._rr_weight is not None:
             return self._rr_weight.ravel()
@@ -258,7 +258,7 @@ class NNCorrelation(Corr2):
                                     desired, in which case the Landy-Szalay estimator will be
                                     calculated.  (default: None)
             rd (NNCorrelation):     The cross-correlation of the randoms with data (RD), if
-                                    desired. (default: None, which means use rd=dr)
+                                    desired. (default: None, which means to use rd=dr)
 
         Returns:
             Tuple containing:
@@ -485,11 +485,11 @@ class NNCorrelation(Corr2):
             dr (NNCorrelation):     The cross-correlation of the data with randoms (DR), if
                                     desired. (default: None)
             rd (NNCorrelation):     The cross-correlation of the randoms with data (RD), if
-                                    desired. (default: None, which means use rd=dr)
+                                    desired. (default: None, which means to use rd=dr)
             file_type (str):        The type of file to write ('ASCII' or 'FITS').
                                     (default: determine the type automatically from the extension
                                     of file_name.)
-            precision (int):        For ASCII output catalogs, the desired precision. (default: 4;
+            precision (int):        For ASCII output files, the desired precision. (default: 4;
                                     this value can also be given in the constructor in the config
                                     dict.)
             write_patch_results (bool): Whether to write the patch-based results as well.
@@ -698,11 +698,11 @@ class NNCorrelation(Corr2):
         Parameters:
             rr (NNCorrelation): The auto-correlation of the random field (RR)
             R (array):          The R values at which to calculate the aperture mass statistics.
-                                (default: None, which means use self.rnom)
+                                (default: None, which means to use self.rnom)
             dr (NNCorrelation): The cross-correlation of the data with randoms (DR), if
                                 desired. (default: None)
             rd (NNCorrelation): The cross-correlation of the randoms with data (RD), if
-                                desired. (default: None, which means use rd=dr)
+                                desired. (default: None, which means to use rd=dr)
             m2_uform (str):     Which form to use for the aperture mass.  (default: 'Crittenden';
                                 this value can also be given in the constructor in the config dict.)
 

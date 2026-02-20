@@ -34,7 +34,7 @@ class NKCorrelation(Corr2):
         correlations of non-shear quantities, e.g. the sizes or concentrations of galaxies, around
         a set of lenses, where "kappa" would be the measurements of these quantities.
 
-    See the doc string of `Corr2` for a description of how the pairs are binned along
+    See the docstring of `Corr2` for a description of how the pairs are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr2` subclasses, objects of this class
@@ -258,7 +258,7 @@ class NKCorrelation(Corr2):
                                 if desired.  (default: None)
             file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
                                 the type automatically from the extension of file_name.)
-            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
+            precision (int):    For ASCII output files, the desired precision. (default: 4;
                                 this value can also be given in the constructor in the config dict.)
             write_patch_results (bool): Whether to write the patch-based results as well.
                                         (default: False)

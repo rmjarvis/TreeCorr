@@ -1590,7 +1590,7 @@ def test_direct_logsas_cross12():
     with assert_raises(ValueError):
         kkn.process(cat2)
 
-    # With ordered=False, doesn't do anything difference, since there is no other valid order.
+    # With ordered=False, doesn't do anything different, since there is no other valid order.
     nkk.process(cat1, cat2, ordered=False, algo='triangle')
     np.testing.assert_array_equal(nkk.ntri, true_ntri_122)
     np.testing.assert_allclose(nkk.weight, true_weight_122, rtol=1.e-5)

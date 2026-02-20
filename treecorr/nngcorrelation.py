@@ -30,7 +30,7 @@ class GNNCorrelation(Corr3):
     shear value.  Use `NGNCorrelation` and `NNGCorrelation` for classes with the shear in the
     other two positions.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -337,7 +337,7 @@ class NGNCorrelation(Corr3):
     shear value.  Use `GNNCorrelation` and `NNGCorrelation` for classes with the shear in the
     other two positions.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -645,7 +645,7 @@ class NNGCorrelation(Corr3):
     shear value.  Use `GNNCorrelation` and `NGNCorrelation` for classes with the shear in the
     other two positions.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class

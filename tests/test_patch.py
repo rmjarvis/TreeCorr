@@ -2724,7 +2724,7 @@ def test_brute_jk():
     if os.name == 'nt': return
 
     # With bin_slop = 0, the jackknife calculation from patches should match a
-    # brute force calcaulation where we literally remove one patch at a time to make
+    # brute force calculation where we literally remove one patch at a time to make
     # the vectors.
     if __name__ == '__main__':
         nside = 100
@@ -3414,7 +3414,7 @@ def test_lowmem():
             hp.setrelheap()
         else:
             # For nosetests, turn off the rest of the guppy stuff, since they are slow,
-            # and we don't actually bother doing any asserts with them aftet here.
+            # and we don't actually bother doing any asserts with them after here.
             hp = None
 
     # First GG with normal ra,dec from a file
@@ -3630,7 +3630,7 @@ def test_config():
     print('gg.varxip = ',gg.varxip)
     print('gg2.varxip = ',gg2.varxip)
 
-    # Bootstrap has intrinisic randomness, so this doesn't get all that close actually.
+    # Bootstrap has intrinsic randomness, so this doesn't get all that close actually.
     np.testing.assert_allclose(np.log(gg.varxip), np.log(gg2.varxip), atol=0.6)
 
     # Jackknife should be exactly equal (so long as npatch is 2^n), since deterministic.
@@ -3814,7 +3814,7 @@ def test_empty_patches():
     # In this test, most of the patches have no objects.
     # This used to cause a run-time error when np.sum ended up with empty arrays,
     # which it didn't like and raises an exception.
-    # Probbly most of the time, this will be user error that the patches aren't set up properly,
+    # Probably most of the time, this will be user error that the patches aren't set up properly,
     # but it is at least conceivable that you might want to do something real that would cause
     # this, so this test makes sure it works correctly.
 

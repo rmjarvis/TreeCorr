@@ -450,7 +450,7 @@ def test_merge():
     config2 = treecorr.config.merge_config(config1, kwargs, treecorr.Catalog._valid_params)
     assert config2['ra_col'] == 'alpha2000'
 
-    # ... even when when the value in kwargs is None.
+    # ... even when the value in kwargs is None.
     kwargs = {'bin_size': 0.06, 'nbins': None}
     config2 = treecorr.config.merge_config(config1, kwargs, treecorr.Corr2._valid_params)
     assert config2['bin_size'] == 0.06

@@ -1130,7 +1130,7 @@ def test_jk():
         patch_dir = 'output'
         low_mem = True
     except ImportError:
-        # If we cannot write to a fits file, skip the save_patch_dir tests.
+        # If we cannot write to a FITS file, skip the save_patch_dir tests.
         patch_dir = None
         low_mem = False
     cat2p = treecorr.Catalog(x=x2, y=y2, t1=t1, t2=t2, npatch=npatch, save_patch_dir=patch_dir)

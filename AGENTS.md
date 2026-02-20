@@ -33,6 +33,7 @@ Rationale:
 - Target a 100-character line length for prose/code comments where practical.
 - Do not rewrite or shorten long URLs only to satisfy line-length limits.
 - Keep existing documentation images unless there is a concrete issue requiring a change.
+- Preserve intentional diction choices (e.g. keep "Contrariwise" where used intentionally).
 
 ## Documentation Scope Priorities
 - Prioritize user-facing `.rst` pages and Python docstrings in `treecorr/*.py`.
@@ -41,3 +42,7 @@ Rationale:
 ## Routine Ignore Rules
 - Ignore `/Users/Mike/rmjarvis/TreeCorr/docs/_build/` during normal edits/reviews.
 - Do not edit `docs/Makefile` just for style/line-length cleanup.
+
+## Typo Sweep Rule
+- When a typo is found, grep the whole repo for that same typo pattern (excluding build/data
+  artifacts) and fix all clear occurrences in the same pass.

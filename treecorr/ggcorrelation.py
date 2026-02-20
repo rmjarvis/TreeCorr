@@ -27,7 +27,7 @@ class GGCorrelation(BaseZZCorrelation):
     r"""This class handles the calculation and storage of a 2-point shear-shear correlation
     function.
 
-    See the doc string of `Corr2` for a description of how the pairs are binned along
+    See the docstring of `Corr2` for a description of how the pairs are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr2` subclasses, objects of this class
@@ -142,7 +142,7 @@ class GGCorrelation(BaseZZCorrelation):
 
         Parameters:
             R (array):      The R values at which to calculate the aperture mass statistics.
-                            (default: None, which means use self.rnom)
+                            (default: None, which means to use self.rnom)
             m2_uform (str): Which form to use for the aperture mass, as described above.
                             (default: 'Crittenden'; this value can also be given in the
                             constructor in the config dict.)
@@ -235,7 +235,7 @@ class GGCorrelation(BaseZZCorrelation):
 
         Parameters:
             R (array):  The R values at which to calculate the shear variance.
-                        (default: None, which means use self.rnom)
+                        (default: None, which means to use self.rnom)
             eb (bool):  Whether to include the E/B decomposition as well as the total
                         :math:`\langle \gamma^2\rangle`.  (default: False)
 
@@ -314,12 +314,12 @@ class GGCorrelation(BaseZZCorrelation):
         Parameters:
             file_name (str):    The name of the file to write to.
             R (array):          The R values at which to calculate the statistics.
-                                (default: None, which means use self.rnom)
+                                (default: None, which means to use self.rnom)
             m2_uform (str):     Which form to use for the aperture mass.  (default: 'Crittenden';
                                 this value can also be given in the constructor in the config dict.)
             file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
                                 the type automatically from the extension of file_name.)
-            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
+            precision (int):    For ASCII output files, the desired precision. (default: 4;
                                 this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing Map^2 from GG correlations to %s',file_name)

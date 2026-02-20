@@ -864,7 +864,7 @@ def test_nmap():
     np.testing.assert_allclose(corr2_output['NMap_norm'], nmap_norm, rtol=1.e-3)
     np.testing.assert_allclose(corr2_output['Nsq_Mapsq'], napsq_mapsq, rtol=1.e-3)
 
-    # Also check writing to fits file.
+    # Also check writing to a FITS file.
     # For grins, also check the explicit file_type option (which is rarely necessary)
     try:
         import fitsio

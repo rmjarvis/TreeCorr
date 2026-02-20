@@ -1994,7 +1994,7 @@ def test_direct_logsas_cross12():
     with assert_raises(ValueError):
         ggn.process(cat2)
 
-    # With ordered=False, doesn't do anything difference, since there is no other valid order.
+    # With ordered=False, doesn't do anything different, since there is no other valid order.
     ngg.process(cat1, cat2, ordered=False, algo='triangle')
     np.testing.assert_array_equal(ngg.ntri, true_ntri_122)
     np.testing.assert_allclose(ngg.weight, true_weight_122, rtol=1.e-5)

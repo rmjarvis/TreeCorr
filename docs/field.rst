@@ -2,13 +2,13 @@ Fields
 ======
 
 The `Field` class and its subclasses repackage the information from a `Catalog`
-into a ball tree data structure, allowing for fast calcaulation of the correlation
+into a ball tree data structure, allowing for fast calculation of the correlation
 functions.
 
 There are several kinds of `Field` classes.
 
-    - `Field` itself is an abstract base class of the other kinds of fields, and has a
-      few methods that are available for all `Field` types.
+    - `Field` itself is an abstract base class for the other field types and has a
+      few methods available for all `Field` types.
 
     - `NField` holds counts of objects and is used for correlations with an N in the name,
       including `NNCorrelation`, `NGCorrelation`, `NKCorrelation`, and `NNNCorrelation`.
@@ -32,9 +32,9 @@ There are several kinds of `Field` classes.
       `QQCorrelation`, `NQCorrelation`, and `KQCorrelation`.
 
 Typically, one would not create any of these objects directly, but would instead
-use Catalog methods `getNField`, `getKField`, `getZField`, `getVField`, `getGField`.
-`getTField`, or `getQField`.
-Or indeed, usually, one does not even do that, and just lets the relevant ``process``
+use Catalog methods such as `getNField`, `getKField`, `getZField`, `getVField`,
+`getGField`, `getTField`, or `getQField`.
+Usually, one does not even do that, and instead lets the relevant ``process``
 command do so for you.
 
 .. autoclass:: treecorr.Field

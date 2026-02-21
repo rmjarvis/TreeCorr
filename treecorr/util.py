@@ -34,7 +34,8 @@ def set_max_omp_threads(num_threads, logger=None):
     further TreeCorr functions
 
     :param num_threads: The target maximum number of threads to allow.  None means no limit.
-    :param logger:      If desired, a logger object for logging any warnings here. (default: None)
+    :param logger:      If desired, a ``Logger`` object for logging any warnings here.
+                        (default: None)
     """
     global max_omp_threads
     max_omp_threads=num_threads
@@ -43,7 +44,8 @@ def set_omp_threads(num_threads, logger=None):
     """Set the number of OpenMP threads to use in the C++ layer.
 
     :param num_threads: The target number of threads to use
-    :param logger:      If desired, a logger object for logging any warnings here. (default: None)
+    :param logger:      If desired, a ``Logger`` object for logging any warnings here.
+                        (default: None)
 
     :returns:           The  number of threads OpenMP reports that it will use.  Typically this
                         matches the input, but OpenMP reserves the right not to comply with

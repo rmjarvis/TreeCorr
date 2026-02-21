@@ -549,7 +549,8 @@ class NField(Field):
         rng (:class:`numpy.random.Generator`):
                             If desired, a ``Generator`` instance to use for
                             random number generation. (default: None)
-        logger (Logger):    A logger file if desired. (default: None)
+        logger (:class:`logging.Logger`):
+                            A ``Logger`` object if desired. (default: None)
     """
     def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, rng=None, logger=None):
@@ -613,7 +614,8 @@ class KField(Field):
         rng (:class:`numpy.random.Generator`):
                             If desired, a ``Generator`` instance to use for
                             random number generation. (default: None)
-        logger (Logger):    A logger file if desired. (default: None)
+        logger (:class:`logging.Logger`):
+                            A ``Logger`` object if desired. (default: None)
     """
     def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, rng=None, logger=None):
@@ -677,7 +679,8 @@ class ZField(Field):
         rng (:class:`numpy.random.Generator`):
                             If desired, a ``Generator`` instance to use for
                             random number generation. (default: None)
-        logger (Logger):    A logger file if desired. (default: None)
+        logger (:class:`logging.Logger`):
+                            A ``Logger`` object if desired. (default: None)
     """
     def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, rng=None, logger=None):
@@ -741,7 +744,8 @@ class VField(Field):
         rng (:class:`numpy.random.Generator`):
                             If desired, a ``Generator`` instance to use for
                             random number generation. (default: None)
-        logger (Logger):    A logger file if desired. (default: None)
+        logger (:class:`logging.Logger`):
+                            A ``Logger`` object if desired. (default: None)
     """
     def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, rng=None, logger=None):
@@ -805,7 +809,8 @@ class GField(Field):
         rng (:class:`numpy.random.Generator`):
                             If desired, a ``Generator`` instance to use for
                             random number generation. (default: None)
-        logger (Logger):    A logger file if desired. (default: None)
+        logger (:class:`logging.Logger`):
+                            A ``Logger`` object if desired. (default: None)
     """
     def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, rng=None, logger=None):
@@ -869,7 +874,8 @@ class TField(Field):
         rng (:class:`numpy.random.Generator`):
                             If desired, a ``Generator`` instance to use for
                             random number generation. (default: None)
-        logger (Logger):    A logger file if desired. (default: None)
+        logger (:class:`logging.Logger`):
+                            A ``Logger`` object if desired. (default: None)
     """
     def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, rng=None, logger=None):
@@ -932,7 +938,8 @@ class QField(Field):
         rng (:class:`numpy.random.Generator`):
                             If desired, a ``Generator`` instance to use for
                             random number generation. (default: None)
-        logger (Logger):    A logger file if desired. (default: None)
+        logger (:class:`logging.Logger`):
+                            A ``Logger`` object if desired. (default: None)
     """
     def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, rng=None, logger=None):

@@ -230,7 +230,7 @@ def check_config(config, params, aliases=None, logger=None):
     :param params:  A dict of valid parameters with information about each one.
     :param aliases: A dict of deprecated parameters that are still aliases for new names.
                     (default: None)
-    :param logger:  If desired, a logger object for logging any warnings here. (default: None)
+    :param logger:  If desired, a ``Logger`` object for logging any warnings here. (default: None)
 
     :returns:       The updated config dict.
     """

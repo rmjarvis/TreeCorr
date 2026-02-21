@@ -45,6 +45,7 @@ extensions = [
 intersphinx_mapping = {
     'coord': ('https://lsstdesc.org/Coord/_build/html/', None),
     'numpy': ('https://numpy.org/doc/stable/', None),
+    'python': ('https://docs.python.org/3', None),
 }
 
 # cf. http://stackoverflow.com/questions/2701998/sphinx-autodoc-is-not-automatic-enough

@@ -28,7 +28,8 @@ class AsciiWriter(object):
         Parameters:
             file_name:      The file name.
             precision:      The number of digits of precision to output.
-            logger:         If desired, a logger object for logging. (default: None)
+            logger (:class:`logging.Logger`):
+                            If desired, a ``Logger`` object for logging. (default: None)
         """
         self.file_name = file_name
         self.logger = logger
@@ -103,7 +104,8 @@ class FitsWriter(object):
         """
         Parameters:
             file_name:      The file name.
-            logger:         If desired, a logger object for logging. (default: None)
+            logger (:class:`logging.Logger`):
+                            If desired, a ``Logger`` object for logging. (default: None)
         """
         try:
             import fitsio  # noqa: F401
@@ -168,7 +170,8 @@ class HdfWriter(object):
         """
         Parameters:
             file_name:      The file name.
-            logger:         If desired, a logger object for logging. (default: None)
+            logger (:class:`logging.Logger`):
+                            If desired, a ``Logger`` object for logging. (default: None)
         """
         try:
             import h5py  # noqa: F401

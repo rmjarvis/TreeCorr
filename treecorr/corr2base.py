@@ -255,8 +255,9 @@ class Corr2(object):
         cross_patch_weight (str): How to weight pairs that cross between two patches when one patch
                             is deselected (e.g. in a jackknife sense) and the other is selected.
                             (default None)
-        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for bootstrap
-                            random number generation. (default: None)
+        rng (:class:`numpy.random.Generator`):
+                            If desired, a ``Generator`` instance to use for
+                            bootstrap random number generation. (default: None)
 
         num_threads (int):  How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores)
@@ -2086,8 +2087,9 @@ class Corr2(object):
             file_type (str):    The type of file ('ASCII', 'FITS', or 'HDF').  (default: determine
                                 the type automatically from the extension of file_name.)
             logger (Logger):    If desired, a logger object to use for logging. (default: None)
-            rng (RandomState):  If desired, a numpy.random.RandomState instance to use for bootstrap
-                                random number generation. (default: None)
+            rng (:class:`numpy.random.Generator`):
+                                If desired, a ``Generator`` instance to use for
+                                bootstrap random number generation. (default: None)
 
         Returns:
             A Correlation object, constructed from the information in the file.

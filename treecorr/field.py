@@ -381,8 +381,9 @@ class Field(object):
             alt (bool):         Use the alternate assignment algorithm to minimize the standard
                                 deviation of the inertia rather than the total inertia (aka WCSS).
                                 (default: False)
-            rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random
-                                number generation. (default: None)
+            rng (:class:`numpy.random.Generator`):
+                                If desired, a ``Generator`` instance to use for
+                                random number generation. (default: None)
 
         Returns:
             Tuple containing
@@ -425,8 +426,9 @@ class Field(object):
                                     - 'kmeans++' =  Use the k-means++ algorithm.
                                       cf. https://en.wikipedia.org/wiki/K-means%2B%2B
 
-            rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random
-                                number generation. (default: None)
+            rng (:class:`numpy.random.Generator`):
+                                If desired, a ``Generator`` instance to use for
+                                random number generation. (default: None)
 
         Returns:
             An array of center coordinates.
@@ -544,8 +546,9 @@ class NField(Field):
         max_top (int):      The maximum number of top layers to use when setting up the field.
                             (default: 10)
         coords (str):       The kind of coordinate system to use. (default: cat.coords)
-        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random
-                            number generation. (default: None)
+        rng (:class:`numpy.random.Generator`):
+                            If desired, a ``Generator`` instance to use for
+                            random number generation. (default: None)
         logger (Logger):    A logger file if desired. (default: None)
     """
     def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
@@ -607,8 +610,9 @@ class KField(Field):
         max_top (int):      The maximum number of top layers to use when setting up the field.
                             (default: 10)
         coords (str):       The kind of coordinate system to use. (default: cat.coords)
-        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random
-                            number generation. (default: None)
+        rng (:class:`numpy.random.Generator`):
+                            If desired, a ``Generator`` instance to use for
+                            random number generation. (default: None)
         logger (Logger):    A logger file if desired. (default: None)
     """
     def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
@@ -670,8 +674,9 @@ class ZField(Field):
         max_top (int):      The maximum number of top layers to use when setting up the field.
                             (default: 10)
         coords (str):       The kind of coordinate system to use. (default: cat.coords)
-        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random
-                            number generation. (default: None)
+        rng (:class:`numpy.random.Generator`):
+                            If desired, a ``Generator`` instance to use for
+                            random number generation. (default: None)
         logger (Logger):    A logger file if desired. (default: None)
     """
     def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
@@ -733,8 +738,9 @@ class VField(Field):
         max_top (int):      The maximum number of top layers to use when setting up the field.
                             (default: 10)
         coords (str):       The kind of coordinate system to use. (default: cat.coords)
-        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random
-                            number generation. (default: None)
+        rng (:class:`numpy.random.Generator`):
+                            If desired, a ``Generator`` instance to use for
+                            random number generation. (default: None)
         logger (Logger):    A logger file if desired. (default: None)
     """
     def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
@@ -796,8 +802,9 @@ class GField(Field):
         max_top (int):      The maximum number of top layers to use when setting up the field.
                             (default: 10)
         coords (str):       The kind of coordinate system to use. (default: cat.coords)
-        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random
-                            number generation. (default: None)
+        rng (:class:`numpy.random.Generator`):
+                            If desired, a ``Generator`` instance to use for
+                            random number generation. (default: None)
         logger (Logger):    A logger file if desired. (default: None)
     """
     def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
@@ -859,8 +866,9 @@ class TField(Field):
         max_top (int):      The maximum number of top layers to use when setting up the field.
                             (default: 10)
         coords (str):       The kind of coordinate system to use. (default: cat.coords)
-        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random
-                            number generation. (default: None)
+        rng (:class:`numpy.random.Generator`):
+                            If desired, a ``Generator`` instance to use for
+                            random number generation. (default: None)
         logger (Logger):    A logger file if desired. (default: None)
     """
     def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
@@ -921,8 +929,9 @@ class QField(Field):
         max_top (int):      The maximum number of top layers to use when setting up the field.
                             (default: 10)
         coords (str):       The kind of coordinate system to use. (default: cat.coords)
-        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random
-                            number generation. (default: None)
+        rng (:class:`numpy.random.Generator`):
+                            If desired, a ``Generator`` instance to use for
+                            random number generation. (default: None)
         logger (Logger):    A logger file if desired. (default: None)
     """
     def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,

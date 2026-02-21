@@ -414,7 +414,8 @@ class GGGCorrelation(Corr3):
             ``m2_uform`` = 'Crittenden'.
 
         Parameters:
-            R (array):      The R values at which to calculate the aperture mass statistics.
+            R (:class:`numpy.ndarray`):
+                            The R values at which to calculate the aperture mass statistics.
                             (default: None, which means to use self.rnom1d)
             k2 (float):     If given, the ratio R2/R1 in the SKL formulae. (default: 1)
             k3 (float):     If given, the ratio R3/R1 in the SKL formulae. (default: 1)
@@ -651,7 +652,8 @@ class GGGCorrelation(Corr3):
 
         Parameters:
             file_name (str):    The name of the file to write to.
-            R (array):          The R values at which to calculate the statistics.
+            R (:class:`numpy.ndarray`):
+                                The R values at which to calculate the statistics.
                                 (default: None, which means to use self.rnom)
             file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
                                 the type automatically from the extension of file_name.)

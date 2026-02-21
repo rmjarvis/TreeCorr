@@ -388,9 +388,11 @@ class Field(object):
         Returns:
             Tuple containing
 
-                - patches (array): An array of patch labels, all integers from 0..npatch-1.
+                - patches (:class:`numpy.ndarray`): An array of patch labels,
+                  all integers from 0..npatch-1.
                   Size is self.ntot.
-                - centers (array): An array of center coordinates used to make the patches.
+                - centers (:class:`numpy.ndarray`): An array of center coordinates
+                  used to make the patches.
                   Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
                   spherical geometries.  In the latter case, the centers represent
                   (x,y,z) coordinates on the unit sphere.
@@ -489,7 +491,8 @@ class Field(object):
         the sizes at each step.
 
         Parameters:
-            centers (array):    An array of center coordinates. (modified by this function)
+            centers (:class:`numpy.ndarray`):
+                                An array of center coordinates. (modified by this function)
                                 Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
                                 spherical geometries.  In the latter case, the centers represent
                                 (x,y,z) coordinates on the unit sphere.
@@ -510,7 +513,8 @@ class Field(object):
         point in the field according to which center is closest.
 
         Parameters:
-            centers (array):    An array of center coordinates.
+            centers (:class:`numpy.ndarray`):
+                                An array of center coordinates.
                                 Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
                                 spherical geometries.  In the latter case, the centers represent
                                 (x,y,z) coordinates on the unit sphere.

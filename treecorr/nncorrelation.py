@@ -700,7 +700,8 @@ class NNCorrelation(Corr2):
 
         Parameters:
             rr (NNCorrelation): The auto-correlation of the random field (RR)
-            R (array):          The R values at which to calculate the aperture mass statistics.
+            R (:class:`numpy.ndarray`):
+                                The R values at which to calculate the aperture mass statistics.
                                 (default: None, which means to use self.rnom)
             dr (NNCorrelation): The cross-correlation of the data with randoms (DR), if
                                 desired. (default: None)

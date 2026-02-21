@@ -1673,9 +1673,9 @@ class Corr2(object):
         Returns:
             Tuple containing
 
-                - i1 (array): indices of objects from cat1
-                - i2 (array): indices of objects from cat2
-                - sep (array): separations of the pairs of objects (i1,i2)
+                - i1 (:class:`numpy.ndarray`): indices of objects from cat1
+                - i2 (:class:`numpy.ndarray`): indices of objects from cat2
+                - sep (:class:`numpy.ndarray`): separations of the pairs of objects (i1,i2)
         """
         if metric is None:
             metric = self.config.get('metric', 'Euclidean')

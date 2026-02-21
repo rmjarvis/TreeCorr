@@ -142,7 +142,8 @@ class GGCorrelation(BaseZZCorrelation):
 
 
         Parameters:
-            R (array):      The R values at which to calculate the aperture mass statistics.
+            R (:class:`numpy.ndarray`):
+                            The R values at which to calculate the aperture mass statistics.
                             (default: None, which means to use self.rnom)
             m2_uform (str): Which form to use for the aperture mass, as described above.
                             (default: 'Crittenden'; this value can also be given in the
@@ -235,7 +236,8 @@ class GGCorrelation(BaseZZCorrelation):
 
 
         Parameters:
-            R (array):  The R values at which to calculate the shear variance.
+            R (:class:`numpy.ndarray`):
+                        The R values at which to calculate the shear variance.
                         (default: None, which means to use self.rnom)
             eb (bool):  Whether to include the E/B decomposition as well as the total
                         :math:`\langle \gamma^2\rangle`.  (default: False)
@@ -314,7 +316,8 @@ class GGCorrelation(BaseZZCorrelation):
 
         Parameters:
             file_name (str):    The name of the file to write to.
-            R (array):          The R values at which to calculate the statistics.
+            R (:class:`numpy.ndarray`):
+                                The R values at which to calculate the statistics.
                                 (default: None, which means to use self.rnom)
             m2_uform (str):     Which form to use for the aperture mass.  (default: 'Crittenden';
                                 this value can also be given in the constructor in the config dict.)

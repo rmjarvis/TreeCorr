@@ -247,48 +247,70 @@ class Catalog(object):
                             catalog for the N has num=0, the one for G has num=1.  This is only
                             necessary if you are using a config dict where things like ``x_col``
                             have multiple values. (default: 0)
-        logger (:class:`logging.Logger`): If desired, a ``Logger`` object for logging.
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging.
                             (default: None, in which case one will be built according to the
                             config dict's verbose level.)
         is_rand (bool):     If this is a random file, then setting is_rand to True will let them
                             skip k_col, g1_col, and g2_col if they were set for the main catalog.
                             (default: False)
 
-        x (array):          The x values. (default: None; When providing values directly, either
+        x (:class:`numpy.ndarray`):
+                            The x values. (default: None; When providing values directly, either
                             x,y are required or ra,dec are required.)
-        y (array):          The y values. (default: None; When providing values directly, either
+        y (:class:`numpy.ndarray`):
+                            The y values. (default: None; When providing values directly, either
                             x,y are required or ra,dec are required.)
-        z (array):          The z values, if doing 3d positions. (default: None; invalid in
+        z (:class:`numpy.ndarray`):
+                            The z values, if doing 3d positions. (default: None; invalid in
                             conjunction with ra, dec.)
-        ra (array):         The RA values. (default: None; When providing values directly, either
+        ra (:class:`numpy.ndarray`):
+                            The RA values. (default: None; When providing values directly, either
                             x,y are required or ra,dec are required.)
-        dec (array):        The Dec values. (default: None; When providing values directly, either
+        dec (:class:`numpy.ndarray`):
+                            The Dec values. (default: None; When providing values directly, either
                             x,y are required or ra,dec are required.)
-        r (array):          The r values (the distances of each source from Earth). (default: None;
+        r (:class:`numpy.ndarray`):
+                            The r values (the distances of each source from Earth). (default: None;
                             invalid in conjunction with x, y.)
-        w (array):          The weights to apply when computing the correlations. (default: None)
-        wpos (array):       The weights to use for position centroiding. (default: None, which
+        w (:class:`numpy.ndarray`):
+                            The weights to apply when computing the correlations. (default: None)
+        wpos (:class:`numpy.ndarray`):
+                            The weights to use for position centroiding. (default: None, which
                             means to use the value weights, w, to weight the positions as well.)
-        flag (array):       An optional array of flags, indicating objects to skip.  Rows with
+        flag (:class:`numpy.ndarray`):
+                            An optional array of flags, indicating objects to skip.  Rows with
                             flag != 0 (or technically flag & ~ok_flag != 0) will be given a weight
                             of 0. (default: None)
-        k (array):          The kappa values to use for scalar correlations. (This may represent
+        k (:class:`numpy.ndarray`):
+                            The kappa values to use for scalar correlations. (This may represent
                             any scalar field.) (default: None)
-        z1 (array):         The z1 values to use for complex scalar correlations. (default: None)
-        z2 (array):         The z2 values to use for complex scalar correlations. (default: None)
-        v1 (array):         The v1 values to use for vector correlations. (default: None)
-        v2 (array):         The v2 values to use for vector correlations. (default: None)
-        g1 (array):         The g1 values to use for shear correlations. (g1,g2 may represent any
+        z1 (:class:`numpy.ndarray`):
+                            The z1 values to use for complex scalar correlations. (default: None)
+        z2 (:class:`numpy.ndarray`):
+                            The z2 values to use for complex scalar correlations. (default: None)
+        v1 (:class:`numpy.ndarray`):
+                            The v1 values to use for vector correlations. (default: None)
+        v2 (:class:`numpy.ndarray`):
+                            The v2 values to use for vector correlations. (default: None)
+        g1 (:class:`numpy.ndarray`):
+                            The g1 values to use for shear correlations. (g1,g2 may represent any
                             spin-2 field.) (default: None)
-        g2 (array):         The g2 values to use for shear correlations. (g1,g2 may represent any
+        g2 (:class:`numpy.ndarray`):
+                            The g2 values to use for shear correlations. (g1,g2 may represent any
                             spin-2 field.) (default: None)
-        t1 (array):         The t1 values to use for trefoil (spin-3) correlations. (default: None)
-        t2 (array):         The t2 values to use for trefoil (spin-3) correlations. (default: None)
-        q1 (array):         The q1 values to use for quatrefoil (spin-4) correlations.
+        t1 (:class:`numpy.ndarray`):
+                            The t1 values to use for trefoil (spin-3) correlations. (default: None)
+        t2 (:class:`numpy.ndarray`):
+                            The t2 values to use for trefoil (spin-3) correlations. (default: None)
+        q1 (:class:`numpy.ndarray`):
+                            The q1 values to use for quatrefoil (spin-4) correlations.
                             (default: None)
-        q2 (array):         The q2 values to use for quatrefoil (spin-4) correlations.
+        q2 (:class:`numpy.ndarray`):
+                            The q2 values to use for quatrefoil (spin-4) correlations.
                             (default: None)
-        patch (array or int): Optionally, patch numbers to use for each object. (default: None)
+        patch (:class:`numpy.ndarray` or int):
+                            Optionally, patch numbers to use for each object. (default: None)
 
                             .. note::
 
@@ -301,7 +323,8 @@ class Catalog(object):
                                 given patch number, and ``npatch`` is required to set the total
                                 number of patches, which this catalog is a part of.
 
-        patch_centers (array or str): Alternative to setting patch by hand or using kmeans, you
+        patch_centers (:class:`numpy.ndarray` or str):
+                            Alternative to setting patch by hand or using kmeans, you
                             may instead give patch_centers either as a file name or an array
                             from which the patches will be determined. (default: None)
 
@@ -1662,7 +1685,8 @@ class Catalog(object):
         """Check if the column has any NaNs.  If so, set those rows to have w[k]=0.
 
         Parameters:
-            col (array):    The input column to check.
+            col (:class:`numpy.ndarray`):
+                            The input column to check.
             col_str (str):  The name of the column.  Used only as information in logging output.
         """
         if col is not None and np.any(np.isnan(col)):

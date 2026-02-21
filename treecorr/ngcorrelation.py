@@ -211,7 +211,8 @@ class NGCorrelation(BaseNZCorrelation):
         to the derivations of :math:`T_+` and :math:`T_-` in Schneider et al. (2002).
 
         Parameters:
-            R (array):          The R values at which to calculate the aperture mass statistics.
+            R (:class:`numpy.ndarray`):
+                                The R values at which to calculate the aperture mass statistics.
                                 (default: None, which means to use self.rnom)
             rg (NGCorrelation): The cross-correlation using random locations as the lenses
                                 (RG), if desired.  (default: None)
@@ -286,7 +287,8 @@ class NGCorrelation(BaseNZCorrelation):
 
         Parameters:
             file_name (str):    The name of the file to write to.
-            R (array):          The R values at which to calculate the aperture mass statistics.
+            R (:class:`numpy.ndarray`):
+                                The R values at which to calculate the aperture mass statistics.
                                 (default: None, which means to use self.rnom)
             rg (NGCorrelation): The cross-correlation using random locations as the lenses
                                 (RG), if desired.  (default: None)
@@ -354,7 +356,8 @@ class NGCorrelation(BaseNZCorrelation):
             gg (GGCorrelation): The auto-correlation of the shear field
             dd (NNCorrelation): The auto-correlation of the lens counts (DD)
             rr (NNCorrelation): The auto-correlation of the random field (RR)
-            R (array):          The R values at which to calculate the aperture mass statistics.
+            R (:class:`numpy.ndarray`):
+                                The R values at which to calculate the aperture mass statistics.
                                 (default: None, which means to use self.rnom)
             dr (NNCorrelation): The cross-correlation of the data with randoms (DR), if
                                 desired, in which case the Landy-Szalay estimator will be

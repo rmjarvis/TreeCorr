@@ -247,8 +247,9 @@ class Catalog(object):
                             catalog for the N has num=0, the one for G has num=1.  This is only
                             necessary if you are using a config dict where things like ``x_col``
                             have multiple values. (default: 0)
-        logger:             If desired, a Logger object for logging. (default: None, in which case
-                            one will be built according to the config dict's verbose level.)
+        logger (:class:`logging.Logger`): If desired, a ``Logger`` object for logging.
+                            (default: None, in which case one will be built according to the
+                            config dict's verbose level.)
         is_rand (bool):     If this is a random file, then setting is_rand to True will let them
                             skip k_col, g1_col, and g2_col if they were set for the main catalog.
                             (default: False)
@@ -2410,7 +2411,8 @@ class Catalog(object):
             max_top (int):      The maximum number of top layers to use when setting up the
                                 field. (default: 10)
             coords (str):       The kind of coordinate system to use. (default: self.coords)
-            logger:             A Logger object if desired (default: self.logger)
+            logger (:class:`logging.Logger`):
+                                A ``Logger`` object if desired (default: self.logger)
 
         Returns:
             An `NField` object
@@ -2444,7 +2446,8 @@ class Catalog(object):
             max_top (int):      The maximum number of top layers to use when setting up the
                                 field. (default: 10)
             coords (str):       The kind of coordinate system to use. (default self.coords)
-            logger:             A Logger object if desired (default: self.logger)
+            logger (:class:`logging.Logger`):
+                                A ``Logger`` object if desired (default: self.logger)
 
         Returns:
             A `KField` object
@@ -2479,7 +2482,8 @@ class Catalog(object):
             max_top (int):      The maximum number of top layers to use when setting up the
                                 field. (default: 10)
             coords (str):       The kind of coordinate system to use. (default self.coords)
-            logger:             A Logger object if desired (default: self.logger)
+            logger (:class:`logging.Logger`):
+                                A ``Logger`` object if desired (default: self.logger)
 
         Returns:
             A `ZField` object
@@ -2514,7 +2518,8 @@ class Catalog(object):
             max_top (int):      The maximum number of top layers to use when setting up the
                                 field. (default: 10)
             coords (str):       The kind of coordinate system to use. (default self.coords)
-            logger:             A Logger object if desired (default: self.logger)
+            logger (:class:`logging.Logger`):
+                                A ``Logger`` object if desired (default: self.logger)
 
         Returns:
             A `VField` object
@@ -2549,7 +2554,8 @@ class Catalog(object):
             max_top (int):      The maximum number of top layers to use when setting up the
                                 field. (default: 10)
             coords (str):       The kind of coordinate system to use. (default self.coords)
-            logger:             A Logger object if desired (default: self.logger)
+            logger (:class:`logging.Logger`):
+                                A ``Logger`` object if desired (default: self.logger)
 
         Returns:
             A `GField` object
@@ -2584,7 +2590,8 @@ class Catalog(object):
             max_top (int):      The maximum number of top layers to use when setting up the
                                 field. (default: 10)
             coords (str):       The kind of coordinate system to use. (default self.coords)
-            logger:             A Logger object if desired (default: self.logger)
+            logger (:class:`logging.Logger`):
+                                A ``Logger`` object if desired (default: self.logger)
 
         Returns:
             A `TField` object
@@ -2619,7 +2626,8 @@ class Catalog(object):
             max_top (int):      The maximum number of top layers to use when setting up the
                                 field. (default: 10)
             coords (str):       The kind of coordinate system to use. (default self.coords)
-            logger:             A Logger object if desired (default: self.logger)
+            logger (:class:`logging.Logger`):
+                                A ``Logger`` object if desired (default: self.logger)
 
         Returns:
             A `QField` object
@@ -3250,8 +3258,10 @@ def read_catalogs(config, key=None, list_key=None, *, num=0, logger=None, is_ran
                         Either key or list_key is required.  (default: None)
         num (int):      Which number catalog does this correspond to. e.g. file_name should use
                         num=0, file_name2 should use num=1.  (default: 0)
-        logger:         If desired, a Logger object for logging. (default: None, in which case
-                        one will be built according to the config dict's verbose level.)
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging.
+                        (default: None, in which case one will be built according to the config
+                        dict's verbose level.)
         is_rand (bool): If this is a random file, then setting is_rand to True will let them
                         skip k_col, g1_col, and g2_col if they were set for the main catalog.
                         (default: False)

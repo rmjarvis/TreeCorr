@@ -61,7 +61,8 @@ class NNCorrelation(Corr2):
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
                         This dict is allowed to have additional entries besides those listed
                         in `Corr2`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -587,7 +588,8 @@ class NNCorrelation(Corr2):
             file_name (str):    The name of the file to read in.
             file_type (str):    The type of file ('ASCII', 'FITS', or 'HDF').  (default: determine
                                 the type automatically from the extension of file_name.)
-            logger (Logger):    If desired, a logger object to use for logging. (default: None)
+            logger (:class:`logging.Logger`):
+                                If desired, a ``Logger`` object to use for logging. (default: None)
             rng (:class:`numpy.random.Generator`):
                                 If desired, a ``Generator`` instance to use for
                                 bootstrap random number generation. (default: None)
